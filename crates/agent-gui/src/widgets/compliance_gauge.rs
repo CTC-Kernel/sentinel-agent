@@ -57,7 +57,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 painter.circle_filled(
                     last_point,
                     stroke_width * 0.25,
-                    egui::Color32::WHITE.linear_multiply(theme::OPACITY_STRONG),
+                    theme::text_on_accent(),
                 );
             }
 

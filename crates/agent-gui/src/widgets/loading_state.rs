@@ -64,7 +64,7 @@ pub fn error_state(ui: &mut Ui, message: &str) -> bool {
         ui.label(
             egui::RichText::new(crate::icons::ERROR)
                 .font(egui::FontId::proportional(theme::SPACE_XL + theme::SPACE_SM))
-                .color(theme::ERROR.linear_multiply(theme::OPACITY_PRESSED)),
+                .color(theme::readable_color(theme::ERROR)),
         );
 
         ui.add_space(theme::SPACE_MD);

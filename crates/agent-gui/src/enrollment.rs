@@ -185,7 +185,7 @@ impl EnrollmentWizard {
                 ui.label(
                     egui::RichText::new("Bienvenue dans Sentinel Agent")
                         .font(theme::font_comex()) // Larger, bolder title
-                        .color(theme::ACCENT)
+                        .color(theme::accent_text())
                         .strong(),
                 );
                 ui.add_space(theme::SPACE);
@@ -225,17 +225,8 @@ impl EnrollmentWizard {
             ui.set_max_width(theme::ENROLLMENT_INPUT_WIDTH);
 
             // Glass Card Frame
-            let is_dark = theme::is_dark_mode();
-
-            // OPAQUE BLACK for premium contrast
-            let card_bg = if is_dark {
-                egui::Color32::from_hex("#0A0A0A").unwrap_or(egui::Color32::BLACK)
-            } else {
-                egui::Color32::WHITE
-            };
-
-            // ULTRA SUBTLE BORDER: 5-8% opacity only
-            let card_stroke = egui::Stroke::new(theme::BORDER_THIN, egui::Color32::from_white_alpha(12));
+            let card_bg = theme::bg_secondary();
+            let card_stroke = egui::Stroke::new(theme::BORDER_THIN, theme::border());
 
             egui::Frame::new()
                 .fill(card_bg)
@@ -272,11 +263,7 @@ impl EnrollmentWizard {
                         ui.painter().rect_filled(
                             rect,
                             egui::CornerRadius::same(rounding),
-                            if is_dark {
-                                egui::Color32::from_white_alpha(10)
-                            } else {
-                                egui::Color32::from_black_alpha(10)
-                            },
+                            theme::border(),
                         );
 
                         // 2. Calculate State
@@ -368,8 +355,7 @@ impl EnrollmentWizard {
                     ui.add_space(theme::SPACE_LG);
 
                     // INPUT AREA
-                    let input_bg =
-                        egui::Color32::from_hex("#0A0A0A").unwrap_or(egui::Color32::BLACK);
+                    let input_bg = theme::bg_tertiary();
                     let input_rounding: u8 = 12;
 
                     if self.use_qr {
@@ -454,7 +440,7 @@ impl EnrollmentWizard {
                             ui.label(
                                 egui::RichText::new("Format invalide (attendu: xxxxx-xxxxx-xxxxx)")
                                     .font(theme::font_min())
-                                    .color(theme::ERROR),
+                                    .color(theme::readable_color(theme::ERROR)),
                             );
                         }
                     }
@@ -508,7 +494,7 @@ impl EnrollmentWizard {
                             ui.spacing_mut().item_spacing.x = theme::SPACE_SM;
                             let link_attr = egui::RichText::new("Se connecter")
                                 .font(theme::font_small())
-                                .color(theme::ACCENT);
+                                .color(theme::accent_text());
                             if ui.link(link_attr).clicked() {
                                 ui.ctx().open_url(egui::OpenUrl::new_tab(
                                     "https://app.cyber-threat-consulting.com/login",
@@ -517,7 +503,7 @@ impl EnrollmentWizard {
                             ui.label(egui::RichText::new("•").color(theme::text_tertiary()));
                             let link_attr_reg = egui::RichText::new("Créer un compte")
                                 .font(theme::font_small())
-                                .color(theme::ACCENT);
+                                .color(theme::accent_text());
                             if ui.link(link_attr_reg).clicked() {
                                 ui.ctx().open_url(egui::OpenUrl::new_tab(
                                     "https://app.cyber-threat-consulting.com/register",
@@ -566,26 +552,26 @@ impl EnrollmentWizard {
                     ui.label(
                         egui::RichText::new(icons::CIRCLE_CHECK)
                             .font(egui::FontId::proportional(theme::ENROLLMENT_HERO_ICON))
-                            .color(theme::SUCCESS),
+                            .color(theme::readable_color(theme::SUCCESS)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
                         egui::RichText::new("Enrôlement réussi !")
                             .font(theme::font_card_value())
-                            .color(theme::SUCCESS)
+                            .color(theme::readable_color(theme::SUCCESS))
                             .strong(),
                     );
                 } else {
                     ui.label(
                         egui::RichText::new(icons::CIRCLE_XMARK)
                             .font(egui::FontId::proportional(theme::ENROLLMENT_HERO_ICON))
-                            .color(theme::ERROR),
+                            .color(theme::readable_color(theme::ERROR)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
                         egui::RichText::new("Échec de l'enrôlement")
                             .font(theme::font_card_value())
-                            .color(theme::ERROR)
+                            .color(theme::readable_color(theme::ERROR))
                             .strong(),
                     );
                 }

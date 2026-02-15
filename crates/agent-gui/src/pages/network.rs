@@ -109,7 +109,7 @@ impl NetworkPage {
             (
                 "CONNEXIONS ACTIVES",
                 conn_count.to_string(),
-                if theme::is_dark_mode() { theme::ACCENT_LIGHT } else { theme::ACCENT },
+                theme::accent_text(),
                 icons::NETWORK,
             ),
             (
@@ -212,7 +212,7 @@ impl NetworkPage {
                     widgets::status_badge(
                         ui,
                         &format!("UDP: {}", udp_count),
-                        theme::ACCENT_LIGHT,
+                        theme::accent_text(),
                     );
                 });
                 ui.add_space(theme::SPACE_XS);
@@ -248,7 +248,7 @@ impl NetworkPage {
                             ),
                             egui::vec2(udp_w, bar_height),
                         );
-                        painter.rect_filled(udp_rect, rounding, theme::ACCENT_LIGHT);
+                        painter.rect_filled(udp_rect, rounding, theme::accent_text());
                     }
                 }
 
@@ -751,7 +751,7 @@ impl NetworkPage {
                                 ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.label(
                                         egui::RichText::new(icons::CUBE)
-                                            .color(theme::INFO),
+                                            .color(theme::readable_color(theme::INFO)),
                                     );
                                     let proc_name = conn.process_name.as_deref().unwrap_or("--");
                                     ui.label(
@@ -857,7 +857,7 @@ impl NetworkPage {
                             state.network.alert_count
                         ))
                         .font(theme::font_body())
-                        .color(theme::ERROR)
+                        .color(theme::readable_color(theme::ERROR))
                         .strong(),
                     );
                     ui.label(
@@ -872,7 +872,7 @@ impl NetworkPage {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(icons::WARNING)
-                            .color(theme::ERROR),
+                            .color(theme::readable_color(theme::ERROR)),
                     );
                     ui.label(
                         egui::RichText::new(format!(
@@ -880,7 +880,7 @@ impl NetworkPage {
                             state.network.alerts.len()
                         ))
                         .font(theme::font_body())
-                        .color(theme::ERROR)
+                        .color(theme::readable_color(theme::ERROR))
                         .strong(),
                     );
                 });

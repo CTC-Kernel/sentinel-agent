@@ -602,14 +602,13 @@ impl ThreatsPage {
                         let actions = [
                             widgets::DetailAction::primary("Voir d\u{00e9}tails", icons::EYE),
                         ];
-                        let cve_display = v.cve_id.as_deref().unwrap_or("Non référencé");
-                        let drawer_title = format!("{} \u{2014} {}", cve_display, v.affected_software);
+                        let drawer_title = format!("{} \u{2014} {}", v.cve_id, v.affected_software);
                         widgets::DetailDrawer::new("threat_detail", &drawer_title, icons::SHIELD_VIRUS)
                             .accent(sev_color)
                             .subtitle("Vuln\u{00e9}rabilit\u{00e9}")
                             .show(&ctx, &mut state.threats.detail_open, |ui| {
                                 widgets::detail_section(ui, "VULN\u{00c9}RABILIT\u{00c9}");
-                                widgets::detail_field(ui, "CVE", cve_display);
+                                widgets::detail_field(ui, "CVE", &v.cve_id);
                                 widgets::detail_field(ui, "Logiciel", &v.affected_software);
                                 widgets::detail_field(ui, "Version", &v.affected_version);
                                 if let Some(cvss) = v.cvss_score {
@@ -851,7 +850,7 @@ impl ThreatsPage {
             events.push(ThreatEvent {
                 kind: "vulnerability",
                 severity: v.severity.as_str(),
-                title: format!("{} \u{2014} {}", v.cve_id.as_deref().unwrap_or("Non référencé"), v.affected_software),
+                title: format!("{} \u{2014} {}", v.cve_id, v.affected_software),
                 description: v.description.clone(),
                 timestamp: v.discovered_at.unwrap_or_else(Utc::now),
                 confidence: v.cvss_score.map(|s| (s * 10.0).min(100.0) as u8),
@@ -1125,7 +1124,7 @@ impl ThreatsPage {
                 ui.label(
                     egui::RichText::new(icons::EYE)
                         .size(theme::ICON_SM)
-                        .color(theme::SUCCESS),
+                        .color(theme::readable_color(theme::SUCCESS)),
                 );
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
@@ -1154,15 +1153,14 @@ impl ThreatsPage {
                             ui.label(
                                 egui::RichText::new("\u{25cf}")
                                     .size(theme::STATUS_DOT_SIZE)
-                                    .color(theme::SUCCESS.linear_multiply(pulse_alpha)),
+                                    .color(theme::readable_color(theme::SUCCESS).linear_multiply(pulse_alpha)),
                             );
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new("EN DIRECT")
                                     .font(theme::font_label())
                                     .color(
-                                        theme::SUCCESS
-                                            .linear_multiply(theme::OPACITY_HOVER_SOFT),
+                                        theme::readable_color(theme::SUCCESS),
                                     )
                                     .strong(),
                             );
@@ -1405,7 +1403,7 @@ impl ThreatsPage {
             painter.circle_filled(
                 center,
                 1.5,
-                egui::Color32::WHITE.linear_multiply(theme::OPACITY_MODERATE),
+                theme::text_on_accent().linear_multiply(theme::OPACITY_MODERATE),
             );
 
             // Request animation repaint

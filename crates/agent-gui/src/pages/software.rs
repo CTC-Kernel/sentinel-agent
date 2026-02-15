@@ -468,14 +468,14 @@ impl SoftwarePage {
                                         ui.horizontal(|ui: &mut egui::Ui| {
                                             ui.label(
                                                 egui::RichText::new(icons::ARROW_RIGHT)
-                                                    .color(theme::ACCENT)
+                                                    .color(theme::accent_text())
                                                     .strong(),
                                             );
                                             ui.label(
                                                 egui::RichText::new(latest)
                                                     .font(theme::font_mono())
                                                     .size(11.0)
-                                                    .color(theme::ACCENT)
+                                                    .color(theme::accent_text())
                                                     .strong(),
                                             );
                                         });

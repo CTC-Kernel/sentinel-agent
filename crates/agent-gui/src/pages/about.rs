@@ -38,7 +38,7 @@ impl AboutPage {
                 ui.label(
                     egui::RichText::new(icons::VULNERABILITIES)
                         .size(48.0)
-                        .color(theme::ACCENT),
+                        .color(theme::accent_text()),
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
@@ -203,7 +203,7 @@ impl AboutPage {
                         .link(
                             egui::RichText::new("OUVRIR")
                                 .font(theme::font_small())
-                                .color(if theme::is_dark_mode() { theme::ACCENT_LIGHT } else { theme::ACCENT })
+                                .color(theme::accent_text())
                                 .strong(),
                         )
                         .clicked()

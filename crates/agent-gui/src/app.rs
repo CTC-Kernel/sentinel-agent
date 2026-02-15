@@ -296,7 +296,7 @@ impl SentinelApp {
                     // Title Bar (Satellite style)
                     widgets::card(ui, |ui: &mut egui::Ui| {
                         ui.horizontal(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new(icons::SHIELD).color(theme::ACCENT));
+                            ui.label(egui::RichText::new(icons::SHIELD).color(theme::accent_text()));
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new("RAPPORT CYBER RAPIDE")
@@ -362,7 +362,7 @@ impl SentinelApp {
                                         self.state.summary.compliance_score.unwrap_or(0.0)
                                     ))
                                     .font(theme::font_title())
-                                    .color(theme::ACCENT),
+                                    .color(theme::accent_text()),
                                 );
                             });
                         });
@@ -812,8 +812,6 @@ impl SentinelApp {
             };
             (a, (elapsed / 2.5).min(1.0))
         };
-        let a = (alpha * 255.0) as u8;
-
         egui::CentralPanel::default()
             .frame(egui::Frame::new().fill(theme::bg_primary()))
             .show(ctx, |ui: &mut egui::Ui| {
@@ -831,7 +829,7 @@ impl SentinelApp {
                                 include_bytes!("../assets/IA.png"),
                             )
                             .max_width(120.0)
-                            .tint(egui::Color32::from_white_alpha(a));
+                            .tint(theme::text_primary().linear_multiply(alpha));
                             ui.add(logo);
 
                             ui.add_space(theme::SPACE_LG);
@@ -840,7 +838,7 @@ impl SentinelApp {
                             ui.label(
                                 egui::RichText::new("SENTINEL")
                                     .font(egui::FontId::proportional(36.0))
-                                    .color(theme::ACCENT.linear_multiply(alpha))
+                                    .color(theme::accent_text().linear_multiply(alpha))
                                     .strong(),
                             );
 
@@ -850,12 +848,7 @@ impl SentinelApp {
                             ui.label(
                                 egui::RichText::new("GRC AGENT")
                                     .font(theme::font_heading())
-                                    .color(egui::Color32::from_rgba_premultiplied(
-                                        theme::text_tertiary().r(),
-                                        theme::text_tertiary().g(),
-                                        theme::text_tertiary().b(),
-                                        a,
-                                    )),
+                                    .color(theme::text_tertiary().linear_multiply(alpha)),
                             );
 
                             ui.add_space(theme::SPACE_XL);
@@ -871,7 +864,7 @@ impl SentinelApp {
                             painter.rect_filled(
                                 bar_rect,
                                 egui::CornerRadius::same(2),
-                                egui::Color32::from_white_alpha(15),
+                                theme::border(),
                             );
                             let fill_rect = egui::Rect::from_min_size(
                                 bar_rect.min,
@@ -889,12 +882,7 @@ impl SentinelApp {
                             ui.label(
                                 egui::RichText::new("CYBER THREAT CONSULTING")
                                     .font(theme::font_small())
-                                    .color(egui::Color32::from_rgba_premultiplied(
-                                        theme::text_tertiary().r(),
-                                        theme::text_tertiary().g(),
-                                        theme::text_tertiary().b(),
-                                        a,
-                                    ))
+                                    .color(theme::text_tertiary().linear_multiply(alpha))
                                     .strong(),
                             );
                         });

@@ -24,7 +24,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                     ui.label(
                         RichText::new(icons::BUILDING)
                             .size(theme::ICON_MD)
-                            .color(theme::ACCENT),
+                            .color(theme::accent_text()),
                     );
                     ui.add_space(theme::SPACE_SM);
 
@@ -244,15 +244,10 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         );
                         ui.add_space(theme::SPACE_XS);
                         let id_display: String = agent_id.chars().take(12).collect();
-                        let id_color = if theme::is_dark_mode() {
-                            theme::ACCENT_LIGHT
-                        } else {
-                            theme::ACCENT
-                        };
                         ui.label(
                             RichText::new(id_display)
                                 .font(theme::font_mono())
-                                .color(id_color),
+                                .color(theme::accent_text()),
                         );
                     });
                     ui.add_space(theme::SPACE_SM);

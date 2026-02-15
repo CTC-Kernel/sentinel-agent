@@ -151,7 +151,9 @@ impl AgentRuntime {
             .vulnerabilities
             .iter()
             .map(|v| GuiVulnerabilityFinding {
-                cve_id: v.cve_id.clone(),
+                cve_id: v.cve_id.clone().unwrap_or_else(|| {
+                    format!("{}-{}", v.source.to_uppercase(), v.package_name.to_uppercase())
+                }),
                 affected_software: v.package_name.clone(),
                 affected_version: v.installed_version.clone(),
                 severity: self.scanner_severity_to_gui(v.severity),

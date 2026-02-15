@@ -97,7 +97,7 @@ impl Sidebar {
                             ui.label(
                                 egui::RichText::new("SENTINEL")
                                     .font(theme::font_title())
-                                    .color(theme::ACCENT)
+                                    .color(theme::accent_text())
                                     .strong(),
                             );
                             if scanning {
@@ -110,7 +110,7 @@ impl Sidebar {
                                 ui.label(
                                     egui::RichText::new(icons::CIRCLE)
                                         .size(theme::STATUS_DOT_SIZE + 2.0)
-                                        .color(theme::ACCENT.linear_multiply(alpha)),
+                                        .color(theme::accent_text().linear_multiply(alpha)),
                                 );
                             }
                         });
@@ -129,7 +129,7 @@ impl Sidebar {
                                 let bell_response = ui.label(
                                     egui::RichText::new(icons::BELL)
                                         .size(theme::ICON_SM)
-                                        .color(theme::WARNING),
+                                        .color(theme::readable_color(theme::WARNING)),
                                 );
                                 // Draw count badge
                                 let badge_text = if unread_notifications > 9 {
@@ -263,7 +263,7 @@ impl Sidebar {
                                     ui.label(
                                         egui::RichText::new(org.to_uppercase())
                                             .font(theme::font_label())
-                                            .color(theme::ACCENT)
+                                            .color(theme::accent_text())
                                             .strong(),
                                     );
                                     ui.label(

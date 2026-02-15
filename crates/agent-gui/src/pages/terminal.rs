@@ -18,7 +18,7 @@ fn level_color(level: &str) -> Color32 {
     match level {
         "ERROR" => theme::ERROR,
         "WARN" => theme::WARNING,
-        "INFO" => theme::ACCENT_LIGHT,
+        "INFO" => theme::accent_text(),
         "DEBUG" => theme::text_tertiary(),
         _ => theme::text_secondary(), // TRACE & unknown
     }
@@ -101,7 +101,7 @@ impl TerminalPage {
                     ui,
                     "DURÉE D'ACTIVITÉ",
                     &format!("{:02}h {:02}m {:02}s", hours, mins, secs),
-                    theme::ACCENT_LIGHT,
+                    theme::accent_text(),
                 );
 
                 ui.add_space(theme::SPACE_LG);
@@ -349,11 +349,7 @@ impl TerminalPage {
                                 ui.label(
                                     egui::RichText::new(target_short)
                                         .font(egui::FontId::monospace(11.0))
-                                        .color(if theme::is_dark_mode() {
-                                            theme::ACCENT_LIGHT.linear_multiply(theme::OPACITY_PRESSED)
-                                        } else {
-                                            theme::ACCENT
-                                        }),
+                                        .color(theme::accent_text()),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {

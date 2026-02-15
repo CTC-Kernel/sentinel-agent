@@ -109,11 +109,11 @@ pub fn bg_primary() -> Color32 {
     }
 }
 
-/// Card / panel background.
+/// Card / panel background (must be lighter than bg_primary for elevation).
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(12, 12, 15) // Deep Charcoal
+        Color32::from_rgb(24, 24, 28) // Elevated above bg_primary (16,16,20)
     } else {
         Color32::WHITE
     }
@@ -199,17 +199,28 @@ pub fn text_on_accent() -> Color32 {
     Color32::WHITE
 }
 
+/// Accent-colored text — readable in both themes.
+/// Dark mode: bright cyan (ACCENT_LIGHT). Light mode: deeper blue (ACCENT).
+#[inline]
+pub fn accent_text() -> Color32 {
+    if is_dark_mode() {
+        ACCENT_LIGHT
+    } else {
+        ACCENT
+    }
+}
+
 // ============================================================================
 // Border / separator (dynamic)
 // ============================================================================
 
-/// Subtle border (glassy).
+/// Subtle border (visible but unobtrusive).
 #[inline]
 pub fn border() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(12) // Extremely subtle white
+        Color32::from_white_alpha(28)
     } else {
-        Color32::from_black_alpha(10)
+        Color32::from_black_alpha(22)
     }
 }
 
@@ -475,13 +486,9 @@ pub fn table_row_bg(row_index: usize) -> Color32 {
     }
 }
 
-/// Get row hover highlight color.
+/// Get row hover highlight color (accent-tinted for coherence).
 pub fn table_row_hover() -> Color32 {
-    if is_dark_mode() {
-        Color32::from_white_alpha(15)
-    } else {
-        Color32::from_black_alpha(10)
-    }
+    ACCENT.linear_multiply(if is_dark_mode() { 0.10 } else { 0.06 })
 }
 
 // ============================================================================
@@ -728,7 +735,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
         premium_shadow(12, 30)
     };
     visuals.resize_corner_size = 8.0;
-    visuals.hyperlink_color = ACCENT_LIGHT;
+    visuals.hyperlink_color = accent_text();
     visuals.faint_bg_color = bg_elevated();
     visuals.extreme_bg_color = if dark {
         Color32::from_rgb(14, 14, 16)
@@ -907,24 +914,16 @@ pub fn disabled_color(color: Color32) -> Color32 {
     color.linear_multiply(OPACITY_DISABLED)
 }
 
-/// Hover background for interactive elements.
+/// Hover background for interactive elements (accent-tinted).
 #[inline]
 pub fn hover_bg() -> Color32 {
-    if is_dark_mode() {
-        Color32::from_white_alpha(22)
-    } else {
-        Color32::from_black_alpha(12)
-    }
+    ACCENT.linear_multiply(if is_dark_mode() { 0.12 } else { 0.08 })
 }
 
-/// Active/pressed background for interactive elements.
+/// Active/pressed background for interactive elements (accent-tinted).
 #[inline]
 pub fn active_bg() -> Color32 {
-    if is_dark_mode() {
-        Color32::from_white_alpha(20)
-    } else {
-        Color32::from_black_alpha(15)
-    }
+    ACCENT.linear_multiply(if is_dark_mode() { 0.18 } else { 0.12 })
 }
 
 /// Selected item background.
