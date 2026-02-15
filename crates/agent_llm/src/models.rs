@@ -5,46 +5,6 @@ use std::collections::HashMap;
 
 use super::config::ModelCapabilities;
 
-/// LLM model interface.
-pub trait LLMModel: Send + Sync {
-    /// Get model name.
-    fn name(&self) -> &str;
-    
-    /// Get model capabilities.
-    fn capabilities(&self) -> ModelCapabilities;
-    
-    /// Get model size in parameters.
-    fn parameter_count(&self) -> u64;
-    
-    /// Get context size.
-    fn context_size(&self) -> usize;
-    
-    /// Check if model supports a specific capability.
-    fn supports(&self, capability: ModelCapabilities) -> bool {
-        let caps = self.capabilities();
-        (caps.code_analysis && capability.code_analysis) ||
-        (caps.security_analysis && capability.security_analysis) ||
-        (caps.remediation && capability.remediation) ||
-        (caps.classification && capability.classification) ||
-        (caps.summarization && capability.summarization)
-    }
-}
-
-/// Model status information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ModelStatus {
-    /// Model is not loaded
-    Unloaded,
-    /// Model is currently loading
-    Loading,
-    /// Model is loaded and ready
-    Ready,
-    /// Model encountered an error
-    Error(String),
-    /// Model is busy with inference
-    Busy,
-}
-
 /// Predefined model configurations.
 pub struct ModelRegistry;
 
@@ -160,81 +120,6 @@ pub enum UseCase {
     General,
 }
 
-/// Model performance metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModelMetrics {
-    pub model_name: String,
-    pub inference_time_ms: u64,
-    pub tokens_per_second: f32,
-    pub memory_usage_mb: u64,
-    pub accuracy_score: Option<f32>,
-    pub last_updated: chrono::DateTime<chrono::Utc>,
-}
-
-impl ModelMetrics {
-    pub fn new(model_name: String) -> Self {
-        Self {
-            model_name,
-            inference_time_ms: 0,
-            tokens_per_second: 0.0,
-            memory_usage_mb: 0,
-            accuracy_score: None,
-            last_updated: chrono::Utc::now(),
-        }
-    }
-
-    pub fn update_inference(&mut self, duration_ms: u64, tokens: u32) {
-        self.inference_time_ms = duration_ms;
-        self.tokens_per_second = if duration_ms > 0 {
-            (tokens as f32 * 1000.0) / duration_ms as f32
-        } else {
-            0.0
-        };
-        self.last_updated = chrono::Utc::now();
-    }
-
-    pub fn update_memory(&mut self, memory_mb: u64) {
-        self.memory_usage_mb = memory_mb;
-        self.last_updated = chrono::Utc::now();
-    }
-}
-
-/// Model validation result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModelValidation {
-    pub model_name: String,
-    pub is_valid: bool,
-    pub errors: Vec<String>,
-    pub warnings: Vec<String>,
-    pub capabilities_verified: ModelCapabilities,
-}
-
-impl ModelValidation {
-    pub fn valid(model_name: String) -> Self {
-        Self {
-            model_name,
-            is_valid: true,
-            errors: Vec::new(),
-            warnings: Vec::new(),
-            capabilities_verified: ModelCapabilities::ALL,
-        }
-    }
-
-    pub fn invalid(model_name: String, errors: Vec<String>) -> Self {
-        Self {
-            model_name,
-            is_valid: false,
-            errors,
-            warnings: Vec::new(),
-            capabilities_verified: ModelCapabilities::CODE_ANALYSIS,
-        }
-    }
-
-    pub fn add_warning(&mut self, warning: String) {
-        self.warnings.push(warning);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -252,28 +137,5 @@ mod tests {
         let model = ModelRegistry::recommend_model(UseCase::CodeAnalysis, 8);
         assert!(model.is_some());
         assert!(model.unwrap().capabilities.code_analysis);
-    }
-
-    #[test]
-    fn test_model_metrics() {
-        let mut metrics = ModelMetrics::new("test-model".to_string());
-        metrics.update_inference(1000, 50);
-        
-        assert_eq!(metrics.inference_time_ms, 1000);
-        assert_eq!(metrics.tokens_per_second, 50.0);
-    }
-
-    #[test]
-    fn test_model_validation() {
-        let validation = ModelValidation::valid("test-model".to_string());
-        assert!(validation.is_valid);
-        assert!(validation.errors.is_empty());
-
-        let validation = ModelValidation::invalid(
-            "bad-model".to_string(),
-            vec!["File not found".to_string()],
-        );
-        assert!(!validation.is_valid);
-        assert_eq!(validation.errors.len(), 1);
     }
 }

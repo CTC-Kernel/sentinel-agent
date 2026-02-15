@@ -224,7 +224,11 @@ impl CartographyPage {
 
             let color = device_type_color(&node.device.device_type);
             let base_radius = if node.device.is_gateway { 10.0 } else { 7.0 } * zoom;
-            let breathing = (anim_time * 1.5 + i as f64 * 0.1).sin().powi(2) as f32;
+            let breathing = if theme::is_reduced_motion() {
+                0.5
+            } else {
+                (anim_time * 1.5 + i as f64 * 0.1).sin().powi(2) as f32
+            };
 
             // 1. Ambient Ambient Glow
             painter.circle_filled(

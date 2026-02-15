@@ -50,7 +50,7 @@ impl PromptTemplate {
 
         // Remove any unreplaced placeholders
         result = regex::Regex::new(r"\{[^}]*\}")
-            .unwrap()
+            .expect("valid regex literal")
             .replace_all(&result, "")
             .to_string();
 

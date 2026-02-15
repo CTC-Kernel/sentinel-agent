@@ -8,6 +8,7 @@ use tracing::info;
 use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, PromptBuilder};
+pub use crate::analyzer::RiskLevel;
 
 /// Remediation advisor that provides actionable fix recommendations.
 pub struct RemediationAdvisor {
@@ -171,7 +172,7 @@ Provide validation status and any concerns."#,
 
     /// Parse remediation response from LLM.
     fn parse_remediation_response(&self, _response: &str, request: &RemediationRequest, duration: std::time::Duration) -> Result<RemediationPlan> {
-        // Simplified parsing - in production, use structured output
+        // TODO(llm): parse structured JSON response from LLM
         let plan = RemediationPlan {
             id: uuid::Uuid::new_v4().to_string(),
             title: format!("Remediation Plan for {}", request.request_id),
@@ -323,15 +324,6 @@ impl std::fmt::Display for Priority {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
-}
-
-/// Risk level assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum RiskLevel {
-    Low,
-    Medium,
-    High,
-    Critical,
 }
 
 /// Issue-specific remediation details.
