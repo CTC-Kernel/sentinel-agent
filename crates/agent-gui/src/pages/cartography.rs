@@ -94,9 +94,15 @@ impl CartographyPage {
                     // Open 3D view button
                     if widgets::primary_button(ui, format!("VUE 3D {}", icons::EXTERNAL_LINK), true)
                         .clicked()
-                        && let Err(e) = open::that(&state.settings.architecture_url) {
-                            tracing::warn!("Failed to open URL: {}", e);
+                    {
+                        if state.settings.architecture_url.starts_with("https://") {
+                            if let Err(e) = open::that(&state.settings.architecture_url) {
+                                tracing::warn!("Failed to open URL: {}", e);
+                            }
+                        } else {
+                            tracing::warn!("Refused to open non-HTTPS URL: {}", state.settings.architecture_url);
                         }
+                    }
 
                     ui.add_space(theme::SPACE_MD);
 
@@ -391,7 +397,7 @@ impl CartographyPage {
 
                 if device.is_gateway {
                     ui.add_space(theme::SPACE_MD);
-                    widgets::status_badge(ui, "CENTRAL GATEWAY", theme::ACCENT);
+                    widgets::status_badge(ui, "PASSERELLE CENTRALE", theme::ACCENT);
                 }
 
                 if !device.open_ports.is_empty() {

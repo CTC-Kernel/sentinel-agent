@@ -426,7 +426,7 @@ impl DashboardPage {
 
                 if widgets::button::secondary_button_loading(
                     ui,
-                    format!("{}  EXPORT", icons::DOWNLOAD),
+                    format!("{}  EXPORTER", icons::DOWNLOAD),
                     true,
                     false,
                 )

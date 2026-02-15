@@ -22,7 +22,13 @@ const MAX_LOG_BODY_LEN: usize = 200;
 /// Truncate a string for safe logging, appending "[truncated]" if it exceeds the limit.
 fn truncate_for_log(s: &str, max_len: usize) -> String {
     if s.len() > max_len {
-        format!("{}... [truncated, total {} bytes]", &s[..max_len], s.len())
+        // Find a valid UTF-8 char boundary at or before max_len
+        let end = s.char_indices()
+            .take_while(|&(i, _)| i <= max_len)
+            .last()
+            .map(|(i, _)| i)
+            .unwrap_or(0);
+        format!("{}... [truncated, total {} bytes]", &s[..end], s.len())
     } else {
         s.to_string()
     }
