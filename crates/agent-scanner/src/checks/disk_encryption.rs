@@ -377,14 +377,17 @@ impl DiskEncryptionCheck {
             .ok()?;
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        // Parse encryption progress from diskutil output if available
-        // This is a simplified implementation
-        if stdout.contains("Encryption Progress") {
-            // Extract percentage - would need proper parsing
-            None
-        } else {
-            None
+        // Parse "Encryption Progress: XX%" from diskutil apfs list output
+        for line in stdout.lines() {
+            let trimmed = line.trim();
+            if let Some(rest) = trimmed.strip_prefix("Encryption Progress:") {
+                let pct_str = rest.trim().trim_end_matches('%').trim();
+                if let Ok(pct) = pct_str.parse::<f32>() {
+                    return Some(pct.clamp(0.0, 100.0) as u8);
+                }
+            }
         }
+        None
     }
 
     /// Fallback for unsupported platforms.

@@ -92,8 +92,8 @@ pub const ERROR: Color32 = Color32::from_rgb(255, 69, 58); // Apple System Red
 pub const INFO: Color32 = Color32::from_rgb(10, 132, 255); // Apple System Blue
 /// Severity-high amber (high contrast).
 pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 214, 10); // Apple System Yellow
-/// Severity-medium (Sophisticated Orange).
-pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 159, 10);
+/// Severity-medium (Burnt Orange — visually distinct from WARNING).
+pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 135, 0);
 
 // ============================================================================
 // Surface colors (dynamic – depends on active theme)
@@ -119,13 +119,13 @@ pub fn bg_secondary() -> Color32 {
     }
 }
 
-/// Elevated surface (hover, modal).
+/// Elevated surface (hover, modal — must be visually distinct from bg_secondary).
 #[inline]
 pub fn bg_elevated() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(58, 58, 60) // System Gray 4 Dark
     } else {
-        Color32::WHITE
+        Color32::from_rgb(245, 245, 250) // Slightly tinted — distinct from bg_secondary (white)
     }
 }
 
@@ -152,9 +152,9 @@ pub fn bg_sidebar() -> Color32 {
 #[inline]
 pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(0, 0, 0)
+        Color32::from_rgb(6, 6, 8) // Near-black but softer on OLED
     } else {
-        Color32::from_rgb(245, 245, 250)
+        Color32::from_rgb(248, 248, 252)
     }
 }
 
@@ -173,23 +173,26 @@ pub fn text_primary() -> Color32 {
 }
 
 /// Secondary text (medium emphasis).
+/// Dark: ~6.2:1 on bg_secondary, ~6.7:1 on bg_primary — passes WCAG AA.
+/// Light: ~9.5:1 on white, ~8.5:1 on bg_primary — passes WCAG AAA.
 #[inline]
 pub fn text_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(142, 142, 147) // System Gray
+        Color32::from_rgb(160, 160, 166) // Brighter than Apple System Gray for readability on dark surfaces
     } else {
-        Color32::from_rgb(100, 100, 105) // Darker Gray for AAA contrast on white
+        Color32::from_rgb(72, 72, 77) // Strong contrast on white/light surfaces (AAA)
     }
 }
 
 /// Tertiary / disabled text.
-/// Light mode: RGB(88,88,92) gives ~6.1:1 contrast on white (WCAG AAA).
+/// Dark: ~4.9:1 on bg_secondary — passes WCAG AA (was 2.85:1 — FAIL).
+/// Light: ~7.3:1 on white — passes WCAG AAA.
 #[inline]
 pub fn text_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(99, 99, 102) // System Gray 2
+        Color32::from_rgb(138, 138, 142) // Bumped from (99,99,102) for WCAG AA compliance
     } else {
-        Color32::from_rgb(88, 88, 92) // WCAG AAA contrast (~6.1:1 on white)
+        Color32::from_rgb(88, 88, 92) // WCAG AAA contrast (~7.3:1 on white)
     }
 }
 
@@ -220,7 +223,7 @@ pub fn border() -> Color32 {
     if is_dark_mode() {
         Color32::from_white_alpha(28)
     } else {
-        Color32::from_black_alpha(22)
+        Color32::from_black_alpha(32)
     }
 }
 
@@ -230,7 +233,18 @@ pub fn separator() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgba_premultiplied(255, 255, 255, 45)
     } else {
-        Color32::from_rgba_premultiplied(0, 0, 0, 30)
+        Color32::from_rgba_premultiplied(0, 0, 0, 40)
+    }
+}
+
+/// Theme-aware overlay color (white in dark mode, black in light mode).
+/// Use with `.linear_multiply(alpha)` for consistent overlays.
+#[inline]
+pub fn overlay_color() -> Color32 {
+    if is_dark_mode() {
+        Color32::WHITE
+    } else {
+        Color32::BLACK
     }
 }
 
@@ -258,6 +272,8 @@ pub const SIDEBAR_WIDTH: f32 = 250.0;
 pub const CARD_ROUNDING: u8 = 16;
 /// Button rounding radius.
 pub const BUTTON_ROUNDING: u8 = 8;
+/// Extra-small element rounding (accent bars, tiny indicators).
+pub const ROUNDING_XS: u8 = 2;
 /// Small element rounding (checkboxes, inline tags, hover backgrounds).
 pub const ROUNDING_SM: u8 = 4;
 /// Medium element rounding (tooltips, pagination buttons, focus rings).
@@ -266,6 +282,11 @@ pub const ROUNDING_MD: u8 = 6;
 pub const ROUNDING_LG: u8 = 10;
 /// Badge rounding radius (pill-shaped).
 pub const BADGE_ROUNDING: u8 = 100;
+/// Minimum badge height for consistent pill shape.
+pub const BADGE_MIN_HEIGHT: f32 = 18.0;
+
+/// Left accent indicator bar width (activity feed, timeline).
+pub const ACCENT_BAR_WIDTH: f32 = 3.0;
 
 // ============================================================================
 // Badge color helpers — Apple-inspired soft tinted badges
@@ -435,6 +456,12 @@ pub const ICON_MD: f32 = 20.0;
 pub const ICON_LG: f32 = 24.0;
 /// Extra-large icon (hero sections, empty states).
 pub const ICON_XL: f32 = 32.0;
+/// Double extra-large icon (about hero, network splash).
+pub const ICON_2XL: f32 = 48.0;
+/// Inline icon in body text context.
+pub const ICON_INLINE: f32 = 14.0;
+/// Micro icon (tiny status indicators, breathing dots).
+pub const ICON_MICRO: f32 = 6.0;
 
 // ============================================================================
 // Window / layout constants
@@ -582,9 +609,19 @@ pub fn font_mono() -> FontId {
     FontId::new(12.0, egui::FontFamily::Monospace) // SF Mono equivalent
 }
 
+/// Small monospace font (11px - terminal, settings, technical annotations).
+pub fn font_mono_sm() -> FontId {
+    FontId::new(11.0, egui::FontFamily::Monospace)
+}
+
 /// COMEX-ready header font (32px Extra-Bold/strong).
 pub fn font_comex() -> FontId {
     FontId::new(32.0, egui::FontFamily::Proportional)
+}
+
+/// Splash screen title font (36px).
+pub fn font_splash() -> FontId {
+    FontId::new(36.0, egui::FontFamily::Proportional)
 }
 
 // ============================================================================
@@ -722,11 +759,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     } else {
         premium_shadow(24, 40)
     };
-    visuals.window_stroke = if dark {
-        Stroke::new(0.5, Color32::from_white_alpha(15)) // Subtle light border in dark mode
-    } else {
-        Stroke::new(0.5, Color32::from_black_alpha(15)) // Subtle dark border in light mode
-    };
+    visuals.window_stroke = Stroke::new(BORDER_HAIRLINE, overlay_color().linear_multiply(0.06));
 
     // Misc
     visuals.popup_shadow = if dark {
@@ -737,11 +770,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.resize_corner_size = 8.0;
     visuals.hyperlink_color = accent_text();
     visuals.faint_bg_color = bg_elevated();
-    visuals.extreme_bg_color = if dark {
-        Color32::from_rgb(14, 14, 16)
-    } else {
-        Color32::from_rgb(250, 250, 252)
-    };
+    visuals.extreme_bg_color = bg_deep();
     visuals.striped = false; // Striping can look dated; plain is cleaner.
 
     style.visuals = visuals;
@@ -1002,6 +1031,8 @@ pub const TAB_BADGE_WIDTH: f32 = 28.0;
 pub const DROPDOWN_ROW_HEIGHT: f32 = 32.0;
 /// Dropdown popup max height before scrolling.
 pub const DROPDOWN_MAX_HEIGHT: f32 = 200.0;
+/// Dropdown popup margin for click-outside detection.
+pub const DROPDOWN_POPUP_MARGIN: f32 = 50.0;
 
 /// Modal default width.
 pub const MODAL_WIDTH: f32 = 400.0;
@@ -1009,6 +1040,8 @@ pub const MODAL_WIDTH: f32 = 400.0;
 pub const MODAL_ICON_SIZE: f32 = 48.0;
 /// Modal header accent bar height.
 pub const MODAL_HEADER_BAR: f32 = 4.0;
+/// Modal vertical offset from screen center.
+pub const MODAL_Y_OFFSET: f32 = 150.0;
 
 /// Empty-state hero icon size.
 pub const EMPTY_STATE_ICON: f32 = 64.0;
@@ -1059,9 +1092,29 @@ pub const RADAR_RADIUS: f32 = 140.0;
 
 /// Tooltip max width.
 pub const TOOLTIP_MAX_WIDTH: f32 = 320.0;
+/// Tooltip padding (horizontal).
+pub const TOOLTIP_PADDING_H: f32 = 10.0;
+/// Tooltip padding (vertical).
+pub const TOOLTIP_PADDING_V: f32 = 6.0;
+/// Tooltip offset from anchor element.
+pub const TOOLTIP_OFFSET: f32 = 8.0;
+/// Tooltip screen edge margin.
+pub const TOOLTIP_SCREEN_MARGIN: f32 = 4.0;
 
 /// Sidebar navigation item height.
 pub const NAV_ITEM_HEIGHT: f32 = 42.0;
+/// Sidebar nav item horizontal inset.
+pub const NAV_ITEM_INSET_H: f32 = 8.0;
+/// Sidebar nav item vertical inset.
+pub const NAV_ITEM_INSET_V: f32 = 2.0;
+/// Sidebar badge horizontal offset from right edge.
+pub const NAV_BADGE_OFFSET: f32 = 24.0;
+/// Sidebar badge pill width.
+pub const NAV_BADGE_WIDTH: f32 = 22.0;
+/// Sidebar badge pill height.
+pub const NAV_BADGE_HEIGHT: f32 = 16.0;
+/// Notification badge offset from parent.
+pub const BADGE_INDICATOR_OFFSET: f32 = 4.0;
 
 /// Command palette popup width.
 pub const COMMAND_PALETTE_WIDTH: f32 = 560.0;
@@ -1076,6 +1129,10 @@ pub const TOAST_ROUNDING: u8 = 12;
 pub const TOAST_HEIGHT: f32 = 44.0;
 /// Toast left accent bar width.
 pub const TOAST_ACCENT_BAR: f32 = 4.0;
+/// Toast text left padding (past accent bar).
+pub const TOAST_TEXT_INSET: f32 = 16.0;
+/// Toast close button inset from right edge.
+pub const TOAST_CLOSE_INSET: f32 = 18.0;
 
 /// Disabled text on accent-colored surfaces (white @ ~59% opacity).
 pub const DISABLED_ON_ACCENT_ALPHA: u8 = 150;
@@ -1088,6 +1145,33 @@ pub const KNOB_HIGHLIGHT_BASE: f32 = 50.0;
 pub const ANIM_INDETERMINATE_SPEED: f32 = 0.8;
 /// Indeterminate progress bar fill ratio.
 pub const INDETERMINATE_BAR_RATIO: f32 = 0.3;
+
+/// Pagination dot size (active page).
+pub const PAGINATION_DOT_ACTIVE: f32 = 8.0;
+/// Pagination dot size (inactive page).
+pub const PAGINATION_DOT_INACTIVE: f32 = 6.0;
+/// Pagination dot touch area.
+pub const PAGINATION_DOT_TOUCH: f32 = 12.0;
+
+/// Search filter bar input height.
+pub const SEARCH_INPUT_HEIGHT: f32 = 28.0;
+
+/// Input field corner radius.
+pub const INPUT_ROUNDING: u8 = 12;
+
+/// Segmented control height.
+pub const SEGMENTED_CONTROL_HEIGHT: f32 = 40.0;
+/// Segmented control default width.
+pub const SEGMENTED_CONTROL_WIDTH: f32 = 340.0;
+/// Segmented control outer rounding.
+pub const SEGMENTED_CONTROL_ROUNDING: u8 = 20;
+
+/// Splash screen content width.
+pub const SPLASH_CONTENT_WIDTH: f32 = 400.0;
+/// Splash screen content height.
+pub const SPLASH_CONTENT_HEIGHT: f32 = 360.0;
+/// Splash screen progress bar width.
+pub const SPLASH_PROGRESS_WIDTH: f32 = 200.0;
 
 /// Enrollment gradient background colors (center, outer).
 #[inline]
@@ -1122,7 +1206,7 @@ pub fn sidebar_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
             Color32::from_rgb(25, 25, 30),  // Lighter top (Spotlight)
-            Color32::from_rgb(5, 5, 8),     // Deep bottom
+            Color32::from_rgb(14, 14, 18),  // Soft bottom (keeps text readable)
         )
     } else {
         (

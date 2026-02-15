@@ -37,13 +37,13 @@ impl AboutPage {
                 ui.add_space(theme::SPACE_LG);
                 ui.label(
                     egui::RichText::new(icons::VULNERABILITIES)
-                        .size(48.0)
+                        .size(theme::ICON_2XL)
                         .color(theme::accent_text()),
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
                     egui::RichText::new(branding::PRODUCT)
-                        .size(32.0)
+                        .size(theme::ICON_XL)
                         .color(theme::text_primary())
                         .strong(),
                 );

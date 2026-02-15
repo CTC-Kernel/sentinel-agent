@@ -329,7 +329,7 @@ impl NetworkDiscovery {
     ) -> DiscoveryResult {
         let discovered: Vec<DiscoveredDevice> = devices.into_values().map(|b| b.build()).collect();
 
-        let duration_ms = start.elapsed().as_millis() as u64;
+        let duration_ms = u64::try_from(start.elapsed().as_millis()).unwrap_or(u64::MAX);
         info!(
             "Discovery complete: {} devices in {}ms",
             discovered.len(),

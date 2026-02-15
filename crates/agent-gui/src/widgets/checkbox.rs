@@ -74,7 +74,7 @@ impl<'a> Checkbox<'a> {
         let total_width = box_size
             + theme::SPACE_SM
             + ui.painter()
-                .layout_no_wrap(self.label.to_string(), font.clone(), Color32::WHITE)
+                .layout_no_wrap(self.label.to_string(), font.clone(), theme::text_primary())
                 .size()
                 .x;
 
@@ -217,7 +217,7 @@ impl<'a> RadioButton<'a> {
         let total_width = box_size
             + theme::SPACE_SM
             + ui.painter()
-                .layout_no_wrap(self.label.to_string(), font.clone(), Color32::WHITE)
+                .layout_no_wrap(self.label.to_string(), font.clone(), theme::text_primary())
                 .size()
                 .x;
 
@@ -273,12 +273,12 @@ impl<'a> RadioButton<'a> {
                 label_color,
             );
 
-            // Focus ring
+            // Focus ring (WCAG 2.4.7 — full contrast)
             if response.has_focus() {
                 ui.painter().circle_stroke(
                     center,
                     radius + 3.0,
-                    egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT.linear_multiply(theme::OPACITY_MEDIUM)),
+                    theme::focus_ring(),
                 );
             }
         }
@@ -509,7 +509,7 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
 
         // Thumb
         ui.painter()
-            .circle_filled(thumb_center, thumb_size / 2.0, Color32::WHITE);
+            .circle_filled(thumb_center, thumb_size / 2.0, theme::text_on_accent());
 
         // Hover effect
         if is_hovered {

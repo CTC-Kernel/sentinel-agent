@@ -123,6 +123,7 @@ pub fn current_platform() -> String {
 /// Registry of available compliance checks.
 pub struct CheckRegistry {
     checks: HashMap<String, Arc<dyn Check>>,
+    disabled: std::collections::HashSet<String>,
 }
 
 impl CheckRegistry {
@@ -130,6 +131,7 @@ impl CheckRegistry {
     pub fn new() -> Self {
         Self {
             checks: HashMap::new(),
+            disabled: std::collections::HashSet::new(),
         }
     }
 
@@ -158,7 +160,7 @@ impl CheckRegistry {
         self.checks
             .values()
             .filter(|c| {
-                if !c.is_enabled() || !c.is_platform_supported() {
+                if !c.is_enabled() || !c.is_platform_supported() || self.disabled.contains(c.id()) {
                     return false;
                 }
 
@@ -216,13 +218,16 @@ impl CheckRegistry {
     /// Update check definitions from rules.
     ///
     /// This enables/disables checks based on the provided rules.
+    /// Disabled checks are tracked separately since checks are behind `Arc`.
     pub fn apply_rules(&mut self, rules: &[CheckDefinition]) {
         for rule in rules {
             if self.checks.contains_key(&rule.id) {
-                // Note: We can't modify the check directly as it's behind Arc
-                // In a real implementation, we'd need a different approach
-                // (e.g., separate enabled state tracking)
-                if !rule.enabled {
+                if rule.enabled {
+                    if self.disabled.remove(&rule.id) {
+                        debug!("Check {} re-enabled by rule", rule.id);
+                    }
+                } else {
+                    self.disabled.insert(rule.id.clone());
                     warn!("Check {} disabled by rule", rule.id);
                 }
             }

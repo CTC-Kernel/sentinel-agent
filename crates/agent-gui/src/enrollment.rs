@@ -199,7 +199,7 @@ impl EnrollmentWizard {
                     )
                     .font(theme::font_body())
                     .color(theme::text_secondary())
-                    .line_height(Some(20.0)), // Better readability
+                    .line_height(Some(theme::ICON_MD)), // Better readability
                 );
 
                 ui.add_space(theme::SPACE_LG);
@@ -251,9 +251,9 @@ impl EnrollmentWizard {
                     ui.add_space(theme::SPACE_LG);
 
                     // Custom Segmented Control (Pill Toggle)
-                    let height = 40.0;
-                    let width = 340.0;
-                    let rounding: u8 = 20;
+                    let height = theme::SEGMENTED_CONTROL_HEIGHT;
+                    let width = theme::SEGMENTED_CONTROL_WIDTH;
+                    let rounding = theme::SEGMENTED_CONTROL_ROUNDING;
 
                     let (rect, response) = ui
                         .allocate_exact_size(egui::Vec2::new(width, height), egui::Sense::click());
@@ -277,7 +277,7 @@ impl EnrollmentWizard {
                         let pill_x = ui.ctx().animate_value_with_time(
                             response.id.with("pill_x"),
                             target_x,
-                            0.2,
+                            theme::ANIM_NORMAL,
                         );
 
                         let pill_rect = egui::Rect::from_min_size(
@@ -289,7 +289,7 @@ impl EnrollmentWizard {
                         // Pill (Shadow + Body + Stroke) via Frame
                         let pill_frame = egui::Frame::new()
                             .fill(theme::bg_elevated())
-                            .corner_radius(egui::CornerRadius::same(rounding - 4))
+                            .corner_radius(egui::CornerRadius::same(rounding.saturating_sub(theme::ROUNDING_SM)))
                             .shadow(theme::premium_shadow(8, 20))
                             .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_MEDIUM)));
 
@@ -356,7 +356,7 @@ impl EnrollmentWizard {
 
                     // INPUT AREA
                     let input_bg = theme::bg_tertiary();
-                    let input_rounding: u8 = 12;
+                    let input_rounding = theme::INPUT_ROUNDING;
 
                     if self.use_qr {
                         // Label
@@ -402,7 +402,7 @@ impl EnrollmentWizard {
                                 ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.add(
                                         egui::TextEdit::singleline(&mut self.token_input)
-                                            .desired_width((ui.available_width() - 40.0).max(0.0)) // Space for toggle button
+                                            .desired_width((ui.available_width() - theme::SEGMENTED_CONTROL_HEIGHT).max(0.0)) // Space for toggle button
                                             .frame(false)
                                             .font(egui::TextStyle::Monospace)
                                             .password(!self.show_token) // Built-in password masking

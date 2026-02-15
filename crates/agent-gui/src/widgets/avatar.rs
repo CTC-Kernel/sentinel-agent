@@ -205,7 +205,7 @@ impl<'a> Avatar<'a> {
                 painter.rect(
                     rect,
                     rounding,
-                    Color32::WHITE.linear_multiply(theme::OPACITY_SUBTLE),
+                    theme::overlay_color().linear_multiply(theme::OPACITY_SUBTLE),
                     egui::Stroke::NONE,
                     egui::epaint::StrokeKind::Inside,
                 );

@@ -18,7 +18,7 @@ is_critical = true
 
 # Firewall -> A.8.20 Network security
 [[controls]]
-check_id = "firewall"
+check_id = "firewall_active"
 control_id = "A.8.20"
 control_name = "Network security"
 category = "Technological Controls"
@@ -28,7 +28,7 @@ is_critical = true
 
 # Firewall -> A.8.21 Security of network services
 [[controls]]
-check_id = "firewall"
+check_id = "firewall_active"
 control_id = "A.8.21"
 control_name = "Security of network services"
 category = "Technological Controls"
@@ -38,7 +38,7 @@ is_critical = false
 
 # Antivirus -> A.8.7 Protection against malware
 [[controls]]
-check_id = "antivirus"
+check_id = "antivirus_active"
 control_id = "A.8.7"
 control_name = "Protection against malware"
 category = "Technological Controls"
@@ -48,7 +48,7 @@ is_critical = true
 
 # MFA -> A.8.5 Secure authentication
 [[controls]]
-check_id = "mfa"
+check_id = "mfa_enabled"
 control_id = "A.8.5"
 control_name = "Secure authentication"
 category = "Technological Controls"
@@ -68,7 +68,7 @@ is_critical = true
 
 # System Updates -> A.8.8 Management of technical vulnerabilities
 [[controls]]
-check_id = "system_updates"
+check_id = "patches_current"
 control_id = "A.8.8"
 control_name = "Management of technical vulnerabilities"
 category = "Technological Controls"
@@ -78,7 +78,7 @@ is_critical = true
 
 # System Updates -> A.8.19 Installation of software on operational systems
 [[controls]]
-check_id = "system_updates"
+check_id = "patches_current"
 control_id = "A.8.19"
 control_name = "Installation of software on operational systems"
 category = "Technological Controls"
@@ -108,7 +108,7 @@ is_critical = true
 
 # Session Lock -> A.8.1 User endpoint devices
 [[controls]]
-check_id = "session_lock"
+check_id = "screen_lock"
 control_id = "A.8.1"
 control_name = "User endpoint devices"
 category = "Technological Controls"
@@ -118,7 +118,7 @@ is_critical = false
 
 # Backup -> A.8.13 Information backup
 [[controls]]
-check_id = "backup"
+check_id = "backup_configured"
 control_id = "A.8.13"
 control_name = "Information backup"
 category = "Technological Controls"
@@ -148,7 +148,7 @@ is_critical = true
 
 # Remote Access -> A.8.22 Segregation of networks
 [[controls]]
-check_id = "remote_access"
+check_id = "remote_access_secure"
 control_id = "A.8.22"
 control_name = "Segregation of networks"
 category = "Technological Controls"
@@ -188,7 +188,7 @@ is_critical = false
 
 # USB Storage -> A.8.12 Data leakage prevention
 [[controls]]
-check_id = "usb_storage"
+check_id = "usb_storage_disabled"
 control_id = "A.8.12"
 control_name = "Data leakage prevention"
 category = "Technological Controls"
@@ -198,7 +198,7 @@ is_critical = false
 
 # Bluetooth -> A.8.20 Network security
 [[controls]]
-check_id = "bluetooth"
+check_id = "bluetooth_disabled"
 control_id = "A.8.20"
 control_name = "Network security"
 category = "Technological Controls"
@@ -228,7 +228,7 @@ is_critical = false
 
 # Guest Account -> A.5.16 Identity management
 [[controls]]
-check_id = "guest_account"
+check_id = "guest_account_disabled"
 control_id = "A.5.16"
 control_name = "Identity management"
 category = "People Controls"
@@ -238,7 +238,7 @@ is_critical = false
 
 # Auto Login -> A.8.5 Secure authentication
 [[controls]]
-check_id = "auto_login"
+check_id = "auto_login_disabled"
 control_id = "A.8.5"
 control_name = "Secure authentication"
 category = "Technological Controls"
@@ -248,7 +248,7 @@ is_critical = false
 
 # IPv6 Config -> A.8.20 Network security
 [[controls]]
-check_id = "ipv6_config"
+check_id = "ipv6_hardening"
 control_id = "A.8.20"
 control_name = "Network security"
 category = "Technological Controls"
@@ -338,7 +338,7 @@ is_critical = true
 
 # GPO Lockout Policy -> A.8.5 Secure authentication
 [[controls]]
-check_id = "gpo_lockout_policy"
+check_id = "gpo_account_lockout"
 control_id = "A.8.5"
 control_name = "Secure authentication"
 category = "Technological Controls"

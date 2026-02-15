@@ -27,7 +27,7 @@ is_critical = true
 
 # Firewall -> CIS 4: Secure Configuration, CIS 13: Network Monitoring
 [[controls]]
-check_id = "firewall"
+check_id = "firewall_active"
 control_id = "4.4"
 control_name = "Implement Host-Based Firewalls"
 category = "Secure Configuration"
@@ -36,7 +36,7 @@ weight = 0.9
 is_critical = true
 
 [[controls]]
-check_id = "firewall"
+check_id = "firewall_active"
 control_id = "13.4"
 control_name = "Perform Traffic Filtering"
 category = "Network Monitoring"
@@ -46,7 +46,7 @@ is_critical = true
 
 # Antivirus -> CIS 10: Malware Defenses
 [[controls]]
-check_id = "antivirus"
+check_id = "antivirus_active"
 control_id = "10.1"
 control_name = "Deploy and Maintain Anti-Malware Software"
 category = "Malware Defenses"
@@ -55,7 +55,7 @@ weight = 0.95
 is_critical = true
 
 [[controls]]
-check_id = "antivirus"
+check_id = "antivirus_active"
 control_id = "10.2"
 control_name = "Configure Automatic Anti-Malware Updates"
 category = "Malware Defenses"
@@ -65,7 +65,7 @@ is_critical = true
 
 # MFA -> CIS 6: Access Control Management
 [[controls]]
-check_id = "mfa"
+check_id = "mfa_enabled"
 control_id = "6.3"
 control_name = "Require MFA for Externally-Exposed Applications"
 category = "Access Control"
@@ -74,7 +74,7 @@ weight = 0.95
 is_critical = true
 
 [[controls]]
-check_id = "mfa"
+check_id = "mfa_enabled"
 control_id = "6.4"
 control_name = "Require MFA for Remote Network Access"
 category = "Access Control"
@@ -83,7 +83,7 @@ weight = 0.95
 is_critical = true
 
 [[controls]]
-check_id = "mfa"
+check_id = "mfa_enabled"
 control_id = "6.5"
 control_name = "Require MFA for Administrative Access"
 category = "Access Control"
@@ -103,7 +103,7 @@ is_critical = true
 
 # System Updates -> CIS 7: Continuous Vulnerability Management
 [[controls]]
-check_id = "system_updates"
+check_id = "patches_current"
 control_id = "7.3"
 control_name = "Perform Automated Operating System Patch Management"
 category = "Vulnerability Management"
@@ -112,7 +112,7 @@ weight = 0.9
 is_critical = true
 
 [[controls]]
-check_id = "system_updates"
+check_id = "patches_current"
 control_id = "7.4"
 control_name = "Perform Automated Application Patch Management"
 category = "Vulnerability Management"
@@ -141,7 +141,7 @@ is_critical = false
 
 # Session Lock -> CIS 4: Secure Configuration
 [[controls]]
-check_id = "session_lock"
+check_id = "screen_lock"
 control_id = "4.3"
 control_name = "Configure Automatic Session Locking"
 category = "Secure Configuration"
@@ -151,7 +151,7 @@ is_critical = false
 
 # Backup -> CIS 11: Data Recovery
 [[controls]]
-check_id = "backup"
+check_id = "backup_configured"
 control_id = "11.1"
 control_name = "Establish and Maintain a Data Recovery Process"
 category = "Data Recovery"
@@ -160,7 +160,7 @@ weight = 0.9
 is_critical = true
 
 [[controls]]
-check_id = "backup"
+check_id = "backup_configured"
 control_id = "11.2"
 control_name = "Perform Automated Backups"
 category = "Data Recovery"
@@ -189,7 +189,7 @@ is_critical = false
 
 # Remote Access -> CIS 12: Network Infrastructure Management
 [[controls]]
-check_id = "remote_access"
+check_id = "remote_access_secure"
 control_id = "12.7"
 control_name = "Ensure Remote Devices Utilize a VPN"
 category = "Network Infrastructure"
@@ -199,7 +199,7 @@ is_critical = true
 
 # USB Storage -> CIS 10: Malware Defenses
 [[controls]]
-check_id = "usb_storage"
+check_id = "usb_storage_disabled"
 control_id = "10.3"
 control_name = "Disable Autorun and Autoplay"
 category = "Malware Defenses"
@@ -268,7 +268,7 @@ is_critical = false
 
 # Guest Account -> CIS 5: Account Management
 [[controls]]
-check_id = "guest_account"
+check_id = "guest_account_disabled"
 control_id = "5.3"
 control_name = "Disable Dormant Accounts"
 category = "Account Management"
@@ -278,7 +278,7 @@ is_critical = false
 
 # Auto Login -> CIS 6: Access Control
 [[controls]]
-check_id = "auto_login"
+check_id = "auto_login_disabled"
 control_id = "6.1"
 control_name = "Establish an Access Granting Process"
 category = "Access Control"
@@ -288,7 +288,7 @@ is_critical = false
 
 # Bluetooth -> CIS 12: Network Infrastructure
 [[controls]]
-check_id = "bluetooth"
+check_id = "bluetooth_disabled"
 control_id = "12.1"
 control_name = "Ensure Network Infrastructure is Up-to-Date"
 category = "Network Infrastructure"
@@ -298,7 +298,7 @@ is_critical = false
 
 # IPv6 Config -> CIS 12: Network Infrastructure
 [[controls]]
-check_id = "ipv6_config"
+check_id = "ipv6_hardening"
 control_id = "12.2"
 control_name = "Establish and Maintain Secure Network Architecture"
 category = "Network Infrastructure"
@@ -385,7 +385,7 @@ is_critical = true
 
 # GPO Lockout Policy -> CIS 5: Account Management
 [[controls]]
-check_id = "gpo_lockout_policy"
+check_id = "gpo_account_lockout"
 control_id = "5.5"
 control_name = "Establish and Maintain an Inventory of Service Accounts"
 category = "Account Management"

@@ -190,8 +190,8 @@ impl SentinelApp {
         eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel - Vue Rapide")
-                .with_inner_size([400.0, 500.0])
-                .with_min_inner_size([350.0, 400.0])
+                .with_inner_size([theme::SPLASH_CONTENT_WIDTH, 500.0])
+                .with_min_inner_size([350.0, theme::SPLASH_CONTENT_HEIGHT])
                 .with_max_inner_size([600.0, 800.0])
                 .with_icon(Self::load_app_icon())
                 .with_decorations(false) // No title bar for menu-like feel
@@ -300,8 +300,7 @@ impl SentinelApp {
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new("RAPPORT CYBER RAPIDE")
-                                    .font(theme::font_title())
-                                    .size(11.0)
+                                    .font(theme::font_small())
                                     .strong(),
                             );
                             ui.with_layout(
@@ -636,10 +635,10 @@ impl eframe::App for SentinelApp {
                 egui::Frame::new()
                     .fill(theme::bg_primary())
                     .inner_margin(egui::Margin {
-                        left: 24,
+                        left: theme::SPACE_LG as i8,
                         right: 0,
-                        top: 24,
-                        bottom: 24,
+                        top: theme::SPACE_LG as i8,
+                        bottom: theme::SPACE_LG as i8,
                     }),
             )
             .show(ctx, |ui: &mut egui::Ui| {
@@ -661,7 +660,7 @@ impl eframe::App for SentinelApp {
                         egui::Frame::new()
                             .inner_margin(egui::Margin {
                                 left: 0,
-                                right: 24,
+                                right: theme::SPACE_LG as i8,
                                 top: 0,
                                 bottom: 0,
                             })
@@ -819,7 +818,7 @@ impl SentinelApp {
                 ui.allocate_new_ui(
                     egui::UiBuilder::new().max_rect(egui::Rect::from_center_size(
                         egui::pos2(size.x / 2.0, size.y / 2.0),
-                        egui::vec2(400.0, 360.0),
+                        egui::vec2(theme::SPLASH_CONTENT_WIDTH, theme::SPLASH_CONTENT_HEIGHT),
                     )),
                     |ui: &mut egui::Ui| {
                         ui.vertical_centered(|ui: &mut egui::Ui| {
@@ -828,7 +827,7 @@ impl SentinelApp {
                                 "bytes://ia_logo",
                                 include_bytes!("../assets/IA.png"),
                             )
-                            .max_width(120.0)
+                            .max_width(theme::ENROLLMENT_LOGO_WIDTH)
                             .tint(theme::text_primary().linear_multiply(alpha));
                             ui.add(logo);
 
@@ -837,7 +836,7 @@ impl SentinelApp {
                             // SENTINEL
                             ui.label(
                                 egui::RichText::new("SENTINEL")
-                                    .font(egui::FontId::proportional(36.0))
+                                    .font(theme::font_splash())
                                     .color(theme::accent_text().linear_multiply(alpha))
                                     .strong(),
                             );
@@ -854,8 +853,8 @@ impl SentinelApp {
                             ui.add_space(theme::SPACE_XL);
 
                             // Progress bar (animated, or static under reduced motion)
-                            let bar_w = 200.0;
-                            let bar_h = 3.0;
+                            let bar_w = theme::SPLASH_PROGRESS_WIDTH;
+                            let bar_h = theme::PROGRESS_BAR_HEIGHT_THIN;
                             let (bar_rect, _) = ui.allocate_exact_size(
                                 egui::vec2(bar_w, bar_h),
                                 egui::Sense::empty(),
@@ -863,7 +862,7 @@ impl SentinelApp {
                             let painter = ui.painter_at(bar_rect);
                             painter.rect_filled(
                                 bar_rect,
-                                egui::CornerRadius::same(2),
+                                egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
                                 theme::border(),
                             );
                             let fill_rect = egui::Rect::from_min_size(
@@ -872,7 +871,7 @@ impl SentinelApp {
                             );
                             painter.rect_filled(
                                 fill_rect,
-                                egui::CornerRadius::same(2),
+                                egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
                                 theme::ACCENT.linear_multiply(alpha),
                             );
 

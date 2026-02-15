@@ -49,14 +49,14 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: 
             ui.label(
                 egui::RichText::new(sub)
                     .font(theme::font_body())
-                    .color(theme::text_tertiary()),
+                    .color(theme::text_secondary()),
             );
         }
 
         // Premium accent line with gradient effect
         ui.add_space(theme::SPACE_SM);
         let (rect, _) = ui.allocate_exact_size(
-            egui::Vec2::new(ui.available_width().min(200.0), 2.0),
+            egui::Vec2::new(ui.available_width().min(200.0), theme::BORDER_THICK),
             egui::Sense::hover(),
         );
 

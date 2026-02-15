@@ -66,8 +66,8 @@ impl DiscoveryPage {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.add_space(6.0);
                         let progress = state.discovery.progress;
-                        let bar_width = 300.0;
-                        let bar_height = 4.0;
+                        let bar_width = theme::SPLASH_PROGRESS_WIDTH.max(200.0);
+                        let bar_height = theme::PROGRESS_BAR_HEIGHT_THIN;
                         let (bar_rect, _) = ui.allocate_exact_size(
                             egui::Vec2::new(bar_width, bar_height),
                             egui::Sense::hover(),
@@ -78,7 +78,7 @@ impl DiscoveryPage {
 
                             ui.painter().rect_filled(
                                 bar_rect,
-                                egui::CornerRadius::same(2),
+                                egui::CornerRadius::same(theme::ROUNDING_XS),
                                 theme::bg_elevated(),
                             );
 
@@ -118,7 +118,7 @@ impl DiscoveryPage {
                                 // Solid fill
                                 ui.painter().rect_filled(
                                     fill_rect,
-                                    egui::CornerRadius::same(2),
+                                    egui::CornerRadius::same(theme::ROUNDING_XS),
                                     theme::ACCENT,
                                 );
 
@@ -135,12 +135,8 @@ impl DiscoveryPage {
                                     if visible_shimmer.is_positive() {
                                         ui.painter().rect_filled(
                                             visible_shimmer,
-                                            egui::CornerRadius::same(2),
-                                            if theme::is_dark_mode() {
-                                                egui::Color32::from_white_alpha(40)
-                                            } else {
-                                                egui::Color32::from_black_alpha(20)
-                                            },
+                                            egui::CornerRadius::same(theme::ROUNDING_XS),
+                                            theme::overlay_color().linear_multiply(theme::OPACITY_TINT),
                                         );
                                     }
                                 }
@@ -391,8 +387,7 @@ impl DiscoveryPage {
                                 let text = device.mac.as_deref().unwrap_or("--");
                                 ui.label(
                                     egui::RichText::new(text)
-                                        .font(theme::font_mono())
-                                        .size(11.0)
+                                        .font(theme::font_mono_sm())
                                         .color(theme::text_tertiary()),
                                 );
                             });
@@ -423,8 +418,7 @@ impl DiscoveryPage {
                                 };
                                 ui.label(
                                     egui::RichText::new(&ports_str)
-                                        .font(theme::font_mono())
-                                        .size(11.0)
+                                        .font(theme::font_mono_sm())
                                         .color(theme::text_tertiary()),
                                 );
                             });

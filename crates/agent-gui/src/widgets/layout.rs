@@ -2,6 +2,8 @@
 
 use egui::Ui;
 
+use crate::theme;
+
 /// Helper to create a responsive grid that adapts the number of columns
 /// based on available width and a minimum item size.
 pub struct ResponsiveGrid {
@@ -13,7 +15,7 @@ impl Default for ResponsiveGrid {
     fn default() -> Self {
         Self {
             min_item_width: 300.0,
-            gap: 16.0,
+            gap: theme::SPACE,
         }
     }
 }

@@ -80,7 +80,7 @@ impl MonitoringPage {
             (
                 "UPTIME AGENT",
                 Self::format_uptime(state.resources.uptime_secs),
-                theme::ACCENT,
+                theme::accent_text(),
                 icons::CLOCK,
             ),
         ];
@@ -121,7 +121,7 @@ impl MonitoringPage {
         let main_charts_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
         let main_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![
             ("CPU", &cpu_data, theme::SUCCESS, true),
-            ("MÉMOIRE", &mem_data, theme::ACCENT, true),
+            ("MÉMOIRE", &mem_data, theme::accent_text(), true),
         ];
 
         main_charts_grid.show(
@@ -324,7 +324,7 @@ impl MonitoringPage {
                             if theme::is_reduced_motion() {
                                 ui.label(
                                     egui::RichText::new("●")
-                                        .size(6.0)
+                                        .size(theme::ICON_MICRO)
                                         .color(theme::readable_color(theme::SUCCESS)),
                                 );
                             } else {
@@ -333,7 +333,7 @@ impl MonitoringPage {
 
                                 ui.label(
                                     egui::RichText::new("●")
-                                        .size(6.0)
+                                        .size(theme::ICON_MICRO)
                                         .color(theme::readable_color(theme::SUCCESS).linear_multiply(0.4 + pulse * 0.3)),
                                 );
                             }

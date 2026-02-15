@@ -18,7 +18,7 @@ is_critical = true
 
 # Firewall -> Req 1: Install and Maintain Network Security Controls
 [[controls]]
-check_id = "firewall"
+check_id = "firewall_active"
 control_id = "1.2.1"
 control_name = "Configuration standards for network security controls"
 category = "Network Security"
@@ -27,7 +27,7 @@ weight = 0.95
 is_critical = true
 
 [[controls]]
-check_id = "firewall"
+check_id = "firewall_active"
 control_id = "1.4.1"
 control_name = "NSCs are implemented between trusted and untrusted networks"
 category = "Network Security"
@@ -37,7 +37,7 @@ is_critical = true
 
 # Antivirus -> Req 5: Protect All Systems Against Malware
 [[controls]]
-check_id = "antivirus"
+check_id = "antivirus_active"
 control_id = "5.2.1"
 control_name = "Anti-malware solution deployed on all system components"
 category = "Anti-Malware"
@@ -46,7 +46,7 @@ weight = 0.95
 is_critical = true
 
 [[controls]]
-check_id = "antivirus"
+check_id = "antivirus_active"
 control_id = "5.2.2"
 control_name = "Anti-malware solution detects all known types of malware"
 category = "Anti-Malware"
@@ -56,7 +56,7 @@ is_critical = true
 
 # MFA -> Req 8: Identify Users and Authenticate Access
 [[controls]]
-check_id = "mfa"
+check_id = "mfa_enabled"
 control_id = "8.4.2"
 control_name = "MFA for all access into the CDE"
 category = "Authentication"
@@ -65,7 +65,7 @@ weight = 0.95
 is_critical = true
 
 [[controls]]
-check_id = "mfa"
+check_id = "mfa_enabled"
 control_id = "8.4.3"
 control_name = "MFA for all remote network access"
 category = "Authentication"
@@ -94,7 +94,7 @@ is_critical = false
 
 # System Updates -> Req 6: Develop and Maintain Secure Systems
 [[controls]]
-check_id = "system_updates"
+check_id = "patches_current"
 control_id = "6.3.3"
 control_name = "Security patches installed within one month"
 category = "Secure Systems"
@@ -123,7 +123,7 @@ is_critical = true
 
 # Session Lock -> Req 8: Identify Users and Authenticate Access
 [[controls]]
-check_id = "session_lock"
+check_id = "screen_lock"
 control_id = "8.2.8"
 control_name = "Session idle timeout"
 category = "Authentication"
@@ -152,7 +152,7 @@ is_critical = true
 
 # Remote Access -> Req 2: Apply Secure Configurations
 [[controls]]
-check_id = "remote_access"
+check_id = "remote_access_secure"
 control_id = "2.2.7"
 control_name = "All non-console administrative access is encrypted"
 category = "Secure Configurations"
@@ -192,7 +192,7 @@ is_critical = true
 
 # USB Storage -> Req 3: Protect Stored Account Data
 [[controls]]
-check_id = "usb_storage"
+check_id = "usb_storage_disabled"
 control_id = "3.3.2"
 control_name = "Encrypt stored data or render unreadable"
 category = "Data Storage"
@@ -202,7 +202,7 @@ is_critical = false
 
 # Backup -> Req 9: Restrict Physical Access
 [[controls]]
-check_id = "backup"
+check_id = "backup_configured"
 control_id = "9.4.5"
 control_name = "Securely store backup media"
 category = "Physical Access"
@@ -222,7 +222,7 @@ is_critical = true
 
 # Guest Account -> Req 8: Identify Users and Authenticate Access
 [[controls]]
-check_id = "guest_account"
+check_id = "guest_account_disabled"
 control_id = "8.2.2"
 control_name = "Group, shared, or generic accounts are not used"
 category = "Authentication"
@@ -232,7 +232,7 @@ is_critical = false
 
 # Auto Login -> Req 8: Identify Users and Authenticate Access
 [[controls]]
-check_id = "auto_login"
+check_id = "auto_login_disabled"
 control_id = "8.2.1"
 control_name = "Unique IDs assigned to each user"
 category = "Authentication"
@@ -319,7 +319,7 @@ is_critical = true
 
 # GPO Lockout Policy -> Req 8: Identify Users and Authenticate Access
 [[controls]]
-check_id = "gpo_lockout_policy"
+check_id = "gpo_account_lockout"
 control_id = "8.3.4"
 control_name = "Invalid authentication attempts are limited"
 category = "Authentication"

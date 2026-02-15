@@ -109,7 +109,7 @@ impl<'a> Divider<'a> {
                     theme::font_small(),
                     theme::text_tertiary(),
                 );
-                let label_width = label_galley.size().x + 16.0; // Add padding
+                let label_width = label_galley.size().x + theme::SPACE; // Add padding
                 let line_width = (available_width - label_width) / 2.0;
 
                 // Left line
@@ -187,8 +187,8 @@ impl<'a> Divider<'a> {
                 painter.rect_filled(rect, 0, color);
             }
             DividerStyle::Dashed => {
-                let dash_length = 8.0;
-                let gap_length = 4.0;
+                let dash_length = theme::SPACE_SM;
+                let gap_length = theme::SPACE_XS;
 
                 if horizontal {
                     let mut x = rect.min.x;

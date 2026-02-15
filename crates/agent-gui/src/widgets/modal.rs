@@ -147,7 +147,7 @@ impl Modal {
 
         // Modal window
         egui::Area::new(egui::Id::new("modal_window").with(self.id))
-            .fixed_pos(screen.center() - egui::vec2(self.width / 2.0, 150.0))
+            .fixed_pos(screen.center() - egui::vec2(self.width / 2.0, theme::MODAL_Y_OFFSET))
             .order(egui::Order::Foreground)
             .show(ctx, |ui| {
                 let modal_result = self.draw_modal(ui);
