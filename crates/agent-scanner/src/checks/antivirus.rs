@@ -19,10 +19,6 @@ use tracing::debug;
 /// Check ID for antivirus status.
 pub const CHECK_ID: &str = "antivirus_active";
 
-/// Maximum age for definitions to be considered current (7 days).
-#[allow(dead_code)]
-const MAX_DEFINITION_AGE_DAYS: i64 = 7;
-
 /// Antivirus status details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AntivirusStatus {
@@ -616,8 +612,9 @@ mod tests {
         let recent = Utc::now() - Duration::days(3);
         let old = Utc::now() - Duration::days(10);
 
-        assert!(Utc::now() - recent < Duration::days(MAX_DEFINITION_AGE_DAYS));
-        assert!((Utc::now() - old >= Duration::days(MAX_DEFINITION_AGE_DAYS)));
+        // Definitions older than 7 days are considered stale
+        assert!(Utc::now() - recent < Duration::days(7));
+        assert!((Utc::now() - old >= Duration::days(7)));
     }
 
     #[test]

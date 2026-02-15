@@ -46,14 +46,6 @@ const WEAK_MACS: &[&str] = &[
     "hmac-sha1-etm@openssh.com",
 ];
 
-/// Weak key exchange algorithms.
-#[allow(dead_code)] // Reserved for future KEX validation
-const WEAK_KEX: &[&str] = &[
-    "diffie-hellman-group1-sha1",
-    "diffie-hellman-group14-sha1",
-    "diffie-hellman-group-exchange-sha1",
-];
-
 /// SSH hardening status details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SshHardeningStatus {

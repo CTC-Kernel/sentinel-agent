@@ -171,7 +171,9 @@ fn process_event(
                 baseline.remove(path);
             }
             _ => {
-                let _ = baseline.update(path);
+                if let Err(e) = baseline.update(path) {
+                    tracing::warn!("Failed to update FIM baseline for {}: {}", path.display(), e);
+                }
             }
         }
 
