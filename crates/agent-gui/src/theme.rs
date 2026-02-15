@@ -1009,6 +1009,11 @@ pub const AVATAR_COLORS: [Color32; 10] = [
     Color32::from_rgb(59, 130, 246),  // Blue
 ];
 
+/// Threat radar visualization height.
+pub const RADAR_HEIGHT: f32 = 360.0;
+/// Threat radar main radius.
+pub const RADAR_RADIUS: f32 = 140.0;
+
 /// Tooltip max width.
 pub const TOOLTIP_MAX_WIDTH: f32 = 320.0;
 
