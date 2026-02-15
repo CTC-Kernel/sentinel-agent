@@ -1,28 +1,53 @@
 //! Compliance framework mappings.
 //!
 //! Maps agent checks to regulatory frameworks:
-//! - NIS2 (Network and Information Security Directive)
-//! - DORA (Digital Operational Resilience Act)
 //! - NIST CSF (Cybersecurity Framework)
 //! - CIS Controls v8
 //! - PCI DSS v4.0
 //! - ISO 27001:2022
 //! - ANSSI Guide d'Hygiène Informatique
-
-mod anssi;
-mod cis_v8;
-mod iso27001;
-mod nist_csf;
-mod pci_dss;
-
-pub use anssi::AnssiMapping;
-pub use cis_v8::CisV8Mapping;
-pub use iso27001::Iso27001Mapping;
-pub use nist_csf::NistCsfMapping;
-pub use pci_dss::PciDssMapping;
+//!
+//! Framework data is loaded from embedded TOML files at compile time.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+// Embedded framework TOML data (compiled into the binary).
+const ANSSI_TOML: &str = include_str!("data/anssi.toml");
+const CIS_V8_TOML: &str = include_str!("data/cis_v8.toml");
+const ISO27001_TOML: &str = include_str!("data/iso27001.toml");
+const NIST_CSF_TOML: &str = include_str!("data/nist_csf.toml");
+const PCI_DSS_TOML: &str = include_str!("data/pci_dss.toml");
+
+/// TOML file structure for deserialization.
+#[derive(Deserialize)]
+struct FrameworkFile {
+    framework: FrameworkInfoToml,
+    controls: Vec<ControlMappingToml>,
+}
+
+/// Framework metadata in TOML.
+#[derive(Deserialize)]
+struct FrameworkInfoToml {
+    id: String,
+    name: String,
+    version: String,
+    description: String,
+    applicability: Vec<String>,
+    reference_url: String,
+}
+
+/// A single control mapping entry in TOML.
+#[derive(Deserialize)]
+struct ControlMappingToml {
+    check_id: String,
+    control_id: String,
+    control_name: String,
+    category: String,
+    description: String,
+    weight: f32,
+    is_critical: bool,
+}
 
 /// A mapping between an agent check and a framework control.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -69,6 +94,38 @@ pub struct FrameworkRegistry {
     mappings: HashMap<String, Vec<ControlMapping>>,
 }
 
+/// Load a single framework from its TOML source and register it.
+fn load_framework(registry: &mut FrameworkRegistry, toml_src: &str) {
+    let file: FrameworkFile =
+        toml::from_str(toml_src).expect("built-in framework TOML must be valid");
+
+    let framework_id = file.framework.id.clone();
+
+    registry.register_framework(FrameworkInfo {
+        id: file.framework.id,
+        name: file.framework.name,
+        version: file.framework.version,
+        description: file.framework.description,
+        applicability: file.framework.applicability,
+        reference_url: file.framework.reference_url,
+    });
+
+    for ctrl in file.controls {
+        registry.add_mapping(
+            &ctrl.check_id,
+            ControlMapping {
+                framework_id: framework_id.clone(),
+                control_id: ctrl.control_id,
+                control_name: ctrl.control_name,
+                category: ctrl.category,
+                description: ctrl.description,
+                weight: ctrl.weight,
+                is_critical: ctrl.is_critical,
+            },
+        );
+    }
+}
+
 impl FrameworkRegistry {
     /// Create a new registry with all built-in frameworks.
     pub fn new() -> Self {
@@ -77,47 +134,13 @@ impl FrameworkRegistry {
         registry
     }
 
-    /// Register all built-in framework mappings.
+    /// Register all built-in framework mappings from embedded TOML data.
     fn register_builtin_frameworks(&mut self) {
-        // Register NIST CSF
-        self.register_framework(NistCsfMapping::framework_info());
-        for (check_id, mappings) in NistCsfMapping::mappings() {
-            for mapping in mappings {
-                self.add_mapping(&check_id, mapping);
-            }
-        }
-
-        // Register CIS Controls v8
-        self.register_framework(CisV8Mapping::framework_info());
-        for (check_id, mappings) in CisV8Mapping::mappings() {
-            for mapping in mappings {
-                self.add_mapping(&check_id, mapping);
-            }
-        }
-
-        // Register PCI DSS
-        self.register_framework(PciDssMapping::framework_info());
-        for (check_id, mappings) in PciDssMapping::mappings() {
-            for mapping in mappings {
-                self.add_mapping(&check_id, mapping);
-            }
-        }
-
-        // Register ISO 27001
-        self.register_framework(Iso27001Mapping::framework_info());
-        for (check_id, mappings) in Iso27001Mapping::mappings() {
-            for mapping in mappings {
-                self.add_mapping(&check_id, mapping);
-            }
-        }
-
-        // Register ANSSI Guide d'Hygiène Informatique
-        self.register_framework(AnssiMapping::framework_info());
-        for (check_id, mappings) in AnssiMapping::mappings() {
-            for mapping in mappings {
-                self.add_mapping(&check_id, mapping);
-            }
-        }
+        load_framework(self, NIST_CSF_TOML);
+        load_framework(self, CIS_V8_TOML);
+        load_framework(self, PCI_DSS_TOML);
+        load_framework(self, ISO27001_TOML);
+        load_framework(self, ANSSI_TOML);
     }
 
     /// Register a new framework.

@@ -1,0 +1,466 @@
+[framework]
+id = "ANSSI_HYGIENE"
+name = "ANSSI Guide d'Hygi\u00e8ne Informatique"
+version = "2.0"
+description = "42 mesures essentielles pour la s\u00e9curit\u00e9 des SI - TPE/PME"
+applicability = ["TPE/PME", "France", "Europe"]
+reference_url = "https://www.ssi.gouv.fr/guide/guide-dhygiene-informatique/"
+
+# ========================================================================
+# DOMAIN: Authentifier et contr\u00f4ler les acc\u00e8s (9-14)
+# ========================================================================
+
+[[controls]]
+check_id = "password_policy"
+control_id = "M09"
+control_name = "Identifier nomm\u00e9ment chaque utilisateur"
+category = "Authentification et Contr\u00f4le d'Acc\u00e8s"
+description = "Attribuer un identifiant unique \u00e0 chaque utilisateur et interdire les comptes partag\u00e9s"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "password_policy"
+control_id = "M10"
+control_name = "D\u00e9finir des r\u00e8gles de mots de passe"
+category = "Authentification et Contr\u00f4le d'Acc\u00e8s"
+description = "D\u00e9finir et faire appliquer des r\u00e8gles de choix et de dimensionnement des mots de passe"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "mfa"
+control_id = "M11"
+control_name = "Prot\u00e9ger les mots de passe stock\u00e9s"
+category = "Authentification et Contr\u00f4le d'Acc\u00e8s"
+description = "Prot\u00e9ger les mots de passe stock\u00e9s sur les syst\u00e8mes avec des m\u00e9canismes robustes"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "mfa"
+control_id = "M12"
+control_name = "Changer les authentifications par d\u00e9faut"
+category = "Authentification et Contr\u00f4le d'Acc\u00e8s"
+description = "Modifier les \u00e9l\u00e9ments d'authentification par d\u00e9faut sur les \u00e9quipements et services"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "privileged_access"
+control_id = "M13"
+control_name = "Authentifications fortes"
+category = "Authentification et Contr\u00f4le d'Acc\u00e8s"
+description = "Privil\u00e9gier les authentifications multi-facteurs pour les acc\u00e8s sensibles"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "user_accounts"
+control_id = "M14"
+control_name = "G\u00e9rer les droits d'acc\u00e8s"
+category = "Authentification et Contr\u00f4le d'Acc\u00e8s"
+description = "Attribuer les droits d'acc\u00e8s selon le principe du moindre privil\u00e8ge"
+weight = 0.85
+is_critical = true
+
+# ========================================================================
+# DOMAIN: S\u00e9curiser les postes (15-19)
+# ========================================================================
+
+[[controls]]
+check_id = "antivirus"
+control_id = "M15"
+control_name = "Utiliser un antivirus"
+category = "S\u00e9curit\u00e9 des Postes"
+description = "Installer et maintenir \u00e0 jour un logiciel antivirus sur tous les postes"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "screen_lock"
+control_id = "M16"
+control_name = "Verrouillage automatique des sessions"
+category = "S\u00e9curit\u00e9 des Postes"
+description = "Activer le verrouillage automatique des sessions apr\u00e8s p\u00e9riode d'inactivit\u00e9"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "auto_update"
+control_id = "M17"
+control_name = "Appliquer les mises \u00e0 jour"
+category = "S\u00e9curit\u00e9 des Postes"
+description = "Se tenir inform\u00e9 et appliquer rapidement les mises \u00e0 jour de s\u00e9curit\u00e9"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "system_updates"
+control_id = "M17"
+control_name = "Appliquer les mises \u00e0 jour"
+category = "S\u00e9curit\u00e9 des Postes"
+description = "Se tenir inform\u00e9 et appliquer rapidement les mises \u00e0 jour de s\u00e9curit\u00e9"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "disk_encryption"
+control_id = "M18"
+control_name = "Chiffrer les donn\u00e9es sensibles"
+category = "S\u00e9curit\u00e9 des Postes"
+description = "Chiffrer les donn\u00e9es sensibles transmises et stock\u00e9es"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "secure_boot"
+control_id = "M19"
+control_name = "S\u00e9curiser le d\u00e9marrage"
+category = "S\u00e9curit\u00e9 des Postes"
+description = "Activer le d\u00e9marrage s\u00e9curis\u00e9 pour pr\u00e9venir les compromissions au boot"
+weight = 0.85
+is_critical = true
+
+# ========================================================================
+# DOMAIN: S\u00e9curiser le r\u00e9seau (20-25)
+# ========================================================================
+
+[[controls]]
+check_id = "firewall"
+control_id = "M20"
+control_name = "Installer un pare-feu"
+category = "S\u00e9curit\u00e9 R\u00e9seau"
+description = "Installer et configurer un pare-feu sur chaque poste et \u00e0 l'entr\u00e9e du r\u00e9seau"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "network_segmentation"
+control_id = "M21"
+control_name = "Segmenter le r\u00e9seau"
+category = "S\u00e9curit\u00e9 R\u00e9seau"
+description = "Segmenter le r\u00e9seau pour limiter la propagation des menaces"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "wifi_security"
+control_id = "M22"
+control_name = "S\u00e9curiser les r\u00e9seaux Wi-Fi"
+category = "S\u00e9curit\u00e9 R\u00e9seau"
+description = "Configurer les r\u00e9seaux Wi-Fi avec WPA3/WPA2 et des cl\u00e9s robustes"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "dns_security"
+control_id = "M23"
+control_name = "S\u00e9curiser DNS et communications"
+category = "S\u00e9curit\u00e9 R\u00e9seau"
+description = "Utiliser DNS s\u00e9curis\u00e9 et chiffrer les communications r\u00e9seau"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "remote_access"
+control_id = "M24"
+control_name = "S\u00e9curiser les acc\u00e8s distants"
+category = "S\u00e9curit\u00e9 R\u00e9seau"
+description = "Utiliser des VPN et des tunnels chiffr\u00e9s pour les acc\u00e8s distants"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "M25"
+control_name = "Contr\u00f4ler l'acc\u00e8s aux \u00e9quipements"
+category = "S\u00e9curit\u00e9 R\u00e9seau"
+description = "Durcir la configuration SSH et contr\u00f4ler l'acc\u00e8s aux \u00e9quipements"
+weight = 0.85
+is_critical = true
+
+# ========================================================================
+# DOMAIN: S\u00e9curiser l'administration (26-29)
+# ========================================================================
+
+[[controls]]
+check_id = "admin_accounts"
+control_id = "M26"
+control_name = "Comptes d'administration d\u00e9di\u00e9s"
+category = "S\u00e9curit\u00e9 Administration"
+description = "Utiliser des comptes d\u00e9di\u00e9s pour les t\u00e2ches d'administration"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "audit_logging"
+control_id = "M27"
+control_name = "Journaliser les \u00e9v\u00e9nements"
+category = "S\u00e9curit\u00e9 Administration"
+description = "Configurer et centraliser la journalisation des \u00e9v\u00e9nements de s\u00e9curit\u00e9"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "certificate_validation"
+control_id = "M28"
+control_name = "G\u00e9rer les certificats num\u00e9riques"
+category = "S\u00e9curit\u00e9 Administration"
+description = "Valider et g\u00e9rer correctement les certificats num\u00e9riques"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "edr"
+control_id = "M29"
+control_name = "D\u00e9tecter les comportements suspects"
+category = "S\u00e9curit\u00e9 Administration"
+description = "Mettre en place une solution de d\u00e9tection des comportements malveillants"
+weight = 0.85
+is_critical = true
+
+# ========================================================================
+# DOMAIN: G\u00e9rer le nomadisme (30-32)
+# ========================================================================
+
+# disk_encryption also maps to M30 via entry().and_modify()
+[[controls]]
+check_id = "disk_encryption"
+control_id = "M30"
+control_name = "Chiffrer les \u00e9quipements mobiles"
+category = "Gestion du Nomadisme"
+description = "Chiffrer int\u00e9gralement les disques des \u00e9quipements nomades"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "vpn"
+control_id = "M31"
+control_name = "Utiliser un VPN"
+category = "Gestion du Nomadisme"
+description = "Utiliser un VPN pour tous les acc\u00e8s distants au SI"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "remote_wipe"
+control_id = "M32"
+control_name = "S\u00e9curiser la perte d'\u00e9quipement"
+category = "Gestion du Nomadisme"
+description = "Pr\u00e9voir l'effacement \u00e0 distance des \u00e9quipements vol\u00e9s ou perdus"
+weight = 0.75
+is_critical = false
+
+# ========================================================================
+# DOMAIN: Maintenir le SI \u00e0 jour (33-35)
+# ========================================================================
+
+[[controls]]
+check_id = "vulnerability_scan"
+control_id = "M33"
+control_name = "Effectuer des audits de s\u00e9curit\u00e9"
+category = "Maintenance du SI"
+description = "R\u00e9aliser r\u00e9guli\u00e8rement des audits et scans de vuln\u00e9rabilit\u00e9s"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "asset_inventory"
+control_id = "M34"
+control_name = "Inventaire des actifs"
+category = "Maintenance du SI"
+description = "Maintenir \u00e0 jour l'inventaire des \u00e9quipements et logiciels"
+weight = 0.8
+is_critical = true
+
+[[controls]]
+check_id = "software_inventory"
+control_id = "M35"
+control_name = "G\u00e9rer les logiciels autoris\u00e9s"
+category = "Maintenance du SI"
+description = "D\u00e9finir et faire respecter une liste de logiciels autoris\u00e9s"
+weight = 0.8
+is_critical = false
+
+# ========================================================================
+# DOMAIN: Superviser, auditer, r\u00e9agir (36-39)
+# ========================================================================
+
+[[controls]]
+check_id = "file_integrity"
+control_id = "M36"
+control_name = "Surveiller l'int\u00e9grit\u00e9 des fichiers"
+category = "Supervision et Audit"
+description = "Mettre en place une surveillance de l'int\u00e9grit\u00e9 des fichiers critiques"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "backup"
+control_id = "M37"
+control_name = "Sauvegarder les donn\u00e9es"
+category = "Supervision et Audit"
+description = "Effectuer des sauvegardes r\u00e9guli\u00e8res et tester leur restauration"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "incident_response"
+control_id = "M38"
+control_name = "Gestion des incidents"
+category = "Supervision et Audit"
+description = "D\u00e9finir et tester une proc\u00e9dure de r\u00e9ponse aux incidents de s\u00e9curit\u00e9"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "security_monitoring"
+control_id = "M39"
+control_name = "Analyser les journaux"
+category = "Supervision et Audit"
+description = "Analyser r\u00e9guli\u00e8rement les journaux pour d\u00e9tecter les anomalies"
+weight = 0.85
+is_critical = true
+
+# ========================================================================
+# DOMAIN: Pour aller plus loin (40-42)
+# ========================================================================
+
+[[controls]]
+check_id = "container_security"
+control_id = "M40"
+control_name = "S\u00e9curiser virtualisation/containers"
+category = "Mesures Avanc\u00e9es"
+description = "S\u00e9curiser les environnements de virtualisation et conteneurs"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "encryption"
+control_id = "M41"
+control_name = "Chiffrement robuste"
+category = "Mesures Avanc\u00e9es"
+description = "Utiliser des algorithmes et solutions de chiffrement conformes aux recommandations ANSSI"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "dlp"
+control_id = "M42"
+control_name = "Pr\u00e9vention fuite de donn\u00e9es"
+category = "Mesures Avanc\u00e9es"
+description = "Mettre en place des mesures de pr\u00e9vention de la fuite de donn\u00e9es"
+weight = 0.8
+is_critical = false
+
+# ========================================================================
+# Additional mappings for existing checks
+# ========================================================================
+
+# BitLocker -> M18, M30
+[[controls]]
+check_id = "bitlocker"
+control_id = "M18"
+control_name = "Chiffrer les donn\u00e9es sensibles"
+category = "S\u00e9curit\u00e9 des Postes"
+description = "BitLocker assure le chiffrement des donn\u00e9es au repos"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "bitlocker"
+control_id = "M30"
+control_name = "Chiffrer les \u00e9quipements mobiles"
+category = "Gestion du Nomadisme"
+description = "BitLocker prot\u00e8ge les \u00e9quipements nomades"
+weight = 0.9
+is_critical = true
+
+# FileVault -> M18, M30
+[[controls]]
+check_id = "filevault"
+control_id = "M18"
+control_name = "Chiffrer les donn\u00e9es sensibles"
+category = "S\u00e9curit\u00e9 des Postes"
+description = "FileVault assure le chiffrement des donn\u00e9es au repos sur macOS"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "filevault"
+control_id = "M30"
+control_name = "Chiffrer les \u00e9quipements mobiles"
+category = "Gestion du Nomadisme"
+description = "FileVault prot\u00e8ge les MacBooks nomades"
+weight = 0.9
+is_critical = true
+
+# Windows Defender -> M15, M29
+[[controls]]
+check_id = "windows_defender"
+control_id = "M15"
+control_name = "Utiliser un antivirus"
+category = "S\u00e9curit\u00e9 des Postes"
+description = "Windows Defender fournit une protection antivirus int\u00e9gr\u00e9e"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "windows_defender"
+control_id = "M29"
+control_name = "D\u00e9tecter les comportements suspects"
+category = "S\u00e9curit\u00e9 Administration"
+description = "Windows Defender d\u00e9tecte les comportements malveillants"
+weight = 0.8
+is_critical = true
+
+# UAC -> M14
+[[controls]]
+check_id = "uac"
+control_id = "M14"
+control_name = "G\u00e9rer les droits d'acc\u00e8s"
+category = "Authentification et Contr\u00f4le d'Acc\u00e8s"
+description = "UAC limite les \u00e9l\u00e9vations de privil\u00e8ges non autoris\u00e9es"
+weight = 0.85
+is_critical = true
+
+# Gatekeeper (macOS) -> M35
+[[controls]]
+check_id = "gatekeeper"
+control_id = "M35"
+control_name = "G\u00e9rer les logiciels autoris\u00e9s"
+category = "Maintenance du SI"
+description = "Gatekeeper contr\u00f4le l'ex\u00e9cution des logiciels sur macOS"
+weight = 0.8
+is_critical = false
+
+# SIP (macOS) -> M36
+[[controls]]
+check_id = "sip"
+control_id = "M36"
+control_name = "Surveiller l'int\u00e9grit\u00e9 des fichiers"
+category = "Supervision et Audit"
+description = "System Integrity Protection prot\u00e8ge les fichiers syst\u00e8me macOS"
+weight = 0.85
+is_critical = true
+
+# Time Machine -> M37
+[[controls]]
+check_id = "time_machine"
+control_id = "M37"
+control_name = "Sauvegarder les donn\u00e9es"
+category = "Supervision et Audit"
+description = "Time Machine assure les sauvegardes automatiques sur macOS"
+weight = 0.9
+is_critical = true
+
+# Secure DNS -> M23
+[[controls]]
+check_id = "secure_dns"
+control_id = "M23"
+control_name = "S\u00e9curiser DNS et communications"
+category = "S\u00e9curit\u00e9 R\u00e9seau"
+description = "Utiliser DNS over HTTPS/TLS pour s\u00e9curiser les requ\u00eates DNS"
+weight = 0.8
+is_critical = false
