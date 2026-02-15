@@ -282,12 +282,24 @@ impl SoftwarePage {
                         body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
                             let pkg = &state.software.packages[filtered[row.index()]];
                             row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&pkg.name)
-                                        .font(theme::font_body())
-                                        .color(theme::text_primary())
-                                        .strong(),
-                                );
+                                ui.vertical(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&pkg.name)
+                                            .font(theme::font_body())
+                                            .color(theme::text_primary())
+                                            .strong(),
+                                    );
+                                    if let Some(ref installed) = pkg.installed_at {
+                                        ui.label(
+                                            egui::RichText::new(format!(
+                                                "Install\u{00e9} le {}",
+                                                installed.format("%d/%m/%Y")
+                                            ))
+                                            .font(theme::font_min())
+                                            .color(theme::text_tertiary()),
+                                        );
+                                    }
+                                });
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
@@ -662,8 +674,8 @@ impl SoftwarePage {
                         |ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(icon)
-                                    .size(28.0)
-                                    .color(color.linear_multiply(theme::OPACITY_MUTED)),
+                                    .size(theme::ICON_XL)
+                                    .color(color.linear_multiply(theme::OPACITY_DISABLED)),
                             );
                         },
                     );

@@ -28,7 +28,7 @@ impl BadgeVariant {
             BadgeVariant::Warning => theme::WARNING,
             BadgeVariant::Error => theme::ERROR,
             BadgeVariant::Info => theme::INFO,
-            BadgeVariant::Neutral => theme::text_tertiary(),
+            BadgeVariant::Neutral => theme::INFO,
         }
     }
 }

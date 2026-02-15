@@ -59,7 +59,15 @@ impl MonitoringPage {
             ),
             (
                 "MÉMOIRE VIVE",
-                format!("{:.1}%", state.resources.memory_percent),
+                if state.resources.memory_total_mb > 0 {
+                    format!(
+                        "{} / {} GB",
+                        state.resources.memory_used_mb / 1024,
+                        state.resources.memory_total_mb / 1024
+                    )
+                } else {
+                    format!("{:.1}%", state.resources.memory_percent)
+                },
                 Self::usage_color(state.resources.memory_percent),
                 icons::SERVER,
             ),
@@ -210,10 +218,10 @@ impl MonitoringPage {
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
-                            let icon_alpha = if response.hovered() { 0.5 } else { 0.25 };
+                            let icon_alpha = if response.hovered() { theme::OPACITY_MEDIUM } else { theme::OPACITY_DISABLED };
                             ui.label(
                                 egui::RichText::new(icon)
-                                    .size(28.0)
+                                    .size(theme::ICON_XL)
                                     .color(color.linear_multiply(icon_alpha)),
                             );
                         },

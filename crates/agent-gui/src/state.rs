@@ -11,7 +11,6 @@ use eframe::egui;
 // ---------------------------------------------------------------------------
 
 /// Network interfaces, connections, and alert data.
-#[derive(Default)]
 pub struct NetworkState {
     pub interface_count: u32,
     pub connection_count: u32,
@@ -21,7 +20,25 @@ pub struct NetworkState {
     pub last_scan: Option<chrono::DateTime<chrono::Utc>>,
     pub interfaces: Vec<crate::dto::GuiNetworkInterface>,
     pub connections: Vec<crate::dto::GuiNetworkConnection>,
+    pub alerts: VecDeque<crate::dto::GuiNetworkAlert>,
     pub search: String,
+}
+
+impl Default for NetworkState {
+    fn default() -> Self {
+        Self {
+            interface_count: 0,
+            connection_count: 0,
+            alert_count: 0,
+            primary_ip: None,
+            primary_mac: None,
+            last_scan: None,
+            interfaces: Vec::new(),
+            connections: Vec::new(),
+            alerts: VecDeque::with_capacity(200),
+            search: String::new(),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -236,6 +253,14 @@ pub struct SettingsState {
     pub update_status: crate::dto::UpdateStatus,
     /// SHA-256 hash of the admin password for danger zone access.
     pub admin_password_sha256: String,
+    /// Whether the SIEM forwarder is enabled.
+    pub siem_enabled: bool,
+    /// SIEM output format (CEF, LEEF, JSON).
+    pub siem_format: String,
+    /// SIEM transport protocol (Syslog, HTTP).
+    pub siem_transport: String,
+    /// SIEM destination address (host:port or URL).
+    pub siem_destination: String,
 }
 
 impl Default for SettingsState {
@@ -251,6 +276,10 @@ impl Default for SettingsState {
             update_status: crate::dto::UpdateStatus::Idle,
             // SHA-256 of "admin" — should be changed on first deployment
             admin_password_sha256: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918".to_string(),
+            siem_enabled: false,
+            siem_format: "CEF".to_string(),
+            siem_transport: "Syslog".to_string(),
+            siem_destination: String::new(),
         }
     }
 }
@@ -427,6 +456,10 @@ impl AppState {
                 self.network.interfaces = interfaces;
                 self.network.connections = connections;
             }
+            AgentEvent::NetworkSecurityAlert { alert } => {
+                self.network.alerts.push_front(alert);
+                self.network.alerts.truncate(200);
+            }
             AgentEvent::VulnerabilityUpdate { summary } => {
                 self.vulnerability_summary = Some(summary);
             }
@@ -485,6 +518,17 @@ impl AppState {
             AgentEvent::ShuttingDown => {}
             AgentEvent::UpdateStatusChanged { status } => {
                 self.settings.update_status = status;
+            }
+            AgentEvent::SiemConfigUpdate {
+                enabled,
+                format,
+                transport,
+                destination,
+            } => {
+                self.settings.siem_enabled = enabled;
+                self.settings.siem_format = format;
+                self.settings.siem_transport = transport;
+                self.settings.siem_destination = destination;
             }
         }
 

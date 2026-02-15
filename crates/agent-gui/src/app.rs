@@ -148,7 +148,7 @@ impl SentinelApp {
             ..Default::default()
         };
 
-        let llm_panel = crate::llm_panel::LLMPanel::default();
+        let llm_panel = crate::llm_panel::LLMPanel;
 
         Self {
             page: Page::Dashboard,

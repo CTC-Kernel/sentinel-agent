@@ -60,7 +60,7 @@ impl AvatarStatus {
             AvatarStatus::Online => theme::SUCCESS,
             AvatarStatus::Away => theme::WARNING,
             AvatarStatus::Busy => theme::ERROR,
-            AvatarStatus::Offline => theme::text_tertiary(),
+            AvatarStatus::Offline => theme::INFO,
         }
     }
 }
