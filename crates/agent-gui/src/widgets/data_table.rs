@@ -266,7 +266,7 @@ impl<'a> DataTable<'a> {
                             ui.painter().rect_filled(
                                 cell_rect,
                                 0,
-                                theme::hover_bg().linear_multiply(theme::OPACITY_MEDIUM),
+                                theme::hover_bg(),
                             );
                         }
 
@@ -308,7 +308,7 @@ impl<'a> DataTable<'a> {
                             };
 
                             if let Some(icon) = sort_icon {
-                                let icon_alpha = if is_sorted { 1.0 } else { theme::OPACITY_MEDIUM };
+                                let icon_alpha = if is_sorted { 1.0 } else { theme::OPACITY_PRESSED };
                                 ui.painter().text(
                                     egui::pos2(cell_rect.max.x - theme::ICON_MD, cell_rect.center().y),
                                     egui::Align2::CENTER_CENTER,
@@ -382,7 +382,7 @@ impl<'a> DataTable<'a> {
             } else if is_hovered && self.hoverable {
                 theme::hover_bg()
             } else if self.striped && is_odd {
-                theme::bg_tertiary().linear_multiply(theme::OPACITY_MEDIUM)
+                theme::table_row_bg(row_index)
             } else {
                 Color32::TRANSPARENT
             };
@@ -431,7 +431,7 @@ impl<'a> DataTable<'a> {
                             egui::pos2(cell_rect.max.x, cell_rect.min.y),
                             egui::pos2(cell_rect.max.x, cell_rect.max.y),
                         ],
-                        egui::Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_MEDIUM)),
+                        egui::Stroke::new(theme::BORDER_THIN, theme::separator()),
                     );
                 }
 
@@ -444,7 +444,7 @@ impl<'a> DataTable<'a> {
                     egui::pos2(row_rect.min.x, row_rect.max.y),
                     egui::pos2(row_rect.max.x, row_rect.max.y),
                 ],
-                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border().linear_multiply(theme::OPACITY_MEDIUM)),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::separator()),
             );
         }
 

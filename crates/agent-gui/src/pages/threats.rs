@@ -936,7 +936,7 @@ impl ThreatsPage {
 
         let accent_bar_width = 3.0_f32;
         let frame_resp = egui::Frame::new()
-            .fill(theme::bg_elevated().linear_multiply(theme::OPACITY_MEDIUM))
+            .fill(theme::bg_tertiary())
             .corner_radius(egui::CornerRadius::same(theme::ROUNDING_LG))
             .inner_margin(egui::Margin {
                 left: (theme::SPACE + accent_bar_width) as i8,
@@ -1051,12 +1051,13 @@ impl ThreatsPage {
                 let response =
                     ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
 
+                let safe_color = theme::readable_color(color);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
                         let value_color = if response.hovered() {
-                            color
+                            safe_color
                         } else {
-                            color.linear_multiply(theme::OPACITY_STRONG)
+                            safe_color.linear_multiply(theme::OPACITY_STRONG)
                         };
 
                         ui.label(
@@ -1084,7 +1085,7 @@ impl ThreatsPage {
                             ui.label(
                                 egui::RichText::new(icon)
                                     .size(theme::ICON_XL)
-                                    .color(color.linear_multiply(icon_alpha)),
+                                    .color(safe_color.linear_multiply(icon_alpha)),
                             );
                         },
                     );

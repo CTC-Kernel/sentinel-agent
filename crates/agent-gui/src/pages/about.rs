@@ -203,7 +203,7 @@ impl AboutPage {
                         .link(
                             egui::RichText::new("OUVRIR")
                                 .font(theme::font_small())
-                                .color(theme::ACCENT_LIGHT)
+                                .color(if theme::is_dark_mode() { theme::ACCENT_LIGHT } else { theme::ACCENT })
                                 .strong(),
                         )
                         .clicked()

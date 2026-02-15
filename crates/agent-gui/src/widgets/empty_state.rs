@@ -108,7 +108,7 @@ pub fn no_results_state(ui: &mut Ui, search_term: &str) {
         ui.label(
             RichText::new(crate::icons::SEARCH)
                 .size(theme::PENDING_SPINNER_SIZE)
-                .color(theme::text_tertiary().linear_multiply(theme::OPACITY_MEDIUM)),
+                .color(theme::text_tertiary()),
         );
 
         ui.add_space(theme::SPACE_MD);

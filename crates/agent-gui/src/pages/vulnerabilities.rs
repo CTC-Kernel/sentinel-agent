@@ -545,7 +545,7 @@ impl VulnerabilitiesPage {
                             let response = ui.label(
                                 egui::RichText::new(cve_label)
                                     .font(egui::FontId::monospace(12.0))
-                                    .color(theme::ACCENT_LIGHT)
+                                    .color(if theme::is_dark_mode() { theme::ACCENT_LIGHT } else { theme::ACCENT })
                                     .strong(),
                             ).interact(egui::Sense::click());
                             if response.clicked() {
@@ -641,6 +641,7 @@ impl VulnerabilitiesPage {
         color: egui::Color32,
         icon: &str,
     ) {
+        let safe_color = theme::readable_color(color);
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
@@ -649,7 +650,7 @@ impl VulnerabilitiesPage {
                         ui.label(
                             egui::RichText::new(value)
                                 .font(theme::font_card_value())
-                                .color(color)
+                                .color(safe_color)
                                 .strong(),
                         );
                         ui.label(
@@ -666,7 +667,7 @@ impl VulnerabilitiesPage {
                             ui.label(
                                 egui::RichText::new(icon)
                                     .size(theme::ICON_XL)
-                                    .color(color.linear_multiply(theme::OPACITY_DISABLED)),
+                                    .color(safe_color.linear_multiply(theme::OPACITY_DISABLED)),
                             );
                         },
                     );
