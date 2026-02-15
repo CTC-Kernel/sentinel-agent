@@ -1,0 +1,482 @@
+[framework]
+id = "NIST_CSF"
+name = "NIST Cybersecurity Framework"
+version = "2.0"
+description = "Framework for improving critical infrastructure cybersecurity"
+applicability = ["Critical Infrastructure", "Federal Agencies", "Global Organizations"]
+reference_url = "https://www.nist.gov/cyberframework"
+
+# Disk Encryption
+[[controls]]
+check_id = "disk_encryption"
+control_id = "PR.DS-1"
+control_name = "Data-at-rest is protected"
+category = "Protect"
+description = "Data-at-rest is protected using encryption"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "disk_encryption"
+control_id = "PR.DS-5"
+control_name = "Protections against data leaks"
+category = "Protect"
+description = "Protections against data leaks are implemented"
+weight = 0.7
+is_critical = false
+
+# Firewall
+[[controls]]
+check_id = "firewall"
+control_id = "PR.AC-5"
+control_name = "Network integrity is protected"
+category = "Protect"
+description = "Network integrity is protected using network segmentation"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "firewall"
+control_id = "DE.CM-1"
+control_name = "Network is monitored"
+category = "Detect"
+description = "The network is monitored to detect potential cybersecurity events"
+weight = 0.7
+is_critical = false
+
+# Antivirus
+[[controls]]
+check_id = "antivirus"
+control_id = "DE.CM-4"
+control_name = "Malicious code is detected"
+category = "Detect"
+description = "Malicious code is detected"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "antivirus"
+control_id = "PR.DS-6"
+control_name = "Integrity checking mechanisms"
+category = "Protect"
+description = "Integrity checking mechanisms are used to verify software integrity"
+weight = 0.6
+is_critical = false
+
+# MFA
+[[controls]]
+check_id = "mfa"
+control_id = "PR.AC-7"
+control_name = "Users and devices are authenticated"
+category = "Protect"
+description = "Users, devices, and other assets are authenticated commensurate with risk"
+weight = 0.95
+is_critical = true
+
+# Password Policy
+[[controls]]
+check_id = "password_policy"
+control_id = "PR.AC-1"
+control_name = "Identities and credentials are issued"
+category = "Protect"
+description = "Identities and credentials are issued, managed, verified, revoked"
+weight = 0.8
+is_critical = true
+
+# System Updates
+[[controls]]
+check_id = "system_updates"
+control_id = "PR.IP-12"
+control_name = "Vulnerability management plan"
+category = "Protect"
+description = "A vulnerability management plan is developed and implemented"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "system_updates"
+control_id = "ID.RA-1"
+control_name = "Asset vulnerabilities identified"
+category = "Identify"
+description = "Asset vulnerabilities are identified and documented"
+weight = 0.7
+is_critical = false
+
+# Audit Logging
+[[controls]]
+check_id = "audit_logging"
+control_id = "DE.AE-3"
+control_name = "Event data are collected"
+category = "Detect"
+description = "Event data are collected and correlated"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "audit_logging"
+control_id = "PR.PT-1"
+control_name = "Audit logs are determined"
+category = "Protect"
+description = "Audit/log records are determined, documented, implemented"
+weight = 0.8
+is_critical = true
+
+# Session Lock
+[[controls]]
+check_id = "session_lock"
+control_id = "PR.AC-4"
+control_name = "Access permissions managed"
+category = "Protect"
+description = "Access permissions and authorizations are managed"
+weight = 0.6
+is_critical = false
+
+# Backup
+[[controls]]
+check_id = "backup"
+control_id = "PR.IP-4"
+control_name = "Backups are conducted"
+category = "Protect"
+description = "Backups of information are conducted, maintained, and tested"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "backup"
+control_id = "RC.RP-1"
+control_name = "Recovery plan is executed"
+category = "Recover"
+description = "Recovery plan is executed during or after a cybersecurity incident"
+weight = 0.8
+is_critical = true
+
+# Admin Accounts
+[[controls]]
+check_id = "admin_accounts"
+control_id = "PR.AC-4"
+control_name = "Access permissions managed"
+category = "Protect"
+description = "Access permissions and authorizations are managed"
+weight = 0.8
+is_critical = true
+
+# Remote Access
+[[controls]]
+check_id = "remote_access"
+control_id = "PR.AC-3"
+control_name = "Remote access is managed"
+category = "Protect"
+description = "Remote access is managed"
+weight = 0.85
+is_critical = true
+
+# Kernel Hardening
+[[controls]]
+check_id = "kernel_hardening"
+control_id = "PR.IP-1"
+control_name = "Baseline configuration"
+category = "Protect"
+description = "A baseline configuration is created and maintained"
+weight = 0.7
+is_critical = false
+
+# Time Sync
+[[controls]]
+check_id = "time_sync"
+control_id = "PR.PT-1"
+control_name = "Audit logs are determined"
+category = "Protect"
+description = "Accurate time synchronization for log correlation"
+weight = 0.5
+is_critical = false
+
+# Obsolete Protocols
+[[controls]]
+check_id = "obsolete_protocols"
+control_id = "PR.DS-2"
+control_name = "Data-in-transit is protected"
+category = "Protect"
+description = "Data-in-transit is protected"
+weight = 0.75
+is_critical = false
+
+# USB Storage
+[[controls]]
+check_id = "usb_storage"
+control_id = "PR.PT-2"
+control_name = "Removable media is protected"
+category = "Protect"
+description = "Removable media is protected and its use restricted"
+weight = 0.6
+is_critical = false
+
+# Bluetooth
+[[controls]]
+check_id = "bluetooth"
+control_id = "PR.AC-5"
+control_name = "Network integrity is protected"
+category = "Protect"
+description = "Wireless communication is controlled"
+weight = 0.5
+is_critical = false
+
+# Browser Security
+[[controls]]
+check_id = "browser_security"
+control_id = "PR.IP-1"
+control_name = "Baseline configuration"
+category = "Protect"
+description = "Browser security baseline is maintained"
+weight = 0.6
+is_critical = false
+
+# Guest Account
+[[controls]]
+check_id = "guest_account"
+control_id = "PR.AC-1"
+control_name = "Identities and credentials are issued"
+category = "Protect"
+description = "Guest and shared accounts are controlled"
+weight = 0.5
+is_critical = false
+
+# Auto Login
+[[controls]]
+check_id = "auto_login"
+control_id = "PR.AC-7"
+control_name = "Users are authenticated"
+category = "Protect"
+description = "Automatic login is disabled to ensure authentication"
+weight = 0.7
+is_critical = false
+
+# Log Rotation
+[[controls]]
+check_id = "log_rotation"
+control_id = "PR.PT-1"
+control_name = "Audit logs maintained"
+category = "Protect"
+description = "Log files are properly rotated and retained"
+weight = 0.5
+is_critical = false
+
+# IPv6 Config
+[[controls]]
+check_id = "ipv6_config"
+control_id = "PR.AC-5"
+control_name = "Network integrity"
+category = "Protect"
+description = "IPv6 is properly configured or disabled if not needed"
+weight = 0.4
+is_critical = false
+
+# Windows Hardening
+[[controls]]
+check_id = "windows_hardening"
+control_id = "PR.IP-1"
+control_name = "Baseline configuration"
+category = "Protect"
+description = "Windows security baseline configuration is maintained"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "windows_hardening"
+control_id = "PR.PT-3"
+control_name = "Least functionality principle"
+category = "Protect"
+description = "Systems are configured with least functionality principle"
+weight = 0.8
+is_critical = true
+
+# Linux Hardening
+[[controls]]
+check_id = "linux_hardening"
+control_id = "PR.IP-1"
+control_name = "Baseline configuration"
+category = "Protect"
+description = "Linux kernel security baseline configuration is maintained"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "linux_hardening"
+control_id = "PR.DS-6"
+control_name = "Integrity checking mechanisms"
+category = "Protect"
+description = "Kernel integrity protection mechanisms are enabled"
+weight = 0.8
+is_critical = true
+
+# Update Status
+[[controls]]
+check_id = "update_status"
+control_id = "PR.IP-12"
+control_name = "Vulnerability management plan"
+category = "Protect"
+description = "Patch management and update status monitoring"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "update_status"
+control_id = "ID.RA-1"
+control_name = "Asset vulnerabilities identified"
+category = "Identify"
+description = "Pending updates and vulnerabilities are tracked"
+weight = 0.85
+is_critical = true
+
+# Secure Boot
+[[controls]]
+check_id = "secure_boot"
+control_id = "PR.DS-6"
+control_name = "Integrity checking mechanisms"
+category = "Protect"
+description = "UEFI Secure Boot ensures boot-time integrity"
+weight = 0.85
+is_critical = true
+
+# GPO Password Policy
+[[controls]]
+check_id = "gpo_password_policy"
+control_id = "PR.AC-1"
+control_name = "Identities and credentials are issued"
+category = "Protect"
+description = "Domain password policies enforce credential strength"
+weight = 0.85
+is_critical = true
+
+# GPO Lockout Policy
+[[controls]]
+check_id = "gpo_lockout_policy"
+control_id = "PR.AC-7"
+control_name = "Users are authenticated"
+category = "Protect"
+description = "Account lockout protects against authentication attacks"
+weight = 0.8
+is_critical = true
+
+# GPO Audit Policy
+[[controls]]
+check_id = "gpo_audit_policy"
+control_id = "DE.AE-3"
+control_name = "Event data are collected"
+category = "Detect"
+description = "Domain audit policies ensure security events are logged"
+weight = 0.85
+is_critical = true
+
+# Privileged Groups
+[[controls]]
+check_id = "privileged_groups"
+control_id = "PR.AC-4"
+control_name = "Access permissions managed"
+category = "Protect"
+description = "Privileged group membership is monitored and controlled"
+weight = 0.9
+is_critical = true
+
+# LDAP Security
+[[controls]]
+check_id = "ldap_security"
+control_id = "PR.DS-2"
+control_name = "Data-in-transit is protected"
+category = "Protect"
+description = "LDAP communications are secured with TLS"
+weight = 0.8
+is_critical = true
+
+# DNS Security
+[[controls]]
+check_id = "dns_security"
+control_id = "PR.DS-2"
+control_name = "Data-in-transit is protected"
+category = "Protect"
+description = "DNS queries protected with encryption (DoH/DoT)"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "dns_security"
+control_id = "PR.PT-4"
+control_name = "Communications and control networks are protected"
+category = "Protect"
+description = "Secure DNS prevents DNS-based attacks and data exfiltration"
+weight = 0.8
+is_critical = true
+
+# SSH Hardening
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "PR.AC-7"
+control_name = "Users, devices, and other assets are authenticated"
+category = "Protect"
+description = "SSH key-based authentication and hardened configuration"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "PR.PT-4"
+control_name = "Communications and control networks are protected"
+category = "Protect"
+description = "SSH secure protocols and ciphers"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "PR.AC-4"
+control_name = "Access permissions and authorizations are managed"
+category = "Protect"
+description = "SSH access restricted (no root login, authorized users only)"
+weight = 0.85
+is_critical = true
+
+# Container Security
+[[controls]]
+check_id = "container_security"
+control_id = "PR.IP-1"
+control_name = "Baseline configuration is created and maintained"
+category = "Protect"
+description = "Container runtime security baseline (rootless, seccomp, MAC)"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "container_security"
+control_id = "PR.PT-3"
+control_name = "Least functionality principle is incorporated"
+category = "Protect"
+description = "Containers run with minimal privileges and capabilities"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "container_security"
+control_id = "PR.DS-6"
+control_name = "Integrity checking mechanisms are used"
+category = "Protect"
+description = "Container image signing and integrity verification"
+weight = 0.8
+is_critical = true
+
+# Certificate Validation
+[[controls]]
+check_id = "certificate_validation"
+control_id = "PR.DS-2"
+control_name = "Data-in-transit is protected"
+category = "Protect"
+description = "Valid certificates ensure secure data transmission"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "certificate_validation"
+control_id = "ID.AM-4"
+control_name = "External information systems are catalogued"
+category = "Identify"
+description = "Certificate inventory and expiration tracking"
+weight = 0.8
+is_critical = true

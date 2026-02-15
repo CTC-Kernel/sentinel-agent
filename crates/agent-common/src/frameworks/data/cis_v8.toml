@@ -1,0 +1,527 @@
+[framework]
+id = "CIS_V8"
+name = "CIS Controls"
+version = "8.0"
+description = "Prioritized set of actions to protect against cyber attacks"
+applicability = ["All Organizations", "Global"]
+reference_url = "https://www.cisecurity.org/controls/v8"
+
+# Disk Encryption -> CIS 3: Data Protection
+[[controls]]
+check_id = "disk_encryption"
+control_id = "3.6"
+control_name = "Encrypt Data on End-User Devices"
+category = "Data Protection"
+description = "Encrypt data on end-user devices containing sensitive data"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "disk_encryption"
+control_id = "3.11"
+control_name = "Encrypt Sensitive Data at Rest"
+category = "Data Protection"
+description = "Encrypt sensitive data at rest on servers, applications, and databases"
+weight = 0.85
+is_critical = true
+
+# Firewall -> CIS 4: Secure Configuration, CIS 13: Network Monitoring
+[[controls]]
+check_id = "firewall"
+control_id = "4.4"
+control_name = "Implement Host-Based Firewalls"
+category = "Secure Configuration"
+description = "Implement and manage a host-based firewall or port filtering tool"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "firewall"
+control_id = "13.4"
+control_name = "Perform Traffic Filtering"
+category = "Network Monitoring"
+description = "Perform traffic filtering between network segments"
+weight = 0.8
+is_critical = true
+
+# Antivirus -> CIS 10: Malware Defenses
+[[controls]]
+check_id = "antivirus"
+control_id = "10.1"
+control_name = "Deploy and Maintain Anti-Malware Software"
+category = "Malware Defenses"
+description = "Deploy and maintain anti-malware software on all enterprise assets"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "antivirus"
+control_id = "10.2"
+control_name = "Configure Automatic Anti-Malware Updates"
+category = "Malware Defenses"
+description = "Configure automatic updates for anti-malware signature files"
+weight = 0.9
+is_critical = true
+
+# MFA -> CIS 6: Access Control Management
+[[controls]]
+check_id = "mfa"
+control_id = "6.3"
+control_name = "Require MFA for Externally-Exposed Applications"
+category = "Access Control"
+description = "Require MFA for externally-exposed enterprise or third-party applications"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "mfa"
+control_id = "6.4"
+control_name = "Require MFA for Remote Network Access"
+category = "Access Control"
+description = "Require MFA for remote network access"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "mfa"
+control_id = "6.5"
+control_name = "Require MFA for Administrative Access"
+category = "Access Control"
+description = "Require MFA for all administrative access accounts"
+weight = 0.95
+is_critical = true
+
+# Password Policy -> CIS 5: Account Management
+[[controls]]
+check_id = "password_policy"
+control_id = "5.2"
+control_name = "Use Unique Passwords"
+category = "Account Management"
+description = "Use unique passwords for all enterprise assets"
+weight = 0.8
+is_critical = true
+
+# System Updates -> CIS 7: Continuous Vulnerability Management
+[[controls]]
+check_id = "system_updates"
+control_id = "7.3"
+control_name = "Perform Automated Operating System Patch Management"
+category = "Vulnerability Management"
+description = "Perform operating system updates on enterprise assets"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "system_updates"
+control_id = "7.4"
+control_name = "Perform Automated Application Patch Management"
+category = "Vulnerability Management"
+description = "Perform application updates on enterprise assets"
+weight = 0.85
+is_critical = true
+
+# Audit Logging -> CIS 8: Audit Log Management
+[[controls]]
+check_id = "audit_logging"
+control_id = "8.2"
+control_name = "Collect Audit Logs"
+category = "Audit Log Management"
+description = "Collect audit logs on enterprise assets"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "audit_logging"
+control_id = "8.5"
+control_name = "Collect Detailed Audit Logs"
+category = "Audit Log Management"
+description = "Configure detailed audit logging for enterprise assets"
+weight = 0.8
+is_critical = false
+
+# Session Lock -> CIS 4: Secure Configuration
+[[controls]]
+check_id = "session_lock"
+control_id = "4.3"
+control_name = "Configure Automatic Session Locking"
+category = "Secure Configuration"
+description = "Configure automatic session locking on enterprise assets"
+weight = 0.7
+is_critical = false
+
+# Backup -> CIS 11: Data Recovery
+[[controls]]
+check_id = "backup"
+control_id = "11.1"
+control_name = "Establish and Maintain a Data Recovery Process"
+category = "Data Recovery"
+description = "Establish and maintain a data recovery process"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "backup"
+control_id = "11.2"
+control_name = "Perform Automated Backups"
+category = "Data Recovery"
+description = "Perform automated backups of in-scope enterprise assets"
+weight = 0.9
+is_critical = true
+
+# Admin Accounts -> CIS 5: Account Management
+[[controls]]
+check_id = "admin_accounts"
+control_id = "5.4"
+control_name = "Restrict Administrator Privileges"
+category = "Account Management"
+description = "Restrict administrator privileges to dedicated administrator accounts"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "admin_accounts"
+control_id = "5.1"
+control_name = "Establish and Maintain an Inventory of Accounts"
+category = "Account Management"
+description = "Establish and maintain an inventory of all accounts"
+weight = 0.7
+is_critical = false
+
+# Remote Access -> CIS 12: Network Infrastructure Management
+[[controls]]
+check_id = "remote_access"
+control_id = "12.7"
+control_name = "Ensure Remote Devices Utilize a VPN"
+category = "Network Infrastructure"
+description = "Ensure remote devices utilize VPN and are connecting to enterprise infrastructure"
+weight = 0.85
+is_critical = true
+
+# USB Storage -> CIS 10: Malware Defenses
+[[controls]]
+check_id = "usb_storage"
+control_id = "10.3"
+control_name = "Disable Autorun and Autoplay"
+category = "Malware Defenses"
+description = "Disable autorun and autoplay auto-execute functionality"
+weight = 0.7
+is_critical = false
+
+# Kernel Hardening -> CIS 4: Secure Configuration
+[[controls]]
+check_id = "kernel_hardening"
+control_id = "4.1"
+control_name = "Establish and Maintain Secure Configuration Process"
+category = "Secure Configuration"
+description = "Establish and maintain a secure configuration process for enterprise assets"
+weight = 0.8
+is_critical = true
+
+# Time Sync -> CIS 8: Audit Log Management
+[[controls]]
+check_id = "time_sync"
+control_id = "8.4"
+control_name = "Standardize Time Synchronization"
+category = "Audit Log Management"
+description = "Standardize time synchronization across all enterprise assets"
+weight = 0.6
+is_critical = false
+
+# Obsolete Protocols -> CIS 4: Secure Configuration
+[[controls]]
+check_id = "obsolete_protocols"
+control_id = "4.8"
+control_name = "Uninstall or Disable Unnecessary Services"
+category = "Secure Configuration"
+description = "Uninstall or disable unnecessary services on enterprise assets"
+weight = 0.75
+is_critical = false
+
+# Browser Security -> CIS 9: Email and Web Browser Protections
+[[controls]]
+check_id = "browser_security"
+control_id = "9.2"
+control_name = "Use DNS Filtering Services"
+category = "Email and Web Browser"
+description = "Use DNS filtering services on all enterprise assets"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "browser_security"
+control_id = "9.3"
+control_name = "Maintain and Enforce Network-Based URL Filters"
+category = "Email and Web Browser"
+description = "Maintain and enforce network-based URL filters"
+weight = 0.7
+is_critical = false
+
+# Log Rotation -> CIS 8: Audit Log Management
+[[controls]]
+check_id = "log_rotation"
+control_id = "8.3"
+control_name = "Ensure Adequate Audit Log Storage"
+category = "Audit Log Management"
+description = "Ensure that logging destinations maintain adequate storage"
+weight = 0.6
+is_critical = false
+
+# Guest Account -> CIS 5: Account Management
+[[controls]]
+check_id = "guest_account"
+control_id = "5.3"
+control_name = "Disable Dormant Accounts"
+category = "Account Management"
+description = "Disable dormant accounts"
+weight = 0.6
+is_critical = false
+
+# Auto Login -> CIS 6: Access Control
+[[controls]]
+check_id = "auto_login"
+control_id = "6.1"
+control_name = "Establish an Access Granting Process"
+category = "Access Control"
+description = "Establish and follow a process for granting access"
+weight = 0.65
+is_critical = false
+
+# Bluetooth -> CIS 12: Network Infrastructure
+[[controls]]
+check_id = "bluetooth"
+control_id = "12.1"
+control_name = "Ensure Network Infrastructure is Up-to-Date"
+category = "Network Infrastructure"
+description = "Ensure network infrastructure stays up-to-date"
+weight = 0.5
+is_critical = false
+
+# IPv6 Config -> CIS 12: Network Infrastructure
+[[controls]]
+check_id = "ipv6_config"
+control_id = "12.2"
+control_name = "Establish and Maintain Secure Network Architecture"
+category = "Network Infrastructure"
+description = "Establish and maintain a secure network architecture"
+weight = 0.5
+is_critical = false
+
+# Windows Hardening -> CIS 4: Secure Configuration
+[[controls]]
+check_id = "windows_hardening"
+control_id = "4.1"
+control_name = "Establish and Maintain a Secure Configuration Process"
+category = "Secure Configuration"
+description = "Establish and maintain a secure configuration process for enterprise assets"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "windows_hardening"
+control_id = "4.7"
+control_name = "Manage Default Accounts on Enterprise Assets"
+category = "Secure Configuration"
+description = "Manage default accounts on enterprise assets and software"
+weight = 0.8
+is_critical = true
+
+# Linux Hardening -> CIS 4: Secure Configuration
+[[controls]]
+check_id = "linux_hardening"
+control_id = "4.1"
+control_name = "Establish and Maintain a Secure Configuration Process"
+category = "Secure Configuration"
+description = "Establish and maintain a secure configuration process for enterprise assets"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "linux_hardening"
+control_id = "4.6"
+control_name = "Securely Manage Enterprise Assets and Software"
+category = "Secure Configuration"
+description = "Securely manage enterprise assets and software"
+weight = 0.85
+is_critical = true
+
+# Update Status -> CIS 7: Vulnerability Management
+[[controls]]
+check_id = "update_status"
+control_id = "7.3"
+control_name = "Perform Automated Operating System Patch Management"
+category = "Vulnerability Management"
+description = "Perform operating system updates on enterprise assets"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "update_status"
+control_id = "7.1"
+control_name = "Establish and Maintain a Vulnerability Management Process"
+category = "Vulnerability Management"
+description = "Establish and maintain a documented vulnerability management process"
+weight = 0.9
+is_critical = true
+
+# Secure Boot -> CIS 4: Secure Configuration
+[[controls]]
+check_id = "secure_boot"
+control_id = "4.1"
+control_name = "Establish and Maintain a Secure Configuration Process"
+category = "Secure Configuration"
+description = "UEFI Secure Boot ensures only trusted firmware and OS boot loaders execute"
+weight = 0.85
+is_critical = true
+
+# GPO Password Policy -> CIS 5: Account Management
+[[controls]]
+check_id = "gpo_password_policy"
+control_id = "5.2"
+control_name = "Use Unique Passwords"
+category = "Account Management"
+description = "Group Policy password settings ensure unique, strong passwords"
+weight = 0.85
+is_critical = true
+
+# GPO Lockout Policy -> CIS 5: Account Management
+[[controls]]
+check_id = "gpo_lockout_policy"
+control_id = "5.5"
+control_name = "Establish and Maintain an Inventory of Service Accounts"
+category = "Account Management"
+description = "Account lockout policies protect against brute-force attacks"
+weight = 0.8
+is_critical = true
+
+# GPO Audit Policy -> CIS 8: Audit Log Management
+[[controls]]
+check_id = "gpo_audit_policy"
+control_id = "8.5"
+control_name = "Collect Detailed Audit Logs"
+category = "Audit Log Management"
+description = "Group Policy audit settings for comprehensive event logging"
+weight = 0.85
+is_critical = true
+
+# Privileged Groups -> CIS 5: Account Management
+[[controls]]
+check_id = "privileged_groups"
+control_id = "5.4"
+control_name = "Restrict Administrator Privileges"
+category = "Account Management"
+description = "Restrict administrator privileges to dedicated administrator accounts"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "privileged_groups"
+control_id = "6.8"
+control_name = "Define and Maintain Role-Based Access Control"
+category = "Access Control"
+description = "Define and maintain role-based access control"
+weight = 0.85
+is_critical = true
+
+# LDAP Security -> CIS 12: Network Infrastructure
+[[controls]]
+check_id = "ldap_security"
+control_id = "12.8"
+control_name = "Establish and Maintain Dedicated Computing Resources"
+category = "Network Infrastructure"
+description = "LDAP/LDAPS security for directory services"
+weight = 0.8
+is_critical = true
+
+# DNS Security -> CIS 9: Email and Web Browser Protections
+[[controls]]
+check_id = "dns_security"
+control_id = "9.2"
+control_name = "Use DNS Filtering Services"
+category = "Email and Web Browser"
+description = "Use DNS filtering services to block access to known malicious domains"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "dns_security"
+control_id = "12.3"
+control_name = "Securely Manage Network Infrastructure"
+category = "Network Infrastructure"
+description = "Securely manage DNS infrastructure with encrypted DNS (DoH/DoT)"
+weight = 0.8
+is_critical = true
+
+# SSH Hardening -> CIS 4: Secure Configuration, CIS 6: Access Control
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "4.1"
+control_name = "Establish and Maintain Secure Configuration Process"
+category = "Secure Configuration"
+description = "SSH server hardening with secure ciphers, protocols, and authentication"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "6.7"
+control_name = "Centralize Access Control"
+category = "Access Control"
+description = "Key-based authentication and restricted root access"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "12.7"
+control_name = "Ensure Remote Devices Utilize a VPN and are Connecting to Enterprise Infrastructure"
+category = "Network Infrastructure"
+description = "Secure remote access via hardened SSH"
+weight = 0.8
+is_critical = true
+
+# Container Security -> CIS 4: Secure Configuration, CIS 16: Application Software Security
+[[controls]]
+check_id = "container_security"
+control_id = "4.1"
+control_name = "Establish and Maintain Secure Configuration Process"
+category = "Secure Configuration"
+description = "Container runtime hardening (rootless, seccomp, AppArmor/SELinux)"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "container_security"
+control_id = "16.1"
+control_name = "Establish and Maintain a Secure Application Development Process"
+category = "Application Security"
+description = "Container security best practices for application deployment"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "container_security"
+control_id = "16.7"
+control_name = "Use Standard Hardening Configuration Templates"
+category = "Application Security"
+description = "Apply CIS Docker/Kubernetes Benchmarks"
+weight = 0.8
+is_critical = true
+
+# Certificate Validation -> CIS 3: Data Protection, CIS 12: Network Infrastructure
+[[controls]]
+check_id = "certificate_validation"
+control_id = "3.10"
+control_name = "Encrypt Sensitive Data in Transit"
+category = "Data Protection"
+description = "Valid certificates required for encrypted communications"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "certificate_validation"
+control_id = "12.3"
+control_name = "Securely Manage Network Infrastructure"
+category = "Network Infrastructure"
+description = "Certificate store integrity and expiration management"
+weight = 0.85
+is_critical = true
