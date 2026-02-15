@@ -350,7 +350,7 @@ impl SettingsPage {
                         .char_limit(2048),
                 );
                 if !state.settings.architecture_url.is_empty() {
-                    ui.label(egui::RichText::new(icons::CHECK).color(theme::SUCCESS));
+                    ui.label(egui::RichText::new(icons::CHECK).color(theme::readable_color(theme::SUCCESS)));
                 }
             });
             ui.add_space(theme::SPACE_XS);
@@ -540,7 +540,7 @@ impl SettingsPage {
                     ui.set_min_width(320.0);
                     ui.vertical_centered(|ui| {
                         ui.add_space(theme::SPACE_MD);
-                        ui.label(egui::RichText::new(icons::LOCK).size(32.0).color(theme::ACCENT));
+                        ui.label(egui::RichText::new(icons::LOCK).size(32.0).color(theme::accent_text()));
                         ui.add_space(theme::SPACE_MD);
                         ui.label(egui::RichText::new("Authentification Requise").font(theme::font_heading()).strong());
                         ui.add_space(theme::SPACE_XS);
@@ -572,7 +572,7 @@ impl SettingsPage {
 
                         if let Some(err) = &modal_state.2 {
                             ui.add_space(theme::SPACE_XS);
-                            ui.label(egui::RichText::new(err).color(theme::ERROR).font(theme::font_body()));
+                            ui.label(egui::RichText::new(err).color(theme::readable_color(theme::ERROR)).font(theme::font_body()));
                         }
 
                         ui.add_space(theme::SPACE_LG);
@@ -609,7 +609,7 @@ impl SettingsPage {
             ui.label(
                 egui::RichText::new("ZONE CRITIQUE")
                     .font(theme::font_label())
-                    .color(theme::ERROR)
+                    .color(theme::readable_color(theme::ERROR))
                     .extra_letter_spacing(0.5)
                     .strong(),
             );
@@ -643,7 +643,7 @@ impl SettingsPage {
                     ui.label(
                         egui::RichText::new("ÊTES-VOUS SÛR DE VOULOIR QUITTER L'AGENT ?")
                             .font(theme::font_min())
-                            .color(theme::ERROR)
+                            .color(theme::readable_color(theme::ERROR))
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_XS);
@@ -741,7 +741,7 @@ impl SettingsPage {
                             ui.label(
                                 egui::RichText::new(format!("{}  ACTIF", icons::CIRCLE_CHECK))
                                     .font(theme::font_label())
-                                    .color(theme::SUCCESS)
+                                    .color(theme::readable_color(theme::SUCCESS))
                                     .strong(),
                             );
                         } else {

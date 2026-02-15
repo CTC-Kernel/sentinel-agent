@@ -391,7 +391,7 @@ impl DashboardPage {
                 ui.label(
                     egui::RichText::new(icons::BOLT)
                         .size(12.0)
-                        .color(theme::ACCENT),
+                        .color(theme::accent_text()),
                 );
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
@@ -619,7 +619,7 @@ impl DashboardPage {
                 ui.label(
                     egui::RichText::new(format!("{}", state.fim.monitored_count))
                         .font(theme::font_card_value())
-                        .color(theme::ACCENT)
+                        .color(theme::accent_text())
                         .strong(),
                 );
                 ui.label(
@@ -752,7 +752,7 @@ impl DashboardPage {
                 ui.label(
                     egui::RichText::new("Tous les composants conformes")
                         .font(theme::font_label())
-                        .color(theme::SUCCESS),
+                        .color(theme::readable_color(theme::SUCCESS)),
                 );
             }
         });

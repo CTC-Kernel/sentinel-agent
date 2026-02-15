@@ -65,7 +65,7 @@ impl VulnerabilitiesPage {
                                 if !search_lower.is_empty() {
                                     let haystack = format!(
                                         "{} {} {}",
-                                        f.cve_id.as_deref().unwrap_or("").to_lowercase(),
+                                        f.cve_id.to_lowercase(),
                                         f.affected_software.to_lowercase(),
                                         f.description.to_lowercase()
                                     );
@@ -221,7 +221,7 @@ impl VulnerabilitiesPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(icons::SHIELD_CHECK)
-                        .color(theme::SUCCESS.linear_multiply(theme::OPACITY_STRONG))
+                        .color(theme::readable_color(theme::SUCCESS))
                         .size(14.0),
                 );
                 ui.add_space(theme::SPACE_XS);
@@ -269,7 +269,7 @@ impl VulnerabilitiesPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(icons::GAUGE_HIGH)
-                        .color(theme::score_color(100.0 - avg_cvss * 10.0).linear_multiply(theme::OPACITY_STRONG))
+                        .color(theme::readable_color(theme::score_color(100.0 - avg_cvss * 10.0)))
                         .size(14.0),
                 );
                 ui.add_space(theme::SPACE_XS);
@@ -368,7 +368,7 @@ impl VulnerabilitiesPage {
                     widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
                 ];
 
-                let cve_display = finding.cve_id.as_deref().unwrap_or("Non référencé");
+                let cve_display = &finding.cve_id;
                 let drawer_action = widgets::DetailDrawer::new("vuln_detail", cve_display, icons::VULNERABILITIES)
                     .accent(sev_color)
                     .subtitle(&finding.affected_software)
@@ -398,7 +398,7 @@ impl VulnerabilitiesPage {
                     match action_idx {
                         0 => {
                             command = Some(GuiCommand::Remediate {
-                                check_id: finding.cve_id.clone().unwrap_or_default(),
+                                check_id: finding.cve_id.clone(),
                             });
                         }
                         1 => {
@@ -431,7 +431,7 @@ impl VulnerabilitiesPage {
                 if !search_lower.is_empty() {
                     let haystack = format!(
                         "{} {} {}",
-                        f.cve_id.as_deref().unwrap_or("").to_lowercase(),
+                        f.cve_id.to_lowercase(),
                         f.affected_software.to_lowercase(),
                         f.description.to_lowercase()
                     );
@@ -541,11 +541,11 @@ impl VulnerabilitiesPage {
                         let finding = &state.vulnerability_findings[real_idx];
 
                         row.col(|ui: &mut egui::Ui| {
-                            let cve_label = finding.cve_id.as_deref().unwrap_or("Non référencé");
+                            let cve_label = &finding.cve_id;
                             let response = ui.label(
                                 egui::RichText::new(cve_label)
                                     .font(egui::FontId::monospace(12.0))
-                                    .color(if theme::is_dark_mode() { theme::ACCENT_LIGHT } else { theme::ACCENT })
+                                    .color(theme::accent_text())
                                     .strong(),
                             ).interact(egui::Sense::click());
                             if response.clicked() {
@@ -583,7 +583,7 @@ impl VulnerabilitiesPage {
                                 ui.label(
                                     egui::RichText::new(format!("{:.1}", s))
                                         .font(theme::font_body())
-                                        .color(theme::score_color(s * 10.0))
+                                        .color(theme::readable_color(theme::score_color(s * 10.0)))
                                         .strong(),
                                 );
                             } else {
@@ -701,7 +701,7 @@ impl VulnerabilitiesPage {
             .map(|&i| {
                 let f = &state.vulnerability_findings[i];
                 vec![
-                    f.cve_id.clone().unwrap_or_default(),
+                    f.cve_id.clone(),
                     f.affected_software.clone(),
                     f.affected_version.clone(),
                     f.severity.to_string(),

@@ -8,7 +8,7 @@ use egui::Ui;
 pub fn help_button(ui: &mut Ui, help_text: &str) {
     let text = egui::RichText::new(icons::INFO_CIRCLE)
         .font(theme::font_body())
-        .color(theme::INFO);
+        .color(theme::readable_color(theme::INFO));
 
     let response = ui.add(egui::Label::new(text).sense(egui::Sense::hover()));
 
@@ -18,7 +18,7 @@ pub fn help_button(ui: &mut Ui, help_text: &str) {
         ui.label(
             egui::RichText::new("AIDE CONTEXTUELLE")
                 .font(theme::font_min())
-                .color(theme::ACCENT)
+                .color(theme::accent_text())
                 .strong(),
         );
         ui.add_space(theme::SPACE_XS);
@@ -41,7 +41,7 @@ fn render_markdown(ui: &mut Ui, text: &str) {
 
         if let Some(rest) = line.strip_prefix("- ") {
             ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(egui::RichText::new("•").color(theme::ACCENT));
+                ui.label(egui::RichText::new("•").color(theme::accent_text()));
                 render_line(ui, rest);
             });
         } else {
@@ -111,11 +111,7 @@ fn render_line(ui: &mut Ui, line: &str) {
                 if let Some(end) = remaining.find('`') {
                     // Code text
                     let (code_text, after_code) = safe_split_at(remaining, end);
-                    let code_color = if theme::is_dark_mode() {
-                        theme::ACCENT_LIGHT
-                    } else {
-                        theme::ACCENT_HOVER
-                    };
+                    let code_color = theme::accent_text();
                     ui.add(egui::Label::new(
                         egui::RichText::new(code_text)
                             .font(theme::font_mono())

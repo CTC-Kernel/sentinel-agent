@@ -57,7 +57,7 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
     ui.vertical(|ui: &mut egui::Ui| {
         // Header
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(RichText::new(icons::STREAM).size(theme::ICON_XS).color(theme::ACCENT));
+            ui.label(RichText::new(icons::STREAM).size(theme::ICON_XS).color(theme::accent_text()));
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 RichText::new("ACTIVITÉ EN DIRECT")
@@ -86,7 +86,7 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                     ui.label(
                         RichText::new("EN DIRECT")
                             .font(theme::font_label())
-                            .color(theme::SUCCESS.linear_multiply(theme::OPACITY_PRESSED)),
+                            .color(theme::readable_color(theme::SUCCESS)),
                     );
 
                     if !theme::is_reduced_motion() {

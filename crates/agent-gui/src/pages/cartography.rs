@@ -253,7 +253,11 @@ impl CartographyPage {
             painter.circle_stroke(
                 screen_pos,
                 base_radius,
-                egui::Stroke::new(theme::BORDER_THIN, egui::Color32::from_white_alpha(100)),
+                egui::Stroke::new(theme::BORDER_THIN, if theme::is_dark_mode() {
+                    egui::Color32::from_white_alpha(100)
+                } else {
+                    egui::Color32::from_black_alpha(60)
+                }),
             );
 
             // 4. Label (Institutional AAA)
@@ -473,7 +477,7 @@ fn device_type_color(device_type: &str) -> Color32 {
         "workstation" => theme::text_primary(),
         "printer" => theme::text_tertiary(),
         "iot" => theme::WARNING,
-        "phone" => theme::ACCENT_LIGHT,
+        "phone" => theme::accent_text(),
         _ => theme::text_secondary(),
     }
 }

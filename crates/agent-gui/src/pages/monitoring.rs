@@ -325,7 +325,7 @@ impl MonitoringPage {
                                 ui.label(
                                     egui::RichText::new("●")
                                         .size(6.0)
-                                        .color(theme::SUCCESS.linear_multiply(0.7)),
+                                        .color(theme::readable_color(theme::SUCCESS)),
                                 );
                             } else {
                                 let time = ui.input(|i| i.time);
@@ -334,7 +334,7 @@ impl MonitoringPage {
                                 ui.label(
                                     egui::RichText::new("●")
                                         .size(6.0)
-                                        .color(theme::SUCCESS.linear_multiply(0.4 + pulse * 0.3)),
+                                        .color(theme::readable_color(theme::SUCCESS).linear_multiply(0.4 + pulse * 0.3)),
                                 );
                             }
                         }

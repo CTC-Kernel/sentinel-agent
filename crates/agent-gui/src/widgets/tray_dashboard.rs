@@ -24,7 +24,7 @@ impl TrayDashboard {
                     // Title Bar (Satellite style)
                     widgets::card(ui, |ui: &mut Ui| {
                         ui.horizontal(|ui: &mut Ui| {
-                            ui.label(egui::RichText::new(icons::SHIELD).color(theme::ACCENT));
+                            ui.label(egui::RichText::new(icons::SHIELD).color(theme::accent_text()));
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new("RAPPORT CYBER RAPIDE")
@@ -77,7 +77,7 @@ impl TrayDashboard {
                                         state.summary.compliance_score.unwrap_or(0.0)
                                     ))
                                     .font(theme::font_title())
-                                    .color(theme::ACCENT),
+                                    .color(theme::accent_text()),
                                 );
                             });
                         });
