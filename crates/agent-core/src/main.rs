@@ -574,10 +574,14 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
 
     // Run the tao event loop (required for tray to work on macOS)
     // Note: event_loop.run() never returns - it exits the process directly
+    let mut shutdown_logged = false;
     event_loop.run(move |_event, _, control_flow| {
         // Check if shutdown was requested first
         if shutdown.load(Ordering::SeqCst) {
-            info!("Shutdown requested, stopping agent...");
+            if !shutdown_logged {
+                info!("Shutdown requested, stopping agent...");
+                shutdown_logged = true;
+            }
             *control_flow = ControlFlow::Exit;
             return;
         }
