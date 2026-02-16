@@ -25,6 +25,7 @@ pub struct PaginationState {
 impl PaginationState {
     /// Create a new pagination state.
     pub fn new(total_items: usize, items_per_page: usize) -> Self {
+        let items_per_page = items_per_page.max(1);
         let total_pages = total_items.div_ceil(items_per_page);
         Self {
             current_page: 1,
@@ -36,7 +37,7 @@ impl PaginationState {
 
     /// Get the start index for the current page (0-based).
     pub fn start_index(&self) -> usize {
-        (self.current_page - 1) * self.items_per_page
+        self.current_page.saturating_sub(1) * self.items_per_page
     }
 
     /// Get the end index for the current page (exclusive, 0-based).
@@ -76,7 +77,7 @@ impl PaginationState {
     /// Update total items (recalculates total pages).
     pub fn set_total_items(&mut self, total: usize) {
         self.total_items = total;
-        self.total_pages = total.div_ceil(self.items_per_page);
+        self.total_pages = total.div_ceil(self.items_per_page.max(1));
         self.total_pages = self.total_pages.max(1);
         self.current_page = self.current_page.clamp(1, self.total_pages);
     }

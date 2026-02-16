@@ -21,7 +21,7 @@ pub use about::AboutPage;
 pub use audit_trail::AuditTrailPage;
 pub use cartography::CartographyPage;
 pub use compliance::CompliancePage;
-pub use dashboard::DashboardPage;
+pub use dashboard::{DashboardAction, DashboardPage};
 pub use discovery::DiscoveryPage;
 pub use fim::FimPage;
 pub use monitoring::MonitoringPage;

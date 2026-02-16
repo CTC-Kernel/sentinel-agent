@@ -126,6 +126,8 @@ impl ExfilDetector {
             || ip == "127.0.0.1"
             || ip.starts_with("::1")
             || ip.starts_with("fe80:")
+            || ip.starts_with("fc00:")
+            || ip.starts_with("fd00:")
     }
 
     fn is_known_dns_server(&self, ip: &str) -> bool {

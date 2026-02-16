@@ -16,7 +16,7 @@ pub struct RuntimeState {
     pub discovery_cancel: Arc<AtomicBool>,
     /// Dynamic check interval in seconds (GUI-adjustable).
     pub check_interval_secs: Arc<AtomicU64>,
-    /// Dynamic log level (0=error, 1=warn, 2=info, 3=debug, 4=trace).
+    /// Dynamic log level (0=trace, 1=debug, 2=info, 3=warn, 4=error).
     pub log_level: Arc<AtomicU8>,
     /// Channel for sending remediation requests from GUI to the background loop.
     pub remediation_tx: tokio::sync::mpsc::Sender<RemediationRequest>,

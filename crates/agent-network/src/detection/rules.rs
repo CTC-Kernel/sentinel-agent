@@ -109,8 +109,8 @@ impl Default for DetectionRules {
                 31337, // Back Orifice
                 5555,  // Android Debug Bridge (misused)
                 6666,  // IRC (sometimes C2)
-                8080,  // HTTP alt (sometimes C2)
-                8443,  // HTTPS alt
+                // 8080 and 8443 removed — too common for legitimate services (proxies,
+                // dev servers, management consoles), causing excessive false positives
                 9999,  // Various backdoors
                 12345, // NetBus
                 20000, // Various trojans
