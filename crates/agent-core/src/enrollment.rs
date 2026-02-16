@@ -74,7 +74,11 @@ impl AgentRuntime {
 
         let response = client.enroll(request).await?;
 
-        // Store organization ID in the already-held client reference (no second lock needed)
+        // Store credentials and organization ID in the already-held client reference
+        client.set_credentials(
+            response.client_certificate.clone(),
+            response.client_key.clone(),
+        );
         client.set_organization_id(response.organization_id.clone());
 
         // Drop the api_client write lock before acquiring heartbeat lock
@@ -82,7 +86,7 @@ impl AgentRuntime {
 
         // Update heartbeat interval from server config
         let mut interval = self.heartbeat_interval_secs.write().await;
-        *interval = response.config.heartbeat_interval_secs;
+        *interval = response.config.heartbeat_interval_secs.clamp(15, 3600);
 
         info!(
             "Enrolled successfully. Agent ID: {}, Organization ID: {}, Heartbeat interval: {}s",

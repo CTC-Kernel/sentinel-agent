@@ -320,17 +320,20 @@ impl ConnectionCollector {
         let process_name = Some(parts[0].to_string());
         let pid = parts[1].parse().ok();
         let type_col = parts[4];
-        let name_col = parts.last()?;
+        // NODE column (index 7) contains the protocol: "TCP" or "UDP".
+        // Using parts.last() is incorrect because state tokens like "(ESTABLISHED)"
+        // appear after the address and do not contain the protocol string.
+        let node_col = parts.get(7)?;
 
         // Determine protocol
         let protocol = if type_col == "IPv4" {
-            if name_col.contains("TCP") {
+            if node_col.contains("TCP") {
                 ConnectionProtocol::Tcp
             } else {
                 ConnectionProtocol::Udp
             }
         } else if type_col == "IPv6" {
-            if name_col.contains("TCP") {
+            if node_col.contains("TCP") {
                 ConnectionProtocol::Tcp6
             } else {
                 ConnectionProtocol::Udp6
@@ -354,9 +357,11 @@ impl ConnectionCollector {
             (None, None)
         };
 
-        // Parse state from parentheses
+        // Parse state from parentheses (ASCII-safe: lsof output is always ASCII)
         let state = if let Some(state_start) = line.rfind('(') {
-            let state_str = &line[state_start + 1..line.len() - 1];
+            let end = line.len().saturating_sub(1);
+            let start = state_start + 1;
+            let state_str = line.get(start..end).unwrap_or("");
             match state_str {
                 "ESTABLISHED" => ConnectionState::Established,
                 "LISTEN" => ConnectionState::Listen,

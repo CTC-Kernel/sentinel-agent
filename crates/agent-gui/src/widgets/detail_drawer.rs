@@ -141,25 +141,13 @@ impl<'a> DetailDrawer<'a> {
                 );
             });
 
-        // Click-capture area: covers everything LEFT of the drawer.
-        // Interactable so clicks don't pass through to sidebar/main UI behind.
-        // Separate from backdrop to avoid blocking the drawer's scroll events.
+        // Dismiss on click outside drawer (left of drawer edge)
         let drawer_x = screen.max.x - drawer_width * anim_t;
-        let capture_width = (drawer_x - screen.min.x).max(0.0);
-        if capture_width > 0.0 {
-            egui::Area::new(egui::Id::new("drawer_click_capture").with(self.id))
-                .fixed_pos(screen.min)
-                .order(egui::Order::Foreground)
-                .interactable(true)
-                .show(ctx, |ui| {
-                    let (_, response) = ui.allocate_exact_size(
-                        egui::vec2(capture_width, screen.height()),
-                        egui::Sense::click(),
-                    );
-                    if response.clicked() {
-                        should_close = true;
-                    }
-                });
+        if ctx.input(|i| i.pointer.primary_clicked())
+            && let Some(pos) = ctx.input(|i| i.pointer.interact_pos())
+            && pos.x < drawer_x
+        {
+            should_close = true;
         }
 
         // Drawer panel — slide in from right with animation

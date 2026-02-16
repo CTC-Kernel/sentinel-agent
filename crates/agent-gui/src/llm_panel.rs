@@ -20,21 +20,21 @@ const POSTURE_GAUGE_WIDTH: f32 = 180.0;
 
 /// A single AI-generated recommendation.
 #[derive(Clone)]
-struct Recommendation {
+pub struct Recommendation {
     /// Source kind: "compliance", "vulnerability", "network", "threat".
-    kind: &'static str,
+    pub kind: &'static str,
     /// Severity level.
-    severity: Severity,
+    pub severity: Severity,
     /// One-line title.
-    title: String,
+    pub title: String,
     /// Short remediation / context line.
-    subtitle: String,
+    pub subtitle: String,
     /// Extended description for the detail drawer.
-    detail: String,
+    pub detail: String,
     /// Category (for compliance) or alert_type (for network).
-    category: String,
+    pub category: String,
     /// Related frameworks (compliance only).
-    frameworks: Vec<String>,
+    pub frameworks: Vec<String>,
 }
 
 // ============================================================================
@@ -273,7 +273,7 @@ impl LLMPanel {
     // ── Score computation ────────────────────────────────────────────────
 
     /// Compute the composite AI security score (0–100).
-    fn compute_ai_score(state: &AppState) -> f32 {
+    pub fn compute_ai_score(state: &AppState) -> f32 {
         let compliance = state.summary.compliance_score.unwrap_or(50.0);
 
         let threat_count = state.threats.suspicious_processes.len()
@@ -294,7 +294,7 @@ impl LLMPanel {
     }
 
     /// Get the risk level label for a score.
-    fn risk_label(score: f32) -> &'static str {
+    pub fn risk_label(score: f32) -> &'static str {
         if score >= 80.0 {
             "POSTURE S\u{00c9}CURIS\u{00c9}E"
         } else if score >= 60.0 {
@@ -309,7 +309,7 @@ impl LLMPanel {
     // ── Recommendation builder ───────────────────────────────────────────
 
     /// Build prioritized recommendations from current state.
-    fn build_recommendations(state: &AppState) -> Vec<Recommendation> {
+    pub fn build_recommendations(state: &AppState) -> Vec<Recommendation> {
         let mut recs = Vec::new();
 
         // 1. Failing compliance checks
@@ -890,7 +890,7 @@ fn alert_type_label(alert_type: &str) -> &'static str {
 }
 
 /// Kind to French label.
-fn kind_label(kind: &str) -> &'static str {
+pub fn kind_label(kind: &str) -> &'static str {
     match kind {
         "compliance" => "Conformit\u{00e9}",
         "vulnerability" => "Vuln\u{00e9}rabilit\u{00e9}",
@@ -901,7 +901,7 @@ fn kind_label(kind: &str) -> &'static str {
 }
 
 /// Kind to icon.
-fn kind_icon(kind: &str) -> &'static str {
+pub fn kind_icon(kind: &str) -> &'static str {
     match kind {
         "compliance" => icons::COMPLIANCE,
         "vulnerability" => icons::SHIELD_VIRUS,
@@ -912,7 +912,7 @@ fn kind_icon(kind: &str) -> &'static str {
 }
 
 /// Kind to theme color.
-fn kind_color(kind: &str) -> egui::Color32 {
+pub fn kind_color(kind: &str) -> egui::Color32 {
     match kind {
         "compliance" => theme::ACCENT,
         "vulnerability" => theme::ERROR,

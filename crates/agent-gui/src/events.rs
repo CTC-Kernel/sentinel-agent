@@ -220,7 +220,7 @@ pub enum GuiCommand {
     },
     /// Set the log level.
     SetLogLevel {
-        /// Log level (0=ERROR, 1=WARN, 2=INFO, 3=DEBUG, 4=TRACE).
+        /// Log level (0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR).
         level: u8,
     },
     /// Execute remediation for a check.

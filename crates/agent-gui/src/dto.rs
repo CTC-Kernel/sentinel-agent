@@ -493,7 +493,7 @@ pub struct GuiVulnerabilityFinding {
 
 /// Discovered network device for display in the Discovery and Cartography pages.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub struct GuiDiscoveredDevice {
     /// IP address.
     pub ip: String,

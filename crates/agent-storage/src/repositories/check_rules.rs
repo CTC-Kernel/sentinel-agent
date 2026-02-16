@@ -451,7 +451,7 @@ impl<'a> CheckRulesRepository<'a> {
                     )
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
-                let pattern = format!("%\"{}%", framework);
+                let pattern = format!("%\"{}\"%" , framework);
                 let results = stmt
                     .query_map([&pattern], Self::row_to_check_rule)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?

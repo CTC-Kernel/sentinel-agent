@@ -132,8 +132,10 @@ impl Slider {
                 let t = ((pos.x - track_rect.min.x) / track_rect.width()).clamp(0.0, 1.0);
                 let mut new_value = self.min + t * (self.max - self.min);
 
-                // Apply step
-                if let Some(step) = self.step {
+                // Apply step (guard against step=0 which would produce NaN)
+                if let Some(step) = self.step
+                    && step.abs() > f32::EPSILON
+                {
                     new_value = (new_value / step).round() * step;
                 }
 
@@ -171,8 +173,9 @@ impl Slider {
                 // Tick marks
                 if self.show_ticks
                     && let Some(step) = self.step
+                    && step.abs() > f32::EPSILON
                 {
-                    let tick_count = ((self.max - self.min) / step) as usize;
+                    let tick_count = (((self.max - self.min) / step) as usize).min(200);
                     if tick_count > 0 {
                         for i in 0..=tick_count {
                             let tick_t = i as f32 / tick_count as f32;

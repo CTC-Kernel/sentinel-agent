@@ -97,6 +97,12 @@ impl UpdateManager {
         info!("Triggering system installer...");
         self.trigger_installer(&download_path)?;
 
+        // Persist the temp directory so spawned installers (Windows/Linux) can still
+        // access the downloaded package. macOS uses synchronous .output() so is safe,
+        // but we persist unconditionally for robustness. The OS temp cleaner handles
+        // eventual cleanup.
+        let _ = temp_dir.keep();
+
         Ok(())
     }
 
