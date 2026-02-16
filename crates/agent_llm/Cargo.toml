@@ -19,7 +19,6 @@ uuid = { workspace = true, features = ["v4", "serde"] }
 chrono = { workspace = true, features = ["serde"] }
 regex.workspace = true
 async-trait.workspace = true
-num_cpus = "1.0"
 mistralrs = { version = "0.7.0", features = ["accelerate"] }
 tokio = { workspace = true, features = ["sync", "rt", "macros"] }
 
