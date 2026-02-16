@@ -2,6 +2,11 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::LazyLock;
+
+/// Pre-compiled regex for removing unreplaced placeholders.
+static PLACEHOLDER_RE: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"\{[^}]*\}").unwrap());
 
 /// Base prompt template.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -49,8 +54,7 @@ impl PromptTemplate {
         }
 
         // Remove any unreplaced placeholders
-        result = regex::Regex::new(r"\{[^}]*\}")
-            .expect("valid regex literal")
+        result = PLACEHOLDER_RE
             .replace_all(&result, "")
             .to_string();
 

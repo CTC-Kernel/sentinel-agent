@@ -60,7 +60,19 @@ impl TerminalPage {
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        Self::export_logs_csv(state);
+                        let success = Self::export_logs_csv(state);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV du terminal réussi")
+                                    .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error("Échec de l'export CSV du terminal")
+                                    .with_time(time),
+                            );
+                        }
                     }
                 },
             );
@@ -234,11 +246,12 @@ impl TerminalPage {
             lower
         });
 
-        let filtered: Vec<_> = state
+        let filtered: Vec<(usize, &_)> = state
             .terminal
             .lines
             .iter()
-            .filter(|e| {
+            .enumerate()
+            .filter(|(_, e)| {
                 let entry_level = level_index(&e.level);
                 if entry_level < filter_level_index {
                     return false;
@@ -322,13 +335,12 @@ impl TerminalPage {
                     })
                     .body(|body| {
                         body.rows(22.0, filtered.len(), |mut row| {
-                            let idx = row.index();
-                            let entry = filtered[idx];
+                            let (original_idx, entry) = filtered[row.index()];
                             let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
                             let color = level_color(&entry.level);
                             let target_short = shorten_target(&entry.target);
 
-                            row.set_selected(state.terminal.selected_log == Some(idx));
+                            row.set_selected(state.terminal.selected_log == Some(original_idx));
 
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
@@ -361,7 +373,7 @@ impl TerminalPage {
                             });
 
                             if row.response().clicked() {
-                                state.terminal.selected_log = Some(idx);
+                                state.terminal.selected_log = Some(original_idx);
                                 state.terminal.detail_open = true;
                             }
                         });
@@ -412,7 +424,7 @@ impl TerminalPage {
         }
     }
 
-    fn export_logs_csv(state: &AppState) {
+    fn export_logs_csv(state: &AppState) -> bool {
         let headers = &["timestamp", "level", "target", "message"];
         let rows: Vec<Vec<String>> = state
             .terminal
@@ -428,8 +440,12 @@ impl TerminalPage {
             })
             .collect();
         let path = crate::export::default_export_path("agent_terminal_logs.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 }

@@ -48,9 +48,3 @@ pub fn run_with_elevation(script: &str) -> Result<String> {
         Err(CommonError::system(format!("Elevation failed: {}", stderr)))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    // Tests are omitted here as they would trigger interactive prompts on macOS
-    // but the formatting logic is tested in agent-core previously and verified.
-}

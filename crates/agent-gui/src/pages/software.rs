@@ -62,6 +62,8 @@ impl SoftwarePage {
                 active == SoftwareTab::Packages,
             ) {
                 state.software.active_tab = SoftwareTab::Packages;
+                state.software.selected_package = None;
+                state.software.detail_open = false;
             }
             ui.add_space(theme::SPACE_SM);
             if Self::tab_button(
@@ -70,6 +72,8 @@ impl SoftwarePage {
                 active == SoftwareTab::Applications,
             ) {
                 state.software.active_tab = SoftwareTab::Applications;
+                state.software.selected_package = None;
+                state.software.detail_open = false;
             }
         });
 
@@ -166,8 +170,12 @@ impl SoftwarePage {
                         if let Some(0) = drawer_action {
                             let path = std::path::Path::new(&app.path);
                             if path.is_absolute() {
-                                if let Err(e) = open::that(&app.path) {
-                                    tracing::warn!("Failed to open in Finder: {}", e);
+                                // Reveal in Finder (-R) instead of executing the path
+                                let result = std::process::Command::new("open")
+                                    .args(["-R", &app.path])
+                                    .spawn();
+                                if let Err(e) = result {
+                                    tracing::warn!("Failed to reveal in Finder: {}", e);
                                     let time = ui.input(|i| i.time);
                                     state.toasts.push(
                                         crate::widgets::toast::Toast::error(
@@ -717,8 +725,7 @@ impl SoftwarePage {
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&app.bundle_id)
-                                        .font(theme::font_mono())
-                                        .size(10.0)
+                                        .font(theme::font_mono_sm())
                                         .color(theme::text_tertiary()),
                                 );
                             });

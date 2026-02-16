@@ -46,6 +46,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
     let base_color = security_state.color();
 
     widgets::card(ui, |ui: &mut egui::Ui| {
+        ui.set_min_width(ui.available_width());
         ui.set_min_height(220.0);
         ui.vertical_centered(|ui: &mut egui::Ui| {
             ui.add_space(theme::SPACE_MD);
