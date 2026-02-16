@@ -51,7 +51,7 @@ pub mod detail_drawer;
 mod org_banner;
 mod sparkline;
 
-pub use card::card;
+pub use card::{card, clickable_card};
 pub use compliance_gauge::compliance_gauge;
 pub use empty_state::{
     empty_state, empty_state_compact, empty_state_with_action, no_results_state, pending_state,

@@ -77,14 +77,16 @@ impl RemediationEngine {
         )
     }
 
-    /// Verify the script matches a registered builtin action (not tampered).
+    /// Verify the script and rollback_script match a registered builtin action (not tampered).
     fn is_trusted_script(&self, action: &RemediationAction) -> bool {
         self.actions
             .get(&action.check_id)
             .map(|registered| {
-                registered
-                    .iter()
-                    .any(|r| r.script == action.script && r.platform == action.platform)
+                registered.iter().any(|r| {
+                    r.script == action.script
+                        && r.platform == action.platform
+                        && r.rollback_script == action.rollback_script
+                })
             })
             .unwrap_or(false)
     }

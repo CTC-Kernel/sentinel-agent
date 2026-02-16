@@ -100,13 +100,13 @@ impl<'a> TabBar<'a> {
         ui.horizontal(|ui| {
             for (i, tab) in self.tabs.iter().enumerate() {
                 let is_selected = i == self.selected;
-                let tab_width = if self.full_width {
+                let tab_width = if self.full_width && tab_count > 0 {
                     available_width / tab_count as f32
                 } else {
                     0.0 // Auto-size
                 };
 
-                if self.render_underline_tab(ui, tab, is_selected, tab_width).is_some() {
+                if self.render_underline_tab(ui, tab, is_selected, tab_width) {
                     new_selection = Some(i);
                 }
             }
@@ -131,7 +131,7 @@ impl<'a> TabBar<'a> {
         tab: &Tab,
         is_selected: bool,
         fixed_width: f32,
-    ) -> Option<usize> {
+    ) -> bool {
         let font = theme::font_body();
         let mut content_width = 0.0;
 
@@ -251,11 +251,7 @@ impl<'a> TabBar<'a> {
             }
         }
 
-        if response.clicked() && !tab.disabled {
-            Some(self.selected) // Return the currently selected index to signal a click
-        } else {
-            None
-        }
+        response.clicked() && !tab.disabled
     }
 
     fn show_pills(self, ui: &mut Ui) -> Option<usize> {

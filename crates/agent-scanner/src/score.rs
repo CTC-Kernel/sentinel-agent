@@ -174,7 +174,8 @@ impl ScoreCalculator {
         let mut weighted_pass = 0.0;
         let mut weighted_total = 0.0;
 
-        let mut category_data: HashMap<String, (usize, usize)> = HashMap::new();
+        // (passed, total, errors) — errors contribute 0.5 to the score
+        let mut category_data: HashMap<String, (usize, usize, usize)> = HashMap::new();
         let mut framework_data: HashMap<String, (f64, f64)> = HashMap::new();
 
         for input in inputs {
@@ -189,7 +190,7 @@ impl ScoreCalculator {
                     // Category tracking
                     let entry = category_data
                         .entry(input.category.clone())
-                        .or_insert((0, 0));
+                        .or_insert((0, 0, 0));
                     entry.0 += 1;
                     entry.1 += 1;
 
@@ -208,7 +209,7 @@ impl ScoreCalculator {
 
                     let entry = category_data
                         .entry(input.category.clone())
-                        .or_insert((0, 0));
+                        .or_insert((0, 0, 0));
                     entry.1 += 1;
 
                     for framework in &input.frameworks {
@@ -225,11 +226,12 @@ impl ScoreCalculator {
                     weighted_pass += weight * 0.5;
                     weighted_total += weight;
 
-                    // Track in category as partial (counted as 0.5 pass)
+                    // Track in category as partial (0.5 pass contribution, consistent with overall)
                     let entry = category_data
                         .entry(input.category.clone())
-                        .or_insert((0, 0));
+                        .or_insert((0, 0, 0));
                     entry.1 += 1; // Add to total
+                    entry.2 += 1; // Track error count for 0.5 contribution
 
                     for framework in &input.frameworks {
                         let entry = framework_data
@@ -262,9 +264,10 @@ impl ScoreCalculator {
         // Calculate category scores
         let category_scores: HashMap<String, CategoryScore> = category_data
             .into_iter()
-            .map(|(category, (passed, total))| {
+            .map(|(category, (passed, total, errors))| {
+                // Errors contribute 0.5 to score (consistent with overall weighted score)
                 let cat_score = if total > 0 {
-                    (passed as f64 / total as f64) * 100.0
+                    ((passed as f64 + errors as f64 * 0.5) / total as f64) * 100.0
                 } else {
                     0.0
                 };
@@ -273,7 +276,7 @@ impl ScoreCalculator {
                     CategoryScore {
                         score: cat_score,
                         passed,
-                        failed: total - passed,
+                        failed: total - passed - errors,
                         total,
                     },
                 )

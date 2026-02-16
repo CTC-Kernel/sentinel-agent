@@ -506,19 +506,28 @@ impl AppState {
             } => {
                 self.network.interfaces = interfaces;
                 self.network.connections = connections;
+                // Invalidate selection — data was fully replaced
+                self.network.selected_connection = None;
+                self.network.detail_open = false;
             }
             AgentEvent::NetworkSecurityAlert { alert } => {
                 self.network.alerts.push_front(alert);
                 self.network.alerts.truncate(200);
+                // Invalidate alert selection — push_front shifted all indices
+                self.network.selected_alert = None;
             }
             AgentEvent::VulnerabilityUpdate { summary } => {
                 self.vulnerability_summary = Some(summary);
             }
             AgentEvent::SoftwareUpdate { packages } => {
                 self.software.packages = packages;
+                self.software.selected_package = None;
+                self.software.detail_open = false;
             }
             AgentEvent::VulnerabilityFindings { findings } => {
                 self.vulnerability_findings = findings;
+                self.vulnerability.selected_vuln = None;
+                self.vulnerability.detail_open = false;
             }
             AgentEvent::TerminalLog { entry } => {
                 self.add_terminal_log(entry);
@@ -528,6 +537,8 @@ impl AppState {
                 self.discovery.in_progress = false;
                 self.discovery.progress = 1.0;
                 self.discovery.phase = "Terminée".to_string();
+                self.discovery.selected_device = None;
+                self.discovery.detail_open = false;
                 self.cartography.layout = None;
             }
             AgentEvent::DiscoveryProgress {
@@ -535,6 +546,7 @@ impl AppState {
                 progress,
                 ..
             } => {
+                self.discovery.in_progress = true;
                 self.discovery.phase = phase;
                 self.discovery.progress = progress;
             }
@@ -550,18 +562,24 @@ impl AppState {
             AgentEvent::FimAlert { alert } => {
                 self.fim.alerts.push_front(alert);
                 self.fim.alerts.truncate(500);
+                // Invalidate selection — push_front shifted indices
+                self.fim.selected_alert = None;
             }
             AgentEvent::UsbEvent { event } => {
                 self.threats.usb_events.push_front(event);
                 self.threats.usb_events.truncate(200);
+                // Invalidate threat selection — push_front shifted source indices
+                self.threats.selected_threat = None;
             }
             AgentEvent::SuspiciousProcess { process } => {
                 self.threats.suspicious_processes.push_front(process);
                 self.threats.suspicious_processes.truncate(200);
+                self.threats.selected_threat = None;
             }
             AgentEvent::SystemIncident { incident } => {
                 self.threats.system_incidents.push_front(incident);
                 self.threats.system_incidents.truncate(200);
+                self.threats.selected_threat = None;
             }
             AgentEvent::FimStats {
                 monitored_count,
@@ -607,7 +625,7 @@ impl AppState {
     /// Update resource usage with history management
     fn update_resource_usage(&mut self, usage: crate::dto::GuiResourceUsage) {
         const MAX_HISTORY: usize = 300;
-        let t = self.resources.uptime_secs as f64;
+        let t = usage.uptime_secs as f64;
 
         if usage.cpu_percent > 0.0 {
             self.monitoring.cpu_history.push_back([t, usage.cpu_percent]);
@@ -704,6 +722,29 @@ impl AppState {
         while self.terminal.lines.len() > 500 {
             self.terminal.lines.pop_front();
         }
+    }
+
+    /// Close all detail drawers (called on page navigation).
+    pub fn close_all_drawers(&mut self) {
+        self.network.detail_open = false;
+        self.network.selected_connection = None;
+        self.network.selected_alert = None;
+        self.software.detail_open = false;
+        self.software.selected_package = None;
+        self.vulnerability.detail_open = false;
+        self.vulnerability.selected_vuln = None;
+        self.threats.detail_open = false;
+        self.threats.selected_threat = None;
+        self.fim.detail_open = false;
+        self.fim.selected_alert = None;
+        self.compliance.detail_open = false;
+        self.compliance.selected_check = None;
+        self.ai.detail_open = false;
+        self.ai.selected_recommendation = None;
+        self.notification_detail_open = false;
+        self.selected_notification = None;
+        self.audit_detail_open = false;
+        self.selected_audit_entry = None;
     }
 
     /// Recompute summary statistics reactively

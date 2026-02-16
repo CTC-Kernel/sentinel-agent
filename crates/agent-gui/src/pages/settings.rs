@@ -563,8 +563,10 @@ impl SettingsPage {
                             .desired_width(200.0)
                         );
                         
-                        // Autofocus
-                        resp.request_focus();
+                        // Autofocus on first appearance only
+                        if !resp.has_focus() && !ui.input(|i| i.pointer.any_click()) {
+                            resp.request_focus();
+                        }
 
                         if resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                             // Validate password against SHA-256 hash (not plaintext)

@@ -470,8 +470,9 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
             .layout_no_wrap(label.to_string(), theme::font_body(), theme::text_primary());
 
     let total_width = switch_width + theme::SPACE_MD + label_galley.size().x;
+    let touch_height = switch_height.max(theme::MIN_TOUCH_TARGET);
     let (rect, response) =
-        ui.allocate_exact_size(egui::vec2(total_width, switch_height), Sense::click());
+        ui.allocate_exact_size(egui::vec2(total_width, touch_height), Sense::click());
 
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();

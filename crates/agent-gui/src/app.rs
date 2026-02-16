@@ -581,6 +581,8 @@ impl eframe::App for SentinelApp {
             }
         }) && new_page != self.page
         {
+            // Close any open detail drawers from the old page
+            self.state.close_all_drawers();
             self.page = new_page;
             self.page_transition = 0.0;
         }
@@ -669,8 +671,16 @@ impl eframe::App for SentinelApp {
                             })
                             .show(ui, |ui: &mut egui::Ui| match self.page {
                                 Page::Dashboard => {
-                                    if let Some(cmd) = pages::DashboardPage::show(ui, &self.state) {
-                                        self.send_command(cmd);
+                                    if let Some(action) = pages::DashboardPage::show(ui, &self.state) {
+                                        match action {
+                                            pages::DashboardAction::Command(cmd) => {
+                                                self.send_command(cmd);
+                                            }
+                                            pages::DashboardAction::NavigateTo(page) => {
+                                                self.page = page;
+                                                self.page_transition = 0.0;
+                                            }
+                                        }
                                     }
                                 }
                                 Page::Monitoring => {

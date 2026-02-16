@@ -105,19 +105,13 @@ impl AgentRuntime {
                             .get_config::<agent_fim::FimConfig>(agent_sync::config_keys::FIM_CONFIG)
                             .await
                         {
-                            // Take engine out to avoid holding write lock across .await
-                            let engine_opt = {
-                                let mut guard = self.fim_engine.write().await;
-                                guard.take()
-                            };
-                            if let Some(fim_engine) = engine_opt {
+                            let mut guard = self.fim_engine.write().await;
+                            if let Some(fim_engine) = guard.as_mut() {
                                 if fim_engine.update_config(fim_config.clone()).await.is_ok() {
                                     info!("FIM engine configuration updated.");
                                 } else {
                                     warn!("Failed to update FIM engine configuration.");
                                 }
-                                // Put engine back
-                                *self.fim_engine.write().await = Some(fim_engine);
                             }
                         }
 

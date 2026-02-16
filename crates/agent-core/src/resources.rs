@@ -345,7 +345,7 @@ impl ResourceMonitor {
 
         if addr_str.starts_with('[') {
             let end_bracket = addr_str.find(']')?;
-            let addr = addr_str[1..end_bracket].to_string();
+            let addr = addr_str.get(1..end_bracket).unwrap_or("").to_string();
             let port_str = addr_str.get(end_bracket + 2..)?;
             let port = port_str.parse().ok()?;
             Some((addr, port))

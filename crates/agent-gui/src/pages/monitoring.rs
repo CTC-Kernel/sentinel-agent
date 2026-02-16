@@ -72,9 +72,9 @@ impl MonitoringPage {
                 "MÉMOIRE VIVE",
                 if state.resources.memory_total_mb > 0 {
                     format!(
-                        "{} / {} GB",
-                        state.resources.memory_used_mb / 1024,
-                        state.resources.memory_total_mb / 1024
+                        "{:.1} / {:.1} Go",
+                        state.resources.memory_used_mb as f64 / 1024.0,
+                        state.resources.memory_total_mb as f64 / 1024.0
                     )
                 } else {
                     format!("{:.1}%", state.resources.memory_percent)

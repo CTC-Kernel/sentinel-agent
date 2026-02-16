@@ -219,6 +219,9 @@ pub fn circular_progress_styled(
 
 /// A step indicator for multi-step processes.
 pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
+    if steps.is_empty() {
+        return;
+    }
     let step_count = steps.len();
     let available_width = ui.available_width();
     let step_width = available_width / step_count as f32;

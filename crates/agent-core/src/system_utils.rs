@@ -104,11 +104,11 @@ fn generate_fallback_machine_id() -> String {
 
     let mut hasher = DefaultHasher::new();
     hostname.hash(&mut hasher);
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos()
-        .hash(&mut hasher);
+    // Use username for additional entropy (stable across restarts, unlike timestamps)
+    let username = std::env::var("USER")
+        .or_else(|_| std::env::var("USERNAME"))
+        .unwrap_or_default();
+    username.hash(&mut hasher);
 
     format!("{:016x}", hasher.finish())
 }

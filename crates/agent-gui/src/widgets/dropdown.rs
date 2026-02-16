@@ -188,13 +188,15 @@ impl<'a, T> Dropdown<'a, T> {
                     ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));
                 }
 
-            egui::Area::new(popup_id)
-                .order(egui::Order::Foreground)
-                .fixed_pos(if above {
-                    egui::pos2(rect.min.x, rect.min.y - theme::SPACE_XS)
-                } else {
-                    egui::pos2(rect.min.x, rect.max.y + theme::SPACE_XS)
-                })
+            let area = egui::Area::new(popup_id)
+                .order(egui::Order::Foreground);
+            let area = if above {
+                area.pivot(egui::Align2::LEFT_BOTTOM)
+                    .fixed_pos(egui::pos2(rect.min.x, rect.min.y - theme::SPACE_XS))
+            } else {
+                area.fixed_pos(egui::pos2(rect.min.x, rect.max.y + theme::SPACE_XS))
+            };
+            area
                 .show(ui.ctx(), |ui| {
                     egui::Frame::new()
                         .fill(theme::bg_secondary())
@@ -344,7 +346,7 @@ impl<'a, T> Dropdown<'a, T> {
                 if let Some(pos) = click_pos {
                     let popup_rect = egui::Rect::from_min_size(
                         if above {
-                            egui::pos2(rect.min.x, rect.min.y - theme::DROPDOWN_MAX_HEIGHT - theme::DROPDOWN_POPUP_MARGIN)
+                            egui::pos2(rect.min.x, rect.min.y - theme::SPACE_XS - theme::DROPDOWN_MAX_HEIGHT - theme::DROPDOWN_POPUP_MARGIN)
                         } else {
                             egui::pos2(rect.min.x, rect.max.y)
                         },

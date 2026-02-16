@@ -338,15 +338,15 @@ impl RuntimeHandle {
         self.state.set_check_interval(secs);
     }
 
-    /// Set the dynamic log level (0=error, 1=warn, 2=info, 3=debug, 4=trace).
+    /// Set the dynamic log level (0=trace, 1=debug, 2=info, 3=warn, 4=error).
     pub fn set_log_level(&self, level: u8) {
         self.state.set_log_level(level);
         let level_str = match level {
-            0 => "error",
-            1 => "warn",
+            0 => "trace",
+            1 => "debug",
             2 => "info",
-            3 => "debug",
-            _ => "trace",
+            3 => "warn",
+            _ => "error",
         };
         info!("Log level updated to {} via handle", level_str);
         set_tracing_level(level_str);
@@ -945,7 +945,9 @@ impl AgentRuntime {
                         if self.state.force_sync.load(Ordering::Acquire) {
                             info!("Forced sync requested via heartbeat command");
                             self.apply_config_changes().await;
-                            self.state.force_sync.store(false, Ordering::Release);
+                            // Do NOT clear force_sync here — the dedicated force_sync
+                            // block later in the loop handles the full sync cycle
+                            // (upload results, heartbeat, notifications) and clears it.
                         }
                         #[cfg(feature = "gui")]
                         {
