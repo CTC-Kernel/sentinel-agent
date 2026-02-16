@@ -134,7 +134,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
 
         // Fade + slide-up entrance, fade-out exit
         let entrance_duration = theme::ANIM_NORMAL as f64;
-        let exit_duration = 0.5;
+        let exit_duration = (0.5_f64).min(duration * 0.4);
         let exit_start = duration - exit_duration;
         let (alpha, slide_offset) = if theme::is_reduced_motion() {
             // Instant show/hide with reduced motion

@@ -247,6 +247,7 @@ impl<'a> DataTable<'a> {
 
         // Draw header cells
         ui.allocate_new_ui(egui::UiBuilder::new().max_rect(header_rect), |ui| {
+            ui.spacing_mut().item_spacing.x = 0.0;
             ui.horizontal(|ui| {
                 for (i, col) in self.columns.iter().enumerate() {
                     let width = widths[i];
@@ -547,7 +548,7 @@ pub fn simple_table(
         .map(|h| TableColumn::new(h, h).sortable().width(ColumnWidth::Fill))
         .collect();
 
-    let table = DataTable::new("simple_table", columns);
+    let table = DataTable::new("simple_table", columns).selectable();
 
     table.show_header(ui, sort);
 

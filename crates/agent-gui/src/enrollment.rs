@@ -11,11 +11,11 @@ use egui::Ui;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use regex::Regex;
 
-static TOKEN_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^[a-zA-Z0-9]{5}(?:-[a-zA-Z0-9]{5}){2,}$").unwrap());
+static TOKEN_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9]{5}(?:-[a-zA-Z0-9]{5}){2,}$").unwrap());
 
 // ============================================================================
 // State
@@ -170,6 +170,16 @@ impl EnrollmentWizard {
                     });
                 });
             });
+
+        // On failure retry: reset wizard to token entry instead of sending Finish to backend
+        if let Some(EnrollmentCommand::Finish) = &command
+            && let EnrollmentStep::Complete { success: false, .. } = &self.step
+        {
+            self.step = EnrollmentStep::TokenEntry;
+            self.token_input.clear();
+            self.qr_input.clear();
+            return None; // Don't send Finish to backend — stay in enrollment loop
+        }
 
         command
     }

@@ -41,7 +41,7 @@ impl Default for ModelConfig {
             capabilities: ModelCapabilities::CODE_ANALYSIS | ModelCapabilities::SECURITY_ANALYSIS,
             max_context_size: 4096,
             gpu_layers: 0, // Auto-detect
-            threads: num_cpus::get() as u32,
+            threads: std::thread::available_parallelism().map_or(1, |n| n.get()) as u32,
         }
     }
 }

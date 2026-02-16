@@ -692,6 +692,126 @@ impl ThreatsPage {
                         }
                     }
                 }
+                "fim" => {
+                    if threat.source_index < state.fim.alerts.len() {
+                        let f = state.fim.alerts[threat.source_index].clone();
+                        let sev_color = match threat.severity {
+                            "critical" | "high" => theme::ERROR,
+                            "medium" => theme::WARNING,
+                            _ => theme::INFO,
+                        };
+                        let actions = [
+                            widgets::DetailAction::secondary("Copier le chemin", icons::COPY),
+                        ];
+                        let drawer_action = widgets::DetailDrawer::new("threat_detail", &f.path, icons::FILE)
+                            .accent(sev_color)
+                            .subtitle("Alerte d'int\u{00e9}grit\u{00e9}")
+                            .show(&ctx, &mut state.threats.detail_open, |ui| {
+                                widgets::detail_section(ui, "ALERTE FIM");
+                                widgets::detail_mono(ui, "Chemin", &f.path);
+                                widgets::detail_field(
+                                    ui,
+                                    "Type de changement",
+                                    Self::change_type_label(f.change_type),
+                                );
+                                if let Some(ref old) = f.old_hash {
+                                    widgets::detail_mono(ui, "Hash pr\u{00e9}c\u{00e9}dent", old);
+                                }
+                                if let Some(ref new) = f.new_hash {
+                                    widgets::detail_mono(ui, "Nouveau hash", new);
+                                }
+                                widgets::detail_field(
+                                    ui,
+                                    "Date de d\u{00e9}tection",
+                                    &f.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                                );
+                                widgets::detail_field_badge(
+                                    ui,
+                                    "\u{00c9}tat",
+                                    if f.acknowledged { "Acquitt\u{00e9}" } else { "Non acquitt\u{00e9}" },
+                                    if f.acknowledged { theme::SUCCESS } else { sev_color },
+                                );
+                            }, &actions);
+                        if let Some(0) = drawer_action {
+                            ctx.copy_text(f.path.clone());
+                            let time = ctx.input(|i| i.time);
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::info(
+                                    "Chemin copi\u{00e9} dans le presse-papiers",
+                                )
+                                .with_time(time),
+                            );
+                        }
+                    }
+                }
+                "network" => {
+                    if threat.source_index < state.network.alerts.len() {
+                        let a = state.network.alerts[threat.source_index].clone();
+                        let sev_color = match a.severity {
+                            Severity::Critical => theme::ERROR,
+                            Severity::High => theme::SEVERITY_HIGH,
+                            Severity::Medium => theme::WARNING,
+                            _ => theme::INFO,
+                        };
+                        let actions = [
+                            widgets::DetailAction::secondary("Copier les d\u{00e9}tails", icons::COPY),
+                        ];
+                        let alert_label = Self::network_alert_type_label(&a.alert_type);
+                        let drawer_action = widgets::DetailDrawer::new("threat_detail", &alert_label, icons::WIFI)
+                            .accent(sev_color)
+                            .subtitle("Alerte r\u{00e9}seau")
+                            .show(&ctx, &mut state.threats.detail_open, |ui| {
+                                widgets::detail_section(ui, "ALERTE R\u{00c9}SEAU");
+                                widgets::detail_field(ui, "Type", &alert_label);
+                                widgets::detail_text(ui, "Description", &a.description);
+                                widgets::detail_field_badge(
+                                    ui,
+                                    "S\u{00e9}v\u{00e9}rit\u{00e9}",
+                                    a.severity.label(),
+                                    sev_color,
+                                );
+                                if let Some(ref src) = a.source_ip {
+                                    widgets::detail_mono(ui, "IP source", src);
+                                }
+                                if let Some(ref dst) = a.destination_ip {
+                                    widgets::detail_mono(ui, "IP destination", dst);
+                                }
+                                if let Some(port) = a.destination_port {
+                                    widgets::detail_field(ui, "Port destination", &port.to_string());
+                                }
+                                widgets::detail_field_colored(
+                                    ui,
+                                    "Confiance",
+                                    &format!("{}%", a.confidence),
+                                    sev_color,
+                                );
+                                widgets::detail_field(
+                                    ui,
+                                    "Date de d\u{00e9}tection",
+                                    &a.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                                );
+                            }, &actions);
+                        if let Some(0) = drawer_action {
+                            let details = format!(
+                                "Type: {}\nDescription: {}\nSource: {}\nDestination: {}:{}\nConfiance: {}%",
+                                alert_label,
+                                a.description,
+                                a.source_ip.as_deref().unwrap_or("--"),
+                                a.destination_ip.as_deref().unwrap_or("--"),
+                                a.destination_port.map(|p| p.to_string()).unwrap_or_else(|| "--".to_string()),
+                                a.confidence,
+                            );
+                            ctx.copy_text(details);
+                            let time = ctx.input(|i| i.time);
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::info(
+                                    "D\u{00e9}tails copi\u{00e9}s dans le presse-papiers",
+                                )
+                                .with_time(time),
+                            );
+                        }
+                    }
+                }
                 _ => {
                     state.threats.detail_open = false;
                     state.threats.selected_threat = None;

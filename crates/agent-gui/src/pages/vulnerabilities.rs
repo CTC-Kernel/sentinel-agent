@@ -590,7 +590,7 @@ impl VulnerabilitiesPage {
                                 ui.label(
                                     egui::RichText::new(format!("{:.1}", s))
                                         .font(theme::font_body())
-                                        .color(theme::readable_color(theme::score_color(s * 10.0)))
+                                        .color(theme::readable_color(theme::score_color(100.0 - s * 10.0)))
                                         .strong(),
                                 );
                             } else {

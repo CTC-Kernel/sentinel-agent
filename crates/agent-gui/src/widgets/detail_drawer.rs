@@ -141,9 +141,17 @@ impl<'a> DetailDrawer<'a> {
                 );
             });
 
+        // Track if drawer was already open on previous frame to avoid dismiss race
+        // (the same click that opens the drawer would otherwise immediately close it)
+        let prev_open_id = self.id.with("prev_open");
+        let was_open_prev: bool =
+            ctx.memory(|mem| mem.data.get_temp(prev_open_id).unwrap_or(false));
+        ctx.memory_mut(|mem| mem.data.insert_temp(prev_open_id, true));
+
         // Dismiss on click outside drawer (left of drawer edge)
         let drawer_x = screen.max.x - drawer_width * anim_t;
-        if ctx.input(|i| i.pointer.primary_clicked())
+        if was_open_prev
+            && ctx.input(|i| i.pointer.primary_clicked())
             && let Some(pos) = ctx.input(|i| i.pointer.interact_pos())
             && pos.x < drawer_x
         {
@@ -340,6 +348,8 @@ impl<'a> DetailDrawer<'a> {
 
         if should_close {
             *open = false;
+            // Reset prev_open flag so next open skips dismiss for one frame
+            ctx.memory_mut(|mem| mem.data.insert_temp::<bool>(prev_open_id, false));
             // Reset animation value so drawer animates in on next open
             if !theme::is_reduced_motion() {
                 ctx.animate_value_with_time(anim_id, 0.0, 0.0);

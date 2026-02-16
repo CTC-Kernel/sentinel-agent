@@ -11,7 +11,6 @@ default = ["tray"]
 # Enable system tray GUI (macOS/Windows desktop mode)
 tray = ["dep:tray-icon", "dep:muda", "dep:image", "dep:open", "dep:tao"]
 # Enable v2 desktop GUI features
-# Enable v2 desktop GUI features
 gui = ["dep:agent-gui"]
 # LLM features
 llm = ["dep:agent_llm", "agent-scanner/llm"]

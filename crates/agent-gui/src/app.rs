@@ -620,6 +620,7 @@ impl eframe::App for SentinelApp {
                     self.state.summary.organization.as_deref(),
                 ) && new_page != self.page
                 {
+                    self.state.close_all_drawers();
                     self.page = new_page;
                     self.page_transition = 0.0;
                 }
