@@ -116,30 +116,59 @@ impl<'a> DetailDrawer<'a> {
 
         let screen = ctx.screen_rect();
 
-        // Backdrop (semi-transparent)
+        // Responsive width: cap at DRAWER_WIDTH but never exceed 35% of screen
+        let drawer_width = DRAWER_WIDTH.min(screen.width() * 0.35).max(280.0);
+
+        // Slide-in animation (respects reduced motion)
+        let anim_id = self.id.with("drawer_anim");
+        let anim_t = if theme::is_reduced_motion() {
+            1.0
+        } else {
+            ctx.animate_value_with_time(anim_id, 1.0, theme::ANIM_NORMAL)
+        };
+
+        // Backdrop (visual only — non-interactive to avoid stealing scroll events)
+        let backdrop_alpha = (theme::BACKDROP_ALPHA as f32 / 2.0 * anim_t) as u8;
         egui::Area::new(egui::Id::new("drawer_backdrop").with(self.id))
             .fixed_pos(screen.min)
             .order(egui::Order::Foreground)
+            .interactable(false)
             .show(ctx, |ui| {
-                let backdrop = ui.allocate_response(screen.size(), egui::Sense::click());
                 ui.painter().rect_filled(
                     screen,
                     CornerRadius::ZERO,
-                    Color32::from_black_alpha(theme::BACKDROP_ALPHA / 2),
+                    Color32::from_black_alpha(backdrop_alpha),
                 );
-                if backdrop.clicked() {
-                    should_close = true;
-                }
             });
 
-        // Drawer panel — slide in from right
-        let drawer_x = screen.max.x - DRAWER_WIDTH;
+        // Click-capture area: covers everything LEFT of the drawer.
+        // Interactable so clicks don't pass through to sidebar/main UI behind.
+        // Separate from backdrop to avoid blocking the drawer's scroll events.
+        let drawer_x = screen.max.x - drawer_width * anim_t;
+        let capture_width = (drawer_x - screen.min.x).max(0.0);
+        if capture_width > 0.0 {
+            egui::Area::new(egui::Id::new("drawer_click_capture").with(self.id))
+                .fixed_pos(screen.min)
+                .order(egui::Order::Foreground)
+                .interactable(true)
+                .show(ctx, |ui| {
+                    let (_, response) = ui.allocate_exact_size(
+                        egui::vec2(capture_width, screen.height()),
+                        egui::Sense::click(),
+                    );
+                    if response.clicked() {
+                        should_close = true;
+                    }
+                });
+        }
+
+        // Drawer panel — slide in from right with animation
         egui::Area::new(egui::Id::new("drawer_panel").with(self.id))
             .fixed_pos(egui::pos2(drawer_x, screen.min.y))
             .order(egui::Order::Foreground)
             .show(ctx, |ui| {
                 let drawer_rect =
-                    egui::Rect::from_min_size(egui::pos2(drawer_x, screen.min.y), egui::vec2(DRAWER_WIDTH, screen.height()));
+                    egui::Rect::from_min_size(egui::pos2(drawer_x, screen.min.y), egui::vec2(drawer_width, screen.height()));
 
                 // Full-height glass background
                 ui.painter().rect_filled(
@@ -154,33 +183,29 @@ impl<'a> DetailDrawer<'a> {
                     egui::Stroke::new(theme::BORDER_MEDIUM, self.accent_color.linear_multiply(theme::OPACITY_MEDIUM)),
                 );
 
-                // Shadow on the left edge
-                let shadow_rect = egui::Rect::from_min_size(
-                    egui::pos2(drawer_x - 20.0, screen.min.y),
-                    egui::vec2(20.0, screen.height()),
-                );
+                // Shadow on the left edge (theme-aware)
+                let shadow_base = theme::overlay_color();
                 for i in 0..10 {
                     let alpha = (10 - i) as f32 * 3.0 / 255.0;
-                    let x = shadow_rect.min.x + i as f32 * 2.0;
+                    let x = drawer_x - 20.0 + i as f32 * theme::SPACE_MICRO;
                     ui.painter().line_segment(
                         [egui::pos2(x, screen.min.y), egui::pos2(x, screen.max.y)],
-                        egui::Stroke::new(theme::BORDER_THIN, Color32::from_black_alpha((alpha * 255.0) as u8)),
+                        egui::Stroke::new(theme::BORDER_THIN, shadow_base.linear_multiply(alpha)),
                     );
                 }
 
-                // Content area with scroll
-                let content_rect = egui::Rect::from_min_size(
-                    egui::pos2(drawer_x, screen.min.y),
-                    egui::vec2(DRAWER_WIDTH, screen.height()),
-                );
-
-                let mut content_ui = ui.new_child(egui::UiBuilder::new().max_rect(content_rect));
-                content_ui.set_clip_rect(content_rect);
+                // Constrain the area UI to drawer bounds
+                ui.set_clip_rect(drawer_rect);
+                ui.set_min_size(egui::vec2(drawer_width, screen.height()));
+                ui.set_max_size(egui::vec2(drawer_width, screen.height()));
 
                 egui::ScrollArea::vertical()
                     .id_salt(self.id.with("scroll"))
-                    .show(&mut content_ui, |ui| {
-                        ui.set_width(DRAWER_WIDTH - theme::SPACE_LG * 2.0);
+                    .auto_shrink([false, false])
+                    .max_height(screen.height())
+                    .show(ui, |ui| {
+                        let content_width = drawer_width - theme::SPACE_LG * 2.0;
+                        ui.set_width(content_width);
                         ui.add_space(theme::SPACE_LG);
 
                         // Header
@@ -242,7 +267,7 @@ impl<'a> DetailDrawer<'a> {
                         // Accent divider
                         let divider_rect = ui
                             .allocate_space(egui::vec2(
-                                DRAWER_WIDTH - theme::SPACE_LG * 2.0,
+                                content_width,
                                 2.0,
                             ))
                             .1;
@@ -257,10 +282,10 @@ impl<'a> DetailDrawer<'a> {
                         ui.add_space(theme::SPACE_MD);
 
                         // Page-specific content
-                        ui.vertical(|ui| {
-                            ui.add_space(theme::SPACE_XS);
-                            ui.set_width(DRAWER_WIDTH - theme::SPACE_LG * 2.0);
-                            ui.indent(self.id.with("body"), |ui| {
+                        ui.horizontal(|ui| {
+                            ui.add_space(theme::SPACE_LG);
+                            ui.vertical(|ui| {
+                                ui.set_width(content_width - theme::SPACE_LG);
                                 content(ui);
                             });
                         });
@@ -271,7 +296,7 @@ impl<'a> DetailDrawer<'a> {
 
                             let action_rect = ui
                                 .allocate_space(egui::vec2(
-                                    DRAWER_WIDTH - theme::SPACE_LG * 2.0,
+                                    content_width,
                                     1.0,
                                 ))
                                 .1;
@@ -289,7 +314,7 @@ impl<'a> DetailDrawer<'a> {
                                     egui::RichText::new("ACTIONS")
                                         .font(theme::font_label())
                                         .color(theme::text_secondary())
-                                        .extra_letter_spacing(0.5)
+                                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                                         .strong(),
                                 );
                             });
@@ -327,6 +352,10 @@ impl<'a> DetailDrawer<'a> {
 
         if should_close {
             *open = false;
+            // Reset animation value so drawer animates in on next open
+            if !theme::is_reduced_motion() {
+                ctx.animate_value_with_time(anim_id, 0.0, 0.0);
+            }
         }
 
         clicked_action
@@ -340,7 +369,7 @@ pub fn detail_section(ui: &mut Ui, title: &str) {
         egui::RichText::new(title)
             .font(theme::font_label())
             .color(theme::text_secondary())
-            .extra_letter_spacing(0.5)
+            .extra_letter_spacing(theme::TRACKING_NORMAL)
             .strong(),
     );
     ui.add_space(theme::SPACE_SM);
@@ -406,7 +435,7 @@ pub fn detail_text(ui: &mut Ui, label: &str, text: &str) {
         egui::RichText::new(label)
             .font(theme::font_label())
             .color(theme::text_tertiary())
-            .extra_letter_spacing(0.3)
+            .extra_letter_spacing(theme::TRACKING_TIGHT)
             .strong(),
     );
     ui.add_space(theme::SPACE_XS);
@@ -434,7 +463,7 @@ pub fn detail_mono(ui: &mut Ui, label: &str, value: &str) {
         egui::RichText::new(label)
             .font(theme::font_label())
             .color(theme::text_tertiary())
-            .extra_letter_spacing(0.3)
+            .extra_letter_spacing(theme::TRACKING_TIGHT)
             .strong(),
     );
     ui.add_space(theme::SPACE_XS);

@@ -191,6 +191,9 @@ impl<'a> DataTable<'a> {
             }
         }
 
+        // Clamp to avoid negative distribution when fixed/percent columns exceed space
+        remaining = remaining.max(0.0);
+
         // Second pass: distribute remaining space
         let auto_width = if !auto_indices.is_empty() {
             let auto_total = remaining * 0.6; // Auto columns get 60% of remaining
@@ -205,7 +208,7 @@ impl<'a> DataTable<'a> {
         }
 
         let fill_width = if fill_count > 0 {
-            remaining.max(0.0) / fill_count as f32
+            remaining / fill_count as f32
         } else {
             0.0
         };
@@ -250,7 +253,7 @@ impl<'a> DataTable<'a> {
                     let is_sorted = sort.column.as_deref() == Some(col.key);
 
                     let sense = if col.sortable {
-                        Sense::click()
+                        Sense::click().union(Sense::hover())
                     } else {
                         Sense::hover()
                     };
@@ -259,14 +262,25 @@ impl<'a> DataTable<'a> {
                         ui.allocate_exact_size(egui::vec2(width, self.header_height), sense);
 
                     if ui.is_rect_visible(cell_rect) {
-                        let is_hovered = response.hovered() && col.sortable;
+                        let is_focused = response.has_focus() && col.sortable;
+                        let is_hovered = (response.hovered() || is_focused) && col.sortable;
 
-                        // Hover effect
+                        // Hover/focus effect
                         if is_hovered {
                             ui.painter().rect_filled(
                                 cell_rect,
                                 0,
                                 theme::hover_bg(),
+                            );
+                        }
+
+                        // Focus ring for keyboard navigation
+                        if is_focused {
+                            ui.painter().rect_stroke(
+                                cell_rect.shrink(1.0),
+                                egui::CornerRadius::same(theme::ROUNDING_XS),
+                                theme::focus_ring(),
+                                egui::StrokeKind::Inside,
                             );
                         }
 
@@ -335,8 +349,13 @@ impl<'a> DataTable<'a> {
                         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                     }
 
-                    // Handle sort click
-                    if response.clicked() && col.sortable {
+                    // Handle sort click or keyboard activation (Enter/Space)
+                    let keyboard_activate = response.has_focus()
+                        && col.sortable
+                        && ui.input(|i| {
+                            i.key_pressed(egui::Key::Enter) || i.key_pressed(egui::Key::Space)
+                        });
+                    if (response.clicked() || keyboard_activate) && col.sortable {
                         if is_sorted {
                             sort.direction = sort.direction.toggle();
                             if sort.direction == SortDirection::None {

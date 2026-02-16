@@ -62,9 +62,25 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
         painter.add(egui::Shape::line(points, stroke));
     }
 
-    // Premium hover effect: subtle highlight if needed, but per user request, we remove borders/glow
+    // Premium hover effect: elevated shadow + subtle accent border glow
     if ui.rect_contains_pointer(frame_resp.response.rect) {
-        // We keep the block for potential future hover-only logic that isn't a border/glow
-        // but currently we empty it to fulfill the user's request.
+        let rect = frame_resp.response.rect;
+        let hover_shadow = if is_dark {
+            theme::shadow_lg()
+        } else {
+            theme::shadow_md()
+        };
+        ui.painter().add(
+            hover_shadow.as_shape(rect, CornerRadius::same(theme::CARD_ROUNDING)),
+        );
+        ui.painter().rect_stroke(
+            rect,
+            CornerRadius::same(theme::CARD_ROUNDING),
+            egui::Stroke::new(
+                theme::BORDER_THIN,
+                theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
+            ),
+            egui::epaint::StrokeKind::Outside,
+        );
     }
 }

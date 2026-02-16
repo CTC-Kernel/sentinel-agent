@@ -111,6 +111,13 @@ impl Database {
     /// The key material is zeroized from memory after the PRAGMA is set to
     /// minimize the window during which the plaintext key is in heap memory.
     fn set_encryption_key(conn: &Connection, key: &[u8]) -> StorageResult<()> {
+        if key.len() < 32 {
+            return Err(StorageError::Encryption(format!(
+                "Database key must be at least 32 bytes (256 bits), got {}",
+                key.len()
+            )));
+        }
+
         // Convert key to hex string for SQLCipher
         let mut key_hex: String = key.iter().map(|b| format!("{:02x}", b)).collect();
 

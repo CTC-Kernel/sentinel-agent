@@ -274,10 +274,15 @@ impl EnrollmentWizard {
                         } else {
                             rect.left()
                         };
+                        let anim_duration = if theme::is_reduced_motion() {
+                            0.0
+                        } else {
+                            theme::ANIM_NORMAL
+                        };
                         let pill_x = ui.ctx().animate_value_with_time(
                             response.id.with("pill_x"),
                             target_x,
-                            theme::ANIM_NORMAL,
+                            anim_duration,
                         );
 
                         let pill_rect = egui::Rect::from_min_size(
@@ -497,7 +502,7 @@ impl EnrollmentWizard {
                                 .color(theme::accent_text());
                             if ui.link(link_attr).clicked() {
                                 ui.ctx().open_url(egui::OpenUrl::new_tab(
-                                    "https://app.cyber-threat-consulting.com/login",
+                                    format!("{}/login", crate::pages::about::branding::CONSOLE),
                                 ));
                             }
                             ui.label(egui::RichText::new("•").color(theme::text_tertiary()));
@@ -506,7 +511,7 @@ impl EnrollmentWizard {
                                 .color(theme::accent_text());
                             if ui.link(link_attr_reg).clicked() {
                                 ui.ctx().open_url(egui::OpenUrl::new_tab(
-                                    "https://app.cyber-threat-consulting.com/register",
+                                    format!("{}/register", crate::pages::about::branding::CONSOLE),
                                 ));
                             }
                         });
@@ -522,7 +527,15 @@ impl EnrollmentWizard {
             ui.set_max_width(theme::ENROLLMENT_CARD_WIDTH);
             ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE_LG);
-                ui.spinner();
+                if theme::is_reduced_motion() {
+                    ui.label(
+                        egui::RichText::new(icons::SYNC)
+                            .size(theme::ICON_XL)
+                            .color(theme::accent_text()),
+                    );
+                } else {
+                    ui.spinner();
+                }
                 ui.add_space(theme::SPACE);
                 ui.label(
                     egui::RichText::new(message)
@@ -599,18 +612,7 @@ impl EnrollmentWizard {
     }
 
     fn step_indicator(ui: &mut Ui, current: &EnrollmentStep) {
-        let steps = [
-            ("Bienvenue", EnrollmentStep::Welcome),
-            ("Token", EnrollmentStep::TokenEntry),
-            ("Enrôlement", EnrollmentStep::InProgress),
-            (
-                "Terminé",
-                EnrollmentStep::Complete {
-                    success: true,
-                    message: String::new(),
-                },
-            ),
-        ];
+        let step_labels = ["Bienvenue", "Token", "Enrôlement", "Terminé"];
 
         let current_idx = match current {
             EnrollmentStep::Welcome => 0,
@@ -620,25 +622,39 @@ impl EnrollmentWizard {
         };
 
         ui.horizontal(|ui: &mut egui::Ui| {
-            for (i, (label, _)) in steps.iter().enumerate() {
-                let color = if i <= current_idx {
-                    theme::ACCENT
+            for (i, label) in step_labels.iter().enumerate() {
+                let (icon, color) = if i < current_idx {
+                    // Completed step
+                    (icons::CIRCLE_CHECK, theme::SUCCESS)
+                } else if i == current_idx {
+                    // Current step
+                    (icons::CIRCLE, theme::ACCENT)
                 } else {
-                    theme::text_tertiary()
+                    // Future step
+                    (icons::CIRCLE, theme::text_tertiary())
                 };
 
                 ui.label(
-                    egui::RichText::new(format!("{}. {}", i + 1, label))
+                    egui::RichText::new(icon)
                         .font(theme::font_small())
                         .color(color),
                 );
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new(*label)
+                        .font(theme::font_small())
+                        .color(color)
+                        .strong(),
+                );
 
-                if i < steps.len() - 1 {
+                if i < step_labels.len() - 1 {
+                    ui.add_space(theme::SPACE_XS);
                     ui.label(
-                        egui::RichText::new(format!(" {} ", icons::ARROW_RIGHT))
+                        egui::RichText::new(icons::ARROW_RIGHT)
                             .font(theme::font_small())
                             .color(theme::text_tertiary()),
                     );
+                    ui.add_space(theme::SPACE_XS);
                 }
             }
         });

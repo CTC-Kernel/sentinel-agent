@@ -85,7 +85,7 @@ impl FimPage {
                     egui::RichText::new("DISTRIBUTION PAR TYPE DE MODIFICATION")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_SM);
@@ -142,7 +142,7 @@ impl FimPage {
                         egui::RichText::new("TAUX D'ACQUITTEMENT")
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
-                            .extra_letter_spacing(0.5)
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_SM);
@@ -205,7 +205,7 @@ impl FimPage {
                         egui::RichText::new("ALERTES FIM RÉCENTES")
                             .font(theme::font_label())
                             .color(theme::text_secondary())
-                            .extra_letter_spacing(0.5)
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
                             .strong(),
                     );
                     ui.with_layout(
@@ -251,7 +251,7 @@ impl FimPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -260,7 +260,7 @@ impl FimPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -269,7 +269,7 @@ impl FimPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -278,7 +278,7 @@ impl FimPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                     })
@@ -431,12 +431,32 @@ impl FimPage {
                     }
                 }, &actions);
 
-            if let Some(action_idx) = action
-                && !alert.acknowledged && action_idx == 0
-            {
-                let alert_id = state.fim.alerts[sel].id.clone();
-                state.fim.alerts[sel].acknowledged = true;
-                command = Some(GuiCommand::AcknowledgeFimAlert { alert_id });
+            if let Some(action_idx) = action {
+                if !alert.acknowledged && action_idx == 0 {
+                    let alert_id = state.fim.alerts[sel].id.clone();
+                    state.fim.alerts[sel].acknowledged = true;
+                    command = Some(GuiCommand::AcknowledgeFimAlert { alert_id });
+                } else {
+                    let export_idx = if alert.acknowledged { 0 } else { 1 };
+                    if action_idx == export_idx {
+                        let time = ctx.input(|i| i.time);
+                        if Self::export_events_csv(state, &[sel]) {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success(
+                                    "Alerte FIM export\u{00e9}e en CSV",
+                                )
+                                .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error(
+                                    "\u{00c9}chec de l'export CSV",
+                                )
+                                .with_time(time),
+                            );
+                        }
+                    }
+                }
             }
         }
 
@@ -469,7 +489,7 @@ impl FimPage {
                             egui::RichText::new(label)
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
-                                .extra_letter_spacing(0.5)
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
                                 .strong(),
                         );
                     });

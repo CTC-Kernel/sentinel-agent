@@ -143,7 +143,7 @@ impl NetworkPage {
                     egui::RichText::new("DISTRIBUTION DES CONNEXIONS PAR ÉTAT")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_SM);
@@ -186,7 +186,7 @@ impl NetworkPage {
                     egui::RichText::new("DISTRIBUTION PAR PROTOCOLE")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_SM);
@@ -259,7 +259,7 @@ impl NetworkPage {
                         egui::RichText::new("DISTRIBUTION DES ALERTES PAR TYPE")
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
-                            .extra_letter_spacing(0.5)
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_SM);
@@ -336,7 +336,7 @@ impl NetworkPage {
                         widgets::DetailAction::secondary("Copier", icons::COPY),
                         widgets::DetailAction::danger("Bloquer", icons::LOCK),
                     ];
-                    widgets::DetailDrawer::new("net_conn_detail", &title, icons::NETWORK)
+                    let drawer_action = widgets::DetailDrawer::new("net_conn_detail", &title, icons::NETWORK)
                         .accent(theme::ACCENT)
                         .subtitle("Connexion r\u{00e9}seau")
                         .show(&ctx, &mut state.network.detail_open, |ui| {
@@ -361,6 +361,26 @@ impl NetworkPage {
                                 conn.process_name.as_deref().unwrap_or("--"),
                             );
                         }, &actions);
+                    if let Some(action_idx) = drawer_action {
+                        let time = ctx.input(|i| i.time);
+                        if action_idx == 0 {
+                            let conn_str = format!(
+                                "{}:{} \u{2192} {}",
+                                conn.local_address,
+                                conn.local_port,
+                                conn.remote_address.as_deref().unwrap_or("--"),
+                            );
+                            ctx.copy_text(conn_str);
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::info(
+                                    "Connexion copi\u{00e9}e dans le presse-papiers",
+                                )
+                                .with_time(time),
+                            );
+                        } else if action_idx == 1 {
+                            state.network.detail_open = false;
+                        }
+                    }
                 }
             } else if let Some(sel) = state.network.selected_alert
                 && sel < state.network.alerts.len()
@@ -388,7 +408,7 @@ impl NetworkPage {
                     widgets::DetailAction::secondary("Investiguer", icons::SEARCH),
                     widgets::DetailAction::danger("Ignorer", icons::EYE_SLASH),
                 ];
-                widgets::DetailDrawer::new("net_alert_detail", &type_label, icons::WARNING)
+                let drawer_action = widgets::DetailDrawer::new("net_alert_detail", &type_label, icons::WARNING)
                     .accent(type_color)
                     .subtitle("Alerte r\u{00e9}seau")
                     .show(&ctx, &mut state.network.detail_open, |ui| {
@@ -424,6 +444,34 @@ impl NetworkPage {
                             &alert.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
                         );
                     }, &actions);
+                if let Some(action_idx) = drawer_action {
+                    let time = ctx.input(|i| i.time);
+                    if action_idx == 0 {
+                        state.network.detail_open = false;
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::success("Alerte acquitt\u{00e9}e")
+                                .with_time(time),
+                        );
+                    } else if action_idx == 1 {
+                        let details = format!(
+                            "Type: {}\nDescription: {}\nSource: {}\nDestination: {}",
+                            type_label,
+                            alert.description,
+                            alert.source_ip.as_deref().unwrap_or("--"),
+                            alert.destination_ip.as_deref().unwrap_or("--"),
+                        );
+                        ctx.copy_text(details);
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::info(
+                                "D\u{00e9}tails de l'alerte copi\u{00e9}s dans le presse-papiers",
+                            )
+                            .with_time(time),
+                        );
+                    } else if action_idx == 2 {
+                        state.network.detail_open = false;
+                        state.network.selected_alert = None;
+                    }
+                }
             }
         }
 
@@ -437,7 +485,7 @@ impl NetworkPage {
                     egui::RichText::new("INTERFACES RÉSEAU DETECTÉES")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.with_layout(
@@ -580,7 +628,7 @@ impl NetworkPage {
                     egui::RichText::new("CONNEXIONS ACTIVES")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.with_layout(
@@ -802,7 +850,7 @@ impl NetworkPage {
                             egui::RichText::new(label)
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
-                                .extra_letter_spacing(0.5)
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
                                 .strong(),
                         );
                     });
@@ -827,7 +875,7 @@ impl NetworkPage {
                 egui::RichText::new("ANALYSE DE SÉCURITÉ RÉSEAU")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -864,7 +912,7 @@ impl NetworkPage {
                         egui::RichText::new("ACTIONS DE MITIGATION REQUISES IMMÉDIATEMENT")
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
-                            .extra_letter_spacing(0.5),
+                            .extra_letter_spacing(theme::TRACKING_NORMAL),
                     );
                 });
             } else {

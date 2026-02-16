@@ -16,6 +16,9 @@ use crate::events::{AgentEvent, GuiCommand};
 use crate::{icons, pages, theme, widgets};
 use crate::tray_bridge::{TrayAction, TrayBridge};
 
+/// Maximum per-frame delta time to prevent animation jumps on lag spikes.
+const FRAME_DT_MAX: f32 = 0.05;
+
 /// Results from background async tasks initiated by the UI.
 pub enum AsyncTaskResult {
     CsvExport(bool, String),
@@ -190,9 +193,9 @@ impl SentinelApp {
         eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel - Vue Rapide")
-                .with_inner_size([theme::SPLASH_CONTENT_WIDTH, 500.0])
-                .with_min_inner_size([350.0, theme::SPLASH_CONTENT_HEIGHT])
-                .with_max_inner_size([600.0, 800.0])
+                .with_inner_size([theme::SPLASH_CONTENT_WIDTH, theme::TRAY_POPUP_MAX_HEIGHT])
+                .with_min_inner_size([theme::TRAY_POPUP_MIN_WIDTH, theme::SPLASH_CONTENT_HEIGHT])
+                .with_max_inner_size([theme::TRAY_POPUP_MAX_WIDTH, 800.0])
                 .with_icon(Self::load_app_icon())
                 .with_decorations(false) // No title bar for menu-like feel
                 .with_transparent(true),
@@ -343,7 +346,7 @@ impl SentinelApp {
                             resources,
                             network,
                         );
-                        radar.show(ui, 240.0);
+                        radar.show(ui, theme::TRAY_RADAR_SIZE);
                     });
 
                     ui.add_space(theme::SPACE_MD);
@@ -351,7 +354,7 @@ impl SentinelApp {
                     // Quick Stats Cards
                     ui.horizontal(|ui: &mut egui::Ui| {
                         widgets::card(ui, |ui: &mut egui::Ui| {
-                            ui.set_width(135.0);
+                            ui.set_width(theme::TRAY_SATELLITE_CARD_WIDTH);
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(egui::RichText::new("SCORE").font(theme::font_small()));
                                 ui.add_space(theme::SPACE_XS);
@@ -367,7 +370,7 @@ impl SentinelApp {
                         });
                         ui.add_space(theme::SPACE_MD);
                         widgets::card(ui, |ui: &mut egui::Ui| {
-                            ui.set_width(135.0);
+                            ui.set_width(theme::TRAY_SATELLITE_CARD_WIDTH);
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(egui::RichText::new("MENACES").font(theme::font_small()));
                                 ui.add_space(theme::SPACE_XS);
@@ -443,7 +446,7 @@ impl eframe::App for SentinelApp {
 
         // Advance theme transition animation
         if self.theme_transition < 1.0 {
-            let dt = ctx.input(|i| i.stable_dt).min(0.05);
+            let dt = ctx.input(|i| i.stable_dt).min(FRAME_DT_MAX);
             self.theme_transition = (self.theme_transition + dt / theme::ANIM_NORMAL).min(1.0);
             ctx.request_repaint();
         }
@@ -481,7 +484,7 @@ impl eframe::App for SentinelApp {
         // ── Splash screen (first ~2.5 seconds) ──
         if !self.splash_done && !self.show_tray_satellite {
             let elapsed = self.splash_start.elapsed().as_secs_f32();
-            if elapsed < 2.5 {
+            if elapsed < theme::SPLASH_DURATION {
                 self.show_splash(ctx, elapsed);
                 ctx.request_repaint();
                 return;
@@ -622,7 +625,7 @@ impl eframe::App for SentinelApp {
 
         // Advance page transition animation
         if self.page_transition < 1.0 {
-            let dt = ctx.input(|i| i.stable_dt).min(0.05);
+            let dt = ctx.input(|i| i.stable_dt).min(FRAME_DT_MAX);
             self.page_transition =
                 (self.page_transition + dt / theme::PAGE_TRANSITION_DURATION).min(1.0);
             ctx.request_repaint();
@@ -771,7 +774,11 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::AI => {
-                                    self.llm_panel.show(ui);
+                                    if let Some(cmd) =
+                                        self.llm_panel.show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
                                 }
                             });
                     });
@@ -799,17 +806,16 @@ impl SentinelApp {
     fn show_splash(&self, ctx: &egui::Context, elapsed: f32) {
         // Respect reduced-motion: skip fade animations, show static splash.
         let (alpha, progress) = if theme::is_reduced_motion() {
-            (1.0_f32, (elapsed / 2.5).min(1.0))
+            (1.0_f32, (elapsed / theme::SPLASH_DURATION).min(1.0))
         } else {
-            // Fade in over 0.6s, hold, then fade out last 0.4s.
-            let a = if elapsed < 0.6 {
-                elapsed / 0.6
-            } else if elapsed > 2.1 {
-                1.0 - ((elapsed - 2.1) / 0.4).min(1.0)
+            let a = if elapsed < theme::SPLASH_FADE_IN {
+                elapsed / theme::SPLASH_FADE_IN
+            } else if elapsed > theme::SPLASH_FADE_OUT_START {
+                1.0 - ((elapsed - theme::SPLASH_FADE_OUT_START) / theme::SPLASH_FADE_OUT_DURATION).min(1.0)
             } else {
                 1.0
             };
-            (a, (elapsed / 2.5).min(1.0))
+            (a, (elapsed / theme::SPLASH_DURATION).min(1.0))
         };
         egui::CentralPanel::default()
             .frame(egui::Frame::new().fill(theme::bg_primary()))
