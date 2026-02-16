@@ -105,7 +105,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         RichText::new(status_text)
                             .font(theme::font_label())
                             .color(theme::readable_color(status_color))
-                            .extra_letter_spacing(0.3)
+                            .extra_letter_spacing(theme::TRACKING_TIGHT)
                             .strong(),
                     );
                 });
@@ -260,8 +260,8 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                     )
                     .clicked()
                     {
-                        // Open browser to console URL (only https)
-                        let console_url = format!("{}/dashboard", state.settings.server_url);
+                        // Open browser to console dashboard (HTTPS only)
+                        let console_url = format!("{}/dashboard", crate::pages::about::branding::CONSOLE);
                         if console_url.starts_with("https://") {
                             if let Err(e) = open::that(&console_url) {
                                 tracing::warn!("Failed to open URL {}: {}", console_url, e);

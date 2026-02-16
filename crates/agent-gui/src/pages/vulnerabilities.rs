@@ -165,7 +165,7 @@ impl VulnerabilitiesPage {
                 egui::RichText::new("INDICATEURS DE COUVERTURE")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -340,7 +340,7 @@ impl VulnerabilitiesPage {
                 egui::RichText::new("FAILLES DE SÉCURITÉ IDENTIFIÉES")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -361,12 +361,14 @@ impl VulnerabilitiesPage {
                     theme::text_tertiary()
                 };
 
-                let actions = vec![
-                    widgets::DetailAction::primary("Appliquer le correctif", icons::WRENCH)
-                        .enabled(finding.fix_available),
-                    widgets::DetailAction::secondary("Ignorer", icons::XMARK),
-                    widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
-                ];
+                let mut actions = Vec::new();
+                if finding.fix_available {
+                    actions.push(
+                        widgets::DetailAction::primary("Appliquer le correctif", icons::WRENCH),
+                    );
+                }
+                actions.push(widgets::DetailAction::secondary("Ignorer", icons::XMARK));
+                actions.push(widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD));
 
                 let cve_display = &finding.cve_id;
                 let drawer_action = widgets::DetailDrawer::new("vuln_detail", cve_display, icons::VULNERABILITIES)
@@ -395,26 +397,31 @@ impl VulnerabilitiesPage {
                     }, &actions);
 
                 if let Some(action_idx) = drawer_action {
-                    match action_idx {
-                        0 => {
-                            command = Some(GuiCommand::Remediate {
-                                check_id: finding.cve_id.clone(),
-                            });
+                    // Offset: when fix_available, index 0=fix, 1=ignore, 2=export
+                    // When !fix_available, index 0=ignore, 1=export
+                    let fix_offset = if finding.fix_available { 1 } else { 0 };
+                    if finding.fix_available && action_idx == 0 {
+                        let safe_name = finding.affected_software.replace('\'', "'\\''");
+                        let cmd = format!("brew upgrade '{}'", safe_name);
+                        ui.ctx().copy_text(cmd);
+                        let time = ui.input(|i| i.time);
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::success(
+                                "Commande de mise \u{00e0} jour copi\u{00e9}e dans le presse-papiers",
+                            )
+                            .with_time(time),
+                        );
+                    } else if action_idx == fix_offset {
+                        state.vulnerability.detail_open = false;
+                    } else if action_idx == fix_offset + 1 {
+                        let success = Self::export_csv(state, &[sel_idx]);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV r\u{00e9}ussi")
+                                    .with_time(time),
+                            );
                         }
-                        1 => {
-                            state.vulnerability.detail_open = false;
-                        }
-                        2 => {
-                            let success = Self::export_csv(state, &[sel_idx]);
-                            let time = ui.input(|i| i.time);
-                            if success {
-                                state.toasts.push(
-                                    crate::widgets::toast::Toast::success("Export CSV r\u{00e9}ussi")
-                                        .with_time(time),
-                                );
-                            }
-                        }
-                        _ => {}
                     }
                 }
             }
@@ -486,7 +493,7 @@ impl VulnerabilitiesPage {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                     });
                     header.col(|ui: &mut egui::Ui| {
@@ -495,7 +502,7 @@ impl VulnerabilitiesPage {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                     });
                     header.col(|ui: &mut egui::Ui| {
@@ -504,7 +511,7 @@ impl VulnerabilitiesPage {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                     });
                     header.col(|ui: &mut egui::Ui| {
@@ -513,7 +520,7 @@ impl VulnerabilitiesPage {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                     });
                     header.col(|ui: &mut egui::Ui| {
@@ -522,7 +529,7 @@ impl VulnerabilitiesPage {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                     });
                     header.col(|ui: &mut egui::Ui| {
@@ -531,7 +538,7 @@ impl VulnerabilitiesPage {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                     });
                 })
@@ -599,11 +606,11 @@ impl VulnerabilitiesPage {
                                         .color(theme::text_secondary()),
                                 );
                                 if finding.fix_available {
-                                    ui.add_space(2.0);
+                                    ui.add_space(theme::SPACE_MICRO);
                                     widgets::status_badge(ui, "CORRECTIF DISPONIBLE", theme::SUCCESS);
                                 }
                                 if let Some(dt) = finding.discovered_at {
-                                    ui.add_space(2.0);
+                                    ui.add_space(theme::SPACE_MICRO);
                                     ui.label(
                                         egui::RichText::new(format!(
                                             "{} {}",
@@ -657,7 +664,7 @@ impl VulnerabilitiesPage {
                             egui::RichText::new(label)
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
-                                .extra_letter_spacing(0.5)
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
                                 .strong(),
                         );
                     });

@@ -88,7 +88,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
             ui.label(
                 RichText::new(security_state.title().to_uppercase())
                     .font(theme::font_body())
-                    .extra_letter_spacing(0.6)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .color(theme::text_primary())
                     .strong(),
             );

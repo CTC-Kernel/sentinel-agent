@@ -2,6 +2,7 @@
 
 use egui::Ui;
 use sha2::{Digest, Sha256};
+use zeroize::Zeroize;
 
 use crate::app::AppState;
 use crate::dto::GuiAgentStatus;
@@ -49,7 +50,7 @@ impl SettingsPage {
                 egui::RichText::new("CONTRÔLES DES SERVICES")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -98,7 +99,7 @@ impl SettingsPage {
                 egui::RichText::new("INTERVALLE D'ANALYSE")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -121,12 +122,13 @@ impl SettingsPage {
                         .font(theme::font_label())
                         .color(theme::text_tertiary()),
                 );
-                let slider = egui::Slider::new(&mut interval_min, 5.0..=120.0)
-                    .text("MINUTES")
-                    .step_by(5.0)
-                    .clamping(egui::SliderClamping::Always);
-                let response = ui.add(slider);
-                if response.changed() {
+                let changed = widgets::Slider::new(5.0, 120.0)
+                    .step(5.0)
+                    .style(widgets::SliderStyle::Stepped)
+                    .show_ticks()
+                    .hide_value()
+                    .show(ui, &mut interval_min);
+                if changed {
                     state.settings.check_interval_secs = (interval_min as u64) * 60;
                     command = Some(GuiCommand::UpdateCheckInterval {
                         interval_secs: state.settings.check_interval_secs,
@@ -159,7 +161,7 @@ impl SettingsPage {
                 egui::RichText::new("JOURNALISATION (LOGS)")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -202,7 +204,7 @@ impl SettingsPage {
                 egui::RichText::new("APPARENCE DE L'INTERFACE")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -240,7 +242,7 @@ impl SettingsPage {
                 egui::RichText::new("MAINTENANCE ET MISES À JOUR")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -297,7 +299,7 @@ impl SettingsPage {
                 egui::RichText::new("DÉCOUVERTE RÉSEAU AUTOMATIQUE")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -310,9 +312,7 @@ impl SettingsPage {
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
-                if ui.checkbox(&mut state.discovery.enabled, "").changed() {
-                    // State is already updated by checkbox
-                }
+                widgets::toggle_switch(ui, &mut state.discovery.enabled);
             });
             ui.add_space(theme::SPACE_XS);
             ui.label(
@@ -330,7 +330,7 @@ impl SettingsPage {
                 egui::RichText::new("CONFIGURATION ARCHITECTURE")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -343,12 +343,22 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_SM);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                ui.add(
-                    egui::TextEdit::singleline(&mut state.settings.architecture_url)
-                        .hint_text("https://...")
-                        .desired_width(ui.available_width() - theme::SPACE_XL)
-                        .char_limit(2048),
-                );
+                let input_width = ui.available_width() - theme::SPACE_XL;
+                egui::Frame::new()
+                    .fill(theme::bg_tertiary())
+                    .corner_radius(egui::CornerRadius::same(theme::INPUT_ROUNDING))
+                    .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
+                    .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+                    .show(ui, |ui: &mut egui::Ui| {
+                        ui.add(
+                            egui::TextEdit::singleline(&mut state.settings.architecture_url)
+                                .hint_text("https://...")
+                                .desired_width(input_width - theme::SPACE_LG)
+                                .char_limit(2048)
+                                .frame(false)
+                                .font(theme::font_mono()),
+                        );
+                    });
                 if !state.settings.architecture_url.is_empty() {
                     ui.label(egui::RichText::new(icons::CHECK).color(theme::readable_color(theme::SUCCESS)));
                 }
@@ -429,7 +439,7 @@ impl SettingsPage {
                 egui::RichText::new("PROTOCOLE DE CONNEXION")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -455,7 +465,7 @@ impl SettingsPage {
                 egui::RichText::new("TRANSFERT ET SYNCHRONISATION")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -481,13 +491,13 @@ impl SettingsPage {
                 egui::RichText::new("ACCÈS CLOUD ET GESTION")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
 
             if let Some(ref id) = state.summary.agent_id {
-                let url = format!("https://app.cyber-threat-consulting.com/agents/{}", id);
+                let url = format!("{}/agents/{}", super::about::branding::CONSOLE, id);
 
                 ui.label(
                     egui::RichText::new("Pilotez vos politiques et exportez vos rapports de conformité directement sur le portail web.")
@@ -566,8 +576,8 @@ impl SettingsPage {
                             } else {
                                 modal_state.2 = Some("Mot de passe incorrect".to_string());
                             }
-                            // Always clear password from memory after validation attempt
-                            modal_state.1.clear();
+                            // Securely wipe password from memory after validation attempt
+                            modal_state.1.zeroize();
                         }
 
                         if let Some(err) = &modal_state.2 {
@@ -579,7 +589,7 @@ impl SettingsPage {
                         ui.horizontal(|ui| {
                             if widgets::secondary_button(ui, "ANNULER", true).clicked() {
                                 modal_state.0 = false;
-                                modal_state.1.clear();
+                                modal_state.1.zeroize();
                                 modal_state.2 = None;
                             }
                             ui.add_space(theme::SPACE_SM);
@@ -592,8 +602,8 @@ impl SettingsPage {
                                 } else {
                                     modal_state.2 = Some("Mot de passe incorrect".to_string());
                                 }
-                                // Always clear password from memory after validation attempt
-                                modal_state.1.clear();
+                                // Securely wipe password from memory after validation attempt
+                                modal_state.1.zeroize();
                             }
                         });
                     });
@@ -605,12 +615,19 @@ impl SettingsPage {
 
         let confirming = ui.memory(|mem| mem.data.get_temp::<bool>(confirm_id).unwrap_or(false));
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        // Danger zone with red-tinted frame for visual hierarchy
+        egui::Frame::new()
+            .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
+            .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
+            .inner_margin(egui::Margin::same(theme::SPACE_LG as i8))
+            .stroke(egui::Stroke::new(theme::BORDER_MEDIUM, theme::ERROR.linear_multiply(theme::OPACITY_MEDIUM)))
+            .shadow(if theme::is_dark_mode() { theme::shadow_md() } else { theme::shadow_sm() })
+            .show(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("ZONE CRITIQUE")
+                egui::RichText::new(format!("{}  ZONE CRITIQUE", icons::WARNING))
                     .font(theme::font_label())
                     .color(theme::readable_color(theme::ERROR))
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -690,7 +707,7 @@ impl SettingsPage {
 
     fn setting_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.set_min_height(32.0);
+            ui.set_min_height(theme::MIN_TOUCH_TARGET);
             ui.label(
                 egui::RichText::new(icon)
                     .color(theme::text_tertiary())
@@ -730,7 +747,7 @@ impl SettingsPage {
                     ))
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
                 );
 

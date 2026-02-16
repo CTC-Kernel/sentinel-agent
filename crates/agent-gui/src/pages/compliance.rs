@@ -83,13 +83,17 @@ impl CompliancePage {
                     egui::RichText::new("RÉFÉRENTIELS ACTIFS :")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_XS);
-                for fw in frameworks {
+                let fw_count = frameworks.len();
+                for fw in frameworks.iter().take(3) {
                     widgets::status_badge(ui, &fw.to_uppercase(), theme::INFO);
                     ui.add_space(theme::SPACE_XS);
+                }
+                if fw_count > 3 {
+                    widgets::status_badge(ui, &format!("+{}", fw_count - 3), theme::text_tertiary());
                 }
             });
             ui.add_space(theme::SPACE_MD);
@@ -113,7 +117,7 @@ impl CompliancePage {
                         egui::RichText::new("ANALYSE SYNTHÉTIQUE DES CONTRÔLES")
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
-                            .extra_letter_spacing(0.5)
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_MD);
@@ -184,7 +188,7 @@ impl CompliancePage {
                     egui::RichText::new("SCORE PAR R\u{00c9}F\u{00c9}RENTIEL")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
@@ -229,7 +233,7 @@ impl CompliancePage {
                             egui::RichText::new(fw.to_uppercase())
                                 .font(theme::font_label())
                                 .color(theme::text_primary())
-                                .extra_letter_spacing(0.5)
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
                                 .strong(),
                         );
                         ui.with_layout(
@@ -350,7 +354,7 @@ impl CompliancePage {
                 egui::RichText::new("STRUCTURE D'AFFICHAGE :")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_XS);
@@ -386,7 +390,7 @@ impl CompliancePage {
                     egui::RichText::new("MATRICE DES CONTRÔLES D'AUDIT")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.with_layout(
@@ -455,7 +459,7 @@ impl CompliancePage {
                                 .font(theme::font_min())
                                 .color(theme::text_primary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                         ui.add_space(theme::SPACE_SM);
                         let score_color = theme::score_color(pct);
@@ -527,7 +531,13 @@ impl CompliancePage {
                         }
                         if let Some(ref details) = check.details {
                             let json_str = serde_json::to_string_pretty(details).unwrap_or_default();
-                            widgets::detail_mono(ui, "D\u{00e9}tails", &json_str);
+                            let display_str = if json_str.chars().count() > 500 {
+                                let truncated: String = json_str.chars().take(497).collect();
+                                format!("{}...", truncated)
+                            } else {
+                                json_str
+                            };
+                            widgets::detail_mono(ui, "D\u{00e9}tails", &display_str);
                         }
                         if let Some(dt) = check.executed_at {
                             widgets::detail_field(ui, "Ex\u{00e9}cut\u{00e9} le", &dt.format("%d/%m/%Y %H:%M").to_string());
@@ -599,7 +609,7 @@ impl CompliancePage {
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong()
-                            .extra_letter_spacing(0.5),
+                            .extra_letter_spacing(theme::TRACKING_NORMAL),
                     );
                 });
                 header.col(|ui: &mut egui::Ui| {
@@ -608,7 +618,7 @@ impl CompliancePage {
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong()
-                            .extra_letter_spacing(0.5),
+                            .extra_letter_spacing(theme::TRACKING_NORMAL),
                     );
                 });
                 header.col(|ui: &mut egui::Ui| {
@@ -617,7 +627,7 @@ impl CompliancePage {
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong()
-                            .extra_letter_spacing(0.5),
+                            .extra_letter_spacing(theme::TRACKING_NORMAL),
                     );
                 });
                 header.col(|ui: &mut egui::Ui| {
@@ -626,7 +636,7 @@ impl CompliancePage {
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong()
-                            .extra_letter_spacing(0.5),
+                            .extra_letter_spacing(theme::TRACKING_NORMAL),
                     );
                 });
                 header.col(|ui: &mut egui::Ui| {
@@ -635,7 +645,7 @@ impl CompliancePage {
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong()
-                            .extra_letter_spacing(0.5),
+                            .extra_letter_spacing(theme::TRACKING_NORMAL),
                     );
                 });
                 header.col(|ui: &mut egui::Ui| {
@@ -644,7 +654,7 @@ impl CompliancePage {
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong()
-                            .extra_letter_spacing(0.5),
+                            .extra_letter_spacing(theme::TRACKING_NORMAL),
                     );
                 });
             })
@@ -687,7 +697,7 @@ impl CompliancePage {
                                     3.0,
                                     color,
                                 );
-                                ui.add_space(14.0);
+                                ui.add_space(theme::SPACE_MD);
                                 ui.label(
                                     egui::RichText::new(check.severity.label())
                                         .font(theme::font_label())
@@ -800,14 +810,13 @@ impl CompliancePage {
 
     fn mini_stat(ui: &mut Ui, label: &str, value: &str, color: egui::Color32, icon: &str) {
         ui.horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = theme::SPACE_MICRO;
             ui.label(
                 egui::RichText::new(icon)
                     .color(color.linear_multiply(theme::OPACITY_STRONG))
                     .size(theme::ICON_INLINE),
             );
-            ui.add_space(-4.0);
             ui.label(egui::RichText::new(value).color(color).strong());
-            ui.add_space(-4.0);
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_min())

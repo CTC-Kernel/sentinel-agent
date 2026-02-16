@@ -267,6 +267,7 @@ dependencies = [
  "tracing",
  "tray-icon",
  "uuid 1.20.0",
+ "zeroize",
 ]
 
 [[package]]

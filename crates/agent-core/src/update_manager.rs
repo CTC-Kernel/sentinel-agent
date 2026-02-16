@@ -172,6 +172,19 @@ impl UpdateManager {
             .unwrap_or(expected)
             .to_lowercase();
 
+        // Validate hash format: must be exactly 64 hex characters (SHA-256)
+        if expected_hash.len() != 64
+            || !expected_hash.chars().all(|c| c.is_ascii_hexdigit())
+        {
+            error!(
+                "Invalid SHA-256 format: expected 64 hex chars, got {} chars",
+                expected_hash.len()
+            );
+            return Err(CommonError::validation(
+                "Invalid SHA-256 checksum format",
+            ));
+        }
+
         // Use constant-time comparison to prevent timing attacks
         let ct_equal = hash.len() == expected_hash.len()
             && hash

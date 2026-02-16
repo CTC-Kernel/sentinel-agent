@@ -36,7 +36,6 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
     let rounding = CornerRadius::same(3);
 
     // Track.
-    // Track.
     let track_color = theme::bg_secondary().linear_multiply(theme::OPACITY_MEDIUM);
     painter.rect_filled(rect, rounding, track_color);
     painter.rect_stroke(

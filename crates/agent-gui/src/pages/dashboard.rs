@@ -10,6 +10,23 @@ use crate::llm_panel::LLMStatusWidget;
 use crate::theme;
 use crate::widgets;
 
+/// Threshold for threat count requiring attention (warning level).
+const THREATS_WARNING_THRESHOLD: usize = 3;
+/// Threshold for FIM changes per day considered safe (no warning).
+const FIM_SAFE_THRESHOLD: u32 = 5;
+/// Threshold for network alerts requiring attention (warning level).
+const NETWORK_ALERT_WARNING_THRESHOLD: u32 = 2;
+/// Software coverage percentage above which is considered good.
+const SOFTWARE_COVERAGE_GOOD: f32 = 90.0;
+/// Software coverage percentage above which is considered acceptable.
+const SOFTWARE_COVERAGE_WARN: f32 = 70.0;
+/// Compliance gauge radius in the score card.
+const COMPLIANCE_GAUGE_RADIUS: f32 = 48.0;
+/// Minimum score delta to show a trend arrow (avoids noise).
+const COMPLIANCE_TREND_THRESHOLD: f32 = 0.5;
+/// Maximum items shown in the activity feed widget.
+const ACTIVITY_FEED_LIMIT: usize = 5;
+
 pub struct DashboardPage;
 
 impl DashboardPage {
@@ -126,7 +143,7 @@ impl DashboardPage {
                         }
                         _ => {
                             widgets::card(ui, |ui: &mut egui::Ui| {
-                                widgets::activity_feed(ui, state, 5);
+                                widgets::activity_feed(ui, state, ACTIVITY_FEED_LIMIT);
                             });
                         }
                     }
@@ -148,13 +165,13 @@ impl DashboardPage {
                     egui::RichText::new("INDICE DE CONFORMITÉ GLOBAL")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_SM);
 
                 // Gauge
-                widgets::compliance_gauge(ui, state.summary.compliance_score, 48.0);
+                widgets::compliance_gauge(ui, state.summary.compliance_score, COMPLIANCE_GAUGE_RADIUS);
 
                 ui.add_space(theme::SPACE_SM);
 
@@ -164,9 +181,9 @@ impl DashboardPage {
                     state.previous_compliance_score,
                 ) {
                     let diff = current - previous;
-                    let (arrow, color, text) = if diff > 0.5 {
+                    let (arrow, color, text) = if diff > COMPLIANCE_TREND_THRESHOLD {
                         ("▲", theme::SUCCESS, format!("+{:.1}%", diff))
-                    } else if diff < -0.5 {
+                    } else if diff < -COMPLIANCE_TREND_THRESHOLD {
                         ("▼", theme::ERROR, format!("{:.1}%", diff))
                     } else {
                         ("→", theme::text_tertiary(), "stable".to_string())
@@ -398,7 +415,7 @@ impl DashboardPage {
                     egui::RichText::new("CENTRE DE COMMANDE")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
             });
@@ -537,7 +554,7 @@ impl DashboardPage {
             ui.add_space(theme::SPACE_SM);
 
             let llm_widget = LLMStatusWidget;
-            llm_widget.show(ui);
+            llm_widget.show(ui, state);
         });
 
         command
@@ -564,7 +581,7 @@ impl DashboardPage {
 
             let (color, label) = if total == 0 {
                 (theme::SUCCESS, "Aucune menace")
-            } else if total <= 3 {
+            } else if total <= THREATS_WARNING_THRESHOLD {
                 (theme::WARNING, "Attention requise")
             } else {
                 (theme::ERROR, "Alerte critique")
@@ -609,7 +626,7 @@ impl DashboardPage {
             let changes = state.fim.changes_today;
             let color = if changes == 0 {
                 theme::SUCCESS
-            } else if changes <= 5 {
+            } else if changes <= FIM_SAFE_THRESHOLD {
                 theme::WARNING
             } else {
                 theme::ERROR
@@ -654,7 +671,7 @@ impl DashboardPage {
             let alerts = state.network.alert_count;
             let color = if alerts == 0 {
                 theme::SUCCESS
-            } else if alerts <= 2 {
+            } else if alerts <= NETWORK_ALERT_WARNING_THRESHOLD {
                 theme::WARNING
             } else {
                 theme::ERROR
@@ -715,9 +732,9 @@ impl DashboardPage {
                 100.0
             };
 
-            let color = if coverage >= 90.0 {
+            let color = if coverage >= SOFTWARE_COVERAGE_GOOD {
                 theme::SUCCESS
-            } else if coverage >= 70.0 {
+            } else if coverage >= SOFTWARE_COVERAGE_WARN {
                 theme::WARNING
             } else {
                 theme::ERROR
@@ -826,18 +843,19 @@ impl DashboardPage {
     }
 
     fn export_dashboard_csv(state: &AppState) {
-        let headers = &["metrique", "valeur", "unite"];
+        let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
+        let headers = &["metrique", "valeur", "unite", "horodatage"];
         let mut rows = vec![
-            vec!["Conformité".to_string(), state.summary.compliance_score.map(|s| format!("{:.1}", s)).unwrap_or_default(), "%".to_string()],
-            vec!["CPU".to_string(), format!("{:.1}", state.resources.cpu_percent), "%".to_string()],
-            vec!["Mémoire".to_string(), format!("{:.1}", state.resources.memory_percent), "%".to_string()],
-            vec!["Politiques totales".to_string(), state.policy.total_policies.to_string(), "".to_string()],
-            vec!["Politiques conformes".to_string(), state.policy.passing.to_string(), "".to_string()],
+            vec!["Conformité".to_string(), state.summary.compliance_score.map(|s| format!("{:.1}", s)).unwrap_or_default(), "%".to_string(), timestamp.clone()],
+            vec!["CPU".to_string(), format!("{:.1}", state.resources.cpu_percent), "%".to_string(), timestamp.clone()],
+            vec!["Mémoire".to_string(), format!("{:.1}", state.resources.memory_percent), "%".to_string(), timestamp.clone()],
+            vec!["Politiques totales".to_string(), state.policy.total_policies.to_string(), "".to_string(), timestamp.clone()],
+            vec!["Politiques conformes".to_string(), state.policy.passing.to_string(), "".to_string(), timestamp.clone()],
         ];
 
         if let Some(ref vuln) = state.vulnerability_summary {
-            rows.push(vec!["Vulnérabilités Critiques".to_string(), vuln.critical.to_string(), "".to_string()]);
-            rows.push(vec!["Vulnérabilités Élevées".to_string(), vuln.high.to_string(), "".to_string()]);
+            rows.push(vec!["Vulnérabilités Critiques".to_string(), vuln.critical.to_string(), "".to_string(), timestamp.clone()]);
+            rows.push(vec!["Vulnérabilités Élevées".to_string(), vuln.high.to_string(), "".to_string(), timestamp]);
         }
 
         let path = crate::export::default_export_path("dashboard_summary.csv");

@@ -8,6 +8,24 @@ use crate::theme;
 use crate::widgets;
 use egui::{Color32, Pos2, Ui, Vec2};
 
+// ── Page-local constants ────────────────────────────────────────────────────
+const CANVAS_HEIGHT: f32 = 500.0;
+const GRID_DIVISIONS: usize = 8;
+const ZOOM_SCROLL_FACTOR: f32 = 0.002;
+const ZOOM_MIN: f32 = 0.3;
+const ZOOM_MAX: f32 = 3.0;
+const NODE_RADIUS_GATEWAY: f32 = 10.0;
+const NODE_RADIUS_DEFAULT: f32 = 7.0;
+const NODE_LABEL_OFFSET_Y: f32 = 12.0;
+const LAYOUT_INITIAL_RADIUS: f32 = 150.0;
+const FORCE_REPULSION: f32 = 5000.0;
+const FORCE_ATTRACTION: f32 = 0.005;
+const FORCE_DAMPING: f32 = 0.9;
+const FORCE_CENTER_GRAVITY: f32 = 0.01;
+const FORCE_MIN_DIST_SQ: f32 = 100.0;
+const FORCE_MAX_VELOCITY: f32 = 10.0;
+const CONVERGENCE_THRESHOLD: f32 = 0.1;
+
 /// Node in the force-directed graph.
 #[derive(Clone)]
 struct GraphNode {
@@ -63,7 +81,7 @@ impl CartographyPage {
                         ))
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                     );
 
@@ -154,7 +172,7 @@ impl CartographyPage {
         }
 
         // Graph viewport (AAA Grade)
-        let canvas_size = egui::Vec2::new(ui.available_width(), 500.0);
+        let canvas_size = egui::Vec2::new(ui.available_width(), CANVAS_HEIGHT);
         let (response, painter) = ui.allocate_painter(canvas_size, egui::Sense::click_and_drag());
         let rect = response.rect;
 
@@ -167,13 +185,13 @@ impl CartographyPage {
 
         // Background grid simulation (Subtle institutional lines)
         let grid_color = theme::border().linear_multiply(theme::OPACITY_SUBTLE);
-        for i in 1..8 {
-            let x = rect.min.x + (rect.width() * i as f32 / 8.0);
+        for i in 1..GRID_DIVISIONS {
+            let x = rect.min.x + (rect.width() * i as f32 / GRID_DIVISIONS as f32);
             painter.line_segment(
                 [egui::pos2(x, rect.min.y), egui::pos2(x, rect.max.y)],
                 egui::Stroke::new(theme::BORDER_HAIRLINE, grid_color),
             );
-            let y = rect.min.y + (rect.height() * i as f32 / 8.0);
+            let y = rect.min.y + (rect.height() * i as f32 / GRID_DIVISIONS as f32);
             painter.line_segment(
                 [egui::pos2(rect.min.x, y), egui::pos2(rect.max.x, y)],
                 egui::Stroke::new(theme::BORDER_HAIRLINE, grid_color),
@@ -188,7 +206,7 @@ impl CartographyPage {
         // Handle zoom via scroll
         let scroll = ui.input(|i| i.smooth_scroll_delta.y);
         if scroll != 0.0 {
-            state.cartography.zoom = (state.cartography.zoom + scroll * 0.002).clamp(0.3, 3.0);
+            state.cartography.zoom = (state.cartography.zoom + scroll * ZOOM_SCROLL_FACTOR).clamp(ZOOM_MIN, ZOOM_MAX);
         }
 
         let center = rect.center().to_vec2() + state.cartography.pan;
@@ -223,7 +241,7 @@ impl CartographyPage {
             }
 
             let color = device_type_color(&node.device.device_type);
-            let base_radius = if node.device.is_gateway { 10.0 } else { 7.0 } * zoom;
+            let base_radius = if node.device.is_gateway { NODE_RADIUS_GATEWAY } else { NODE_RADIUS_DEFAULT } * zoom;
             let breathing = if theme::is_reduced_motion() {
                 0.5
             } else {
@@ -264,7 +282,7 @@ impl CartographyPage {
                 .unwrap_or(&node.device.ip)
                 .to_uppercase();
             painter.text(
-                Pos2::new(screen_pos.x, screen_pos.y + base_radius + 12.0),
+                Pos2::new(screen_pos.x, screen_pos.y + base_radius + NODE_LABEL_OFFSET_Y),
                 egui::Align2::CENTER_TOP,
                 label,
                 theme::font_label(),
@@ -291,7 +309,7 @@ impl CartographyPage {
                     egui::RichText::new("LÉGENDE INFRASTRUCTURE")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
@@ -368,7 +386,7 @@ impl CartographyPage {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                         ui.label(
                             egui::RichText::new(device.mac.as_deref().unwrap_or("--"))
@@ -381,7 +399,7 @@ impl CartographyPage {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                         ui.label(
                             egui::RichText::new(device.vendor.as_deref().unwrap_or("--")).strong(),
@@ -393,7 +411,7 @@ impl CartographyPage {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
-                                .extra_letter_spacing(0.5),
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                         );
                         ui.label(egui::RichText::new(device.device_type.to_uppercase()).strong());
                         ui.end_row();
@@ -411,9 +429,9 @@ impl CartographyPage {
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong()
-                            .extra_letter_spacing(0.5),
+                            .extra_letter_spacing(theme::TRACKING_NORMAL),
                     );
-                    ui.add_space(2.0);
+                    ui.add_space(theme::SPACE_MICRO);
                     ui.label(
                         device
                             .open_ports
@@ -492,7 +510,7 @@ fn build_initial_layout(devices: &[GuiDiscoveredDevice]) -> GraphLayout {
     // Circular initial layout
     for (i, device) in devices.iter().enumerate() {
         let angle = (i as f32 / n as f32) * std::f32::consts::TAU;
-        let radius = 150.0;
+        let radius = LAYOUT_INITIAL_RADIUS;
         let pos = Pos2::new(angle.cos() * radius, angle.sin() * radius);
         nodes.push(GraphNode {
             pos,
@@ -539,10 +557,10 @@ fn run_force_simulation(layout: &mut GraphLayout) {
         return;
     }
 
-    let repulsion = 5000.0;
-    let attraction = 0.005;
-    let damping = 0.9;
-    let center_gravity = 0.01;
+    let repulsion = FORCE_REPULSION;
+    let attraction = FORCE_ATTRACTION;
+    let damping = FORCE_DAMPING;
+    let center_gravity = FORCE_CENTER_GRAVITY;
     let iterations = 3;
 
     for _ in 0..iterations {
@@ -553,7 +571,7 @@ fn run_force_simulation(layout: &mut GraphLayout) {
                 let dy = layout.nodes[i].pos.y - layout.nodes[j].pos.y;
                 let dist_sq = dx * dx + dy * dy;
                 let dist = dist_sq.sqrt().max(1.0);
-                let force = repulsion / dist_sq.max(100.0);
+                let force = repulsion / dist_sq.max(FORCE_MIN_DIST_SQ);
                 let fx = (dx / dist) * force;
                 let fy = (dy / dist) * force;
 
@@ -603,8 +621,8 @@ fn run_force_simulation(layout: &mut GraphLayout) {
                 node.vel *= damping;
                 // Limit velocity
                 let speed = node.vel.length();
-                if speed > 10.0 {
-                    node.vel = node.vel / speed * 10.0;
+                if speed > FORCE_MAX_VELOCITY {
+                    node.vel = node.vel / speed * FORCE_MAX_VELOCITY;
                 }
                 node.pos.x += node.vel.x;
                 node.pos.y += node.vel.y;
@@ -614,5 +632,5 @@ fn run_force_simulation(layout: &mut GraphLayout) {
 
     // Check convergence: sum of velocity magnitudes
     let total_kinetic: f32 = layout.nodes.iter().map(|n| n.vel.length()).sum();
-    layout.converged = total_kinetic < 0.1;
+    layout.converged = total_kinetic < CONVERGENCE_THRESHOLD;
 }

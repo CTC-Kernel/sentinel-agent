@@ -3,6 +3,14 @@
 use crate::theme;
 use egui::{Color32, CornerRadius, Sense, Ui};
 
+// ── Style dimensions ────────────────────────────────────────────────────────
+const TRACK_HEIGHT_DEFAULT: f32 = 6.0;
+const TRACK_HEIGHT_MINIMAL: f32 = 4.0;
+const TRACK_HEIGHT_STEPPED: f32 = 8.0;
+const THUMB_RADIUS_DEFAULT: f32 = 10.0;
+const THUMB_RADIUS_MINIMAL: f32 = 8.0;
+const THUMB_RADIUS_STEPPED: f32 = 12.0;
+
 /// Slider style variants.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum SliderStyle {
@@ -95,14 +103,14 @@ impl Slider {
 
         let width = self.width.unwrap_or(ui.available_width().min(300.0));
         let track_height = match self.style {
-            SliderStyle::Default => 6.0,
-            SliderStyle::Minimal => 4.0,
-            SliderStyle::Stepped => 8.0,
+            SliderStyle::Default => TRACK_HEIGHT_DEFAULT,
+            SliderStyle::Minimal => TRACK_HEIGHT_MINIMAL,
+            SliderStyle::Stepped => TRACK_HEIGHT_STEPPED,
         };
         let thumb_radius = match self.style {
-            SliderStyle::Default => 10.0,
-            SliderStyle::Minimal => 8.0,
-            SliderStyle::Stepped => 12.0,
+            SliderStyle::Default => THUMB_RADIUS_DEFAULT,
+            SliderStyle::Minimal => THUMB_RADIUS_MINIMAL,
+            SliderStyle::Stepped => THUMB_RADIUS_STEPPED,
         };
 
         let total_height = thumb_radius * 2.0 + if self.show_ticks { theme::SPACE } else { 0.0 };

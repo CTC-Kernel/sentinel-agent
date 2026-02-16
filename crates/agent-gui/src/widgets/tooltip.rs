@@ -42,9 +42,9 @@ impl<'a> Tooltip<'a> {
         self
     }
 
-    /// Show the tooltip for a response.
+    /// Show the tooltip for a response (hover or keyboard focus).
     pub fn show(self, ui: &Ui, response: &egui::Response) {
-        if response.hovered() {
+        if response.hovered() || response.has_focus() {
             show_tooltip_at(
                 ui.ctx(),
                 response.rect,
@@ -135,14 +135,14 @@ pub trait ResponseTooltipExt {
 
 impl ResponseTooltipExt for egui::Response {
     fn premium_tooltip(self, text: &str) -> Self {
-        if self.hovered() {
+        if self.hovered() || self.has_focus() {
             show_tooltip_at(&self.ctx, self.rect, text, TooltipPosition::Top, 250.0);
         }
         self
     }
 
     fn premium_tooltip_at(self, text: &str, position: TooltipPosition) -> Self {
-        if self.hovered() {
+        if self.hovered() || self.has_focus() {
             show_tooltip_at(&self.ctx, self.rect, text, position, 250.0);
         }
         self
@@ -156,10 +156,10 @@ pub fn tooltip(ui: &Ui, response: &egui::Response, text: &str) {
 
 /// Info icon with tooltip.
 pub fn info_tooltip(ui: &mut Ui, text: &str) {
-    let (rect, response) = ui.allocate_exact_size(egui::vec2(theme::ICON_SM, theme::ICON_SM), egui::Sense::hover());
+    let (rect, response) = ui.allocate_exact_size(egui::vec2(theme::ICON_SM, theme::ICON_SM), egui::Sense::click().union(egui::Sense::hover()));
 
     if ui.is_rect_visible(rect) {
-        let color = if response.hovered() {
+        let color = if response.hovered() || response.has_focus() {
             theme::ACCENT
         } else {
             theme::text_tertiary()
@@ -172,6 +172,15 @@ pub fn info_tooltip(ui: &mut Ui, text: &str) {
             theme::font_small(),
             color,
         );
+
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                rect.expand(1.0),
+                egui::CornerRadius::same(theme::ROUNDING_XS),
+                theme::focus_ring(),
+                egui::StrokeKind::Outside,
+            );
+        }
     }
 
     Tooltip::new(text)
@@ -182,10 +191,10 @@ pub fn info_tooltip(ui: &mut Ui, text: &str) {
 /// Help icon with tooltip (question mark style).
 pub fn help_tooltip(ui: &mut Ui, text: &str) {
     let help_size = theme::ICON_SM + theme::BORDER_THICK;
-    let (rect, response) = ui.allocate_exact_size(egui::vec2(help_size, help_size), egui::Sense::hover());
+    let (rect, response) = ui.allocate_exact_size(egui::vec2(help_size, help_size), egui::Sense::click().union(egui::Sense::hover()));
 
     if ui.is_rect_visible(rect) {
-        let is_hovered = response.hovered();
+        let is_hovered = response.hovered() || response.has_focus();
 
         // Circle background
         ui.painter().circle(
@@ -218,6 +227,14 @@ pub fn help_tooltip(ui: &mut Ui, text: &str) {
                 theme::text_tertiary()
             },
         );
+
+        if response.has_focus() {
+            ui.painter().circle_stroke(
+                rect.center(),
+                help_size / 2.0 + 1.0,
+                theme::focus_ring(),
+            );
+        }
     }
 
     Tooltip::new(text).show(ui, &response);

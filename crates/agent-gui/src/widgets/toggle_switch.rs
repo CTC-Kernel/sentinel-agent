@@ -84,7 +84,7 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
             .circle_filled(knob_center, knob_radius, knob_color);
 
         // Knob highlight (top arc effect)
-        let highlight_pulse = if is_hovered {
+        let highlight_pulse = if is_hovered && !theme::is_reduced_motion() {
             animation::pulse(time, theme::ANIM_PULSE_SPEED, 0.8, 1.0)
         } else {
             1.0
