@@ -287,8 +287,8 @@ impl SessionLockCheck {
     #[cfg(target_os = "linux")]
     fn check_kde_settings(&self, status: &mut SessionLockStatus) {
         // Check KDE PowerDevil settings
-        let kde_config = dirs::config_dir()
-            .map(|p| p.join("powermanagementprofilesrc"))
+        let kde_config = directories::BaseDirs::new()
+            .map(|b| b.config_dir().join("powermanagementprofilesrc"))
             .unwrap_or_default();
 
         if let Ok(content) = std::fs::read_to_string(&kde_config) {
@@ -309,8 +309,8 @@ impl SessionLockCheck {
         }
 
         // Check kscreenlockerrc
-        let screenlocker_config = dirs::config_dir()
-            .map(|p| p.join("kscreenlockerrc"))
+        let screenlocker_config = directories::BaseDirs::new()
+            .map(|b| b.config_dir().join("kscreenlockerrc"))
             .unwrap_or_default();
 
         if let Ok(content) = std::fs::read_to_string(&screenlocker_config) {

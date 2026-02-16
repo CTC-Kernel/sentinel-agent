@@ -314,8 +314,7 @@ impl FimPage {
                                     if let Some(ref text) = hash_text {
                                         ui.label(
                                             egui::RichText::new(text)
-                                                .font(theme::font_mono())
-                                                .size(10.0)
+                                                .font(theme::font_mono_sm())
                                                 .color(theme::text_tertiary()),
                                         );
                                     }

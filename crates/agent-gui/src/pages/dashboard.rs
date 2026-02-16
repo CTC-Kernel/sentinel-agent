@@ -177,6 +177,7 @@ impl DashboardPage {
                         _ => {
                             let clicked =
                                 widgets::clickable_card(ui, "activity_feed_click", |ui: &mut egui::Ui| {
+                                    ui.set_min_width(ui.available_width());
                                     ui.set_min_height(BOTTOM_CARD_MIN_HEIGHT);
                                     widgets::activity_feed(ui, state, ACTIVITY_FEED_LIMIT);
                                 })
@@ -322,6 +323,7 @@ impl DashboardPage {
         let risk_color = theme::score_color(ai_score);
 
         widgets::clickable_card(ui, "ai_score_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(220.0);
             ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.label(
@@ -393,6 +395,7 @@ impl DashboardPage {
         let total = recommendations.len();
 
         widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(BOTTOM_CARD_MIN_HEIGHT);
             // Section header
             ui.horizontal(|ui: &mut egui::Ui| {
@@ -513,6 +516,7 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn cpu_sparkline_card(ui: &mut Ui, state: &AppState) -> bool {
         widgets::clickable_card(ui, "cpu_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             let config = widgets::SparklineConfig {
                 color: theme::accent_text(),
@@ -539,6 +543,7 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn memory_sparkline_card(ui: &mut Ui, state: &AppState) -> bool {
         widgets::clickable_card(ui, "memory_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             let config = widgets::SparklineConfig {
                 color: theme::INFO,
@@ -566,6 +571,7 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn checks_summary_card(ui: &mut Ui, state: &AppState) -> bool {
         widgets::clickable_card(ui, "checks_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new("CONTR\u{00d4}LES")
@@ -626,6 +632,7 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn vulnerabilities_summary_card(ui: &mut Ui, state: &AppState) -> bool {
         widgets::clickable_card(ui, "vulns_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new("VULN\u{00c9}RABILIT\u{00c9}S")
@@ -688,6 +695,7 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn threats_indicator_card(ui: &mut Ui, state: &AppState) -> bool {
         widgets::clickable_card(ui, "threats_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new("MENACES")
@@ -740,6 +748,7 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn fim_indicator_card(ui: &mut Ui, state: &AppState) -> bool {
         widgets::clickable_card(ui, "fim_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new("INT\u{00c9}GRIT\u{00c9} FICHIERS")
@@ -787,6 +796,7 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn network_health_card(ui: &mut Ui, state: &AppState) -> bool {
         widgets::clickable_card(ui, "network_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new("R\u{00c9}SEAU")
@@ -845,6 +855,7 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn software_coverage_card(ui: &mut Ui, state: &AppState) -> bool {
         widgets::clickable_card(ui, "software_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new("LOGICIELS")

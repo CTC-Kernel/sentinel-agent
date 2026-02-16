@@ -31,12 +31,19 @@ impl AuditTrailPage {
         // Action bar with Export
         ui.horizontal(|ui: &mut egui::Ui| {
             if widgets::ghost_button(ui, format!("{}  EXPORTER CSV", crate::icons::DOWNLOAD)).clicked() {
-                Self::export_audit_trail_csv(state);
+                let success = Self::export_audit_trail_csv(state);
                 let time = ui.input(|i| i.time);
-                state.toasts.push(
-                    crate::widgets::toast::Toast::success("Journal d'audit exporté avec succès")
-                        .with_time(time),
-                );
+                if success {
+                    state.toasts.push(
+                        crate::widgets::toast::Toast::success("Journal d'audit exporté avec succès")
+                            .with_time(time),
+                    );
+                } else {
+                    state.toasts.push(
+                        crate::widgets::toast::Toast::error("Échec de l'export du journal d'audit")
+                            .with_time(time),
+                    );
+                }
             }
         });
         ui.add_space(theme::SPACE_MD);
@@ -183,7 +190,7 @@ impl AuditTrailPage {
         }
     }
 
-    fn export_audit_trail_csv(state: &AppState) {
+    fn export_audit_trail_csv(state: &AppState) -> bool {
         let headers = &["date", "niveau", "message"];
         let rows: Vec<Vec<String>> = state
             .logs
@@ -197,8 +204,12 @@ impl AuditTrailPage {
             })
             .collect();
         let path = crate::export::default_export_path("audit_trail.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 

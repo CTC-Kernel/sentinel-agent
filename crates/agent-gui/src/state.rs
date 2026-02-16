@@ -665,7 +665,10 @@ impl AppState {
             source: None,
         });
         self.logs.truncate(200);
-        
+        // push_front shifts all indices — invalidate audit trail selection
+        self.selected_audit_entry = None;
+        self.audit_detail_open = false;
+
         self.notifications.push(notification);
         self.notifications.truncate(100);
     }
@@ -721,6 +724,9 @@ impl AppState {
         self.terminal.lines.push_back(entry);
         while self.terminal.lines.len() > 500 {
             self.terminal.lines.pop_front();
+            // pop_front shifts all indices — invalidate terminal selection
+            self.terminal.selected_log = None;
+            self.terminal.detail_open = false;
         }
     }
 

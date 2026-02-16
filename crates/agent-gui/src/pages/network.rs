@@ -90,12 +90,12 @@ impl NetworkPage {
         let iface_count = if state.network.interfaces.is_empty() {
             state.network.interface_count
         } else {
-            state.network.interfaces.len() as u32
+            state.network.interfaces.len().min(u32::MAX as usize) as u32
         };
         let conn_count = if state.network.connections.is_empty() {
             state.network.connection_count
         } else {
-            state.network.connections.len() as u32
+            state.network.connections.len().min(u32::MAX as usize) as u32
         };
 
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);

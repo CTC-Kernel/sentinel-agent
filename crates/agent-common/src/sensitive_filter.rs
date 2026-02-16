@@ -3,11 +3,11 @@
 //! This module provides utilities to filter out sensitive information
 //! like tokens, passwords, API keys, and other secrets from logs.
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use regex::Regex;
 
 /// Patterns to detect and mask sensitive data
-static TOKEN_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
+static TOKEN_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
     vec![
         // JWT tokens (Bearer)
         Regex::new(r"(?i)bearer\s+[a-zA-Z0-9\-._~+/]+=*").unwrap(),
