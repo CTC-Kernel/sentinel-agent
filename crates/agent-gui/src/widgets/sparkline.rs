@@ -126,7 +126,7 @@ pub fn sparkline_with_value(
                 RichText::new(label)
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.3)
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
                     .strong(),
             );
 

@@ -79,7 +79,7 @@ impl<'a> Checkbox<'a> {
                 .x;
 
         let (rect, response) =
-            ui.allocate_exact_size(egui::vec2(total_width, box_size.max(theme::MIN_TOUCH_TARGET)), sense);
+            ui.allocate_exact_size(egui::vec2(total_width.max(theme::MIN_TOUCH_TARGET), box_size.max(theme::MIN_TOUCH_TARGET)), sense);
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;
@@ -222,7 +222,7 @@ impl<'a> RadioButton<'a> {
                 .x;
 
         let (rect, response) =
-            ui.allocate_exact_size(egui::vec2(total_width, box_size.max(theme::MIN_TOUCH_TARGET)), sense);
+            ui.allocate_exact_size(egui::vec2(total_width.max(theme::MIN_TOUCH_TARGET), box_size.max(theme::MIN_TOUCH_TARGET)), sense);
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;

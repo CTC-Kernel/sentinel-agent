@@ -11,6 +11,17 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 
+// ── Page-local constants ────────────────────────────────────────────────────
+const RESOURCE_CRITICAL_THRESHOLD: f64 = 90.0;
+const RESOURCE_WARNING_THRESHOLD: f64 = 70.0;
+const CHART_HEIGHT_MAIN: f32 = 220.0;
+const CHART_HEIGHT_IO: f32 = 200.0;
+const SUMMARY_CARD_MIN_HEIGHT: f32 = 72.0;
+const PULSE_OPACITY_BASE: f32 = 0.4;
+const PULSE_OPACITY_RANGE: f32 = 0.3;
+const GLOW_OPACITY_BASE: f32 = 0.2;
+const GLOW_OPACITY_RANGE: f32 = 0.2;
+
 pub struct MonitoringPage;
 
 impl MonitoringPage {
@@ -130,7 +141,7 @@ impl MonitoringPage {
             |ui, width, (title, history, color, fill)| {
                 ui.vertical(|ui: &mut egui::Ui| {
                     ui.set_width(width);
-                    Self::chart_card(ui, title, history, *color, *fill, 220.0, false);
+                    Self::chart_card(ui, title, history, *color, *fill, CHART_HEIGHT_MAIN, false);
                 });
             },
         );
@@ -176,7 +187,7 @@ impl MonitoringPage {
             |ui, width, (title, history, color, auto_y)| {
                 ui.vertical(|ui: &mut egui::Ui| {
                     ui.set_width(width);
-                    Self::chart_card(ui, title, history, *color, true, 200.0, *auto_y);
+                    Self::chart_card(ui, title, history, *color, true, CHART_HEIGHT_IO, *auto_y);
                 });
             },
         );
@@ -191,9 +202,9 @@ impl MonitoringPage {
     // ====================================================================
 
     fn usage_color(percent: f64) -> egui::Color32 {
-        if percent >= 90.0 {
+        if percent >= RESOURCE_CRITICAL_THRESHOLD {
             theme::ERROR
-        } else if percent >= 70.0 {
+        } else if percent >= RESOURCE_WARNING_THRESHOLD {
             theme::WARNING
         } else {
             theme::SUCCESS
@@ -225,7 +236,7 @@ impl MonitoringPage {
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
-                ui.set_min_height(72.0);
+                ui.set_min_height(SUMMARY_CARD_MIN_HEIGHT);
 
                 let response =
                     ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
@@ -251,7 +262,7 @@ impl MonitoringPage {
                             egui::RichText::new(label)
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
-                                .extra_letter_spacing(0.4)
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
                                 .strong(),
                         );
                     });
@@ -313,7 +324,7 @@ impl MonitoringPage {
                         .font(theme::font_min())
                         .color(theme::text_secondary())
                         .strong()
-                        .extra_letter_spacing(0.3),
+                        .extra_letter_spacing(theme::TRACKING_TIGHT),
                 );
 
                 ui.with_layout(
@@ -334,7 +345,7 @@ impl MonitoringPage {
                                 ui.label(
                                     egui::RichText::new("●")
                                         .size(theme::ICON_MICRO)
-                                        .color(theme::readable_color(theme::SUCCESS).linear_multiply(0.4 + pulse * 0.3)),
+                                        .color(theme::readable_color(theme::SUCCESS).linear_multiply(PULSE_OPACITY_BASE + pulse * PULSE_OPACITY_RANGE)),
                                 );
                             }
                         }
@@ -466,12 +477,16 @@ impl MonitoringPage {
 
             // Simple current point with pulse
             if let Some(&latest) = history.last() {
-                let pulse = ((current_time * 3.0).sin() * 0.5 + 0.5) as f32;
+                let pulse = if theme::is_reduced_motion() {
+                    0.5
+                } else {
+                    ((current_time * 3.0).sin() * 0.5 + 0.5) as f32
+                };
 
                 // Outer glow
                 plot_ui.points(
                     egui_plot::Points::new(PlotPoints::new(vec![latest]))
-                        .color(line_color.linear_multiply(0.2 + pulse * 0.2))
+                        .color(line_color.linear_multiply(GLOW_OPACITY_BASE + pulse * GLOW_OPACITY_RANGE))
                         .radius(6.0),
                 );
 

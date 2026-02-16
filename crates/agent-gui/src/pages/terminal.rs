@@ -152,7 +152,7 @@ impl TerminalPage {
                 egui::RichText::new(label)
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.label(
@@ -176,7 +176,7 @@ impl TerminalPage {
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong()
-                        .extra_letter_spacing(0.5),
+                        .extra_letter_spacing(theme::TRACKING_NORMAL),
                 );
                 ui.add_space(theme::SPACE_SM);
 
@@ -199,7 +199,7 @@ impl TerminalPage {
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong()
-                        .extra_letter_spacing(0.5),
+                        .extra_letter_spacing(theme::TRACKING_NORMAL),
                 );
                 ui.add_space(theme::SPACE_XS);
                 let search_edit = egui::TextEdit::singleline(&mut state.terminal.search)
@@ -289,7 +289,7 @@ impl TerminalPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -298,7 +298,7 @@ impl TerminalPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -307,7 +307,7 @@ impl TerminalPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -316,7 +316,7 @@ impl TerminalPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                     })

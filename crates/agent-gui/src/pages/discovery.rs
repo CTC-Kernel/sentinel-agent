@@ -64,7 +64,7 @@ impl DiscoveryPage {
                 // AAA Progress System
                 if is_scanning {
                     ui.vertical(|ui: &mut egui::Ui| {
-                        ui.add_space(6.0);
+                        ui.add_space(theme::SPACE_XS);
                         let progress = state.discovery.progress;
                         let bar_width = theme::SPLASH_PROGRESS_WIDTH.max(200.0);
                         let bar_height = theme::PROGRESS_BAR_HEIGHT_THIN;
@@ -151,7 +151,7 @@ impl DiscoveryPage {
                                 egui::RichText::new(state.discovery.phase.to_uppercase())
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
-                                    .extra_letter_spacing(0.5)
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                             ui.label(
@@ -178,7 +178,7 @@ impl DiscoveryPage {
                             egui::RichText::new("ACTIFS DÉTECTÉS")
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
-                                .extra_letter_spacing(0.5)
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
                                 .strong(),
                         );
                     },
@@ -292,7 +292,7 @@ impl DiscoveryPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -301,7 +301,7 @@ impl DiscoveryPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -310,7 +310,7 @@ impl DiscoveryPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -319,7 +319,7 @@ impl DiscoveryPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -328,7 +328,7 @@ impl DiscoveryPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -337,7 +337,7 @@ impl DiscoveryPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -346,7 +346,7 @@ impl DiscoveryPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -355,7 +355,7 @@ impl DiscoveryPage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                     })
@@ -497,7 +497,7 @@ impl DiscoveryPage {
             widgets::DetailAction::danger("Bloquer", icons::LOCK),
         ];
 
-        let _action = widgets::DetailDrawer::new("discovery_detail", "Appareil", icons::NETWORK)
+        let action = widgets::DetailDrawer::new("discovery_detail", "Appareil", icons::NETWORK)
             .accent(type_color)
             .subtitle(&ip)
             .show(ui.ctx(), &mut state.discovery.detail_open, |ui| {
@@ -536,6 +536,23 @@ impl DiscoveryPage {
                 widgets::detail_field(ui, "Première détection", &first_seen);
                 widgets::detail_field(ui, "Dernière détection", &last_seen);
             }, &actions);
+
+        if let Some(action_idx) = action {
+            let time = ui.ctx().input(|i| i.time);
+            if action_idx == 0 {
+                let safe_ip = ip.replace('\'', "'\\''");
+                let nmap_cmd = format!("nmap -sV '{}'", safe_ip);
+                ui.ctx().copy_text(nmap_cmd);
+                state.toasts.push(
+                    crate::widgets::toast::Toast::info(
+                        "Commande nmap copi\u{00e9}e dans le presse-papiers",
+                    )
+                    .with_time(time),
+                );
+            } else if action_idx == 1 {
+                state.discovery.detail_open = false;
+            }
+        }
     }
 
     fn export_csv(state: &AppState, indices: &[usize]) -> bool {

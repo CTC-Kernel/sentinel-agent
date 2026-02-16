@@ -1,6 +1,6 @@
 //! Application pages.
 
-mod about;
+pub(crate) mod about;
 mod audit_trail;
 pub mod cartography;
 mod compliance;

@@ -150,7 +150,7 @@ impl ThreatsPage {
                     egui::RichText::new("DISTRIBUTION PAR SÉVÉRITÉ")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_SM);
@@ -223,7 +223,7 @@ impl ThreatsPage {
                     egui::RichText::new("COUVERTURE DE DÉTECTION")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
-                        .extra_letter_spacing(0.5)
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_SM);
@@ -444,7 +444,7 @@ impl ThreatsPage {
                 egui::RichText::new("FIL DE SÉCURITÉ CONSOLIDÉ")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -491,7 +491,7 @@ impl ThreatsPage {
                             widgets::DetailAction::secondary("Ignorer", icons::EYE_SLASH),
                             widgets::DetailAction::primary("Signaler", icons::FLAG),
                         ];
-                        widgets::DetailDrawer::new("threat_detail", &p.process_name, icons::BUG)
+                        let drawer_action = widgets::DetailDrawer::new("threat_detail", &p.process_name, icons::BUG)
                             .accent(conf_color)
                             .subtitle("Processus suspect")
                             .show(&ctx, &mut state.threats.detail_open, |ui| {
@@ -511,6 +511,25 @@ impl ThreatsPage {
                                     &p.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
                                 );
                             }, &actions);
+                        if let Some(action_idx) = drawer_action {
+                            let time = ctx.input(|i| i.time);
+                            if action_idx == 0 {
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                            } else if action_idx == 1 {
+                                let details = format!(
+                                    "Processus: {}\nCommande: {}\nRaison: {}\nConfiance: {}%",
+                                    p.process_name, p.command_line, p.reason, p.confidence,
+                                );
+                                ctx.copy_text(details);
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::info(
+                                        "D\u{00e9}tails du processus copi\u{00e9}s dans le presse-papiers",
+                                    )
+                                    .with_time(time),
+                                );
+                            }
+                        }
                     }
                 }
                 "usb" => {
@@ -524,7 +543,7 @@ impl ThreatsPage {
                             widgets::DetailAction::primary("Autoriser", icons::CHECK),
                             widgets::DetailAction::danger("Bloquer", icons::LOCK),
                         ];
-                        widgets::DetailDrawer::new("threat_detail", &u.device_name, icons::USB)
+                        let drawer_action = widgets::DetailDrawer::new("threat_detail", &u.device_name, icons::USB)
                             .accent(ev_color)
                             .subtitle("\u{00c9}v\u{00e9}nement USB")
                             .show(&ctx, &mut state.threats.detail_open, |ui| {
@@ -544,6 +563,12 @@ impl ThreatsPage {
                                     &u.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
                                 );
                             }, &actions);
+                        if let Some(action_idx) = drawer_action
+                            && (action_idx == 0 || action_idx == 1)
+                        {
+                            state.threats.detail_open = false;
+                            state.threats.selected_threat = None;
+                        }
                     }
                 }
                 "system" => {
@@ -559,7 +584,7 @@ impl ThreatsPage {
                             widgets::DetailAction::secondary("Acquitter", icons::CHECK),
                             widgets::DetailAction::primary("Signaler", icons::FLAG),
                         ];
-                        widgets::DetailDrawer::new("threat_detail", &inc.title, icons::SHIELD)
+                        let drawer_action = widgets::DetailDrawer::new("threat_detail", &inc.title, icons::SHIELD)
                             .accent(sev_color)
                             .subtitle("Incident syst\u{00e8}me")
                             .show(&ctx, &mut state.threats.detail_open, |ui| {
@@ -588,6 +613,29 @@ impl ThreatsPage {
                                     &inc.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
                                 );
                             }, &actions);
+                        if let Some(action_idx) = drawer_action {
+                            let time = ctx.input(|i| i.time);
+                            if action_idx == 0 {
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success("Incident acquitt\u{00e9}")
+                                        .with_time(time),
+                                );
+                            } else if action_idx == 1 {
+                                let details = format!(
+                                    "Incident: {}\nType: {}\nDescription: {}\nConfiance: {}%",
+                                    inc.title, inc.incident_type, inc.description, inc.confidence,
+                                );
+                                ctx.copy_text(details);
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::info(
+                                        "D\u{00e9}tails de l'incident copi\u{00e9}s dans le presse-papiers",
+                                    )
+                                    .with_time(time),
+                                );
+                            }
+                        }
                     }
                 }
                 "vulnerability" => {
@@ -603,7 +651,7 @@ impl ThreatsPage {
                             widgets::DetailAction::primary("Voir d\u{00e9}tails", icons::EYE),
                         ];
                         let drawer_title = format!("{} \u{2014} {}", v.cve_id, v.affected_software);
-                        widgets::DetailDrawer::new("threat_detail", &drawer_title, icons::SHIELD_VIRUS)
+                        let drawer_action = widgets::DetailDrawer::new("threat_detail", &drawer_title, icons::SHIELD_VIRUS)
                             .accent(sev_color)
                             .subtitle("Vuln\u{00e9}rabilit\u{00e9}")
                             .show(&ctx, &mut state.threats.detail_open, |ui| {
@@ -632,6 +680,16 @@ impl ThreatsPage {
                                 );
                                 widgets::detail_text(ui, "Description", &v.description);
                             }, &actions);
+                        if let Some(0) = drawer_action {
+                            ctx.copy_text(v.cve_id.clone());
+                            let time = ctx.input(|i| i.time);
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::info(
+                                    "CVE copi\u{00e9} dans le presse-papiers",
+                                )
+                                .with_time(time),
+                            );
+                        }
                     }
                 }
                 _ => {
@@ -1069,7 +1127,7 @@ impl ThreatsPage {
                             egui::RichText::new(label)
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
-                                .extra_letter_spacing(0.5)
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
                                 .strong(),
                         );
                     });
@@ -1427,7 +1485,7 @@ impl ThreatsPage {
                             .size(theme::STATUS_DOT_SIZE)
                             .color(color),
                     );
-                    ui.add_space(2.0);
+                    ui.add_space(theme::SPACE_MICRO);
                     ui.label(
                         egui::RichText::new(label)
                             .font(theme::font_label())

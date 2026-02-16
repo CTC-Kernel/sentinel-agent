@@ -237,6 +237,19 @@ pub struct ComplianceFilter {
 
 
 // ---------------------------------------------------------------------------
+// AI / Intelligence Artificielle
+// ---------------------------------------------------------------------------
+
+/// AI analysis page state.
+#[derive(Default)]
+pub struct AiState {
+    pub selected_recommendation: Option<usize>,
+    pub detail_open: bool,
+    pub filter: Option<String>,
+    pub search: String,
+}
+
+// ---------------------------------------------------------------------------
 // Vulnerability filter
 // ---------------------------------------------------------------------------
 
@@ -296,7 +309,7 @@ impl Default for SettingsState {
         Self {
             is_paused: false,
             server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
-            architecture_url: "https://app.cyber-threat-consulting.com/voxel".to_string(),
+            architecture_url: format!("{}/voxel", crate::pages::about::branding::CONSOLE),
             check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
             heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
             log_level: crate::dto::LogLevel::Info,
@@ -367,6 +380,7 @@ pub struct AppState {
     pub security: SecurityState,
     pub compliance: ComplianceFilter,
     pub vulnerability: VulnerabilityFilter,
+    pub ai: AiState,
 
     pub notifications: Vec<crate::dto::GuiNotification>,
     pub selected_notification: Option<usize>,
@@ -406,6 +420,7 @@ impl Default for AppState {
             security: SecurityState::default(),
             compliance: ComplianceFilter::default(),
             vulnerability: VulnerabilityFilter::default(),
+            ai: AiState::default(),
 
             notifications: Vec::new(),
             selected_notification: None,

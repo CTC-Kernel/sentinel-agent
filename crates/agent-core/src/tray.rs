@@ -36,6 +36,8 @@ pub mod branding {
     pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
     /// User guide URL.
     pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs";
+    /// Console (web app) URL.
+    pub const CONSOLE: &str = "https://app.cyber-threat-consulting.com";
 
     /// Product name (re-exported from company_info).
     pub const PRODUCT_NAME: &str = company_info::PRODUCT_NAME;
@@ -452,7 +454,7 @@ impl AgentTray {
 
             menu_ids::OPEN_WEBSITE => {
                 info!("Opening console dashboard");
-                open_url("https://app.cyber-threatconsulting.com/agentApi/dashboard");
+                open_url(&format!("{}/dashboard", branding::CONSOLE));
             }
 
             menu_ids::OPEN_GUIDE => {
@@ -652,8 +654,10 @@ fn open_logs_folder() {
     if let Err(e) = open::that(&log_path) {
         warn!("Failed to open logs folder: {}", e);
         // Try opening parent directory
-        if let Some(parent) = log_path.parent() {
-            let _ = open::that(parent);
+        if let Some(parent) = log_path.parent()
+            && let Err(e2) = open::that(parent)
+        {
+            warn!("Failed to open parent folder: {}", e2);
         }
     }
 }
@@ -680,8 +684,12 @@ fn get_logs_path() -> std::path::PathBuf {
     }
 }
 
-/// Open a URL in the default browser.
+/// Open a URL in the default browser (HTTPS only).
 fn open_url(url: &str) {
+    if !url.starts_with("https://") {
+        error!("Refused to open non-HTTPS URL: {}", url);
+        return;
+    }
     if let Err(e) = open::that(url) {
         error!("Failed to open URL '{}': {}", url, e);
     }
@@ -714,8 +722,10 @@ fn show_about_dialog() {
     let about_url = format!("{}?version={}&os={}", branding::WEBSITE, version, os_info);
     if let Err(e) = open::that(&about_url) {
         // Fallback to plain website
-        let _ = open::that(branding::WEBSITE);
-        debug!("Fallback to plain website URL: {}", e);
+        debug!("About URL with params failed ({}), trying plain website", e);
+        if let Err(e2) = open::that(branding::WEBSITE) {
+            error!("Failed to open fallback website URL: {}", e2);
+        }
     }
 }
 
@@ -772,6 +782,7 @@ mod tests {
     fn test_branding_urls() {
         assert!(branding::WEBSITE.starts_with("https://"));
         assert!(branding::GUIDE.starts_with("https://"));
+        assert!(branding::CONSOLE.starts_with("https://"));
         assert!(branding::EMAIL.contains("@"));
     }
 

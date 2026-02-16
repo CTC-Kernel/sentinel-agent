@@ -348,7 +348,7 @@ impl SignatureValidator {
         info!("Verifying Authenticode signature for {:?}", path);
 
         // Use PowerShell Get-AuthenticodeSignature for verification
-        let path_str = path.to_string_lossy();
+        let path_str = path.to_string_lossy().replace('\'', "''");
         let output = tokio::process::Command::new("powershell")
             .args([
                 "-NoProfile",

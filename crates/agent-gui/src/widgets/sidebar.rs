@@ -262,7 +262,7 @@ impl Sidebar {
                                 ui.vertical(|ui: &mut egui::Ui| {
                                     ui.label(
                                         egui::RichText::new(org.to_uppercase())
-                                            .font(theme::font_label())
+                                            .font(theme::font_body())
                                             .color(theme::accent_text())
                                             .strong(),
                                     );
@@ -330,7 +330,7 @@ impl Sidebar {
                 let fill = if is_current {
                     bg_fill
                 } else {
-                    theme::hover_bg()
+                    theme::ACCENT.linear_multiply(0.15)
                 };
 
                 let rect_shrunk = rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
@@ -501,7 +501,7 @@ impl Sidebar {
     /// Format a relative time difference in French.
     fn relative_time_fr(now: DateTime<Utc>, then: DateTime<Utc>) -> String {
         let secs = (now - then).num_seconds().max(0);
-        if secs < 60 {
+        if secs < 120 {
             "\u{00e0} l'instant".into()
         } else if secs < 3600 {
             format!("il y a {} min", secs / 60)

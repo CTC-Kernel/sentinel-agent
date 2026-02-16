@@ -98,11 +98,13 @@ impl SoftwarePage {
                 SoftwareTab::Packages => {
                     if sel_idx < state.software.packages.len() {
                         let pkg = state.software.packages[sel_idx].clone();
-                        let actions = vec![
-                            widgets::DetailAction::primary("Mettre \u{00e0} jour", icons::DOWNLOAD)
-                                .enabled(!pkg.up_to_date),
-                            widgets::DetailAction::secondary("D\u{00e9}tails", icons::INFO),
-                        ];
+                        let mut actions = Vec::new();
+                        if !pkg.up_to_date {
+                            actions.push(
+                                widgets::DetailAction::primary("Mettre \u{00e0} jour", icons::DOWNLOAD),
+                            );
+                        }
+                        actions.push(widgets::DetailAction::secondary("D\u{00e9}tails", icons::INFO));
 
                         let drawer_action = widgets::DetailDrawer::new("software_pkg_detail", &pkg.name, icons::SOFTWARE)
                             .accent(if pkg.up_to_date { theme::SUCCESS } else { theme::WARNING })
@@ -125,12 +127,20 @@ impl SoftwarePage {
                                 }
                             }, &actions);
 
-                        if let Some(action_idx) = drawer_action {
-                            match action_idx {
-                                0 => command = Some(GuiCommand::CheckUpdate),
-                                1 => {}
-                                _ => {}
-                            }
+                        if let Some(action_idx) = drawer_action
+                            && !pkg.up_to_date
+                            && action_idx == 0
+                        {
+                            let safe_name = pkg.name.replace('\'', "'\\''");
+                            let cmd = format!("brew upgrade '{}'", safe_name);
+                            ui.ctx().copy_text(cmd);
+                            let time = ui.input(|i| i.time);
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success(
+                                    "Commande de mise \u{00e0} jour copi\u{00e9}e dans le presse-papiers",
+                                )
+                                .with_time(time),
+                            );
                         }
                     }
                 }
@@ -141,7 +151,7 @@ impl SoftwarePage {
                             widgets::DetailAction::secondary("Ouvrir dans Finder", icons::FOLDER),
                         ];
 
-                        let _drawer_action = widgets::DetailDrawer::new("software_app_detail", &app.name, icons::CUBE)
+                        let drawer_action = widgets::DetailDrawer::new("software_app_detail", &app.name, icons::CUBE)
                             .accent(theme::ACCENT)
                             .subtitle(&app.bundle_id)
                             .show(ui.ctx(), &mut state.software.detail_open, |ui| {
@@ -152,6 +162,24 @@ impl SoftwarePage {
                                 widgets::detail_field(ui, "\u{00c9}diteur", &app.publisher);
                                 widgets::detail_mono(ui, "Chemin", &app.path);
                             }, &actions);
+
+                        if let Some(0) = drawer_action {
+                            let path = std::path::Path::new(&app.path);
+                            if path.is_absolute() {
+                                if let Err(e) = open::that(&app.path) {
+                                    tracing::warn!("Failed to open in Finder: {}", e);
+                                    let time = ui.input(|i| i.time);
+                                    state.toasts.push(
+                                        crate::widgets::toast::Toast::error(
+                                            "Impossible d'ouvrir le Finder",
+                                        )
+                                        .with_time(time),
+                                    );
+                                }
+                            } else {
+                                tracing::warn!("Refused to open non-absolute path: {}", app.path);
+                            }
+                        }
                     }
                 }
             }
@@ -318,7 +346,7 @@ impl SoftwarePage {
                 egui::RichText::new("REGISTRE DES PAQUETS ET DÉPENDANCES")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -354,7 +382,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -363,7 +391,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -372,7 +400,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -381,7 +409,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -390,7 +418,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -399,7 +427,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                     })
@@ -593,7 +621,7 @@ impl SoftwarePage {
                 egui::RichText::new("REGISTRE DES APPLICATIONS NATIVES")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -630,7 +658,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -639,7 +667,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -648,7 +676,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -657,7 +685,7 @@ impl SoftwarePage {
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
-                                    .extra_letter_spacing(0.5),
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                     })
@@ -808,7 +836,7 @@ impl SoftwarePage {
                             egui::RichText::new(label)
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
-                                .extra_letter_spacing(0.5)
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
                                 .strong(),
                         );
                     });

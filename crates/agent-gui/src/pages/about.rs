@@ -7,13 +7,17 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 
+/// Minimum height for info/link rows.
+const INFO_ROW_MIN_HEIGHT: f32 = 28.0;
+
 /// Company and product branding.
-mod branding {
+pub mod branding {
     pub const COMPANY: &str = "Cyber Threat Consulting";
     pub const PRODUCT: &str = "Sentinel Agent";
     pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
     pub const EMAIL: &str = "contact@cyber-threat-consulting.com";
     pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs/sentinel-agent";
+    pub const CONSOLE: &str = "https://app.cyber-threat-consulting.com";
 }
 
 pub struct AboutPage;
@@ -156,7 +160,7 @@ impl AboutPage {
 
     fn info_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.set_min_height(28.0);
+            ui.set_min_height(INFO_ROW_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new(icon)
                     .color(theme::text_tertiary())
@@ -184,7 +188,7 @@ impl AboutPage {
 
     fn link_row(ui: &mut Ui, label: &str, url: &str, icon: &str) {
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.set_min_height(28.0);
+            ui.set_min_height(INFO_ROW_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new(icon)
                     .color(theme::text_tertiary())
@@ -207,6 +211,7 @@ impl AboutPage {
                                 .strong(),
                         )
                         .clicked()
+                        && (url.starts_with("https://") || url.starts_with("mailto:"))
                         && let Err(e) = open::that(url) {
                             tracing::warn!("Failed to open URL {}: {}", url, e);
                         }

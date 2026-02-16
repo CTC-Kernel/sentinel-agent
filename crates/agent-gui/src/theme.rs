@@ -253,6 +253,8 @@ pub fn overlay_color() -> Color32 {
 // ============================================================================
 
 /// Base spacing unit (4px).
+pub const SPACE_MICRO: f32 = 2.0;
+/// Extra-small spacing unit (4px).
 pub const SPACE_XS: f32 = 4.0;
 /// Small spacing (8px).
 pub const SPACE_SM: f32 = 8.0;
@@ -316,27 +318,46 @@ pub fn badge_bg(color: Color32) -> Color32 {
     }
 }
 
+/// Perceived luminance using ITU-R BT.601 coefficients.
+#[inline]
+fn perceived_luminance(color: Color32) -> f32 {
+    0.299 * color.r() as f32 + 0.587 * color.g() as f32 + 0.114 * color.b() as f32
+}
+
+// Adaptive darkening parameters for light-mode contrast.
+// factor = DARKEN_MIN + DARKEN_RANGE × ((luminance − LUM_LOW) / LUM_SPAN).clamp(0,1)
+// Result: 0.30 for darkest (blue/red, lum≈80) → 0.55 for brightest (yellow, lum≈225).
+const DARKEN_MIN: f32 = 0.30;
+const DARKEN_RANGE: f32 = 0.25;
+const LUM_LOW: f32 = 80.0;
+const LUM_SPAN: f32 = 145.0;
+/// Luminance above which `readable_color()` applies adaptive darkening.
+const READABLE_LUM_THRESHOLD: f32 = 160.0;
+
+/// Darken a color for readable contrast on light backgrounds.
+///
+/// Bright colors (yellow/green) are darkened more, dark colors (blue/red) less.
+#[inline]
+fn darken_for_light_bg(color: Color32) -> Color32 {
+    let lum = perceived_luminance(color);
+    let factor = DARKEN_MIN + DARKEN_RANGE * ((lum - LUM_LOW) / LUM_SPAN).clamp(0.0, 1.0);
+    Color32::from_rgb(
+        (color.r() as f32 * factor) as u8,
+        (color.g() as f32 * factor) as u8,
+        (color.b() as f32 * factor) as u8,
+    )
+}
+
 /// Badge text: readable color with strong contrast on `badge_bg()`.
 ///
 /// Dark mode: use the semantic color directly (bright on dark bg).
 /// Light mode: darken the semantic color for WCAG-friendly contrast.
-/// Uses adaptive darkening — light colors (yellow/green) darken more,
-/// dark colors (blue/red) darken less, ensuring readable text on pastel wash.
 #[inline]
 pub fn badge_text(color: Color32) -> Color32 {
     if is_dark_mode() {
         color
     } else {
-        // Perceived luminance (ITU-R BT.601) determines darkening factor:
-        // bright colors (yellow, green) need stronger darkening for contrast.
-        let lum = 0.299 * color.r() as f32 + 0.587 * color.g() as f32 + 0.114 * color.b() as f32;
-        // factor: 0.30 for darkest (blue/red, lum≈80) → 0.55 for brightest (yellow, lum≈225)
-        let factor = 0.30 + 0.25 * ((lum - 80.0) / 145.0).clamp(0.0, 1.0);
-        Color32::from_rgb(
-            (color.r() as f32 * factor) as u8,
-            (color.g() as f32 * factor) as u8,
-            (color.b() as f32 * factor) as u8,
-        )
+        darken_for_light_bg(color)
     }
 }
 
@@ -479,6 +500,16 @@ pub const WINDOW_MIN_HEIGHT: f32 = 600.0;
 pub const TRAY_WIDTH: f32 = 320.0;
 /// Tray popup height (satellite mode).
 pub const TRAY_HEIGHT: f32 = 480.0;
+/// Tray popup max height (expanded view).
+pub const TRAY_POPUP_MAX_HEIGHT: f32 = 500.0;
+/// Tray popup min width.
+pub const TRAY_POPUP_MIN_WIDTH: f32 = 350.0;
+/// Tray popup max width.
+pub const TRAY_POPUP_MAX_WIDTH: f32 = 600.0;
+/// Tray radar visualization size.
+pub const TRAY_RADAR_SIZE: f32 = 240.0;
+/// Tray satellite quick-stat card width.
+pub const TRAY_SATELLITE_CARD_WIDTH: f32 = 135.0;
 
 // ============================================================================
 // Backdrop / overlay constants
@@ -850,19 +881,10 @@ pub fn glow_stroke(color: Color32) -> Stroke {
 pub fn readable_color(color: Color32) -> Color32 {
     if is_dark_mode() {
         color
+    } else if perceived_luminance(color) > READABLE_LUM_THRESHOLD {
+        darken_for_light_bg(color)
     } else {
-        let lum = 0.299 * color.r() as f32 + 0.587 * color.g() as f32 + 0.114 * color.b() as f32;
-        // Only darken if luminance is high enough to cause contrast issues (> 160)
-        if lum > 160.0 {
-            let factor = 0.30 + 0.25 * ((lum - 80.0) / 145.0).clamp(0.0, 1.0);
-            Color32::from_rgb(
-                (color.r() as f32 * factor) as u8,
-                (color.g() as f32 * factor) as u8,
-                (color.b() as f32 * factor) as u8,
-            )
-        } else {
-            color
-        }
+        color
     }
 }
 
@@ -1172,6 +1194,14 @@ pub const SPLASH_CONTENT_WIDTH: f32 = 400.0;
 pub const SPLASH_CONTENT_HEIGHT: f32 = 360.0;
 /// Splash screen progress bar width.
 pub const SPLASH_PROGRESS_WIDTH: f32 = 200.0;
+/// Splash screen total duration (seconds).
+pub const SPLASH_DURATION: f32 = 2.5;
+/// Splash fade-in duration (seconds).
+pub const SPLASH_FADE_IN: f32 = 0.6;
+/// Splash fade-out start time (seconds from splash start).
+pub const SPLASH_FADE_OUT_START: f32 = 2.1;
+/// Splash fade-out duration (seconds).
+pub const SPLASH_FADE_OUT_DURATION: f32 = 0.4;
 
 /// Enrollment gradient background colors (center, outer).
 #[inline]

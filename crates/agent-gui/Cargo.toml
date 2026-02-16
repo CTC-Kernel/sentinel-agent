@@ -38,6 +38,7 @@ tokio = { workspace = true, optional = true }
 directories = { workspace = true, optional = true }
 hostname = { workspace = true, optional = true }
 sha2.workspace = true
+zeroize.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true

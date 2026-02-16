@@ -259,7 +259,9 @@ impl UpdateManager {
         if update.sha256.is_empty() {
             error!("Update {} has no SHA-256 hash — refusing to install unverified package", update.new_version);
             *self.state.write().await = UpdateState::Failed;
-            let _ = fs::remove_file(&staging_path).await;
+            if let Err(e) = fs::remove_file(&staging_path).await {
+                warn!("Failed to remove staging file {}: {}", staging_path.display(), e);
+            }
             return Err(SyncError::Config("Missing SHA-256 hash for update package".to_string()));
         }
         {

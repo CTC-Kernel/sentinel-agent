@@ -63,7 +63,7 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                 RichText::new("ACTIVITÉ EN DIRECT")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
 
