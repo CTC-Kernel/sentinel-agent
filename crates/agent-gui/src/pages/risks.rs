@@ -518,7 +518,7 @@ impl RisksPage {
                             ui.label(
                                 egui::RichText::new(format!("{}", score))
                                     .font(theme::font_body())
-                                    .color(score_color)
+                                    .color(theme::readable_color(score_color))
                                     .strong(),
                             );
                         });
@@ -621,7 +621,7 @@ impl RisksPage {
                         ui,
                         "Score",
                         &format!("{}", score),
-                        score_color,
+                        theme::readable_color(score_color),
                     );
                     widgets::detail_field_badge(ui, "Statut", status_label, status_color);
 

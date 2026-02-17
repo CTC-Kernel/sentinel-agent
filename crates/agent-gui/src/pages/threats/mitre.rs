@@ -156,7 +156,7 @@ pub(super) fn mitre_minimap(ui: &mut egui::Ui, threats: &[super::types::ThreatEv
                         ui.label(
                             egui::RichText::new("D\u{00e9}tections actives")
                                 .font(theme::font_label())
-                                .color(theme::ACCENT),
+                                .color(theme::accent_text()),
                         );
                     }
                 });
@@ -171,7 +171,7 @@ pub(super) fn mitre_minimap(ui: &mut egui::Ui, threats: &[super::types::ThreatEv
             ui.label(
                 egui::RichText::new(format!("{}/{} tactiques couvertes", active_count, total))
                     .font(theme::font_label())
-                    .color(if active_count > 6 { theme::ACCENT } else { theme::text_tertiary() }),
+                    .color(if active_count > 6 { theme::accent_text() } else { theme::text_tertiary() }),
             );
         });
     });

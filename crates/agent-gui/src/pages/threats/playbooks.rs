@@ -453,7 +453,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         ui.label(
                             egui::RichText::new(format!("{} {}", icons::WARNING, err))
                                 .font(theme::font_min())
-                                .color(result_color),
+                                .color(theme::readable_color(result_color)),
                         );
                     });
                 }
@@ -480,7 +480,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
         ui.label(
             egui::RichText::new("NOUVEAU PLAYBOOK")
                 .font(theme::font_label())
-                .color(theme::ACCENT)
+                .color(theme::accent_text())
                 .extra_letter_spacing(theme::TRACKING_NORMAL)
                 .strong(),
         );

@@ -435,13 +435,13 @@ impl DiscoveryPage {
                                 ui.label(
                                     egui::RichText::new(text)
                                         .font(theme::font_small())
-                                        .color(if ago.num_hours() < 1 {
+                                        .color(theme::readable_color(if ago.num_hours() < 1 {
                                             theme::SUCCESS
                                         } else if ago.num_hours() < 24 {
                                             theme::WARNING
                                         } else {
                                             theme::text_secondary()
-                                        }),
+                                        })),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {

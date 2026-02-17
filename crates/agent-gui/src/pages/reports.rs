@@ -96,7 +96,7 @@ impl ReportsPage {
                                 ui,
                                 "Score de conformit\u{00e9}",
                                 &format!("{:.0}%", score),
-                                theme::score_color(score),
+                                theme::readable_color(theme::score_color(score)),
                             );
                         }
 
@@ -203,7 +203,7 @@ impl ReportsPage {
                         ui.label(
                             egui::RichText::new(format!("{:.0}%", score))
                                 .font(theme::font_stat())
-                                .color(theme::score_color(score))
+                                .color(theme::readable_color(theme::score_color(score)))
                                 .strong(),
                         );
                     });
@@ -390,7 +390,7 @@ impl ReportsPage {
                                         ui.label(
                                             egui::RichText::new(format!("{:.0}%", score))
                                                 .font(theme::font_body())
-                                                .color(theme::score_color(score))
+                                                .color(theme::readable_color(theme::score_color(score)))
                                                 .strong(),
                                         );
                                     } else {

@@ -632,8 +632,9 @@ pub struct PlaybookPayload {
     pub conditions: Vec<PlaybookConditionPayload>,
     pub actions: Vec<PlaybookActionPayload>,
     pub created_at: DateTime<Utc>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_triggered: Option<DateTime<Utc>>,
+    #[serde(default)]
     pub trigger_count: u32,
 }
 
@@ -699,8 +700,9 @@ pub struct DetectionRulePayload {
     pub actions: Vec<String>,
     pub enabled: bool,
     pub created_at: DateTime<Utc>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_match: Option<DateTime<Utc>>,
+    #[serde(default)]
     pub match_count: u32,
 }
 

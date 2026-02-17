@@ -916,6 +916,16 @@ pub enum PlaybookConditionType {
 }
 
 impl PlaybookConditionType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::ProcessNameMatch => "ProcessNameMatch",
+            Self::NetworkAlertType => "NetworkAlertType",
+            Self::FimChange => "FimChange",
+            Self::SeverityThreshold => "SeverityThreshold",
+            Self::CvssScore => "CvssScore",
+        }
+    }
+
     pub fn label_fr(&self) -> &'static str {
         match self {
             Self::ProcessNameMatch => "Nom de processus",
@@ -949,6 +959,16 @@ pub enum PlaybookActionType {
 }
 
 impl PlaybookActionType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::KillProcess => "KillProcess",
+            Self::QuarantineFile => "QuarantineFile",
+            Self::BlockIp => "BlockIp",
+            Self::SendSiemAlert => "SendSiemAlert",
+            Self::CreateNotification => "CreateNotification",
+        }
+    }
+
     pub fn label_fr(&self) -> &'static str {
         match self {
             Self::KillProcess => "Terminer le processus",
@@ -1029,6 +1049,15 @@ pub enum RiskStatus {
 }
 
 impl RiskStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Open => "Open",
+            Self::Mitigating => "Mitigating",
+            Self::Accepted => "Accepted",
+            Self::Closed => "Closed",
+        }
+    }
+
     pub fn label_fr(&self) -> &'static str {
         match self {
             Self::Open => "Ouvert",
@@ -1087,6 +1116,16 @@ pub enum DetectionConditionType {
 }
 
 impl DetectionConditionType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::ProcessNameContains => "ProcessNameContains",
+            Self::NetworkPort => "NetworkPort",
+            Self::FimPathMatch => "FimPathMatch",
+            Self::CommandLineContains => "CommandLineContains",
+            Self::SeverityLevel => "SeverityLevel",
+        }
+    }
+
     pub fn label_fr(&self) -> &'static str {
         match self {
             Self::ProcessNameContains => "Nom processus contient",
@@ -1193,6 +1232,15 @@ pub enum AssetCriticality {
 }
 
 impl AssetCriticality {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Critical => "Critical",
+            Self::High => "High",
+            Self::Medium => "Medium",
+            Self::Low => "Low",
+        }
+    }
+
     pub fn label_fr(&self) -> &'static str {
         match self {
             Self::Critical => "Critique",
@@ -1228,6 +1276,15 @@ pub enum AssetLifecycle {
 }
 
 impl AssetLifecycle {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Discovered => "Discovered",
+            Self::Qualified => "Qualified",
+            Self::Monitored => "Monitored",
+            Self::Decommissioned => "Decommissioned",
+        }
+    }
+
     pub fn label_fr(&self) -> &'static str {
         match self {
             Self::Discovered => "D\u{00e9}couvert",
@@ -1327,6 +1384,14 @@ pub enum AlertRuleType {
 }
 
 impl AlertRuleType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::SeverityThreshold => "SeverityThreshold",
+            Self::TypeFilter => "TypeFilter",
+            Self::EscalationDelay => "EscalationDelay",
+        }
+    }
+
     pub fn label_fr(&self) -> &'static str {
         match self {
             Self::SeverityThreshold => "Seuil de s\u{00e9}v\u{00e9}rit\u{00e9}",
