@@ -234,7 +234,7 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
         ui.label(
             egui::RichText::new("NOUVELLE R\u{00c8}GLE DE D\u{00c9}TECTION")
                 .font(theme::font_label())
-                .color(theme::ACCENT)
+                .color(theme::accent_text())
                 .extra_letter_spacing(theme::TRACKING_NORMAL)
                 .strong(),
         );

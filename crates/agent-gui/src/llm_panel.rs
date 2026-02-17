@@ -817,7 +817,7 @@ impl LLMStatusWidget {
                 ui.label(
                     egui::RichText::new(format!("{} recommandations", total))
                         .font(theme::font_small())
-                        .color(theme::WARNING)
+                        .color(theme::readable_color(theme::WARNING))
                         .strong(),
                 );
             } else if state.checks.is_empty() {
@@ -830,7 +830,7 @@ impl LLMStatusWidget {
                 ui.label(
                     egui::RichText::new("Aucune alerte")
                         .font(theme::font_small())
-                        .color(theme::SUCCESS),
+                        .color(theme::readable_color(theme::SUCCESS)),
                 );
             }
         });

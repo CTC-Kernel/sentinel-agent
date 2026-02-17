@@ -416,13 +416,13 @@ impl AssetsPage {
                             ui.label(
                                 egui::RichText::new(text)
                                     .font(theme::font_small())
-                                    .color(if ago.num_hours() < 1 {
+                                    .color(theme::readable_color(if ago.num_hours() < 1 {
                                         theme::SUCCESS
                                     } else if ago.num_hours() < 24 {
                                         theme::WARNING
                                     } else {
                                         theme::text_secondary()
-                                    }),
+                                    })),
                             );
                         });
 
@@ -495,7 +495,7 @@ impl AssetsPage {
                     ui,
                     "Score de risque",
                     &format!("{:.1}", asset.risk_score),
-                    risk_color,
+                    theme::readable_color(risk_color),
                 );
                 widgets::detail_field(
                     ui,

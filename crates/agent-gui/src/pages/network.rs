@@ -436,7 +436,7 @@ impl NetworkPage {
                             ui,
                             "Confiance",
                             &format!("{}%", alert.confidence),
-                            conf_color,
+                            theme::readable_color(conf_color),
                         );
                         widgets::detail_field(
                             ui,

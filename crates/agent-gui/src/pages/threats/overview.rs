@@ -478,7 +478,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 ui,
                                 "Confiance",
                                 &format!("{}%", p.confidence),
-                                conf_color,
+                                theme::readable_color(conf_color),
                             );
                             widgets::detail_field(
                                 ui,
@@ -574,7 +574,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 ui,
                                 "Confiance",
                                 &format!("{}%", inc.confidence),
-                                sev_color,
+                                theme::readable_color(sev_color),
                             );
                             widgets::detail_field_badge(
                                 ui,
@@ -639,7 +639,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     ui,
                                     "Score CVSS",
                                     &format!("{:.1}", cvss),
-                                    sev_color,
+                                    theme::readable_color(sev_color),
                                 );
                             }
                             widgets::detail_field_badge(
@@ -758,7 +758,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 ui,
                                 "Confiance",
                                 &format!("{}%", a.confidence),
-                                sev_color,
+                                theme::readable_color(sev_color),
                             );
                             widgets::detail_field(
                                 ui,
