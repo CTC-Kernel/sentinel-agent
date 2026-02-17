@@ -565,20 +565,20 @@ impl UpdateStatusCheck {
         let mut issues = Vec::new();
         let mut last_update: Option<DateTime<Utc>> = None;
 
-        // Check apt/dpkg history
-        if let Ok(content) = fs::read_to_string("/var/log/dpkg.log") {
-            // Parse last update from dpkg log
-            for line in content.lines().rev() {
-                if line.contains(" install ") || line.contains(" upgrade ") {
-                    // Format: 2024-01-15 10:30:00 install package
-                    if let Some(date_part) = line
-                        .split_whitespace()
-                        .take(2)
-                        .collect::<Vec<_>>()
-                        .join(" ")
-                        .parse::<String>()
-                        .ok()
-                    {
+        // Check dpkg log (Debian/Ubuntu) — also check rotated .log.1
+        for log_path in &["/var/log/dpkg.log", "/var/log/dpkg.log.1"] {
+            if last_update.is_some() {
+                break;
+            }
+            if let Ok(content) = fs::read_to_string(log_path) {
+                for line in content.lines().rev() {
+                    if line.contains(" install ") || line.contains(" upgrade ") {
+                        // Format: 2024-01-15 10:30:00 install package
+                        let date_part: String = line
+                            .split_whitespace()
+                            .take(2)
+                            .collect::<Vec<_>>()
+                            .join(" ");
                         if let Ok(date) =
                             chrono::NaiveDateTime::parse_from_str(&date_part, "%Y-%m-%d %H:%M:%S")
                         {
@@ -590,8 +590,51 @@ impl UpdateStatusCheck {
             }
         }
 
-        // Check for pending updates
-        let pending_count = Command::new("sh")
+        // Fallback: check yum/dnf history (RHEL/Fedora/CentOS)
+        if last_update.is_none() {
+            if let Ok(content) = fs::read_to_string("/var/log/yum.log") {
+                // Format: Jan 15 10:30:00 Updated: package-1.0.0
+                for line in content.lines().rev() {
+                    if line.contains("Updated:") || line.contains("Installed:") {
+                        // yum.log uses syslog-style dates — extract year from file mtime
+                        last_update = fs::metadata("/var/log/yum.log")
+                            .ok()
+                            .and_then(|m| m.modified().ok())
+                            .map(|t| DateTime::<Utc>::from(t));
+                        break;
+                    }
+                }
+            }
+            // Also check dnf history (newer Fedora/RHEL)
+            if last_update.is_none() {
+                if let Ok(output) = Command::new("dnf")
+                    .args(["history", "list", "--setopt=tsflags=", "-q"])
+                    .output()
+                {
+                    if output.status.success() {
+                        let result = String::from_utf8_lossy(&output.stdout);
+                        // dnf history output has date in column format
+                        if let Some(line) = result.lines().nth(1) {
+                            // Try to extract date from history output
+                            let parts: Vec<&str> = line.split('|').collect();
+                            if parts.len() >= 3 {
+                                let date_str = parts[2].trim();
+                                if let Ok(date) = chrono::NaiveDateTime::parse_from_str(
+                                    date_str,
+                                    "%Y-%m-%d %H:%M",
+                                ) {
+                                    last_update =
+                                        Some(DateTime::from_naive_utc_and_offset(date, Utc));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Check for pending updates — try apt first, then dnf/yum, then pacman
+        let pending_count = if let Some(count) = Command::new("sh")
             .args([
                 "-c",
                 "apt list --upgradable 2>/dev/null | grep -c upgradable || echo 0",
@@ -599,12 +642,39 @@ impl UpdateStatusCheck {
             .output()
             .ok()
             .and_then(|o| {
-                String::from_utf8_lossy(&o.stdout)
-                    .trim()
-                    .parse::<usize>()
-                    .ok()
+                let c = String::from_utf8_lossy(&o.stdout).trim().parse::<usize>().ok();
+                c.filter(|&v| v > 0)
             })
-            .unwrap_or(0);
+        {
+            count
+        } else if let Some(count) = Command::new("sh")
+            .args([
+                "-c",
+                "dnf check-update 2>/dev/null | grep -cE '^[a-zA-Z]' || echo 0",
+            ])
+            .output()
+            .ok()
+            .and_then(|o| {
+                // dnf check-update exits with code 100 when updates are available
+                String::from_utf8_lossy(&o.stdout).trim().parse::<usize>().ok()
+            })
+        {
+            count
+        } else if let Some(count) = Command::new("sh")
+            .args([
+                "-c",
+                "checkupdates 2>/dev/null | wc -l || echo 0",
+            ])
+            .output()
+            .ok()
+            .and_then(|o| {
+                String::from_utf8_lossy(&o.stdout).trim().parse::<usize>().ok()
+            })
+        {
+            count
+        } else {
+            0
+        };
 
         if pending_count > MAX_TOTAL_PENDING {
             issues.push(format!("{} updates pending", pending_count));
@@ -652,11 +722,12 @@ impl UpdateStatusCheck {
         let mut issues = Vec::new();
 
         // Check for pending updates using softwareupdate
+        // Note: softwareupdate --list writes update entries to stderr, not stdout
         let output = Command::new("softwareupdate").args(["--list"]).output();
 
         let pending_count = if let Ok(out) = output {
-            let stdout = String::from_utf8_lossy(&out.stdout);
-            stdout.lines().filter(|l| l.starts_with("*")).count()
+            let stderr = String::from_utf8_lossy(&out.stderr);
+            stderr.lines().filter(|l| l.trim_start().starts_with('*')).count()
         } else {
             0
         };

@@ -223,11 +223,16 @@ impl SshHardeningCheck {
 
             // Login grace time
             if let Some(value) = Self::parse_config_value(line, "LoginGraceTime") {
-                // Parse value (can be in seconds or with suffix like 2m)
-                let v = value.trim_end_matches('s').trim_end_matches('m');
-                if let Ok(num) = v.parse::<u32>() {
-                    let seconds = if value.ends_with('m') { num * 60 } else { num };
-                    status.login_grace_time = Some(seconds);
+                // Parse value — supports suffixes: s (seconds), m (minutes), h (hours)
+                let seconds = if value.ends_with('h') {
+                    value.trim_end_matches('h').parse::<u32>().ok().map(|n| n.saturating_mul(3600))
+                } else if value.ends_with('m') {
+                    value.trim_end_matches('m').parse::<u32>().ok().map(|n| n.saturating_mul(60))
+                } else {
+                    value.trim_end_matches('s').parse::<u32>().ok()
+                };
+                if let Some(secs) = seconds {
+                    status.login_grace_time = Some(secs);
                 }
             }
 
@@ -464,15 +469,39 @@ impl SshHardeningCheck {
         };
 
         // Check Remote Login status (macOS SSH server)
+        // Note: systemsetup requires root on macOS — fall back to launchctl if needed
+        let mut systemsetup_resolved = false;
         if let Ok(output) = Command::new("systemsetup")
             .args(["-getremotelogin"])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.ssh_server_active = result.to_lowercase().contains("on");
+            let stderr_result = String::from_utf8_lossy(&output.stderr).to_string();
             status
                 .raw_output
                 .push_str(&format!("Remote Login: {}\n", result.trim()));
+
+            if stderr_result.contains("administrator access")
+                || result.contains("administrator access")
+            {
+                // Requires root — try launchctl instead
+            } else {
+                status.ssh_server_active = result.to_lowercase().contains("on");
+                systemsetup_resolved = true;
+            }
+        }
+
+        // Fallback: check sshd via launchctl if systemsetup requires root
+        if !systemsetup_resolved
+            && let Ok(output) = Command::new("launchctl")
+                .args(["list", "com.openssh.sshd"])
+                .output()
+        {
+            status.ssh_server_active = output.status.success();
+            status.raw_output.push_str(&format!(
+                "sshd via launchctl: {}\n",
+                if output.status.success() { "running" } else { "not running" }
+            ));
         }
 
         // Read sshd_config
@@ -714,6 +743,21 @@ X11Forwarding no
         assert_eq!(status.max_auth_tries, Some(3));
         assert_eq!(status.login_grace_time, Some(60));
         assert!(status.x11_forwarding_disabled);
+
+        // Test hour suffix
+        status.login_grace_time = None;
+        check.parse_sshd_config("LoginGraceTime 1h", &mut status);
+        assert_eq!(status.login_grace_time, Some(3600));
+
+        // Test minute suffix
+        status.login_grace_time = None;
+        check.parse_sshd_config("LoginGraceTime 2m", &mut status);
+        assert_eq!(status.login_grace_time, Some(120));
+
+        // Test seconds suffix
+        status.login_grace_time = None;
+        check.parse_sshd_config("LoginGraceTime 30s", &mut status);
+        assert_eq!(status.login_grace_time, Some(30));
     }
 
     #[test]

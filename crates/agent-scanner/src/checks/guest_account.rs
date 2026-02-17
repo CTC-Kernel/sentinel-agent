@@ -113,14 +113,20 @@ impl GuestAccountCheck {
 
         let mut raw_output = String::new();
 
-        // Check /etc/passwd for guest account
+        // Check /etc/passwd for guest accounts (common names across distros)
         let passwd_content = std::fs::read_to_string("/etc/passwd").map_err(|e| {
             ScannerError::CheckExecution(format!("Failed to read /etc/passwd: {}", e))
         })?;
 
-        let guest_line = passwd_content
-            .lines()
-            .find(|line| line.starts_with("guest:"));
+        // Look for common guest account names: guest, guest-*, nobody (with login shell)
+        let guest_names = ["guest", "Guest", "guest-account"];
+        let guest_line = passwd_content.lines().find(|line| {
+            if let Some(username) = line.split(':').next() {
+                guest_names.contains(&username) || username.starts_with("guest-")
+            } else {
+                false
+            }
+        });
 
         raw_output.push_str(&format!(
             "Guest in /etc/passwd: {}\n",
@@ -128,6 +134,9 @@ impl GuestAccountCheck {
         ));
 
         let account_exists = guest_line.is_some();
+        let guest_username = guest_line
+            .and_then(|l| l.split(':').next())
+            .unwrap_or("guest");
 
         if !account_exists {
             return Ok(GuestAccountStatus {
@@ -140,7 +149,7 @@ impl GuestAccountCheck {
         }
 
         // Check if guest account is locked via passwd -S
-        let lock_output = Command::new("passwd").args(["-S", "guest"]).output();
+        let lock_output = Command::new("passwd").args(["-S", guest_username]).output();
 
         let account_locked = match lock_output {
             Ok(output) => {

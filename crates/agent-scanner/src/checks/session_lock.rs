@@ -147,14 +147,14 @@ impl SessionLockCheck {
                 status.lock_enabled = active == "1";
             }
 
-            // Timeout in seconds -> convert to minutes
+            // Timeout in seconds -> convert to minutes (ceiling division to avoid rounding sub-minute to 0)
             if let Some(timeout) = json
                 .get("GPO_ScreenSaveTimeOut")
                 .or_else(|| json.get("ScreenSaveTimeOut"))
                 .and_then(|v| v.as_str())
                 .and_then(|s| s.parse::<u32>().ok())
             {
-                status.timeout_minutes = Some(timeout / 60);
+                status.timeout_minutes = Some(timeout.div_ceil(60));
             }
 
             // Password required
@@ -255,7 +255,7 @@ impl SessionLockCheck {
                 .and_then(|s| s.parse::<u32>().ok())
             {
                 if seconds > 0 {
-                    status.timeout_minutes = Some(seconds / 60);
+                    status.timeout_minutes = Some(seconds.div_ceil(60));
                 }
             }
         }
@@ -299,7 +299,7 @@ impl SessionLockCheck {
             for line in content.lines() {
                 if line.starts_with("idleTime=") {
                     if let Some(ms) = line.split('=').last().and_then(|s| s.parse::<u32>().ok()) {
-                        status.timeout_minutes = Some(ms / 60000); // milliseconds to minutes
+                        status.timeout_minutes = Some(ms.div_ceil(60000)); // milliseconds to minutes
                     }
                 }
                 if line.contains("LockScreen=true") {
@@ -429,7 +429,7 @@ impl SessionLockCheck {
                 .push_str(&format!("Screen saver idleTime: {}\n", result.trim()));
 
             if let Ok(seconds) = result.trim().parse::<u32>() {
-                status.timeout_minutes = Some(seconds / 60);
+                status.timeout_minutes = Some(seconds.div_ceil(60));
                 if seconds > 0 {
                     status.lock_enabled = true;
                 }

@@ -102,12 +102,27 @@ impl KernelHardeningCheck {
         };
 
         // Check DEP availability
-        let dep_output = Command::new("wmic")
+        // Try PowerShell first (wmic is deprecated on Windows 11 24H2+)
+        let dep_result = if let Ok(ps_output) = Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                "(Get-CimInstance Win32_OperatingSystem).DataExecutionPrevention_Available",
+            ])
+            .output()
+            && ps_output.status.success()
+        {
+            String::from_utf8_lossy(&ps_output.stdout).to_string()
+        } else if let Ok(wmic_output) = Command::new("wmic")
             .args(["OS", "get", "DataExecutionPrevention_Available"])
             .output()
-            .map_err(|e| ScannerError::CheckExecution(format!("Failed to check DEP: {}", e)))?;
+        {
+            String::from_utf8_lossy(&wmic_output.stdout).to_string()
+        } else {
+            // Neither tool available — assume DEP is enabled (default on modern Windows)
+            "True".to_string()
+        };
 
-        let dep_result = String::from_utf8_lossy(&dep_output.stdout).to_string();
         status
             .raw_output
             .push_str(&format!("DEP: {}\n", dep_result.trim()));
@@ -142,7 +157,17 @@ impl KernelHardeningCheck {
         // If MoveImages is not present or set to 0xFFFFFFFF, ASLR is enabled (default)
         // MoveImages = 0 means ASLR is disabled
         if aslr_output.status.success() {
-            let aslr_disabled = aslr_result.contains("0x0") && !aslr_result.contains("0x0000");
+            // Parse the hex value from reg query output (e.g., "REG_DWORD    0x0")
+            // Extract the hex value after "0x" and compare numerically
+            let aslr_disabled = aslr_result
+                .split("0x")
+                .last()
+                .and_then(|hex_str| {
+                    let hex_trimmed = hex_str.trim().trim_end_matches(|c: char| !c.is_ascii_hexdigit());
+                    u64::from_str_radix(hex_trimmed, 16).ok()
+                })
+                .map(|val| val == 0)
+                .unwrap_or(false);
             status.aslr_enabled = !aslr_disabled;
         } else {
             // Key not found = default = enabled

@@ -402,7 +402,7 @@ impl VulnerabilitiesPage {
                     let fix_offset = if finding.fix_available { 1 } else { 0 };
                     if finding.fix_available && action_idx == 0 {
                         let safe_name = finding.affected_software.replace('\'', "'\\''");
-                        let cmd = format!("brew upgrade '{}'", safe_name);
+                        let cmd = platform_upgrade_command(&safe_name);
                         ui.ctx().copy_text(cmd);
                         let time = ui.input(|i| i.time);
                         state.toasts.push(
@@ -726,5 +726,25 @@ impl VulnerabilitiesPage {
                 false
             }
         }
+    }
+}
+
+/// Generate a platform-appropriate package upgrade command.
+fn platform_upgrade_command(safe_name: &str) -> String {
+    #[cfg(target_os = "macos")]
+    {
+        format!("brew upgrade '{}'", safe_name)
+    }
+    #[cfg(target_os = "linux")]
+    {
+        format!("sudo apt upgrade '{}' || sudo dnf upgrade '{}'", safe_name, safe_name)
+    }
+    #[cfg(target_os = "windows")]
+    {
+        format!("winget upgrade '{}'", safe_name)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    {
+        format!("# Mettez a jour '{}' manuellement", safe_name)
     }
 }

@@ -92,7 +92,6 @@ impl Ipv6ConfigCheck {
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
         let mut status = Ipv6HardeningStatus {
             hardened: false,
@@ -106,17 +105,12 @@ impl Ipv6ConfigCheck {
         };
 
         if !output.status.success() {
-            // Registry key not found means IPv6 is not hardened
-            if stderr.contains("unable to find") || stderr.contains("ERROR") {
-                status
-                    .issues
-                    .push("DisabledComponents registry key not set".to_string());
-                return Ok(status);
-            }
-            return Err(ScannerError::CheckExecution(format!(
-                "IPv6 registry check failed: {}",
-                stderr
-            )));
+            // Registry key not found — IPv6 is not hardened
+            // Use exit code only (locale-independent) rather than parsing error text
+            status
+                .issues
+                .push("DisabledComponents registry key not set".to_string());
+            return Ok(status);
         }
 
         // Parse the registry value (hex)
