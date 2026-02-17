@@ -645,6 +645,215 @@ pub struct GuiNetworkAlert {
     pub detected_at: DateTime<Utc>,
 }
 
+// ============================================================================
+// EDR module types
+// ============================================================================
+
+/// EDR page tab selection.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum EdrTab {
+    #[default]
+    Overview,
+    Events,
+    Investigation,
+    Response,
+}
+
+impl EdrTab {
+    pub fn index(&self) -> u8 {
+        match self {
+            EdrTab::Overview => 0,
+            EdrTab::Events => 1,
+            EdrTab::Investigation => 2,
+            EdrTab::Response => 3,
+        }
+    }
+
+    pub fn from_index(idx: u8) -> Self {
+        match idx {
+            1 => EdrTab::Events,
+            2 => EdrTab::Investigation,
+            3 => EdrTab::Response,
+            _ => EdrTab::Overview,
+        }
+    }
+}
+
+/// Type of IOC being searched in the investigation tab.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum IocSearchType {
+    #[default]
+    Ip,
+    Domain,
+    Hash,
+    Process,
+    Cve,
+}
+
+impl IocSearchType {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            IocSearchType::Ip => "Adresse IP",
+            IocSearchType::Domain => "Domaine",
+            IocSearchType::Hash => "Hash (SHA-256)",
+            IocSearchType::Process => "Processus",
+            IocSearchType::Cve => "CVE",
+        }
+    }
+}
+
+/// MITRE ATT&CK tactic categories.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum MitreTactic {
+    InitialAccess,
+    Execution,
+    Persistence,
+    PrivilegeEscalation,
+    DefenseEvasion,
+    CredentialAccess,
+    Discovery,
+    LateralMovement,
+    Collection,
+    CommandAndControl,
+    Exfiltration,
+    Impact,
+}
+
+impl MitreTactic {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            MitreTactic::InitialAccess => "Acc\u{00e8}s initial",
+            MitreTactic::Execution => "Ex\u{00e9}cution",
+            MitreTactic::Persistence => "Persistance",
+            MitreTactic::PrivilegeEscalation => "Escalade de privil\u{00e8}ges",
+            MitreTactic::DefenseEvasion => "\u{00c9}vasion de d\u{00e9}fense",
+            MitreTactic::CredentialAccess => "Acc\u{00e8}s aux identifiants",
+            MitreTactic::Discovery => "D\u{00e9}couverte",
+            MitreTactic::LateralMovement => "Mouvement lat\u{00e9}ral",
+            MitreTactic::Collection => "Collecte",
+            MitreTactic::CommandAndControl => "Commande & Contr\u{00f4}le",
+            MitreTactic::Exfiltration => "Exfiltration",
+            MitreTactic::Impact => "Impact",
+        }
+    }
+
+    /// All tactics in display order.
+    pub fn all() -> &'static [MitreTactic] {
+        &[
+            MitreTactic::InitialAccess,
+            MitreTactic::Execution,
+            MitreTactic::Persistence,
+            MitreTactic::PrivilegeEscalation,
+            MitreTactic::DefenseEvasion,
+            MitreTactic::CredentialAccess,
+            MitreTactic::Discovery,
+            MitreTactic::LateralMovement,
+            MitreTactic::Collection,
+            MitreTactic::CommandAndControl,
+            MitreTactic::Exfiltration,
+            MitreTactic::Impact,
+        ]
+    }
+}
+
+/// A MITRE ATT&CK technique reference.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MitreTechnique {
+    /// Technique ID (e.g. "T1059.001").
+    pub id: &'static str,
+    /// French name.
+    pub name_fr: &'static str,
+    /// Tactic category.
+    pub tactic: MitreTactic,
+}
+
+/// Type of EDR response action.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ResponseActionType {
+    KillProcess,
+    QuarantineFile,
+    BlockIp,
+    RestoreFile,
+}
+
+impl ResponseActionType {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            ResponseActionType::KillProcess => "Terminer le processus",
+            ResponseActionType::QuarantineFile => "Quarantaine fichier",
+            ResponseActionType::BlockIp => "Bloquer IP",
+            ResponseActionType::RestoreFile => "Restaurer fichier",
+        }
+    }
+}
+
+/// Status of a response action.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ResponseStatus {
+    Pending,
+    InProgress,
+    Success,
+    Failed,
+}
+
+impl ResponseStatus {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            ResponseStatus::Pending => "En attente",
+            ResponseStatus::InProgress => "En cours",
+            ResponseStatus::Success => "Succ\u{00e8}s",
+            ResponseStatus::Failed => "\u{00c9}chec",
+        }
+    }
+}
+
+/// A response action (pending or completed).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResponseAction {
+    pub id: Uuid,
+    pub action_type: ResponseActionType,
+    pub target: String,
+    pub target_detail: String,
+    pub status: ResponseStatus,
+    pub created_at: DateTime<Utc>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub error: Option<String>,
+}
+
+/// A quarantined file entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuarantinedFile {
+    pub id: Uuid,
+    pub original_path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+    pub quarantined_at: DateTime<Utc>,
+    pub reason: String,
+    pub restored: bool,
+}
+
+/// An entry in the response action log.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResponseLogEntry {
+    pub id: Uuid,
+    pub action_type: ResponseActionType,
+    pub target: String,
+    pub status: ResponseStatus,
+    pub timestamp: DateTime<Utc>,
+    pub operator: String,
+    pub details: Option<String>,
+}
+
+/// Modal confirmation for dangerous response actions.
+#[derive(Debug, Clone)]
+pub struct PendingConfirmation {
+    pub action_type: ResponseActionType,
+    pub target: String,
+    pub detail: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

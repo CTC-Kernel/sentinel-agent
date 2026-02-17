@@ -173,6 +173,15 @@ pub enum AgentEvent {
         /// Destination address (host:port or URL).
         destination: String,
     },
+    /// Result of a response action (kill, quarantine, block).
+    ResponseActionResult {
+        /// ID of the response action.
+        action_id: uuid::Uuid,
+        /// Whether the action succeeded.
+        success: bool,
+        /// Error message if the action failed.
+        error: Option<String>,
+    },
 }
 
 /// Commands sent from the GUI to the agent runtime.
@@ -244,6 +253,35 @@ pub enum GuiCommand {
     MarkAllNotificationsRead,
     /// Export audit trail to CSV.
     ExportCsvAuditTrail,
+    /// Kill a suspicious process.
+    KillProcess {
+        /// Process name.
+        process_name: String,
+        /// Process ID.
+        pid: u32,
+    },
+    /// Quarantine a file (move to secure location).
+    QuarantineFile {
+        /// File path to quarantine.
+        path: String,
+    },
+    /// Restore a quarantined file to its original location.
+    RestoreQuarantinedFile {
+        /// Quarantine entry ID.
+        quarantine_id: String,
+    },
+    /// Block an IP address via firewall rules.
+    BlockIp {
+        /// IP address to block.
+        ip: String,
+        /// Duration in seconds (0 = permanent).
+        duration_secs: u64,
+    },
+    /// Unblock a previously blocked IP address.
+    UnblockIp {
+        /// IP address to unblock.
+        ip: String,
+    },
 }
 
 #[cfg(test)]

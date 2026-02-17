@@ -173,7 +173,7 @@ impl Default for FimState {
 // Threats
 // ---------------------------------------------------------------------------
 
-/// Suspicious process and USB event data.
+/// EDR detection & response state.
 pub struct ThreatsState {
     pub suspicious_processes: VecDeque<crate::dto::GuiSuspiciousProcess>,
     pub usb_events: VecDeque<crate::dto::GuiUsbEvent>,
@@ -182,6 +182,25 @@ pub struct ThreatsState {
     pub filter: Option<String>,
     pub selected_threat: Option<usize>,
     pub detail_open: bool,
+
+    // EDR tab navigation
+    pub active_tab: crate::dto::EdrTab,
+
+    // Events tab
+    pub events_page: usize,
+    pub events_severity_filter: Option<crate::dto::Severity>,
+
+    // Investigation tab
+    pub ioc_search: String,
+    pub ioc_type: crate::dto::IocSearchType,
+    pub ioc_results_count: usize,
+
+    // Response tab
+    pub pending_actions: VecDeque<crate::dto::ResponseAction>,
+    pub quarantine_queue: VecDeque<crate::dto::QuarantinedFile>,
+    pub response_log: VecDeque<crate::dto::ResponseLogEntry>,
+    pub response_page: usize,
+    pub confirm_action: Option<crate::dto::PendingConfirmation>,
 }
 
 impl Default for ThreatsState {
@@ -194,6 +213,18 @@ impl Default for ThreatsState {
             filter: None,
             selected_threat: None,
             detail_open: false,
+
+            active_tab: crate::dto::EdrTab::default(),
+            events_page: 0,
+            events_severity_filter: None,
+            ioc_search: String::new(),
+            ioc_type: crate::dto::IocSearchType::default(),
+            ioc_results_count: 0,
+            pending_actions: VecDeque::with_capacity(20),
+            quarantine_queue: VecDeque::with_capacity(100),
+            response_log: VecDeque::with_capacity(500),
+            response_page: 0,
+            confirm_action: None,
         }
     }
 }
@@ -604,6 +635,42 @@ impl AppState {
                 self.settings.siem_transport = transport;
                 self.settings.siem_destination = destination;
             }
+            AgentEvent::ResponseActionResult {
+                action_id,
+                success,
+                error,
+            } => {
+                // Find the matching pending action and update its status
+                if let Some(action) = self
+                    .threats
+                    .pending_actions
+                    .iter_mut()
+                    .find(|a| a.id == action_id)
+                {
+                    action.status = if success {
+                        crate::dto::ResponseStatus::Success
+                    } else {
+                        crate::dto::ResponseStatus::Failed
+                    };
+                    action.completed_at = Some(chrono::Utc::now());
+                    action.error = error.clone();
+
+                    // Log the result
+                    let log_entry = crate::dto::ResponseLogEntry {
+                        id: uuid::Uuid::new_v4(),
+                        action_type: action.action_type.clone(),
+                        target: action.target.clone(),
+                        status: action.status,
+                        timestamp: chrono::Utc::now(),
+                        operator: "Agent".to_string(),
+                        details: error,
+                    };
+                    self.threats.response_log.push_front(log_entry);
+                    if self.threats.response_log.len() > 500 {
+                        self.threats.response_log.pop_back();
+                    }
+                }
+            }
         }
 
         // Single recompute at end of every event
@@ -742,6 +809,7 @@ impl AppState {
         self.vulnerability.selected_vuln = None;
         self.threats.detail_open = false;
         self.threats.selected_threat = None;
+        self.threats.confirm_action = None;
         self.fim.detail_open = false;
         self.fim.selected_alert = None;
         self.compliance.detail_open = false;
