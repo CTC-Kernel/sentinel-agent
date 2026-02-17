@@ -207,7 +207,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     ui.label(
                         egui::RichText::new(icons::FILE)
                             .size(theme::ICON_SM)
-                            .color(theme::WARNING),
+                            .color(theme::readable_color(theme::WARNING)),
                     );
                     ui.add_space(theme::SPACE_XS);
 

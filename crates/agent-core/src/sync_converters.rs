@@ -19,7 +19,7 @@ pub fn playbook_to_payload(p: &Playbook) -> PlaybookPayload {
             .conditions
             .iter()
             .map(|c| PlaybookConditionPayload {
-                condition_type: format!("{:?}", c.condition_type),
+                condition_type: c.condition_type.as_str().to_string(),
                 operator: c.operator.clone(),
                 value: c.value.clone(),
             })
@@ -28,7 +28,7 @@ pub fn playbook_to_payload(p: &Playbook) -> PlaybookPayload {
             .actions
             .iter()
             .map(|a| PlaybookActionPayload {
-                action_type: format!("{:?}", a.action_type),
+                action_type: a.action_type.as_str().to_string(),
                 parameters: a.parameters.clone(),
             })
             .collect(),
@@ -48,11 +48,11 @@ pub fn detection_rule_to_payload(r: &DetectionRule) -> DetectionRulePayload {
             .conditions
             .iter()
             .map(|c| DetectionConditionPayload {
-                condition_type: format!("{:?}", c.condition_type),
+                condition_type: c.condition_type.as_str().to_string(),
                 value: c.value.clone(),
             })
             .collect(),
-        actions: r.actions.iter().map(|a| format!("{:?}", a)).collect(),
+        actions: r.actions.iter().map(|a| a.as_str().to_string()).collect(),
         enabled: r.enabled,
         created_at: r.created_at,
         last_match: r.last_match,
@@ -68,7 +68,7 @@ pub fn risk_to_payload(r: &RiskEntry) -> RiskPayload {
         probability: r.probability,
         impact: r.impact,
         owner: r.owner.clone(),
-        status: format!("{:?}", r.status),
+        status: r.status.as_str().to_string(),
         mitigation: r.mitigation.clone(),
         source: r.source.clone(),
         created_at: r.created_at,
@@ -85,8 +85,8 @@ pub fn asset_to_payload(a: &ManagedAsset) -> AssetPayload {
         mac: a.mac.clone(),
         vendor: a.vendor.clone(),
         device_type: a.device_type.clone(),
-        criticality: format!("{:?}", a.criticality),
-        lifecycle: format!("{:?}", a.lifecycle),
+        criticality: a.criticality.as_str().to_string(),
+        lifecycle: a.lifecycle.as_str().to_string(),
         tags: a.tags.clone(),
         risk_score: f64::from(a.risk_score),
         vulnerability_count: a.vulnerability_count,
@@ -101,7 +101,7 @@ pub fn alert_rule_to_payload(r: &AlertRule) -> AlertRulePayload {
     AlertRulePayload {
         id: r.id.to_string(),
         name: r.name.clone(),
-        rule_type: format!("{:?}", r.rule_type),
+        rule_type: r.rule_type.as_str().to_string(),
         severity_threshold: r.severity_threshold.map(|s| s.as_str().to_string()),
         detection_types: r.detection_types.clone(),
         escalation_minutes: r.escalation_minutes,

@@ -381,7 +381,7 @@ impl VulnerabilitiesPage {
                         widgets::detail_field(ui, "Version affect\u{00e9}e", &finding.affected_version);
                         widgets::detail_field_badge(ui, "S\u{00e9}v\u{00e9}rit\u{00e9}", sev_label, sev_color);
                         if let Some(s) = finding.cvss_score {
-                            widgets::detail_field_colored(ui, "Score CVSS", &format!("{:.1}", s), cvss_color);
+                            widgets::detail_field_colored(ui, "Score CVSS", &format!("{:.1}", s), theme::readable_color(cvss_color));
                         }
                         widgets::detail_text(ui, "Description", &finding.description);
 

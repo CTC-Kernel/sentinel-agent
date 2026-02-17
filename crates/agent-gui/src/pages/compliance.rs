@@ -542,7 +542,7 @@ impl CompliancePage {
                         widgets::detail_field_badge(ui, "S\u{00e9}v\u{00e9}rit\u{00e9}", check.severity.label(), sev_color);
                         if let Some(score) = check.score {
                             let sc = score as f32;
-                            widgets::detail_field_colored(ui, "Score", &format!("{score}%"), theme::score_color(sc));
+                            widgets::detail_field_colored(ui, "Score", &format!("{score}%"), theme::readable_color(theme::score_color(sc)));
                         }
 
                         widgets::detail_section(ui, "R\u{00c9}F\u{00c9}RENTIELS");
@@ -944,7 +944,7 @@ impl CompliancePage {
                         fw_total[fi]
                     ))
                     .font(theme::font_small())
-                    .color(theme::ERROR),
+                    .color(theme::readable_color(theme::ERROR)),
                 );
             } else {
                 ui.label(
@@ -955,7 +955,7 @@ impl CompliancePage {
                         fw_total[fi]
                     ))
                     .font(theme::font_small())
-                    .color(theme::SUCCESS),
+                    .color(theme::readable_color(theme::SUCCESS)),
                 );
             }
         }
