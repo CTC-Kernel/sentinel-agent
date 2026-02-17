@@ -3,7 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{ComplianceGroupBy, GuiAgentStatus, GuiCheckStatus};
+use crate::dto::{ComplianceGroupBy, ComplianceViewMode, GuiAgentStatus, GuiCheckStatus};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -381,6 +381,29 @@ impl CompliancePage {
             );
         });
 
+        ui.add_space(theme::SPACE_SM);
+
+        // View mode toggle (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("MODE D'AFFICHAGE :")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_XS);
+            for (mode, label) in [
+                (ComplianceViewMode::List, "LISTE"),
+                (ComplianceViewMode::Matrix, "MATRICE"),
+            ] {
+                let active = state.compliance.view_mode == mode;
+                if widgets::chip_button(ui, label, active, theme::ACCENT).clicked() {
+                    state.compliance.view_mode = mode;
+                }
+            }
+        });
+
         ui.add_space(theme::SPACE_MD);
 
         // Check results table (AAA Grade)
@@ -414,14 +437,14 @@ impl CompliancePage {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
-                        "OBJECTIF DE CONFORMITÉ ATTEINT",
-                        "Tous les contrôles audités sont conformes aux référentiels actifs.",
+                        "OBJECTIF DE CONFORMIT\u{00c9} ATTEINT",
+                        "Tous les contr\u{00f4}les audit\u{00e9}s sont conformes aux r\u{00e9}f\u{00e9}rentiels actifs.",
                     );
                 } else if state.checks.is_empty() {
                     widgets::empty_state(
                         ui,
                         icons::COMPLIANCE,
-                        "AUCUNE BASE DE CONTRÔLES",
+                        "AUCUNE BASE DE CONTR\u{00d4}LES",
                         Some(
                             "En attente de synchronisation des politiques avec le serveur central...",
                         ),
@@ -430,10 +453,15 @@ impl CompliancePage {
                     widgets::empty_state(
                         ui,
                         icons::COMPLIANCE,
-                        "AUCUN RÉSULTAT CORRESPONDANT",
-                        Some("Modifiez vos critères de recherche ou de filtrage."),
+                        "AUCUN R\u{00c9}SULTAT CORRESPONDANT",
+                        Some("Modifiez vos crit\u{00e8}res de recherche ou de filtrage."),
                     );
                 }
+            } else if state.compliance.view_mode == ComplianceViewMode::Matrix {
+                // ── Matrix view ──
+                ui.push_id("compliance_matrix", |ui: &mut egui::Ui| {
+                    Self::render_matrix_view(ui, state, &filtered);
+                });
             } else if state.compliance.group_by == ComplianceGroupBy::None {
                 ui.push_id("compliance_table_flat", |ui: &mut egui::Ui| {
                     Self::render_check_table(ui, state, &filtered, &mut command);
@@ -465,7 +493,7 @@ impl CompliancePage {
                         let score_color = theme::score_color(pct);
                         widgets::status_badge(
                             ui,
-                            &format!("{:.0}% CONFORMITÉ ({}/{})", pct, pass_count, total),
+                            &format!("{:.0}% CONFORMIT\u{00c9} ({}/{})", pct, pass_count, total),
                             score_color,
                         );
                     });
@@ -757,6 +785,179 @@ impl CompliancePage {
         if let Some(idx) = clicked_idx {
             state.compliance.selected_check = Some(idx);
             state.compliance.detail_open = true;
+        }
+    }
+
+    fn render_matrix_view(ui: &mut Ui, state: &AppState, indices: &[usize]) {
+        use std::collections::BTreeSet;
+        use egui_extras::{Column, TableBuilder};
+
+        // Collect unique frameworks from filtered checks
+        let mut frameworks_set = BTreeSet::new();
+        for &i in indices {
+            for fw in &state.checks[i].frameworks {
+                frameworks_set.insert(fw.clone());
+            }
+        }
+        let frameworks: Vec<String> = frameworks_set.into_iter().collect();
+
+        if frameworks.is_empty() {
+            widgets::empty_state(
+                ui,
+                icons::COMPLIANCE,
+                "AUCUN R\u{00c9}F\u{00c9}RENTIEL",
+                Some("Les contr\u{00f4}les s\u{00e9}lectionn\u{00e9}s ne sont associ\u{00e9}s \u{00e0} aucun r\u{00e9}f\u{00e9}rentiel."),
+            );
+            return;
+        }
+
+        // Compute per-framework scores for the header
+        let mut fw_pass: Vec<u32> = vec![0; frameworks.len()];
+        let mut fw_total: Vec<u32> = vec![0; frameworks.len()];
+        for &i in indices {
+            let check = &state.checks[i];
+            for (fi, fw) in frameworks.iter().enumerate() {
+                if check.frameworks.contains(fw) {
+                    fw_total[fi] = fw_total[fi].saturating_add(1);
+                    if check.status == GuiCheckStatus::Pass {
+                        fw_pass[fi] = fw_pass[fi].saturating_add(1);
+                    }
+                }
+            }
+        }
+
+        // Build table
+        let fw_count = frameworks.len();
+        let name_col_width = 250.0_f32;
+        let fw_col_width = 100.0_f32;
+
+        let mut builder = TableBuilder::new(ui)
+            .striped(false)
+            .resizable(true)
+            .cell_layout(egui::Layout::centered_and_justified(egui::Direction::LeftToRight))
+            .column(Column::initial(name_col_width).at_least(150.0));
+
+        for _ in 0..fw_count {
+            builder = builder.column(Column::initial(fw_col_width).at_least(70.0));
+        }
+
+        builder
+            .header(30.0, |mut header| {
+                header.col(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("CONTR\u{00d4}LE")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong()
+                            .extra_letter_spacing(theme::TRACKING_NORMAL),
+                    );
+                });
+                for (fi, fw) in frameworks.iter().enumerate() {
+                    header.col(|ui: &mut egui::Ui| {
+                        let pct = if fw_total[fi] > 0 {
+                            (fw_pass[fi] as f32 / fw_total[fi] as f32) * 100.0
+                        } else {
+                            0.0
+                        };
+                        let score_color = theme::score_color(pct);
+                        ui.vertical_centered(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(fw.to_uppercase())
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
+                            );
+                            ui.label(
+                                egui::RichText::new(format!("{:.0}%", pct))
+                                    .font(theme::font_label())
+                                    .color(score_color)
+                                    .strong(),
+                            );
+                        });
+                    });
+                }
+            })
+            .body(|mut body| {
+                for &idx in indices {
+                    let check = &state.checks[idx];
+                    body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
+                        row.col(|ui: &mut egui::Ui| {
+                            ui.with_layout(
+                                egui::Layout::left_to_right(egui::Align::Center),
+                                |ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&check.name)
+                                            .font(theme::font_body())
+                                            .color(theme::text_primary()),
+                                    );
+                                },
+                            );
+                        });
+                        for fw in &frameworks {
+                            row.col(|ui: &mut egui::Ui| {
+                                if check.frameworks.contains(fw) {
+                                    let (symbol, color) = match check.status {
+                                        GuiCheckStatus::Pass => ("\u{2713}", theme::SUCCESS),
+                                        GuiCheckStatus::Fail => ("\u{2717}", theme::ERROR),
+                                        GuiCheckStatus::Error => ("!", theme::WARNING),
+                                        _ => ("\u{2014}", theme::text_tertiary()),
+                                    };
+                                    ui.label(
+                                        egui::RichText::new(symbol)
+                                            .font(theme::font_body())
+                                            .color(color)
+                                            .strong(),
+                                    );
+                                } else {
+                                    ui.label(
+                                        egui::RichText::new("\u{2014}")
+                                            .font(theme::font_body())
+                                            .color(theme::text_tertiary()),
+                                    );
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+        // Gap analysis footer
+        ui.add_space(theme::SPACE_MD);
+        ui.label(
+            egui::RichText::new("ANALYSE DES \u{00c9}CARTS")
+                .font(theme::font_label())
+                .color(theme::text_tertiary())
+                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                .strong(),
+        );
+        ui.add_space(theme::SPACE_XS);
+
+        for (fi, fw) in frameworks.iter().enumerate() {
+            let fail_count = fw_total[fi].saturating_sub(fw_pass[fi]);
+            if fail_count > 0 {
+                ui.label(
+                    egui::RichText::new(format!(
+                        "{} : {} contr\u{00f4}le(s) \u{00e9}chou\u{00e9}(s) sur {}",
+                        fw.to_uppercase(),
+                        fail_count,
+                        fw_total[fi]
+                    ))
+                    .font(theme::font_small())
+                    .color(theme::ERROR),
+                );
+            } else {
+                ui.label(
+                    egui::RichText::new(format!(
+                        "{} : tous les contr\u{00f4}les conformes ({}/{})",
+                        fw.to_uppercase(),
+                        fw_pass[fi],
+                        fw_total[fi]
+                    ))
+                    .font(theme::font_small())
+                    .color(theme::SUCCESS),
+                );
+            }
         }
     }
 

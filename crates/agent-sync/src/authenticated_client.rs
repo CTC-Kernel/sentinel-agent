@@ -9,9 +9,25 @@ use crate::client::HttpClient;
 use crate::credentials::CredentialsRepository;
 use crate::error::{SyncError, SyncResult};
 use crate::types::{
-    CertificateRenewalRequest, CertificateRenewalResponse, IncidentReportResponse,
-    SecurityIncidentReport, StoredCredentials, VulnerabilityFinding, VulnerabilityUploadRequest,
-    VulnerabilityUploadResponse,
+    CertificateRenewalRequest, CertificateRenewalResponse, GenericSyncResponse,
+    IncidentReportResponse, SecurityIncidentReport, StoredCredentials,
+    VulnerabilityFinding, VulnerabilityUploadRequest, VulnerabilityUploadResponse,
+    // Playbook sync
+    PlaybookPayload, PlaybookSyncRequest, PlaybookSyncResponse,
+    PlaybookLogPayload, PlaybookLogSyncRequest,
+    // Detection rule sync
+    DetectionRulePayload, DetectionRuleSyncRequest,
+    DetectionMatchPayload, DetectionMatchSyncRequest,
+    // Risk sync
+    RiskPayload, RiskSyncRequest, RiskSyncResponse,
+    // Asset sync
+    AssetPayload, AssetSyncRequest, AssetSyncResponse,
+    // KPI sync
+    KpiSnapshotPayload, KpiSyncRequest,
+    // Alert rule sync
+    AlertRulePayload, AlertRuleSyncRequest,
+    // Webhook sync
+    WebhookPayload, WebhookSyncRequest,
 };
 use agent_common::config::AgentConfig;
 use agent_storage::Database;
@@ -355,6 +371,157 @@ impl AuthenticatedClient {
             .unwrap_or(0) as u32;
 
         Ok(received_count)
+    }
+
+    // ========================================================================
+    // 9 Axes Sync Methods
+    // ========================================================================
+
+    /// Sync playbook definitions to the SaaS.
+    pub async fn sync_playbooks(
+        &self,
+        playbooks: Vec<PlaybookPayload>,
+    ) -> SyncResult<PlaybookSyncResponse> {
+        if playbooks.is_empty() {
+            return Ok(PlaybookSyncResponse { received_count: 0, created_count: 0, updated_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        info!("Syncing {} playbooks for agent {}", playbooks.len(), agent_id);
+        let request = PlaybookSyncRequest { playbooks };
+        self.post_json(&format!("/v1/agents/{}/playbooks", agent_id), &request).await
+    }
+
+    /// Sync playbook execution logs to the SaaS.
+    pub async fn sync_playbook_logs(
+        &self,
+        entries: Vec<PlaybookLogPayload>,
+    ) -> SyncResult<GenericSyncResponse> {
+        if entries.is_empty() {
+            return Ok(GenericSyncResponse { received_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        debug!("Syncing {} playbook log entries for agent {}", entries.len(), agent_id);
+        let request = PlaybookLogSyncRequest { entries };
+        self.post_json(&format!("/v1/agents/{}/playbook-logs", agent_id), &request).await
+    }
+
+    /// Sync detection rule definitions to the SaaS.
+    pub async fn sync_detection_rules(
+        &self,
+        rules: Vec<DetectionRulePayload>,
+    ) -> SyncResult<GenericSyncResponse> {
+        if rules.is_empty() {
+            return Ok(GenericSyncResponse { received_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        info!("Syncing {} detection rules for agent {}", rules.len(), agent_id);
+        let request = DetectionRuleSyncRequest { rules };
+        self.post_json(&format!("/v1/agents/{}/detection-rules", agent_id), &request).await
+    }
+
+    /// Sync detection rule match events to the SaaS.
+    pub async fn sync_detection_matches(
+        &self,
+        matches: Vec<DetectionMatchPayload>,
+    ) -> SyncResult<GenericSyncResponse> {
+        if matches.is_empty() {
+            return Ok(GenericSyncResponse { received_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        debug!("Syncing {} detection matches for agent {}", matches.len(), agent_id);
+        let request = DetectionMatchSyncRequest { matches };
+        self.post_json(&format!("/v1/agents/{}/detection-matches", agent_id), &request).await
+    }
+
+    /// Sync risk entries to the SaaS.
+    pub async fn sync_risks(
+        &self,
+        risks: Vec<RiskPayload>,
+    ) -> SyncResult<RiskSyncResponse> {
+        if risks.is_empty() {
+            return Ok(RiskSyncResponse { received_count: 0, created_count: 0, updated_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        info!("Syncing {} risk entries for agent {}", risks.len(), agent_id);
+        let request = RiskSyncRequest { risks };
+        self.post_json(&format!("/v1/agents/{}/risks", agent_id), &request).await
+    }
+
+    /// Sync managed assets to the SaaS.
+    pub async fn sync_assets(
+        &self,
+        assets: Vec<AssetPayload>,
+    ) -> SyncResult<AssetSyncResponse> {
+        if assets.is_empty() {
+            return Ok(AssetSyncResponse { received_count: 0, created_count: 0, updated_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        info!("Syncing {} managed assets for agent {}", assets.len(), agent_id);
+        let request = AssetSyncRequest { assets };
+        self.post_json(&format!("/v1/agents/{}/managed-assets", agent_id), &request).await
+    }
+
+    /// Sync KPI snapshots to the SaaS.
+    pub async fn sync_kpi_snapshots(
+        &self,
+        snapshots: Vec<KpiSnapshotPayload>,
+    ) -> SyncResult<GenericSyncResponse> {
+        if snapshots.is_empty() {
+            return Ok(GenericSyncResponse { received_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        debug!("Syncing {} KPI snapshots for agent {}", snapshots.len(), agent_id);
+        let request = KpiSyncRequest { snapshots };
+        self.post_json(&format!("/v1/agents/{}/kpi-snapshots", agent_id), &request).await
+    }
+
+    /// Sync alert rule configurations to the SaaS.
+    pub async fn sync_alert_rules(
+        &self,
+        rules: Vec<AlertRulePayload>,
+    ) -> SyncResult<GenericSyncResponse> {
+        if rules.is_empty() {
+            return Ok(GenericSyncResponse { received_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        debug!("Syncing {} alert rules for agent {}", rules.len(), agent_id);
+        let request = AlertRuleSyncRequest { rules };
+        self.post_json(&format!("/v1/agents/{}/alert-rules", agent_id), &request).await
+    }
+
+    /// Sync webhook configurations to the SaaS.
+    pub async fn sync_webhooks(
+        &self,
+        webhooks: Vec<WebhookPayload>,
+    ) -> SyncResult<GenericSyncResponse> {
+        if webhooks.is_empty() {
+            return Ok(GenericSyncResponse { received_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        debug!("Syncing {} webhooks for agent {}", webhooks.len(), agent_id);
+        let request = WebhookSyncRequest { webhooks };
+        self.post_json(&format!("/v1/agents/{}/webhooks", agent_id), &request).await
+    }
+
+    /// Download centrally managed playbooks from the SaaS.
+    pub async fn download_playbooks(&self) -> SyncResult<Vec<PlaybookPayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Downloading central playbooks for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/playbooks/central", agent_id)).await
+    }
+
+    /// Download centrally managed detection rules from the SaaS.
+    pub async fn download_detection_rules(&self) -> SyncResult<Vec<DetectionRulePayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Downloading central detection rules for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/detection-rules/central", agent_id)).await
+    }
+
+    /// Download centrally managed alert rules from the SaaS.
+    pub async fn download_alert_rules(&self) -> SyncResult<Vec<AlertRulePayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Downloading central alert rules for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/alert-rules/central", agent_id)).await
     }
 
     /// Get or create the mTLS HTTP client.

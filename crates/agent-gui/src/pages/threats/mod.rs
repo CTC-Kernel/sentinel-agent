@@ -7,6 +7,9 @@ mod overview;
 mod response;
 mod timeline;
 mod types;
+mod playbooks;
+mod detection_rules;
+mod forensic_timeline;
 
 use egui::Ui;
 
@@ -46,11 +49,17 @@ impl ThreatsPage {
             .filter(|a| matches!(a.status, crate::dto::ResponseStatus::Pending | crate::dto::ResponseStatus::InProgress))
             .count() as u32;
 
+        let active_playbooks = state.threats.playbooks.iter().filter(|p| p.enabled).count() as u32;
+        let active_rules = state.threats.detection_rules.iter().filter(|r| r.enabled).count() as u32;
+
         let selected_idx = match state.threats.active_tab {
             EdrTab::Overview => 0,
             EdrTab::Events => 1,
             EdrTab::Investigation => 2,
             EdrTab::Response => 3,
+            EdrTab::Playbooks => 4,
+            EdrTab::DetectionRules => 5,
+            EdrTab::ForensicTimeline => 6,
         };
 
         let mut event_tab = Tab::new("\u{00c9}V\u{00c9}NEMENTS").icon(icons::LIST);
@@ -61,12 +70,23 @@ impl ThreatsPage {
         if pending_response > 0 {
             response_tab = response_tab.badge(pending_response);
         }
+        let mut playbooks_tab = Tab::new("PLAYBOOKS").icon(icons::CLIPBOARD_LIST);
+        if active_playbooks > 0 {
+            playbooks_tab = playbooks_tab.badge(active_playbooks);
+        }
+        let mut rules_tab = Tab::new("R\u{00c8}GLES").icon(icons::CROSSHAIRS);
+        if active_rules > 0 {
+            rules_tab = rules_tab.badge(active_rules);
+        }
 
         let tabs = vec![
             Tab::new("VUE D'ENSEMBLE").icon(icons::EYE),
             event_tab,
             Tab::new("INVESTIGATION").icon(icons::SEARCH),
             response_tab,
+            playbooks_tab,
+            rules_tab,
+            Tab::new("CHRONOLOGIE").icon(icons::CLOCK),
         ];
 
         if let Some(new_idx) = TabBar::new(tabs, selected_idx).full_width().show(ui) {
@@ -75,6 +95,9 @@ impl ThreatsPage {
                 1 => EdrTab::Events,
                 2 => EdrTab::Investigation,
                 3 => EdrTab::Response,
+                4 => EdrTab::Playbooks,
+                5 => EdrTab::DetectionRules,
+                6 => EdrTab::ForensicTimeline,
                 _ => EdrTab::Overview,
             };
         }
@@ -87,6 +110,9 @@ impl ThreatsPage {
             EdrTab::Events => events::show(ui, state),
             EdrTab::Investigation => investigation::show(ui, state),
             EdrTab::Response => response::show(ui, state),
+            EdrTab::Playbooks => playbooks::show(ui, state),
+            EdrTab::DetectionRules => detection_rules::show(ui, state),
+            EdrTab::ForensicTimeline => forensic_timeline::show(ui, state),
         }
     }
 }

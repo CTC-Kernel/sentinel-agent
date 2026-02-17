@@ -22,6 +22,7 @@ const FRAME_DT_MAX: f32 = 0.05;
 /// Results from background async tasks initiated by the UI.
 pub enum AsyncTaskResult {
     CsvExport(bool, String),
+    HtmlExport(bool, String),
     #[cfg(target_os = "macos")]
     MacOsApps(Vec<crate::dto::GuiMacOsApp>),
 }
@@ -49,6 +50,9 @@ pub enum Page {
     Notifications,
     Settings,
     AI,
+    Reports,
+    Risks,
+    Assets,
     About,
 }
 
@@ -474,6 +478,14 @@ impl eframe::App for SentinelApp {
                          self.state.toasts.push(crate::widgets::toast::Toast::error(message).with_time(time));
                      }
                  }
+                 AsyncTaskResult::HtmlExport(success, message) => {
+                     let time = ctx.input(|i| i.time);
+                     if success {
+                         self.state.toasts.push(crate::widgets::toast::Toast::success(message).with_time(time));
+                     } else {
+                         self.state.toasts.push(crate::widgets::toast::Toast::error(message).with_time(time));
+                     }
+                 }
                  #[cfg(target_os = "macos")]
                  AsyncTaskResult::MacOsApps(apps) => {
                      self.state.software.macos_apps = apps;
@@ -781,6 +793,27 @@ impl eframe::App for SentinelApp {
                                 }
                                 Page::About => {
                                     if let Some(cmd) = pages::AboutPage::show(ui) {
+                                        self.send_command(cmd);
+                                    }
+                                }
+                                Page::Reports => {
+                                    if let Some(cmd) =
+                                        pages::ReportsPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
+                                }
+                                Page::Risks => {
+                                    if let Some(cmd) =
+                                        pages::RisksPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
+                                }
+                                Page::Assets => {
+                                    if let Some(cmd) =
+                                        pages::AssetsPage::show(ui, &mut self.state)
+                                    {
                                         self.send_command(cmd);
                                     }
                                 }
