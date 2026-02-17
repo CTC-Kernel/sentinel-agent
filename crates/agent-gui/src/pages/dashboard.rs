@@ -3,7 +3,7 @@
 use egui::Ui;
 
 use crate::app::{AppState, Page};
-use crate::dto::GuiAgentStatus;
+use crate::dto::{GuiAgentStatus, KpiPeriod};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::llm_panel::{self, LLMPanel};
@@ -30,6 +30,12 @@ const BOTTOM_GRID_MIN_WIDTH: f32 = 340.0;
 const COMPACT_REC_ROW_HEIGHT: f32 = 36.0;
 /// Maximum items shown in the activity feed widget.
 const ACTIVITY_FEED_LIMIT: usize = 5;
+/// Sparkline height in the KPI trends section.
+const KPI_SPARKLINE_HEIGHT: f32 = 48.0;
+/// Mini gauge size in the KPI trends section.
+const KPI_GAUGE_SIZE: f32 = 56.0;
+/// Seconds per day for KPI period filtering.
+const SECS_PER_DAY: i64 = 86_400;
 /// Minimum inner height for indicator cards (ensures uniform row height).
 const INDICATOR_CARD_MIN_HEIGHT: f32 = 96.0;
 /// Minimum inner height for bottom-row cards (recommendations + feed).
@@ -155,6 +161,13 @@ impl DashboardPage {
                 });
             });
         });
+
+        ui.add_space(theme::SPACE_MD);
+
+        // ══════════════════════════════════════════════════════════════════
+        // KPI TRENDS & KEY INDICATORS
+        // ══════════════════════════════════════════════════════════════════
+        Self::kpi_trends_card(ui, state);
 
         ui.add_space(theme::SPACE_MD);
 
@@ -915,6 +928,300 @@ impl DashboardPage {
             }
         })
         .clicked()
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // KPI TRENDS CARD
+    // ──────────────────────────────────────────────────────────────────────
+    fn kpi_trends_card(ui: &mut egui::Ui, state: &AppState) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+
+            // Header + period selector
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(format!("{}  TENDANCES & INDICATEURS CL\u{00c9}S", icons::CHART_AREA))
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
+                );
+
+                ui.add_space(theme::SPACE_MD);
+
+                // Period chips stored via egui memory (state.kpi.period is immutable here)
+                let period_id = ui.id().with("kpi_period_selection");
+                let current_period: KpiPeriod = ui.memory(|mem| {
+                    mem.data
+                        .get_temp::<u8>(period_id)
+                        .map(|v| if v == 1 { KpiPeriod::NinetyDays } else { KpiPeriod::ThirtyDays })
+                        .unwrap_or(state.kpi.period)
+                });
+
+                for period in [KpiPeriod::ThirtyDays, KpiPeriod::NinetyDays] {
+                    let active = current_period == period;
+                    if widgets::chip_button(ui, period.label_fr(), active, theme::ACCENT).clicked() {
+                        let val = match period {
+                            KpiPeriod::ThirtyDays => 0u8,
+                            KpiPeriod::NinetyDays => 1u8,
+                        };
+                        ui.memory_mut(|mem| mem.data.insert_temp(period_id, val));
+                    }
+                }
+            });
+
+            ui.add_space(theme::SPACE_MD);
+
+            // Filter snapshots by period
+            let period_id = ui.id().with("kpi_period_selection");
+            let selected_period: KpiPeriod = ui.memory(|mem| {
+                mem.data
+                    .get_temp::<u8>(period_id)
+                    .map(|v| if v == 1 { KpiPeriod::NinetyDays } else { KpiPeriod::ThirtyDays })
+                    .unwrap_or(state.kpi.period)
+            });
+
+            let cutoff = chrono::Utc::now()
+                - chrono::Duration::seconds(i64::from(selected_period.days()).saturating_mul(SECS_PER_DAY));
+
+            let filtered: Vec<&crate::dto::KpiSnapshot> = state
+                .kpi
+                .snapshots
+                .iter()
+                .filter(|s| s.timestamp >= cutoff)
+                .collect();
+
+            if filtered.is_empty() {
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    ui.add_space(theme::SPACE_MD);
+                    ui.label(
+                        egui::RichText::new(format!("{}  Donn\u{00e9}es insuffisantes", icons::INFO))
+                            .font(theme::font_body())
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.label(
+                        egui::RichText::new("Les indicateurs appara\u{00ee}tront apr\u{00e8}s plusieurs jours de collecte.")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.add_space(theme::SPACE_MD);
+                });
+            } else {
+                // Build sparkline data vectors
+                let compliance_vals: Vec<[f64; 2]> = filtered
+                    .iter()
+                    .enumerate()
+                    .map(|(i, s)| [i as f64, s.compliance_score as f64])
+                    .collect();
+                let incident_vals: Vec<[f64; 2]> = filtered
+                    .iter()
+                    .enumerate()
+                    .map(|(i, s)| [i as f64, s.incident_count as f64])
+                    .collect();
+                let vulns_vals: Vec<[f64; 2]> = filtered
+                    .iter()
+                    .enumerate()
+                    .map(|(i, s)| [i as f64, s.open_vulns as f64])
+                    .collect();
+
+                // Current values (last snapshot)
+                let last = filtered.last().expect("filtered is non-empty");
+                let current_compliance = format!("{:.0}%", last.compliance_score);
+                let current_incidents = last.incident_count.to_string();
+                let current_vulns = last.open_vulns.to_string();
+                let current_sla = last.remediation_sla_pct;
+
+                // Compute trends (first half avg vs second half avg)
+                let mid = filtered.len() / 2;
+                let compliance_trend = Self::kpi_trend(&filtered, mid, |s| s.compliance_score);
+                let incident_trend = Self::kpi_trend(&filtered, mid, |s| s.incident_count as f32);
+                let vulns_trend = Self::kpi_trend(&filtered, mid, |s| s.open_vulns as f32);
+                let sla_trend = Self::kpi_trend(&filtered, mid, |s| s.remediation_sla_pct);
+
+                // Render 4 KPI cards in a responsive grid
+                ui.push_id("kpi_trends_grid", |ui: &mut egui::Ui| {
+                    let grid = widgets::ResponsiveGrid::new(180.0, theme::SPACE);
+                    let items = vec![0, 1, 2, 3];
+
+                    grid.show(ui, &items, |ui, width, &idx| {
+                        ui.vertical(|ui: &mut egui::Ui| {
+                            ui.set_width(width);
+                            match idx {
+                                0 => {
+                                    // Score conformite
+                                    let (arrow, color) = Self::kpi_trend_arrow(compliance_trend, true);
+                                    Self::kpi_sparkline_cell(
+                                        ui,
+                                        "Score conformit\u{00e9}",
+                                        &current_compliance,
+                                        arrow,
+                                        color,
+                                        &compliance_vals,
+                                        theme::SUCCESS,
+                                    );
+                                }
+                                1 => {
+                                    // Incidents
+                                    let (arrow, color) = Self::kpi_trend_arrow(incident_trend, false);
+                                    Self::kpi_sparkline_cell(
+                                        ui,
+                                        "Incidents",
+                                        &current_incidents,
+                                        arrow,
+                                        color,
+                                        &incident_vals,
+                                        theme::WARNING,
+                                    );
+                                }
+                                2 => {
+                                    // Vulnerabilites ouvertes
+                                    let (arrow, color) = Self::kpi_trend_arrow(vulns_trend, false);
+                                    Self::kpi_sparkline_cell(
+                                        ui,
+                                        "Vuln\u{00e9}rabilit\u{00e9}s ouvertes",
+                                        &current_vulns,
+                                        arrow,
+                                        color,
+                                        &vulns_vals,
+                                        theme::ERROR,
+                                    );
+                                }
+                                _ => {
+                                    // SLA remediation (mini gauge)
+                                    let (arrow, color) = Self::kpi_trend_arrow(sla_trend, true);
+                                    let sla_color = theme::score_color(current_sla);
+                                    egui::Frame::new()
+                                        .fill(theme::bg_tertiary().linear_multiply(theme::OPACITY_TINT))
+                                        .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
+                                        .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+                                        .show(ui, |ui: &mut egui::Ui| {
+                                            ui.label(
+                                                egui::RichText::new("SLA rem\u{00e9}diation")
+                                                    .font(theme::font_label())
+                                                    .color(theme::text_tertiary())
+                                                    .strong(),
+                                            );
+                                            ui.add_space(theme::SPACE_XS);
+                                            ui.horizontal(|ui: &mut egui::Ui| {
+                                                ui.label(
+                                                    egui::RichText::new(format!("{:.0}%", current_sla))
+                                                        .font(theme::font_card_value())
+                                                        .color(sla_color)
+                                                        .strong(),
+                                                );
+                                                ui.label(
+                                                    egui::RichText::new(arrow)
+                                                        .font(theme::font_body())
+                                                        .color(color),
+                                                );
+                                            });
+                                            ui.add_space(theme::SPACE_XS);
+                                            ui.vertical_centered(|ui: &mut egui::Ui| {
+                                                widgets::mini_gauge(ui, current_sla / 100.0, sla_color, KPI_GAUGE_SIZE);
+                                            });
+                                        });
+                                }
+                            }
+                        });
+                    });
+                });
+            }
+        });
+    }
+
+    /// Render a single KPI sparkline cell with label, value, trend arrow, and chart.
+    fn kpi_sparkline_cell(
+        ui: &mut egui::Ui,
+        label: &str,
+        value: &str,
+        trend_arrow: &str,
+        trend_color: egui::Color32,
+        data: &[[f64; 2]],
+        line_color: egui::Color32,
+    ) {
+        egui::Frame::new()
+            .fill(theme::bg_tertiary().linear_multiply(theme::OPACITY_TINT))
+            .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
+            .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+            .show(ui, |ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(label)
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_XS);
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(value)
+                            .font(theme::font_card_value())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                    ui.label(
+                        egui::RichText::new(trend_arrow)
+                            .font(theme::font_body())
+                            .color(trend_color),
+                    );
+                });
+                ui.add_space(theme::SPACE_XS);
+
+                let config = widgets::SparklineConfig {
+                    color: line_color,
+                    fill: true,
+                    show_trend: false,
+                    show_stats: false,
+                };
+                widgets::sparkline(
+                    ui,
+                    label,
+                    data,
+                    egui::Vec2::new(ui.available_width(), KPI_SPARKLINE_HEIGHT),
+                    &config,
+                );
+            });
+    }
+
+    /// Compute trend direction: average of second half minus average of first half.
+    /// Returns positive if increasing, negative if decreasing, zero if flat.
+    fn kpi_trend(
+        snapshots: &[&crate::dto::KpiSnapshot],
+        mid: usize,
+        extract: fn(&crate::dto::KpiSnapshot) -> f32,
+    ) -> f32 {
+        if snapshots.len() < 2 {
+            return 0.0;
+        }
+        let first_half = &snapshots[..mid.max(1)];
+        let second_half = &snapshots[mid.max(1)..];
+
+        let avg_first = first_half.iter().map(|s| extract(s)).sum::<f32>()
+            / first_half.len().max(1) as f32;
+        let avg_second = second_half.iter().map(|s| extract(s)).sum::<f32>()
+            / second_half.len().max(1) as f32;
+
+        avg_second - avg_first
+    }
+
+    /// Return (arrow_str, color) based on trend direction.
+    /// `up_is_good`: true for compliance/SLA (up=green), false for incidents/vulns (up=red).
+    fn kpi_trend_arrow(trend: f32, up_is_good: bool) -> (&'static str, egui::Color32) {
+        const TREND_THRESHOLD: f32 = 0.5;
+        if trend > TREND_THRESHOLD {
+            if up_is_good {
+                ("\u{2191}", theme::SUCCESS) // up arrow, green
+            } else {
+                ("\u{2191}", theme::ERROR) // up arrow, red
+            }
+        } else if trend < -TREND_THRESHOLD {
+            if up_is_good {
+                ("\u{2193}", theme::ERROR) // down arrow, red
+            } else {
+                ("\u{2193}", theme::SUCCESS) // down arrow, green
+            }
+        } else {
+            ("\u{2192}", theme::text_tertiary()) // right arrow, neutral
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────────

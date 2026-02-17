@@ -182,6 +182,18 @@ pub enum AgentEvent {
         /// Error message if the action failed.
         error: Option<String>,
     },
+    /// A report has been generated.
+    ReportGenerated {
+        report: Box<crate::dto::GeneratedReport>,
+    },
+    /// A playbook was triggered automatically.
+    PlaybookTriggered {
+        log_entry: Box<crate::dto::PlaybookLogEntry>,
+    },
+    /// A KPI snapshot for trend tracking.
+    KpiSnapshot {
+        snapshot: Box<crate::dto::KpiSnapshot>,
+    },
 }
 
 /// Commands sent from the GUI to the agent runtime.
@@ -281,6 +293,82 @@ pub enum GuiCommand {
     UnblockIp {
         /// IP address to unblock.
         ip: String,
+    },
+    /// Generate a report.
+    GenerateReport {
+        report_type: crate::dto::ReportType,
+        framework: Option<String>,
+    },
+    /// Export a report as HTML file.
+    ExportReportHtml {
+        report_id: String,
+    },
+    /// Execute a playbook manually.
+    ExecutePlaybook {
+        playbook_id: String,
+    },
+    /// Toggle playbook enabled state.
+    TogglePlaybook {
+        playbook_id: String,
+        enabled: bool,
+    },
+    /// Save or update a playbook.
+    SavePlaybook {
+        playbook: Box<crate::dto::Playbook>,
+    },
+    /// Delete a playbook.
+    DeletePlaybook {
+        playbook_id: String,
+    },
+    /// Save or update a detection rule.
+    SaveDetectionRule {
+        rule: Box<crate::dto::DetectionRule>,
+    },
+    /// Delete a detection rule.
+    DeleteDetectionRule {
+        rule_id: String,
+    },
+    /// Toggle detection rule enabled state.
+    ToggleDetectionRule {
+        rule_id: String,
+        enabled: bool,
+    },
+    /// Save or update a risk entry.
+    SaveRisk {
+        risk: Box<crate::dto::RiskEntry>,
+    },
+    /// Delete a risk entry.
+    DeleteRisk {
+        risk_id: String,
+    },
+    /// Save or update a managed asset.
+    SaveAsset {
+        asset: Box<crate::dto::ManagedAsset>,
+    },
+    /// Update asset lifecycle state.
+    UpdateAssetLifecycle {
+        asset_id: String,
+        lifecycle: crate::dto::AssetLifecycle,
+    },
+    /// Save or update an alert rule.
+    SaveAlertRule {
+        rule: Box<crate::dto::AlertRule>,
+    },
+    /// Delete an alert rule.
+    DeleteAlertRule {
+        rule_id: String,
+    },
+    /// Save or update a webhook config.
+    SaveWebhook {
+        webhook: Box<crate::dto::WebhookConfig>,
+    },
+    /// Delete a webhook config.
+    DeleteWebhook {
+        webhook_id: String,
+    },
+    /// Test a webhook by sending a test payload.
+    TestWebhook {
+        webhook_id: String,
     },
 }
 

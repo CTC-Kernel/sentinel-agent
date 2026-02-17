@@ -16,6 +16,9 @@ mod sync;
 mod terminal;
 mod threats;
 mod vulnerabilities;
+mod reports;
+mod risks;
+mod assets;
 
 pub use about::AboutPage;
 pub use audit_trail::AuditTrailPage;
@@ -33,3 +36,6 @@ pub use sync::SyncPage;
 pub use terminal::TerminalPage;
 pub use threats::ThreatsPage;
 pub use vulnerabilities::VulnerabilitiesPage;
+pub use reports::ReportsPage;
+pub use risks::RisksPage;
+pub use assets::AssetsPage;

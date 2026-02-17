@@ -600,6 +600,305 @@ pub struct AuditTrailSyncRequest {
     pub entries: Vec<AuditTrailEntry>,
 }
 
+// ============================================================================
+// Playbook Sync Types
+// ============================================================================
+
+/// Playbook condition for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PlaybookConditionPayload {
+    pub condition_type: String,
+    pub operator: String,
+    pub value: String,
+}
+
+/// Playbook action for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PlaybookActionPayload {
+    pub action_type: String,
+    pub parameters: String,
+}
+
+/// Playbook definition for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PlaybookPayload {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub enabled: bool,
+    pub conditions: Vec<PlaybookConditionPayload>,
+    pub actions: Vec<PlaybookActionPayload>,
+    pub created_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_triggered: Option<DateTime<Utc>>,
+    pub trigger_count: u32,
+}
+
+/// Request to sync playbooks.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PlaybookSyncRequest {
+    pub playbooks: Vec<PlaybookPayload>,
+}
+
+/// Playbook sync response.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PlaybookSyncResponse {
+    pub received_count: u32,
+    pub created_count: u32,
+    pub updated_count: u32,
+}
+
+/// Playbook execution log entry for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PlaybookLogPayload {
+    pub id: String,
+    pub playbook_id: String,
+    pub playbook_name: String,
+    pub triggered_at: DateTime<Utc>,
+    pub trigger_event: String,
+    pub actions_executed: Vec<String>,
+    pub success: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Request to sync playbook execution logs.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PlaybookLogSyncRequest {
+    pub entries: Vec<PlaybookLogPayload>,
+}
+
+// ============================================================================
+// Detection Rule Sync Types
+// ============================================================================
+
+/// Detection rule condition for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct DetectionConditionPayload {
+    pub condition_type: String,
+    pub value: String,
+}
+
+/// Detection rule for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct DetectionRulePayload {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub severity: String,
+    pub conditions: Vec<DetectionConditionPayload>,
+    pub actions: Vec<String>,
+    pub enabled: bool,
+    pub created_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_match: Option<DateTime<Utc>>,
+    pub match_count: u32,
+}
+
+/// Request to sync detection rules.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct DetectionRuleSyncRequest {
+    pub rules: Vec<DetectionRulePayload>,
+}
+
+/// Detection rule match event for sync.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct DetectionMatchPayload {
+    pub rule_id: String,
+    pub rule_name: String,
+    pub matched_at: DateTime<Utc>,
+    pub trigger_details: String,
+    pub severity: String,
+}
+
+/// Request to sync detection matches.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct DetectionMatchSyncRequest {
+    pub matches: Vec<DetectionMatchPayload>,
+}
+
+/// Generic sync response with count.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct GenericSyncResponse {
+    pub received_count: u32,
+}
+
+// ============================================================================
+// Risk Sync Types
+// ============================================================================
+
+/// Risk entry for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct RiskPayload {
+    pub id: String,
+    pub title: String,
+    pub description: String,
+    pub probability: u8,
+    pub impact: u8,
+    pub owner: String,
+    pub status: String,
+    pub mitigation: String,
+    pub source: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sla_target_days: Option<u32>,
+}
+
+/// Request to sync risks.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct RiskSyncRequest {
+    pub risks: Vec<RiskPayload>,
+}
+
+/// Risk sync response.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct RiskSyncResponse {
+    pub received_count: u32,
+    pub created_count: u32,
+    pub updated_count: u32,
+}
+
+// ============================================================================
+// Asset Sync Types
+// ============================================================================
+
+/// Managed asset for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AssetPayload {
+    pub id: String,
+    pub ip: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hostname: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mac: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vendor: Option<String>,
+    pub device_type: String,
+    pub criticality: String,
+    pub lifecycle: String,
+    #[serde(default)]
+    pub tags: Vec<String>,
+    pub risk_score: f64,
+    pub vulnerability_count: u32,
+    #[serde(default)]
+    pub open_ports: Vec<u16>,
+    #[serde(default)]
+    pub software: Vec<String>,
+    pub first_seen: DateTime<Utc>,
+    pub last_seen: DateTime<Utc>,
+}
+
+/// Request to sync assets.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AssetSyncRequest {
+    pub assets: Vec<AssetPayload>,
+}
+
+/// Asset sync response.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AssetSyncResponse {
+    pub received_count: u32,
+    pub created_count: u32,
+    pub updated_count: u32,
+}
+
+// ============================================================================
+// KPI Sync Types
+// ============================================================================
+
+/// KPI snapshot for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct KpiSnapshotPayload {
+    pub timestamp: DateTime<Utc>,
+    pub compliance_score: f64,
+    pub incident_count: u32,
+    pub open_vulns: u32,
+    pub closed_vulns: u32,
+    pub remediation_sla_pct: f64,
+}
+
+/// Request to sync KPI snapshots.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct KpiSyncRequest {
+    pub snapshots: Vec<KpiSnapshotPayload>,
+}
+
+// ============================================================================
+// Alert Rule Sync Types
+// ============================================================================
+
+/// Alert rule for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AlertRulePayload {
+    pub id: String,
+    pub name: String,
+    pub rule_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub severity_threshold: Option<String>,
+    #[serde(default)]
+    pub detection_types: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub escalation_minutes: Option<u32>,
+    pub enabled: bool,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Request to sync alert rules.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AlertRuleSyncRequest {
+    pub rules: Vec<AlertRulePayload>,
+}
+
+// ============================================================================
+// Webhook Sync Types
+// ============================================================================
+
+/// Webhook configuration for sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct WebhookPayload {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+    pub format: String,
+    pub enabled: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_sent: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Request to sync webhooks.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct WebhookSyncRequest {
+    pub webhooks: Vec<WebhookPayload>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

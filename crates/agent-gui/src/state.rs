@@ -201,6 +201,23 @@ pub struct ThreatsState {
     pub response_log: VecDeque<crate::dto::ResponseLogEntry>,
     pub response_page: usize,
     pub confirm_action: Option<crate::dto::PendingConfirmation>,
+
+    // Playbooks tab
+    pub playbooks: Vec<crate::dto::Playbook>,
+    pub playbook_log: VecDeque<crate::dto::PlaybookLogEntry>,
+    pub playbook_editing: bool,
+
+    // Detection rules tab
+    pub detection_rules: Vec<crate::dto::DetectionRule>,
+    pub detection_rule_editing: bool,
+
+    // Forensic timeline tab
+    pub forensic_time_range: crate::dto::TimelineRange,
+    pub forensic_source_filter: Option<String>,
+    pub forensic_severity_filter: Option<crate::dto::Severity>,
+    pub forensic_selected_event: Option<usize>,
+    pub forensic_detail_open: bool,
+    pub forensic_page: usize,
 }
 
 impl Default for ThreatsState {
@@ -225,6 +242,18 @@ impl Default for ThreatsState {
             response_log: VecDeque::with_capacity(500),
             response_page: 0,
             confirm_action: None,
+
+            playbooks: Vec::new(),
+            playbook_log: VecDeque::with_capacity(200),
+            playbook_editing: false,
+            detection_rules: Vec::new(),
+            detection_rule_editing: false,
+            forensic_time_range: crate::dto::TimelineRange::default(),
+            forensic_source_filter: None,
+            forensic_severity_filter: None,
+            forensic_selected_event: None,
+            forensic_detail_open: false,
+            forensic_page: 0,
         }
     }
 }
@@ -264,6 +293,7 @@ pub struct ComplianceFilter {
     pub group_by: crate::dto::ComplianceGroupBy,
     pub selected_check: Option<usize>,
     pub detail_open: bool,
+    pub view_mode: crate::dto::ComplianceViewMode,
 }
 
 
@@ -278,6 +308,100 @@ pub struct AiState {
     pub detail_open: bool,
     pub filter: Option<String>,
     pub search: String,
+}
+
+// ---------------------------------------------------------------------------
+// Reports
+// ---------------------------------------------------------------------------
+
+/// Reports page state.
+pub struct ReportsState {
+    pub reports: VecDeque<crate::dto::GeneratedReport>,
+    pub selected_report: Option<usize>,
+    pub detail_open: bool,
+    pub generating: bool,
+    pub selected_type: crate::dto::ReportType,
+    pub selected_framework: Option<String>,
+    pub active_tab: usize,
+}
+
+impl Default for ReportsState {
+    fn default() -> Self {
+        Self {
+            reports: VecDeque::with_capacity(50),
+            selected_report: None,
+            detail_open: false,
+            generating: false,
+            selected_type: crate::dto::ReportType::default(),
+            selected_framework: None,
+            active_tab: 0,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Risk management
+// ---------------------------------------------------------------------------
+
+/// Risk management page state.
+#[derive(Default)]
+pub struct RisksState {
+    pub entries: Vec<crate::dto::RiskEntry>,
+    pub search: String,
+    pub status_filter: Option<crate::dto::RiskStatus>,
+    pub selected_risk: Option<usize>,
+    pub detail_open: bool,
+    pub editing: bool,
+}
+
+// ---------------------------------------------------------------------------
+// Asset management
+// ---------------------------------------------------------------------------
+
+/// Asset management page state.
+#[derive(Default)]
+pub struct AssetsState {
+    pub assets: Vec<crate::dto::ManagedAsset>,
+    pub search: String,
+    pub criticality_filter: Option<crate::dto::AssetCriticality>,
+    pub lifecycle_filter: Option<crate::dto::AssetLifecycle>,
+    pub selected_asset: Option<usize>,
+    pub detail_open: bool,
+}
+
+// ---------------------------------------------------------------------------
+// KPI & trends
+// ---------------------------------------------------------------------------
+
+/// KPI trends state.
+pub struct KpiState {
+    pub snapshots: VecDeque<crate::dto::KpiSnapshot>,
+    pub period: crate::dto::KpiPeriod,
+}
+
+impl Default for KpiState {
+    fn default() -> Self {
+        Self {
+            snapshots: VecDeque::with_capacity(365),
+            period: crate::dto::KpiPeriod::default(),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Advanced alerting
+// ---------------------------------------------------------------------------
+
+/// Advanced alerting state.
+#[derive(Default)]
+pub struct AlertingState {
+    pub rules: Vec<crate::dto::AlertRule>,
+    pub webhooks: Vec<crate::dto::WebhookConfig>,
+    pub selected_rule: Option<usize>,
+    pub selected_webhook: Option<usize>,
+    pub detail_open: bool,
+    pub editing_rule: bool,
+    pub editing_webhook: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -413,8 +537,14 @@ pub struct AppState {
     pub compliance: ComplianceFilter,
     pub vulnerability: VulnerabilityFilter,
     pub ai: AiState,
+    pub reports: ReportsState,
+    pub risks: RisksState,
+    pub assets: AssetsState,
+    pub kpi: KpiState,
+    pub alerting: AlertingState,
 
     pub notifications: Vec<crate::dto::GuiNotification>,
+    pub notifications_active_tab: usize,
     pub selected_notification: Option<usize>,
     pub notification_detail_open: bool,
     pub previous_compliance_score: Option<f32>,
@@ -453,8 +583,14 @@ impl Default for AppState {
             compliance: ComplianceFilter::default(),
             vulnerability: VulnerabilityFilter::default(),
             ai: AiState::default(),
+            reports: ReportsState::default(),
+            risks: RisksState::default(),
+            assets: AssetsState::default(),
+            kpi: KpiState::default(),
+            alerting: AlertingState::default(),
 
             notifications: Vec::new(),
+            notifications_active_tab: 0,
             selected_notification: None,
             notification_detail_open: false,
             previous_compliance_score: None,
@@ -671,6 +807,30 @@ impl AppState {
                     }
                 }
             }
+            AgentEvent::ReportGenerated { report } => {
+                self.reports.reports.push_front(*report);
+                if self.reports.reports.len() > 50 {
+                    self.reports.reports.pop_back();
+                }
+                self.reports.generating = false;
+            }
+            AgentEvent::PlaybookTriggered { log_entry } => {
+                // Update playbook last_triggered / trigger_count
+                if let Some(pb) = self.threats.playbooks.iter_mut().find(|p| p.id == log_entry.playbook_id) {
+                    pb.last_triggered = Some(log_entry.triggered_at);
+                    pb.trigger_count = pb.trigger_count.saturating_add(1);
+                }
+                self.threats.playbook_log.push_front(*log_entry);
+                if self.threats.playbook_log.len() > 200 {
+                    self.threats.playbook_log.pop_back();
+                }
+            }
+            AgentEvent::KpiSnapshot { snapshot } => {
+                self.kpi.snapshots.push_back(*snapshot);
+                if self.kpi.snapshots.len() > 365 {
+                    self.kpi.snapshots.pop_front();
+                }
+            }
         }
 
         // Single recompute at end of every event
@@ -803,6 +963,11 @@ impl AppState {
         self.network.detail_open = false;
         self.network.selected_connection = None;
         self.network.selected_alert = None;
+        self.discovery.detail_open = false;
+        self.discovery.selected_device = None;
+        self.cartography.selected_device = None;
+        self.terminal.detail_open = false;
+        self.terminal.selected_log = None;
         self.software.detail_open = false;
         self.software.selected_package = None;
         self.vulnerability.detail_open = false;
@@ -810,12 +975,28 @@ impl AppState {
         self.threats.detail_open = false;
         self.threats.selected_threat = None;
         self.threats.confirm_action = None;
+        self.threats.forensic_detail_open = false;
+        self.threats.forensic_selected_event = None;
+        self.threats.playbook_editing = false;
+        self.threats.detection_rule_editing = false;
         self.fim.detail_open = false;
         self.fim.selected_alert = None;
         self.compliance.detail_open = false;
         self.compliance.selected_check = None;
         self.ai.detail_open = false;
         self.ai.selected_recommendation = None;
+        self.reports.detail_open = false;
+        self.reports.selected_report = None;
+        self.risks.detail_open = false;
+        self.risks.selected_risk = None;
+        self.risks.editing = false;
+        self.assets.detail_open = false;
+        self.assets.selected_asset = None;
+        self.alerting.detail_open = false;
+        self.alerting.selected_rule = None;
+        self.alerting.selected_webhook = None;
+        self.alerting.editing_rule = false;
+        self.alerting.editing_webhook = false;
         self.notification_detail_open = false;
         self.selected_notification = None;
         self.audit_detail_open = false;

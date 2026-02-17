@@ -782,6 +782,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                 runtime = runtime.with_database(db);
             }
             runtime.set_gui_event_tx(bg_event_tx.clone());
+            let sync_client = runtime.sync_client();
             let handle = runtime.handle();
 
             // Spawn command processor
@@ -891,6 +892,114 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Ok(GuiCommand::UnblockIp { ip }) => {
                             info!("[AUDIT] GUI requested IP unblock: {}", ip);
                             // Remove firewall block rule
+                        }
+                        Ok(GuiCommand::GenerateReport { report_type, framework }) => {
+                            info!("[AUDIT] GUI requested report: {:?} framework={:?}", report_type, framework);
+                        }
+                        Ok(GuiCommand::ExportReportHtml { report_id }) => {
+                            info!("[AUDIT] GUI requested HTML export for report: {}", report_id);
+                        }
+                        Ok(GuiCommand::ExecutePlaybook { playbook_id }) => {
+                            info!("[AUDIT] GUI requested playbook execution: {}", playbook_id);
+                        }
+                        Ok(GuiCommand::TogglePlaybook { playbook_id, enabled }) => {
+                            info!("[AUDIT] GUI toggled playbook {}: enabled={}", playbook_id, enabled);
+                        }
+                        Ok(GuiCommand::SavePlaybook { playbook }) => {
+                            info!("[AUDIT] GUI saved playbook: {}", playbook.name);
+                            if let Some(ref c) = sync_client {
+                                let c = std::sync::Arc::clone(c);
+                                let payload = agent_core::sync_converters::playbook_to_payload(&playbook);
+                                tokio::spawn(async move {
+                                    if let Err(e) = c.sync_playbooks(vec![payload]).await {
+                                        warn!("Failed to sync playbook: {}", e);
+                                    }
+                                });
+                            }
+                        }
+                        Ok(GuiCommand::DeletePlaybook { playbook_id }) => {
+                            info!("[AUDIT] GUI deleted playbook: {}", playbook_id);
+                        }
+                        Ok(GuiCommand::SaveDetectionRule { rule }) => {
+                            info!("[AUDIT] GUI saved detection rule: {}", rule.name);
+                            if let Some(ref c) = sync_client {
+                                let c = std::sync::Arc::clone(c);
+                                let payload = agent_core::sync_converters::detection_rule_to_payload(&rule);
+                                tokio::spawn(async move {
+                                    if let Err(e) = c.sync_detection_rules(vec![payload]).await {
+                                        warn!("Failed to sync detection rule: {}", e);
+                                    }
+                                });
+                            }
+                        }
+                        Ok(GuiCommand::DeleteDetectionRule { rule_id }) => {
+                            info!("[AUDIT] GUI deleted detection rule: {}", rule_id);
+                        }
+                        Ok(GuiCommand::ToggleDetectionRule { rule_id, enabled }) => {
+                            info!("[AUDIT] GUI toggled detection rule {}: enabled={}", rule_id, enabled);
+                        }
+                        Ok(GuiCommand::SaveRisk { risk }) => {
+                            info!("[AUDIT] GUI saved risk entry: {}", risk.title);
+                            if let Some(ref c) = sync_client {
+                                let c = std::sync::Arc::clone(c);
+                                let payload = agent_core::sync_converters::risk_to_payload(&risk);
+                                tokio::spawn(async move {
+                                    if let Err(e) = c.sync_risks(vec![payload]).await {
+                                        warn!("Failed to sync risk: {}", e);
+                                    }
+                                });
+                            }
+                        }
+                        Ok(GuiCommand::DeleteRisk { risk_id }) => {
+                            info!("[AUDIT] GUI deleted risk entry: {}", risk_id);
+                        }
+                        Ok(GuiCommand::SaveAsset { asset }) => {
+                            info!("[AUDIT] GUI saved asset: {} ({})", asset.hostname.as_deref().unwrap_or("?"), asset.ip);
+                            if let Some(ref c) = sync_client {
+                                let c = std::sync::Arc::clone(c);
+                                let payload = agent_core::sync_converters::asset_to_payload(&asset);
+                                tokio::spawn(async move {
+                                    if let Err(e) = c.sync_assets(vec![payload]).await {
+                                        warn!("Failed to sync asset: {}", e);
+                                    }
+                                });
+                            }
+                        }
+                        Ok(GuiCommand::UpdateAssetLifecycle { asset_id, lifecycle }) => {
+                            info!("[AUDIT] GUI updated asset lifecycle {}: {:?}", asset_id, lifecycle);
+                        }
+                        Ok(GuiCommand::SaveAlertRule { rule }) => {
+                            info!("[AUDIT] GUI saved alert rule: {}", rule.name);
+                            if let Some(ref c) = sync_client {
+                                let c = std::sync::Arc::clone(c);
+                                let payload = agent_core::sync_converters::alert_rule_to_payload(&rule);
+                                tokio::spawn(async move {
+                                    if let Err(e) = c.sync_alert_rules(vec![payload]).await {
+                                        warn!("Failed to sync alert rule: {}", e);
+                                    }
+                                });
+                            }
+                        }
+                        Ok(GuiCommand::DeleteAlertRule { rule_id }) => {
+                            info!("[AUDIT] GUI deleted alert rule: {}", rule_id);
+                        }
+                        Ok(GuiCommand::SaveWebhook { webhook }) => {
+                            info!("[AUDIT] GUI saved webhook: {}", webhook.name);
+                            if let Some(ref c) = sync_client {
+                                let c = std::sync::Arc::clone(c);
+                                let payload = agent_core::sync_converters::webhook_to_payload(&webhook);
+                                tokio::spawn(async move {
+                                    if let Err(e) = c.sync_webhooks(vec![payload]).await {
+                                        warn!("Failed to sync webhook: {}", e);
+                                    }
+                                });
+                            }
+                        }
+                        Ok(GuiCommand::DeleteWebhook { webhook_id }) => {
+                            info!("[AUDIT] GUI deleted webhook: {}", webhook_id);
+                        }
+                        Ok(GuiCommand::TestWebhook { webhook_id }) => {
+                            info!("[AUDIT] GUI requested webhook test: {}", webhook_id);
                         }
                         Err(mpsc::TryRecvError::Empty) => {
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;

@@ -34,6 +34,18 @@ pub enum SyncKind {
     Audit,
     /// Manual sync triggered by user.
     Manual,
+    /// Playbook sync.
+    Playbooks,
+    /// Detection rules sync.
+    DetectionRules,
+    /// Risk register sync.
+    Risks,
+    /// Asset inventory sync.
+    Assets,
+    /// KPI snapshot sync.
+    Kpi,
+    /// Alert rule sync.
+    Alerting,
 }
 
 impl SyncKind {
@@ -46,6 +58,12 @@ impl SyncKind {
             SyncKind::Rules => "rules",
             SyncKind::Audit => "audit",
             SyncKind::Manual => "manual",
+            SyncKind::Playbooks => "playbooks",
+            SyncKind::DetectionRules => "detection_rules",
+            SyncKind::Risks => "risks",
+            SyncKind::Assets => "assets",
+            SyncKind::Kpi => "kpi",
+            SyncKind::Alerting => "alerting",
         }
     }
 }
@@ -185,6 +203,16 @@ impl SyncOrchestrator {
             SyncKind::Rules => self.sync_rules(client).await,
             SyncKind::Audit => self.sync_audit(client).await,
             SyncKind::Full | SyncKind::Manual => self.sync_full(client).await,
+            // New axes — individual sync methods will be wired in future batches.
+            SyncKind::Playbooks
+            | SyncKind::DetectionRules
+            | SyncKind::Risks
+            | SyncKind::Assets
+            | SyncKind::Kpi
+            | SyncKind::Alerting => {
+                debug!("Sync kind {:?} not yet wired in orchestrator", kind);
+                Ok(0)
+            }
         };
 
         let duration_ms = (Utc::now() - started_at).num_milliseconds().max(0) as u64;
@@ -513,6 +541,12 @@ mod tests {
         assert_eq!(SyncKind::Config.as_str(), "config");
         assert_eq!(SyncKind::Rules.as_str(), "rules");
         assert_eq!(SyncKind::Manual.as_str(), "manual");
+        assert_eq!(SyncKind::Playbooks.as_str(), "playbooks");
+        assert_eq!(SyncKind::DetectionRules.as_str(), "detection_rules");
+        assert_eq!(SyncKind::Risks.as_str(), "risks");
+        assert_eq!(SyncKind::Assets.as_str(), "assets");
+        assert_eq!(SyncKind::Kpi.as_str(), "kpi");
+        assert_eq!(SyncKind::Alerting.as_str(), "alerting");
     }
 
     #[test]
