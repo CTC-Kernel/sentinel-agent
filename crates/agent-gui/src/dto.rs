@@ -657,6 +657,9 @@ pub enum EdrTab {
     Events,
     Investigation,
     Response,
+    Playbooks,
+    DetectionRules,
+    ForensicTimeline,
 }
 
 impl EdrTab {
@@ -666,6 +669,9 @@ impl EdrTab {
             EdrTab::Events => 1,
             EdrTab::Investigation => 2,
             EdrTab::Response => 3,
+            EdrTab::Playbooks => 4,
+            EdrTab::DetectionRules => 5,
+            EdrTab::ForensicTimeline => 6,
         }
     }
 
@@ -674,6 +680,9 @@ impl EdrTab {
             1 => EdrTab::Events,
             2 => EdrTab::Investigation,
             3 => EdrTab::Response,
+            4 => EdrTab::Playbooks,
+            5 => EdrTab::DetectionRules,
+            6 => EdrTab::ForensicTimeline,
             _ => EdrTab::Overview,
         }
     }
@@ -852,6 +861,509 @@ pub struct PendingConfirmation {
     pub action_type: ResponseActionType,
     pub target: String,
     pub detail: String,
+}
+
+// ============================================================================
+// Reports module types
+// ============================================================================
+
+/// Type of generated report.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ReportType {
+    #[default]
+    Executive,
+    ComplianceAudit,
+    Incident,
+}
+
+impl ReportType {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            ReportType::Executive => "Synth\u{00e8}se ex\u{00e9}cutive",
+            ReportType::ComplianceAudit => "Audit de conformit\u{00e9}",
+            ReportType::Incident => "Rapport d'incidents",
+        }
+    }
+}
+
+/// A generated report entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedReport {
+    pub id: Uuid,
+    pub report_type: ReportType,
+    pub title: String,
+    pub generated_at: DateTime<Utc>,
+    pub html_content: String,
+    pub summary: String,
+    pub compliance_score: Option<f32>,
+    pub framework: Option<String>,
+}
+
+// ============================================================================
+// Playbook types
+// ============================================================================
+
+/// Condition type for playbook rules.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlaybookConditionType {
+    ProcessNameMatch,
+    NetworkAlertType,
+    FimChange,
+    SeverityThreshold,
+    CvssScore,
+}
+
+impl PlaybookConditionType {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::ProcessNameMatch => "Nom de processus",
+            Self::NetworkAlertType => "Type d'alerte r\u{00e9}seau",
+            Self::FimChange => "Changement FIM",
+            Self::SeverityThreshold => "Seuil de s\u{00e9}v\u{00e9}rit\u{00e9}",
+            Self::CvssScore => "Score CVSS",
+        }
+    }
+
+    pub fn all() -> &'static [Self] {
+        &[
+            Self::ProcessNameMatch,
+            Self::NetworkAlertType,
+            Self::FimChange,
+            Self::SeverityThreshold,
+            Self::CvssScore,
+        ]
+    }
+}
+
+/// Action type for playbook rules.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlaybookActionType {
+    KillProcess,
+    QuarantineFile,
+    BlockIp,
+    SendSiemAlert,
+    CreateNotification,
+}
+
+impl PlaybookActionType {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::KillProcess => "Terminer le processus",
+            Self::QuarantineFile => "Quarantaine fichier",
+            Self::BlockIp => "Bloquer IP",
+            Self::SendSiemAlert => "Alerte SIEM",
+            Self::CreateNotification => "Notification",
+        }
+    }
+
+    pub fn all() -> &'static [Self] {
+        &[
+            Self::KillProcess,
+            Self::QuarantineFile,
+            Self::BlockIp,
+            Self::SendSiemAlert,
+            Self::CreateNotification,
+        ]
+    }
+}
+
+/// A condition within a playbook.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaybookCondition {
+    pub condition_type: PlaybookConditionType,
+    pub operator: String,
+    pub value: String,
+}
+
+/// An action within a playbook.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaybookAction {
+    pub action_type: PlaybookActionType,
+    pub parameters: String,
+}
+
+/// An automated response playbook.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Playbook {
+    pub id: Uuid,
+    pub name: String,
+    pub description: String,
+    pub enabled: bool,
+    pub conditions: Vec<PlaybookCondition>,
+    pub actions: Vec<PlaybookAction>,
+    pub created_at: DateTime<Utc>,
+    pub last_triggered: Option<DateTime<Utc>>,
+    pub trigger_count: u32,
+    pub is_template: bool,
+}
+
+/// An entry in the playbook execution log.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlaybookLogEntry {
+    pub id: Uuid,
+    pub playbook_id: Uuid,
+    pub playbook_name: String,
+    pub triggered_at: DateTime<Utc>,
+    pub trigger_event: String,
+    pub actions_executed: Vec<String>,
+    pub success: bool,
+    pub error: Option<String>,
+}
+
+// ============================================================================
+// Risk management types
+// ============================================================================
+
+/// Status of a risk entry.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RiskStatus {
+    #[default]
+    Open,
+    Mitigating,
+    Accepted,
+    Closed,
+}
+
+impl RiskStatus {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::Open => "Ouvert",
+            Self::Mitigating => "En att\u{00e9}nuation",
+            Self::Accepted => "Accept\u{00e9}",
+            Self::Closed => "Cl\u{00f4}tur\u{00e9}",
+        }
+    }
+
+    pub fn all() -> &'static [Self] {
+        &[Self::Open, Self::Mitigating, Self::Accepted, Self::Closed]
+    }
+}
+
+/// A risk register entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RiskEntry {
+    pub id: Uuid,
+    pub title: String,
+    pub description: String,
+    /// Probability (1-5).
+    pub probability: u8,
+    /// Impact (1-5).
+    pub impact: u8,
+    pub owner: String,
+    pub status: RiskStatus,
+    pub mitigation: String,
+    /// Source: "manual", "compliance", "vulnerability", "threat".
+    pub source: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    /// SLA target in days (None = no SLA).
+    pub sla_target_days: Option<u32>,
+}
+
+impl RiskEntry {
+    /// Risk score = probability × impact (1-25).
+    pub fn score(&self) -> u8 {
+        self.probability.saturating_mul(self.impact)
+    }
+}
+
+// ============================================================================
+// Custom detection rule types
+// ============================================================================
+
+/// Condition type for custom detection rules.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DetectionConditionType {
+    ProcessNameContains,
+    NetworkPort,
+    FimPathMatch,
+    CommandLineContains,
+    SeverityLevel,
+}
+
+impl DetectionConditionType {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::ProcessNameContains => "Nom processus contient",
+            Self::NetworkPort => "Port r\u{00e9}seau",
+            Self::FimPathMatch => "Chemin FIM correspond",
+            Self::CommandLineContains => "Ligne de commande contient",
+            Self::SeverityLevel => "Niveau de s\u{00e9}v\u{00e9}rit\u{00e9}",
+        }
+    }
+
+    pub fn all() -> &'static [Self] {
+        &[
+            Self::ProcessNameContains,
+            Self::NetworkPort,
+            Self::FimPathMatch,
+            Self::CommandLineContains,
+            Self::SeverityLevel,
+        ]
+    }
+}
+
+/// A condition within a detection rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetectionCondition {
+    pub condition_type: DetectionConditionType,
+    pub value: String,
+}
+
+/// A custom detection rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetectionRule {
+    pub id: Uuid,
+    pub name: String,
+    pub description: String,
+    pub severity: Severity,
+    pub conditions: Vec<DetectionCondition>,
+    pub actions: Vec<PlaybookActionType>,
+    pub enabled: bool,
+    pub created_at: DateTime<Utc>,
+    pub last_match: Option<DateTime<Utc>>,
+    pub match_count: u32,
+}
+
+// ============================================================================
+// Forensic timeline types
+// ============================================================================
+
+/// Time range for forensic timeline filtering.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum TimelineRange {
+    OneHour,
+    SixHours,
+    #[default]
+    TwentyFourHours,
+    SevenDays,
+    ThirtyDays,
+}
+
+impl TimelineRange {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::OneHour => "1H",
+            Self::SixHours => "6H",
+            Self::TwentyFourHours => "24H",
+            Self::SevenDays => "7J",
+            Self::ThirtyDays => "30J",
+        }
+    }
+
+    pub fn seconds(&self) -> i64 {
+        match self {
+            Self::OneHour => 3_600,
+            Self::SixHours => 21_600,
+            Self::TwentyFourHours => 86_400,
+            Self::SevenDays => 604_800,
+            Self::ThirtyDays => 2_592_000,
+        }
+    }
+
+    pub fn all() -> &'static [Self] {
+        &[
+            Self::OneHour,
+            Self::SixHours,
+            Self::TwentyFourHours,
+            Self::SevenDays,
+            Self::ThirtyDays,
+        ]
+    }
+}
+
+// ============================================================================
+// Asset management types
+// ============================================================================
+
+/// Criticality level for managed assets.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AssetCriticality {
+    Critical,
+    High,
+    #[default]
+    Medium,
+    Low,
+}
+
+impl AssetCriticality {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::Critical => "Critique",
+            Self::High => "\u{00c9}lev\u{00e9}e",
+            Self::Medium => "Moyenne",
+            Self::Low => "Faible",
+        }
+    }
+
+    pub fn weight(&self) -> f32 {
+        match self {
+            Self::Critical => 4.0,
+            Self::High => 3.0,
+            Self::Medium => 2.0,
+            Self::Low => 1.0,
+        }
+    }
+
+    pub fn all() -> &'static [Self] {
+        &[Self::Critical, Self::High, Self::Medium, Self::Low]
+    }
+}
+
+/// Lifecycle state for managed assets.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AssetLifecycle {
+    #[default]
+    Discovered,
+    Qualified,
+    Monitored,
+    Decommissioned,
+}
+
+impl AssetLifecycle {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::Discovered => "D\u{00e9}couvert",
+            Self::Qualified => "Qualifi\u{00e9}",
+            Self::Monitored => "Surveill\u{00e9}",
+            Self::Decommissioned => "D\u{00e9}commissionn\u{00e9}",
+        }
+    }
+
+    pub fn all() -> &'static [Self] {
+        &[Self::Discovered, Self::Qualified, Self::Monitored, Self::Decommissioned]
+    }
+}
+
+/// A managed asset in the CMDB.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedAsset {
+    pub id: Uuid,
+    pub ip: String,
+    pub hostname: Option<String>,
+    pub mac: Option<String>,
+    pub vendor: Option<String>,
+    pub device_type: String,
+    pub criticality: AssetCriticality,
+    pub lifecycle: AssetLifecycle,
+    pub tags: Vec<String>,
+    pub risk_score: f32,
+    pub vulnerability_count: u32,
+    pub open_ports: Vec<u16>,
+    pub software: Vec<String>,
+    pub first_seen: DateTime<Utc>,
+    pub last_seen: DateTime<Utc>,
+}
+
+// ============================================================================
+// KPI & trends types
+// ============================================================================
+
+/// A KPI snapshot for trend tracking.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct KpiSnapshot {
+    pub timestamp: DateTime<Utc>,
+    pub compliance_score: f32,
+    pub incident_count: u32,
+    pub open_vulns: u32,
+    pub closed_vulns: u32,
+    pub remediation_sla_pct: f32,
+}
+
+/// KPI display period.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum KpiPeriod {
+    #[default]
+    ThirtyDays,
+    NinetyDays,
+}
+
+impl KpiPeriod {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::ThirtyDays => "30J",
+            Self::NinetyDays => "90J",
+        }
+    }
+
+    pub fn days(&self) -> u32 {
+        match self {
+            Self::ThirtyDays => 30,
+            Self::NinetyDays => 90,
+        }
+    }
+}
+
+// ============================================================================
+// Compliance matrix types
+// ============================================================================
+
+/// View mode for the compliance page.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ComplianceViewMode {
+    #[default]
+    List,
+    Matrix,
+}
+
+// ============================================================================
+// Advanced alerting types
+// ============================================================================
+
+/// Type of alert rule.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AlertRuleType {
+    SeverityThreshold,
+    TypeFilter,
+    EscalationDelay,
+}
+
+impl AlertRuleType {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::SeverityThreshold => "Seuil de s\u{00e9}v\u{00e9}rit\u{00e9}",
+            Self::TypeFilter => "Filtre par type",
+            Self::EscalationDelay => "D\u{00e9}lai d'escalade",
+        }
+    }
+
+    pub fn all() -> &'static [Self] {
+        &[Self::SeverityThreshold, Self::TypeFilter, Self::EscalationDelay]
+    }
+}
+
+/// An alert rule configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlertRule {
+    pub id: Uuid,
+    pub name: String,
+    pub rule_type: AlertRuleType,
+    pub severity_threshold: Option<Severity>,
+    pub detection_types: Vec<String>,
+    pub escalation_minutes: Option<u32>,
+    pub enabled: bool,
+    pub created_at: DateTime<Utc>,
+}
+
+/// A webhook configuration for external alerting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebhookConfig {
+    pub id: Uuid,
+    pub name: String,
+    pub url: String,
+    /// Format: "slack", "teams", "generic".
+    pub format: String,
+    pub enabled: bool,
+    pub last_sent: Option<DateTime<Utc>>,
+    pub error: Option<String>,
 }
 
 #[cfg(test)]

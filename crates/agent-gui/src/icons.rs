@@ -153,3 +153,15 @@ pub const ROTATE: &str = "\u{f2f1}"; // fa-rotate
 pub const CLOUD: &str = "\u{f0c2}"; // fa-cloud
 pub const CLOUD_ARROW_UP: &str = "\u{f0ee}"; // fa-cloud-arrow-up
 pub const POWER_OFF: &str = "\u{f011}"; // fa-power-off
+
+// ── Market leader features ──────────────────────────────────────────
+pub const FILE_EXPORT: &str = "\u{f56e}"; // fa-file-export (reports)
+pub const CLIPBOARD_LIST: &str = "\u{f46d}"; // fa-clipboard-list (playbooks)
+pub const CROSSHAIRS: &str = "\u{f05b}"; // fa-crosshairs (detection rules)
+pub const BOXES_STACKED: &str = "\u{f468}"; // fa-boxes-stacked (assets)
+pub const CHART_AREA: &str = "\u{f1fe}"; // fa-chart-area (KPI trends)
+pub const TABLE_CELLS: &str = "\u{e4f1}"; // fa-table-cells (matrix)
+pub const TOGGLE_ON: &str = "\u{f205}"; // fa-toggle-on
+pub const TOGGLE_OFF: &str = "\u{f204}"; // fa-toggle-off
+pub const WAND_SPARKLES: &str = "\u{f72b}"; // fa-wand-magic-sparkles
+pub const SCALE_BALANCED: &str = "\u{f24e}"; // fa-scale-balanced (risks)

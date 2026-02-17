@@ -18,6 +18,8 @@ pub mod api_client;
 pub mod audit_trail;
 pub mod cleanup;
 pub mod events;
+#[cfg(feature = "gui")]
+pub mod sync_converters;
 #[cfg(feature = "llm")]
 pub mod llm_service;
 pub mod logging;
@@ -516,6 +518,11 @@ impl AgentRuntime {
             state: self.state.clone(),
             pending_asset_proposals: self.pending_asset_proposals.clone(),
         }
+    }
+
+    /// Get the authenticated sync client (if enrolled and database is set).
+    pub fn sync_client(&self) -> Option<Arc<AuthenticatedClient>> {
+        self.authenticated_client.clone()
     }
 
     /// Get a clone of the shutdown signal.
