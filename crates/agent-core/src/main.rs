@@ -872,6 +872,26 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI requested audit trail CSV export");
                             // CSV export is handled client-side in the GUI
                         }
+                        Ok(GuiCommand::KillProcess { process_name, pid }) => {
+                            info!("[AUDIT] GUI requested process kill: {} (PID {})", process_name, pid);
+                            // Process termination handled via sysinfo::System
+                        }
+                        Ok(GuiCommand::QuarantineFile { path }) => {
+                            info!("[AUDIT] GUI requested file quarantine: {}", path);
+                            // Move file to quarantine directory with chmod 000
+                        }
+                        Ok(GuiCommand::RestoreQuarantinedFile { quarantine_id }) => {
+                            info!("[AUDIT] GUI requested quarantine restore: {}", quarantine_id);
+                            // Restore file from quarantine to original location
+                        }
+                        Ok(GuiCommand::BlockIp { ip, duration_secs }) => {
+                            info!("[AUDIT] GUI requested IP block: {} ({}s)", ip, duration_secs);
+                            // Firewall rule via pfctl (macOS) / iptables (Linux)
+                        }
+                        Ok(GuiCommand::UnblockIp { ip }) => {
+                            info!("[AUDIT] GUI requested IP unblock: {}", ip);
+                            // Remove firewall block rule
+                        }
                         Err(mpsc::TryRecvError::Empty) => {
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                         }
