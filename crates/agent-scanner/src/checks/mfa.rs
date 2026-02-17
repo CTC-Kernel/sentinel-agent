@@ -270,10 +270,20 @@ impl MfaCheck {
                                     if control == "required" || control == "requisite" {
                                         status.mfa_enforced = true;
                                     }
-                                    // Complex control like [success=ok new_authtok_reqd=ok...]
-                                    // containing "die" or without "ignore" typically means required
-                                    if control.starts_with('[') && control.contains("die") {
-                                        status.mfa_enforced = true;
+                                    // Bracket-style control: [success=ok default=die ...]
+                                    // split_whitespace breaks this across multiple tokens,
+                                    // so reconstruct the full control expression
+                                    if control.starts_with('[') {
+                                        let full_control: String = parts[1..]
+                                            .iter()
+                                            .take_while(|p| !p.contains(".so"))
+                                            .copied()
+                                            .collect::<Vec<_>>()
+                                            .join(" ");
+                                        // "die" in control means failure is fatal → enforced
+                                        if full_control.contains("die") {
+                                            status.mfa_enforced = true;
+                                        }
                                     }
                                 }
                             }
@@ -333,15 +343,18 @@ impl MfaCheck {
             raw_output: String::new(),
         };
 
-        // Check Touch ID status
-        if let Ok(output) = Command::new("bioutil").args(["--status"]).output() {
+        // Check Touch ID status using bioutil -r -s (read, summary)
+        if let Ok(output) = Command::new("bioutil").args(["-r", "-s"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             status
                 .raw_output
-                .push_str(&format!("=== bioutil status ===\n{}\n", result));
+                .push_str(&format!("=== bioutil -r -s ===\n{}\n{}\n", result, stderr));
 
-            if result.contains("Touch ID functionality: 1")
-                || result.contains("User fingerprint enrolled")
+            // bioutil -r -s outputs user biometric info when Touch ID is enrolled
+            // Typical output: "User 501: type=1 (Touch ID) / count=N"
+            if output.status.success()
+                && (result.contains("Touch ID") || result.contains("type=1"))
             {
                 status.mfa_configured = true;
                 status.available_methods.push("Touch ID".to_string());
@@ -350,19 +363,21 @@ impl MfaCheck {
             }
         }
 
-        // Check for Smart Card support
-        if let Ok(output) = Command::new("security")
-            .args(["smartcards", "list", "all"])
+        // Check for Smart Card support via defaults and PAM
+        if let Ok(output) = Command::new("defaults")
+            .args(["read", "/Library/Preferences/com.apple.security.smartcard"])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             status.raw_output.push_str(&format!(
-                "=== security smartcards ===\n{}\n{}\n",
-                result, stderr
+                "=== smartcard preferences ===\n{}\n",
+                result
             ));
 
-            if !result.contains("No smartcards") && !stderr.contains("No smartcards") {
+            // Check if smart card enforcement or pairing is configured
+            if result.contains("enforceSmartCard = 1")
+                || result.contains("allowSmartCard = 1")
+            {
                 status.mfa_configured = true;
                 status.available_methods.push("Smart Card".to_string());
                 if status.mfa_provider.is_none() {

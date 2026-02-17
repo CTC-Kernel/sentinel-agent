@@ -53,8 +53,18 @@ impl SoftwarePage {
         });
         ui.add_space(theme::SPACE_MD);
 
-        // Tab bar (AAA Grade)
+        // Tab bar (AAA Grade) — Applications tab only shown on macOS
         let active = state.software.active_tab;
+        // On non-macOS, force back to Packages if Applications was somehow selected
+        #[cfg(not(target_os = "macos"))]
+        let active = {
+            if active == SoftwareTab::Applications {
+                state.software.active_tab = SoftwareTab::Packages;
+                SoftwareTab::Packages
+            } else {
+                active
+            }
+        };
         ui.horizontal(|ui: &mut egui::Ui| {
             if Self::tab_button(
                 ui,
@@ -65,15 +75,18 @@ impl SoftwarePage {
                 state.software.selected_package = None;
                 state.software.detail_open = false;
             }
-            ui.add_space(theme::SPACE_SM);
-            if Self::tab_button(
-                ui,
-                &format!("{} APPLICATIONS UTILISATEUR", icons::CUBE),
-                active == SoftwareTab::Applications,
-            ) {
-                state.software.active_tab = SoftwareTab::Applications;
-                state.software.selected_package = None;
-                state.software.detail_open = false;
+            #[cfg(target_os = "macos")]
+            {
+                ui.add_space(theme::SPACE_SM);
+                if Self::tab_button(
+                    ui,
+                    &format!("{} APPLICATIONS UTILISATEUR", icons::CUBE),
+                    active == SoftwareTab::Applications,
+                ) {
+                    state.software.active_tab = SoftwareTab::Applications;
+                    state.software.selected_package = None;
+                    state.software.detail_open = false;
+                }
             }
         });
 
@@ -92,7 +105,10 @@ impl SoftwarePage {
 
         match active {
             SoftwareTab::Packages => Self::show_packages(ui, state, &search_upper, &mut command),
+            #[cfg(target_os = "macos")]
             SoftwareTab::Applications => Self::show_macos_apps(ui, state, &search_upper, &mut command),
+            #[cfg(not(target_os = "macos"))]
+            SoftwareTab::Applications => { /* unreachable on non-macOS */ }
         }
 
         ui.add_space(theme::SPACE_XL);
@@ -136,7 +152,7 @@ impl SoftwarePage {
                             && action_idx == 0
                         {
                             let safe_name = pkg.name.replace('\'', "'\\''");
-                            let cmd = format!("brew upgrade '{}'", safe_name);
+                            let cmd = platform_upgrade_command(&safe_name);
                             ui.ctx().copy_text(cmd);
                             let time = ui.input(|i| i.time);
                             state.toasts.push(
@@ -148,6 +164,7 @@ impl SoftwarePage {
                         }
                     }
                 }
+                #[cfg(target_os = "macos")]
                 SoftwareTab::Applications => {
                     if sel_idx < state.software.macos_apps.len() {
                         let app = state.software.macos_apps[sel_idx].clone();
@@ -190,6 +207,8 @@ impl SoftwarePage {
                         }
                     }
                 }
+                #[cfg(not(target_os = "macos"))]
+                SoftwareTab::Applications => { /* unreachable on non-macOS */ }
             }
         }
 
@@ -537,6 +556,7 @@ impl SoftwarePage {
 
     // -- Tab: Applications (macOS native) --
 
+    #[cfg(target_os = "macos")]
     fn show_macos_apps(ui: &mut Ui, state: &mut AppState, search_upper: &str, _command: &mut Option<GuiCommand>) {
         let filtered: Vec<usize> = state
             .software
@@ -788,6 +808,7 @@ impl SoftwarePage {
         }
     }
 
+    #[cfg(target_os = "macos")]
     fn export_apps_csv(state: &AppState, indices: &[usize]) -> bool {
         let headers = &["nom", "version", "bundle_id", "editeur", "chemin"];
         let rows: Vec<Vec<String>> = indices
@@ -860,5 +881,25 @@ impl SoftwarePage {
                 });
             });
         });
+    }
+}
+
+/// Generate a platform-appropriate package upgrade command.
+fn platform_upgrade_command(safe_name: &str) -> String {
+    #[cfg(target_os = "macos")]
+    {
+        format!("brew upgrade '{}'", safe_name)
+    }
+    #[cfg(target_os = "linux")]
+    {
+        format!("sudo apt upgrade '{}' || sudo dnf upgrade '{}'", safe_name, safe_name)
+    }
+    #[cfg(target_os = "windows")]
+    {
+        format!("winget upgrade '{}'", safe_name)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    {
+        format!("# Mettez a jour '{}' manuellement", safe_name)
     }
 }

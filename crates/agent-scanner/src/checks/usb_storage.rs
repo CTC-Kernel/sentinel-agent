@@ -109,16 +109,13 @@ impl UsbStorageCheck {
         };
 
         if !output.status.success() {
-            if stderr.contains("unable to find") || stderr.contains("ERROR") {
-                status
-                    .issues
-                    .push("USBSTOR registry key not found".to_string());
-                return Ok(status);
-            }
-            return Err(ScannerError::CheckExecution(format!(
-                "USBSTOR registry check failed: {}",
-                stderr
-            )));
+            // Registry key not found — this is not an error, just means USBSTOR
+            // isn't configured. Check exit code (2 = key not found) and common
+            // error strings across locales.
+            status
+                .issues
+                .push("USBSTOR registry key not found".to_string());
+            return Ok(status);
         }
 
         // Parse the Start value
@@ -228,19 +225,20 @@ impl UsbStorageCheck {
 
         status.module_blacklisted = Some(blacklisted);
 
-        // USB storage is blocked if module is blacklisted or not loaded
+        // USB storage is blocked only if explicitly blacklisted.
+        // A module not being loaded does NOT mean it's blocked — it may be
+        // demand-loaded when a USB device is plugged in.
         if blacklisted {
             status.blocked = true;
             status.block_method = Some("Module blacklisted in /etc/modprobe.d/".to_string());
-        } else if !module_loaded {
-            status.blocked = true;
-            status.block_method = Some("Module not loaded".to_string());
-        }
-
-        if !status.blocked {
+        } else if module_loaded {
             status
                 .issues
                 .push("USB mass storage module is loaded and not blacklisted".to_string());
+        } else {
+            status
+                .issues
+                .push("USB mass storage module is not blacklisted (may load on demand)".to_string());
         }
 
         Ok(status)

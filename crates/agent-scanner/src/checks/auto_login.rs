@@ -195,15 +195,92 @@ impl AutoLoginCheck {
                     raw_output.push_str(&format!("Failed to read {}: {}\n", path, e));
                 }
             }
-        } else {
-            raw_output.push_str("No GDM configuration found (neither /etc/gdm3/custom.conf nor /etc/gdm/custom.conf)\n");
         }
 
-        // If no GDM config found, auto-login is considered disabled
+        // Check LightDM configuration
+        let lightdm_path = "/etc/lightdm/lightdm.conf";
+        if std::path::Path::new(lightdm_path).exists() {
+            if let Ok(content) = std::fs::read_to_string(lightdm_path) {
+                raw_output.push_str(&format!("=== {} ===\n{}\n", lightdm_path, content));
+
+                let auto_login_enabled = content.lines().any(|line| {
+                    let trimmed = line.trim();
+                    !trimmed.starts_with('#')
+                        && trimmed.starts_with("autologin-user")
+                        && trimmed.contains('=')
+                        && trimmed.split('=').last().is_some_and(|v| !v.trim().is_empty())
+                });
+
+                let auto_login_user = if auto_login_enabled {
+                    content.lines().find_map(|line| {
+                        let trimmed = line.trim();
+                        if !trimmed.starts_with('#') && trimmed.starts_with("autologin-user=") {
+                            trimmed.split('=').last().map(|u| u.trim().to_string()).filter(|u| !u.is_empty())
+                        } else {
+                            None
+                        }
+                    })
+                } else {
+                    None
+                };
+
+                return Ok(AutoLoginStatus {
+                    auto_login_disabled: !auto_login_enabled,
+                    auto_login_user,
+                    detection_method: format!("LightDM config ({})", lightdm_path),
+                    raw_output,
+                });
+            }
+        }
+
+        // Check SDDM configuration
+        let sddm_path = "/etc/sddm.conf";
+        let sddm_dir_path = "/etc/sddm.conf.d/autologin.conf";
+        let sddm_config = if std::path::Path::new(sddm_path).exists() {
+            Some(sddm_path)
+        } else if std::path::Path::new(sddm_dir_path).exists() {
+            Some(sddm_dir_path)
+        } else {
+            None
+        };
+
+        if let Some(path) = sddm_config {
+            if let Ok(content) = std::fs::read_to_string(path) {
+                raw_output.push_str(&format!("=== {} ===\n{}\n", path, content));
+
+                // SDDM uses [Autologin] section with User= key
+                let mut in_autologin_section = false;
+                let mut auto_login_user = None;
+                for line in content.lines() {
+                    let trimmed = line.trim();
+                    if trimmed == "[Autologin]" {
+                        in_autologin_section = true;
+                    } else if trimmed.starts_with('[') {
+                        in_autologin_section = false;
+                    } else if in_autologin_section && trimmed.starts_with("User=") {
+                        let user = trimmed.strip_prefix("User=").unwrap_or("").trim();
+                        if !user.is_empty() {
+                            auto_login_user = Some(user.to_string());
+                        }
+                    }
+                }
+
+                return Ok(AutoLoginStatus {
+                    auto_login_disabled: auto_login_user.is_none(),
+                    auto_login_user,
+                    detection_method: format!("SDDM config ({})", path),
+                    raw_output,
+                });
+            }
+        }
+
+        raw_output.push_str("No display manager configuration found (checked GDM, LightDM, SDDM)\n");
+
+        // If no display manager config found, auto-login is considered disabled
         Ok(AutoLoginStatus {
             auto_login_disabled: true,
             auto_login_user: None,
-            detection_method: "GDM config (not found)".to_string(),
+            detection_method: "Display manager config (not found)".to_string(),
             raw_output,
         })
     }

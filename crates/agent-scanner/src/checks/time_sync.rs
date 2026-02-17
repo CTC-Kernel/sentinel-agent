@@ -267,23 +267,43 @@ impl TimeSyncCheck {
         };
 
         // Check if network time is enabled
+        // Note: systemsetup requires root on macOS — if not root, fall back to launchctl
+        let mut systemsetup_failed = false;
         if let Ok(output) = Command::new("systemsetup")
             .args(["-getusingnetworktime"])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             status
                 .raw_output
                 .push_str(&format!("Network Time: {}\n", result.trim()));
 
-            let network_time_on = result.to_lowercase().contains("on");
-            status.service_running = network_time_on;
+            if stderr.contains("administrator access") || result.contains("administrator access") {
+                systemsetup_failed = true;
+            } else {
+                let network_time_on = result.to_lowercase().contains("on");
+                status.service_running = network_time_on;
 
-            if !network_time_on {
-                status
-                    .issues
-                    .push("Network time is not enabled".to_string());
+                if !network_time_on {
+                    status
+                        .issues
+                        .push("Network time is not enabled".to_string());
+                }
             }
+        }
+
+        // Fallback: check timed service via launchctl if systemsetup requires root
+        if systemsetup_failed
+            && let Ok(output) = Command::new("launchctl")
+                .args(["list", "com.apple.timed"])
+                .output()
+        {
+            status.service_running = output.status.success();
+            status.raw_output.push_str(&format!(
+                "timed via launchctl: {}\n",
+                if output.status.success() { "running" } else { "not running" }
+            ));
         }
 
         // Check NTP server
@@ -297,7 +317,10 @@ impl TimeSyncCheck {
                 .push_str(&format!("NTP Server: {}\n", result.trim()));
 
             // Parse "Network Time Server: time.apple.com"
-            if let Some(server) = result.split(':').next_back() {
+            // Skip if the output contains error messages
+            if !result.contains("administrator access")
+                && let Some(server) = result.split(':').next_back()
+            {
                 let server = server.trim().to_string();
                 if !server.is_empty() {
                     status.ntp_source = Some(server);
@@ -305,13 +328,17 @@ impl TimeSyncCheck {
             }
         }
 
-        // Try sntp to verify actual synchronization
+        // Try sntp with a timeout (5 seconds) to verify actual synchronization
+        // sntp can hang indefinitely if the NTP server is unreachable
         let ntp_server = status
             .ntp_source
             .clone()
             .unwrap_or_else(|| "time.apple.com".to_string());
 
-        if let Ok(output) = Command::new("sntp").args(["-d", &ntp_server]).output() {
+        if let Ok(output) = Command::new("sntp")
+            .args(["-t", "5", &ntp_server])
+            .output()
+        {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             status.raw_output.push_str(&format!(

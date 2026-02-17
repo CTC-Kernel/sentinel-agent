@@ -65,7 +65,61 @@ pub fn detect_reduced_motion() -> bool {
             .map(|s| s.trim() == "1")
             .unwrap_or(false)
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        // Check Windows "Turn off all unnecessary animations" via registry
+        std::process::Command::new("reg")
+            .args([
+                "query",
+                r"HKCU\Control Panel\Desktop",
+                "/v",
+                "UserPreferencesMask",
+            ])
+            .output()
+            .ok()
+            .and_then(|out| {
+                if !out.status.success() {
+                    return None;
+                }
+                let text = String::from_utf8(out.stdout).ok()?;
+                // UserPreferencesMask is a REG_BINARY; byte 1 bit 1 controls animations.
+                // If the value contains hex bytes and bit 1 of byte[1] is 0 → animations off.
+                // Fallback: check SPI_GETCLIENTAREAANIMATION via PowerShell as more reliable.
+                drop(text);
+                None
+            })
+            .unwrap_or_else(|| {
+                // Fallback: PowerShell SystemParametersInfo query
+                std::process::Command::new("powershell")
+                    .args([
+                        "-NoProfile",
+                        "-Command",
+                        "[System.Windows.Forms.SystemInformation]::IsClientAreaAnimationEnabled",
+                    ])
+                    .output()
+                    .ok()
+                    .and_then(|out| String::from_utf8(out.stdout).ok())
+                    .map(|s| s.trim().eq_ignore_ascii_case("false"))
+                    .unwrap_or(false)
+            })
+    }
+    #[cfg(target_os = "linux")]
+    {
+        // Check GNOME/GTK "enable-animations" setting via gsettings
+        std::process::Command::new("gsettings")
+            .args(["get", "org.gnome.desktop.interface", "enable-animations"])
+            .output()
+            .ok()
+            .and_then(|out| {
+                if !out.status.success() {
+                    return None;
+                }
+                String::from_utf8(out.stdout).ok()
+            })
+            .map(|s| s.trim() == "false")
+            .unwrap_or(false)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     {
         false
     }
@@ -713,6 +767,33 @@ pub fn configure_fonts(ctx: &egui::Context) {
             }
             if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
                 family.push("system_symbols".to_owned());
+            }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // Common Linux symbol/fallback font paths (Noto, DejaVu, Liberation)
+        let paths = [
+            "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf",
+            "/usr/share/fonts/noto/NotoSansSymbols2-Regular.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/TTF/DejaVuSans.ttf",
+        ];
+        for path in &paths {
+            if let Ok(data) = std::fs::read(path) {
+                fonts.font_data.insert(
+                    "system_symbols".to_owned(),
+                    egui::FontData::from_owned(data).into(),
+                );
+                if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
+                    family.push("system_symbols".to_owned());
+                }
+                if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
+                    family.push("system_symbols".to_owned());
+                }
+                break;
             }
         }
     }

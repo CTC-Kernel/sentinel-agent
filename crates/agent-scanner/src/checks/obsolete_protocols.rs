@@ -456,12 +456,12 @@ impl ObsoleteProtocolsCheck {
             status.sslv2_enabled = Some(false);
             status.sslv3_enabled = Some(false);
 
-            if major_version >= 12 {
-                // macOS 12+ (Monterey): TLS 1.0/1.1 fully deprecated
+            if major_version >= 11 {
+                // macOS 11+ (Big Sur and later): TLS 1.0/1.1 fully deprecated
                 status.tls10_enabled = Some(false);
                 status.tls11_enabled = Some(false);
                 status.min_tls_version = Some("1.2".to_string());
-            } else if major_version >= 10 {
+            } else if major_version == 10 {
                 // macOS 10.x - need to check minor version
                 let minor_version: u32 = version
                     .split('.')
