@@ -110,27 +110,51 @@ impl BluetoothCheck {
     async fn check_linux(&self) -> ScannerResult<BluetoothStatus> {
         debug!("Checking Linux Bluetooth service status");
 
-        let output = Command::new("systemctl")
+        // systemctl may not exist on non-systemd distros (Alpine, Void, Devuan)
+        if let Ok(output) = Command::new("systemctl")
             .args(["is-active", "bluetooth"])
             .output()
-            .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to check bluetooth service: {}", e))
-            })?;
+        {
+            let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
+            let service_active = raw_output.trim() == "active";
 
-        let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
-        let service_active = raw_output.trim() == "active";
+            let service_state = if service_active {
+                "active".to_string()
+            } else {
+                raw_output.trim().to_string()
+            };
 
-        let service_state = if service_active {
-            "active".to_string()
-        } else {
-            raw_output.trim().to_string()
-        };
+            return Ok(BluetoothStatus {
+                bluetooth_disabled: !service_active,
+                service_state,
+                service_type: "bluetooth (systemd)".to_string(),
+                raw_output,
+            });
+        }
+
+        // Fallback: check /sys/class/bluetooth for any Bluetooth adapters powered on
+        let bt_path = std::path::Path::new("/sys/class/bluetooth");
+        if bt_path.exists() {
+            if let Ok(entries) = std::fs::read_dir(bt_path) {
+                let has_adapter = entries
+                    .filter_map(|e| e.ok())
+                    .any(|_| true);
+                if has_adapter {
+                    return Ok(BluetoothStatus {
+                        bluetooth_disabled: false,
+                        service_state: "adapter_present".to_string(),
+                        service_type: "bluetooth (sysfs)".to_string(),
+                        raw_output: "Bluetooth adapter found in /sys/class/bluetooth".to_string(),
+                    });
+                }
+            }
+        }
 
         Ok(BluetoothStatus {
-            bluetooth_disabled: !service_active,
-            service_state,
-            service_type: "bluetooth (systemd)".to_string(),
-            raw_output,
+            bluetooth_disabled: true,
+            service_state: "not_found".to_string(),
+            service_type: "bluetooth (sysfs)".to_string(),
+            raw_output: "No systemctl and no Bluetooth adapter in /sys/class/bluetooth".to_string(),
         })
     }
 

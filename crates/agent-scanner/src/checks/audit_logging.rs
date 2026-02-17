@@ -6,7 +6,7 @@
 //! - macOS: OpenBSM audit subsystem
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-#[cfg(any(target_os = "windows", target_os = "linux"))]
+#[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
@@ -113,21 +113,27 @@ impl AuditLoggingCheck {
 
         let mut raw_output = String::new();
 
-        // Check if auditd service is active
-        let service_output = Command::new("systemctl")
+        // Check if auditd service is active (graceful for non-systemd distros)
+        let service_running = if let Ok(service_output) = Command::new("systemctl")
             .args(["is-active", "auditd"])
             .output()
-            .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to check auditd service: {}", e))
-            })?;
-
-        let service_status = String::from_utf8_lossy(&service_output.stdout).to_string();
-        raw_output.push_str(&format!(
-            "systemctl is-active auditd: {}\n",
-            service_status.trim()
-        ));
-
-        let service_running = service_status.trim() == "active";
+        {
+            let service_status = String::from_utf8_lossy(&service_output.stdout).to_string();
+            raw_output.push_str(&format!(
+                "systemctl is-active auditd: {}\n",
+                service_status.trim()
+            ));
+            service_status.trim() == "active"
+        } else {
+            // Non-systemd: check if auditd process is running via /proc or pidof
+            let running = Command::new("pidof")
+                .args(["auditd"])
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false);
+            raw_output.push_str(&format!("pidof auditd: {}\n", running));
+            running
+        };
 
         // Check if auditd configuration file exists
         let config_path = "/etc/audit/auditd.conf";

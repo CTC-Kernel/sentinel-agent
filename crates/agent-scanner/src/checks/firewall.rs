@@ -300,10 +300,19 @@ impl FirewallCheck {
 
     #[cfg(target_os = "linux")]
     async fn check_iptables(&self) -> ScannerResult<FirewallStatus> {
-        let output = Command::new("iptables")
-            .args(["-L", "-n"])
-            .output()
-            .map_err(|e| ScannerError::CheckExecution(format!("iptables failed: {}", e)))?;
+        let output = match Command::new("iptables").args(["-L", "-n"]).output() {
+            Ok(o) => o,
+            Err(_) => {
+                // iptables not installed — no firewall detected
+                return Ok(FirewallStatus {
+                    enabled: false,
+                    firewall_type: "none".to_string(),
+                    profiles: vec![],
+                    rule_count: None,
+                    raw_output: "No firewall tool found (checked ufw, nftables, iptables)".to_string(),
+                });
+            }
+        };
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 

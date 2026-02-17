@@ -473,7 +473,7 @@ impl ContainerSecurityCheck {
         status.secure = (status.rootless_mode || status.userns_remapped)
             && status.seccomp_enabled
             && status.privileged_containers.is_empty()
-            && (status.apparmor_enabled || status.selinux_enabled || std::env::consts::OS == "macos");
+            && (status.apparmor_enabled || status.selinux_enabled || cfg!(target_os = "macos"));
     }
 
     /// Main check logic.

@@ -316,7 +316,8 @@ impl Default for SettingsState {
             dark_mode: true,
             update_status: crate::dto::UpdateStatus::Idle,
             // SHA-256 of "admin" — should be changed on first deployment
-            admin_password_sha256: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918".to_string(),
+            // SECURITY: No default password. Must be set via enrollment or secure storage.
+            admin_password_sha256: String::new(),
             siem_enabled: false,
             siem_format: "CEF".to_string(),
             siem_transport: "Syslog".to_string(),

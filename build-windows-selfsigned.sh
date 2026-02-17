@@ -477,7 +477,7 @@ if %errorLevel% neq 0 (
 REM Installer le certificat dans Trusted Publishers
 echo 📋 Installation du certificat de confiance...
 certutil -addstore "TrustedPublisher" "sentinel-selfsigned.cer" >nul 2>&1
-certutil -addstore "Root" "sentinel-selfsigned.cer" >nul 2>&1
+REM certutil -addstore "Root" "sentinel-selfsigned.cer" >nul 2>&1
 echo ✅ Certificat ajouté aux Trusted Publishers
 
 REM Installer le MSI

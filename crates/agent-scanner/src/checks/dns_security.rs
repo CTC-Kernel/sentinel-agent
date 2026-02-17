@@ -119,7 +119,7 @@ impl DnsSecurityCheck {
 
     /// Check if a DNS server is a known secure provider.
     fn is_secure_provider(server: &str) -> bool {
-        SECURE_DNS_PROVIDERS.iter().any(|&s| server.contains(s))
+        SECURE_DNS_PROVIDERS.contains(&server.trim())
     }
 
     /// Check if netsh DoH template output indicates an active DoH endpoint.

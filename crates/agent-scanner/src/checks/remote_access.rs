@@ -406,16 +406,43 @@ impl RemoteAccessCheck {
         }
 
         // Check SSH (Remote Login)
+        // Note: systemsetup -getremotelogin requires root on macOS.
+        // If not root, also check launchctl for the SSH service.
         if let Ok(output) = Command::new("systemsetup")
             .args(["-getremotelogin"])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
+            let stderr_result = String::from_utf8_lossy(&output.stderr).to_string();
             status
                 .raw_output
                 .push_str(&format!("Remote Login: {}\n", result.trim()));
 
-            if result.to_lowercase().contains("on") {
+            // Detect permission error (not running as root)
+            if stderr_result.contains("administrator access")
+                || stderr_result.contains("You need")
+                || result.contains("administrator access")
+            {
+                // Fall back to launchctl check for SSH
+                if let Ok(ssh_output) = Command::new("launchctl")
+                    .args(["list", "com.openssh.sshd"])
+                    .output()
+                    && ssh_output.status.success()
+                {
+                        status.remote_access_enabled = true;
+                        status.raw_output.push_str("SSH detected via launchctl fallback\n");
+
+                        let ssh_config = SshConfig {
+                            enabled: true,
+                            permit_root_login: None,
+                            password_auth: Some(true),
+                            pubkey_auth: Some(true),
+                            port: Some(22),
+                            auth_methods: vec!["publickey".to_string(), "password".to_string()],
+                        };
+                        status.ssh_config = Some(ssh_config);
+                }
+            } else if result.to_lowercase().contains("on") {
                 status.remote_access_enabled = true;
 
                 let mut ssh_config = SshConfig {

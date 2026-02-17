@@ -159,17 +159,25 @@ impl CertificateValidationCheck {
 
     /// Parse expiration date from various formats.
     fn parse_expiration_date(date_str: &str) -> Option<DateTime<Utc>> {
-        // Try common formats
+        let trimmed = date_str.trim();
+
+        // Strip timezone suffix (NaiveDateTime doesn't support %Z).
+        // OpenSSL commonly outputs "Mar 15 12:00:00 2025 GMT".
+        let stripped = trimmed
+            .strip_suffix(" GMT")
+            .or_else(|| trimmed.strip_suffix(" UTC"))
+            .unwrap_or(trimmed);
+
         let formats = [
-            "%b %d %H:%M:%S %Y %Z", // "Mar 15 12:00:00 2025 GMT"
-            "%Y-%m-%d %H:%M:%S",    // "2025-03-15 12:00:00"
-            "%Y%m%d%H%M%S",         // "20250315120000"
+            "%b %d %H:%M:%S %Y", // "Mar 15 12:00:00 2025" (after stripping GMT/UTC)
+            "%Y-%m-%d %H:%M:%S", // "2025-03-15 12:00:00"
+            "%Y%m%d%H%M%S",      // "20250315120000"
             "%a %b %d %H:%M:%S %Y", // "Sat Mar 15 12:00:00 2025"
-            "%d/%m/%Y %H:%M:%S",    // European format
+            "%d/%m/%Y %H:%M:%S", // European format
         ];
 
         for format in &formats {
-            if let Ok(dt) = NaiveDateTime::parse_from_str(date_str.trim(), format) {
+            if let Ok(dt) = NaiveDateTime::parse_from_str(stripped, format) {
                 return Some(DateTime::from_naive_utc_and_offset(dt, Utc));
             }
         }
@@ -319,9 +327,10 @@ impl CertificateValidationCheck {
             status.store_location = cert_path.to_string();
 
             // Use find to get all .crt and .pem files
+            // Parentheses group the -name clauses so -type f applies to both
             let output = Command::new("find")
                 .args([
-                    cert_path, "-type", "f", "-name", "*.crt", "-o", "-name", "*.pem",
+                    cert_path, "-type", "f", "(", "-name", "*.crt", "-o", "-name", "*.pem", ")",
                 ])
                 .output();
 
@@ -436,23 +445,9 @@ impl CertificateValidationCheck {
             }
         }
 
-        // Check for expired certs using verify
-        let verify_output = Command::new("security")
-            .args([
-                "verify-cert",
-                "-c",
-                "/System/Library/Keychains/SystemRootCertificates.keychain",
-            ])
-            .output();
-
-        if let Ok(output) = verify_output {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            if stderr.contains("expired") {
-                status
-                    .issues
-                    .push("System root certificates contain expired entries".to_string());
-            }
-        }
+        // Note: security verify-cert requires a certificate file (-c), not a keychain path.
+        // Expired certificate detection is already handled by the openssl parsing above,
+        // which checks expiration dates for each certificate individually.
 
         self.generate_findings(&mut status);
         Ok(status)
