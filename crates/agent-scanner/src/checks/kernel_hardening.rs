@@ -45,6 +45,9 @@ pub struct KernelHardeningStatus {
     /// SIP (System Integrity Protection) enabled (macOS).
     pub sip_enabled: Option<bool>,
 
+    /// Gatekeeper enabled (macOS).
+    pub gatekeeper_enabled: Option<bool>,
+
     /// Non-compliance reasons.
     #[serde(default)]
     pub issues: Vec<String>,
@@ -97,6 +100,7 @@ impl KernelHardeningCheck {
             kptr_restricted: None,
             dep_available: None,
             sip_enabled: None,
+            gatekeeper_enabled: None,
             issues: vec![],
             raw_output: String::new(),
         };
@@ -199,6 +203,7 @@ impl KernelHardeningCheck {
             kptr_restricted: None,
             dep_available: None,
             sip_enabled: None,
+            gatekeeper_enabled: None,
             issues: vec![],
             raw_output: String::new(),
         };
@@ -306,6 +311,7 @@ impl KernelHardeningCheck {
             kptr_restricted: None,
             dep_available: None,
             sip_enabled: None,
+            gatekeeper_enabled: None,
             issues: vec![],
             raw_output: String::new(),
         };
@@ -361,6 +367,25 @@ impl KernelHardeningCheck {
                 }
         }
 
+        // Check Gatekeeper status
+        if let Ok(output) = Command::new("spctl")
+            .args(["--status"])
+            .output()
+        {
+            let result = String::from_utf8_lossy(&output.stdout).to_string();
+            status
+                .raw_output
+                .push_str(&format!("Gatekeeper: {}\n", result.trim()));
+
+            let gatekeeper_enabled = result.trim() == "assessments enabled";
+            status.gatekeeper_enabled = Some(gatekeeper_enabled);
+
+            if !gatekeeper_enabled {
+                status.hardened = false;
+                status.issues.push("Gatekeeper is disabled".to_string());
+            }
+        }
+
         Ok(status)
     }
 
@@ -376,6 +401,7 @@ impl KernelHardeningCheck {
             kptr_restricted: None,
             dep_available: None,
             sip_enabled: None,
+            gatekeeper_enabled: None,
             issues: vec!["Unsupported platform".to_string()],
             raw_output: "Unsupported platform".to_string(),
         })
@@ -422,6 +448,9 @@ impl Check for KernelHardeningCheck {
             }
             if status.sip_enabled == Some(true) {
                 details.push("SIP=enabled".to_string());
+            }
+            if status.gatekeeper_enabled == Some(true) {
+                details.push("Gatekeeper=enabled".to_string());
             }
             if status.dep_available == Some(true) {
                 details.push("DEP=available".to_string());
