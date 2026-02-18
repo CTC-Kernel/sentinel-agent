@@ -99,7 +99,7 @@ impl AgentRuntime {
             .map(|p| crate::api_client::SoftwareEntry {
                 name: p.name.clone(),
                 version: p.version.clone(),
-                vendor: None,
+                vendor: p.publisher.clone(),
             })
             .collect();
 
