@@ -22,427 +22,431 @@ use super::types::{
 pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let mut command = None;
 
-    // ── Summary counts (AAA Grade) ──────────────────────────────────
-    let process_count = state.threats.suspicious_processes.len();
-    let usb_count = state.threats.usb_events.len();
-    let fim_unack_count = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
-    let network_alert_count = state.network.alerts.len();
-    let system_count = state.threats.system_incidents.len();
-    let vuln_count = state.vulnerability_findings.len();
-    let risk_score = compute_risk_score(
-        state,
-        process_count,
-        usb_count,
-        fim_unack_count,
-        network_alert_count,
-        system_count,
-        vuln_count,
-    );
-
-    let summary_items = vec![
-        (
-            "PROCESSUS SUSPECTS",
-            process_count.to_string(),
-            if process_count > 0 { theme::ERROR } else { theme::text_tertiary() },
-            icons::BUG,
-        ),
-        (
-            "ALERTES R\u{00c9}SEAU",
-            network_alert_count.to_string(),
-            if network_alert_count > 0 { theme::SEVERITY_HIGH } else { theme::text_tertiary() },
-            icons::NETWORK,
-        ),
-        (
-            "\u{00c9}V\u{00c9}NEMENTS USB",
-            usb_count.to_string(),
-            if usb_count > 0 { theme::WARNING } else { theme::text_tertiary() },
-            icons::PLUG,
-        ),
-        (
-            "ALERTES FIM",
-            fim_unack_count.to_string(),
-            if fim_unack_count > 0 { theme::WARNING } else { theme::text_tertiary() },
-            icons::EYE,
-        ),
-        (
-            "INCIDENTS SYST\u{00c8}ME",
-            system_count.to_string(),
-            if system_count > 0 { theme::SEVERITY_HIGH } else { theme::text_tertiary() },
-            icons::SHIELD,
-        ),
-        (
-            "VULN\u{00c9}RABILIT\u{00c9}S",
-            vuln_count.to_string(),
-            if vuln_count > 0 { theme::ERROR } else { theme::text_tertiary() },
-            icons::SHIELD_VIRUS,
-        ),
-        (
-            "SCORE DE RISQUE",
-            risk_score.to_string(),
-            risk_score_color(risk_score),
-            icons::BOLT,
-        ),
-    ];
-
-    let summary_grid = widgets::ResponsiveGrid::new(180.0, theme::SPACE_SM);
-    summary_grid.show(ui, &summary_items, |ui, width, (label, value, color, icon)| {
-        summary_card(ui, width, label, value, *color, icon);
-    });
-
-    ui.add_space(theme::SPACE_LG);
-
-    // ── Severity distribution bar + Detection coverage ──────────────
-    {
-        let all_threats = build_threat_list(state);
-        let mut critical_count: usize = 0;
-        let mut high_count: usize = 0;
-        let mut medium_count: usize = 0;
-        let mut low_count: usize = 0;
-        for t in &all_threats {
-            match t.severity {
-                "critical" => critical_count += 1,
-                "high" => high_count += 1,
-                "medium" => medium_count += 1,
-                _ => low_count += 1,
-            }
-        }
-        let total = all_threats.len();
-
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            // ── A. Severity distribution horizontal bar ──
-            ui.label(
-                egui::RichText::new("DISTRIBUTION PAR S\u{00c9}V\u{00c9}RIT\u{00c9}")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
+    egui::ScrollArea::vertical()
+        .auto_shrink([false, false])
+        .show(ui, |ui| {
+            // ── Summary counts (AAA Grade) ──────────────────────────────────
+            let process_count = state.threats.suspicious_processes.len();
+            let usb_count = state.threats.usb_events.len();
+            let fim_unack_count = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
+            let network_alert_count = state.network.alerts.len();
+            let system_count = state.threats.system_incidents.len();
+            let vuln_count = state.vulnerability_findings.len();
+            let risk_score = compute_risk_score(
+                state,
+                process_count,
+                usb_count,
+                fim_unack_count,
+                network_alert_count,
+                system_count,
+                vuln_count,
             );
-            ui.add_space(theme::SPACE_SM);
 
-            if total == 0 {
-                ui.label(
-                    egui::RichText::new("Aucun \u{00e9}v\u{00e9}nement")
-                        .font(theme::font_body())
-                        .color(theme::text_tertiary()),
-                );
-            } else {
-                let bar_height = theme::PROGRESS_BAR_HEIGHT + 4.0;
-                let bar_width = ui.available_width();
-                let (rect, _) = ui.allocate_exact_size(
-                    egui::vec2(bar_width, bar_height),
-                    egui::Sense::hover(),
-                );
-                if ui.is_rect_visible(rect) {
-                    let painter = ui.painter_at(rect);
-                    let rounding =
-                        egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
-                    painter.rect_filled(rect, rounding, theme::bg_tertiary());
+            let summary_items = vec![
+                (
+                    "PROCESSUS SUSPECTS",
+                    process_count.to_string(),
+                    if process_count > 0 { theme::ERROR } else { theme::text_tertiary() },
+                    icons::BUG,
+                ),
+                (
+                    "ALERTES RÉSEAU",
+                    network_alert_count.to_string(),
+                    if network_alert_count > 0 { theme::SEVERITY_HIGH } else { theme::text_tertiary() },
+                    icons::NETWORK,
+                ),
+                (
+                    "ÉVÉNEMENTS USB",
+                    usb_count.to_string(),
+                    if usb_count > 0 { theme::WARNING } else { theme::text_tertiary() },
+                    icons::PLUG,
+                ),
+                (
+                    "ALERTES FIM",
+                    fim_unack_count.to_string(),
+                    if fim_unack_count > 0 { theme::WARNING } else { theme::text_tertiary() },
+                    icons::EYE,
+                ),
+                (
+                    "INCIDENTS SYSTÈME",
+                    system_count.to_string(),
+                    if system_count > 0 { theme::SEVERITY_HIGH } else { theme::text_tertiary() },
+                    icons::SHIELD,
+                ),
+                (
+                    "VULNÉRABILITÉS",
+                    vuln_count.to_string(),
+                    if vuln_count > 0 { theme::ERROR } else { theme::text_tertiary() },
+                    icons::SHIELD_VIRUS,
+                ),
+                (
+                    "SCORE DE RISQUE",
+                    risk_score.to_string(),
+                    risk_score_color(risk_score),
+                    icons::BOLT,
+                ),
+            ];
 
-                    let segments: &[(usize, egui::Color32)] = &[
-                        (critical_count, theme::ERROR),
-                        (high_count, theme::SEVERITY_HIGH),
-                        (medium_count, theme::WARNING),
-                        (low_count, theme::INFO),
-                    ];
-                    let mut x = rect.min.x;
-                    for (count, color) in segments {
-                        if *count > 0 {
-                            let w = (*count as f32 / total as f32) * bar_width;
-                            let seg_rect = egui::Rect::from_min_size(
-                                egui::pos2(x, rect.min.y),
-                                egui::vec2(w, bar_height),
-                            );
-                            painter.rect_filled(seg_rect, rounding, *color);
-                            x += w;
-                        }
+            let summary_grid = widgets::ResponsiveGrid::new(180.0, theme::SPACE_SM);
+            summary_grid.show(ui, &summary_items, |ui, width, (label, value, color, icon)| {
+                summary_card(ui, width, label, value, *color, icon);
+            });
+
+            ui.add_space(theme::SPACE_LG);
+
+            // ── Severity distribution bar + Detection coverage ──────────────
+            {
+                let all_threats = build_threat_list(state);
+                let mut critical_count: usize = 0;
+                let mut high_count: usize = 0;
+                let mut medium_count: usize = 0;
+                let mut low_count: usize = 0;
+                for t in &all_threats {
+                    match t.severity {
+                        "critical" => critical_count += 1,
+                        "high" => high_count += 1,
+                        "medium" => medium_count += 1,
+                        _ => low_count += 1,
                     }
                 }
+                let total = all_threats.len();
 
-                ui.add_space(theme::SPACE_SM);
+                widgets::card(ui, |ui: &mut egui::Ui| {
+                    // ── A. Severity distribution horizontal bar ──
+                    ui.label(
+                        egui::RichText::new("DISTRIBUTION PAR SÉVÉRITÉ")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_SM);
 
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    let items: &[(&str, usize, egui::Color32)] = &[
-                        ("Critique", critical_count, theme::ERROR),
-                        ("\u{00c9}lev\u{00e9}", high_count, theme::SEVERITY_HIGH),
-                        ("Moyen", medium_count, theme::WARNING),
-                        ("Faible", low_count, theme::INFO),
-                    ];
-                    for (label, count, color) in items {
-                        widgets::status_badge(
-                            ui,
-                            &format!("{}: {}", label, count),
-                            *color,
+                    if total == 0 {
+                        ui.label(
+                            egui::RichText::new("Aucun événement")
+                                .font(theme::font_body())
+                                .color(theme::text_tertiary()),
                         );
+                    } else {
+                        let bar_height = theme::PROGRESS_BAR_HEIGHT + 4.0;
+                        let bar_width = ui.available_width();
+                        let (rect, _) = ui.allocate_exact_size(
+                            egui::vec2(bar_width, bar_height),
+                            egui::Sense::hover(),
+                        );
+                        if ui.is_rect_visible(rect) {
+                            let painter = ui.painter_at(rect);
+                            let rounding =
+                                egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+                            painter.rect_filled(rect, rounding, theme::bg_tertiary());
+
+                            let segments: &[(usize, egui::Color32)] = &[
+                                (critical_count, theme::ERROR),
+                                (high_count, theme::SEVERITY_HIGH),
+                                (medium_count, theme::WARNING),
+                                (low_count, theme::INFO),
+                            ];
+                            let mut x = rect.min.x;
+                            for (count, color) in segments {
+                                if *count > 0 {
+                                    let w = (*count as f32 / total as f32) * bar_width;
+                                    let seg_rect = egui::Rect::from_min_size(
+                                        egui::pos2(x, rect.min.y),
+                                        egui::vec2(w, bar_height),
+                                    );
+                                    painter.rect_filled(seg_rect, rounding, *color);
+                                    x += w;
+                                }
+                            }
+                        }
+
                         ui.add_space(theme::SPACE_SM);
+
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            let items: &[(&str, usize, egui::Color32)] = &[
+                                ("Critique", critical_count, theme::ERROR),
+                                ("Élevé", high_count, theme::SEVERITY_HIGH),
+                                ("Moyen", medium_count, theme::WARNING),
+                                ("Faible", low_count, theme::INFO),
+                            ];
+                            for (label, count, color) in items {
+                                widgets::status_badge(
+                                    ui,
+                                    &format!("{}: {}", label, count),
+                                    *color,
+                                );
+                                ui.add_space(theme::SPACE_SM);
+                            }
+                        });
                     }
+
+                    ui.add_space(theme::SPACE_MD);
+
+                    // ── B. Detection coverage indicator ──
+                    ui.label(
+                        egui::RichText::new("COUVERTURE DE DÉTECTION")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+
+                    let has_process = !state.threats.suspicious_processes.is_empty()
+                        || process_count == 0;
+                    let has_usb = true;
+                    let has_fim = state.fim.monitored_count > 0;
+                    let has_network = !state.network.connections.is_empty()
+                        || state.network.interface_count > 0;
+                    let has_system = true;
+                    let has_vuln = state.vulnerability_summary.is_some();
+
+                    let active_sources =
+                        [has_process, has_usb, has_fim, has_network, has_system, has_vuln]
+                            .iter()
+                            .filter(|&&v| v)
+                            .count();
+
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        let coverage_color = if active_sources == 6 {
+                            theme::SUCCESS
+                        } else if active_sources >= 4 {
+                            theme::WARNING
+                        } else {
+                            theme::ERROR
+                        };
+                        ui.label(
+                            egui::RichText::new(format!(
+                                "{}/6 sources actives",
+                                active_sources,
+                            ))
+                            .font(theme::font_body())
+                            .color(coverage_color)
+                            .strong(),
+                        );
+                        ui.add_space(theme::SPACE_MD);
+
+                        let sources: &[(&str, &str, bool)] = &[
+                            ("Processus", icons::BUG, has_process),
+                            ("USB", icons::PLUG, has_usb),
+                            ("FIM", icons::FILE_SHIELD, has_fim),
+                            ("Réseau", icons::NETWORK, has_network),
+                            ("Système", icons::SHIELD, has_system),
+                            ("Vulnérabilités", icons::SHIELD_VIRUS, has_vuln),
+                        ];
+                        for (label, icon, active) in sources {
+                            let color = if *active {
+                                theme::SUCCESS
+                            } else {
+                                theme::text_tertiary()
+                            };
+                            ui.label(
+                                egui::RichText::new(*icon)
+                                    .size(theme::ICON_SM)
+                                    .color(color),
+                            );
+                            ui.label(
+                                egui::RichText::new(*label)
+                                    .font(theme::font_label())
+                                    .color(color),
+                            );
+                            ui.add_space(theme::SPACE_SM);
+                        }
+                    });
                 });
             }
 
             ui.add_space(theme::SPACE_MD);
 
-            // ── B. Detection coverage indicator ──
-            ui.label(
-                egui::RichText::new("COUVERTURE DE D\u{00c9}TECTION")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
-            );
+            // ── 24h Event Timeline ──────────────────────────────────────────
+            {
+                let timeline_threats = build_threat_list(state);
+                super::timeline::event_timeline(ui, &timeline_threats);
+            }
+
+            ui.add_space(theme::SPACE_MD);
+
+            // ── MITRE ATT&CK Coverage Mini-map ──────────────────────────────
+            {
+                let mitre_threats = build_threat_list(state);
+                super::mitre::mitre_minimap(ui, &mitre_threats);
+            }
+
+            ui.add_space(theme::SPACE_LG);
+
+            // ── Search / filter bar (AAA Grade) ─────────────────────────────
+            let proc_active = state.threats.filter.as_deref() == Some("process");
+            let net_active = state.threats.filter.as_deref() == Some("network");
+            let usb_active = state.threats.filter.as_deref() == Some("usb");
+            let fim_active = state.threats.filter.as_deref() == Some("fim");
+            let sys_active = state.threats.filter.as_deref() == Some("system");
+            let vuln_active = state.threats.filter.as_deref() == Some("vulnerability");
+
+            let cache_id = ui.make_persistent_id("threats_cache");
+            let mut fp_hasher = DefaultHasher::new();
+            state.threats.suspicious_processes.len().hash(&mut fp_hasher);
+            state.threats.usb_events.len().hash(&mut fp_hasher);
+            state.threats.system_incidents.len().hash(&mut fp_hasher);
+            state.fim.alerts.len().hash(&mut fp_hasher);
+            state.network.alerts.len().hash(&mut fp_hasher);
+            state.vulnerability_findings.len().hash(&mut fp_hasher);
+            state.threats.filter.hash(&mut fp_hasher);
+            state.threats.search.hash(&mut fp_hasher);
+            let fingerprint: u64 = fp_hasher.finish();
+            let prev_fingerprint: Option<u64> =
+                ui.memory(|mem| mem.data.get_temp(cache_id));
+            let cached_threats_id = ui.make_persistent_id("threats_cached_list");
+
+            let threats: Vec<ThreatEvent> = if prev_fingerprint.as_ref() == Some(&fingerprint) {
+                ui.memory(|mem| mem.data.get_temp(cached_threats_id)).unwrap_or_default()
+            } else {
+                let mut list = build_threat_list(state);
+
+                if let Some(ref filter) = state.threats.filter {
+                    list.retain(|t| t.kind == filter.as_str());
+                }
+
+                let search_lower = state.threats.search.to_ascii_lowercase();
+                if !search_lower.is_empty() {
+                    list.retain(|t| {
+                        let haystack = format!(
+                            "{} {} {}",
+                            t.title.to_lowercase(),
+                            t.description.to_lowercase(),
+                            t.kind,
+                        );
+                        haystack.contains(&search_lower)
+                    });
+                }
+
+                list.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+
+                ui.memory_mut(|mem| {
+                    mem.data.insert_temp(cache_id, fingerprint);
+                    mem.data.insert_temp(cached_threats_id, list.clone());
+                });
+                list
+            };
+
+            let result_count = threats.len();
+
+            let toggled = widgets::SearchFilterBar::new(
+                &mut state.threats.search,
+                "RECHERCHER (PROCESSUS, RÉSEAU, USB, FIM, SYSTÈME, VULNÉRA.)...",
+            )
+            .chip("PROCESSUS", proc_active, theme::ERROR)
+            .chip("RÉSEAU", net_active, theme::SEVERITY_HIGH)
+            .chip("USB", usb_active, theme::WARNING)
+            .chip("FIM", fim_active, theme::INFO)
+            .chip("SYSTÈME", sys_active, theme::SEVERITY_HIGH)
+            .chip("VULNÉRA.", vuln_active, theme::ERROR)
+            .result_count(result_count)
+            .show(ui);
+
+            if let Some(idx) = toggled {
+                let target = match idx {
+                    0 => Some("process"),
+                    1 => Some("network"),
+                    2 => Some("usb"),
+                    3 => Some("fim"),
+                    4 => Some("system"),
+                    5 => Some("vulnerability"),
+                    _ => None,
+                };
+                if state.threats.filter.as_deref() == target {
+                    state.threats.filter = None;
+                } else {
+                    state.threats.filter = target.map(|s| s.to_string());
+                }
+            }
+
             ui.add_space(theme::SPACE_SM);
 
-            let has_process = !state.threats.suspicious_processes.is_empty()
-                || process_count == 0;
-            let has_usb = true;
-            let has_fim = state.fim.monitored_count > 0;
-            let has_network = !state.network.connections.is_empty()
-                || state.network.interface_count > 0;
-            let has_system = true;
-            let has_vuln = state.vulnerability_summary.is_some();
-
-            let active_sources =
-                [has_process, has_usb, has_fim, has_network, has_system, has_vuln]
-                    .iter()
-                    .filter(|&&v| v)
-                    .count();
-
+            // Action bar: Scan & Export (AAA Grade)
             ui.horizontal(|ui: &mut egui::Ui| {
-                let coverage_color = if active_sources == 6 {
-                    theme::SUCCESS
-                } else if active_sources >= 4 {
-                    theme::WARNING
-                } else {
-                    theme::ERROR
-                };
+                let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
+                if widgets::button::primary_button_loading(
+                    ui,
+                    format!(
+                        "{}  {}",
+                        if is_scanning {
+                            "SCAN EN COURS"
+                        } else {
+                            "LANCER LE SCAN"
+                        },
+                        icons::PLAY
+                    ),
+                    !is_scanning,
+                    is_scanning,
+                )
+                .clicked()
+                {
+                    command = Some(GuiCommand::RunCheck);
+                }
+
+                ui.add_space(theme::SPACE_SM);
+
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
+                            let success = types::export_threats_csv(&threats);
+                            let time = ui.input(|i| i.time);
+                            if success {
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success("Export CSV menaces terminé")
+                                        .with_time(time),
+                                );
+                            } else {
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::error("Échec de l'export CSV")
+                                        .with_time(time),
+                                );
+                            }
+                        }
+                    },
+                );
+            });
+
+            ui.add_space(theme::SPACE_LG);
+
+            // ── Threat Radar (AAA Grade) ────────────────────────────────────
+            render_threat_radar(ui, &threats);
+
+            ui.add_space(theme::SPACE_LG);
+
+            // ── Threat feed (AAA Grade) ─────────────────────────────────────
+            widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new(format!(
-                        "{}/6 sources actives",
-                        active_sources,
-                    ))
-                    .font(theme::font_body())
-                    .color(coverage_color)
-                    .strong(),
+                    egui::RichText::new("FIL DE SÉCURITÉ CONSOLIDÉ")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
 
-                let sources: &[(&str, &str, bool)] = &[
-                    ("Processus", icons::BUG, has_process),
-                    ("USB", icons::PLUG, has_usb),
-                    ("FIM", icons::FILE_SHIELD, has_fim),
-                    ("R\u{00e9}seau", icons::NETWORK, has_network),
-                    ("Syst\u{00e8}me", icons::SHIELD, has_system),
-                    ("Vuln\u{00e9}rabilit\u{00e9}s", icons::SHIELD_VIRUS, has_vuln),
-                ];
-                for (label, icon, active) in sources {
-                    let color = if *active {
-                        theme::SUCCESS
-                    } else {
-                        theme::text_tertiary()
-                    };
-                    ui.label(
-                        egui::RichText::new(*icon)
-                            .size(theme::ICON_SM)
-                            .color(color),
+                if threats.is_empty() {
+                    widgets::protected_state(
+                        ui,
+                        icons::SHIELD_CHECK,
+                        "AUCUNE MENACE IDENTIFIÉE",
+                        "Le système ne présente aucun événement de sécurité suspect à ce jour.",
                     );
-                    ui.label(
-                        egui::RichText::new(*label)
-                            .font(theme::font_label())
-                            .color(color),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                }
-            });
-        });
-    }
-
-    ui.add_space(theme::SPACE_MD);
-
-    // ── 24h Event Timeline ──────────────────────────────────────────
-    {
-        let timeline_threats = build_threat_list(state);
-        super::timeline::event_timeline(ui, &timeline_threats);
-    }
-
-    ui.add_space(theme::SPACE_MD);
-
-    // ── MITRE ATT&CK Coverage Mini-map ──────────────────────────────
-    {
-        let mitre_threats = build_threat_list(state);
-        super::mitre::mitre_minimap(ui, &mitre_threats);
-    }
-
-    ui.add_space(theme::SPACE_LG);
-
-    // ── Search / filter bar (AAA Grade) ─────────────────────────────
-    let proc_active = state.threats.filter.as_deref() == Some("process");
-    let net_active = state.threats.filter.as_deref() == Some("network");
-    let usb_active = state.threats.filter.as_deref() == Some("usb");
-    let fim_active = state.threats.filter.as_deref() == Some("fim");
-    let sys_active = state.threats.filter.as_deref() == Some("system");
-    let vuln_active = state.threats.filter.as_deref() == Some("vulnerability");
-
-    let cache_id = ui.make_persistent_id("threats_cache");
-    let mut fp_hasher = DefaultHasher::new();
-    state.threats.suspicious_processes.len().hash(&mut fp_hasher);
-    state.threats.usb_events.len().hash(&mut fp_hasher);
-    state.threats.system_incidents.len().hash(&mut fp_hasher);
-    state.fim.alerts.len().hash(&mut fp_hasher);
-    state.network.alerts.len().hash(&mut fp_hasher);
-    state.vulnerability_findings.len().hash(&mut fp_hasher);
-    state.threats.filter.hash(&mut fp_hasher);
-    state.threats.search.hash(&mut fp_hasher);
-    let fingerprint: u64 = fp_hasher.finish();
-    let prev_fingerprint: Option<u64> =
-        ui.memory(|mem| mem.data.get_temp(cache_id));
-    let cached_threats_id = ui.make_persistent_id("threats_cached_list");
-
-    let threats: Vec<ThreatEvent> = if prev_fingerprint.as_ref() == Some(&fingerprint) {
-        ui.memory(|mem| mem.data.get_temp(cached_threats_id)).unwrap_or_default()
-    } else {
-        let mut list = build_threat_list(state);
-
-        if let Some(ref filter) = state.threats.filter {
-            list.retain(|t| t.kind == filter.as_str());
-        }
-
-        let search_lower = state.threats.search.to_ascii_lowercase();
-        if !search_lower.is_empty() {
-            list.retain(|t| {
-                let haystack = format!(
-                    "{} {} {}",
-                    t.title.to_lowercase(),
-                    t.description.to_lowercase(),
-                    t.kind,
-                );
-                haystack.contains(&search_lower)
-            });
-        }
-
-        list.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-
-        ui.memory_mut(|mem| {
-            mem.data.insert_temp(cache_id, fingerprint);
-            mem.data.insert_temp(cached_threats_id, list.clone());
-        });
-        list
-    };
-
-    let result_count = threats.len();
-
-    let toggled = widgets::SearchFilterBar::new(
-        &mut state.threats.search,
-        "RECHERCHER (PROCESSUS, R\u{00c9}SEAU, USB, FIM, SYST\u{00c8}ME, VULN\u{00c9}RA.)...",
-    )
-    .chip("PROCESSUS", proc_active, theme::ERROR)
-    .chip("R\u{00c9}SEAU", net_active, theme::SEVERITY_HIGH)
-    .chip("USB", usb_active, theme::WARNING)
-    .chip("FIM", fim_active, theme::INFO)
-    .chip("SYST\u{00c8}ME", sys_active, theme::SEVERITY_HIGH)
-    .chip("VULN\u{00c9}RA.", vuln_active, theme::ERROR)
-    .result_count(result_count)
-    .show(ui);
-
-    if let Some(idx) = toggled {
-        let target = match idx {
-            0 => Some("process"),
-            1 => Some("network"),
-            2 => Some("usb"),
-            3 => Some("fim"),
-            4 => Some("system"),
-            5 => Some("vulnerability"),
-            _ => None,
-        };
-        if state.threats.filter.as_deref() == target {
-            state.threats.filter = None;
-        } else {
-            state.threats.filter = target.map(|s| s.to_string());
-        }
-    }
-
-    ui.add_space(theme::SPACE_SM);
-
-    // Action bar: Scan & Export (AAA Grade)
-    ui.horizontal(|ui: &mut egui::Ui| {
-        let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-        if widgets::button::primary_button_loading(
-            ui,
-            format!(
-                "{}  {}",
-                if is_scanning {
-                    "SCAN EN COURS"
                 } else {
-                    "LANCER LE SCAN"
-                },
-                icons::PLAY
-            ),
-            !is_scanning,
-            is_scanning,
-        )
-        .clicked()
-        {
-            command = Some(GuiCommand::RunCheck);
-        }
-
-        ui.add_space(theme::SPACE_SM);
-
-        ui.with_layout(
-            egui::Layout::right_to_left(egui::Align::Center),
-            |ui: &mut egui::Ui| {
-                if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                    let success = types::export_threats_csv(&threats);
-                    let time = ui.input(|i| i.time);
-                    if success {
-                        state.toasts.push(
-                            crate::widgets::toast::Toast::success("Export CSV menaces termin\u{00e9}")
-                                .with_time(time),
-                        );
-                    } else {
-                        state.toasts.push(
-                            crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
-                                .with_time(time),
-                        );
+                    for (idx, threat) in threats.iter().enumerate() {
+                        if threat_row(ui, threat, idx) {
+                            state.threats.selected_threat = Some(idx);
+                            state.threats.detail_open = true;
+                        }
+                        ui.add_space(theme::SPACE_XS);
                     }
                 }
-            },
-        );
-    });
-
-    ui.add_space(theme::SPACE_LG);
-
-    // ── Threat Radar (AAA Grade) ────────────────────────────────────
-    render_threat_radar(ui, &threats);
-
-    ui.add_space(theme::SPACE_LG);
-
-    // ── Threat feed (AAA Grade) ─────────────────────────────────────
-    widgets::card(ui, |ui: &mut egui::Ui| {
-        ui.label(
-            egui::RichText::new("FIL DE S\u{00c9}CURIT\u{00c9} CONSOLID\u{00c9}")
-                .font(theme::font_label())
-                .color(theme::text_tertiary())
-                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                .strong(),
-        );
-        ui.add_space(theme::SPACE_MD);
-
-        if threats.is_empty() {
-            widgets::protected_state(
-                ui,
-                icons::SHIELD_CHECK,
-                "AUCUNE MENACE IDENTIFI\u{00c9}E",
-                "Le syst\u{00e8}me ne pr\u{00e9}sente aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9} suspect \u{00e0} ce jour.",
-            );
-        } else {
-            for (idx, threat) in threats.iter().enumerate() {
-                if threat_row(ui, threat, idx) {
-                    state.threats.selected_threat = Some(idx);
-                    state.threats.detail_open = true;
-                }
-                ui.add_space(theme::SPACE_XS);
-            }
-        }
-    });
-
-    ui.add_space(theme::SPACE_XL);
+            });
+            
+            // Handle active drawer selection at the end of scroll area or outside
+            ui.add_space(theme::SPACE_XL);
 
     let ctx = ui.ctx().clone();
     if let Some(sel) = state.threats.selected_threat
@@ -793,6 +797,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             }
         }
     }
+    });
 
     command
 }
