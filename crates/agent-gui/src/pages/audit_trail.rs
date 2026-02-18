@@ -30,7 +30,7 @@ impl AuditTrailPage {
 
         // Action bar with Export
         ui.horizontal(|ui: &mut egui::Ui| {
-            if widgets::ghost_button(ui, format!("{}  EXPORTER CSV", crate::icons::DOWNLOAD)).clicked() {
+            if widgets::button::secondary_button(ui, format!("{}  EXPORTER CSV", crate::icons::DOWNLOAD), true).clicked() {
                 let success = Self::export_audit_trail_csv(state);
                 let time = ui.input(|i| i.time);
                 if success {
