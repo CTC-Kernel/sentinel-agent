@@ -102,32 +102,9 @@ impl MonitoringPage {
 
         ui.add_space(theme::SPACE_LG);
 
-        let cpu_cache_id = ui.id().with("mon_cpu_cache");
-        let cpu_fp_id = ui.id().with("mon_cpu_fp");
-        let cpu_fp = state.monitoring.cpu_history.len();
-        let cpu_data: Vec<[f64; 2]> = {
-            let prev: Option<usize> = ui.memory(|mem| mem.data.get_temp(cpu_fp_id));
-            if prev == Some(cpu_fp) {
-                ui.memory(|mem| mem.data.get_temp(cpu_cache_id)).unwrap_or_default()
-            } else {
-                let v: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
-                ui.memory_mut(|mem| { mem.data.insert_temp(cpu_fp_id, cpu_fp); mem.data.insert_temp(cpu_cache_id, v.clone()); });
-                v
-            }
-        };
-        let mem_cache_id = ui.id().with("mon_mem_cache");
-        let mem_fp_id = ui.id().with("mon_mem_fp");
-        let mem_fp = state.monitoring.memory_history.len();
-        let mem_data: Vec<[f64; 2]> = {
-            let prev: Option<usize> = ui.memory(|mem| mem.data.get_temp(mem_fp_id));
-            if prev == Some(mem_fp) {
-                ui.memory(|mem| mem.data.get_temp(mem_cache_id)).unwrap_or_default()
-            } else {
-                let v: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
-                ui.memory_mut(|mem| { mem.data.insert_temp(mem_fp_id, mem_fp); mem.data.insert_temp(mem_cache_id, v.clone()); });
-                v
-            }
-        };
+        // Direct access to state history without caching (which was buggy due to len() cap)
+        let cpu_data: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
+        let mem_data: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
 
         let main_charts_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
         let main_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![
@@ -148,37 +125,13 @@ impl MonitoringPage {
 
         ui.add_space(theme::SPACE_LG);
 
-        let disk_cache_id = ui.id().with("mon_disk_cache");
-        let disk_fp_id = ui.id().with("mon_disk_fp");
-        let disk_fp = state.monitoring.disk_io_history.len();
-        let disk_data: Vec<[f64; 2]> = {
-            let prev: Option<usize> = ui.memory(|mem| mem.data.get_temp(disk_fp_id));
-            if prev == Some(disk_fp) {
-                ui.memory(|mem| mem.data.get_temp(disk_cache_id)).unwrap_or_default()
-            } else {
-                let v: Vec<[f64; 2]> = state.monitoring.disk_io_history.iter().copied().collect();
-                ui.memory_mut(|mem| { mem.data.insert_temp(disk_fp_id, disk_fp); mem.data.insert_temp(disk_cache_id, v.clone()); });
-                v
-            }
-        };
-        let net_cache_id = ui.id().with("mon_net_cache");
-        let net_fp_id = ui.id().with("mon_net_fp");
-        let net_fp = state.monitoring.network_io_history.len();
-        let net_data: Vec<[f64; 2]> = {
-            let prev: Option<usize> = ui.memory(|mem| mem.data.get_temp(net_fp_id));
-            if prev == Some(net_fp) {
-                ui.memory(|mem| mem.data.get_temp(net_cache_id)).unwrap_or_default()
-            } else {
-                let v: Vec<[f64; 2]> = state.monitoring.network_io_history.iter().copied().collect();
-                ui.memory_mut(|mem| { mem.data.insert_temp(net_fp_id, net_fp); mem.data.insert_temp(net_cache_id, v.clone()); });
-                v
-            }
-        };
+        let disk_data: Vec<[f64; 2]> = state.monitoring.disk_io_history.iter().copied().collect();
+        let net_data: Vec<[f64; 2]> = state.monitoring.network_io_history.iter().copied().collect();
 
         let io_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
         let io_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![
             ("FLUX DISQUE (kB/s)", &disk_data, theme::WARNING, true),
-            ("FLUX RÉSEAU", &net_data, theme::INFO, true),
+            ("FLUX RÉSEAU (kB/s)", &net_data, theme::INFO, true),
         ];
 
         io_grid.show(
@@ -504,14 +457,30 @@ impl MonitoringPage {
     }
 
     fn export_metrics_csv(state: &AppState) {
-        let headers = &["timestamp", "cpu_percent", "memory_percent", "disk_percent"];
-        let rows = vec![vec![
-            chrono::Utc::now().to_rfc3339(),
-            state.resources.cpu_percent.to_string(),
-            state.resources.memory_percent.to_string(),
-            state.resources.disk_percent.to_string(),
-        ]];
-        let path = crate::export::default_export_path("monitoring_ressources.csv");
+        let headers = &["timestamp", "cpu_percent", "memory_percent", "disk_kbps", "network_io_kbps"];
+        let now = chrono::Utc::now();
+        // Calculate boot time reference: now - uptime
+        let boot_time = now - chrono::Duration::seconds(state.resources.uptime_secs as i64);
+
+        // We use cpu_history as the baseline (assuming synchronization via state.rs fix)
+        let rows: Vec<Vec<String>> = state.monitoring.cpu_history.iter().enumerate().map(|(i, [t, cpu])| {
+            let timestamp = boot_time + chrono::Duration::milliseconds((t * 1000.0) as i64);
+            
+            // Safe alignment using index, falling back to 0.0 if desync occurs (defensive)
+            let mem = state.monitoring.memory_history.get(i).map(|v| v[1]).unwrap_or(0.0);
+            let disk = state.monitoring.disk_io_history.get(i).map(|v| v[1]).unwrap_or(0.0);
+            let net = state.monitoring.network_io_history.get(i).map(|v| v[1]).unwrap_or(0.0);
+
+            vec![
+                timestamp.to_rfc3339(),
+                format!("{:.2}", cpu),
+                format!("{:.2}", mem),
+                format!("{:.2}", disk),
+                format!("{:.2}", net),
+            ]
+        }).collect();
+
+        let path = crate::export::default_export_path("surveillance_ressources.csv");
         if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
             tracing::warn!("Export CSV failed: {}", e);
         } else {

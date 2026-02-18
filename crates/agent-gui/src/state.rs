@@ -564,7 +564,7 @@ impl Default for AppState {
             resources: crate::dto::GuiResourceUsage::default(),
             vulnerability_summary: None,
             vulnerability_findings: Vec::new(),
-            logs: VecDeque::with_capacity(200),
+            logs: VecDeque::with_capacity(1000),
             toasts: Vec::new(),
             unread_notification_count: 0,
             async_task_tx: None,
@@ -855,25 +855,25 @@ impl AppState {
         const MAX_HISTORY: usize = 300;
         let t = usage.uptime_secs as f64;
 
-        if usage.cpu_percent > 0.0 {
+        {
             self.monitoring.cpu_history.push_back([t, usage.cpu_percent]);
             while self.monitoring.cpu_history.len() > MAX_HISTORY {
                 self.monitoring.cpu_history.pop_front();
             }
         }
-        if usage.memory_percent > 0.0 {
+        {
             self.monitoring.memory_history.push_back([t, usage.memory_percent]);
             while self.monitoring.memory_history.len() > MAX_HISTORY {
                 self.monitoring.memory_history.pop_front();
             }
         }
-        if usage.disk_kbps > 0 {
+        {
             self.monitoring.disk_io_history.push_back([t, usage.disk_kbps as f64]);
             while self.monitoring.disk_io_history.len() > MAX_HISTORY {
                 self.monitoring.disk_io_history.pop_front();
             }
         }
-        if usage.network_io_bytes > 0 {
+        {
             self.monitoring.network_io_history.push_back([t, usage.network_io_bytes as f64 / 1024.0]);
             while self.monitoring.network_io_history.len() > MAX_HISTORY {
                 self.monitoring.network_io_history.pop_front();
@@ -892,7 +892,7 @@ impl AppState {
             message: notification.title.clone(),
             source: None,
         });
-        self.logs.truncate(200);
+        self.logs.truncate(1000);
         // push_front shifts all indices — invalidate audit trail selection
         self.selected_audit_entry = None;
         self.audit_detail_open = false;

@@ -731,20 +731,13 @@ impl VulnerabilitiesPage {
 
 /// Generate a platform-appropriate package upgrade command.
 fn platform_upgrade_command(safe_name: &str) -> String {
-    #[cfg(target_os = "macos")]
-    {
-        format!("brew upgrade '{}'", safe_name)
-    }
-    #[cfg(target_os = "linux")]
-    {
-        format!("sudo apt upgrade '{}' || sudo dnf upgrade '{}'", safe_name, safe_name)
-    }
-    #[cfg(target_os = "windows")]
-    {
-        format!("winget upgrade '{}'", safe_name)
-    }
-    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
-    {
+    if cfg!(target_os = "macos") {
+        format!("# Vérifier le nom du paquet avant exécution :\nbrew upgrade '{}'", safe_name)
+    } else if cfg!(target_os = "linux") {
+        format!("# Vérifier le gestionnaire de paquets :\nsudo apt upgrade '{}' || sudo dnf upgrade '{}'", safe_name, safe_name)
+    } else if cfg!(target_os = "windows") {
+        format!("# Vérifier l'ID Winget :\nwinget upgrade '{}'", safe_name)
+    } else {
         format!("# Mettez a jour '{}' manuellement", safe_name)
     }
 }
