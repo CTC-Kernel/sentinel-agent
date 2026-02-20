@@ -503,6 +503,7 @@ mod tests {
             kptr_restricted: Some(true),
             dep_available: None,
             sip_enabled: None,
+            gatekeeper_enabled: None,
             issues: vec![],
             raw_output: "test".to_string(),
         };
@@ -528,6 +529,7 @@ mod tests {
             kptr_restricted: Some(false),
             dep_available: None,
             sip_enabled: None,
+            gatekeeper_enabled: None,
             issues: vec![
                 "ASLR not enabled".to_string(),
                 "IP forwarding enabled".to_string(),

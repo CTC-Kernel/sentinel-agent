@@ -182,6 +182,7 @@ pub struct ThreatsState {
     pub filter: Option<String>,
     pub selected_threat: Option<usize>,
     pub detail_open: bool,
+    pub overview_page: usize,
 
     // EDR tab navigation
     pub active_tab: crate::dto::EdrTab,
@@ -206,6 +207,7 @@ pub struct ThreatsState {
     pub playbooks: Vec<crate::dto::Playbook>,
     pub playbook_log: VecDeque<crate::dto::PlaybookLogEntry>,
     pub playbook_editing: bool,
+    pub playbook_log_page: usize,
 
     // Detection rules tab
     pub detection_rules: Vec<crate::dto::DetectionRule>,
@@ -230,6 +232,7 @@ impl Default for ThreatsState {
             filter: None,
             selected_threat: None,
             detail_open: false,
+            overview_page: 0,
 
             active_tab: crate::dto::EdrTab::default(),
             events_page: 0,
@@ -246,6 +249,7 @@ impl Default for ThreatsState {
             playbooks: Vec::new(),
             playbook_log: VecDeque::with_capacity(200),
             playbook_editing: false,
+            playbook_log_page: 0,
             detection_rules: Vec::new(),
             detection_rule_editing: false,
             forensic_time_range: crate::dto::TimelineRange::default(),
@@ -813,6 +817,9 @@ impl AppState {
                     self.reports.reports.pop_back();
                 }
                 self.reports.generating = false;
+                // push_front shifts all indices — invalidate report selection
+                self.reports.selected_report = None;
+                self.reports.detail_open = false;
             }
             AgentEvent::PlaybookTriggered { log_entry } => {
                 // Update playbook last_triggered / trigger_count

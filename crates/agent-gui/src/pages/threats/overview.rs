@@ -12,6 +12,7 @@ use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
+use crate::widgets::pagination::PaginationState;
 
 use super::types::{
     self, ThreatEvent, build_threat_list, change_type_label, compute_risk_score, kind_badge,
@@ -22,9 +23,8 @@ use super::types::{
 pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let mut command = None;
 
-    egui::ScrollArea::vertical()
-        .auto_shrink([false, false])
-        .show(ui, |ui| {
+    // No inner ScrollArea — the parent in app.rs already wraps everything.
+    {
             // ── Summary counts (AAA Grade) ──────────────────────────────────
             let process_count = state.threats.suspicious_processes.len();
             let usb_count = state.threats.usb_events.len();
@@ -94,9 +94,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             ui.add_space(theme::SPACE_LG);
 
+            // Build the unified threat list ONCE for the entire overview.
+            let all_threats = build_threat_list(state);
+
             // ── Severity distribution bar + Detection coverage ──────────────
             {
-                let all_threats = build_threat_list(state);
                 let mut critical_count: usize = 0;
                 let mut high_count: usize = 0;
                 let mut medium_count: usize = 0;
@@ -163,7 +165,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
                         ui.add_space(theme::SPACE_SM);
 
-                        ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
                             let items: &[(&str, usize, egui::Color32)] = &[
                                 ("Critique", critical_count, theme::ERROR),
                                 ("Élevé", high_count, theme::SEVERITY_HIGH),
@@ -193,13 +195,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     );
                     ui.add_space(theme::SPACE_SM);
 
-                    let has_process = !state.threats.suspicious_processes.is_empty()
-                        || process_count == 0;
-                    let has_usb = true;
+                    // Detection coverage: check each subsystem is active
+                    let scan_ran = state.summary.last_check_at.is_some();
+                    let has_process = scan_ran;
+                    let has_usb = scan_ran;
                     let has_fim = state.fim.monitored_count > 0;
                     let has_network = !state.network.connections.is_empty()
                         || state.network.interface_count > 0;
-                    let has_system = true;
+                    let has_system = scan_ran;
                     let has_vuln = state.vulnerability_summary.is_some();
 
                     let active_sources =
@@ -208,33 +211,33 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             .filter(|&&v| v)
                             .count();
 
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        let coverage_color = if active_sources == 6 {
-                            theme::SUCCESS
-                        } else if active_sources >= 4 {
-                            theme::WARNING
-                        } else {
-                            theme::ERROR
-                        };
-                        ui.label(
-                            egui::RichText::new(format!(
-                                "{}/6 sources actives",
-                                active_sources,
-                            ))
-                            .font(theme::font_body())
-                            .color(coverage_color)
-                            .strong(),
-                        );
-                        ui.add_space(theme::SPACE_MD);
+                    let coverage_color = if active_sources == 6 {
+                        theme::SUCCESS
+                    } else if active_sources >= 4 {
+                        theme::WARNING
+                    } else {
+                        theme::ERROR
+                    };
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "{}/6 sources actives",
+                            active_sources,
+                        ))
+                        .font(theme::font_body())
+                        .color(coverage_color)
+                        .strong(),
+                    );
+                    ui.add_space(theme::SPACE_XS);
 
-                        let sources: &[(&str, &str, bool)] = &[
-                            ("Processus", icons::BUG, has_process),
-                            ("USB", icons::PLUG, has_usb),
-                            ("FIM", icons::FILE_SHIELD, has_fim),
-                            ("Réseau", icons::NETWORK, has_network),
-                            ("Système", icons::SHIELD, has_system),
-                            ("Vulnérabilités", icons::SHIELD_VIRUS, has_vuln),
-                        ];
+                    let sources: &[(&str, &str, bool)] = &[
+                        ("Processus", icons::BUG, has_process),
+                        ("USB", icons::PLUG, has_usb),
+                        ("FIM", icons::FILE_SHIELD, has_fim),
+                        ("Réseau", icons::NETWORK, has_network),
+                        ("Système", icons::SHIELD, has_system),
+                        ("Vulnérabilités", icons::SHIELD_VIRUS, has_vuln),
+                    ];
+                    ui.horizontal_wrapped(|ui: &mut egui::Ui| {
                         for (label, icon, active) in sources {
                             let color = if *active {
                                 theme::SUCCESS
@@ -260,18 +263,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             ui.add_space(theme::SPACE_MD);
 
             // ── 24h Event Timeline ──────────────────────────────────────────
-            {
-                let timeline_threats = build_threat_list(state);
-                super::timeline::event_timeline(ui, &timeline_threats);
-            }
+            super::timeline::event_timeline(ui, &all_threats);
 
             ui.add_space(theme::SPACE_MD);
 
             // ── MITRE ATT&CK Coverage Mini-map ──────────────────────────────
-            {
-                let mitre_threats = build_threat_list(state);
-                super::mitre::mitre_minimap(ui, &mitre_threats);
-            }
+            super::mitre::mitre_minimap(ui, &all_threats);
 
             ui.add_space(theme::SPACE_LG);
 
@@ -285,12 +282,33 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             let cache_id = ui.make_persistent_id("threats_cache");
             let mut fp_hasher = DefaultHasher::new();
+            // Hash collection lengths (catches additions/removals that change size).
             state.threats.suspicious_processes.len().hash(&mut fp_hasher);
             state.threats.usb_events.len().hash(&mut fp_hasher);
             state.threats.system_incidents.len().hash(&mut fp_hasher);
             state.fim.alerts.len().hash(&mut fp_hasher);
             state.network.alerts.len().hash(&mut fp_hasher);
             state.vulnerability_findings.len().hash(&mut fp_hasher);
+            // Hash front-item identity for each collection — catches push_front/pop_back
+            // rotations where length is constant but source_index values become stale.
+            if let Some(f) = state.threats.suspicious_processes.front() {
+                f.detected_at.timestamp_millis().hash(&mut fp_hasher);
+            }
+            if let Some(f) = state.threats.usb_events.front() {
+                f.timestamp.timestamp_millis().hash(&mut fp_hasher);
+            }
+            if let Some(f) = state.threats.system_incidents.front() {
+                f.detected_at.timestamp_millis().hash(&mut fp_hasher);
+            }
+            if let Some(f) = state.fim.alerts.front() {
+                f.timestamp.timestamp_millis().hash(&mut fp_hasher);
+            }
+            if let Some(f) = state.network.alerts.front() {
+                f.detected_at.timestamp_millis().hash(&mut fp_hasher);
+            }
+            if let Some(f) = state.vulnerability_findings.first() {
+                f.cve_id.hash(&mut fp_hasher);
+            }
             state.threats.filter.hash(&mut fp_hasher);
             state.threats.search.hash(&mut fp_hasher);
             let fingerprint: u64 = fp_hasher.finish();
@@ -298,16 +316,18 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 ui.memory(|mem| mem.data.get_temp(cache_id));
             let cached_threats_id = ui.make_persistent_id("threats_cached_list");
 
-            let threats: Vec<ThreatEvent> = if prev_fingerprint.as_ref() == Some(&fingerprint) {
+            let cache_changed = prev_fingerprint.as_ref() != Some(&fingerprint);
+            let threats: Vec<ThreatEvent> = if !cache_changed {
                 ui.memory(|mem| mem.data.get_temp(cached_threats_id)).unwrap_or_default()
             } else {
-                let mut list = build_threat_list(state);
+                // Reuse the already-built all_threats instead of calling build_threat_list again.
+                let mut list = all_threats.clone();
 
                 if let Some(ref filter) = state.threats.filter {
                     list.retain(|t| t.kind == filter.as_str());
                 }
 
-                let search_lower = state.threats.search.to_ascii_lowercase();
+                let search_lower = state.threats.search.to_lowercase();
                 if !search_lower.is_empty() {
                     list.retain(|t| {
                         let haystack = format!(
@@ -328,6 +348,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 });
                 list
             };
+
+            // When the filtered list changes (new data, search, filter), invalidate selection.
+            if cache_changed {
+                state.threats.selected_threat = None;
+                state.threats.detail_open = false;
+            }
 
             let result_count = threats.len();
 
@@ -359,6 +385,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 } else {
                     state.threats.filter = target.map(|s| s.to_string());
                 }
+                // Clear selection when filter changes — indices are no longer valid
+                state.threats.selected_threat = None;
+                state.threats.detail_open = false;
+                state.threats.overview_page = 0;
             }
 
             ui.add_space(theme::SPACE_SM);
@@ -416,7 +446,17 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             ui.add_space(theme::SPACE_LG);
 
-            // ── Threat feed (AAA Grade) ─────────────────────────────────────
+            // ── Threat feed (AAA Grade) with pagination ─────────────────────
+            let feed_page_size: usize = 25;
+            let feed_total = threats.len();
+            let feed_total_pages = feed_total.div_ceil(feed_page_size).max(1);
+            if state.threats.overview_page >= feed_total_pages {
+                state.threats.overview_page = feed_total_pages.saturating_sub(1);
+            }
+            let feed_start = state.threats.overview_page.saturating_mul(feed_page_size);
+            let feed_end = feed_total.min(feed_start.saturating_add(feed_page_size));
+            let page_threats = &threats[feed_start..feed_end];
+
             widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("FIL DE SÉCURITÉ CONSOLIDÉ")
@@ -435,15 +475,26 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         "Le système ne présente aucun événement de sécurité suspect à ce jour.",
                     );
                 } else {
-                    for (idx, threat) in threats.iter().enumerate() {
-                        if threat_row(ui, threat, idx) {
-                            state.threats.selected_threat = Some(idx);
+                    for (local_idx, threat) in page_threats.iter().enumerate() {
+                        let global_idx = feed_start.saturating_add(local_idx);
+                        if threat_row(ui, threat, global_idx) {
+                            state.threats.selected_threat = Some(global_idx);
                             state.threats.detail_open = true;
                         }
                         ui.add_space(theme::SPACE_XS);
                     }
                 }
             });
+
+            // Threat feed pagination
+            if feed_total > feed_page_size {
+                ui.add_space(theme::SPACE_MD);
+                let mut pag = PaginationState::new(feed_total, feed_page_size);
+                pag.current_page = state.threats.overview_page.saturating_add(1);
+                if widgets::pagination(ui, &mut pag) {
+                    state.threats.overview_page = pag.current_page.saturating_sub(1);
+                }
+            }
             
             // Handle active drawer selection at the end of scroll area or outside
             ui.add_space(theme::SPACE_XL);
@@ -797,7 +848,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             }
         }
     }
-    });
+    }
 
     command
 }
@@ -835,7 +886,10 @@ fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
 
                 ui.add_space(theme::SPACE_SM);
 
+                // Reserve space for right-aligned elements (~200px)
+                let text_max_w = (ui.available_width() - 200.0).max(120.0);
                 ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_max_width(text_max_w);
                     ui.label(
                         egui::RichText::new(&threat.title)
                             .font(theme::font_body())
@@ -850,11 +904,18 @@ fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
                     if let Some(ref cmd) = threat.command_line
                         && !cmd.is_empty()
                     {
+                        // Truncate long command lines to prevent overflow
+                        let display_cmd: String = if cmd.chars().count() > 80 {
+                            let truncated: String = cmd.chars().take(77).collect();
+                            format!("{}...", truncated)
+                        } else {
+                            cmd.clone()
+                        };
                         ui.label(
-                            egui::RichText::new(cmd)
+                            egui::RichText::new(display_cmd)
                                 .font(theme::font_mono())
                                 .color(theme::text_tertiary()),
-                        );
+                        ).on_hover_text(cmd);
                     }
                 });
 
@@ -1277,7 +1338,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
 
         // ── Legend row ──
         ui.add_space(theme::SPACE_MD);
-        ui.horizontal(|ui: &mut egui::Ui| {
+        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
             let legends = [
                 ("Critique", theme::ERROR),
                 ("\u{00c9}lev\u{00e9}", theme::SEVERITY_HIGH),

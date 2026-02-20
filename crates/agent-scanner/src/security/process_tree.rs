@@ -49,6 +49,9 @@ pub struct SuspiciousProcessEvent {
     pub detected_at: DateTime<Utc>,
 }
 
+/// Maximum depth for parent-chain traversal (prevents infinite loops).
+const MAX_PROCESS_CHAIN_DEPTH: usize = 20;
+
 /// Suspicious command patterns to detect.
 const SUSPICIOUS_PATTERNS: &[(&str, &str, u8)] = &[
     // (pattern, reason, confidence)
@@ -232,7 +235,7 @@ impl ProcessTreeAnalyzer {
         let mut current_pid = Some(target_pid);
 
         // Walk up the tree (max depth to avoid infinite loops)
-        for _ in 0..20 {
+        for _ in 0..MAX_PROCESS_CHAIN_DEPTH {
             if let Some(pid) = current_pid {
                 if let Some(node) = nodes.iter().find(|n| n.pid == pid) {
                     chain.push(node.clone());
@@ -262,8 +265,11 @@ fn matches_pattern(text: &str, pattern: &str) -> bool {
     let mut pos = 0;
 
     for part in parts {
+        if pos > text.len() {
+            return false;
+        }
         if let Some(idx) = text[pos..].find(part) {
-            pos += idx + part.len();
+            pos = pos.saturating_add(idx).saturating_add(part.len());
         } else {
             return false;
         }

@@ -14,7 +14,7 @@ const BUCKET_COUNT: usize = 48;
 /// Render a 24-hour event timeline bar.
 pub(super) fn event_timeline(ui: &mut Ui, threats: &[ThreatEvent]) {
     let now = Utc::now();
-    let secs_24h: i64 = 86_400;
+    let secs_24h: i64 = agent_common::constants::SECS_PER_DAY as i64;
 
     widgets::card(ui, |ui: &mut egui::Ui| {
         ui.label(
