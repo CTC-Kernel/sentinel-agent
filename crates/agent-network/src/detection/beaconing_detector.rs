@@ -257,7 +257,12 @@ impl BeaconingDetector {
             })
             .collect();
 
-        if intervals.len() < self.config.min_connections - 1 {
+        if intervals.len() < self.config.min_connections.saturating_sub(1) {
+            return None;
+        }
+
+        // Guard against division by zero before statistical calculations.
+        if intervals.is_empty() {
             return None;
         }
 

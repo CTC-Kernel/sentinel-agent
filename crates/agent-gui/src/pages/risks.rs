@@ -404,7 +404,7 @@ impl RisksPage {
     }
 
     fn filtered_indices(state: &AppState) -> Vec<usize> {
-        let search_lower = state.risks.search.to_ascii_lowercase();
+        let search_lower = state.risks.search.to_lowercase();
         state
             .risks
             .entries
@@ -414,9 +414,9 @@ impl RisksPage {
                 if !search_lower.is_empty() {
                     let haystack = format!(
                         "{} {} {}",
-                        r.title.to_ascii_lowercase(),
-                        r.owner.to_ascii_lowercase(),
-                        r.source.to_ascii_lowercase()
+                        r.title.to_lowercase(),
+                        r.owner.to_lowercase(),
+                        r.source.to_lowercase()
                     );
                     if !haystack.contains(&search_lower) {
                         return false;

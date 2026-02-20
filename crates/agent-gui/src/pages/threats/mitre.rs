@@ -6,7 +6,7 @@ use crate::widgets;
 
 /// Map a detection (kind + subtype) to a MITRE ATT&CK technique.
 pub(super) fn mitre_mapping(kind: &str, subtype: &str) -> Option<MitreTechnique> {
-    let sub = subtype.to_ascii_lowercase();
+    let sub = subtype.to_lowercase();
     match kind {
         "process" => {
             if sub.contains("powershell") {
@@ -77,9 +77,9 @@ pub(super) fn active_tactics(threats: &[super::types::ThreatEvent]) -> std::coll
     for t in threats {
         // Use the description/title as subtype hint for mapping
         let subtype = match t.kind {
-            "network" => t.title.to_ascii_lowercase(),
-            "system" => t.description.to_ascii_lowercase(),
-            "process" => format!("{} {}", t.title, t.command_line.as_deref().unwrap_or("")).to_ascii_lowercase(),
+            "network" => t.title.to_lowercase(),
+            "system" => t.description.to_lowercase(),
+            "process" => format!("{} {}", t.title, t.command_line.as_deref().unwrap_or("")).to_lowercase(),
             _ => String::new(),
         };
         if let Some(technique) = mitre_mapping(t.kind, &subtype) {

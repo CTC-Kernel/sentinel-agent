@@ -13,6 +13,7 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort};
+use crate::widgets::pagination::PaginationState;
 
 /// Pre-configured playbook template descriptor.
 struct PlaybookTemplate {
@@ -236,48 +237,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 Some("Installez un template ou cr\u{00e9}ez un playbook personnalis\u{00e9}."),
             );
         } else {
-            let columns = vec![
-                TableColumn {
-                    key: "name",
-                    label: "NOM",
-                    width: ColumnWidth::Fill,
-                    sortable: false,
-                    align: ColumnAlign::Left,
-                },
-                TableColumn {
-                    key: "conditions",
-                    label: "CONDITIONS",
-                    width: ColumnWidth::Fixed(180.0),
-                    sortable: false,
-                    align: ColumnAlign::Left,
-                },
-                TableColumn {
-                    key: "actions",
-                    label: "ACTIONS",
-                    width: ColumnWidth::Fixed(180.0),
-                    sortable: false,
-                    align: ColumnAlign::Left,
-                },
-                TableColumn {
-                    key: "triggered",
-                    label: "D\u{00c9}CLENCH\u{00c9}",
-                    width: ColumnWidth::Fixed(130.0),
-                    sortable: false,
-                    align: ColumnAlign::Center,
-                },
-                TableColumn {
-                    key: "enabled",
-                    label: "ACTIV\u{00c9}",
-                    width: ColumnWidth::Fixed(80.0),
-                    sortable: false,
-                    align: ColumnAlign::Center,
-                },
-            ];
-
-            let table = DataTable::new("playbooks_table", columns);
-            let mut sort = TableSort::default();
-            table.show_header(ui, &mut sort);
-
             // Collect IDs and toggle state changes to apply after iteration
             let mut toggle_commands: Vec<(String, bool)> = Vec::new();
             let mut delete_id: Option<String> = None;
@@ -300,27 +259,56 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .map(|t| format!("{} ({}x)", t.format("%d/%m %H:%M"), pb.trigger_count))
                     .unwrap_or_else(|| "\u{2014}".to_string());
 
-                let cells: Vec<&str> = vec![&pb.name, &conds, &acts, &triggered, ""];
-
                 ui.push_id(row_idx, |ui: &mut egui::Ui| {
-                    table.show_row(ui, row_idx, false, &cells);
+                    egui::Frame::new()
+                        .fill(if row_idx % 2 == 1 { theme::table_row_bg(row_idx) } else { egui::Color32::TRANSPARENT })
+                        .inner_margin(egui::Margin::symmetric(theme::SPACE_MD as i8, theme::SPACE_SM as i8))
+                        .show(ui, |ui: &mut egui::Ui| {
+                            ui.horizontal(|ui: &mut egui::Ui| {
+                                // Left: playbook info
+                                ui.vertical(|ui: &mut egui::Ui| {
+                                    ui.set_max_width((ui.available_width() - 120.0).max(200.0));
+                                    ui.label(
+                                        egui::RichText::new(&pb.name)
+                                            .font(theme::font_body())
+                                            .color(theme::text_primary())
+                                            .strong(),
+                                    );
+                                    ui.label(
+                                        egui::RichText::new(format!("Conditions : {} \u{2014} Actions : {}", conds, acts))
+                                            .font(theme::font_min())
+                                            .color(theme::text_secondary()),
+                                    );
+                                    if triggered != "\u{2014}" {
+                                        ui.label(
+                                            egui::RichText::new(format!("Dernier d\u{00e9}clenchement : {}", triggered))
+                                                .font(theme::font_min())
+                                                .color(theme::text_tertiary()),
+                                        );
+                                    }
+                                });
 
-                    // Override the last cell with a toggle + delete
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        let mut enabled = pb.enabled;
-                        if widgets::toggle_switch(ui, &mut enabled).changed() {
-                            toggle_commands.push((pb.id.to_string(), enabled));
-                        }
-                        ui.add_space(theme::SPACE_XS);
-                        if widgets::ghost_button(
-                            ui,
-                            icons::TRASH.to_string(),
-                        )
-                        .clicked()
-                        {
-                            delete_id = Some(pb.id.to_string());
-                        }
-                    });
+                                // Right: toggle + delete
+                                ui.with_layout(
+                                    egui::Layout::right_to_left(egui::Align::Center),
+                                    |ui: &mut egui::Ui| {
+                                        if widgets::ghost_button(
+                                            ui,
+                                            icons::TRASH.to_string(),
+                                        )
+                                        .clicked()
+                                        {
+                                            delete_id = Some(pb.id.to_string());
+                                        }
+                                        ui.add_space(theme::SPACE_XS);
+                                        let mut enabled = pb.enabled;
+                                        if widgets::toggle_switch(ui, &mut enabled).changed() {
+                                            toggle_commands.push((pb.id.to_string(), enabled));
+                                        }
+                                    },
+                                );
+                            });
+                        });
                 });
             }
 
@@ -418,7 +406,17 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             table.show_header(ui, &mut sort);
 
             let page_size = 15;
-            let entries: Vec<_> = state.threats.playbook_log.iter().take(page_size).collect();
+            let log_total = state.threats.playbook_log.len();
+            let log_total_pages = log_total.div_ceil(page_size).max(1);
+            if state.threats.playbook_log_page >= log_total_pages {
+                state.threats.playbook_log_page = log_total_pages.saturating_sub(1);
+            }
+            let log_start = state.threats.playbook_log_page.saturating_mul(page_size);
+            let log_end = log_total.min(log_start.saturating_add(page_size));
+            let entries: Vec<_> = state.threats.playbook_log.iter()
+                .skip(log_start)
+                .take(log_end.saturating_sub(log_start))
+                .collect();
 
             for (row_idx, entry) in entries.iter().enumerate() {
                 let actions_str = entry.actions_executed.join(", ");
@@ -456,6 +454,16 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 .color(theme::readable_color(result_color)),
                         );
                     });
+                }
+            }
+
+            // Pagination controls
+            if log_total > page_size {
+                ui.add_space(theme::SPACE_SM);
+                let mut pag = PaginationState::new(log_total, page_size);
+                pag.current_page = state.threats.playbook_log_page.saturating_add(1);
+                if widgets::pagination(ui, &mut pag) {
+                    state.threats.playbook_log_page = pag.current_page.saturating_sub(1);
                 }
             }
         }

@@ -34,6 +34,7 @@ const SOURCE_FILTERS: &[(&str, &str)] = &[
     ("fim", "FIM"),
     ("usb", "USB"),
     ("system", "SYST\u{00c8}ME"),
+    ("vulnerability", "VULN\u{00c9}RA."),
 ];
 
 /// Severity filter chips.
@@ -61,6 +62,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 if widgets::chip_button(ui, range.label_fr(), active, theme::ACCENT).clicked() {
                     state.threats.forensic_time_range = *range;
                     state.threats.forensic_page = 0;
+                    state.threats.forensic_selected_event = None;
+                    state.threats.forensic_detail_open = false;
                 }
             }
         });
@@ -88,6 +91,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         state.threats.forensic_source_filter = Some((*key).to_string());
                     }
                     state.threats.forensic_page = 0;
+                    state.threats.forensic_selected_event = None;
+                    state.threats.forensic_detail_open = false;
                 }
             }
         });
@@ -116,6 +121,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         state.threats.forensic_severity_filter = Some(*sev);
                     }
                     state.threats.forensic_page = 0;
+                    state.threats.forensic_selected_event = None;
+                    state.threats.forensic_detail_open = false;
                 }
             }
         });
@@ -223,8 +230,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let source_label = source_label_fr(evt.source);
                 let date = evt.timestamp.format("%d/%m/%Y %H:%M").to_string();
 
-                // Truncate detail for table display
-                let detail_display = if evt.detail.chars().count() > 60 {
+                // Truncate detail for table display (tooltip shows full text)
+                let is_truncated = evt.detail.chars().count() > 60;
+                let detail_display = if is_truncated {
                     let truncated: String = evt.detail.chars().take(57).collect();
                     format!("{}...", truncated)
                 } else {
@@ -510,6 +518,22 @@ fn build_timeline(state: &AppState, cutoff: DateTime<Utc>) -> Vec<TimelineEvent>
         });
     }
 
+    // Vulnerability findings
+    for (i, v) in state.vulnerability_findings.iter().enumerate() {
+        let ts = v.discovered_at.unwrap_or_else(Utc::now);
+        if ts < cutoff {
+            continue;
+        }
+        events.push(TimelineEvent {
+            timestamp: ts,
+            source: "vulnerability",
+            severity: v.severity,
+            title: format!("{} \u{2014} {}", v.cve_id, v.affected_software),
+            detail: v.description.clone(),
+            _source_index: i,
+        });
+    }
+
     events
 }
 
@@ -541,6 +565,7 @@ fn source_label_fr(source: &str) -> &'static str {
         "fim" => "FIM",
         "usb" => "USB",
         "system" => "SYST\u{00c8}ME",
+        "vulnerability" => "VULN\u{00c9}RA.",
         _ => "AUTRE",
     }
 }

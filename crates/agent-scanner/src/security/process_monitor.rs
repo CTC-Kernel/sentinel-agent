@@ -268,7 +268,9 @@ impl ProcessMonitor {
                 let pid: u32 = parts[0].parse().unwrap_or(0);
                 let ppid: u32 = parts[1].parse().unwrap_or(0);
                 let user = parts[2].to_string();
-                let name = parts[3..].join(" ");
+                // Cap at 256 parts to avoid unbounded allocation on adversarial input.
+                let name_end = parts.len().min(3 + 256);
+                let name = parts[3..name_end].join(" ");
 
                 processes.push(ProcessInfo {
                     pid,

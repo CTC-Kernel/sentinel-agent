@@ -240,7 +240,7 @@ impl TerminalPage {
             let lower = if state.terminal.search.is_empty() {
                 String::new()
             } else {
-                state.terminal.search.to_ascii_lowercase()
+                state.terminal.search.to_lowercase()
             };
             ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.terminal.search.clone(), lower.clone())));
             lower
@@ -257,9 +257,9 @@ impl TerminalPage {
                     return false;
                 }
                 if !search_lower.is_empty()
-                    && !e.level.to_ascii_lowercase().contains(&search_lower)
-                    && !e.target.to_ascii_lowercase().contains(&search_lower)
-                    && !e.message.to_ascii_lowercase().contains(&search_lower)
+                    && !e.level.to_lowercase().contains(&search_lower)
+                    && !e.target.to_lowercase().contains(&search_lower)
+                    && !e.message.to_lowercase().contains(&search_lower)
                 {
                     return false;
                 }

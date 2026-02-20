@@ -381,6 +381,10 @@ impl NetworkPage {
                             state.network.detail_open = false;
                         }
                     }
+                } else {
+                    // Out-of-bounds — clean up stale selection
+                    state.network.selected_connection = None;
+                    state.network.detail_open = false;
                 }
             } else if let Some(sel) = state.network.selected_alert
                 && sel < state.network.alerts.len()
@@ -472,6 +476,9 @@ impl NetworkPage {
                         state.network.selected_alert = None;
                     }
                 }
+            } else {
+                // No valid selection — clean up phantom open state
+                state.network.detail_open = false;
             }
         }
 
@@ -656,7 +663,7 @@ impl NetworkPage {
                     .filter(|(orig, _)| orig == &state.network.search)
                     .map(|(_, lower)| lower)
             }).unwrap_or_else(|| {
-                let lower = state.network.search.to_ascii_lowercase();
+                let lower = state.network.search.to_lowercase();
                 ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.network.search.clone(), lower.clone())));
                 lower
             });

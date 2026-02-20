@@ -90,7 +90,7 @@ impl ThreatsPage {
         ];
 
         if let Some(new_idx) = TabBar::new(tabs, selected_idx).full_width().show(ui) {
-            state.threats.active_tab = match new_idx {
+            let new_tab = match new_idx {
                 0 => EdrTab::Overview,
                 1 => EdrTab::Events,
                 2 => EdrTab::Investigation,
@@ -100,6 +100,12 @@ impl ThreatsPage {
                 6 => EdrTab::ForensicTimeline,
                 _ => EdrTab::Overview,
             };
+            // Clear shared selection when switching tabs to avoid index contamination
+            if new_tab != state.threats.active_tab {
+                state.threats.selected_threat = None;
+                state.threats.detail_open = false;
+            }
+            state.threats.active_tab = new_tab;
         }
 
         ui.add_space(theme::SPACE_LG);

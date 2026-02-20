@@ -88,7 +88,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     ui.add_space(theme::SPACE_MD);
 
     // ── Perform IOC search across all sources ───────────────────────
-    let query = state.threats.ioc_search.trim().to_ascii_lowercase();
+    let query = state.threats.ioc_search.trim().to_lowercase();
     if query.is_empty() {
         widgets::empty_state(
             ui,
@@ -217,9 +217,9 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
             // Search network alerts by source_ip / destination_ip
             for alert in &state.network.alerts {
                 let src_match = alert.source_ip.as_deref()
-                    .is_some_and(|ip| ip.to_ascii_lowercase().contains(query));
+                    .is_some_and(|ip| ip.to_lowercase().contains(query));
                 let dst_match = alert.destination_ip.as_deref()
-                    .is_some_and(|ip| ip.to_ascii_lowercase().contains(query));
+                    .is_some_and(|ip| ip.to_lowercase().contains(query));
                 if src_match || dst_match {
                     let mitre = mitre::mitre_mapping("network", &alert.alert_type);
                     results.push(IocSearchResult {
@@ -241,8 +241,8 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
         IocSearchType::Domain => {
             // Search network alerts descriptions for domain matches
             for alert in &state.network.alerts {
-                if alert.description.to_ascii_lowercase().contains(query)
-                    || alert.alert_type.to_ascii_lowercase().contains(query)
+                if alert.description.to_lowercase().contains(query)
+                    || alert.alert_type.to_lowercase().contains(query)
                 {
                     let mitre = mitre::mitre_mapping("network", &alert.alert_type);
                     results.push(IocSearchResult {
@@ -260,9 +260,9 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
             // Search FIM alerts by old_hash / new_hash
             for alert in &state.fim.alerts {
                 let old_match = alert.old_hash.as_deref()
-                    .is_some_and(|h| h.to_ascii_lowercase().contains(query));
+                    .is_some_and(|h| h.to_lowercase().contains(query));
                 let new_match = alert.new_hash.as_deref()
-                    .is_some_and(|h| h.to_ascii_lowercase().contains(query));
+                    .is_some_and(|h| h.to_lowercase().contains(query));
                 if old_match || new_match {
                     let mitre = mitre::mitre_mapping("fim", "");
                     results.push(IocSearchResult {
@@ -283,10 +283,10 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
         IocSearchType::Process => {
             // Search suspicious processes by name / command line
             for proc in &state.threats.suspicious_processes {
-                if proc.process_name.to_ascii_lowercase().contains(query)
-                    || proc.command_line.to_ascii_lowercase().contains(query)
+                if proc.process_name.to_lowercase().contains(query)
+                    || proc.command_line.to_lowercase().contains(query)
                 {
-                    let subtype = format!("{} {}", proc.process_name, proc.command_line).to_ascii_lowercase();
+                    let subtype = format!("{} {}", proc.process_name, proc.command_line).to_lowercase();
                     let mitre = mitre::mitre_mapping("process", &subtype);
                     let severity = if proc.confidence >= 90 {
                         "critical"
@@ -312,8 +312,8 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
             }
             // Also search system incidents
             for inc in &state.threats.system_incidents {
-                if inc.title.to_ascii_lowercase().contains(query)
-                    || inc.description.to_ascii_lowercase().contains(query)
+                if inc.title.to_lowercase().contains(query)
+                    || inc.description.to_lowercase().contains(query)
                 {
                     let mitre = mitre::mitre_mapping("system", &inc.incident_type);
                     results.push(IocSearchResult {
@@ -330,7 +330,7 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
         IocSearchType::Cve => {
             // Search vulnerability findings by CVE ID
             for vuln in &state.vulnerability_findings {
-                if vuln.cve_id.to_ascii_lowercase().contains(query) {
+                if vuln.cve_id.to_lowercase().contains(query) {
                     results.push(IocSearchResult {
                         source: "VULN\u{00c9}RA.",
                         title: format!("{} \u{2014} {}", vuln.cve_id, vuln.affected_software),
