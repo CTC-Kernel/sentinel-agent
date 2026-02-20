@@ -690,6 +690,7 @@ impl eframe::App for SentinelApp {
                                                 self.send_command(cmd);
                                             }
                                             pages::DashboardAction::NavigateTo(page) => {
+                                                self.state.close_all_drawers();
                                                 self.page = page;
                                                 self.page_transition = 0.0;
                                             }

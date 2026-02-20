@@ -905,7 +905,13 @@ impl AppState {
         self.audit_detail_open = false;
 
         self.notifications.push(notification);
-        self.notifications.truncate(100);
+        if self.notifications.len() > 100 {
+            // Evict oldest notification (FIFO), not newest
+            self.notifications.remove(0);
+            // remove(0) shifts all indices — invalidate selection
+            self.selected_notification = None;
+            self.notification_detail_open = false;
+        }
     }
 
     /// Update synchronization status with history
