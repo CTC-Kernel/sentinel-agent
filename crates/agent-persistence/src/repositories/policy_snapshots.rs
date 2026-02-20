@@ -74,7 +74,7 @@ impl PolicySnapshot {
         pending: i32,
     ) -> Self {
         let score = if total_policies > 0 {
-            Some((passing as f64 / total_policies as f64) * 100.0)
+            Some(((passing as f64 / total_policies as f64) * 100.0).min(100.0))
         } else {
             None
         };

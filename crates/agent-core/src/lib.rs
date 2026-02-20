@@ -1397,10 +1397,10 @@ impl AgentRuntime {
                             let mut low = 0u32;
                             for v in &result.vulnerabilities {
                                 match v.severity {
-                                    agent_scanner::Severity::Critical => critical += 1,
-                                    agent_scanner::Severity::High => high += 1,
-                                    agent_scanner::Severity::Medium => medium += 1,
-                                    agent_scanner::Severity::Low => low += 1,
+                                    agent_scanner::Severity::Critical => critical = critical.saturating_add(1),
+                                    agent_scanner::Severity::High => high = high.saturating_add(1),
+                                    agent_scanner::Severity::Medium => medium = medium.saturating_add(1),
+                                    agent_scanner::Severity::Low => low = low.saturating_add(1),
                                 }
                             }
                             self.emit_gui_event(AgentEvent::VulnerabilityUpdate {
