@@ -103,6 +103,9 @@ impl AuditTrailPage {
             } else {
                 state.audit_trail_filter = target.map(|s| s.to_string());
             }
+            // Clear selection when filter changes — indices are no longer valid
+            state.selected_audit_entry = None;
+            state.audit_detail_open = false;
         }
 
         ui.add_space(theme::SPACE_MD);

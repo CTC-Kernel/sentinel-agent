@@ -51,11 +51,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             ui.add_space(theme::SPACE_SM);
 
             // Quarantine file button
-            let _has_fim_alerts = state.fim.alerts.iter().any(|a| !a.acknowledged);
+            let has_fim_alerts = state.fim.alerts.iter().any(|a| !a.acknowledged);
             if widgets::button::secondary_button(
                 ui,
                 format!("{}  Quarantaine fichier", icons::FILE_SHIELD),
-                true,
+                has_fim_alerts,
             )
             .clicked()
             {
@@ -269,7 +269,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             );
         } else {
             let page_size = 15;
-            let start = state.threats.response_page * page_size;
+            let total_pages = state.threats.response_log.len().div_ceil(page_size).max(1);
+            if state.threats.response_page >= total_pages {
+                state.threats.response_page = total_pages.saturating_sub(1);
+            }
+            let start = state.threats.response_page.saturating_mul(page_size);
             let entries: Vec<_> = state.threats.response_log.iter()
                 .skip(start)
                 .take(page_size)
@@ -340,12 +344,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             // Simple pagination
             if state.threats.response_log.len() > page_size {
                 ui.add_space(theme::SPACE_SM);
-                let _total_pages = state.threats.response_log.len().div_ceil(page_size);
                 let mut pag = crate::widgets::pagination::PaginationState::new(
                     state.threats.response_log.len(),
                     page_size,
                 );
-                pag.current_page = state.threats.response_page + 1;
+                pag.current_page = state.threats.response_page.saturating_add(1);
                 if widgets::pagination(ui, &mut pag) {
                     state.threats.response_page = pag.current_page.saturating_sub(1);
                 }

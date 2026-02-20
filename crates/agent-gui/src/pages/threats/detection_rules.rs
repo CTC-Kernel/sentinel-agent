@@ -12,7 +12,6 @@ use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
-use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort};
 
 /// Inline editing state for the new-rule form.
 struct InlineRuleForm {
@@ -107,53 +106,17 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 Some("Cr\u{00e9}ez une r\u{00e8}gle de d\u{00e9}tection personnalis\u{00e9}e pour surveiller des indicateurs sp\u{00e9}cifiques."),
             );
         } else {
-            let columns = vec![
-                TableColumn {
-                    key: "name",
-                    label: "NOM",
-                    width: ColumnWidth::Fill,
-                    sortable: false,
-                    align: ColumnAlign::Left,
-                },
-                TableColumn {
-                    key: "severity",
-                    label: "S\u{00c9}V\u{00c9}RIT\u{00c9}",
-                    width: ColumnWidth::Fixed(100.0),
-                    sortable: false,
-                    align: ColumnAlign::Center,
-                },
-                TableColumn {
-                    key: "conditions",
-                    label: "CONDITIONS",
-                    width: ColumnWidth::Fixed(200.0),
-                    sortable: false,
-                    align: ColumnAlign::Left,
-                },
-                TableColumn {
-                    key: "matches",
-                    label: "CORRESPONDANCES",
-                    width: ColumnWidth::Fixed(130.0),
-                    sortable: false,
-                    align: ColumnAlign::Center,
-                },
-                TableColumn {
-                    key: "enabled",
-                    label: "ACTIV\u{00c9}",
-                    width: ColumnWidth::Fixed(80.0),
-                    sortable: false,
-                    align: ColumnAlign::Center,
-                },
-            ];
-
-            let table = DataTable::new("detection_rules_table", columns);
-            let mut sort = TableSort::default();
-            table.show_header(ui, &mut sort);
-
             let mut toggle_commands: Vec<(String, bool)> = Vec::new();
             let mut delete_id: Option<String> = None;
 
             for (row_idx, rule) in state.threats.detection_rules.iter().enumerate() {
                 let sev_label = rule.severity.label();
+                let sev_color = match rule.severity {
+                    Severity::Critical => theme::ERROR,
+                    Severity::High => theme::SEVERITY_HIGH,
+                    Severity::Medium => theme::WARNING,
+                    _ => theme::INFO,
+                };
                 let conds = rule
                     .conditions
                     .iter()
@@ -161,28 +124,60 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .collect::<Vec<_>>()
                     .join(", ");
                 let matches_str = format!(
-                    "{}{}",
+                    "{} correspondance(s){}",
                     rule.match_count,
                     rule.last_match
-                        .map(|t| format!(" ({})", t.format("%d/%m %H:%M")))
+                        .map(|t| format!(" \u{2014} Derni\u{00e8}re : {}", t.format("%d/%m %H:%M")))
                         .unwrap_or_default()
                 );
 
-                let cells: Vec<&str> = vec![&rule.name, sev_label, &conds, &matches_str, ""];
-
                 ui.push_id(format!("rule_{}", row_idx), |ui: &mut egui::Ui| {
-                    table.show_row(ui, row_idx, false, &cells);
+                    egui::Frame::new()
+                        .fill(if row_idx % 2 == 1 { theme::table_row_bg(row_idx) } else { egui::Color32::TRANSPARENT })
+                        .inner_margin(egui::Margin::symmetric(theme::SPACE_MD as i8, theme::SPACE_SM as i8))
+                        .show(ui, |ui: &mut egui::Ui| {
+                            ui.horizontal(|ui: &mut egui::Ui| {
+                                // Left: rule info
+                                ui.vertical(|ui: &mut egui::Ui| {
+                                    ui.set_max_width((ui.available_width() - 120.0).max(200.0));
+                                    ui.horizontal(|ui: &mut egui::Ui| {
+                                        ui.label(
+                                            egui::RichText::new(&rule.name)
+                                                .font(theme::font_body())
+                                                .color(theme::text_primary())
+                                                .strong(),
+                                        );
+                                        ui.add_space(theme::SPACE_SM);
+                                        widgets::status_badge(ui, sev_label, sev_color);
+                                    });
+                                    ui.label(
+                                        egui::RichText::new(format!("Conditions : {}", conds))
+                                            .font(theme::font_min())
+                                            .color(theme::text_secondary()),
+                                    );
+                                    ui.label(
+                                        egui::RichText::new(matches_str)
+                                            .font(theme::font_min())
+                                            .color(theme::text_tertiary()),
+                                    );
+                                });
 
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        let mut enabled = rule.enabled;
-                        if widgets::toggle_switch(ui, &mut enabled).changed() {
-                            toggle_commands.push((rule.id.to_string(), enabled));
-                        }
-                        ui.add_space(theme::SPACE_XS);
-                        if widgets::ghost_button(ui, icons::TRASH.to_string()).clicked() {
-                            delete_id = Some(rule.id.to_string());
-                        }
-                    });
+                                // Right: toggle + delete
+                                ui.with_layout(
+                                    egui::Layout::right_to_left(egui::Align::Center),
+                                    |ui: &mut egui::Ui| {
+                                        if widgets::ghost_button(ui, icons::TRASH.to_string()).clicked() {
+                                            delete_id = Some(rule.id.to_string());
+                                        }
+                                        ui.add_space(theme::SPACE_XS);
+                                        let mut enabled = rule.enabled;
+                                        if widgets::toggle_switch(ui, &mut enabled).changed() {
+                                            toggle_commands.push((rule.id.to_string(), enabled));
+                                        }
+                                    },
+                                );
+                            });
+                        });
                 });
             }
 
@@ -447,7 +442,7 @@ fn test_rule(state: &AppState, conditions: &[DetectionCondition]) -> usize {
     let mut count = 0usize;
 
     for cond in conditions {
-        let val = cond.value.to_ascii_lowercase();
+        let val = cond.value.to_lowercase();
         if val.is_empty() {
             continue;
         }
@@ -459,7 +454,7 @@ fn test_rule(state: &AppState, conditions: &[DetectionCondition]) -> usize {
                         .threats
                         .suspicious_processes
                         .iter()
-                        .filter(|p| p.process_name.to_ascii_lowercase().contains(&val))
+                        .filter(|p| p.process_name.to_lowercase().contains(&val))
                         .count(),
                 );
             }
@@ -469,7 +464,7 @@ fn test_rule(state: &AppState, conditions: &[DetectionCondition]) -> usize {
                         .threats
                         .suspicious_processes
                         .iter()
-                        .filter(|p| p.command_line.to_ascii_lowercase().contains(&val))
+                        .filter(|p| p.command_line.to_lowercase().contains(&val))
                         .count(),
                 );
             }
@@ -491,7 +486,7 @@ fn test_rule(state: &AppState, conditions: &[DetectionCondition]) -> usize {
                         .fim
                         .alerts
                         .iter()
-                        .filter(|a| a.path.to_ascii_lowercase().contains(&val))
+                        .filter(|a| a.path.to_lowercase().contains(&val))
                         .count(),
                 );
             }

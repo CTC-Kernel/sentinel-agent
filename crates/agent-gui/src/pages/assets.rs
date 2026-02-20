@@ -258,7 +258,7 @@ impl AssetsPage {
     }
 
     fn filtered_indices(state: &AppState) -> Vec<usize> {
-        let search_lower = state.assets.search.to_ascii_lowercase();
+        let search_lower = state.assets.search.to_lowercase();
         state
             .assets
             .assets
@@ -268,10 +268,10 @@ impl AssetsPage {
                 if !search_lower.is_empty() {
                     let haystack = format!(
                         "{} {} {} {}",
-                        a.hostname.as_deref().unwrap_or("").to_ascii_lowercase(),
-                        a.ip.to_ascii_lowercase(),
-                        a.device_type.to_ascii_lowercase(),
-                        a.tags.join(" ").to_ascii_lowercase()
+                        a.hostname.as_deref().unwrap_or("").to_lowercase(),
+                        a.ip.to_lowercase(),
+                        a.device_type.to_lowercase(),
+                        a.tags.join(" ").to_lowercase()
                     );
                     if !haystack.contains(&search_lower) {
                         return false;

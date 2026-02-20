@@ -65,7 +65,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     }
 
     // Apply text search
-    let search_lower = state.threats.search.to_ascii_lowercase();
+    let search_lower = state.threats.search.to_lowercase();
     if !search_lower.is_empty() {
         threats.retain(|t| {
             let haystack = format!(
@@ -88,8 +88,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     if state.threats.events_page >= total_pages {
         state.threats.events_page = total_pages.saturating_sub(1);
     }
-    let start = state.threats.events_page * ITEMS_PER_PAGE;
-    let page_threats = &threats[start..total.min(start + ITEMS_PER_PAGE)];
+    let start = state.threats.events_page.saturating_mul(ITEMS_PER_PAGE);
+    let end = total.min(start.saturating_add(ITEMS_PER_PAGE));
+    let page_threats = &threats[start..end];
 
     // ── DataTable ───────────────────────────────────────────────────
     let columns = vec![
@@ -156,9 +157,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // MITRE technique lookup
             let subtype = match threat.kind {
-                "network" => threat.title.to_ascii_lowercase(),
-                "system" => threat.description.to_ascii_lowercase(),
-                "process" => format!("{} {}", threat.title, threat.command_line.as_deref().unwrap_or("")).to_ascii_lowercase(),
+                "network" => threat.title.to_lowercase(),
+                "system" => threat.description.to_lowercase(),
+                "process" => format!("{} {}", threat.title, threat.command_line.as_deref().unwrap_or("")).to_lowercase(),
                 _ => String::new(),
             };
             let mitre_id = mitre::mitre_mapping(threat.kind, &subtype)
@@ -181,7 +182,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 &date,
             ];
 
-            let global_idx = start + row_idx;
+            let global_idx = start.saturating_add(row_idx);
             let selected = state.threats.selected_threat == Some(global_idx);
 
             if table.show_row(ui, row_idx, selected, &cells) {
@@ -194,7 +195,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     // ── Pagination controls ─────────────────────────────────────────
     ui.add_space(theme::SPACE_MD);
     let mut pag = PaginationState::new(total, ITEMS_PER_PAGE);
-    pag.current_page = state.threats.events_page + 1; // PaginationState is 1-indexed
+    pag.current_page = state.threats.events_page.saturating_add(1); // PaginationState is 1-indexed
     if widgets::pagination(ui, &mut pag) {
         state.threats.events_page = pag.current_page.saturating_sub(1);
     }

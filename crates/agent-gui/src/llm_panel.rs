@@ -86,7 +86,7 @@ impl LLMPanel {
         let network_active = state.ai.filter.as_deref() == Some("network");
 
         // Apply filtering
-        let search_lower = state.ai.search.to_ascii_lowercase();
+        let search_lower = state.ai.search.to_lowercase();
         let filtered: Vec<usize> = recommendations
             .iter()
             .enumerate()
@@ -101,9 +101,9 @@ impl LLMPanel {
                 if !search_lower.is_empty() {
                     let haystack = format!(
                         "{} {} {}",
-                        r.title.to_ascii_lowercase(),
-                        r.subtitle.to_ascii_lowercase(),
-                        r.category.to_ascii_lowercase(),
+                        r.title.to_lowercase(),
+                        r.subtitle.to_lowercase(),
+                        r.category.to_lowercase(),
                     );
                     if !haystack.contains(&search_lower) {
                         return false;

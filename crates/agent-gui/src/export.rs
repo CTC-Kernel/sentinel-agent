@@ -19,10 +19,23 @@ pub fn export_csv(headers: &[&str], rows: &[Vec<String>], path: &Path) -> Result
         let escaped: Vec<String> = row
             .iter()
             .map(|cell| {
-                if cell.contains(';') || cell.contains('"') || cell.contains('\n') {
-                    format!("\"{}\"", cell.replace('"', "\"\""))
+                // Guard against CSV injection — prefix formula-triggering characters
+                // so spreadsheet apps (Excel, LibreOffice) don't interpret them.
+                let safe = if cell.starts_with('=')
+                    || cell.starts_with('+')
+                    || cell.starts_with('-')
+                    || cell.starts_with('@')
+                    || cell.starts_with('\t')
+                    || cell.starts_with('\r')
+                {
+                    format!("'{cell}")
                 } else {
                     cell.clone()
+                };
+                if safe.contains(';') || safe.contains('"') || safe.contains('\n') {
+                    format!("\"{}\"", safe.replace('"', "\"\""))
+                } else {
+                    safe
                 }
             })
             .collect();

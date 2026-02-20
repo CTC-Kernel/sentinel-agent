@@ -270,7 +270,7 @@ impl CompliancePage {
                 .filter(|(orig, _)| orig == &state.compliance.search)
                 .map(|(_, lower)| lower)
         }).unwrap_or_else(|| {
-            let lower = state.compliance.search.to_ascii_lowercase();
+            let lower = state.compliance.search.to_lowercase();
             ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.compliance.search.clone(), lower.clone())));
             lower
         });
@@ -295,9 +295,9 @@ impl CompliancePage {
                         if !search_lower.is_empty() {
                             let haystack = format!(
                                 "{} {} {}",
-                                c.name.to_ascii_lowercase(),
-                                c.category.to_ascii_lowercase(),
-                                c.check_id.to_ascii_lowercase()
+                                c.name.to_lowercase(),
+                                c.category.to_lowercase(),
+                                c.check_id.to_lowercase()
                             );
                             if !haystack.contains(&search_lower) {
                                 return false;

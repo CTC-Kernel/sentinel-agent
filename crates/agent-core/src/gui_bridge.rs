@@ -328,10 +328,10 @@ impl AgentRuntime {
         };
 
         let severity = match alert.severity {
-            AlertSeverity::Critical => "critical",
-            AlertSeverity::High => "high",
-            AlertSeverity::Medium => "medium",
-            AlertSeverity::Low => "low",
+            AlertSeverity::Critical => GuiSeverity::Critical,
+            AlertSeverity::High => GuiSeverity::High,
+            AlertSeverity::Medium => GuiSeverity::Medium,
+            AlertSeverity::Low => GuiSeverity::Low,
         };
 
         let (source_ip, destination_ip, destination_port) =
@@ -348,18 +348,13 @@ impl AgentRuntime {
         self.emit_gui_event(AgentEvent::NetworkSecurityAlert {
             alert: GuiNetworkAlert {
                 alert_type: alert_type.to_string(),
-                severity: match severity {
-                    "critical" => GuiSeverity::Critical,
-                    "high" => GuiSeverity::High,
-                    "medium" => GuiSeverity::Medium,
-                    _ => GuiSeverity::Low,
-                },
+                severity,
                 description: alert.description.clone(),
                 source_ip,
                 destination_ip,
                 destination_port,
                 confidence: alert.confidence,
-                detected_at: chrono::Utc::now(),
+                detected_at: alert.detected_at,
             },
         });
     }

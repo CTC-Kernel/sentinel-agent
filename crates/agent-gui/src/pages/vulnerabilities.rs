@@ -302,7 +302,7 @@ impl VulnerabilitiesPage {
                 .filter(|(orig, _)| orig == &state.vulnerability.search)
                 .map(|(_, lower)| lower)
         }).unwrap_or_else(|| {
-            let lower = state.vulnerability.search.to_ascii_lowercase();
+            let lower = state.vulnerability.search.to_lowercase();
             ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.vulnerability.search.clone(), lower.clone())));
             lower
         });

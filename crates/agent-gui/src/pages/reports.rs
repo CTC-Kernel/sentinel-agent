@@ -146,6 +146,9 @@ impl ReportsPage {
                 if state.reports.reports.len() > 50 {
                     state.reports.reports.pop_back();
                 }
+                // push_front shifts all indices — invalidate report selection
+                state.reports.selected_report = None;
+                state.reports.detail_open = false;
                 state.push_toast(
                     crate::widgets::toast::Toast::success("Rapport g\u{00e9}n\u{00e9}r\u{00e9} avec succ\u{00e8}s"),
                     ui.ctx(),
