@@ -161,6 +161,12 @@ impl AgentRuntime {
                 description: v.description.clone(),
                 fix_available: v.available_version.is_some(),
                 discovered_at: Some(v.detected_at),
+                source: v.source.clone(),
+                fixed_version: v.available_version.clone(),
+                remediation: v.remediation.clone(),
+                ai_confidence: v.ai_confidence,
+                is_false_positive: v.is_false_positive,
+                ai_analysis: v.ai_analysis.clone(),
             })
             .collect()
     }

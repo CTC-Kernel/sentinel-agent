@@ -44,6 +44,7 @@ pub enum SyncEntityType {
     Asset,
     Kpi,
     AlertRule,
+    Webhook,
 }
 
 impl SyncEntityType {
@@ -60,6 +61,7 @@ impl SyncEntityType {
             SyncEntityType::Asset => "asset",
             SyncEntityType::Kpi => "kpi",
             SyncEntityType::AlertRule => "alert_rule",
+            SyncEntityType::Webhook => "webhook",
         }
     }
 
@@ -76,6 +78,7 @@ impl SyncEntityType {
             "asset" => Some(SyncEntityType::Asset),
             "kpi" => Some(SyncEntityType::Kpi),
             "alert_rule" => Some(SyncEntityType::AlertRule),
+            "webhook" => Some(SyncEntityType::Webhook),
             _ => None,
         }
     }

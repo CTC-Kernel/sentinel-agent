@@ -630,6 +630,7 @@ impl eframe::App for SentinelApp {
                     self.state.unread_notification_count,
                     &sync_state,
                     self.state.summary.organization.as_deref(),
+                    self.state.ai.model_status.is_ready,
                 ) && new_page != self.page
                 {
                     self.state.close_all_drawers();

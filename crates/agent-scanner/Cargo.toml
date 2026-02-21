@@ -27,11 +27,14 @@ rayon.workspace = true
 sysinfo.workspace = true
 memmap2.workspace = true
 anyhow = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
 
 [features]
 default = []
 llm_simple = ["dep:anyhow"]
 llm = ["dep:agent_llm", "dep:anyhow"]
+osv = ["dep:reqwest", "dep:futures-util"]
 
 [dev-dependencies]
 tempfile.workspace = true

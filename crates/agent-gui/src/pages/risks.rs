@@ -649,6 +649,61 @@ impl RisksPage {
                     };
                     widgets::detail_text(ui, "Plan", mitigation_display);
 
+                    // AI Risk Analysis section
+                    widgets::detail_section(ui, "ANALYSE IA");
+                    let is_analyzing = state.risks.ai_analyzing == Some(risk.id);
+                    if is_analyzing {
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            ui.spinner();
+                            ui.label(
+                                egui::RichText::new("  Analyse en cours...")
+                                    .font(theme::font_small())
+                                    .color(theme::text_secondary()),
+                            );
+                        });
+                    } else if widgets::secondary_button(
+                        ui,
+                        format!("{}  Analyser avec l\u{2019}IA", icons::BRAIN),
+                        true,
+                    )
+                    .clicked()
+                    {
+                        state.risks.ai_analyzing = Some(risk.id);
+                        state.risks.ai_analysis_result = None;
+                        state.risks.ai_mitigation_suggestions.clear();
+                        *command = Some(GuiCommand::LlmAnalyzeRisk {
+                            risk_id: risk.id.to_string(),
+                            risk_title: risk.title.clone(),
+                            risk_description: risk.description.clone(),
+                            current_probability: risk.probability,
+                            current_impact: risk.impact,
+                        });
+                    }
+
+                    // Display AI analysis result if available
+                    if let Some(ref analysis_text) = state.risks.ai_analysis_result {
+                        ui.add_space(theme::SPACE_XS);
+                        widgets::detail_text(ui, "R\u{00e9}sultat", analysis_text);
+                        if !state.risks.ai_mitigation_suggestions.is_empty() {
+                            ui.add_space(theme::SPACE_XS);
+                            ui.label(
+                                egui::RichText::new("Suggestions de mitigation :")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
+                            for suggestion in &state.risks.ai_mitigation_suggestions {
+                                ui.horizontal(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(format!("  \u{2022} {}", suggestion))
+                                            .font(theme::font_small())
+                                            .color(theme::text_secondary()),
+                                    );
+                                });
+                            }
+                        }
+                    }
+
                     widgets::detail_section(ui, "TEMPORALIT\u{00c9}");
                     widgets::detail_field(
                         ui,

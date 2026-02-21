@@ -194,6 +194,50 @@ pub enum AgentEvent {
     KpiSnapshot {
         snapshot: Box<crate::dto::KpiSnapshot>,
     },
+    /// LLM chat response received.
+    LlmChatResponse {
+        /// The assistant's response message.
+        message: String,
+        /// Processing time in milliseconds.
+        processing_time_ms: u64,
+    },
+    /// LLM analysis result for a specific item (vulnerability, threat, etc.).
+    LlmAnalysisComplete {
+        /// What was analyzed (e.g. "CVE-2024-1234", "process:sshd").
+        target: String,
+        /// The analysis text from the LLM.
+        analysis: String,
+        /// Optional severity override suggested by the LLM.
+        severity_override: Option<String>,
+        /// Whether the LLM considers this a false positive.
+        is_false_positive: Option<bool>,
+        /// Confidence score (0-100).
+        confidence: Option<u8>,
+    },
+    /// LLM model status update.
+    LlmStatusUpdate {
+        /// Name of the loaded model.
+        model_name: String,
+        /// Model status (ready, loading, error, unloaded).
+        status: String,
+        /// Total inference count.
+        inference_count: u64,
+        /// Memory allocated in MB.
+        memory_mb: u64,
+    },
+    /// AI risk analysis result.
+    LlmRiskAnalysis {
+        /// ID of the risk entry that was analyzed.
+        risk_id: String,
+        /// AI-suggested probability (1-5), if available.
+        suggested_probability: Option<u8>,
+        /// AI-suggested impact (1-5), if available.
+        suggested_impact: Option<u8>,
+        /// Free-form analysis text from the LLM.
+        analysis: String,
+        /// Suggested mitigation strategies.
+        mitigation_suggestions: Vec<String>,
+    },
 }
 
 /// Commands sent from the GUI to the agent runtime.
@@ -369,6 +413,40 @@ pub enum GuiCommand {
     /// Test a webhook by sending a test payload.
     TestWebhook {
         webhook_id: String,
+    },
+    /// Send a prompt to the local LLM.
+    LlmPrompt {
+        /// The user's prompt text.
+        prompt: String,
+        /// Optional context type for prompt enrichment.
+        context: Option<crate::dto::LlmPromptContext>,
+    },
+    /// Analyze a specific vulnerability finding with AI.
+    LlmAnalyzeVulnerability {
+        /// Index of the finding in the current findings list.
+        finding_index: usize,
+    },
+    /// Classify a threat event with AI.
+    LlmClassifyThreat {
+        /// Description of the event to classify.
+        event_description: String,
+    },
+    /// Request current LLM model status.
+    LlmGetStatus,
+    /// Reload the LLM model.
+    LlmReloadModel,
+    /// Analyze a risk entry with AI for enhanced scoring and mitigation.
+    LlmAnalyzeRisk {
+        /// UUID of the risk entry.
+        risk_id: String,
+        /// Title of the risk.
+        risk_title: String,
+        /// Description of the risk.
+        risk_description: String,
+        /// Current probability (1-5).
+        current_probability: u8,
+        /// Current impact (1-5).
+        current_impact: u8,
     },
 }
 

@@ -56,6 +56,10 @@ pub enum ScannerError {
     #[error("Unsupported: {0}")]
     Unsupported(String),
 
+    /// Network error (API calls, HTTP requests).
+    #[error("Network error: {0}")]
+    Network(String),
+
     /// Internal error.
     #[error("Internal error: {0}")]
     Internal(String),
@@ -70,7 +74,10 @@ impl ScannerError {
     pub fn is_recoverable(&self) -> bool {
         matches!(
             self,
-            ScannerError::Timeout(_) | ScannerError::CheckExecution(_) | ScannerError::Storage(_)
+            ScannerError::Timeout(_)
+                | ScannerError::CheckExecution(_)
+                | ScannerError::Storage(_)
+                | ScannerError::Network(_)
         )
     }
 }

@@ -298,6 +298,10 @@ pub struct ComplianceFilter {
     pub selected_check: Option<usize>,
     pub detail_open: bool,
     pub view_mode: crate::dto::ComplianceViewMode,
+    /// Whether an AI analysis is in progress for the selected check.
+    pub ai_analyzing: bool,
+    /// Last AI analysis result text for the selected check.
+    pub ai_analysis_result: Option<String>,
 }
 
 
@@ -312,6 +316,16 @@ pub struct AiState {
     pub detail_open: bool,
     pub filter: Option<String>,
     pub search: String,
+    /// Active tab in the LLM panel.
+    pub active_tab: crate::dto::LlmTab,
+    /// Chat conversation history.
+    pub chat_history: Vec<crate::dto::LlmChatMessage>,
+    /// Current input text in the chat input field.
+    pub input_text: String,
+    /// Whether the LLM is currently processing a prompt.
+    pub is_processing: bool,
+    /// Current model status.
+    pub model_status: crate::dto::LlmModelStatus,
 }
 
 // ---------------------------------------------------------------------------
@@ -356,6 +370,12 @@ pub struct RisksState {
     pub selected_risk: Option<usize>,
     pub detail_open: bool,
     pub editing: bool,
+    /// UUID of the risk currently being analyzed by AI (None = idle).
+    pub ai_analyzing: Option<uuid::Uuid>,
+    /// Last AI analysis result text for the selected risk.
+    pub ai_analysis_result: Option<String>,
+    /// Mitigation suggestions from the last AI analysis.
+    pub ai_mitigation_suggestions: Vec<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -837,6 +857,101 @@ impl AppState {
                 if self.kpi.snapshots.len() > 365 {
                     self.kpi.snapshots.pop_front();
                 }
+            }
+            AgentEvent::LlmChatResponse {
+                message,
+                processing_time_ms,
+            } => {
+                self.ai.chat_history.push(crate::dto::LlmChatMessage {
+                    role: crate::dto::ChatRole::Assistant,
+                    content: message.clone(),
+                    timestamp: chrono::Utc::now(),
+                    processing_time_ms: Some(processing_time_ms),
+                });
+                self.ai.is_processing = false;
+
+                // If compliance was waiting for AI analysis, update its state too
+                if self.compliance.ai_analyzing {
+                    self.compliance.ai_analyzing = false;
+                    self.compliance.ai_analysis_result = Some(message);
+                }
+            }
+            AgentEvent::LlmAnalysisComplete {
+                target,
+                analysis,
+                severity_override: _,
+                is_false_positive,
+                confidence,
+            } => {
+                // Add analysis result as a system message in chat
+                let summary = if let Some(fp) = is_false_positive {
+                    let conf = confidence.unwrap_or(0);
+                    if fp {
+                        format!("[Analyse: {}] Faux positif probable (confiance: {}%)\n\n{}", target, conf, analysis)
+                    } else {
+                        format!("[Analyse: {}] Menace confirmée (confiance: {}%)\n\n{}", target, conf, analysis)
+                    }
+                } else {
+                    format!("[Analyse: {}]\n\n{}", target, analysis)
+                };
+                self.ai.chat_history.push(crate::dto::LlmChatMessage {
+                    role: crate::dto::ChatRole::Assistant,
+                    content: summary,
+                    timestamp: chrono::Utc::now(),
+                    processing_time_ms: None,
+                });
+                self.ai.is_processing = false;
+            }
+            AgentEvent::LlmStatusUpdate {
+                model_name,
+                status,
+                inference_count,
+                memory_mb,
+            } => {
+                let is_ready = status == "ready";
+                self.ai.model_status = crate::dto::LlmModelStatus {
+                    model_name,
+                    status,
+                    inference_count,
+                    memory_mb,
+                    is_ready,
+                };
+            }
+            AgentEvent::LlmRiskAnalysis {
+                risk_id,
+                suggested_probability,
+                suggested_impact,
+                analysis,
+                mitigation_suggestions,
+            } => {
+                // Clear the analyzing spinner
+                if self.risks.ai_analyzing.map(|id| id.to_string()) == Some(risk_id.clone()) {
+                    self.risks.ai_analyzing = None;
+                }
+                // Store the analysis result for display
+                self.risks.ai_analysis_result = Some(analysis.clone());
+                self.risks.ai_mitigation_suggestions = mitigation_suggestions;
+
+                // Optionally apply AI-suggested scores to the risk entry
+                if let Ok(rid) = uuid::Uuid::parse_str(&risk_id) {
+                    if let Some(entry) = self.risks.entries.iter_mut().find(|r| r.id == rid) {
+                        if let Some(prob) = suggested_probability {
+                            entry.probability = prob.clamp(1, 5);
+                        }
+                        if let Some(impact) = suggested_impact {
+                            entry.impact = impact.clamp(1, 5);
+                        }
+                        entry.updated_at = chrono::Utc::now();
+                    }
+                }
+
+                // Also log in the AI chat for traceability
+                self.ai.chat_history.push(crate::dto::LlmChatMessage {
+                    role: crate::dto::ChatRole::Assistant,
+                    content: format!("[Analyse de risque]\n\n{}", analysis),
+                    timestamp: chrono::Utc::now(),
+                    processing_time_ms: None,
+                });
             }
         }
 
