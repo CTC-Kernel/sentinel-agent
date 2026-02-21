@@ -98,6 +98,12 @@ impl<'a> TabBar<'a> {
         let tab_count = self.tabs.len();
 
         ui.horizontal(|ui| {
+            // Remove inter-item spacing when full-width so tabs exactly fill
+            // the available width without overflowing (N tabs × width/N = width).
+            if self.full_width {
+                ui.spacing_mut().item_spacing.x = 0.0;
+            }
+
             for (i, tab) in self.tabs.iter().enumerate() {
                 let is_selected = i == self.selected;
                 let tab_width = if self.full_width && tab_count > 0 {
