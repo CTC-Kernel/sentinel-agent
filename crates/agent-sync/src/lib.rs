@@ -95,16 +95,17 @@ pub use security::{
     SignatureValidator, SignatureVerificationResult, SignedLogEntry,
 };
 pub use types::{
-    AgentCommand, AlertRulePayload, AlertRuleSyncRequest, ApiErrorResponse, AssetPayload,
-    AssetSyncRequest, AssetSyncResponse, CertificateRenewalRequest, CertificateRenewalResponse,
-    DetectionConditionPayload, DetectionMatchPayload, DetectionMatchSyncRequest,
-    DetectionRulePayload, DetectionRuleSyncRequest, EnrollmentRequest, EnrollmentResponse,
-    GenericSyncResponse, HeartbeatRequest, HeartbeatResponse, IncidentReportResponse, IncidentType,
-    InitialConfig, KpiSnapshotPayload, KpiSyncRequest, PlaybookActionPayload,
-    PlaybookConditionPayload, PlaybookLogPayload, PlaybookLogSyncRequest, PlaybookPayload,
-    PlaybookSyncRequest, PlaybookSyncResponse, RiskPayload, RiskSyncRequest, RiskSyncResponse,
-    SecurityIncidentReport, SelfCheckResult, Severity, StoredCredentials, VulnerabilityFinding,
-    VulnerabilityUploadRequest, VulnerabilityUploadResponse, WebhookPayload, WebhookSyncRequest,
+    AcknowledgedResponse, AgentCommand, AlertRulePayload, AlertRuleSyncRequest, ApiErrorResponse,
+    AssetPayload, AssetSyncRequest, AssetSyncResponse, CertificateRenewalRequest,
+    CertificateRenewalResponse, DetectionConditionPayload, DetectionMatchPayload,
+    DetectionMatchSyncRequest, DetectionRulePayload, DetectionRuleSyncRequest, EnrollmentRequest,
+    EnrollmentResponse, GenericSyncResponse, HeartbeatRequest, HeartbeatResponse,
+    IncidentReportResponse, IncidentType, InitialConfig, KpiSnapshotPayload, KpiSyncRequest,
+    PlaybookActionPayload, PlaybookConditionPayload, PlaybookLogPayload, PlaybookLogSyncRequest,
+    PlaybookPayload, PlaybookSyncRequest, PlaybookSyncResponse, PlaybookToggleRequest, RiskPayload,
+    RiskSyncRequest, RiskSyncResponse, SecurityIncidentReport, SelfCheckResult, Severity,
+    StoredCredentials, VulnerabilityFinding, VulnerabilityUploadRequest,
+    VulnerabilityUploadResponse, WebhookPayload, WebhookSyncRequest,
 };
 pub use update::{
     AvailableUpdate, DEFAULT_UPDATE_CHECK_INTERVAL_SECS, RolloutGroup, UpdateCheckRequest,

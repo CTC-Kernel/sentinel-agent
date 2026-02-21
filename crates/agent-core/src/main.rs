@@ -904,6 +904,15 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::TogglePlaybook { playbook_id, enabled }) => {
                             info!("[AUDIT] GUI toggled playbook {}: enabled={}", playbook_id, enabled);
+                            if let Some(ref c) = sync_client {
+                                let c = std::sync::Arc::clone(c);
+                                let pid = playbook_id.clone();
+                                tokio::spawn(async move {
+                                    if let Err(e) = c.toggle_playbook(&pid, enabled).await {
+                                        warn!("Failed to sync playbook toggle: {}", e);
+                                    }
+                                });
+                            }
                         }
                         Ok(GuiCommand::SavePlaybook { playbook }) => {
                             info!("[AUDIT] GUI saved playbook: {}", playbook.name);
@@ -919,6 +928,15 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::DeletePlaybook { playbook_id }) => {
                             info!("[AUDIT] GUI deleted playbook: {}", playbook_id);
+                            if let Some(ref c) = sync_client {
+                                let c = std::sync::Arc::clone(c);
+                                let pid = playbook_id.clone();
+                                tokio::spawn(async move {
+                                    if let Err(e) = c.delete_playbook(&pid).await {
+                                        warn!("Failed to sync playbook delete: {}", e);
+                                    }
+                                });
+                            }
                         }
                         Ok(GuiCommand::SaveDetectionRule { rule }) => {
                             info!("[AUDIT] GUI saved detection rule: {}", rule.name);

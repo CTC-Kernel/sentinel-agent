@@ -259,6 +259,8 @@ pub mod config_keys {
     pub const FIM_CONFIG: &str = "fim_config";
     /// SIEM configuration key.
     pub const SIEM_CONFIG: &str = "siem_config";
+    /// USB policy configuration key.
+    pub const USB_POLICY: &str = "usb_policy";
 }
 
 #[cfg(test)]

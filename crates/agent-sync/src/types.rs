@@ -658,6 +658,20 @@ pub struct PlaybookSyncResponse {
     pub updated_count: u32,
 }
 
+/// Generic acknowledged response from the SaaS.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AcknowledgedResponse {
+    pub acknowledged: bool,
+}
+
+/// Request to toggle a playbook's enabled state.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct PlaybookToggleRequest {
+    pub enabled: bool,
+}
+
 /// Playbook execution log entry for sync.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
