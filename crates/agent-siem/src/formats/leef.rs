@@ -5,6 +5,7 @@
 //! Used by: IBM QRadar.
 
 use super::SiemFormatter;
+use agent_common::constants::AGENT_VERSION;
 use crate::{SiemEvent, SiemResult};
 
 /// LEEF (Log Event Extended Format) event formatter.
@@ -20,7 +21,7 @@ impl LeefFormatter {
         Self {
             vendor: "Sentinel".to_string(),
             product: "GRC Agent".to_string(),
-            version: "2.0".to_string(),
+            version: AGENT_VERSION.to_string(),
         }
     }
 
@@ -159,6 +160,7 @@ impl SiemFormatter for LeefFormatter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use agent_common::constants::AGENT_VERSION;
     use crate::EventCategory;
     use chrono::Utc;
 
@@ -179,7 +181,7 @@ mod tests {
             file_path: None,
             custom_fields: serde_json::json!({}),
             event_id: "evt-123".to_string(),
-            agent_version: "2.0.0".to_string(),
+            agent_version: AGENT_VERSION.to_string(),
         }
     }
 
@@ -190,7 +192,7 @@ mod tests {
 
         let result = formatter.format(&event).unwrap();
 
-        assert!(result.starts_with("LEEF:2.0|Sentinel|GRC Agent|2.0|"));
+        assert!(result.starts_with(&format!("LEEF:2.0|Sentinel|GRC Agent|{}|", AGENT_VERSION)));
         assert!(result.contains("srcIP=192.168.1.100"));
         assert!(result.contains("dstIP=10.0.0.1"));
         assert!(result.contains("sev=High"));
