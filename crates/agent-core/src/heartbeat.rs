@@ -248,6 +248,90 @@ impl AgentRuntime {
                                 .report_success(&cmd.id, Some("Update triggered".to_string()))
                                 .await
                         }
+                        "remediate" => {
+                            info!("Server command: remediate ({})", cmd.id);
+                            #[cfg(feature = "gui")]
+                            {
+                                let check_id = cmd.payload.get("check_id")
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or_default()
+                                    .to_string();
+                                let action = cmd.payload.get("action")
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or("execute")
+                                    .to_string();
+
+                                if check_id.is_empty() {
+                                    service
+                                        .report_failure(&cmd.id, "Missing check_id in payload".to_string())
+                                        .await
+                                } else {
+                                    let actions = self.remediation_engine.get_platform_remediation(&check_id);
+                                    if let Some(rem_action) = actions.first() {
+                                        let result = if action == "rollback" {
+                                            self.remediation_engine.rollback(rem_action)
+                                        } else {
+                                            Some(self.remediation_engine.execute(rem_action))
+                                        };
+
+                                        match result {
+                                            Some(result) => {
+                                                let success = matches!(
+                                                    result.status,
+                                                    agent_common::types::remediation::RemediationStatus::Success
+                                                );
+                                                if success {
+                                                    info!("Remediation for '{}' succeeded", check_id);
+                                                    self.state.force_check.store(true, Ordering::Release);
+                                                    service
+                                                        .report_success(
+                                                            &cmd.id,
+                                                            Some(format!(
+                                                                "Remediation succeeded: {}",
+                                                                result.output
+                                                            )),
+                                                        )
+                                                        .await
+                                                } else {
+                                                    let err_msg = result.error.unwrap_or_default();
+                                                    warn!("Remediation for '{}' failed: {}", check_id, err_msg);
+                                                    service
+                                                        .report_failure(
+                                                            &cmd.id,
+                                                            format!("Remediation failed: {}", err_msg),
+                                                        )
+                                                        .await
+                                                }
+                                            }
+                                            None => {
+                                                service
+                                                    .report_failure(
+                                                        &cmd.id,
+                                                        format!("No rollback available for '{}'", check_id),
+                                                    )
+                                                    .await
+                                            }
+                                        }
+                                    } else {
+                                        service
+                                            .report_failure(
+                                                &cmd.id,
+                                                format!("No remediation available for '{}'", check_id),
+                                            )
+                                            .await
+                                    }
+                                }
+                            }
+                            #[cfg(not(feature = "gui"))]
+                            {
+                                service
+                                    .report_failure(
+                                        &cmd.id,
+                                        "Remediation not available (no GUI feature)".to_string(),
+                                    )
+                                    .await
+                            }
+                        }
                         other => {
                             warn!("Unknown server command: {} ({})", other, cmd.id);
                             service
@@ -262,6 +346,14 @@ impl AgentRuntime {
                 }
             } else {
                 warn!("Received commands but CommandResultsService is not initialized");
+            }
+        }
+
+        // React to server-signaled update availability
+        if response.update_available {
+            if let Some(ref version) = response.update_version {
+                info!("Server signals update available: v{}", version);
+                self.state.force_update.store(true, Ordering::Release);
             }
         }
 
