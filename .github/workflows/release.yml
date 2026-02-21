@@ -60,9 +60,11 @@ jobs:
       - name: Update Cargo.toml with new version
         run: |
           VERSION="${{ steps.bump.outputs.version }}"
-          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+          # Only replace the first occurrence (workspace.package version, line 9)
+          # Avoids overwriting dependency versions (windows, windows-service, etc.)
+          sed -i "0,/^version = \".*\"/{s/^version = \".*\"/version = \"$VERSION\"/}" Cargo.toml
           echo "Updated Cargo.toml:"
-          grep '^version' Cargo.toml
+          head -12 Cargo.toml
 
       - name: Commit, tag, and push
         run: |
