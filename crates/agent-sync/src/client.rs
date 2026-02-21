@@ -506,6 +506,32 @@ impl HttpClient {
         Ok(buffer)
     }
 
+    /// Send a DELETE request.
+    pub async fn delete<R>(&self, path: &str) -> SyncResult<R>
+    where
+        R: serde::de::DeserializeOwned,
+    {
+        let url = self.url(path);
+        debug!("DELETE {}", url);
+
+        let request = self
+            .client
+            .delete(&url)
+            .header(header::ACCEPT, "application/json");
+
+        let response = self.apply_auth(request).send().await.map_err(|e| {
+            if e.is_timeout() {
+                SyncError::Timeout
+            } else if e.is_connect() {
+                SyncError::connection(e.to_string())
+            } else {
+                SyncError::Http(e)
+            }
+        })?;
+
+        self.handle_response(response).await
+    }
+
     /// Handle an HTTP response, extracting the body or error.
     async fn handle_response<R>(&self, response: reqwest::Response) -> SyncResult<R>
     where

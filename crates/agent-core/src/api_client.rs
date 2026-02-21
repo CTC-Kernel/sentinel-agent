@@ -223,6 +223,15 @@ pub struct HeartbeatResponse {
     pub rules_changed: bool,
     #[serde(default)]
     pub organization_name: Option<String>,
+    /// Whether an update is available for this agent.
+    #[serde(default)]
+    pub update_available: bool,
+    /// The version to update to, if available.
+    #[serde(default)]
+    pub update_version: Option<String>,
+    /// The update channel (stable, beta, canary).
+    #[serde(default)]
+    pub update_channel: Option<String>,
 }
 
 /// Allowed server command types. Any command not in this list will be rejected.
@@ -232,6 +241,7 @@ const ALLOWED_COMMANDS: &[&str] = &[
     "revoke",
     "diagnostics",
     "update",
+    "remediate",
 ];
 
 /// Command from the server.
@@ -332,6 +342,22 @@ pub struct CheckRule {
     pub severity: String,
     #[serde(default)]
     pub platforms: Vec<String>,
+}
+
+/// Update status report sent to the server.
+#[derive(Debug, Serialize)]
+pub struct UpdateStatusReport {
+    pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Update status report response from the server.
+#[derive(Debug, Deserialize)]
+pub struct UpdateStatusResponse {
+    pub acknowledged: bool,
 }
 
 /// Result upload request.
@@ -873,6 +899,42 @@ impl ApiClient {
             .map_err(|e| CommonError::network(format!("Failed to read response body: {}", e)))?;
 
         Ok(text.trim().to_string())
+    }
+
+    /// Report update status to the server.
+    pub async fn report_update_status(&self, report: UpdateStatusReport) -> Result<UpdateStatusResponse> {
+        let agent_id = self
+            .agent_id
+            .as_ref()
+            .ok_or_else(|| CommonError::validation("Agent ID not set"))?;
+
+        let url = format!("{}/v1/agents/{}/update-status", self.base_url, agent_id);
+        debug!("Reporting update status to {}", url);
+
+        let builder = self.authenticate(self.client.post(&url).json(&report));
+
+        let response = builder.send().await.map_err(|e| {
+            CommonError::network(format!("Update status report failed: {}", e))
+        })?;
+
+        let status = response.status();
+        if !status.is_success() {
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(CommonError::network(format!(
+                "Update status report failed: {} - {}",
+                status, error_text
+            )));
+        }
+
+        let result: UpdateStatusResponse = response.json().await.map_err(|e| {
+            CommonError::network(format!("Failed to parse update status response: {}", e))
+        })?;
+
+        debug!("Update status reported: {}", report.status);
+        Ok(result)
     }
 
     /// Report a security incident to the server.

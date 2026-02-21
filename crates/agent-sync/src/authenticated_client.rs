@@ -9,11 +9,13 @@ use crate::client::HttpClient;
 use crate::credentials::CredentialsRepository;
 use crate::error::{SyncError, SyncResult};
 use crate::types::{
+    AcknowledgedResponse,
     CertificateRenewalRequest, CertificateRenewalResponse, GenericSyncResponse,
     IncidentReportResponse, SecurityIncidentReport, StoredCredentials,
     VulnerabilityFinding, VulnerabilityUploadRequest, VulnerabilityUploadResponse,
     // Playbook sync
     PlaybookPayload, PlaybookSyncRequest, PlaybookSyncResponse,
+    PlaybookToggleRequest,
     PlaybookLogPayload, PlaybookLogSyncRequest,
     // Detection rule sync
     DetectionRulePayload, DetectionRuleSyncRequest,
@@ -227,6 +229,15 @@ impl AuthenticatedClient {
         client.get_with_etag(path, if_none_match).await
     }
 
+    /// Send a DELETE request.
+    pub async fn delete<R>(&self, path: &str) -> SyncResult<R>
+    where
+        R: serde::de::DeserializeOwned,
+    {
+        let client = self.get_client().await?;
+        client.delete(path).await
+    }
+
     /// Download binary data from a URL.
     ///
     /// Used for downloading update packages.
@@ -401,6 +412,33 @@ impl AuthenticatedClient {
         info!("Syncing {} playbooks for agent {}", playbooks.len(), agent_id);
         let request = PlaybookSyncRequest { playbooks };
         self.post_json(&format!("/v1/agents/{}/playbooks", agent_id), &request).await
+    }
+
+    /// Toggle playbook enabled state on the SaaS.
+    pub async fn toggle_playbook(
+        &self,
+        playbook_id: &str,
+        enabled: bool,
+    ) -> SyncResult<AcknowledgedResponse> {
+        let agent_id = self.agent_id().await?;
+        info!("Toggling playbook {} enabled={} for agent {}", playbook_id, enabled, agent_id);
+        let request = PlaybookToggleRequest { enabled };
+        self.post_json(
+            &format!("/v1/agents/{}/playbooks/{}/toggle", agent_id, playbook_id),
+            &request,
+        ).await
+    }
+
+    /// Delete a playbook on the SaaS.
+    pub async fn delete_playbook(
+        &self,
+        playbook_id: &str,
+    ) -> SyncResult<AcknowledgedResponse> {
+        let agent_id = self.agent_id().await?;
+        info!("Deleting playbook {} for agent {}", playbook_id, agent_id);
+        self.delete(
+            &format!("/v1/agents/{}/playbooks/{}", agent_id, playbook_id),
+        ).await
     }
 
     /// Sync playbook execution logs to the SaaS.
