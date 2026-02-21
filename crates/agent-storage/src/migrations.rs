@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 5;
+pub const CURRENT_SCHEMA_VERSION: i32 = 6;
 
 /// A database migration.
 struct Migration {
@@ -246,6 +246,176 @@ const MIGRATIONS: &[Migration] = &[
             DROP TABLE audit_trail_backup;
             CREATE INDEX IF NOT EXISTS idx_audit_trail_timestamp ON audit_trail(timestamp);
             CREATE INDEX IF NOT EXISTS idx_audit_trail_action_type ON audit_trail(action_type);
+        "#,
+    },
+    Migration {
+        version: 6,
+        name: "grc_entities",
+        up: r#"
+            CREATE TABLE IF NOT EXISTS risks (
+                id TEXT PRIMARY KEY NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                probability INTEGER NOT NULL,
+                impact INTEGER NOT NULL,
+                owner TEXT NOT NULL,
+                status TEXT NOT NULL,
+                mitigation TEXT NOT NULL,
+                source TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                sla_target_days INTEGER,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS playbooks (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT NOT NULL,
+                trigger_type TEXT NOT NULL,
+                severity TEXT NOT NULL,
+                steps TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS managed_assets (
+                id TEXT PRIMARY KEY NOT NULL,
+                ip TEXT NOT NULL,
+                hostname TEXT,
+                mac TEXT,
+                vendor TEXT,
+                device_type TEXT NOT NULL,
+                criticality TEXT NOT NULL,
+                lifecycle TEXT NOT NULL,
+                tags TEXT NOT NULL,
+                risk_score REAL NOT NULL,
+                vulnerability_count INTEGER NOT NULL,
+                open_ports TEXT NOT NULL,
+                software TEXT NOT NULL,
+                first_seen TEXT NOT NULL,
+                last_seen TEXT NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS kpi_snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                compliance_score REAL NOT NULL,
+                incident_count INTEGER NOT NULL,
+                open_vulns INTEGER NOT NULL,
+                closed_vulns INTEGER NOT NULL,
+                remediation_sla_pct REAL NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS alert_rules (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                rule_type TEXT NOT NULL,
+                severity_threshold TEXT,
+                detection_types TEXT NOT NULL,
+                escalation_minutes INTEGER,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS webhooks (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                url TEXT NOT NULL,
+                token TEXT,
+                events TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                verify_ssl INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS detection_rules (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT NOT NULL,
+                severity TEXT NOT NULL,
+                conditions TEXT NOT NULL,
+                actions TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                last_match TEXT,
+                match_count INTEGER NOT NULL DEFAULT 0,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS software_inventory (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                version TEXT NOT NULL,
+                vendor TEXT,
+                install_date TEXT,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            -- Recreate sync_queue to drop the entity_type CHECK constraint and change entity_id to TEXT
+            -- to accommodate UUIDs for the new entity types.
+            CREATE TABLE sync_queue_backup AS SELECT * FROM sync_queue;
+            DROP TABLE sync_queue;
+            CREATE TABLE sync_queue (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entity_type TEXT NOT NULL,
+                entity_id TEXT NOT NULL,
+                payload TEXT NOT NULL,
+                priority INTEGER NOT NULL DEFAULT 0,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                max_attempts INTEGER NOT NULL DEFAULT 10,
+                last_attempt_at TEXT,
+                last_error TEXT,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                next_retry_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            );
+            INSERT INTO sync_queue (id, entity_type, entity_id, payload, priority, attempts, max_attempts, last_attempt_at, last_error, created_at, next_retry_at)
+            SELECT id, entity_type, CAST(entity_id AS TEXT), payload, priority, attempts, max_attempts, last_attempt_at, last_error, created_at, next_retry_at FROM sync_queue_backup;
+            DROP TABLE sync_queue_backup;
+
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_priority ON sync_queue(priority DESC, created_at ASC);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_next_retry ON sync_queue(next_retry_at);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_entity ON sync_queue(entity_type, entity_id);
+
+        "#,
+        down: r#"
+            DROP TABLE IF EXISTS risks;
+            DROP TABLE IF EXISTS playbooks;
+            DROP TABLE IF EXISTS managed_assets;
+            DROP TABLE IF EXISTS kpi_snapshots;
+            DROP TABLE IF EXISTS alert_rules;
+            DROP TABLE IF EXISTS webhooks;
+            DROP TABLE IF EXISTS detection_rules;
+            DROP TABLE IF EXISTS software_inventory;
+
+            -- Revert sync_queue to INTEGER entity_id and add checklist back
+            CREATE TABLE sync_queue_backup AS SELECT * FROM sync_queue;
+            DROP TABLE sync_queue;
+            CREATE TABLE sync_queue (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entity_type TEXT NOT NULL CHECK (entity_type IN ('check_result', 'proof', 'heartbeat', 'config')),
+                entity_id INTEGER NOT NULL,
+                payload TEXT NOT NULL,
+                priority INTEGER NOT NULL DEFAULT 0,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                max_attempts INTEGER NOT NULL DEFAULT 10,
+                last_attempt_at TEXT,
+                last_error TEXT,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                next_retry_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            );
+            INSERT OR IGNORE INTO sync_queue SELECT id, entity_type, CAST(entity_id AS INTEGER), payload, priority, attempts, max_attempts, last_attempt_at, last_error, created_at, next_retry_at FROM sync_queue_backup;
+            DROP TABLE sync_queue_backup;
+
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_priority ON sync_queue(priority DESC, created_at ASC);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_next_retry ON sync_queue(next_retry_at);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_entity ON sync_queue(entity_type, entity_id);
         "#,
     },
 ];
@@ -487,6 +657,14 @@ mod tests {
         assert!(tables.contains(&"proofs".to_string()));
         assert!(tables.contains(&"sync_queue".to_string()));
         assert!(tables.contains(&"schema_version".to_string()));
+        assert!(tables.contains(&"risks".to_string()));
+        assert!(tables.contains(&"playbooks".to_string()));
+        assert!(tables.contains(&"managed_assets".to_string()));
+        assert!(tables.contains(&"kpi_snapshots".to_string()));
+        assert!(tables.contains(&"alert_rules".to_string()));
+        assert!(tables.contains(&"webhooks".to_string()));
+        assert!(tables.contains(&"detection_rules".to_string()));
+        assert!(tables.contains(&"software_inventory".to_string()));
     }
 
     #[test]
@@ -582,9 +760,12 @@ mod tests {
 
         // Run migrations
         run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 6);
+
+        // Rollback from v6 down to v0
+        rollback_migration(&mut conn, 6).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 5);
 
-        // Rollback from v5 down to v0
         rollback_migration(&mut conn, 5).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 4);
 
@@ -626,7 +807,7 @@ mod tests {
         run_migrations(&mut conn).unwrap();
 
         let migrations = get_applied_migrations(&conn).unwrap();
-        assert_eq!(migrations.len(), 5);
+        assert_eq!(migrations.len(), 6);
         assert_eq!(migrations[0].0, 1);
         assert_eq!(migrations[0].1, "initial_schema");
         assert_eq!(migrations[1].0, 2);
@@ -637,6 +818,8 @@ mod tests {
         assert_eq!(migrations[3].1, "audit_trail");
         assert_eq!(migrations[4].0, 5);
         assert_eq!(migrations[4].1, "audit_trail_sync");
+        assert_eq!(migrations[5].0, 6);
+        assert_eq!(migrations[5].1, "grc_entities");
     }
 
     #[test]
@@ -646,17 +829,13 @@ mod tests {
 
         // Valid entity type
         conn.execute(
-            "INSERT INTO sync_queue (entity_type, entity_id, payload) VALUES ('check_result', 1, '{}')",
+            "INSERT INTO sync_queue (entity_type, entity_id, payload) VALUES ('check_result', '1', '{}')",
             [],
         )
         .unwrap();
 
-        // Invalid entity type should fail
-        let result = conn.execute(
-            "INSERT INTO sync_queue (entity_type, entity_id, payload) VALUES ('invalid_type', 1, '{}')",
-            [],
-        );
-        assert!(result.is_err());
+        // With V6, the check constraint on entity_type was removed to allow dynamically
+        // syncing new entity types (risks, playbooks).
     }
 
     #[test]

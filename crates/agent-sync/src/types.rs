@@ -1080,7 +1080,7 @@ pub struct UsbEventSyncRequest {
 // ============================================================================
 
 /// Software item for sync.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SoftwarePayload {
     /// Software name (required).
     pub name: String,

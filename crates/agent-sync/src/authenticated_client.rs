@@ -400,6 +400,62 @@ impl AuthenticatedClient {
     // 9 Axes Sync Methods
     // ========================================================================
 
+    /// Fetch risk entries from the SaaS.
+    pub async fn fetch_risks(&self) -> SyncResult<Vec<RiskPayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Fetching risks for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/risks", agent_id)).await
+    }
+
+    /// Fetch playbooks from the SaaS.
+    pub async fn fetch_playbooks(&self) -> SyncResult<Vec<PlaybookPayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Fetching playbooks for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/playbooks", agent_id)).await
+    }
+
+    /// Fetch managed assets from the SaaS.
+    pub async fn fetch_managed_assets(&self) -> SyncResult<Vec<AssetPayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Fetching managed assets for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/managed-assets", agent_id)).await
+    }
+
+    /// Fetch KPI snapshots from the SaaS.
+    pub async fn fetch_kpi_snapshots(&self) -> SyncResult<Vec<KpiSnapshotPayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Fetching KPI snapshots for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/kpi-snapshots", agent_id)).await
+    }
+
+    /// Fetch alert rules from the SaaS.
+    pub async fn fetch_alert_rules(&self) -> SyncResult<Vec<AlertRulePayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Fetching alert rules for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/alert-rules", agent_id)).await
+    }
+
+    /// Fetch webhooks from the SaaS.
+    pub async fn fetch_webhooks(&self) -> SyncResult<Vec<WebhookPayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Fetching webhooks for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/webhooks", agent_id)).await
+    }
+
+    /// Fetch detection rules from the SaaS.
+    pub async fn fetch_detection_rules(&self) -> SyncResult<Vec<DetectionRulePayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Fetching detection rules for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/detection-rules", agent_id)).await
+    }
+
+    /// Fetch software inventory from the SaaS.
+    pub async fn fetch_software_inventory(&self) -> SyncResult<Vec<SoftwarePayload>> {
+        let agent_id = self.agent_id().await?;
+        debug!("Fetching software inventory for agent {}", agent_id);
+        self.get(&format!("/v1/agents/{}/software-inventory", agent_id)).await
+    }
+
     /// Sync playbook definitions to the SaaS.
     pub async fn sync_playbooks(
         &self,

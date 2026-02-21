@@ -31,6 +31,12 @@ pub enum SyncEntityType {
     Proof,
     Heartbeat,
     Config,
+    Playbook,
+    DetectionRule,
+    Risk,
+    Asset,
+    Kpi,
+    AlertRule,
 }
 
 impl SyncEntityType {
@@ -41,6 +47,12 @@ impl SyncEntityType {
             SyncEntityType::Proof => "proof",
             SyncEntityType::Heartbeat => "heartbeat",
             SyncEntityType::Config => "config",
+            SyncEntityType::Playbook => "playbook",
+            SyncEntityType::DetectionRule => "detection_rule",
+            SyncEntityType::Risk => "risk",
+            SyncEntityType::Asset => "asset",
+            SyncEntityType::Kpi => "kpi",
+            SyncEntityType::AlertRule => "alert_rule",
         }
     }
 
@@ -51,6 +63,12 @@ impl SyncEntityType {
             "proof" => Some(SyncEntityType::Proof),
             "heartbeat" => Some(SyncEntityType::Heartbeat),
             "config" => Some(SyncEntityType::Config),
+            "playbook" => Some(SyncEntityType::Playbook),
+            "detection_rule" => Some(SyncEntityType::DetectionRule),
+            "risk" => Some(SyncEntityType::Risk),
+            "asset" => Some(SyncEntityType::Asset),
+            "kpi" => Some(SyncEntityType::Kpi),
+            "alert_rule" => Some(SyncEntityType::AlertRule),
             _ => None,
         }
     }
@@ -62,7 +80,7 @@ pub struct SyncQueueEntry {
     /// Entity type.
     pub entity_type: SyncEntityType,
     /// Entity identifier.
-    pub entity_id: i64,
+    pub entity_id: String,
     /// Serialized payload (JSON).
     pub payload: String,
     /// Priority (higher = more urgent). Default is 0.
@@ -73,10 +91,10 @@ pub struct SyncQueueEntry {
 
 impl SyncQueueEntry {
     /// Create a new sync queue entry with default priority and max attempts.
-    pub fn new(entity_type: SyncEntityType, entity_id: i64, payload: impl Into<String>) -> Self {
+    pub fn new(entity_type: SyncEntityType, entity_id: impl Into<String>, payload: impl Into<String>) -> Self {
         Self {
             entity_type,
-            entity_id,
+            entity_id: entity_id.into(),
             payload: payload.into(),
             priority: 0,
             max_attempts: DEFAULT_MAX_ATTEMPTS,
@@ -104,7 +122,7 @@ pub struct SyncQueueItem {
     /// Entity type.
     pub entity_type: SyncEntityType,
     /// Entity identifier.
-    pub entity_id: i64,
+    pub entity_id: String,
     /// Serialized payload.
     pub payload: String,
     /// Priority (higher = more urgent).
@@ -157,7 +175,7 @@ impl<'a> SyncQueueRepository<'a> {
     /// Returns the ID of the inserted item.
     pub async fn enqueue(&self, entry: &SyncQueueEntry) -> StorageResult<i64> {
         let entity_type = entry.entity_type.as_str().to_string();
-        let entity_id = entry.entity_id;
+        let entity_id = entry.entity_id.clone();
         let payload = entry.payload.clone();
         let priority = entry.priority;
         let max_attempts = entry.max_attempts.min(i32::MAX as u32) as i32;
@@ -594,7 +612,7 @@ mod tests {
 
         assert_eq!(repo.count().await.unwrap(), 0);
 
-        let entry = SyncQueueEntry::new(SyncEntityType::CheckResult, 1, r#"{"result": "pass"}"#);
+        let entry = SyncQueueEntry::new(SyncEntityType::CheckResult, "1", r#"{"result": "pass"}"#);
         let id = repo.enqueue(&entry).await.unwrap();
         assert!(id > 0);
 
@@ -607,13 +625,13 @@ mod tests {
         let repo = SyncQueueRepository::new(&db);
 
         // Enqueue low priority
-        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Heartbeat, 1, "{}"))
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Heartbeat, "1", "{}"))
             .await
             .unwrap();
 
         // Enqueue high priority
         repo.enqueue(
-            &SyncQueueEntry::new(SyncEntityType::Proof, 2, r#"{"proof": true}"#).with_priority(10),
+            &SyncQueueEntry::new(SyncEntityType::Proof, "2", r#"{"proof": true}"#).with_priority(10),
         )
         .await
         .unwrap();
@@ -633,7 +651,7 @@ mod tests {
         for i in 0..5 {
             repo.enqueue(&SyncQueueEntry::new(
                 SyncEntityType::CheckResult,
-                i,
+                i.to_string(),
                 format!(r#"{{"id": {}}}"#, i),
             ))
             .await
@@ -653,7 +671,7 @@ mod tests {
         let repo = SyncQueueRepository::new(&db);
 
         let id = repo
-            .enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}"))
+            .enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, "1", "{}"))
             .await
             .unwrap();
 
@@ -686,14 +704,14 @@ mod tests {
         let repo = SyncQueueRepository::new(&db);
 
         let id1 = repo
-            .enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}"))
+            .enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, "1", "{}"))
             .await
             .unwrap();
         let id2 = repo
-            .enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, 2, "{}"))
+            .enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, "2", "{}"))
             .await
             .unwrap();
-        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Heartbeat, 3, "{}"))
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Heartbeat, "3", "{}"))
             .await
             .unwrap();
 
@@ -731,10 +749,10 @@ mod tests {
         let repo = SyncQueueRepository::new(&db);
 
         // Enqueue some items
-        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}"))
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, "1", "{}"))
             .await
             .unwrap();
-        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, 2, "{}"))
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, "2", "{}"))
             .await
             .unwrap();
 
@@ -755,7 +773,7 @@ mod tests {
         // Enqueue an item with max_attempts = 1
         let id = repo
             .enqueue(
-                &SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}").with_max_attempts(1),
+                &SyncQueueEntry::new(SyncEntityType::CheckResult, "1", "{}").with_max_attempts(1),
             )
             .await
             .unwrap();
@@ -777,13 +795,13 @@ mod tests {
         // Enqueue items with max_attempts = 1
         let id = repo
             .enqueue(
-                &SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}").with_max_attempts(1),
+                &SyncQueueEntry::new(SyncEntityType::CheckResult, "1", "{}").with_max_attempts(1),
             )
             .await
             .unwrap();
 
         // Still pending
-        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, 2, "{}"))
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, "2", "{}"))
             .await
             .unwrap();
 
@@ -802,7 +820,7 @@ mod tests {
 
         // Enqueue a few items
         for i in 0..5 {
-            repo.enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, i, "{}"))
+            repo.enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, i.to_string(), "{}"))
                 .await
                 .unwrap();
         }
@@ -841,7 +859,7 @@ mod tests {
         // Enqueue one more high-priority item - should evict a low-priority item
         let id = repo
             .enqueue(
-                &SyncQueueEntry::new(SyncEntityType::Proof, 99999, r#"{"important": true}"#)
+                &SyncQueueEntry::new(SyncEntityType::Proof, "99999", r#"{"important": true}"#)
                     .with_priority(10),
             )
             .await
@@ -903,12 +921,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_sync_queue_entry_builder() {
-        let entry = SyncQueueEntry::new(SyncEntityType::Proof, 42, r#"{"data": true}"#)
+        let entry = SyncQueueEntry::new(SyncEntityType::Proof, "42", r#"{"data": true}"#)
             .with_priority(5)
             .with_max_attempts(3);
 
         assert_eq!(entry.entity_type, SyncEntityType::Proof);
-        assert_eq!(entry.entity_id, 42);
+        assert_eq!(entry.entity_id, "42");
         assert_eq!(entry.priority, 5);
         assert_eq!(entry.max_attempts, 3);
     }
