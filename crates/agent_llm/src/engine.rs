@@ -234,33 +234,35 @@ impl ModelEngine for MistralEngine {
 
         let start_time = std::time::Instant::now();
 
-        let messages = mistralrs::TextMessages::new()
-            .add_message(mistralrs::TextMessageRole::User, request.prompt.clone());
-
         let temperature = request.temperature.unwrap_or(self.inference_config.temperature) as f64;
         let top_p = request.top_p.unwrap_or(self.inference_config.top_p) as f64;
         let top_k = self.inference_config.top_k as usize;
         let repetition_penalty = self.inference_config.repetition_penalty;
         let max_tokens = request.max_tokens.unwrap_or(self.inference_config.max_tokens) as usize;
 
-        // TODO(llm): wire sampling params to mistralrs API
-        let _sampling_params = mistralrs::SamplingParams {
-            temperature: Some(temperature),
-            top_k: Some(top_k),
-            top_p: Some(top_p),
-            top_n_logprobs: 0,
-            frequency_penalty: None,
-            presence_penalty: None,
-            stop_toks: None,
-            max_len: Some(max_tokens),
-            logits_bias: None,
-            n_choices: 1,
-            repetition_penalty: Some(repetition_penalty),
-            dry_params: None,
-            min_p: None,
-        };
+        let chat_request = mistralrs::RequestBuilder::new()
+            .add_message(mistralrs::TextMessageRole::User, request.prompt.clone())
+            .set_sampler_temperature(temperature)
+            .set_sampler_topp(top_p)
+            .set_sampler_topk(top_k)
+            .set_sampler_max_len(max_tokens)
+            .set_sampling(mistralrs::SamplingParams {
+                temperature: Some(temperature),
+                top_k: Some(top_k),
+                top_p: Some(top_p),
+                top_n_logprobs: 0,
+                frequency_penalty: None,
+                presence_penalty: None,
+                stop_toks: None,
+                max_len: Some(max_tokens),
+                logits_bias: None,
+                n_choices: 1,
+                repetition_penalty: Some(repetition_penalty),
+                dry_params: None,
+                min_p: None,
+            });
 
-        let response = model.send_chat_request(messages).await.map_err(|e| anyhow::anyhow!(e))?;
+        let response = model.send_chat_request(chat_request).await.map_err(|e| anyhow::anyhow!(e))?;
 
         let duration = start_time.elapsed();
 
@@ -280,11 +282,11 @@ impl ModelEngine for MistralEngine {
     }
 
     async fn memory_usage(&self) -> MemoryUsage {
-        // TODO(llm): implement actual memory usage reporting
+        let (allocated, available) = get_process_memory_mb();
         MemoryUsage {
-            allocated_mb: 0,
-            peak_mb: 0,
-            available_mb: 0,
+            allocated_mb: allocated,
+            peak_mb: allocated, // No peak tracking without sysinfo
+            available_mb: available,
         }
     }
 
@@ -328,6 +330,65 @@ pub fn create_engine(config: &ModelConfig) -> Result<Arc<dyn ModelEngine>> {
     };
 
     Ok(engine)
+}
+
+/// Get current process RSS and available system memory in MB.
+fn get_process_memory_mb() -> (u64, u64) {
+    #[cfg(target_os = "macos")]
+    {
+        use std::process::Command;
+        let pid = std::process::id();
+        // Get RSS via ps
+        let allocated = Command::new("ps")
+            .args(["-o", "rss=", "-p", &pid.to_string()])
+            .output()
+            .ok()
+            .and_then(|o| String::from_utf8_lossy(&o.stdout).trim().parse::<u64>().ok())
+            .map(|kb| kb / 1024)
+            .unwrap_or(0);
+        // Get available from vm_stat or sysctl
+        let available = Command::new("sysctl")
+            .args(["-n", "hw.memsize"])
+            .output()
+            .ok()
+            .and_then(|o| String::from_utf8_lossy(&o.stdout).trim().parse::<u64>().ok())
+            .map(|bytes| bytes / (1024 * 1024))
+            .unwrap_or(0);
+        (allocated, available)
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let allocated = std::fs::read_to_string("/proc/self/status")
+            .ok()
+            .and_then(|s| {
+                s.lines()
+                    .find(|l| l.starts_with("VmRSS:"))
+                    .and_then(|l| l.split_whitespace().nth(1))
+                    .and_then(|v| v.parse::<u64>().ok())
+            })
+            .map(|kb| kb / 1024)
+            .unwrap_or(0);
+        let available = std::fs::read_to_string("/proc/meminfo")
+            .ok()
+            .and_then(|s| {
+                s.lines()
+                    .find(|l| l.starts_with("MemAvailable:"))
+                    .and_then(|l| l.split_whitespace().nth(1))
+                    .and_then(|v| v.parse::<u64>().ok())
+            })
+            .map(|kb| kb / 1024)
+            .unwrap_or(0);
+        (allocated, available)
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Basic Windows fallback
+        (0, 0)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    {
+        (0, 0)
+    }
 }
 
 #[cfg(test)]

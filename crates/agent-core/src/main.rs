@@ -787,14 +787,16 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             let handle = runtime.handle();
 
             macro_rules! handle_save_gui_command {
-                ($db:expr, $client:expr, $handle:expr, $payload:expr, $entity:path, $sync_method:ident) => {
+                ($db:expr, $client:expr, $handle:expr, $payload:expr, $entity:path, $entity_id:expr, $sync_method:ident) => {
                     if let Some(ref db_arc) = $db {
                         if let Ok(json) = serde_json::to_string(&$payload) {
                             let db_clone = std::sync::Arc::clone(db_arc);
                             let handle_clone = $handle.clone();
+                            let eid = $entity_id.to_string();
                             tokio::spawn(async move {
-                                let repo = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
-                                if let Err(e) = repo.enqueue($entity, json).await {
+                                let repo = agent_storage::SyncQueueRepository::new(&db_clone);
+                                let entry = agent_storage::SyncQueueEntry::new($entity, eid, json);
+                                if let Err(e) = repo.enqueue(&entry).await {
                                     warn!("Failed to queue item for sync: {}", e);
                                 } else {
                                     handle_clone.trigger_sync();
@@ -811,6 +813,24 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                     }
                 };
             }
+
+            // Initialize LLM service for AI-powered analysis
+            #[cfg(feature = "llm")]
+            let llm_service = {
+                let svc = agent_core::llm_service::LLMService::new(None).await;
+                match svc {
+                    Ok(s) => {
+                        info!("LLM service initialized for command processing");
+                        Some(std::sync::Arc::new(s))
+                    }
+                    Err(e) => {
+                        warn!("Failed to init LLM service: {}", e);
+                        None
+                    }
+                }
+            };
+            #[cfg(not(feature = "llm"))]
+            let llm_service: Option<std::sync::Arc<()>> = None;
 
             // Spawn command processor
             tokio::spawn(async move {
@@ -902,32 +922,339 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::KillProcess { process_name, pid }) => {
                             info!("[AUDIT] GUI requested process kill: {} (PID {})", process_name, pid);
-                            // Process termination handled via sysinfo::System
+                            let tx = bg_event_tx.clone();
+                            let pname = process_name.clone();
+                            tokio::spawn(async move {
+                                let action_id = uuid::Uuid::new_v4();
+                                match agent_core::edr_actions::kill_process(&pname, pid).await {
+                                    Ok(()) => {
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: true,
+                                            error: None,
+                                        });
+                                    }
+                                    Err(e) => {
+                                        warn!("Kill process failed: {}", e);
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: false,
+                                            error: Some(e.to_string()),
+                                        });
+                                    }
+                                }
+                            });
                         }
                         Ok(GuiCommand::QuarantineFile { path }) => {
                             info!("[AUDIT] GUI requested file quarantine: {}", path);
-                            // Move file to quarantine directory with chmod 000
+                            let tx = bg_event_tx.clone();
+                            let file_path = path.clone();
+                            tokio::spawn(async move {
+                                let action_id = uuid::Uuid::new_v4();
+                                match agent_core::edr_actions::quarantine_file(&file_path).await {
+                                    Ok(quarantine_id) => {
+                                        info!("File quarantined successfully: {}", quarantine_id);
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: true,
+                                            error: None,
+                                        });
+                                    }
+                                    Err(e) => {
+                                        warn!("Quarantine file failed: {}", e);
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: false,
+                                            error: Some(e.to_string()),
+                                        });
+                                    }
+                                }
+                            });
                         }
                         Ok(GuiCommand::RestoreQuarantinedFile { quarantine_id }) => {
                             info!("[AUDIT] GUI requested quarantine restore: {}", quarantine_id);
-                            // Restore file from quarantine to original location
+                            let tx = bg_event_tx.clone();
+                            let qid = quarantine_id.clone();
+                            tokio::spawn(async move {
+                                let action_id = uuid::Uuid::new_v4();
+                                match agent_core::edr_actions::restore_quarantined_file(&qid).await {
+                                    Ok(()) => {
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: true,
+                                            error: None,
+                                        });
+                                    }
+                                    Err(e) => {
+                                        warn!("Restore quarantined file failed: {}", e);
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: false,
+                                            error: Some(e.to_string()),
+                                        });
+                                    }
+                                }
+                            });
                         }
                         Ok(GuiCommand::BlockIp { ip, duration_secs }) => {
                             info!("[AUDIT] GUI requested IP block: {} ({}s)", ip, duration_secs);
-                            // Firewall rule via pfctl (macOS) / iptables (Linux)
+                            let tx = bg_event_tx.clone();
+                            let ip_addr = ip.clone();
+                            tokio::spawn(async move {
+                                let action_id = uuid::Uuid::new_v4();
+                                match agent_core::edr_actions::block_ip(&ip_addr, duration_secs).await {
+                                    Ok(()) => {
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: true,
+                                            error: None,
+                                        });
+                                    }
+                                    Err(e) => {
+                                        warn!("Block IP failed: {}", e);
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: false,
+                                            error: Some(e.to_string()),
+                                        });
+                                    }
+                                }
+                            });
                         }
                         Ok(GuiCommand::UnblockIp { ip }) => {
                             info!("[AUDIT] GUI requested IP unblock: {}", ip);
-                            // Remove firewall block rule
+                            let tx = bg_event_tx.clone();
+                            let ip_addr = ip.clone();
+                            tokio::spawn(async move {
+                                let action_id = uuid::Uuid::new_v4();
+                                match agent_core::edr_actions::unblock_ip(&ip_addr).await {
+                                    Ok(()) => {
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: true,
+                                            error: None,
+                                        });
+                                    }
+                                    Err(e) => {
+                                        warn!("Unblock IP failed: {}", e);
+                                        let _ = tx.send(AgentEvent::ResponseActionResult {
+                                            action_id,
+                                            success: false,
+                                            error: Some(e.to_string()),
+                                        });
+                                    }
+                                }
+                            });
                         }
                         Ok(GuiCommand::GenerateReport { report_type, framework }) => {
                             info!("[AUDIT] GUI requested report: {:?} framework={:?}", report_type, framework);
+                            let tx = bg_event_tx.clone();
+                            let svc = llm_service.clone();
+                            let fw = framework.clone();
+                            tokio::spawn(async move {
+                                let report_id = uuid::Uuid::new_v4();
+                                let title = match report_type {
+                                    agent_gui::dto::ReportType::Executive => {
+                                        format!("Rapport exécutif — {}", chrono::Utc::now().format("%d/%m/%Y"))
+                                    }
+                                    agent_gui::dto::ReportType::ComplianceAudit => {
+                                        format!(
+                                            "Audit de conformité{} — {}",
+                                            fw.as_deref().map(|f| format!(" ({})", f)).unwrap_or_default(),
+                                            chrono::Utc::now().format("%d/%m/%Y")
+                                        )
+                                    }
+                                    agent_gui::dto::ReportType::Incident => {
+                                        format!("Rapport d'incidents — {}", chrono::Utc::now().format("%d/%m/%Y"))
+                                    }
+                                };
+
+                                // Build a base summary (static template)
+                                let base_summary = format!(
+                                    "Rapport {} généré le {}.",
+                                    report_type.label_fr(),
+                                    chrono::Utc::now().format("%d/%m/%Y à %H:%M UTC")
+                                );
+
+                                // Attempt LLM-generated executive summary
+                                #[allow(unused_mut)]
+                                let mut summary = base_summary.clone();
+                                #[cfg(feature = "llm")]
+                                {
+                                    if let Some(ref svc) = svc {
+                                        if let Some(manager) = svc.get_manager().await {
+                                            let prompt = format!(
+                                                "Tu es un analyste GRC. Génère un résumé exécutif professionnel \
+                                                 en français (3-5 phrases) pour un rapport de type « {} »{}. \
+                                                 Le rapport est daté du {}. Sois concis et orienté décision.",
+                                                report_type.label_fr(),
+                                                fw.as_deref().map(|f| format!(", référentiel {}", f)).unwrap_or_default(),
+                                                chrono::Utc::now().format("%d/%m/%Y")
+                                            );
+                                            let req = agent_llm::engine::InferenceRequest::new(&prompt)
+                                                .with_max_tokens(512)
+                                                .with_temperature(0.5);
+                                            match manager.engine().infer(req).await {
+                                                Ok(resp) if !resp.text.trim().is_empty() => {
+                                                    summary = resp.text.trim().to_string();
+                                                    debug!("Report summary generated by LLM ({} chars)", summary.len());
+                                                }
+                                                Ok(_) => {
+                                                    debug!("LLM returned empty summary, using static template");
+                                                }
+                                                Err(e) => {
+                                                    warn!("LLM report summary generation failed: {}", e);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                let _ = &svc; // suppress unused-variable warning when llm feature is off
+
+                                let html_content = format!(
+                                    "<h1>{}</h1><p>{}</p><footer>Généré par Sentinel GRC Agent</footer>",
+                                    title, summary
+                                );
+
+                                let report = agent_gui::dto::GeneratedReport {
+                                    id: report_id,
+                                    report_type,
+                                    title,
+                                    generated_at: chrono::Utc::now(),
+                                    html_content,
+                                    summary,
+                                    compliance_score: None,
+                                    framework: fw,
+                                };
+
+                                let _ = tx.send(AgentEvent::ReportGenerated {
+                                    report: Box::new(report),
+                                });
+                            });
                         }
                         Ok(GuiCommand::ExportReportHtml { report_id }) => {
                             info!("[AUDIT] GUI requested HTML export for report: {}", report_id);
                         }
                         Ok(GuiCommand::ExecutePlaybook { playbook_id }) => {
                             info!("[AUDIT] GUI requested playbook execution: {}", playbook_id);
+                            let tx = bg_event_tx.clone();
+                            let pid = playbook_id.clone();
+                            let db_clone = db_for_commands.clone();
+                            tokio::spawn(async move {
+                                // Load playbook from local SQLite
+                                let playbook_opt = if let Some(ref db_arc) = db_clone {
+                                    let repo = agent_storage::repositories::grc::PlaybookRepository::new(db_arc);
+                                    match repo.get_all().await {
+                                        Ok(all) => {
+                                            all.into_iter().find(|s| s.id == pid).map(|stored| {
+                                                let actions: Vec<agent_gui::dto::PlaybookAction> =
+                                                    serde_json::from_str(&stored.steps).unwrap_or_default();
+                                                agent_gui::dto::Playbook {
+                                                    id: uuid::Uuid::parse_str(&stored.id)
+                                                        .unwrap_or_else(|_| uuid::Uuid::new_v4()),
+                                                    name: stored.title.clone(),
+                                                    description: stored.description.clone(),
+                                                    enabled: stored.status == "active",
+                                                    conditions: vec![],
+                                                    actions,
+                                                    created_at: chrono::DateTime::parse_from_rfc3339(&stored.created_at)
+                                                        .map(|dt| dt.with_timezone(&chrono::Utc))
+                                                        .unwrap_or_else(|_| chrono::Utc::now()),
+                                                    last_triggered: None,
+                                                    trigger_count: 0,
+                                                    is_template: false,
+                                                }
+                                            })
+                                        }
+                                        Err(e) => {
+                                            warn!("Failed to load playbooks from database: {}", e);
+                                            None
+                                        }
+                                    }
+                                } else {
+                                    None
+                                };
+
+                                if let Some(playbook) = playbook_opt {
+                                    // Execute playbook actions directly (manual trigger bypasses condition evaluation)
+                                    let mut resolved_actions = Vec::new();
+                                    for action in &playbook.actions {
+                                        match action.action_type {
+                                            agent_gui::dto::PlaybookActionType::KillProcess => {
+                                                // parameters format: "process_name:pid"
+                                                let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
+                                                if parts.len() == 2 {
+                                                    if let Ok(pid_val) = parts[1].parse::<u32>() {
+                                                        resolved_actions.push(
+                                                            agent_core::playbook_engine::ResolvedAction::KillProcess {
+                                                                name: parts[0].to_string(),
+                                                                pid: pid_val,
+                                                            },
+                                                        );
+                                                    }
+                                                }
+                                            }
+                                            agent_gui::dto::PlaybookActionType::QuarantineFile => {
+                                                resolved_actions.push(
+                                                    agent_core::playbook_engine::ResolvedAction::QuarantineFile {
+                                                        path: action.parameters.clone(),
+                                                    },
+                                                );
+                                            }
+                                            agent_gui::dto::PlaybookActionType::BlockIp => {
+                                                // parameters format: "ip:duration_secs"
+                                                let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
+                                                let ip = parts.first().unwrap_or(&"").to_string();
+                                                let duration = parts.get(1).and_then(|s| s.parse::<u64>().ok()).unwrap_or(3600);
+                                                resolved_actions.push(
+                                                    agent_core::playbook_engine::ResolvedAction::BlockIp {
+                                                        ip,
+                                                        duration_secs: duration,
+                                                    },
+                                                );
+                                            }
+                                            agent_gui::dto::PlaybookActionType::SendSiemAlert => {
+                                                resolved_actions.push(
+                                                    agent_core::playbook_engine::ResolvedAction::Alert {
+                                                        title: format!("Playbook '{}' SIEM alert", playbook.name),
+                                                        severity: "medium".to_string(),
+                                                        description: action.parameters.clone(),
+                                                    },
+                                                );
+                                            }
+                                            agent_gui::dto::PlaybookActionType::CreateNotification => {
+                                                resolved_actions.push(
+                                                    agent_core::playbook_engine::ResolvedAction::Notify {
+                                                        message: action.parameters.clone(),
+                                                    },
+                                                );
+                                            }
+                                        }
+                                    }
+
+                                    let results = agent_core::playbook_engine::execute_playbook_actions(&resolved_actions).await;
+                                    let actions_executed: Vec<String> = results.iter().map(|r| r.action.clone()).collect();
+                                    let all_success = results.iter().all(|r| r.success);
+                                    let first_error = results.iter().find(|r| !r.success).and_then(|r| r.error.clone());
+
+                                    // Emit PlaybookTriggered event to GUI
+                                    let log_entry = agent_gui::dto::PlaybookLogEntry {
+                                        id: uuid::Uuid::new_v4(),
+                                        playbook_id: playbook.id,
+                                        playbook_name: playbook.name.clone(),
+                                        triggered_at: chrono::Utc::now(),
+                                        trigger_event: "Manual execution".to_string(),
+                                        actions_executed,
+                                        success: all_success,
+                                        error: first_error,
+                                    };
+                                    let _ = tx.send(AgentEvent::PlaybookTriggered {
+                                        log_entry: Box::new(log_entry),
+                                    });
+                                } else {
+                                    warn!("Cannot execute playbook '{}': not found in database", pid);
+                                }
+                            });
                         }
                         Ok(GuiCommand::TogglePlaybook { playbook_id, enabled }) => {
                             info!("[AUDIT] GUI toggled playbook {}: enabled={}", playbook_id, enabled);
@@ -952,7 +1279,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 tokio::spawn(async move {
                                     let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredPlaybook {
-                                        id: pb_clone.id.clone(),
+                                        id: pb_clone.id.to_string(),
                                         title: pb_clone.name.clone(),
                                         description: pb_clone.description.clone(),
                                         category: "general".to_string(),
@@ -967,8 +1294,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         warn!("Failed to persist playbook to SQLite: {}", e);
                                     }
                                     if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
-                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::Playbook, json).await;
+                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
+                                        let entry = agent_storage::SyncQueueEntry::new(
+                                            agent_storage::SyncEntityType::Playbook,
+                                            pb_clone.id.to_string(),
+                                            json,
+                                        );
+                                        let _ = repo2.enqueue(&entry).await;
                                     }
                                 });
                             }
@@ -1008,10 +1340,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 tokio::spawn(async move {
                                     let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredDetectionRule {
-                                        id: rule_clone.id.clone(),
+                                        id: rule_clone.id.to_string(),
                                         name: rule_clone.name.clone(),
                                         description: rule_clone.description.clone(),
-                                        severity: rule_clone.severity.clone(),
+                                        severity: rule_clone.severity.as_str().to_string(),
                                         log_source: "endpoint".to_string(),
                                         condition: serde_json::to_string(&rule_clone.conditions).unwrap_or_default(),
                                         enabled: rule_clone.enabled,
@@ -1024,8 +1356,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         warn!("Failed to persist detection rule to SQLite: {}", e);
                                     }
                                     if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
-                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::DetectionRule, json).await;
+                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
+                                        let entry = agent_storage::SyncQueueEntry::new(
+                                            agent_storage::SyncEntityType::DetectionRule,
+                                            rule_clone.id.to_string(),
+                                            json,
+                                        );
+                                        let _ = repo2.enqueue(&entry).await;
                                     }
                                 });
                             }
@@ -1057,7 +1394,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 let payload_clone = payload.clone();
                                 tokio::spawn(async move {
                                     let stored = agent_storage::repositories::grc::StoredRisk {
-                                        id: risk_clone.id.clone(),
+                                        id: risk_clone.id.to_string(),
                                         title: risk_clone.title.clone(),
                                         description: risk_clone.description.clone(),
                                         probability: risk_clone.probability as i32,
@@ -1077,8 +1414,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     }
                                     // Also queue for remote sync
                                     if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
-                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::Risk, json).await;
+                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
+                                        let entry = agent_storage::SyncQueueEntry::new(
+                                            agent_storage::SyncEntityType::Risk,
+                                            risk_clone.id.to_string(),
+                                            json,
+                                        );
+                                        let _ = repo2.enqueue(&entry).await;
                                     }
                                 });
                             }
@@ -1105,7 +1447,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 let payload_clone = payload.clone();
                                 tokio::spawn(async move {
                                     let stored = agent_storage::repositories::grc::StoredManagedAsset {
-                                        id: asset_clone.id.clone(),
+                                        id: asset_clone.id.to_string(),
                                         name: asset_clone.hostname.clone().unwrap_or_else(|| asset_clone.ip.clone()),
                                         asset_type: asset_clone.device_type.clone(),
                                         criticality: format!("{:?}", asset_clone.criticality),
@@ -1121,8 +1463,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         warn!("Failed to persist asset to SQLite: {}", e);
                                     }
                                     if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
-                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::Asset, json).await;
+                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
+                                        let entry = agent_storage::SyncQueueEntry::new(
+                                            agent_storage::SyncEntityType::Asset,
+                                            asset_clone.id.to_string(),
+                                            json,
+                                        );
+                                        let _ = repo2.enqueue(&entry).await;
                                     }
                                 });
                             }
@@ -1140,10 +1487,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 tokio::spawn(async move {
                                     let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredAlertRule {
-                                        id: rule_clone.id.clone(),
+                                        id: rule_clone.id.to_string(),
                                         name: rule_clone.name.clone(),
-                                        description: rule_clone.rule_type.clone(),
-                                        severity: rule_clone.severity_threshold.clone().unwrap_or_else(|| "medium".to_string()),
+                                        description: rule_clone.rule_type.as_str().to_string(),
+                                        severity: rule_clone.severity_threshold.map(|s| s.as_str().to_string()).unwrap_or_else(|| "medium".to_string()),
                                         condition: serde_json::to_string(&rule_clone.detection_types).unwrap_or_default(),
                                         actions: "[]".to_string(),
                                         enabled: rule_clone.enabled,
@@ -1156,8 +1503,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         warn!("Failed to persist alert rule to SQLite: {}", e);
                                     }
                                     if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
-                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::AlertRule, json).await;
+                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
+                                        let entry = agent_storage::SyncQueueEntry::new(
+                                            agent_storage::SyncEntityType::AlertRule,
+                                            rule_clone.id.to_string(),
+                                            json,
+                                        );
+                                        let _ = repo2.enqueue(&entry).await;
                                     }
                                 });
                             }
@@ -1183,7 +1535,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 tokio::spawn(async move {
                                     let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredWebhook {
-                                        id: wh_clone.id.clone(),
+                                        id: wh_clone.id.to_string(),
                                         name: wh_clone.name.clone(),
                                         url: wh_clone.url.clone(),
                                         events: wh_clone.format.clone(),
@@ -1199,8 +1551,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     }
                                     let payload = agent_core::sync_converters::webhook_to_payload(&wh_clone);
                                     if let Ok(json) = serde_json::to_string(&payload) {
-                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
-                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::Webhook, json).await;
+                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
+                                        let entry = agent_storage::SyncQueueEntry::new(
+                                            agent_storage::SyncEntityType::Webhook,
+                                            wh_clone.id.to_string(),
+                                            json,
+                                        );
+                                        let _ = repo2.enqueue(&entry).await;
                                     }
                                 });
                             }
@@ -1221,6 +1578,380 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Ok(GuiCommand::TestWebhook { webhook_id }) => {
                             info!("[AUDIT] GUI requested webhook test: {}", webhook_id);
                         }
+
+                        // ── LLM commands ──────────────────────────────────────
+                        Ok(GuiCommand::LlmPrompt { prompt, context: _context }) => {
+                            info!("[AUDIT] GUI sent LLM prompt ({} chars)", prompt.len());
+                            let tx = bg_event_tx.clone();
+                            let svc = llm_service.clone();
+                            tokio::spawn(async move {
+                                let start = std::time::Instant::now();
+                                #[cfg(feature = "llm")]
+                                {
+                                    if let Some(ref svc) = svc {
+                                        if let Some(manager) = svc.get_manager().await {
+                                            let req = agent_llm::engine::InferenceRequest::new(&prompt);
+                                            match manager.engine().infer(req).await {
+                                                Ok(resp) => {
+                                                    let _ = tx.send(AgentEvent::LlmChatResponse {
+                                                        message: resp.text,
+                                                        processing_time_ms: resp.duration_ms,
+                                                    });
+                                                }
+                                                Err(e) => {
+                                                    warn!("LLM inference error: {}", e);
+                                                    let _ = tx.send(AgentEvent::LlmChatResponse {
+                                                        message: format!("Erreur d'inférence : {}", e),
+                                                        processing_time_ms: start.elapsed().as_millis() as u64,
+                                                    });
+                                                }
+                                            }
+                                            return;
+                                        }
+                                    }
+                                }
+                                // LLM not available (feature disabled or no service)
+                                let _ = &svc; // suppress unused-variable warning when llm feature is off
+                                let _ = tx.send(AgentEvent::LlmChatResponse {
+                                    message: "Modèle IA non disponible. Vérifiez la configuration dans config/llm.json.".to_string(),
+                                    processing_time_ms: start.elapsed().as_millis() as u64,
+                                });
+                            });
+                        }
+
+                        Ok(GuiCommand::LlmGetStatus) => {
+                            info!("[AUDIT] GUI requested LLM status");
+                            let tx = bg_event_tx.clone();
+                            #[cfg(feature = "llm")]
+                            {
+                                let svc = llm_service.clone();
+                                tokio::spawn(async move {
+                                    if let Some(ref svc) = svc {
+                                        match svc.get_status().await {
+                                            agent_core::llm_service::LLMServiceStatus::Ready {
+                                                model_name,
+                                                inference_count,
+                                                memory_usage_mb,
+                                            } => {
+                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                    model_name,
+                                                    status: "ready".to_string(),
+                                                    inference_count,
+                                                    memory_mb: memory_usage_mb,
+                                                });
+                                            }
+                                            agent_core::llm_service::LLMServiceStatus::NotConfigured => {
+                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                    model_name: "N/A".to_string(),
+                                                    status: "not_configured".to_string(),
+                                                    inference_count: 0,
+                                                    memory_mb: 0,
+                                                });
+                                            }
+                                            agent_core::llm_service::LLMServiceStatus::NotAvailable => {
+                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                    model_name: "N/A".to_string(),
+                                                    status: "not_available".to_string(),
+                                                    inference_count: 0,
+                                                    memory_mb: 0,
+                                                });
+                                            }
+                                            agent_core::llm_service::LLMServiceStatus::Error(err) => {
+                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                    model_name: "N/A".to_string(),
+                                                    status: format!("error: {}", err),
+                                                    inference_count: 0,
+                                                    memory_mb: 0,
+                                                });
+                                            }
+                                        }
+                                    } else {
+                                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                            model_name: "N/A".to_string(),
+                                            status: "not_available".to_string(),
+                                            inference_count: 0,
+                                            memory_mb: 0,
+                                        });
+                                    }
+                                });
+                            }
+                            #[cfg(not(feature = "llm"))]
+                            {
+                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                    model_name: "N/A".to_string(),
+                                    status: "not_available".to_string(),
+                                    inference_count: 0,
+                                    memory_mb: 0,
+                                });
+                            }
+                        }
+
+                        Ok(GuiCommand::LlmReloadModel) => {
+                            info!("[AUDIT] GUI requested LLM model reload");
+                            let tx = bg_event_tx.clone();
+                            #[cfg(feature = "llm")]
+                            {
+                                let svc = llm_service.clone();
+                                tokio::spawn(async move {
+                                    if let Some(ref svc) = svc {
+                                        if let Err(e) = svc.reload().await {
+                                            warn!("Failed to reload LLM model: {}", e);
+                                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                model_name: "N/A".to_string(),
+                                                status: format!("reload_error: {}", e),
+                                                inference_count: 0,
+                                                memory_mb: 0,
+                                            });
+                                            return;
+                                        }
+                                        match svc.get_status().await {
+                                            agent_core::llm_service::LLMServiceStatus::Ready {
+                                                model_name,
+                                                inference_count,
+                                                memory_usage_mb,
+                                            } => {
+                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                    model_name,
+                                                    status: "ready".to_string(),
+                                                    inference_count,
+                                                    memory_mb: memory_usage_mb,
+                                                });
+                                            }
+                                            other => {
+                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                    model_name: "N/A".to_string(),
+                                                    status: format!("{:?}", other),
+                                                    inference_count: 0,
+                                                    memory_mb: 0,
+                                                });
+                                            }
+                                        }
+                                    } else {
+                                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                            model_name: "N/A".to_string(),
+                                            status: "not_available".to_string(),
+                                            inference_count: 0,
+                                            memory_mb: 0,
+                                        });
+                                    }
+                                });
+                            }
+                            #[cfg(not(feature = "llm"))]
+                            {
+                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                    model_name: "N/A".to_string(),
+                                    status: "not_available".to_string(),
+                                    inference_count: 0,
+                                    memory_mb: 0,
+                                });
+                            }
+                        }
+
+                        Ok(GuiCommand::LlmAnalyzeVulnerability { finding_index }) => {
+                            info!("[AUDIT] GUI requested LLM vulnerability analysis for finding #{}", finding_index);
+                            let tx = bg_event_tx.clone();
+                            let svc = llm_service.clone();
+                            tokio::spawn(async move {
+                                let target = format!("finding#{}", finding_index);
+                                let start = std::time::Instant::now();
+                                #[cfg(feature = "llm")]
+                                {
+                                    if let Some(ref svc) = svc {
+                                        if let Some(manager) = svc.get_manager().await {
+                                            let prompt = format!(
+                                                "Analyze the following vulnerability finding (index {}). \
+                                                 Assess its severity, exploitability, and provide a brief \
+                                                 remediation recommendation.",
+                                                finding_index
+                                            );
+                                            let req = agent_llm::engine::InferenceRequest::new(&prompt)
+                                                .with_max_tokens(512);
+                                            match manager.engine().infer(req).await {
+                                                Ok(resp) => {
+                                                    let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                                        target: target.clone(),
+                                                        analysis: resp.text,
+                                                        severity_override: None,
+                                                        is_false_positive: None,
+                                                        confidence: None,
+                                                    });
+                                                }
+                                                Err(e) => {
+                                                    warn!("LLM vulnerability analysis error: {}", e);
+                                                    let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                                        target,
+                                                        analysis: format!("Erreur d'analyse : {}", e),
+                                                        severity_override: None,
+                                                        is_false_positive: None,
+                                                        confidence: None,
+                                                    });
+                                                }
+                                            }
+                                            return;
+                                        }
+                                    }
+                                }
+                                let _ = svc; // suppress unused warning when llm feature is off
+                                let _ = start;
+                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                    target,
+                                    analysis: "Modèle IA non disponible pour l'analyse de vulnérabilité.".to_string(),
+                                    severity_override: None,
+                                    is_false_positive: None,
+                                    confidence: None,
+                                });
+                            });
+                        }
+
+                        Ok(GuiCommand::LlmClassifyThreat { event_description }) => {
+                            info!("[AUDIT] GUI requested LLM threat classification: {}", &event_description[..event_description.len().min(80)]);
+                            let tx = bg_event_tx.clone();
+                            let svc = llm_service.clone();
+                            tokio::spawn(async move {
+                                let start = std::time::Instant::now();
+                                #[cfg(feature = "llm")]
+                                {
+                                    if let Some(ref svc) = svc {
+                                        if let Some(manager) = svc.get_manager().await {
+                                            let event = agent_llm::security::SecurityEvent {
+                                                id: uuid::Uuid::new_v4().to_string(),
+                                                event_type: "user_submitted".to_string(),
+                                                description: event_description.clone(),
+                                                system_info: String::new(),
+                                                historical_context: String::new(),
+                                                timestamp: chrono::Utc::now(),
+                                                source: "gui".to_string(),
+                                                severity: "unknown".to_string(),
+                                                raw_data: serde_json::Value::Null,
+                                            };
+                                            match manager.classifier().classify_event(&event).await {
+                                                Ok(classification) => {
+                                                    let analysis = format!(
+                                                        "Type: {:?}\nNiveau: {:?}\nConfiance: {}%\nVecteur d'attaque: {:?}\nImpact: {}",
+                                                        classification.threat_type,
+                                                        classification.threat_level,
+                                                        classification.confidence,
+                                                        classification.attack_vector,
+                                                        classification.impact_assessment,
+                                                    );
+                                                    let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                                        target: format!("threat:{}", &event_description[..event_description.len().min(50)]),
+                                                        analysis,
+                                                        severity_override: Some(format!("{:?}", classification.threat_level)),
+                                                        is_false_positive: None,
+                                                        confidence: Some(classification.confidence),
+                                                    });
+                                                }
+                                                Err(e) => {
+                                                    warn!("LLM threat classification error: {}", e);
+                                                    let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                                        target: format!("threat:{}", &event_description[..event_description.len().min(50)]),
+                                                        analysis: format!("Erreur de classification : {}", e),
+                                                        severity_override: None,
+                                                        is_false_positive: None,
+                                                        confidence: None,
+                                                    });
+                                                }
+                                            }
+                                            return;
+                                        }
+                                    }
+                                }
+                                let _ = svc;
+                                let _ = start;
+                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                    target: format!("threat:{}", &event_description[..event_description.len().min(50)]),
+                                    analysis: "Modèle IA non disponible pour la classification des menaces.".to_string(),
+                                    severity_override: None,
+                                    is_false_positive: None,
+                                    confidence: None,
+                                });
+                            });
+                        }
+
+                        Ok(GuiCommand::LlmAnalyzeRisk {
+                            risk_id,
+                            risk_title,
+                            risk_description,
+                            current_probability,
+                            current_impact,
+                        }) => {
+                            info!(
+                                "[AUDIT] GUI requested AI risk analysis for: {} (prob={}, impact={})",
+                                risk_title, current_probability, current_impact
+                            );
+                            let _ = &risk_description; // used inside #[cfg(feature = "llm")] below
+                            let tx = bg_event_tx.clone();
+                            let svc = llm_service.clone();
+                            let rid = risk_id.clone();
+                            tokio::spawn(async move {
+                                #[cfg(feature = "llm")]
+                                {
+                                    if let Some(ref svc) = svc {
+                                        if let Some(manager) = svc.get_manager().await {
+                                            let prompt = format!(
+                                                "Tu es un analyste de risques en cybersécurité (GRC). Analyse le risque suivant et fournis :\n\
+                                                 1. Une évaluation de la probabilité (1-5) et de l'impact (1-5)\n\
+                                                 2. Une analyse détaillée (3-5 phrases)\n\
+                                                 3. Des suggestions de mitigation concrètes (2-4 points)\n\n\
+                                                 Risque : {}\n\
+                                                 Description : {}\n\
+                                                 Probabilité actuelle : {}/5\n\
+                                                 Impact actuel : {}/5\n\n\
+                                                 Réponds en JSON avec ce schéma :\n\
+                                                 {{\n\
+                                                   \"suggested_probability\": 1-5,\n\
+                                                   \"suggested_impact\": 1-5,\n\
+                                                   \"analysis\": \"texte d'analyse\",\n\
+                                                   \"mitigation_suggestions\": [\"suggestion1\", \"suggestion2\"]\n\
+                                                 }}",
+                                                risk_title,
+                                                risk_description,
+                                                current_probability,
+                                                current_impact,
+                                            );
+                                            let req = agent_llm::engine::InferenceRequest::new(&prompt)
+                                                .with_max_tokens(1024)
+                                                .with_temperature(0.4);
+                                            match manager.engine().infer(req).await {
+                                                Ok(resp) => {
+                                                    // Try to parse structured JSON from the response
+                                                    let (sugg_prob, sugg_impact, analysis, mitigations) =
+                                                        parse_risk_analysis_response(&resp.text);
+                                                    let _ = tx.send(AgentEvent::LlmRiskAnalysis {
+                                                        risk_id: rid,
+                                                        suggested_probability: sugg_prob,
+                                                        suggested_impact: sugg_impact,
+                                                        analysis,
+                                                        mitigation_suggestions: mitigations,
+                                                    });
+                                                }
+                                                Err(e) => {
+                                                    warn!("LLM risk analysis error: {}", e);
+                                                    let _ = tx.send(AgentEvent::LlmRiskAnalysis {
+                                                        risk_id: rid,
+                                                        suggested_probability: None,
+                                                        suggested_impact: None,
+                                                        analysis: format!("Erreur d'analyse IA : {}", e),
+                                                        mitigation_suggestions: vec![],
+                                                    });
+                                                }
+                                            }
+                                            return;
+                                        }
+                                    }
+                                }
+                                let _ = &svc;
+                                let _ = tx.send(AgentEvent::LlmRiskAnalysis {
+                                    risk_id: rid,
+                                    suggested_probability: None,
+                                    suggested_impact: None,
+                                    analysis: "Modèle IA non disponible pour l'analyse des risques.".to_string(),
+                                    mitigation_suggestions: vec![],
+                                });
+                            });
+                        }
+
                         Err(mpsc::TryRecvError::Empty) => {
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                         }
@@ -1293,6 +2024,64 @@ async fn wait_for_finish(rx: &std::sync::mpsc::Receiver<agent_gui::enrollment::E
             Err(std::sync::mpsc::TryRecvError::Disconnected) => break,
         }
     }
+}
+
+/// Parse a JSON (or free-text) response from the LLM risk analysis prompt.
+///
+/// Returns `(suggested_probability, suggested_impact, analysis, mitigation_suggestions)`.
+#[cfg(all(feature = "gui", feature = "llm"))]
+fn parse_risk_analysis_response(
+    text: &str,
+) -> (Option<u8>, Option<u8>, String, Vec<String>) {
+    #[derive(serde::Deserialize)]
+    #[serde(default)]
+    struct RawRiskAnalysis {
+        suggested_probability: Option<u8>,
+        suggested_impact: Option<u8>,
+        analysis: String,
+        mitigation_suggestions: Vec<String>,
+    }
+
+    impl Default for RawRiskAnalysis {
+        fn default() -> Self {
+            Self {
+                suggested_probability: None,
+                suggested_impact: None,
+                analysis: String::new(),
+                mitigation_suggestions: Vec::new(),
+            }
+        }
+    }
+
+    // Strategy 1: direct JSON
+    if let Ok(raw) = serde_json::from_str::<RawRiskAnalysis>(text) {
+        return (
+            raw.suggested_probability.map(|v| v.clamp(1, 5)),
+            raw.suggested_impact.map(|v| v.clamp(1, 5)),
+            if raw.analysis.is_empty() { text.to_string() } else { raw.analysis },
+            raw.mitigation_suggestions,
+        );
+    }
+
+    // Strategy 2: extract JSON block from surrounding text
+    if let Some(start) = text.find('{') {
+        if let Some(end) = text.rfind('}') {
+            if end > start {
+                let json_block = &text[start..=end];
+                if let Ok(raw) = serde_json::from_str::<RawRiskAnalysis>(json_block) {
+                    return (
+                        raw.suggested_probability.map(|v| v.clamp(1, 5)),
+                        raw.suggested_impact.map(|v| v.clamp(1, 5)),
+                        if raw.analysis.is_empty() { text.to_string() } else { raw.analysis },
+                        raw.mitigation_suggestions,
+                    );
+                }
+            }
+        }
+    }
+
+    // Strategy 3: fallback — use the raw text as the analysis
+    (None, None, text.to_string(), vec![])
 }
 
 /// Set up Ctrl+C handler for graceful shutdown.

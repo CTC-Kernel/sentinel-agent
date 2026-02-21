@@ -25,6 +25,7 @@ pub mod llm_service;
 pub mod logging;
 pub mod resources;
 pub mod self_protection;
+pub mod siem_enrichment;
 pub mod service;
 pub mod state;
 pub mod system_utils;
@@ -33,12 +34,15 @@ pub mod update_manager;
 
 // Domain modules (impl AgentRuntime split)
 mod compliance;
+pub mod edr_actions;
 mod enrollment;
 mod gui_bridge;
 mod heartbeat;
 mod network_ops;
+pub mod playbook_engine;
 mod remediation_ops;
 mod scanning;
+pub mod threat_pipeline;
 mod self_update;
 mod sync_init;
 
@@ -246,6 +250,9 @@ pub struct AgentRuntime {
     siem_forwarder: RwLock<Option<SiemForwarder>>,
     /// FIM alert receiver.
     fim_rx: tokio::sync::Mutex<Option<mpsc::Receiver<agent_common::types::FimAlert>>>,
+    /// LLM service for AI-powered analysis (feature-gated).
+    #[cfg(feature = "llm")]
+    llm_service: Option<Arc<llm_service::LLMService>>,
 }
 
 /// A lightweight handle to the running agent that can be shared with the GUI
@@ -486,6 +493,8 @@ impl AgentRuntime {
             siem_forwarder: RwLock::new(None),
             fim_rx: tokio::sync::Mutex::new(None),
             organization_name: RwLock::new(None),
+            #[cfg(feature = "llm")]
+            llm_service: None,
         }
     }
 
@@ -503,6 +512,19 @@ impl AgentRuntime {
         self.events = events;
 
         self
+    }
+
+    /// Set the LLM service for AI-powered analysis.
+    #[cfg(feature = "llm")]
+    pub fn with_llm_service(mut self, service: Arc<llm_service::LLMService>) -> Self {
+        self.llm_service = Some(service);
+        self
+    }
+
+    /// Get a reference to the LLM service (if available).
+    #[cfg(feature = "llm")]
+    pub fn llm_service(&self) -> Option<&Arc<llm_service::LLMService>> {
+        self.llm_service.as_ref()
     }
 
     /// Set the GUI event sender for pushing live data to the desktop UI.
@@ -824,6 +846,14 @@ impl AgentRuntime {
             let mut is_active = false;
             let is_paused = self.is_paused();
 
+            // Threat pipeline accumulators (populated during this iteration)
+            #[cfg(feature = "gui")]
+            let mut pipeline_incidents: Vec<agent_scanner::SecurityIncident> = Vec::new();
+            #[cfg(feature = "gui")]
+            let mut pipeline_network_alerts: Vec<agent_network::NetworkSecurityAlert> = Vec::new();
+            #[cfg(feature = "gui")]
+            let mut pipeline_fim_alerts: Vec<(String, String)> = Vec::new();
+
             // 1. Process FIM alerts (always — security-critical even when paused)
             {
                 let mut rx_guard = self.fim_rx.lock().await;
@@ -876,6 +906,12 @@ impl AgentRuntime {
                                 fim_last_day = today;
                             }
                             fim_changes_today = fim_changes_today.saturating_add(1);
+
+                            // Accumulate for threat pipeline
+                            pipeline_fim_alerts.push((
+                                alert.path.to_string_lossy().to_string(),
+                                format!("{:?}", alert.change),
+                            ));
                         }
 
                         // Send to SaaS as incident
@@ -898,7 +934,7 @@ impl AgentRuntime {
                         if let Some(siem) = siem_guard.as_ref()
                             && siem.is_enabled()
                         {
-                            let event = agent_siem::SiemEvent {
+                            let mut event = agent_siem::SiemEvent {
                                 timestamp: chrono::Utc::now(),
                                 severity: 5,
                                 category: agent_siem::EventCategory::FileIntegrity,
@@ -916,6 +952,18 @@ impl AgentRuntime {
                                 event_id: uuid::Uuid::new_v4().to_string(),
                                 agent_version: AGENT_VERSION.to_string(),
                             };
+
+                            // Enrich with AI classification before forwarding
+                            #[cfg(feature = "llm")]
+                            {
+                                if let Some(ref llm_svc) = self.llm_service {
+                                    siem_enrichment::enrich_siem_event(&mut event, llm_svc).await;
+                                }
+                            }
+                            #[cfg(not(feature = "llm"))]
+                            {
+                                siem_enrichment::enrich_siem_event(&mut event).await;
+                            }
 
                             if let Err(e) = siem.send_event(&event).await {
                                 warn!("Failed to forward FIM event to SIEM: {}", e);
@@ -1100,7 +1148,15 @@ impl AgentRuntime {
                                     }
                                 }
                             }
-                        } else {
+                        }
+
+                        // Accumulate incidents for threat pipeline
+                        #[cfg(feature = "gui")]
+                        {
+                            pipeline_incidents.extend(result.incidents.iter().cloned());
+                        }
+
+                        if count == 0 {
                             #[cfg(feature = "gui")]
                             self.emit_notification(
                                 "Scan sécurité",
@@ -1274,6 +1330,12 @@ impl AgentRuntime {
                                         warn!("Failed to upload network alert: {}", e);
                                     }
                                 }
+
+                                // Accumulate network alerts for threat pipeline
+                                #[cfg(feature = "gui")]
+                                {
+                                    pipeline_network_alerts.extend(alerts.iter().cloned());
+                                }
                             }
                             Err(e) => {
                                 warn!("Network security detection failed: {}", e);
@@ -1311,6 +1373,56 @@ impl AgentRuntime {
                 last_network_security = std::time::Instant::now();
                 let mut network_manager = self.network_manager.write().await;
                 current_network_security_interval = network_manager.next_security_interval();
+            }
+
+            // ── Autonomous threat pipeline ──
+            // Evaluate detection rules against accumulated threat data from this
+            // iteration (security scan incidents, network alerts, FIM alerts).
+            #[cfg(feature = "gui")]
+            if !pipeline_incidents.is_empty()
+                || !pipeline_network_alerts.is_empty()
+                || !pipeline_fim_alerts.is_empty()
+            {
+                let threat_context = threat_pipeline::build_threat_context(
+                    &pipeline_incidents,
+                    &pipeline_network_alerts,
+                    &pipeline_fim_alerts,
+                );
+
+                // Load detection rules and playbooks from the database
+                let mut detection_rules: Vec<agent_gui::dto::DetectionRule> = Vec::new();
+                let mut playbooks: Vec<agent_gui::dto::Playbook> = Vec::new();
+
+                if let Some(ref db) = self.db {
+                    let rule_repo = agent_storage::repositories::grc::DetectionRuleRepository::new(db);
+                    match rule_repo.get_all().await {
+                        Ok(stored_rules) => {
+                            detection_rules = threat_pipeline::stored_rules_to_dto(&stored_rules);
+                            debug!("Loaded {} detection rules for pipeline", detection_rules.len());
+                        }
+                        Err(e) => warn!("Failed to load detection rules for pipeline: {}", e),
+                    }
+
+                    let pb_repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
+                    match pb_repo.get_all().await {
+                        Ok(stored_pbs) => {
+                            playbooks = threat_pipeline::stored_playbooks_to_dto(&stored_pbs);
+                            debug!("Loaded {} playbooks for pipeline", playbooks.len());
+                        }
+                        Err(e) => warn!("Failed to load playbooks for pipeline: {}", e),
+                    }
+                }
+
+                if !detection_rules.is_empty() || !playbooks.is_empty() {
+                    threat_pipeline::run_threat_pipeline(
+                        &detection_rules,
+                        &playbooks,
+                        &threat_context,
+                        &self.gui_event_tx,
+                        #[cfg(feature = "llm")]
+                        self.llm_service.as_ref().map(|s| s.as_ref()),
+                    ).await;
+                }
             }
 
             // Run compliance checks if interval has passed (skip when paused)

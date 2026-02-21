@@ -27,6 +27,7 @@ impl Sidebar {
         unread_notifications: u32,
         sync_state: &SidebarSyncState,
         organization: Option<&str>,
+        ai_ready: bool,
     ) -> Option<Page> {
         let mut selected: Option<Page> = None;
 
@@ -232,6 +233,13 @@ impl Sidebar {
                             }
                         }
 
+                        // AI model status indicator
+                        ui.add_space(theme::SPACE);
+                        Self::section_label(ui, "IA");
+                        if Self::ai_status_item(ui, current == &Page::AI, ai_ready) {
+                            selected = Some(Page::AI);
+                        }
+
                         // Flexible spacer: push bottom items down when space allows,
                         // but never overlap -- ScrollArea handles overflow.
                         let bottom_height =
@@ -408,6 +416,130 @@ impl Sidebar {
                     &badge_text,
                     theme::font_label(),
                     theme::badge_text(theme::ERROR),
+                );
+            }
+        }
+
+        if response.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+        }
+
+        response.clicked()
+    }
+
+    /// Compact AI model status indicator.
+    ///
+    /// Shows a brain icon + "IA" label with a colored status dot and short
+    /// text ("Actif" / "Inactif"). Clicking navigates to the AI page.
+    fn ai_status_item(ui: &mut Ui, is_current: bool, ai_ready: bool) -> bool {
+        let (status_label, dot_color) = if ai_ready {
+            ("Actif", theme::SUCCESS)
+        } else {
+            ("Inactif", theme::text_tertiary())
+        };
+
+        let text_color = if is_current {
+            theme::text_primary()
+        } else {
+            theme::text_secondary()
+        };
+
+        let bg_fill = if is_current {
+            theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)
+        } else {
+            egui::Color32::TRANSPARENT
+        };
+
+        let (rect, response) = ui.allocate_exact_size(
+            Vec2::new(theme::SIDEBAR_WIDTH, theme::NAV_ITEM_HEIGHT),
+            egui::Sense::click(),
+        );
+
+        if ui.is_rect_visible(rect) {
+            // Background tint on hover or active
+            if is_current || response.hovered() {
+                let fill = if is_current {
+                    bg_fill
+                } else {
+                    theme::ACCENT.linear_multiply(0.15)
+                };
+                let rect_shrunk =
+                    rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
+                ui.painter().rect(
+                    rect_shrunk,
+                    CornerRadius::same(theme::BUTTON_ROUNDING),
+                    fill,
+                    egui::Stroke::NONE,
+                    egui::epaint::StrokeKind::Inside,
+                );
+            }
+
+            // Brain icon
+            let icon_x = rect.left() + theme::SPACE_LG;
+            let icon_center_y = rect.center().y;
+            ui.painter().text(
+                egui::pos2(icon_x, icon_center_y),
+                egui::Align2::LEFT_CENTER,
+                icons::BRAIN,
+                theme::font_heading(),
+                if is_current {
+                    theme::accent_text()
+                } else {
+                    theme::text_secondary()
+                },
+            );
+
+            // "IA" label
+            let label_x = icon_x + theme::ICON_MD + theme::SPACE_SM;
+            ui.painter().text(
+                egui::pos2(label_x, icon_center_y),
+                egui::Align2::LEFT_CENTER,
+                "IA",
+                theme::font_body(),
+                text_color,
+            );
+
+            // Status dot + status text on the right side
+            let status_text_galley = ui.painter().layout_no_wrap(
+                status_label.to_string(),
+                theme::font_small(),
+                dot_color,
+            );
+            let status_text_w = status_text_galley.size().x;
+            let dot_radius = theme::STATUS_DOT_SIZE / 2.0;
+            let right_margin = theme::SPACE_MD;
+            let gap = theme::SPACE_XS;
+
+            // Position: [...dot gap text right_margin]
+            let text_right = rect.right() - right_margin;
+            let text_left = text_right - status_text_w;
+            let dot_cx = text_left - gap - dot_radius;
+
+            // Draw dot
+            ui.painter().circle_filled(
+                egui::pos2(dot_cx, icon_center_y),
+                dot_radius,
+                dot_color,
+            );
+
+            // Draw status text
+            ui.painter().text(
+                egui::pos2(text_left, icon_center_y),
+                egui::Align2::LEFT_CENTER,
+                status_label,
+                theme::font_small(),
+                dot_color,
+            );
+
+            // Focus ring for keyboard navigation
+            if response.has_focus() {
+                let rect_shrunk =
+                    rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
+                ui.painter().rect_stroke(
+                    rect_shrunk.expand(1.0),
+                    egui::CornerRadius::same(theme::BUTTON_ROUNDING),
+                    theme::focus_ring(),
+                    egui::epaint::StrokeKind::Outside,
                 );
             }
         }

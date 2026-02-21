@@ -525,10 +525,21 @@ impl CompliancePage {
                     _ => theme::ACCENT,
                 };
 
-                let actions = vec![
+                let is_failed = check.status == GuiCheckStatus::Fail;
+                let mut actions = vec![
                     widgets::DetailAction::primary("Relancer le contr\u{00f4}le", icons::PLAY),
                     widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
                 ];
+                if is_failed {
+                    actions.push(widgets::DetailAction::primary("Analyser avec l'IA", icons::BRAIN));
+                    actions.push(widgets::DetailAction::secondary("Rem\u{00e9}dier", icons::SHIELD_CHECK));
+                }
+
+                let ai_analyzing = state.compliance.ai_analyzing;
+                let ai_result = state.compliance.ai_analysis_result.clone();
+                let check_id_for_prompt = check.check_id.clone();
+                let check_name_for_prompt = check.name.clone();
+                let check_msg_for_prompt = check.message.clone();
 
                 let drawer_action = widgets::DetailDrawer::new("compliance_detail", &check.name, icons::COMPLIANCE)
                     .accent(accent)
@@ -570,6 +581,29 @@ impl CompliancePage {
                         if let Some(dt) = check.executed_at {
                             widgets::detail_field(ui, "Ex\u{00e9}cut\u{00e9} le", &dt.format("%d/%m/%Y %H:%M").to_string());
                         }
+
+                        // AI Analysis section
+                        if is_failed {
+                            widgets::detail_section(ui, "ANALYSE IA");
+                            if ai_analyzing {
+                                ui.horizontal(|ui| {
+                                    ui.spinner();
+                                    ui.label(
+                                        egui::RichText::new("Analyse en cours...")
+                                            .font(theme::font_small())
+                                            .color(theme::INFO),
+                                    );
+                                });
+                            } else if let Some(ref result) = ai_result {
+                                widgets::detail_text(ui, "R\u{00e9}sultat", result);
+                            } else {
+                                ui.label(
+                                    egui::RichText::new("Cliquez sur \"Analyser avec l'IA\" pour obtenir une analyse d\u{00e9}taill\u{00e9}e.")
+                                        .font(theme::font_small())
+                                        .color(theme::text_tertiary()),
+                                );
+                            }
+                        }
                     }, &actions);
 
                 if let Some(action_idx) = drawer_action {
@@ -578,6 +612,27 @@ impl CompliancePage {
                         1 => {
                             Self::export_csv(state, &[sel_idx]);
                             state.push_toast(crate::widgets::toast::Toast::info("Export CSV en cours..."), ui.ctx());
+                        }
+                        2 if is_failed => {
+                            // Analyze with AI
+                            state.compliance.ai_analyzing = true;
+                            state.compliance.ai_analysis_result = None;
+                            let prompt = format!(
+                                "Analyse de conformit\u{00e9} du contr\u{00f4}le \u{00e9}chou\u{00e9} '{}' (ID: {}). Message: {}. Explique pourquoi ce contr\u{00f4}le a \u{00e9}chou\u{00e9}, le risque associ\u{00e9}, et propose des \u{00e9}tapes de rem\u{00e9}diation.",
+                                check_name_for_prompt,
+                                check_id_for_prompt,
+                                check_msg_for_prompt.as_deref().unwrap_or("Aucun d\u{00e9}tail"),
+                            );
+                            command = Some(GuiCommand::LlmPrompt {
+                                prompt,
+                                context: Some(crate::dto::LlmPromptContext::Compliance),
+                            });
+                        }
+                        3 if is_failed => {
+                            // Remediate
+                            command = Some(GuiCommand::Remediate {
+                                check_id: check_id_for_prompt,
+                            });
                         }
                         _ => {}
                     }
@@ -783,6 +838,10 @@ impl CompliancePage {
             });
 
         if let Some(idx) = clicked_idx {
+            if state.compliance.selected_check != Some(idx) {
+                state.compliance.ai_analysis_result = None;
+                state.compliance.ai_analyzing = false;
+            }
             state.compliance.selected_check = Some(idx);
             state.compliance.detail_open = true;
         }

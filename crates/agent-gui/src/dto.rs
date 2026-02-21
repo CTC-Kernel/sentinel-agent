@@ -489,6 +489,24 @@ pub struct GuiVulnerabilityFinding {
     pub fix_available: bool,
     /// Timestamp of discovery.
     pub discovered_at: Option<DateTime<Utc>>,
+    /// Source of the finding (e.g. "osv/homebrew", "apt").
+    #[serde(default)]
+    pub source: String,
+    /// Fixed version (if known from CVE database).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fixed_version: Option<String>,
+    /// Remediation instructions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remediation: Option<String>,
+    /// AI confidence score (0-100).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_confidence: Option<u8>,
+    /// Whether AI considers this a false positive.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_false_positive: Option<bool>,
+    /// AI-generated analysis text.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_analysis: Option<String>,
 }
 
 /// Discovered network device for display in the Discovery and Cartography pages.
@@ -1429,6 +1447,120 @@ pub struct WebhookConfig {
     pub enabled: bool,
     pub last_sent: Option<DateTime<Utc>>,
     pub error: Option<String>,
+}
+
+// ============================================================================
+// LLM / AI module types
+// ============================================================================
+
+/// Chat message role.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ChatRole {
+    User,
+    Assistant,
+    System,
+}
+
+impl ChatRole {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            ChatRole::User => "Vous",
+            ChatRole::Assistant => "IA",
+            ChatRole::System => "Syst\u{00e8}me",
+        }
+    }
+}
+
+/// A single chat message in the LLM conversation.
+#[derive(Debug, Clone)]
+pub struct LlmChatMessage {
+    /// Role of the message sender.
+    pub role: ChatRole,
+    /// Message content.
+    pub content: String,
+    /// When the message was created.
+    pub timestamp: DateTime<Utc>,
+    /// Processing time in ms (only for assistant messages).
+    pub processing_time_ms: Option<u64>,
+}
+
+/// Context type for LLM prompt enrichment.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LlmPromptContext {
+    /// General security question.
+    General,
+    /// Enrich prompt with vulnerability data.
+    Vulnerabilities,
+    /// Enrich prompt with compliance check data.
+    Compliance,
+    /// Enrich prompt with threat/incident data.
+    Threats,
+    /// Enrich prompt with network data.
+    Network,
+}
+
+impl LlmPromptContext {
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            Self::General => "G\u{00e9}n\u{00e9}ral",
+            Self::Vulnerabilities => "Vuln\u{00e9}rabilit\u{00e9}s",
+            Self::Compliance => "Conformit\u{00e9}",
+            Self::Threats => "Menaces",
+            Self::Network => "R\u{00e9}seau",
+        }
+    }
+}
+
+/// LLM page tab selection.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum LlmTab {
+    #[default]
+    Assistant,
+    Recommendations,
+    ModelStatus,
+}
+
+impl LlmTab {
+    pub fn index(&self) -> u8 {
+        match self {
+            LlmTab::Assistant => 0,
+            LlmTab::Recommendations => 1,
+            LlmTab::ModelStatus => 2,
+        }
+    }
+
+    pub fn from_index(idx: u8) -> Self {
+        match idx {
+            1 => LlmTab::Recommendations,
+            2 => LlmTab::ModelStatus,
+            _ => LlmTab::Assistant,
+        }
+    }
+
+    pub fn label_fr(&self) -> &'static str {
+        match self {
+            LlmTab::Assistant => "Assistant IA",
+            LlmTab::Recommendations => "Recommandations",
+            LlmTab::ModelStatus => "Statut Mod\u{00e8}le",
+        }
+    }
+}
+
+/// LLM model status for display.
+#[derive(Debug, Clone, Default)]
+pub struct LlmModelStatus {
+    /// Name of the loaded model.
+    pub model_name: String,
+    /// Status string (ready, loading, error, unloaded).
+    pub status: String,
+    /// Total inference count.
+    pub inference_count: u64,
+    /// Memory allocated in MB.
+    pub memory_mb: u64,
+    /// Whether the model is ready for inference.
+    pub is_ready: bool,
 }
 
 #[cfg(test)]

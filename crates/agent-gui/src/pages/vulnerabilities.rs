@@ -367,10 +367,22 @@ impl VulnerabilitiesPage {
                         widgets::DetailAction::primary("Appliquer le correctif", icons::WRENCH),
                     );
                 }
+                // "Analyser avec l'IA" button — only if no AI analysis yet
+                let has_ai_analysis = finding.ai_analysis.is_some();
+                if !has_ai_analysis {
+                    actions.push(
+                        widgets::DetailAction::primary("Analyser avec l'IA", icons::BRAIN),
+                    );
+                }
                 actions.push(widgets::DetailAction::secondary("Ignorer", icons::XMARK));
                 actions.push(widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD));
 
                 let cve_display = &finding.cve_id;
+                let source_display = if !finding.source.is_empty() {
+                    finding.source.replace('/', " / ").to_uppercase()
+                } else {
+                    String::new()
+                };
                 let drawer_action = widgets::DetailDrawer::new("vuln_detail", cve_display, icons::VULNERABILITIES)
                     .accent(sev_color)
                     .subtitle(&finding.affected_software)
@@ -383,7 +395,17 @@ impl VulnerabilitiesPage {
                         if let Some(s) = finding.cvss_score {
                             widgets::detail_field_colored(ui, "Score CVSS", &format!("{:.1}", s), theme::readable_color(cvss_color));
                         }
+                        if !source_display.is_empty() {
+                            widgets::detail_field(ui, "Source", &source_display);
+                        }
                         widgets::detail_text(ui, "Description", &finding.description);
+
+                        // False positive indicator
+                        if finding.is_false_positive == Some(true) {
+                            ui.add_space(theme::SPACE_XS);
+                            widgets::status_badge(ui, "FAUX POSITIF", theme::WARNING);
+                            ui.add_space(theme::SPACE_XS);
+                        }
 
                         widgets::detail_section(ui, "REM\u{00c9}DIATION");
                         if finding.fix_available {
@@ -391,16 +413,60 @@ impl VulnerabilitiesPage {
                         } else {
                             widgets::detail_field_badge(ui, "Fix disponible", "NON", theme::ERROR);
                         }
+                        if let Some(ref fv) = finding.fixed_version {
+                            widgets::detail_field(ui, "Version corrig\u{00e9}e", fv);
+                        }
+                        if let Some(ref remediation) = finding.remediation {
+                            widgets::detail_text(ui, "Instructions de rem\u{00e9}diation", remediation);
+                        }
                         if let Some(dt) = finding.discovered_at {
                             widgets::detail_field(ui, "Date de d\u{00e9}couverte", &dt.format("%d/%m/%Y %H:%M").to_string());
+                        }
+
+                        // AI Analysis section
+                        if let Some(ref analysis) = finding.ai_analysis {
+                            widgets::detail_section(ui, "ANALYSE IA");
+
+                            // Confidence badge
+                            if let Some(confidence) = finding.ai_confidence {
+                                let conf_color = if confidence >= 80 {
+                                    theme::SUCCESS
+                                } else if confidence >= 50 {
+                                    theme::WARNING
+                                } else {
+                                    theme::ERROR
+                                };
+                                widgets::detail_field_badge(
+                                    ui,
+                                    "Confiance",
+                                    &format!("{}%", confidence),
+                                    conf_color,
+                                );
+                            }
+
+                            // False positive indicator in AI section
+                            if let Some(fp) = finding.is_false_positive {
+                                if fp {
+                                    widgets::detail_field_badge(ui, "Faux positif", "OUI", theme::WARNING);
+                                } else {
+                                    widgets::detail_field_badge(ui, "Faux positif", "NON", theme::SUCCESS);
+                                }
+                            }
+
+                            widgets::detail_text(ui, "Analyse", analysis);
                         }
                     }, &actions);
 
                 if let Some(action_idx) = drawer_action {
-                    // Offset: when fix_available, index 0=fix, 1=ignore, 2=export
-                    // When !fix_available, index 0=ignore, 1=export
-                    let fix_offset = if finding.fix_available { 1 } else { 0 };
-                    if finding.fix_available && action_idx == 0 {
+                    // Action indices depend on which buttons are present:
+                    // [fix_available?] -> [AI analyze?] -> Ignorer -> Exporter
+                    let mut next_idx = 0_usize;
+                    let fix_action_idx = if finding.fix_available { let i = next_idx; next_idx += 1; Some(i) } else { None };
+                    let ai_action_idx = if !has_ai_analysis { let i = next_idx; next_idx += 1; Some(i) } else { None };
+                    let ignore_action_idx = next_idx;
+                    let export_action_idx = next_idx + 1;
+
+                    if fix_action_idx == Some(action_idx) {
                         let safe_name = finding.affected_software.replace('\'', "'\\''");
                         let cmd = platform_upgrade_command(&safe_name);
                         ui.ctx().copy_text(cmd);
@@ -411,9 +477,20 @@ impl VulnerabilitiesPage {
                             )
                             .with_time(time),
                         );
-                    } else if action_idx == fix_offset {
+                    } else if ai_action_idx == Some(action_idx) {
+                        command = Some(GuiCommand::LlmAnalyzeVulnerability {
+                            finding_index: sel_idx,
+                        });
+                        let time = ui.input(|i| i.time);
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::info(
+                                "Analyse IA en cours\u{2026}",
+                            )
+                            .with_time(time),
+                        );
+                    } else if action_idx == ignore_action_idx {
                         state.vulnerability.detail_open = false;
-                    } else if action_idx == fix_offset + 1 {
+                    } else if action_idx == export_action_idx {
                         let success = Self::export_csv(state, &[sel_idx]);
                         let time = ui.input(|i| i.time);
                         if success {
@@ -478,12 +555,13 @@ impl VulnerabilitiesPage {
                 .striped(false)
                 .resizable(true)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::initial(100.0).at_least(80.0))
-                .column(Column::initial(120.0).at_least(100.0))
-                .column(Column::initial(80.0).at_least(60.0))
-                .column(Column::initial(60.0).at_least(50.0))
-                .column(Column::remainder())
-                .column(Column::initial(100.0).at_least(90.0));
+                .column(Column::initial(100.0).at_least(80.0))   // CVE ID
+                .column(Column::initial(120.0).at_least(100.0))  // Logiciel
+                .column(Column::initial(80.0).at_least(60.0))    // Sévérité
+                .column(Column::initial(60.0).at_least(50.0))    // CVSS
+                .column(Column::initial(90.0).at_least(70.0))    // Source
+                .column(Column::remainder())                      // Analyse et correctifs
+                .column(Column::initial(100.0).at_least(90.0));  // Actions
 
             table
                 .header(28.0, |mut header| {
@@ -517,6 +595,15 @@ impl VulnerabilitiesPage {
                     header.col(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new("SCORE CVSS")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
+                        );
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new("SOURCE")
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
@@ -598,6 +685,21 @@ impl VulnerabilitiesPage {
                             }
                         });
 
+                        // Source column
+                        row.col(|ui: &mut egui::Ui| {
+                            if !finding.source.is_empty() {
+                                let source_display = finding.source.replace('/', " / ").to_uppercase();
+                                ui.label(
+                                    egui::RichText::new(&source_display)
+                                        .font(theme::font_small())
+                                        .color(theme::text_secondary()),
+                                );
+                            } else {
+                                ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
+                            }
+                        });
+
+                        // Analysis & fix column
                         row.col(|ui: &mut egui::Ui| {
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(
@@ -607,7 +709,15 @@ impl VulnerabilitiesPage {
                                 );
                                 if finding.fix_available {
                                     ui.add_space(theme::SPACE_MICRO);
-                                    widgets::status_badge(ui, "CORRECTIF DISPONIBLE", theme::SUCCESS);
+                                    if let Some(ref fv) = finding.fixed_version {
+                                        widgets::status_badge(ui, &format!("CORRECTIF {}", fv), theme::SUCCESS);
+                                    } else {
+                                        widgets::status_badge(ui, "CORRECTIF DISPONIBLE", theme::SUCCESS);
+                                    }
+                                }
+                                if finding.is_false_positive == Some(true) {
+                                    ui.add_space(theme::SPACE_MICRO);
+                                    widgets::status_badge(ui, "FAUX POSITIF", theme::WARNING);
                                 }
                                 if let Some(dt) = finding.discovered_at {
                                     ui.add_space(theme::SPACE_MICRO);
@@ -700,8 +810,12 @@ impl VulnerabilitiesPage {
             "version",
             "severite",
             "cvss",
+            "source",
             "description",
             "fix_disponible",
+            "version_corrigee",
+            "faux_positif",
+            "confiance_ia",
         ];
         let rows: Vec<Vec<String>> = indices
             .iter()
@@ -713,8 +827,12 @@ impl VulnerabilitiesPage {
                     f.affected_version.clone(),
                     f.severity.to_string(),
                     f.cvss_score.map_or("--".into(), |s| format!("{:.1}", s)),
+                    f.source.clone(),
                     f.description.clone(),
                     if f.fix_available { "Oui" } else { "Non" }.to_string(),
+                    f.fixed_version.clone().unwrap_or_default(),
+                    f.is_false_positive.map_or("--".into(), |fp| if fp { "Oui" } else { "Non" }.to_string()),
+                    f.ai_confidence.map_or("--".into(), |c| format!("{}", c)),
                 ]
             })
             .collect();

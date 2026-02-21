@@ -13,7 +13,7 @@ impl AgentRuntime {
 
         let result = self
             .vulnerability_scanner
-            .scan(ScanType::Packages)
+            .scan(ScanType::CveCheck)
             .await
             .map_err(|e| CommonError::internal(format!("Vulnerability scan failed: {}", e)))?;
 
@@ -61,6 +61,10 @@ impl AgentRuntime {
                     "description": v.description,
                     "remediation": v.remediation,
                     "detected_at": v.detected_at.to_rfc3339(),
+                    "source": v.source,
+                    "ai_confidence": v.ai_confidence,
+                    "is_false_positive": v.is_false_positive,
+                    "ai_analysis": v.ai_analysis,
                 })
             })
             .collect();
