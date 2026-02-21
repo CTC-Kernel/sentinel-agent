@@ -53,6 +53,12 @@ jobs:
           targets: aarch64-apple-darwin,x86_64-apple-darwin
       - uses: Swatinem/rust-cache@v2
 
+      - name: Patch Cargo.toml version to match release
+        run: |
+          echo "Patching workspace version to ${{ env.RELEASE_VERSION }}"
+          sed -i '' "s/^version = \".*\"/version = \"${{ env.RELEASE_VERSION }}\"/" Cargo.toml
+          grep '^version' Cargo.toml
+
       - name: Build ARM64
         run: cargo build --release --features gui --package agent-core --target aarch64-apple-darwin
 
@@ -300,6 +306,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
+      - name: Patch Cargo.toml version to match release
+        run: |
+          Write-Host "Patching workspace version to ${{ env.RELEASE_VERSION }}"
+          (Get-Content Cargo.toml) -replace '^version = ".*"', "version = `"${{ env.RELEASE_VERSION }}`"" | Set-Content Cargo.toml
+          Select-String -Path Cargo.toml -Pattern '^version'
+        shell: pwsh
+
       - name: Install OpenSSL via vcpkg
         run: |
           vcpkg install openssl:x64-windows-static
@@ -505,6 +518,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libssl-dev pkg-config libxdo-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libudev-dev
 
+      - name: Patch Cargo.toml version to match release
+        run: |
+          echo "Patching workspace version to ${{ env.RELEASE_VERSION }}"
+          sed -i "s/^version = \".*\"/version = \"${{ env.RELEASE_VERSION }}\"/" Cargo.toml
+          grep '^version' Cargo.toml
+
       - name: Install cargo-deb
         run: cargo install cargo-deb
 
@@ -551,6 +570,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libssl-dev pkg-config libxdo-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libudev-dev
+
+      - name: Patch Cargo.toml version to match release
+        run: |
+          echo "Patching workspace version to ${{ env.RELEASE_VERSION }}"
+          sed -i "s/^version = \".*\"/version = \"${{ env.RELEASE_VERSION }}\"/" Cargo.toml
+          grep '^version' Cargo.toml
 
       - name: Install cargo-generate-rpm
         run: cargo install cargo-generate-rpm
