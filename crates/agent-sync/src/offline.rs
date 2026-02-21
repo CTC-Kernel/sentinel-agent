@@ -38,6 +38,12 @@ pub enum SyncEntityType {
     Proof,
     Heartbeat,
     Config,
+    Playbook,
+    DetectionRule,
+    Risk,
+    Asset,
+    Kpi,
+    AlertRule,
 }
 
 impl SyncEntityType {
@@ -48,6 +54,12 @@ impl SyncEntityType {
             SyncEntityType::Proof => "proof",
             SyncEntityType::Heartbeat => "heartbeat",
             SyncEntityType::Config => "config",
+            SyncEntityType::Playbook => "playbook",
+            SyncEntityType::DetectionRule => "detection_rule",
+            SyncEntityType::Risk => "risk",
+            SyncEntityType::Asset => "asset",
+            SyncEntityType::Kpi => "kpi",
+            SyncEntityType::AlertRule => "alert_rule",
         }
     }
 
@@ -58,6 +70,12 @@ impl SyncEntityType {
             "proof" => Some(SyncEntityType::Proof),
             "heartbeat" => Some(SyncEntityType::Heartbeat),
             "config" => Some(SyncEntityType::Config),
+            "playbook" => Some(SyncEntityType::Playbook),
+            "detection_rule" => Some(SyncEntityType::DetectionRule),
+            "risk" => Some(SyncEntityType::Risk),
+            "asset" => Some(SyncEntityType::Asset),
+            "kpi" => Some(SyncEntityType::Kpi),
+            "alert_rule" => Some(SyncEntityType::AlertRule),
             _ => None,
         }
     }
@@ -492,6 +510,8 @@ mod tests {
         assert_eq!(SyncEntityType::Proof.as_str(), "proof");
         assert_eq!(SyncEntityType::Heartbeat.as_str(), "heartbeat");
         assert_eq!(SyncEntityType::Config.as_str(), "config");
+        assert_eq!(SyncEntityType::Playbook.as_str(), "playbook");
+        assert_eq!(SyncEntityType::Risk.as_str(), "risk");
 
         assert_eq!(
             SyncEntityType::parse_str("check_result"),

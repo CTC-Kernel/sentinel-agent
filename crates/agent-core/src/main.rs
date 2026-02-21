@@ -777,6 +777,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                 }
             };
 
+            let db_for_commands = db_arc.clone();
             let mut runtime = AgentRuntime::new(config);
             if let Some(db) = db_arc {
                 runtime = runtime.with_database(db);
@@ -784,6 +785,32 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             runtime.set_gui_event_tx(bg_event_tx.clone());
             let sync_client = runtime.sync_client();
             let handle = runtime.handle();
+
+            macro_rules! handle_save_gui_command {
+                ($db:expr, $client:expr, $handle:expr, $payload:expr, $entity:path, $sync_method:ident) => {
+                    if let Some(ref db_arc) = $db {
+                        if let Ok(json) = serde_json::to_string(&$payload) {
+                            let db_clone = std::sync::Arc::clone(db_arc);
+                            let handle_clone = $handle.clone();
+                            tokio::spawn(async move {
+                                let repo = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
+                                if let Err(e) = repo.enqueue($entity, json).await {
+                                    warn!("Failed to queue item for sync: {}", e);
+                                } else {
+                                    handle_clone.trigger_sync();
+                                }
+                            });
+                        }
+                    } else if let Some(ref c) = $client {
+                        let c = std::sync::Arc::clone(c);
+                        tokio::spawn(async move {
+                            if let Err(e) = c.$sync_method(vec![$payload]).await {
+                                warn!("Failed to sync item fallback: {}", e);
+                            }
+                        });
+                    }
+                };
+            }
 
             // Spawn command processor
             tokio::spawn(async move {
@@ -916,69 +943,186 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::SavePlaybook { playbook }) => {
                             info!("[AUDIT] GUI saved playbook: {}", playbook.name);
-                            if let Some(ref c) = sync_client {
-                                let c = std::sync::Arc::clone(c);
-                                let payload = agent_core::sync_converters::playbook_to_payload(&playbook);
+                            let payload = agent_core::sync_converters::playbook_to_payload(&playbook);
+                            // Persist to dedicated SQLite table for offline resilience
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let pb_clone = playbook.clone();
+                                let payload_clone = payload.clone();
                                 tokio::spawn(async move {
-                                    if let Err(e) = c.sync_playbooks(vec![payload]).await {
-                                        warn!("Failed to sync playbook: {}", e);
+                                    let now = chrono::Utc::now().to_rfc3339();
+                                    let stored = agent_storage::repositories::grc::StoredPlaybook {
+                                        id: pb_clone.id.clone(),
+                                        title: pb_clone.name.clone(),
+                                        description: pb_clone.description.clone(),
+                                        category: "general".to_string(),
+                                        steps: serde_json::to_string(&pb_clone.actions).unwrap_or_default(),
+                                        status: if pb_clone.enabled { "active".to_string() } else { "inactive".to_string() },
+                                        created_at: pb_clone.created_at.to_rfc3339(),
+                                        updated_at: now,
+                                        synced: false,
+                                    };
+                                    let repo = agent_storage::repositories::grc::PlaybookRepository::new(&db_clone);
+                                    if let Err(e) = repo.upsert(&stored).await {
+                                        warn!("Failed to persist playbook to SQLite: {}", e);
+                                    }
+                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
+                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
+                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::Playbook, json).await;
                                     }
                                 });
                             }
                         }
                         Ok(GuiCommand::DeletePlaybook { playbook_id }) => {
                             info!("[AUDIT] GUI deleted playbook: {}", playbook_id);
+                            // Delete from local SQLite (offline-first)
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let pid = playbook_id.clone();
+                                tokio::spawn(async move {
+                                    let repo = agent_storage::repositories::grc::PlaybookRepository::new(&db_clone);
+                                    if let Err(e) = repo.delete(&pid).await {
+                                        warn!("Failed to delete playbook from SQLite: {}", e);
+                                    }
+                                });
+                            }
+                            // Also delete from SaaS when online
                             if let Some(ref c) = sync_client {
                                 let c = std::sync::Arc::clone(c);
                                 let pid = playbook_id.clone();
                                 tokio::spawn(async move {
                                     if let Err(e) = c.delete_playbook(&pid).await {
-                                        warn!("Failed to sync playbook delete: {}", e);
+                                        warn!("Failed to sync playbook delete to SaaS: {}", e);
                                     }
                                 });
                             }
                         }
+
                         Ok(GuiCommand::SaveDetectionRule { rule }) => {
                             info!("[AUDIT] GUI saved detection rule: {}", rule.name);
-                            if let Some(ref c) = sync_client {
-                                let c = std::sync::Arc::clone(c);
-                                let payload = agent_core::sync_converters::detection_rule_to_payload(&rule);
+                            let payload = agent_core::sync_converters::detection_rule_to_payload(&rule);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let rule_clone = rule.clone();
+                                let payload_clone = payload.clone();
                                 tokio::spawn(async move {
-                                    if let Err(e) = c.sync_detection_rules(vec![payload]).await {
-                                        warn!("Failed to sync detection rule: {}", e);
+                                    let now = chrono::Utc::now().to_rfc3339();
+                                    let stored = agent_storage::repositories::grc::StoredDetectionRule {
+                                        id: rule_clone.id.clone(),
+                                        name: rule_clone.name.clone(),
+                                        description: rule_clone.description.clone(),
+                                        severity: rule_clone.severity.clone(),
+                                        log_source: "endpoint".to_string(),
+                                        condition: serde_json::to_string(&rule_clone.conditions).unwrap_or_default(),
+                                        enabled: rule_clone.enabled,
+                                        created_at: rule_clone.created_at.to_rfc3339(),
+                                        updated_at: now,
+                                        synced: false,
+                                    };
+                                    let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
+                                    if let Err(e) = repo.upsert(&stored).await {
+                                        warn!("Failed to persist detection rule to SQLite: {}", e);
+                                    }
+                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
+                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
+                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::DetectionRule, json).await;
                                     }
                                 });
                             }
                         }
                         Ok(GuiCommand::DeleteDetectionRule { rule_id }) => {
                             info!("[AUDIT] GUI deleted detection rule: {}", rule_id);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let rid = rule_id.clone();
+                                tokio::spawn(async move {
+                                    let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
+                                    if let Err(e) = repo.delete(&rid).await {
+                                        warn!("Failed to delete detection rule from SQLite: {}", e);
+                                    }
+                                });
+                            }
                         }
                         Ok(GuiCommand::ToggleDetectionRule { rule_id, enabled }) => {
                             info!("[AUDIT] GUI toggled detection rule {}: enabled={}", rule_id, enabled);
                         }
+
                         Ok(GuiCommand::SaveRisk { risk }) => {
                             info!("[AUDIT] GUI saved risk entry: {}", risk.title);
-                            if let Some(ref c) = sync_client {
-                                let c = std::sync::Arc::clone(c);
-                                let payload = agent_core::sync_converters::risk_to_payload(&risk);
+                            let payload = agent_core::sync_converters::risk_to_payload(&risk);
+                            // Persist to dedicated SQLite table for offline resilience
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let risk_clone = risk.clone();
+                                let payload_clone = payload.clone();
                                 tokio::spawn(async move {
-                                    if let Err(e) = c.sync_risks(vec![payload]).await {
-                                        warn!("Failed to sync risk: {}", e);
+                                    let stored = agent_storage::repositories::grc::StoredRisk {
+                                        id: risk_clone.id.clone(),
+                                        title: risk_clone.title.clone(),
+                                        description: risk_clone.description.clone(),
+                                        probability: risk_clone.probability as i32,
+                                        impact: risk_clone.impact as i32,
+                                        owner: risk_clone.owner.clone(),
+                                        status: format!("{:?}", risk_clone.status),
+                                        mitigation: risk_clone.mitigation.clone(),
+                                        source: risk_clone.source.clone(),
+                                        created_at: risk_clone.created_at.to_rfc3339(),
+                                        updated_at: risk_clone.updated_at.to_rfc3339(),
+                                        sla_target_days: risk_clone.sla_target_days.map(|v| v as i32),
+                                        synced: false,
+                                    };
+                                    let repo = agent_storage::repositories::grc::RiskRepository::new(&db_clone);
+                                    if let Err(e) = repo.upsert(&stored).await {
+                                        warn!("Failed to persist risk to SQLite: {}", e);
+                                    }
+                                    // Also queue for remote sync
+                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
+                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
+                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::Risk, json).await;
                                     }
                                 });
                             }
                         }
                         Ok(GuiCommand::DeleteRisk { risk_id }) => {
                             info!("[AUDIT] GUI deleted risk entry: {}", risk_id);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let rid = risk_id.clone();
+                                tokio::spawn(async move {
+                                    let repo = agent_storage::repositories::grc::RiskRepository::new(&db_clone);
+                                    if let Err(e) = repo.delete(&rid).await {
+                                        warn!("Failed to delete risk from SQLite: {}", e);
+                                    }
+                                });
+                            }
                         }
                         Ok(GuiCommand::SaveAsset { asset }) => {
                             info!("[AUDIT] GUI saved asset: {} ({})", asset.hostname.as_deref().unwrap_or("?"), asset.ip);
-                            if let Some(ref c) = sync_client {
-                                let c = std::sync::Arc::clone(c);
-                                let payload = agent_core::sync_converters::asset_to_payload(&asset);
+                            let payload = agent_core::sync_converters::asset_to_payload(&asset);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let asset_clone = asset.clone();
+                                let payload_clone = payload.clone();
                                 tokio::spawn(async move {
-                                    if let Err(e) = c.sync_assets(vec![payload]).await {
-                                        warn!("Failed to sync asset: {}", e);
+                                    let stored = agent_storage::repositories::grc::StoredManagedAsset {
+                                        id: asset_clone.id.clone(),
+                                        name: asset_clone.hostname.clone().unwrap_or_else(|| asset_clone.ip.clone()),
+                                        asset_type: asset_clone.device_type.clone(),
+                                        criticality: format!("{:?}", asset_clone.criticality),
+                                        owner: "unknown".to_string(),
+                                        location: asset_clone.ip.clone(),
+                                        status: format!("{:?}", asset_clone.lifecycle),
+                                        created_at: asset_clone.first_seen.to_rfc3339(),
+                                        updated_at: asset_clone.last_seen.to_rfc3339(),
+                                        synced: false,
+                                    };
+                                    let repo = agent_storage::repositories::grc::ManagedAssetRepository::new(&db_clone);
+                                    if let Err(e) = repo.upsert(&stored).await {
+                                        warn!("Failed to persist asset to SQLite: {}", e);
+                                    }
+                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
+                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
+                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::Asset, json).await;
                                     }
                                 });
                             }
@@ -988,33 +1132,91 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::SaveAlertRule { rule }) => {
                             info!("[AUDIT] GUI saved alert rule: {}", rule.name);
-                            if let Some(ref c) = sync_client {
-                                let c = std::sync::Arc::clone(c);
-                                let payload = agent_core::sync_converters::alert_rule_to_payload(&rule);
+                            let payload = agent_core::sync_converters::alert_rule_to_payload(&rule);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let rule_clone = rule.clone();
+                                let payload_clone = payload.clone();
                                 tokio::spawn(async move {
-                                    if let Err(e) = c.sync_alert_rules(vec![payload]).await {
-                                        warn!("Failed to sync alert rule: {}", e);
+                                    let now = chrono::Utc::now().to_rfc3339();
+                                    let stored = agent_storage::repositories::grc::StoredAlertRule {
+                                        id: rule_clone.id.clone(),
+                                        name: rule_clone.name.clone(),
+                                        description: rule_clone.rule_type.clone(),
+                                        severity: rule_clone.severity_threshold.clone().unwrap_or_else(|| "medium".to_string()),
+                                        condition: serde_json::to_string(&rule_clone.detection_types).unwrap_or_default(),
+                                        actions: "[]".to_string(),
+                                        enabled: rule_clone.enabled,
+                                        created_at: rule_clone.created_at.to_rfc3339(),
+                                        updated_at: now,
+                                        synced: false,
+                                    };
+                                    let repo = agent_storage::repositories::grc::AlertRuleRepository::new(&db_clone);
+                                    if let Err(e) = repo.upsert(&stored).await {
+                                        warn!("Failed to persist alert rule to SQLite: {}", e);
+                                    }
+                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
+                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
+                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::AlertRule, json).await;
                                     }
                                 });
                             }
                         }
                         Ok(GuiCommand::DeleteAlertRule { rule_id }) => {
                             info!("[AUDIT] GUI deleted alert rule: {}", rule_id);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let rid = rule_id.clone();
+                                tokio::spawn(async move {
+                                    let repo = agent_storage::repositories::grc::AlertRuleRepository::new(&db_clone);
+                                    if let Err(e) = repo.delete(&rid).await {
+                                        warn!("Failed to delete alert rule from SQLite: {}", e);
+                                    }
+                                });
+                            }
                         }
                         Ok(GuiCommand::SaveWebhook { webhook }) => {
                             info!("[AUDIT] GUI saved webhook: {}", webhook.name);
-                            if let Some(ref c) = sync_client {
-                                let c = std::sync::Arc::clone(c);
-                                let payload = agent_core::sync_converters::webhook_to_payload(&webhook);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let wh_clone = webhook.clone();
                                 tokio::spawn(async move {
-                                    if let Err(e) = c.sync_webhooks(vec![payload]).await {
-                                        warn!("Failed to sync webhook: {}", e);
+                                    let now = chrono::Utc::now().to_rfc3339();
+                                    let stored = agent_storage::repositories::grc::StoredWebhook {
+                                        id: wh_clone.id.clone(),
+                                        name: wh_clone.name.clone(),
+                                        url: wh_clone.url.clone(),
+                                        events: wh_clone.format.clone(),
+                                        secret: None,
+                                        enabled: wh_clone.enabled,
+                                        created_at: now.clone(),
+                                        updated_at: now,
+                                        synced: false,
+                                    };
+                                    let repo = agent_storage::repositories::grc::WebhookRepository::new(&db_clone);
+                                    if let Err(e) = repo.upsert(&stored).await {
+                                        warn!("Failed to persist webhook to SQLite: {}", e);
+                                    }
+                                    let payload = agent_core::sync_converters::webhook_to_payload(&wh_clone);
+                                    if let Ok(json) = serde_json::to_string(&payload) {
+                                        let repo2 = agent_storage::repositories::SyncQueueRepository::new(&db_clone);
+                                        let _ = repo2.enqueue(agent_storage::repositories::SyncEntityType::Webhook, json).await;
                                     }
                                 });
                             }
                         }
                         Ok(GuiCommand::DeleteWebhook { webhook_id }) => {
                             info!("[AUDIT] GUI deleted webhook: {}", webhook_id);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let wid = webhook_id.clone();
+                                tokio::spawn(async move {
+                                    let repo = agent_storage::repositories::grc::WebhookRepository::new(&db_clone);
+                                    if let Err(e) = repo.delete(&wid).await {
+                                        warn!("Failed to delete webhook from SQLite: {}", e);
+                                    }
+                                });
+                            }
                         }
                         Ok(GuiCommand::TestWebhook { webhook_id }) => {
                             info!("[AUDIT] GUI requested webhook test: {}", webhook_id);

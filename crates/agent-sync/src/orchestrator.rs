@@ -129,6 +129,53 @@ pub struct SyncStatusSummary {
 /// Maximum sync history entries to keep.
 const MAX_HISTORY_ENTRIES: usize = 100;
 
+macro_rules! impl_sync_queue {
+    ($name:ident, $entity:path, $payload:path, $sync_method:ident) => {
+        async fn $name(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
+            use agent_storage::SyncQueueRepository;
+            let repo = SyncQueueRepository::new(&self._db);
+            let pending = match repo.get_pending(50).await {
+                Ok(p) => p,
+                Err(e) => return Err(crate::error::SyncError::Config(format!("Failed to fetch pending {}: {}", stringify!($entity), e))),
+            };
+
+            let mut items = Vec::new();
+            let mut ids = Vec::new();
+            for item in pending {
+                if item.entity_type == $entity {
+                    match serde_json::from_str::<$payload>(&item.payload) {
+                        Ok(payload) => {
+                            items.push(payload);
+                            ids.push(item.id);
+                        }
+                        Err(e) => {
+                            let _ = repo.record_failure(item.id, &format!("Deserialization failed: {}", e)).await;
+                        }
+                    }
+                }
+            }
+
+            if items.is_empty() {
+                return Ok(0);
+            }
+
+            // Upload via AuthenticatedClient
+            match client.$sync_method(items).await {
+                Ok(_) => {
+                    let _ = repo.remove(&ids).await;
+                    Ok(ids.len() as u32)
+                }
+                Err(e) => {
+                    for id in ids {
+                        let _ = repo.record_failure(id, &e.to_string()).await;
+                    }
+                    Err(e)
+                }
+            }
+        }
+    };
+}
+
 /// Orchestrates sync operations between agent and SaaS.
 pub struct SyncOrchestrator {
     _db: Arc<Database>,
@@ -203,16 +250,12 @@ impl SyncOrchestrator {
             SyncKind::Rules => self.sync_rules(client).await,
             SyncKind::Audit => self.sync_audit(client).await,
             SyncKind::Full | SyncKind::Manual => self.sync_full(client).await,
-            // New axes — individual sync methods will be wired in future batches.
-            SyncKind::Playbooks
-            | SyncKind::DetectionRules
-            | SyncKind::Risks
-            | SyncKind::Assets
-            | SyncKind::Kpi
-            | SyncKind::Alerting => {
-                debug!("Sync kind {:?} not yet wired in orchestrator", kind);
-                Ok(0)
-            }
+            SyncKind::Playbooks => self.sync_playbooks(client).await,
+            SyncKind::DetectionRules => self.sync_detection_rules(client).await,
+            SyncKind::Risks => self.sync_risks(client).await,
+            SyncKind::Assets => self.sync_assets(client).await,
+            SyncKind::Kpi => self.sync_kpi(client).await,
+            SyncKind::Alerting => self.sync_alerting(client).await,
         };
 
         let duration_ms = (Utc::now() - started_at).num_milliseconds().max(0) as u64;
@@ -348,8 +391,236 @@ impl SyncOrchestrator {
             Err(e) => warn!("Audit sync failed during full sync: {}", e),
         }
 
+        // Download GRC entities from SaaS into local SQLite (Two-Way Sync)
+        match self.download_grc_entities(client).await {
+            Ok(n) => {
+                info!("Downloaded and reconciled {} GRC entity records from SaaS", n);
+                total += n;
+            }
+            Err(e) => warn!("GRC entity download failed during full sync: {}", e),
+        }
+
         Ok(total)
     }
+
+    /// Download GRC entities from the SaaS and persist them to local SQLite.
+    ///
+    /// This is the core of the Two-Way Sync architecture. On each full sync,
+    /// we pull the authoritative state from the SaaS and upsert into local
+    /// SQLite tables so the GUI can display the correct data even after a restart.
+    async fn download_grc_entities(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
+        use agent_storage::repositories::grc::{
+            StoredRisk, StoredPlaybook, StoredManagedAsset, StoredAlertRule, StoredWebhook,
+            StoredDetectionRule, StoredSoftwareInventory,
+            RiskRepository, PlaybookRepository, ManagedAssetRepository,
+            AlertRuleRepository, WebhookRepository, DetectionRuleRepository,
+            SoftwareInventoryRepository,
+        };
+
+        let mut count = 0u32;
+        let now = chrono::Utc::now().to_rfc3339();
+
+        // --- Risks ---
+        match client.fetch_risks().await {
+            Ok(risks) => {
+                let repo = RiskRepository::new(&self._db);
+                for r in &risks {
+                    let stored = StoredRisk {
+                        id: r.id.clone(),
+                        title: r.title.clone(),
+                        description: r.description.clone(),
+                        probability: r.probability as i32,
+                        impact: r.impact as i32,
+                        owner: r.owner.clone(),
+                        status: r.status.clone(),
+                        mitigation: r.mitigation.clone(),
+                        source: r.source.clone(),
+                        created_at: r.created_at.to_rfc3339(),
+                        updated_at: r.updated_at.to_rfc3339(),
+                        sla_target_days: r.sla_target_days.map(|v| v as i32),
+                        synced: true,
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert risk {}: {}", r.id, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                debug!("Downloaded {} risks from SaaS", risks.len());
+            }
+            Err(e) => warn!("Failed to fetch risks: {}", e),
+        }
+
+        // --- Playbooks ---
+        match client.fetch_playbooks().await {
+            Ok(playbooks) => {
+                let repo = PlaybookRepository::new(&self._db);
+                for p in &playbooks {
+                    let stored = StoredPlaybook {
+                        id: p.id.clone(),
+                        title: p.name.clone(),
+                        description: p.description.clone(),
+                        category: "general".to_string(),
+                        steps: serde_json::to_string(&p.actions).unwrap_or_default(),
+                        status: if p.enabled { "active".to_string() } else { "inactive".to_string() },
+                        created_at: p.created_at.to_rfc3339(),
+                        updated_at: now.clone(),
+                        synced: true,
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert playbook {}: {}", p.id, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                debug!("Downloaded {} playbooks from SaaS", playbooks.len());
+            }
+            Err(e) => warn!("Failed to fetch playbooks: {}", e),
+        }
+
+        // --- Managed Assets ---
+        match client.fetch_managed_assets().await {
+            Ok(assets) => {
+                let repo = ManagedAssetRepository::new(&self._db);
+                for a in &assets {
+                    let stored = StoredManagedAsset {
+                        id: a.id.clone(),
+                        name: a.hostname.clone().unwrap_or_else(|| a.ip.clone()),
+                        asset_type: a.device_type.clone(),
+                        criticality: a.criticality.clone(),
+                        owner: "unknown".to_string(),
+                        location: a.ip.clone(),
+                        status: a.lifecycle.clone(),
+                        created_at: a.first_seen.to_rfc3339(),
+                        updated_at: a.last_seen.to_rfc3339(),
+                        synced: true,
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert asset {}: {}", a.id, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                debug!("Downloaded {} managed assets from SaaS", assets.len());
+            }
+            Err(e) => warn!("Failed to fetch managed assets: {}", e),
+        }
+
+        // --- Alert Rules ---
+        match client.fetch_alert_rules().await {
+            Ok(rules) => {
+                let repo = AlertRuleRepository::new(&self._db);
+                for r in &rules {
+                    let stored = StoredAlertRule {
+                        id: r.id.clone(),
+                        name: r.name.clone(),
+                        description: r.rule_type.clone(),
+                        severity: r.severity_threshold.clone().unwrap_or_else(|| "medium".to_string()),
+                        condition: serde_json::to_string(&r.detection_types).unwrap_or_default(),
+                        actions: "[]".to_string(),
+                        enabled: r.enabled,
+                        created_at: r.created_at.to_rfc3339(),
+                        updated_at: now.clone(),
+                        synced: true,
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert alert rule {}: {}", r.id, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                debug!("Downloaded {} alert rules from SaaS", rules.len());
+            }
+            Err(e) => warn!("Failed to fetch alert rules: {}", e),
+        }
+
+        // --- Webhooks ---
+        match client.fetch_webhooks().await {
+            Ok(webhooks) => {
+                let repo = WebhookRepository::new(&self._db);
+                for w in &webhooks {
+                    let stored = StoredWebhook {
+                        id: w.id.clone(),
+                        name: w.name.clone(),
+                        url: w.url.clone(),
+                        events: w.format.clone(),
+                        secret: None,
+                        enabled: w.enabled,
+                        created_at: now.clone(),
+                        updated_at: now.clone(),
+                        synced: true,
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert webhook {}: {}", w.id, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                debug!("Downloaded {} webhooks from SaaS", webhooks.len());
+            }
+            Err(e) => warn!("Failed to fetch webhooks: {}", e),
+        }
+
+        // --- Detection Rules ---
+        match client.fetch_detection_rules().await {
+            Ok(rules) => {
+                let repo = DetectionRuleRepository::new(&self._db);
+                for r in &rules {
+                    let stored = StoredDetectionRule {
+                        id: r.id.clone(),
+                        name: r.name.clone(),
+                        description: r.description.clone(),
+                        severity: r.severity.clone(),
+                        log_source: "endpoint".to_string(),
+                        condition: serde_json::to_string(&r.conditions).unwrap_or_default(),
+                        enabled: r.enabled,
+                        created_at: r.created_at.to_rfc3339(),
+                        updated_at: now.clone(),
+                        synced: true,
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert detection rule {}: {}", r.id, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                debug!("Downloaded {} detection rules from SaaS", rules.len());
+            }
+            Err(e) => warn!("Failed to fetch detection rules: {}", e),
+        }
+
+        // --- Software Inventory ---
+        match client.fetch_software_inventory().await {
+            Ok(software) => {
+                let repo = SoftwareInventoryRepository::new(&self._db);
+                let hostname = hostname::get()
+                    .ok()
+                    .and_then(|h| h.into_string().ok())
+                    .unwrap_or_else(|| "unknown".to_string());
+                for s in &software {
+                    let stored = StoredSoftwareInventory {
+                        id: format!("{}-{}-{}", hostname, s.name, s.version.as_deref().unwrap_or("unknown")),
+                        hostname: hostname.clone(),
+                        software_name: s.name.clone(),
+                        version: s.version.clone().unwrap_or_default(),
+                        vendor: s.vendor.clone().unwrap_or_default(),
+                        install_date: None,
+                        synced: true,
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert software {}: {}", s.name, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                debug!("Downloaded {} software items from SaaS", software.len());
+            }
+            Err(e) => warn!("Failed to fetch software inventory: {}", e),
+        }
+
+        Ok(count)
+    }
+
 
     /// Sync audit trail.
     async fn sync_audit(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
@@ -448,12 +719,47 @@ impl SyncOrchestrator {
             .get(&format!("/v1/agents/{}/config", agent_id))
             .await?;
 
+        // 1. Download and store central playbooks
+        match client.download_playbooks().await {
+            Ok(playbooks) => {
+                info!("Downloaded {} central playbooks", playbooks.len());
+                if let Ok(json) = serde_json::to_string(&playbooks) {
+                    let repo = agent_storage::ConfigRepository::new(&self._db);
+                    let _ = repo.set_with_source("central_playbooks", &json, agent_storage::ConfigSource::Remote).await;
+                }
+            }
+            Err(e) => warn!("Failed to download playbooks: {}", e),
+        }
+
+        // 2. Download and store central alert rules
+        match client.download_alert_rules().await {
+            Ok(rules) => {
+                info!("Downloaded {} central alert rules", rules.len());
+                if let Ok(json) = serde_json::to_string(&rules) {
+                    let repo = agent_storage::ConfigRepository::new(&self._db);
+                    let _ = repo.set_with_source("central_alert_rules", &json, agent_storage::ConfigSource::Remote).await;
+                }
+            }
+            Err(e) => warn!("Failed to download alert rules: {}", e),
+        }
+
         Ok(1)
     }
 
     /// Sync rules.
-    async fn sync_rules(&self, _client: &AuthenticatedClient) -> SyncResult<u32> {
-        // Rules are included in config response
+    async fn sync_rules(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
+        // Rules are included in config response, but we also download detection rules separately
+        match client.download_detection_rules().await {
+            Ok(rules) => {
+                info!("Downloaded {} central detection rules", rules.len());
+                if let Ok(json) = serde_json::to_string(&rules) {
+                    let repo = agent_storage::ConfigRepository::new(&self._db);
+                    let _ = repo.set_with_source("central_detection_rules", &json, agent_storage::ConfigSource::Remote).await;
+                }
+            }
+            Err(e) => warn!("Failed to download detection rules: {}", e),
+        }
+        
         Ok(0)
     }
 
@@ -463,6 +769,13 @@ impl SyncOrchestrator {
         // For now, return 0 as the sync queue processing is handled separately
         Ok(0)
     }
+
+    impl_sync_queue!(sync_playbooks, agent_storage::SyncEntityType::Playbook, crate::types::PlaybookPayload, sync_playbooks);
+    impl_sync_queue!(sync_detection_rules, agent_storage::SyncEntityType::DetectionRule, crate::types::DetectionRulePayload, sync_detection_rules);
+    impl_sync_queue!(sync_risks, agent_storage::SyncEntityType::Risk, crate::types::RiskPayload, sync_risks);
+    impl_sync_queue!(sync_assets, agent_storage::SyncEntityType::Asset, crate::types::AssetPayload, sync_assets);
+    impl_sync_queue!(sync_kpi, agent_storage::SyncEntityType::Kpi, crate::types::KpiSnapshotPayload, sync_kpi_snapshots);
+    impl_sync_queue!(sync_alerting, agent_storage::SyncEntityType::AlertRule, crate::types::AlertRulePayload, sync_alert_rules);
 
     /// Record a sync history entry.
     async fn record_history_async(
