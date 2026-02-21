@@ -28,6 +28,18 @@ use crate::types::{
     AlertRulePayload, AlertRuleSyncRequest,
     // Webhook sync
     WebhookPayload, WebhookSyncRequest,
+    // FIM sync
+    FimAlertPayload, FimAlertSyncRequest,
+    // USB sync
+    UsbEventPayload, UsbEventSyncRequest,
+    // Software sync
+    SoftwarePayload, SoftwareSyncRequest, SoftwareSyncResponse,
+    // Network sync
+    NetworkSnapshotRequest, NetworkSnapshotResponse,
+    // Discovered asset sync
+    DiscoveredAssetPayload, DiscoveredAssetResponse,
+    // Log upload
+    LogEntryPayload, LogUploadRequest, LogUploadResponse,
 };
 use agent_common::config::AgentConfig;
 use agent_storage::Database;
@@ -501,6 +513,99 @@ impl AuthenticatedClient {
         debug!("Syncing {} webhooks for agent {}", webhooks.len(), agent_id);
         let request = WebhookSyncRequest { webhooks };
         self.post_json(&format!("/v1/agents/{}/webhooks", agent_id), &request).await
+    }
+
+    // ========================================================================
+    // FIM, USB, Software, Network, Discovery, Logs Sync Methods
+    // ========================================================================
+
+    /// Upload FIM alerts to the SaaS.
+    ///
+    /// Sends detected file integrity changes to the cloud for storage and alerting.
+    pub async fn upload_fim_alerts(
+        &self,
+        alerts: Vec<FimAlertPayload>,
+    ) -> SyncResult<GenericSyncResponse> {
+        if alerts.is_empty() {
+            return Ok(GenericSyncResponse { received_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        info!("Uploading {} FIM alerts for agent {}", alerts.len(), agent_id);
+        let request = FimAlertSyncRequest { alerts };
+        self.post_json(&format!("/v1/agents/{}/fim-alerts", agent_id), &request).await
+    }
+
+    /// Upload USB events to the SaaS.
+    ///
+    /// Sends USB device connect/disconnect events to the cloud for monitoring.
+    pub async fn upload_usb_events(
+        &self,
+        events: Vec<UsbEventPayload>,
+    ) -> SyncResult<GenericSyncResponse> {
+        if events.is_empty() {
+            return Ok(GenericSyncResponse { received_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        info!("Uploading {} USB events for agent {}", events.len(), agent_id);
+        let request = UsbEventSyncRequest { events };
+        self.post_json(&format!("/v1/agents/{}/usb-events", agent_id), &request).await
+    }
+
+    /// Upload software inventory to the SaaS.
+    ///
+    /// Sends the list of installed software for compliance and vulnerability tracking.
+    pub async fn upload_software_inventory(
+        &self,
+        software: Vec<SoftwarePayload>,
+        scan_timestamp: Option<DateTime<Utc>>,
+    ) -> SyncResult<SoftwareSyncResponse> {
+        if software.is_empty() {
+            return Ok(SoftwareSyncResponse { received_count: 0, added_count: 0, updated_count: 0 });
+        }
+        let agent_id = self.agent_id().await?;
+        info!("Uploading {} software items for agent {}", software.len(), agent_id);
+        let request = SoftwareSyncRequest { software, scan_timestamp };
+        self.post_json(&format!("/v1/agents/{}/software", agent_id), &request).await
+    }
+
+    /// Upload a network snapshot to the SaaS.
+    ///
+    /// Sends current network interface configuration for asset tracking.
+    pub async fn upload_network_snapshot(
+        &self,
+        request: NetworkSnapshotRequest,
+    ) -> SyncResult<NetworkSnapshotResponse> {
+        let agent_id = self.agent_id().await?;
+        debug!("Uploading network snapshot for agent {}", agent_id);
+        self.post_json(&format!("/v1/agents/{}/network", agent_id), &request).await
+    }
+
+    /// Report a discovered asset to the SaaS.
+    ///
+    /// Sends a newly discovered network device for CMDB validation.
+    pub async fn report_discovered_asset(
+        &self,
+        asset: DiscoveredAssetPayload,
+    ) -> SyncResult<DiscoveredAssetResponse> {
+        let agent_id = self.agent_id().await?;
+        debug!("Reporting discovered asset {} for agent {}", asset.ip, agent_id);
+        self.post_json(&format!("/v1/agents/{}/discovered-assets", agent_id), &asset).await
+    }
+
+    /// Upload log entries to the SaaS.
+    ///
+    /// Sends agent log entries for centralized monitoring and diagnostics.
+    pub async fn upload_logs(
+        &self,
+        entries: Vec<LogEntryPayload>,
+    ) -> SyncResult<LogUploadResponse> {
+        if entries.is_empty() {
+            return Ok(LogUploadResponse { received_count: 0, ack_id: String::new() });
+        }
+        let agent_id = self.agent_id().await?;
+        debug!("Uploading {} log entries for agent {}", entries.len(), agent_id);
+        let request = LogUploadRequest { entries, uploaded_at: Some(Utc::now()) };
+        self.post_json(&format!("/v1/agents/{}/logs", agent_id), &request).await
     }
 
     /// Download centrally managed playbooks from the SaaS.

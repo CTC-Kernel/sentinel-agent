@@ -256,6 +256,10 @@ pub struct HeartbeatRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub disk_total_bytes: Option<u64>,
 
+    /// Disk I/O throughput in kilobytes per second.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disk_io_kbps: Option<u32>,
+
     /// System uptime in seconds.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uptime_seconds: Option<u64>,
@@ -899,6 +903,313 @@ pub struct WebhookPayload {
 #[serde(rename_all = "snake_case")]
 pub struct WebhookSyncRequest {
     pub webhooks: Vec<WebhookPayload>,
+}
+
+// ============================================================================
+// FIM Alert Sync Types
+// ============================================================================
+
+/// FIM alert payload for sync.
+///
+/// Maps from `agent_common::types::FimAlert` to the backend API contract.
+/// Field renames: `change` → `change_type`, `old_hash` → `baseline_hash`,
+/// `new_hash` → `actual_hash`.
+#[derive(Debug, Clone, Serialize)]
+pub struct FimAlertPayload {
+    /// Path of the affected file.
+    pub path: String,
+
+    /// Type of change (created, modified, deleted, permission_changed, renamed).
+    #[serde(rename = "change_type")]
+    pub change_type: String,
+
+    /// Severity level (critical, high, medium, low).
+    pub severity: String,
+
+    /// Hash of the file before the change.
+    #[serde(rename = "baseline_hash", skip_serializing_if = "Option::is_none")]
+    pub baseline_hash: Option<String>,
+
+    /// Hash of the file after the change.
+    #[serde(rename = "actual_hash", skip_serializing_if = "Option::is_none")]
+    pub actual_hash: Option<String>,
+
+    /// When the change was detected (ISO 8601).
+    pub timestamp: DateTime<Utc>,
+
+    /// Optional metadata.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
+}
+
+impl From<agent_common::types::FimAlert> for FimAlertPayload {
+    fn from(alert: agent_common::types::FimAlert) -> Self {
+        use agent_common::types::FimChangeType;
+
+        let change_type = match alert.change {
+            FimChangeType::Created => "created",
+            FimChangeType::Modified => "modified",
+            FimChangeType::Deleted => "deleted",
+            FimChangeType::PermissionChanged => "permission_changed",
+            FimChangeType::Renamed => "renamed",
+        }
+        .to_string();
+
+        // Default severity based on change type
+        let severity = match alert.change {
+            FimChangeType::Deleted | FimChangeType::PermissionChanged => "high",
+            FimChangeType::Created | FimChangeType::Renamed => "medium",
+            FimChangeType::Modified => "medium",
+        }
+        .to_string();
+
+        Self {
+            path: alert.path.to_string_lossy().to_string(),
+            change_type,
+            severity,
+            baseline_hash: alert.old_hash,
+            actual_hash: alert.new_hash,
+            timestamp: alert.timestamp,
+            metadata: None,
+        }
+    }
+}
+
+/// Request to upload FIM alerts.
+#[derive(Debug, Clone, Serialize)]
+pub struct FimAlertSyncRequest {
+    pub alerts: Vec<FimAlertPayload>,
+}
+
+// ============================================================================
+// USB Event Sync Types
+// ============================================================================
+
+/// USB event payload for sync.
+///
+/// Flattens the nested `UsbDevice` struct and renames fields to match
+/// the backend API contract.
+#[derive(Debug, Clone, Serialize)]
+pub struct UsbEventPayload {
+    /// Device description / product name.
+    pub device_name: String,
+
+    /// Device type (mass_storage, hid, audio, video, network, other).
+    pub device_type: String,
+
+    /// Event type (connected, disconnected).
+    pub event_type: String,
+
+    /// USB vendor ID as hex string.
+    pub vendor_id: String,
+
+    /// USB product ID as hex string.
+    pub product_id: String,
+
+    /// Device serial number.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub serial_number: Option<String>,
+
+    /// Action taken (allowed, blocked).
+    pub action: String,
+
+    /// When the event occurred (ISO 8601).
+    pub timestamp: DateTime<Utc>,
+
+    /// Optional metadata.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
+}
+
+impl From<agent_common::types::UsbEvent> for UsbEventPayload {
+    fn from(event: agent_common::types::UsbEvent) -> Self {
+        use agent_common::types::usb::{UsbDeviceClass, UsbEventType};
+
+        let device_type = match event.device.class {
+            UsbDeviceClass::MassStorage => "mass_storage",
+            UsbDeviceClass::Hid => "hid",
+            UsbDeviceClass::Audio => "audio",
+            UsbDeviceClass::Video => "video",
+            UsbDeviceClass::Wireless | UsbDeviceClass::Communications => "network",
+            _ => "other",
+        }
+        .to_string();
+
+        let event_type = match event.event_type {
+            UsbEventType::Connected => "connected",
+            UsbEventType::Disconnected => "disconnected",
+        }
+        .to_string();
+
+        Self {
+            device_name: event.device.description,
+            device_type,
+            event_type,
+            vendor_id: format!("{:04x}", event.device.vendor_id),
+            product_id: format!("{:04x}", event.device.product_id),
+            serial_number: event.device.serial,
+            action: if event.allowed { "allowed" } else { "blocked" }.to_string(),
+            timestamp: event.timestamp,
+            metadata: None,
+        }
+    }
+}
+
+/// Request to upload USB events.
+#[derive(Debug, Clone, Serialize)]
+pub struct UsbEventSyncRequest {
+    pub events: Vec<UsbEventPayload>,
+}
+
+// ============================================================================
+// Software Inventory Sync Types
+// ============================================================================
+
+/// Software item for sync.
+#[derive(Debug, Clone, Serialize)]
+pub struct SoftwarePayload {
+    /// Software name (required).
+    pub name: String,
+
+    /// Software vendor.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vendor: Option<String>,
+
+    /// Installed version.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+}
+
+/// Request to upload software inventory.
+#[derive(Debug, Clone, Serialize)]
+pub struct SoftwareSyncRequest {
+    pub software: Vec<SoftwarePayload>,
+
+    /// Optional scan timestamp (ISO 8601).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scan_timestamp: Option<DateTime<Utc>>,
+}
+
+/// Software sync response.
+#[derive(Debug, Clone, Deserialize)]
+pub struct SoftwareSyncResponse {
+    pub received_count: u32,
+    pub added_count: u32,
+    pub updated_count: u32,
+}
+
+// ============================================================================
+// Network Snapshot Sync Types
+// ============================================================================
+
+/// Network interface for sync.
+#[derive(Debug, Clone, Serialize)]
+pub struct NetworkInterfacePayload {
+    pub name: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mac_address: Option<String>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ipv4_addresses: Vec<String>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ipv6_addresses: Vec<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub interface_type: Option<String>,
+}
+
+/// Request to upload a network snapshot.
+#[derive(Debug, Clone, Serialize)]
+pub struct NetworkSnapshotRequest {
+    pub interfaces: Vec<NetworkInterfacePayload>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<DateTime<Utc>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub primary_ip: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub primary_mac: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hash: Option<String>,
+}
+
+/// Network snapshot response.
+#[derive(Debug, Clone, Deserialize)]
+pub struct NetworkSnapshotResponse {
+    pub acknowledged: bool,
+    pub snapshot_id: String,
+}
+
+// ============================================================================
+// Discovered Asset Sync Types
+// ============================================================================
+
+/// Discovered asset for sync.
+#[derive(Debug, Clone, Serialize)]
+pub struct DiscoveredAssetPayload {
+    /// IP address (required).
+    pub ip: String,
+
+    /// Hostname, if resolved.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hostname: Option<String>,
+
+    /// Device type classification.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_type: Option<String>,
+
+    /// Discovery source.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+}
+
+/// Discovered asset response.
+#[derive(Debug, Clone, Deserialize)]
+pub struct DiscoveredAssetResponse {
+    pub acknowledged: bool,
+    pub validation_id: String,
+}
+
+// ============================================================================
+// Log Upload Sync Types
+// ============================================================================
+
+/// Log entry for sync.
+#[derive(Debug, Clone, Serialize)]
+pub struct LogEntryPayload {
+    pub level: String,
+    pub message: String,
+    pub timestamp: DateTime<Utc>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+}
+
+/// Request to upload log entries.
+#[derive(Debug, Clone, Serialize)]
+pub struct LogUploadRequest {
+    pub entries: Vec<LogEntryPayload>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uploaded_at: Option<DateTime<Utc>>,
+}
+
+/// Log upload response.
+#[derive(Debug, Clone, Deserialize)]
+pub struct LogUploadResponse {
+    pub received_count: u32,
+    pub ack_id: String,
 }
 
 #[cfg(test)]

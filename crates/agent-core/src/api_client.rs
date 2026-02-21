@@ -172,6 +172,7 @@ pub struct HeartbeatRequest {
     pub disk_percent: f64,
     pub disk_used_bytes: u64,
     pub disk_total_bytes: u64,
+    pub disk_io_kbps: u32,
     pub network_bytes_sent: u64,
     pub network_bytes_recv: u64,
     pub uptime_seconds: u64,
@@ -960,6 +961,7 @@ mod tests {
             self_check_result: None,
             processes: vec![],
             connections: vec![],
+            disk_io_kbps: 0,
         };
 
         let json = serde_json::to_string(&request).unwrap();
