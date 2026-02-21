@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-VERSION="2.0.0"
+VERSION="${VERSION:-$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')}"
 PRODUCT_NAME="Sentinel GRC Agent"
 MANUFACTURER="Cyber Threat Consulting"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

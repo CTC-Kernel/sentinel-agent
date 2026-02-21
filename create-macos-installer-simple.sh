@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-VERSION="2.0.0"
+VERSION="${VERSION:-$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')}"
 PACKAGE_NAME="SentinelAgent"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"

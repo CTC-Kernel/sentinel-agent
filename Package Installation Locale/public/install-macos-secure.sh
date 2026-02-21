@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-VERSION="2.0.0"
+VERSION="${VERSION:-latest}"
 PACKAGE_NAME="SentinelAgent"
 IDENTIFIER="com.sentinel.agent"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -3,7 +3,7 @@
   <Product Id="*" 
            Name="Sentinel GRC Agent" 
            Language="1033" 
-           Version="2.0.0.0" 
+           Version="!(bind.property.ProductVersion)"
            Manufacturer="Cyber Threat Consulting" 
            UpgradeCode="12345678-1234-5678-9012-123456789012">
     
@@ -78,7 +78,7 @@
         <!-- Registry entries -->
         <RegistryKey Root="HKLM" Key="SOFTWARE\Sentinel GRC\Agent">
           <RegistryValue Name="InstallPath" Type="string" Value="[AGENTDIR]" />
-          <RegistryValue Name="Version" Type="string" Value="2.0.0" />
+          <RegistryValue Name="Version" Type="string" Value="[ProductVersion]" />
         </RegistryKey>
       </Component>
       

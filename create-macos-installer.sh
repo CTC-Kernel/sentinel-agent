@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-VERSION="2.0.0"
+VERSION="${VERSION:-$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')}"
 PACKAGE_NAME="SentinelAgent"
 IDENTIFIER="com.sentinel.agent"
 INSTALL_LOCATION="/Applications"

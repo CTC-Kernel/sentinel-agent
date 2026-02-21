@@ -9,7 +9,7 @@ echo "📦 Création package MSI auto-signé avec certificat intégré"
 echo "======================================================="
 
 # Configuration
-VERSION="2.0.0"
+VERSION="${VERSION:-$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')}"
 CERT_PASSWORD="Sentinel2024!"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_DIR="$SCRIPT_DIR/signed-package"

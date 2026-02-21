@@ -12,7 +12,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Configuration
-VERSION="2.0.0"
+VERSION="${VERSION:-$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')}"
 BUILD_DIR="target/release"
 PACKAGE_DIR="dist/packages"
 

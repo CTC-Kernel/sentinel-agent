@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>sentinel-grc-agent</id>
-    <version>2.0.0</version>
+    <version>$version$</version>
     <packageSourceUrl>https://github.com/sentinel-grc/agent</packageSourceUrl>
     <owners>Cyber Threat Consulting</owners>
     <title>Sentinel GRC Agent</title>

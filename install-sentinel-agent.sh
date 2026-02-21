@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-AGENT_VERSION="2.0.0"
+AGENT_VERSION="${AGENT_VERSION:-latest}"
 SERVICE_NAME="sentinel-agent"
 INSTALL_DIR="/opt/sentinel-grc"
 CONFIG_DIR="/etc/sentinel"
