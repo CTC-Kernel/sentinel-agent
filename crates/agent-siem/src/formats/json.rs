@@ -132,6 +132,7 @@ impl SiemFormatter for JsonFormatter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use agent_common::constants::AGENT_VERSION;
     use crate::EventCategory;
     use chrono::Utc;
 
@@ -152,7 +153,7 @@ mod tests {
             file_path: None,
             custom_fields: serde_json::json!({"check_id": "antivirus"}),
             event_id: "evt-123".to_string(),
-            agent_version: "2.0.0".to_string(),
+            agent_version: AGENT_VERSION.to_string(),
         }
     }
 

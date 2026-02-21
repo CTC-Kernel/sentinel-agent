@@ -5,6 +5,7 @@
 //! Used by: ArcSight, QRadar, and other SIEM solutions.
 
 use super::SiemFormatter;
+use agent_common::constants::AGENT_VERSION;
 use crate::{SiemEvent, SiemResult};
 
 /// CEF (Common Event Format) event formatter.
@@ -20,7 +21,7 @@ impl CefFormatter {
         Self {
             vendor: "Sentinel".to_string(),
             product: "GRC Agent".to_string(),
-            version: "2.0".to_string(),
+            version: AGENT_VERSION.to_string(),
         }
     }
 
@@ -171,6 +172,7 @@ impl SiemFormatter for CefFormatter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use agent_common::constants::AGENT_VERSION;
     use crate::EventCategory;
     use chrono::Utc;
 
@@ -191,7 +193,7 @@ mod tests {
             file_path: Some("C:\\Users\\john\\suspicious.exe".to_string()),
             custom_fields: serde_json::json!({"check_id": "antivirus", "framework": "NIS2"}),
             event_id: "evt-123-456".to_string(),
-            agent_version: "2.0.0".to_string(),
+            agent_version: AGENT_VERSION.to_string(),
         }
     }
 
@@ -202,7 +204,7 @@ mod tests {
 
         let result = formatter.format(&event).unwrap();
 
-        assert!(result.starts_with("CEF:0|Sentinel|GRC Agent|2.0|"));
+        assert!(result.starts_with(&format!("CEF:0|Sentinel|GRC Agent|{}|", AGENT_VERSION)));
         assert!(result.contains("Malware Detected"));
         assert!(result.contains("src=192.168.1.100"));
         assert!(result.contains("dst=10.0.0.1"));
