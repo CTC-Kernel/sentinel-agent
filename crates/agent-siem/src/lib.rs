@@ -462,6 +462,7 @@ impl SiemForwarder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use agent_common::constants::AGENT_VERSION;
 
     #[test]
     fn test_siem_config_default() {
@@ -496,7 +497,7 @@ mod tests {
             file_path: Some("C:\\Users\\john\\suspicious.exe".to_string()),
             custom_fields: serde_json::json!({"check_id": "antivirus"}),
             event_id: "evt-123".to_string(),
-            agent_version: "2.0.0".to_string(),
+            agent_version: AGENT_VERSION.to_string(),
         };
 
         let json = serde_json::to_string(&event).unwrap();
