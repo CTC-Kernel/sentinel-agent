@@ -61,9 +61,19 @@ impl AgentRuntime {
             "not_configured"
         };
 
+        #[cfg(feature = "llm")]
+        let llm_status = if let Some(ref svc) = self.llm_service {
+            if svc.is_available().await { "active" } else { "inactive" }
+        } else {
+            "not_configured"
+        };
+        #[cfg(not(feature = "llm"))]
+        let llm_status = "not_compiled";
+
         let self_check_result = Some(serde_json::json!({
             "fim_engine": { "status": fim_status },
-            "siem_forwarder": { "status": siem_status }
+            "siem_forwarder": { "status": siem_status },
+            "llm_engine": { "status": llm_status }
         }));
 
         let request = HeartbeatRequest {

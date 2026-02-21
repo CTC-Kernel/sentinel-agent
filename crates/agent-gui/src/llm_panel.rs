@@ -1,15 +1,20 @@
-//! Intelligence Artificielle — rule-based security analysis page.
+//! Intelligence Artificielle — LLM assistant, rule-based recommendations, and model status.
+//!
+//! Three-tab layout:
+//! 1. **Assistant IA** — Chat interface with the local LLM
+//! 2. **Recommandations** — Rule-based prioritized recommendations (existing)
+//! 3. **Statut Mod\u{00e8}le** — LLM model dashboard
 //!
 //! Synthesizes compliance checks, vulnerability findings, network alerts,
 //! and threat events into prioritized, actionable recommendations.
-//! Works entirely from `AppState` data — no external LLM engine required.
 
 use crate::app::AppState;
-use crate::dto::{GuiCheckStatus, Severity};
+use crate::dto::{ChatRole, GuiCheckStatus, LlmTab, Severity};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
+use crate::widgets::tabs::{Tab, TabBar};
 
 /// Width of the posture hero gauge column.
 const POSTURE_GAUGE_WIDTH: f32 = 180.0;
@@ -48,8 +53,7 @@ pub struct LLMPanel;
 impl LLMPanel {
     /// Show the Intelligence Artificielle page.
     pub fn show(&mut self, ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
-        let mut command = None;
-
+        // ── Page Header ─────────────────────────────────────────────────
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
@@ -61,6 +65,338 @@ impl LLMPanel {
             ),
         );
         ui.add_space(theme::SPACE_LG);
+
+        // ── Tab Bar ─────────────────────────────────────────────────────
+        let selected_idx = state.ai.active_tab.index() as usize;
+
+        let chat_count = state.ai.chat_history.len() as u32;
+        let rec_count = Self::build_recommendations(state).len() as u32;
+
+        let mut assistant_tab = Tab::new("ASSISTANT IA").icon(icons::ROBOT);
+        if chat_count > 0 {
+            assistant_tab = assistant_tab.badge(chat_count.min(99));
+        }
+        let mut recs_tab = Tab::new("RECOMMANDATIONS").icon(icons::BRAIN);
+        if rec_count > 0 {
+            recs_tab = recs_tab.badge(rec_count.min(99));
+        }
+        let model_tab = Tab::new("STATUT MOD\u{00c8}LE").icon(icons::MICROCHIP);
+
+        let tabs = vec![assistant_tab, recs_tab, model_tab];
+
+        if let Some(new_idx) = TabBar::new(tabs, selected_idx).full_width().show(ui) {
+            let new_tab = LlmTab::from_index(new_idx as u8);
+            state.ai.active_tab = new_tab;
+        }
+
+        ui.add_space(theme::SPACE_LG);
+
+        // ── Route to active tab ─────────────────────────────────────────
+        match state.ai.active_tab {
+            LlmTab::Assistant => Self::show_assistant_tab(ui, state),
+            LlmTab::Recommendations => Self::show_recommendations_tab(ui, state),
+            LlmTab::ModelStatus => Self::show_model_status_tab(ui, state),
+        }
+    }
+
+    // ====================================================================
+    // Tab 0: Assistant IA (Chat)
+    // ====================================================================
+
+    fn show_assistant_tab(
+        ui: &mut egui::Ui,
+        state: &mut AppState,
+    ) -> Option<GuiCommand> {
+        let mut command: Option<GuiCommand> = None;
+
+        // Empty state
+        if state.ai.chat_history.is_empty() && !state.ai.is_processing {
+            widgets::empty_state(
+                ui,
+                icons::ROBOT,
+                "ASSISTANT IA",
+                Some(
+                    "Posez une question de s\u{00e9}curit\u{00e9} ou utilisez les actions rapides ci-dessous pour d\u{00e9}marrer.",
+                ),
+            );
+            ui.add_space(theme::SPACE_LG);
+        } else {
+            // ── Chat History (scrollable) ────────────────────────────────
+            let available_height = ui.available_height() - 120.0; // Reserve space for input area
+            egui::ScrollArea::vertical()
+                .id_salt("llm_chat_scroll")
+                .max_height(available_height.max(200.0))
+                .stick_to_bottom(true)
+                .show(ui, |ui| {
+                    ui.add_space(theme::SPACE_SM);
+
+                    for msg in &state.ai.chat_history {
+                        Self::render_chat_message(ui, msg);
+                        ui.add_space(theme::SPACE_SM);
+                    }
+
+                    // Processing indicator
+                    if state.ai.is_processing {
+                        Self::render_processing_indicator(ui);
+                        ui.add_space(theme::SPACE_SM);
+                    }
+                });
+
+            ui.add_space(theme::SPACE_MD);
+        }
+
+        // ── Quick Action Buttons ─────────────────────────────────────────
+        ui.horizontal_wrapped(|ui| {
+            ui.spacing_mut().item_spacing.x = theme::SPACE_SM;
+
+            let quick_actions: &[(&str, &str, &str)] = &[
+                (icons::SHIELD_CHECK, "Analyser ma posture", "Analyse ma posture de s\u{00e9}curit\u{00e9} globale et donne-moi un r\u{00e9}sum\u{00e9} des points critiques."),
+                (icons::SHIELD_VIRUS, "R\u{00e9}sumer les vuln\u{00e9}rabilit\u{00e9}s", "R\u{00e9}sume les vuln\u{00e9}rabilit\u{00e9}s d\u{00e9}tect\u{00e9}es et recommande les actions prioritaires."),
+                (icons::SEARCH, "D\u{00e9}tecter les faux positifs", "Analyse les alertes et menaces d\u{00e9}tect\u{00e9}es pour identifier les \u{00e9}ventuels faux positifs."),
+            ];
+
+            for &(icon, label, prompt) in quick_actions {
+                let btn = egui::Button::new(
+                    egui::RichText::new(format!("{} {}", icon, label))
+                        .font(theme::font_small())
+                        .color(theme::accent_text()),
+                )
+                .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
+                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
+
+                if ui.add_enabled(!state.ai.is_processing, btn).clicked() {
+                    // Add user message to history
+                    state.ai.chat_history.push(crate::dto::LlmChatMessage {
+                        role: ChatRole::User,
+                        content: prompt.to_string(),
+                        timestamp: chrono::Utc::now(),
+                        processing_time_ms: None,
+                    });
+                    state.ai.is_processing = true;
+                    command = Some(GuiCommand::LlmPrompt {
+                        prompt: prompt.to_string(),
+                        context: None,
+                    });
+                }
+            }
+        });
+
+        ui.add_space(theme::SPACE_MD);
+
+        // ── Input Area ───────────────────────────────────────────────────
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(icons::COMMENT)
+                        .size(theme::ICON_SM)
+                        .color(theme::text_tertiary()),
+                );
+                ui.add_space(theme::SPACE_XS);
+
+                let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
+                    .hint_text("Posez une question de s\u{00e9}curit\u{00e9}...")
+                    .font(theme::font_body())
+                    .desired_width(ui.available_width() - 80.0)
+                    .text_color(theme::text_primary());
+
+                let response = ui.add_enabled(!state.ai.is_processing, text_edit);
+
+                // Send on Enter
+                let enter_pressed = response.lost_focus()
+                    && ui.input(|i| i.key_pressed(egui::Key::Enter));
+
+                let send_btn = egui::Button::new(
+                    egui::RichText::new(icons::PAPER_PLANE)
+                        .size(theme::ICON_SM)
+                        .color(theme::text_on_accent()),
+                )
+                .fill(theme::ACCENT)
+                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+
+                let can_send = !state.ai.is_processing && !state.ai.input_text.trim().is_empty();
+                let send_clicked = ui.add_enabled(can_send, send_btn).clicked();
+
+                if (enter_pressed || send_clicked) && can_send {
+                    let prompt = state.ai.input_text.trim().to_string();
+                    state.ai.chat_history.push(crate::dto::LlmChatMessage {
+                        role: ChatRole::User,
+                        content: prompt.clone(),
+                        timestamp: chrono::Utc::now(),
+                        processing_time_ms: None,
+                    });
+                    state.ai.input_text.clear();
+                    state.ai.is_processing = true;
+                    command = Some(GuiCommand::LlmPrompt {
+                        prompt,
+                        context: None,
+                    });
+                }
+            });
+        });
+
+        command
+    }
+
+    /// Render a single chat message bubble.
+    fn render_chat_message(ui: &mut egui::Ui, msg: &crate::dto::LlmChatMessage) {
+        let is_user = msg.role == ChatRole::User;
+        let is_system = msg.role == ChatRole::System;
+
+        let layout = if is_user {
+            egui::Layout::right_to_left(egui::Align::TOP)
+        } else {
+            egui::Layout::left_to_right(egui::Align::TOP)
+        };
+
+        ui.with_layout(layout, |ui: &mut egui::Ui| {
+            // Constrain bubble width
+            let max_width = (ui.available_width() * 0.75).min(600.0);
+            ui.set_max_width(max_width);
+
+            let (bg_color, text_color, role_icon, role_color) = if is_user {
+                (
+                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+                    theme::text_primary(),
+                    icons::USER,
+                    theme::ACCENT,
+                )
+            } else if is_system {
+                (
+                    theme::WARNING.linear_multiply(theme::OPACITY_SUBTLE),
+                    theme::text_primary(),
+                    icons::BOLT,
+                    theme::WARNING,
+                )
+            } else {
+                (
+                    theme::bg_elevated(),
+                    theme::text_primary(),
+                    icons::ROBOT,
+                    theme::SUCCESS,
+                )
+            };
+
+            egui::Frame::new()
+                .fill(bg_color)
+                .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
+                .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+                .stroke(egui::Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    theme::border(),
+                ))
+                .show(ui, |ui: &mut egui::Ui| {
+                    // Role badge
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(role_icon)
+                                .size(theme::ICON_SM)
+                                .color(role_color),
+                        );
+                        ui.add_space(theme::SPACE_XS);
+                        ui.label(
+                            egui::RichText::new(msg.role.label_fr())
+                                .font(theme::font_label())
+                                .color(role_color)
+                                .strong(),
+                        );
+
+                        ui.with_layout(
+                            egui::Layout::right_to_left(egui::Align::Center),
+                            |ui: &mut egui::Ui| {
+                                // Timestamp
+                                let time_str = msg.timestamp.format("%H:%M").to_string();
+                                ui.label(
+                                    egui::RichText::new(time_str)
+                                        .font(theme::font_min())
+                                        .color(theme::text_tertiary()),
+                                );
+                            },
+                        );
+                    });
+
+                    ui.add_space(theme::SPACE_XS);
+
+                    // Content
+                    ui.label(
+                        egui::RichText::new(&msg.content)
+                            .font(theme::font_body())
+                            .color(text_color),
+                    );
+
+                    // Processing time (assistant only)
+                    if let Some(ms) = msg.processing_time_ms {
+                        ui.add_space(theme::SPACE_XS);
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icons::CLOCK)
+                                    .size(theme::ICON_XS)
+                                    .color(theme::text_tertiary()),
+                            );
+                            ui.label(
+                                egui::RichText::new(format!("{}ms", ms))
+                                    .font(theme::font_min())
+                                    .color(theme::text_tertiary()),
+                            );
+                        });
+                    }
+                });
+        });
+    }
+
+    /// Render a processing/loading indicator while the LLM is working.
+    fn render_processing_indicator(ui: &mut egui::Ui) {
+        ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui: &mut egui::Ui| {
+            let max_width = (ui.available_width() * 0.75).min(600.0);
+            ui.set_max_width(max_width);
+
+            egui::Frame::new()
+                .fill(theme::bg_elevated())
+                .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
+                .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+                .stroke(egui::Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    theme::border(),
+                ))
+                .show(ui, |ui: &mut egui::Ui| {
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(icons::ROBOT)
+                                .size(theme::ICON_SM)
+                                .color(theme::SUCCESS),
+                        );
+                        ui.add_space(theme::SPACE_XS);
+                        ui.label(
+                            egui::RichText::new("IA")
+                                .font(theme::font_label())
+                                .color(theme::SUCCESS)
+                                .strong(),
+                        );
+                    });
+                    ui.add_space(theme::SPACE_XS);
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.spinner();
+                        ui.add_space(theme::SPACE_SM);
+                        ui.label(
+                            egui::RichText::new("Analyse en cours...")
+                                .font(theme::font_body())
+                                .color(theme::text_secondary())
+                                .italics(),
+                        );
+                    });
+                });
+        });
+    }
+
+    // ====================================================================
+    // Tab 1: Recommandations (existing content, extracted)
+    // ====================================================================
+
+    fn show_recommendations_tab(
+        ui: &mut egui::Ui,
+        state: &mut AppState,
+    ) -> Option<GuiCommand> {
+        let mut command = None;
 
         // Build recommendations from AppState
         let recommendations = Self::build_recommendations(state);
@@ -270,9 +606,212 @@ impl LLMPanel {
         command
     }
 
+    // ====================================================================
+    // Tab 2: Statut Mod\u{00e8}le
+    // ====================================================================
+
+    fn show_model_status_tab(
+        ui: &mut egui::Ui,
+        state: &mut AppState,
+    ) -> Option<GuiCommand> {
+        let mut command: Option<GuiCommand> = None;
+        let status = &state.ai.model_status;
+
+        // Empty / unloaded state
+        if status.status.is_empty() || status.status == "unloaded" {
+            widgets::empty_state(
+                ui,
+                icons::MICROCHIP,
+                "MOD\u{00c8}LE NON CHARG\u{00c9}",
+                Some(
+                    "Le mod\u{00e8}le LLM n'est pas charg\u{00e9} en m\u{00e9}moire. Cliquez sur le bouton ci-dessous pour le charger.",
+                ),
+            );
+            ui.add_space(theme::SPACE_LG);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.add_space(
+                    (ui.available_width() - 200.0).max(0.0) / 2.0,
+                );
+                let reload_btn = egui::Button::new(
+                    egui::RichText::new(format!("{} Charger le mod\u{00e8}le", icons::PLAY))
+                        .font(theme::font_body())
+                        .color(theme::text_on_accent()),
+                )
+                .fill(theme::ACCENT)
+                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+
+                if ui.add(reload_btn).clicked() {
+                    command = Some(GuiCommand::LlmReloadModel);
+                }
+            });
+
+            return command;
+        }
+
+        // ── Model Info Card ──────────────────────────────────────────────
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("INFORMATIONS DU MOD\u{00c8}LE")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            // Model name
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(icons::MICROCHIP)
+                        .size(theme::ICON_MD)
+                        .color(theme::ACCENT),
+                );
+                ui.add_space(theme::SPACE_SM);
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("NOM DU MOD\u{00c8}LE")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
+                            .strong(),
+                    );
+                    ui.label(
+                        egui::RichText::new(if status.model_name.is_empty() {
+                            "--"
+                        } else {
+                            &status.model_name
+                        })
+                            .font(theme::font_heading())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                });
+            });
+
+            ui.add_space(theme::SPACE_LG);
+
+            // Status badge
+            let (status_label, status_color) = match status.status.as_str() {
+                "ready" => ("PR\u{00ca}T", theme::SUCCESS),
+                "loading" => ("CHARGEMENT", theme::WARNING),
+                "error" => ("ERREUR", theme::ERROR),
+                _ => (&*status.status.to_uppercase(), theme::text_tertiary()),
+            };
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new("STATUT")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_SM);
+                widgets::status_badge(ui, status_label, status_color);
+            });
+        });
+
+        ui.add_space(theme::SPACE_MD);
+
+        // ── Metrics Grid ─────────────────────────────────────────────────
+        let metrics = vec![
+            (
+                "INF\u{00c9}RENCES",
+                status.inference_count.to_string(),
+                if status.inference_count > 0 {
+                    theme::ACCENT
+                } else {
+                    theme::text_tertiary()
+                },
+                icons::BOLT,
+            ),
+            (
+                "M\u{00c9}MOIRE ALLOU\u{00c9}E",
+                if status.memory_mb > 0 {
+                    format!("{} Mo", status.memory_mb)
+                } else {
+                    "--".to_string()
+                },
+                if status.memory_mb > 0 {
+                    theme::INFO
+                } else {
+                    theme::text_tertiary()
+                },
+                icons::MEMORY,
+            ),
+            (
+                "\u{00c9}TAT",
+                if status.is_ready {
+                    "Actif".to_string()
+                } else {
+                    "Inactif".to_string()
+                },
+                if status.is_ready {
+                    theme::SUCCESS
+                } else {
+                    theme::WARNING
+                },
+                icons::SERVER,
+            ),
+        ];
+
+        let grid = widgets::ResponsiveGrid::new(180.0, theme::SPACE_SM);
+        grid.show(ui, &metrics, |ui, width, (label, value, color, icon)| {
+            Self::summary_card(ui, width, label, value, *color, icon);
+        });
+
+        ui.add_space(theme::SPACE_LG);
+
+        // ── Reload Button ────────────────────────────────────────────────
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new("ACTIONS")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
+                );
+            });
+            ui.add_space(theme::SPACE_MD);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                let reload_btn = egui::Button::new(
+                    egui::RichText::new(format!("{} Recharger le mod\u{00e8}le", icons::REFRESH))
+                        .font(theme::font_body())
+                        .color(theme::text_on_accent()),
+                )
+                .fill(theme::ACCENT)
+                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+
+                if ui.add(reload_btn).clicked() {
+                    command = Some(GuiCommand::LlmReloadModel);
+                }
+
+                ui.add_space(theme::SPACE_MD);
+
+                let status_btn = egui::Button::new(
+                    egui::RichText::new(format!("{} Actualiser le statut", icons::REFRESH))
+                        .font(theme::font_body())
+                        .color(theme::accent_text()),
+                )
+                .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
+                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
+
+                if ui.add(status_btn).clicked() {
+                    command = Some(GuiCommand::LlmGetStatus);
+                }
+            });
+        });
+
+        command
+    }
+
     // ── Score computation ────────────────────────────────────────────────
 
-    /// Compute the composite AI security score (0–100).
+    /// Compute the composite AI security score (0--100).
     pub fn compute_ai_score(state: &AppState) -> f32 {
         let compliance = state.summary.compliance_score.unwrap_or(50.0);
 

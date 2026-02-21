@@ -16,8 +16,8 @@ pub use analyzer::{AnalysisResult, LLMAnalyzer, SecurityAnalysis, AnalysisContex
 pub use config::LLMConfig;
 pub use engine::{ModelEngine, MistralEngine, create_engine, ModelStatus, MemoryUsage};
 pub use models::{ModelRegistry, ModelInfo};
-pub use remediation::{RemediationAdvisor, RemediationPlan, RemediationAction, ActionType};
-pub use security::{SecurityClassifier, SecurityClassification, ThreatType, ThreatLevel};
+pub use remediation::{RemediationAdvisor, RemediationPlan, RemediationAction, ActionType, RemediationRequest, SecurityIssue, SystemContext};
+pub use security::{SecurityClassifier, SecurityClassification, ThreatType, ThreatLevel, SecurityEvent};
 
 use std::sync::Arc;
 use anyhow::Result;
@@ -31,18 +31,28 @@ pub struct ModelStats {
     pub memory_usage: MemoryUsage,
 }
 
-/// LLM Manager to coordinate engine and analyzer.
+/// LLM Manager to coordinate engine, analyzer, classifier, and remediation advisor.
 pub struct LLMManager {
     engine: Arc<dyn ModelEngine>,
     analyzer: Arc<LLMAnalyzer>,
+    classifier: Arc<SecurityClassifier>,
+    advisor: Arc<RemediationAdvisor>,
     config: LLMConfig,
 }
 
 impl LLMManager {
-    pub fn new(engine: Arc<dyn ModelEngine>, analyzer: Arc<LLMAnalyzer>, config: LLMConfig) -> Self {
+    pub fn new(
+        engine: Arc<dyn ModelEngine>,
+        analyzer: Arc<LLMAnalyzer>,
+        classifier: Arc<SecurityClassifier>,
+        advisor: Arc<RemediationAdvisor>,
+        config: LLMConfig,
+    ) -> Self {
         Self {
             engine,
             analyzer,
+            classifier,
+            advisor,
             config,
         }
     }
@@ -55,10 +65,21 @@ impl LLMManager {
         &self.analyzer
     }
 
+    pub fn classifier(&self) -> &Arc<SecurityClassifier> {
+        &self.classifier
+    }
+
+    pub fn advisor(&self) -> &Arc<RemediationAdvisor> {
+        &self.advisor
+    }
+
+    pub fn config(&self) -> &LLMConfig {
+        &self.config
+    }
+
     pub async fn get_stats(&self) -> Result<ModelStats> {
         let memory = self.engine.memory_usage().await;
         let count = self.engine.inference_count().await;
-
         let status = self.engine.status().await;
 
         Ok(ModelStats {
@@ -73,12 +94,15 @@ impl LLMManager {
 /// Create a new LLM manager with default configuration.
 pub async fn create_llm_manager(config: LLMConfig) -> Result<LLMManager> {
     let engine = engine::create_engine(&config.model)?;
-    // LLMAnalyzer::new takes Arc<dyn ModelEngine>
     let analyzer = LLMAnalyzer::new(engine.clone(), &config);
-    
+    let classifier = SecurityClassifier::new(engine.clone(), &config);
+    let advisor = RemediationAdvisor::new(engine.clone(), &config);
+
     Ok(LLMManager {
         engine,
         analyzer: Arc::new(analyzer),
+        classifier: Arc::new(classifier),
+        advisor: Arc::new(advisor),
         config,
     })
 }
