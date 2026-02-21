@@ -427,6 +427,7 @@ impl SyncOrchestrator {
             ip_address: None,
             network_bytes_sent: None,
             network_bytes_recv: None,
+            disk_io_kbps: None,
             processes: Vec::new(),
             connections: Vec::new(),
         };

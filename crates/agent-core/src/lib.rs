@@ -878,11 +878,19 @@ impl AgentRuntime {
                             fim_changes_today = fim_changes_today.saturating_add(1);
                         }
 
-                        // Send to SaaS
+                        // Send to SaaS as incident
                         if let Some(client) = self.api_client.read().await.as_ref()
                             && let Err(e) = client.report_incident(report.clone()).await
                         {
                             error!("Failed to report FIM incident to SaaS: {}", e);
+                        }
+
+                        // Also upload as structured FIM alert (populates FIM tab)
+                        if let Some(ref auth_client) = self.authenticated_client {
+                            let payload = agent_sync::types::FimAlertPayload::from(alert.clone());
+                            if let Err(e) = auth_client.upload_fim_alerts(vec![payload]).await {
+                                warn!("Failed to upload FIM alert to SaaS: {}", e);
+                            }
                         }
 
                         // Forward to SIEM
@@ -1106,33 +1114,45 @@ impl AgentRuntime {
                     }
                 }
                 // Run USB device scan alongside security scan
-                if let Ok(mut usb) = self.usb_monitor.lock() {
-                    let usb_events = usb.scan();
-                    for event in &usb_events {
-                        debug!(
-                            "USB event: {} ({:04X}:{:04X}) - {:?}",
-                            event.device.description,
-                            event.device.vendor_id,
-                            event.device.product_id,
-                            event.event_type
-                        );
+                // Collect events inside mutex scope, then release before async upload
+                let usb_events = self.usb_monitor.lock().ok().map(|mut usb| usb.scan()).unwrap_or_default();
+
+                for event in &usb_events {
+                    debug!(
+                        "USB event: {} ({:04X}:{:04X}) - {:?}",
+                        event.device.description,
+                        event.device.vendor_id,
+                        event.device.product_id,
+                        event.event_type
+                    );
+                }
+
+                // Upload USB events to SaaS (populates USB tab)
+                if !usb_events.is_empty() {
+                    if let Some(ref auth_client) = self.authenticated_client {
+                        let payloads: Vec<agent_sync::types::UsbEventPayload> =
+                            usb_events.iter().cloned().map(Into::into).collect();
+                        if let Err(e) = auth_client.upload_usb_events(payloads).await {
+                            warn!("Failed to upload USB events to SaaS: {}", e);
+                        }
                     }
-                    #[cfg(feature = "gui")]
-                    for event in usb_events {
-                        let gui_event_type = match event.event_type {
-                            agent_common::types::UsbEventType::Connected => GuiUsbEventType::Connected,
-                            agent_common::types::UsbEventType::Disconnected => GuiUsbEventType::Disconnected,
-                        };
-                        self.emit_gui_event(AgentEvent::UsbEvent {
-                            event: GuiUsbEvent {
-                                device_name: event.device.description,
-                                vendor_id: event.device.vendor_id,
-                                product_id: event.device.product_id,
-                                event_type: gui_event_type,
-                                timestamp: event.timestamp,
-                            },
-                        });
-                    }
+                }
+
+                #[cfg(feature = "gui")]
+                for event in usb_events {
+                    let gui_event_type = match event.event_type {
+                        agent_common::types::UsbEventType::Connected => GuiUsbEventType::Connected,
+                        agent_common::types::UsbEventType::Disconnected => GuiUsbEventType::Disconnected,
+                    };
+                    self.emit_gui_event(AgentEvent::UsbEvent {
+                        event: GuiUsbEvent {
+                            device_name: event.device.description,
+                            vendor_id: event.device.vendor_id,
+                            product_id: event.device.product_id,
+                            event_type: gui_event_type,
+                            timestamp: event.timestamp,
+                        },
+                    });
                 }
 
                 last_security_scan = std::time::Instant::now();
@@ -1763,6 +1783,7 @@ impl AgentRuntime {
                 disk_percent: resources::get_system_resources().disk_percent,
                 disk_used_bytes: resources::get_system_resources().disk_used_bytes,
                 disk_total_bytes: resources::get_system_resources().disk_total_bytes,
+                disk_io_kbps: usage.disk_kbps,
                 network_bytes_sent: 0,
                 network_bytes_recv: 0,
                 uptime_seconds: usage.uptime_ms / 1000,

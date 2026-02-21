@@ -103,9 +103,9 @@ pub struct SystemMetrics {
     #[serde(default)]
     pub disk_total_bytes: u64,
 
-    /// Disk I/O operations per second.
+    /// Disk I/O throughput in kilobytes per second.
     #[serde(default)]
-    pub disk_iops: u32,
+    pub disk_io_kbps: u32,
 
     /// Network bytes sent since last heartbeat.
     #[serde(default)]
@@ -130,7 +130,7 @@ impl Default for SystemMetrics {
             disk_percent: 0.0,
             disk_used_bytes: 0,
             disk_total_bytes: 0,
-            disk_iops: 0,
+            disk_io_kbps: 0,
             network_bytes_sent: 0,
             network_bytes_recv: 0,
             uptime_seconds: 0,
