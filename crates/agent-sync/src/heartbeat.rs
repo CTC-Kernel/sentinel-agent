@@ -235,6 +235,24 @@ impl HeartbeatService {
             result.take()
         };
 
+        // Disk I/O throughput (kB/s) — collect from current process disk usage
+        let disk_io_kbps: Option<u32> = {
+            let mut sys_for_disk = System::new();
+            let pid = sysinfo::get_current_pid()
+                .unwrap_or(sysinfo::Pid::from(std::process::id() as usize));
+            sys_for_disk.refresh_processes_specifics(
+                sysinfo::ProcessesToUpdate::Some(&[pid]),
+                true,
+                sysinfo::ProcessRefreshKind::nothing().with_disk_usage(),
+            );
+            if let Some(process) = sys_for_disk.process(pid) {
+                let usage = process.disk_usage();
+                Some(((usage.read_bytes + usage.written_bytes) / 1024).min(u32::MAX as u64) as u32)
+            } else {
+                Some(0)
+            }
+        };
+
         // System uptime
         let uptime_seconds = Some(System::uptime());
 
@@ -282,6 +300,7 @@ impl HeartbeatService {
             disk_percent,
             disk_used_bytes: disk_used,
             disk_total_bytes: disk_total,
+            disk_io_kbps,
             uptime_seconds,
             ip_address,
             network_bytes_sent: Some(total_sent),

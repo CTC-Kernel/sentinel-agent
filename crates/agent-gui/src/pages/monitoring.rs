@@ -457,7 +457,7 @@ impl MonitoringPage {
     }
 
     fn export_metrics_csv(state: &AppState) {
-        let headers = &["timestamp", "cpu_percent", "memory_percent", "disk_kbps", "network_io_kbps"];
+        let headers = &["timestamp", "cpu_percent", "memory_percent", "disk_io_kbps", "network_io_kbps"];
         let now = chrono::Utc::now();
         // Calculate boot time reference: now - uptime
         let boot_time = now - chrono::Duration::seconds(state.resources.uptime_secs as i64);

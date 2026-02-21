@@ -79,6 +79,7 @@ impl AgentRuntime {
             disk_percent: sys_res.disk_percent,
             disk_used_bytes: sys_res.disk_used_bytes,
             disk_total_bytes: sys_res.disk_total_bytes,
+            disk_io_kbps: usage.disk_kbps,
             network_bytes_sent: network_bytes.0,
             network_bytes_recv: network_bytes.1,
             uptime_seconds: usage.uptime_ms / 1000,
