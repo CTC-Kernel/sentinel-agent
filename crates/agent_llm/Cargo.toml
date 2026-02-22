@@ -19,8 +19,11 @@ uuid = { workspace = true, features = ["v4", "serde"] }
 chrono = { workspace = true, features = ["serde"] }
 regex.workspace = true
 async-trait.workspace = true
-mistralrs = { version = "0.7.0", features = ["accelerate"] }
+mistralrs = { version = "0.7.0" }
 tokio = { workspace = true, features = ["sync", "rt", "macros"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+mistralrs = { version = "0.7.0", features = ["accelerate"] }
 
 [features]
 default = []
