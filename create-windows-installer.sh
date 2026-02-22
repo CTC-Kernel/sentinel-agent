@@ -390,6 +390,25 @@ cat > "$MSI_DIR/install.bat" << EOF
 echo Installing Sentinel GRC Agent...
 msiexec /i "SentinelAgent-$VERSION.msi" /quiet /norestart
 echo Installation completed!
+
+set "AGENT_DIR=C:\ProgramData\Sentinel GRC\Agent"
+set "MODEL_DIR=%AGENT_DIR%\models"
+set "MODEL_FILE=qwen3-coder-7b.Q4_K_M.gguf"
+set "MODEL_URL=https://huggingface.co/Qwen/Qwen3-Coder-7B-Instruct-GGUF/resolve/main/qwen3-coder-7b-instruct-q4_k_m.gguf"
+
+if not exist "%MODEL_DIR%" mkdir "%MODEL_DIR%"
+
+if not exist "%MODEL_DIR%\%MODEL_FILE%" (
+    echo Downloading AI model ^(%MODEL_FILE%^)... this might take a few minutes ^(4.7 GB^)
+    powershell -Command "Invoke-WebRequest -Uri '%MODEL_URL%' -OutFile '%MODEL_DIR%\%MODEL_FILE%.tmp' -UseBasicParsing"
+    if exist "%MODEL_DIR%\%MODEL_FILE%.tmp" (
+        move /Y "%MODEL_DIR%\%MODEL_FILE%.tmp" "%MODEL_DIR%\%MODEL_FILE%" >nul
+        echo Model downloaded successfully.
+    ) else (
+        echo Failed to download model. AI features will be disabled until downloaded manually.
+    )
+)
+
 echo.
 echo Next steps:
 echo 1. Get your enrollment token from the Sentinel GRC dashboard

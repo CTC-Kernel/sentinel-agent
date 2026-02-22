@@ -176,6 +176,22 @@ sudo -u "$REAL_USER" mkdir -p "$CONFIG_DIR/models"
 sudo -u "$REAL_USER" mkdir -p "$CONFIG_DIR/cache/llm"
 sudo -u "$REAL_USER" mkdir -p "$CONFIG_DIR/logs"
 
+# Download the AI model if it does not exist
+MODEL_DIR="$CONFIG_DIR/models"
+MODEL_FILE="qwen3-coder-7b.Q4_K_M.gguf"
+MODEL_URL="https://huggingface.co/Qwen/Qwen3-Coder-7B-Instruct-GGUF/resolve/main/qwen3-coder-7b-instruct-q4_k_m.gguf"
+
+if [[ ! -f "$MODEL_DIR/$MODEL_FILE" ]]; then
+    echo "Downloading AI model ($MODEL_FILE)... this might take a few minutes (4.7 GB)"
+    if sudo -u "$REAL_USER" curl -L --progress-bar -o "$MODEL_DIR/$MODEL_FILE.tmp" "$MODEL_URL"; then
+        sudo -u "$REAL_USER" mv "$MODEL_DIR/$MODEL_FILE.tmp" "$MODEL_DIR/$MODEL_FILE"
+        echo "Model downloaded successfully."
+    else
+        echo "Failed to download model. AI features will be disabled until downloaded manually."
+        sudo -u "$REAL_USER" rm -f "$MODEL_DIR/$MODEL_FILE.tmp"
+    fi
+fi
+
 if [[ ! -f "$CONFIG_DIR/config/agent.json" ]]; then
     cat > "$CONFIG_DIR/config/agent.json" << CONFIG
 {
