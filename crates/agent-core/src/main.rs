@@ -820,11 +820,35 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                 let svc = agent_core::llm_service::LLMService::new(None).await;
                 match svc {
                     Ok(s) => {
+                        let arc_svc = std::sync::Arc::new(s);
+                        // Emit initial LLM status to GUI
+                        let status = arc_svc.get_status().await;
+                        let (model_name, status_str, mem) = match &status {
+                            agent_core::llm_service::LLMServiceStatus::Ready { model_name, memory_usage_mb, .. } => {
+                                (model_name.clone(), "ready".to_string(), *memory_usage_mb)
+                            }
+                            agent_core::llm_service::LLMServiceStatus::Error(reason) => {
+                                ("N/A".to_string(), format!("error: {}", reason), 0)
+                            }
+                            _ => ("N/A".to_string(), "not_configured".to_string(), 0),
+                        };
+                        let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
+                            model_name,
+                            status: status_str,
+                            inference_count: 0,
+                            memory_mb: mem,
+                        });
                         info!("LLM service initialized for command processing");
-                        Some(std::sync::Arc::new(s))
+                        Some(arc_svc)
                     }
                     Err(e) => {
                         warn!("Failed to init LLM service: {}", e);
+                        let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
+                            model_name: "N/A".to_string(),
+                            status: format!("error: {}", e),
+                            inference_count: 0,
+                            memory_mb: 0,
+                        });
                         None
                     }
                 }
@@ -1608,12 +1632,20 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             }
                                             return;
                                         }
+                                        // Manager not available — get the specific reason
+                                        let reason = svc.unavailable_reason().await
+                                            .unwrap_or_else(|| "Raison inconnue".to_string());
+                                        let _ = tx.send(AgentEvent::LlmChatResponse {
+                                            message: format!("Modèle IA non disponible.\n\n{}", reason),
+                                            processing_time_ms: start.elapsed().as_millis() as u64,
+                                        });
+                                        return;
                                     }
                                 }
                                 // LLM not available (feature disabled or no service)
                                 let _ = &svc; // suppress unused-variable warning when llm feature is off
                                 let _ = tx.send(AgentEvent::LlmChatResponse {
-                                    message: "Modèle IA non disponible. Vérifiez la configuration dans config/llm.json.".to_string(),
+                                    message: "Module IA non compilé (feature 'llm' désactivée). Recompilez avec --features llm.".to_string(),
                                     processing_time_ms: start.elapsed().as_millis() as u64,
                                 });
                             });
