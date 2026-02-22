@@ -299,12 +299,16 @@ echo "Installing for user: $REAL_USER (home: $REAL_HOME) on volume: $3"
 ) || echo "Warning: Could not create symlink in /usr/local/bin"
 
 # 3. Create default configuration in user directory
-CONFIG_DIR="$REAL_HOME/Library/Application Support/Sentinel GRC"
+CONFIG_DIR="$REAL_HOME/Library/Application Support/SentinelGRC"
 mkdir -p "$CONFIG_DIR"
-chown "$REAL_USER" "$CONFIG_DIR"
+mkdir -p "$CONFIG_DIR/config"
+mkdir -p "$CONFIG_DIR/models"
+mkdir -p "$CONFIG_DIR/cache/llm"
+mkdir -p "$CONFIG_DIR/logs"
+chown -R "$REAL_USER" "$CONFIG_DIR"
 
-if [[ ! -f "$CONFIG_DIR/agent.json" ]]; then
-    cat > "$CONFIG_DIR/agent.json" << CONFIG
+if [[ ! -f "$CONFIG_DIR/config/agent.json" ]]; then
+    cat > "$CONFIG_DIR/config/agent.json" << CONFIG
 {
     "server_url": "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi",
     "check_interval_secs": 3600,
@@ -314,8 +318,30 @@ if [[ ! -f "$CONFIG_DIR/agent.json" ]]; then
     "data_dir": "$CONFIG_DIR"
 }
 CONFIG
-    chown "$REAL_USER" "$CONFIG_DIR/agent.json"
-    chmod 600 "$CONFIG_DIR/agent.json"
+    chown "$REAL_USER" "$CONFIG_DIR/config/agent.json"
+    chmod 600 "$CONFIG_DIR/config/agent.json"
+fi
+
+# Copy LLM config template if not exists
+if [[ ! -f "$CONFIG_DIR/config/llm.json" ]]; then
+    cat > "$CONFIG_DIR/config/llm.json" << LLMCONFIG
+{
+  "model": {
+    "name": "qwen3-coder-7b",
+    "path": "models/qwen3-coder-7b.Q4_K_M.gguf",
+    "model_type": "Qwen3Coder",
+    "capabilities": { "code_analysis": true, "security_analysis": true, "remediation": true, "classification": true, "summarization": true },
+    "max_context_size": 4096,
+    "gpu_layers": 0,
+    "threads": 4
+  },
+  "inference": { "temperature": 0.7, "top_p": 0.9, "top_k": 40, "repetition_penalty": 1.1, "max_tokens": 1024, "timeout_secs": 30 },
+  "cache": { "enabled": true, "directory": "cache/llm", "max_size_mb": 1024, "ttl_hours": 24 },
+  "security": { "sanitize_input": true, "max_input_length": 10000, "blocked_patterns": [], "audit_logging": true }
+}
+LLMCONFIG
+    chown "$REAL_USER" "$CONFIG_DIR/config/llm.json"
+    chmod 600 "$CONFIG_DIR/config/llm.json"
 fi
 
 # 4. Create LaunchAgent plist
@@ -340,8 +366,15 @@ cat > "$PLIST_PATH" << PLIST
     <true/>
     <key>KeepAlive</key>
     <false/>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    <key>StandardOutPath</key>
+    <string>$CONFIG_DIR/logs/sentinel-agent.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>$CONFIG_DIR/logs/sentinel-agent.stderr.log</string>
 </dict>
 </plist>
+PLIST
 
 chown "$REAL_USER" "$PLIST_PATH"
 chmod 644 "$PLIST_PATH"

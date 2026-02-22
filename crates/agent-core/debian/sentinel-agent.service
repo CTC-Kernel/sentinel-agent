@@ -6,7 +6,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/opt/sentinel-grc/bin/sentinel-agent --service
+ExecStart=/usr/bin/sentinel-agent --service
 Restart=always
 RestartSec=10
 WatchdogSec=120
@@ -14,7 +14,7 @@ WatchdogSec=120
 # Dedicated service user
 User=sentinel-grc
 Group=sentinel-grc
-WorkingDirectory=/opt/sentinel-grc
+WorkingDirectory=/var/lib/sentinel-grc
 Environment=RUST_LOG=info
 
 # Filesystem access
