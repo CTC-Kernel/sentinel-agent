@@ -517,10 +517,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     } else {
                         theme::INFO
                     };
-                    let actions = [
-                        widgets::DetailAction::secondary("Ignorer", icons::EYE_SLASH),
-                        widgets::DetailAction::primary("Signaler", icons::FLAG),
-                    ];
+                    let has_ai = p.ai_analysis.is_some();
+                    let mut actions = Vec::new();
+                    if !has_ai {
+                        actions.push(widgets::DetailAction::primary("Classifier avec l'IA", icons::BRAIN));
+                    }
+                    actions.push(widgets::DetailAction::secondary("Ignorer", icons::EYE_SLASH));
+                    actions.push(widgets::DetailAction::primary("Signaler", icons::FLAG));
                     let drawer_action = widgets::DetailDrawer::new("threat_detail", &p.process_name, icons::BUG)
                         .accent(conf_color)
                         .subtitle("Processus suspect")
@@ -540,13 +543,42 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 "Date de d\u{00e9}tection",
                                 &p.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
                             );
+
+                            // AI Analysis section
+                            if let Some(ref analysis) = p.ai_analysis {
+                                widgets::detail_section(ui, "ANALYSE IA");
+                                if let Some(confidence) = p.ai_confidence {
+                                    let c = if confidence >= 80 { theme::SUCCESS } else if confidence >= 50 { theme::WARNING } else { theme::ERROR };
+                                    widgets::detail_field_badge(ui, "Confiance IA", &format!("{}%", confidence), c);
+                                }
+                                if let Some(fp) = p.is_false_positive {
+                                    widgets::detail_field_badge(ui, "Faux positif", if fp { "OUI" } else { "NON" }, if fp { theme::WARNING } else { theme::SUCCESS });
+                                }
+                                widgets::detail_text(ui, "Analyse", analysis);
+                            }
                         }, &actions);
                     if let Some(action_idx) = drawer_action {
                         let time = ctx.input(|i| i.time);
-                        if action_idx == 0 {
+                        let mut next = 0_usize;
+                        let ai_idx = if !has_ai { let i = next; next += 1; Some(i) } else { None };
+                        let ignore_idx = next;
+                        let report_idx = next + 1;
+                        if ai_idx == Some(action_idx) {
+                            let desc = format!(
+                                "Processus suspect: {} — Commande: {} — Raison: {}",
+                                p.process_name, p.command_line, p.reason,
+                            );
+                            command = Some(GuiCommand::LlmClassifyThreat {
+                                event_description: desc,
+                                target_id: format!("process#{}", threat.source_index),
+                            });
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::info("Analyse IA en cours\u{2026}").with_time(time),
+                            );
+                        } else if action_idx == ignore_idx {
                             state.threats.detail_open = false;
                             state.threats.selected_threat = None;
-                        } else if action_idx == 1 {
+                        } else if action_idx == report_idx {
                             let details = format!(
                                 "Processus: {}\nCommande: {}\nRaison: {}\nConfiance: {}%",
                                 p.process_name, p.command_line, p.reason, p.confidence,
@@ -610,10 +642,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         Severity::Medium => theme::WARNING,
                         _ => theme::INFO,
                     };
-                    let actions = [
-                        widgets::DetailAction::secondary("Acquitter", icons::CHECK),
-                        widgets::DetailAction::primary("Signaler", icons::FLAG),
-                    ];
+                    let has_ai = inc.ai_analysis.is_some();
+                    let mut actions = Vec::new();
+                    if !has_ai {
+                        actions.push(widgets::DetailAction::primary("Classifier avec l'IA", icons::BRAIN));
+                    }
+                    actions.push(widgets::DetailAction::secondary("Acquitter", icons::CHECK));
+                    actions.push(widgets::DetailAction::primary("Signaler", icons::FLAG));
                     let drawer_action = widgets::DetailDrawer::new("threat_detail", &inc.title, icons::SHIELD)
                         .accent(sev_color)
                         .subtitle("Incident syst\u{00e8}me")
@@ -642,17 +677,46 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 "Date de d\u{00e9}tection",
                                 &inc.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
                             );
+
+                            // AI Analysis section
+                            if let Some(ref analysis) = inc.ai_analysis {
+                                widgets::detail_section(ui, "ANALYSE IA");
+                                if let Some(confidence) = inc.ai_confidence {
+                                    let c = if confidence >= 80 { theme::SUCCESS } else if confidence >= 50 { theme::WARNING } else { theme::ERROR };
+                                    widgets::detail_field_badge(ui, "Confiance IA", &format!("{}%", confidence), c);
+                                }
+                                if let Some(fp) = inc.is_false_positive {
+                                    widgets::detail_field_badge(ui, "Faux positif", if fp { "OUI" } else { "NON" }, if fp { theme::WARNING } else { theme::SUCCESS });
+                                }
+                                widgets::detail_text(ui, "Analyse", analysis);
+                            }
                         }, &actions);
                     if let Some(action_idx) = drawer_action {
                         let time = ctx.input(|i| i.time);
-                        if action_idx == 0 {
+                        let mut next = 0_usize;
+                        let ai_idx = if !has_ai { let i = next; next += 1; Some(i) } else { None };
+                        let ack_idx = next;
+                        let report_idx = next + 1;
+                        if ai_idx == Some(action_idx) {
+                            let desc = format!(
+                                "Incident système: {} — Type: {} — Description: {}",
+                                inc.title, inc.incident_type, inc.description,
+                            );
+                            command = Some(GuiCommand::LlmClassifyThreat {
+                                event_description: desc,
+                                target_id: format!("incident#{}", threat.source_index),
+                            });
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::info("Analyse IA en cours\u{2026}").with_time(time),
+                            );
+                        } else if action_idx == ack_idx {
                             state.threats.detail_open = false;
                             state.threats.selected_threat = None;
                             state.toasts.push(
                                 crate::widgets::toast::Toast::success("Incident acquitt\u{00e9}")
                                     .with_time(time),
                             );
-                        } else if action_idx == 1 {
+                        } else if action_idx == report_idx {
                             let details = format!(
                                 "Incident: {}\nType: {}\nDescription: {}\nConfiance: {}%",
                                 inc.title, inc.incident_type, inc.description, inc.confidence,
@@ -783,9 +847,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         Severity::Medium => theme::WARNING,
                         _ => theme::INFO,
                     };
-                    let actions = [
-                        widgets::DetailAction::secondary("Copier les d\u{00e9}tails", icons::COPY),
-                    ];
+                    let has_ai = a.ai_analysis.is_some();
+                    let mut actions = Vec::new();
+                    if !has_ai {
+                        actions.push(widgets::DetailAction::primary("\u{00c9}valuer avec l'IA", icons::BRAIN));
+                    }
+                    actions.push(widgets::DetailAction::secondary("Copier les d\u{00e9}tails", icons::COPY));
                     let alert_label = network_alert_type_label(&a.alert_type);
                     let drawer_action = widgets::DetailDrawer::new("threat_detail", &alert_label, icons::WIFI)
                         .accent(sev_color)
@@ -820,25 +887,59 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 "Date de d\u{00e9}tection",
                                 &a.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
                             );
+
+                            // AI Analysis section
+                            if let Some(ref analysis) = a.ai_analysis {
+                                widgets::detail_section(ui, "ANALYSE IA");
+                                if let Some(confidence) = a.ai_confidence {
+                                    let c = if confidence >= 80 { theme::SUCCESS } else if confidence >= 50 { theme::WARNING } else { theme::ERROR };
+                                    widgets::detail_field_badge(ui, "Confiance IA", &format!("{}%", confidence), c);
+                                }
+                                if let Some(fp) = a.is_false_positive {
+                                    widgets::detail_field_badge(ui, "Faux positif", if fp { "OUI" } else { "NON" }, if fp { theme::WARNING } else { theme::SUCCESS });
+                                }
+                                widgets::detail_text(ui, "Analyse", analysis);
+                            }
                         }, &actions);
-                    if let Some(0) = drawer_action {
-                        let details = format!(
-                            "Type: {}\nDescription: {}\nSource: {}\nDestination: {}:{}\nConfiance: {}%",
-                            alert_label,
-                            a.description,
-                            a.source_ip.as_deref().unwrap_or("--"),
-                            a.destination_ip.as_deref().unwrap_or("--"),
-                            a.destination_port.map(|p| p.to_string()).unwrap_or_else(|| "--".to_string()),
-                            a.confidence,
-                        );
-                        ctx.copy_text(details);
+                    if let Some(action_idx) = drawer_action {
                         let time = ctx.input(|i| i.time);
-                        state.toasts.push(
-                            crate::widgets::toast::Toast::info(
-                                "D\u{00e9}tails copi\u{00e9}s dans le presse-papiers",
-                            )
-                            .with_time(time),
-                        );
+                        let mut next = 0_usize;
+                        let ai_idx = if !has_ai { let i = next; next += 1; Some(i) } else { None };
+                        let copy_idx = next;
+                        if ai_idx == Some(action_idx) {
+                            let desc = format!(
+                                "Alerte réseau: {} — {} — Source: {} — Destination: {}:{}",
+                                alert_label,
+                                a.description,
+                                a.source_ip.as_deref().unwrap_or("--"),
+                                a.destination_ip.as_deref().unwrap_or("--"),
+                                a.destination_port.map(|p| p.to_string()).unwrap_or_else(|| "--".to_string()),
+                            );
+                            command = Some(GuiCommand::LlmClassifyThreat {
+                                event_description: desc,
+                                target_id: format!("alert#{}", threat.source_index),
+                            });
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::info("Analyse IA en cours\u{2026}").with_time(time),
+                            );
+                        } else if action_idx == copy_idx {
+                            let details = format!(
+                                "Type: {}\nDescription: {}\nSource: {}\nDestination: {}:{}\nConfiance: {}%",
+                                alert_label,
+                                a.description,
+                                a.source_ip.as_deref().unwrap_or("--"),
+                                a.destination_ip.as_deref().unwrap_or("--"),
+                                a.destination_port.map(|p| p.to_string()).unwrap_or_else(|| "--".to_string()),
+                                a.confidence,
+                            );
+                            ctx.copy_text(details);
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::info(
+                                    "D\u{00e9}tails copi\u{00e9}s dans le presse-papiers",
+                                )
+                                .with_time(time),
+                            );
+                        }
                     }
                 }
             }

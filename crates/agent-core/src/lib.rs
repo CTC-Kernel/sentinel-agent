@@ -1143,6 +1143,9 @@ impl AgentRuntime {
                                                 reason: incident.description.clone(),
                                                 confidence: incident.confidence,
                                                 detected_at: incident.detected_at,
+                                                ai_confidence: None,
+                                                is_false_positive: None,
+                                                ai_analysis: None,
                                             },
                                         });
                                     }
@@ -1423,6 +1426,126 @@ impl AgentRuntime {
                         self.llm_service.as_ref().map(|s| s.as_ref()),
                     ).await;
                 }
+
+                // Forward security incidents and network alerts to SIEM with AI enrichment
+                let siem_guard = self.siem_forwarder.read().await;
+                if let Some(siem) = siem_guard.as_ref()
+                    && siem.is_enabled()
+                {
+                    let host = hostname::get()
+                        .map(|h| h.to_string_lossy().to_string())
+                        .unwrap_or_default();
+
+                    // Security incidents → SIEM
+                    for inc in &pipeline_incidents {
+                        let severity = match inc.severity {
+                            agent_scanner::IncidentSeverity::Critical => 9,
+                            agent_scanner::IncidentSeverity::High => 7,
+                            agent_scanner::IncidentSeverity::Medium => 5,
+                            agent_scanner::IncidentSeverity::Low => 3,
+                        };
+                        let process_name = inc.evidence.get("process_name")
+                            .and_then(|v| v.as_str())
+                            .map(String::from);
+                        let mut event = agent_siem::SiemEvent {
+                            timestamp: inc.detected_at,
+                            severity,
+                            category: agent_siem::EventCategory::Security,
+                            name: inc.title.clone(),
+                            description: inc.description.clone(),
+                            source_host: host.clone(),
+                            source_ip: None,
+                            destination_ip: None,
+                            destination_port: None,
+                            user: None,
+                            process_name,
+                            process_id: None,
+                            file_path: None,
+                            custom_fields: serde_json::json!({
+                                "incident_type": format!("{:?}", inc.incident_type),
+                                "confidence": inc.confidence,
+                            }),
+                            event_id: uuid::Uuid::new_v4().to_string(),
+                            agent_version: AGENT_VERSION.to_string(),
+                        };
+                        #[cfg(feature = "llm")]
+                        {
+                            if let Some(ref llm_svc) = self.llm_service {
+                                siem_enrichment::enrich_siem_event(&mut event, llm_svc).await;
+                            }
+                        }
+                        #[cfg(not(feature = "llm"))]
+                        {
+                            siem_enrichment::enrich_siem_event(&mut event).await;
+                        }
+                        if let Err(e) = siem.send_event(&event).await {
+                            warn!("Failed to forward security incident to SIEM: {}", e);
+                        }
+                    }
+
+                    // Network alerts → SIEM
+                    for alert in &pipeline_network_alerts {
+                        let severity = match alert.severity {
+                            agent_network::AlertSeverity::Critical => 9,
+                            agent_network::AlertSeverity::High => 7,
+                            agent_network::AlertSeverity::Medium => 5,
+                            agent_network::AlertSeverity::Low => 3,
+                        };
+                        let (src_ip, dst_ip, dst_port) = if let Some(ref conn) = alert.connection {
+                            (
+                                Some(conn.local_address.clone()),
+                                conn.remote_address.clone(),
+                                conn.remote_port,
+                            )
+                        } else {
+                            (None, None, None)
+                        };
+                        let mut event = agent_siem::SiemEvent {
+                            timestamp: alert.detected_at,
+                            severity,
+                            category: agent_siem::EventCategory::Network,
+                            name: alert.title.clone(),
+                            description: alert.description.clone(),
+                            source_host: host.clone(),
+                            source_ip: src_ip,
+                            destination_ip: dst_ip,
+                            destination_port: dst_port,
+                            user: None,
+                            process_name: None,
+                            process_id: None,
+                            file_path: None,
+                            custom_fields: serde_json::json!({
+                                "alert_type": format!("{:?}", alert.alert_type),
+                                "confidence": alert.confidence,
+                                "iocs_matched": alert.iocs_matched,
+                            }),
+                            event_id: uuid::Uuid::new_v4().to_string(),
+                            agent_version: AGENT_VERSION.to_string(),
+                        };
+                        #[cfg(feature = "llm")]
+                        {
+                            if let Some(ref llm_svc) = self.llm_service {
+                                siem_enrichment::enrich_siem_event(&mut event, llm_svc).await;
+                            }
+                        }
+                        #[cfg(not(feature = "llm"))]
+                        {
+                            siem_enrichment::enrich_siem_event(&mut event).await;
+                        }
+                        if let Err(e) = siem.send_event(&event).await {
+                            warn!("Failed to forward network alert to SIEM: {}", e);
+                        }
+                    }
+
+                    if !pipeline_incidents.is_empty() || !pipeline_network_alerts.is_empty() {
+                        info!(
+                            "Forwarded {} security incidents and {} network alerts to SIEM",
+                            pipeline_incidents.len(),
+                            pipeline_network_alerts.len(),
+                        );
+                    }
+                }
+                drop(siem_guard);
             }
 
             // Run compliance checks if interval has passed (skip when paused)
@@ -1906,6 +2029,8 @@ impl AgentRuntime {
                 self_check_result: None,
                 processes: vec![],
                 connections: vec![],
+                llm_status: None,
+                llm_inference_count: None,
             };
 
             if let Err(e) = client.send_heartbeat(request).await {
