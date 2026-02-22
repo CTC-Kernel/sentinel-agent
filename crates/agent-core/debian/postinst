@@ -13,36 +13,48 @@ fi
 
 # Create data directories
 mkdir -p /var/lib/sentinel-grc
+mkdir -p /var/lib/sentinel-grc/models
+mkdir -p /var/lib/sentinel-grc/cache/llm
 mkdir -p /var/log/sentinel-grc
 mkdir -p /etc/sentinel
 
 # Set ownership and permissions
 chown sentinel-grc:sentinel-grc /var/lib/sentinel-grc
+chown sentinel-grc:sentinel-grc /var/lib/sentinel-grc/models
+chown sentinel-grc:sentinel-grc /var/lib/sentinel-grc/cache
+chown sentinel-grc:sentinel-grc /var/lib/sentinel-grc/cache/llm
 chown sentinel-grc:sentinel-grc /var/log/sentinel-grc
 chown sentinel-grc:sentinel-grc /etc/sentinel
-chmod 755 /opt/sentinel-grc/bin/sentinel-agent
 chmod 700 /var/lib/sentinel-grc
+chmod 755 /var/lib/sentinel-grc/models
+chmod 755 /var/lib/sentinel-grc/cache
+chmod 755 /var/lib/sentinel-grc/cache/llm
 chmod 755 /var/log/sentinel-grc
 chmod 700 /etc/sentinel
 
-# Set config file permissions if exists
+# Copy config templates if config files don't exist yet
+if [ ! -f /etc/sentinel/agent.json ] && [ -f /etc/sentinel/agent.example.json ]; then
+    cp /etc/sentinel/agent.example.json /etc/sentinel/agent.json
+    chown sentinel-grc:sentinel-grc /etc/sentinel/agent.json
+    chmod 600 /etc/sentinel/agent.json
+fi
+
+if [ ! -f /etc/sentinel/llm.json ] && [ -f /etc/sentinel/llm.example.json ]; then
+    cp /etc/sentinel/llm.example.json /etc/sentinel/llm.json
+    chown sentinel-grc:sentinel-grc /etc/sentinel/llm.json
+    chmod 600 /etc/sentinel/llm.json
+fi
+
+# Set config file permissions if already exists
 if [ -f /etc/sentinel/agent.json ]; then
     chown sentinel-grc:sentinel-grc /etc/sentinel/agent.json
     chmod 600 /etc/sentinel/agent.json
 fi
 
-# Install logrotate configuration
-if [ -d /etc/logrotate.d ] && [ -f /opt/sentinel-grc/share/logrotate/sentinel-agent ]; then
-    cp /opt/sentinel-grc/share/logrotate/sentinel-agent /etc/logrotate.d/sentinel-agent
-    chmod 644 /etc/logrotate.d/sentinel-agent
-fi
-
-# Install AppArmor profile if available
+# Activate AppArmor profile if available
 if command -v apparmor_parser > /dev/null 2>&1; then
-    if [ -f /opt/sentinel-grc/share/apparmor/sentinel-agent ]; then
-        cp /opt/sentinel-grc/share/apparmor/sentinel-agent \
-           /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent
-        apparmor_parser -r /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent || true
+    if [ -f /etc/apparmor.d/usr.bin.sentinel-agent ]; then
+        apparmor_parser -r /etc/apparmor.d/usr.bin.sentinel-agent || true
     fi
 fi
 
@@ -66,6 +78,8 @@ esac
 echo "Sentinel GRC Agent installe avec succes."
 echo "Service : systemctl status sentinel-agent"
 echo "Config  : /etc/sentinel/agent.json"
+echo "LLM     : /etc/sentinel/llm.json"
+echo "Models  : /var/lib/sentinel-grc/models/"
 echo "Logs    : /var/log/sentinel-grc/"
 
 exit 0

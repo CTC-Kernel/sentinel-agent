@@ -32,8 +32,9 @@ impl LLMService {
     /// Create new LLM service.
     #[cfg(feature = "llm")]
     pub async fn new(config_path: Option<std::path::PathBuf>) -> Result<Self> {
-        let config_path =
-            config_path.unwrap_or_else(|| std::path::PathBuf::from("config/llm.json"));
+        let config_path = config_path.unwrap_or_else(|| {
+            agent_common::config::AgentConfig::platform_data_dir().join("config").join("llm.json")
+        });
 
         info!("Initializing LLM service with config: {:?}", config_path);
 
@@ -52,12 +53,9 @@ impl LLMService {
                 *service.init_error.write().await = Some(reason);
             }
         } else {
-            let abs_path = std::env::current_dir()
-                .map(|cwd| cwd.join(&config_path))
-                .unwrap_or(config_path);
             let reason = format!(
-                "Fichier de configuration introuvable: {}. Copiez config/llm.example.json vers config/llm.json et téléchargez un modèle GGUF.",
-                abs_path.display()
+                "Fichier de configuration introuvable: {}. Créez ce fichier à partir de l'exemple et téléchargez un modèle GGUF.",
+                config_path.display()
             );
             info!("{}", reason);
             *service.init_error.write().await = Some(reason);

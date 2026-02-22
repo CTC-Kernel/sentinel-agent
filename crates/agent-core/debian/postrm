@@ -15,10 +15,12 @@ case "$1" in
         rm -f /etc/logrotate.d/sentinel-agent
 
         # Remove AppArmor profile
-        rm -f /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent
         if command -v apparmor_parser > /dev/null 2>&1; then
-            apparmor_parser -R /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent 2>/dev/null || true
+            if [ -f /etc/apparmor.d/usr.bin.sentinel-agent ]; then
+                apparmor_parser -R /etc/apparmor.d/usr.bin.sentinel-agent 2>/dev/null || true
+            fi
         fi
+        rm -f /etc/apparmor.d/usr.bin.sentinel-agent
 
         # Remove service user and group
         if id -u sentinel-grc > /dev/null 2>&1; then

@@ -117,6 +117,10 @@
     <StandardDirectory Id="CommonAppDataFolder">
       <Directory Id="SentinelDataDir" Name="Sentinel">
         <Directory Id="DataDir" Name="data" />
+        <Directory Id="ModelsDir" Name="models" />
+        <Directory Id="CacheDir" Name="cache">
+          <Directory Id="CacheLlmDir" Name="llm" />
+        </Directory>
       </Directory>
     </StandardDirectory>
 
@@ -193,7 +197,7 @@
       <!-- Add to system PATH -->
       <Component Id="PathEnvComponent" Guid="A9B8C7D6-E5F4-3210-FEDC-BA9876543210">
         <Environment Id="SentinelPath" Name="PATH" Value="[BinDir]"
-            Permanent="no" Part="last" Action="set" System="yes" />
+            Permanent="yes" Part="last" Action="set" System="yes" />
         <RegistryValue Root="HKLM" Key="Software\Sentinel\Agent"
             Name="PathAdded" Type="integer" Value="1" KeyPath="yes" />
       </Component>
@@ -226,15 +230,8 @@
         <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent" Name="StartMenuInstalled" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 
-      <!-- Startup entry - runs on user login -->
-      <Component Id="StartupEntry" Guid="A7B8C9D0-E1F2-3456-7890-ABCDEF123456" Directory="BinDir">
-        <RegistryValue Root="HKLM"
-                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
-                       Name="SentinelAgent"
-                       Type="string"
-                       Value="&quot;[BinDir]sentinel-agent.exe&quot;"
-                       KeyPath="yes" />
-      </Component>
+      <!-- Note: Auto-start is handled by the Windows Service (Start="auto") above.
+           No additional Run registry entry needed — it would cause duplicate execution. -->
     </ComponentGroup>
 
     <!-- Configuration component -->
@@ -243,6 +240,13 @@
         <File Id="DefaultConfigFile"
               Name="agent.json"
               Source="config\agent.example.json" />
+      </Component>
+
+      <!-- LLM configuration template -->
+      <Component Id="LlmConfigFileComponent" Guid="C3D4E5F6-A7B8-9012-CDEF-345678901235">
+        <File Id="LlmConfigFile"
+              Name="llm.json"
+              Source="config\llm.example.json" />
       </Component>
 
       <!-- Documentation -->
@@ -254,6 +258,22 @@
 
       <!-- Create data directory with proper permissions -->
       <Component Id="DataDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012345" Directory="DataDir">
+        <CreateFolder>
+          <Permission User="SYSTEM" GenericAll="yes" />
+          <Permission User="Administrators" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+
+      <!-- Create models directory for LLM GGUF files -->
+      <Component Id="ModelsDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012347" Directory="ModelsDir">
+        <CreateFolder>
+          <Permission User="SYSTEM" GenericAll="yes" />
+          <Permission User="Administrators" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+
+      <!-- Create LLM cache directory -->
+      <Component Id="CacheLlmDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012348" Directory="CacheLlmDir">
         <CreateFolder>
           <Permission User="SYSTEM" GenericAll="yes" />
           <Permission User="Administrators" GenericAll="yes" />
