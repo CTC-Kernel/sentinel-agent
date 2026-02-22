@@ -112,11 +112,8 @@ section = "admin"
 priority = "optional"
 conf-files = ["/etc/sentinel/agent.json"]
 maintainer-scripts = "debian/"
-systemd-units = [
-    { unit-name = "sentinel-agent", enable = true, start = true },
-]
 assets = [
-    ["../../target/release/agent-core", "usr/bin/sentinel-agent", "755"],
+    ["target/release/agent-core", "usr/bin/sentinel-agent", "755"],
     ["debian/sentinel-agent.service", "lib/systemd/system/sentinel-agent.service", "644"],
     ["../../linux/logrotate/sentinel-agent", "etc/logrotate.d/sentinel-agent", "644"],
     ["../../linux/apparmor/sentinel-agent", "etc/apparmor.d/usr.bin.sentinel-agent", "644"],

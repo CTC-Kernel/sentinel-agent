@@ -82,4 +82,6 @@ echo "LLM     : /etc/sentinel/llm.json"
 echo "Models  : /var/lib/sentinel-grc/models/"
 echo "Logs    : /var/log/sentinel-grc/"
 
+#DEBHELPER#
+
 exit 0
