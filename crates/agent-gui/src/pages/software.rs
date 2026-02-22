@@ -402,7 +402,7 @@ impl SoftwarePage {
                     .column(Column::remainder());
 
                 table
-                    .header(30.0, |mut header| {
+                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new("D\u{00c9}SIGNATION")
@@ -679,7 +679,7 @@ impl SoftwarePage {
                     .column(Column::initial(100.0).at_least(90.0));
 
                 table
-                    .header(30.0, |mut header| {
+                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new("POINT D'ENTR\u{00c9}E")

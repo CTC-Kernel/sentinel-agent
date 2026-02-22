@@ -312,7 +312,7 @@ impl AssetsPage {
                 .column(Column::remainder());
 
             table
-                .header(30.0, |mut header| {
+                .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                     for label in [
                         "NOM",
                         "IP",
