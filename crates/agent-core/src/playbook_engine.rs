@@ -217,43 +217,42 @@ pub async fn evaluate_playbook(
         // Enhance confidence with LLM if available
         #[cfg(feature = "llm")]
         {
-            if let Some(svc) = llm_service {
-                if svc.is_available().await {
-                    if let Some(manager) = svc.get_manager().await {
-                        let event_desc = format!(
-                            "Playbook '{}' triggered. Conditions: {}. Context: {} suspicious processes, {} network alerts, {} FIM alerts.",
-                            playbook.name,
-                            matched_conditions.join("; "),
-                            threat_context.suspicious_processes.len(),
-                            threat_context.network_alerts.len(),
-                            threat_context.fim_alerts.len(),
-                        );
-                        let event = agent_llm::SecurityEvent {
-                            id: uuid::Uuid::new_v4().to_string(),
-                            event_type: "playbook_trigger".to_string(),
-                            description: event_desc,
-                            system_info: std::env::consts::OS.to_string(),
-                            historical_context: String::new(),
-                            timestamp: chrono::Utc::now(),
-                            source: "playbook_engine".to_string(),
-                            severity: "medium".to_string(),
-                            raw_data: serde_json::json!({ "matched_conditions": matched_conditions }),
-                        };
+            if let Some(svc) = llm_service
+                && svc.is_available().await
+                && let Some(manager) = svc.get_manager().await
+            {
+                let event_desc = format!(
+                    "Playbook '{}' triggered. Conditions: {}. Context: {} suspicious processes, {} network alerts, {} FIM alerts.",
+                    playbook.name,
+                    matched_conditions.join("; "),
+                    threat_context.suspicious_processes.len(),
+                    threat_context.network_alerts.len(),
+                    threat_context.fim_alerts.len(),
+                );
+                let event = agent_llm::SecurityEvent {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    event_type: "playbook_trigger".to_string(),
+                    description: event_desc,
+                    system_info: std::env::consts::OS.to_string(),
+                    historical_context: String::new(),
+                    timestamp: chrono::Utc::now(),
+                    source: "playbook_engine".to_string(),
+                    severity: "medium".to_string(),
+                    raw_data: serde_json::json!({ "matched_conditions": matched_conditions }),
+                };
 
-                        match manager.classifier().classify_event(&event).await {
-                            Ok(classification) => {
-                                // Use AI confidence to modulate base confidence
-                                let ai_confidence = classification.confidence as f32 / 100.0;
-                                base_confidence = (base_confidence + ai_confidence) / 2.0;
-                                debug!(
-                                    "AI-enhanced playbook confidence: {:.2}",
-                                    base_confidence
-                                );
-                            }
-                            Err(e) => {
-                                debug!("LLM classification for playbook failed: {}", e);
-                            }
-                        }
+                match manager.classifier().classify_event(&event).await {
+                    Ok(classification) => {
+                        // Use AI confidence to modulate base confidence
+                        let ai_confidence = classification.confidence as f32 / 100.0;
+                        base_confidence = (base_confidence + ai_confidence) / 2.0;
+                        debug!(
+                            "AI-enhanced playbook confidence: {:.2}",
+                            base_confidence
+                        );
+                    }
+                    Err(e) => {
+                        debug!("LLM classification for playbook failed: {}", e);
                     }
                 }
             }

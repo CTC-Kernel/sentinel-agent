@@ -119,11 +119,10 @@ impl AgentRuntime {
                         if let Ok(Some(usb_policy)) = config_sync
                             .get_config::<agent_common::types::UsbPolicy>(agent_sync::config_keys::USB_POLICY)
                             .await
+                            && let Ok(mut usb) = self.usb_monitor.lock()
                         {
-                            if let Ok(mut usb) = self.usb_monitor.lock() {
-                                info!("USB policy updated: {} allowlisted devices", usb_policy.allowlist.len());
-                                usb.update_policy(usb_policy);
-                            }
+                            info!("USB policy updated: {} allowlisted devices", usb_policy.allowlist.len());
+                            usb.update_policy(usb_policy);
                         }
 
                         // Apply SIEM config changes

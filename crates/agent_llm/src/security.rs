@@ -433,10 +433,10 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
         }
 
         // Attempt 2: extract JSON block from surrounding text
-        if let Some(json_block) = extract_json_block(response) {
-            if let Ok(raw) = serde_json::from_str::<RawClassification>(json_block) {
-                return Ok(self.build_classification_from_raw(raw, event, now, processing_time_ms));
-            }
+        if let Some(json_block) = extract_json_block(response)
+            && let Ok(raw) = serde_json::from_str::<RawClassification>(json_block)
+        {
+            return Ok(self.build_classification_from_raw(raw, event, now, processing_time_ms));
         }
 
         // Attempt 3: fallback - build from raw text keywords
@@ -525,10 +525,10 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
         }
 
         // Attempt 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response) {
-            if let Ok(raw) = serde_json::from_str::<RawVulnerabilityAnalysis>(json_block) {
-                return Ok(self.build_vuln_analysis_from_raw(raw, vuln, now));
-            }
+        if let Some(json_block) = extract_json_block(response)
+            && let Ok(raw) = serde_json::from_str::<RawVulnerabilityAnalysis>(json_block)
+        {
+            return Ok(self.build_vuln_analysis_from_raw(raw, vuln, now));
         }
 
         // Attempt 3: fallback from raw text
@@ -605,10 +605,10 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
         }
 
         // Attempt 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response) {
-            if let Ok(raw) = serde_json::from_str::<RawThreatReport>(json_block) {
-                return Ok(self.build_threat_report_from_raw(raw, now, event_count));
-            }
+        if let Some(json_block) = extract_json_block(response)
+            && let Ok(raw) = serde_json::from_str::<RawThreatReport>(json_block)
+        {
+            return Ok(self.build_threat_report_from_raw(raw, now, event_count));
         }
 
         // Attempt 3: fallback - use the raw response as the executive summary
@@ -668,10 +668,10 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
         }
 
         // Attempt 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response) {
-            if let Ok(raw) = serde_json::from_str::<RawAttackPatternAnalysis>(json_block) {
-                return Ok(self.build_attack_pattern_from_raw(raw, now));
-            }
+        if let Some(json_block) = extract_json_block(response)
+            && let Ok(raw) = serde_json::from_str::<RawAttackPatternAnalysis>(json_block)
+        {
+            return Ok(self.build_attack_pattern_from_raw(raw, now));
         }
 
         // Attempt 3: fallback - try to extract MITRE references from raw text

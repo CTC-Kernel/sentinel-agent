@@ -522,11 +522,11 @@ impl LLMAnalyzer {
         }
 
         // --- Strategy 2: extract JSON block from surrounding text ---
-        if let Some(json_block) = extract_json_block(response) {
-            if let Ok(raw) = serde_json::from_str::<RawAnalysisResponse>(&json_block) {
-                warn!("LLM response contained extra text around JSON; extracted JSON block successfully");
-                return Ok(self.raw_to_analysis_result(raw, context, build_metadata(75, response.len() as u32)));
-            }
+        if let Some(json_block) = extract_json_block(response)
+            && let Ok(raw) = serde_json::from_str::<RawAnalysisResponse>(&json_block)
+        {
+            warn!("LLM response contained extra text around JSON; extracted JSON block successfully");
+            return Ok(self.raw_to_analysis_result(raw, context, build_metadata(75, response.len() as u32)));
         }
 
         // --- Strategy 3: heuristic fallback from context ---
@@ -836,11 +836,11 @@ impl LLMAnalyzer {
         }
 
         // --- Strategy 2: extract JSON block ---
-        if let Some(json_block) = extract_json_block(response) {
-            if let Ok(raw) = serde_json::from_str::<RawSecurityAnalysis>(&json_block) {
-                warn!("LLM security response contained extra text around JSON; extracted JSON block successfully");
-                return Ok(self.raw_to_security_analysis(raw, event));
-            }
+        if let Some(json_block) = extract_json_block(response)
+            && let Ok(raw) = serde_json::from_str::<RawSecurityAnalysis>(&json_block)
+        {
+            warn!("LLM security response contained extra text around JSON; extracted JSON block successfully");
+            return Ok(self.raw_to_security_analysis(raw, event));
         }
 
         // --- Strategy 3: heuristic fallback ---
