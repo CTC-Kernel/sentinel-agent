@@ -219,9 +219,27 @@ impl Default for SecurityConfig {
 
 impl LLMConfig {
     /// Load configuration from file.
+    ///
+    /// Relative paths inside the config (e.g. model path, cache directory)
+    /// are resolved against the config file's parent directory.
     pub fn from_file(path: &PathBuf) -> Result<Self> {
         let content = std::fs::read_to_string(path)?;
-        let config: Self = serde_json::from_str(&content)?;
+        let mut config: Self = serde_json::from_str(&content)?;
+
+        // Resolve relative model path against config file's parent directory
+        if config.model.path.is_relative()
+            && let Some(parent) = path.parent()
+        {
+            config.model.path = parent.join(&config.model.path);
+        }
+
+        // Resolve relative cache directory
+        if config.cache.directory.is_relative()
+            && let Some(parent) = path.parent()
+        {
+            config.cache.directory = parent.join(&config.cache.directory);
+        }
+
         Ok(config)
     }
 

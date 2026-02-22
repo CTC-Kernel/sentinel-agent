@@ -1,16 +1,16 @@
 # AppArmor profile for Sentinel GRC Agent
-# Install: cp sentinel-agent /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent
-# Reload: apparmor_parser -r /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent
+# Install: cp sentinel-agent /etc/apparmor.d/usr.bin.sentinel-agent
+# Reload: apparmor_parser -r /etc/apparmor.d/usr.bin.sentinel-agent
 
 #include <tunables/global>
 
-/opt/sentinel-grc/bin/sentinel-agent {
+/usr/bin/sentinel-agent {
     #include <abstractions/base>
     #include <abstractions/nameservice>
     #include <abstractions/ssl_certs>
 
     # Binary
-    /opt/sentinel-grc/bin/sentinel-agent mr,
+    /usr/bin/sentinel-agent mr,
 
     # Configuration
     /etc/sentinel/ r,

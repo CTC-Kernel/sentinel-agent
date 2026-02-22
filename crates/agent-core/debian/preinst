@@ -1,0 +1,19 @@
+#!/bin/sh
+# Sentinel GRC Agent - Script pre-installation
+set -e
+
+case "$1" in
+    install|upgrade)
+        # Stop existing service if running (upgrade case)
+        if [ -d /run/systemd/system ] && systemctl is-active --quiet sentinel-agent.service 2>/dev/null; then
+            echo "Stopping Sentinel GRC Agent for upgrade..."
+            systemctl stop sentinel-agent.service || true
+        fi
+        ;;
+    abort-upgrade)
+        ;;
+    *)
+        ;;
+esac
+
+exit 0
