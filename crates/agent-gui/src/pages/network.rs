@@ -407,11 +407,14 @@ impl NetworkPage {
                 } else {
                     theme::INFO
                 };
-                let actions = [
-                    widgets::DetailAction::primary("Acquitter", icons::CHECK),
-                    widgets::DetailAction::secondary("Investiguer", icons::SEARCH),
-                    widgets::DetailAction::danger("Ignorer", icons::EYE_SLASH),
-                ];
+                let has_ai = alert.ai_analysis.is_some();
+                let mut actions = Vec::new();
+                if !has_ai {
+                    actions.push(widgets::DetailAction::primary("\u{00c9}valuer avec l'IA", icons::BRAIN));
+                }
+                actions.push(widgets::DetailAction::primary("Acquitter", icons::CHECK));
+                actions.push(widgets::DetailAction::secondary("Investiguer", icons::SEARCH));
+                actions.push(widgets::DetailAction::danger("Ignorer", icons::EYE_SLASH));
                 let drawer_action = widgets::DetailDrawer::new("net_alert_detail", &type_label, icons::WARNING)
                     .accent(type_color)
                     .subtitle("Alerte r\u{00e9}seau")
@@ -447,16 +450,49 @@ impl NetworkPage {
                             "Date de d\u{00e9}tection",
                             &alert.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
                         );
+
+                        // AI Analysis section
+                        if let Some(ref analysis) = alert.ai_analysis {
+                            widgets::detail_section(ui, "ANALYSE IA");
+                            if let Some(confidence) = alert.ai_confidence {
+                                let c = if confidence >= 80 { theme::SUCCESS } else if confidence >= 50 { theme::WARNING } else { theme::ERROR };
+                                widgets::detail_field_badge(ui, "Confiance IA", &format!("{}%", confidence), c);
+                            }
+                            if let Some(fp) = alert.is_false_positive {
+                                widgets::detail_field_badge(ui, "Faux positif", if fp { "OUI" } else { "NON" }, if fp { theme::WARNING } else { theme::SUCCESS });
+                            }
+                            widgets::detail_text(ui, "Analyse", analysis);
+                        }
                     }, &actions);
                 if let Some(action_idx) = drawer_action {
                     let time = ctx.input(|i| i.time);
-                    if action_idx == 0 {
+                    let mut next = 0_usize;
+                    let ai_idx = if !has_ai { let i = next; next += 1; Some(i) } else { None };
+                    let ack_idx = next;
+                    let inv_idx = next + 1;
+                    let ign_idx = next + 2;
+                    if ai_idx == Some(action_idx) {
+                        let desc = format!(
+                            "Alerte réseau: {} — {} — Source: {} — Destination: {}",
+                            type_label,
+                            alert.description,
+                            alert.source_ip.as_deref().unwrap_or("--"),
+                            alert.destination_ip.as_deref().unwrap_or("--"),
+                        );
+                        command = Some(GuiCommand::LlmClassifyThreat {
+                            event_description: desc,
+                            target_id: format!("alert#{}", sel),
+                        });
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::info("Analyse IA en cours\u{2026}").with_time(time),
+                        );
+                    } else if action_idx == ack_idx {
                         state.network.detail_open = false;
                         state.toasts.push(
                             crate::widgets::toast::Toast::success("Alerte acquitt\u{00e9}e")
                                 .with_time(time),
                         );
-                    } else if action_idx == 1 {
+                    } else if action_idx == inv_idx {
                         let details = format!(
                             "Type: {}\nDescription: {}\nSource: {}\nDestination: {}",
                             type_label,
@@ -471,7 +507,7 @@ impl NetworkPage {
                             )
                             .with_time(time),
                         );
-                    } else if action_idx == 2 {
+                    } else if action_idx == ign_idx {
                         state.network.detail_open = false;
                         state.network.selected_alert = None;
                     }

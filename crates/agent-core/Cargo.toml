@@ -10,9 +10,9 @@ description = "Sentinel GRC endpoint compliance monitoring agent"
 default = ["tray"]
 # Enable system tray GUI (macOS/Windows desktop mode)
 tray = ["dep:tray-icon", "dep:muda", "dep:image", "dep:open", "dep:tao"]
-# Enable v2 desktop GUI features
-gui = ["dep:agent-gui"]
-# LLM features
+# Enable v2 desktop GUI features (includes LLM AI module + persistence)
+gui = ["dep:agent-gui", "dep:agent-persistence", "llm", "agent-gui/llm"]
+# LLM features (can also be enabled standalone without GUI)
 llm = ["dep:agent_llm", "agent-scanner/llm"]
 llm_simple = []
 
@@ -30,6 +30,7 @@ agent-fim = { path = "../agent-fim" }
 agent-siem = { path = "../agent-siem" }
 agent-gui = { path = "../agent-gui", optional = true }
 agent_llm = { path = "../agent_llm", optional = true }
+agent-persistence = { path = "../agent-persistence", optional = true }
 
 thiserror.workspace = true
 anyhow.workspace = true

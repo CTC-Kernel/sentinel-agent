@@ -901,6 +901,45 @@ impl AppState {
                     processing_time_ms: None,
                 });
                 self.ai.is_processing = false;
+
+                // Update the source DTO with AI analysis results
+                if let Some(idx_str) = target.strip_prefix("finding#") {
+                    // Vulnerability finding
+                    if let Ok(idx) = idx_str.parse::<usize>() {
+                        if idx < self.vulnerability_findings.len() {
+                            self.vulnerability_findings[idx].ai_analysis = Some(analysis);
+                            self.vulnerability_findings[idx].ai_confidence = confidence;
+                            self.vulnerability_findings[idx].is_false_positive = is_false_positive;
+                        }
+                    }
+                } else if let Some(idx_str) = target.strip_prefix("process#") {
+                    // Suspicious process
+                    if let Ok(idx) = idx_str.parse::<usize>() {
+                        if idx < self.threats.suspicious_processes.len() {
+                            self.threats.suspicious_processes[idx].ai_analysis = Some(analysis);
+                            self.threats.suspicious_processes[idx].ai_confidence = confidence;
+                            self.threats.suspicious_processes[idx].is_false_positive = is_false_positive;
+                        }
+                    }
+                } else if let Some(idx_str) = target.strip_prefix("incident#") {
+                    // System incident
+                    if let Ok(idx) = idx_str.parse::<usize>() {
+                        if idx < self.threats.system_incidents.len() {
+                            self.threats.system_incidents[idx].ai_analysis = Some(analysis);
+                            self.threats.system_incidents[idx].ai_confidence = confidence;
+                            self.threats.system_incidents[idx].is_false_positive = is_false_positive;
+                        }
+                    }
+                } else if let Some(idx_str) = target.strip_prefix("alert#") {
+                    // Network alert
+                    if let Ok(idx) = idx_str.parse::<usize>() {
+                        if idx < self.network.alerts.len() {
+                            self.network.alerts[idx].ai_analysis = Some(analysis);
+                            self.network.alerts[idx].ai_confidence = confidence;
+                            self.network.alerts[idx].is_false_positive = is_false_positive;
+                        }
+                    }
+                }
             }
             AgentEvent::LlmStatusUpdate {
                 model_name,

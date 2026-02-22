@@ -777,6 +777,18 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                 }
             };
 
+            // Run v2 persistence migrations (GUI tables: events, notifications, policy_snapshots)
+            #[cfg(feature = "gui")]
+            if let Some(ref db) = db_arc {
+                match db.with_connection_mut(|conn| {
+                    agent_persistence::run_v2_migrations(conn)
+                        .map_err(|e| agent_storage::StorageError::Migration(e.to_string()))
+                }).await {
+                    Ok(()) => info!("Persistence v2 migrations applied"),
+                    Err(e) => warn!("Failed to apply v2 migrations (non-fatal): {}", e),
+                }
+            }
+
             let db_for_commands = db_arc.clone();
             let mut runtime = AgentRuntime::new(config);
             if let Some(db) = db_arc {
@@ -785,34 +797,6 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             runtime.set_gui_event_tx(bg_event_tx.clone());
             let sync_client = runtime.sync_client();
             let handle = runtime.handle();
-
-            macro_rules! handle_save_gui_command {
-                ($db:expr, $client:expr, $handle:expr, $payload:expr, $entity:path, $entity_id:expr, $sync_method:ident) => {
-                    if let Some(ref db_arc) = $db {
-                        if let Ok(json) = serde_json::to_string(&$payload) {
-                            let db_clone = std::sync::Arc::clone(db_arc);
-                            let handle_clone = $handle.clone();
-                            let eid = $entity_id.to_string();
-                            tokio::spawn(async move {
-                                let repo = agent_storage::SyncQueueRepository::new(&db_clone);
-                                let entry = agent_storage::SyncQueueEntry::new($entity, eid, json);
-                                if let Err(e) = repo.enqueue(&entry).await {
-                                    warn!("Failed to queue item for sync: {}", e);
-                                } else {
-                                    handle_clone.trigger_sync();
-                                }
-                            });
-                        }
-                    } else if let Some(ref c) = $client {
-                        let c = std::sync::Arc::clone(c);
-                        tokio::spawn(async move {
-                            if let Err(e) = c.$sync_method(vec![$payload]).await {
-                                warn!("Failed to sync item fallback: {}", e);
-                            }
-                        });
-                    }
-                };
-            }
 
             // Initialize LLM service for AI-powered analysis
             #[cfg(feature = "llm")]
@@ -1835,7 +1819,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             });
                         }
 
-                        Ok(GuiCommand::LlmClassifyThreat { event_description }) => {
+                        Ok(GuiCommand::LlmClassifyThreat { event_description, target_id }) => {
                             info!("[AUDIT] GUI requested LLM threat classification: {}", &event_description[..event_description.len().min(80)]);
                             let tx = bg_event_tx.clone();
                             let svc = llm_service.clone();
@@ -1867,7 +1851,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                         classification.impact_assessment,
                                                     );
                                                     let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                                        target: format!("threat:{}", &event_description[..event_description.len().min(50)]),
+                                                        target: target_id.clone(),
                                                         analysis,
                                                         severity_override: Some(format!("{:?}", classification.threat_level)),
                                                         is_false_positive: None,
@@ -1877,7 +1861,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                 Err(e) => {
                                                     warn!("LLM threat classification error: {}", e);
                                                     let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                                        target: format!("threat:{}", &event_description[..event_description.len().min(50)]),
+                                                        target: target_id.clone(),
                                                         analysis: format!("Erreur de classification : {}", e),
                                                         severity_override: None,
                                                         is_false_positive: None,
@@ -1892,7 +1876,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 let _ = svc;
                                 let _ = start;
                                 let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                    target: format!("threat:{}", &event_description[..event_description.len().min(50)]),
+                                    target: target_id,
                                     analysis: "Modèle IA non disponible pour la classification des menaces.".to_string(),
                                     severity_override: None,
                                     is_false_positive: None,

@@ -164,6 +164,7 @@ dependencies = [
  "agent-fim",
  "agent-gui",
  "agent-network",
+ "agent-persistence",
  "agent-scanner",
  "agent-siem",
  "agent-storage",

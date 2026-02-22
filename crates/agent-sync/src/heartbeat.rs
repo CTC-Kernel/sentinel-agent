@@ -307,6 +307,8 @@ impl HeartbeatService {
             network_bytes_recv: Some(total_recv),
             processes,
             connections,
+            llm_status: None,
+            llm_inference_count: None,
         }
     }
 
