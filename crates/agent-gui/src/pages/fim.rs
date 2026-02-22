@@ -244,7 +244,7 @@ impl FimPage {
                 let mut clicked_row: Option<usize> = None;
 
                 table
-                    .header(28.0, |mut header| {
+                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new("TYPE")

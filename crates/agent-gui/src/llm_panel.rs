@@ -1184,7 +1184,7 @@ impl LLMPanel {
             .column(Column::remainder()); // Rem\u{00e9}diation
 
         table
-            .header(30.0, |mut header| {
+            .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                 for label in [
                     "PRIORIT\u{00c9}",
                     "SOURCE",

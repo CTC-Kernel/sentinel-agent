@@ -578,10 +578,14 @@ pub const BACKDROP_ALPHA: u8 = 180;
 
 /// Minimum table row height for readability and touch targets.
 pub const TABLE_ROW_HEIGHT: f32 = 36.0;
+/// Compact row height for dense / terminal-like tables.
+pub const TABLE_COMPACT_ROW_HEIGHT: f32 = 22.0;
 /// Data table row height (generous padding for premium feel).
 pub const TABLE_DATA_ROW_HEIGHT: f32 = 48.0;
-/// Data table header height.
+/// Data table header height (used by DataTable widget).
 pub const TABLE_HEADER_HEIGHT: f32 = 44.0;
+/// Inline / compact table header height (raw TableBuilder tables).
+pub const TABLE_INLINE_HEADER_HEIGHT: f32 = 30.0;
 /// Data table empty state height.
 pub const TABLE_EMPTY_HEIGHT: f32 = 120.0;
 /// Alternating row tint alpha (increased for better visibility).
@@ -621,7 +625,7 @@ pub fn glass_border_top() -> Color32 {
     if is_dark_mode() {
         Color32::from_white_alpha(20)
     } else {
-        Color32::from_white_alpha(180)
+        Color32::from_white_alpha(100)
     }
 }
 

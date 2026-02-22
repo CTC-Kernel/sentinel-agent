@@ -685,7 +685,7 @@ impl CompliancePage {
             .column(Column::remainder());
 
         table
-            .header(30.0, |mut header| {
+            .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                 header.col(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new("DÉSIGNATION DU POINT")
@@ -901,7 +901,7 @@ impl CompliancePage {
         }
 
         builder
-            .header(30.0, |mut header| {
+            .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                 header.col(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new("CONTR\u{00d4}LE")

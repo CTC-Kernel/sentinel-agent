@@ -285,7 +285,7 @@ impl DiscoveryPage {
                     .column(Column::remainder()); // Actions
 
                 table
-                    .header(30.0, |mut header| {
+                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new("ADRESSE IP")
@@ -360,7 +360,7 @@ impl DiscoveryPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(48.0, filtered.len(), |mut row| {
+                        body.rows(theme::TABLE_DATA_ROW_HEIGHT, filtered.len(), |mut row| {
                             let row_idx = row.index();
                             let dev_idx = filtered[row_idx];
                             let device = &state.discovery.devices[dev_idx];
