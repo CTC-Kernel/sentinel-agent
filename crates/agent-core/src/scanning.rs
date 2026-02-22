@@ -100,10 +100,25 @@ impl AgentRuntime {
         let software: Vec<crate::api_client::SoftwareEntry> = scan_result
             .packages
             .iter()
-            .map(|p| crate::api_client::SoftwareEntry {
-                name: p.name.clone(),
-                version: p.version.clone(),
-                vendor: p.publisher.clone(),
+            .map(|p| {
+                let name_lower = p.name.to_lowercase();
+                let is_system = name_lower.contains("runtime")
+                    || name_lower.contains("framework")
+                    || name_lower.contains("driver")
+                    || name_lower.contains("lib")
+                    || name_lower.contains("kernel")
+                    || name_lower.contains("redistributable")
+                    || name_lower.contains("service pack")
+                    || p.ecosystem.as_deref() == Some("Debian")
+                    || p.ecosystem.as_deref() == Some("Alpine")
+                    || p.ecosystem.as_deref() == Some("Ubuntu");
+                crate::api_client::SoftwareEntry {
+                    name: p.name.clone(),
+                    version: p.version.clone(),
+                    vendor: p.publisher.clone(),
+                    arch: p.arch.clone(),
+                    is_system,
+                }
             })
             .collect();
 

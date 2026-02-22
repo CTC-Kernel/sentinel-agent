@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use anyhow::Result;
-use tracing::info;
+use tracing::{info, debug, warn};
 
 use super::config::{ModelConfig, InferenceConfig};
 
@@ -239,6 +239,10 @@ impl ModelEngine for MistralEngine {
         let top_k = self.inference_config.top_k as usize;
         let repetition_penalty = self.inference_config.repetition_penalty;
         let max_tokens = request.max_tokens.unwrap_or(self.inference_config.max_tokens) as usize;
+        let timeout_secs = self.inference_config.timeout_secs;
+
+        debug!("Starting inference: prompt_len={}, max_tokens={}, temp={:.1}",
+            request.prompt.len(), max_tokens, temperature);
 
         let chat_request = mistralrs::RequestBuilder::new()
             .add_message(mistralrs::TextMessageRole::User, request.prompt.clone())
@@ -262,20 +266,49 @@ impl ModelEngine for MistralEngine {
                 min_p: None,
             });
 
-        let response = model.send_chat_request(chat_request).await.map_err(|e| anyhow::anyhow!(e))?;
+        // Enforce timeout to prevent infinite hangs on slow inference
+        let timeout_duration = std::time::Duration::from_secs(timeout_secs);
+        let response = match tokio::time::timeout(
+            timeout_duration,
+            model.send_chat_request(chat_request),
+        ).await {
+            Ok(Ok(resp)) => resp,
+            Ok(Err(e)) => {
+                return Err(anyhow::anyhow!("Inference error: {}", e));
+            }
+            Err(_) => {
+                warn!("LLM inference timed out after {}s — engine needs reload", timeout_secs);
+                // After timeout, mistralrs internal state is corrupted (channel dropped).
+                // Mark engine as Error so the next request triggers a fresh reload.
+                drop(model_guard);
+                {
+                    let mut status = self.status.write().await;
+                    *status = ModelStatus::Error(format!("Inference timed out after {}s", timeout_secs));
+                }
+                // Unload the broken model so it gets reloaded cleanly next time
+                let mut model_lock = self.model.lock().await;
+                *model_lock = None;
+                return Err(anyhow::anyhow!("Inference timed out after {}s", timeout_secs));
+            }
+        };
 
         let duration = start_time.elapsed();
 
         // Update inference count
         self.inference_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        
+
         let text = response.choices.first()
-            .map(|c| c.message.content.clone().unwrap_or_default()) // Handle Option<String>
+            .map(|c| c.message.content.clone().unwrap_or_default())
             .ok_or_else(|| anyhow::anyhow!("LLM returned empty choices"))?;
+
+        let tokens = response.usage.completion_tokens;
+        info!("Inference complete: {} tokens in {:.1}s ({:.0} tok/s)",
+            tokens, duration.as_secs_f64(),
+            tokens as f64 / duration.as_secs_f64().max(0.001));
 
         Ok(InferenceResponse {
             text,
-            tokens_generated: u32::try_from(response.usage.completion_tokens).unwrap_or(u32::MAX), // Access directly
+            tokens_generated: u32::try_from(tokens).unwrap_or(u32::MAX),
             duration_ms: duration.as_millis() as u64,
             metadata: std::collections::HashMap::new(),
         })
@@ -314,18 +347,16 @@ impl ModelEngine for MistralEngine {
 }
 
 /// Create an LLM engine based on configuration.
-pub fn create_engine(config: &ModelConfig) -> Result<Arc<dyn ModelEngine>> {
-    let inference_config = InferenceConfig::default();
-    
+pub fn create_engine(config: &ModelConfig, inference_config: &InferenceConfig) -> Result<Arc<dyn ModelEngine>> {
     let engine: Arc<dyn ModelEngine> = match config.model_type {
         super::config::ModelType::Llama4 |
         super::config::ModelType::Qwen3Coder |
         super::config::ModelType::DeepSeekR1 |
         super::config::ModelType::Gemma3 => {
-            Arc::new(MistralEngine::new(config.clone(), inference_config))
+            Arc::new(MistralEngine::new(config.clone(), inference_config.clone()))
         }
         super::config::ModelType::Custom(_) => {
-            Arc::new(MistralEngine::new(config.clone(), inference_config))
+            Arc::new(MistralEngine::new(config.clone(), inference_config.clone()))
         }
     };
 

@@ -283,6 +283,14 @@ pub struct HeartbeatRequest {
     /// List of network connections (optional, for detailed monitoring).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub connections: Vec<AgentConnection>,
+
+    /// LLM model status ("active", "inactive", "not_configured", "not_compiled").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub llm_status: Option<String>,
+
+    /// Number of LLM inferences performed since last restart.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub llm_inference_count: Option<u64>,
 }
 
 /// Running process information.

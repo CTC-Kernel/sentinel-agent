@@ -701,6 +701,8 @@ impl SyncOrchestrator {
             disk_io_kbps: None,
             processes: Vec::new(),
             connections: Vec::new(),
+            llm_status: None,
+            llm_inference_count: None,
         };
 
         let _response: crate::types::HeartbeatResponse = client

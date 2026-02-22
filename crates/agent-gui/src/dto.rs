@@ -605,6 +605,15 @@ pub struct GuiSuspiciousProcess {
     pub confidence: u8,
     /// When detected.
     pub detected_at: DateTime<Utc>,
+    /// AI confidence score (0-100).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_confidence: Option<u8>,
+    /// Whether AI considers this a false positive.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_false_positive: Option<bool>,
+    /// AI-generated analysis text.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_analysis: Option<String>,
 }
 
 /// A system security incident for GUI display (firewall, AV, privilege escalation, etc.).
@@ -623,6 +632,15 @@ pub struct GuiSystemIncident {
     pub confidence: u8,
     /// When detected.
     pub detected_at: DateTime<Utc>,
+    /// AI confidence score (0-100).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_confidence: Option<u8>,
+    /// Whether AI considers this a false positive.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_false_positive: Option<bool>,
+    /// AI-generated analysis text.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_analysis: Option<String>,
 }
 
 /// A USB device event for GUI display.
@@ -661,6 +679,15 @@ pub struct GuiNetworkAlert {
     pub confidence: u8,
     /// When detected.
     pub detected_at: DateTime<Utc>,
+    /// AI confidence score (0-100).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_confidence: Option<u8>,
+    /// Whether AI considers this a false positive.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_false_positive: Option<bool>,
+    /// AI-generated analysis text.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_analysis: Option<String>,
 }
 
 // ============================================================================

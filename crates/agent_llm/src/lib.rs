@@ -14,7 +14,7 @@ pub mod security;
 // Re-export main components
 pub use analyzer::{AnalysisResult, LLMAnalyzer, SecurityAnalysis, AnalysisContext, ScanResult};
 pub use config::LLMConfig;
-pub use engine::{ModelEngine, MistralEngine, create_engine, ModelStatus, MemoryUsage};
+pub use engine::{ModelEngine, MistralEngine, create_engine, ModelStatus, MemoryUsage, InferenceRequest, InferenceResponse};
 pub use models::{ModelRegistry, ModelInfo};
 pub use remediation::{RemediationAdvisor, RemediationPlan, RemediationAction, ActionType, RemediationRequest, SecurityIssue, SystemContext};
 pub use security::{SecurityClassifier, SecurityClassification, ThreatType, ThreatLevel, SecurityEvent};
@@ -93,7 +93,7 @@ impl LLMManager {
 
 /// Create a new LLM manager with default configuration.
 pub async fn create_llm_manager(config: LLMConfig) -> Result<LLMManager> {
-    let engine = engine::create_engine(&config.model)?;
+    let engine = engine::create_engine(&config.model, &config.inference)?;
     let analyzer = LLMAnalyzer::new(engine.clone(), &config);
     let classifier = SecurityClassifier::new(engine.clone(), &config);
     let advisor = RemediationAdvisor::new(engine.clone(), &config);

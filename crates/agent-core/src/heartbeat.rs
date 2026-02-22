@@ -62,13 +62,22 @@ impl AgentRuntime {
         };
 
         #[cfg(feature = "llm")]
-        let llm_status = if let Some(ref svc) = self.llm_service {
-            if svc.is_available().await { "active" } else { "inactive" }
+        let (llm_status, llm_inference_count) = if let Some(ref svc) = self.llm_service {
+            if svc.is_available().await {
+                let count = if let Some(manager) = svc.get_manager().await {
+                    Some(manager.engine().inference_count().await)
+                } else {
+                    None
+                };
+                ("active", count)
+            } else {
+                ("inactive", None)
+            }
         } else {
-            "not_configured"
+            ("not_configured", None)
         };
         #[cfg(not(feature = "llm"))]
-        let llm_status = "not_compiled";
+        let (llm_status, llm_inference_count): (&str, Option<u64>) = ("not_compiled", None);
 
         let self_check_result = Some(serde_json::json!({
             "fim_engine": { "status": fim_status },
@@ -100,6 +109,8 @@ impl AgentRuntime {
             self_check_result,
             processes,
             connections,
+            llm_status: Some(llm_status.to_string()),
+            llm_inference_count,
         };
 
         let response = client.send_heartbeat(request).await?;

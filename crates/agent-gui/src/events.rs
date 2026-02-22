@@ -430,6 +430,8 @@ pub enum GuiCommand {
     LlmClassifyThreat {
         /// Description of the event to classify.
         event_description: String,
+        /// Target identifier for routing the response (e.g. "process#0", "incident#2", "alert#1").
+        target_id: String,
     },
     /// Request current LLM model status.
     LlmGetStatus,

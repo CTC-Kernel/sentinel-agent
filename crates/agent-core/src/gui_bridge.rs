@@ -361,6 +361,9 @@ impl AgentRuntime {
                 destination_port,
                 confidence: alert.confidence,
                 detected_at: alert.detected_at,
+                ai_confidence: None,
+                is_false_positive: None,
+                ai_analysis: None,
             },
         });
     }

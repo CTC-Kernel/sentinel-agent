@@ -185,6 +185,12 @@ pub struct HeartbeatRequest {
     pub processes: Vec<AgentProcess>,
     #[serde(default)]
     pub connections: Vec<AgentConnection>,
+    /// LLM model status ("active", "inactive", "not_configured", "not_compiled").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub llm_status: Option<String>,
+    /// Number of LLM inferences performed since last restart.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub llm_inference_count: Option<u64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -195,6 +201,7 @@ pub struct AgentProcess {
     pub memory_bytes: u64,
     pub memory_percent: f64,
     pub user: String,
+    pub status: String,
     pub command_line: Option<String>,
 }
 
@@ -385,6 +392,9 @@ pub struct SoftwareEntry {
     pub name: String,
     pub version: String,
     pub vendor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arch: Option<String>,
+    pub is_system: bool,
 }
 
 /// Wrapper for sensitive credential strings that are securely erased on drop.
@@ -1024,6 +1034,8 @@ mod tests {
             processes: vec![],
             connections: vec![],
             disk_io_kbps: 0,
+            llm_status: Some("active".to_string()),
+            llm_inference_count: Some(42),
         };
 
         let json = serde_json::to_string(&request).unwrap();
@@ -1298,6 +1310,8 @@ mod tests {
             name: "Firefox".to_string(),
             version: "120.0".to_string(),
             vendor: Some("Mozilla".to_string()),
+            arch: Some("x86_64".to_string()),
+            is_system: false,
         };
 
         let json = serde_json::to_string(&entry).unwrap();
