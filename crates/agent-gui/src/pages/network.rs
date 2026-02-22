@@ -566,7 +566,7 @@ impl NetworkPage {
                     .column(Column::remainder()); // MAC
 
                 table
-                    .header(30.0, |mut header| {
+                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new("NOM")
@@ -750,7 +750,7 @@ impl NetworkPage {
                 let mut clicked_conn: Option<usize> = None;
 
                 table
-                    .header(30.0, |mut header| {
+                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new("PROTO")

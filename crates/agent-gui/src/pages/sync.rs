@@ -157,7 +157,7 @@ impl SyncPage {
                     .column(Column::remainder()); // Message
 
                 table
-                    .header(24.0, |mut header| {
+                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
                             ui.strong("");
                         });
@@ -169,7 +169,7 @@ impl SyncPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(32.0, state.sync.history.len(), |mut row| {
+                        body.rows(theme::TABLE_ROW_HEIGHT, state.sync.history.len(), |mut row| {
                             let entry = &state.sync.history[row.index()];
 
                             row.col(|ui: &mut egui::Ui| {

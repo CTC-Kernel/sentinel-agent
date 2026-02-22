@@ -260,7 +260,7 @@ impl AuditTrailPage {
             .column(Column::auto().at_least(180.0)) // Timestamp
             .column(Column::auto().at_least(100.0)) // Level
             .column(Column::remainder()) // Message
-            .header(25.0, |mut header| {
+            .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                 header.col(|ui| {
                     ui.strong("HORODATAGE");
                 });

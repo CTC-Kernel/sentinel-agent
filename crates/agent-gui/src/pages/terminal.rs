@@ -295,7 +295,7 @@ impl TerminalPage {
                     .column(Column::remainder());
 
                 table
-                    .header(28.0, |mut header| {
+                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new("HEURE")
@@ -334,7 +334,7 @@ impl TerminalPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(22.0, filtered.len(), |mut row| {
+                        body.rows(theme::TABLE_COMPACT_ROW_HEIGHT, filtered.len(), |mut row| {
                             let (original_idx, entry) = filtered[row.index()];
                             let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
                             let color = level_color(&entry.level);
