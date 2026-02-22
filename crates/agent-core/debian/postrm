@@ -51,4 +51,6 @@ if [ -d /run/systemd/system ]; then
     systemctl daemon-reload || true
 fi
 
+#DEBHELPER#
+
 exit 0
