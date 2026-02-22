@@ -50,8 +50,11 @@ pub async fn watch_files(
     let debounce_duration = Duration::from_millis(policy.debounce_ms);
     let ignore_patterns = policy.ignore_patterns.clone();
 
-    // Process events in a background thread (notify uses std channels)
+    // Process events in a background thread (notify uses std channels).
+    // Move the watcher into the closure to keep it alive for the lifetime of the loop;
+    // dropping it would close the sender side of the mpsc channel.
     tokio::task::spawn_blocking(move || {
+        let _watcher = watcher; // prevent drop until this closure exits
         let mut debounce_map: HashMap<PathBuf, Instant> = HashMap::new();
         const MAX_DEBOUNCE_ENTRIES: usize = 50_000;
 

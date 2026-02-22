@@ -19,6 +19,8 @@ pub struct LLMService {
     llm_manager: Arc<RwLock<Option<Arc<LLMManager>>>>,
     _intelligent_runner: Option<Arc<RwLock<Option<IntelligentCheckRunner>>>>,
     config_path: std::path::PathBuf,
+    /// Human-readable reason why the LLM is not available (if applicable).
+    init_error: RwLock<Option<String>>,
 }
 
 #[cfg(not(feature = "llm"))]
@@ -38,19 +40,27 @@ impl LLMService {
         let service = Self {
             llm_manager: Arc::new(RwLock::new(None)),
             _intelligent_runner: None,
-            config_path,
+            config_path: config_path.clone(),
+            init_error: RwLock::new(None),
         };
 
         // Try to initialize LLM manager if config exists
         if service.config_path.exists() {
             if let Err(e) = service.initialize().await {
-                warn!("Failed to initialize LLM service: {}", e);
+                let reason = format!("Échec d'initialisation du modèle: {}", e);
+                warn!("{}", reason);
+                *service.init_error.write().await = Some(reason);
             }
         } else {
-            info!(
-                "LLM config not found at {:?}, LLM features disabled",
-                service.config_path
+            let abs_path = std::env::current_dir()
+                .map(|cwd| cwd.join(&config_path))
+                .unwrap_or(config_path);
+            let reason = format!(
+                "Fichier de configuration introuvable: {}. Copiez config/llm.example.json vers config/llm.json et téléchargez un modèle GGUF.",
+                abs_path.display()
             );
+            info!("{}", reason);
+            *service.init_error.write().await = Some(reason);
         }
 
         Ok(service)
@@ -101,6 +111,18 @@ impl LLMService {
     pub async fn get_manager(&self) -> Option<Arc<LLMManager>> {
         let manager_guard = self.llm_manager.read().await;
         manager_guard.clone()
+    }
+
+    /// Get the reason why LLM is unavailable (if applicable).
+    #[cfg(feature = "llm")]
+    pub async fn unavailable_reason(&self) -> Option<String> {
+        self.init_error.read().await.clone()
+    }
+
+    /// Get the reason why LLM is unavailable (feature not compiled).
+    #[cfg(not(feature = "llm"))]
+    pub async fn unavailable_reason(&self) -> Option<String> {
+        Some("Module IA non compilé (feature 'llm' désactivée).".to_string())
     }
 
     /// Create intelligent check runner with LLM integration.
@@ -209,6 +231,8 @@ impl LLMService {
                 } else {
                     LLMServiceStatus::Error("Failed to get stats".to_string())
                 }
+            } else if let Some(reason) = self.unavailable_reason().await {
+                LLMServiceStatus::Error(reason)
             } else {
                 LLMServiceStatus::NotConfigured
             }
