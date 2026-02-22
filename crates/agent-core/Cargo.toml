@@ -86,8 +86,17 @@ libc = { workspace = true }
 [package.metadata.generate-rpm]
 name = "sentinel-agent"
 assets = [
-    { source = "../../target/release/agent-core", dest = "/usr/bin/sentinel-agent", mode = "755" }
+    { source = "../../target/release/agent-core", dest = "/usr/bin/sentinel-agent", mode = "755" },
+    { source = "debian/sentinel-agent.service", dest = "/lib/systemd/system/sentinel-agent.service", mode = "644" },
+    { source = "../../linux/logrotate/sentinel-agent", dest = "/etc/logrotate.d/sentinel-agent", mode = "644" },
+    { source = "../../linux/apparmor/sentinel-agent", dest = "/etc/apparmor.d/usr.bin.sentinel-agent", mode = "644" },
+    { source = "../../config/agent.example.json", dest = "/etc/sentinel/agent.example.json", mode = "644" },
+    { source = "../../config/llm.example.json", dest = "/etc/sentinel/llm.example.json", mode = "644" },
 ]
+pre_install_script = "debian/preinst"
+post_install_script = "debian/postinst"
+pre_uninstall_script = "debian/prerm"
+post_uninstall_script = "debian/postrm"
 
 [package.metadata.deb]
 name = "sentinel-agent"
@@ -101,8 +110,18 @@ for enterprise environments following ISO 27001/27005 standards."""
 depends = "libssl3, libgtk-3-0, libayatana-appindicator3-1"
 section = "admin"
 priority = "optional"
+conf-files = ["/etc/sentinel/agent.json"]
+maintainer-scripts = "debian/"
+systemd-units = [
+    { unit-name = "sentinel-agent", enable = true, start = true },
+]
 assets = [
     ["../../target/release/agent-core", "usr/bin/sentinel-agent", "755"],
+    ["debian/sentinel-agent.service", "lib/systemd/system/sentinel-agent.service", "644"],
+    ["../../linux/logrotate/sentinel-agent", "etc/logrotate.d/sentinel-agent", "644"],
+    ["../../linux/apparmor/sentinel-agent", "etc/apparmor.d/usr.bin.sentinel-agent", "644"],
+    ["../../config/agent.example.json", "etc/sentinel/agent.example.json", "644"],
+    ["../../config/llm.example.json", "etc/sentinel/llm.example.json", "644"],
     ["../../README.md", "usr/share/doc/sentinel-agent/README.md", "644"],
-    ["../../LICENSE", "usr/share/doc/sentinel-agent/LICENSE", "644"]
+    ["../../LICENSE", "usr/share/doc/sentinel-agent/LICENSE", "644"],
 ]

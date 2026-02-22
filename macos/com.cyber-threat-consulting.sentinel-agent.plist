@@ -8,9 +8,7 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/Sentinel Agent.app/Contents/MacOS/sentinel-agent</string>
-        <string>run</string>
-        <string>--no-tray</string>
+        <string>/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent</string>
     </array>
 
     <key>RunAtLoad</key>
