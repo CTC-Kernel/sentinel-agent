@@ -1352,8 +1352,12 @@ fn get_system_memory() -> (u64, u64) {
         if kr == libc::KERN_SUCCESS {
             let raw_page_size = libc::sysconf(libc::_SC_PAGESIZE);
             let page_size: u64 = if raw_page_size > 0 { raw_page_size as u64 } else { 4096 };
-            // "Used" = active + wired + compressor (excludes inactive, free, speculative)
-            let used = (vm_info.active_count as u64
+            // Match macOS Activity Monitor formula:
+            // App Memory = internal - purgeable
+            // Memory Used = App Memory + Wired + Compressed
+            let app_memory = (vm_info.internal_page_count as u64)
+                .saturating_sub(vm_info.purgeable_count as u64);
+            let used = (app_memory
                 + vm_info.wire_count as u64
                 + vm_info.compressor_page_count as u64)
                 * page_size;
