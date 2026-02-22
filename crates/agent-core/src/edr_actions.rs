@@ -178,7 +178,7 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
         let rule = format!("block drop from {} to any\n", ip);
         let anchor_file = format!(
             "/tmp/sentinel_block_{}.conf",
-            ip.replace('.', "_").replace(':', "_")
+            ip.replace(['.', ':'], "_")
         );
         tokio::fs::write(&anchor_file, &rule)
             .await
@@ -265,7 +265,7 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
     {
         let anchor_file = format!(
             "/tmp/sentinel_block_{}.conf",
-            ip.replace('.', "_").replace(':', "_")
+            ip.replace(['.', ':'], "_")
         );
         let _ = tokio::fs::remove_file(&anchor_file).await;
         let _ = tokio::process::Command::new("pfctl")

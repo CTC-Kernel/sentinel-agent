@@ -1187,13 +1187,13 @@ impl AgentRuntime {
                 }
 
                 // Upload USB events to SaaS (populates USB tab)
-                if !usb_events.is_empty() {
-                    if let Some(ref auth_client) = self.authenticated_client {
-                        let payloads: Vec<agent_sync::types::UsbEventPayload> =
-                            usb_events.iter().cloned().map(Into::into).collect();
-                        if let Err(e) = auth_client.upload_usb_events(payloads).await {
-                            warn!("Failed to upload USB events to SaaS: {}", e);
-                        }
+                if !usb_events.is_empty()
+                    && let Some(ref auth_client) = self.authenticated_client
+                {
+                    let payloads: Vec<agent_sync::types::UsbEventPayload> =
+                        usb_events.iter().cloned().map(Into::into).collect();
+                    if let Err(e) = auth_client.upload_usb_events(payloads).await {
+                        warn!("Failed to upload USB events to SaaS: {}", e);
                     }
                 }
 

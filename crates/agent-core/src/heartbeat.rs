@@ -371,11 +371,11 @@ impl AgentRuntime {
         }
 
         // React to server-signaled update availability
-        if response.update_available {
-            if let Some(ref version) = response.update_version {
-                info!("Server signals update available: v{}", version);
-                self.state.force_update.store(true, Ordering::Release);
-            }
+        if response.update_available
+            && let Some(ref version) = response.update_version
+        {
+            info!("Server signals update available: v{}", version);
+            self.state.force_update.store(true, Ordering::Release);
         }
 
         // React to config changes

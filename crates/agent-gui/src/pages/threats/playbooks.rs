@@ -401,7 +401,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 },
             ];
 
-            let table = DataTable::new("playbook_log_table", columns);
+            let table = DataTable::new("playbook_log_table", columns).no_hover();
             let mut sort = TableSort::default();
             table.show_header(ui, &mut sort);
 

@@ -157,6 +157,12 @@ impl<'a> DataTable<'a> {
         self
     }
 
+    /// Disable hover highlight (for read-only informational tables).
+    pub fn no_hover(mut self) -> Self {
+        self.hoverable = false;
+        self
+    }
+
     /// Add borders between cells.
     pub fn bordered(mut self) -> Self {
         self.bordered = true;
