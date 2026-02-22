@@ -318,11 +318,11 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
         }
 
         // Strategy 2: extract JSON block between first '{' and last '}'
-        if let Some(json_block) = extract_json_block(response) {
-            if let Ok(raw) = serde_json::from_str::<RawRemediationPlan>(json_block) {
-                warn!("Remediation plan: fell back to JSON block extraction");
-                return Ok(self.raw_to_remediation_plan(raw, request, now, generation_time_ms));
-            }
+        if let Some(json_block) = extract_json_block(response)
+            && let Ok(raw) = serde_json::from_str::<RawRemediationPlan>(json_block)
+        {
+            warn!("Remediation plan: fell back to JSON block extraction");
+            return Ok(self.raw_to_remediation_plan(raw, request, now, generation_time_ms));
         }
 
         // Strategy 3: build a reasonable fallback from raw text
@@ -428,11 +428,11 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
         }
 
         // Strategy 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response) {
-            if let Ok(raw) = serde_json::from_str::<RawIssueRemediation>(json_block) {
-                warn!("Issue remediation: fell back to JSON block extraction");
-                return Ok(self.raw_to_issue_remediation(raw, issue));
-            }
+        if let Some(json_block) = extract_json_block(response)
+            && let Ok(raw) = serde_json::from_str::<RawIssueRemediation>(json_block)
+        {
+            warn!("Issue remediation: fell back to JSON block extraction");
+            return Ok(self.raw_to_issue_remediation(raw, issue));
         }
 
         // Strategy 3: build a reasonable fallback from raw text
@@ -493,11 +493,11 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
         }
 
         // Strategy 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response) {
-            if let Ok(raw) = serde_json::from_str::<RawRemediationValidation>(json_block) {
-                warn!("Remediation validation: fell back to JSON block extraction");
-                return Ok(self.raw_to_validation(raw, plan));
-            }
+        if let Some(json_block) = extract_json_block(response)
+            && let Ok(raw) = serde_json::from_str::<RawRemediationValidation>(json_block)
+        {
+            warn!("Remediation validation: fell back to JSON block extraction");
+            return Ok(self.raw_to_validation(raw, plan));
         }
 
         // Strategy 3: build a reasonable fallback from raw text
