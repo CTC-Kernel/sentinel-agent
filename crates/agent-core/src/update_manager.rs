@@ -221,22 +221,22 @@ impl UpdateManager {
         #[cfg(target_os = "macos")]
         {
             if agent_common::macos::is_admin() {
-                info!("Running as root, executing: /usr/sbin/installer -pkg {} -target /", path_str);
-                let output = Command::new("/usr/sbin/installer")
-                    .args(["-pkg", path_str, "-target", "/"])
-                    .output()
+                // If already root, we can spawn directly. Use `sh -c` with `&` to fully detach.
+                info!("Running as root, executing detached installer");
+                let script = format!("/usr/sbin/installer -pkg \"{}\" -target / > /dev/null 2>&1 &", path_str);
+                Command::new("sh")
+                    .arg("-c")
+                    .arg(&script)
+                    .spawn()
                     .map_err(|e| CommonError::system(format!("Failed to launch installer: {}", e)))?;
-
-                if !output.status.success() {
-                    let stderr = String::from_utf8_lossy(&output.stderr);
-                    return Err(CommonError::system(format!("Installer failed: {}", stderr)));
-                }
             } else {
-                info!("Not running as root, requesting elevation for installer");
-                let script = format!("/usr/sbin/installer -pkg \"{}\" -target /", path_str);
+                info!("Not running as root, requesting elevation for detached installer");
+                // AppleScript `do shell script` blocks until completion by default. 
+                // Adding `> /dev/null 2>&1 &` makes it return immediately.
+                let script = format!("/usr/sbin/installer -pkg \"{}\" -target / > /dev/null 2>&1 &", path_str);
                 agent_common::macos::run_with_elevation(&script)?;
             }
-            info!("macOS installer completed successfully");
+            info!("macOS installer spawned successfully");
         }
 
         #[cfg(target_os = "windows")]
@@ -265,7 +265,12 @@ impl UpdateManager {
             }
         }
 
-        info!("Installer started. The agent will be updated and restarted soon.");
-        Ok(())
+        info!("Installer started in the background. The agent will now exit to allow self-update, and will be restarted automatically.");
+        
+        // Sleep very briefly to ensure logs flush
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        
+        // Terminate the process with success code so the installer can seamlessly replace the binary
+        std::process::exit(0);
     }
 }
