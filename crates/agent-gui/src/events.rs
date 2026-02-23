@@ -225,6 +225,33 @@ pub enum AgentEvent {
         /// Memory allocated in MB.
         memory_mb: u64,
     },
+    /// LLM model download progress.
+    LlmDownloadProgress {
+        /// Name of the model being downloaded.
+        model_name: String,
+        /// Download progress percentage (0-100).
+        progress_percent: u8,
+        /// Bytes downloaded so far.
+        downloaded_bytes: u64,
+        /// Total size in bytes (0 if unknown).
+        total_bytes: u64,
+        /// Download speed in bytes per second.
+        speed_bps: u64,
+    },
+    /// LLM model download completed.
+    LlmDownloadComplete {
+        /// Name of the model that was downloaded.
+        model_name: String,
+        /// Total size in bytes.
+        total_bytes: u64,
+    },
+    /// LLM model download failed.
+    LlmDownloadFailed {
+        /// Name of the model.
+        model_name: String,
+        /// Error message.
+        error: String,
+    },
     /// AI risk analysis result.
     LlmRiskAnalysis {
         /// ID of the risk entry that was analyzed.
@@ -437,6 +464,14 @@ pub enum GuiCommand {
     LlmGetStatus,
     /// Reload the LLM model.
     LlmReloadModel,
+    /// Start downloading the LLM model.
+    LlmStartDownload,
+    /// Pause the current LLM model download.
+    LlmPauseDownload,
+    /// Resume a paused LLM model download.
+    LlmResumeDownload,
+    /// Cancel the current LLM model download.
+    LlmCancelDownload,
     /// Analyze a risk entry with AI for enhanced scoring and mitigation.
     LlmAnalyzeRisk {
         /// UUID of the risk entry.

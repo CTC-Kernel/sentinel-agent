@@ -23,6 +23,8 @@ impl ModelRegistry {
             recommended_use: vec!["Code analysis".to_string(), "Security auditing".to_string()],
             file_size_gb: 4.7,
             vram_gb_min: 6,
+            download_url: Some("https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf".to_string()),
+            gguf_filename: Some("qwen3-coder-7b.Q4_K_M.gguf".to_string()),
         });
 
         // Llama 4 8B - Best all-around model
@@ -39,6 +41,8 @@ impl ModelRegistry {
             ],
             file_size_gb: 5.2,
             vram_gb_min: 8,
+            download_url: Some("https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf".to_string()),
+            gguf_filename: Some("llama-4-8b.Q4_K_M.gguf".to_string()),
         });
 
         // DeepSeek-R1 8B - Best for complex reasoning
@@ -51,6 +55,8 @@ impl ModelRegistry {
             recommended_use: vec!["Threat analysis".to_string(), "Complex reasoning".to_string()],
             file_size_gb: 5.8,
             vram_gb_min: 8,
+            download_url: Some("https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf".to_string()),
+            gguf_filename: Some("deepseek-r1-8b.Q4_K_M.gguf".to_string()),
         });
 
         // Gemma 3 4B - Lightweight option
@@ -63,6 +69,8 @@ impl ModelRegistry {
             recommended_use: vec!["Basic classification".to_string(), "Summarization".to_string()],
             file_size_gb: 2.8,
             vram_gb_min: 4,
+            download_url: Some("https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf".to_string()),
+            gguf_filename: Some("gemma-3-4b.Q4_K_M.gguf".to_string()),
         });
 
         models
@@ -71,6 +79,13 @@ impl ModelRegistry {
     /// Get model info by name.
     pub fn get_model_info(name: &str) -> Option<ModelInfo> {
         Self::get_recommended_models().get(name).cloned()
+    }
+
+    /// Get the download URL for a model by name.
+    pub fn get_download_url(name: &str) -> Option<String> {
+        Self::get_recommended_models()
+            .get(name)
+            .and_then(|m| m.download_url.clone())
     }
 
     /// Recommend model based on use case and hardware constraints.
@@ -107,6 +122,10 @@ pub struct ModelInfo {
     pub recommended_use: Vec<String>,
     pub file_size_gb: f32,
     pub vram_gb_min: u32,
+    /// HuggingFace download URL for the GGUF file.
+    pub download_url: Option<String>,
+    /// Expected filename for the downloaded model.
+    pub gguf_filename: Option<String>,
 }
 
 /// Use cases for model recommendation.
