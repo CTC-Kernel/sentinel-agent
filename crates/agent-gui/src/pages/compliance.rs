@@ -292,16 +292,12 @@ impl CompliancePage {
                     .iter()
                     .enumerate()
                     .filter(|(_, c)| {
-                        if !search_lower.is_empty() {
-                            let haystack = format!(
-                                "{} {} {}",
-                                c.name.to_lowercase(),
-                                c.category.to_lowercase(),
-                                c.check_id.to_lowercase()
-                            );
-                            if !haystack.contains(&search_lower) {
-                                return false;
-                            }
+                        if !search_lower.is_empty()
+                            && !c.name.to_lowercase().contains(&search_lower)
+                            && !c.category.to_lowercase().contains(&search_lower)
+                            && !c.check_id.to_lowercase().contains(&search_lower)
+                        {
+                            return false;
                         }
                         match state.compliance.status_filter {
                             Some(GuiCheckStatus::Pass) => c.status == GuiCheckStatus::Pass,

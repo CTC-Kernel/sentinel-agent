@@ -62,16 +62,12 @@ impl VulnerabilitiesPage {
                             .iter()
                             .enumerate()
                             .filter(|(_, f)| {
-                                if !search_lower.is_empty() {
-                                    let haystack = format!(
-                                        "{} {} {}",
-                                        f.cve_id.to_lowercase(),
-                                        f.affected_software.to_lowercase(),
-                                        f.description.to_lowercase()
-                                    );
-                                    if !haystack.contains(&search_lower) {
-                                        return false;
-                                    }
+                                if !search_lower.is_empty()
+                                    && !f.cve_id.to_lowercase().contains(&search_lower)
+                                    && !f.affected_software.to_lowercase().contains(&search_lower)
+                                    && !f.description.to_lowercase().contains(&search_lower)
+                                {
+                                    return false;
                                 }
                                 if let Some(ref sev) = state.vulnerability.severity_filter {
                                     f.severity == *sev
@@ -512,16 +508,12 @@ impl VulnerabilitiesPage {
             .iter()
             .enumerate()
             .filter(|(_, f)| {
-                if !search_lower.is_empty() {
-                    let haystack = format!(
-                        "{} {} {}",
-                        f.cve_id.to_lowercase(),
-                        f.affected_software.to_lowercase(),
-                        f.description.to_lowercase()
-                    );
-                    if !haystack.contains(search_lower) {
-                        return false;
-                    }
+                if !search_lower.is_empty()
+                    && !f.cve_id.to_lowercase().contains(search_lower)
+                    && !f.affected_software.to_lowercase().contains(search_lower)
+                    && !f.description.to_lowercase().contains(search_lower)
+                {
+                    return false;
                 }
                 if let Some(ref sev) = state.vulnerability.severity_filter {
                     f.severity == *sev

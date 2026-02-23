@@ -37,7 +37,7 @@ pub(super) fn compute_risk_score(
     fim_unack: usize,
     network_alerts: usize,
     system_incidents: usize,
-    vuln_count: usize,
+    _vuln_count: usize,
 ) -> u32 {
     let critical_processes = state
         .threats

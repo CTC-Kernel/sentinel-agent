@@ -265,17 +265,13 @@ impl AssetsPage {
             .iter()
             .enumerate()
             .filter(|(_, a)| {
-                if !search_lower.is_empty() {
-                    let haystack = format!(
-                        "{} {} {} {}",
-                        a.hostname.as_deref().unwrap_or("").to_lowercase(),
-                        a.ip.to_lowercase(),
-                        a.device_type.to_lowercase(),
-                        a.tags.join(" ").to_lowercase()
-                    );
-                    if !haystack.contains(&search_lower) {
-                        return false;
-                    }
+                if !search_lower.is_empty()
+                    && !a.hostname.as_deref().unwrap_or("").to_lowercase().contains(&search_lower)
+                    && !a.ip.to_lowercase().contains(&search_lower)
+                    && !a.device_type.to_lowercase().contains(&search_lower)
+                    && !a.tags.iter().any(|tag| tag.to_lowercase().contains(&search_lower))
+                {
+                    return false;
                 }
                 if let Some(crit) = &state.assets.criticality_filter
                     && a.criticality != *crit
@@ -334,6 +330,7 @@ impl AssetsPage {
                     }
                 })
                 .body(|body| {
+                    let now = chrono::Utc::now();
                     body.rows(theme::TABLE_ROW_HEIGHT, indices.len(), |mut row| {
                         let row_idx = row.index();
                         let Some(&real_idx) = indices.get(row_idx) else { return };
@@ -396,8 +393,7 @@ impl AssetsPage {
                         });
 
                         row.col(|ui: &mut egui::Ui| {
-                            let ago =
-                                chrono::Utc::now().signed_duration_since(asset.last_seen);
+                            let ago = now.signed_duration_since(asset.last_seen);
                             let text = if ago.num_hours() < 1 {
                                 format!("il y a {}m", ago.num_minutes().max(1))
                             } else if ago.num_hours() < 24 {
