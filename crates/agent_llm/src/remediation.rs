@@ -146,13 +146,16 @@ impl RemediationAdvisor {
         let start_time = std::time::Instant::now();
 
         // Build the remediation prompt
-        let prompt = self.build_remediation_prompt(&request)?;
+        let (system_prompt, prompt) = self.build_remediation_prompt(&request)?;
 
         // Create inference request
-        let inference_request = InferenceRequest::new(prompt)
+        let mut inference_request = InferenceRequest::new(prompt)
             .with_max_tokens(self.config.inference.max_tokens)
             .with_temperature(0.3) // Lower temperature for technical accuracy
             .with_top_p(self.config.inference.top_p);
+        if let Some(sys) = system_prompt {
+            inference_request = inference_request.with_system_prompt(sys);
+        }
 
         // Perform inference
         let response = self.engine.infer(inference_request).await?;
@@ -166,11 +169,14 @@ impl RemediationAdvisor {
 
     /// Get specific remediation steps for a single issue.
     pub async fn get_issue_remediation(&self, issue: &SecurityIssue) -> Result<IssueRemediation> {
-        let prompt = self.build_issue_remediation_prompt(issue)?;
+        let (system_prompt, prompt) = self.build_issue_remediation_prompt(issue)?;
 
-        let request = InferenceRequest::new(prompt)
+        let mut request = InferenceRequest::new(prompt)
             .with_max_tokens(1024)
             .with_temperature(0.2);
+        if let Some(sys) = system_prompt {
+            request = request.with_system_prompt(sys);
+        }
 
         let response = self.engine.infer(request).await?;
         self.parse_issue_remediation(&response.text, issue)
@@ -178,18 +184,21 @@ impl RemediationAdvisor {
 
     /// Validate remediation steps before execution.
     pub async fn validate_remediation(&self, plan: &RemediationPlan) -> Result<RemediationValidation> {
-        let prompt = self.build_validation_prompt(plan)?;
+        let (system_prompt, prompt) = self.build_validation_prompt(plan)?;
 
-        let request = InferenceRequest::new(prompt)
+        let mut request = InferenceRequest::new(prompt)
             .with_max_tokens(512)
             .with_temperature(0.1);
+        if let Some(sys) = system_prompt {
+            request = request.with_system_prompt(sys);
+        }
 
         let response = self.engine.infer(request).await?;
         self.parse_validation_response(&response.text, plan)
     }
 
-    /// Build remediation prompt from request.
-    fn build_remediation_prompt(&self, request: &RemediationRequest) -> Result<String> {
+    /// Build remediation prompt from request, returning (system_prompt, user_prompt).
+    fn build_remediation_prompt(&self, request: &RemediationRequest) -> Result<(Option<String>, String)> {
         let template = PromptTemplates::get("remediation")
             .ok_or_else(|| anyhow::anyhow!("Remediation template not found"))?;
 
@@ -218,12 +227,12 @@ impl RemediationAdvisor {
             .set("issues", &issues_text)
             .set("system_context", &system_context)
             .set("compliance_requirements", &compliance_reqs)
-            .build())
+            .build_parts())
     }
 
-    /// Build issue-specific remediation prompt.
-    fn build_issue_remediation_prompt(&self, issue: &SecurityIssue) -> Result<String> {
-        let prompt = format!(
+    /// Build issue-specific remediation prompt, returning (system_prompt, user_prompt).
+    fn build_issue_remediation_prompt(&self, issue: &SecurityIssue) -> Result<(Option<String>, String)> {
+        let user_prompt = format!(
             r#"Provide detailed remediation steps for the following security issue:
 
 Issue: {}
@@ -261,11 +270,14 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
             issue.compliance_impact
         );
 
-        Ok(prompt)
+        Ok((
+            Some("You are a cybersecurity remediation specialist. Provide specific, actionable remediation steps with exact commands.".to_string()),
+            user_prompt,
+        ))
     }
 
-    /// Build validation prompt for remediation plan.
-    fn build_validation_prompt(&self, plan: &RemediationPlan) -> Result<String> {
+    /// Build validation prompt for remediation plan, returning (system_prompt, user_prompt).
+    fn build_validation_prompt(&self, plan: &RemediationPlan) -> Result<(Option<String>, String)> {
         let actions_text = plan.actions.iter()
             .map(|action| format!("{} [{}]: {}",
                 action.title,
@@ -274,7 +286,7 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
             .collect::<Vec<_>>()
             .join("\n");
 
-        let prompt = format!(
+        let user_prompt = format!(
             r#"Review the following remediation plan for safety and effectiveness:
 
 Actions:
@@ -304,7 +316,10 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
             plan.system_context
         );
 
-        Ok(prompt)
+        Ok((
+            Some("You are a security remediation validator. Assess remediation plans for safety, completeness, and effectiveness.".to_string()),
+            user_prompt,
+        ))
     }
 
     /// Parse remediation response from LLM.

@@ -352,13 +352,16 @@ impl LLMAnalyzer {
         let start_time = std::time::Instant::now();
 
         // Prepare the analysis prompt
-        let prompt = self.build_analysis_prompt(&context)?;
+        let (system_prompt, prompt) = self.build_analysis_prompt(&context)?;
 
         // Create inference request
-        let request = InferenceRequest::new(prompt)
+        let mut request = InferenceRequest::new(prompt)
             .with_max_tokens(self.config.inference.max_tokens)
             .with_temperature(self.config.inference.temperature)
             .with_top_p(self.config.inference.top_p);
+        if let Some(sys) = system_prompt {
+            request = request.with_system_prompt(sys);
+        }
 
         // Perform inference
         let response = self.engine.infer(request).await?;
@@ -372,11 +375,14 @@ impl LLMAnalyzer {
 
     /// Analyze a single security event.
     pub async fn analyze_security_event(&self, event: &SecurityEvent) -> Result<SecurityAnalysis> {
-        let prompt = self.build_security_event_prompt(event)?;
+        let (system_prompt, prompt) = self.build_security_event_prompt(event)?;
 
-        let request = InferenceRequest::new(prompt)
+        let mut request = InferenceRequest::new(prompt)
             .with_max_tokens(1024)
             .with_temperature(0.3); // Lower temperature for security analysis
+        if let Some(sys) = system_prompt {
+            request = request.with_system_prompt(sys);
+        }
 
         let response = self.engine.infer(request).await?;
         self.parse_security_analysis(&response.text, event)
@@ -384,18 +390,21 @@ impl LLMAnalyzer {
 
     /// Summarize multiple analysis results.
     pub async fn summarize_results(&self, results: &[AnalysisResult]) -> Result<AnalysisSummary> {
-        let prompt = self.build_summary_prompt(results)?;
+        let (system_prompt, prompt) = self.build_summary_prompt(results)?;
 
-        let request = InferenceRequest::new(prompt)
+        let mut request = InferenceRequest::new(prompt)
             .with_max_tokens(2048)
             .with_temperature(0.5);
+        if let Some(sys) = system_prompt {
+            request = request.with_system_prompt(sys);
+        }
 
         let response = self.engine.infer(request).await?;
         self.parse_summary_response(&response.text)
     }
 
-    /// Build analysis prompt from context.
-    fn build_analysis_prompt(&self, context: &AnalysisContext) -> Result<String> {
+    /// Build analysis prompt from context, returning (system_prompt, user_prompt).
+    fn build_analysis_prompt(&self, context: &AnalysisContext) -> Result<(Option<String>, String)> {
         let template = PromptTemplates::get("security_analysis")
             .ok_or_else(|| anyhow::anyhow!("Security analysis template not found"))?;
 
@@ -426,13 +435,13 @@ impl LLMAnalyzer {
             compliance_score: self.calculate_compliance_score(&context.scan_results),
         };
 
-        let base_prompt = SecurityPromptBuilder::new(template)
+        let (system_prompt, user_prompt) = SecurityPromptBuilder::new(template)
             .security_context(&security_context)
             .scan_results(&scan_results_obj)
-            .build();
+            .build_parts();
 
         // Append the JSON schema instruction so the LLM returns structured output
-        Ok(format!("{}{}", base_prompt, ANALYSIS_JSON_SCHEMA))
+        Ok((system_prompt, format!("{}{}", user_prompt, ANALYSIS_JSON_SCHEMA)))
     }
 
     /// Format scan results for prompt.
@@ -806,8 +815,8 @@ impl LLMAnalyzer {
         }
     }
 
-    /// Build security event analysis prompt.
-    fn build_security_event_prompt(&self, event: &SecurityEvent) -> Result<String> {
+    /// Build security event analysis prompt, returning (system_prompt, user_prompt).
+    fn build_security_event_prompt(&self, event: &SecurityEvent) -> Result<(Option<String>, String)> {
         let template = PromptTemplates::get("threat_classification")
             .ok_or_else(|| anyhow::anyhow!("Threat classification template not found"))?;
 
@@ -816,10 +825,10 @@ impl LLMAnalyzer {
         variables.insert("system_info".to_string(), event.system_info.clone());
         variables.insert("historical_context".to_string(), event.historical_context.clone());
 
-        let base_prompt = template.full_prompt(&variables);
+        let (system_prompt, user_prompt) = template.render_parts(&variables);
 
         // Append the JSON schema instruction for structured output
-        Ok(format!("{}{}", base_prompt, SECURITY_EVENT_JSON_SCHEMA))
+        Ok((system_prompt, format!("{}{}", user_prompt, SECURITY_EVENT_JSON_SCHEMA)))
     }
 
     /// Parse security analysis response from LLM.
@@ -942,17 +951,20 @@ impl LLMAnalyzer {
         }
     }
 
-    /// Build summary prompt for multiple results.
-    fn build_summary_prompt(&self, results: &[AnalysisResult]) -> Result<String> {
+    /// Build summary prompt for multiple results, returning (system_prompt, user_prompt).
+    fn build_summary_prompt(&self, results: &[AnalysisResult]) -> Result<(Option<String>, String)> {
         let summary_text = results.iter()
             .map(|r| format!("Analysis {}: Risk Level {:?}, {} priority issues",
                 r.id, r.risk_assessment.risk_level, r.priority_issues.len()))
             .collect::<Vec<_>>()
             .join("\n");
 
-        Ok(format!(
-            "Summarize the following security analysis results:\n\n{}\n\nProvide a concise executive summary highlighting key risks and recommended actions.",
-            summary_text
+        Ok((
+            Some("You are a senior security analyst. Provide concise executive summaries highlighting key risks and recommended actions.".to_string()),
+            format!(
+                "Summarize the following security analysis results:\n\n{}\n\nProvide a concise executive summary highlighting key risks and recommended actions.",
+                summary_text
+            ),
         ))
     }
 
