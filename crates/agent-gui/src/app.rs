@@ -89,7 +89,7 @@ pub struct SentinelApp {
     async_results_rx: mpsc::Receiver<AsyncTaskResult>,
 
     // Tray bridge (optional -- only on desktop).
-    _tray: Option<TrayBridge>,
+    tray: Option<TrayBridge>,
 
     // Window visibility (close = hide).
     visible: bool,
@@ -169,7 +169,7 @@ impl SentinelApp {
             command_tx,
             enrollment_tx,
             async_results_rx: async_rx,
-            _tray: tray,
+            tray,
             visible: true,
             quit_requested: false,
             splash_start: std::time::Instant::now(),
@@ -267,11 +267,35 @@ impl SentinelApp {
                         )));
                     }
                 }
+                TrayAction::Pause => {
+                    self.send_command(GuiCommand::Pause);
+                    if let Some(ref tray) = self.tray {
+                        tray.set_paused(true);
+                    }
+                }
+                TrayAction::Resume => {
+                    self.send_command(GuiCommand::Resume);
+                    if let Some(ref tray) = self.tray {
+                        tray.set_paused(false);
+                    }
+                }
                 TrayAction::RunCheck => {
                     self.send_command(GuiCommand::RunCheck);
                 }
                 TrayAction::ForceSync => {
                     self.send_command(GuiCommand::ForceSync);
+                }
+                TrayAction::OpenLogs => {
+                    crate::tray_bridge::open_logs_folder();
+                }
+                TrayAction::OpenGuide => {
+                    crate::tray_bridge::open_guide();
+                }
+                TrayAction::OpenConsole => {
+                    crate::tray_bridge::open_console();
+                }
+                TrayAction::About => {
+                    crate::tray_bridge::open_about();
                 }
                 TrayAction::Quit => {
                     self.quit_requested = true;
@@ -282,7 +306,15 @@ impl SentinelApp {
         }
     }
 
-    // recompute_policy moved to state.rs
+    /// Push latest resource metrics to the tray menu.
+    fn update_tray_info(&self) {
+        if let Some(ref tray) = self.tray {
+            tray.update_resources(
+                self.state.resources.cpu_percent,
+                self.state.resources.memory_used_mb,
+            );
+        }
+    }
 
     fn send_command(&self, cmd: GuiCommand) {
         if let Err(e) = self.command_tx.send(cmd) {
@@ -457,6 +489,7 @@ impl eframe::App for SentinelApp {
 
         // Process incoming events.
         self.process_events();
+        self.update_tray_info();
         self.process_tray_actions(ctx);
 
         // Auto-lock admin mode after 5 minutes of inactivity.

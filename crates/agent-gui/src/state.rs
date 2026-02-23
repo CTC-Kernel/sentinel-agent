@@ -326,6 +326,8 @@ pub struct AiState {
     pub is_processing: bool,
     /// Current model status.
     pub model_status: crate::dto::LlmModelStatus,
+    /// LLM model download progress.
+    pub download: crate::dto::LlmDownloadState,
 }
 
 // ---------------------------------------------------------------------------
@@ -955,6 +957,44 @@ impl AppState {
                     memory_mb,
                     is_ready,
                 };
+            }
+            AgentEvent::LlmDownloadProgress {
+                model_name,
+                progress_percent,
+                downloaded_bytes,
+                total_bytes,
+                speed_bps,
+            } => {
+                self.ai.download.phase = crate::dto::DownloadPhase::Downloading;
+                self.ai.download.model_name = model_name;
+                self.ai.download.progress_percent = progress_percent;
+                self.ai.download.downloaded_bytes = downloaded_bytes;
+                self.ai.download.total_bytes = total_bytes;
+                self.ai.download.speed_bps = speed_bps;
+                self.ai.download.error = None;
+                self.ai.model_status.status = "downloading".to_string();
+            }
+            AgentEvent::LlmDownloadComplete {
+                model_name,
+                total_bytes,
+            } => {
+                self.ai.download.phase = crate::dto::DownloadPhase::Completed;
+                self.ai.download.model_name = model_name;
+                self.ai.download.progress_percent = 100;
+                self.ai.download.downloaded_bytes = total_bytes;
+                self.ai.download.total_bytes = total_bytes;
+                self.ai.download.speed_bps = 0;
+                self.ai.download.error = None;
+            }
+            AgentEvent::LlmDownloadFailed {
+                model_name,
+                error,
+            } => {
+                self.ai.download.phase = crate::dto::DownloadPhase::Failed;
+                self.ai.download.model_name = model_name;
+                self.ai.download.speed_bps = 0;
+                self.ai.download.error = Some(error);
+                self.ai.model_status.status = "error".to_string();
             }
             AgentEvent::LlmRiskAnalysis {
                 risk_id,

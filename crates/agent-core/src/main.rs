@@ -1680,6 +1680,22 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                     memory_mb: 0,
                                                 });
                                             }
+                                            agent_core::llm_service::LLMServiceStatus::Downloading {
+                                                model_name,
+                                                progress_percent,
+                                                downloaded_mb,
+                                                total_mb,
+                                            } => {
+                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                    model_name,
+                                                    status: format!(
+                                                        "downloading: {}% ({}/{} MB)",
+                                                        progress_percent, downloaded_mb, total_mb
+                                                    ),
+                                                    inference_count: 0,
+                                                    memory_mb: 0,
+                                                });
+                                            }
                                         }
                                     } else {
                                         let _ = tx.send(AgentEvent::LlmStatusUpdate {
@@ -1759,6 +1775,127 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     status: "not_available".to_string(),
                                     inference_count: 0,
                                     memory_mb: 0,
+                                });
+                            }
+                        }
+
+                        Ok(GuiCommand::LlmStartDownload) => {
+                            info!("[AUDIT] GUI requested LLM model download");
+                            let tx = bg_event_tx.clone();
+                            #[cfg(feature = "llm")]
+                            {
+                                let svc = llm_service.clone();
+                                tokio::spawn(async move {
+                                    if let Some(ref svc) = svc {
+                                        let config = match svc.get_config().await {
+                                            Ok(c) => c,
+                                            Err(e) => {
+                                                let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                                                    model_name: "N/A".to_string(),
+                                                    error: format!("Configuration invalide: {}", e),
+                                                });
+                                                return;
+                                            }
+                                        };
+                                        let model_name = config.model.name.clone();
+                                        let tx2 = tx.clone();
+                                        let name2 = model_name.clone();
+                                        let progress_fn: agent_core::llm_service::DownloadProgressFn =
+                                            Box::new(move |percent, downloaded, total, speed| {
+                                                let _ = tx2.send(AgentEvent::LlmDownloadProgress {
+                                                    model_name: name2.clone(),
+                                                    progress_percent: percent,
+                                                    downloaded_bytes: downloaded,
+                                                    total_bytes: total,
+                                                    speed_bps: speed,
+                                                });
+                                            });
+                                        match svc.download_model_with_progress(&config, Some(progress_fn)).await {
+                                            Ok(()) => {
+                                                info!("LLM model download completed");
+                                                let total = config.model.path.metadata()
+                                                    .map(|m| m.len()).unwrap_or(0);
+                                                let _ = tx.send(AgentEvent::LlmDownloadComplete {
+                                                    model_name: model_name.clone(),
+                                                    total_bytes: total,
+                                                });
+                                                // Auto-initialize after download
+                                                if let Err(e) = svc.reload().await {
+                                                    warn!("Failed to initialize model after download: {}", e);
+                                                    let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                        model_name,
+                                                        status: format!("init_error: {}", e),
+                                                        inference_count: 0,
+                                                        memory_mb: 0,
+                                                    });
+                                                } else if let agent_core::llm_service::LLMServiceStatus::Ready {
+                                                    model_name: name,
+                                                    inference_count,
+                                                    memory_usage_mb,
+                                                } = svc.get_status().await {
+                                                    let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                                        model_name: name,
+                                                        status: "ready".to_string(),
+                                                        inference_count,
+                                                        memory_mb: memory_usage_mb,
+                                                    });
+                                                }
+                                            }
+                                            Err(e) => {
+                                                warn!("LLM model download failed: {}", e);
+                                                let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                                                    model_name,
+                                                    error: e.to_string(),
+                                                });
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                            #[cfg(not(feature = "llm"))]
+                            {
+                                let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                                    model_name: "N/A".to_string(),
+                                    error: "Module IA non compilé".to_string(),
+                                });
+                            }
+                        }
+
+                        Ok(GuiCommand::LlmPauseDownload) => {
+                            info!("[AUDIT] GUI requested download pause");
+                            #[cfg(feature = "llm")]
+                            {
+                                let svc = llm_service.clone();
+                                tokio::spawn(async move {
+                                    if let Some(ref svc) = svc {
+                                        svc.pause_download().await;
+                                    }
+                                });
+                            }
+                        }
+
+                        Ok(GuiCommand::LlmResumeDownload) => {
+                            info!("[AUDIT] GUI requested download resume");
+                            #[cfg(feature = "llm")]
+                            {
+                                let svc = llm_service.clone();
+                                tokio::spawn(async move {
+                                    if let Some(ref svc) = svc {
+                                        svc.resume_download().await;
+                                    }
+                                });
+                            }
+                        }
+
+                        Ok(GuiCommand::LlmCancelDownload) => {
+                            info!("[AUDIT] GUI requested download cancel");
+                            #[cfg(feature = "llm")]
+                            {
+                                let svc = llm_service.clone();
+                                tokio::spawn(async move {
+                                    if let Some(ref svc) = svc {
+                                        svc.cancel_download().await;
+                                    }
                                 });
                             }
                         }

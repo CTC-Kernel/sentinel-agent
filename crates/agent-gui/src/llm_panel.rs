@@ -615,10 +615,37 @@ impl LLMPanel {
         state: &mut AppState,
     ) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
+
+        // Extract values to avoid borrow conflicts
+        let download_phase = state.ai.download.phase;
+        let model_status_str = state.ai.model_status.status.clone();
+
+        // ── Download in progress / paused / failed ──────────────────────
+        let show_download_ui = matches!(
+            download_phase,
+            crate::dto::DownloadPhase::Downloading
+                | crate::dto::DownloadPhase::Paused
+                | crate::dto::DownloadPhase::Failed
+        );
+
+        if show_download_ui {
+            if let Some(cmd) = Self::render_download_progress(ui, state) {
+                return Some(cmd);
+            }
+            ui.add_space(theme::SPACE_LG);
+            // If downloading, don't show the rest of the model status
+            if matches!(
+                download_phase,
+                crate::dto::DownloadPhase::Downloading | crate::dto::DownloadPhase::Paused
+            ) {
+                return command;
+            }
+        }
+
         let status = &state.ai.model_status;
 
         // Empty / unloaded state
-        if status.status.is_empty() || status.status == "unloaded" {
+        if model_status_str.is_empty() || model_status_str == "unloaded" {
             widgets::empty_state(
                 ui,
                 icons::MICROCHIP,
@@ -631,8 +658,9 @@ impl LLMPanel {
 
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.add_space(
-                    (ui.available_width() - 200.0).max(0.0) / 2.0,
+                    (ui.available_width() - 400.0).max(0.0) / 2.0,
                 );
+
                 let reload_btn = egui::Button::new(
                     egui::RichText::new(format!("{} Charger le mod\u{00e8}le", icons::PLAY))
                         .font(theme::font_body())
@@ -643,6 +671,24 @@ impl LLMPanel {
 
                 if ui.add(reload_btn).clicked() {
                     command = Some(GuiCommand::LlmReloadModel);
+                }
+
+                ui.add_space(theme::SPACE_MD);
+
+                let download_btn = egui::Button::new(
+                    egui::RichText::new(format!("{} T\u{00e9}l\u{00e9}charger le mod\u{00e8}le", icons::DOWNLOAD))
+                        .font(theme::font_body())
+                        .color(theme::accent_text()),
+                )
+                .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
+                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
+
+                if ui.add(download_btn).clicked() {
+                    state.ai.download.phase = crate::dto::DownloadPhase::Downloading;
+                    state.ai.download.progress_percent = 0;
+                    state.ai.download.downloaded_bytes = 0;
+                    command = Some(GuiCommand::LlmStartDownload);
                 }
             });
 
@@ -807,6 +853,307 @@ impl LLMPanel {
         });
 
         command
+    }
+
+    // ====================================================================
+    // Download progress UI
+    // ====================================================================
+
+    fn render_download_progress(
+        ui: &mut egui::Ui,
+        state: &mut AppState,
+    ) -> Option<GuiCommand> {
+        let mut command: Option<GuiCommand> = None;
+
+        // Extract all needed values before the mutable closure
+        let phase = state.ai.download.phase;
+        let model_name = state.ai.download.model_name.clone();
+        let progress_percent = state.ai.download.progress_percent;
+        let downloaded_bytes = state.ai.download.downloaded_bytes;
+        let total_bytes = state.ai.download.total_bytes;
+        let speed_bps = state.ai.download.speed_bps;
+        let error_msg = state.ai.download.error.clone();
+
+        let is_paused = phase == crate::dto::DownloadPhase::Paused;
+        let is_failed = phase == crate::dto::DownloadPhase::Failed;
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            // ── Header ──────────────────────────────────────────────────
+            ui.horizontal(|ui: &mut egui::Ui| {
+                let header_icon = if is_failed {
+                    icons::CIRCLE_XMARK
+                } else if is_paused {
+                    icons::PAUSE
+                } else {
+                    icons::DOWNLOAD
+                };
+                let header_color = if is_failed {
+                    theme::ERROR
+                } else if is_paused {
+                    theme::WARNING
+                } else {
+                    theme::ACCENT
+                };
+
+                ui.label(
+                    egui::RichText::new(header_icon)
+                        .size(theme::ICON_MD)
+                        .color(header_color),
+                );
+                ui.add_space(theme::SPACE_SM);
+                ui.vertical(|ui: &mut egui::Ui| {
+                    let title = if is_failed {
+                        "T\u{00c9}L\u{00c9}CHARGEMENT \u{00c9}CHOU\u{00c9}"
+                    } else if is_paused {
+                        "T\u{00c9}L\u{00c9}CHARGEMENT EN PAUSE"
+                    } else {
+                        "T\u{00c9}L\u{00c9}CHARGEMENT DU MOD\u{00c8}LE"
+                    };
+                    ui.label(
+                        egui::RichText::new(title)
+                            .font(theme::font_label())
+                            .color(header_color)
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
+                            .strong(),
+                    );
+                    if !model_name.is_empty() {
+                        ui.label(
+                            egui::RichText::new(&model_name)
+                                .font(theme::font_body())
+                                .color(theme::text_primary())
+                                .strong(),
+                        );
+                    }
+                });
+            });
+
+            ui.add_space(theme::SPACE_MD);
+
+            // ── Error message ───────────────────────────────────────────
+            if let Some(ref error) = error_msg {
+                egui::Frame::new()
+                    .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
+                    .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                    .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+                    .show(ui, |ui: &mut egui::Ui| {
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icons::CIRCLE_XMARK)
+                                    .size(theme::ICON_SM)
+                                    .color(theme::ERROR),
+                            );
+                            ui.add_space(theme::SPACE_XS);
+                            ui.label(
+                                egui::RichText::new(error)
+                                    .font(theme::font_small())
+                                    .color(theme::ERROR),
+                            );
+                        });
+                    });
+                ui.add_space(theme::SPACE_MD);
+            }
+
+            // ── Progress Bar ────────────────────────────────────────────
+            if !is_failed {
+                let progress = progress_percent as f32 / 100.0;
+
+                // Custom progress bar
+                let desired_size = egui::vec2(ui.available_width(), 12.0);
+                let (rect, _response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
+
+                if ui.is_rect_visible(rect) {
+                    let painter = ui.painter();
+
+                    // Background track
+                    painter.rect_filled(
+                        rect,
+                        egui::CornerRadius::same(6),
+                        theme::bg_elevated(),
+                    );
+
+                    // Fill
+                    let fill_width = rect.width() * progress;
+                    if fill_width > 0.0 {
+                        let fill_rect = egui::Rect::from_min_size(
+                            rect.min,
+                            egui::vec2(fill_width, rect.height()),
+                        );
+
+                        let fill_color = if is_paused {
+                            theme::WARNING
+                        } else {
+                            theme::ACCENT
+                        };
+
+                        painter.rect_filled(
+                            fill_rect,
+                            egui::CornerRadius::same(6),
+                            fill_color,
+                        );
+                    }
+                }
+
+                ui.add_space(theme::SPACE_MD);
+
+                // ── Stats row ───────────────────────────────────────────
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    // Percentage
+                    ui.label(
+                        egui::RichText::new(format!("{}%", progress_percent))
+                            .font(theme::font_stat())
+                            .color(if is_paused { theme::WARNING } else { theme::ACCENT })
+                            .strong(),
+                    );
+
+                    ui.add_space(theme::SPACE_LG);
+
+                    // Downloaded / Total
+                    let downloaded_mb = downloaded_bytes / (1024 * 1024);
+                    let total_mb = total_bytes / (1024 * 1024);
+                    let size_text = if total_mb > 0 {
+                        format!("{} / {} Mo", downloaded_mb, total_mb)
+                    } else {
+                        format!("{} Mo", downloaded_mb)
+                    };
+                    ui.label(
+                        egui::RichText::new(size_text)
+                            .font(theme::font_body())
+                            .color(theme::text_secondary()),
+                    );
+
+                    // Speed (only when actively downloading)
+                    if !is_paused && speed_bps > 0 {
+                        ui.with_layout(
+                            egui::Layout::right_to_left(egui::Align::Center),
+                            |ui: &mut egui::Ui| {
+                                let speed_text = Self::format_speed(speed_bps);
+                                ui.label(
+                                    egui::RichText::new(format!("{} {}", icons::BOLT, speed_text))
+                                        .font(theme::font_small())
+                                        .color(theme::text_tertiary()),
+                                );
+
+                                // ETA
+                                if total_bytes > 0 && speed_bps > 0 {
+                                    let remaining = total_bytes.saturating_sub(downloaded_bytes);
+                                    let eta_secs = remaining / speed_bps;
+                                    let eta_text = Self::format_duration(eta_secs);
+                                    ui.label(
+                                        egui::RichText::new(format!("{} restant", eta_text))
+                                            .font(theme::font_small())
+                                            .color(theme::text_tertiary()),
+                                    );
+                                }
+                            },
+                        );
+                    }
+                });
+
+                // Request repaint while downloading for animation
+                if !is_paused {
+                    ui.ctx().request_repaint_after(std::time::Duration::from_millis(500));
+                }
+            }
+
+            ui.add_space(theme::SPACE_LG);
+
+            // ── Action Buttons ──────────────────────────────────────────
+            ui.horizontal(|ui: &mut egui::Ui| {
+                if is_failed {
+                    // Retry button
+                    let retry_btn = egui::Button::new(
+                        egui::RichText::new(format!("{} R\u{00e9}essayer", icons::REFRESH))
+                            .font(theme::font_body())
+                            .color(theme::text_on_accent()),
+                    )
+                    .fill(theme::ACCENT)
+                    .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+
+                    if ui.add(retry_btn).clicked() {
+                        state.ai.download.phase = crate::dto::DownloadPhase::Downloading;
+                        state.ai.download.error = None;
+                        state.ai.download.progress_percent = 0;
+                        state.ai.download.downloaded_bytes = 0;
+                        command = Some(GuiCommand::LlmStartDownload);
+                    }
+                } else if is_paused {
+                    // Resume button
+                    let resume_btn = egui::Button::new(
+                        egui::RichText::new(format!("{} Reprendre", icons::PLAY))
+                            .font(theme::font_body())
+                            .color(theme::text_on_accent()),
+                    )
+                    .fill(theme::ACCENT)
+                    .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+
+                    if ui.add(resume_btn).clicked() {
+                        state.ai.download.phase = crate::dto::DownloadPhase::Downloading;
+                        command = Some(GuiCommand::LlmResumeDownload);
+                    }
+                } else {
+                    // Pause button (active download)
+                    let pause_btn = egui::Button::new(
+                        egui::RichText::new(format!("{} Mettre en pause", icons::PAUSE))
+                            .font(theme::font_body())
+                            .color(theme::text_on_accent()),
+                    )
+                    .fill(theme::WARNING)
+                    .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+
+                    if ui.add(pause_btn).clicked() {
+                        state.ai.download.phase = crate::dto::DownloadPhase::Paused;
+                        command = Some(GuiCommand::LlmPauseDownload);
+                    }
+                }
+
+                ui.add_space(theme::SPACE_MD);
+
+                // Cancel button (always visible when not failed)
+                if !is_failed {
+                    let cancel_btn = egui::Button::new(
+                        egui::RichText::new(format!("{} Annuler", icons::CIRCLE_XMARK))
+                            .font(theme::font_body())
+                            .color(theme::ERROR),
+                    )
+                    .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
+                    .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                    .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ERROR.linear_multiply(theme::OPACITY_MUTED)));
+
+                    if ui.add(cancel_btn).clicked() {
+                        state.ai.download.phase = crate::dto::DownloadPhase::Idle;
+                        command = Some(GuiCommand::LlmCancelDownload);
+                    }
+                }
+            });
+        });
+
+        command
+    }
+
+    /// Format bytes per second to human-readable speed string.
+    fn format_speed(bps: u64) -> String {
+        if bps >= 1_000_000 {
+            format!("{:.1} Mo/s", bps as f64 / 1_000_000.0)
+        } else if bps >= 1_000 {
+            format!("{:.0} Ko/s", bps as f64 / 1_000.0)
+        } else {
+            format!("{} o/s", bps)
+        }
+    }
+
+    /// Format seconds to "Xh Ym" or "Ym Zs" duration string.
+    fn format_duration(secs: u64) -> String {
+        if secs >= 3600 {
+            let h = secs / 3600;
+            let m = (secs % 3600) / 60;
+            format!("{}h {:02}m", h, m)
+        } else if secs >= 60 {
+            let m = secs / 60;
+            let s = secs % 60;
+            format!("{}m {:02}s", m, s)
+        } else {
+            format!("{}s", secs)
+        }
     }
 
     // ── Score computation ────────────────────────────────────────────────
