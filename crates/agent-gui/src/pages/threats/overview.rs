@@ -507,7 +507,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         match threat.kind {
             "process" => {
                 if threat.source_index < state.threats.suspicious_processes.len() {
-                    let p = state.threats.suspicious_processes[threat.source_index].clone();
+                    let p = &state.threats.suspicious_processes[threat.source_index];
                     let conf_color = if p.confidence >= 90 {
                         theme::ERROR
                     } else if p.confidence >= 70 {

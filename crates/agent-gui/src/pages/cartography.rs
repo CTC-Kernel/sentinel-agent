@@ -110,7 +110,7 @@ impl CartographyPage {
                     ui.add_space(theme::SPACE_LG);
 
                     // Open 3D view button
-                    if widgets::primary_button(ui, format!("VUE 3D {}", icons::EXTERNAL_LINK), true)
+                    if widgets::primary_button(ui, format!("{}  VUE 3D", icons::EXTERNAL_LINK), true)
                         .clicked()
                     {
                         if state.settings.architecture_url.starts_with("https://") {
@@ -126,7 +126,19 @@ impl CartographyPage {
 
                     // Export CSV
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        Self::export_csv(state);
+                        let success = Self::export_csv(state);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV cartographie r\u{00e9}ussi")
+                                    .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
+                                    .with_time(time),
+                            );
+                        }
                     }
 
                     ui.with_layout(
@@ -158,6 +170,13 @@ impl CartographyPage {
         });
 
         ui.add_space(theme::SPACE_MD);
+
+        // Invalidate layout if device list changed
+        let device_count = state.discovery.devices.len();
+        if state.cartography.layout.as_ref().is_some_and(|l| l.nodes.len() != device_count) {
+            state.cartography.layout = None;
+            state.cartography.selected_device = None;
+        }
 
         // Build graph layout if needed (avoid cloning on every frame)
         if state.cartography.layout.is_none() {
@@ -337,12 +356,12 @@ impl CartographyPage {
         });
 
         // Selected Object Detail Panel (AAA Grade)
-        if let Some(ref selected_ip) = state.cartography.selected_device.clone()
+        if let Some(selected_ip) = state.cartography.selected_device.as_deref()
             && let Some(device) = state
                 .discovery
                 .devices
                 .iter()
-                .find(|d| &d.ip == selected_ip)
+                .find(|d| d.ip == selected_ip)
         {
             ui.add_space(theme::SPACE_MD);
             widgets::card(ui, |ui: &mut egui::Ui| {
@@ -452,7 +471,7 @@ impl CartographyPage {
         command
     }
 
-    fn export_csv(state: &AppState) {
+    fn export_csv(state: &AppState) -> bool {
         let headers = &["ip", "hostname", "mac", "vendor", "type", "passerelle"];
         let rows: Vec<Vec<String>> = state
             .discovery
@@ -470,8 +489,12 @@ impl CartographyPage {
             })
             .collect();
         let path = crate::export::default_export_path("cartographie_reseau.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 }
@@ -593,7 +616,6 @@ fn run_force_simulation(layout: &mut GraphLayout) {
             }
             let dx = layout.nodes[edge.target].pos.x - layout.nodes[edge.source].pos.x;
             let dy = layout.nodes[edge.target].pos.y - layout.nodes[edge.source].pos.y;
-            let _dist = (dx * dx + dy * dy).sqrt().max(1.0);
             let fx = dx * attraction;
             let fy = dy * attraction;
 

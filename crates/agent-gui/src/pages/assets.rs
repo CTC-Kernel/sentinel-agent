@@ -336,8 +336,8 @@ impl AssetsPage {
                 .body(|body| {
                     body.rows(theme::TABLE_ROW_HEIGHT, indices.len(), |mut row| {
                         let row_idx = row.index();
-                        let real_idx = indices[row_idx];
-                        let asset = &state.assets.assets[real_idx];
+                        let Some(&real_idx) = indices.get(row_idx) else { return };
+                        let Some(asset) = state.assets.assets.get(real_idx) else { return };
                         let is_selected = state.assets.selected_asset == Some(real_idx);
                         row.set_selected(is_selected);
 
@@ -385,13 +385,6 @@ impl AssetsPage {
 
                         row.col(|ui: &mut egui::Ui| {
                             let score_pct = (asset.risk_score * 10.0).min(100.0);
-                            let score_color = if asset.risk_score >= 8.0 {
-                                theme::ERROR
-                            } else if asset.risk_score >= 5.0 {
-                                theme::WARNING
-                            } else {
-                                theme::SUCCESS
-                            };
                             ui.label(
                                 egui::RichText::new(format!("{:.1}", asset.risk_score))
                                     .font(theme::font_body())
@@ -400,7 +393,6 @@ impl AssetsPage {
                                     )))
                                     .strong(),
                             );
-                            let _ = score_color;
                         });
 
                         row.col(|ui: &mut egui::Ui| {
@@ -593,7 +585,6 @@ impl AssetsPage {
             .map(|a| a.ip.clone())
             .collect();
 
-        let now = chrono::Utc::now();
         let max_assets = 1000_usize;
 
         for device in &state.discovery.devices {
@@ -620,7 +611,6 @@ impl AssetsPage {
                 first_seen: device.first_seen,
                 last_seen: device.last_seen,
             });
-            let _ = now;
         }
     }
 
@@ -688,9 +678,9 @@ impl AssetsPage {
     fn export_csv(state: &AppState, indices: &[usize]) {
         let rows: Vec<Vec<String>> = indices
             .iter()
-            .map(|&i| {
-                let a = &state.assets.assets[i];
-                vec![
+            .filter_map(|&i| {
+                let a = state.assets.assets.get(i)?;
+                Some(vec![
                     a.hostname.clone().unwrap_or_default(),
                     a.ip.clone(),
                     a.device_type.clone(),
@@ -700,7 +690,7 @@ impl AssetsPage {
                     a.vulnerability_count.to_string(),
                     a.last_seen.format("%d/%m/%Y %H:%M").to_string(),
                     a.tags.join(", "),
-                ]
+                ])
             })
             .collect();
 

@@ -328,6 +328,8 @@ pub struct AiState {
     pub model_status: crate::dto::LlmModelStatus,
     /// LLM model download progress.
     pub download: crate::dto::LlmDownloadState,
+    /// Cached count of recommendations (updated when recommendations tab is shown).
+    pub recommendations_count: usize,
 }
 
 // ---------------------------------------------------------------------------

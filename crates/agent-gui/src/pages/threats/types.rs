@@ -74,10 +74,6 @@ pub(super) fn compute_risk_score(
         .iter()
         .filter(|v| matches!(v.severity, Severity::High))
         .count();
-    let _regular_vulns = vuln_count
-        .saturating_sub(critical_vulns)
-        .saturating_sub(high_vulns);
-
     let raw = (critical_processes as u32)
         .saturating_mul(40)
         .saturating_add((critical_net as u32).saturating_mul(35))

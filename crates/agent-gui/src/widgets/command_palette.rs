@@ -426,7 +426,7 @@ impl<'a> CommandPalette<'a> {
                                             state.close();
                                         }
 
-                                        if item_response.hovered() {
+                                        if item_response.hovered() && ui.input(|i| i.pointer.delta() != egui::Vec2::ZERO) {
                                             state.selected_index = i;
                                         }
                                     }

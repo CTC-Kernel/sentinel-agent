@@ -335,7 +335,7 @@ impl TerminalPage {
                     })
                     .body(|body| {
                         body.rows(theme::TABLE_COMPACT_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let (original_idx, entry) = filtered[row.index()];
+                            let Some(&(original_idx, entry)) = filtered.get(row.index()) else { return };
                             let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
                             let color = level_color(&entry.level);
                             let target_short = shorten_target(&entry.target);

@@ -96,7 +96,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     ui.add_space(theme::SPACE_MD);
 
     // ── Confirmation Modal ──────────────────────────────────────────
-    if let Some(ref pending) = state.threats.confirm_action.clone() {
+    if let Some(pending) = state.threats.confirm_action.clone() {
         let title = match pending.action_type {
             ResponseActionType::KillProcess => "Terminer le processus ?",
             ResponseActionType::QuarantineFile => "Quarantaine du fichier ?",

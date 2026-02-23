@@ -787,15 +787,15 @@ impl SoftwarePage {
         let headers = &["nom", "version", "editeur", "a_jour", "derniere_version"];
         let rows: Vec<Vec<String>> = indices
             .iter()
-            .map(|&i| {
-                let p = &state.software.packages[i];
-                vec![
+            .filter_map(|&i| {
+                let p = state.software.packages.get(i)?;
+                Some(vec![
                     p.name.clone(),
                     p.version.clone(),
                     p.publisher.clone().unwrap_or_default(),
                     if p.up_to_date { "Oui" } else { "Non" }.to_string(),
                     p.latest_version.clone().unwrap_or_default(),
-                ]
+                ])
             })
             .collect();
         let path = crate::export::default_export_path("logiciels_paquets.csv");
@@ -813,15 +813,15 @@ impl SoftwarePage {
         let headers = &["nom", "version", "bundle_id", "editeur", "chemin"];
         let rows: Vec<Vec<String>> = indices
             .iter()
-            .map(|&i| {
-                let a = &state.software.macos_apps[i];
-                vec![
+            .filter_map(|&i| {
+                let a = state.software.macos_apps.get(i)?;
+                Some(vec![
                     a.name.clone(),
                     a.version.clone(),
                     a.bundle_id.clone(),
                     a.publisher.clone(),
                     a.path.clone(),
-                ]
+                ])
             })
             .collect();
         let path = crate::export::default_export_path("logiciels_apps.csv");
