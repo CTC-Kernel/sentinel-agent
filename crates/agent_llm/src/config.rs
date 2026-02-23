@@ -164,7 +164,7 @@ impl Default for InferenceConfig {
             top_k: 40,
             repetition_penalty: 1.1,
             max_tokens: 1024,
-            timeout_secs: 30,
+            timeout_secs: 120,
         }
     }
 }

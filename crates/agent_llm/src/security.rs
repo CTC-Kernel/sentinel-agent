@@ -248,12 +248,15 @@ impl SecurityClassifier {
         info!("Classifying security event: {}", event.id);
         let start_time = std::time::Instant::now();
 
-        let prompt = self.build_classification_prompt(event)?;
+        let (system_prompt, prompt) = self.build_classification_prompt(event)?;
 
-        let request = InferenceRequest::new(prompt)
+        let mut request = InferenceRequest::new(prompt)
             .with_max_tokens(1024)
             .with_temperature(0.2) // Low temperature for consistency
             .with_top_p(self.config.inference.top_p);
+        if let Some(sys) = system_prompt {
+            request = request.with_system_prompt(sys);
+        }
 
         let response = self.engine.infer(request).await?;
         let classification = self.parse_classification_response(&response.text, event, start_time.elapsed())?;
@@ -265,11 +268,14 @@ impl SecurityClassifier {
 
     /// Analyze vulnerability and assess its impact.
     pub async fn analyze_vulnerability(&self, vuln: &Vulnerability) -> Result<VulnerabilityAnalysis> {
-        let prompt = self.build_vulnerability_prompt(vuln)?;
+        let (system_prompt, prompt) = self.build_vulnerability_prompt(vuln)?;
 
-        let request = InferenceRequest::new(prompt)
+        let mut request = InferenceRequest::new(prompt)
             .with_max_tokens(2048)
             .with_temperature(0.3);
+        if let Some(sys) = system_prompt {
+            request = request.with_system_prompt(sys);
+        }
 
         let response = self.engine.infer(request).await?;
         self.parse_vulnerability_analysis(&response.text, vuln)
@@ -279,11 +285,14 @@ impl SecurityClassifier {
     pub async fn generate_threat_report(&self, events: &[SecurityEvent]) -> Result<ThreatReport> {
         info!("Generating threat report for {} events", events.len());
 
-        let prompt = self.build_threat_report_prompt(events)?;
+        let (system_prompt, prompt) = self.build_threat_report_prompt(events)?;
 
-        let request = InferenceRequest::new(prompt)
+        let mut request = InferenceRequest::new(prompt)
             .with_max_tokens(3072)
             .with_temperature(0.4);
+        if let Some(sys) = system_prompt {
+            request = request.with_system_prompt(sys);
+        }
 
         let response = self.engine.infer(request).await?;
         self.parse_threat_report(&response.text, events)
@@ -291,36 +300,39 @@ impl SecurityClassifier {
 
     /// Assess attack patterns and techniques.
     pub async fn analyze_attack_patterns(&self, events: &[SecurityEvent]) -> Result<AttackPatternAnalysis> {
-        let prompt = self.build_attack_pattern_prompt(events)?;
+        let (system_prompt, prompt) = self.build_attack_pattern_prompt(events)?;
 
-        let request = InferenceRequest::new(prompt)
+        let mut request = InferenceRequest::new(prompt)
             .with_max_tokens(2048)
             .with_temperature(0.3);
+        if let Some(sys) = system_prompt {
+            request = request.with_system_prompt(sys);
+        }
 
         let response = self.engine.infer(request).await?;
         self.parse_attack_pattern_analysis(&response.text)
     }
 
-    /// Build classification prompt for security event.
-    fn build_classification_prompt(&self, event: &SecurityEvent) -> Result<String> {
+    /// Build classification prompt for security event, returning (system_prompt, user_prompt).
+    fn build_classification_prompt(&self, event: &SecurityEvent) -> Result<(Option<String>, String)> {
         let template = PromptTemplates::get("threat_classification")
             .ok_or_else(|| anyhow::anyhow!("Threat classification template not found"))?;
 
         let event_details = serde_json::to_string_pretty(event)?;
 
-        let mut prompt = PromptBuilder::new(template)
+        let (system_prompt, mut user_prompt) = PromptBuilder::new(template)
             .set("event_details", &event_details)
             .set("system_info", &event.system_info)
             .set("historical_context", &event.historical_context)
-            .build();
+            .build_parts();
 
-        append_json_schema(&mut prompt, CLASSIFICATION_SCHEMA);
-        Ok(prompt)
+        append_json_schema(&mut user_prompt, CLASSIFICATION_SCHEMA);
+        Ok((system_prompt, user_prompt))
     }
 
-    /// Build vulnerability analysis prompt.
-    fn build_vulnerability_prompt(&self, vuln: &Vulnerability) -> Result<String> {
-        let mut prompt = format!(
+    /// Build vulnerability analysis prompt, returning (system_prompt, user_prompt).
+    fn build_vulnerability_prompt(&self, vuln: &Vulnerability) -> Result<(Option<String>, String)> {
+        let mut user_prompt = format!(
             r#"Analyze the following security vulnerability and provide comprehensive assessment:
 
 Vulnerability Details:
@@ -352,18 +364,21 @@ Use standard vulnerability assessment frameworks and provide specific, actionabl
             vuln.last_modified_date
         );
 
-        append_json_schema(&mut prompt, VULNERABILITY_SCHEMA);
-        Ok(prompt)
+        append_json_schema(&mut user_prompt, VULNERABILITY_SCHEMA);
+        Ok((
+            Some("You are a cybersecurity vulnerability analyst with expertise in CVSS scoring and risk assessment. Provide detailed, actionable vulnerability assessments.".to_string()),
+            user_prompt,
+        ))
     }
 
-    /// Build threat report prompt.
-    fn build_threat_report_prompt(&self, events: &[SecurityEvent]) -> Result<String> {
+    /// Build threat report prompt, returning (system_prompt, user_prompt).
+    fn build_threat_report_prompt(&self, events: &[SecurityEvent]) -> Result<(Option<String>, String)> {
         let events_summary = events.iter()
             .map(|e| format!("{} [{}] - {}", e.id, e.event_type, e.description))
             .collect::<Vec<_>>()
             .join("\n");
 
-        let mut prompt = format!(
+        let mut user_prompt = format!(
             r#"Generate a comprehensive threat intelligence report based on the following security events:
 
 Events:
@@ -387,15 +402,18 @@ Format as a professional threat intelligence report suitable for security leader
             events.last().map(|e| e.timestamp.to_rfc3339()).unwrap_or_default()
         );
 
-        append_json_schema(&mut prompt, THREAT_REPORT_SCHEMA);
-        Ok(prompt)
+        append_json_schema(&mut user_prompt, THREAT_REPORT_SCHEMA);
+        Ok((
+            Some("You are a senior threat intelligence analyst. Generate professional threat intelligence reports with actionable insights for security leadership.".to_string()),
+            user_prompt,
+        ))
     }
 
-    /// Build attack pattern analysis prompt.
-    fn build_attack_pattern_prompt(&self, events: &[SecurityEvent]) -> Result<String> {
+    /// Build attack pattern analysis prompt, returning (system_prompt, user_prompt).
+    fn build_attack_pattern_prompt(&self, events: &[SecurityEvent]) -> Result<(Option<String>, String)> {
         let events_data = serde_json::to_string(events)?;
 
-        let mut prompt = format!(
+        let mut user_prompt = format!(
             r#"Analyze the following security events to identify attack patterns and techniques:
 
 Events Data: {}
@@ -412,8 +430,11 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
             events_data
         );
 
-        append_json_schema(&mut prompt, ATTACK_PATTERN_SCHEMA);
-        Ok(prompt)
+        append_json_schema(&mut user_prompt, ATTACK_PATTERN_SCHEMA);
+        Ok((
+            Some("You are a threat intelligence analyst specializing in MITRE ATT&CK framework analysis and attack pattern identification.".to_string()),
+            user_prompt,
+        ))
     }
 
     // -----------------------------------------------------------------------
