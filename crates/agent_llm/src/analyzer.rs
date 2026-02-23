@@ -8,6 +8,7 @@ use tracing::{info, warn};
 use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, SecurityPromptBuilder, SecurityContext, ScanResults, ThreatLevel};
+use crate::utils::{extract_json_block, parse_risk_level};
 
 /// Analysis context for LLM processing.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -248,17 +249,6 @@ struct RawSecurityAnalysis {
 // Parsing helpers
 // ---------------------------------------------------------------------------
 
-/// Parse a risk level string into the `RiskLevel` enum.
-fn parse_risk_level(s: &str) -> RiskLevel {
-    match s.to_lowercase().trim() {
-        "low" => RiskLevel::Low,
-        "medium" | "moderate" => RiskLevel::Medium,
-        "high" => RiskLevel::High,
-        "critical" | "severe" => RiskLevel::Critical,
-        _ => RiskLevel::Medium,
-    }
-}
-
 /// Parse an urgency string into the `UrgencyLevel` enum.
 fn parse_urgency_level(s: &str) -> UrgencyLevel {
     match s.to_lowercase().trim() {
@@ -292,17 +282,6 @@ fn parse_recommendation_type(s: &str) -> RecommendationType {
         "policy" => RecommendationType::Policy,
         _ => RecommendationType::Technical,
     }
-}
-
-/// Try to extract a JSON object from a string that may contain surrounding text.
-/// Finds the first `{` and the last `}` and attempts to parse the substring.
-fn extract_json_block(text: &str) -> Option<String> {
-    let first_brace = text.find('{')?;
-    let last_brace = text.rfind('}')?;
-    if last_brace <= first_brace {
-        return None;
-    }
-    Some(text[first_brace..=last_brace].to_string())
 }
 
 /// The JSON schema instruction appended to analysis prompts so the LLM
@@ -532,7 +511,7 @@ impl LLMAnalyzer {
 
         // --- Strategy 2: extract JSON block from surrounding text ---
         if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawAnalysisResponse>(&json_block)
+            && let Ok(raw) = serde_json::from_str::<RawAnalysisResponse>(json_block)
         {
             warn!("LLM response contained extra text around JSON; extracted JSON block successfully");
             return Ok(self.raw_to_analysis_result(raw, context, build_metadata(75, response.len() as u32)));
@@ -846,7 +825,7 @@ impl LLMAnalyzer {
 
         // --- Strategy 2: extract JSON block ---
         if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawSecurityAnalysis>(&json_block)
+            && let Ok(raw) = serde_json::from_str::<RawSecurityAnalysis>(json_block)
         {
             warn!("LLM security response contained extra text around JSON; extracted JSON block successfully");
             return Ok(self.raw_to_security_analysis(raw, event));
@@ -1048,17 +1027,6 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_parse_risk_level() {
-        assert!(matches!(parse_risk_level("low"), RiskLevel::Low));
-        assert!(matches!(parse_risk_level("Medium"), RiskLevel::Medium));
-        assert!(matches!(parse_risk_level("HIGH"), RiskLevel::High));
-        assert!(matches!(parse_risk_level("critical"), RiskLevel::Critical));
-        assert!(matches!(parse_risk_level("severe"), RiskLevel::Critical));
-        assert!(matches!(parse_risk_level("moderate"), RiskLevel::Medium));
-        assert!(matches!(parse_risk_level("unknown"), RiskLevel::Medium)); // default
-    }
-
-    #[test]
     fn test_parse_urgency_level() {
         assert!(matches!(parse_urgency_level("immediate"), UrgencyLevel::Immediate));
         assert!(matches!(parse_urgency_level("High"), UrgencyLevel::High));
@@ -1084,36 +1052,6 @@ mod tests {
         assert!(matches!(parse_recommendation_type("training"), RecommendationType::Training));
         assert!(matches!(parse_recommendation_type("policy"), RecommendationType::Policy));
         assert!(matches!(parse_recommendation_type("config"), RecommendationType::Configuration));
-    }
-
-    #[test]
-    fn test_extract_json_block_clean() {
-        let input = r#"{"risk_level": "high"}"#;
-        let result = extract_json_block(input);
-        assert_eq!(result, Some(r#"{"risk_level": "high"}"#.to_string()));
-    }
-
-    #[test]
-    fn test_extract_json_block_with_surrounding_text() {
-        let input = r#"Here is my analysis:
-{"risk_level": "high", "risk_score": 80}
-Hope this helps!"#;
-        let result = extract_json_block(input);
-        assert_eq!(result, Some(r#"{"risk_level": "high", "risk_score": 80}"#.to_string()));
-    }
-
-    #[test]
-    fn test_extract_json_block_no_json() {
-        let result = extract_json_block("no json here at all");
-        assert!(result.is_none());
-    }
-
-    #[test]
-    fn test_extract_json_block_malformed() {
-        // Only closing brace, no opening
-        let result = extract_json_block("}");
-        // find '{' returns None so overall None
-        assert!(result.is_none());
     }
 
     // -----------------------------------------------------------------------
