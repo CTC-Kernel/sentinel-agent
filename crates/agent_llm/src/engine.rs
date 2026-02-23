@@ -60,6 +60,8 @@ impl ModelStatus {
 pub struct InferenceRequest {
     /// Input prompt
     pub prompt: String,
+    /// System prompt (sent as a separate System message to the model)
+    pub system_prompt: Option<String>,
     /// Maximum tokens to generate
     pub max_tokens: Option<u32>,
     /// Temperature override
@@ -76,6 +78,7 @@ impl InferenceRequest {
     pub fn new(prompt: impl Into<String>) -> Self {
         Self {
             prompt: prompt.into(),
+            system_prompt: None,
             max_tokens: None,
             temperature: None,
             top_p: None,
@@ -106,6 +109,11 @@ impl InferenceRequest {
 
     pub fn with_metadata(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.metadata.insert(key.into(), value.into());
+        self
+    }
+
+    pub fn with_system_prompt(mut self, system_prompt: impl Into<String>) -> Self {
+        self.system_prompt = Some(system_prompt.into());
         self
     }
 }
@@ -147,7 +155,7 @@ pub struct MemoryUsage {
 
 /// Mistral.rs based engine implementation.
 pub struct MistralEngine {
-    model: Arc<tokio::sync::Mutex<Option<mistralrs::Model>>>,
+    model: Arc<tokio::sync::Mutex<Option<Arc<mistralrs::Model>>>>,
     config: ModelConfig,
     inference_config: InferenceConfig,
     status: Arc<tokio::sync::RwLock<ModelStatus>>,
@@ -200,7 +208,7 @@ impl MistralEngine {
         match load_result {
             Ok(model) => {
                 let mut model_guard = self.model.lock().await;
-                *model_guard = Some(model);
+                *model_guard = Some(Arc::new(model));
 
                 let mut status = self.status.write().await;
                 *status = ModelStatus::Ready;
@@ -228,9 +236,13 @@ impl ModelEngine for MistralEngine {
             self.load_model().await?;
         }
 
-        let model_guard = self.model.lock().await;
-        let model = model_guard.as_ref()
-            .ok_or_else(|| anyhow::anyhow!("Model not loaded"))?;
+        // Clone the Arc<Model> out and release the Mutex so other engine methods
+        // (status, memory_usage) are not blocked during inference.
+        let model = {
+            let guard = self.model.lock().await;
+            Arc::clone(guard.as_ref()
+                .ok_or_else(|| anyhow::anyhow!("Model not loaded"))?)
+        };
 
         let start_time = std::time::Instant::now();
 
@@ -244,51 +256,96 @@ impl ModelEngine for MistralEngine {
         debug!("Starting inference: prompt_len={}, max_tokens={}, temp={:.1}",
             request.prompt.len(), max_tokens, temperature);
 
-        let chat_request = mistralrs::RequestBuilder::new()
-            .add_message(mistralrs::TextMessageRole::User, request.prompt.clone())
-            .set_sampler_temperature(temperature)
-            .set_sampler_topp(top_p)
-            .set_sampler_topk(top_k)
-            .set_sampler_max_len(max_tokens)
-            .set_sampling(mistralrs::SamplingParams {
-                temperature: Some(temperature),
-                top_k: Some(top_k),
-                top_p: Some(top_p),
-                top_n_logprobs: 0,
-                frequency_penalty: None,
-                presence_penalty: None,
-                stop_toks: None,
-                max_len: Some(max_tokens),
-                logits_bias: None,
-                n_choices: 1,
-                repetition_penalty: Some(repetition_penalty),
-                dry_params: None,
-                min_p: None,
-            });
+        // Build a chat request with the given token limit.
+        let build_chat_request = |max_tok: usize| {
+            let mut builder = mistralrs::RequestBuilder::new();
+            if let Some(ref system_prompt) = request.system_prompt {
+                builder = builder.add_message(
+                    mistralrs::TextMessageRole::System,
+                    system_prompt.clone(),
+                );
+            }
+            builder
+                .add_message(mistralrs::TextMessageRole::User, request.prompt.clone())
+                .set_sampler_temperature(temperature)
+                .set_sampler_topp(top_p)
+                .set_sampler_topk(top_k)
+                .set_sampler_max_len(max_tok)
+                .set_sampling(mistralrs::SamplingParams {
+                    temperature: Some(temperature),
+                    top_k: Some(top_k),
+                    top_p: Some(top_p),
+                    top_n_logprobs: 0,
+                    frequency_penalty: None,
+                    presence_penalty: None,
+                    stop_toks: None,
+                    max_len: Some(max_tok),
+                    logits_bias: None,
+                    n_choices: 1,
+                    repetition_penalty: Some(repetition_penalty),
+                    dry_params: None,
+                    min_p: None,
+                })
+        };
 
         // Enforce timeout to prevent infinite hangs on slow inference
         let timeout_duration = std::time::Duration::from_secs(timeout_secs);
+
+        // First attempt with full max_tokens
         let response = match tokio::time::timeout(
             timeout_duration,
-            model.send_chat_request(chat_request),
+            model.send_chat_request(build_chat_request(max_tokens)),
         ).await {
             Ok(Ok(resp)) => resp,
             Ok(Err(e)) => {
                 return Err(anyhow::anyhow!("Inference error: {}", e));
             }
             Err(_) => {
-                warn!("LLM inference timed out after {}s — engine needs reload", timeout_secs);
                 // After timeout, mistralrs internal state is corrupted (channel dropped).
-                // Mark engine as Error so the next request triggers a fresh reload.
-                drop(model_guard);
-                {
-                    let mut status = self.status.write().await;
-                    *status = ModelStatus::Error(format!("Inference timed out after {}s", timeout_secs));
+                // Unload, reload, and retry once with reduced tokens to break the death spiral.
+                let reduced_tokens = max_tokens.min(256);
+                warn!(
+                    "LLM inference timed out after {}s — reloading and retrying with max_tokens={}",
+                    timeout_secs, reduced_tokens
+                );
+
+                self.unload().await?;
+                self.load_model().await?;
+
+                // Clone the freshly loaded model
+                let model = {
+                    let guard = self.model.lock().await;
+                    Arc::clone(guard.as_ref()
+                        .ok_or_else(|| anyhow::anyhow!("Model not loaded after reload"))?)
+                };
+
+                match tokio::time::timeout(
+                    timeout_duration,
+                    model.send_chat_request(build_chat_request(reduced_tokens)),
+                ).await {
+                    Ok(Ok(resp)) => {
+                        info!("Retry with reduced tokens succeeded");
+                        resp
+                    }
+                    Ok(Err(e)) => {
+                        return Err(anyhow::anyhow!("Inference error on retry: {}", e));
+                    }
+                    Err(_) => {
+                        warn!("LLM inference timed out again after {}s — giving up", timeout_secs);
+                        {
+                            let mut status = self.status.write().await;
+                            *status = ModelStatus::Error(
+                                format!("Inference timed out after {}s (retry also failed)", timeout_secs),
+                            );
+                        }
+                        let mut model_lock = self.model.lock().await;
+                        *model_lock = None;
+                        return Err(anyhow::anyhow!(
+                            "Inference timed out after {}s (retry with reduced tokens also failed)",
+                            timeout_secs,
+                        ));
+                    }
                 }
-                // Unload the broken model so it gets reloaded cleanly next time
-                let mut model_lock = self.model.lock().await;
-                *model_lock = None;
-                return Err(anyhow::anyhow!("Inference timed out after {}s", timeout_secs));
             }
         };
 
@@ -435,10 +492,22 @@ mod tests {
             .with_metadata("test", "value");
 
         assert_eq!(request.prompt, "Hello");
+        assert_eq!(request.system_prompt, None);
         assert_eq!(request.max_tokens, Some(100));
         assert_eq!(request.temperature, Some(0.8));
         assert_eq!(request.stop_sequences, vec!["\n"]);
         assert_eq!(request.metadata.get("test"), Some(&"value".to_string()));
+    }
+
+    #[test]
+    fn test_inference_request_system_prompt() {
+        let request = InferenceRequest::new("Analyze this")
+            .with_system_prompt("You are a security analyst")
+            .with_max_tokens(256);
+
+        assert_eq!(request.prompt, "Analyze this");
+        assert_eq!(request.system_prompt, Some("You are a security analyst".to_string()));
+        assert_eq!(request.max_tokens, Some(256));
     }
 
     #[test]

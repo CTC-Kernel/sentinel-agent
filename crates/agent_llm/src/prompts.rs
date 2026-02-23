@@ -64,11 +64,17 @@ impl PromptTemplate {
     /// Get full prompt including system prompt if present.
     pub fn full_prompt(&self, variables: &HashMap<String, String>) -> String {
         let rendered = self.render(variables);
-        
+
         match &self.system_prompt {
             Some(system) => format!("{}\n\n{}", system, rendered),
             None => rendered,
         }
+    }
+
+    /// Render the template and return system prompt and user prompt separately.
+    pub fn render_parts(&self, variables: &HashMap<String, String>) -> (Option<String>, String) {
+        let user_prompt = self.render(variables);
+        (self.system_prompt.clone(), user_prompt)
     }
 }
 
@@ -110,6 +116,11 @@ impl PromptBuilder {
     pub fn build(self) -> String {
         self.template.full_prompt(&self.variables)
     }
+
+    /// Build and return system prompt and user prompt separately.
+    pub fn build_parts(self) -> (Option<String>, String) {
+        self.template.render_parts(&self.variables)
+    }
 }
 
 /// Security-focused prompt builder.
@@ -148,6 +159,11 @@ impl SecurityPromptBuilder {
     /// Build the security prompt.
     pub fn build(self) -> String {
         self.builder.build()
+    }
+
+    /// Build and return system prompt and user prompt separately.
+    pub fn build_parts(self) -> (Option<String>, String) {
+        self.builder.build_parts()
     }
 }
 
@@ -359,6 +375,43 @@ mod tests {
             .build();
 
         assert_eq!(prompt, "Value: 42");
+    }
+
+    #[test]
+    fn test_render_parts_with_system_prompt() {
+        let template = PromptTemplate::new("test", "Analyze: {data}")
+            .system_prompt("You are a security analyst");
+
+        let mut vars = HashMap::new();
+        vars.insert("data".to_string(), "some findings".to_string());
+
+        let (system, user) = template.render_parts(&vars);
+        assert_eq!(system, Some("You are a security analyst".to_string()));
+        assert_eq!(user, "Analyze: some findings");
+    }
+
+    #[test]
+    fn test_render_parts_without_system_prompt() {
+        let template = PromptTemplate::new("test", "Hello {name}");
+
+        let mut vars = HashMap::new();
+        vars.insert("name".to_string(), "World".to_string());
+
+        let (system, user) = template.render_parts(&vars);
+        assert_eq!(system, None);
+        assert_eq!(user, "Hello World");
+    }
+
+    #[test]
+    fn test_build_parts() {
+        let template = PromptTemplate::new("test", "Value: {value}")
+            .system_prompt("System instruction");
+        let (system, user) = PromptBuilder::new(template)
+            .set("value", "42")
+            .build_parts();
+
+        assert_eq!(system, Some("System instruction".to_string()));
+        assert_eq!(user, "Value: 42");
     }
 
     #[test]
