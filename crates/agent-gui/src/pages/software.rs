@@ -227,13 +227,9 @@ impl SoftwarePage {
                 if search_upper.is_empty() {
                     return true;
                 }
-                let haystack = format!(
-                    "{} {} {}",
-                    p.name.to_uppercase(),
-                    p.version.to_uppercase(),
-                    p.publisher.as_deref().unwrap_or("").to_uppercase(),
-                );
-                haystack.contains(search_upper)
+                p.name.to_uppercase().contains(search_upper)
+                    || p.version.to_uppercase().contains(search_upper)
+                    || p.publisher.as_deref().unwrap_or("").to_uppercase().contains(search_upper)
             })
             .map(|(i, _)| i)
             .collect();
@@ -567,13 +563,9 @@ impl SoftwarePage {
                 if search_upper.is_empty() {
                     return true;
                 }
-                let haystack = format!(
-                    "{} {} {}",
-                    a.name.to_uppercase(),
-                    a.version.to_uppercase(),
-                    a.publisher.to_uppercase(),
-                );
-                haystack.contains(search_upper)
+                a.name.to_uppercase().contains(search_upper)
+                    || a.version.to_uppercase().contains(search_upper)
+                    || a.publisher.to_uppercase().contains(search_upper)
             })
             .map(|(i, _)| i)
             .collect();

@@ -88,7 +88,7 @@ pub fn sparkline(ui: &mut Ui, id_salt: &str, data: &[[f64; 2]], size: Vec2, conf
                 .width(3.0),
         );
 
-        // Main line
+        // Main line — last use, no clone needed
         plot_ui.line(
             Line::new(PlotPoints::new(data_vec))
                 .color(config.color)

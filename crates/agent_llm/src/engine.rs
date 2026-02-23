@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use anyhow::Result;
 use sha2::{Sha256, Digest};
+use chrono;
 use tracing::{info, debug, warn};
 
 use super::config::{ModelConfig, InferenceConfig, SecurityConfig, CacheConfig};
@@ -154,14 +155,45 @@ pub struct MemoryUsage {
     pub available_mb: u64,
 }
 
+/// Wrapper stored on disk so we can check TTL from the embedded timestamp
+/// instead of relying on file modification time.
+#[derive(Serialize, Deserialize)]
+struct CacheEntry {
+    cached_at: chrono::DateTime<chrono::Utc>,
+    response: InferenceResponse,
+}
+
 /// File-based response cache for LLM inference results.
 struct ResponseCache {
     config: CacheConfig,
+    /// Approximate total size of cached files in bytes, tracked atomically to
+    /// avoid re-scanning the directory on every `put()`.
+    cached_size: std::sync::atomic::AtomicU64,
 }
 
 impl ResponseCache {
     fn new(config: CacheConfig) -> Self {
-        Self { config }
+        let mut resolved_config = config;
+
+        // Eagerly create and canonicalize the cache directory when caching is enabled.
+        if resolved_config.enabled {
+            let _ = std::fs::create_dir_all(&resolved_config.directory);
+            if let Ok(canon) = resolved_config.directory.canonicalize() {
+                resolved_config.directory = canon;
+            }
+        }
+
+        // Pre-compute the current cache size once.
+        let initial_size = if resolved_config.enabled {
+            dir_size_bytes(&resolved_config.directory).unwrap_or(0)
+        } else {
+            0
+        };
+
+        Self {
+            config: resolved_config,
+            cached_size: std::sync::atomic::AtomicU64::new(initial_size),
+        }
     }
 
     /// Compute a cache key from request parameters.
@@ -197,21 +229,22 @@ impl ResponseCache {
             return None;
         }
 
-        // Check TTL via file modification time
-        if let Ok(metadata) = std::fs::metadata(&path)
-            && let Ok(modified) = metadata.modified()
-        {
-            let age = std::time::SystemTime::now()
-                .duration_since(modified)
-                .unwrap_or_default();
-            if age > std::time::Duration::from_secs(self.config.ttl_hours * 3600) {
-                let _ = std::fs::remove_file(&path);
-                return None;
+        let data = std::fs::read_to_string(&path).ok()?;
+        let entry: CacheEntry = serde_json::from_str(&data).ok()?;
+
+        // Check TTL using the embedded timestamp.
+        let age = chrono::Utc::now().signed_duration_since(entry.cached_at);
+        let ttl = chrono::Duration::hours(self.config.ttl_hours as i64);
+        if age > ttl {
+            // Expired — remove the file and update the size tracker.
+            if let Ok(meta) = std::fs::metadata(&path) {
+                self.cached_size.fetch_sub(meta.len(), std::sync::atomic::Ordering::Relaxed);
             }
+            let _ = std::fs::remove_file(&path);
+            return None;
         }
 
-        let data = std::fs::read_to_string(&path).ok()?;
-        serde_json::from_str::<InferenceResponse>(&data).ok()
+        Some(entry.response)
     }
 
     /// Store a response in the cache. Skips if caching is disabled or the
@@ -221,16 +254,9 @@ impl ResponseCache {
             return;
         }
 
-        // Ensure cache directory exists
-        if std::fs::create_dir_all(&self.config.directory).is_err() {
-            warn!("Failed to create cache directory: {:?}", self.config.directory);
-            return;
-        }
-
-        // Check total cache directory size
-        if let Ok(total) = dir_size_bytes(&self.config.directory)
-            && total >= self.config.max_size_mb * 1024 * 1024
-        {
+        // Check total cache size via the atomic counter (no dir scan).
+        let current_size = self.cached_size.load(std::sync::atomic::Ordering::Relaxed);
+        if current_size >= self.config.max_size_mb * 1024 * 1024 {
             debug!("Cache directory exceeds max size ({}MB), skipping write", self.config.max_size_mb);
             return;
         }
@@ -238,10 +264,18 @@ impl ResponseCache {
         let key = Self::cache_key(request);
         let path = self.config.directory.join(format!("{}.json", key));
 
-        match serde_json::to_string(response) {
+        let entry = CacheEntry {
+            cached_at: chrono::Utc::now(),
+            response: response.clone(),
+        };
+
+        match serde_json::to_string(&entry) {
             Ok(data) => {
+                let data_len = data.len() as u64;
                 if let Err(e) = std::fs::write(&path, data) {
                     warn!("Failed to write cache entry: {}", e);
+                } else {
+                    self.cached_size.fetch_add(data_len, std::sync::atomic::Ordering::Relaxed);
                 }
             }
             Err(e) => warn!("Failed to serialize response for cache: {}", e),
@@ -755,18 +789,22 @@ mod tests {
     fn test_cache_ttl_expiry() {
         let tmp = tempfile::tempdir().unwrap();
         let mut config = make_test_cache_config(tmp.path());
-        config.ttl_hours = 0; // 0 hours = everything is expired
+        config.ttl_hours = 1; // 1 hour TTL
         let cache = ResponseCache::new(config);
 
         let request = InferenceRequest::new("test");
         let response = InferenceResponse::new("resp");
 
-        // Write the file manually so it has a non-zero age
+        // Write a CacheEntry with a timestamp 2 hours in the past (expired).
+        let entry = CacheEntry {
+            cached_at: chrono::Utc::now() - chrono::Duration::hours(2),
+            response: response.clone(),
+        };
         let key = ResponseCache::cache_key(&request);
         let path = tmp.path().join(format!("{}.json", key));
-        std::fs::write(&path, serde_json::to_string(&response).unwrap()).unwrap();
+        std::fs::write(&path, serde_json::to_string(&entry).unwrap()).unwrap();
 
-        // TTL is 0 hours, so any existing file is expired
+        // Should be expired
         assert!(cache.get(&request).is_none());
         // File should have been deleted
         assert!(!path.exists());

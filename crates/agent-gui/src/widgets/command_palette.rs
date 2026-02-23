@@ -268,6 +268,10 @@ impl<'a> CommandPalette<'a> {
 
                                     // Auto-focus
                                     response.request_focus();
+                                    // Reset selection when query changes
+                                    if response.changed() {
+                                        state.selected_index = 0;
+                                    }
                                 });
                             });
 

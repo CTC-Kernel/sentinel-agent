@@ -9,7 +9,7 @@ use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, PromptBuilder};
 pub use crate::analyzer::RiskLevel;
-use crate::utils::{extract_json_block, parse_risk_level};
+use crate::utils::{extract_lines, parse_risk_level, try_parse_json};
 
 // ---------------------------------------------------------------------------
 // Intermediate serde structs for tolerant JSON parsing
@@ -305,20 +305,11 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
         let now = chrono::Utc::now();
         let generation_time_ms = duration.as_millis() as u64;
 
-        // Strategy 1: direct JSON parse
-        if let Ok(raw) = serde_json::from_str::<RawRemediationPlan>(response) {
+        if let Ok(raw) = try_parse_json::<RawRemediationPlan>(response) {
             return Ok(self.raw_to_remediation_plan(raw, request, now, generation_time_ms));
         }
 
-        // Strategy 2: extract JSON block between first '{' and last '}'
-        if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawRemediationPlan>(json_block)
-        {
-            warn!("Remediation plan: fell back to JSON block extraction");
-            return Ok(self.raw_to_remediation_plan(raw, request, now, generation_time_ms));
-        }
-
-        // Strategy 3: build a reasonable fallback from raw text
+        // Fallback: build a reasonable plan from raw text
         warn!("Remediation plan: JSON parsing failed, building fallback from raw text");
         let plan = RemediationPlan {
             id: uuid::Uuid::new_v4().to_string(),
@@ -415,28 +406,15 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
 
     /// Parse issue-specific remediation response.
     fn parse_issue_remediation(&self, response: &str, issue: &SecurityIssue) -> Result<IssueRemediation> {
-        // Strategy 1: direct JSON parse
-        if let Ok(raw) = serde_json::from_str::<RawIssueRemediation>(response) {
+        if let Ok(raw) = try_parse_json::<RawIssueRemediation>(response) {
             return Ok(self.raw_to_issue_remediation(raw, issue));
         }
 
-        // Strategy 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawIssueRemediation>(json_block)
-        {
-            warn!("Issue remediation: fell back to JSON block extraction");
-            return Ok(self.raw_to_issue_remediation(raw, issue));
-        }
-
-        // Strategy 3: build a reasonable fallback from raw text
+        // Fallback: build from raw text
         warn!("Issue remediation: JSON parsing failed, building fallback from raw text");
 
         // Try to extract meaningful lines from the raw response
-        let lines: Vec<String> = response
-            .lines()
-            .map(|l| l.trim().to_string())
-            .filter(|l| !l.is_empty())
-            .collect();
+        let lines = extract_lines(response, 100);
 
         Ok(IssueRemediation {
             issue_id: issue.id.clone(),
@@ -480,20 +458,11 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
 
     /// Parse validation response.
     fn parse_validation_response(&self, response: &str, plan: &RemediationPlan) -> Result<RemediationValidation> {
-        // Strategy 1: direct JSON parse
-        if let Ok(raw) = serde_json::from_str::<RawRemediationValidation>(response) {
+        if let Ok(raw) = try_parse_json::<RawRemediationValidation>(response) {
             return Ok(self.raw_to_validation(raw, plan));
         }
 
-        // Strategy 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawRemediationValidation>(json_block)
-        {
-            warn!("Remediation validation: fell back to JSON block extraction");
-            return Ok(self.raw_to_validation(raw, plan));
-        }
-
-        // Strategy 3: build a reasonable fallback from raw text
+        // Fallback: heuristic from raw text
         warn!("Remediation validation: JSON parsing failed, building fallback from raw text");
 
         // Heuristic: if the raw text contains words like "unsafe", "risk", "concern",
@@ -798,4 +767,89 @@ mod tests {
         assert!(raw.overall_risk.is_none());
     }
 
+    // -----------------------------------------------------------------------
+    // Integration tests using MockEngine
+    // -----------------------------------------------------------------------
+
+    fn make_test_request() -> RemediationRequest {
+        RemediationRequest {
+            request_id: "req-1".to_string(),
+            issues: vec![SecurityIssue {
+                id: "iss-1".to_string(),
+                title: "Root SSH".to_string(),
+                description: "Root login enabled".to_string(),
+                severity: "High".to_string(),
+                category: "Access Control".to_string(),
+                affected_systems: vec!["server-1".to_string()],
+                compliance_impact: "ISO 27001 A.9".to_string(),
+                discovered_at: chrono::Utc::now(),
+            }],
+            system_context: SystemContext {
+                platform: "Linux".to_string(),
+                os: "Ubuntu 22.04".to_string(),
+                environment: "Production".to_string(),
+                compliance_framework: "ISO 27001".to_string(),
+                critical_systems: vec!["DB".to_string()],
+            },
+            compliance_requirements: vec!["A.9.1.1".to_string()],
+            urgency_level: "High".to_string(),
+        }
+    }
+
+    fn make_test_issue() -> SecurityIssue {
+        SecurityIssue {
+            id: "iss-1".to_string(),
+            title: "Root SSH".to_string(),
+            description: "Root login enabled".to_string(),
+            severity: "High".to_string(),
+            category: "Access Control".to_string(),
+            affected_systems: vec!["server-1".to_string()],
+            compliance_impact: "ISO 27001 A.9".to_string(),
+            discovered_at: chrono::Utc::now(),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_generate_remediation_plan_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let json = r#"{"title":"Hardening Plan","description":"Fix SSH","actions":[{"title":"Disable root SSH","action_type":"configuration","priority":"critical","commands":["sed -i 's/PermitRootLogin yes/no/' /etc/ssh/sshd_config"]}],"estimated_total_duration":"1h","overall_risk":"low"}"#;
+        let advisor = RemediationAdvisor::new(MockEngine::arc(json), &test_config());
+        let request = make_test_request();
+        let plan = advisor.generate_remediation_plan(request).await.unwrap();
+        assert_eq!(plan.title, "Hardening Plan");
+        assert_eq!(plan.actions.len(), 1);
+        assert!(matches!(plan.overall_risk, RiskLevel::Low));
+    }
+
+    #[tokio::test]
+    async fn test_get_issue_remediation_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let json = r#"{"immediate_actions":["Block IP"],"detailed_steps":["Step1"],"verification_commands":["ssh test"],"rollback_procedure":["Revert"],"estimated_time":"30m","risk_assessment":"Low"}"#;
+        let advisor = RemediationAdvisor::new(MockEngine::arc(json), &test_config());
+        let issue = make_test_issue();
+        let result = advisor.get_issue_remediation(&issue).await.unwrap();
+        assert_eq!(result.immediate_actions, vec!["Block IP"]);
+        assert_eq!(result.estimated_time, "30m");
+    }
+
+    #[tokio::test]
+    async fn test_validate_remediation_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let json = r#"{"is_valid":true,"safety_concerns":[],"missing_dependencies":[],"recommendations":["Looks good"]}"#;
+        let advisor = RemediationAdvisor::new(MockEngine::arc(json), &test_config());
+        let plan = RemediationPlan {
+            id: "plan-1".to_string(),
+            title: "Test Plan".to_string(),
+            description: "Test".to_string(),
+            actions: vec![],
+            system_context: "Linux".to_string(),
+            estimated_total_duration: "1h".to_string(),
+            overall_risk: RiskLevel::Low,
+            created_at: chrono::Utc::now(),
+            generation_time_ms: 100,
+        };
+        let result = advisor.validate_remediation(&plan).await.unwrap();
+        assert!(result.is_valid);
+        assert!(result.safety_concerns.is_empty());
+    }
 }

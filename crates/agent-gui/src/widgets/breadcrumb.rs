@@ -208,7 +208,7 @@ impl<'a> Breadcrumb<'a> {
 
                 let galley =
                     ui.painter()
-                        .layout_no_wrap(content.clone(), theme::font_body(), text_color);
+                        .layout_no_wrap(content, theme::font_body(), text_color);
 
                 let padding = egui::vec2(theme::SPACE_SM, theme::SPACE_XS);
                 let item_size = galley.size() + padding * 2.0;
@@ -230,7 +230,7 @@ impl<'a> Breadcrumb<'a> {
                             .rect_filled(rect, CornerRadius::same(theme::SPACE_XS as u8), theme::hover_bg());
                     }
 
-                    // Text
+                    // Text — recolor the existing galley instead of re-laying-out
                     let final_color = if is_hovered {
                         theme::ACCENT
                     } else {
@@ -239,8 +239,7 @@ impl<'a> Breadcrumb<'a> {
 
                     ui.painter().galley(
                         rect.min + padding,
-                        ui.painter()
-                            .layout_no_wrap(content, theme::font_body(), final_color),
+                        galley,
                         final_color,
                     );
 

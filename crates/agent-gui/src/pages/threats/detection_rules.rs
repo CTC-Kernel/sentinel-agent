@@ -289,7 +289,7 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
 
             let mut remove_cond_idx: Option<usize> = None;
             for (i, cond) in f.conditions.iter_mut().enumerate() {
-                ui.push_id(format!("rcond_{}", i), |ui: &mut egui::Ui| {
+                ui.push_id(i, |ui: &mut egui::Ui| {
                     ui.horizontal(|ui: &mut egui::Ui| {
                         let mut idx = cond_types
                             .iter()

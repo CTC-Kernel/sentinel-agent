@@ -8,7 +8,7 @@ use tracing::{info, warn};
 use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, SecurityPromptBuilder, SecurityContext, ScanResults, ThreatLevel};
-use crate::utils::{extract_json_block, parse_risk_level};
+use crate::utils::{append_json_schema, parse_risk_level, try_parse_json};
 
 /// Analysis context for LLM processing.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -284,12 +284,9 @@ fn parse_recommendation_type(s: &str) -> RecommendationType {
     }
 }
 
-/// The JSON schema instruction appended to analysis prompts so the LLM
-/// returns machine-parseable output.
-const ANALYSIS_JSON_SCHEMA: &str = r#"
-
-Respond ONLY with valid JSON matching this schema:
-{
+/// The JSON schema appended to analysis prompts so the LLM returns
+/// machine-parseable output.  Used with `append_json_schema()`.
+const ANALYSIS_JSON_SCHEMA: &str = r#"{
   "risk_level": "low|medium|high|critical",
   "risk_score": 0-100,
   "risk_categories": ["string"],
@@ -299,11 +296,9 @@ Respond ONLY with valid JSON matching this schema:
   "recommendations": [{"title": "string", "description": "string", "type": "configuration|process|technical|training|policy", "priority": "string", "effort": "string"}]
 }"#;
 
-/// The JSON schema instruction appended to security event analysis prompts.
-const SECURITY_EVENT_JSON_SCHEMA: &str = r#"
-
-Respond ONLY with valid JSON matching this schema:
-{
+/// The JSON schema appended to security event analysis prompts.
+/// Used with `append_json_schema()`.
+const SECURITY_EVENT_JSON_SCHEMA: &str = r#"{
   "threat_type": "string",
   "severity": "Critical|High|Medium|Low",
   "confidence": 0-100,
@@ -414,30 +409,14 @@ impl LLMAnalyzer {
             compliance_score: self.calculate_compliance_score(&context.scan_results),
         };
 
-        let (system_prompt, user_prompt) = SecurityPromptBuilder::new(template)
+        let (system_prompt, mut user_prompt) = SecurityPromptBuilder::new(template)
             .security_context(&security_context)
             .scan_results(&scan_results_obj)
             .build_parts();
 
         // Append the JSON schema instruction so the LLM returns structured output
-        Ok((system_prompt, format!("{}{}", user_prompt, ANALYSIS_JSON_SCHEMA)))
-    }
-
-    /// Format scan results for prompt.
-    #[allow(dead_code)] // Will be used when LLM response parsing is implemented
-    fn format_scan_results(&self, results: &[ScanResult]) -> Result<String> {
-        let formatted: Vec<String> = results.iter()
-            .map(|r| {
-                format!("{} [{}] {}: {} - {}",
-                    r.check_id,
-                    r.severity,
-                    r.check_name,
-                    if r.passed { "PASS" } else { "FAIL" },
-                    r.message
-                )
-            })
-            .collect();
-        Ok(formatted.join("\n"))
+        append_json_schema(&mut user_prompt, ANALYSIS_JSON_SCHEMA);
+        Ok((system_prompt, user_prompt))
     }
 
     /// Extract security findings from scan results.
@@ -485,10 +464,8 @@ impl LLMAnalyzer {
 
     /// Parse analysis response from LLM.
     ///
-    /// Attempts three strategies in order:
-    /// 1. Direct JSON deserialization of the full response.
-    /// 2. Extract a JSON block (first `{` to last `}`) and deserialize that.
-    /// 3. Heuristic fallback derived from the scan context itself.
+    /// Uses `try_parse_json` for strategies 1+2 (direct parse / extract block),
+    /// then falls back to heuristic analysis from the scan context.
     fn parse_analysis_response(
         &self,
         response: &str,
@@ -503,28 +480,21 @@ impl LLMAnalyzer {
             tokens_processed: tokens,
         };
 
-        // --- Strategy 1: direct deserialization ---
-        if let Ok(raw) = serde_json::from_str::<RawAnalysisResponse>(response) {
-            info!("Parsed LLM analysis response via direct JSON deserialization");
-            return Ok(self.raw_to_analysis_result(raw, context, build_metadata(85, response.len() as u32)));
+        match try_parse_json::<RawAnalysisResponse>(response) {
+            Ok(raw) => {
+                info!("Parsed LLM analysis response as JSON");
+                Ok(self.raw_to_analysis_result(raw, context, build_metadata(80, response.len() as u32)))
+            }
+            Err(_) => {
+                warn!(
+                    "Failed to parse LLM analysis response as JSON; falling back to heuristic analysis. \
+                     Response length: {} chars, first 200 chars: {:?}",
+                    response.len(),
+                    &response[..response.len().min(200)]
+                );
+                Ok(self.heuristic_analysis_result(response, context, build_metadata(40, response.len() as u32)))
+            }
         }
-
-        // --- Strategy 2: extract JSON block from surrounding text ---
-        if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawAnalysisResponse>(json_block)
-        {
-            warn!("LLM response contained extra text around JSON; extracted JSON block successfully");
-            return Ok(self.raw_to_analysis_result(raw, context, build_metadata(75, response.len() as u32)));
-        }
-
-        // --- Strategy 3: heuristic fallback from context ---
-        warn!(
-            "Failed to parse LLM analysis response as JSON; falling back to heuristic analysis. \
-             Response length: {} chars, first 200 chars: {:?}",
-            response.len(),
-            &response[..response.len().min(200)]
-        );
-        Ok(self.heuristic_analysis_result(response, context, build_metadata(40, response.len() as u32)))
     }
 
     /// Convert a successfully parsed `RawAnalysisResponse` into the domain `AnalysisResult`.
@@ -804,41 +774,32 @@ impl LLMAnalyzer {
         variables.insert("system_info".to_string(), event.system_info.clone());
         variables.insert("historical_context".to_string(), event.historical_context.clone());
 
-        let (system_prompt, user_prompt) = template.render_parts(&variables);
+        let (system_prompt, mut user_prompt) = template.render_parts(&variables);
 
         // Append the JSON schema instruction for structured output
-        Ok((system_prompt, format!("{}{}", user_prompt, SECURITY_EVENT_JSON_SCHEMA)))
+        append_json_schema(&mut user_prompt, SECURITY_EVENT_JSON_SCHEMA);
+        Ok((system_prompt, user_prompt))
     }
 
     /// Parse security analysis response from LLM.
     ///
-    /// Attempts three strategies in order:
-    /// 1. Direct JSON deserialization of the full response.
-    /// 2. Extract a JSON block (first `{` to last `}`) and deserialize that.
-    /// 3. Heuristic fallback based on keyword extraction from the response text.
+    /// Uses `try_parse_json` for strategies 1+2, then falls back to heuristics.
     fn parse_security_analysis(&self, response: &str, event: &SecurityEvent) -> Result<SecurityAnalysis> {
-        // --- Strategy 1: direct deserialization ---
-        if let Ok(raw) = serde_json::from_str::<RawSecurityAnalysis>(response) {
-            info!("Parsed LLM security analysis response via direct JSON deserialization");
-            return Ok(self.raw_to_security_analysis(raw, event));
+        match try_parse_json::<RawSecurityAnalysis>(response) {
+            Ok(raw) => {
+                info!("Parsed LLM security analysis response as JSON");
+                Ok(self.raw_to_security_analysis(raw, event))
+            }
+            Err(_) => {
+                warn!(
+                    "Failed to parse LLM security analysis response as JSON; falling back to heuristics. \
+                     Response length: {} chars, first 200 chars: {:?}",
+                    response.len(),
+                    &response[..response.len().min(200)]
+                );
+                Ok(self.heuristic_security_analysis(response, event))
+            }
         }
-
-        // --- Strategy 2: extract JSON block ---
-        if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawSecurityAnalysis>(json_block)
-        {
-            warn!("LLM security response contained extra text around JSON; extracted JSON block successfully");
-            return Ok(self.raw_to_security_analysis(raw, event));
-        }
-
-        // --- Strategy 3: heuristic fallback ---
-        warn!(
-            "Failed to parse LLM security analysis response as JSON; falling back to heuristics. \
-             Response length: {} chars, first 200 chars: {:?}",
-            response.len(),
-            &response[..response.len().min(200)]
-        );
-        Ok(self.heuristic_security_analysis(response, event))
     }
 
     /// Convert a parsed `RawSecurityAnalysis` into the domain `SecurityAnalysis`.
@@ -959,15 +920,8 @@ impl LLMAnalyzer {
     }
 }
 
-/// Security event for analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecurityEvent {
-    pub id: String,
-    pub event_type: String,
-    pub description: String,
-    pub system_info: String,
-    pub historical_context: String,
-}
+// SecurityEvent is defined in security.rs and re-exported from lib.rs.
+pub use super::security::SecurityEvent;
 
 /// Security analysis result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1098,31 +1052,8 @@ mod tests {
     }
 
     fn make_test_analyzer() -> LLMAnalyzer {
-        use super::super::config::LLMConfig;
-        use std::sync::Arc;
-
-        // We need a dummy engine for the analyzer; we only call parse methods
-        // which don't use the engine.
-        struct DummyEngine;
-
-        #[async_trait::async_trait]
-        impl super::super::engine::ModelEngine for DummyEngine {
-            async fn status(&self) -> super::super::engine::ModelStatus {
-                super::super::engine::ModelStatus::Unloaded
-            }
-            async fn infer(&self, _req: InferenceRequest) -> Result<super::super::engine::InferenceResponse> {
-                Ok(super::super::engine::InferenceResponse::new(""))
-            }
-            async fn memory_usage(&self) -> super::super::engine::MemoryUsage {
-                super::super::engine::MemoryUsage { allocated_mb: 0, peak_mb: 0, available_mb: 0 }
-            }
-            async fn inference_count(&self) -> u64 { 0 }
-            async fn reload(&self) -> Result<()> { Ok(()) }
-            async fn unload(&self) -> Result<()> { Ok(()) }
-        }
-
-        let config = LLMConfig::default();
-        LLMAnalyzer::new(Arc::new(DummyEngine), &config)
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        LLMAnalyzer::new(MockEngine::arc(""), &test_config())
     }
 
     #[test]
@@ -1172,7 +1103,7 @@ mod tests {
         assert!(matches!(result.compliance_impact.impact_level, ImpactLevel::Major));
         assert_eq!(result.recommendations.len(), 1);
         assert!(matches!(result.recommendations[0].recommendation_type, RecommendationType::Configuration));
-        assert_eq!(result.metadata.confidence_score, 85);
+        assert_eq!(result.metadata.confidence_score, 80);
     }
 
     #[test]
@@ -1203,8 +1134,8 @@ Let me know if you need more details."#;
 
         assert!(matches!(result.risk_assessment.risk_level, RiskLevel::Critical));
         assert_eq!(result.risk_assessment.risk_score, 95);
-        // Confidence is lower because we had to extract JSON
-        assert_eq!(result.metadata.confidence_score, 75);
+        // Unified confidence for JSON-parsed results
+        assert_eq!(result.metadata.confidence_score, 80);
     }
 
     #[test]
@@ -1241,6 +1172,10 @@ Let me know if you need more details."#;
             description: "Multiple failed SSH login attempts detected".to_string(),
             system_info: "Production Linux Server".to_string(),
             historical_context: "No prior incidents".to_string(),
+            timestamp: chrono::Utc::now(),
+            source: "sshd".to_string(),
+            severity: "High".to_string(),
+            raw_data: serde_json::json!({}),
         }
     }
 
@@ -1362,5 +1297,40 @@ End of analysis."#;
             raw_data: serde_json::json!({}),
         }];
         assert!(matches!(analyzer.risk_level_from_scan_results(&results), RiskLevel::Low));
+    }
+
+    // -----------------------------------------------------------------------
+    // Integration tests using MockEngine
+    // -----------------------------------------------------------------------
+
+    #[tokio::test]
+    async fn test_analyze_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let json = r#"{"risk_level":"high","risk_score":80,"risk_categories":["Network"],"risk_description":"desc","priority_issues":[],"recommendations":[]}"#;
+        let analyzer = LLMAnalyzer::new(MockEngine::arc(json), &test_config());
+        let context = make_test_context();
+        let result = analyzer.analyze(context).await.unwrap();
+        assert!(matches!(result.risk_assessment.risk_level, RiskLevel::High));
+        assert_eq!(result.risk_assessment.risk_score, 80);
+    }
+
+    #[tokio::test]
+    async fn test_analyze_security_event_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let json = r#"{"threat_type":"Brute Force","severity":"Critical","confidence":95,"recommendations":["Block IP"]}"#;
+        let analyzer = LLMAnalyzer::new(MockEngine::arc(json), &test_config());
+        let event = make_test_event();
+        let result = analyzer.analyze_security_event(&event).await.unwrap();
+        assert_eq!(result.threat_type, "Brute Force");
+        assert_eq!(result.severity, "Critical");
+        assert_eq!(result.confidence, 95);
+    }
+
+    #[tokio::test]
+    async fn test_summarize_results_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let analyzer = LLMAnalyzer::new(MockEngine::arc("Executive summary text"), &test_config());
+        let result = analyzer.summarize_results(&[]).await.unwrap();
+        assert!(!result.summary.is_empty());
     }
 }
