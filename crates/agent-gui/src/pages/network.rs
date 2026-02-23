@@ -194,9 +194,9 @@ impl NetworkPage {
                 let mut tcp_count: usize = 0;
                 let mut udp_count: usize = 0;
                 for conn in &state.network.connections {
-                    match conn.protocol.to_uppercase().as_str() {
-                        "TCP" | "TCP4" | "TCP6" => tcp_count += 1,
-                        "UDP" | "UDP4" | "UDP6" => udp_count += 1,
+                    match conn.protocol.as_str() {
+                        "tcp" | "tcp4" | "tcp6" | "TCP" | "TCP4" | "TCP6" => tcp_count += 1,
+                        "udp" | "udp4" | "udp6" | "UDP" | "UDP4" | "UDP6" => udp_count += 1,
                         _ => {}
                     }
                 }
@@ -525,7 +525,7 @@ impl NetworkPage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new("INTERFACES RÉSEAU DETECTÉES")
+                    egui::RichText::new("INTERFACES R\u{00c9}SEAU D\u{00c9}TECT\u{00c9}ES")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .extra_letter_spacing(theme::TRACKING_NORMAL)
@@ -613,7 +613,7 @@ impl NetworkPage {
                             theme::TABLE_ROW_HEIGHT,
                             state.network.interfaces.len(),
                             |mut row| {
-                                let iface = &state.network.interfaces[row.index()];
+                                let Some(iface) = state.network.interfaces.get(row.index()) else { return };
                                 row.col(|ui: &mut egui::Ui| {
                                     ui.label(
                                         egui::RichText::new(&iface.name)
@@ -794,8 +794,8 @@ impl NetworkPage {
                     })
                     .body(|body| {
                         body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let real_idx = filtered[row.index()];
-                            let conn = &state.network.connections[real_idx];
+                            let Some(&real_idx) = filtered.get(row.index()) else { return };
+                            let Some(conn) = state.network.connections.get(real_idx) else { return };
                             row.col(|ui: &mut egui::Ui| {
                                 widgets::status_badge(
                                     ui,

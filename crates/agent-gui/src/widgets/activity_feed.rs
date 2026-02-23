@@ -134,7 +134,7 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
             // Event list
             for (idx, event) in events.iter().take(max_items).enumerate() {
                 activity_row(ui, event, idx);
-                if idx < max_items - 1 && idx < events.len() - 1 {
+                if idx + 1 < max_items && idx + 1 < events.len() {
                     ui.add_space(theme::SPACE_XS);
                 }
             }

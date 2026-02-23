@@ -100,10 +100,12 @@ impl ThreatsPage {
                 6 => EdrTab::ForensicTimeline,
                 _ => EdrTab::Overview,
             };
-            // Clear shared selection when switching tabs to avoid index contamination
+            // Clear shared selection and pagination when switching tabs
             if new_tab != state.threats.active_tab {
                 state.threats.selected_threat = None;
                 state.threats.detail_open = false;
+                state.threats.events_page = 0;
+                state.threats.overview_page = 0;
             }
             state.threats.active_tab = new_tab;
         }

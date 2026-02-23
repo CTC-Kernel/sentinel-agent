@@ -79,7 +79,19 @@ impl NotificationsPage {
                     if !state.notifications.is_empty()
                         && widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked()
                     {
-                        Self::export_notifications_csv(state);
+                        let success = Self::export_notifications_csv(state);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV notifications r\u{00e9}ussi")
+                                    .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
+                                    .with_time(time),
+                            );
+                        }
                     }
 
                     if unread > 0 {
@@ -96,6 +108,9 @@ impl NotificationsPage {
                                 n.read = true;
                             }
                             state.unread_notification_count = 0;
+                            // Invalidate selection as the list was mutated
+                            state.selected_notification = None;
+                            state.notification_detail_open = false;
                             command = Some(GuiCommand::MarkAllNotificationsRead);
                         }
                     }
@@ -1017,7 +1032,7 @@ impl NotificationsPage {
         }
     }
 
-    fn export_notifications_csv(state: &AppState) {
+    fn export_notifications_csv(state: &AppState) -> bool {
         let headers = &["date", "severite", "titre", "message", "lu"];
         let rows: Vec<Vec<String>> = state
             .notifications
@@ -1033,8 +1048,12 @@ impl NotificationsPage {
             })
             .collect();
         let path = crate::export::default_export_path("notifications.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 }

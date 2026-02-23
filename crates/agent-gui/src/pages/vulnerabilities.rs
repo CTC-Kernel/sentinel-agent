@@ -631,8 +631,8 @@ impl VulnerabilitiesPage {
                 })
                 .body(|body| {
                     body.rows(theme::TABLE_ROW_HEIGHT + 16.0, filtered.len(), |mut row| {
-                        let real_idx = filtered[row.index()];
-                        let finding = &state.vulnerability_findings[real_idx];
+                        let Some(&real_idx) = filtered.get(row.index()) else { return };
+                        let Some(finding) = state.vulnerability_findings.get(real_idx) else { return };
 
                         row.col(|ui: &mut egui::Ui| {
                             let cve_label = &finding.cve_id;
@@ -819,9 +819,9 @@ impl VulnerabilitiesPage {
         ];
         let rows: Vec<Vec<String>> = indices
             .iter()
-            .map(|&i| {
-                let f = &state.vulnerability_findings[i];
-                vec![
+            .filter_map(|&i| {
+                let f = state.vulnerability_findings.get(i)?;
+                Some(vec![
                     f.cve_id.clone(),
                     f.affected_software.clone(),
                     f.affected_version.clone(),
@@ -833,7 +833,7 @@ impl VulnerabilitiesPage {
                     f.fixed_version.clone().unwrap_or_default(),
                     f.is_false_positive.map_or("--".into(), |fp| if fp { "Oui" } else { "Non" }.to_string()),
                     f.ai_confidence.map_or("--".into(), |c| format!("{}", c)),
-                ]
+                ])
             })
             .collect();
         let path = crate::export::default_export_path("vulnerabilites.csv");

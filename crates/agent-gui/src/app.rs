@@ -718,7 +718,7 @@ impl eframe::App for SentinelApp {
                             })
                             .show(ui, |ui: &mut egui::Ui| match self.page {
                                 Page::Dashboard => {
-                                    if let Some(action) = pages::DashboardPage::show(ui, &self.state) {
+                                    if let Some(action) = pages::DashboardPage::show(ui, &mut self.state) {
                                         match action {
                                             pages::DashboardAction::Command(cmd) => {
                                                 self.send_command(cmd);

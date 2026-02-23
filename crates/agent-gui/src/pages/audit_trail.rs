@@ -274,7 +274,8 @@ impl AuditTrailPage {
             .body(|body| {
                 body.rows(text_height + 12.0, filtered_logs.len(), |mut row| {
                     let idx = row.index();
-                    let log = filtered_logs[idx];
+                    let Some(log) = filtered_logs.get(idx) else { return };
+                    let log = *log;
 
                     row.set_selected(state.selected_audit_entry == Some(idx));
 
@@ -289,12 +290,12 @@ impl AuditTrailPage {
                     });
 
                     row.col(|ui| {
-                        let color = match log.level.to_lowercase().as_str() {
-                            "error" | "critical" => theme::ERROR,
-                            "warn" | "warning" => theme::WARNING,
-                            _ => theme::INFO,
+                        let (level_upper, color) = match log.level.to_lowercase().as_str() {
+                            "error" | "critical" => ("ERROR", theme::ERROR),
+                            "warn" | "warning" => ("WARN", theme::WARNING),
+                            _ => ("INFO", theme::INFO),
                         };
-                        widgets::status_badge(ui, &log.level.to_uppercase(), color);
+                        widgets::status_badge(ui, level_upper, color);
                     });
 
                     row.col(|ui| {

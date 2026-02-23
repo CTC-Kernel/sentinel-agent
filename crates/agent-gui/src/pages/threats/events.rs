@@ -5,6 +5,7 @@ use egui::Ui;
 use crate::app::AppState;
 use crate::dto::Severity;
 use crate::events::GuiCommand;
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort};
@@ -139,8 +140,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     ];
 
     let table = DataTable::new("edr_events_table", columns).selectable();
-    let mut sort = TableSort::default();
-    table.show_header(ui, &mut sort);
+    let mut _sort = TableSort::default();
+    table.show_header(ui, &mut _sort);
 
     if page_threats.is_empty() {
         table.show_empty(ui, "Aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9}");
@@ -198,6 +199,83 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     pag.current_page = state.threats.events_page.saturating_add(1); // PaginationState is 1-indexed
     if widgets::pagination(ui, &mut pag) {
         state.threats.events_page = pag.current_page.saturating_sub(1);
+    }
+
+    ui.add_space(theme::SPACE_XL);
+
+    // ── Detail drawer ────────────────────────────────────────────────
+    if state.threats.detail_open {
+        if let Some(sel) = state.threats.selected_threat
+            && let Some(threat) = threats.get(sel)
+        {
+            let sev_color = match threat.severity {
+                "critical" => theme::ERROR,
+                "high" => theme::SEVERITY_HIGH,
+                "medium" => theme::WARNING,
+                _ => theme::INFO,
+            };
+            let (kind_label, _) = kind_badge(threat.kind);
+            let ts = threat.timestamp.format("%d/%m/%Y %H:%M:%S").to_string();
+
+            // MITRE lookup
+            let subtype = match threat.kind {
+                "network" => threat.title.to_lowercase(),
+                "system" => threat.description.to_lowercase(),
+                "process" => format!("{} {}", threat.title, threat.command_line.as_deref().unwrap_or("")).to_lowercase(),
+                _ => String::new(),
+            };
+            let mitre_info = mitre::mitre_mapping(threat.kind, &subtype);
+
+            let actions = [
+                widgets::DetailAction::secondary("Copier les d\u{00e9}tails", icons::COPY),
+            ];
+
+            let drawer_action = widgets::DetailDrawer::new("events_detail", &threat.title, icons::LIST)
+                .accent(sev_color)
+                .subtitle(kind_label)
+                .show(ui.ctx(), &mut state.threats.detail_open, |ui| {
+                    widgets::detail_section(ui, "\u{00c9}V\u{00c9}NEMENT DE S\u{00c9}CURIT\u{00c9}");
+                    widgets::detail_field(ui, "Titre", &threat.title);
+                    widgets::detail_field_badge(ui, "Type", kind_label, sev_color);
+                    widgets::detail_field_badge(ui, "S\u{00e9}v\u{00e9}rit\u{00e9}", threat.severity, sev_color);
+                    widgets::detail_field(ui, "Date", &ts);
+
+                    if let Some(conf) = threat.confidence {
+                        widgets::detail_field_colored(
+                            ui,
+                            "Confiance",
+                            &format!("{}%", conf),
+                            theme::readable_color(sev_color),
+                        );
+                    }
+
+                    widgets::detail_section(ui, "D\u{00c9}TAILS");
+                    widgets::detail_text(ui, "Description", &threat.description);
+
+                    if let Some(ref cmd) = threat.command_line {
+                        widgets::detail_mono(ui, "Ligne de commande", cmd);
+                    }
+
+                    if let Some(ref mitre) = mitre_info {
+                        widgets::detail_section(ui, "MITRE ATT&CK");
+                        widgets::detail_field(ui, "Technique", mitre.id);
+                        widgets::detail_field(ui, "Nom", mitre.name_fr);
+                        widgets::detail_field(ui, "Tactique", mitre.tactic.label_fr());
+                    }
+                }, &actions);
+
+            if let Some(0) = drawer_action {
+                let details = format!(
+                    "Type: {}\nTitre: {}\nS\u{00e9}v\u{00e9}rit\u{00e9}: {}\nDescription: {}\nDate: {}",
+                    kind_label, threat.title, threat.severity, threat.description, ts,
+                );
+                ui.ctx().copy_text(details);
+            }
+        } else {
+            // Selection out of range — close drawer
+            state.threats.selected_threat = None;
+            state.threats.detail_open = false;
+        }
     }
 
     command

@@ -159,18 +159,30 @@ impl SyncPage {
                 table
                     .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
-                            ui.strong("");
+                            ui.label(egui::RichText::new("").font(theme::font_label()));
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.strong("HEURE");
+                            ui.label(
+                                egui::RichText::new("HEURE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.strong("MESSAGE");
+                            ui.label(
+                                egui::RichText::new("MESSAGE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
+                            );
                         });
                     })
                     .body(|body| {
                         body.rows(theme::TABLE_ROW_HEIGHT, state.sync.history.len(), |mut row| {
-                            let entry = &state.sync.history[row.index()];
+                            let Some(entry) = state.sync.history.get(row.index()) else { return };
 
                             row.col(|ui: &mut egui::Ui| {
                                 let (icon, color) = if entry.success {

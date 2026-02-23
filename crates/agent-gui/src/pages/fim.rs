@@ -20,7 +20,7 @@ impl FimPage {
             ui,
             &["Sys & Network", "FIM"],
             "Surveillance d'Intégrité",
-            Some("DÉTECTION DES MODIFICATIONS FICHiers SYSTÈMES CRITIQUES"),
+            Some("D\u{00c9}TECTION DES MODIFICATIONS DE FICHIERS SYST\u{00c8}MES CRITIQUES"),
             Some(
                 "Surveillance en temps réel des modifications de fichiers critiques. Chaque événement est horodaté et classé par type pour une analyse forensique complète.",
             ),
@@ -211,7 +211,7 @@ impl FimPage {
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
-                            if widgets::chip_button(ui, "EXPORT CSV", false, theme::INFO)
+                            if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD))
                                 .clicked()
                             {
                                 let all_indices: Vec<usize> = (0..state.fim.alerts.len()).collect();
@@ -285,7 +285,7 @@ impl FimPage {
                     .body(|body| {
                         body.rows(theme::TABLE_ROW_HEIGHT, state.fim.alerts.len(), |mut row| {
                             let idx = row.index();
-                            let alert = &state.fim.alerts[idx];
+                            let Some(alert) = state.fim.alerts.get(idx) else { return };
 
                             row.col(|ui: &mut egui::Ui| {
                                 let (label, color) = Self::change_type_display(&alert.change_type);
@@ -521,14 +521,14 @@ impl FimPage {
         let headers = &["chemin", "modification", "date", "statut"];
         let rows: Vec<Vec<String>> = indices
             .iter()
-            .map(|&i| {
-                let e = &state.fim.alerts[i];
-                vec![
+            .filter_map(|&i| {
+                let e = state.fim.alerts.get(i)?;
+                Some(vec![
                     e.path.clone(),
                     e.change_type.to_string(),
                     e.timestamp.to_rfc3339(),
                     if e.acknowledged { "Acquitté" } else { "En attente" }.to_string(),
-                ]
+                ])
             })
             .collect();
 

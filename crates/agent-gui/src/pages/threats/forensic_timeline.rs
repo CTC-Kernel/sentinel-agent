@@ -17,6 +17,7 @@ const ITEMS_PER_PAGE: usize = 25;
 const CORRELATION_WINDOW_SECS: i64 = 300;
 
 /// A unified timeline event from any source.
+#[derive(Clone)]
 struct TimelineEvent {
     timestamp: DateTime<Utc>,
     source: &'static str,
@@ -136,7 +137,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         .checked_sub_signed(Duration::seconds(state.threats.forensic_time_range.seconds()))
         .unwrap_or(now);
 
-    let mut events = build_timeline(state, cutoff);
+    let all_events = build_timeline(state, cutoff);
+    let mut events = all_events.clone();
 
     // Apply source filter
     if let Some(ref src) = state.threats.forensic_source_filter {
@@ -250,7 +252,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let global_idx = start.saturating_add(row_idx);
                 let selected = state.threats.forensic_selected_event == Some(global_idx);
 
-                ui.push_id(format!("ftl_{}", row_idx), |ui: &mut egui::Ui| {
+                ui.push_id(row_idx, |ui: &mut egui::Ui| {
                     if table.show_row(ui, row_idx, selected, &cells) {
                         state.threats.forensic_selected_event = Some(global_idx);
                         state.threats.forensic_detail_open = true;
@@ -291,8 +293,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .checked_add_signed(Duration::seconds(CORRELATION_WINDOW_SECS))
                     .unwrap_or(selected_event.timestamp);
 
-                // Rebuild full (unfiltered) timeline for correlation
-                let all_events = build_timeline(state, cutoff);
+                // Use pre-built full (unfiltered) timeline for correlation
                 let correlated: Vec<&TimelineEvent> = all_events
                     .iter()
                     .filter(|e| {
@@ -349,7 +350,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             );
                         } else {
                             for (i, evt) in correlated.iter().enumerate().take(20) {
-                                ui.push_id(format!("corr_{}", i), |ui: &mut egui::Ui| {
+                                ui.push_id(i, |ui: &mut egui::Ui| {
                                     let c_color = severity_color(&evt.severity);
                                     egui::Frame::new()
                                         .fill(theme::bg_tertiary())
