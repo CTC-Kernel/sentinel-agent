@@ -55,6 +55,9 @@ impl DiscoveryPage {
                     if is_scanning {
                         cmd = Some(crate::events::GuiCommand::StopDiscovery);
                     } else {
+                        // Clear stale selection before starting a new scan
+                        state.discovery.selected_device = None;
+                        state.discovery.detail_open = false;
                         cmd = Some(crate::events::GuiCommand::StartDiscovery);
                     }
                 }
@@ -362,8 +365,8 @@ impl DiscoveryPage {
                     .body(|body| {
                         body.rows(theme::TABLE_DATA_ROW_HEIGHT, filtered.len(), |mut row| {
                             let row_idx = row.index();
-                            let dev_idx = filtered[row_idx];
-                            let device = &state.discovery.devices[dev_idx];
+                            let Some(&dev_idx) = filtered.get(row_idx) else { return };
+                            let Some(device) = state.discovery.devices.get(dev_idx) else { return };
 
                             row.set_selected(state.discovery.selected_device == Some(dev_idx));
 
@@ -559,9 +562,9 @@ impl DiscoveryPage {
         let headers = &["ip", "hostname", "mac", "vendor", "type", "ports"];
         let rows: Vec<Vec<String>> = indices
             .iter()
-            .map(|&i| {
-                let d = &state.discovery.devices[i];
-                vec![
+            .filter_map(|&i| {
+                let d = state.discovery.devices.get(i)?;
+                Some(vec![
                     d.ip.clone(),
                     d.hostname.clone().unwrap_or_default(),
                     d.mac.clone().unwrap_or_default(),
@@ -572,7 +575,7 @@ impl DiscoveryPage {
                         .map(|p| p.to_string())
                         .collect::<Vec<_>>()
                         .join(", "),
-                ]
+                ])
             })
             .collect();
         let path = crate::export::default_export_path("decouverte.csv");

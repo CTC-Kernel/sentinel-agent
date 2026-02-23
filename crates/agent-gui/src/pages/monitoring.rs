@@ -390,7 +390,7 @@ impl MonitoringPage {
 
         let mut plot = Plot::new(egui::Id::new(format!(
             "chart_{}",
-            history.as_ptr() as usize
+            title
         )))
         .height(chart_height)
         .include_y(0.0)
@@ -411,11 +411,12 @@ impl MonitoringPage {
         // Get time before entering the closure to avoid borrowing conflicts
         let current_time = ui.ctx().input(|i| i.time);
 
+        let history_pts = history.to_vec();
         plot.show(ui, |plot_ui| {
             // Fill under line (subtle)
             if fill {
                 plot_ui.line(
-                    Line::new(PlotPoints::new(history.to_vec()))
+                    Line::new(PlotPoints::new(history_pts.clone()))
                         .color(line_color.linear_multiply(theme::OPACITY_SUBTLE))
                         .fill(0.0),
                 );
@@ -423,7 +424,7 @@ impl MonitoringPage {
 
             // Main line - crisp
             plot_ui.line(
-                Line::new(PlotPoints::new(history.to_vec()))
+                Line::new(PlotPoints::new(history_pts))
                     .color(line_color)
                     .width(1.5),
             );

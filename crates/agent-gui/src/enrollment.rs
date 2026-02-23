@@ -330,7 +330,7 @@ impl EnrollmentWizard {
 
                         // Click logic
                         if response.clicked()
-                            && let Some(pos) = response.hover_pos()
+                            && let Some(pos) = response.interact_pointer_pos()
                         {
                             if left_rect.contains(pos) {
                                 self.use_qr = false;

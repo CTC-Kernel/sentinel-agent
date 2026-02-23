@@ -70,7 +70,8 @@ impl LLMPanel {
         let selected_idx = state.ai.active_tab.index() as usize;
 
         let chat_count = state.ai.chat_history.len() as u32;
-        let rec_count = Self::build_recommendations(state).len() as u32;
+        // Use cached count for badge to avoid building recommendations twice per frame
+        let rec_count = state.ai.recommendations_count as u32;
 
         let mut assistant_tab = Tab::new("ASSISTANT IA").icon(icons::ROBOT);
         if chat_count > 0 {
@@ -398,8 +399,9 @@ impl LLMPanel {
     ) -> Option<GuiCommand> {
         let mut command = None;
 
-        // Build recommendations from AppState
+        // Build recommendations from AppState and cache count for badge
         let recommendations = Self::build_recommendations(state);
+        state.ai.recommendations_count = recommendations.len();
 
         if recommendations.is_empty() && state.checks.is_empty() {
             Self::show_empty_state(ui);
@@ -1036,13 +1038,15 @@ impl LLMPanel {
                                 // ETA
                                 if total_bytes > 0 && speed_bps > 0 {
                                     let remaining = total_bytes.saturating_sub(downloaded_bytes);
-                                    let eta_secs = remaining / speed_bps;
-                                    let eta_text = Self::format_duration(eta_secs);
-                                    ui.label(
-                                        egui::RichText::new(format!("{} restant", eta_text))
-                                            .font(theme::font_small())
-                                            .color(theme::text_tertiary()),
-                                    );
+                                    if remaining > 0 {
+                                        let eta_secs = remaining / speed_bps;
+                                        let eta_text = Self::format_duration(eta_secs);
+                                        ui.label(
+                                            egui::RichText::new(format!("{} restant", eta_text))
+                                                .font(theme::font_small())
+                                                .color(theme::text_tertiary()),
+                                        );
+                                    }
                                 }
                             },
                         );

@@ -440,7 +440,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     &date,
                 ];
 
-                ui.push_id(format!("log_{}", row_idx), |ui: &mut egui::Ui| {
+                ui.push_id(row_idx, |ui: &mut egui::Ui| {
                     table.show_row(ui, row_idx, false, &cells);
                 });
 

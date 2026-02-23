@@ -52,7 +52,7 @@ pub enum DashboardAction {
 pub struct DashboardPage;
 
 impl DashboardPage {
-    pub fn show(ui: &mut Ui, state: &AppState) -> Option<DashboardAction> {
+    pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
         let mut action: Option<DashboardAction> = None;
 
         ui.add_space(theme::SPACE_MD);
@@ -211,7 +211,7 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     // ACTION BAR (replaces Command Center — flat inline strip)
     // ──────────────────────────────────────────────────────────────────────
-    fn action_bar(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
+    fn action_bar(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
 
         ui.horizontal(|ui: &mut egui::Ui| {
@@ -260,7 +260,19 @@ impl DashboardPage {
             )
             .clicked()
             {
-                Self::export_dashboard_csv(state);
+                let success = Self::export_dashboard_csv(state);
+                let time = ui.input(|i| i.time);
+                if success {
+                    state.toasts.push(
+                        crate::widgets::toast::Toast::success("Export CSV du tableau de bord r\u{00e9}ussi")
+                            .with_time(time),
+                    );
+                } else {
+                    state.toasts.push(
+                        crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
+                            .with_time(time),
+                    );
+                }
             }
 
             // Right: Compact system status
@@ -1265,7 +1277,7 @@ impl DashboardPage {
         });
     }
 
-    fn export_dashboard_csv(state: &AppState) {
+    fn export_dashboard_csv(state: &AppState) -> bool {
         let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
         let headers = &["metrique", "valeur", "unite", "horodatage"];
         let mut rows = vec![
@@ -1282,8 +1294,12 @@ impl DashboardPage {
         }
 
         let path = crate::export::default_export_path("dashboard_summary.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 }

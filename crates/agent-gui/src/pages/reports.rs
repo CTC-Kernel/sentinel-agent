@@ -10,6 +10,9 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 
+/// Maximum number of reports kept in history.
+const MAX_REPORT_HISTORY: usize = 50;
+
 /// Reports page.
 pub struct ReportsPage;
 
@@ -140,15 +143,15 @@ impl ReportsPage {
                     .as_ref()
                     .and_then(|fws| fws.first().cloned());
 
+                // push_front shifts all indices — invalidate selection BEFORE mutating
+                state.reports.selected_report = None;
+                state.reports.detail_open = false;
                 // Generate locally and store
                 let report = Self::generate_report(state, report_type, framework.as_deref());
                 state.reports.reports.push_front(report);
-                if state.reports.reports.len() > 50 {
+                if state.reports.reports.len() > MAX_REPORT_HISTORY {
                     state.reports.reports.pop_back();
                 }
-                // push_front shifts all indices — invalidate report selection
-                state.reports.selected_report = None;
-                state.reports.detail_open = false;
                 state.push_toast(
                     crate::widgets::toast::Toast::success("Rapport g\u{00e9}n\u{00e9}r\u{00e9} avec succ\u{00e8}s"),
                     ui.ctx(),
@@ -355,7 +358,7 @@ impl ReportsPage {
                             reports_vec.len(),
                             |mut row| {
                                 let row_idx = row.index();
-                                let (real_idx, report) = &reports_vec[row_idx];
+                                let Some((real_idx, report)) = reports_vec.get(row_idx) else { return };
                                 let is_selected =
                                     state.reports.selected_report == Some(*real_idx);
                                 row.set_selected(is_selected);

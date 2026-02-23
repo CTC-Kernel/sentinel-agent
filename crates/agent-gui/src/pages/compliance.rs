@@ -471,7 +471,7 @@ impl CompliancePage {
                 for (group_name, indices) in &groups {
                     let pass_count = indices
                         .iter()
-                        .filter(|&&i| state.checks[i].status == GuiCheckStatus::Pass)
+                        .filter(|&&i| state.checks.get(i).is_some_and(|c| c.status == GuiCheckStatus::Pass))
                         .count();
                     let total = indices.len();
                     let pct = if total > 0 {
@@ -646,7 +646,7 @@ impl CompliancePage {
         use std::collections::BTreeMap;
         let mut map: BTreeMap<String, Vec<usize>> = BTreeMap::new();
         for &i in indices {
-            let check = &state.checks[i];
+            let Some(check) = state.checks.get(i) else { continue };
             if state.compliance.group_by == ComplianceGroupBy::Category {
                 let key = Self::format_category(&check.category);
                 map.entry(key).or_default().push(i);
@@ -743,7 +743,7 @@ impl CompliancePage {
             })
             .body(|mut body| {
                 for &idx in indices {
-                    let check = &state.checks[idx];
+                    let Some(check) = state.checks.get(idx) else { continue };
                     let is_selected = state.compliance.selected_check == Some(idx);
 
                     body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
@@ -854,7 +854,8 @@ impl CompliancePage {
         // Collect unique frameworks from filtered checks
         let mut frameworks_set = BTreeSet::new();
         for &i in indices {
-            for fw in &state.checks[i].frameworks {
+            let Some(check) = state.checks.get(i) else { continue };
+            for fw in &check.frameworks {
                 frameworks_set.insert(fw.clone());
             }
         }
@@ -874,7 +875,7 @@ impl CompliancePage {
         let mut fw_pass: Vec<u32> = vec![0; frameworks.len()];
         let mut fw_total: Vec<u32> = vec![0; frameworks.len()];
         for &i in indices {
-            let check = &state.checks[i];
+            let Some(check) = state.checks.get(i) else { continue };
             for (fi, fw) in frameworks.iter().enumerate() {
                 if check.frameworks.contains(fw) {
                     fw_total[fi] = fw_total[fi].saturating_add(1);
@@ -939,7 +940,7 @@ impl CompliancePage {
             })
             .body(|mut body| {
                 for &idx in indices {
-                    let check = &state.checks[idx];
+                    let Some(check) = state.checks.get(idx) else { continue };
                     body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
                         row.col(|ui: &mut egui::Ui| {
                             ui.with_layout(
@@ -1023,10 +1024,10 @@ impl CompliancePage {
     fn export_csv(state: &AppState, indices: &[usize]) {
         let rows: Vec<Vec<String>> = indices
             .iter()
-            .map(|&i| {
-                let c = &state.checks[i];
+            .filter_map(|&i| {
+                let c = state.checks.get(i)?;
                 let (st, _) = Self::status_display(&c.status);
-                vec![
+                Some(vec![
                     c.check_id.clone(),
                     c.name.clone(),
                     c.category.clone(),
@@ -1034,7 +1035,7 @@ impl CompliancePage {
                     c.severity.as_str().to_string(),
                     c.score.map_or("--".into(), |s| format!("{}", s)),
                     c.frameworks.join(", "),
-                ]
+                ])
             })
             .collect();
 

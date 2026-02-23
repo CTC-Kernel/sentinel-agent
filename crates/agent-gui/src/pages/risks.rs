@@ -480,8 +480,8 @@ impl RisksPage {
                 .body(|body| {
                     body.rows(theme::TABLE_ROW_HEIGHT, indices.len(), |mut row| {
                         let row_idx = row.index();
-                        let real_idx = indices[row_idx];
-                        let risk = &state.risks.entries[real_idx];
+                        let Some(&real_idx) = indices.get(row_idx) else { return };
+                        let Some(risk) = state.risks.entries.get(real_idx) else { return };
                         let is_selected = state.risks.selected_risk == Some(real_idx);
                         row.set_selected(is_selected);
 
@@ -1031,9 +1031,9 @@ impl RisksPage {
     fn export_csv(state: &AppState, indices: &[usize]) {
         let rows: Vec<Vec<String>> = indices
             .iter()
-            .map(|&i| {
-                let r = &state.risks.entries[i];
-                vec![
+            .filter_map(|&i| {
+                let r = state.risks.entries.get(i)?;
+                Some(vec![
                     r.title.clone(),
                     r.probability.to_string(),
                     r.impact.to_string(),
@@ -1042,7 +1042,7 @@ impl RisksPage {
                     r.owner.clone(),
                     r.source.clone(),
                     r.created_at.format("%d/%m/%Y").to_string(),
-                ]
+                ])
             })
             .collect();
 

@@ -131,7 +131,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         .unwrap_or_default()
                 );
 
-                ui.push_id(format!("rule_{}", row_idx), |ui: &mut egui::Ui| {
+                ui.push_id(row_idx, |ui: &mut egui::Ui| {
                     egui::Frame::new()
                         .fill(if row_idx % 2 == 1 { theme::table_row_bg(row_idx) } else { egui::Color32::TRANSPARENT })
                         .inner_margin(egui::Margin::symmetric(theme::SPACE_MD as i8, theme::SPACE_SM as i8))
