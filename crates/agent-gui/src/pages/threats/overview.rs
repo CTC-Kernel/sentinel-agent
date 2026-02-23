@@ -330,13 +330,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let search_lower = state.threats.search.to_lowercase();
                 if !search_lower.is_empty() {
                     list.retain(|t| {
-                        let haystack = format!(
-                            "{} {} {}",
-                            t.title.to_lowercase(),
-                            t.description.to_lowercase(),
-                            t.kind,
-                        );
-                        haystack.contains(&search_lower)
+                        t.title.to_lowercase().contains(&search_lower)
+                            || t.description.to_lowercase().contains(&search_lower)
+                            || t.kind.contains(&search_lower)
                     });
                 }
 

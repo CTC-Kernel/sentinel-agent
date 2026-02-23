@@ -375,7 +375,13 @@ impl FimPage {
                 // Apply acknowledgment after the table
                 if let Some(idx) = ack_command {
                     let alert_id = alert_ids[idx].clone();
-                    state.fim.alerts[idx].acknowledged = true;
+                    if let Some(alert) = state.fim.alerts.get_mut(idx) {
+                        alert.acknowledged = true;
+                    }
+                    // Close drawer if acknowledged alert was selected
+                    if state.fim.selected_alert == Some(idx) {
+                        state.fim.detail_open = false;
+                    }
                     command = Some(GuiCommand::AcknowledgeFimAlert { alert_id });
                 }
             });

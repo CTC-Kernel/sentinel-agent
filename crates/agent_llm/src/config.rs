@@ -193,7 +193,12 @@ impl Default for CacheConfig {
     }
 }
 
-/// Security configuration.
+/// Security configuration for LLM input validation.
+///
+/// These settings are enforced at a single gateway: [`MistralEngine::infer()`](crate::engine::MistralEngine::infer).
+/// Every inference call — regardless of whether it originates from the analyzer,
+/// classifier, or remediation advisor — passes through that method, so the security
+/// checks (input length, blocked patterns, audit logging) are applied uniformly.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecurityConfig {
     /// Enable input sanitization
@@ -268,6 +273,40 @@ impl LLMConfig {
             return Err(anyhow::anyhow!("Top-p must be between 0.0 and 1.0"));
         }
 
+        if self.model.threads == 0 {
+            return Err(anyhow::anyhow!("threads must be > 0"));
+        }
+
+        if self.inference.max_tokens == 0 {
+            return Err(anyhow::anyhow!("max_tokens must be > 0"));
+        }
+
+        if self.inference.timeout_secs == 0 {
+            return Err(anyhow::anyhow!("timeout_secs must be > 0"));
+        }
+
+        if self.model.max_context_size == 0 {
+            return Err(anyhow::anyhow!("max_context_size must be > 0"));
+        }
+
+        if !(1.0..=2.0).contains(&self.inference.repetition_penalty) {
+            return Err(anyhow::anyhow!("repetition_penalty must be between 1.0 and 2.0"));
+        }
+
+        if self.security.sanitize_input && self.security.max_input_length == 0 {
+            return Err(anyhow::anyhow!("max_input_length must be > 0 when sanitize_input is enabled"));
+        }
+
+        for pattern in &self.security.blocked_patterns {
+            if let Err(e) = regex::Regex::new(pattern) {
+                return Err(anyhow::anyhow!("Invalid blocked pattern '{}': {}", pattern, e));
+            }
+        }
+
+        if self.cache.enabled && std::fs::create_dir_all(&self.cache.directory).is_err() {
+            return Err(anyhow::anyhow!("Cache directory cannot be created: {:?}", self.cache.directory));
+        }
+
         Ok(())
     }
 }
@@ -296,7 +335,68 @@ mod tests {
     fn test_config_validation() {
         let mut config = LLMConfig::default();
         config.model.path = PathBuf::from("/nonexistent/model.gguf");
-        
+
         assert!(config.validate().is_err());
+    }
+
+    /// Create a config with a valid model path (using Cargo.toml as a stand-in)
+    /// so the model-exists check doesn't fire before the check we're testing.
+    fn config_with_valid_path() -> LLMConfig {
+        let mut config = LLMConfig::default();
+        config.model.path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
+        config
+    }
+
+    #[test]
+    fn test_validate_threads_zero() {
+        let mut config = config_with_valid_path();
+        config.model.threads = 0;
+        let err = config.validate().unwrap_err().to_string();
+        assert!(err.contains("threads"), "Got: {}", err);
+    }
+
+    #[test]
+    fn test_validate_max_tokens_zero() {
+        let mut config = config_with_valid_path();
+        config.inference.max_tokens = 0;
+        let err = config.validate().unwrap_err().to_string();
+        assert!(err.contains("max_tokens"), "Got: {}", err);
+    }
+
+    #[test]
+    fn test_validate_timeout_zero() {
+        let mut config = config_with_valid_path();
+        config.inference.timeout_secs = 0;
+        let err = config.validate().unwrap_err().to_string();
+        assert!(err.contains("timeout_secs"), "Got: {}", err);
+    }
+
+    #[test]
+    fn test_validate_repetition_penalty_out_of_range() {
+        let mut config = config_with_valid_path();
+        config.inference.repetition_penalty = 0.5;
+        let err = config.validate().unwrap_err().to_string();
+        assert!(err.contains("repetition_penalty"), "Got: {}", err);
+
+        config.inference.repetition_penalty = 2.5;
+        let err = config.validate().unwrap_err().to_string();
+        assert!(err.contains("repetition_penalty"), "Got: {}", err);
+    }
+
+    #[test]
+    fn test_validate_max_input_length_zero_with_sanitize() {
+        let mut config = config_with_valid_path();
+        config.security.sanitize_input = true;
+        config.security.max_input_length = 0;
+        let err = config.validate().unwrap_err().to_string();
+        assert!(err.contains("max_input_length"), "Got: {}", err);
+    }
+
+    #[test]
+    fn test_validate_invalid_blocked_pattern() {
+        let mut config = config_with_valid_path();
+        config.security.blocked_patterns = vec!["[invalid(regex".to_string()];
+        let err = config.validate().unwrap_err().to_string();
+        assert!(err.contains("Invalid blocked pattern"), "Got: {}", err);
     }
 }

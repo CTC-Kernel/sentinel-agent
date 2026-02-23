@@ -1037,7 +1037,9 @@ impl DashboardPage {
                     .collect();
 
                 // Current values (last snapshot)
-                let last = filtered.last().expect("filtered is non-empty");
+                let Some(last) = filtered.last() else {
+                    return;
+                };
                 let current_compliance = format!("{:.0}%", last.compliance_score);
                 let current_incidents = last.incident_count.to_string();
                 let current_vulns = last.open_vulns.to_string();

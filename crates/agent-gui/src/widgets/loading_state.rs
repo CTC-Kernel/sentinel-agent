@@ -8,6 +8,7 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
     let animated = !theme::is_reduced_motion();
     let time = if animated { ui.input(|i| i.time) as f32 } else { 0.0 };
     let avail_width = ui.available_width();
+    let dark = theme::is_dark_mode();
 
     for i in 0..rows {
         let row_rect = ui.allocate_space(egui::vec2(avail_width, theme::TABLE_ROW_HEIGHT)).1;
@@ -19,10 +20,11 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
             0.5
         };
         let base_alpha = 0.06 + phase * 0.04;
-        let fill = if theme::is_dark_mode() {
-            Color32::from_white_alpha((base_alpha * 255.0).clamp(0.0, 255.0) as u8)
+        let alpha_byte = (base_alpha * 255.0).clamp(0.0, 255.0) as u8;
+        let fill = if dark {
+            Color32::from_white_alpha(alpha_byte)
         } else {
-            Color32::from_black_alpha((base_alpha * 255.0).clamp(0.0, 255.0) as u8)
+            Color32::from_black_alpha(alpha_byte)
         };
 
         ui.painter()
@@ -30,18 +32,18 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
 
         // Simulate columns with varying widths
         let col_widths = [0.15, 0.25, 0.35, 0.15];
+        let col_alpha_byte = (base_alpha * 1.5 * 255.0).clamp(0.0, 255.0) as u8;
+        let col_fill = if dark {
+            Color32::from_white_alpha(col_alpha_byte)
+        } else {
+            Color32::from_black_alpha(col_alpha_byte)
+        };
         let mut x = row_rect.min.x + theme::SPACE_SM;
         for &w in &col_widths {
             let col_rect = egui::Rect::from_min_size(
                 egui::pos2(x, row_rect.min.y + theme::SPACE_SM + 2.0),
                 egui::vec2(avail_width * w - theme::SPACE, theme::SPACE),
             );
-            let col_alpha = base_alpha * 1.5;
-            let col_fill = if theme::is_dark_mode() {
-                Color32::from_white_alpha((col_alpha * 255.0).clamp(0.0, 255.0) as u8)
-            } else {
-                Color32::from_black_alpha((col_alpha * 255.0).clamp(0.0, 255.0) as u8)
-            };
             ui.painter()
                 .rect_filled(col_rect, CornerRadius::same(theme::SPACE_XS as u8), col_fill);
             x += avail_width * w;

@@ -57,6 +57,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         1.0
                     } else {
                         let time = ui.input(|i| i.time);
+                        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
                         ((time * 2.5).sin() * 0.5 + 0.5) as f32
                     };
 
@@ -294,9 +295,8 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
         });
     });
 
-    if !theme::is_reduced_motion() {
-        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
-    }
+    // Repaint is already requested by individual animation blocks (status dot, badge pulse)
+    // No unconditional repaint needed here.
 
     command
 }

@@ -5,11 +5,16 @@ use std::sync::Arc;
 use anyhow::Result;
 use tracing::{info, warn};
 
+use std::sync::LazyLock;
 use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, PromptBuilder};
 pub use crate::prompts::ThreatLevel;
-use crate::utils::extract_json_block;
+use crate::utils::{extract_lines, append_json_schema, try_parse_json};
+
+/// Compiled regex for extracting MITRE ATT&CK technique IDs (e.g. T1059, T1059.001).
+static MITRE_TECHNIQUE_RE: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"T\d{4}(?:\.\d{3})?").unwrap());
 
 // ---------------------------------------------------------------------------
 // Intermediate serde structs for lenient JSON parsing (all fields optional/defaulted)
@@ -146,23 +151,6 @@ fn parse_mitigation_priority(s: &str) -> MitigationPriority {
         "critical" | "urgent" | "immediate" => MitigationPriority::Critical,
         _ => MitigationPriority::High,
     }
-}
-
-/// Extract simple keyword-like sentences from raw text (first N non-empty lines).
-fn extract_lines(text: &str, max: usize) -> Vec<String> {
-    text.lines()
-        .map(|l| l.trim().trim_start_matches(|c: char| c == '-' || c == '*' || c.is_ascii_digit() || c == '.'))
-        .map(|l| l.trim().to_string())
-        .filter(|l| !l.is_empty())
-        .take(max)
-        .collect()
-}
-
-/// Append the expected JSON response schema to a prompt string.
-fn append_json_schema(prompt: &mut String, schema: &str) {
-    prompt.push_str("\n\nYou MUST respond with a single valid JSON object matching this exact schema (no markdown fences, no extra text):\n");
-    prompt.push_str(schema);
-    prompt.push('\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -430,24 +418,16 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
 
     /// Parse classification response from LLM text into SecurityClassification.
     ///
-    /// Strategy: try direct JSON parse -> extract JSON block -> fallback from raw text.
+    /// Uses `try_parse_json` for strategies 1+2, then falls back to keyword extraction.
     fn parse_classification_response(&self, response: &str, event: &SecurityEvent, duration: std::time::Duration) -> Result<SecurityClassification> {
         let now = chrono::Utc::now();
         let processing_time_ms = duration.as_millis() as u64;
 
-        // Attempt 1: direct deserialization
-        if let Ok(raw) = serde_json::from_str::<RawClassification>(response) {
+        if let Ok(raw) = try_parse_json::<RawClassification>(response) {
             return Ok(self.build_classification_from_raw(raw, event, now, processing_time_ms));
         }
 
-        // Attempt 2: extract JSON block from surrounding text
-        if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawClassification>(json_block)
-        {
-            return Ok(self.build_classification_from_raw(raw, event, now, processing_time_ms));
-        }
-
-        // Attempt 3: fallback - build from raw text keywords
+        // Fallback - build from raw text keywords
         warn!("Failed to parse classification JSON for event {}; building fallback from raw text", event.id);
         let lower = response.to_lowercase();
 
@@ -527,19 +507,11 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     fn parse_vulnerability_analysis(&self, response: &str, vuln: &Vulnerability) -> Result<VulnerabilityAnalysis> {
         let now = chrono::Utc::now();
 
-        // Attempt 1: direct deserialization
-        if let Ok(raw) = serde_json::from_str::<RawVulnerabilityAnalysis>(response) {
+        if let Ok(raw) = try_parse_json::<RawVulnerabilityAnalysis>(response) {
             return Ok(self.build_vuln_analysis_from_raw(raw, vuln, now));
         }
 
-        // Attempt 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawVulnerabilityAnalysis>(json_block)
-        {
-            return Ok(self.build_vuln_analysis_from_raw(raw, vuln, now));
-        }
-
-        // Attempt 3: fallback from raw text
+        // Fallback from raw text
         warn!("Failed to parse vulnerability analysis JSON for {}; building fallback from raw text", vuln.id);
         let lower = response.to_lowercase();
 
@@ -607,19 +579,11 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
         let now = chrono::Utc::now();
         let event_count = events.len();
 
-        // Attempt 1: direct deserialization
-        if let Ok(raw) = serde_json::from_str::<RawThreatReport>(response) {
+        if let Ok(raw) = try_parse_json::<RawThreatReport>(response) {
             return Ok(self.build_threat_report_from_raw(raw, now, event_count));
         }
 
-        // Attempt 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawThreatReport>(json_block)
-        {
-            return Ok(self.build_threat_report_from_raw(raw, now, event_count));
-        }
-
-        // Attempt 3: fallback - use the raw response as the executive summary
+        // Fallback - use the raw response as the executive summary
         warn!("Failed to parse threat report JSON; building fallback from raw text");
 
         let lines = extract_lines(response, 20);
@@ -670,28 +634,18 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     fn parse_attack_pattern_analysis(&self, response: &str) -> Result<AttackPatternAnalysis> {
         let now = chrono::Utc::now();
 
-        // Attempt 1: direct deserialization
-        if let Ok(raw) = serde_json::from_str::<RawAttackPatternAnalysis>(response) {
+        if let Ok(raw) = try_parse_json::<RawAttackPatternAnalysis>(response) {
             return Ok(self.build_attack_pattern_from_raw(raw, now));
         }
 
-        // Attempt 2: extract JSON block
-        if let Some(json_block) = extract_json_block(response)
-            && let Ok(raw) = serde_json::from_str::<RawAttackPatternAnalysis>(json_block)
-        {
-            return Ok(self.build_attack_pattern_from_raw(raw, now));
-        }
-
-        // Attempt 3: fallback - try to extract MITRE references from raw text
+        // Fallback - try to extract MITRE references from raw text
         warn!("Failed to parse attack pattern analysis JSON; building fallback from raw text");
 
         // Look for MITRE technique IDs in the text (T followed by 4 digits)
-        let technique_ids: Vec<String> = {
-            let re = regex::Regex::new(r"T\d{4}(?:\.\d{3})?").unwrap();
-            re.find_iter(response)
-                .map(|m| m.as_str().to_string())
-                .collect()
-        };
+        let technique_ids: Vec<String> = MITRE_TECHNIQUE_RE
+            .find_iter(response)
+            .map(|m| m.as_str().to_string())
+            .collect();
 
         let ttps: Vec<TTP> = technique_ids.iter().map(|tid| {
             TTP {
@@ -1001,16 +955,6 @@ mod tests {
     }
 
     #[test]
-    fn test_extract_lines() {
-        let text = "- First item\n* Second item\n3. Third item\n\n  \nFourth item";
-        let lines = extract_lines(text, 3);
-        assert_eq!(lines.len(), 3);
-        assert_eq!(lines[0], "First item");
-        assert_eq!(lines[1], "Second item");
-        assert_eq!(lines[2], "Third item");
-    }
-
-    #[test]
     fn test_raw_classification_from_valid_json() {
         let json = r#"{
             "threat_type": "Malware",
@@ -1095,11 +1039,80 @@ mod tests {
         assert_eq!(raw.attack_stages.len(), 2);
     }
 
-    #[test]
-    fn test_append_json_schema() {
-        let mut prompt = "Analyze this event.".to_string();
-        append_json_schema(&mut prompt, r#"{"key": "value"}"#);
-        assert!(prompt.contains("single valid JSON object"));
-        assert!(prompt.contains(r#"{"key": "value"}"#));
+    // -----------------------------------------------------------------------
+    // Integration tests using MockEngine
+    // -----------------------------------------------------------------------
+
+    fn make_test_event() -> SecurityEvent {
+        SecurityEvent {
+            id: "sec-evt-1".to_string(),
+            event_type: "intrusion".to_string(),
+            description: "SSH brute force detected".to_string(),
+            system_info: "Linux server".to_string(),
+            historical_context: "No prior incidents".to_string(),
+            timestamp: chrono::Utc::now(),
+            source: "sshd".to_string(),
+            severity: "High".to_string(),
+            raw_data: serde_json::json!({}),
+        }
+    }
+
+    fn make_test_vuln() -> Vulnerability {
+        Vulnerability {
+            id: "CVE-2024-0001".to_string(),
+            title: "Test Vuln".to_string(),
+            severity: "High".to_string(),
+            cvss_score: 8.5,
+            description: "A test vulnerability".to_string(),
+            affected_systems: vec!["server-1".to_string()],
+            published_date: "2024-01-01".to_string(),
+            last_modified_date: "2024-06-01".to_string(),
+            references: vec![],
+        }
+    }
+
+    #[tokio::test]
+    async fn test_classify_event_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let json = r#"{"threat_type":"Malware","threat_level":"Critical","confidence":90,"attack_vector":"Network","tactics":["Execution"],"techniques":["T1059"],"impact_assessment":"Severe","recommended_actions":["Isolate"]}"#;
+        let classifier = SecurityClassifier::new(MockEngine::arc(json), &test_config());
+        let event = make_test_event();
+        let result = classifier.classify_event(&event).await.unwrap();
+        assert!(matches!(result.threat_type, ThreatType::Malware));
+        assert!(matches!(result.threat_level, ThreatLevel::Critical));
+        assert_eq!(result.confidence, 90);
+    }
+
+    #[tokio::test]
+    async fn test_analyze_vulnerability_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let json = r#"{"exploitability":"High","business_impact":"Major","attack_scenarios":["RCE"],"mitigation_priority":"Critical","patch_strategy":"Patch now","compensating_controls":["WAF"]}"#;
+        let classifier = SecurityClassifier::new(MockEngine::arc(json), &test_config());
+        let vuln = make_test_vuln();
+        let result = classifier.analyze_vulnerability(&vuln).await.unwrap();
+        assert!(matches!(result.exploitability, Exploitability::High));
+        assert!(matches!(result.mitigation_priority, MitigationPriority::Critical));
+    }
+
+    #[tokio::test]
+    async fn test_generate_threat_report_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let json = r#"{"title":"Report","executive_summary":"Summary","threat_landscape":"Active","key_findings":["F1"],"recommendations":["R1"]}"#;
+        let classifier = SecurityClassifier::new(MockEngine::arc(json), &test_config());
+        let events = vec![make_test_event()];
+        let result = classifier.generate_threat_report(&events).await.unwrap();
+        assert_eq!(result.title, "Report");
+        assert_eq!(result.event_count, 1);
+    }
+
+    #[tokio::test]
+    async fn test_analyze_attack_patterns_integration() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let json = r#"{"identified_ttps":[{"tactic":"Execution","technique":"Scripting","technique_id":"T1059","confidence":85}],"attack_stages":["Initial Access"],"threat_actor_indicators":[],"defensive_recommendations":["Monitor"]}"#;
+        let classifier = SecurityClassifier::new(MockEngine::arc(json), &test_config());
+        let events = vec![make_test_event()];
+        let result = classifier.analyze_attack_patterns(&events).await.unwrap();
+        assert_eq!(result.identified_ttps.len(), 1);
+        assert_eq!(result.identified_ttps[0].technique_id, "T1059");
     }
 }

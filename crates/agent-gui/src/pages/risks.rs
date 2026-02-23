@@ -411,16 +411,12 @@ impl RisksPage {
             .iter()
             .enumerate()
             .filter(|(_, r)| {
-                if !search_lower.is_empty() {
-                    let haystack = format!(
-                        "{} {} {}",
-                        r.title.to_lowercase(),
-                        r.owner.to_lowercase(),
-                        r.source.to_lowercase()
-                    );
-                    if !haystack.contains(&search_lower) {
-                        return false;
-                    }
+                if !search_lower.is_empty()
+                    && !r.title.to_lowercase().contains(&search_lower)
+                    && !r.owner.to_lowercase().contains(&search_lower)
+                    && !r.source.to_lowercase().contains(&search_lower)
+                {
+                    return false;
                 }
                 if let Some(filter) = &state.risks.status_filter {
                     r.status == *filter

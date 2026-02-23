@@ -435,17 +435,13 @@ impl LLMPanel {
                 {
                     return false;
                 }
-                // Filter by search text
-                if !search_lower.is_empty() {
-                    let haystack = format!(
-                        "{} {} {}",
-                        r.title.to_lowercase(),
-                        r.subtitle.to_lowercase(),
-                        r.category.to_lowercase(),
-                    );
-                    if !haystack.contains(&search_lower) {
-                        return false;
-                    }
+                // Filter by search text (short-circuit, no format! allocation)
+                if !search_lower.is_empty()
+                    && !r.title.to_lowercase().contains(&search_lower)
+                    && !r.subtitle.to_lowercase().contains(&search_lower)
+                    && !r.category.to_lowercase().contains(&search_lower)
+                {
+                    return false;
                 }
                 true
             })

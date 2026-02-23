@@ -47,7 +47,9 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                     egui::Stroke::new(stroke_width + theme::SPACE_XS, color.linear_multiply(theme::OPACITY_TINT)),
                 ));
 
-                let last_point = *points.last().unwrap();
+                let Some(&last_point) = points.last() else {
+                    return;
+                };
                 painter.add(egui::Shape::line(
                     points,
                     egui::Stroke::new(stroke_width, color),

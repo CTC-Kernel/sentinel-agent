@@ -712,15 +712,11 @@ impl NetworkPage {
                     if search_lower.is_empty() {
                         return true;
                     }
-                    let haystack = format!(
-                        "{} {} {} {} {}",
-                        c.protocol.to_lowercase(),
-                        c.local_address.to_lowercase(),
-                        c.remote_address.as_deref().unwrap_or("").to_lowercase(),
-                        c.state.to_lowercase(),
-                        c.process_name.as_deref().unwrap_or("").to_lowercase(),
-                    );
-                    haystack.contains(&search_lower)
+                    c.protocol.to_lowercase().contains(&search_lower)
+                        || c.local_address.to_lowercase().contains(&search_lower)
+                        || c.remote_address.as_deref().unwrap_or("").to_lowercase().contains(&search_lower)
+                        || c.state.to_lowercase().contains(&search_lower)
+                        || c.process_name.as_deref().unwrap_or("").to_lowercase().contains(&search_lower)
                 })
                 .map(|(i, _)| i)
                 .collect();

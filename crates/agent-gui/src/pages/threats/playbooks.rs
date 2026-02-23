@@ -535,7 +535,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
 
             let mut remove_cond_idx: Option<usize> = None;
             for (i, cond) in f.conditions.iter_mut().enumerate() {
-                ui.push_id(format!("cond_{}", i), |ui: &mut egui::Ui| {
+                ui.push_id(("cond", i), |ui: &mut egui::Ui| {
                     ui.horizontal(|ui: &mut egui::Ui| {
                         let mut idx = condition_types
                             .iter()
@@ -590,7 +590,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
 
             let mut remove_action_idx: Option<usize> = None;
             for (i, action) in f.actions.iter_mut().enumerate() {
-                ui.push_id(format!("action_{}", i), |ui: &mut egui::Ui| {
+                ui.push_id(("action", i), |ui: &mut egui::Ui| {
                     ui.horizontal(|ui: &mut egui::Ui| {
                         let mut idx = action_types
                             .iter()

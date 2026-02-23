@@ -74,56 +74,27 @@ impl AboutPage {
         ui.add_space(theme::SPACE);
 
         let total_width = ui.available_width();
-        let col_gap = theme::SPACE;
-        let col_w = (total_width - col_gap) * 0.5;
-        ui.horizontal_top(|ui: &mut egui::Ui| {
-            ui.spacing_mut().item_spacing.x = col_gap;
-            ui.vertical(|ui: &mut egui::Ui| {
-                ui.set_width(col_w);
-                // System info
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("SYST\u{00c8}ME")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
+        let use_two_cols = total_width >= 600.0;
 
-                    Self::info_row(
-                        ui,
-                        "OS",
-                        &format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
-                        icons::ARROW_RIGHT,
-                    );
-                    Self::info_row(ui, "Moteur", "Rust v1.85+", icons::ARROW_RIGHT);
-                    Self::info_row(ui, "Version", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
+        if use_two_cols {
+            let col_gap = theme::SPACE;
+            let col_w = (total_width - col_gap) * 0.5;
+            ui.horizontal_top(|ui: &mut egui::Ui| {
+                ui.spacing_mut().item_spacing.x = col_gap;
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_width(col_w);
+                    Self::system_card(ui);
                 });
-            }); // end left vertical
-
-            // Links
-            ui.vertical(|ui: &mut egui::Ui| {
-                ui.set_width(col_w);
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("RESSOURCES")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
-                    Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
-                    Self::link_row(
-                        ui,
-                        "Support",
-                        &format!("mailto:{}", branding::EMAIL),
-                        icons::ARROW_RIGHT,
-                    );
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_width(col_w);
+                    Self::resources_card(ui);
                 });
-            }); // end right vertical
-        });
+            });
+        } else {
+            Self::system_card(ui);
+            ui.add_space(theme::SPACE);
+            Self::resources_card(ui);
+        }
 
         ui.add_space(theme::SPACE);
 
@@ -156,6 +127,48 @@ impl AboutPage {
 
         ui.add_space(theme::SPACE_XL);
         None
+    }
+
+    fn system_card(ui: &mut Ui) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("SYST\u{00c8}ME")
+                    .font(theme::font_small())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            Self::info_row(
+                ui,
+                "OS",
+                &format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
+                icons::ARROW_RIGHT,
+            );
+            Self::info_row(ui, "Moteur", "Rust v1.85+", icons::ARROW_RIGHT);
+            Self::info_row(ui, "Version", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
+        });
+    }
+
+    fn resources_card(ui: &mut Ui) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("RESSOURCES")
+                    .font(theme::font_small())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
+            Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
+            Self::link_row(
+                ui,
+                "Support",
+                &format!("mailto:{}", branding::EMAIL),
+                icons::ARROW_RIGHT,
+            );
+        });
     }
 
     fn info_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {

@@ -210,13 +210,9 @@ impl DiscoveryPage {
                 if search_upper.is_empty() {
                     return true;
                 }
-                let haystack = format!(
-                    "{} {} {}",
-                    d.ip.to_uppercase(),
-                    d.hostname.as_deref().unwrap_or("").to_uppercase(),
-                    d.vendor.as_deref().unwrap_or("").to_uppercase(),
-                );
-                haystack.contains(&search_upper)
+                d.ip.to_uppercase().contains(&search_upper)
+                    || d.hostname.as_deref().unwrap_or("").to_uppercase().contains(&search_upper)
+                    || d.vendor.as_deref().unwrap_or("").to_uppercase().contains(&search_upper)
             })
             .map(|(i, _)| i)
             .collect();
@@ -363,6 +359,7 @@ impl DiscoveryPage {
                         });
                     })
                     .body(|body| {
+                        let now = chrono::Utc::now();
                         body.rows(theme::TABLE_DATA_ROW_HEIGHT, filtered.len(), |mut row| {
                             let row_idx = row.index();
                             let Some(&dev_idx) = filtered.get(row_idx) else { return };
@@ -426,8 +423,7 @@ impl DiscoveryPage {
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                let ago = chrono::Utc::now()
-                                    .signed_duration_since(device.last_seen);
+                                let ago = now.signed_duration_since(device.last_seen);
                                 let text = if ago.num_hours() < 1 {
                                     format!("il y a {}m", ago.num_minutes().max(1))
                                 } else if ago.num_hours() < 24 {
