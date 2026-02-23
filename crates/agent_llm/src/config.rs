@@ -30,6 +30,9 @@ pub struct ModelConfig {
     pub gpu_layers: u32,
     /// Thread count for inference
     pub threads: u32,
+    /// Download URL for the model (HuggingFace GGUF). If absent, looked up from ModelRegistry.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub download_url: Option<String>,
 }
 
 impl Default for ModelConfig {
@@ -42,6 +45,7 @@ impl Default for ModelConfig {
             max_context_size: 4096,
             gpu_layers: 0, // Auto-detect
             threads: std::thread::available_parallelism().map_or(1, |n| n.get()) as u32,
+            download_url: None,
         }
     }
 }

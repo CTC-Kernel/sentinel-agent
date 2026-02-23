@@ -1580,7 +1580,7 @@ impl LlmTab {
 pub struct LlmModelStatus {
     /// Name of the loaded model.
     pub model_name: String,
-    /// Status string (ready, loading, error, unloaded).
+    /// Status string (ready, loading, error, unloaded, downloading).
     pub status: String,
     /// Total inference count.
     pub inference_count: u64,
@@ -1588,6 +1588,36 @@ pub struct LlmModelStatus {
     pub memory_mb: u64,
     /// Whether the model is ready for inference.
     pub is_ready: bool,
+}
+
+/// LLM model download state for the GUI.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DownloadPhase {
+    #[default]
+    Idle,
+    Downloading,
+    Paused,
+    Completed,
+    Failed,
+}
+
+/// Download progress tracking.
+#[derive(Debug, Clone, Default)]
+pub struct LlmDownloadState {
+    /// Current download phase.
+    pub phase: DownloadPhase,
+    /// Name of the model being downloaded.
+    pub model_name: String,
+    /// Progress percentage (0-100).
+    pub progress_percent: u8,
+    /// Bytes downloaded so far.
+    pub downloaded_bytes: u64,
+    /// Total size in bytes (0 if unknown).
+    pub total_bytes: u64,
+    /// Current speed in bytes per second.
+    pub speed_bps: u64,
+    /// Error message if download failed.
+    pub error: Option<String>,
 }
 
 #[cfg(test)]
