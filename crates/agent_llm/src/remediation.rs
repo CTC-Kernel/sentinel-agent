@@ -9,6 +9,7 @@ use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, PromptBuilder};
 pub use crate::analyzer::RiskLevel;
+use crate::utils::{extract_json_block, parse_risk_level};
 
 // ---------------------------------------------------------------------------
 // Intermediate serde structs for tolerant JSON parsing
@@ -70,19 +71,6 @@ struct RawRemediationValidation {
 // Helper: extract JSON from LLM output
 // ---------------------------------------------------------------------------
 
-/// Try to extract a JSON object from free-form LLM text by locating the first
-/// `{` and the last `}`.  Returns `None` when no braces are found or the slice
-/// would be empty.
-fn extract_json_block(text: &str) -> Option<&str> {
-    let start = text.find('{')?;
-    let end = text.rfind('}')?;
-    if end > start {
-        Some(&text[start..=end])
-    } else {
-        None
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Conversion helpers
 // ---------------------------------------------------------------------------
@@ -108,16 +96,6 @@ fn parse_priority(s: &str) -> Priority {
         "low" => Priority::Low,
         "info" | "informational" => Priority::Info,
         _ => Priority::Medium,
-    }
-}
-
-fn parse_risk_level(s: &str) -> RiskLevel {
-    match s.to_lowercase().as_str() {
-        "low" => RiskLevel::Low,
-        "medium" | "moderate" => RiskLevel::Medium,
-        "high" => RiskLevel::High,
-        "critical" | "severe" => RiskLevel::Critical,
-        _ => RiskLevel::Medium,
     }
 }
 
@@ -722,27 +700,6 @@ mod tests {
     }
 
     #[test]
-    fn test_extract_json_block_valid() {
-        let text = r#"Here is the plan: {"title": "Fix firewall", "actions": []} end."#;
-        let block = extract_json_block(text).unwrap();
-        assert!(block.starts_with('{'));
-        assert!(block.ends_with('}'));
-        assert!(block.contains("Fix firewall"));
-    }
-
-    #[test]
-    fn test_extract_json_block_no_braces() {
-        let text = "No JSON here, just plain text.";
-        assert!(extract_json_block(text).is_none());
-    }
-
-    #[test]
-    fn test_extract_json_block_only_open_brace() {
-        let text = "Something { but no closing";
-        assert!(extract_json_block(text).is_none());
-    }
-
-    #[test]
     fn test_parse_action_type_variants() {
         assert!(matches!(parse_action_type("configuration"), ActionType::Configuration));
         assert!(matches!(parse_action_type("Config"), ActionType::Configuration));
@@ -767,17 +724,6 @@ mod tests {
         assert_eq!(parse_priority("info"), Priority::Info);
         assert_eq!(parse_priority("informational"), Priority::Info);
         assert_eq!(parse_priority("garbage"), Priority::Medium);
-    }
-
-    #[test]
-    fn test_parse_risk_level_variants() {
-        assert!(matches!(parse_risk_level("low"), RiskLevel::Low));
-        assert!(matches!(parse_risk_level("medium"), RiskLevel::Medium));
-        assert!(matches!(parse_risk_level("moderate"), RiskLevel::Medium));
-        assert!(matches!(parse_risk_level("high"), RiskLevel::High));
-        assert!(matches!(parse_risk_level("critical"), RiskLevel::Critical));
-        assert!(matches!(parse_risk_level("severe"), RiskLevel::Critical));
-        assert!(matches!(parse_risk_level("xyz"), RiskLevel::Medium));
     }
 
     #[test]
@@ -852,12 +798,4 @@ mod tests {
         assert!(raw.overall_risk.is_none());
     }
 
-    #[test]
-    fn test_extract_json_block_with_markdown_fences() {
-        let text = "Here is the response:\n```json\n{\"is_valid\": true, \"recommendations\": [\"All good\"]}\n```\nDone.";
-        let block = extract_json_block(text).unwrap();
-        let raw: RawRemediationValidation = serde_json::from_str(block).unwrap();
-        assert_eq!(raw.is_valid, Some(true));
-        assert_eq!(raw.recommendations.len(), 1);
-    }
 }

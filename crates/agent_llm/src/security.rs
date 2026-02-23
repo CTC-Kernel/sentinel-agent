@@ -9,6 +9,7 @@ use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, PromptBuilder};
 pub use crate::prompts::ThreatLevel;
+use crate::utils::extract_json_block;
 
 // ---------------------------------------------------------------------------
 // Intermediate serde structs for lenient JSON parsing (all fields optional/defaulted)
@@ -74,20 +75,6 @@ struct RawAttackPatternAnalysis {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/// Try to extract the first top-level JSON object from LLM text.
-///
-/// LLMs frequently wrap their JSON in markdown fences or preamble text.
-/// This finds the substring between the first `{` and the last `}`.
-fn extract_json_block(text: &str) -> Option<&str> {
-    let start = text.find('{')?;
-    let end = text.rfind('}')?;
-    if end > start {
-        Some(&text[start..=end])
-    } else {
-        None
-    }
-}
 
 /// Parse a string into a `ThreatType`, case-insensitive.
 fn parse_threat_type(s: &str) -> ThreatType {
@@ -945,33 +932,6 @@ mod tests {
     // -----------------------------------------------------------------------
     // Tests for helper functions and parsers
     // -----------------------------------------------------------------------
-
-    #[test]
-    fn test_extract_json_block_simple() {
-        let text = r#"Here is the analysis: {"threat_type": "Malware", "confidence": 85}"#;
-        let extracted = extract_json_block(text).unwrap();
-        assert_eq!(extracted, r#"{"threat_type": "Malware", "confidence": 85}"#);
-    }
-
-    #[test]
-    fn test_extract_json_block_with_markdown() {
-        let text = "```json\n{\"key\": \"value\"}\n```";
-        let extracted = extract_json_block(text).unwrap();
-        assert_eq!(extracted, "{\"key\": \"value\"}");
-    }
-
-    #[test]
-    fn test_extract_json_block_no_json() {
-        let text = "There is no JSON here at all";
-        assert!(extract_json_block(text).is_none());
-    }
-
-    #[test]
-    fn test_extract_json_block_only_opening() {
-        let text = "Just an opening brace {";
-        // { at the end means start == end, so rfind('}') is None
-        assert!(extract_json_block(text).is_none());
-    }
 
     #[test]
     fn test_parse_threat_type_variants() {

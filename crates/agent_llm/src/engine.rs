@@ -4,9 +4,10 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use anyhow::Result;
+use sha2::{Sha256, Digest};
 use tracing::{info, debug, warn};
 
-use super::config::{ModelConfig, InferenceConfig};
+use super::config::{ModelConfig, InferenceConfig, SecurityConfig, CacheConfig};
 
 /// Trait for LLM model engines.
 #[async_trait]
@@ -153,21 +154,151 @@ pub struct MemoryUsage {
     pub available_mb: u64,
 }
 
+/// File-based response cache for LLM inference results.
+struct ResponseCache {
+    config: CacheConfig,
+}
+
+impl ResponseCache {
+    fn new(config: CacheConfig) -> Self {
+        Self { config }
+    }
+
+    /// Compute a cache key from request parameters.
+    fn cache_key(request: &InferenceRequest) -> String {
+        let mut hasher = Sha256::new();
+        if let Some(ref sp) = request.system_prompt {
+            hasher.update(sp.as_bytes());
+        }
+        hasher.update(request.prompt.as_bytes());
+        if let Some(mt) = request.max_tokens {
+            hasher.update(mt.to_le_bytes());
+        }
+        if let Some(t) = request.temperature {
+            hasher.update(t.to_le_bytes());
+        }
+        if let Some(tp) = request.top_p {
+            hasher.update(tp.to_le_bytes());
+        }
+        format!("{:x}", hasher.finalize())
+    }
+
+    /// Try to read a cached response. Returns `None` if caching is disabled,
+    /// the entry is missing, or the entry has expired.
+    fn get(&self, request: &InferenceRequest) -> Option<InferenceResponse> {
+        if !self.config.enabled {
+            return None;
+        }
+
+        let key = Self::cache_key(request);
+        let path = self.config.directory.join(format!("{}.json", key));
+
+        if !path.exists() {
+            return None;
+        }
+
+        // Check TTL via file modification time
+        if let Ok(metadata) = std::fs::metadata(&path)
+            && let Ok(modified) = metadata.modified()
+        {
+            let age = std::time::SystemTime::now()
+                .duration_since(modified)
+                .unwrap_or_default();
+            if age > std::time::Duration::from_secs(self.config.ttl_hours * 3600) {
+                let _ = std::fs::remove_file(&path);
+                return None;
+            }
+        }
+
+        let data = std::fs::read_to_string(&path).ok()?;
+        serde_json::from_str::<InferenceResponse>(&data).ok()
+    }
+
+    /// Store a response in the cache. Skips if caching is disabled or the
+    /// cache directory exceeds `max_size_mb`.
+    fn put(&self, request: &InferenceRequest, response: &InferenceResponse) {
+        if !self.config.enabled {
+            return;
+        }
+
+        // Ensure cache directory exists
+        if std::fs::create_dir_all(&self.config.directory).is_err() {
+            warn!("Failed to create cache directory: {:?}", self.config.directory);
+            return;
+        }
+
+        // Check total cache directory size
+        if let Ok(total) = dir_size_bytes(&self.config.directory)
+            && total >= self.config.max_size_mb * 1024 * 1024
+        {
+            debug!("Cache directory exceeds max size ({}MB), skipping write", self.config.max_size_mb);
+            return;
+        }
+
+        let key = Self::cache_key(request);
+        let path = self.config.directory.join(format!("{}.json", key));
+
+        match serde_json::to_string(response) {
+            Ok(data) => {
+                if let Err(e) = std::fs::write(&path, data) {
+                    warn!("Failed to write cache entry: {}", e);
+                }
+            }
+            Err(e) => warn!("Failed to serialize response for cache: {}", e),
+        }
+    }
+}
+
+/// Calculate total size of files in a directory (non-recursive, json only).
+fn dir_size_bytes(dir: &std::path::Path) -> Result<u64> {
+    let mut total = 0u64;
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        if entry.path().extension().is_some_and(|e| e == "json") {
+            total += entry.metadata().map(|m| m.len()).unwrap_or(0);
+        }
+    }
+    Ok(total)
+}
+
 /// Mistral.rs based engine implementation.
 pub struct MistralEngine {
     model: Arc<tokio::sync::Mutex<Option<Arc<mistralrs::Model>>>>,
     config: ModelConfig,
     inference_config: InferenceConfig,
+    security_config: SecurityConfig,
+    blocked_patterns: Vec<regex::Regex>,
+    cache: ResponseCache,
     status: Arc<tokio::sync::RwLock<ModelStatus>>,
     inference_count: Arc<std::sync::atomic::AtomicU64>,
 }
 
 impl MistralEngine {
-    pub fn new(config: ModelConfig, inference_config: InferenceConfig) -> Self {
+    pub fn new(
+        config: ModelConfig,
+        inference_config: InferenceConfig,
+        security_config: SecurityConfig,
+        cache_config: CacheConfig,
+    ) -> Self {
+        let blocked_patterns = security_config
+            .blocked_patterns
+            .iter()
+            .filter_map(|p| match regex::Regex::new(p) {
+                Ok(re) => Some(re),
+                Err(e) => {
+                    warn!("Invalid blocked pattern '{}': {}", p, e);
+                    None
+                }
+            })
+            .collect();
+
         Self {
             model: Arc::new(tokio::sync::Mutex::new(None)),
             config,
             inference_config,
+            security_config,
+            blocked_patterns,
+            cache: ResponseCache::new(cache_config),
             status: Arc::new(tokio::sync::RwLock::new(ModelStatus::Unloaded)),
             inference_count: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         }
@@ -231,6 +362,45 @@ impl ModelEngine for MistralEngine {
     }
 
     async fn infer(&self, request: InferenceRequest) -> Result<InferenceResponse> {
+        // --- Security validation ---
+        if self.security_config.sanitize_input {
+            let total_len = request.prompt.len()
+                + request.system_prompt.as_ref().map_or(0, |s| s.len());
+            if total_len > self.security_config.max_input_length {
+                return Err(anyhow::anyhow!(
+                    "Input length ({}) exceeds maximum allowed ({})",
+                    total_len,
+                    self.security_config.max_input_length
+                ));
+            }
+
+            for (pattern, re) in self.security_config.blocked_patterns.iter().zip(&self.blocked_patterns) {
+                if re.is_match(&request.prompt)
+                    || request.system_prompt.as_ref().is_some_and(|sp| re.is_match(sp))
+                {
+                    return Err(anyhow::anyhow!(
+                        "Input matches blocked pattern: {}",
+                        pattern
+                    ));
+                }
+            }
+        }
+
+        if self.security_config.audit_logging {
+            info!(
+                prompt_len = request.prompt.len(),
+                system_prompt_len = request.system_prompt.as_ref().map_or(0, |s| s.len()),
+                max_tokens = ?request.max_tokens,
+                "LLM inference request"
+            );
+        }
+
+        // --- Cache lookup ---
+        if let Some(cached) = self.cache.get(&request) {
+            info!("Cache hit for inference request");
+            return Ok(cached);
+        }
+
         // Ensure model is loaded
         if !self.status().await.is_ready() {
             self.load_model().await?;
@@ -363,12 +533,17 @@ impl ModelEngine for MistralEngine {
             tokens, duration.as_secs_f64(),
             tokens as f64 / duration.as_secs_f64().max(0.001));
 
-        Ok(InferenceResponse {
+        let response = InferenceResponse {
             text,
             tokens_generated: u32::try_from(tokens).unwrap_or(u32::MAX),
             duration_ms: duration.as_millis() as u64,
             metadata: std::collections::HashMap::new(),
-        })
+        };
+
+        // --- Cache store ---
+        self.cache.put(&request, &response);
+
+        Ok(response)
     }
 
     async fn memory_usage(&self) -> MemoryUsage {
@@ -404,16 +579,21 @@ impl ModelEngine for MistralEngine {
 }
 
 /// Create an LLM engine based on configuration.
-pub fn create_engine(config: &ModelConfig, inference_config: &InferenceConfig) -> Result<Arc<dyn ModelEngine>> {
+pub fn create_engine(
+    config: &ModelConfig,
+    inference_config: &InferenceConfig,
+    security_config: &SecurityConfig,
+    cache_config: &CacheConfig,
+) -> Result<Arc<dyn ModelEngine>> {
     let engine: Arc<dyn ModelEngine> = match config.model_type {
         super::config::ModelType::Llama4 |
         super::config::ModelType::Qwen3Coder |
         super::config::ModelType::DeepSeekR1 |
         super::config::ModelType::Gemma3 => {
-            Arc::new(MistralEngine::new(config.clone(), inference_config.clone()))
+            Arc::new(MistralEngine::new(config.clone(), inference_config.clone(), security_config.clone(), cache_config.clone()))
         }
         super::config::ModelType::Custom(_) => {
-            Arc::new(MistralEngine::new(config.clone(), inference_config.clone()))
+            Arc::new(MistralEngine::new(config.clone(), inference_config.clone(), security_config.clone(), cache_config.clone()))
         }
     };
 
@@ -516,5 +696,208 @@ mod tests {
         assert!(!ModelStatus::Unloaded.is_ready());
         assert!(ModelStatus::Error("test".to_string()).is_error());
         assert!(!ModelStatus::Ready.is_error());
+    }
+
+    // -----------------------------------------------------------------------
+    // ResponseCache tests
+    // -----------------------------------------------------------------------
+
+    fn make_test_cache_config(dir: &std::path::Path) -> CacheConfig {
+        CacheConfig {
+            enabled: true,
+            directory: dir.to_path_buf(),
+            max_size_mb: 10,
+            ttl_hours: 1,
+        }
+    }
+
+    #[test]
+    fn test_cache_put_and_get() {
+        let tmp = tempfile::tempdir().unwrap();
+        let cache = ResponseCache::new(make_test_cache_config(tmp.path()));
+
+        let request = InferenceRequest::new("test prompt")
+            .with_max_tokens(100)
+            .with_temperature(0.7);
+
+        let response = InferenceResponse {
+            text: "cached response".to_string(),
+            tokens_generated: 5,
+            duration_ms: 100,
+            metadata: std::collections::HashMap::new(),
+        };
+
+        // Initially empty
+        assert!(cache.get(&request).is_none());
+
+        // Put then get
+        cache.put(&request, &response);
+        let cached = cache.get(&request).unwrap();
+        assert_eq!(cached.text, "cached response");
+        assert_eq!(cached.tokens_generated, 5);
+    }
+
+    #[test]
+    fn test_cache_disabled() {
+        let tmp = tempfile::tempdir().unwrap();
+        let mut config = make_test_cache_config(tmp.path());
+        config.enabled = false;
+        let cache = ResponseCache::new(config);
+
+        let request = InferenceRequest::new("test");
+        let response = InferenceResponse::new("resp");
+
+        cache.put(&request, &response);
+        assert!(cache.get(&request).is_none());
+    }
+
+    #[test]
+    fn test_cache_ttl_expiry() {
+        let tmp = tempfile::tempdir().unwrap();
+        let mut config = make_test_cache_config(tmp.path());
+        config.ttl_hours = 0; // 0 hours = everything is expired
+        let cache = ResponseCache::new(config);
+
+        let request = InferenceRequest::new("test");
+        let response = InferenceResponse::new("resp");
+
+        // Write the file manually so it has a non-zero age
+        let key = ResponseCache::cache_key(&request);
+        let path = tmp.path().join(format!("{}.json", key));
+        std::fs::write(&path, serde_json::to_string(&response).unwrap()).unwrap();
+
+        // TTL is 0 hours, so any existing file is expired
+        assert!(cache.get(&request).is_none());
+        // File should have been deleted
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn test_cache_max_size_skip() {
+        let tmp = tempfile::tempdir().unwrap();
+        let mut config = make_test_cache_config(tmp.path());
+        config.max_size_mb = 0; // 0 MB = always full
+        let cache = ResponseCache::new(config);
+
+        let request = InferenceRequest::new("test");
+        let response = InferenceResponse::new("resp");
+
+        cache.put(&request, &response);
+        // Should not have been written because max_size_mb = 0
+        let key = ResponseCache::cache_key(&request);
+        let path = tmp.path().join(format!("{}.json", key));
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn test_cache_key_deterministic() {
+        let r1 = InferenceRequest::new("hello").with_temperature(0.5);
+        let r2 = InferenceRequest::new("hello").with_temperature(0.5);
+        assert_eq!(ResponseCache::cache_key(&r1), ResponseCache::cache_key(&r2));
+    }
+
+    #[test]
+    fn test_cache_key_differs_on_prompt() {
+        let r1 = InferenceRequest::new("hello");
+        let r2 = InferenceRequest::new("world");
+        assert_ne!(ResponseCache::cache_key(&r1), ResponseCache::cache_key(&r2));
+    }
+
+    // -----------------------------------------------------------------------
+    // Security validation tests
+    // -----------------------------------------------------------------------
+
+    fn make_test_engine() -> MistralEngine {
+        let model_config = ModelConfig::default();
+        let inference_config = InferenceConfig::default();
+        let security_config = SecurityConfig {
+            sanitize_input: true,
+            max_input_length: 100,
+            blocked_patterns: vec![
+                r"(?i)password\s*[:=]\s*\S+".to_string(),
+                r"(?i)secret\s*[:=]\s*\S+".to_string(),
+            ],
+            audit_logging: true,
+        };
+        let cache_config = CacheConfig::default();
+
+        MistralEngine::new(model_config, inference_config, security_config, cache_config)
+    }
+
+    #[tokio::test]
+    async fn test_security_rejects_oversized_input() {
+        let engine = make_test_engine();
+        // max_input_length = 100, so a 200-char prompt should fail
+        let long_prompt = "a".repeat(200);
+        let request = InferenceRequest::new(long_prompt);
+        let result = engine.infer(request).await;
+
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("exceeds maximum"), "Got: {}", err_msg);
+    }
+
+    #[tokio::test]
+    async fn test_security_rejects_blocked_pattern() {
+        let engine = make_test_engine();
+        let request = InferenceRequest::new("password = hunter2");
+        let result = engine.infer(request).await;
+
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("blocked pattern"), "Got: {}", err_msg);
+    }
+
+    #[tokio::test]
+    async fn test_security_rejects_blocked_pattern_in_system_prompt() {
+        let engine = make_test_engine();
+        let request = InferenceRequest::new("analyze")
+            .with_system_prompt("secret = abc123");
+        let result = engine.infer(request).await;
+
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("blocked pattern"), "Got: {}", err_msg);
+    }
+
+    #[tokio::test]
+    async fn test_security_counts_system_prompt_in_length() {
+        let engine = make_test_engine();
+        // 60 + 60 = 120 > 100 max
+        let request = InferenceRequest::new("a".repeat(60))
+            .with_system_prompt("b".repeat(60));
+        let result = engine.infer(request).await;
+
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("exceeds maximum"), "Got: {}", err_msg);
+    }
+
+    #[tokio::test]
+    async fn test_security_disabled_allows_long_input() {
+        let model_config = ModelConfig::default();
+        let inference_config = InferenceConfig::default();
+        let security_config = SecurityConfig {
+            sanitize_input: false,
+            max_input_length: 10,
+            blocked_patterns: vec![],
+            audit_logging: false,
+        };
+        let cache_config = CacheConfig {
+            enabled: false,
+            ..CacheConfig::default()
+        };
+        let engine = MistralEngine::new(model_config, inference_config, security_config, cache_config);
+
+        // With sanitize_input=false, even a very long prompt should pass security
+        // (it will fail later at model loading, which is expected)
+        let request = InferenceRequest::new("a".repeat(1000));
+        let result = engine.infer(request).await;
+
+        // Should NOT be a security error — it'll fail on model load instead
+        if let Err(e) = result {
+            assert!(!e.to_string().contains("exceeds maximum"));
+            assert!(!e.to_string().contains("blocked pattern"));
+        }
     }
 }
