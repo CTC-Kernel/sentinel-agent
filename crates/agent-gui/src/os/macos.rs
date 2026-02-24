@@ -114,11 +114,11 @@ pub mod dock {
 #[cfg(target_os = "macos")]
 pub mod software {
     use super::*;
-    use crate::dto::GuiMacOsApp;
+    use crate::dto::GuiNativeApp;
 
     /// Scan /Applications for .app bundles and extract metadata from Info.plist.
     /// Returns a sorted list of macOS applications with their metadata.
-    pub fn scan_installed_apps() -> MacOsResult<Vec<GuiMacOsApp>> {
+    pub fn scan_installed_apps() -> MacOsResult<Vec<GuiNativeApp>> {
         let mut apps = Vec::new();
         let apps_dir = Path::new("/Applications");
         
@@ -152,7 +152,7 @@ pub mod software {
     }
 
     /// Extract metadata from an app bundle
-    fn extract_app_metadata(app_path: &Path, plist_path: &Path) -> MacOsResult<GuiMacOsApp> {
+    fn extract_app_metadata(app_path: &Path, plist_path: &Path) -> MacOsResult<GuiNativeApp> {
         let name = app_path
             .file_stem()
             .and_then(|s| s.to_str())
@@ -162,7 +162,7 @@ pub mod software {
         let (version, bundle_id, publisher) = parse_info_plist(plist_path)
             .map_err(MacOsError::PlistParseError)?;
 
-        Ok(GuiMacOsApp {
+        Ok(GuiNativeApp {
             name,
             version: normalize_field(version),
             bundle_id: normalize_field(bundle_id),
@@ -247,6 +247,6 @@ pub fn hide_dock_icon() {
 
 #[cfg(target_os = "macos")]
 #[deprecated(note = "Use software::scan_installed_apps() instead")]
-pub fn scan_macos_apps() -> Vec<crate::dto::GuiMacOsApp> {
+pub fn scan_macos_apps() -> Vec<crate::dto::GuiNativeApp> {
     software::scan_installed_apps().unwrap_or_default()
 }

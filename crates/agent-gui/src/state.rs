@@ -453,7 +453,7 @@ pub struct VulnerabilityFilter {
 #[derive(Default)]
 pub struct SoftwareState {
     pub packages: Vec<crate::dto::GuiSoftwarePackage>,
-    pub macos_apps: Vec<crate::dto::GuiMacOsApp>,
+    pub native_apps: Vec<crate::dto::GuiNativeApp>,
     pub active_tab: crate::dto::SoftwareTab,
     pub search: String,
     pub selected_package: Option<usize>,

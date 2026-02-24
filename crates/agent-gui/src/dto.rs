@@ -454,14 +454,14 @@ pub struct GuiSoftwarePackage {
     pub latest_version: Option<String>,
 }
 
-/// A macOS native application entry for GUI display.
+/// A native application entry for GUI display (macOS .app bundles / Windows registry).
 #[derive(Debug, Clone, PartialEq)]
-pub struct GuiMacOsApp {
-    /// Application name (from Info.plist or folder name).
+pub struct GuiNativeApp {
+    /// Application name.
     pub name: String,
-    /// Bundle version string.
+    /// Version string.
     pub version: String,
-    /// Bundle identifier (e.g. com.apple.Safari).
+    /// Unique identifier (Bundle ID on macOS, ProductCode on Windows).
     pub bundle_id: String,
     /// Publisher / developer.
     pub publisher: String,

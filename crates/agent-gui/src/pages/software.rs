@@ -53,10 +53,10 @@ impl SoftwarePage {
         });
         ui.add_space(theme::SPACE_MD);
 
-        // Tab bar (AAA Grade) — Applications tab only shown on macOS
+        // Tab bar (AAA Grade) — Applications tab shown on macOS and Windows
         let active = state.software.active_tab;
-        // On non-macOS, force back to Packages if Applications was somehow selected
-        #[cfg(not(target_os = "macos"))]
+        // On unsupported platforms, force back to Packages if Applications was somehow selected
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         let active = {
             if active == SoftwareTab::Applications {
                 state.software.active_tab = SoftwareTab::Packages;
@@ -75,7 +75,7 @@ impl SoftwarePage {
                 state.software.selected_package = None;
                 state.software.detail_open = false;
             }
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             {
                 ui.add_space(theme::SPACE_SM);
                 if Self::tab_button(
@@ -105,10 +105,10 @@ impl SoftwarePage {
 
         match active {
             SoftwareTab::Packages => Self::show_packages(ui, state, &search_upper, &mut command),
-            #[cfg(target_os = "macos")]
-            SoftwareTab::Applications => Self::show_macos_apps(ui, state, &search_upper, &mut command),
-            #[cfg(not(target_os = "macos"))]
-            SoftwareTab::Applications => { /* unreachable on non-macOS */ }
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            SoftwareTab::Applications => Self::show_native_apps(ui, state, &search_upper, &mut command),
+            #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+            SoftwareTab::Applications => { /* unreachable on unsupported platforms */ }
         }
 
         ui.add_space(theme::SPACE_XL);
@@ -164,22 +164,39 @@ impl SoftwarePage {
                         }
                     }
                 }
-                #[cfg(target_os = "macos")]
+                #[cfg(any(target_os = "macos", target_os = "windows"))]
                 SoftwareTab::Applications => {
-                    if sel_idx < state.software.macos_apps.len() {
-                        let app = state.software.macos_apps[sel_idx].clone();
+                    if sel_idx < state.software.native_apps.len() {
+                        let app = state.software.native_apps[sel_idx].clone();
+
+                        let open_label = if cfg!(target_os = "macos") {
+                            "Ouvrir dans Finder"
+                        } else {
+                            "Ouvrir dans l'Explorateur"
+                        };
+                        let section_label = if cfg!(target_os = "macos") {
+                            "APPLICATION MACOS"
+                        } else {
+                            "APPLICATION WINDOWS"
+                        };
+                        let id_label = if cfg!(target_os = "macos") {
+                            "Bundle ID"
+                        } else {
+                            "Identifiant produit"
+                        };
+
                         let actions = vec![
-                            widgets::DetailAction::secondary("Ouvrir dans Finder", icons::FOLDER),
+                            widgets::DetailAction::secondary(open_label, icons::FOLDER),
                         ];
 
                         let drawer_action = widgets::DetailDrawer::new("software_app_detail", &app.name, icons::CUBE)
                             .accent(theme::ACCENT)
                             .subtitle(&app.bundle_id)
                             .show(ui.ctx(), &mut state.software.detail_open, |ui| {
-                                widgets::detail_section(ui, "APPLICATION MACOS");
+                                widgets::detail_section(ui, section_label);
                                 widgets::detail_field(ui, "Nom", &app.name);
                                 widgets::detail_mono(ui, "Version", &app.version);
-                                widgets::detail_mono(ui, "Bundle ID", &app.bundle_id);
+                                widgets::detail_mono(ui, id_label, &app.bundle_id);
                                 widgets::detail_field(ui, "\u{00c9}diteur", &app.publisher);
                                 widgets::detail_mono(ui, "Chemin", &app.path);
                             }, &actions);
@@ -187,16 +204,20 @@ impl SoftwarePage {
                         if let Some(0) = drawer_action {
                             let path = std::path::Path::new(&app.path);
                             if path.is_absolute() {
-                                // Reveal in Finder (-R) instead of executing the path
+                                #[cfg(target_os = "macos")]
                                 let result = std::process::Command::new("open")
                                     .args(["-R", &app.path])
                                     .spawn();
+                                #[cfg(target_os = "windows")]
+                                let result = std::process::Command::new("explorer")
+                                    .args(["/select,", &app.path])
+                                    .spawn();
                                 if let Err(e) = result {
-                                    tracing::warn!("Failed to reveal in Finder: {}", e);
+                                    tracing::warn!("Failed to reveal in file manager: {}", e);
                                     let time = ui.input(|i| i.time);
                                     state.toasts.push(
                                         crate::widgets::toast::Toast::error(
-                                            "Impossible d'ouvrir le Finder",
+                                            "Impossible d'ouvrir le gestionnaire de fichiers",
                                         )
                                         .with_time(time),
                                     );
@@ -207,8 +228,8 @@ impl SoftwarePage {
                         }
                     }
                 }
-                #[cfg(not(target_os = "macos"))]
-                SoftwareTab::Applications => { /* unreachable on non-macOS */ }
+                #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+                SoftwareTab::Applications => { /* unreachable on unsupported platforms */ }
             }
         }
 
@@ -550,13 +571,13 @@ impl SoftwarePage {
         });
     }
 
-    // -- Tab: Applications (macOS native) --
+    // -- Tab: Applications (native apps — macOS & Windows) --
 
-    #[cfg(target_os = "macos")]
-    fn show_macos_apps(ui: &mut Ui, state: &mut AppState, search_upper: &str, _command: &mut Option<GuiCommand>) {
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    fn show_native_apps(ui: &mut Ui, state: &mut AppState, search_upper: &str, _command: &mut Option<GuiCommand>) {
         let filtered: Vec<usize> = state
             .software
-            .macos_apps
+            .native_apps
             .iter()
             .enumerate()
             .filter(|(_, a)| {
@@ -571,7 +592,13 @@ impl SoftwarePage {
             .collect();
 
         let result_count = filtered.len();
-        let total = state.software.macos_apps.len() as u32;
+        let total = state.software.native_apps.len() as u32;
+
+        let (os_label, audit_scope) = if cfg!(target_os = "macos") {
+            ("macOS", "/Applications")
+        } else {
+            ("Windows", "Program Files")
+        };
 
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
         let items = vec![
@@ -583,13 +610,13 @@ impl SoftwarePage {
             ),
             (
                 "SYSTÈME EXPLOITATION",
-                "macOS".to_string(),
+                os_label.to_string(),
                 theme::text_secondary(),
                 icons::SETTINGS,
             ),
             (
                 "PÉRIMÈTRE D'AUDIT",
-                "/Applications".to_string(),
+                audit_scope.to_string(),
                 theme::text_secondary(),
                 icons::DATABASE,
             ),
@@ -692,7 +719,7 @@ impl SoftwarePage {
                         });
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
-                                egui::RichText::new("IDENTIFIANT (BUNDLE ID)")
+                                egui::RichText::new(if cfg!(target_os = "macos") { "IDENTIFIANT (BUNDLE ID)" } else { "IDENTIFIANT PRODUIT" })
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
@@ -712,7 +739,7 @@ impl SoftwarePage {
                     .body(|body| {
                         body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
                             let real_idx = filtered[row.index()];
-                            let app = &state.software.macos_apps[real_idx];
+                            let app = &state.software.native_apps[real_idx];
                             row.col(|ui: &mut egui::Ui| {
                                 let response = ui.label(
                                     egui::RichText::new(&app.name)
@@ -800,13 +827,13 @@ impl SoftwarePage {
         }
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     fn export_apps_csv(state: &AppState, indices: &[usize]) -> bool {
-        let headers = &["nom", "version", "bundle_id", "editeur", "chemin"];
+        let headers = &["nom", "version", "identifiant", "editeur", "chemin"];
         let rows: Vec<Vec<String>> = indices
             .iter()
             .filter_map(|&i| {
-                let a = state.software.macos_apps.get(i)?;
+                let a = state.software.native_apps.get(i)?;
                 Some(vec![
                     a.name.clone(),
                     a.version.clone(),

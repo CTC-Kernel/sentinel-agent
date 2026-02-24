@@ -39,5 +39,8 @@ hostname = { workspace = true, optional = true }
 sha2.workspace = true
 zeroize.workspace = true
 
+[target.'cfg(windows)'.dependencies]
+windows.workspace = true
+
 [dev-dependencies]
 serde_json.workspace = true
