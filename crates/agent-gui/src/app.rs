@@ -23,8 +23,8 @@ const FRAME_DT_MAX: f32 = 0.05;
 pub enum AsyncTaskResult {
     CsvExport(bool, String),
     HtmlExport(bool, String),
-    #[cfg(target_os = "macos")]
-    MacOsApps(Vec<crate::dto::GuiMacOsApp>),
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    NativeApps(Vec<crate::dto::GuiNativeApp>),
 }
 
 // ============================================================================
@@ -448,19 +448,25 @@ impl eframe::App for SentinelApp {
             theme::configure_fonts(ctx);
             theme::apply_theme(ctx, self.state.settings.dark_mode);
             egui_extras::install_image_loaders(ctx);
-            // Scan macOS native apps in background thread to avoid blocking first frame
-            #[cfg(target_os = "macos")]
+            // Scan native apps in background thread to avoid blocking first frame
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             {
                 if let Some(tx) = self.state.async_task_tx.clone() {
                     std::thread::spawn(move || {
-                        match crate::os::macos::software::scan_installed_apps() {
+                        let result = {
+                            #[cfg(target_os = "macos")]
+                            { crate::os::macos::software::scan_installed_apps() }
+                            #[cfg(target_os = "windows")]
+                            { crate::os::windows::software::scan_installed_apps() }
+                        };
+                        match result {
                             Ok(apps) => {
-                                if let Err(e) = tx.send(AsyncTaskResult::MacOsApps(apps)) {
-                                    tracing::warn!("Failed to send macOS apps result: {}", e);
+                                if let Err(e) = tx.send(AsyncTaskResult::NativeApps(apps)) {
+                                    tracing::warn!("Failed to send native apps result: {}", e);
                                 }
                             }
                             Err(e) => {
-                                tracing::warn!("Failed to scan macOS apps: {}", e);
+                                tracing::warn!("Failed to scan native apps: {}", e);
                             }
                         }
                     });
@@ -519,9 +525,9 @@ impl eframe::App for SentinelApp {
                          self.state.toasts.push(crate::widgets::toast::Toast::error(message).with_time(time));
                      }
                  }
-                 #[cfg(target_os = "macos")]
-                 AsyncTaskResult::MacOsApps(apps) => {
-                     self.state.software.macos_apps = apps;
+                 #[cfg(any(target_os = "macos", target_os = "windows"))]
+                 AsyncTaskResult::NativeApps(apps) => {
+                     self.state.software.native_apps = apps;
                  }
              }
         }
