@@ -26,22 +26,7 @@ pub mod software {
 
         for &(subkey_path, root_key) in UNINSTALL_PATHS {
             if let Ok(entries) = enumerate_uninstall_key(root_key, subkey_path) {
-                for entry in entries {
-                    // Skip entries without a display name
-                    if entry.name.is_empty() {
-                        continue;
-                    }
-                    // Skip Windows updates (KB patches) and system components
-                    if entry.name.starts_with("KB")
-                        && entry.name.chars().skip(2).all(|c| c.is_ascii_digit())
-                    {
-                        continue;
-                    }
-                    if entry.system_component {
-                        continue;
-                    }
-                    apps.push(entry);
-                }
+                apps.extend(entries);
             }
         }
 
@@ -124,6 +109,12 @@ pub mod software {
 
         let name = read_reg_string(hkey, "DisplayName").unwrap_or_default();
         if name.is_empty() {
+            unsafe { let _ = RegCloseKey(hkey); }
+            return None;
+        }
+
+        // Skip Windows updates (KB patches)
+        if name.starts_with("KB") && name.chars().skip(2).all(|c| c.is_ascii_digit()) {
             unsafe { let _ = RegCloseKey(hkey); }
             return None;
         }
@@ -228,12 +219,5 @@ pub mod software {
     /// Normalize empty fields to display placeholder.
     fn normalize(field: String) -> String {
         if field.is_empty() { "--".to_string() } else { field }
-    }
-
-    /// Helper struct used only during scanning to detect system components.
-    #[allow(dead_code)]
-    struct AppEntry {
-        app: GuiNativeApp,
-        system_component: bool,
     }
 }
