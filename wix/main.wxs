@@ -358,11 +358,11 @@
       <Custom Action="SetRunEnrollmentProps" Before="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="RunEnrollment" After="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="StartServiceAfterEnroll" After="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <!-- Defender exclusion on install -->
-      <Custom Action="AddDefenderExclusion" After="InstallFinalize" Condition="NOT Installed" />
-      <!-- Defender exclusion removal on uninstall -->
-      <Custom Action="RemoveDefenderExclusion" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
-      <!-- Data cleanup on full uninstall -->
+      <!-- Defender exclusion MUST be before InstallFinalize -->
+      <Custom Action="AddDefenderExclusion" Before="InstallFinalize" Condition="NOT Installed" />
+      <!-- Defender exclusion removal on uninstall - within transaction -->
+      <Custom Action="RemoveDefenderExclusion" After="InstallInitialize" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <!-- Data cleanup on full uninstall - within transaction -->
       <Custom Action="CleanupDataOnUninstall" After="RemoveDefenderExclusion" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
     </InstallExecuteSequence>
 
