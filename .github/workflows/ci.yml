@@ -142,27 +142,12 @@ jobs:
     name: Build Windows
     runs-on: windows-latest
     needs: test
-    env:
-      VCPKG_ROOT: C:\vcpkg
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Install OpenSSL via vcpkg
-        run: |
-          vcpkg install openssl:x64-windows-static
-          echo "OPENSSL_DIR=C:\vcpkg\installed\x64-windows-static" >> $env:GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=C:\vcpkg\installed\x64-windows-static\include" >> $env:GITHUB_ENV
-          echo "OPENSSL_LIB_DIR=C:\vcpkg\installed\x64-windows-static\lib" >> $env:GITHUB_ENV
-          echo "OPENSSL_STATIC=1" >> $env:GITHUB_ENV
-        shell: pwsh
       - name: Build release binary
         run: cargo build --release --package agent-core --features gui
-        env:
-          OPENSSL_DIR: C:\vcpkg\installed\x64-windows-static
-          OPENSSL_INCLUDE_DIR: C:\vcpkg\installed\x64-windows-static\include
-          OPENSSL_LIB_DIR: C:\vcpkg\installed\x64-windows-static\lib
-          OPENSSL_STATIC: "1"
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -174,29 +159,13 @@ jobs:
     name: Build MSI Installer
     runs-on: windows-latest
     needs: build-windows
-    env:
-      VCPKG_ROOT: C:\vcpkg
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - name: Install OpenSSL via vcpkg
-        run: |
-          vcpkg install openssl:x64-windows-static
-          echo "OPENSSL_DIR=C:\vcpkg\installed\x64-windows-static" >> $env:GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=C:\vcpkg\installed\x64-windows-static\include" >> $env:GITHUB_ENV
-          echo "OPENSSL_LIB_DIR=C:\vcpkg\installed\x64-windows-static\lib" >> $env:GITHUB_ENV
-          echo "OPENSSL_STATIC=1" >> $env:GITHUB_ENV
-        shell: pwsh
-
       - name: Build release binary
         run: cargo build --release --package agent-core --features gui
-        env:
-          OPENSSL_DIR: C:\vcpkg\installed\x64-windows-static
-          OPENSSL_INCLUDE_DIR: C:\vcpkg\installed\x64-windows-static\include
-          OPENSSL_LIB_DIR: C:\vcpkg\installed\x64-windows-static\lib
-          OPENSSL_STATIC: "1"
 
       - name: Install WiX Toolset
         run: |
