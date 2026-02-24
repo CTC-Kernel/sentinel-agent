@@ -95,7 +95,7 @@ impl UsbStorageCheck {
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let _stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
         let mut status = UsbStorageStatus {
             blocked: false,

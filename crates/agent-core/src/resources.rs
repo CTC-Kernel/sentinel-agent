@@ -236,7 +236,7 @@ impl ResourceMonitor {
 
     /// Get active network connections for telemetry.
     pub fn get_connections(&self) -> Vec<crate::api_client::AgentConnection> {
-        let mut connections = Vec::new();
+        let connections = Vec::new();
 
         #[cfg(target_os = "macos")]
         {
