@@ -1,0 +1,1 @@
+{"server_url": "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi", "check_interval_secs": 3600, "heartbeat_interval_secs": 60, "log_level": "info", "tls_verify": true, "data_dir": "C:\ProgramData\Sentinel GRC\Agent"}
