@@ -14,6 +14,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
 
+use agent_network::{ConnectionProtocol, ConnectionState, NetworkConnection};
+
 /// Resource limits configuration.
 #[derive(Debug, Clone)]
 pub struct ResourceLimits {
@@ -1723,13 +1725,19 @@ pub fn get_connections() -> Vec<NetworkConnection> {
     let paths = ["/proc/net/tcp", "/proc/net/udp", "/proc/net/tcp6", "/proc/net/udp6"];
     
     for path in paths {
+        let protocol = if path.contains("tcp6") {
+            ConnectionProtocol::Tcp6
+        } else if path.contains("udp6") {
+            ConnectionProtocol::Udp6
+        } else if path.contains("tcp") {
+            ConnectionProtocol::Tcp
+        } else {
+            ConnectionProtocol::Udp
+        };
+
         if let Ok(content) = std::fs::read_to_string(path) {
             for line in content.lines().skip(1) {
-                if let Some(conn) = parse_proc_net_line(line) {
-                    // Find process name by PID if available in /proc/net
-                    // Note: On Linux, correlating local port to PID usually requires 
-                    // iterating through /proc/[pid]/fd, but for this parity step we'll 
-                    // use sysinfo if we can match the local address.
+                if let Some(conn) = parse_proc_net_line(line, protocol) {
                     connections.push(conn);
                 }
             }
@@ -1739,13 +1747,13 @@ pub fn get_connections() -> Vec<NetworkConnection> {
 }
 
 #[cfg(target_os = "linux")]
-fn parse_proc_net_line(line: &str) -> Option<NetworkConnection> {
+fn parse_proc_net_line(line: &str, protocol: ConnectionProtocol) -> Option<NetworkConnection> {
     let parts: Vec<&str> = line.split_whitespace().collect();
     if parts.len() < 4 { return None; }
 
     let local = parse_proc_addr(parts[1])?;
     let remote = parse_proc_addr(parts[2])?;
-    let state = match parts[3] {
+    let state_str = match parts[3] {
         "01" => "ESTABLISHED",
         "02" => "SYN_SENT",
         "03" => "SYN_RECV",
@@ -1760,15 +1768,31 @@ fn parse_proc_net_line(line: &str) -> Option<NetworkConnection> {
         _ => "UNKNOWN",
     };
 
+    let state = match state_str {
+        "ESTABLISHED" => ConnectionState::Established,
+        "SYN_SENT" => ConnectionState::SynSent,
+        "SYN_RECV" => ConnectionState::SynReceived,
+        "FIN_WAIT1" => ConnectionState::FinWait1,
+        "FIN_WAIT2" => ConnectionState::FinWait2,
+        "TIME_WAIT" => ConnectionState::TimeWait,
+        "CLOSE" => ConnectionState::Closed,
+        "CLOSE_WAIT" => ConnectionState::CloseWait,
+        "LAST_ACK" => ConnectionState::LastAck,
+        "LISTEN" => ConnectionState::Listen,
+        "CLOSING" => ConnectionState::Closing,
+        _ => ConnectionState::Unknown,
+    };
+
     Some(NetworkConnection {
-        protocol: "TCP".to_string(), // Simplified for now, will need to differentiate TCP/UDP based on path
+        protocol,
         local_address: local.0,
         local_port: local.1,
-        remote_address: remote.0,
-        remote_port: remote.1,
-        state: state.to_string(),
+        remote_address: Some(remote.0),
+        remote_port: Some(remote.1),
+        state,
         pid: None,
         process_name: None,
+        process_path: None,
     })
 }
 
