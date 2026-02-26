@@ -299,6 +299,9 @@ impl AgentConfig {
 
     /// Get the platform-specific configuration file path.
     pub fn platform_config_path() -> PathBuf {
+        if let Ok(dir) = std::env::var("SENTINEL_DATA_DIR") {
+            return PathBuf::from(dir).join("agent.json");
+        }
         #[cfg(windows)]
         {
             PathBuf::from(r"C:\ProgramData\Sentinel\agent.json")
@@ -321,6 +324,9 @@ impl AgentConfig {
 
     /// Get the platform-specific data directory.
     pub fn platform_data_dir() -> PathBuf {
+        if let Ok(dir) = std::env::var("SENTINEL_DATA_DIR") {
+            return PathBuf::from(dir);
+        }
         #[cfg(windows)]
         {
             PathBuf::from(r"C:\ProgramData\Sentinel")
