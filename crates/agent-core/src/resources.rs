@@ -14,6 +14,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
 
+#[allow(unused_imports)]
 use agent_network::{ConnectionProtocol, ConnectionState, NetworkConnection};
 
 /// Resource limits configuration.
@@ -238,6 +239,7 @@ impl ResourceMonitor {
 
     /// Get active network connections for telemetry.
     pub fn get_connections(&self) -> Vec<crate::api_client::AgentConnection> {
+        #[allow(unused_mut)]
         let mut connections = Vec::new();
 
         #[cfg(target_os = "macos")]

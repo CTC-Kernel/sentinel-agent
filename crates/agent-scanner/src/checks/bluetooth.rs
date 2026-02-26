@@ -6,6 +6,7 @@
 //! - macOS: Bluetooth ControllerPowerState preference
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
+#[allow(unused_imports)]
 use crate::error::{ScannerError, ScannerResult};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
