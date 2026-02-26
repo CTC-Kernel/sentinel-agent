@@ -120,19 +120,21 @@ impl ResourceMonitor {
         self.sample_count.fetch_add(1, Ordering::Relaxed);
 
         // Network I/O collection using sysinfo
+        // Use total_received()/total_transmitted() which return cumulative counters
+        // since system boot, then compute delta between samples.
         let network_io_bytes = if let Ok(mut networks) = self.networks.lock() {
             networks.refresh(true);
             let current_network: u64 = networks
                 .values()
-                .map(|data| data.received() + data.transmitted())
+                .map(|data| data.total_received() + data.total_transmitted())
                 .sum();
 
             let last_net = self
                 .last_network_bytes
                 .swap(current_network, Ordering::Relaxed);
-            if last_net > 0 {
-                // Return bytes since last sample (assumes ~1s interval)
-                current_network.saturating_sub(last_net)
+            if last_net > 0 && current_network >= last_net {
+                // Delta bytes since last sample (~5s interval)
+                current_network - last_net
             } else {
                 0
             }
@@ -140,27 +142,11 @@ impl ResourceMonitor {
             0
         };
 
-        // Disk I/O collection using sysinfo for the current process
-        let disk_kbps = if let Ok(mut sys) = self.sys.lock() {
-            // Refresh only current process for efficiency
-            let pid = sysinfo::get_current_pid()
-                .unwrap_or(sysinfo::Pid::from(std::process::id() as usize));
-            sys.refresh_processes_specifics(
-                sysinfo::ProcessesToUpdate::Some(&[pid]),
-                true,
-                sysinfo::ProcessRefreshKind::nothing().with_disk_usage(),
-            );
-            if let Some(process) = sys.process(pid) {
-                let usage = process.disk_usage();
-                // sysinfo process.disk_usage() usually returns delta in bytes since last refresh
-                // Convert to KB for consistency
-                ((usage.read_bytes + usage.written_bytes) / 1024).min(u32::MAX as u64) as u32
-            } else {
-                get_disk_kbps()
-            }
-        } else {
-            get_disk_kbps()
-        };
+        // Disk I/O collection using platform-native API
+        // NOTE: sysinfo 0.35 process.disk_usage() returns 0 on macOS for
+        // single-PID refresh. We always use the native get_disk_kbps() which
+        // on macOS uses proc_pid_rusage (reliable) and on Linux uses /proc/self/io.
+        let disk_kbps = get_disk_kbps();
 
         let usage = ResourceUsage {
             cpu_percent,
