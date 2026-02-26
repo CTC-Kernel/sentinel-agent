@@ -94,8 +94,10 @@ impl LLMService {
 
     /// Initialize LLM manager from configuration.
     /// Automatically downloads the model from HuggingFace if not present.
-    #[cfg(feature = "llm")]
     pub async fn initialize(&self) -> Result<()> {
+        if !self.config_path.exists() {
+            return Err(anyhow::anyhow!("Fichier de configuration LLM introuvable à {:?}", self.config_path));
+        }
         let config = LLMConfig::from_file(&self.config_path)?;
 
         // Auto-download model if not present
@@ -348,6 +350,33 @@ impl LLMService {
     /// Get the LLM config (for starting downloads from the GUI).
     #[cfg(feature = "llm")]
     pub async fn get_config(&self) -> Result<LLMConfig> {
+        if !self.config_path.exists() {
+            info!("Fichier de configuration absent, création d'une configuration par défaut à {:?}", self.config_path);
+            
+            // Ensure config directory exists
+            if let Some(parent) = self.config_path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+
+            let mut config = LLMConfig::default();
+            
+            // Resolve relative paths based on config path parent
+            if let Some(parent) = self.config_path.parent() {
+                if config.model.path.is_relative() {
+                    config.model.path = parent.join(&config.model.path);
+                }
+                if config.cache.directory.is_relative() {
+                    config.cache.directory = parent.join(&config.cache.directory);
+                }
+            }
+            
+            // Save it so that reload() after download can find it
+            if let Err(e) = config.save_to_file(&self.config_path) {
+                warn!("Impossible de sauvegarder la configuration par défaut: {}", e);
+            }
+            
+            return Ok(config);
+        }
         LLMConfig::from_file(&self.config_path)
     }
 
@@ -479,6 +508,10 @@ impl LLMService {
     pub async fn get_status(&self) -> LLMServiceStatus {
         #[cfg(feature = "llm")]
         {
+            if !self.config_path.exists() {
+                return LLMServiceStatus::NotConfigured;
+            }
+
             if self.is_available().await {
                 if let Some(stats) = self.get_stats().await {
                     LLMServiceStatus::Ready {
