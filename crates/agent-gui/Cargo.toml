@@ -16,6 +16,7 @@ llm = ["dep:agent_llm"]
 
 [dependencies]
 agent-common = { path = "../agent-common" }
+openssl = { workspace = true, features = ["vendored"] }
 agent_llm = { path = "../agent_llm", optional = true }
 anyhow.workspace = true
 serde.workspace = true
