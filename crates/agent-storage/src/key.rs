@@ -199,6 +199,14 @@ impl KeyManager {
     fn load_key(path: &Path) -> StorageResult<[u8; KEY_LENGTH]> {
         use windows::Win32::Security::Cryptography::{CRYPT_INTEGER_BLOB, CryptUnprotectData};
 
+        // If key file doesn't exist, generate a new one
+        if !path.exists() {
+            warn!("Key file not found, generating new encryption key");
+            let key = Self::generate_key();
+            Self::store_key(path, &key)?;
+            return Ok(key);
+        }
+
         let encrypted_data = fs::read(path).map_err(|e| {
             StorageError::KeyManagement(format!(
                 "Failed to read key file {}: {}",
@@ -217,7 +225,7 @@ impl KeyManager {
         // SAFETY: CryptUnprotectData is a Windows API that allocates output via LocalAlloc.
         // We must check for null pointers AND validate cbData before any copy,
         // then free the buffer with LocalFree regardless of success/failure.
-        unsafe {
+        let result = unsafe {
             CryptUnprotectData(
                 &mut data_in,
                 None, // description (optional)
@@ -227,48 +235,62 @@ impl KeyManager {
                 0,    // flags
                 &mut data_out,
             )
-            .map_err(|e| StorageError::KeyManagement(format!("DPAPI decryption failed: {}", e)))?;
+        };
 
-            // Null pointer check before accessing decrypted data
-            if data_out.pbData.is_null() {
-                return Err(StorageError::KeyManagement(
-                    "DPAPI decryption returned null pointer".to_string(),
-                ));
-            }
+        if let Err(e) = result {
+            warn!("DPAPI decryption failed: {}, regenerating key", e);
+            // If DPAPI decryption fails (corrupted key, machine change, etc.),
+            // generate a new key and replace the corrupted one
+            let key = Self::generate_key();
+            Self::store_key(path, &key)?;
+            return Ok(key);
+        }
 
-            // Bounds check: verify DPAPI returned exactly KEY_LENGTH bytes
-            let decrypted_len = data_out.cbData as usize;
-            if decrypted_len != KEY_LENGTH {
-                // Free the allocated memory before returning error
+        // Null pointer check before accessing decrypted data
+        if data_out.pbData.is_null() {
+            warn!("DPAPI decryption returned null pointer, regenerating key");
+            let key = Self::generate_key();
+            Self::store_key(path, &key)?;
+            return Ok(key);
+        }
+
+        // Bounds check: verify DPAPI returned exactly KEY_LENGTH bytes
+        let decrypted_len = data_out.cbData as usize;
+        if decrypted_len != KEY_LENGTH {
+            // Free allocated memory before returning error
+            unsafe {
                 windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
                     data_out.pbData as *mut _,
                 ));
-                return Err(StorageError::KeyManagement(format!(
-                    "Invalid decrypted key size: expected {} bytes, got {}. Key file may be corrupted.",
-                    KEY_LENGTH, decrypted_len
-                )));
             }
+            warn!("Invalid decrypted key size: expected {} bytes, got {}. Regenerating key", KEY_LENGTH, decrypted_len);
+            // Generate a new key if size is invalid
+            let key = Self::generate_key();
+            Self::store_key(path, &key)?;
+            return Ok(key);
+        }
 
-            // Additional safety: ensure cbData doesn't exceed what we'll copy
-            debug_assert!(
-                decrypted_len <= KEY_LENGTH,
-                "bounds check should have caught this"
-            );
+        // Additional safety: ensure cbData doesn't exceed what we'll copy
+        debug_assert!(
+            decrypted_len <= KEY_LENGTH,
+            "bounds check should have caught this"
+        );
 
-            let mut key = [0u8; KEY_LENGTH];
-            std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);
+        let mut key = [0u8; KEY_LENGTH];
+        std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);
 
-            // Free the DPAPI-allocated memory
+        // Free the DPAPI-allocated memory
+        unsafe {
             windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
             ));
-
-            debug!(
-                "Loaded and decrypted key using DPAPI from: {}",
-                path.display()
-            );
-            Ok(key)
         }
+
+        debug!(
+            "Loaded and decrypted key using DPAPI from: {}",
+            path.display()
+        );
+        Ok(key)
     }
 
     /// Store a key to file with secure permissions (Unix).
