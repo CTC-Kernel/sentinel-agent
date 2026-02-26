@@ -1,7 +1,7 @@
 {
   "server_url": "https://api.sentinel-grc.com",
   "agent_id": "windows-agent-001",
-  "enrollment_token": "",
+  "enrollment_token": "test-token-for-development",
   "log_level": "info",
   "gui": {
     "enabled": true,
