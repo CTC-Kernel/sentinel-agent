@@ -28,6 +28,10 @@ pub struct EnrollmentRequest {
     /// Machine identifier (for detecting re-enrollment).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub machine_id: Option<String>,
+
+    /// Admin password for the agent (optional).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub admin_password: Option<String>,
 }
 
 /// Enrollment response from the SaaS.

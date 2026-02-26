@@ -23,18 +23,36 @@ impl DeviceResolver {
 
     /// Attempt reverse DNS lookup for an IP address.
     pub async fn resolve_hostname(&self, ip: &str) -> Option<String> {
-        // Try the system `host` command for reverse DNS
-        let result = Command::new("host").arg(ip).output().await;
+        let is_windows = cfg!(target_os = "windows");
 
-        match result {
-            Ok(output) if output.status.success() => {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                // Output format: "1.168.192.in-addr.arpa domain name pointer hostname.local."
-                Self::parse_host_output(&stdout)
+        if is_windows {
+            // Try Windows `nslookup` command
+            let result = Command::new("nslookup").arg(ip).output().await;
+
+            match result {
+                Ok(output) if output.status.success() => {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    Self::parse_nslookup_output(&stdout)
+                }
+                _ => {
+                    trace!("Reverse DNS lookup (nslookup) failed for {}", ip);
+                    None
+                }
             }
-            _ => {
-                trace!("Reverse DNS lookup failed for {}", ip);
-                None
+        } else {
+            // Try the system `host` command for reverse DNS (macOS/Linux)
+            let result = Command::new("host").arg(ip).output().await;
+
+            match result {
+                Ok(output) if output.status.success() => {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    // Output format: "1.168.192.in-addr.arpa domain name pointer hostname.local."
+                    Self::parse_host_output(&stdout)
+                }
+                _ => {
+                    trace!("Reverse DNS lookup (host) failed for {}", ip);
+                    None
+                }
             }
         }
     }
@@ -46,6 +64,26 @@ impl DeviceResolver {
                 let hostname = line[idx + 20..].trim().trim_end_matches('.');
                 if !hostname.is_empty() {
                     return Some(hostname.to_string());
+                }
+            }
+        }
+        None
+    }
+
+    /// Parse the output of the Windows `nslookup` command.
+    fn parse_nslookup_output(output: &str) -> Option<String> {
+        // Windows nslookup output for reverse DNS:
+        // Name:    hostname.local
+        // Address:  192.168.1.42
+        let mut lines = output.lines();
+        while let Some(line) = lines.next() {
+            if line.contains("Name:") {
+                let parts: Vec<&str> = line.split(':').collect();
+                if parts.len() >= 2 {
+                    let hostname = parts[1].trim().to_string();
+                    if !hostname.is_empty() {
+                        return Some(hostname);
+                    }
                 }
             }
         }
@@ -517,5 +555,20 @@ mod tests {
     fn test_parse_host_output_not_found() {
         let output = "Host 192.168.1.99 not found: 3(NXDOMAIN)\n";
         assert_eq!(DeviceResolver::parse_host_output(output), None);
+    }
+
+    #[test]
+    fn test_parse_nslookup_output() {
+        let output = "Server:  gateway\nAddress:  192.168.1.1\n\nName:    hostname.local\nAddress:  192.168.1.42\n";
+        assert_eq!(
+            DeviceResolver::parse_nslookup_output(output),
+            Some("hostname.local".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_nslookup_output_not_found() {
+        let output = "*** gateway can't find 192.168.1.99: Non-existent domain\n";
+        assert_eq!(DeviceResolver::parse_nslookup_output(output), None);
     }
 }

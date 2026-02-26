@@ -83,44 +83,39 @@ impl Sidebar {
                     // Logo / brand section
                     ui.add_space(theme::SPACE);
                     ui.vertical_centered(|ui: &mut egui::Ui| {
-                        // IA.png logo
+                        // IA.png logo - Perfectly centered with subtle drop shadow
                         let logo = egui::Image::from_bytes(
                             "bytes://ia_sidebar",
                             include_bytes!("../../assets/IA.png"),
                         )
-                        .max_width(56.0);
-                        ui.add(logo);
+                        .max_width(64.0);
+                        
+                        let r = ui.add(logo);
+                        // Subtle inner shadow for the logo container
+                        ui.painter().circle_filled(
+                            r.rect.center(),
+                            32.0,
+                            theme::bg_sidebar().linear_multiply(0.1),
+                        );
 
-                        ui.add_space(theme::SPACE_SM);
+                        ui.add_space(theme::SPACE_MD);
 
-                        ui.horizontal(|ui: &mut egui::Ui| {
-                            ui.add_space(ui.available_width() / 4.0);
+                        ui.vertical_centered(|ui| {
                             ui.label(
                                 egui::RichText::new("SENTINEL")
-                                    .font(theme::font_title())
+                                    .font(theme::font_title().size(22.0))
                                     .color(theme::accent_text())
+                                    .extra_letter_spacing(theme::TRACKING_WIDE)
                                     .strong(),
                             );
-                            if scanning {
-                                let alpha = if theme::is_reduced_motion() {
-                                    1.0
-                                } else {
-                                    let t = ui.input(|i| i.time);
-                                    ((t * 2.5).cos() * 0.5 + 0.5) as f32
-                                };
-                                ui.label(
-                                    egui::RichText::new(icons::CIRCLE)
-                                        .size(theme::STATUS_DOT_SIZE + 2.0)
-                                        .color(theme::accent_text().linear_multiply(alpha)),
-                                );
-                            }
+                            ui.label(
+                                egui::RichText::new("GRC AGENT")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                                    .strong(),
+                            );
                         });
-                        ui.label(
-                            egui::RichText::new("GRC AGENT")
-                                .font(theme::font_small())
-                                .color(theme::text_tertiary())
-                                .strong(),
-                        );
 
                         // Bell badge with unread count
                         if unread_notifications > 0 {

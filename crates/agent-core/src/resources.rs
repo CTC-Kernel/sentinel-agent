@@ -267,26 +267,138 @@ impl ResourceMonitor {
                     }
                 };
 
-                if !timed_out
-                    && let Ok(output) = child.wait_with_output()
-                {
-                    let stdout = String::from_utf8_lossy(&output.stdout);
-                    for line in stdout.lines().skip(1) {
-                        if let Some(conn) = self.parse_lsof_line(line) {
-                            connections.push(conn);
+                if !timed_out {
+                     if let Ok(output) = child.wait_with_output() {
+                        let stdout = String::from_utf8_lossy(&output.stdout);
+                        for line in stdout.lines().skip(1) {
+                            if let Some(conn) = self.parse_lsof_line(line) {
+                                connections.push(conn);
+                            }
                         }
                     }
                 }
             }
         }
 
-        #[cfg(target_os = "linux")]
+        }
+
+        #[cfg(target_os = "windows")]
         {
-            // Simple /proc/net/tcp parser for Linux if needed
-            // For now, we rely on macOS being the primary dev/demo environment
+            use std::process::Stdio;
+            let child = std::process::Command::new("netstat")
+                .args(["-ano"])
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn();
+
+            if let Ok(mut child) = child {
+                let timeout = std::time::Duration::from_secs(5);
+                let start = std::time::Instant::now();
+                let timed_out = loop {
+                    match child.try_wait() {
+                        Ok(Some(_)) => break false,
+                        Ok(None) if start.elapsed() >= timeout => {
+                            tracing::warn!("netstat timed out after 5s, killing process");
+                            let _ = child.kill();
+                            let _ = child.wait();
+                            break true;
+                        }
+                        Ok(None) => {
+                            std::thread::sleep(std::time::Duration::from_millis(50));
+                        }
+                        Err(_) => break true,
+                    }
+                };
+
+                if !timed_out {
+                    if let Ok(output) = child.wait_with_output() {
+                        let stdout = String::from_utf8_lossy(&output.stdout);
+                        for line in stdout.lines() {
+                            if let Some(conn) = self.parse_netstat_line(line) {
+                                connections.push(conn);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         connections
+    }
+
+    #[cfg(target_os = "windows")]
+    fn parse_netstat_line(&self, line: &str) -> Option<crate::api_client::AgentConnection> {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        // netstat -ano columns: Proto, Local Address, Foreign Address, State, PID
+        // BUT for UDP, State is missing: Proto, Local Address, Foreign Address, PID
+        if parts.len() < 4 {
+            return None;
+        }
+
+        let protocol = parts[0];
+        if protocol != "TCP" && protocol != "UDP" {
+            return None;
+        }
+
+        let local_full = parts[1];
+        let remote_full = parts[2];
+        let (local_address, local_port) = self.parse_netstat_address(local_full)?;
+        let (remote_address, remote_port) = self.parse_netstat_address(remote_full)
+            .map(|(a, p)| (Some(a), Some(p)))
+            .unwrap_or((None, None));
+
+        let (state, pid_str) = if protocol == "TCP" && parts.len() >= 5 {
+            (parts[3].to_string(), parts[4])
+        } else {
+            ("UNKNOWN".to_string(), parts[parts.len() - 1])
+        };
+
+        let pid = pid_str.parse::<u32>().ok();
+        
+        // Try to get process name from sysinfo if available
+        let process_name = if let Some(pid_val) = pid {
+            if let Ok(sys) = self.sys.lock() {
+                sys.process(sysinfo::Pid::from(pid_val as usize))
+                    .map(|p| p.name().to_string_lossy().to_string())
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        Some(crate::api_client::AgentConnection {
+            protocol: protocol.to_string(),
+            local_address,
+            local_port,
+            remote_address,
+            remote_port,
+            state,
+            process_name,
+            pid,
+        })
+    }
+
+    #[cfg(target_os = "windows")]
+    fn parse_netstat_address(&self, addr_str: &str) -> Option<(String, u16)> {
+        // Formats: 127.0.0.1:80, [::]:80, *:*
+        if addr_str == "*:*" || addr_str == "[::]:*" || addr_str == "0.0.0.0:*" {
+            return None;
+        }
+
+        let parts: Vec<&str> = addr_str.rsplitn(2, ':').collect();
+        if parts.len() < 2 {
+            return None;
+        }
+
+        let port = parts[0].parse().ok()?;
+        let addr = parts[1].trim_start_matches('[').trim_end_matches(']').to_string();
+        
+        if addr == "*" || addr == "0.0.0.0" || addr == "::" {
+            Some(("0.0.0.0".to_string(), port))
+        } else {
+            Some((addr, port))
+        }
     }
 
     #[cfg(target_os = "macos")]
@@ -1603,6 +1715,94 @@ fn get_logical_cores() -> u32 {
     {
         1
     }
+}
+
+#[cfg(target_os = "linux")]
+pub fn get_connections() -> Vec<NetworkConnection> {
+    use sysinfo::{System, SystemExt}; // Assuming sysinfo is available and used for other parts
+
+    let mut connections = Vec::new();
+    let mut sys = System::new_all();
+    sys.refresh_all();
+
+    // Parse /proc/net/tcp and /proc/net/udp
+    let paths = ["/proc/net/tcp", "/proc/net/udp", "/proc/net/tcp6", "/proc/net/udp6"];
+    
+    for path in paths {
+        if let Ok(content) = std::fs::read_to_string(path) {
+            for line in content.lines().skip(1) {
+                if let Some(conn) = parse_proc_net_line(line) {
+                    // Find process name by PID if available in /proc/net
+                    // Note: On Linux, correlating local port to PID usually requires 
+                    // iterating through /proc/[pid]/fd, but for this parity step we'll 
+                    // use sysinfo if we can match the local address.
+                    connections.push(conn);
+                }
+            }
+        }
+    }
+    connections
+}
+
+#[cfg(target_os = "linux")]
+fn parse_proc_net_line(line: &str) -> Option<NetworkConnection> {
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    if parts.len() < 4 { return None; }
+
+    let local = parse_proc_addr(parts[1])?;
+    let remote = parse_proc_addr(parts[2])?;
+    let state = match parts[3] {
+        "01" => "ESTABLISHED",
+        "02" => "SYN_SENT",
+        "03" => "SYN_RECV",
+        "04" => "FIN_WAIT1",
+        "05" => "FIN_WAIT2",
+        "06" => "TIME_WAIT",
+        "07" => "CLOSE",
+        "08" => "CLOSE_WAIT",
+        "09" => "LAST_ACK",
+        "0A" => "LISTEN",
+        "0B" => "CLOSING",
+        _ => "UNKNOWN",
+    };
+
+    Some(NetworkConnection {
+        protocol: "TCP".to_string(), // Simplified for now, will need to differentiate TCP/UDP based on path
+        local_address: local.0,
+        local_port: local.1,
+        remote_address: remote.0,
+        remote_port: remote.1,
+        state: state.to_string(),
+        pid: None,
+        process_name: None,
+    })
+}
+
+#[cfg(target_os = "linux")]
+fn parse_proc_addr(hex_addr: &str) -> Option<(String, u16)> {
+    let parts: Vec<&str> = hex_addr.split(':').collect();
+    if parts.len() != 2 { return None; }
+
+    let addr_hex = parts[0];
+    let port_hex = parts[1];
+
+    let port = u16::from_str_radix(port_hex, 16).ok()?;
+    
+    // Handle IPv4
+    if addr_hex.len() == 8 {
+        let bytes = u32::from_str_radix(addr_hex, 16).ok()?;
+        let ip = std::net::Ipv4Addr::from(bytes.swap_bytes());
+        return Some((ip.to_string(), port));
+    }
+    
+    // Handle IPv6 (not implemented in the provided snippet, but good to note)
+    if addr_hex.len() == 32 {
+        // IPv6 parsing would go here
+        // For now, return None for IPv6 if not explicitly handled
+        return None;
+    }
+
+    None
 }
 
 /// System-level resource information (CPU, memory total, disk usage).

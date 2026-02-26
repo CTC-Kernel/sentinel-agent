@@ -499,12 +499,14 @@ impl eframe::App for SentinelApp {
         self.process_tray_actions(ctx);
 
         // Auto-lock admin mode after 5 minutes of inactivity.
-        if self.state.security.admin_unlocked
-            && let Some(last_unlock) = self.state.security.last_unlock
-                && chrono::Utc::now() - last_unlock > chrono::Duration::minutes(5) {
+        if self.state.security.admin_unlocked {
+            if let Some(last_unlock) = self.state.security.last_unlock {
+                if chrono::Utc::now() - last_unlock > chrono::Duration::minutes(5) {
                     self.state.security.admin_unlocked = false;
                     tracing::info!("Admin mode auto-locked after 5 minutes");
                 }
+            }
+        }
 
         // Process async task results from background threads
         while let Ok(result) = self.async_results_rx.try_recv() {
@@ -586,7 +588,7 @@ impl eframe::App for SentinelApp {
                             }
                             _ => {}
                         }
-                        if let Err(e) = self.enrollment_tx.send(cmd) {
+                        if let Err(e) = self.enrollment_tx.send(cmd.clone()) {
                             tracing::warn!("Failed to send enrollment command: {}", e);
                         }
                     }
@@ -694,7 +696,7 @@ impl eframe::App for SentinelApp {
                     .fill(theme::bg_primary())
                     .inner_margin(egui::Margin {
                         left: theme::SPACE_LG as i8,
-                        right: 0,
+                        right: theme::SPACE_LG as i8, // Match left for symmetry
                         top: theme::SPACE_LG as i8,
                         bottom: theme::SPACE_LG as i8,
                     }),
@@ -716,12 +718,7 @@ impl eframe::App for SentinelApp {
                     .auto_shrink(egui::Vec2b::new(false, false))
                     .show(ui, |ui: &mut egui::Ui| {
                         egui::Frame::new()
-                            .inner_margin(egui::Margin {
-                                left: 0,
-                                right: theme::SPACE_LG as i8,
-                                top: 0,
-                                bottom: 0,
-                            })
+                            .inner_margin(egui::Margin::same(0)) // Remove inner padding, use CentralPanel padding
                             .show(ui, |ui: &mut egui::Ui| match self.page {
                                 Page::Dashboard => {
                                     if let Some(action) = pages::DashboardPage::show(ui, &mut self.state) {
