@@ -75,8 +75,8 @@ impl DeviceResolver {
         // Windows nslookup output for reverse DNS:
         // Name:    hostname.local
         // Address:  192.168.1.42
-        let mut lines = output.lines();
-        while let Some(line) = lines.next() {
+        let lines = output.lines();
+        for line in lines {
             if line.contains("Name:") {
                 let parts: Vec<&str> = line.split(':').collect();
                 if parts.len() >= 2 {

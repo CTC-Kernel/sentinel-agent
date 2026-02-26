@@ -2076,21 +2076,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                              1. Une évaluation de la probabilité (1-5) et de l'impact (1-5)\n\
                                              2. Une analyse détaillée (3-5 phrases)\n\
                                              3. Des suggestions de mitigation concrètes (2-4 points)\n\n\
-                                             Risque : {}\n\
-                                             Description : {}\n\
-                                             Probabilité actuelle : {}/5\n\
-                                             Impact actuel : {}/5\n\n\
+                                             Risque : {risk_title}\n\
+                                             Description : {risk_description}\n\
+                                             Probabilité actuelle : {current_probability}/5\n\
+                                             Impact actuel : {current_impact}/5\n\n\
                                              Réponds en JSON avec ce schéma :\n\
                                              {{\n\
                                                \"suggested_probability\": 1-5,\n\
                                                \"suggested_impact\": 1-5,\n\
                                                \"analysis\": \"texte d'analyse\",\n\
                                                \"mitigation_suggestions\": [\"suggestion1\", \"suggestion2\"]\n\
-                                             }}",
-                                            risk_title,
-                                            risk_description,
-                                            current_probability,
-                                            current_impact,
+                                             }}"
                                         );
                                         let req = agent_llm::engine::InferenceRequest::new(&prompt)
                                             .with_max_tokens(1024)
@@ -2204,12 +2200,11 @@ async fn enroll_with_config(config: &AgentConfig, admin_password: Option<String>
 async fn wait_for_finish(rx: &std::sync::mpsc::Receiver<agent_gui::enrollment::EnrollmentCommand>) {
     loop {
         match rx.try_recv() {
-            Ok(agent_gui::enrollment::EnrollmentCommand::Finish) => break,
-            Ok(_) => continue,
+            Ok(agent_gui::enrollment::EnrollmentCommand::Finish) | Err(std::sync::mpsc::TryRecvError::Disconnected) => break,
+            Ok(_) => {}
             Err(std::sync::mpsc::TryRecvError::Empty) => {
                 tokio::time::sleep(std::time::Duration::from_millis(50)).await;
             }
-            Err(std::sync::mpsc::TryRecvError::Disconnected) => break,
         }
     }
 }

@@ -12,15 +12,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Démarrage de la GUI Sentinel Agent...");
     
     // Créer les canaux de communication
-    let (event_tx, event_rx) = mpsc::channel::<AgentEvent>();
-    let (command_tx, command_rx) = mpsc::channel::<agent_gui::events::GuiCommand>();
-    let (enrollment_tx, enrollment_rx) = mpsc::channel::<EnrollmentCommand>();
+    let (_event_tx, event_rx) = mpsc::channel::<AgentEvent>();
+    let (_command_tx, _command_rx) = mpsc::channel::<agent_gui::events::GuiCommand>();
+    let (_enrollment_tx, _enrollment_rx) = mpsc::channel::<EnrollmentCommand>();
     
     // Simuler un agent déjà enrollé pour la démo
     let enrolled = true;
     
     // Lancer la GUI
-    run_gui(enrolled, event_rx, command_tx, enrollment_tx)?;
+    run_gui(enrolled, event_rx, _command_tx, _enrollment_tx)?;
     
     Ok(())
 }

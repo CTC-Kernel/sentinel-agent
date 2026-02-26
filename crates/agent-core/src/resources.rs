@@ -271,16 +271,16 @@ impl ResourceMonitor {
                     }
                 };
 
-                if !timed_out {
-                     if let Ok(output) = child.wait_with_output() {
-                        let stdout = String::from_utf8_lossy(&output.stdout);
-                        for line in stdout.lines().skip(1) {
-                            if let Some(conn) = self.parse_lsof_line(line) {
-                                connections.push(conn);
-                            }
-                        }
-                    }
-                }
+                if !timed_out
+    && let Ok(output) = child.wait_with_output()
+{
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    for line in stdout.lines().skip(1) {
+        if let Some(conn) = self.parse_lsof_line(line) {
+            connections.push(conn);
+        }
+    }
+}
             }
         }
 
