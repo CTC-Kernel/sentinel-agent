@@ -27,10 +27,10 @@ impl AboutPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
-            "\u{00c0} propos",
-            Some("Informations sur le produit et support technique"),
+            "About",
+            Some("Product information and technical support"),
             Some(
-                "Informations sur la version de l'agent Sentinel et les crédits. En cas de support, veuillez mentionner le numéro de build et l'identifiant unique de votre installation.",
+                "Sentinel Agent version info and credits. When contacting support, please mention the build number and unique installation ID.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -101,7 +101,7 @@ impl AboutPage {
         // Legal
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("MENTIONS L\u{00c9}GALES")
+                egui::RichText::new("LEGAL NOTICES")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
                     .strong(),
@@ -109,7 +109,7 @@ impl AboutPage {
             ui.add_space(theme::SPACE_SM);
             ui.label(
                 egui::RichText::new(
-                    "\u{00a9} 2024\u{2013}2026 Cyber Threat Consulting. Tous droits r\u{00e9}serv\u{00e9}s.",
+                    "\u{00a9} 2024\u{2013}2026 Cyber Threat Consulting. All rights reserved.",
                 )
                 .font(theme::font_small())
                 .color(theme::text_secondary()),
@@ -117,8 +117,8 @@ impl AboutPage {
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new(
-                    "Ce logiciel est la propri\u{00e9}t\u{00e9} exclusive de Cyber Threat Consulting. \
-                     Toute reproduction ou distribution non autoris\u{00e9}e est strictement interdite.",
+                    "This software is the exclusive property of Cyber Threat Consulting. \
+                     Unauthorized reproduction or distribution is strictly prohibited.",
                 )
                 .font(theme::font_small())
                 .color(theme::text_tertiary()),
@@ -132,7 +132,7 @@ impl AboutPage {
     fn system_card(ui: &mut Ui) {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("SYST\u{00c8}ME")
+                egui::RichText::new("SYSTEM")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
                     .strong(),
@@ -145,7 +145,7 @@ impl AboutPage {
                 &format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
                 icons::ARROW_RIGHT,
             );
-            Self::info_row(ui, "Moteur", "Rust v1.85+", icons::ARROW_RIGHT);
+            Self::info_row(ui, "Engine", "Rust v1.85+", icons::ARROW_RIGHT);
             Self::info_row(ui, "Version", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
         });
     }
@@ -153,14 +153,14 @@ impl AboutPage {
     fn resources_card(ui: &mut Ui) {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("RESSOURCES")
+                egui::RichText::new("RESOURCES")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
 
-            Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
+            Self::link_row(ui, "Official Website", branding::WEBSITE, icons::ARROW_RIGHT);
             Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
             Self::link_row(
                 ui,
@@ -218,7 +218,7 @@ impl AboutPage {
                 |ui: &mut egui::Ui| {
                     if ui
                         .link(
-                            egui::RichText::new("OUVRIR")
+                            egui::RichText::new("OPEN")
                                 .font(theme::font_small())
                                 .color(theme::accent_text())
                                 .strong(),

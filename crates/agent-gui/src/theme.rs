@@ -157,9 +157,9 @@ pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 135, 0);
 #[inline]
 pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(16, 16, 20) // Softer dark - easier on OLED, retains depth
+        Color32::from_rgb(10, 10, 12) // Deeper dark for premium depth (was 16,16,20)
     } else {
-        Color32::from_rgb(242, 242, 247) // System Gray 6 Light
+        Color32::from_rgb(245, 245, 247) // Apple System Gray 6 Light (slightly cooler)
     }
 }
 
@@ -167,7 +167,7 @@ pub fn bg_primary() -> Color32 {
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(24, 24, 28) // Elevated above bg_primary (16,16,20)
+        Color32::from_rgb(18, 18, 22) // Elevated depth (was 24,24,28)
     } else {
         Color32::WHITE
     }
@@ -196,9 +196,9 @@ pub fn bg_tertiary() -> Color32 {
 #[inline]
 pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(12, 12, 16) // Slightly darker than primary for depth separation
+        Color32::from_rgb(6, 6, 8) // Darker than primary for clear separation (was 12,12,16)
     } else {
-        Color32::from_rgb(235, 235, 240)
+        Color32::from_rgb(240, 240, 245) // Slightly deeper light gray
     }
 }
 
@@ -605,6 +605,67 @@ pub fn table_row_bg(row_index: usize) -> Color32 {
 /// Get row hover highlight color (accent-tinted for coherence).
 pub fn table_row_hover() -> Color32 {
     ACCENT.linear_multiply(if is_dark_mode() { 0.10 } else { 0.06 })
+}
+
+// ============================================================================
+// Premium Layered Shadows
+// ============================================================================
+
+/// Small, sharp shadow for micro-interactive elements.
+pub fn shadow_sm() -> Shadow {
+    if is_dark_mode() {
+        Shadow {
+            offset: [0, 1],
+            blur: 2,
+            spread: 0,
+            color: Color32::from_black_alpha(180),
+        }
+    } else {
+        Shadow {
+            offset: [0, 1],
+            blur: 3,
+            spread: 0,
+            color: Color32::from_black_alpha(40),
+        }
+    }
+}
+
+/// Medium layered shadow for cards and panels.
+pub fn shadow_md() -> Shadow {
+    if is_dark_mode() {
+        Shadow {
+            offset: [0, 4],
+            blur: 12,
+            spread: -2,
+            color: Color32::from_black_alpha(200),
+        }
+    } else {
+        Shadow {
+            offset: [0, 6],
+            blur: 16,
+            spread: -4,
+            color: Color32::from_black_alpha(35),
+        }
+    }
+}
+
+/// Large, soft shadow for modals and elevated highlights.
+pub fn shadow_lg() -> Shadow {
+    if is_dark_mode() {
+        Shadow {
+            offset: [0, 12],
+            blur: 24,
+            spread: -4,
+            color: Color32::from_black_alpha(220),
+        }
+    } else {
+        Shadow {
+            offset: [0, 20],
+            blur: 30,
+            spread: -8,
+            color: Color32::from_black_alpha(45),
+        }
+    }
 }
 
 // ============================================================================

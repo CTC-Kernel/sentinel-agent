@@ -1,10 +1,10 @@
 //! Enrollment wizard -- 4-step onboarding flow.
 //!
 //! Steps:
-//! 1. Bienvenue (welcome)
-//! 2. Saisie du token (token entry or QR scan)
-//! 3. Enrôlemen in cours (progress)
-//! 4. Terminé (success/failure)
+//! 1. Welcome
+//! 2. Authentication (token or QR scan)
+//! 3. Progress
+//! 4. Completion
 
 use egui::Ui;
 
@@ -26,6 +26,7 @@ static TOKEN_REGEX: LazyLock<Regex> =
 pub enum EnrollmentStep {
     Welcome,
     TokenEntry,
+    AdminSetup,
     InProgress,
     Complete { success: bool, message: String },
 }
@@ -38,6 +39,9 @@ pub struct EnrollmentWizard {
     pub use_qr: bool,
     pub progress_message: String,
     pub show_token: bool, // Toggle for token visibility
+    pub admin_password: String,
+    pub use_default_password: bool,
+    pub show_password: bool,
 }
 
 impl Default for EnrollmentWizard {
@@ -47,8 +51,11 @@ impl Default for EnrollmentWizard {
             token_input: String::new(),
             qr_input: String::new(),
             use_qr: false,
-            progress_message: "Connexion au serveur...".to_string(),
-            show_token: false, // Token masked by default for security
+            progress_message: "Connecting to server...".to_string(),
+            show_token: false,
+            admin_password: "agent_admin".to_string(),
+            use_default_password: true,
+            show_password: false,
         }
     }
 }
@@ -56,8 +63,8 @@ impl Default for EnrollmentWizard {
 /// Commands emitted by the enrollment wizard.
 #[derive(Debug, Clone)]
 pub enum EnrollmentCommand {
-    /// User submitted a token to enroll with.
-    SubmitToken(String),
+    /// User submitted enrollment details including password.
+    SubmitEnrollment { token: String, admin_password: Option<String> },
     /// User submitted a QR payload.
     SubmitQr(String),
     /// User wants to skip / cancel.
@@ -135,16 +142,18 @@ impl EnrollmentWizard {
 
                     let image_response = ui.add(image);
 
-                    // Simple glow effect behind/around logo
+                    // Premium glow effect behind/around logo
                     if is_dark {
                         let center = image_response.rect.center();
                         let radius = theme::ENROLLMENT_GLOW_RADIUS;
-                        let color = theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE);
-
-                        // Paint on background layer to ensure it's behind the image
-                        ui.ctx()
-                            .layer_painter(egui::LayerId::background())
-                            .circle_filled(center, radius, color);
+                        
+                        // Multi-layered glow for AAA feel
+                        for scale in [1.0, 1.5, 2.0] {
+                            let color = theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE / (scale * scale));
+                            ui.ctx()
+                                .layer_painter(egui::LayerId::background())
+                                .circle_filled(center, radius * scale, color);
+                        }
                     }
 
                     ui.add_space(theme::SPACE_LG);
@@ -153,19 +162,28 @@ impl EnrollmentWizard {
                     Self::step_indicator(ui, &self.step);
                     ui.add_space(theme::SPACE_LG);
 
+                    // Staggered entry for the enrollment content
+                    let entry_alpha = ui.ctx().animate_value_with_time(ui.id().with("wizard_entry"), 1.0, theme::ANIM_NORMAL);
+                    
                     // ScrollArea for content protection
-                    egui::ScrollArea::vertical().show(ui, |ui: &mut egui::Ui| match &self.step {
-                        EnrollmentStep::Welcome => {
-                            command = self.show_welcome(ui);
-                        }
-                        EnrollmentStep::TokenEntry => {
-                            command = self.show_token_entry(ui);
-                        }
-                        EnrollmentStep::InProgress => {
-                            Self::show_progress(ui, &self.progress_message);
-                        }
-                        EnrollmentStep::Complete { success, message } => {
-                            command = Self::show_complete(ui, *success, message);
+                    egui::ScrollArea::vertical().show(ui, |ui: &mut egui::Ui| {
+                        ui.set_opacity(entry_alpha);
+                        match &self.step {
+                            EnrollmentStep::Welcome => {
+                                command = self.show_welcome(ui);
+                            }
+                            EnrollmentStep::TokenEntry => {
+                                command = self.show_token_entry(ui);
+                            }
+                            EnrollmentStep::AdminSetup => {
+                                command = self.show_admin_setup(ui);
+                            }
+                            EnrollmentStep::InProgress => {
+                                Self::show_progress(ui, &self.progress_message);
+                            }
+                            EnrollmentStep::Complete { success, message } => {
+                                command = Self::show_complete(ui, *success, message);
+                            }
                         }
                     });
                 });
@@ -184,6 +202,105 @@ impl EnrollmentWizard {
         command
     }
 
+    fn show_admin_setup(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
+        let mut command = None;
+
+        ui.add_space(theme::SPACE_XL);
+
+        ui.vertical_centered(|ui: &mut egui::Ui| {
+            ui.set_max_width(theme::ENROLLMENT_INPUT_WIDTH);
+
+            let card_bg = theme::bg_secondary();
+            let card_stroke = egui::Stroke::new(theme::BORDER_THIN, theme::border());
+
+            egui::Frame::new()
+                .fill(card_bg)
+                .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
+                .stroke(card_stroke)
+                .inner_margin(egui::Margin::same(theme::SPACE_XL as i8))
+                .show(ui, |ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("ADMIN CONFIGURATION")
+                            .font(theme::font_heading())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new("Define the administrative password for this agent.")
+                            .font(theme::font_small())
+                            .color(theme::text_secondary()),
+                    );
+
+                    ui.add_space(theme::SPACE_LG);
+
+                    // Default password toggle
+                    ui.checkbox(&mut self.use_default_password, "Use default password (agent_admin)");
+                    
+                    if !self.use_default_password {
+                        ui.add_space(theme::SPACE_MD);
+                        ui.label(
+                            egui::RichText::new("CUSTOM PASSWORD")
+                                .font(theme::font_small())
+                                .color(theme::text_tertiary()),
+                        );
+                        ui.add_space(theme::SPACE_XS);
+
+                        let input_bg = theme::bg_tertiary();
+                        egui::Frame::new()
+                            .fill(input_bg)
+                            .corner_radius(egui::CornerRadius::same(theme::INPUT_ROUNDING))
+                            .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_MODERATE)))
+                            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+                            .show(ui, |ui: &mut egui::Ui| {
+                                ui.horizontal(|ui: &mut egui::Ui| {
+                                    ui.add(
+                                        egui::TextEdit::singleline(&mut self.admin_password)
+                                            .desired_width((ui.available_width() - 40.0).max(0.0))
+                                            .frame(false)
+                                            .font(egui::TextStyle::Monospace)
+                                            .password(!self.show_password)
+                                            .hint_text("Enter secure password"),
+                                    );
+
+                                    let vis_icon = if self.show_password { icons::EYE_SLASH } else { icons::EYE };
+                                    if widgets::button::icon_button(ui, vis_icon, None).clicked() {
+                                        self.show_password = !self.show_password;
+                                    }
+                                });
+                            });
+                    }
+
+                    ui.add_space(theme::SPACE_LG);
+
+                    // Actions
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        if widgets::button::secondary_button(ui, "Back", true).clicked() {
+                            self.step = EnrollmentStep::TokenEntry;
+                        }
+
+                        let is_valid = self.use_default_password || !self.admin_password.trim().is_empty();
+                        ui.add_enabled_ui(is_valid, |ui: &mut egui::Ui| {
+                            if widgets::button::primary_button(ui, "ENROLL AGENT", true).clicked() {
+                                let token = self.token_input.trim().to_string();
+                                let password = if self.use_default_password {
+                                    None
+                                } else {
+                                    Some(self.admin_password.trim().to_string())
+                                };
+                                
+                                self.step = EnrollmentStep::InProgress;
+                                self.progress_message = "Connecting to server...".to_string();
+                                command = Some(EnrollmentCommand::SubmitEnrollment { token, admin_password: password });
+                            }
+                        });
+                    });
+                });
+        });
+
+        command
+    }
+
     fn show_welcome(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
         let command = None;
 
@@ -193,8 +310,8 @@ impl EnrollmentWizard {
                 ui.add_space(theme::SPACE);
 
                 ui.label(
-                    egui::RichText::new("Bienvenue dans Sentinel Agent")
-                        .font(theme::font_comex()) // Larger, bolder title
+                    egui::RichText::new("Welcome to Sentinel Agent")
+                        .font(theme::font_comex())
                         .color(theme::accent_text())
                         .strong(),
                 );
@@ -202,19 +319,19 @@ impl EnrollmentWizard {
 
                 ui.label(
                     egui::RichText::new(
-                        "Pour commencer, vous devez enrôler cet agent auprès de \
-                         votre plateforme Sentinel GRC.\n\n\
-                         Vous aurez besoin du token d'enrôlement fourni par votre \
-                         administrateur.",
+                        "To get started, you must enroll this agent with your \
+                         Sentinel GRC platform.\n\n\
+                         You will need the enrollment token provided by your \
+                         administrator.",
                     )
                     .font(theme::font_body())
                     .color(theme::text_secondary())
-                    .line_height(Some(theme::ICON_MD)), // Better readability
+                    .line_height(Some(theme::ICON_MD)),
                 );
 
                 ui.add_space(theme::SPACE_LG);
 
-                if widgets::button::primary_button(ui, "Commencer l'enrôlement", true).clicked() {
+                if widgets::button::primary_button(ui, "Start Enrollment", true).clicked() {
                     self.step = EnrollmentStep::TokenEntry;
                 }
 
@@ -246,14 +363,14 @@ impl EnrollmentWizard {
                 .show(ui, |ui: &mut egui::Ui| {
                     // Header
                     ui.label(
-                        egui::RichText::new("AUTHENTIFICATION")
+                        egui::RichText::new("AUTHENTICATION")
                             .font(theme::font_heading())
                             .color(theme::text_primary())
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_XS);
                     ui.label(
-                        egui::RichText::new("Connectez cet agent à votre console Sentinel GRC.")
+                        egui::RichText::new("Link this agent to your Sentinel GRC console.")
                             .font(theme::font_small())
                             .color(theme::text_secondary()),
                     );
@@ -305,11 +422,10 @@ impl EnrollmentWizard {
                         let pill_frame = egui::Frame::new()
                             .fill(theme::bg_elevated())
                             .corner_radius(egui::CornerRadius::same(rounding.saturating_sub(theme::ROUNDING_SM)))
-                            .shadow(theme::premium_shadow(8, 20))
+                            .shadow(theme::shadow_md()) // Use our new AAA layered shadow
                             .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_MEDIUM)));
 
                         // Create a child UI placed exactly at the pill's position
-                        // Scoped to avoid borrow conflicts
                         {
                             let mut pill_child_ui =
                                 ui.new_child(egui::UiBuilder::new().max_rect(pill_rect));
@@ -376,7 +492,7 @@ impl EnrollmentWizard {
                     if self.use_qr {
                         // Label
                         ui.label(
-                            egui::RichText::new("CONTENU DU QR CODE")
+                            egui::RichText::new("QR CODE CONTENT")
                                 .font(theme::font_small())
                                 .color(theme::text_tertiary()),
                         );
@@ -394,13 +510,13 @@ impl EnrollmentWizard {
                                         .desired_width(f32::INFINITY)
                                         .frame(false)
                                         .font(egui::TextStyle::Monospace)
-                                        .hint_text("Collez ici..."),
+                                        .hint_text("Paste here..."),
                                 );
                             });
                     } else {
                         // Label
                         ui.label(
-                            egui::RichText::new("TOKEN D'ENRÔLEMENT")
+                            egui::RichText::new("ENROLLMENT TOKEN")
                                 .font(theme::font_small())
                                 .color(theme::text_tertiary()),
                         );
@@ -436,9 +552,9 @@ impl EnrollmentWizard {
                                         ui,
                                         vis_icon,
                                         Some(if self.show_token {
-                                            "Masquer le token"
+                                            "Hide token"
                                         } else {
-                                            "Afficher le token"
+                                            "Show token"
                                         }),
                                     )
                                     .clicked()
@@ -453,7 +569,7 @@ impl EnrollmentWizard {
                         if !token.is_empty() && !TOKEN_REGEX.is_match(token) {
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
-                                egui::RichText::new("Format invalide (attendu: xxxxx-xxxxx-xxxxx)")
+                                egui::RichText::new("Invalid format (expected: xxxxx-xxxxx-xxxxx)")
                                     .font(theme::font_min())
                                     .color(theme::readable_color(theme::ERROR)),
                             );
@@ -471,9 +587,8 @@ impl EnrollmentWizard {
                     };
 
                     ui.add_enabled_ui(is_valid, |ui: &mut egui::Ui| {
-                        let btn_txt = egui::RichText::new("ENRÔLER L'AGENT").font(theme::font_body()).strong();
+                        let btn_txt = egui::RichText::new("ENROLL AGENT").font(theme::font_body()).strong();
                         // Custom Hero Button Loop
-                        // Use corner_radius instead of rounding which is deprecated
                         let btn = ui.add_sized(
                             egui::Vec2::new(ui.available_width(), theme::BUTTON_HEIGHT_LG),
                             egui::Button::new(btn_txt)
@@ -482,17 +597,7 @@ impl EnrollmentWizard {
                         );
 
                         if btn.clicked() {
-                            if self.use_qr {
-                                let qr = self.qr_input.trim().to_string();
-                                self.step = EnrollmentStep::InProgress;
-                                self.progress_message = "Traitement du code QR...".to_string();
-                                command = Some(EnrollmentCommand::SubmitQr(qr));
-                            } else {
-                                let token = self.token_input.trim().to_string();
-                                self.step = EnrollmentStep::InProgress;
-                                self.progress_message = "Connexion au serveur...".to_string();
-                                command = Some(EnrollmentCommand::SubmitToken(token));
-                            }
+                            self.step = EnrollmentStep::AdminSetup;
                         }
                     });
 
@@ -501,13 +606,13 @@ impl EnrollmentWizard {
                     // AUTH LINKS FOOTER
                     ui.vertical_centered(|ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new("Pas de token ?")
+                            egui::RichText::new("No token?")
                                 .font(theme::font_small())
                                 .color(theme::text_secondary()),
                         );
                         ui.horizontal(|ui: &mut egui::Ui| {
                             ui.spacing_mut().item_spacing.x = theme::SPACE_SM;
-                            let link_attr = egui::RichText::new("Se connecter")
+                            let link_attr = egui::RichText::new("Login")
                                 .font(theme::font_small())
                                 .color(theme::accent_text());
                             if ui.link(link_attr).clicked() {
@@ -516,7 +621,7 @@ impl EnrollmentWizard {
                                 ));
                             }
                             ui.label(egui::RichText::new("•").color(theme::text_tertiary()));
-                            let link_attr_reg = egui::RichText::new("Créer un compte")
+                            let link_attr_reg = egui::RichText::new("Create account")
                                 .font(theme::font_small())
                                 .color(theme::accent_text());
                             if ui.link(link_attr_reg).clicked() {
@@ -554,7 +659,7 @@ impl EnrollmentWizard {
                 );
                 ui.add_space(theme::SPACE);
                 ui.label(
-                    egui::RichText::new("Veuillez patienter...")
+                    egui::RichText::new("Please wait...")
                         .font(theme::font_small())
                         .color(theme::text_secondary()),
                 );
@@ -579,7 +684,7 @@ impl EnrollmentWizard {
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
-                        egui::RichText::new("Enrôlement réussi !")
+                        egui::RichText::new("Enrollment successful!")
                             .font(theme::font_card_value())
                             .color(theme::readable_color(theme::SUCCESS))
                             .strong(),
@@ -592,7 +697,7 @@ impl EnrollmentWizard {
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
-                        egui::RichText::new("Échec de l'enrôlement")
+                        egui::RichText::new("Enrollment failed")
                             .font(theme::font_card_value())
                             .color(theme::readable_color(theme::ERROR))
                             .strong(),
@@ -608,7 +713,9 @@ impl EnrollmentWizard {
 
                 ui.add_space(theme::SPACE_LG);
 
-                let btn_text = if success { "Continuer" } else { "Réessayer" };
+                ui.add_space(theme::SPACE_LG);
+
+                let btn_text = if success { "Continue" } else { "Retry" };
 
                 if widgets::button::primary_button(ui, btn_text, true).clicked() {
                     command = Some(EnrollmentCommand::Finish);
@@ -622,47 +729,55 @@ impl EnrollmentWizard {
     }
 
     fn step_indicator(ui: &mut Ui, current: &EnrollmentStep) {
-        let step_labels = ["Bienvenue", "Token", "Enrôlement", "Terminé"];
+        let step_labels = ["Welcome", "Token", "Admin", "Enrollment", "Complete"];
 
         let current_idx = match current {
             EnrollmentStep::Welcome => 0,
             EnrollmentStep::TokenEntry => 1,
-            EnrollmentStep::InProgress => 2,
-            EnrollmentStep::Complete { .. } => 3,
+            EnrollmentStep::AdminSetup => 2,
+            EnrollmentStep::InProgress => 3,
+            EnrollmentStep::Complete { .. } => 4,
         };
 
         ui.horizontal(|ui: &mut egui::Ui| {
+            ui.spacing_mut().item_spacing.x = theme::SPACE_SM;
+            
             for (i, label) in step_labels.iter().enumerate() {
-                let (icon, color) = if i < current_idx {
-                    // Completed step
-                    (icons::CIRCLE_CHECK, theme::SUCCESS)
-                } else if i == current_idx {
-                    // Current step
-                    (icons::CIRCLE, theme::ACCENT)
+                let is_past = i < current_idx;
+                let is_current = i == current_idx;
+                
+                let color = if is_past {
+                    theme::SUCCESS
+                } else if is_current {
+                    theme::ACCENT
                 } else {
-                    // Future step
-                    (icons::CIRCLE, theme::text_tertiary())
+                    theme::text_tertiary()
                 };
 
-                ui.label(
-                    egui::RichText::new(icon)
-                        .font(theme::font_small())
-                        .color(color),
-                );
-                ui.add_space(theme::SPACE_XS);
-                ui.label(
-                    egui::RichText::new(*label)
-                        .font(theme::font_small())
-                        .color(color)
-                        .strong(),
-                );
-
-                if i < step_labels.len() - 1 {
-                    ui.add_space(theme::SPACE_XS);
+                // Node
+                ui.vertical_centered(|ui| {
                     ui.label(
-                        egui::RichText::new(icons::ARROW_RIGHT)
+                        egui::RichText::new(if is_past { icons::CIRCLE_CHECK } else { icons::CIRCLE })
                             .font(theme::font_small())
-                            .color(theme::text_tertiary()),
+                            .color(color),
+                    );
+                    ui.label(
+                        egui::RichText::new(*label)
+                            .font(theme::font_min()) // Smaller text for indicators
+                            .color(color)
+                            .strong(is_current),
+                    );
+                });
+
+                // Line separator
+                if i < step_labels.len() - 1 {
+                    let line_color = if is_past { theme::SUCCESS } else { theme::border() };
+                    ui.add_space(theme::SPACE_XS);
+                    let (rect, _) = ui.allocate_exact_size(egui::Vec2::new(32.0, 2.0), egui::Sense::hover());
+                    ui.painter().rect_filled(
+                        rect.translate(egui::Vec2::new(0.0, -8.0)), // Align with icons
+                        egui::CornerRadius::ZERO,
+                        line_color,
                     );
                     ui.add_space(theme::SPACE_XS);
                 }

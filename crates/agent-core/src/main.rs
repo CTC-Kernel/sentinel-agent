@@ -683,12 +683,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                     };
 
                     match cmd {
-                        Some(EnrollmentCommand::SubmitToken(token)) => {
-                            info!("GUI enrollment: received token");
+                        Some(EnrollmentCommand::SubmitEnrollment { token, admin_password }) => {
+                            info!("GUI enrollment: received token and password");
                             config.enrollment_token = Some(token);
+                            config.admin_password = admin_password.clone();
 
                             // Open DB and attempt enrollment
-                            let result = enroll_with_config(&config).await;
+                            let result = enroll_with_config(&config, admin_password).await;
                             match result {
                                 Ok(enrollment) => {
                                     config.agent_id = Some(enrollment.agent_id.clone());
@@ -2170,7 +2171,7 @@ struct EnrollmentResult {
 }
 
 #[cfg(feature = "gui")]
-async fn enroll_with_config(config: &AgentConfig) -> Result<EnrollmentResult, String> {
+async fn enroll_with_config(config: &AgentConfig, admin_password: Option<String>) -> Result<EnrollmentResult, String> {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
     use agent_sync::EnrollmentManager;
 
@@ -2180,7 +2181,7 @@ async fn enroll_with_config(config: &AgentConfig) -> Result<EnrollmentResult, St
     let enrollment_manager = EnrollmentManager::new(config, &db);
 
     let creds = enrollment_manager
-        .ensure_enrolled()
+        .enroll(&config.enrollment_token.as_ref().unwrap(), admin_password)
         .await
         .map_err(|e| e.to_string())?;
 
