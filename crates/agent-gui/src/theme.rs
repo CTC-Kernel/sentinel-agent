@@ -607,66 +607,6 @@ pub fn table_row_hover() -> Color32 {
     ACCENT.linear_multiply(if is_dark_mode() { 0.10 } else { 0.06 })
 }
 
-// ============================================================================
-// Premium Layered Shadows
-// ============================================================================
-
-/// Small, sharp shadow for micro-interactive elements.
-pub fn shadow_sm() -> Shadow {
-    if is_dark_mode() {
-        Shadow {
-            offset: [0, 1],
-            blur: 2,
-            spread: 0,
-            color: Color32::from_black_alpha(180),
-        }
-    } else {
-        Shadow {
-            offset: [0, 1],
-            blur: 3,
-            spread: 0,
-            color: Color32::from_black_alpha(40),
-        }
-    }
-}
-
-/// Medium layered shadow for cards and panels.
-pub fn shadow_md() -> Shadow {
-    if is_dark_mode() {
-        Shadow {
-            offset: [0, 4],
-            blur: 12,
-            spread: -2,
-            color: Color32::from_black_alpha(200),
-        }
-    } else {
-        Shadow {
-            offset: [0, 6],
-            blur: 16,
-            spread: -4,
-            color: Color32::from_black_alpha(35),
-        }
-    }
-}
-
-/// Large, soft shadow for modals and elevated highlights.
-pub fn shadow_lg() -> Shadow {
-    if is_dark_mode() {
-        Shadow {
-            offset: [0, 12],
-            blur: 24,
-            spread: -4,
-            color: Color32::from_black_alpha(220),
-        }
-    } else {
-        Shadow {
-            offset: [0, 20],
-            blur: 30,
-            spread: -8,
-            color: Color32::from_black_alpha(45),
-        }
-    }
-}
 
 // ============================================================================
 // Glass morphism helpers

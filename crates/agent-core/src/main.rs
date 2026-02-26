@@ -749,7 +749,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 config.enrollment_token = Some(qr_data);
                             }
 
-                            let result = enroll_with_config(&config).await;
+                            let result = enroll_with_config(&config, None).await;
                             match result {
                                 Ok(enrollment) => {
                                     config.agent_id = Some(enrollment.agent_id.clone());
@@ -2173,17 +2173,24 @@ struct EnrollmentResult {
 #[cfg(feature = "gui")]
 async fn enroll_with_config(config: &AgentConfig, admin_password: Option<String>) -> Result<EnrollmentResult, String> {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
-    use agent_sync::EnrollmentManager;
+    use agent_sync::{EnrollmentManager, CredentialsRepository};
 
     let db_config = DatabaseConfig::default();
     let key_manager = KeyManager::new().map_err(|e| format!("KeyManager: {}", e))?;
     let db = Database::open(db_config, &key_manager).map_err(|e| format!("DB: {}", e))?;
     let enrollment_manager = EnrollmentManager::new(config, &db);
 
+    let token = config.enrollment_token.as_ref()
+        .ok_or_else(|| "No enrollment token".to_string())?;
+
     let creds = enrollment_manager
-        .enroll(&config.enrollment_token.as_ref().unwrap(), admin_password)
+        .enroll(token, admin_password)
         .await
         .map_err(|e| e.to_string())?;
+
+    // Store credentials to DB (enroll() doesn't do this, only ensure_enrolled() does)
+    let credentials_repo = CredentialsRepository::new(&db);
+    credentials_repo.store(&creds).await.map_err(|e| format!("Failed to store credentials: {}", e))?;
 
     Ok(EnrollmentResult {
         agent_id: creds.agent_id.to_string(),
