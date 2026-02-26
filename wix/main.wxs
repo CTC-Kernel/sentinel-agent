@@ -393,22 +393,22 @@
 
     <!-- Installation sequence -->
     <InstallExecuteSequence>
+      <!-- Set properties first (immediate actions) -->
       <Custom Action="SetServerUrl" After="InstallInitialize" Condition="NOT Installed" />
-      <Custom Action="SetCreateConfigFileProps" Before="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <Custom Action="CreateConfigFile" Before="InstallFinalize" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <Custom Action="SetRunEnrollmentProps" Before="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="SetCreateConfigFileProps" After="SetServerUrl" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="SetRunEnrollmentProps" After="SetCreateConfigFileProps" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="SetLaunchGuiProps" After="SetRunEnrollmentProps" Condition="NOT Installed" />
+      
+      <!-- Deferred custom actions - MUST be between InstallInitialize and InstallFinalize -->
+      <Custom Action="CreateConfigFile" After="SetLaunchGuiProps" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="RunEnrollment" After="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="StartServiceAfterEnroll" After="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <!-- Launch GUI after install so the user sees the application -->
-      <Custom Action="SetLaunchGuiProps" Before="LaunchGui" Condition="NOT Installed" />
       <Custom Action="LaunchGui" After="StartServiceAfterEnroll" Condition="NOT Installed" />
-      <!-- Install signing cert into TrustedPublisher so future updates skip SmartScreen -->
-      <Custom Action="InstallCertificate" Before="InstallFinalize" Condition="NOT Installed" />
-      <!-- Defender exclusion MUST be before InstallFinalize -->
-      <Custom Action="AddDefenderExclusion" Before="InstallFinalize" Condition="NOT Installed" />
-      <!-- Defender exclusion removal on uninstall - within transaction -->
-      <Custom Action="RemoveDefenderExclusion" After="InstallInitialize" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
-      <!-- Data cleanup on full uninstall - within transaction -->
+      <Custom Action="InstallCertificate" After="LaunchGui" Condition="NOT Installed" />
+      <Custom Action="AddDefenderExclusion" After="InstallCertificate" Condition="NOT Installed" />
+      
+      <!-- Uninstall actions -->
+      <Custom Action="RemoveDefenderExclusion" After="AddDefenderExclusion" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
       <Custom Action="CleanupDataOnUninstall" After="RemoveDefenderExclusion" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
     </InstallExecuteSequence>
 
