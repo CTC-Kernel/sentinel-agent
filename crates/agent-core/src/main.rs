@@ -435,7 +435,7 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
         }
     }
 
-    // ── GUI mode: delegate enrollment + runtime to the GUI ──
+    // ── GUI mode: delegate enrollment + runtime to GUI ──
     #[cfg(feature = "gui")]
     if !no_tray {
         return run_with_gui(config, is_enrolled, log_level);
