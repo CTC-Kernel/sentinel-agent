@@ -471,7 +471,7 @@ pub const TRACKING_WIDE: f32 = 1.0;
 // ============================================================================
 
 /// Extremely subtle (borders, dividers).
-pub const OPACITY_SUBTLE: f32 = 0.08;
+pub const OPACITY_SUBTLE: f32 = 0.15;
 /// Badge/tinted backgrounds.
 pub const OPACITY_TINT: f32 = 0.15;
 /// Muted (disabled elements, backgrounds).
@@ -1314,7 +1314,7 @@ pub const ENROLLMENT_HERO_ICON: f32 = 48.0;
 /// Enrollment logo max width.
 pub const ENROLLMENT_LOGO_WIDTH: f32 = 120.0;
 /// Enrollment logo glow radius.
-pub const ENROLLMENT_GLOW_RADIUS: f32 = 80.0;
+pub const ENROLLMENT_GLOW_RADIUS: f32 = 120.0;
 
 /// Sidebar gradient colors (returns top, bottom).
 #[inline]
