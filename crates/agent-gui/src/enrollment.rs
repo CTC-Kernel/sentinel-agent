@@ -310,7 +310,7 @@ impl EnrollmentWizard {
                 ui.add_space(theme::SPACE);
 
                 ui.label(
-                    egui::RichText::new("Welcome to Sentinel Agent")
+                    egui::RichText::new("Bienvenue dans Sentinel Agent")
                         .font(theme::font_comex())
                         .color(theme::accent_text())
                         .strong(),
@@ -319,10 +319,10 @@ impl EnrollmentWizard {
 
                 ui.label(
                     egui::RichText::new(
-                        "To get started, you must enroll this agent with your \
-                         Sentinel GRC platform.\n\n\
-                         You will need the enrollment token provided by your \
-                         administrator.",
+                        "Pour commencer, vous devez inscrire cet agent avec votre \
+                         plateforme Sentinel GRC.\n\n\
+                         Vous aurez besoin du jeton d'inscription fourni par votre \
+                         administrateur.",
                     )
                     .font(theme::font_body())
                     .color(theme::text_secondary())
@@ -331,7 +331,7 @@ impl EnrollmentWizard {
 
                 ui.add_space(theme::SPACE_LG);
 
-                if widgets::button::primary_button(ui, "Start Enrollment", true).clicked() {
+                if widgets::button::primary_button(ui, "Commencer l'inscription", true).clicked() {
                     self.step = EnrollmentStep::TokenEntry;
                 }
 
@@ -729,7 +729,7 @@ impl EnrollmentWizard {
     }
 
     fn step_indicator(ui: &mut Ui, current: &EnrollmentStep) {
-        let step_labels = ["Welcome", "Token", "Admin", "Enrollment", "Complete"];
+        let step_labels = ["Bienvenue", "Jeton", "Admin", "Inscription", "Terminé"];
 
         let current_idx = match current {
             EnrollmentStep::Welcome => 0,
