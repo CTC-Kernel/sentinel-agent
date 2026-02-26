@@ -234,9 +234,6 @@ impl EnrollmentWizard {
         command
     }
 
-        command
-    }
-
     fn show_token_entry(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
         let mut command = None;
 
