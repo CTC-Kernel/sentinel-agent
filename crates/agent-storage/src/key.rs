@@ -11,7 +11,7 @@ use agent_common::config::AgentConfig;
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 /// Length of the encryption key in bytes (256 bits for AES-256).
 const KEY_LENGTH: usize = 32;
@@ -40,7 +40,18 @@ impl KeyManager {
         let key_path = Self::get_key_path();
 
         let key = if key_path.exists() {
-            Self::load_key(&key_path)?
+            match Self::load_key(&key_path) {
+                Ok(k) => k,
+                Err(e) => {
+                    warn!("Failed to load existing key ({}), generating new key", e);
+                    let new_key = Self::generate_key();
+                    // Try to store the new key, but don't fail if we can't
+                    if let Err(store_err) = Self::store_key(&key_path, &new_key) {
+                        warn!("Failed to store new key: {}", store_err);
+                    }
+                    new_key
+                }
+            }
         } else {
             let new_key = Self::generate_key();
             Self::store_key(&key_path, &new_key)?;
@@ -277,7 +288,9 @@ impl KeyManager {
         );
 
         let mut key = [0u8; KEY_LENGTH];
-        std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);
+        unsafe {
+            std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);
+        }
 
         // Free the DPAPI-allocated memory
         unsafe {
