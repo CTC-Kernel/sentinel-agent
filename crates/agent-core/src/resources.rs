@@ -280,8 +280,6 @@ impl ResourceMonitor {
             }
         }
 
-        }
-
         #[cfg(target_os = "windows")]
         {
             use std::process::Stdio;
@@ -1719,11 +1717,7 @@ fn get_logical_cores() -> u32 {
 
 #[cfg(target_os = "linux")]
 pub fn get_connections() -> Vec<NetworkConnection> {
-    use sysinfo::{System, SystemExt}; // Assuming sysinfo is available and used for other parts
-
     let mut connections = Vec::new();
-    let mut sys = System::new_all();
-    sys.refresh_all();
 
     // Parse /proc/net/tcp and /proc/net/udp
     let paths = ["/proc/net/tcp", "/proc/net/udp", "/proc/net/tcp6", "/proc/net/udp6"];

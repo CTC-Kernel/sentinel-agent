@@ -109,6 +109,10 @@ pub struct AgentConfig {
     /// If provided, only checks associated with these frameworks will be executed.
     #[serde(default)]
     pub active_frameworks: Option<Vec<String>>,
+
+    /// Admin password for the agent (set during enrollment, not serialized to config file).
+    #[serde(skip)]
+    pub admin_password: Option<String>,
 }
 
 /// Proxy configuration.
@@ -200,6 +204,7 @@ impl Default for AgentConfig {
             client_certificate: None,
             client_key: None,
             active_frameworks: None,
+            admin_password: None,
         }
     }
 }
@@ -495,6 +500,7 @@ mod tests {
             usb_monitoring: true,
             usb_block_mass_storage: true,
             active_frameworks: None,
+            admin_password: None,
             heartbeat_interval_secs: 60,
         };
 

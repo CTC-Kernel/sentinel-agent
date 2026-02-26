@@ -343,7 +343,7 @@ impl EnrollmentWizard {
     }
 
     fn show_token_entry(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
-        let mut command = None;
+        let command = None;
 
         ui.add_space(theme::SPACE_XL);
 
@@ -761,12 +761,13 @@ impl EnrollmentWizard {
                             .font(theme::font_small())
                             .color(color),
                     );
-                    ui.label(
-                        egui::RichText::new(*label)
-                            .font(theme::font_min()) // Smaller text for indicators
-                            .color(color)
-                            .strong(is_current),
-                    );
+                    let label_text = {
+                        let rt = egui::RichText::new(*label)
+                            .font(theme::font_min())
+                            .color(color);
+                        if is_current { rt.strong() } else { rt }
+                    };
+                    ui.label(label_text);
                 });
 
                 // Line separator

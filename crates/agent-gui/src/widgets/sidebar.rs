@@ -6,6 +6,7 @@ use egui::{CornerRadius, Margin, Ui, Vec2};
 use crate::app::Page;
 use crate::icons;
 use crate::theme;
+use crate::theme::FontIdExt;
 
 /// Sync state passed to the sidebar for the status indicator.
 pub struct SidebarSyncState {
@@ -23,7 +24,7 @@ impl Sidebar {
     pub fn show(
         ui: &mut Ui,
         current: &Page,
-        scanning: bool,
+        _scanning: bool,
         unread_notifications: u32,
         sync_state: &SidebarSyncState,
         organization: Option<&str>,
