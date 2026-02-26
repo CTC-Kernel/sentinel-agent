@@ -317,25 +317,43 @@ impl HttpClient {
     {
         let url = self.url(path);
         debug!("Base URL: '{}'", self.base_url);
-        debug!("POST {} (with bearer token)", url);
+        debug!("POST {} (with bearer token, len={})", url, token.len());
 
-        // Trim token to prevent invalid header values (e.g. newlines)
-        let trimmed_token = token.trim();
+        // Trim token and strip non-ASCII characters to prevent invalid header values
+        let trimmed_token: String = token.trim().chars().filter(|c| c.is_ascii() && *c != '\n' && *c != '\r').collect();
+
+        if trimmed_token.is_empty() {
+            return Err(SyncError::Config("Enrollment token is empty after sanitization".to_string()));
+        }
+
+        // Build the authorization header value explicitly to catch errors early
+        let auth_value = format!("Bearer {}", trimmed_token);
+        let auth_header = header::HeaderValue::from_str(&auth_value).map_err(|e| {
+            tracing::error!("Invalid authorization header value: {} (token len={}, first_chars={}...)", e, trimmed_token.len(), &trimmed_token[..trimmed_token.len().min(8)]);
+            SyncError::Config(format!("Invalid enrollment token (contains invalid characters): {}", e))
+        })?;
 
         let response = self
             .client
             .post(&url)
             .header(header::CONTENT_TYPE, "application/json")
             .header(header::ACCEPT, "application/json")
-            .header(header::AUTHORIZATION, format!("Bearer {}", trimmed_token))
+            .header(header::AUTHORIZATION, auth_header)
             .json(body)
             .send()
             .await
             .map_err(|e| {
+                // Log the full error chain for debugging
+                tracing::error!("Request failed: {}", e);
+                if let Some(source) = std::error::Error::source(&e) {
+                    tracing::error!("  caused by: {}", source);
+                }
                 if e.is_timeout() {
                     SyncError::Timeout
                 } else if e.is_connect() {
                     SyncError::connection(e.to_string())
+                } else if e.is_builder() {
+                    SyncError::Config(format!("Request builder error: {}", e))
                 } else {
                     SyncError::Http(e)
                 }

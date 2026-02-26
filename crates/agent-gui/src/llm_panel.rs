@@ -642,16 +642,63 @@ impl LLMPanel {
 
         let status = &state.ai.model_status;
 
-        // Empty / unloaded state
-        if model_status_str.is_empty() || model_status_str == "unloaded" {
+        // Empty / unloaded / not_configured / error state
+        let show_setup_ui = model_status_str.is_empty()
+            || model_status_str == "unloaded"
+            || model_status_str == "not_configured"
+            || model_status_str.starts_with("error:");
+
+        if show_setup_ui {
+            // Choose the right message depending on status
+            let (title, detail) = if model_status_str == "not_configured" {
+                (
+                    "MODÈLE NON CONFIGURÉ",
+                    "Le fichier de configuration LLM est introuvable. Téléchargez un modèle GGUF pour activer l'intelligence artificielle locale.",
+                )
+            } else if model_status_str.starts_with("error:") {
+                (
+                    "ERREUR DU MODÈLE",
+                    "Le modèle LLM n'a pas pu être chargé. Vous pouvez réessayer ou télécharger un nouveau modèle.",
+                )
+            } else {
+                (
+                    "MODÈLE NON CHARGÉ",
+                    "Le modèle LLM n'est pas chargé en mémoire. Cliquez sur le bouton ci-dessous pour le charger.",
+                )
+            };
+
             widgets::empty_state(
                 ui,
                 icons::MICROCHIP,
-                "MOD\u{00c8}LE NON CHARG\u{00c9}",
-                Some(
-                    "Le mod\u{00e8}le LLM n'est pas charg\u{00e9} en m\u{00e9}moire. Cliquez sur le bouton ci-dessous pour le charger.",
-                ),
+                title,
+                Some(detail),
             );
+
+            // Show error detail if present
+            if model_status_str.starts_with("error:") {
+                ui.add_space(theme::SPACE_SM);
+                let error_detail = model_status_str.strip_prefix("error: ").unwrap_or(&model_status_str);
+                egui::Frame::new()
+                    .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
+                    .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                    .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+                    .show(ui, |ui: &mut egui::Ui| {
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icons::CIRCLE_XMARK)
+                                    .size(theme::ICON_SM)
+                                    .color(theme::ERROR),
+                            );
+                            ui.add_space(theme::SPACE_XS);
+                            ui.label(
+                                egui::RichText::new(error_detail)
+                                    .font(theme::font_small())
+                                    .color(theme::ERROR),
+                            );
+                        });
+                    });
+            }
+
             ui.add_space(theme::SPACE_LG);
 
             ui.horizontal(|ui: &mut egui::Ui| {
@@ -659,26 +706,37 @@ impl LLMPanel {
                     (ui.available_width() - 400.0).max(0.0) / 2.0,
                 );
 
-                let reload_btn = egui::Button::new(
-                    egui::RichText::new(format!("{} Charger le mod\u{00e8}le", icons::PLAY))
-                        .font(theme::font_body())
-                        .color(theme::text_on_accent()),
-                )
-                .fill(theme::ACCENT)
-                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+                // Only show "load" button if model might exist (not if not_configured)
+                if model_status_str != "not_configured" {
+                    let reload_btn = egui::Button::new(
+                        egui::RichText::new(format!("{} Charger le modèle", icons::PLAY))
+                            .font(theme::font_body())
+                            .color(theme::text_on_accent()),
+                    )
+                    .fill(theme::ACCENT)
+                    .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
 
-                if ui.add(reload_btn).clicked() {
-                    command = Some(GuiCommand::LlmReloadModel);
+                    if ui.add(reload_btn).clicked() {
+                        command = Some(GuiCommand::LlmReloadModel);
+                    }
+
+                    ui.add_space(theme::SPACE_MD);
                 }
 
-                ui.add_space(theme::SPACE_MD);
-
                 let download_btn = egui::Button::new(
-                    egui::RichText::new(format!("{} T\u{00e9}l\u{00e9}charger le mod\u{00e8}le", icons::DOWNLOAD))
+                    egui::RichText::new(format!("{} Télécharger le modèle", icons::DOWNLOAD))
                         .font(theme::font_body())
-                        .color(theme::accent_text()),
+                        .color(if model_status_str == "not_configured" {
+                            theme::text_on_accent()
+                        } else {
+                            theme::accent_text()
+                        }),
                 )
-                .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
+                .fill(if model_status_str == "not_configured" {
+                    theme::ACCENT
+                } else {
+                    theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE)
+                })
                 .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
                 .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
 
