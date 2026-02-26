@@ -142,14 +142,14 @@ impl EnrollmentWizard {
 
                     let image_response = ui.add(image);
 
-                    // Premium glow effect behind/around logo
+                    // Premium AAA glow effect behind/around logo
                     if is_dark {
                         let center = image_response.rect.center();
                         let radius = theme::ENROLLMENT_GLOW_RADIUS;
                         
-                        // Multi-layered glow for AAA feel
-                        for scale in [1.0, 1.5, 2.0] {
-                            let color = theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE / (scale * scale));
+                        // Multi-layered glow for AAA feel with better opacity scaling
+                        for (scale, opacity_mult) in [(1.0, 0.3), (1.5, 0.2), (2.0, 0.1)] {
+                            let color = theme::ACCENT.linear_multiply(opacity_mult);
                             ui.ctx()
                                 .layer_painter(egui::LayerId::background())
                                 .circle_filled(center, radius * scale, color);
@@ -304,38 +304,40 @@ impl EnrollmentWizard {
     fn show_welcome(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
         let command = None;
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.set_max_width(theme::ENROLLMENT_CARD_WIDTH);
-            ui.vertical_centered(|ui: &mut egui::Ui| {
-                ui.add_space(theme::SPACE);
+        ui.centered_and_justified(|ui| {
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.set_max_width(theme::ENROLLMENT_CARD_WIDTH);
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    ui.add_space(theme::SPACE);
 
-                ui.label(
-                    egui::RichText::new("Bienvenue dans Sentinel Agent")
-                        .font(theme::font_comex())
-                        .color(theme::accent_text())
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE);
+                    ui.label(
+                        egui::RichText::new("Bienvenue dans Sentinel Agent")
+                            .font(theme::font_comex())
+                            .color(theme::accent_text())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE);
 
-                ui.label(
-                    egui::RichText::new(
-                        "Pour commencer, vous devez inscrire cet agent avec votre \
-                         plateforme Sentinel GRC.\n\n\
-                         Vous aurez besoin du jeton d'inscription fourni par votre \
-                         administrateur.",
-                    )
-                    .font(theme::font_body())
-                    .color(theme::text_secondary())
-                    .line_height(Some(theme::ICON_MD)),
-                );
+                    ui.label(
+                        egui::RichText::new(
+                            "Pour commencer, vous devez inscrire cet agent avec votre \
+                             plateforme Sentinel GRC.\n\n\
+                             Vous aurez besoin du jeton d'inscription fourni par votre \
+                             administrateur.",
+                        )
+                        .font(theme::font_body())
+                        .color(theme::text_secondary())
+                        .line_height(Some(theme::ICON_MD)),
+                    );
 
-                ui.add_space(theme::SPACE_LG);
+                    ui.add_space(theme::SPACE_LG);
 
-                if widgets::button::primary_button(ui, "Commencer l'inscription", true).clicked() {
-                    self.step = EnrollmentStep::TokenEntry;
-                }
+                    if widgets::button::primary_button(ui, "Commencer l'inscription", true).clicked() {
+                        self.step = EnrollmentStep::TokenEntry;
+                    }
 
-                ui.add_space(theme::SPACE);
+                    ui.add_space(theme::SPACE);
+                });
             });
         });
 
