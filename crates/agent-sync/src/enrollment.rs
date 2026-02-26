@@ -82,7 +82,7 @@ impl<'a> EnrollmentManager<'a> {
         info!("Agent not enrolled. Starting enrollment with token.");
 
         // Perform enrollment
-        let credentials = self.enroll(token).await?;
+        let credentials = self.enroll(token, None).await?;
 
         // Store credentials
         credentials_repo.store(&credentials).await?;
@@ -92,7 +92,7 @@ impl<'a> EnrollmentManager<'a> {
     }
 
     /// Perform enrollment with the SaaS.
-    async fn enroll(&self, token: &str) -> SyncResult<StoredCredentials> {
+    pub async fn enroll(&self, token: &str, admin_password: Option<String>) -> SyncResult<StoredCredentials> {
         let client = HttpClient::for_enrollment(self.config)?;
 
         // Gather system information
@@ -113,6 +113,7 @@ impl<'a> EnrollmentManager<'a> {
             os_version,
             agent_version: AGENT_VERSION.to_string(),
             machine_id,
+            admin_password,
         };
 
         // Call enrollment endpoint

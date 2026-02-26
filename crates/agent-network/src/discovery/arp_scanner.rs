@@ -47,7 +47,7 @@ impl ArpScanner {
         Ok(entries)
     }
 
-    /// Parse `arp -a` output (supports macOS and Linux formats).
+    /// Parse `arp -a` output (supports Windows, macOS and Linux formats).
     fn parse_arp_output(output: &str) -> Vec<ArpEntry> {
         let mut entries = Vec::new();
 
@@ -57,13 +57,10 @@ impl ArpScanner {
                 continue;
             }
 
-            // Try macOS format first:
-            //   ? (192.168.1.1) at aa:bb:cc:dd:ee:ff on en0 ifscope [ethernet]
-            //   ? (192.168.1.5) at (incomplete) on en0 ifscope [ethernet]
-            // Then Linux format:
-            //   ? (192.168.1.1) at aa:bb:cc:dd:ee:ff [ether] on eth0
-            //   ? (192.168.1.5) at <incomplete> on eth0
+            // Try Windows format if macOS/Linux failing or as additional check
             if let Some(entry) = Self::parse_line(line) {
+                entries.push(entry);
+            } else if let Some(entry) = Self::parse_windows_line(line) {
                 entries.push(entry);
             }
         }
@@ -72,7 +69,7 @@ impl ArpScanner {
     }
 
     fn parse_line(line: &str) -> Option<ArpEntry> {
-        // Both formats contain "(ip) at mac_or_incomplete"
+        // Both macOS/Linux formats contain "(ip) at mac_or_incomplete"
         let ip_start = line.find('(')?;
         let ip_end = line.find(')')?;
         if ip_start >= ip_end {
@@ -130,6 +127,43 @@ impl ArpScanner {
             ip,
             mac,
             interface,
+            is_permanent,
+        })
+    }
+
+    /// Parse Windows `arp -a` line format:
+    ///   192.168.1.1           00-11-22-33-44-55     dynamic
+    fn parse_windows_line(line: &str) -> Option<ArpEntry> {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() < 3 {
+            return None;
+        }
+
+        let ip = parts[0];
+        // Validate IPv4
+        if ip.parse::<std::net::Ipv4Addr>().is_err() {
+            return None;
+        }
+
+        let mac_str = parts[1];
+        // Windows uses hyphens: 00-11-22-33-44-55
+        let mac = if mac_str.contains('-') && mac_str.len() >= 17 {
+            Some(mac_str.replace('-', ":").to_uppercase())
+        } else if mac_str.to_lowercase() == "incomplete"
+            || mac_str.to_lowercase().contains("invalid")
+        {
+            None
+        } else {
+            None
+        };
+
+        let type_str = parts[2].to_lowercase();
+        let is_permanent = type_str == "static";
+
+        Some(ArpEntry {
+            ip: ip.to_string(),
+            mac,
+            interface: None, // Interface is usually shown in a header on Windows
             is_permanent,
         })
     }
@@ -199,5 +233,25 @@ mod tests {
     fn test_parse_garbage_input() {
         let entries = ArpScanner::parse_arp_output("not a valid arp line\nrandom garbage");
         assert!(entries.is_empty());
+    }
+
+    #[test]
+    fn test_parse_windows_arp_output() {
+        let output = r#"
+Interface: 192.168.1.10 --- 0x2
+  Internet Address      Physical Address      Type
+  192.168.1.1           00-11-22-33-44-55     dynamic
+  192.168.1.255         ff-ff-ff-ff-ff-ff     static
+"#;
+        let entries = ArpScanner::parse_arp_output(output);
+        assert_eq!(entries.len(), 2);
+
+        assert_eq!(entries[0].ip, "192.168.1.1");
+        assert_eq!(entries[0].mac.as_deref(), Some("00:11:22:33:44:55"));
+        assert!(!entries[0].is_permanent);
+
+        assert_eq!(entries[1].ip, "192.168.1.255");
+        assert_eq!(entries[1].mac.as_deref(), Some("FF:FF:FF:FF:FF:FF"));
+        assert!(entries[1].is_permanent);
     }
 }
