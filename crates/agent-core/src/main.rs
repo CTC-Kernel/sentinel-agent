@@ -52,6 +52,9 @@ enum Commands {
         /// The enrollment token from the Sentinel GRC dashboard
         #[arg(short, long)]
         token: String,
+        /// Server URL (overrides config file)
+        #[arg(short, long)]
+        server: Option<String>,
     },
     /// Install the agent as a system service
     Install,
@@ -80,6 +83,27 @@ enum Commands {
 }
 
 fn main() -> ExitCode {
+    // Windows: write a startup breadcrumb before anything else so silent crashes
+    // leave a trace in C:\ProgramData\Sentinel\logs\startup.log.
+    #[cfg(windows)]
+    {
+        use std::fs::OpenOptions;
+        use std::io::Write;
+        let _ = std::fs::create_dir_all(r"C:\ProgramData\Sentinel\logs");
+        if let Ok(mut f) = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(r"C:\ProgramData\Sentinel\logs\startup.log")
+        {
+            let _ = writeln!(
+                f,
+                "[{}] starting, args: {:?}",
+                chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
+                std::env::args().collect::<Vec<_>>()
+            );
+        }
+    }
+
     // Install a panic hook early so panics are always logged to stderr and
     // never silently swallowed (e.g. in background threads).
     std::panic::set_hook(Box::new(|panic_info| {
@@ -123,7 +147,7 @@ fn main() -> ExitCode {
 
     // Handle subcommands
     match cli.command {
-        Some(Commands::Enroll { token }) => handle_enroll(&token),
+        Some(Commands::Enroll { token, server }) => handle_enroll(&token, server.as_deref()),
         Some(Commands::Install) => handle_install(),
         Some(Commands::Uninstall { purge, keep_logs }) => handle_uninstall(purge, keep_logs),
         Some(Commands::Start) => handle_start(),
@@ -135,7 +159,7 @@ fn main() -> ExitCode {
 }
 
 /// Enroll the agent with a token.
-fn handle_enroll(token: &str) -> ExitCode {
+fn handle_enroll(token: &str, server_url: Option<&str>) -> ExitCode {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
     use agent_sync::EnrollmentManager;
 
@@ -160,6 +184,9 @@ fn handle_enroll(token: &str) -> ExitCode {
         }
     };
     config.enrollment_token = Some(token.to_string());
+    if let Some(url) = server_url {
+        config.server_url = url.to_string();
+    }
 
     // Initialize database
     let db_config = DatabaseConfig::default();
