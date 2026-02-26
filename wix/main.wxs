@@ -230,6 +230,19 @@
         <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent" Name="StartMenuInstalled" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 
+      <!-- Desktop shortcut -->
+      <Component Id="DesktopShortcutComponent" Guid="A7B8C9D0-E1F2-3456-789A-BCDEF0123456" Directory="DesktopFolder">
+        <Shortcut Id="DesktopShortcut"
+                  Name="Sentinel Agent"
+                  Description="Lancer l'agent de conformité Sentinel"
+                  Target="[BinDir]sentinel-agent.exe"
+                  WorkingDirectory="BinDir"
+                  Icon="SentinelIcon" />
+        <RemoveFolder Id="RemoveDesktopShortcut" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent"
+                       Name="DesktopShortcutInstalled" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
       <!-- Note: Auto-start is handled by the Windows Service (Start="auto") above.
            No additional Run registry entry needed — it would cause duplicate execution. -->
     </ComponentGroup>
@@ -317,10 +330,10 @@
                   Property="SERVERURL"
                   Value="[SERVERURL]" />
 
-    <!-- Create config file with enrollment token -->
+    <!-- Create config file with enrollment token in ProgramData\Sentinel (where the agent reads it) -->
     <CustomAction Id="CreateConfigFile"
-                  Directory="ConfigDir"
-                  ExeCommand="cmd.exe /c echo {&quot;server_url&quot;:&quot;[SERVERURL]&quot;,&quot;enrollment_token&quot;:&quot;[ENROLLMENTTOKEN]&quot;,&quot;auto_start&quot;:[AUTOSTART]} > &quot;[ConfigDir]agent.json&quot;"
+                  Directory="SentinelDataDir"
+                  ExeCommand="cmd.exe /c mkdir &quot;[SentinelDataDir]&quot; 2>nul &amp; echo {&quot;server_url&quot;:&quot;[SERVERURL]&quot;,&quot;enrollment_token&quot;:&quot;[ENROLLMENTTOKEN]&quot;,&quot;auto_start&quot;:[AUTOSTART]} > &quot;[SentinelDataDir]agent.json&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -336,7 +349,7 @@
     <!-- Set properties for deferred custom actions -->
     <CustomAction Id="SetCreateConfigFileProps"
                   Property="CreateConfigFile"
-                  Value="ConfigDir=[ConfigDir];SERVERURL=[SERVERURL];ENROLLMENTTOKEN=[ENROLLMENTTOKEN];AUTOSTART=[AUTOSTART]" />
+                  Value="SentinelDataDir=[SentinelDataDir];SERVERURL=[SERVERURL];ENROLLMENTTOKEN=[ENROLLMENTTOKEN];AUTOSTART=[AUTOSTART]" />
 
     <CustomAction Id="SetRunEnrollmentProps"
                   Property="RunEnrollment"
@@ -350,6 +363,18 @@
                   Impersonate="no"
                   Return="ignore" />
 
+    <!-- Launch GUI after install (runs as current user so the window is visible) -->
+    <CustomAction Id="LaunchGui"
+                  Directory="BinDir"
+                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot;"
+                  Execute="deferred"
+                  Impersonate="yes"
+                  Return="asyncNoWait" />
+
+    <CustomAction Id="SetLaunchGuiProps"
+                  Property="LaunchGui"
+                  Value="BinDir=[BinDir]" />
+
     <!-- Installation sequence -->
     <InstallExecuteSequence>
       <Custom Action="SetServerUrl" After="InstallInitialize" Condition="NOT Installed" />
@@ -358,6 +383,9 @@
       <Custom Action="SetRunEnrollmentProps" Before="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="RunEnrollment" After="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="StartServiceAfterEnroll" After="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <!-- Launch GUI after install so the user sees the application -->
+      <Custom Action="SetLaunchGuiProps" Before="LaunchGui" Condition="NOT Installed" />
+      <Custom Action="LaunchGui" After="StartServiceAfterEnroll" Condition="NOT Installed" />
       <!-- Defender exclusion MUST be before InstallFinalize -->
       <Custom Action="AddDefenderExclusion" Before="InstallFinalize" Condition="NOT Installed" />
       <!-- Defender exclusion removal on uninstall - within transaction -->
