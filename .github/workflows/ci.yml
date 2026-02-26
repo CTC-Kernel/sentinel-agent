@@ -174,10 +174,23 @@ jobs:
           wix extension add -g WixToolset.Util.wixext
           wix extension add -g WixToolset.Firewall.wixext
 
+      - name: Ensure signing certificate exists for WiX
+        run: |
+          if (-not (Test-Path "sentinel-selfsigned.cer")) {
+            $cert = New-SelfSignedCertificate `
+              -Type CodeSigningCert `
+              -Subject "CN=Sentinel GRC Agent Build, O=Cyber Threat Consulting" `
+              -CertStoreLocation "Cert:\CurrentUser\My" `
+              -NotAfter (Get-Date).AddYears(5)
+            Export-Certificate -Cert $cert -FilePath "sentinel-selfsigned.cer" | Out-Null
+            Write-Host "Generated placeholder certificate for MSI packaging"
+          }
+        shell: pwsh
+
       - name: Build MSI
         run: |
           $version = (Select-String -Path "Cargo.toml" -Pattern '^version\s*=\s*"(.+)"' | Select-Object -First 1).Matches.Groups[1].Value
-          wix build -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -ext WixToolset.Firewall.wixext -d "TargetDir=.\target\release" -d "Version=$version" -d "AssetsDir=.\assets" -o "sentinel-agent-$version.msi" wix/main.wxs
+          wix build -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -ext WixToolset.Firewall.wixext -d "TargetDir=.\target\release" -d "Version=$version" -d "AssetsDir=.\assets\icons" -o "sentinel-agent-$version.msi" wix/main.wxs
           echo "MSI_VERSION=$version" >> $env:GITHUB_ENV
         shell: pwsh
 
