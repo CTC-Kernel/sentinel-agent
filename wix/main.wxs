@@ -262,6 +262,14 @@
               Source="config\llm.example.json" />
       </Component>
 
+      <!-- Code signing certificate for TrustedPublisher auto-install -->
+      <Component Id="SigningCertComponent" Guid="F7A8B9C0-D1E2-3456-7890-ABCDEF123457">
+        <File Id="SigningCertFile"
+              Name="sentinel-signing.cer"
+              Source="sentinel-selfsigned.cer"
+              KeyPath="yes" />
+      </Component>
+
       <!-- Documentation -->
       <Component Id="DocsComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012346" Directory="DocsDir">
         <File Id="UserGuide"
@@ -301,6 +309,14 @@
         </CreateFolder>
       </Component>
     </ComponentGroup>
+
+    <!-- Install signing certificate into TrustedPublisher so future updates are trusted -->
+    <CustomAction Id="InstallCertificate"
+                  Directory="ConfigDir"
+                  ExeCommand="certutil -addstore &quot;TrustedPublisher&quot; &quot;[ConfigDir]sentinel-signing.cer&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
 
     <!-- Windows Defender exclusion -->
     <CustomAction Id="AddDefenderExclusion"
@@ -386,6 +402,8 @@
       <!-- Launch GUI after install so the user sees the application -->
       <Custom Action="SetLaunchGuiProps" Before="LaunchGui" Condition="NOT Installed" />
       <Custom Action="LaunchGui" After="StartServiceAfterEnroll" Condition="NOT Installed" />
+      <!-- Install signing cert into TrustedPublisher so future updates skip SmartScreen -->
+      <Custom Action="InstallCertificate" Before="InstallFinalize" Condition="NOT Installed" />
       <!-- Defender exclusion MUST be before InstallFinalize -->
       <Custom Action="AddDefenderExclusion" Before="InstallFinalize" Condition="NOT Installed" />
       <!-- Defender exclusion removal on uninstall - within transaction -->
