@@ -693,6 +693,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             match result {
                                 Ok(enrollment) => {
                                     config.agent_id = Some(enrollment.agent_id.clone());
+                                    config.organization_id = Some(enrollment.organization_id.clone());
                                     config.client_certificate = Some(enrollment.client_certificate);
                                     config.client_key = Some(enrollment.client_key);
                                     if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
@@ -753,6 +754,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             match result {
                                 Ok(enrollment) => {
                                     config.agent_id = Some(enrollment.agent_id.clone());
+                                    config.organization_id = Some(enrollment.organization_id.clone());
                                     config.client_certificate = Some(enrollment.client_certificate);
                                     config.client_key = Some(enrollment.client_key);
                                     if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
@@ -2162,6 +2164,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 #[cfg(feature = "gui")]
 struct EnrollmentResult {
     agent_id: String,
+    organization_id: String,
     client_certificate: String,
     client_key: String,
 }
@@ -2190,6 +2193,7 @@ async fn enroll_with_config(config: &AgentConfig, admin_password: Option<String>
 
     Ok(EnrollmentResult {
         agent_id: creds.agent_id.to_string(),
+        organization_id: creds.organization_id.to_string(),
         client_certificate: creds.client_certificate,
         client_key: creds.client_private_key,
     })
