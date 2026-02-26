@@ -375,7 +375,10 @@ jobs:
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
           if ([string]::IsNullOrEmpty($env:WINDOWS_CERT_P12)) {
-            Write-Host "⚠️ Windows certificate not configured - skipping MSI signing"
+            Write-Host "⚠️ WINDOWS_CERT_P12 secret not configured — MSI will NOT be Authenticode-signed."
+            Write-Host "   Users will see a SmartScreen warning on first run."
+            Write-Host "   To fix: add an EV code-signing certificate as base64 in WINDOWS_CERT_P12 secret."
+            Write-Host "   The self-signed build (build-windows-selfsigned) will still run as fallback."
             exit 0
           }
           $certPath = "$env:RUNNER_TEMP\code_signing.pfx"

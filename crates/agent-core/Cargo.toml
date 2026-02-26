@@ -11,7 +11,7 @@ default = ["tray"]
 # Enable system tray GUI (macOS/Windows desktop mode)
 tray = ["dep:tray-icon", "dep:muda", "dep:image", "dep:open", "dep:tao"]
 # Enable v2 desktop GUI features (includes LLM AI module + persistence)
-gui = ["dep:agent-gui", "dep:agent-persistence", "llm", "agent-gui/llm"]
+gui = ["dep:agent-gui", "dep:agent-persistence", "llm", "agent-gui/llm", "dep:eframe", "dep:egui", "dep:egui_extras", "dep:egui_plot"]
 # LLM features (can also be enabled standalone without GUI)
 llm = ["dep:agent_llm", "agent-scanner/llm"]
 llm_simple = []
@@ -61,10 +61,10 @@ open = { workspace = true, optional = true }
 tao = { workspace = true, default-features = false, features = ["rwh_06"], optional = true }
 hostname.workspace = true
 rand.workspace = true
-eframe.workspace = true
-egui.workspace = true
-egui_extras = { workspace = true }
-egui_plot.workspace = true
+eframe = { workspace = true, optional = true }
+egui = { workspace = true, optional = true }
+egui_extras = { workspace = true, optional = true }
+egui_plot = { workspace = true, optional = true }
 notify = { workspace = true }
 rayon.workspace = true
 battery.workspace = true
