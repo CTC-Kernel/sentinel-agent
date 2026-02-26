@@ -1251,6 +1251,7 @@ mod tests {
             os_version: "5.15 (x86_64)".to_string(),
             agent_version: "0.1.0".to_string(),
             machine_id: Some("machine-id".to_string()),
+            admin_password: None,
         };
 
         let json = serde_json::to_string(&request).unwrap();

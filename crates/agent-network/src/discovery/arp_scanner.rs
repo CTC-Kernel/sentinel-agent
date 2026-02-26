@@ -154,7 +154,7 @@ impl ArpScanner {
         {
             None
         } else {
-            None
+            Some(mac_str.to_uppercase())
         };
 
         let type_str = parts[2].to_lowercase();
