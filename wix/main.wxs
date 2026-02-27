@@ -167,8 +167,7 @@
           Start="install"
           Stop="both"
           Remove="uninstall"
-          Wait="yes"
-          Timeout="30" />
+          Wait="yes" />
 
         <!-- Windows Firewall rule for agent communication -->
         <fire:FirewallException Id="SentinelAgentFirewall"
@@ -369,8 +368,7 @@
     <!-- Force kill GUI process on uninstall -->
     <CustomAction Id="KillGuiProcess"
                   Directory="SystemFolder"
-                  ExeCommand="taskkill.exe"
-                  Arguments="/f /im sentinel-agent.exe"
+                  ExeCommand="taskkill.exe /f /im sentinel-agent.exe"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
