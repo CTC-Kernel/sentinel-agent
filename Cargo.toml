@@ -6,7 +6,7 @@ members = [
 ]
 
 [workspace.package]
-version = "2.0.55"
+version = "2.0.56"
 edition = "2024"
 license = "Proprietary"
 repository = "https://github.com/sentinel/agent"
@@ -67,7 +67,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 nix = "0.29"
 
 [workspace.dependencies.windows]
-version = "0.58"
+version = "2.0.56"
 features = [
     "Win32_Foundation",
     "Win32_System_Services",
@@ -82,7 +82,7 @@ features = [
 ]
 
 [workspace.dependencies.windows-service]
-version = "0.7"
+version = "2.0.56"
 
 
 [profile.release]
