@@ -10,10 +10,6 @@ description = "Desktop GUI for the Sentinel GRC Agent using egui/eframe"
 name = "agent-gui"
 path = "src/main.rs"
 
-[target.'cfg(windows)'.rustflags]
-# Set Windows subsystem to GUI to avoid console window for GUI binary only
-rustflags = ["-C", "link-args=/SUBSYSTEM:WINDOWS"]
-
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
 
