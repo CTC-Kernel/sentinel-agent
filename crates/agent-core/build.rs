@@ -21,7 +21,6 @@ fn main() {
 </assembly>
 "#);
         res.set_icon("assets/icons/sentinel-agent.ico");
-        res.set_subsystem(winres::Subsystem::Windows);
         res.compile().unwrap();
     }
 }
