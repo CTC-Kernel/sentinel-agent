@@ -362,6 +362,15 @@
                   Impersonate="no"
                   Return="ignore" />
 
+    <!-- Force kill GUI process on uninstall -->
+    <CustomAction Id="KillGuiProcess"
+                  Directory="SystemFolder"
+                  ExeCommand="taskkill.exe"
+                  Arguments="/f /im sentinel-agent.exe"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
     <!-- Set properties for deferred custom actions -->
     <CustomAction Id="SetCreateConfigFileProps"
                   Property="CreateConfigFile"
@@ -379,11 +388,11 @@
                   Impersonate="no"
                   Return="ignore" />
 
-    <!-- Launch GUI after install (runs as current user so the window is visible) -->
+    <!-- Launch GUI after install (runs as current user so window is visible) -->
     <CustomAction Id="LaunchGui"
                   Directory="BinDir"
                   ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot;"
-                  Execute="deferred"
+                  Execute="immediate"
                   Impersonate="yes"
                   Return="asyncNoWait" />
 
@@ -398,17 +407,18 @@
       <Custom Action="SetCreateConfigFileProps" After="SetServerUrl" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="SetRunEnrollmentProps" After="SetCreateConfigFileProps" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="SetLaunchGuiProps" After="SetRunEnrollmentProps" Condition="NOT Installed" />
+      <Custom Action="LaunchGui" After="SetLaunchGuiProps" Condition="NOT Installed" />
       
       <!-- Deferred custom actions - MUST be between InstallInitialize and InstallFinalize -->
-      <Custom Action="CreateConfigFile" After="SetLaunchGuiProps" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="CreateConfigFile" After="LaunchGui" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="RunEnrollment" After="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="StartServiceAfterEnroll" After="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <Custom Action="LaunchGui" After="StartServiceAfterEnroll" Condition="NOT Installed" />
-      <Custom Action="InstallCertificate" After="LaunchGui" Condition="NOT Installed" />
+      <Custom Action="InstallCertificate" After="StartServiceAfterEnroll" Condition="NOT Installed" />
       <Custom Action="AddDefenderExclusion" After="InstallCertificate" Condition="NOT Installed" />
       
       <!-- Uninstall actions -->
-      <Custom Action="RemoveDefenderExclusion" After="AddDefenderExclusion" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="KillGuiProcess" After="InstallInitialize" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="RemoveDefenderExclusion" After="KillGuiProcess" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
       <Custom Action="CleanupDataOnUninstall" After="RemoveDefenderExclusion" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
     </InstallExecuteSequence>
 
