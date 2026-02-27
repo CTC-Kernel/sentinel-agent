@@ -24,6 +24,10 @@ pub enum StorageError {
     #[error("key management error: {0}")]
     KeyManagement(String),
 
+    /// Encryption lost error (key exists but cannot be decrypted).
+    #[error("encryption key lost or unreadable: {0}")]
+    EncryptionLost(String),
+
     /// Query error.
     #[error("query error: {0}")]
     Query(String),

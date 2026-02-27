@@ -66,11 +66,11 @@ pub const SECS_PER_DAY: u64 = 86_400;
 
 #[cfg(windows)]
 /// Default installation directory on Windows.
-pub const DEFAULT_INSTALL_DIR: &str = "C:\\Program Files\\Sentinel";
+pub const DEFAULT_INSTALL_DIR: &str = "\\Program Files\\Sentinel";
 
 #[cfg(windows)]
 /// Default data directory on Windows.
-pub const DEFAULT_DATA_DIR: &str = "C:\\ProgramData\\Sentinel";
+pub const DEFAULT_DATA_DIR: &str = "\\ProgramData\\Sentinel";
 
 #[cfg(not(windows))]
 /// Default installation directory on Linux.
