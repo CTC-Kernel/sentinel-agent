@@ -119,16 +119,11 @@ impl ResourceMonitor {
 
         self.sample_count.fetch_add(1, Ordering::Relaxed);
 
-        // Network I/O collection using sysinfo
-        // Use total_received()/total_transmitted() which return cumulative counters
-        // since system boot, then compute delta between samples.
-        let network_io_bytes = if let Ok(mut networks) = self.networks.lock() {
-            networks.refresh(true);
-            let current_network: u64 = networks
-                .values()
-                .map(|data| data.total_received() + data.total_transmitted())
-                .sum();
-
+        // Network I/O collection using native OS APIs.
+        // sysinfo::Networks on macOS returns stale counters — use getifaddrs() /
+        // /proc/net/dev directly for reliable system-wide byte totals.
+        let network_io_bytes = {
+            let current_network = get_network_bytes_total();
             let last_net = self
                 .last_network_bytes
                 .swap(current_network, Ordering::Relaxed);
@@ -138,8 +133,6 @@ impl ResourceMonitor {
             } else {
                 0
             }
-        } else {
-            0
         };
 
         // Disk I/O collection using platform-native API
@@ -915,6 +908,77 @@ impl Default for ResourceGuardian {
 
 // Platform-specific resource measurement implementations
 
+// ============ System-wide network byte totals ============
+
+/// Total system-wide network bytes (rx + tx) since boot via native `getifaddrs()`.
+/// Falls back to 0 on error.
+#[cfg(target_os = "macos")]
+fn get_network_bytes_total() -> u64 {
+    unsafe {
+        let mut addrs: *mut libc::ifaddrs = std::ptr::null_mut();
+        if libc::getifaddrs(&mut addrs) != 0 {
+            return 0;
+        }
+        let mut total: u64 = 0;
+        let mut cursor = addrs;
+        while !cursor.is_null() {
+            let ifa = &*cursor;
+            // AF_LINK entries carry interface-level byte counters in ifa_data
+            if !ifa.ifa_addr.is_null()
+                && (*ifa.ifa_addr).sa_family == libc::AF_LINK as u8
+                && !ifa.ifa_data.is_null()
+            {
+                let data = &*(ifa.ifa_data as *const libc::if_data);
+                total = total.saturating_add(data.ifi_ibytes as u64);
+                total = total.saturating_add(data.ifi_obytes as u64);
+            }
+            cursor = ifa.ifa_next;
+        }
+        libc::freeifaddrs(addrs);
+        total
+    }
+}
+
+/// Total system-wide network bytes (rx + tx) via /proc/net/dev.
+#[cfg(target_os = "linux")]
+fn get_network_bytes_total() -> u64 {
+    if let Ok(content) = std::fs::read_to_string("/proc/net/dev") {
+        content
+            .lines()
+            .skip(2) // skip header lines
+            .filter_map(|line| {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                // Format: iface: rx_bytes rx_packets ... tx_bytes tx_packets ...
+                if parts.len() >= 10 {
+                    let rx: u64 = parts[1].parse().unwrap_or(0);
+                    let tx: u64 = parts[9].parse().unwrap_or(0);
+                    Some(rx.saturating_add(tx))
+                } else {
+                    None
+                }
+            })
+            .sum()
+    } else {
+        0
+    }
+}
+
+#[cfg(windows)]
+fn get_network_bytes_total() -> u64 {
+    // Windows: use sysinfo Networks as fallback (the native approach requires
+    // GetIfTable2 from iphlpapi which is more complex to declare via FFI).
+    let networks = sysinfo::Networks::new_with_refreshed_list();
+    networks
+        .values()
+        .map(|data| data.total_received() + data.total_transmitted())
+        .sum()
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_network_bytes_total() -> u64 {
+    0
+}
+
 // ============ LINUX implementations ============
 
 #[cfg(target_os = "linux")]
@@ -1492,6 +1556,7 @@ fn get_disk_kbps() -> u32 {
     use std::sync::atomic::{AtomicU64, Ordering};
 
     static LAST_DISK_BYTES: AtomicU64 = AtomicU64::new(0);
+    static LAST_DISK_TIME_US: AtomicU64 = AtomicU64::new(0);
 
     unsafe {
         let mut info: rusage_info_v4 = mem::zeroed();
@@ -1499,17 +1564,26 @@ fn get_disk_kbps() -> u32 {
         let res = proc_pid_rusage(pid, libc::RUSAGE_INFO_V4, &mut info as *mut _ as *mut _);
         if res == 0 {
             let current_bytes = info.ri_diskio_bytesread + info.ri_diskio_byteswritten;
-            let last = LAST_DISK_BYTES.swap(current_bytes, Ordering::Relaxed);
-            // Return delta in KB (0 on first measurement)
-            if last > 0 {
-                (current_bytes.saturating_sub(last) / 1024).min(u32::MAX as u64) as u32
-            } else {
-                0
+            let now_us = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_micros() as u64)
+                .unwrap_or(0);
+
+            let last_bytes = LAST_DISK_BYTES.swap(current_bytes, Ordering::Relaxed);
+            let last_time = LAST_DISK_TIME_US.swap(now_us, Ordering::Relaxed);
+
+            // Compute actual KB/s rate using time delta (avoids integer truncation)
+            if last_bytes > 0 && last_time > 0 && now_us > last_time {
+                let delta_bytes = current_bytes.saturating_sub(last_bytes);
+                let delta_secs = (now_us - last_time) as f64 / 1_000_000.0;
+                if delta_secs > 0.0 {
+                    let kbps = (delta_bytes as f64 / delta_secs) / 1024.0;
+                    return kbps.round().clamp(0.0, u32::MAX as f64) as u32;
+                }
             }
-        } else {
-            0
         }
     }
+    0
 }
 
 #[cfg(windows)]
