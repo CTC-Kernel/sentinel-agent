@@ -1,4 +1,112 @@
-# Sentinel GRC Agent - Installation Guide
+# Guide d'installation de Sentinel Agent - Windows Server
+
+## Problème courant
+Lors de l'installation sur Windows Server, l'erreur suivante peut survenir :
+```
+Failed to start service. Verify that you have sufficient privilege to start system service
+```
+
+## Solution
+
+### Méthode 1 : Script automatisé (recommandé)
+
+1. **Exécuter le script de correction des permissions** :
+   ```powershell
+   # Ouvrir PowerShell en tant qu'administrateur
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+   .\fix_service_permissions.ps1
+   ```
+
+### Méthode 2 : Manuellement
+
+1. **Installer le service en tant qu'administrateur** :
+   ```powershell
+   # Ouvrir PowerShell en tant qu'administrateur
+   & "C:\Program Files (x86)\Sentinel\bin\sentinel-agent.exe" install
+   ```
+
+2. **Vérifier les permissions des répertoires** :
+   ```powershell
+   # Donner les permissions complètes à SYSTEM et Administrateurs
+   $paths = @("C:\Program Files (x86)\Sentinel", "C:\ProgramData\Sentinel")
+   foreach ($path in $paths) {
+       $acl = Get-Acl $path
+       $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+           "SYSTEM", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow"
+       )
+       $acl.SetAccessRule($rule)
+       Set-Acl $path $acl
+   }
+   ```
+
+3. **Démarrer le service** :
+   ```powershell
+   Start-Service -Name "SentinelGRCAgent"
+   ```
+
+## Vérification
+
+### Vérifier le statut du service
+```powershell
+Get-Service -Name "SentinelGRCAgent"
+& "C:\Program Files (x86)\Sentinel\bin\sentinel-agent.exe" status
+```
+
+### Vérifier les processus
+```powershell
+tasklist | findstr sentinel
+```
+
+### Vérifier les logs
+```powershell
+Get-EventLog -LogName System -Newest 20 | Where-Object {$_.Source -eq "Service Control Manager" -and $_.Message -like "*Sentinel*"}
+```
+
+## Dépannage
+
+### Si le service ne démarre pas
+1. **Vérifier les permissions** : Assurez-vous que SYSTEM a les permissions complètes sur les répertoires
+2. **Vérifier les dépendances** : Assurez-vous que .NET Runtime est installé
+3. **Réinstaller le service** :
+   ```powershell
+   & "C:\Program Files (x86)\Sentinel\bin\sentinel-agent.exe" uninstall
+   & "C:\Program Files (x86)\Sentinel\bin\sentinel-agent.exe" install
+   ```
+
+### Si l'interface graphique ne s'ouvre pas
+1. **Lancer manuellement** :
+   ```powershell
+   & "C:\Program Files (x86)\Sentinel\bin\sentinel-agent.exe" --config "C:\ProgramData\Sentinel\agent.json" run
+   ```
+
+2. **Vérifier la configuration** : Assurez-vous que `agent.json` existe et est correctement configuré
+
+## Configuration par défaut
+
+Le fichier `agent.json` est créé automatiquement avec la configuration suivante :
+```json
+{
+  "server": {
+    "url": "https://demo.sentinel-grc.com",
+    "token": null
+  },
+  "gui": {
+    "enabled": true,
+    "autostart": false,
+    "minimize_to_tray": false
+  }
+}
+```
+
+## Support
+
+Pour toute question ou problème d'installation, consultez les logs dans :
+- `C:\ProgramData\Sentinel\logs\startup.log`
+- `C:\ProgramData\Sentinel\logs\agent.log`
+
+---
+
+# Sentinel GRC Agent - Installation Guide (Linux/Unix)
 
 ## 📦 Package Contents
 
