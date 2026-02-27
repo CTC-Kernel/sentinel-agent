@@ -41,7 +41,7 @@ jobs:
         id: bump
         run: |
           # Read current version from Cargo.toml
-          CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          CURRENT=$(grep '^version' $GITHUB_WORKSPACE/Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
           echo "Current version: $CURRENT"
 
           # Parse version components
@@ -59,7 +59,7 @@ jobs:
           echo "Next version: $NEXT (bump=$BUMP)"
 
           # Update Cargo.toml with new version (only workspace.package section)
-          sed -i '' '9s/^version = .*/version = "'"$NEXT"'"/' Cargo.toml
+          sed -i '' '9s/^version = .*/version = "'"$NEXT"'"/' $GITHUB_WORKSPACE/Cargo.toml
           echo "Updated Cargo.toml to version $NEXT"
 
           # Check if tag already exists
