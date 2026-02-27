@@ -41,6 +41,13 @@ jobs:
         id: bump
         run: |
           # Read current version from Cargo.toml
+          echo "Debug: GITHUB_WORKSPACE = $GITHUB_WORKSPACE"
+          echo "Debug: Current directory: $(pwd)"
+          echo "Debug: Listing files:"
+          ls -la $GITHUB_WORKSPACE/
+          echo "Debug: Looking for Cargo.toml:"
+          find $GITHUB_WORKSPACE -name "Cargo.toml" -type f
+          
           CURRENT=$(grep '^version' $GITHUB_WORKSPACE/Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
           echo "Current version: $CURRENT"
 
