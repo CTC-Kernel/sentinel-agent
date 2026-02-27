@@ -393,8 +393,8 @@
     <!-- Launch GUI after install (runs as current user so window is visible) -->
     <CustomAction Id="LaunchGui"
                   Directory="BinDir"
-                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot;"
-                  Execute="immediate"
+                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; --gui"
+                  Execute="deferred"
                   Impersonate="yes"
                   Return="asyncNoWait" />
 
@@ -408,15 +408,17 @@
       <Custom Action="SetServerUrl" After="InstallInitialize" Condition="NOT Installed" />
       <Custom Action="SetCreateConfigFileProps" After="SetServerUrl" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="SetRunEnrollmentProps" After="SetCreateConfigFileProps" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <Custom Action="SetLaunchGuiProps" After="SetRunEnrollmentProps" Condition="NOT Installed" />
-      <Custom Action="LaunchGui" After="SetLaunchGuiProps" Condition="NOT Installed" />
       
       <!-- Deferred custom actions - MUST be between InstallInitialize and InstallFinalize -->
-      <Custom Action="CreateConfigFile" After="LaunchGui" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="CreateConfigFile" After="SetRunEnrollmentProps" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="RunEnrollment" After="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="StartServiceAfterEnroll" After="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="InstallCertificate" After="StartServiceAfterEnroll" Condition="NOT Installed" />
       <Custom Action="AddDefenderExclusion" After="InstallCertificate" Condition="NOT Installed" />
+      
+      <!-- Launch GUI at the very end after everything is installed -->
+      <Custom Action="SetLaunchGuiProps" After="InstallFinalize" Condition="NOT Installed" />
+      <Custom Action="LaunchGui" After="SetLaunchGuiProps" Condition="NOT Installed" />
       
       <!-- Uninstall actions -->
       <Custom Action="KillGuiProcess" After="InstallInitialize" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
