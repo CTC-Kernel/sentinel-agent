@@ -22,8 +22,12 @@
     Name="Sentinel Agent"
     Manufacturer="Cyber Threat Consulting"
     Version="$(var.Version)"
-    UpgradeCode="E8F3C2A1-4B5D-4E6F-8A9B-0C1D2E3F4A5B"
-    Scope="perMachine">
+    UpgradeCode="$(var.UpgradeCode)"
+    Scope="perMachine"
+    Compressed="yes"
+    InstallScope="perMachine"
+    Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
+    Comments="Cyber Threat Consulting - Sentinel GRC Agent v$(var.Version)">
 
     <!-- Application icon for Add/Remove Programs -->
     <Icon Id="SentinelIcon" SourceFile="$(var.AssetsDir)\sentinel-agent.ico" />
@@ -166,7 +170,8 @@
           Start="install"
           Stop="both"
           Remove="uninstall"
-          Wait="yes" />
+          Wait="yes"
+          Timeout="30" />
 
         <!-- Windows Firewall rule for agent communication -->
         <fire:FirewallException Id="SentinelAgentFirewall"
@@ -194,12 +199,14 @@
             KeyPath="yes" />
       </Component>
 
-      <!-- Add to system PATH -->
+      <!-- Add to system PATH with validation -->
       <Component Id="PathEnvComponent" Guid="A9B8C7D6-E5F4-3210-FEDC-BA9876543210">
         <Environment Id="SentinelPath" Name="PATH" Value="[BinDir]"
             Permanent="yes" Part="last" Action="set" System="yes" />
         <RegistryValue Root="HKLM" Key="Software\Sentinel\Agent"
             Name="PathAdded" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKLM" Key="Software\Sentinel\Agent\Backup"
+            Name="OriginalPath" Type="string" Value="[~];[BinDir]" />
       </Component>
     </ComponentGroup>
 
@@ -313,7 +320,7 @@
     <!-- Install signing certificate into TrustedPublisher so future updates are trusted -->
     <CustomAction Id="InstallCertificate"
                   Directory="ConfigDir"
-                  ExeCommand="certutil -addstore &quot;TrustedPublisher&quot; &quot;[ConfigDir]sentinel-signing.cer&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;try { certutil -addstore 'TrustedPublisher' '[ConfigDir]sentinel-signing.cer' -ErrorAction Stop } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1003 -EntryType Error -Message 'Certificate installation failed: $_' }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -321,7 +328,7 @@
     <!-- Windows Defender exclusion -->
     <CustomAction Id="AddDefenderExclusion"
                   Directory="BinDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -Command &quot;Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe'&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;try { Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1001 -EntryType Error -Message 'Failed to add Defender exclusion: $_' }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -335,8 +342,8 @@
 
     <!-- Uninstall cleanup (only on full uninstall, not upgrade) -->
     <CustomAction Id="CleanupDataOnUninstall"
-                  Directory="INSTALLDIR"
-                  ExeCommand="cmd.exe /c rmdir /s /q &quot;[CommonAppDataFolder]Sentinel&quot;"
+                  Directory="CommonAppDataFolder"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;try { Remove-Item '[CommonAppDataFolder]Sentinel' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1002 -EntryType Warning -Message 'Cleanup failed: $_' }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
