@@ -54,7 +54,7 @@ else
     AVAILABLE_SIGN_IDS=$(security find-identity -v -p codesigning 2>/dev/null | grep "Developer ID Application" || true)
     SIGNING_IDENTITY=$(echo "$AVAILABLE_SIGN_IDS" | head -1 | sed 's/.*"\(.*\)".*/\1/')
     if [[ -n "$SIGNING_IDENTITY" ]]; then
-        echo -e "${GREEN}Detected Singing Identity: $SIGNING_IDENTITY${NC}"
+        echo -e "${GREEN}Detected Signing Identity: $SIGNING_IDENTITY${NC}"
     else
         echo -e "${YELLOW}No Developer ID Application certificate found. Using ad-hoc signing.${NC}"
         SIGNING_IDENTITY="-"
@@ -166,13 +166,25 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
     </dict>
     <key>NSPrivacyAccessedAPITypes</key>
     <array>
-        <string>NSPrivacyAccessedAPITypeSystemBootTime</string>
-        <string>NSPrivacyAccessedAPITypeFileTimestamp</string>
-        <string>NSPrivacyAccessedAPITypeNetwork</string>
-        <string>NSPrivacyAccessedAPITypeSystemUptime</string>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array><string>35F9.1</string></array>
+        </dict>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array><string>C617.1</string></array>
+        </dict>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array><string>E174.1</string></array>
+        </dict>
     </array>
-    <key>NSRequiresAquaSystemAppearance</key>
-    <false/>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>CFBundleGetInfoString</key>
@@ -201,12 +213,12 @@ MAX_RETRIES=3
 RETRY_COUNT=0
 SUCCESS=false
 
-# Additional hardened runtime options for Rust applications
-CODESIGN_OPTIONS="--force --options runtime --timestamp="http://timestamp.apple.com/ts01""
+# Build codesign arguments as an array (safe, no eval needed)
+CODESIGN_ARGS=(--force --options runtime --timestamp="http://timestamp.apple.com/ts01")
 
 # Add entitlements if they exist
 if [[ -f "macos/entitlements.plist" ]]; then
-    CODESIGN_OPTIONS="$CODESIGN_OPTIONS --entitlements macos/entitlements.plist"
+    CODESIGN_ARGS+=(--entitlements macos/entitlements.plist)
     echo -e "${BLUE}Using entitlements from macos/entitlements.plist${NC}"
 else
     echo -e "${YELLOW}Warning: No entitlements.plist found, using default hardened runtime${NC}"
@@ -214,14 +226,14 @@ fi
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     echo -e "Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES..."
-    
+
     # 1. Sign the binary first with hardened runtime and entitlements
     echo -e "Signing internal binary..."
-    eval "codesign $CODESIGN_OPTIONS --sign '$SIGNING_IDENTITY' '$APP_BUNDLE/Contents/MacOS/SentinelAgent'"
-    
+    codesign "${CODESIGN_ARGS[@]}" --sign "$SIGNING_IDENTITY" "$APP_BUNDLE/Contents/MacOS/SentinelAgent"
+
     # 2. Sign the bundle itself
     echo -e "Signing app bundle..."
-    if eval "codesign $CODESIGN_OPTIONS --sign '$SIGNING_IDENTITY' '$APP_BUNDLE'"; then
+    if codesign "${CODESIGN_ARGS[@]}" --sign "$SIGNING_IDENTITY" "$APP_BUNDLE"; then
         SUCCESS=true
         break
     else
@@ -274,7 +286,7 @@ chmod +x "$BUILD_DIR/preinstall"
 
 # Post-install script
 cat > "$BUILD_DIR/postinstall" << 'POSTINSTALL'
-# !/bin/bash
+#!/bin/bash
 # Sentinel Agent Post-install Script
 # $1: Package path, $2: Target path, $3: Target volume
 
@@ -594,11 +606,9 @@ cat > "$BUILD_DIR/conclusion.html" << 'CONCLUSIONHTML'
 </html>
 CONCLUSIONHTML
 
-# Create background image (simple gradient)
+# Create background image (1x1 transparent PNG placeholder)
 echo -e "${YELLOW}Creating background image...${NC}"
-cat > "$BUILD_DIR/background.png" << 'EOF'
-iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==
-EOF
+echo 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' | base64 -D > "$BUILD_DIR/background.png"
 
 # Build the package
 echo -e "${YELLOW}Building macOS package...${NC}"

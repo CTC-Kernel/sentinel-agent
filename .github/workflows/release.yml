@@ -86,7 +86,7 @@ jobs:
             echo "Created tag v${VERSION}"
             echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
           fi
-          git push origin HEAD --tags
+          git push origin HEAD "v${VERSION}"
 
   # ═══════════════════════════════════════════════════════════════════
   # macOS — Universal binary + DMG + PKG (signed + notarized)
@@ -262,7 +262,6 @@ jobs:
           mv "dist/SentinelAgent-${VERSION}.pkg" "target/release/"
 
       - name: Notarize PKG
-        continue-on-error: true
         timeout-minutes: 35
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -529,19 +528,16 @@ jobs:
           Import-Certificate -FilePath "sentinel-selfsigned.cer" -CertStoreLocation "Cert:\LocalMachine\Root" -ErrorAction SilentlyContinue
           Import-Certificate -FilePath "sentinel-selfsigned.cer" -CertStoreLocation "Cert:\LocalMachine\TrustedPublisher" -ErrorAction SilentlyContinue
 
-          # Find signtool
-          Write-Host "📝 Signing MSI..."
-          $signtoolPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.0.22000.0\x64\signtool.exe"
-          if (-not (Test-Path $signtoolPath)) {
-            $signtoolPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Get-ChildItem -Recurse | Select-Object -First 1 -ExpandProperty FullName
-          }
-          if (-not (Test-Path $signtoolPath)) {
-            $signtoolPath = "${env:ProgramFiles}\Microsoft SDKs\Windows\v7.1A\Bin\signtool.exe"
-          }
-          if (-not (Test-Path $signtoolPath)) {
-            Write-Host "❌ signtool not found, skipping signing"
+          # Find signtool (search all installed SDK versions)
+          Write-Host "Signing MSI..."
+          $signtoolPath = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" -ErrorAction SilentlyContinue |
+            Sort-Object { [version]($_.Directory.Parent.Name) } -Descending |
+            Select-Object -First 1 -ExpandProperty FullName
+          if (-not $signtoolPath) {
+            Write-Host "::error::signtool.exe not found in any Windows SDK"
             exit 1
           }
+          Write-Host "Using signtool: $signtoolPath"
 
           # Sign MSI
           & $signtoolPath sign /f sentinel-selfsigned.pfx /p $pfxPassword /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d "Sentinel GRC Agent" "$packageDir\SentinelAgentSelfSigned-$version.msi"
@@ -860,11 +856,8 @@ jobs:
           fi
 
           # Generate release-info.json
-          echo "{" > release-info.json
-          echo "  \"version\": \"$VERSION\"," >> release-info.json
-          echo "  \"date\": \"$DATE\"," >> release-info.json
-          echo "  \"product\": \"agent\"" >> release-info.json
-          echo "}" >> release-info.json
+          jq -n --arg v "$VERSION" --arg d "$DATE" \
+            '{version: $v, date: $d, product: "agent"}' > release-info.json
           
           gcloud storage cp release-info.json "$BUCKET/release-info.json"
 
@@ -889,17 +882,13 @@ jobs:
           echo "=== Configuring Public Access and CORS ==="
           # Extract bucket name without gs:// and path
           BUCKET_NAME=$(echo "$BUCKET" | sed 's/gs:\/\/\([^\/]*\).*/\1/')
-          
+
           # 1. Apply CORS configuration
           gcloud storage buckets update gs://$BUCKET_NAME --cors-file=.github/workflows/cors-config.json
 
-          # 2. Grant public read access to the releases folder using ACL (more reliable)
-          echo "Setting public read ACL on all objects in $BUCKET"
+          # 2. Grant public read access to the releases folder
+          echo "Setting public read access on release objects"
           gsutil -m acl set -R public-read "$BUCKET" || true
-          
-          # 3. Alternative: Set IAM policy binding as fallback
-          echo "Setting IAM policy binding as fallback"
-          gcloud storage objects add-iam-policy-binding "$BUCKET/**" --member="allUsers" --role="roles/storage.objectViewer" 2>/dev/null || true
 
           # 4. Set Cache-Control for 'latest' aliases to ensure they are not cached too long by CDN
           echo "Setting Cache-Control for latest aliases"
@@ -994,7 +983,6 @@ jobs:
 
             **Alternative :** le ZIP `SentinelAgent-SelfSigned-${{ env.RELEASE_VERSION }}.zip` contient le MSI + certificat + script d'installation.
           files: |
-
             artifacts/sentinel-agent-macos/SentinelAgent-*.pkg
             artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt
             artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi

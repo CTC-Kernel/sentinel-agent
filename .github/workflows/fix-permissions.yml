@@ -8,8 +8,8 @@ on:
         required: false
         default: 'Manual permission fix'
   schedule:
-    # Run every 6 hours to ensure permissions stay correct
-    - cron: '0 */6 * * *'
+    # Run daily to ensure permissions stay correct
+    - cron: '0 6 * * *'
 
 jobs:
   fix-permissions:
@@ -37,11 +37,5 @@ jobs:
           ./scripts/fix-permissions.sh
 
       - name: Report status
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Firebase Storage permissions fixed successfully"
-          else
-            echo "❌ Failed to fix Firebase Storage permissions"
-            exit 1
-          fi
+        if: failure()
+        run: echo "::error::Failed to fix Firebase Storage permissions"
