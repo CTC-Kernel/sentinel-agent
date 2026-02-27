@@ -20,8 +20,8 @@ esac
 NEXT="${MAJOR}.${MINOR}.${PATCH}"
 echo "Next version: $NEXT (bump=$BUMP)"
 
-# Update Cargo.toml with new version
-perl -i -pe 's/^version = ".*"/version = "'"$NEXT"'"/' Cargo.toml
+# Update Cargo.toml with new version (only workspace.package section)
+sed -i '' '9s/^version = .*/version = "'"$NEXT"'"/' Cargo.toml
 echo "Updated Cargo.toml to version $NEXT"
 
 # Check if tag already exists
