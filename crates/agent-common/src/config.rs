@@ -162,15 +162,16 @@ fn default_log_level() -> String {
 }
 
 fn default_db_path() -> String {
+    let base = AgentConfig::platform_data_dir();
     #[cfg(windows)]
     {
         // AC4: Windows database at C:\ProgramData\Sentinel\data\agent.db
-        "C:\\ProgramData\\Sentinel\\data\\agent.db".to_string()
+        base.join("data").join("agent.db").to_string_lossy().to_string()
     }
     #[cfg(not(windows))]
     {
         // AC4: Linux database at /var/lib/sentinel-grc/agent.db
-        "/var/lib/sentinel-grc/agent.db".to_string()
+        base.join("agent.db").to_string_lossy().to_string()
     }
 }
 
@@ -332,6 +333,14 @@ impl AgentConfig {
         if let Ok(dir) = std::env::var("SENTINEL_DATA_DIR") {
             return PathBuf::from(dir);
         }
+
+        // Development fallback: if a "data" directory exists in the current working directory, use it.
+        // This is useful for developers running from the project root.
+        let local_data = PathBuf::from("data");
+        if local_data.exists() && local_data.is_dir() {
+            return PathBuf::from(".");
+        }
+
         #[cfg(windows)]
         {
             PathBuf::from(r"C:\ProgramData\Sentinel")
