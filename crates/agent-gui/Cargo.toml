@@ -11,7 +11,7 @@ name = "agent-gui"
 path = "src/main.rs"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["winuser", "wincon"] }
+winapi = { version = "0.3", features = ["winuser", "wincon", "winbase", "fileapi", "processenv", "handleapi", "winnt"] }
 windows.workspace = true
 
 [features]
@@ -24,6 +24,8 @@ llm = ["dep:agent_llm"]
 
 [dependencies]
 agent-common = { path = "../agent-common" }
+agent-storage = { path = "../agent-storage" }
+agent-sync = { path = "../agent-sync" }
 openssl = { workspace = true, features = ["vendored"] }
 agent_llm = { path = "../agent_llm", optional = true }
 anyhow.workspace = true
