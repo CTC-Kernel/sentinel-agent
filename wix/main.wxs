@@ -365,10 +365,10 @@
                   Impersonate="no"
                   Return="ignore" />
 
-    <!-- Force kill GUI process on uninstall -->
+    <!-- Force kill all Sentinel processes on uninstall -->
     <CustomAction Id="KillGuiProcess"
                   Directory="SystemFolder"
-                  ExeCommand="taskkill.exe /f /im sentinel-agent.exe"
+                  ExeCommand="cmd.exe /c &quot;taskkill.exe /f /im sentinel-agent.exe &amp; taskkill.exe /f /im agent-gui.exe &amp; taskkill.exe /f /im agent-core.exe &amp; timeout /t 2 /nobreak &gt;nul&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
