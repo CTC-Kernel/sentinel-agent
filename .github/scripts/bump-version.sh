@@ -21,7 +21,7 @@ NEXT="${MAJOR}.${MINOR}.${PATCH}"
 echo "Next version: $NEXT (bump=$BUMP)"
 
 # Update Cargo.toml with new version
-sed -i '' "0,/^version = \".*\"/{s/^version = \".*\"/version = \"$NEXT\"/}" Cargo.toml
+perl -i -pe 's/^version = ".*"/version = "'"$NEXT"'"/' Cargo.toml
 echo "Updated Cargo.toml to version $NEXT"
 
 # Check if tag already exists
