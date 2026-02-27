@@ -2501,7 +2501,7 @@ mod ctrlc {
             // Console control handler function
             unsafe extern "system" fn console_handler(
                 ctrl_type: u32,
-            ) -> windows::Win32::Foundation::BOOL {
+            ) -> windows::core::BOOL {
                 // CTRL_C_EVENT = 0, CTRL_BREAK_EVENT = 1, CTRL_CLOSE_EVENT = 2
                 // CTRL_LOGOFF_EVENT = 5, CTRL_SHUTDOWN_EVENT = 6
                 if ctrl_type <= 2 || ctrl_type == 5 || ctrl_type == 6 {
