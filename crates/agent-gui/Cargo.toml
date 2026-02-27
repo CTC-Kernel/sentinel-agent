@@ -10,9 +10,6 @@ description = "Desktop GUI for the Sentinel GRC Agent using egui/eframe"
 name = "agent-gui"
 path = "src/main.rs"
 
-[target.'cfg(windows)'.build-dependencies]
-winres = "0.1"
-
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser", "wincon"] }
 windows.workspace = true
