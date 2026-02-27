@@ -24,10 +24,7 @@
     Version="$(var.Version)"
     UpgradeCode="E8F3C2A1-4B5D-4E6F-8A9B-0C1D2E3F4A5B"
     Scope="perMachine"
-    Compressed="yes"
-    InstallScope="perMachine"
-    Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
-    Comments="Cyber Threat Consulting - Sentinel GRC Agent v$(var.Version)">
+    Compressed="yes">
 
     <!-- Application icon for Add/Remove Programs -->
     <Icon Id="SentinelIcon" SourceFile="$(var.AssetsDir)\sentinel-agent.ico" />
