@@ -41,14 +41,7 @@ jobs:
         id: bump
         run: |
           # Read current version from Cargo.toml
-          echo "Debug: GITHUB_WORKSPACE = $GITHUB_WORKSPACE"
-          echo "Debug: Current directory: $(pwd)"
-          echo "Debug: Listing files:"
-          ls -la $GITHUB_WORKSPACE/
-          echo "Debug: Looking for Cargo.toml:"
-          find $GITHUB_WORKSPACE -name "Cargo.toml" -type f
-          
-          CURRENT=$(grep '^version' $GITHUB_WORKSPACE/Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
           echo "Current version: $CURRENT"
 
           # Parse version components
@@ -64,18 +57,6 @@ jobs:
 
           NEXT="${MAJOR}.${MINOR}.${PATCH}"
           echo "Next version: $NEXT (bump=$BUMP)"
-
-          # Update Cargo.toml with new version (only workspace.package section)
-          sed -i '' '9s/^version = .*/version = "'"$NEXT"'"/' $GITHUB_WORKSPACE/Cargo.toml
-          echo "Updated Cargo.toml to version $NEXT"
-
-          # Check if tag already exists
-          if git rev-parse "refs/tags/v${NEXT}" >/dev/null 2>&1; then
-            echo "Tag v${NEXT} already exists, skipping tag creation"
-          else
-            git tag "v${NEXT}"
-            echo "Created tag v${NEXT}"
-          fi
 
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
         shell: bash
