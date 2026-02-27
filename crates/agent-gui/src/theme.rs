@@ -1289,18 +1289,18 @@ pub const SPLASH_FADE_OUT_START: f32 = 2.1;
 /// Splash fade-out duration (seconds).
 pub const SPLASH_FADE_OUT_DURATION: f32 = 0.4;
 
-/// Enrollment gradient background colors (center, outer).
+/// Enrollment gradient background colors (center, outer) - Premium sophisticated palette.
 #[inline]
 pub fn enrollment_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
-            Color32::from_rgb(20, 25, 35),  // Slight blueish center
-            Color32::from_rgb(5, 5, 5),     // Deep outer
+            Color32::from_rgb(18, 24, 36),  // Deep sophisticated blue-gray center
+            Color32::from_rgb(8, 10, 14),    // Near-black elegant outer
         )
     } else {
         (
-            Color32::from_rgb(250, 250, 255),
-            Color32::from_rgb(240, 240, 245),
+            Color32::from_rgb(248, 249, 252), // Premium off-white center
+            Color32::from_rgb(235, 237, 242), // Sophisticated light gray outer
         )
     }
 }
@@ -1313,8 +1313,8 @@ pub const ENROLLMENT_INPUT_WIDTH: f32 = 420.0;
 pub const ENROLLMENT_HERO_ICON: f32 = 48.0;
 /// Enrollment logo max width.
 pub const ENROLLMENT_LOGO_WIDTH: f32 = 120.0;
-/// Enrollment logo glow radius.
-pub const ENROLLMENT_GLOW_RADIUS: f32 = 120.0;
+/// Enrollment logo glow radius (reduced for professional look).
+pub const ENROLLMENT_GLOW_RADIUS: f32 = 60.0;
 
 /// Sidebar gradient colors (returns top, bottom).
 #[inline]
