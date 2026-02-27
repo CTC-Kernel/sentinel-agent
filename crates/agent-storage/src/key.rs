@@ -270,9 +270,9 @@ impl KeyManager {
         if decrypted_len != KEY_LENGTH {
             // Free allocated memory before returning error
             unsafe {
-                windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
+                windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
                     data_out.pbData as *mut _,
-                ));
+                )));
             }
             warn!("Invalid decrypted key size: expected {} bytes, got {}. Regenerating key", KEY_LENGTH, decrypted_len);
             // Generate a new key if size is invalid
@@ -294,9 +294,9 @@ impl KeyManager {
 
         // Free the DPAPI-allocated memory
         unsafe {
-            windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
+            windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
-            ));
+            )));
         }
 
         debug!(
@@ -392,9 +392,9 @@ impl KeyManager {
                 std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec();
 
             // Free the allocated memory
-            windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
+            windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
-            ));
+            )));
 
             // Write encrypted data to file
             fs::write(path, &encrypted).map_err(|e| {
