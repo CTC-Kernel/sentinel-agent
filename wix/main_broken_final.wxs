@@ -246,7 +246,7 @@
                        Name="DesktopShortcutInstalled" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 
-      <!-- Note: Auto-start is handled by the Windows Service (Start="auto") above.
+      <!-- Note: Auto-start is handled by Windows Service (Start="auto") above.
            No additional Run registry entry needed â€” it would cause duplicate execution. -->
     </ComponentGroup>
 
@@ -428,3 +428,5 @@
 
   </Package>
 </Wix>
+
+

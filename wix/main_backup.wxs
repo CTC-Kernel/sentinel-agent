@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   Sentinel GRC Agent - Windows Installer (MSI)
 
@@ -33,12 +33,12 @@
     <Property Id="ARPURLINFOABOUT" Value="https://cyber-threat-consulting.com" />
 
     <SummaryInformation
-      Description="Agent de conformitÃ© endpoint pour la plateforme Sentinel GRC"
+      Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
       Manufacturer="Cyber Threat Consulting" />
 
     <!-- Upgrade handling - remove previous versions -->
     <MajorUpgrade
-      DowngradeErrorMessage="Une version plus rÃ©cente de [ProductName] est dÃ©jÃ  installÃ©e."
+      DowngradeErrorMessage="Une version plus récente de [ProductName] est déjà installée."
       Schedule="afterInstallInitialize" />
 
     <!-- Embedded UI for progress during silent install -->
@@ -65,9 +65,9 @@
         <Control Id="ServerLabel" Type="Text" X="20" Y="110" Width="100" Height="15" Text="URL du serveur:" />
         <Control Id="ServerEdit" Type="Edit" X="20" Y="128" Width="330" Height="18" Property="SERVERURL" />
 
-        <Control Id="AutoStartCheck" Type="CheckBox" X="20" Y="160" Width="330" Height="17" Property="AUTOSTART" CheckBoxValue="1" Text="DÃ©marrer automatiquement avec Windows" />
+        <Control Id="AutoStartCheck" Type="CheckBox" X="20" Y="160" Width="330" Height="17" Property="AUTOSTART" CheckBoxValue="1" Text="Démarrer automatiquement avec Windows" />
 
-        <Control Id="Info" Type="Text" X="20" Y="190" Width="330" Height="30" Text="L'agent se connectera au serveur Sentinel GRC aprÃ¨s l'installation pour vÃ©rifier la conformitÃ© de cet ordinateur." />
+        <Control Id="Info" Type="Text" X="20" Y="190" Width="330" Height="30" Text="L'agent se connectera au serveur Sentinel GRC après l'installation pour vérifier la conformité de cet ordinateur." />
 
         <Control Id="BottomLine" Type="Line" X="0" Y="224" Width="370" Height="0" />
         <Control Id="Back" Type="PushButton" X="180" Y="237" Width="56" Height="17" Text="Retour">
@@ -146,7 +146,7 @@
           Id="SentinelServiceInstall"
           Name="SentinelGRCAgent"
           DisplayName="Sentinel Agent"
-          Description="Agent de conformitÃ© endpoint pour la plateforme Sentinel GRC"
+          Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
           Type="ownProcess"
           Start="auto"
           ErrorControl="normal"
@@ -212,7 +212,7 @@
       <Component Id="StartMenuShortcuts" Guid="F6A7B8C9-D0E1-2345-6789-0ABCDEF12345" Directory="SentinelMenuFolder">
         <Shortcut Id="StartMenuShortcut"
                   Name="Sentinel Agent"
-                  Description="Lancer l'agent de conformitÃ© Sentinel"
+                  Description="Lancer l'agent de conformité Sentinel"
                   Target="[BinDir]sentinel-agent.exe"
                   WorkingDirectory="BinDir"
                   Icon="SentinelIcon" />
@@ -225,7 +225,7 @@
                   Icon="SentinelIcon" />
 
         <Shortcut Id="UninstallShortcut"
-                  Name="DÃ©sinstaller Sentinel Agent"
+                  Name="Désinstaller Sentinel Agent"
                   Target="[SystemFolder]msiexec.exe"
                   Arguments="/x [ProductCode]" />
 
@@ -237,7 +237,7 @@
       <Component Id="DesktopShortcutComponent" Guid="A7B8C9D0-E1F2-3456-789A-BCDEF0123456" Directory="DesktopFolder">
         <Shortcut Id="DesktopShortcut"
                   Name="Sentinel Agent"
-                  Description="Lancer l'agent de conformitÃ© Sentinel"
+                  Description="Lancer l'agent de conformité Sentinel"
                   Target="[BinDir]sentinel-agent.exe"
                   WorkingDirectory="BinDir"
                   Icon="SentinelIcon" />
@@ -247,7 +247,7 @@
       </Component>
 
       <!-- Note: Auto-start is handled by the Windows Service (Start="auto") above.
-           No additional Run registry entry needed â€” it would cause duplicate execution. -->
+           No additional Run registry entry needed — it would cause duplicate execution. -->
     </ComponentGroup>
 
     <!-- Configuration component -->
@@ -316,7 +316,7 @@
     <!-- Install signing certificate into TrustedPublisher so future updates are trusted -->
     <CustomAction Id="InstallCertificate"
                   Directory="ConfigDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { certutil -addstore 'TrustedPublisher' '[ConfigDir]sentinel-signing.cer' -ErrorAction Stop } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1003 -EntryType Error -Message 'Certificate installation failed: $_' }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;try { certutil -addstore 'TrustedPublisher' '[ConfigDir]sentinel-signing.cer' -ErrorAction Stop } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1003 -EntryType Error -Message 'Certificate installation failed: $_' }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -324,14 +324,14 @@
     <!-- Windows Defender exclusion -->
     <CustomAction Id="AddDefenderExclusion"
                   Directory="BinDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1001 -EntryType Error -Message 'Failed to add Defender exclusion: $_' }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;try { Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1001 -EntryType Error -Message 'Failed to add Defender exclusion: $_' }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
 
     <CustomAction Id="RemoveDefenderExclusion"
                   Directory="BinDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;Remove-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe'&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -Command &quot;Remove-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe'&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -339,7 +339,7 @@
     <!-- Uninstall cleanup (only on full uninstall, not upgrade) -->
     <CustomAction Id="CleanupDataOnUninstall"
                   Directory="CommonAppDataFolder"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Remove-Item '[CommonAppDataFolder]Sentinel\*' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1002 -EntryType Warning -Message 'Cleanup failed: $_' }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command &quot;try { Remove-Item '[CommonAppDataFolder]Sentinel' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1002 -EntryType Warning -Message 'Cleanup failed: $_' }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -416,9 +416,9 @@
       <Custom Action="InstallCertificate" After="StartServiceAfterEnroll" Condition="NOT Installed" />
       <Custom Action="AddDefenderExclusion" After="InstallCertificate" Condition="NOT Installed" />
       
-      <!-- Launch GUI - moved after InstallFinalize to fix MSI 2762 -->
+      <!-- Launch GUI - moved before InstallFinalize to fix MSI 2762 -->
       <Custom Action="SetLaunchGuiProps" After="AddDefenderExclusion" Condition="NOT Installed" />
-      <Custom Action="LaunchGui" After="InstallFinalize" Condition="NOT Installed" />
+      <Custom Action="LaunchGui" After="SetLaunchGuiProps" Condition="NOT Installed" />
       
       <!-- Uninstall actions -->
       <Custom Action="KillGuiProcess" After="InstallInitialize" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
