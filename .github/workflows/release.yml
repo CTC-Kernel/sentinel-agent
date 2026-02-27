@@ -39,23 +39,10 @@ jobs:
 
       - name: Compute next version
         id: bump
-        run: |
-          # Read current version from Cargo.toml (single source of truth)
-          CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
-          echo "Current version: $CURRENT"
-
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
-          BUMP="${{ github.event.inputs.bump }}"
-
-          case "$BUMP" in
-            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
-            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
-            patch) PATCH=$((PATCH + 1)) ;;
-          esac
-
-          NEXT="${MAJOR}.${MINOR}.${PATCH}"
-          echo "Next version: $NEXT (bump=$BUMP)"
-          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+        run: .github/scripts/bump-version.sh
+        shell: bash
+        env:
+          BUMP: ${{ github.event.inputs.bump }}
 
       - name: Update Cargo.toml with new version
         run: |
@@ -73,7 +60,15 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Cargo.toml
           git commit -m "release: v${VERSION}"
-          git tag "v${VERSION}"
+          # Check if tag already exists before creating
+          if git rev-parse "refs/tags/v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${VERSION} already exists, skipping tag creation"
+            echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          else
+            git tag "v${VERSION}"
+            echo "Created tag v${VERSION}"
+            echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          fi
           git push origin HEAD --tags
 
   # ═══════════════════════════════════════════════════════════════════
