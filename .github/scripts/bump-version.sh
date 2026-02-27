@@ -20,6 +20,10 @@ esac
 NEXT="${MAJOR}.${MINOR}.${PATCH}"
 echo "Next version: $NEXT (bump=$BUMP)"
 
+# Update Cargo.toml with new version
+sed -i "0,/^version = \".*\"/{s/^version = \".*\"/version = \"$NEXT\"/}" Cargo.toml
+echo "Updated Cargo.toml to version $NEXT"
+
 # Check if tag already exists
 if git rev-parse "refs/tags/v${NEXT}" >/dev/null 2>&1; then
   echo "Tag v${NEXT} already exists, skipping tag creation"
