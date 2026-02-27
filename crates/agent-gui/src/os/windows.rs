@@ -54,7 +54,7 @@ pub mod software {
         let mut hkey = HKEY::default();
 
         let status = unsafe {
-            RegOpenKeyExW(root, &subkey_hstring, 0, KEY_READ, &mut hkey)
+            RegOpenKeyExW(root, &subkey_hstring, Some(0), KEY_READ, &mut hkey)
         };
         if status.is_err() {
             return Ok(apps); // Key may not exist (e.g. no 32-bit apps), not an error
@@ -69,10 +69,10 @@ pub mod software {
                 RegEnumKeyExW(
                     hkey,
                     index,
-                    windows::core::PWSTR(name_buf.as_mut_ptr()),
+                    Some(windows::core::PWSTR(name_buf.as_mut_ptr())),
                     &mut name_len,
                     None,
-                    windows::core::PWSTR::null(),
+                    Some(windows::core::PWSTR::null()),
                     None,
                     None,
                 )
@@ -101,7 +101,7 @@ pub mod software {
         let mut hkey = HKEY::default();
 
         let status = unsafe {
-            RegOpenKeyExW(parent_key, &subkey_hstring, 0, KEY_READ, &mut hkey)
+            RegOpenKeyExW(parent_key, &subkey_hstring, Some(0), KEY_READ, &mut hkey)
         };
         if status.is_err() {
             return None;
