@@ -33,7 +33,7 @@ fn main() -> Result<(), eframe::Error> {
 
     // Initialize logging for GUI
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
+        .with_max_level(tracing::Level::DEBUG)
         .with_target(false)
         .init();
 
@@ -78,9 +78,123 @@ fn main() -> Result<(), eframe::Error> {
     }
 
     // Create channels for agent communication
-    let (_event_tx, event_rx) = std::sync::mpsc::channel();
+    let (event_tx, event_rx) = std::sync::mpsc::channel();
     let (command_tx, _command_rx) = std::sync::mpsc::channel();
-    let (enrollment_tx, _enrollment_rx) = std::sync::mpsc::channel();
+    let (enrollment_tx, enrollment_rx) = std::sync::mpsc::channel();
+
+    // Spawn background thread to handle enrollment if not enrolled
+    if !enrolled {
+        let bg_event_tx = event_tx.clone();
+        let config_clone = config.clone();
+        std::thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().expect("Failed to create background runtime");
+            rt.block_on(async move {
+                use agent_sync::{EnrollmentManager, CredentialsRepository};
+                use agent_gui::enrollment::EnrollmentCommand;
+                use agent_gui::events::AgentEvent;
+                use agent_storage::{Database, DatabaseConfig, KeyManager};
+
+                while let Ok(cmd) = enrollment_rx.recv() {
+                    match cmd {
+                        EnrollmentCommand::SubmitEnrollment { token, admin_password } => {
+                            tracing::info!("GUI enrollment: processing submission");
+                            let mut enroll_config = config_clone.clone();
+                            enroll_config.enrollment_token = Some(token.clone());
+                            
+                            let db_result = KeyManager::new().and_then(|km| {
+                                Database::open(DatabaseConfig::default(), &km)
+                            });
+
+                            match db_result {
+                                Ok(db) => {
+                                    let enrollment_manager = EnrollmentManager::new(&enroll_config, &db);
+                                    match enrollment_manager.enroll(&token, admin_password).await {
+                                        Ok(creds) => {
+                                            let repo = CredentialsRepository::new(&db);
+                                            if let Err(e) = repo.store(&creds).await {
+                                                tracing::error!("Failed to store credentials: {}", e);
+                                            }
+                                            let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                                success: true,
+                                                message: "Enrôlement réussi !".to_string(),
+                                                agent_id: Some(creds.agent_id.to_string()),
+                                            });
+                                        }
+                                        Err(e) => {
+                                            tracing::warn!("Enrollment failed: {}", e);
+                                            let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                                success: false,
+                                                message: format!("Échec: {}", e),
+                                                agent_id: None,
+                                            });
+                                        }
+                                    }
+                                }
+                                Err(e) => {
+                                    tracing::error!("Failed to open database for enrollment: {}", e);
+                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                        success: false,
+                                        message: format!("Erreur base de données: {}", e),
+                                        agent_id: None,
+                                    });
+                                }
+                            }
+                        }
+                        EnrollmentCommand::SubmitQr(qr_data) => {
+                            tracing::info!("GUI enrollment: processing QR code");
+                            // Simple token-based QR for now
+                            let token = qr_data.trim().to_string();
+                            let mut enroll_config = config_clone.clone();
+                            enroll_config.enrollment_token = Some(token.clone());
+
+                            let db_result = KeyManager::new().and_then(|km| {
+                                Database::open(DatabaseConfig::default(), &km)
+                            });
+
+                            match db_result {
+                                Ok(db) => {
+                                    let enrollment_manager = EnrollmentManager::new(&enroll_config, &db);
+                                    match enrollment_manager.enroll(&token, None).await {
+                                        Ok(creds) => {
+                                            let repo = CredentialsRepository::new(&db);
+                                            let _ = repo.store(&creds).await;
+                                            let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                                success: true,
+                                                message: "Enrôlement QR réussi !".to_string(),
+                                                agent_id: Some(creds.agent_id.to_string()),
+                                            });
+                                        }
+                                        Err(e) => {
+                                            let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                                success: false,
+                                                message: format!("Échec QR: {}", e),
+                                                agent_id: None,
+                                            });
+                                        }
+                                    }
+                                }
+                                Err(e) => {
+                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                        success: false,
+                                        message: format!("Erreur base de données: {}", e),
+                                        agent_id: None,
+                                    });
+                                }
+                            }
+                        }
+                        EnrollmentCommand::Finish => {
+                            tracing::info!("Enrollment finished, closing handler");
+                            break;
+                        }
+                        EnrollmentCommand::Cancel => {
+                            tracing::info!("Enrollment cancelled");
+                            break;
+                        }
+                    }
+                }
+            });
+        });
+    }
 
     // Run the GUI
     agent_gui::run_gui(enrolled, event_rx, command_tx, enrollment_tx)

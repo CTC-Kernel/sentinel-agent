@@ -117,9 +117,12 @@ impl<'a> EnrollmentManager<'a> {
         };
 
         // Call enrollment endpoint
+        tracing::debug!("Sending enrollment request to /v1/agents/enroll");
         let result: crate::types::EnrollmentResult = client
             .post_json_with_token("/v1/agents/enroll", &request, token)
             .await?;
+
+        tracing::debug!("Received enrollment result: {:?}", result);
 
         let response = match result {
             crate::types::EnrollmentResult::Success(r) => r,
