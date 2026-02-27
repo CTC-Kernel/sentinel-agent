@@ -5,16 +5,27 @@
 
 #[cfg(feature = "render")]
 fn main() -> Result<(), eframe::Error> {
-    // Hide console window on Windows
+    // Hide console window on Windows - more robust approach
     #[cfg(windows)]
     unsafe {
-        use winapi::um::wincon::{GetConsoleWindow, ShowWindow};
+        use winapi::um::wincon::{GetConsoleWindow, ShowWindow, FreeConsole};
         use winapi::um::winuser::SW_HIDE;
         
+        // Try to free console first (detaches from parent console)
+        FreeConsole();
+        
+        // Then try to hide any remaining console window
         let console_window = GetConsoleWindow();
         if !console_window.is_null() {
             ShowWindow(console_window, SW_HIDE);
         }
+        
+        // Additional: Set console handle to null to prevent recreation
+        use winapi::um::processenv::SetStdHandle;
+        use winapi::um::fileapi::{INVALID_HANDLE_VALUE, HANDLE};
+        use winapi::um::winbase::STD_OUTPUT_HANDLE;
+        
+        SetStdHandle(STD_OUTPUT_HANDLE, INVALID_HANDLE_VALUE as HANDLE);
     }
 
     // Initialize logging for GUI

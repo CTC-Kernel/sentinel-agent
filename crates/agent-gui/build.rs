@@ -4,6 +4,7 @@ fn main() {
         let mut res = winres::WindowsResource::new();
         res.set_manifest(r#"
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+<assemblyIdentity version="1.0.0.0" processorArchitecture="*" name="SentinelAgent"/>
 <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
         <requestedPrivileges>
@@ -31,6 +32,7 @@ fn main() {
 </application>
 </assembly>
 "#);
+        res.set_subsystem(winres::Subsystem::Windows);
         res.compile().unwrap();
     }
 }
