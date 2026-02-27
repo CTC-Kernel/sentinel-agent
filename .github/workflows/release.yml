@@ -337,7 +337,15 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build release binary
-        run: cargo build --release --features gui --package agent-core
+        run: |
+          # Copy icon to expected locations for build scripts
+          echo "Setting up icons for Windows build..."
+          mkdir -p "crates/agent-gui/assets/icons"
+          mkdir -p "crates/agent-core/assets/icons"
+          cp "assets/icons/sentinel-agent.ico" "crates/agent-gui/assets/icons/"
+          cp "assets/icons/sentinel-agent.ico" "crates/agent-core/assets/icons/"
+          echo "Icons copied successfully"
+          cargo build --release --features gui --package agent-core
 
       - name: Install WiX Toolset
         run: |
