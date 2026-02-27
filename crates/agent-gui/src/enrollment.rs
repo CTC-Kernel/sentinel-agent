@@ -7,7 +7,7 @@
 //! 4. Enrollment in progress
 //! 5. Complete (success/failure)
 
-use egui::Ui;
+use egui::{Ui, Color32};
 
 use crate::icons;
 use crate::theme;
@@ -111,7 +111,7 @@ impl EnrollmentWizard {
 
         // Paint gradient background
         let rect = ui.max_rect();
-        let is_dark = theme::is_dark_mode();
+        let _is_dark = theme::is_dark_mode();
 
         if ui.is_rect_visible(rect) {
             use egui::epaint::{Mesh, Vertex};
@@ -227,9 +227,10 @@ impl EnrollmentWizard {
                     
                     for (i, &color) in core_colors.iter().enumerate() {
                         let color_pulse = (time * 3.0 + i as f32 * 2.0).sin() * 0.5 + 0.5;
+                        let final_color: Color32 = color.linear_multiply(0.3 * color_pulse);
                         ui.ctx()
                             .layer_painter(egui::LayerId::background())
-                            .circle_filled(center, core_size * (1.0 + i as f32 * 0.2), color.linear_multiply(0.3 * color_pulse));
+                            .circle_filled(center, core_size * (1.0 + i as f32 * 0.2), final_color);
                     }
                     
                     // LIGHTNING BOLTS - Dynamic energy arcs
