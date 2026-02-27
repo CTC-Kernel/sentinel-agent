@@ -134,7 +134,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "agent-common"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "blake3",
  "chrono",
@@ -158,7 +158,7 @@ dependencies = [
 
 [[package]]
 name = "agent-core"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "agent-common",
  "agent-fim",
@@ -224,7 +224,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fim"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "agent-common",
  "blake3",
@@ -243,7 +243,7 @@ dependencies = [
 
 [[package]]
 name = "agent-gui"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "agent-common",
  "agent_llm",
@@ -266,15 +266,18 @@ dependencies = [
  "tao",
  "tokio",
  "tracing",
+ "tracing-subscriber",
  "tray-icon",
  "uuid 1.21.0",
+ "winapi",
  "windows 0.58.0",
+ "winres",
  "zeroize",
 ]
 
 [[package]]
 name = "agent-network"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "agent-common",
  "anyhow",
@@ -294,7 +297,7 @@ dependencies = [
 
 [[package]]
 name = "agent-persistence"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -317,7 +320,7 @@ dependencies = [
 
 [[package]]
 name = "agent-scanner"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "agent-common",
  "agent_llm",
@@ -347,7 +350,7 @@ dependencies = [
 
 [[package]]
 name = "agent-siem"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "agent-common",
  "async-trait",
@@ -364,7 +367,7 @@ dependencies = [
 
 [[package]]
 name = "agent-storage"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "agent-common",
  "chrono",
@@ -385,7 +388,7 @@ dependencies = [
 
 [[package]]
 name = "agent-sync"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -412,7 +415,7 @@ dependencies = [
 
 [[package]]
 name = "agent_llm"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -8628,6 +8631,15 @@ dependencies = [
 
 [[package]]
 name = "toml"
+version = "0.5.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4f7f0dd8d50a853a531c426359045b1998f04219d88799810762cd4ad314234"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "toml"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "185d8ab0dfbb35cf1399a6344d8484209c088f75f8f68230da55d48d95d43e3d"
@@ -10356,6 +10368,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "winres"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b68db261ef59e9e52806f688020631e987592bd83619edccda9c47d42cde4f6c"
+dependencies = [
+ "toml 0.5.11",
+]
+
+[[package]]
 name = "wit-bindgen"
 version = "0.51.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10534,7 +10555,7 @@ checksum = "3ae8337f8a065cfc972643663ea4279e04e7256de865aa66fe25cec5fb912d3f"
 
 [[package]]
 name = "xtask"
-version = "2.0.30"
+version = "2.0.31"
 dependencies = [
  "anyhow",
  "clap",
