@@ -4,7 +4,7 @@ fn main() {
         let mut res = winres::WindowsResource::new();
         res.set_manifest(r#"
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-<assemblyIdentity version="1.0.0.0" processorArchitecture="*" name="SentinelAgent"/>
+<assemblyIdentity version="1.0.0.0" processorArchitecture="*" name="SentinelAgentGui"/>
 <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
         <requestedPrivileges>
@@ -32,6 +32,7 @@ fn main() {
 </application>
 </assembly>
 "#);
+        res.set_icon("../../../assets/sentinel-agent.ico");
         res.compile().unwrap();
     }
 }
