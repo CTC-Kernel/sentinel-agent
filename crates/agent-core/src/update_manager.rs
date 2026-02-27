@@ -4,7 +4,7 @@ use agent_common::types::UpdateInfo;
 use semver::Version;
 use std::process::Command;
 use std::sync::Arc;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 /// Orchestrates the agent self-update process.
 pub struct UpdateManager {
@@ -241,6 +241,32 @@ impl UpdateManager {
 
         #[cfg(target_os = "windows")]
         {
+            info!("Executing pre-update process termination for robust install...");
+            
+            // Forcefully terminate any running GUI processes and their children to release file locks.
+            // We use /IM (Image Name) and /T (Tree Kill) /F (Force).
+            // This ensures agent-gui.exe and any sub-processes are completely gone.
+            let kill_gui = Command::new("taskkill")
+                .args(["/F", "/T", "/IM", "agent-gui.exe"])
+                .output();
+                
+            match kill_gui {
+                Ok(output) if output.status.success() => {
+                    info!("Successfully terminated agent-gui.exe process tree.");
+                }
+                Ok(output) => {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    if stderr.contains("not found") || stderr.contains("introuvable") {
+                        debug!("No agent-gui.exe process found to terminate.");
+                    } else {
+                        warn!("Taskkill reported an issue (GUI may still be locked): {}", stderr);
+                    }
+                }
+                Err(e) => {
+                    warn!("Failed to execute taskkill for agent-gui.exe: {}", e);
+                }
+            }
+
             info!("Executing: msiexec /i {} /quiet", path_str);
             Command::new("msiexec")
                 .args(["/i", path_str, "/quiet"])

@@ -57,12 +57,16 @@ pub mod software {
             RegOpenKeyExW(root, &subkey_hstring, Some(0), KEY_READ, &mut hkey)
         };
         if status.is_err() {
-            return Ok(apps); // Key may not exist (e.g. no 32-bit apps), not an error
+            // Log error only if it's not "Not Found" which is expected for WOW6432Node on some systems
+            if status != windows::Win32::Foundation::WIN32_ERROR(2) {
+                tracing::error!("Failed to open registry key {}: {}", subkey_path, status.0);
+            }
+            return Ok(apps); 
         }
 
         let mut index: u32 = 0;
         loop {
-            let mut name_buf = [0u16; 256];
+            let mut name_buf = [0u16; 1024];
             let mut name_len = name_buf.len() as u32;
 
             let status = unsafe {
