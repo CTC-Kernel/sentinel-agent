@@ -32,7 +32,6 @@ fn main() {
 </application>
 </assembly>
 "#);
-        res.set_subsystem(winres::Subsystem::Windows);
         res.compile().unwrap();
     }
 }
