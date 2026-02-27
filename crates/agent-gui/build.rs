@@ -32,7 +32,7 @@ fn main() {
 </application>
 </assembly>
 "#);
-        res.set_icon("assets/icons/sentinel-agent.ico");
+        res.set_icon("../../../assets/icons/sentinel-agent.ico");
         res.compile().unwrap();
     }
 }
