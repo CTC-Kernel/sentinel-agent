@@ -7,42 +7,11 @@
 //! 4. Enrollment in progress
 //! 5. Complete (success/failure)
 
-use egui::{Ui, Color32};
+use egui::Ui;
 
 use crate::icons;
 use crate::theme;
 use crate::widgets;
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/// Convert HSL to RGB for vibrant rainbow colors
-fn hsl_to_rgb(h: f32, s: f32, l: f32) -> egui::Color32 {
-    let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
-    let x = c * (1.0 - ((h * 6.0) % 2.0 - 1.0).abs());
-    let m = l - c / 2.0;
-    
-    let (r, g, b) = if h < 1.0/6.0 {
-        (c, x, 0.0)
-    } else if h < 2.0/6.0 {
-        (x, c, 0.0)
-    } else if h < 3.0/6.0 {
-        (0.0, c, x)
-    } else if h < 4.0/6.0 {
-        (0.0, x, c)
-    } else if h < 5.0/6.0 {
-        (x, 0.0, c)
-    } else {
-        (c, 0.0, x)
-    };
-    
-    egui::Color32::from_rgb(
-        ((r + m) * 255.0) as u8,
-        ((g + m) * 255.0) as u8,
-        ((b + m) * 255.0) as u8,
-    )
-}
 
 // ============================================================================
 // State
@@ -158,7 +127,7 @@ impl EnrollmentWizard {
                 ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.add_space(theme::SPACE_XL);
 
-                    // Hero Image (IA.png) with INSANE Visual Effects
+                    // Hero Image (IA.png) - Professional clean look
                     // Load image from bytes
                     let image = egui::Image::from_bytes(
                         "bytes://ia.png",
@@ -167,93 +136,7 @@ impl EnrollmentWizard {
                     .max_width(theme::ENROLLMENT_LOGO_WIDTH)
                     .corner_radius(egui::CornerRadius::same(theme::ROUNDING_LG));
 
-                    let image_response = ui.add(image);
-
-                    // INSANE VISUAL EFFECTS - Mind-blowing experience
-                    let center = image_response.rect.center();
-                    let base_radius = theme::ENROLLMENT_GLOW_RADIUS;
-                    
-                    // Time-based animations for dynamic effects
-                    let time = ui.ctx().animate_value_with_time(
-                        egui::Id::new("insane_effects"),
-                        0.0,
-                        2.0, // Fast 2-second cycle
-                    );
-                    
-                    // ROTATING PARTICLE RING - Insane visual impact
-                    let particle_count = 12;
-                    for i in 0..particle_count {
-                        let angle = (i as f32 / particle_count as f32) * std::f32::consts::TAU + time * std::f32::consts::TAU;
-                        let particle_radius = base_radius * 1.2;
-                        let particle_x = center.x + angle.cos() * particle_radius;
-                        let particle_y = center.y + angle.sin() * particle_radius;
-                        let particle_pos = egui::Pos2::new(particle_x, particle_y);
-                        
-                        // Rainbow particles with pulsing size
-                        let hue = (time + i as f32 * 0.3) % 1.0;
-                        let particle_color = hsl_to_rgb(hue, 0.8, 0.6);
-                        let particle_size = 4.0 + (time * 3.0).sin() * 2.0;
-                        
-                        ui.ctx()
-                            .layer_painter(egui::LayerId::background())
-                            .circle_filled(particle_pos, particle_size, particle_color);
-                    }
-                    
-                    // EXPLOSIVE RAINBOW HALO - Mind-blowing colors
-                    for ring in 0..5 {
-                        let ring_time = time + ring as f32 * 0.2;
-                        let ring_scale = 1.0 + ring_time.sin() * 0.3;
-                        let ring_radius = base_radius * (0.4 + ring as f32 * 0.3) * ring_scale;
-                        
-                        // Rainbow colors for each ring
-                        let hue = (ring_time * 0.5) % 1.0;
-                        let ring_color = hsl_to_rgb(hue, 0.9, 0.5);
-                        
-                        ui.ctx()
-                            .layer_painter(egui::LayerId::background())
-                            .circle_stroke(center, ring_radius, egui::Stroke::new(3.0 - ring as f32 * 0.5, ring_color));
-                    }
-                    
-                    // PULSATING ENERGY CORE - Explosive center
-                    let core_pulse = (time * 4.0).sin() * 0.5 + 0.5;
-                    let core_size = base_radius * 0.3 * (1.0 + core_pulse * 0.5);
-                    
-                    // Multi-colored energy core
-                    let core_colors = [
-                        Color32::from_rgb(255, 0, 128),   // Hot pink
-                        Color32::from_rgb(0, 255, 255),   // Cyan
-                        Color32::from_rgb(255, 255, 0),   // Yellow
-                    ];
-                    
-                    for (i, &color) in core_colors.iter().enumerate() {
-                        let color_pulse = (time * 3.0 + i as f32 * 2.0).sin() * 0.5 + 0.5;
-                        let final_color: Color32 = color.linear_multiply(0.3 * color_pulse);
-                        ui.ctx()
-                            .layer_painter(egui::LayerId::background())
-                            .circle_filled(center, core_size * (1.0 + i as f32 * 0.2), final_color);
-                    }
-                    
-                    // LIGHTNING BOLTS - Dynamic energy arcs
-                    if (time * 2.0).sin() > 0.7 {
-                        for _ in 0..3 {
-                            let start_angle = time * std::f32::consts::TAU;
-                            let end_angle = start_angle + (time * 5.0).sin() * 0.5;
-                            let start_radius = base_radius * 0.5;
-                            let end_radius = base_radius * 1.5;
-                            
-                            let start_x = center.x + start_angle.cos() * start_radius;
-                            let start_y = center.y + start_angle.sin() * start_radius;
-                            let end_x = center.x + end_angle.cos() * end_radius;
-                            let end_y = center.y + end_angle.sin() * end_radius;
-                            
-                            ui.ctx()
-                                .layer_painter(egui::LayerId::background())
-                                .line_segment(
-                                    [egui::Pos2::new(start_x, start_y), egui::Pos2::new(end_x, end_y)],
-                                    egui::Stroke::new(2.0, Color32::from_rgb(255, 255, 255)),
-                                );
-                        }
-                    }
+                    let _image_response = ui.add(image);
 
                     ui.add_space(theme::SPACE_LG);
 
