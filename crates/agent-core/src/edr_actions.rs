@@ -46,7 +46,7 @@ pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonErro
     #[cfg(target_os = "windows")]
     {
         let output = tokio::process::Command::new("taskkill")
-            .args(["/F", "/PID", &pid.to_string()])
+            .args(["/F", "/T", "/PID", &pid.to_string()])
             .output()
             .await
             .map_err(|e| CommonError::internal(format!("Failed to execute taskkill: {}", e)))?;

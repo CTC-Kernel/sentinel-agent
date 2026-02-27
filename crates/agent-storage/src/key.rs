@@ -43,9 +43,18 @@ impl KeyManager {
             match Self::load_key(&key_path) {
                 Ok(k) => k,
                 Err(e) => {
-                    warn!("Failed to load existing key ({}), generating new key", e);
+                    // Check if database exists before regenerating key
+                    let db_path = AgentConfig::platform_data_dir().join(agent_common::constants::DB_FILE_NAME);
+                    if db_path.exists() {
+                        tracing::error!("Encryption key decryption failed but database exists. Refusing to regenerate key to prevent data loss: {}", e);
+                        return Err(StorageError::EncryptionLost(format!(
+                            "Database exists but key cannot be decrypted ({}). Manual recovery or backup required.",
+                            e
+                        )));
+                    }
+
+                    warn!("Failed to load existing key ({}), generating new key as no DB exists", e);
                     let new_key = Self::generate_key();
-                    // Try to store the new key, but don't fail if we can't
                     if let Err(store_err) = Self::store_key(&key_path, &new_key) {
                         warn!("Failed to store new key: {}", store_err);
                     }
@@ -249,20 +258,12 @@ impl KeyManager {
         };
 
         if let Err(e) = result {
-            warn!("DPAPI decryption failed: {}, regenerating key", e);
-            // If DPAPI decryption fails (corrupted key, machine change, etc.),
-            // generate a new key and replace the corrupted one
-            let key = Self::generate_key();
-            Self::store_key(path, &key)?;
-            return Ok(key);
+            return Err(StorageError::KeyManagement(format!("DPAPI decryption failed: {}", e)));
         }
 
         // Null pointer check before accessing decrypted data
         if data_out.pbData.is_null() {
-            warn!("DPAPI decryption returned null pointer, regenerating key");
-            let key = Self::generate_key();
-            Self::store_key(path, &key)?;
-            return Ok(key);
+            return Err(StorageError::KeyManagement("DPAPI decryption returned null pointer".to_string()));
         }
 
         // Bounds check: verify DPAPI returned exactly KEY_LENGTH bytes
@@ -274,11 +275,10 @@ impl KeyManager {
                     data_out.pbData as *mut _,
                 )));
             }
-            warn!("Invalid decrypted key size: expected {} bytes, got {}. Regenerating key", KEY_LENGTH, decrypted_len);
-            // Generate a new key if size is invalid
-            let key = Self::generate_key();
-            Self::store_key(path, &key)?;
-            return Ok(key);
+            return Err(StorageError::KeyManagement(format!(
+                "Invalid decrypted key size: expected {} bytes, got {}", 
+                KEY_LENGTH, decrypted_len
+            )));
         }
 
         // Additional safety: ensure cbData doesn't exceed what we'll copy

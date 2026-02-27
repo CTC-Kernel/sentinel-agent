@@ -310,7 +310,10 @@ impl AgentConfig {
         }
         #[cfg(windows)]
         {
-            PathBuf::from(r"C:\ProgramData\Sentinel\agent.json")
+            let base = std::env::var("ProgramData")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| PathBuf::from(r"C:\ProgramData"));
+            base.join("Sentinel").join("agent.json")
         }
 
         #[cfg(target_os = "macos")]
@@ -343,7 +346,29 @@ impl AgentConfig {
 
         #[cfg(windows)]
         {
-            PathBuf::from(r"C:\ProgramData\Sentinel")
+            // Use ProgramData if available and writable, otherwise fallback to LocalAppData
+            let program_data = std::env::var("ProgramData")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| PathBuf::from(r"C:\ProgramData"))
+                .join("Sentinel");
+                
+            if program_data.exists() {
+                program_data
+            } else {
+                // Check if we can create it (this is a simplified check)
+                if std::fs::create_dir_all(&program_data).is_ok() {
+                    program_data
+                } else {
+                    // Fallback to LocalAppData
+                    std::env::var("LOCALAPPDATA")
+                        .map(PathBuf::from)
+                        .unwrap_or_else(|_| {
+                            // Absolute last resort
+                            PathBuf::from(r"C:\Users\Public\Documents")
+                        })
+                        .join("Sentinel")
+                }
+            }
         }
 
         #[cfg(target_os = "macos")]
