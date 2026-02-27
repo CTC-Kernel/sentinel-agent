@@ -416,8 +416,8 @@
       <Custom Action="InstallCertificate" After="StartServiceAfterEnroll" Condition="NOT Installed" />
       <Custom Action="AddDefenderExclusion" After="InstallCertificate" Condition="NOT Installed" />
       
-      <!-- Launch GUI at the very end after everything is installed -->
-      <Custom Action="SetLaunchGuiProps" After="InstallFinalize" Condition="NOT Installed" />
+      <!-- Launch GUI - moved before InstallFinalize to fix MSI 2762 -->
+      <Custom Action="SetLaunchGuiProps" After="AddDefenderExclusion" Condition="NOT Installed" />
       <Custom Action="LaunchGui" After="SetLaunchGuiProps" Condition="NOT Installed" />
       
       <!-- Uninstall actions -->
