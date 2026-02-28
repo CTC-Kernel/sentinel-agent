@@ -175,7 +175,7 @@ impl ResourceMonitor {
         let usage = ResourceUsage {
             cpu_percent,
             memory_bytes,
-            disk_kbps,
+            disk_kbps: disk_kbps.try_into().unwrap_or(u32::MAX),
             network_io_bytes,
             uptime_ms,
         };
@@ -1619,45 +1619,10 @@ fn get_process_memory() -> u64 {
         pmc.cb = mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
         
         if GetProcessMemoryInfo(GetCurrentProcess(), &mut pmc, mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32).is_ok() {
-            return pmc.WorkingSetSize;
+            return pmc.WorkingSetSize as u64;
         }
     }
     0
-}
-
-#[cfg(windows)]
-fn get_cpu_usage() -> f64 {
-    use std::sync::Mutex;
-    use std::time::Instant;
-    
-    static CPU_SYSTEM: Mutex<Option<(sysinfo::System, Instant)>> = Mutex::new(None);
-    
-    let mut guard = CPU_SYSTEM.lock().unwrap();
-    let now = Instant::now();
-    
-    match &mut *guard {
-        Some((sys, last_refresh)) => {
-            // Refresh only if enough time has passed (CPU needs time delta)
-            if now.duration_since(*last_refresh).as_millis() >= 500 {
-                sys.refresh_all();
-                *last_refresh = now;
-            }
-            
-            if let Some(process) = sys.process(sysinfo::Pid::from(std::process::id() as usize)) {
-                return process.cpu_usage() as f64;
-            }
-        }
-        None => {
-            let mut sys = sysinfo::System::new_all();
-            sys.refresh_all();
-            *guard = Some((sys, now));
-            
-            // First call always returns 0, need to wait for next refresh
-            return 0.0;
-        }
-    }
-    
-    0.0
 }
 
 // ============ Windows implementations ============
