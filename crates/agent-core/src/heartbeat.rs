@@ -394,6 +394,8 @@ impl AgentRuntime {
                     Err(e) => warn!("Rule sync failed: {}", e),
                 }
             }
+            // Also sync central detection rules
+            self.sync_central_detection_rules().await;
         }
 
         Ok(())
