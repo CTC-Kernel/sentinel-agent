@@ -124,8 +124,11 @@ impl SystemUpdatesCheck {
                     $session = New-Object -ComObject Microsoft.Update.Session
                     $searcher = $session.CreateUpdateSearcher()
 
-                    # Get last search date
-                    $results['LastSearchSuccessDate'] = $searcher.GetTotalHistoryCount()
+                    # Get last search date from registry if possible
+                    $lastSearch = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\Results\Detect" -Name LastSuccessTime -ErrorAction SilentlyContinue
+                    if ($lastSearch) {
+                        $results['LastSearchSuccessDate'] = $lastSearch.LastSuccessTime
+                    }
 
                     # Search for pending updates
                     $searchResult = $searcher.Search("IsInstalled=0")
@@ -151,8 +154,12 @@ impl SystemUpdatesCheck {
                     $results['Error'] = $_.Exception.Message
                 }
 
-                # Check auto-update settings
+                # Check auto-update settings (check both GPO and standard paths)
                 $au = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -ErrorAction SilentlyContinue)
+                if (!$au) {
+                    $au = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\AU' -ErrorAction SilentlyContinue)
+                }
+
                 if ($au) {
                     $results['AUOptions'] = $au.AUOptions
                     $results['NoAutoUpdate'] = $au.NoAutoUpdate

@@ -7,8 +7,7 @@
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(target_os = "windows")]
-use crate::error::ScannerError;
-use crate::error::ScannerResult;
+use crate::error::{ScannerError, ScannerResult};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -150,6 +149,17 @@ impl RemoteAccessCheck {
                 $encLevel = (Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'MinEncryptionLevel' -ErrorAction SilentlyContinue).MinEncryptionLevel
                 $results['EncryptionLevel'] = $encLevel
 
+                # Check GPO RDP settings
+                $gpoRdpPath = 'HKLM:\Software\Policies\Microsoft\Windows NT\Terminal Services'
+                $gpoDeny = Get-ItemProperty -Path $gpoRdpPath -Name 'fDenyTSConnections' -ErrorAction SilentlyContinue
+                if ($null -ne $gpoDeny) { $results['GPO_fDenyTSConnections'] = $gpoDeny.fDenyTSConnections }
+                
+                $gpoAuth = Get-ItemProperty -Path $gpoRdpPath -Name 'UserAuthentication' -ErrorAction SilentlyContinue
+                if ($null -ne $gpoAuth) { $results['GPO_UserAuthentication'] = $gpoAuth.UserAuthentication }
+                
+                $gpoEnc = Get-ItemProperty -Path $gpoRdpPath -Name 'MinEncryptionLevel' -ErrorAction SilentlyContinue
+                if ($null -ne $gpoEnc) { $results['GPO_MinEncryptionLevel'] = $gpoEnc.MinEncryptionLevel }
+
                 # Check WinRM status
                 try {
                     $winrmService = Get-Service WinRM -ErrorAction SilentlyContinue
@@ -188,17 +198,28 @@ impl RemoteAccessCheck {
 
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
-            // RDP configuration
-            let rdp_enabled = json
-                .get("RdpEnabled")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false);
-            let nla_required = json.get("NlaRequired").and_then(|v| v.as_bool());
+            // RDP configuration (GPO overrides)
+            let rdp_deny = json.get("GPO_fDenyTSConnections")
+                .cloned()
+                .or_else(|| json.get("RdpEnabled").map(|e| if e.as_bool() == Some(true) { serde_json::Value::from(0) } else { serde_json::Value::from(1) }))
+                .and_then(|v| v.as_i64());
+            
+            let rdp_enabled = rdp_deny == Some(0);
+            
+            let nla_required = json.get("GPO_UserAuthentication")
+                .cloned()
+                .or_else(|| json.get("NlaRequired").map(|e| if e.as_bool() == Some(true) { serde_json::Value::from(1) } else { serde_json::Value::from(0) }))
+                .and_then(|v| v.as_i64())
+                .map(|v| v == 1);
+
             let rdp_port = json
                 .get("RdpPort")
                 .and_then(|v| v.as_u64())
                 .map(|p| u16::try_from(p).unwrap_or(3389));
-            let enc_level = json.get("EncryptionLevel").and_then(|v| v.as_u64());
+            
+            let enc_level = json.get("GPO_MinEncryptionLevel")
+                .or_else(|| json.get("EncryptionLevel"))
+                .and_then(|v| v.as_u64());
 
             if rdp_enabled {
                 status.remote_access_enabled = true;

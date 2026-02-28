@@ -103,9 +103,10 @@ impl AdminAccountsCheck {
                 r#"
                 $results = @{}
 
-                # Get Local Administrators group members
+                # Get Local Administrators group members using SID S-1-5-32-544 (localized name agnostic)
                 try {
-                    $admins = Get-LocalGroupMember -Group 'Administrators' | Select-Object Name, ObjectClass, PrincipalSource
+                    $adminGroup = Get-LocalGroup -SID 'S-1-5-32-544' -ErrorAction Stop
+                    $admins = Get-LocalGroupMember -Group $adminGroup.Name | Select-Object Name, ObjectClass, PrincipalSource
                     $results['Administrators'] = $admins | ForEach-Object {
                         @{
                             'Name' = $_.Name
@@ -114,22 +115,29 @@ impl AdminAccountsCheck {
                         }
                     }
                 } catch {
-                    # Fallback to net localgroup
-                    $netOutput = net localgroup Administrators 2>&1
-                    $results['NetOutput'] = $netOutput | Out-String
+                    # Fallback to net localgroup with the discovered group name
+                    if ($adminGroup) {
+                        $groupName = $adminGroup.Name
+                        $netOutput = net localgroup "$groupName" 2>&1
+                        $results['NetOutput'] = $netOutput | Out-String
+                    } else {
+                        # Last ditch effort with English name
+                        $netOutput = net localgroup Administrators 2>&1
+                        $results['NetOutput'] = $netOutput | Out-String
+                    }
                 }
 
-                # Check if built-in Administrator is enabled
+                # Check if built-in Administrator is enabled (RID 500)
                 try {
-                    $builtinAdmin = Get-LocalUser -Name 'Administrator' -ErrorAction SilentlyContinue
+                    $builtinAdmin = Get-LocalUser | Where-Object { $_.SID.Value -like '*-500' } | Select-Object -First 1
                     if ($builtinAdmin) {
                         $results['BuiltinAdminEnabled'] = $builtinAdmin.Enabled
                     }
                 } catch {}
 
-                # Check Guest account status
+                # Check Guest account status (RID 501)
                 try {
-                    $guest = Get-LocalUser -Name 'Guest' -ErrorAction SilentlyContinue
+                    $guest = Get-LocalUser | Where-Object { $_.SID.Value -like '*-501' } | Select-Object -First 1
                     if ($guest) {
                         $results['GuestEnabled'] = $guest.Enabled
                     }

@@ -105,16 +105,25 @@ impl SessionLockCheck {
                 $secure = Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name 'ScreenSaverIsSecure' -ErrorAction SilentlyContinue
                 if ($secure) { $results['ScreenSaverIsSecure'] = $secure.ScreenSaverIsSecure }
 
-                # Check power settings for lock on sleep
-                $powerCfg = powercfg /q | Select-String -Pattern 'CONSOLELOCK|Require a password'
-                if ($powerCfg) { $results['PowerSettings'] = ($powerCfg -join '; ') }
+                # Check for GPO enforced screen saver settings
+                $gpoDesktop = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop'
+                $gpoActive = Get-ItemProperty -Path $gpoDesktop -Name 'ScreenSaveActive' -ErrorAction SilentlyContinue
+                if ($null -ne $gpoActive) { $results['GPO_ScreenSaveActive'] = $gpoActive.ScreenSaveActive }
+                
+                $gpoTimeout = Get-ItemProperty -Path $gpoDesktop -Name 'ScreenSaveTimeOut' -ErrorAction SilentlyContinue
+                if ($null -ne $gpoTimeout) { $results['GPO_ScreenSaveTimeOut'] = $gpoTimeout.ScreenSaveTimeOut }
+                
+                $gpoSecure = Get-ItemProperty -Path $gpoDesktop -Name 'ScreenSaverIsSecure' -ErrorAction SilentlyContinue
+                if ($null -ne $gpoSecure) { $results['GPO_ScreenSaverIsSecure'] = $gpoSecure.ScreenSaverIsSecure }
 
-                # Check for GPO enforced settings
-                $gpo = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Control Panel\Desktop' -ErrorAction SilentlyContinue
-                if ($gpo) {
-                    if ($gpo.ScreenSaveTimeOut) { $results['GPO_ScreenSaveTimeOut'] = $gpo.ScreenSaveTimeOut }
-                    if ($gpo.ScreenSaverIsSecure) { $results['GPO_ScreenSaverIsSecure'] = $gpo.ScreenSaverIsSecure }
-                }
+                # Check lock on sleep GPO (0e796bdb-100d-47d6-a2d5-3f248d235517 = Require a password on wakeup)
+                $gpoPower = 'HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5-3f248d235517'
+                $acSetting = Get-ItemProperty -Path $gpoPower -Name 'ACSettingIndex' -ErrorAction SilentlyContinue
+                if ($null -ne $acSetting) { $results['GPO_LockOnResumeAC'] = $acSetting.ACSettingIndex }
+                
+                # Check power settings for lock on sleep via powercfg (fallback/additional)
+                $powerCfg = powercfg /q 381b4222-f694-41f0-9685-ff5bb260df2e 0e796bdb-100d-47d6-a2d5-3f248d235517 2>&1
+                if ($powerCfg) { $results['PowerCfgOutput'] = ($powerCfg -join "\n") }
 
                 $results | ConvertTo-Json
                 "#,
@@ -137,39 +146,47 @@ impl SessionLockCheck {
 
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
-            // Screen saver active
-            if let Some(active) = json.get("ScreenSaveActive").and_then(|v| v.as_str()) {
-                status.lock_enabled = active == "1";
-            }
+            // Screen saver active (GPO overrides)
+            let active = json.get("GPO_ScreenSaveActive")
+                .or_else(|| json.get("ScreenSaveActive"))
+                .and_then(|v| {
+                    if v.is_string() { v.as_str() } 
+                    else if v.is_number() { Some(if v.as_i64() == Some(1) { "1" } else { "0" }) }
+                    else { None }
+                });
+            status.lock_enabled = active == Some("1");
 
-            // GPO overrides user settings
-            if let Some(active) = json.get("GPO_ScreenSaveActive").and_then(|v| v.as_str()) {
-                status.lock_enabled = active == "1";
-            }
-
-            // Timeout in seconds -> convert to minutes (ceiling division to avoid rounding sub-minute to 0)
+            // Timeout in seconds -> convert to minutes
             if let Some(timeout) = json
                 .get("GPO_ScreenSaveTimeOut")
                 .or_else(|| json.get("ScreenSaveTimeOut"))
-                .and_then(|v| v.as_str())
-                .and_then(|s| s.parse::<u32>().ok())
+                .and_then(|v| {
+                    if v.is_string() { v.as_str().and_then(|s| s.parse::<u32>().ok()) }
+                    else if v.is_number() { v.as_u64().map(|n| n as u32) }
+                    else { None }
+                })
             {
                 status.timeout_minutes = Some(timeout.div_ceil(60));
             }
 
             // Password required
-            if let Some(secure) = json
+            let secure = json
                 .get("GPO_ScreenSaverIsSecure")
                 .or_else(|| json.get("ScreenSaverIsSecure"))
-                .and_then(|v| v.as_str())
-            {
-                status.require_password = secure == "1";
-            }
+                .and_then(|v| {
+                    if v.is_string() { v.as_str() }
+                    else if v.is_number() { Some(if v.as_i64() == Some(1) { "1" } else { "0" }) }
+                    else { None }
+                });
+            status.require_password = secure == Some("1");
 
-            // Lock on suspend (from power settings)
-            if let Some(power) = json.get("PowerSettings").and_then(|v| v.as_str()) {
-                status.lock_on_suspend =
-                    power.to_lowercase().contains("yes") || power.contains("0x001");
+            // Lock on suspend
+            let gpo_lock = json.get("GPO_LockOnResumeAC").and_then(|v| v.as_i64());
+            if let Some(1) = gpo_lock {
+                status.lock_on_suspend = true;
+            } else if let Some(power) = json.get("PowerCfgOutput").and_then(|v| v.as_str()) {
+                // Look for "Current AC Power Setting Index: 0x00000001" or localized equivalent
+                status.lock_on_suspend = power.contains("0x00000001") || power.to_lowercase().contains("yes");
             }
         }
 
