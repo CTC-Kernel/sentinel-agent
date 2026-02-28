@@ -401,6 +401,9 @@ jobs:
           $pfxBytes = [System.IO.File]::ReadAllBytes($pfxPath)
           $pfxBase64 = [System.Convert]::ToBase64String($pfxBytes)
           
+          # Copier le certificat pour WiX
+          Copy-Item $cerPath "sentinel-selfsigned.cer"
+          
           Write-Host "✅ Certificat auto-signé persistant créé"
           Write-Host "   Thumbprint: $($cert.Thumbprint)"
           Write-Host "   Valide jusqu'à: $($cert.NotAfter.ToString('yyyy-MM-dd'))"
