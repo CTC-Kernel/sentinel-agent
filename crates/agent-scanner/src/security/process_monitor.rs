@@ -290,41 +290,47 @@ impl ProcessMonitor {
     fn get_processes(&self) -> ScannerResult<Vec<ProcessInfo>> {
         use std::process::Command;
 
+        // Use Get-CimInstance (fallback to Get-WmiObject if needed) to get CommandLine which Get-Process lacks
         let output = Command::new("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
-                "Get-Process | Select-Object Id,ProcessName,Path | ConvertTo-Json",
+                "Get-CimInstance Win32_Process | Select-Object ProcessId,Name,Path,CommandLine | ConvertTo-Json",
             ])
             .output()
             .map_err(|e| {
-                crate::error::ScannerError::Command(format!("Failed to run Get-Process: {}", e))
+                crate::error::ScannerError::Command(format!("Failed to run Get-CimInstance: {}", e))
             })?;
 
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "PascalCase")]
         struct WinProcess {
-            id: u32,
-            process_name: String,
+            process_id: u32,
+            name: String,
             path: Option<String>,
+            command_line: Option<String>,
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        let processes: Vec<WinProcess> = match serde_json::from_str(&stdout) {
-            Ok(p) => p,
-            Err(e) => {
-                tracing::warn!("Failed to parse PowerShell process list: {}", e);
-                Vec::new()
+        let processes: Vec<WinProcess> = if stdout.trim().is_empty() {
+            Vec::new()
+        } else if stdout.trim().starts_with('[') {
+            serde_json::from_str(&stdout).unwrap_or_default()
+        } else {
+            // Handle single object output from ConvertTo-Json
+            match serde_json::from_str::<WinProcess>(&stdout) {
+                Ok(p) => vec![p],
+                Err(_) => Vec::new(),
             }
         };
 
         Ok(processes
             .into_iter()
             .map(|p| ProcessInfo {
-                pid: p.id,
-                name: p.process_name,
+                pid: p.process_id,
+                name: p.name,
                 path: p.path,
-                cmdline: None,
+                cmdline: p.command_line,
                 ppid: None,
                 user: None,
             })

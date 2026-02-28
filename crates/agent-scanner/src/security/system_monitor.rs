@@ -434,11 +434,17 @@ impl SystemMonitor {
     async fn check_admin_accounts(&self) -> Option<SecurityIncident> {
         use std::process::Command;
 
+        // Use SID S-1-5-32-544 to find the Administrators group name reliably across localizations
         let output = Command::new("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
-                r#"Get-LocalGroupMember -Group "Administrators" | Select-Object -ExpandProperty Name"#,
+                r#"
+                $group = Get-LocalGroup -Sid "S-1-5-32-544" -ErrorAction SilentlyContinue
+                if ($group) {
+                    Get-LocalGroupMember -Group $group.Name | Select-Object -ExpandProperty Name
+                }
+                "#,
             ])
             .output();
 
