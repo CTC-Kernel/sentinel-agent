@@ -472,6 +472,7 @@ impl ApiClient {
                 .as_ref()
                 .map(|s| SecretString(s.clone())),
             client_key: config.client_key.as_ref().map(|s| SecretString(s.clone())),
+            organization_id: config.organization_id.clone(),
         })
     }
 
