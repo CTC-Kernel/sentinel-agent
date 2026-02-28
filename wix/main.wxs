@@ -392,15 +392,11 @@
 
     <!-- Launch GUI after install (runs as current user so window is visible) -->
     <CustomAction Id="LaunchGui"
-                  Directory="BinDir"
-                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; --gui"
+                  Directory="INSTALLDIR"
+                  ExeCommand="bin\sentinel-agent.exe --gui"
                   Execute="deferred"
                   Impersonate="yes"
                   Return="asyncNoWait" />
-
-    <CustomAction Id="SetLaunchGuiProps"
-                  Property="LaunchGui"
-                  Value="BinDir=[BinDir]" />
 
     <!-- Installation sequence -->
     <InstallExecuteSequence>
@@ -417,7 +413,6 @@
       <Custom Action="AddDefenderExclusion" After="InstallCertificate" Condition="NOT Installed" />
       
       <!-- Launch GUI - moved after InstallFinalize to fix MSI 2762 -->
-      <Custom Action="SetLaunchGuiProps" After="AddDefenderExclusion" Condition="NOT Installed" />
       <Custom Action="LaunchGui" After="InstallFinalize" Condition="NOT Installed" />
       
       <!-- Uninstall actions -->
