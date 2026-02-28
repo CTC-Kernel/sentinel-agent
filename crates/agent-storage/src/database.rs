@@ -78,8 +78,11 @@ impl Database {
         let key = key_manager.get_database_key()?;
 
         // Open the database connection with retry logic for Windows file locking
+        #[allow(unused_mut, unused_variables)]
         let mut retry_count = 0;
+        #[allow(unused_variables)]
         let max_retries = 5;
+        #[allow(unused_variables)]
         let retry_delay = std::time::Duration::from_millis(100);
 
         let connection = loop {
