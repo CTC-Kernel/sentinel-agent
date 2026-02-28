@@ -1593,8 +1593,9 @@ fn get_disk_bytes() -> u64 {
         .as_secs();
 
     unsafe {
-        let mut info: rusage_info_v4 = mem::zeroed();
-        if proc_pid_rusage(libc::RUSAGE_INFO_V4, &mut info as *mut _ as *mut libc::c_void) == 0 {
+        let mut info: libc::rusage_info_v4 = mem::zeroed();
+        let pid = std::process::id() as libc::c_int;
+        if libc::proc_pid_rusage(pid, libc::RUSAGE_INFO_V4, &mut info as *mut _ as *mut libc::rusage_info_t) == 0 {
             // Total bytes read + written
             let total = info.ri_diskio_bytesread + info.ri_diskio_byteswritten;
             LAST_BYTES.store(total, Ordering::Relaxed);
