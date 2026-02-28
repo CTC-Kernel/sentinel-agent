@@ -2149,12 +2149,12 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
     // Launch GUI on main thread (blocks until window closes)
     match agent_gui::run_gui(enrolled, event_rx, command_tx, enrollment_tx) {
         Ok(()) => {
-            info!("GUI exited normally");
-            ExitCode::SUCCESS
+            info!("GUI exited normally, terminating process");
+            std::process::exit(0);
         }
         Err(e) => {
             error!("GUI error: {}", e);
-            ExitCode::FAILURE
+            std::process::exit(1);
         }
     }
 }
