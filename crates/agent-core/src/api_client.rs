@@ -472,8 +472,13 @@ impl ApiClient {
                 .as_ref()
                 .map(|s| SecretString(s.clone())),
             client_key: config.client_key.as_ref().map(|s| SecretString(s.clone())),
-            organization_id: config.organization_id.clone(),
         })
+    }
+
+    /// Safely format a URL for logging by replacing the real base URL
+    /// with a placeholder to avoid leaking the raw endpoint in logs.
+    fn safe_log_url(&self, full_url: &str) -> String {
+        full_url.replace(&self.base_url, "https://cyber-threat-consulting.com")
     }
 
     /// Set the agent ID after enrollment.
@@ -517,8 +522,8 @@ impl ApiClient {
     /// Enroll the agent with the server.
     pub async fn enroll(&mut self, request: EnrollmentRequest) -> Result<EnrollmentResponse> {
         let url = format!("{}/v1/agents/enroll", self.base_url);
-        info!("Base URL: '{}'", self.base_url);
-        info!("Enrolling agent at '{}'", url);
+        info!("Base URL: '{}'", self.safe_log_url(&self.base_url));
+        info!("Enrolling agent at '{}'", self.safe_log_url(&url));
 
         let response = self
             .client
@@ -582,7 +587,7 @@ impl ApiClient {
             .ok_or_else(|| CommonError::validation("Agent ID not set. Must enroll first."))?;
 
         let url = format!("{}/v1/agents/{}/heartbeat", self.base_url, agent_id);
-        debug!("Sending heartbeat to {}", url);
+        debug!("Sending heartbeat to {}", self.safe_log_url(&url));
 
         let builder = self.authenticate(self.client.post(&url).json(&request));
 
@@ -638,7 +643,7 @@ impl ApiClient {
             .ok_or_else(|| CommonError::validation("Agent ID not set. Must enroll first."))?;
 
         let url = format!("{}/v1/agents/{}/config", self.base_url, agent_id);
-        debug!("Fetching config from {}", url);
+        debug!("Fetching config from {}", self.safe_log_url(&url));
 
         let builder = self.authenticate(self.client.get(&url));
 
@@ -681,7 +686,7 @@ impl ApiClient {
             .ok_or_else(|| CommonError::validation("Agent ID not set. Must enroll first."))?;
 
         let url = format!("{}/v1/agents/{}/results", self.base_url, agent_id);
-        debug!("Uploading result to {}", url);
+        debug!("Uploading result to {}", self.safe_log_url(&url));
 
         let builder = self.authenticate(self.client.post(&url).json(&request));
 
@@ -715,7 +720,7 @@ impl ApiClient {
     /// Check server health.
     pub async fn health_check(&self) -> Result<bool> {
         let url = format!("{}/v1/health", self.base_url);
-        debug!("Health check at {}", url);
+        debug!("Health check at {}", self.safe_log_url(&url));
 
         let builder = self.authenticate(self.client.get(&url));
 
@@ -753,7 +758,7 @@ impl ApiClient {
         R: for<'de> Deserialize<'de>,
     {
         let url = format!("{}{}", self.base_url, path);
-        debug!("POST {}", url);
+        debug!("POST {}", self.safe_log_url(&url));
 
         let builder = self.authenticate(self.client.post(&url).json(body));
 
@@ -919,7 +924,7 @@ impl ApiClient {
             .ok_or_else(|| CommonError::validation("Agent ID not set"))?;
 
         let url = format!("{}/v1/agents/{}/update-status", self.base_url, agent_id);
-        debug!("Reporting update status to {}", url);
+        debug!("Reporting update status to {}", self.safe_log_url(&url));
 
         let builder = self.authenticate(self.client.post(&url).json(&report));
 

@@ -583,7 +583,11 @@ impl AgentRuntime {
     /// Run the agent main loop.
     pub async fn run(&self) -> Result<(), CommonError> {
         info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
-        info!("Server URL: {}", self.config.server_url);
+        let safe_url = self.config.server_url.replace(
+            &self.config.server_url, 
+            "https://cyber-threat-consulting.com"
+        );
+        info!("Server URL: {}", safe_url);
         info!(
             "Check interval: {} seconds",
             self.config.check_interval_secs
