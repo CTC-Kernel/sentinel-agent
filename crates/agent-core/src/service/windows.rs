@@ -85,6 +85,9 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 
     info!("Sentinel GRC Agent service started");
 
+    // Perform environment self-check
+    check_environment();
+
     // Initialize and run the agent
     {
         use agent_common::config::AgentConfig;
@@ -510,5 +513,48 @@ pub fn is_elevated() -> bool {
         let _ = windows::Win32::Foundation::CloseHandle(token_handle);
 
         result.is_ok() && elevation.TokenIsElevated != 0
+    }
+}
+
+/// Perform a basic environment check to ensure critical tools are available.
+fn check_environment() {
+    use std::process::Command;
+
+    info!("Performing environment self-check...");
+
+    // Check PowerShell availability and version
+    match Command::new("powershell")
+        .args(["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"])
+        .output()
+    {
+        Ok(output) if output.status.success() => {
+            let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            info!("PowerShell available: v{}", version);
+        }
+        Ok(output) => {
+            warn!(
+                "PowerShell returned error status {}: {}",
+                output.status,
+                String::from_utf8_lossy(&output.stderr).trim()
+            );
+        }
+        Err(e) => {
+            error!("PowerShell NOT available: {}. Many compliance checks will fail!", e);
+        }
+    }
+
+    // Check for critical system tools used by the agent
+    let tools = ["msiexec", "taskkill", "sc.exe", "netstat"];
+    for tool in tools {
+        // Use 'where' on Windows to check for existence
+        match Command::new("where").arg(tool).output() {
+            Ok(output) if output.status.success() => {
+                let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                debug!("System tool '{}' found at: {}", tool, path);
+            }
+            _ => {
+                warn!("System tool '{}' not found in PATH. Some features may be limited.", tool);
+            }
+        }
     }
 }
