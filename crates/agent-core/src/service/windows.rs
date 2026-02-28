@@ -107,7 +107,32 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
             }
         };
 
-        let db = match Database::open(DatabaseConfig::default(), &key_manager) {
+        let default_config = DatabaseConfig::default();
+
+        // Check for pending safe-restore file on Windows startup
+        let restore_path = default_config.path.with_extension("restore");
+        if restore_path.exists() {
+            info!("Found pending database restore file at {}. Applying restore...", restore_path.display());
+            
+            let bak_path = default_config.path.with_extension("bak");
+            if default_config.path.exists() {
+                if let Err(e) = std::fs::rename(&default_config.path, &bak_path) {
+                    warn!("Failed to back up current database before restore (may already be in use): {}", e);
+                }
+            }
+            
+            match std::fs::rename(&restore_path, &default_config.path) {
+                Ok(_) => info!("Database restore applied successfully"),
+                Err(e) => {
+                    error!("CRITICAL: Failed to apply database restore file: {}", e);
+                    if bak_path.exists() && !default_config.path.exists() {
+                        let _ = std::fs::rename(&bak_path, &default_config.path);
+                    }
+                }
+            }
+        }
+
+        let db = match Database::open(default_config, &key_manager) {
             Ok(db) => db,
             Err(e) => {
                 error!("Failed to open database: {}", e);
