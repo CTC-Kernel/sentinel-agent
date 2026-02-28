@@ -48,6 +48,7 @@ pub use retention::{RetentionConfig, RetentionPolicy, RetentionResult, StorageSt
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use tempfile::TempDir;
 
     #[test]
@@ -65,7 +66,7 @@ mod tests {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         runtime
             .block_on(async {
-                db.with_connection(|conn| {
+                db.with_connection(|conn: &rusqlite::Connection| -> Result<(), StorageError> {
                     conn.execute_batch(
                         "CREATE TABLE IF NOT EXISTS config (
                         key TEXT PRIMARY KEY,
@@ -89,11 +90,11 @@ mod tests {
         // Query the data back
         let value: String = runtime
             .block_on(async {
-                db.with_connection(|conn| {
+                db.with_connection(|conn: &rusqlite::Connection| {
                     conn.query_row(
                         "SELECT value FROM config WHERE key = ?",
                         ["server_url"],
-                        |row| row.get(0),
+                        |row| -> Result<String, rusqlite::Error> { row.get(0) },
                     )
                     .map_err(|e| StorageError::Query(e.to_string()))
                 })
