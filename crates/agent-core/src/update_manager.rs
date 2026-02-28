@@ -4,6 +4,7 @@ use agent_common::types::UpdateInfo;
 use semver::Version;
 use std::process::Command;
 use std::sync::Arc;
+#[allow(unused_imports)]
 use tracing::{debug, error, info, warn};
 
 /// Orchestrates the agent self-update process.
