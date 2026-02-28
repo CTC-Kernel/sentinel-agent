@@ -12,6 +12,7 @@ use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
 use tracing::{debug, info, warn};
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Length of the encryption key in bytes (256 bits for AES-256).
 const KEY_LENGTH: usize = 32;
@@ -26,6 +27,7 @@ const KEY_FILE_NAME: &str = "key.dpapi";
 /// Key manager for database encryption.
 ///
 /// Handles key derivation, storage, and retrieval for SQLCipher encryption.
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct KeyManager {
     /// The encryption key (32 bytes for AES-256).
     key: [u8; KEY_LENGTH],
@@ -294,7 +296,7 @@ impl KeyManager {
 
         // Free the DPAPI-allocated memory
         unsafe {
-            windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
+            let _ = windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
             )));
         }
@@ -392,7 +394,7 @@ impl KeyManager {
                 std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec();
 
             // Free the allocated memory
-            windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
+            let _ = windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
             )));
 
@@ -414,18 +416,7 @@ impl KeyManager {
     }
 }
 
-/// Zeroize the key from memory on drop to prevent key leakage.
-impl Drop for KeyManager {
-    fn drop(&mut self) {
-        // Volatile write to prevent the compiler from optimizing away the zeroization
-        for byte in self.key.iter_mut() {
-            unsafe {
-                std::ptr::write_volatile(byte, 0);
-            }
-        }
-    }
-}
-
+/// Use zeroize's generated implementation for Drop
 impl Default for KeyManager {
     fn default() -> Self {
         match Self::new() {

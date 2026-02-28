@@ -99,7 +99,7 @@ impl<'a> KeyRotationManager<'a> {
         })?;
         
         let backup_metadata = backup_manager
-            .create_backup(BackupReason::PreKeyRotation)
+            .create_backup(old_key_manager, BackupReason::PreKeyRotation)
             .map_err(|e| {
                 PersistenceError::KeyRotation(format!(
                     "CRITICAL: Pre-rotation backup failed - aborting key rotation to prevent data loss: {}",

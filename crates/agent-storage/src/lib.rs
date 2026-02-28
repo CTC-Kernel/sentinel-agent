@@ -48,7 +48,6 @@ pub use retention::{RetentionConfig, RetentionPolicy, RetentionResult, StorageSt
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use tempfile::TempDir;
 
     #[test]

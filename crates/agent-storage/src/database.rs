@@ -12,7 +12,7 @@ use rusqlite::Connection;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 /// Database configuration.
 #[derive(Debug, Clone)]
@@ -77,13 +77,41 @@ impl Database {
         // Get the encryption key
         let key = key_manager.get_database_key()?;
 
-        // Open the database connection
-        let connection = if config.create_if_missing {
-            Connection::open(&config.path)
-        } else {
-            Connection::open_with_flags(&config.path, rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE)
-        }
-        .map_err(|e| StorageError::Connection(e.to_string()))?;
+        // Open the database connection with retry logic for Windows file locking
+        let mut retry_count = 0;
+        let max_retries = 5;
+        let retry_delay = std::time::Duration::from_millis(100);
+
+        let connection = loop {
+            let result = if config.create_if_missing {
+                Connection::open(&config.path)
+            } else {
+                Connection::open_with_flags(&config.path, rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE)
+            };
+
+            match result {
+                Ok(conn) => break conn,
+                Err(e) => {
+                    #[cfg(windows)]
+                    {
+                        // SQLITE_BUSY (5) or SQLITE_CANTOPEN (14) often occur on Windows when 
+                        // another process (like an AV scanner or backup tool) has a brief lock.
+                        if retry_count < max_retries {
+                            retry_count += 1;
+                            warn!("Database is busy or cannot be opened, retrying in {:?} (attempt {}/{}): {}", 
+                                retry_delay, retry_count, max_retries, e);
+                            std::thread::sleep(retry_delay);
+                            continue;
+                        }
+                    }
+                    return Err(StorageError::Connection(e.to_string()));
+                }
+            }
+        };
+
+        // Set busy timeout immediately to handle concurrent access gracefully
+        connection.busy_timeout(std::time::Duration::from_millis(5000))
+            .map_err(|e| StorageError::Initialization(format!("Failed to set busy timeout: {}", e)))?;
 
         // Set the encryption key using SQLCipher pragma
         Self::set_encryption_key(&connection, &key)?;

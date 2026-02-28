@@ -10,7 +10,7 @@
 //! - Cryptographic settings
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::{ScannerError, ScannerResult};
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
