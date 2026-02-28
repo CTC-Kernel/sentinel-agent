@@ -426,11 +426,12 @@ pub struct StoredDetectionRule {
     pub name: String,
     pub description: String,
     pub severity: String,
-    pub log_source: String,
-    pub condition: String, // JSON
+    pub conditions: String, // JSON array of conditions
+    pub actions: String,    // JSON array of actions
     pub enabled: bool,
     pub created_at: String,
-    pub updated_at: String,
+    pub last_match: Option<String>,
+    pub match_count: i32,
     pub synced: bool,
 }
 
@@ -448,13 +449,13 @@ impl<'a> DetectionRuleRepository<'a> {
             conn.execute(
                 r#"
                 INSERT OR REPLACE INTO detection_rules
-                (id, name, description, severity, log_source, condition, enabled, created_at, updated_at, synced)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+                (id, name, description, severity, conditions, actions, enabled, created_at, last_match, match_count, synced)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
                 "#,
                 rusqlite::params![
                     entity.id, entity.name, entity.description, entity.severity,
-                    entity.log_source, entity.condition, enabled_int, entity.created_at,
-                    entity.updated_at, synced_int
+                    entity.conditions, entity.actions, enabled_int, entity.created_at,
+                    entity.last_match, entity.match_count, synced_int
                 ],
             ).map_err(|e| StorageError::Query(format!("Failed to upsert detection rule: {}", e)))?;
             Ok(())
@@ -463,14 +464,15 @@ impl<'a> DetectionRuleRepository<'a> {
 
     pub async fn get_all(&self) -> StorageResult<Vec<StoredDetectionRule>> {
         self.db.with_connection(|conn| {
-            let mut stmt = conn.prepare("SELECT * FROM detection_rules").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+            let mut stmt = conn.prepare("SELECT id, name, description, severity, conditions, actions, enabled, created_at, last_match, match_count, synced FROM detection_rules").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
             let rows = stmt.query_map([], |row| {
                 Ok(StoredDetectionRule {
                     id: row.get(0)?, name: row.get(1)?, description: row.get(2)?,
-                    severity: row.get(3)?, log_source: row.get(4)?, condition: row.get(5)?,
+                    severity: row.get(3)?, conditions: row.get(4)?, actions: row.get(5)?,
                     enabled: row.get::<_, i32>(6)? != 0,
-                    created_at: row.get(7)?, updated_at: row.get(8)?,
-                    synced: row.get::<_, i32>(9)? != 0,
+                    created_at: row.get(7)?, last_match: row.get(8)?,
+                    match_count: row.get(9)?,
+                    synced: row.get::<_, i32>(10)? != 0,
                 })
             }).map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
             .collect::<Result<Vec<_>, _>>().map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;

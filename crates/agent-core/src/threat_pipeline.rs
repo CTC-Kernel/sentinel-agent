@@ -150,6 +150,7 @@ pub async fn ai_classify_matches(
 /// Run the full autonomous pipeline: detect -> classify -> respond.
 ///
 /// Call this after each security scan cycle in the main loop.
+/// Returns the list of detection rule matches for sync to the platform.
 #[cfg(feature = "gui")]
 pub async fn run_threat_pipeline(
     rules: &[agent_gui::dto::DetectionRule],
@@ -158,14 +159,14 @@ pub async fn run_threat_pipeline(
     gui_tx: &Option<std::sync::mpsc::Sender<agent_gui::events::AgentEvent>>,
     #[cfg(feature = "llm")]
     llm_service: Option<&crate::llm_service::LLMService>,
-) {
+) -> Vec<RuleMatch> {
     // Step 1: Evaluate detection rules
     #[allow(unused_mut)]
     let mut matches = evaluate_detection_rules(rules, context);
 
     if matches.is_empty() {
         debug!("Threat pipeline: no detection rule matches");
-        return;
+        return Vec::new();
     }
 
     info!("Threat pipeline: {} detection rule matches found", matches.len());
@@ -271,6 +272,8 @@ pub async fn run_threat_pipeline(
             }
         }
     }
+
+    matches
 }
 
 /// Convert stored detection rules from the database into GUI DTOs for pipeline evaluation.
@@ -289,7 +292,7 @@ pub fn stored_rules_to_dto(
             _ => agent_gui::dto::Severity::Medium,
         };
         let conditions: Vec<agent_gui::dto::DetectionCondition> =
-            serde_json::from_str(&s.condition).unwrap_or_default();
+            serde_json::from_str(&s.conditions).unwrap_or_default();
         let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or_else(|_| chrono::Utc::now());
