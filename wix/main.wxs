@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   Sentinel GRC Agent - Windows Installer (MSI)
 
@@ -33,12 +33,12 @@
     <Property Id="ARPURLINFOABOUT" Value="https://cyber-threat-consulting.com" />
 
     <SummaryInformation
-      Description="Agent de conformitÃ© endpoint pour la plateforme Sentinel GRC"
+      Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
       Manufacturer="Cyber Threat Consulting" />
 
     <!-- Upgrade handling - remove previous versions -->
     <MajorUpgrade
-      DowngradeErrorMessage="Une version plus rÃ©cente de [ProductName] est dÃ©jÃ  installÃ©e."
+      DowngradeErrorMessage="Une version plus récente de [ProductName] est déjà installée."
       Schedule="afterInstallInitialize" />
 
     <!-- Embedded UI for progress during silent install -->
@@ -65,9 +65,9 @@
         <Control Id="ServerLabel" Type="Text" X="20" Y="110" Width="100" Height="15" Text="URL du serveur:" />
         <Control Id="ServerEdit" Type="Edit" X="20" Y="128" Width="330" Height="18" Property="SERVERURL" />
 
-        <Control Id="AutoStartCheck" Type="CheckBox" X="20" Y="160" Width="330" Height="17" Property="AUTOSTART" CheckBoxValue="1" Text="DÃ©marrer automatiquement avec Windows" />
+        <Control Id="AutoStartCheck" Type="CheckBox" X="20" Y="160" Width="330" Height="17" Property="AUTOSTART" CheckBoxValue="1" Text="Démarrer automatiquement avec Windows" />
 
-        <Control Id="Info" Type="Text" X="20" Y="190" Width="330" Height="30" Text="L'agent se connectera au serveur Sentinel GRC aprÃ¨s l'installation pour vÃ©rifier la conformitÃ© de cet ordinateur." />
+        <Control Id="Info" Type="Text" X="20" Y="190" Width="330" Height="30" Text="L'agent se connectera au serveur Sentinel GRC après l'installation pour vérifier la conformité de cet ordinateur." />
 
         <Control Id="BottomLine" Type="Line" X="0" Y="224" Width="370" Height="0" />
         <Control Id="Back" Type="PushButton" X="180" Y="237" Width="56" Height="17" Text="Retour">
@@ -157,7 +157,7 @@
           Id="SentinelServiceInstall"
           Name="SentinelGRCAgent"
           DisplayName="Sentinel Agent"
-          Description="Agent de conformitÃ© endpoint pour la plateforme Sentinel GRC"
+          Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
           Type="ownProcess"
           Start="auto"
           ErrorControl="normal"
@@ -172,10 +172,12 @@
           RestartServiceDelayInSeconds="60"
           ResetPeriodInDays="1" />
 
+        <!-- Service control: stop on install/uninstall, remove on uninstall.
+             Do NOT auto-start on install — the GUI handles the runtime during
+             the interactive session. The service starts on next boot via Start="auto". -->
         <ServiceControl
           Id="SentinelServiceControl"
           Name="SentinelGRCAgent"
-          Start="install"
           Stop="both"
           Remove="uninstall"
           Wait="yes" />
@@ -223,7 +225,7 @@
       <Component Id="StartMenuShortcuts" Guid="F6A7B8C9-D0E1-2345-6789-0ABCDEF12345" Directory="SentinelMenuFolder">
         <Shortcut Id="StartMenuShortcut"
                   Name="Sentinel Agent"
-                  Description="Lancer l'agent de conformitÃ© Sentinel"
+                  Description="Lancer l'agent de conformité Sentinel"
                   Target="[BinDir]sentinel-agent-gui.bat"
                   WorkingDirectory="BinDir"
                   Icon="SentinelIcon" />
@@ -236,7 +238,7 @@
                   Icon="SentinelIcon" />
 
         <Shortcut Id="UninstallShortcut"
-                  Name="DÃ©sinstaller Sentinel Agent"
+                  Name="Désinstaller Sentinel Agent"
                   Target="[SystemFolder]msiexec.exe"
                   Arguments="/x [ProductCode]" />
 
@@ -248,7 +250,7 @@
       <Component Id="DesktopShortcutComponent" Guid="A7B8C9D0-E1F2-3456-789A-BCDEF0123456" Directory="DesktopFolder">
         <Shortcut Id="DesktopShortcut"
                   Name="Sentinel Agent"
-                  Description="Lancer l'agent de conformitÃ© Sentinel"
+                  Description="Lancer l'agent de conformité Sentinel"
                   Target="[BinDir]sentinel-agent-gui.bat"
                   WorkingDirectory="BinDir"
                   Icon="SentinelIcon" />
@@ -332,59 +334,54 @@
       </Component>
     </ComponentGroup>
 
+    <!--
+      ════════════════════════════════════════════════════════════════
+      Custom Actions
+      ════════════════════════════════════════════════════════════════
+
+      All install/uninstall CAs are IMMEDIATE and scheduled AFTER InstallFinalize.
+      This ensures:
+        1. All files are already installed (binaries, certs, configs)
+        2. MSI property resolution works ([BinDir], [ENROLLMENTTOKEN], etc.)
+        3. The installer process is elevated (Launch Condition: Privileged)
+
+      The only DEFERRED CA is KillGuiProcess (uninstall) which must run
+      BEFORE file removal and needs no property resolution.
+    -->
+
     <!-- Install signing certificate into TrustedPublisher so future updates are trusted -->
     <CustomAction Id="InstallCertificate"
                   Directory="ConfigDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { certutil -addstore 'TrustedPublisher' '[ConfigDir]sentinel-signing.cer' -ErrorAction Stop } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1003 -EntryType Error -Message 'Certificate installation failed: $_' }&quot;"
-                  Execute="deferred"
-                  Impersonate="no"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { certutil -addstore 'TrustedPublisher' '[ConfigDir]sentinel-signing.cer' } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1003 -EntryType Error -Message ('Certificate installation failed: ' + $_) }&quot;"
                   Return="ignore" />
 
     <!-- Windows Defender exclusion -->
     <CustomAction Id="AddDefenderExclusion"
                   Directory="BinDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1001 -EntryType Error -Message 'Failed to add Defender exclusion: $_' }&quot;"
-                  Execute="deferred"
-                  Impersonate="no"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1001 -EntryType Error -Message ('Failed to add Defender exclusion: ' + $_) }&quot;"
                   Return="ignore" />
 
-    <CustomAction Id="RemoveDefenderExclusion"
-                  Directory="BinDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;Remove-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe'&quot;"
-                  Execute="deferred"
-                  Impersonate="no"
-                  Return="ignore" />
-
-    <!-- Uninstall cleanup (only on full uninstall, not upgrade) -->
-    <CustomAction Id="CleanupDataOnUninstall"
-                  Directory="CommonAppDataFolder"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Remove-Item '[CommonAppDataFolder]Sentinel\*' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1002 -EntryType Warning -Message 'Cleanup failed: $_' }&quot;"
-                  Execute="deferred"
-                  Impersonate="no"
-                  Return="ignore" />
-
-    <!-- Custom actions for configuration -->
-    <CustomAction Id="SetServerUrl"
-                  Property="SERVERURL"
-                  Value="[SERVERURL]" />
-
-    <!-- Create config file with enrollment token in ProgramData\Sentinel (where the agent reads it) -->
+    <!-- Create config file with enrollment token in ProgramData\Sentinel -->
     <CustomAction Id="CreateConfigFile"
                   Directory="SentinelDataDir"
                   ExeCommand="cmd.exe /c mkdir &quot;[SentinelDataDir]&quot; 2>nul &amp; echo {&quot;server&quot;:{&quot;url&quot;:&quot;[SERVERURL]&quot;,&quot;token&quot;:&quot;[ENROLLMENTTOKEN]&quot;},&quot;gui&quot;:{&quot;enabled&quot;:true,&quot;autostart&quot;:true,&quot;minimize_to_tray&quot;:true}} > &quot;[SentinelDataDir]agent.json&quot;"
-                  Execute="deferred"
-                  Impersonate="no"
                   Return="ignore" />
 
     <!-- Run enrollment after install -->
     <CustomAction Id="RunEnrollment"
                   Directory="BinDir"
                   ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; enroll --token &quot;[ENROLLMENTTOKEN]&quot; --server &quot;[SERVERURL]&quot;"
-                  Execute="deferred"
-                  Impersonate="no"
                   Return="ignore" />
 
-    <!-- Force kill all Sentinel processes on uninstall -->
+    <!-- Launch GUI after install via batch launcher (handles de-elevation).
+         asyncNoWait so the installer closes immediately without waiting for the GUI. -->
+    <CustomAction Id="LaunchGui"
+                  Directory="BinDir"
+                  ExeCommand="sentinel-agent-gui.bat"
+                  Return="asyncNoWait" />
+
+    <!-- Force kill Sentinel processes on uninstall (DEFERRED — must run before file removal).
+         Only sentinel-agent.exe is installed; no other binary names to kill. -->
     <CustomAction Id="KillGuiProcess"
                   Directory="SystemFolder"
                   ExeCommand="cmd.exe /c &quot;taskkill.exe /f /im sentinel-agent.exe &amp; timeout /t 2 /nobreak &gt;nul&quot;"
@@ -392,60 +389,51 @@
                   Impersonate="no"
                   Return="ignore" />
 
-    <!-- Set properties for deferred custom actions -->
-    <CustomAction Id="SetCreateConfigFileProps"
-                  Property="CreateConfigFile"
-                  Value="SentinelDataDir=[SentinelDataDir];SERVERURL=[SERVERURL];ENROLLMENTTOKEN=[ENROLLMENTTOKEN];AUTOSTART=[AUTOSTART]" />
-
-    <CustomAction Id="SetRunEnrollmentProps"
-                  Property="RunEnrollment"
-                  Value="BinDir=[BinDir];ENROLLMENTTOKEN=[ENROLLMENTTOKEN];SERVERURL=[SERVERURL]" />
-
-    <!-- Start service after enrollment -->
-    <CustomAction Id="StartServiceAfterEnroll"
-                  Directory="INSTALLDIR"
-                  ExeCommand="net start SentinelGRCAgent"
-                  Execute="deferred"
-                  Impersonate="no"
+    <!-- Remove Defender exclusion on uninstall -->
+    <CustomAction Id="RemoveDefenderExclusion"
+                  Directory="BinDir"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;Remove-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue&quot;"
                   Return="ignore" />
 
-    <!-- Launch GUI after install (runs as current user so window is visible) -->
-    <CustomAction Id="LaunchGui"
-                  Directory="BinDir"
-                  ExeCommand="sentinel-agent-gui.bat"
-                  Execute="deferred"
-                  Impersonate="yes"
-                  Return="asyncNoWait" />
-
-    <!-- Set properties for LaunchGui deferred action -->
-    <CustomAction Id="SetLaunchGuiProps"
-                  Property="LaunchGui"
-                  Value="BinDir=[BinDir]" />
+    <!-- Uninstall cleanup — remove ProgramData\Sentinel contents (only on full uninstall, not upgrade) -->
+    <CustomAction Id="CleanupDataOnUninstall"
+                  Directory="CommonAppDataFolder"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Remove-Item '[CommonAppDataFolder]Sentinel\*' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1002 -EntryType Warning -Message ('Cleanup failed: ' + $_) }&quot;"
+                  Return="ignore" />
 
     <!-- Installation sequence -->
     <InstallExecuteSequence>
-      <!-- Set properties first (immediate actions) -->
-      <Custom Action="SetServerUrl" After="InstallInitialize" Condition="NOT Installed" />
-      <Custom Action="SetCreateConfigFileProps" After="SetServerUrl" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <Custom Action="SetRunEnrollmentProps" After="SetCreateConfigFileProps" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      
-      <!-- Deferred custom actions - MUST be between InstallInitialize and InstallFinalize -->
-      <Custom Action="CreateConfigFile" After="SetRunEnrollmentProps" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <Custom Action="RunEnrollment" After="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <Custom Action="StartServiceAfterEnroll" After="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
-      <Custom Action="InstallCertificate" After="StartServiceAfterEnroll" Condition="NOT Installed" />
-      <Custom Action="AddDefenderExclusion" After="InstallCertificate" Condition="NOT Installed" />
-      
-      <!-- Set LaunchGui properties AFTER all other configurations -->
-      <Custom Action="SetLaunchGuiProps" After="AddDefenderExclusion" Condition="NOT Installed" />
-      
-      <!-- Launch GUI - properly sequenced before InstallFinalize -->
-      <Custom Action="LaunchGui" After="SetLaunchGuiProps" Condition="NOT Installed" />
-      
-      <!-- Uninstall actions -->
-      <Custom Action="KillGuiProcess" After="InstallInitialize" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
-      <Custom Action="RemoveDefenderExclusion" After="KillGuiProcess" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
-      <Custom Action="CleanupDataOnUninstall" After="RemoveDefenderExclusion" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <!--
+        UNINSTALL: Kill processes BEFORE file removal (deferred, between
+        InstallInitialize and InstallFinalize). No property resolution needed.
+      -->
+      <Custom Action="KillGuiProcess" After="InstallInitialize"
+              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+
+      <!--
+        INSTALL: All post-install actions run AFTER InstallFinalize (immediate).
+        At this point files are installed and [Property] references resolve correctly.
+        Order: certificate -> defender exclusion -> config -> enrollment -> launch GUI
+      -->
+      <Custom Action="InstallCertificate" After="InstallFinalize"
+              Condition="NOT Installed" />
+      <Custom Action="AddDefenderExclusion" After="InstallCertificate"
+              Condition="NOT Installed" />
+      <Custom Action="CreateConfigFile" After="AddDefenderExclusion"
+              Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="RunEnrollment" After="CreateConfigFile"
+              Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="LaunchGui" After="RunEnrollment"
+              Condition="NOT Installed" />
+
+      <!--
+        UNINSTALL: Post-uninstall cleanup AFTER InstallFinalize (immediate).
+        Properties still resolve during uninstall for the installed product.
+      -->
+      <Custom Action="RemoveDefenderExclusion" After="LaunchGui"
+              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="CleanupDataOnUninstall" After="RemoveDefenderExclusion"
+              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
     </InstallExecuteSequence>
 
   </Package>
