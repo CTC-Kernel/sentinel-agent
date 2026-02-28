@@ -21,7 +21,7 @@ Set-Location $ProjectRoot
 
 # Step 1: Build the Rust binary
 Write-Host "Step 1: Building Rust binary..." -ForegroundColor Yellow
-cargo build --release --package agent-core
+cargo build --release --package agent-core --features gui
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Rust build failed"
     exit 1
