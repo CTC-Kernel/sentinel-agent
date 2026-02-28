@@ -1421,7 +1421,7 @@ impl AgentRuntime {
                 }
 
                 if !detection_rules.is_empty() || !playbooks.is_empty() {
-                    threat_pipeline::run_threat_pipeline(
+                    let pipeline_matches = threat_pipeline::run_threat_pipeline(
                         &detection_rules,
                         &playbooks,
                         &threat_context,
@@ -1429,6 +1429,29 @@ impl AgentRuntime {
                         #[cfg(feature = "llm")]
                         self.llm_service.as_ref().map(|s| s.as_ref()),
                     ).await;
+
+                    // Upload detection matches to the platform
+                    if !pipeline_matches.is_empty() {
+                        if let Some(ref client) = self.authenticated_client {
+                            let match_payloads: Vec<agent_sync::DetectionMatchPayload> =
+                                pipeline_matches.iter().map(|m| {
+                                    agent_sync::DetectionMatchPayload {
+                                        rule_id: m.rule_id.clone(),
+                                        rule_name: m.rule_name.clone(),
+                                        matched_at: chrono::Utc::now(),
+                                        trigger_details: m.matched_value.clone(),
+                                        severity: m.severity.clone(),
+                                    }
+                                }).collect();
+                            match client.sync_detection_matches(match_payloads).await {
+                                Ok(resp) => info!(
+                                    "Uploaded {} detection matches to platform",
+                                    resp.received_count
+                                ),
+                                Err(e) => warn!("Failed to upload detection matches: {}", e),
+                            }
+                        }
+                    }
                 }
 
                 // Forward security incidents and network alerts to SIEM with AI enrichment
