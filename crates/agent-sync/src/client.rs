@@ -263,6 +263,12 @@ impl HttpClient {
         &self.client
     }
 
+    /// Safely format a URL for logging by replacing the real base URL
+    /// with a placeholder to avoid leaking the raw endpoint in logs.
+    fn safe_log_url(&self, full_url: &str) -> String {
+        full_url.replace(&self.base_url, "https://cyber-threat-consulting.com")
+    }
+
     /// Apply authentication headers (X-Agent-Certificate, X-Organization-Id).
     fn apply_auth(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
         let mut b = builder;
@@ -282,7 +288,7 @@ impl HttpClient {
         R: serde::de::DeserializeOwned,
     {
         let url = self.url(path);
-        debug!("POST {}", url);
+        debug!("POST {}", self.safe_log_url(&url));
 
         let request = self
             .client
@@ -316,8 +322,8 @@ impl HttpClient {
         R: serde::de::DeserializeOwned,
     {
         let url = self.url(path);
-        debug!("Base URL: '{}'", self.base_url);
-        debug!("POST {} (with bearer token, len={})", url, token.len());
+        debug!("Base URL: '{}'", self.safe_log_url(&self.base_url));
+        debug!("POST {} (with bearer token, len={})", self.safe_log_url(&url), token.len());
 
         // Trim token and strip non-ASCII characters to prevent invalid header values
         let trimmed_token: String = token.trim().chars().filter(|c| c.is_ascii() && *c != '\n' && *c != '\r').collect();
@@ -368,7 +374,7 @@ impl HttpClient {
         R: serde::de::DeserializeOwned,
     {
         let url = self.url(path);
-        debug!("GET {}", url);
+        debug!("GET {}", self.safe_log_url(&url));
 
         let request = self
             .client
@@ -401,7 +407,7 @@ impl HttpClient {
         R: serde::de::DeserializeOwned,
     {
         let url = self.url(path);
-        debug!("GET {} (If-None-Match: {:?})", url, if_none_match);
+        debug!("GET {} (If-None-Match: {:?})", self.safe_log_url(&url), if_none_match);
 
         let mut request = self
             .client
@@ -470,7 +476,7 @@ impl HttpClient {
             self.url(url)
         };
 
-        debug!("Downloading from {}", full_url);
+        debug!("Downloading from {}", self.safe_log_url(&full_url));
 
         let request = self.client.get(&full_url);
         let response = self.apply_auth(request).send().await.map_err(|e| {
@@ -530,7 +536,7 @@ impl HttpClient {
         R: serde::de::DeserializeOwned,
     {
         let url = self.url(path);
-        debug!("DELETE {}", url);
+        debug!("DELETE {}", self.safe_log_url(&url));
 
         let request = self
             .client
