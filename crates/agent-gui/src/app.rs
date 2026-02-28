@@ -477,6 +477,21 @@ impl eframe::App for SentinelApp {
             theme::set_reduced_motion(self.state.reduced_motion);
             self.theme_applied = true;
             self.last_dark_mode = self.state.settings.dark_mode;
+
+            // Keep a dedicated listener thread to wake up eframe instantly on tray events.
+            let ctx_clone = ctx.clone();
+            std::thread::spawn(move || {
+                let menu_rx = muda::MenuEvent::receiver();
+                let icon_rx = tray_icon::TrayIconEvent::receiver();
+                loop {
+                    // Try peeking periodically to wake up the UI thread immediately 
+                    // if an event arrives while eframe is asleep.
+                    if !menu_rx.is_empty() || !icon_rx.is_empty() {
+                        ctx_clone.request_repaint();
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                }
+            });
         } else if self.state.settings.dark_mode != self.last_dark_mode {
             theme::apply_theme(ctx, self.state.settings.dark_mode);
             self.last_dark_mode = self.state.settings.dark_mode;

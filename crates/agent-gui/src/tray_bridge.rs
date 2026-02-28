@@ -9,7 +9,7 @@
 use agent_common::constants::AGENT_VERSION;
 use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 use tracing::{debug, info, warn};
-use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
+use tray_icon::{Icon, TrayIcon, TrayIconBuilder, TrayIconEvent};
 
 /// Embedded tray icon PNG.
 /// On macOS, we use a 22x22 template image for the status bar.
@@ -216,11 +216,22 @@ impl TrayBridge {
 
     /// Poll pending menu events and return actions.
     pub fn poll_events() -> Vec<TrayAction> {
-        let rx = MenuEvent::receiver();
         let mut actions = Vec::new();
 
+        // 1. Poll TrayIconEvent (left-click on the icon itself)
+        if let Ok(event) = TrayIconEvent::receiver().try_recv() {
+            if event.click_type == tray_icon::ClickType::Left {
+                debug!("Tray icon left-clicked, showing window");
+                actions.push(TrayAction::ShowWindow);
+            }
+        }
+
+        // 2. Poll MenuEvent (clicks on items within the tray menu)
+        let rx = MenuEvent::receiver();
         while let Ok(event) = rx.try_recv() {
-            match event.id().0.as_str() {
+            let id_str = event.id().0.as_str();
+            debug!("RECEIVED TRAY MENU EVENT: id={}", id_str);
+            match id_str {
                 ids::SHOW => {
                     debug!("Tray: show window requested");
                     actions.push(TrayAction::ShowWindow);
@@ -265,7 +276,9 @@ impl TrayBridge {
                     info!("Tray: quit requested");
                     actions.push(TrayAction::Quit);
                 }
-                _ => {}
+                _ => {
+                    debug!("Tray: unhandled menu item clicked: {}", id_str);
+                }
             }
         }
 
