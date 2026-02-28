@@ -248,17 +248,51 @@ impl CleanupManager {
     }
 
     /// Securely delete a file by overwriting with zeros before removing.
+    ///
+    /// On Windows, this handles potential file locking by retrying and 
+    /// ensuring sync before removal.
     fn secure_delete(&self, path: &Path) -> Result<(), std::io::Error> {
-        if let Ok(metadata) = fs::metadata(path) {
-            let size = metadata.len() as usize;
-            if size > 0 {
-                // Overwrite with zeros
-                let zeros = vec![0u8; size];
-                fs::write(path, &zeros)?;
+        if !path.exists() {
+            return Ok(());
+        }
 
-                // Sync to disk
-                let file = fs::OpenOptions::new().write(true).open(path)?;
-                file.sync_all()?;
+        let mut retry_count = 0;
+        let max_retries = 3;
+        let retry_delay = std::time::Duration::from_millis(100);
+
+        loop {
+            match std::fs::OpenOptions::new()
+                .write(true)
+                .open(path)
+            {
+                Ok(file) => {
+                    if let Ok(metadata) = file.metadata() {
+                        let size = metadata.len() as usize;
+                        if size > 0 {
+                            let mut writer = std::io::BufWriter::new(file);
+                            let zeros = vec![0u8; size.min(65536)];
+                            let mut written = 0;
+                            while written < size {
+                                let to_write = std::cmp::min(zeros.len(), size - written);
+                                std::io::Write::write_all(&mut writer, &zeros[..to_write])?;
+                                written += to_write;
+                            }
+                            std::io::Write::flush(&mut writer)?;
+                            let file = writer.into_inner()?;
+                            file.sync_all()?;
+                        }
+                    }
+                    break;
+                }
+                Err(e) => {
+                    if retry_count < max_retries && (e.kind() == std::io::ErrorKind::PermissionDenied || e.kind() == std::io::ErrorKind::Other) {
+                        retry_count += 1;
+                        std::thread::sleep(retry_delay);
+                        continue;
+                    }
+                    // Fallback to regular remove if we can't overwrite
+                    break;
+                }
             }
         }
 

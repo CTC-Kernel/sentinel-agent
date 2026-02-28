@@ -284,6 +284,7 @@ impl FirewallCheck {
                 default_inbound,
                 default_outbound,
                 rule_count: Some(rule_count),
+                gpo_enforced: None,
             }],
             rule_count: Some(rule_count),
             raw_output,
@@ -316,6 +317,7 @@ impl FirewallCheck {
                 default_inbound: None,
                 default_outbound: None,
                 rule_count: Some(rule_count),
+                gpo_enforced: None,
             }],
             rule_count: Some(rule_count),
             raw_output,
@@ -367,6 +369,7 @@ impl FirewallCheck {
                             None
                         },
                         rule_count: None,
+                        gpo_enforced: None,
                     });
                 }
             }
@@ -447,6 +450,7 @@ impl FirewallCheck {
                 default_inbound: Some(if block_all { "Block" } else { "Allow" }.to_string()),
                 default_outbound: Some("Allow".to_string()),
                 rule_count: None,
+                gpo_enforced: None,
             }],
             rule_count: None,
             raw_output: format!(

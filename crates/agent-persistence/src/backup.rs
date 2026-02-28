@@ -105,7 +105,10 @@ impl BackupManager {
     }
 
     /// Create a new backup of the database.
-    pub fn create_backup(&self, reason: BackupReason) -> PersistenceResult<BackupMetadata> {
+    ///
+    /// This uses the SQLite Online Backup API to ensure a consistent copy
+    /// even if the database is currently being written to.
+    pub fn create_backup(&self, key_manager: &agent_storage::KeyManager, reason: BackupReason) -> PersistenceResult<BackupMetadata> {
         if !self.db_path.exists() {
             return Err(PersistenceError::Backup(format!(
                 "Database file not found: {}",
@@ -133,9 +136,56 @@ impl BackupManager {
 
         info!("Creating backup: {}", backup_path.display());
 
-        // Read the database file
-        let db_data = fs::read(&self.db_path)
-            .map_err(|e| PersistenceError::Backup(format!("Failed to read database: {}", e)))?;
+        // Perform online backup to a temporary file
+        let temp_db_path = self.backup_dir.join(format!("{}.tmp", backup_id));
+        
+        {
+            use agent_storage::{Database, DatabaseConfig};
+            use rusqlite::Connection;
+
+            // Open source database
+            let src_config = DatabaseConfig {
+                path: self.db_path.clone(),
+                create_if_missing: false,
+            };
+            let src_db = Database::open(src_config, key_manager)
+                .map_err(|e| PersistenceError::Backup(format!("Failed to open source database: {}", e)))?;
+
+            // Open destination database (temporary)
+            let dst_conn = Connection::open(&temp_db_path)
+                .map_err(|e| PersistenceError::Backup(format!("Failed to create temp backup file: {}", e)))?;
+
+            // Set the same encryption key on the destination
+            let key = key_manager.get_database_key()
+                .map_err(|e| PersistenceError::Backup(format!("Failed to get encryption key: {}", e)))?;
+            
+            // We use a block to ensure the key material is cleared
+            {
+                let mut key_hex: String = key.iter().map(|b| format!("{:02x}", b)).collect();
+                dst_conn.execute_batch(&format!("PRAGMA key = \"x'{}'\"", key_hex))
+                    .map_err(|e| PersistenceError::Backup(format!("Failed to set key on backup: {}", e)))?;
+                // Manual zeroization as fallback to zeroize crate if not used here
+                unsafe {
+                    let bytes = key_hex.as_bytes_mut();
+                    for b in bytes.iter_mut() { std::ptr::write_volatile(b, 0); }
+                }
+            }
+
+            // Run backup
+            src_db.with_connection(|src_conn| {
+                let mut backup = rusqlite::backup::Backup::new(src_conn, "main", &dst_conn, "main")
+                    .map_err(|e| agent_storage::StorageError::Initialization(format!("Backup init failed: {}", e)))?;
+                
+                backup.run_to_completion(5, std::time::Duration::from_millis(10), None)
+                    .map_err(|e| agent_storage::StorageError::Initialization(format!("Backup execution failed: {}", e)))?;
+                
+                Ok(())
+            }).map_err(|e| PersistenceError::Backup(format!("Online backup failed: {}", e)))?;
+        }
+
+        // Read the temporary database file for compression
+        let db_data = fs::read(&temp_db_path)
+            .map_err(|e| PersistenceError::Backup(format!("Failed to read temp backup file: {}", e)))?;
         let original_size = db_data.len() as u64;
 
         // Compress with gzip
@@ -155,6 +205,9 @@ impl BackupManager {
         // Write compressed backup
         fs::write(&backup_path, &compressed)
             .map_err(|e| PersistenceError::Backup(format!("Failed to write backup: {}", e)))?;
+
+        // Clean up temp file
+        let _ = fs::remove_file(&temp_db_path);
 
         // Set restrictive permissions on Unix
         #[cfg(unix)]
@@ -197,6 +250,10 @@ impl BackupManager {
     }
 
     /// Restore the database from a backup.
+    ///
+    /// On Windows, this performs a "safe restore" by writing to a .restore file
+    /// which the service will swap into place on the next startup, avoiding 
+    /// "Access Denied" errors while the main database is locked.
     pub fn restore_backup(&self, backup_id: &str) -> PersistenceResult<()> {
         let backups = self.list_backups()?;
         let metadata = backups.iter().find(|b| b.id == backup_id).ok_or_else(|| {
