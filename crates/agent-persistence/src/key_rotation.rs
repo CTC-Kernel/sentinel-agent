@@ -98,8 +98,13 @@ impl<'a> KeyRotationManager<'a> {
             ))
         })?;
         
-        let backup_metadata = backup_manager
-            .create_backup(old_key_manager, BackupReason::PreKeyRotation)
+        let backup_metadata = tokio::runtime::Runtime::new()
+            .map_err(|e| PersistenceError::KeyRotation(format!("Failed to create runtime: {}", e)))?
+            .block_on(async {
+                backup_manager
+                    .create_backup(old_key_manager, BackupReason::PreKeyRotation)
+                    .await
+            })
             .map_err(|e| {
                 PersistenceError::KeyRotation(format!(
                     "CRITICAL: Pre-rotation backup failed - aborting key rotation to prevent data loss: {}",

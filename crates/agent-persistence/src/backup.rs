@@ -107,8 +107,7 @@ impl BackupManager {
     /// Create a new backup of the database.
     ///
     /// This uses the SQLite Online Backup API to ensure a consistent copy
-    /// even if the database is currently being written to.
-    pub fn create_backup(&self, key_manager: &agent_storage::KeyManager, reason: BackupReason) -> PersistenceResult<BackupMetadata> {
+    pub async fn create_backup(&self, key_manager: &agent_storage::KeyManager, reason: BackupReason) -> PersistenceResult<BackupMetadata> {
         if !self.db_path.exists() {
             return Err(PersistenceError::Backup(format!(
                 "Database file not found: {}",
@@ -152,7 +151,7 @@ impl BackupManager {
                 .map_err(|e| PersistenceError::Backup(format!("Failed to open source database: {}", e)))?;
 
             // Open destination database (temporary)
-            let dst_conn = Connection::open(&temp_db_path)
+            let mut dst_conn = Connection::open(&temp_db_path)
                 .map_err(|e| PersistenceError::Backup(format!("Failed to create temp backup file: {}", e)))?;
 
             // Set the same encryption key on the destination
@@ -171,16 +170,15 @@ impl BackupManager {
                 }
             }
 
-            // Run backup
             src_db.with_connection(|src_conn| {
-                let mut backup = rusqlite::backup::Backup::new(src_conn, "main", &dst_conn, "main")
+                let backup = rusqlite::backup::Backup::new(src_conn, &mut dst_conn)
                     .map_err(|e| agent_storage::StorageError::Initialization(format!("Backup init failed: {}", e)))?;
                 
                 backup.run_to_completion(5, std::time::Duration::from_millis(10), None)
                     .map_err(|e| agent_storage::StorageError::Initialization(format!("Backup execution failed: {}", e)))?;
                 
                 Ok(())
-            }).map_err(|e| PersistenceError::Backup(format!("Online backup failed: {}", e)))?;
+            }).await.map_err(|e| PersistenceError::Backup(format!("Online backup failed: {}", e)))?;
         }
 
         // Read the temporary database file for compression
@@ -386,8 +384,9 @@ impl BackupManager {
     /// Schedule an automatic backup (creates if enough time has passed).
     ///
     /// Returns `Some(metadata)` if a backup was created, `None` if skipped.
-    pub fn auto_backup(
+    pub async fn auto_backup(
         &self,
+        key_manager: &agent_storage::KeyManager,
         min_interval_hours: u32,
     ) -> PersistenceResult<Option<BackupMetadata>> {
         let backups = self.list_backups()?;
@@ -405,7 +404,7 @@ impl BackupManager {
             }
         }
 
-        let metadata = self.create_backup(BackupReason::Scheduled)?;
+        let metadata = self.create_backup(key_manager, BackupReason::Scheduled).await?;
         Ok(Some(metadata))
     }
 
@@ -469,22 +468,40 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
 
-    fn create_test_db(temp_dir: &TempDir) -> PathBuf {
+    async fn create_test_db(temp_dir: &TempDir, key_manager: &agent_storage::KeyManager) -> PathBuf {
         let db_path = temp_dir.path().join("test.db");
-        fs::write(&db_path, b"test database content for backup testing").unwrap();
+        let config = agent_storage::DatabaseConfig {
+            path: db_path.clone(),
+            create_if_missing: true,
+        };
+        let db = agent_storage::Database::open(config, key_manager).unwrap();
+        
+        db.with_connection(|conn| {
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS test_data (id INTEGER PRIMARY KEY, value TEXT)",
+                [],
+            ).unwrap();
+            conn.execute(
+                "INSERT INTO test_data (value) VALUES ('backup content')",
+                [],
+            ).unwrap();
+            Ok(())
+        }).await.unwrap();
+        
         db_path
     }
 
-    #[test]
-    fn test_create_and_list_backups() {
+    #[tokio::test]
+    async fn test_create_and_list_backups() {
         let temp_dir = TempDir::new().unwrap();
-        let db_path = create_test_db(&temp_dir);
+        let key_manager = agent_storage::KeyManager::new_with_test_key();
+        let db_path = create_test_db(&temp_dir, &key_manager).await;
         let backup_dir = temp_dir.path().join("backups");
 
         let manager = BackupManager::with_backup_dir(&db_path, &backup_dir).unwrap();
 
         // Create a backup
-        let metadata = manager.create_backup(BackupReason::Manual).unwrap();
+        let metadata = manager.create_backup(&key_manager, BackupReason::Manual).await.unwrap();
         assert!(!metadata.id.is_empty());
         assert!(!metadata.hash.is_empty());
         assert!(metadata.compressed_size > 0);
@@ -496,17 +513,18 @@ mod tests {
         assert_eq!(backups[0].id, metadata.id);
     }
 
-    #[test]
-    fn test_restore_backup() {
+    #[tokio::test]
+    async fn test_restore_backup() {
         let temp_dir = TempDir::new().unwrap();
-        let db_path = create_test_db(&temp_dir);
+        let key_manager = agent_storage::KeyManager::new_with_test_key();
+        let db_path = create_test_db(&temp_dir, &key_manager).await;
         let backup_dir = temp_dir.path().join("backups");
         let original_content = fs::read(&db_path).unwrap();
 
         let manager = BackupManager::with_backup_dir(&db_path, &backup_dir).unwrap();
 
         // Create backup
-        let metadata = manager.create_backup(BackupReason::Manual).unwrap();
+        let metadata = manager.create_backup(&key_manager, BackupReason::Manual).await.unwrap();
 
         // Modify the database
         fs::write(&db_path, b"modified content").unwrap();
@@ -515,18 +533,28 @@ mod tests {
         // Restore
         manager.restore_backup(&metadata.id).unwrap();
 
-        // Verify content matches original
-        assert_eq!(fs::read(&db_path).unwrap(), original_content);
+        // Verify content by querying strings
+        let config = agent_storage::DatabaseConfig {
+            path: db_path.clone(),
+            create_if_missing: false,
+        };
+        let db = agent_storage::Database::open(config, &key_manager).unwrap();
+        let value: String = db.with_connection(|conn| {
+            conn.query_row("SELECT value FROM test_data WHERE id = 1", [], |row| row.get(0))
+                .map_err(|e| agent_storage::StorageError::Query(e.to_string()))
+        }).await.unwrap();
+        assert_eq!(value, "backup content");
     }
 
-    #[test]
-    fn test_restore_verifies_hash() {
+    #[tokio::test]
+    async fn test_restore_verifies_hash() {
         let temp_dir = TempDir::new().unwrap();
-        let db_path = create_test_db(&temp_dir);
+        let key_manager = agent_storage::KeyManager::new_with_test_key();
+        let db_path = create_test_db(&temp_dir, &key_manager).await;
         let backup_dir = temp_dir.path().join("backups");
 
         let manager = BackupManager::with_backup_dir(&db_path, &backup_dir).unwrap();
-        let metadata = manager.create_backup(BackupReason::Manual).unwrap();
+        let metadata = manager.create_backup(&key_manager, BackupReason::Manual).await.unwrap();
 
         // Corrupt the backup file
         let backup_filename = format!(
@@ -543,27 +571,29 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test]
-    fn test_auto_backup_skips_recent() {
+    #[tokio::test]
+    async fn test_auto_backup_skips_recent() {
         let temp_dir = TempDir::new().unwrap();
-        let db_path = create_test_db(&temp_dir);
+        let key_manager = agent_storage::KeyManager::new_with_test_key();
+        let db_path = create_test_db(&temp_dir, &key_manager).await;
         let backup_dir = temp_dir.path().join("backups");
 
         let manager = BackupManager::with_backup_dir(&db_path, &backup_dir).unwrap();
 
         // First auto-backup should create one
-        let result = manager.auto_backup(24).unwrap();
+        let result = manager.auto_backup(&key_manager, 24).await.unwrap();
         assert!(result.is_some());
 
         // Second auto-backup within interval should skip
-        let result = manager.auto_backup(24).unwrap();
+        let result = manager.auto_backup(&key_manager, 24).await.unwrap();
         assert!(result.is_none());
     }
 
-    #[test]
-    fn test_backup_not_found() {
+    #[tokio::test]
+    async fn test_backup_not_found() {
         let temp_dir = TempDir::new().unwrap();
-        let db_path = create_test_db(&temp_dir);
+        let key_manager = agent_storage::KeyManager::new_with_test_key();
+        let db_path = create_test_db(&temp_dir, &key_manager).await;
         let backup_dir = temp_dir.path().join("backups");
 
         let manager = BackupManager::with_backup_dir(&db_path, &backup_dir).unwrap();
@@ -572,10 +602,11 @@ mod tests {
         assert!(matches!(result, Err(PersistenceError::NotFound(_))));
     }
 
-    #[test]
-    fn test_empty_backup_list() {
+    #[tokio::test]
+    async fn test_empty_backup_list() {
         let temp_dir = TempDir::new().unwrap();
-        let db_path = create_test_db(&temp_dir);
+        let key_manager = agent_storage::KeyManager::new_with_test_key();
+        let db_path = create_test_db(&temp_dir, &key_manager).await;
         let backup_dir = temp_dir.path().join("backups");
 
         let manager = BackupManager::with_backup_dir(&db_path, &backup_dir).unwrap();
