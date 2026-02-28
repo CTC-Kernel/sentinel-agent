@@ -248,7 +248,7 @@
       </Component>
 
       <!-- Auto-start GUI for current user at logon -->
-      <Component Id="AutoStartGuiComponent" Guid="B8C9D0E1-F2G3-4567-89AB-CDEF01234567" Directory="BinDir">
+      <Component Id="AutoStartGuiComponent" Guid="B8C9D0E1-F234-4567-89AB-CDEF01234567" Directory="BinDir">
         <RegistryKey Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run">
           <RegistryValue Type="string" Name="SentinelAgentGUI" Value="&quot;[BinDir]sentinel-agent.exe&quot; --gui" />
         </RegistryKey>
