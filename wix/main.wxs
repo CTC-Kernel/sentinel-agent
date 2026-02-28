@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!--
   Sentinel GRC Agent - Windows Installer (MSI)
 
@@ -159,7 +159,7 @@
           DisplayName="Sentinel Agent"
           Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
           Type="ownProcess"
-          Start="auto"
+          Start="demand"
           ErrorControl="normal"
           Arguments="--service" />
 
@@ -306,6 +306,7 @@
         <CreateFolder>
           <Permission User="SYSTEM" GenericAll="yes" />
           <Permission User="Administrators" GenericAll="yes" />
+          <Permission User="Users" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
@@ -314,6 +315,7 @@
         <CreateFolder>
           <Permission User="SYSTEM" GenericAll="yes" />
           <Permission User="Administrators" GenericAll="yes" />
+          <Permission User="Users" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
@@ -322,6 +324,7 @@
         <CreateFolder>
           <Permission User="SYSTEM" GenericAll="yes" />
           <Permission User="Administrators" GenericAll="yes" />
+          <Permission User="Users" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
@@ -330,6 +333,7 @@
         <CreateFolder>
           <Permission User="SYSTEM" GenericAll="yes" />
           <Permission User="Administrators" GenericAll="yes" />
+          <Permission User="Users" GenericAll="yes" />
         </CreateFolder>
       </Component>
     </ComponentGroup>
