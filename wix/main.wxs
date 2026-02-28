@@ -401,8 +401,8 @@
 
     <!-- Launch GUI after install (runs as current user so window is visible) -->
     <CustomAction Id="LaunchGui"
-                  Directory="INSTALLDIR"
-                  ExeCommand="bin\sentinel-agent.exe --gui"
+                  Directory="SystemFolder"
+                  ExeCommand="cmd.exe /c &quot;start /d &quot;C:\Program Files\Sentinel\bin&quot; sentinel-agent.exe --gui&quot;"
                   Execute="deferred"
                   Impersonate="yes"
                   Return="asyncNoWait" />
