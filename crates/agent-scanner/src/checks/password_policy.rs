@@ -99,11 +99,32 @@ impl PasswordPolicyCheck {
         debug!("Checking Windows password policy");
 
         // Use 'net accounts' to get password policy
-        let output = Command::new("net")
-            .args(["accounts"])
+        // Use PowerShell with secedit to get password policy (avoid localization issues)
+        let output = Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                r#"
+                $tempFile = [System.IO.Path]::GetTempFileName()
+                secedit /export /cfg $tempFile /quiet
+                $content = Get-Content $tempFile -Raw
+                Remove-Item $tempFile -Force
+                
+                $results = @{}
+                if ($content -match 'MinimumPasswordLength\s*=\s*(\d+)') { $results['MinLength'] = [int]$matches[1] }
+                if ($content -match 'PasswordHistorySize\s*=\s*(\d+)') { $results['HistoryCount'] = [int]$matches[1] }
+                if ($content -match 'MaximumPasswordAge\s*=\s*(\d+)') { $results['MaxAge'] = [int]$matches[1] }
+                if ($content -match 'MinimumPasswordAge\s*=\s*(\d+)') { $results['MinAge'] = [int]$matches[1] }
+                if ($content -match 'PasswordComplexity\s*=\s*(\d+)') { $results['Complexity'] = ($matches[1] -eq '1') }
+                if ($content -match 'LockoutBadCount\s*=\s*(\d+)') { $results['LockoutThreshold'] = [int]$matches[1] }
+                if ($content -match 'LockoutDuration\s*=\s*(\d+)') { $results['LockoutDuration'] = [int]$matches[1] }
+                
+                $results | ConvertTo-Json
+                "#,
+            ])
             .output()
             .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to run net accounts: {}", e))
+                ScannerError::CheckExecution(format!("Failed to run PowerShell/secedit: {}", e))
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
@@ -122,42 +143,14 @@ impl PasswordPolicyCheck {
             raw_output: raw_output.clone(),
         };
 
-        // Parse net accounts output
-        for line in raw_output.lines() {
-            let line = line.trim();
-
-            if line.starts_with("Minimum password length") {
-                if let Some(val) = Self::parse_numeric_value(line) {
-                    status.min_length = Some(val);
-                }
-            } else if line.starts_with("Maximum password age") {
-                if let Some(val) = Self::parse_days_value(line) {
-                    status.max_age_days = Some(val);
-                }
-            } else if line.starts_with("Minimum password age") {
-                if let Some(val) = Self::parse_days_value(line) {
-                    status.min_age_days = Some(val);
-                }
-            } else if line.starts_with("Length of password history")
-                || line.starts_with("Password history")
-            {
-                if let Some(val) = Self::parse_numeric_value(line) {
-                    status.history_count = Some(val);
-                }
-            } else if line.starts_with("Lockout threshold") {
-                if let Some(val) = Self::parse_numeric_value(line) {
-                    status.lockout_threshold = Some(val);
-                }
-            } else if line.starts_with("Lockout duration") {
-                if let Some(val) = Self::parse_numeric_value(line) {
-                    status.lockout_duration_minutes = Some(val);
-                }
-            }
-        }
-
-        // Check complexity via PowerShell (secedit is more reliable)
-        if let Ok(complexity) = self.check_windows_complexity().await {
-            status.complexity_required = Some(complexity);
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
+            status.min_length = json["MinLength"].as_u64().map(|v| v as u32);
+            status.history_count = json["HistoryCount"].as_u64().map(|v| v as u32);
+            status.max_age_days = json["MaxAge"].as_u64().map(|v| v as u32);
+            status.min_age_days = json["MinAge"].as_u64().map(|v| v as u32);
+            status.complexity_required = json["Complexity"].as_bool();
+            status.lockout_threshold = json["LockoutThreshold"].as_u64().map(|v| v as u32);
+            status.lockout_duration_minutes = json["LockoutDuration"].as_u64().map(|v| v as u32);
         }
 
         // Validate compliance
@@ -165,31 +158,6 @@ impl PasswordPolicyCheck {
         status.compliant = status.issues.is_empty();
 
         Ok(status)
-    }
-
-    #[cfg(target_os = "windows")]
-    async fn check_windows_complexity(&self) -> ScannerResult<bool> {
-        let output = Command::new("powershell")
-            .args([
-                "-NoProfile",
-                "-Command",
-                r#"
-                $tempFile = [System.IO.Path]::GetTempFileName()
-                secedit /export /cfg $tempFile /quiet
-                $content = Get-Content $tempFile -Raw
-                Remove-Item $tempFile -Force
-                if ($content -match 'PasswordComplexity\s*=\s*(\d+)') {
-                    $matches[1]
-                } else {
-                    '0'
-                }
-                "#,
-            ])
-            .output()
-            .map_err(|e| ScannerError::CheckExecution(e.to_string()))?;
-
-        let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        Ok(result == "1")
     }
 
     /// Check password policy on Linux.

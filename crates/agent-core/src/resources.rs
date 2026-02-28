@@ -86,6 +86,10 @@ pub struct ResourceMonitor {
     last_warning_time: AtomicU64,
     /// Last network total bytes (rx+tx).
     last_network_bytes: AtomicU64,
+    /// Last disk I/O bytes (read+write) for delta calculation.
+    last_disk_bytes: AtomicU64,
+    /// Last sample time for rate calculations.
+    last_sample_time: AtomicU64,
     /// sysinfo System instance.
     sys: Mutex<sysinfo::System>,
     /// sysinfo Networks instance.
@@ -106,6 +110,8 @@ impl ResourceMonitor {
             sample_count: AtomicU64::new(0),
             last_warning_time: AtomicU64::new(0),
             last_network_bytes: AtomicU64::new(0),
+            last_disk_bytes: AtomicU64::new(0),
+            last_sample_time: AtomicU64::new(0),
             sys: Mutex::new(sysinfo::System::new_all()),
             networks: Mutex::new(sysinfo::Networks::new_with_refreshed_list()),
         }
@@ -122,24 +128,49 @@ impl ResourceMonitor {
         // Network I/O collection using native OS APIs.
         // sysinfo::Networks on macOS returns stale counters — use getifaddrs() /
         // /proc/net/dev directly for reliable system-wide byte totals.
+        let current_time = self.start_time.elapsed().as_secs();
         let network_io_bytes = {
             let current_network = get_network_bytes_total();
             let last_net = self
                 .last_network_bytes
                 .swap(current_network, Ordering::Relaxed);
-            if last_net > 0 && current_network >= last_net {
-                // Delta bytes since last sample (~5s interval)
-                current_network - last_net
+            let last_time = self.last_sample_time.swap(current_time, Ordering::Relaxed);
+            
+            if last_net > 0 && current_network >= last_net && last_time > 0 {
+                let time_delta = current_time - last_time;
+                if time_delta > 0 {
+                    // Calculate bytes per second
+                    (current_network - last_net) / time_delta
+                } else {
+                    0
+                }
             } else {
                 0
             }
         };
 
-        // Disk I/O collection using platform-native API
+        // Disk I/O collection using platform-native API with proper rate calculation
         // NOTE: sysinfo 0.35 process.disk_usage() returns 0 on macOS for
-        // single-PID refresh. We always use the native get_disk_kbps() which
+        // single-PID refresh. We always use the native get_disk_bytes() which
         // on macOS uses proc_pid_rusage (reliable) and on Linux uses /proc/self/io.
-        let disk_kbps = get_disk_kbps();
+        let disk_kbps = {
+            let current_disk = get_disk_bytes();
+            let last_disk = self
+                .last_disk_bytes
+                .swap(current_disk, Ordering::Relaxed);
+            
+            if last_disk > 0 && current_disk >= last_disk && current_time > 0 {
+                let time_delta = current_time - self.last_sample_time.load(Ordering::Relaxed);
+                if time_delta > 0 {
+                    // Calculate KB per second
+                    ((current_disk - last_disk) / 1024) / time_delta
+                } else {
+                    0
+                }
+            } else {
+                0
+            }
+        };
 
         let usage = ResourceUsage {
             cpu_percent,
@@ -149,9 +180,10 @@ impl ResourceMonitor {
             uptime_ms,
         };
 
-        if self.sample_count.load(Ordering::Relaxed).is_multiple_of(10) {
+        // Log every sample for debugging (reduce to every 10 in production)
+        if self.sample_count.load(Ordering::Relaxed).is_multiple_of(1) {
             info!(
-                "Resource Usage: CPU={:.1}%, RAM={}MB, DiskIO={}, NetIO={}",
+                "Resource Usage: CPU={:.1}%, RAM={}MB, DiskIO={}KB/s, NetIO={}B/s",
                 usage.cpu_percent,
                 usage.memory_bytes / 1024 / 1024,
                 usage.disk_kbps,
@@ -965,13 +997,32 @@ fn get_network_bytes_total() -> u64 {
 
 #[cfg(windows)]
 fn get_network_bytes_total() -> u64 {
+    use std::sync::Mutex;
+    use std::time::Instant;
+    
+    static NETWORK_CACHE: Mutex<Option<(u64, Instant)>> = Mutex::new(None);
+    
+    let mut guard = NETWORK_CACHE.lock().unwrap();
+    let now = Instant::now();
+    
+    // Use cached value if less than 1 second old (network stats don't change fast)
+    if let Some((cached_bytes, cached_time)) = *guard {
+        if now.duration_since(cached_time).as_secs() < 1 {
+            return cached_bytes;
+        }
+    }
+    
     // Windows: use sysinfo Networks as fallback (the native approach requires
     // GetIfTable2 from iphlpapi which is more complex to declare via FFI).
     let networks = sysinfo::Networks::new_with_refreshed_list();
-    networks
+    let total_bytes: u64 = networks
         .values()
         .map(|data| data.total_received() + data.total_transmitted())
-        .sum()
+        .sum();
+    
+    // Cache the result
+    *guard = Some((total_bytes, now));
+    total_bytes
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
@@ -1157,59 +1208,37 @@ fn get_disk_usage() -> (u64, u64) {
 }
 
 #[cfg(target_os = "linux")]
-fn get_disk_kbps() -> u32 {
+fn get_disk_bytes() -> u64 {
     use std::fs;
     use std::sync::atomic::{AtomicU64, Ordering};
 
-    static LAST_READ_OPS: AtomicU64 = AtomicU64::new(0);
-    static LAST_WRITE_OPS: AtomicU64 = AtomicU64::new(0);
-    static LAST_IO_TIME: AtomicU64 = AtomicU64::new(0);
+    static LAST_BYTES: AtomicU64 = AtomicU64::new(0);
+    static LAST_TIME: AtomicU64 = AtomicU64::new(0);
 
-    // Try to read /proc/self/io (requires specific permissions)
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
     if let Ok(content) = fs::read_to_string("/proc/self/io") {
-        let mut read_ops = 0u64;
-        let mut write_ops = 0u64;
+        let mut read_bytes = 0u64;
+        let mut write_bytes = 0u64;
 
         for line in content.lines() {
-            if line.starts_with("syscr:") {
-                read_ops = line
-                    .split_whitespace()
-                    .nth(1)
-                    .and_then(|s| s.parse().ok())
-                    .unwrap_or(0);
-            } else if line.starts_with("syscw:") {
-                write_ops = line
-                    .split_whitespace()
-                    .nth(1)
-                    .and_then(|s| s.parse().ok())
-                    .unwrap_or(0);
+            if let Some(value) = line.strip_prefix("read_bytes: ") {
+                read_bytes = value.parse().unwrap_or(0);
+            } else if let Some(value) = line.strip_prefix("write_bytes: ") {
+                write_bytes = value.parse().unwrap_or(0);
             }
         }
 
-        let total_ops = read_ops + write_ops;
-        let now_ms = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as u64)
-            .unwrap_or(0);
-
-        let last_ops =
-            LAST_READ_OPS.load(Ordering::Relaxed) + LAST_WRITE_OPS.load(Ordering::Relaxed);
-        let last_time = LAST_IO_TIME.load(Ordering::Relaxed);
-
-        LAST_READ_OPS.store(read_ops, Ordering::Relaxed);
-        LAST_WRITE_OPS.store(write_ops, Ordering::Relaxed);
-        LAST_IO_TIME.store(now_ms, Ordering::Relaxed);
-
-        if last_time > 0 && now_ms > last_time {
-            let ops_delta = total_ops.saturating_sub(last_ops);
-            let time_delta_s = (now_ms - last_time) as f64 / 1000.0;
-            if time_delta_s > 0.0 {
-                return (ops_delta as f64 / time_delta_s).clamp(0.0, u32::MAX as f64) as u32;
-            }
-        }
+        let total = read_bytes + write_bytes;
+        LAST_BYTES.store(total, Ordering::Relaxed);
+        LAST_TIME.store(now, Ordering::Relaxed);
+        total
+    } else {
+        0
     }
-
-    0
 }
 
 // ============ macOS Mach API FFI bindings ============
@@ -1550,57 +1579,85 @@ fn get_disk_usage() -> (u64, u64) {
 }
 
 #[cfg(target_os = "macos")]
-fn get_disk_kbps() -> u32 {
+fn get_disk_bytes() -> u64 {
     use libc::{proc_pid_rusage, rusage_info_v4};
     use std::mem;
     use std::sync::atomic::{AtomicU64, Ordering};
 
-    static LAST_DISK_BYTES: AtomicU64 = AtomicU64::new(0);
-    static LAST_DISK_TIME_US: AtomicU64 = AtomicU64::new(0);
+    static LAST_BYTES: AtomicU64 = AtomicU64::new(0);
+    static LAST_TIME: AtomicU64 = AtomicU64::new(0);
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
 
     unsafe {
         let mut info: rusage_info_v4 = mem::zeroed();
-        let pid = libc::getpid();
-        let res = proc_pid_rusage(pid, libc::RUSAGE_INFO_V4, &mut info as *mut _ as *mut _);
-        if res == 0 {
-            let current_bytes = info.ri_diskio_bytesread + info.ri_diskio_byteswritten;
-            let now_us = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_micros() as u64)
-                .unwrap_or(0);
+        if proc_pid_rusage(libc::RUSAGE_INFO_V4, &mut info as *mut _ as *mut libc::c_void) == 0 {
+            // Total bytes read + written
+            let total = info.ri_diskio_bytesread + info.ri_diskio_byteswritten;
+            LAST_BYTES.store(total, Ordering::Relaxed);
+            LAST_TIME.store(now, Ordering::Relaxed);
+            total
+        } else {
+            0
+        }
+    }
+}
 
-            let last_bytes = LAST_DISK_BYTES.swap(current_bytes, Ordering::Relaxed);
-            let last_time = LAST_DISK_TIME_US.swap(now_us, Ordering::Relaxed);
+// ============ Windows implementations ============
 
-            // Compute actual KB/s rate using time delta (avoids integer truncation)
-            if last_bytes > 0 && last_time > 0 && now_us > last_time {
-                let delta_bytes = current_bytes.saturating_sub(last_bytes);
-                let delta_secs = (now_us - last_time) as f64 / 1_000_000.0;
-                if delta_secs > 0.0 {
-                    let kbps = (delta_bytes as f64 / delta_secs) / 1024.0;
-                    return kbps.round().clamp(0.0, u32::MAX as f64) as u32;
-                }
-            }
+#[cfg(windows)]
+fn get_process_memory() -> u64 {
+    use windows::Win32::System::Threading::{GetCurrentProcess};
+    use windows::Win32::System::ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
+    use std::mem;
+
+    unsafe {
+        let mut pmc: PROCESS_MEMORY_COUNTERS = mem::zeroed();
+        pmc.cb = mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
+        
+        if GetProcessMemoryInfo(GetCurrentProcess(), &mut pmc, mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32).is_ok() {
+            return pmc.WorkingSetSize;
         }
     }
     0
 }
 
 #[cfg(windows)]
-fn get_process_memory() -> u64 {
-    use windows::Win32::System::ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
-    use windows::Win32::System::Threading::GetCurrentProcess;
-
-    unsafe {
-        let process = GetCurrentProcess();
-        let mut pmc = PROCESS_MEMORY_COUNTERS::default();
-        pmc.cb = std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
-
-        if GetProcessMemoryInfo(process, &mut pmc, pmc.cb).is_ok() {
-            return pmc.WorkingSetSize as u64;
+fn get_cpu_usage() -> f64 {
+    use std::sync::Mutex;
+    use std::time::Instant;
+    
+    static CPU_SYSTEM: Mutex<Option<(sysinfo::System, Instant)>> = Mutex::new(None);
+    
+    let mut guard = CPU_SYSTEM.lock().unwrap();
+    let now = Instant::now();
+    
+    match &mut *guard {
+        Some((sys, last_refresh)) => {
+            // Refresh only if enough time has passed (CPU needs time delta)
+            if now.duration_since(*last_refresh).as_millis() >= 500 {
+                sys.refresh_all();
+                *last_refresh = now;
+            }
+            
+            if let Some(process) = sys.process(sysinfo::Pid::from(std::process::id() as usize)) {
+                return process.cpu_usage() as f64;
+            }
+        }
+        None => {
+            let mut sys = sysinfo::System::new_all();
+            sys.refresh_all();
+            *guard = Some((sys, now));
+            
+            // First call always returns 0, need to wait for next refresh
+            return 0.0;
         }
     }
-    0
+    
+    0.0
 }
 
 // ============ Windows implementations ============
@@ -1644,15 +1701,14 @@ fn get_disk_usage() -> (u64, u64) {
 }
 
 #[cfg(windows)]
-fn get_disk_kbps() -> u32 {
+fn get_disk_bytes() -> u64 {
     use windows::Win32::System::Threading::{GetCurrentProcess, GetProcessIoCounters, IO_COUNTERS};
 
     unsafe {
         let mut io_counters = IO_COUNTERS::default();
         if GetProcessIoCounters(GetCurrentProcess(), &mut io_counters).is_ok() {
             // ReadTransferCount + WriteTransferCount
-            return ((io_counters.ReadTransferCount + io_counters.WriteTransferCount) / 1024)
-                as u32;
+            return io_counters.ReadTransferCount + io_counters.WriteTransferCount;
         }
     }
     0
@@ -1666,7 +1722,7 @@ fn get_system_cpu() -> f64 {
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
-fn get_disk_kbps() -> u32 {
+fn get_disk_bytes() -> u64 {
     0
 }
 

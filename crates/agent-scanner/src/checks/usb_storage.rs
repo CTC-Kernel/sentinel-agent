@@ -82,20 +82,38 @@ impl UsbStorageCheck {
     async fn check_windows(&self) -> ScannerResult<UsbStorageStatus> {
         debug!("Checking Windows USB mass storage policy");
 
-        let output = Command::new("reg")
+        let output = Command::new("powershell")
             .args([
-                "query",
-                r"HKLM\SYSTEM\CurrentControlSet\Services\USBSTOR",
-                "/v",
-                "Start",
+                "-NoProfile",
+                "-Command",
+                r#"
+                $results = @{}
+                
+                # Check USBSTOR service
+                $usbstor = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\USBSTOR' -Name 'Start' -ErrorAction SilentlyContinue
+                if ($usbstor) { $results['USBSTOR_Start'] = $usbstor.Start }
+                
+                # Check GPO Removable Storage
+                $gpoPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\RemovableStorageDevices'
+                $denyAll = Get-ItemProperty -Path $gpoPath -Name 'Deny_All' -ErrorAction SilentlyContinue
+                if ($null -ne $denyAll) { $results['GPO_Deny_All'] = $denyAll.Deny_All }
+                
+                # Check specific class (USB Storage Disks)
+                $usbDiskPath = "$gpoPath\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}"
+                $denyRead = Get-ItemProperty -Path $usbDiskPath -Name 'Deny_Read' -ErrorAction SilentlyContinue
+                if ($null -ne $denyRead) { $results['GPO_Deny_Read'] = $denyRead.Deny_Read }
+                $denyWrite = Get-ItemProperty -Path $usbDiskPath -Name 'Deny_Write' -ErrorAction SilentlyContinue
+                if ($null -ne $denyWrite) { $results['GPO_Deny_Write'] = $denyWrite.Deny_Write }
+
+                $results | ConvertTo-Json
+                "#,
             ])
             .output()
             .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to query USBSTOR registry: {}", e))
+                ScannerError::CheckExecution(format!("Failed to run PowerShell for USB check: {}", e))
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
-        let _stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
         let mut status = UsbStorageStatus {
             blocked: false,
@@ -108,37 +126,33 @@ impl UsbStorageCheck {
             raw_output: raw_output.clone(),
         };
 
-        if !output.status.success() {
-            // Registry key not found — this is not an error, just means USBSTOR
-            // isn't configured. Check exit code (2 = key not found) and common
-            // error strings across locales.
-            status
-                .issues
-                .push("USBSTOR registry key not found".to_string());
-            return Ok(status);
-        }
-
-        // Parse the Start value
-        // Start = 3 (REG_DWORD) means manual start (enabled)
-        // Start = 4 (REG_DWORD) means disabled
-        for line in raw_output.lines() {
-            if line.contains("Start") {
-                if let Some(hex_val) = line.split_whitespace().last() {
-                    let hex_str = hex_val.trim_start_matches("0x");
-                    if let Ok(value) = u32::from_str_radix(hex_str, 16) {
-                        status.service_start_type = Some(value);
-                        status.blocked = value == 4;
-                        if status.blocked {
-                            status.block_method = Some("Registry (USBSTOR Start=4)".to_string());
-                        }
-                    }
+        // Parse JSON output
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
+            // Check USBSTOR service type
+            if let Some(start) = json.get("USBSTOR_Start").and_then(|v| v.as_u64()) {
+                status.service_start_type = Some(start as u32);
+                if start == 4 {
+                    status.blocked = true;
+                    status.block_method = Some("Registry (USBSTOR Start=4)".to_string());
                 }
+            }
+
+            // Check GPO Deny All
+            if let Some(1) = json.get("GPO_Deny_All").and_then(|v| v.as_i64()) {
+                status.blocked = true;
+                status.block_method = Some("GPO (RemovableStorageDevices Deny_All)".to_string());
+            }
+
+            // Check GPO Deny Read/Write for disks
+            if let Some(1) = json.get("GPO_Deny_Read").and_then(|v| v.as_i64()) {
+                status.blocked = true;
+                status.block_method = Some("GPO (RemovableStorageDevices Deny_Read)".to_string());
             }
         }
 
         if !status.blocked {
             status.issues.push(format!(
-                "USB mass storage is not disabled (USBSTOR Start = {}, should be 4)",
+                "USB mass storage is not disabled (USBSTOR Start = {}, no GPO restriction found)",
                 status.service_start_type.unwrap_or(3)
             ));
         }

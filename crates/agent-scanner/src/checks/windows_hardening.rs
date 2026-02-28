@@ -10,7 +10,7 @@
 //! - Cryptographic settings
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
+use crate::error::{ScannerError, ScannerResult};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -86,8 +86,36 @@ impl WindowsHardeningCheck {
         // Define all hardening checks
         let checks = self.get_hardening_checks();
 
+        // Run all registry checks in a single PowerShell batch for performance
+        let registry_results = self.check_registry_values_batch(&checks).await?;
+
         for check in checks {
-            let result = self.check_registry_value(&check).await;
+            let key = format!(
+                "{}\\{}",
+                check.path.replace("HKLM", "HKLM:").replace("HKCU", "HKCU:"),
+                check.value
+            );
+            
+            let current_value = registry_results.get(&key).cloned();
+            let compliant = if let Some(ref val) = current_value {
+                self.check_value_compliance(val, check.expected)
+            } else {
+                false
+            };
+
+            let result = HardeningSetting {
+                name: check.name.to_string(),
+                category: check.category.to_string(),
+                registry_path: check.path.to_string(),
+                registry_value: check.value.to_string(),
+                current_value,
+                expected_value: check.expected.to_string(),
+                compliant,
+                severity: check.severity.to_string(),
+                description: check.description.to_string(),
+                remediation: check.remediation.to_string(),
+            };
+
             if !result.compliant && result.severity == "critical" {
                 critical_issues.push(format!("{}: {}", result.name, result.description));
             }
@@ -462,77 +490,72 @@ impl WindowsHardeningCheck {
     }
 
     #[cfg(target_os = "windows")]
-    async fn check_registry_value(&self, check: &HardeningCheckDef) -> HardeningSetting {
+    async fn check_registry_values_batch(
+        &self,
+        checks: &[HardeningCheckDef],
+    ) -> ScannerResult<std::collections::HashMap<String, String>> {
         use std::process::Command;
 
-        // Use reg query to get the value
-        let output = Command::new("reg")
-            .args(["query", check.path, "/v", check.value])
-            .output();
-
-        let (current_value, compliant) = match output {
-            Ok(out) if out.status.success() => {
-                let stdout = String::from_utf8_lossy(&out.stdout);
-                // Parse the output to extract the value
-                if let Some(value) = self.parse_reg_output(&stdout, check.value) {
-                    let is_compliant = self.check_value_compliance(&value, check.expected);
-                    (Some(value), is_compliant)
-                } else {
-                    (None, false)
-                }
-            }
-            _ => {
-                // Registry key doesn't exist - might be compliant by default or not
-                // For security settings, missing usually means default (often insecure)
-                (None, false)
-            }
-        };
-
-        HardeningSetting {
-            name: check.name.to_string(),
-            category: check.category.to_string(),
-            registry_path: check.path.to_string(),
-            registry_value: check.value.to_string(),
-            current_value,
-            expected_value: check.expected.to_string(),
-            compliant,
-            severity: check.severity.to_string(),
-            description: check.description.to_string(),
-            remediation: check.remediation.to_string(),
+        let mut ps_script = String::from("$results = @{};\n");
+        for check in checks {
+            let path = check.path.replace("HKLM", "HKLM:").replace("HKCU", "HKCU:");
+            ps_script.push_str(&format!(
+                "$val = Get-ItemProperty -Path '{}' -Name '{}' -ErrorAction SilentlyContinue;\n\
+                 if ($null -ne $val) {{ $results[\"{}\\{}\"] = $val.'{}' }};\n",
+                path, check.value, path, check.value, check.value
+            ));
         }
-    }
+        ps_script.push_str("$results | ConvertTo-Json");
 
-    #[cfg(target_os = "windows")]
-    fn parse_reg_output(&self, output: &str, value_name: &str) -> Option<String> {
-        for line in output.lines() {
-            let line = line.trim();
-            if line.split_whitespace().any(|part| part == value_name) {
-                // Format: "ValueName    REG_TYPE    Data"
-                let parts: Vec<&str> = line.split_whitespace().collect();
-                if parts.len() >= 3 {
-                    // The value is the last part (might be hex like 0x1)
-                    let value = parts.last().unwrap_or(&"");
-                    // Convert hex to decimal if needed
-                    if value.starts_with("0x") {
-                        if let Ok(num) = u32::from_str_radix(value.strip_prefix("0x").unwrap_or(value), 16) {
-                            return Some(num.to_string());
-                        }
-                    }
-                    return Some(value.to_string());
+        let output = Command::new("powershell")
+            .args(["-NoProfile", "-Command", &ps_script])
+            .output()
+            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run PowerShell batch: {}", e)))?;
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let mut results = std::collections::HashMap::new();
+
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+            if let Some(obj) = json.as_object() {
+                for (key, value) in obj {
+                    let val_str = match value {
+                        serde_json::Value::Number(n) => n.to_string(),
+                        serde_json::Value::String(s) => s.clone(),
+                        serde_json::Value::Bool(b) => (if *b { 1 } else { 0 }).to_string(),
+                        _ => value.to_string(),
+                    };
+                    results.insert(key.clone(), val_str);
                 }
             }
         }
-        None
+
+        Ok(results)
     }
 
     #[cfg(target_os = "windows")]
     fn check_value_compliance(&self, current: &str, expected: &str) -> bool {
-        // Handle numeric comparisons
-        if let (Ok(curr_num), Ok(exp_num)) = (current.parse::<i64>(), expected.parse::<i64>()) {
-            return curr_num == exp_num;
+        // Handle numeric comparisons (hex or decimal)
+        let curr_clean = current.trim_start_matches("0x");
+        let exp_clean = expected.trim_start_matches("0x");
+
+        let curr_val = if current.starts_with("0x") {
+            i64::from_str_radix(curr_clean, 16).ok()
+        } else {
+            current.parse::<i64>().ok()
+        };
+
+        let exp_val = if expected.starts_with("0x") {
+            i64::from_str_radix(exp_clean, 16).ok()
+        } else {
+            expected.parse::<i64>().ok()
+        };
+
+        if let (Some(c), Some(e)) = (curr_val, exp_val) {
+            return c == e;
         }
-        // String comparison
-        current == expected
+
+        // String comparison fallback
+        current.to_lowercase() == expected.to_lowercase()
     }
 
     #[cfg(not(target_os = "windows"))]

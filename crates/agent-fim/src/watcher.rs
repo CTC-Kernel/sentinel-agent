@@ -194,16 +194,28 @@ fn process_event(
 /// Check if a path should be ignored based on patterns.
 fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
     let path_str = path.to_string_lossy();
+    
+    // On Windows, use case-insensitive matching and normalize separators
+    #[cfg(target_os = "windows")]
+    let path_norm = path_str.to_lowercase().replace('\\', "/");
+    #[cfg(not(target_os = "windows"))]
+    let path_norm = path_str;
+
     for pattern in patterns {
-        if let Some(suffix) = pattern.strip_prefix('*') {
-            if path_str.ends_with(suffix) {
+        #[cfg(target_os = "windows")]
+        let pattern_norm = pattern.to_lowercase().replace('\\', "/");
+        #[cfg(not(target_os = "windows"))]
+        let pattern_norm = pattern.clone();
+
+        if let Some(suffix) = pattern_norm.strip_prefix('*') {
+            if path_norm.ends_with(suffix) {
                 return true;
             }
-        } else if let Some(prefix) = pattern.strip_suffix("/**") {
-            if path_str.contains(prefix) {
+        } else if let Some(prefix) = pattern_norm.strip_suffix("/**") {
+            if path_norm.contains(prefix) {
                 return true;
             }
-        } else if path_str.contains(pattern.as_str()) {
+        } else if path_norm.contains(&pattern_norm) {
             return true;
         }
     }
