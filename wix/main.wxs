@@ -102,6 +102,7 @@
     <Feature Id="MainFeature" Title="Sentinel Agent" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="ShortcutComponents" />
+      <ComponentRef Id="AutoStartGuiComponent" />
       <ComponentGroupRef Id="ConfigComponents" />
     </Feature>
 
@@ -246,8 +247,16 @@
                        Name="DesktopShortcutInstalled" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 
-      <!-- Note: Auto-start is handled by the Windows Service (Start="auto") above.
-           No additional Run registry entry needed â€” it would cause duplicate execution. -->
+      <!-- Auto-start GUI for current user at logon -->
+      <Component Id="AutoStartGuiComponent" Guid="B8C9D0E1-F2G3-4567-89AB-CDEF01234567" Directory="BinDir">
+        <RegistryKey Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run">
+          <RegistryValue Type="string" Name="SentinelAgentGUI" Value="&quot;[BinDir]sentinel-agent.exe&quot; --gui" />
+        </RegistryKey>
+        <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent" Name="GuiAutoStart" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Note: Service auto-start is handled separately (Start="auto").
+           GUI auto-start is for user session tray icon. -->
     </ComponentGroup>
 
     <!-- Configuration component -->
