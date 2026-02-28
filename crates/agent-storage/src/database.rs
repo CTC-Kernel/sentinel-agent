@@ -12,6 +12,7 @@ use rusqlite::Connection;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::sync::Mutex;
+#[allow(unused_imports)]
 use tracing::{debug, info, warn};
 
 /// Database configuration.
