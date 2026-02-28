@@ -219,11 +219,14 @@ impl TrayBridge {
         let mut actions = Vec::new();
 
         // 1. Poll TrayIconEvent (left-click on the icon itself)
-        if let Ok(event) = TrayIconEvent::receiver().try_recv() {
-            if event.click_type == tray_icon::ClickType::Left {
-                debug!("Tray icon left-clicked, showing window");
-                actions.push(TrayAction::ShowWindow);
-            }
+        if let Ok(tray_icon::TrayIconEvent::Click {
+            button: tray_icon::MouseButton::Left,
+            button_state: tray_icon::MouseButtonState::Up,
+            ..
+        }) = tray_icon::TrayIconEvent::receiver().try_recv()
+        {
+            debug!("Tray icon left-clicked, showing window");
+            actions.push(TrayAction::ShowWindow);
         }
 
         // 2. Poll MenuEvent (clicks on items within the tray menu)
