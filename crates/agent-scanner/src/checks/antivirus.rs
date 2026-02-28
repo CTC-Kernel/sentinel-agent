@@ -224,12 +224,16 @@ impl AntivirusCheck {
             av_names.remove(0);
         }
 
-        // productState bit flags: bit 12 = enabled, bit 4 = up to date
-        let enabled = products
+        // productState bit flags: 
+        // Bit 12: Enabled (0x1000)
+        // Bit 4: Up to date (0x0010) - 0 usually means up to date, 1 means out of date
+        let state = products
             .first()
             .and_then(|p| p["productState"].as_u64())
-            .map(|s| (s & 0x1000) != 0)
-            .unwrap_or(false);
+            .unwrap_or(0);
+        
+        let enabled = (state & 0x1000) != 0;
+        let definitions_current = (state & 0x0010) == 0;
 
         Ok(AntivirusStatus {
             enabled,
@@ -237,7 +241,7 @@ impl AntivirusCheck {
             real_time_protection: enabled,
             definition_date: None,
             definition_version: None,
-            definitions_current: false,
+            definitions_current,
             last_scan_date: None,
             service_running: enabled,
             additional_products: av_names,

@@ -56,6 +56,9 @@ pub struct FirewallProfile {
     /// Number of rules in this profile.
     #[serde(default)]
     pub rule_count: Option<u32>,
+
+    /// Whether the setting is enforced by GPO.
+    pub gpo_enforced: Option<bool>,
 }
 
 /// Firewall configuration compliance check.
@@ -97,7 +100,26 @@ impl FirewallCheck {
                 "-NoProfile",
                 "-Command",
                 r#"
-                Get-NetFirewallProfile | Select-Object Name, Enabled, DefaultInboundAction, DefaultOutboundAction | ConvertTo-Json
+                $profiles = Get-NetFirewallProfile | Select-Object Name, Enabled, DefaultInboundAction, DefaultOutboundAction
+                $results = @()
+                foreach ($p in $profiles) {
+                    $gpoPath = switch ($p.Name) {
+                        'Domain' { 'HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\DomainProfile' }
+                        'Private' { 'HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile' }
+                        'Public' { 'HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\PublicProfile' }
+                    }
+                    $gpoValue = (Get-ItemProperty -Path $gpoPath -Name 'EnableFirewall' -ErrorAction SilentlyContinue).EnableFirewall
+                    
+                    $obj = @{
+                        'Name' = $p.Name
+                        'Enabled' = $p.Enabled
+                        'DefaultInboundAction' = $p.DefaultInboundAction
+                        'DefaultOutboundAction' = $p.DefaultOutboundAction
+                        'GpoEnforced' = ($null -ne $gpoValue)
+                    }
+                    $results += $obj
+                }
+                $results | ConvertTo-Json
                 "#,
             ])
             .output()
@@ -119,11 +141,10 @@ impl FirewallCheck {
         // Get rule count
         let rule_count = self.get_windows_rule_count().await.ok();
 
-        let any_enabled = profiles.iter().any(|p| p.enabled);
-        let _all_enabled = profiles.iter().all(|p| p.enabled);
+        let all_enabled = profiles.iter().all(|p| p.enabled);
 
         Ok(FirewallStatus {
-            enabled: any_enabled,
+            enabled: all_enabled,
             firewall_type: "Windows Firewall".to_string(),
             profiles,
             rule_count,
@@ -166,12 +187,15 @@ impl FirewallCheck {
                     })
                     .map(|s| s.to_string());
 
+                let gpo_enforced = p["GpoEnforced"].as_bool();
+                
                 FirewallProfile {
                     name,
                     enabled,
                     default_inbound: inbound,
                     default_outbound: outbound,
                     rule_count: None,
+                    gpo_enforced,
                 }
             })
             .collect();
@@ -536,6 +560,7 @@ mod tests {
                     default_inbound: Some("Block".to_string()),
                     default_outbound: Some("Allow".to_string()),
                     rule_count: Some(50),
+                    gpo_enforced: Some(true),
                 },
                 FirewallProfile {
                     name: "Private".to_string(),
@@ -543,6 +568,7 @@ mod tests {
                     default_inbound: Some("Block".to_string()),
                     default_outbound: Some("Allow".to_string()),
                     rule_count: Some(50),
+                    gpo_enforced: Some(false),
                 },
             ],
             rule_count: Some(100),
@@ -566,6 +592,7 @@ mod tests {
             default_inbound: Some("Block".to_string()),
             default_outbound: Some("Allow".to_string()),
             rule_count: Some(25),
+            gpo_enforced: Some(true),
         };
 
         let json = serde_json::to_string(&profile).unwrap();

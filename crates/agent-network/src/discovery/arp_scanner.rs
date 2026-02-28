@@ -158,7 +158,7 @@ impl ArpScanner {
         };
 
         let type_str = parts[2].to_lowercase();
-        let is_permanent = type_str == "static";
+        let is_permanent = type_str == "static" || type_str == "statique";
 
         Some(ArpEntry {
             ip: ip.to_string(),

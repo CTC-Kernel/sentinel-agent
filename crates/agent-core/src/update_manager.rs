@@ -259,11 +259,11 @@ impl UpdateManager {
                     if stderr.contains("not found") || stderr.contains("introuvable") {
                         debug!("No agent-gui.exe process found to terminate.");
                     } else {
-                        warn!("Taskkill reported an issue (GUI may still be locked): {}", stderr);
+                        warn!("Taskkill reported an issue (GUI may still be locked): {}. Proceeding with MSI.", stderr);
                     }
                 }
                 Err(e) => {
-                    warn!("Failed to execute taskkill for agent-gui.exe: {}", e);
+                    warn!("Failed to execute taskkill for agent-gui.exe: {}. Proceeding with MSI.", e);
                 }
             }
 

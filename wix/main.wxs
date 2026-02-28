@@ -142,6 +142,16 @@
               Source="$(var.TargetDir)\agent-core.exe"
               KeyPath="yes" />
 
+        <!-- GUI launcher batch file - always starts with GUI -->
+        <File Id="SentinelGuiLauncher"
+              Name="sentinel-agent-gui.bat"
+              Source="scripts\sentinel-gui-launcher.bat" />
+
+        <!-- Direct CMD launcher for double-click -->
+        <File Id="SentinelDirectLauncher"
+              Name="sentinel-agent.cmd"
+              Source="scripts\sentinel-agent.cmd" />
+
         <!-- Windows Service registration using the same binary -->
         <ServiceInstall
           Id="SentinelServiceInstall"
@@ -214,8 +224,7 @@
         <Shortcut Id="StartMenuShortcut"
                   Name="Sentinel Agent"
                   Description="Lancer l'agent de conformitÃ© Sentinel"
-                  Target="[BinDir]sentinel-agent.exe"
-                  Arguments="run"
+                  Target="[BinDir]sentinel-agent-gui.bat"
                   WorkingDirectory="BinDir"
                   Icon="SentinelIcon" />
 
@@ -240,8 +249,7 @@
         <Shortcut Id="DesktopShortcut"
                   Name="Sentinel Agent"
                   Description="Lancer l'agent de conformitÃ© Sentinel"
-                  Target="[BinDir]sentinel-agent.exe"
-                  Arguments="run"
+                  Target="[BinDir]sentinel-agent-gui.bat"
                   WorkingDirectory="BinDir"
                   Icon="SentinelIcon" />
         <RemoveFolder Id="RemoveDesktopShortcut" On="uninstall" />
@@ -252,7 +260,7 @@
       <!-- Auto-start GUI for current user at logon -->
       <Component Id="AutoStartGuiComponent" Guid="B8C9D0E1-F234-4567-89AB-CDEF01234567" Directory="BinDir">
         <RegistryKey Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run">
-          <RegistryValue Type="string" Name="SentinelAgentGUI" Value="&quot;[BinDir]sentinel-agent.exe&quot; run" />
+          <RegistryValue Type="string" Name="SentinelAgentGUI" Value="&quot;[BinDir]sentinel-agent-gui.bat&quot;" />
         </RegistryKey>
         <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent" Name="GuiAutoStart" Type="integer" Value="1" KeyPath="yes" />
       </Component>
@@ -404,7 +412,7 @@
     <!-- Launch GUI after install (runs as current user so window is visible) -->
     <CustomAction Id="LaunchGui"
                   Directory="BinDir"
-                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; run"
+                  ExeCommand="sentinel-agent-gui.bat"
                   Execute="deferred"
                   Impersonate="yes"
                   Return="asyncNoWait" />
