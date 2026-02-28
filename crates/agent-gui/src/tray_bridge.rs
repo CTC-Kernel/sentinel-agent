@@ -9,7 +9,7 @@
 use agent_common::constants::AGENT_VERSION;
 use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 use tracing::{debug, info, warn};
-use tray_icon::{Icon, TrayIcon, TrayIconBuilder, TrayIconEvent};
+use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
 /// Embedded tray icon PNG.
 /// On macOS, we use a 22x22 template image for the status bar.
