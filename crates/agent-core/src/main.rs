@@ -1404,17 +1404,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 let rule_clone = rule.clone();
                                 let payload_clone = payload.clone();
                                 tokio::spawn(async move {
-                                    let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredDetectionRule {
                                         id: rule_clone.id.to_string(),
                                         name: rule_clone.name.clone(),
                                         description: rule_clone.description.clone(),
                                         severity: rule_clone.severity.as_str().to_string(),
-                                        log_source: "endpoint".to_string(),
-                                        condition: serde_json::to_string(&rule_clone.conditions).unwrap_or_default(),
+                                        conditions: serde_json::to_string(&rule_clone.conditions).unwrap_or_default(),
+                                        actions: "[]".to_string(),
                                         enabled: rule_clone.enabled,
                                         created_at: rule_clone.created_at.to_rfc3339(),
-                                        updated_at: now,
+                                        last_match: None,
+                                        match_count: 0,
                                         synced: false,
                                     };
                                     let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
