@@ -228,7 +228,7 @@
         <Shortcut Id="StartMenuShortcut"
                   Name="Sentinel Agent"
                   Description="Lancer l'agent de conformité Sentinel"
-                  Target="[BinDir]sentinel-agent-gui.bat"
+                  Target="[BinDir]sentinel-agent.exe"
                   WorkingDirectory="BinDir"
                   Icon="SentinelIcon" />
 
@@ -253,7 +253,7 @@
         <Shortcut Id="DesktopShortcut"
                   Name="Sentinel Agent"
                   Description="Lancer l'agent de conformité Sentinel"
-                  Target="[BinDir]sentinel-agent-gui.bat"
+                  Target="[BinDir]sentinel-agent.exe"
                   WorkingDirectory="BinDir"
                   Icon="SentinelIcon" />
         <RemoveFolder Id="RemoveDesktopShortcut" On="uninstall" />
@@ -264,7 +264,7 @@
       <!-- Auto-start GUI for current user at logon -->
       <Component Id="AutoStartGuiComponent" Guid="B8C9D0E1-F234-4567-89AB-CDEF01234567" Directory="BinDir">
         <RegistryKey Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run">
-          <RegistryValue Type="string" Name="SentinelAgentGUI" Value="&quot;[BinDir]sentinel-agent-gui.bat&quot;" />
+          <RegistryValue Type="string" Name="SentinelAgentGUI" Value="&quot;[BinDir]sentinel-agent.exe&quot;" />
         </RegistryKey>
         <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent" Name="GuiAutoStart" Type="integer" Value="1" KeyPath="yes" />
       </Component>
@@ -379,11 +379,10 @@
                   ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; enroll --token &quot;[ENROLLMENTTOKEN]&quot; --server &quot;[SERVERURL]&quot;"
                   Return="ignore" />
 
-    <!-- Launch GUI after install via batch launcher (handles de-elevation).
-         asyncNoWait so the installer closes immediately without waiting for the GUI. -->
+    <!-- Launch GUI after install (asyncNoWait so the installer closes immediately). -->
     <CustomAction Id="LaunchGui"
                   Directory="BinDir"
-                  ExeCommand="sentinel-agent-gui.bat"
+                  ExeCommand="sentinel-agent.exe"
                   Return="asyncNoWait" />
 
     <!-- Force kill Sentinel processes on uninstall (DEFERRED — must run before file removal).
