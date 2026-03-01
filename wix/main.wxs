@@ -159,7 +159,7 @@
           DisplayName="Sentinel Agent"
           Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
           Type="ownProcess"
-          Start="demand"
+          Start="auto"
           ErrorControl="normal"
           Arguments="--service" />
 
@@ -175,9 +175,11 @@
         <!-- Service control: stop on install/uninstall, remove on uninstall.
              Do NOT auto-start on install — the GUI handles the runtime during
              the interactive session. The service starts on next boot via Start="auto". -->
+        <!-- Service control: starting the service on install ensures the background tasks and ACLs run. -->
         <ServiceControl
           Id="SentinelServiceControl"
           Name="SentinelGRCAgent"
+          Start="install"
           Stop="both"
           Remove="uninstall"
           Wait="yes" />
@@ -304,36 +306,36 @@
       <!-- Create data directory with proper permissions -->
       <Component Id="DataDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012345" Directory="DataDir">
         <CreateFolder>
-          <Permission User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
-          <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
-          <Permission User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
+          <util:PermissionEx User="Users" GenericAll="yes" />
+          <util:PermissionEx User="Administrators" GenericAll="yes" />
+          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
       <!-- Create models directory for LLM GGUF files -->
       <Component Id="ModelsDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012347" Directory="ModelsDir">
         <CreateFolder>
-          <Permission User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
-          <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
-          <Permission User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
+          <util:PermissionEx User="Users" GenericAll="yes" />
+          <util:PermissionEx User="Administrators" GenericAll="yes" />
+          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
       <!-- Create LLM cache directory -->
       <Component Id="CacheLlmDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012348" Directory="CacheLlmDir">
         <CreateFolder>
-          <Permission User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
-          <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
-          <Permission User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
+          <util:PermissionEx User="Users" GenericAll="yes" />
+          <util:PermissionEx User="Administrators" GenericAll="yes" />
+          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
       <!-- Create log directory -->
       <Component Id="LogDirComponent" Guid="E5F6A7B8-C9D0-1234-EF01-567890123456" Directory="LogDir">
         <CreateFolder>
-          <Permission User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
-          <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
-          <Permission User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
+          <util:PermissionEx User="Users" GenericAll="yes" />
+          <util:PermissionEx User="Administrators" GenericAll="yes" />
+          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
         </CreateFolder>
       </Component>
     </ComponentGroup>
