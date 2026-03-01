@@ -98,6 +98,13 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
             AgentConfig::default()
         });
 
+        // Ensure the Sentinel directory structure exists with correct permissions
+        // for both Service (SYSTEM) and GUI (Users) access.
+        // MUST BE DONE BEFORE KeyManager or Database initialization!
+        if let Err(e) = ensure_sentinel_directories_with_acls() {
+            warn!("Failed to set directory ACLs, but will attempt to proceed: {}", e);
+        }
+
         let key_manager = match KeyManager::new() {
             Ok(km) => km,
             Err(e) => {
@@ -108,12 +115,6 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         };
 
         let default_config = DatabaseConfig::default();
-
-        // Ensure the Sentinel directory structure exists with correct permissions
-        // for both Service (SYSTEM) and GUI (Users) access.
-        if let Err(e) = ensure_sentinel_directories_with_acls() {
-            warn!("Failed to set directory ACLs, but will attempt to proceed: {}", e);
-        }
 
         // Check for pending safe-restore file on Windows startup
         let restore_path = default_config.path.with_extension("restore");
@@ -246,6 +247,9 @@ fn ensure_sentinel_directories_with_acls() -> ServiceResult<()> {
         .arg(base_dir)
         .arg("/grant")
         .arg("*S-1-5-32-545:(OI)(CI)(M)") // Builtin\Users SID
+        .arg("/T") // Apply recursively to existing files
+        .arg("/C") // Continue on errors
+        .arg("/Q") // Quiet
         .output()
         .map_err(|e| ServiceError::System(format!("Failed to execute icacls: {}", e)))?;
 
