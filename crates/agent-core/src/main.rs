@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 //! Sentinel GRC Agent - Main entry point.
 //!
 //! This binary can run in multiple modes:
@@ -89,6 +90,12 @@ fn main() -> ExitCode {
     // leave a trace in C:\ProgramData\Sentinel\logs\startup.log.
     #[cfg(windows)]
     {
+        // Even though we are a "windows" subsystem (so double-clicking doesn't spawn a console),
+        // we still want printf/println to work if launched from an existing cmd/powershell.
+        unsafe {
+            let _ = windows::Win32::System::Console::AttachConsole(windows::Win32::System::Console::ATTACH_PARENT_PROCESS);
+        }
+
         use std::fs::{self, OpenOptions};
         use std::io::Write;
         let log_dir = r"C:\ProgramData\Sentinel\logs";
