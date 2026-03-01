@@ -11,14 +11,6 @@ if %errorlevel% == 0 (
     exit /b 0
 )
 
-REM Check if service is running and stop it first
-sc query SentinelGRCAgent | find "RUNNING" >nul
-if %errorlevel% == 0 (
-    echo Stopping Sentinel service to start GUI mode...
-    net stop SentinelGRCAgent
-    timeout /t 2 /nobreak >nul
-)
-
 REM Start agent in GUI mode
 start "Sentinel Agent" sentinel-agent.exe run
 
