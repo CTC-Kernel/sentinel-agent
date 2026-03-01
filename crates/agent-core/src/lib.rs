@@ -76,7 +76,7 @@ use agent_scanner::{
     },
 };
 use agent_storage::Database;
-use agent_sync::{AuthenticatedClient, ConfigSyncService, ResultUploader, RuleSyncService, AuditSyncService, CommandResultsService};
+use agent_sync::{AuthenticatedClient, ConfigSyncService, ResultUploader, RuleSyncService, AuditSyncService, CommandResultsService, SyncOrchestrator};
 use api_client::ApiClient;
 use resources::ResourceMonitor;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -227,6 +227,8 @@ pub struct AgentRuntime {
     audit_sync: RwLock<Option<AuditSyncService>>,
     /// Command results reporting service.
     command_results: RwLock<Option<CommandResultsService>>,
+    /// GRC entity sync orchestrator (processes queued playbooks, risks, assets, etc.).
+    sync_orchestrator: RwLock<Option<SyncOrchestrator>>,
     /// Timestamp of the last self-update check.
     last_update_check: RwLock<Option<std::time::Instant>>,
     /// Last successful sync timestamp.
@@ -481,6 +483,7 @@ impl AgentRuntime {
             result_uploader: RwLock::new(None),
             audit_sync: RwLock::new(None),
             command_results: RwLock::new(None),
+            sync_orchestrator: RwLock::new(None),
             last_update_check: RwLock::new(None),
             last_sync_at: RwLock::new(None),
             audit_trail: None,
@@ -1031,6 +1034,19 @@ impl AgentRuntime {
                                 Err(e) => warn!("Audit trail sync failed: {}", e),
                             }
                         }
+                        // Drain GRC sync queue: upload locally-created playbooks, risks, assets, etc.
+                        if let Some(ref client) = self.authenticated_client {
+                            if let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref() {
+                                match orchestrator.drain_grc_queues(client).await {
+                                    Ok(count) => {
+                                        if count > 0 {
+                                            info!("GRC sync: {} items synced", count);
+                                        }
+                                    }
+                                    Err(e) => warn!("GRC sync queue drain failed: {}", e),
+                                }
+                            }
+                        }
                     }
                     Err(e) => {
                         warn!("Heartbeat failed: {}", e);
@@ -1421,7 +1437,7 @@ impl AgentRuntime {
                 }
 
                 if !detection_rules.is_empty() || !playbooks.is_empty() {
-                    let pipeline_matches = threat_pipeline::run_threat_pipeline(
+                    let pipeline_result = threat_pipeline::run_threat_pipeline(
                         &detection_rules,
                         &playbooks,
                         &threat_context,
@@ -1430,11 +1446,11 @@ impl AgentRuntime {
                         self.llm_service.as_ref().map(|s| s.as_ref()),
                     ).await;
 
-                    // Upload detection matches to the platform
-                    if !pipeline_matches.is_empty() {
-                        if let Some(ref client) = self.authenticated_client {
+                    if let Some(ref client) = self.authenticated_client {
+                        // Upload detection matches to the platform
+                        if !pipeline_result.rule_matches.is_empty() {
                             let match_payloads: Vec<agent_sync::DetectionMatchPayload> =
-                                pipeline_matches.iter().map(|m| {
+                                pipeline_result.rule_matches.iter().map(|m| {
                                     agent_sync::DetectionMatchPayload {
                                         rule_id: m.rule_id.clone(),
                                         rule_name: m.rule_name.clone(),
@@ -1449,6 +1465,30 @@ impl AgentRuntime {
                                     resp.received_count
                                 ),
                                 Err(e) => warn!("Failed to upload detection matches: {}", e),
+                            }
+                        }
+
+                        // Upload playbook execution logs to the platform
+                        if !pipeline_result.playbook_logs.is_empty() {
+                            let log_payloads: Vec<agent_sync::PlaybookLogPayload> =
+                                pipeline_result.playbook_logs.iter().map(|l| {
+                                    agent_sync::PlaybookLogPayload {
+                                        id: l.id.to_string(),
+                                        playbook_id: l.playbook_id.to_string(),
+                                        playbook_name: l.playbook_name.clone(),
+                                        triggered_at: l.triggered_at,
+                                        trigger_event: l.trigger_event.clone(),
+                                        actions_executed: l.actions_executed.clone(),
+                                        success: l.success,
+                                        error: l.error.clone(),
+                                    }
+                                }).collect();
+                            match client.sync_playbook_logs(log_payloads).await {
+                                Ok(resp) => info!(
+                                    "Uploaded {} playbook logs to platform",
+                                    resp.received_count
+                                ),
+                                Err(e) => warn!("Failed to upload playbook logs: {}", e),
                             }
                         }
                     }
@@ -1772,6 +1812,20 @@ impl AgentRuntime {
                 });
 
                 self.upload_check_results().await;
+
+                // Drain GRC sync queue during force sync
+                if let Some(ref client) = self.authenticated_client {
+                    if let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref() {
+                        match orchestrator.drain_grc_queues(client).await {
+                            Ok(count) => {
+                                if count > 0 {
+                                    info!("Force sync: {} GRC items synced", count);
+                                }
+                            }
+                            Err(e) => warn!("Force sync GRC queue drain failed: {}", e),
+                        }
+                    }
+                }
 
                 match self
                     .send_heartbeat(compliance_score, last_compliance_check_at)
