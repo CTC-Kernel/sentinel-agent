@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 #[allow(unused_imports)]
-use tracing::{debug, info, warn};
+use tracing::{debug, error, info, warn};
 
 /// Database configuration.
 #[derive(Debug, Clone)]
