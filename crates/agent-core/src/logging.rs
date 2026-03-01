@@ -27,8 +27,16 @@ pub fn init_logging(log_level: &str) {
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
     let (filter_layer, reload_handle) = tracing_subscriber::reload::Layer::new(filter);
 
+    // Initial log directory and file appender
+    let log_dir = get_log_dir();
+    let file_appender = tracing_appender::rolling::daily(&log_dir, "agent.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    // Leak the guard to keep it alive for the duration of the program
+    std::mem::forget(_guard);
+
     tracing_subscriber::registry()
         .with(fmt::layer())
+        .with(fmt::layer().with_writer(non_blocking).with_ansi(false))
         .with(filter_layer)
         .init();
 
@@ -55,8 +63,16 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
     let (filter_layer, reload_handle) = tracing_subscriber::reload::Layer::new(filter);
 
+    // Initial log directory and file appender
+    let log_dir = get_log_dir();
+    let file_appender = tracing_appender::rolling::daily(&log_dir, "agent.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    // Leak the guard to keep it alive for the duration of the program
+    std::mem::forget(_guard);
+
     tracing_subscriber::registry()
         .with(fmt::layer())
+        .with(fmt::layer().with_writer(non_blocking).with_ansi(false))
         .with(gui_layer)
         .with(filter_layer)
         .init();
@@ -70,4 +86,15 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
     }));
 
     bridge
+}
+
+fn get_log_dir() -> std::path::PathBuf {
+    #[cfg(windows)]
+    {
+        std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs")
+    }
+    #[cfg(not(windows))]
+    {
+        std::path::PathBuf::from("/var/log/sentinel")
+    }
 }
