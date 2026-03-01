@@ -407,6 +407,14 @@
                   ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Remove-Item '[CommonAppDataFolder]Sentinel\*' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1002 -EntryType Warning -Message ('Cleanup failed: ' + $_) }&quot;"
                   Return="ignore" />
 
+    <!-- Forcefully reset permissions in case of legacy locked folders from older failed installations -->
+    <CustomAction Id="ForceResetPermissions"
+                  Directory="SystemFolder"
+                  ExeCommand="cmd.exe /c &quot;if exist %ProgramData%\Sentinel (takeown /f %ProgramData%\Sentinel /r /d y &amp; icacls %ProgramData%\Sentinel /grant *S-1-5-32-545:(OI)(CI)(F) /T /C /Q)&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
     <!-- Installation sequence -->
     <InstallExecuteSequence>
       <!--
@@ -415,6 +423,10 @@
       -->
       <Custom Action="KillGuiProcess" After="InstallInitialize"
               Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+
+      <!-- Force reset legacy permissions before installing files so CreateFolder can write to it -->
+      <Custom Action="ForceResetPermissions" After="InstallInitialize"
+              Condition="NOT REMOVE=&quot;ALL&quot;" />
 
       <!--
         INSTALL: All post-install actions run AFTER InstallFinalize (immediate).
