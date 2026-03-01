@@ -118,7 +118,30 @@ fn main() -> ExitCode {
             .location()
             .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
             .unwrap_or_else(|| "unknown".to_string());
-        eprintln!("PANIC at {}: {}", location, payload);
+        
+        let msg = format!("PANIC at {}: {}", location, payload);
+        eprintln!("{}", msg);
+
+        // Also log to a file on Windows so we can see it even if stderr is hidden
+        #[cfg(windows)]
+        {
+            use std::fs::OpenOptions;
+            use std::io::Write;
+            let _ = std::fs::create_dir_all(r"C:\ProgramData\Sentinel\logs");
+            if let Ok(mut f) = OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(r"C:\ProgramData\Sentinel\logs\panic.log")
+            {
+                let _ = writeln!(
+                    f,
+                    "[{}] {}",
+                    chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
+                    msg
+                );
+            }
+        }
+
         // Let the natural unwind complete so destructors run (DB WAL merge, key zeroize).
         // Do NOT call std::process::exit() here as it skips all destructors.
     }));
@@ -141,7 +164,12 @@ fn main() -> ExitCode {
     #[cfg(not(feature = "gui"))]
     let gui_mode = false;
 
-    if !gui_mode {
+    // Initialize logging immediately to capture setup errors.
+    // GUID mode will still use its bridge but the file appender will be active.
+    if gui_mode {
+        #[cfg(feature = "gui")]
+        init_logging_with_terminal(&cli.log_level);
+    } else {
         init_logging(&cli.log_level);
     }
 

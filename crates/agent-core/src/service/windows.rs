@@ -109,6 +109,12 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 
         let default_config = DatabaseConfig::default();
 
+        // Ensure the Sentinel directory structure exists with correct permissions
+        // for both Service (SYSTEM) and GUI (Users) access.
+        if let Err(e) = ensure_sentinel_directories_with_acls() {
+            warn!("Failed to set directory ACLs, but will attempt to proceed: {}", e);
+        }
+
         // Check for pending safe-restore file on Windows startup
         let restore_path = default_config.path.with_extension("restore");
         if restore_path.exists() {
@@ -214,6 +220,53 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     })?;
 
     info!("Sentinel GRC Agent service stopped");
+    Ok(())
+}
+
+/// Ensure the Sentinel directory structure exists in ProgramData with 
+/// permissions that allow both the service and the GUI group access.
+fn ensure_sentinel_directories_with_acls() -> ServiceResult<()> {
+    let base_dir = r"C:\ProgramData\Sentinel";
+    let sub_dirs = ["data", "logs", "cache", "backups"];
+
+    // 1. Create the base directory if it doesn't exist
+    if !std::path::Path::new(base_dir).exists() {
+        std::fs::create_dir_all(base_dir).map_err(|e| {
+            ServiceError::System(format!("Failed to create base directory {}: {}", base_dir, e))
+        })?;
+        info!("Created base directory: {}", base_dir);
+    }
+
+    // 2. Set ACLs on the base directory to allow Users group to modify contents.
+    // (OI)(CI) = Object Inherit, Container Inherit
+    // (M) = Modify permissions
+    // This ensures that when the service (SYSTEM) creates subfolders/files, 
+    // the regular user GUI can still read/write them.
+    let output = std::process::Command::new("icacls")
+        .arg(base_dir)
+        .arg("/grant")
+        .arg("*S-1-5-32-545:(OI)(CI)(M)") // Builtin\Users SID
+        .output()
+        .map_err(|e| ServiceError::System(format!("Failed to execute icacls: {}", e)))?;
+
+    if !output.status.success() {
+        let err = String::from_utf8_lossy(&output.stderr);
+        warn!("icacls failed with error: {}. GUI may have permission issues.", err);
+    } else {
+        info!("Successfully updated ACLs for {}", base_dir);
+    }
+
+    // 3. Create subdirectories
+    for sub in sub_dirs {
+        let path = std::path::Path::new(base_dir).join(sub);
+        if !path.exists() {
+            std::fs::create_dir_all(&path).map_err(|e| {
+                ServiceError::System(format!("Failed to create subdirectory {}: {}", path.display(), e))
+            })?;
+            debug!("Created subdirectory: {}", path.display());
+        }
+    }
+
     Ok(())
 }
 
