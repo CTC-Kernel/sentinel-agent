@@ -10,7 +10,7 @@
 use agent_common::config::AgentConfig;
 #[cfg(feature = "tray")]
 use agent_core::tray;
-use agent_core::{AgentRuntime, init_logging, service};
+use agent_core::{AgentRuntime, init_logging, init_logging_with_terminal, service};
 use clap::{Parser, Subcommand};
 #[cfg(feature = "tray")]
 use muda::MenuEvent;
