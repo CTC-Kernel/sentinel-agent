@@ -10,7 +10,9 @@
 use agent_common::config::AgentConfig;
 #[cfg(feature = "tray")]
 use agent_core::tray;
-use agent_core::{AgentRuntime, init_logging, init_logging_with_terminal, service};
+#[cfg(feature = "gui")]
+use agent_core::init_logging_with_terminal;
+use agent_core::{AgentRuntime, init_logging, service};
 use clap::{Parser, Subcommand};
 #[cfg(feature = "tray")]
 use muda::MenuEvent;
@@ -1410,11 +1412,11 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         description: rule_clone.description.clone(),
                                         severity: rule_clone.severity.as_str().to_string(),
                                         conditions: serde_json::to_string(&rule_clone.conditions).unwrap_or_default(),
-                                        actions: "[]".to_string(),
+                                        actions: serde_json::to_string(&rule_clone.actions).unwrap_or_default(),
                                         enabled: rule_clone.enabled,
                                         created_at: rule_clone.created_at.to_rfc3339(),
-                                        last_match: None,
-                                        match_count: 0,
+                                        last_match: rule_clone.last_match.map(|d| d.to_rfc3339()),
+                                        match_count: rule_clone.match_count as i32,
                                         synced: false,
                                     };
                                     let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);

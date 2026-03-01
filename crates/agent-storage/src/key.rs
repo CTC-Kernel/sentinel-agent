@@ -254,7 +254,7 @@ impl KeyManager {
                 None, // entropy (optional)
                 None, // reserved
                 None, // prompt struct
-                0,    // flags
+                windows::Win32::Security::Cryptography::CRYPTPROTECT_LOCAL_MACHINE, // flags
                 &mut data_out,
             )
         };
@@ -377,7 +377,7 @@ impl KeyManager {
                 None, // entropy (optional)
                 None, // reserved
                 None, // prompt struct
-                0,    // flags
+                windows::Win32::Security::Cryptography::CRYPTPROTECT_LOCAL_MACHINE, // flags
                 &mut data_out,
             )
             .map_err(|e| StorageError::KeyManagement(format!("DPAPI encryption failed: {}", e)))?;
