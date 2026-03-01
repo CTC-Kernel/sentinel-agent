@@ -92,11 +92,35 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
 
 fn get_log_dir() -> std::path::PathBuf {
     #[cfg(windows)]
-    {
-        std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs")
-    }
+    let primary = std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs");
     #[cfg(not(windows))]
-    {
-        std::path::PathBuf::from("/var/log/sentinel")
+    let primary = std::path::PathBuf::from("/var/log/sentinel");
+
+    // Try to create and use the system-wide log directory.
+    // If that fails (e.g. running as non-root), fall back to a user-local directory.
+    if std::fs::create_dir_all(&primary).is_ok() && is_writable(&primary) {
+        return primary;
+    }
+
+    // Fallback: ~/Library/Logs/Sentinel (macOS) or ~/.local/share/sentinel/logs (Linux)
+    if let Some(dirs) = directories::ProjectDirs::from("com", "sentinel-grc", "Sentinel") {
+        let fallback = dirs.data_local_dir().join("logs");
+        if std::fs::create_dir_all(&fallback).is_ok() {
+            return fallback;
+        }
+    }
+
+    // Last resort: temp directory
+    std::env::temp_dir().join("sentinel-logs")
+}
+
+/// Check if a directory is writable by attempting to create a temporary file.
+fn is_writable(dir: &std::path::Path) -> bool {
+    let probe = dir.join(".sentinel_write_probe");
+    if std::fs::write(&probe, b"").is_ok() {
+        let _ = std::fs::remove_file(&probe);
+        true
+    } else {
+        false
     }
 }
