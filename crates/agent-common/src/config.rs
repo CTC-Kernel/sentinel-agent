@@ -292,9 +292,14 @@ impl AgentConfig {
         }
 
         // Fallback to current directory for development
-        let dev_path = PathBuf::from("./agent.json");
-        if dev_path.exists() {
-            return Some(dev_path);
+        // Gated behind debug_assertions so release builds never pick up a stray agent.json.
+        #[cfg(debug_assertions)]
+        {
+            let dev_path = PathBuf::from("./agent.json");
+            if dev_path.exists() {
+                tracing::debug!("Dev fallback: using ./agent.json config");
+                return Some(dev_path);
+            }
         }
 
         // Return platform path even if it doesn't exist.
@@ -339,9 +344,14 @@ impl AgentConfig {
 
         // Development fallback: if a "data" directory exists in the current working directory, use it.
         // This is useful for developers running from the project root.
-        let local_data = PathBuf::from("data");
-        if local_data.exists() && local_data.is_dir() {
-            return PathBuf::from(".");
+        // Gated behind debug_assertions so release builds (installers) never hit this path.
+        #[cfg(debug_assertions)]
+        {
+            let local_data = PathBuf::from("data");
+            if local_data.exists() && local_data.is_dir() {
+                tracing::debug!("Dev fallback: using CWD as data directory (found ./data/)");
+                return PathBuf::from(".");
+            }
         }
 
         #[cfg(windows)]
