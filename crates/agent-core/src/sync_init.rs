@@ -40,7 +40,11 @@ impl AgentRuntime {
         let command_results = CommandResultsService::new(auth_client.clone());
         *self.command_results.write().await = Some(command_results);
 
-        info!("Initialized sync services (config, rules, results, audit, commands)");
+        // Initialize GRC sync orchestrator (processes queued playbooks, risks, assets, etc.)
+        let orchestrator = agent_sync::SyncOrchestrator::new(db.clone());
+        *self.sync_orchestrator.write().await = Some(orchestrator);
+
+        info!("Initialized sync services (config, rules, results, audit, commands, grc-orchestrator)");
 
         // Download central detection rules from the platform
         self.sync_central_detection_rules().await;
@@ -82,6 +86,39 @@ impl AgentRuntime {
                             if *current != interval {
                                 info!("Heartbeat interval updated: {}s → {}s", *current, interval);
                                 *current = interval;
+                            }
+                        }
+
+                        // Apply check interval change if present
+                        if let Ok(Some(interval)) = config_sync
+                            .get_config::<u64>(agent_sync::config_keys::CHECK_INTERVAL_SECS)
+                            .await
+                        {
+                            let interval = interval.clamp(60, 86400);
+                            let current = self.state.get_check_interval();
+                            if current != interval {
+                                info!("Check interval updated: {}s → {}s", current, interval);
+                                self.state.set_check_interval(interval);
+                            }
+                        }
+
+                        // Apply log level change if present
+                        if let Ok(Some(level_str)) = config_sync
+                            .get_config::<String>(agent_sync::config_keys::LOG_LEVEL)
+                            .await
+                        {
+                            let level: u8 = match level_str.as_str() {
+                                "trace" => 0,
+                                "debug" => 1,
+                                "info" => 2,
+                                "warn" => 3,
+                                "error" => 4,
+                                _ => 2,
+                            };
+                            let current = self.state.get_log_level();
+                            if current != level {
+                                info!("Log level updated: {} → {}", current, level_str);
+                                self.state.set_log_level(level);
                             }
                         }
 

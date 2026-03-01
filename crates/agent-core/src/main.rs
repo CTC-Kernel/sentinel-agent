@@ -1208,6 +1208,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let tx = bg_event_tx.clone();
                             let pid = playbook_id.clone();
                             let db_clone = db_for_commands.clone();
+                            let sync_client_clone = sync_client.clone();
                             tokio::spawn(async move {
                                 // Load playbook from local SQLite
                                 let playbook_opt = if let Some(ref db_arc) = db_clone {
@@ -1305,7 +1306,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     let all_success = results.iter().all(|r| r.success);
                                     let first_error = results.iter().find(|r| !r.success).and_then(|r| r.error.clone());
 
-                                    // Emit PlaybookTriggered event to GUI
+                                    // Build playbook log entry
                                     let log_entry = agent_gui::dto::PlaybookLogEntry {
                                         id: uuid::Uuid::new_v4(),
                                         playbook_id: playbook.id,
@@ -1316,6 +1317,25 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         success: all_success,
                                         error: first_error,
                                     };
+
+                                    // Sync playbook log to platform
+                                    if let Some(ref client) = sync_client_clone {
+                                        let payload = agent_sync::PlaybookLogPayload {
+                                            id: log_entry.id.to_string(),
+                                            playbook_id: log_entry.playbook_id.to_string(),
+                                            playbook_name: log_entry.playbook_name.clone(),
+                                            triggered_at: log_entry.triggered_at,
+                                            trigger_event: log_entry.trigger_event.clone(),
+                                            actions_executed: log_entry.actions_executed.clone(),
+                                            success: log_entry.success,
+                                            error: log_entry.error.clone(),
+                                        };
+                                        if let Err(e) = client.sync_playbook_logs(vec![payload]).await {
+                                            tracing::warn!("Failed to sync manual playbook log: {}", e);
+                                        }
+                                    }
+
+                                    // Emit PlaybookTriggered event to GUI
                                     let _ = tx.send(AgentEvent::PlaybookTriggered {
                                         log_entry: Box::new(log_entry),
                                     });
