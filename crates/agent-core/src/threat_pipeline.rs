@@ -147,10 +147,19 @@ pub async fn ai_classify_matches(
     }
 }
 
+/// Result of running the full threat pipeline.
+#[cfg(feature = "gui")]
+pub struct PipelineResult {
+    /// Detection rule matches (for upload to platform).
+    pub rule_matches: Vec<RuleMatch>,
+    /// Playbook execution log entries (for upload to platform).
+    pub playbook_logs: Vec<agent_gui::dto::PlaybookLogEntry>,
+}
+
 /// Run the full autonomous pipeline: detect -> classify -> respond.
 ///
 /// Call this after each security scan cycle in the main loop.
-/// Returns the list of detection rule matches for sync to the platform.
+/// Returns the detection rule matches and playbook logs for sync to the platform.
 #[cfg(feature = "gui")]
 pub async fn run_threat_pipeline(
     rules: &[agent_gui::dto::DetectionRule],
@@ -159,14 +168,14 @@ pub async fn run_threat_pipeline(
     gui_tx: &Option<std::sync::mpsc::Sender<agent_gui::events::AgentEvent>>,
     #[cfg(feature = "llm")]
     llm_service: Option<&crate::llm_service::LLMService>,
-) -> Vec<RuleMatch> {
+) -> PipelineResult {
     // Step 1: Evaluate detection rules
     #[allow(unused_mut)]
     let mut matches = evaluate_detection_rules(rules, context);
 
     if matches.is_empty() {
         debug!("Threat pipeline: no detection rule matches");
-        return Vec::new();
+        return PipelineResult { rule_matches: Vec::new(), playbook_logs: Vec::new() };
     }
 
     info!("Threat pipeline: {} detection rule matches found", matches.len());
@@ -188,6 +197,7 @@ pub async fn run_threat_pipeline(
     }
 
     // Step 3: Find and trigger matching playbooks
+    let mut playbook_logs = Vec::new();
     for playbook in playbooks {
         if !playbook.enabled {
             continue;
@@ -217,27 +227,31 @@ pub async fn run_threat_pipeline(
                 evaluation.playbook_name, success_count, total
             );
 
+            // Build playbook log entry
+            let log_entry = agent_gui::dto::PlaybookLogEntry {
+                id: uuid::Uuid::new_v4(),
+                playbook_id: playbook.id,
+                playbook_name: evaluation.playbook_name.clone(),
+                triggered_at: chrono::Utc::now(),
+                trigger_event: evaluation.matched_conditions.join("; "),
+                actions_executed: results.iter().map(|r| r.action.clone()).collect(),
+                success: success_count == total,
+                error: if success_count < total {
+                    Some(results.iter()
+                        .filter_map(|r| r.error.as_ref())
+                        .cloned()
+                        .collect::<Vec<_>>()
+                        .join("; "))
+                } else {
+                    None
+                },
+            };
+
+            // Collect for platform sync
+            playbook_logs.push(log_entry.clone());
+
             // Emit playbook triggered event to GUI
             if let Some(tx) = gui_tx {
-                let log_entry = agent_gui::dto::PlaybookLogEntry {
-                    id: uuid::Uuid::new_v4(),
-                    playbook_id: playbook.id,
-                    playbook_name: evaluation.playbook_name.clone(),
-                    triggered_at: chrono::Utc::now(),
-                    trigger_event: evaluation.matched_conditions.join("; "),
-                    actions_executed: results.iter().map(|r| r.action.clone()).collect(),
-                    success: success_count == total,
-                    error: if success_count < total {
-                        Some(results.iter()
-                            .filter_map(|r| r.error.as_ref())
-                            .cloned()
-                            .collect::<Vec<_>>()
-                            .join("; "))
-                    } else {
-                        None
-                    },
-                };
-
                 if let Err(e) = tx.send(agent_gui::events::AgentEvent::PlaybookTriggered {
                     log_entry: Box::new(log_entry),
                 }) {
@@ -273,7 +287,7 @@ pub async fn run_threat_pipeline(
         }
     }
 
-    matches
+    PipelineResult { rule_matches: matches, playbook_logs }
 }
 
 /// Convert stored detection rules from the database into GUI DTOs for pipeline evaluation.

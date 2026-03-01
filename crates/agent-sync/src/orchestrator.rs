@@ -215,6 +215,35 @@ impl SyncOrchestrator {
         self.execute_sync(SyncKind::Manual, client).await
     }
 
+    /// Drain only the GRC entity queues (playbooks, risks, assets, KPIs, alert rules, detection rules).
+    ///
+    /// Unlike `sync_full`, this does NOT re-do heartbeat/config/rules/results/audit
+    /// since those are already handled by the main loop.
+    pub async fn drain_grc_queues(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
+        let mut total = 0u32;
+
+        // Upload locally-created GRC entities from the sync queue
+        match self.sync_playbooks(client).await { Ok(n) => total += n, Err(e) => warn!("Playbooks queue drain: {}", e) }
+        match self.sync_detection_rules(client).await { Ok(n) => total += n, Err(e) => warn!("Detection rules queue drain: {}", e) }
+        match self.sync_risks(client).await { Ok(n) => total += n, Err(e) => warn!("Risks queue drain: {}", e) }
+        match self.sync_assets(client).await { Ok(n) => total += n, Err(e) => warn!("Assets queue drain: {}", e) }
+        match self.sync_kpi(client).await { Ok(n) => total += n, Err(e) => warn!("KPI queue drain: {}", e) }
+        match self.sync_alerting(client).await { Ok(n) => total += n, Err(e) => warn!("Alert rules queue drain: {}", e) }
+
+        // Download GRC entities from SaaS into local SQLite
+        match self.download_grc_entities(client).await {
+            Ok(n) => {
+                if n > 0 {
+                    info!("Downloaded {} GRC entity records from SaaS", n);
+                }
+                total += n;
+            }
+            Err(e) => warn!("GRC entity download failed: {}", e),
+        }
+
+        Ok(total)
+    }
+
     /// Execute a sync operation of the given kind.
     pub async fn execute_sync(
         &self,
