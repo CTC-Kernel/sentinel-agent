@@ -89,13 +89,23 @@ fn main() -> ExitCode {
     // leave a trace in C:\ProgramData\Sentinel\logs\startup.log.
     #[cfg(windows)]
     {
-        use std::fs::OpenOptions;
+        use std::fs::{self, OpenOptions};
         use std::io::Write;
-        let _ = std::fs::create_dir_all(r"C:\ProgramData\Sentinel\logs");
+        let log_dir = r"C:\ProgramData\Sentinel\logs";
+        let log_file = r"C:\ProgramData\Sentinel\logs\startup.log";
+        let _ = fs::create_dir_all(log_dir);
+        
+        // Prevent infinite growth by keeping it under 5MB
+        if let Ok(metadata) = fs::metadata(log_file) {
+            if metadata.len() > 5 * 1024 * 1024 {
+                let _ = fs::rename(log_file, format!("{}.old", log_file));
+            }
+        }
+
         if let Ok(mut f) = OpenOptions::new()
             .create(true)
             .append(true)
-            .open(r"C:\ProgramData\Sentinel\logs\startup.log")
+            .open(log_file)
         {
             let _ = writeln!(
                 f,
@@ -127,13 +137,23 @@ fn main() -> ExitCode {
         // Also log to a file on Windows so we can see it even if stderr is hidden
         #[cfg(windows)]
         {
-            use std::fs::OpenOptions;
+            use std::fs::{self, OpenOptions};
             use std::io::Write;
-            let _ = std::fs::create_dir_all(r"C:\ProgramData\Sentinel\logs");
+            let log_dir = r"C:\ProgramData\Sentinel\logs";
+            let panic_log = r"C:\ProgramData\Sentinel\logs\panic.log";
+            let _ = fs::create_dir_all(log_dir);
+            
+            // Prevent infinite growth
+            if let Ok(metadata) = fs::metadata(panic_log) {
+                if metadata.len() > 5 * 1024 * 1024 {
+                    let _ = fs::rename(panic_log, format!("{}.old", panic_log));
+                }
+            }
+
             if let Ok(mut f) = OpenOptions::new()
                 .create(true)
                 .append(true)
-                .open(r"C:\ProgramData\Sentinel\logs\panic.log")
+                .open(panic_log)
             {
                 let _ = writeln!(
                     f,
