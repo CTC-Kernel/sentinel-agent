@@ -161,7 +161,14 @@ impl KeyManager {
 
     /// Get the path to the key file.
     fn get_key_path() -> PathBuf {
-        AgentConfig::platform_data_dir().join(KEY_FILE_NAME)
+        #[cfg(windows)]
+        {
+            AgentConfig::platform_data_dir().join("data").join(KEY_FILE_NAME)
+        }
+        #[cfg(not(windows))]
+        {
+            AgentConfig::platform_data_dir().join(KEY_FILE_NAME)
+        }
     }
 
     /// Generate a new random encryption key using a CSPRNG.
