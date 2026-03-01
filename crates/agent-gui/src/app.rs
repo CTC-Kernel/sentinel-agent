@@ -88,6 +88,10 @@ pub struct SentinelApp {
     // Async task results channel (internal UI tasks).
     async_results_rx: mpsc::Receiver<AsyncTaskResult>,
 
+    // Tray actions channel
+    tray_action_tx: mpsc::Sender<crate::tray_bridge::TrayAction>,
+    tray_action_rx: mpsc::Receiver<crate::tray_bridge::TrayAction>,
+
     // Tray bridge (optional -- only on desktop).
     tray: Option<TrayBridge>,
 
@@ -157,6 +161,8 @@ impl SentinelApp {
 
         let llm_panel = crate::llm_panel::LLMPanel;
 
+        let (tray_action_tx, tray_action_rx) = mpsc::channel();
+
         Self {
             page: Page::Dashboard,
             state,
@@ -169,6 +175,8 @@ impl SentinelApp {
             command_tx,
             enrollment_tx,
             async_results_rx: async_rx,
+            tray_action_tx,
+            tray_action_rx,
             tray,
             visible: true,
             quit_requested: false,
@@ -240,7 +248,7 @@ impl SentinelApp {
 
     /// Handle tray menu actions.
     fn process_tray_actions(&mut self, ctx: &egui::Context) {
-        for action in TrayBridge::poll_events() {
+        while let Ok(action) = self.tray_action_rx.try_recv() {
             match action {
                 TrayAction::ShowWindow => {
                     self.show_tray_satellite = false;
@@ -480,14 +488,22 @@ impl eframe::App for SentinelApp {
 
             // Keep a dedicated listener thread to wake up eframe instantly on tray events.
             let ctx_clone = ctx.clone();
+            let action_tx = self.tray_action_tx.clone();
             std::thread::spawn(move || {
-                let menu_rx = muda::MenuEvent::receiver();
-                let icon_rx = tray_icon::TrayIconEvent::receiver();
                 loop {
-                    // Try peeking periodically to wake up the UI thread immediately 
-                    // if an event arrives while eframe is asleep.
-                    if !menu_rx.is_empty() || !icon_rx.is_empty() {
-                        ctx_clone.request_repaint();
+                    let actions = crate::tray_bridge::TrayBridge::poll_events();
+                    for action in actions {
+                        let _ = action_tx.send(action.clone());
+                        match action {
+                            crate::tray_bridge::TrayAction::ShowWindow |
+                            crate::tray_bridge::TrayAction::QuickStatus => {
+                                ctx_clone.send_viewport_cmd(egui::ViewportCommand::Visible(true));
+                                ctx_clone.send_viewport_cmd(egui::ViewportCommand::Focus);
+                            }
+                            _ => {
+                                ctx_clone.request_repaint();
+                            }
+                        }
                     }
                     std::thread::sleep(std::time::Duration::from_millis(50));
                 }
