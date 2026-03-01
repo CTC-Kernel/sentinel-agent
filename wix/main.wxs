@@ -306,36 +306,36 @@
       <!-- Create data directory with proper permissions -->
       <Component Id="DataDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012345" Directory="DataDir">
         <CreateFolder>
-          <util:PermissionEx User="Users" GenericAll="yes" />
-          <util:PermissionEx User="Administrators" GenericAll="yes" />
-          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
       <!-- Create models directory for LLM GGUF files -->
       <Component Id="ModelsDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012347" Directory="ModelsDir">
         <CreateFolder>
-          <util:PermissionEx User="Users" GenericAll="yes" />
-          <util:PermissionEx User="Administrators" GenericAll="yes" />
-          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
       <!-- Create LLM cache directory -->
       <Component Id="CacheLlmDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012348" Directory="CacheLlmDir">
         <CreateFolder>
-          <util:PermissionEx User="Users" GenericAll="yes" />
-          <util:PermissionEx User="Administrators" GenericAll="yes" />
-          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
       <!-- Create log directory -->
       <Component Id="LogDirComponent" Guid="E5F6A7B8-C9D0-1234-EF01-567890123456" Directory="LogDir">
         <CreateFolder>
-          <util:PermissionEx User="Users" GenericAll="yes" />
-          <util:PermissionEx User="Administrators" GenericAll="yes" />
-          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
+          <util:PermissionEx User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
         </CreateFolder>
       </Component>
     </ComponentGroup>
@@ -405,12 +405,14 @@
     <CustomAction Id="CleanupDataOnUninstall"
                   Directory="CommonAppDataFolder"
                   ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Remove-Item '[CommonAppDataFolder]Sentinel\*' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1002 -EntryType Warning -Message ('Cleanup failed: ' + $_) }&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
                   Return="ignore" />
 
     <!-- Forcefully reset permissions in case of legacy locked folders from older failed installations -->
     <CustomAction Id="ForceResetPermissions"
                   Directory="SystemFolder"
-                  ExeCommand="cmd.exe /c &quot;if exist %ProgramData%\Sentinel (takeown /f %ProgramData%\Sentinel /r /d y &amp; icacls %ProgramData%\Sentinel /grant *S-1-5-32-545:(OI)(CI)(F) /T /C /Q)&quot;"
+                  ExeCommand="cmd.exe /c &quot;if exist %ProgramData%\Sentinel (takeown /A /F %ProgramData%\Sentinel /R &amp; icacls %ProgramData%\Sentinel /grant *S-1-5-32-545:(OI)(CI)(F) /T /C /Q)&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -422,6 +424,10 @@
         InstallInitialize and InstallFinalize). No property resolution needed.
       -->
       <Custom Action="KillGuiProcess" After="InstallInitialize"
+              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+
+      <!-- Cleanup on uninstall must run deferred as SYSTEM to delete locked files -->
+      <Custom Action="CleanupDataOnUninstall" After="KillGuiProcess"
               Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
 
       <!-- Force reset legacy permissions before installing files so CreateFolder can write to it -->
@@ -449,8 +455,6 @@
         Properties still resolve during uninstall for the installed product.
       -->
       <Custom Action="RemoveDefenderExclusion" After="LaunchGui"
-              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
-      <Custom Action="CleanupDataOnUninstall" After="RemoveDefenderExclusion"
               Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
     </InstallExecuteSequence>
 
