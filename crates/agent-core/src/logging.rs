@@ -38,7 +38,8 @@ pub fn init_logging(log_level: &str) {
         .with(fmt::layer())
         .with(fmt::layer().with_writer(non_blocking).with_ansi(false))
         .with(filter_layer)
-        .init();
+        .try_init()
+        .ok();
 
     let _ = TRACING_RELOAD_FN.set(Box::new(move |level: &str| {
         let new_filter = EnvFilter::try_new(level)
@@ -75,7 +76,8 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
         .with(fmt::layer().with_writer(non_blocking).with_ansi(false))
         .with(gui_layer)
         .with(filter_layer)
-        .init();
+        .try_init()
+        .ok();
 
     let _ = TRACING_RELOAD_FN.set(Box::new(move |level: &str| {
         let new_filter = EnvFilter::try_new(level)
