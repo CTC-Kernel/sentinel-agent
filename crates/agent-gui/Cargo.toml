@@ -6,10 +6,6 @@ license.workspace = true
 publish = false
 description = "Desktop GUI for the Sentinel GRC Agent using egui/eframe"
 
-[[bin]]
-name = "agent-gui"
-path = "src/main.rs"
-
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser", "wincon", "winbase", "fileapi", "processenv", "handleapi", "winnt"] }
 windows.workspace = true

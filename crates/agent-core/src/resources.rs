@@ -1580,7 +1580,6 @@ fn get_disk_usage() -> (u64, u64) {
 
 #[cfg(target_os = "macos")]
 fn get_disk_bytes() -> u64 {
-    use libc::{proc_pid_rusage, rusage_info_v4};
     use std::mem;
     use std::sync::atomic::{AtomicU64, Ordering};
 
