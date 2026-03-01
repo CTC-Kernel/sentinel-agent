@@ -62,17 +62,31 @@ impl Database {
     /// A new Database instance with an open encrypted connection.
     pub fn open(config: DatabaseConfig, key_manager: &KeyManager) -> StorageResult<Self> {
         // Ensure the data directory exists
-        if let Some(parent) = config.path.parent()
-            && !parent.exists()
-        {
-            std::fs::create_dir_all(parent).map_err(|e| {
-                StorageError::Initialization(format!(
-                    "Failed to create data directory {}: {}",
-                    parent.display(),
-                    e
-                ))
-            })?;
-            info!("Created data directory: {}", parent.display());
+        if let Some(parent) = config.path.parent() {
+            if !parent.exists() {
+                if let Err(e) = std::fs::create_dir_all(parent) {
+                    error!("CRITICAL: Failed to create data directory {}: {}. This will cause a crash.", 
+                        parent.display(), e);
+                    return Err(StorageError::Initialization(format!(
+                        "Failed to create data directory {}: {}",
+                        parent.display(),
+                        e
+                    )));
+                }
+                info!("Created data directory: {}", parent.display());
+            } else {
+                // Check if directory is writable
+                match std::fs::read_dir(parent) {
+                    Ok(_) => debug!("Data directory is accessible: {}", parent.display()),
+                    Err(e) => {
+                        error!("CRITICAL: Data directory {} exists but is not accessible: {}. Please check Windows permissions.", 
+                            parent.display(), e);
+                        return Err(StorageError::Initialization(format!(
+                            "Data directory exists but is not accessible: {}", e
+                        )));
+                    }
+                }
+            }
         }
 
         // Get the encryption key
@@ -102,11 +116,17 @@ impl Database {
                         // another process (like an AV scanner or backup tool) has a brief lock.
                         if retry_count < max_retries {
                             retry_count += 1;
-                            warn!("Database is busy or cannot be opened, retrying in {:?} (attempt {}/{}): {}", 
-                                retry_delay, retry_count, max_retries, e);
+                            warn!("Database is busy or cannot be opened at {}, retrying in {:?} (attempt {}/{}): {}", 
+                                config.path.display(), retry_delay, retry_count, max_retries, e);
                             std::thread::sleep(retry_delay);
                             continue;
                         }
+                        error!("CRITICAL: Failed to open database at {} after {} retries. This usually indicates a permanent lock or permission issue: {}", 
+                            config.path.display(), max_retries, e);
+                    }
+                    #[cfg(not(windows))]
+                    {
+                        error!("Failed to open database at {}: {}", config.path.display(), e);
                     }
                     return Err(StorageError::Connection(e.to_string()));
                 }
