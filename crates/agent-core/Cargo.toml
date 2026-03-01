@@ -78,7 +78,7 @@ zeroize = { workspace = true }
 futures-util.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-windows = { workspace = true }
+windows = { workspace = true, features = ["Win32_System_Console"] }
 windows-service = { workspace = true }
 openssl = { workspace = true, features = ["vendored"] }
 
