@@ -97,46 +97,48 @@ impl Database {
         // Get the encryption key
         let key = key_manager.get_database_key()?;
 
-        // Open the database connection with retry logic for Windows file locking
-        #[allow(unused_mut, unused_variables)]
-        let mut retry_count = 0;
-        #[allow(unused_variables)]
-        let max_retries = 5;
-        #[allow(unused_variables)]
-        let retry_delay = std::time::Duration::from_millis(100);
+        // Open the database connection
+        let open_result = if config.create_if_missing {
+            Connection::open(&config.path)
+        } else {
+            Connection::open_with_flags(&config.path, rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE)
+        };
 
-        let connection = loop {
-            let result = if config.create_if_missing {
-                Connection::open(&config.path)
-            } else {
-                Connection::open_with_flags(&config.path, rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE)
-            };
-
-            match result {
-                Ok(conn) => break conn,
-                Err(e) => {
-                    #[cfg(windows)]
-                    {
-                        // SQLITE_BUSY (5) or SQLITE_CANTOPEN (14) often occur on Windows when 
-                        // another process (like an AV scanner or backup tool) has a brief lock.
+        // On Windows, retry on SQLITE_BUSY / SQLITE_CANTOPEN (AV scanners, backup tools)
+        #[cfg(windows)]
+        let connection = {
+            let max_retries = 5u32;
+            let retry_delay = std::time::Duration::from_millis(100);
+            let mut retry_count = 0u32;
+            let mut result = open_result;
+            loop {
+                match result {
+                    Ok(conn) => break conn,
+                    Err(e) => {
                         if retry_count < max_retries {
                             retry_count += 1;
-                            warn!("Database is busy or cannot be opened at {}, retrying in {:?} (attempt {}/{}): {}", 
+                            warn!("Database is busy or cannot be opened at {}, retrying in {:?} (attempt {}/{}): {}",
                                 config.path.display(), retry_delay, retry_count, max_retries, e);
                             std::thread::sleep(retry_delay);
+                            result = if config.create_if_missing {
+                                Connection::open(&config.path)
+                            } else {
+                                Connection::open_with_flags(&config.path, rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE)
+                            };
                             continue;
                         }
-                        error!("CRITICAL: Failed to open database at {} after {} retries. This usually indicates a permanent lock or permission issue: {}", 
+                        error!("CRITICAL: Failed to open database at {} after {} retries. This usually indicates a permanent lock or permission issue: {}",
                             config.path.display(), max_retries, e);
+                        return Err(StorageError::Connection(e.to_string()));
                     }
-                    #[cfg(not(windows))]
-                    {
-                        error!("Failed to open database at {}: {}", config.path.display(), e);
-                    }
-                    return Err(StorageError::Connection(e.to_string()));
                 }
             }
         };
+        #[cfg(not(windows))]
+        let connection = open_result.map_err(|e| {
+            error!("Failed to open database at {}: {}", config.path.display(), e);
+            StorageError::Connection(e.to_string())
+        })?;
 
         // Set busy timeout immediately to handle concurrent access gracefully
         connection.busy_timeout(std::time::Duration::from_millis(5000))
