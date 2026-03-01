@@ -102,3 +102,10 @@ agent.log
 
 # LLM local models
 *.gguf
+
+# Sentinel agent local data (dev artifacts)
+data/
+.sentinel-key
+*.db-shm
+*.db-wal
+*.dpapi
