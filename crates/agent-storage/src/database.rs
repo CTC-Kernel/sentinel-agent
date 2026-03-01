@@ -26,8 +26,13 @@ pub struct DatabaseConfig {
 
 impl Default for DatabaseConfig {
     fn default() -> Self {
+        #[cfg(windows)]
+        let db_path = AgentConfig::platform_data_dir().join("data").join(DB_FILE_NAME);
+        #[cfg(not(windows))]
+        let db_path = AgentConfig::platform_data_dir().join(DB_FILE_NAME);
+
         Self {
-            path: AgentConfig::platform_data_dir().join(DB_FILE_NAME),
+            path: db_path,
             create_if_missing: true,
         }
     }
