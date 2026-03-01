@@ -1,54 +1,77 @@
 @echo off
 REM Script d'installation qui installe d'abord le certificat, puis le MSI
-REM Évite 100% des avertissements SmartScreen
+REM Auto-detecte le .cer et le .msi dans le dossier courant
 
-echo 🔐 Installation Sentinel GRC Agent (sécurisée)
+echo Installation Sentinel GRC Agent (securisee)
 echo =============================================
 
-REM Vérifier les droits admin
+REM Verifier les droits admin
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo ❌ Droits administrateur requis
+    echo Droits administrateur requis
     echo Relancez ce script en tant qu'administrateur
     pause
     exit /b 1
 )
 
+REM Auto-detection du certificat (.cer)
+set "CERT_FILE="
+for %%f in ("%~dp0*.cer") do set "CERT_FILE=%%f"
+if not defined CERT_FILE (
+    echo Aucun fichier .cer trouve dans %~dp0
+    pause
+    exit /b 1
+)
+echo Certificat detecte : %CERT_FILE%
+
+REM Auto-detection du MSI (.msi)
+set "MSI_FILE="
+for %%f in ("%~dp0*.msi") do set "MSI_FILE=%%f"
+if not defined MSI_FILE (
+    echo Aucun fichier .msi trouve dans %~dp0
+    pause
+    exit /b 1
+)
+echo MSI detecte : %MSI_FILE%
+
 REM 1. Installer le certificat dans Trusted Publishers
-echo 📋 Installation du certificat de confiance...
-certutil -addstore "TrustedPublisher" "sentinel-agent-cert.cer" >nul 2>&1
+echo.
+echo Installation du certificat de confiance...
+certutil -addstore "TrustedPublisher" "%CERT_FILE%" >nul 2>&1
 if %errorLevel% equ 0 (
-    echo ✅ Certificat ajouté aux Trusted Publishers
+    echo Certificat ajoute aux Trusted Publishers
 ) else (
-    echo ⚠️ Erreur lors de l'ajout du certificat
+    echo Erreur lors de l'ajout du certificat aux Trusted Publishers
 )
 
-REM 2. Installer aussi dans les racines de confiance (recommandé)
-certutil -addstore "Root" "sentinel-agent-cert.cer" >nul 2>&1
+REM 2. Installer aussi dans les racines de confiance (bypass SmartScreen complet)
+certutil -addstore "Root" "%CERT_FILE%" >nul 2>&1
 if %errorLevel% equ 0 (
-    echo ✅ Certificat ajouté aux Trusted Root
+    echo Certificat ajoute aux Trusted Root
 ) else (
-    echo ⚠️ Erreur lors de l'ajout aux racines
+    echo Erreur lors de l'ajout aux racines de confiance
 )
 
 REM 3. Installer le MSI (maintenant sans avertissement)
-echo 📦 Installation de Sentinel GRC Agent...
-msiexec /i "SentinelAgent-2.0.0.msi" /quiet /norestart
+echo.
+echo Installation de Sentinel GRC Agent...
+msiexec /i "%MSI_FILE%" /quiet /norestart
 
 if %errorLevel% equ 0 (
-    echo ✅ Installation terminée avec succès!
+    echo Installation terminee avec succes!
 ) else (
-    echo ❌ Erreur lors de l'installation MSI
+    echo Erreur lors de l'installation MSI
     echo Code d'erreur: %errorLevel%
 )
 
-REM 4. Démarrer le service
-echo 🚀 Démarrage du service...
+REM 4. Demarrer le service
+echo.
+echo Demarrage du service...
 net start SentinelGRCAgent >nul 2>&1
 
 echo.
-echo 🎉 Installation complète!
-echo Le certificat est maintenant installé sur cette machine
+echo Installation complete!
+echo Le certificat est maintenant installe sur cette machine
 echo Les futures installations n'auront plus d'avertissements
 echo.
 pause
