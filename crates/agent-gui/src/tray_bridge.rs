@@ -218,20 +218,25 @@ impl TrayBridge {
     pub fn poll_events() -> Vec<TrayAction> {
         let mut actions = Vec::new();
 
-        // 1. Poll TrayIconEvent (left-click on the icon itself)
-        if let Ok(tray_icon::TrayIconEvent::Click {
-            button: tray_icon::MouseButton::Left,
-            button_state: tray_icon::MouseButtonState::Up,
-            ..
-        }) = tray_icon::TrayIconEvent::receiver().try_recv()
-        {
-            debug!("Tray icon left-clicked, showing window");
-            actions.push(TrayAction::ShowWindow);
+        // 1. Poll TrayIconEvent (any click)
+        let icon_rx = tray_icon::TrayIconEvent::receiver();
+        while let Ok(event) = icon_rx.try_recv() {
+            info!("RAW TRAY ICON EVENT: {:?}", event);
+            if let tray_icon::TrayIconEvent::Click {
+                button: tray_icon::MouseButton::Left,
+                button_state: tray_icon::MouseButtonState::Up,
+                ..
+            } = event
+            {
+                debug!("Tray icon left-clicked, showing window");
+                actions.push(TrayAction::ShowWindow);
+            }
         }
 
         // 2. Poll MenuEvent (clicks on items within the tray menu)
         let rx = MenuEvent::receiver();
         while let Ok(event) = rx.try_recv() {
+            info!("RAW TRAY MENU EVENT: {:?}", event);
             let id_str = event.id().0.as_str();
             debug!("RECEIVED TRAY MENU EVENT: id={}", id_str);
             match id_str {
