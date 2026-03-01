@@ -42,6 +42,9 @@ impl AgentRuntime {
 
         info!("Initialized sync services (config, rules, results, audit, commands)");
 
+        // Download central detection rules from the platform
+        self.sync_central_detection_rules().await;
+
         // Seed built-in check rules so the FK constraint is satisfied
         self.seed_builtin_check_rules().await;
 
@@ -146,6 +149,47 @@ impl AgentRuntime {
                 }
                 Err(e) => warn!("Config sync failed: {}", e),
             }
+        }
+    }
+
+    /// Download central detection rules from the platform and store them locally.
+    pub(crate) async fn sync_central_detection_rules(&self) {
+        let (db, client) = match (&self.db, &self.authenticated_client) {
+            (Some(db), Some(client)) => (db, client),
+            _ => return,
+        };
+
+        match client.fetch_detection_rules().await {
+            Ok(rules) => {
+                if rules.is_empty() {
+                    debug!("No central detection rules to download");
+                    return;
+                }
+                let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(db);
+                let mut count = 0u32;
+                for r in &rules {
+                    let stored = agent_storage::repositories::grc::StoredDetectionRule {
+                        id: r.id.clone(),
+                        name: r.name.clone(),
+                        description: r.description.clone(),
+                        severity: r.severity.clone(),
+                        conditions: serde_json::to_string(&r.conditions).unwrap_or_default(),
+                        actions: serde_json::to_string(&r.actions).unwrap_or_default(),
+                        enabled: r.enabled,
+                        created_at: r.created_at.to_rfc3339(),
+                        last_match: r.last_match.map(|dt| dt.to_rfc3339()),
+                        match_count: r.match_count as i32,
+                        synced: true,
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert central detection rule {}: {}", r.id, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                info!("Downloaded {} central detection rules from platform", count);
+            }
+            Err(e) => warn!("Failed to fetch central detection rules: {}", e),
         }
     }
 
