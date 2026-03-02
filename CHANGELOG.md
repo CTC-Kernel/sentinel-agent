@@ -1,131 +1,131 @@
-# Changelog
+# Journal des modifications
 
-All notable changes to the Sentinel GRC Agent will be documented in this file.
+Tous les changements notables du Sentinel GRC Agent sont documentes dans ce fichier.
 
-This project adheres to [Semantic Versioning](https://semver.org/).
+Ce projet respecte le [Versionnage Semantique](https://semver.org/).
 
-## [Unreleased]
+## [Non publie]
 
-### Changed
-- Centralized Firebase configuration constants in `agent-common`
-- Added `silent_command()` utility to prevent console window flash on Windows
+### Modifie
+- Centralisation des constantes de configuration Firebase dans `agent-common`
+- Ajout de l'utilitaire `silent_command()` pour eviter le flash de fenetre console sous Windows
 
-### Security
-- Removed all hardcoded credentials from source code
-- Externalized certificate passwords to environment variables
-- Purged sensitive data from git history
-- Licensed under MIT for open-source release
+### Securite
+- Suppression de toutes les donnees d'authentification codees en dur dans le code source
+- Externalisation des mots de passe de certificats vers des variables d'environnement
+- Purge des donnees sensibles de l'historique git
+- Passage sous licence MIT pour la publication open-source
 
 ## [2.0.112] - 2026-02-28
 
-### Fixed
-- Prevent `set -e` from swallowing `notarytool` error output on macOS signing
+### Corrige
+- Prevention de l'ecrasement de la sortie d'erreur de `notarytool` par `set -e` lors de la signature macOS
 
 ## [2.0.111] - 2026-02-27
 
-### Fixed
-- Point Windows shortcuts directly to `.exe` instead of `.bat` launcher
-- Install self-signed certificate in Root store and fix `install-with-cert.bat`
+### Corrige
+- Redirection des raccourcis Windows directement vers le `.exe` au lieu du lanceur `.bat`
+- Installation du certificat auto-signe dans le magasin Root et correction de `install-with-cert.bat`
 
 ## [2.0.110] - 2026-02-26
 
-### Fixed
-- Gate dev data-dir fallback behind `debug_assertions` only
+### Corrige
+- Limitation du fallback du repertoire de donnees dev aux builds `debug_assertions` uniquement
 
 ## [2.0.109] - 2026-02-25
 
-### Fixed
-- Fallback log directory when running without root privileges
+### Corrige
+- Repertoire de logs de secours lorsque l'agent s'execute sans privileges root
 
 ## [2.0.108] - 2026-02-24
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.107] - 2026-02-23
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.105] - 2026-02-21
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.104] - 2026-02-20
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.103] - 2026-02-19
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.102] - 2026-02-18
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.101] - 2026-02-17
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.100] - 2026-02-16
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.99] - 2026-02-15
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.98] - 2026-02-14
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.97] - 2026-02-13
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.96] - 2026-02-12
 
-### Fixed
-- Remove invalid file starting with NUL that broke Windows build
+### Corrige
+- Suppression d'un fichier invalide commencant par NUL qui cassait le build Windows
 
 ## [2.0.95] - 2026-02-11
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.94] - 2026-02-10
 
-### Changed
-- Internal improvements and stability fixes
+### Modifie
+- Ameliorations internes et corrections de stabilite
 
 ## [2.0.93] - 2026-02-09
 
-### Added
-- Initial open-source release of the Sentinel GRC Agent
-- 12-crate Rust workspace: `agent-core`, `agent-gui`, `agent-common`, `agent-scanner`, `agent-network`, `agent-storage`, `agent-sync`, `agent-siem`, `agent-fim`, `agent-persistence`, `agent_llm`, `xtask`
-- Native desktop GUI with egui/eframe (14 pages)
-- 21 compliance checks (CIS, NIS2, ISO 27001, DORA, SOC2)
-- CVE vulnerability scanning
-- File Integrity Monitoring (FIM)
-- Real-time threat detection (USB, process, network)
-- Network discovery (ARP, mDNS, SSDP)
-- Automated remediation engine
-- Self-update mechanism with SHA-256 verification
-- Cross-platform support: macOS, Windows, Linux (DEB/RPM)
-- System tray integration
-- Encrypted local storage with SQLite
-- Firebase backend synchronization
+### Ajoute
+- Publication open-source initiale du Sentinel GRC Agent
+- Workspace Rust de 12 crates : `agent-core`, `agent-gui`, `agent-common`, `agent-scanner`, `agent-network`, `agent-storage`, `agent-sync`, `agent-siem`, `agent-fim`, `agent-persistence`, `agent_llm`, `xtask`
+- Interface graphique de bureau native avec egui/eframe (14 pages)
+- 21 controles de conformite (CIS, NIS2, ISO 27001, DORA, SOC2)
+- Scan de vulnerabilites CVE
+- Surveillance de l'integrite des fichiers (FIM)
+- Detection des menaces en temps reel (USB, processus, reseau)
+- Decouverte reseau (ARP, mDNS, SSDP)
+- Moteur de remediation automatisee
+- Mecanisme de mise a jour automatique avec verification SHA-256
+- Support multi-plateforme : macOS, Windows, Linux (DEB/RPM)
+- Integration dans la barre systeme
+- Stockage local chiffre avec SQLite
+- Synchronisation avec le backend Firebase
 
-[Unreleased]: https://github.com/CTC-Kernel/sentinel-agent/compare/v2.0.112...HEAD
+[Non publie]: https://github.com/CTC-Kernel/sentinel-agent/compare/v2.0.112...HEAD
 [2.0.112]: https://github.com/CTC-Kernel/sentinel-agent/compare/v2.0.111...v2.0.112
 [2.0.111]: https://github.com/CTC-Kernel/sentinel-agent/compare/v2.0.110...v2.0.111
 [2.0.110]: https://github.com/CTC-Kernel/sentinel-agent/compare/v2.0.109...v2.0.110

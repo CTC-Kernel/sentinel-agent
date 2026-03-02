@@ -1,76 +1,76 @@
 # agent-scanner
 
-Compliance scanning engine for the Sentinel GRC Agent.
+Moteur d'analyse de conformite pour le Sentinel GRC Agent.
 
-## Overview
+## Presentation
 
-This crate provides the compliance and security scanning capabilities:
+Cette crate fournit les capacites d'analyse de conformite et de securite :
 
-- **Compliance checks**: 21 built-in checks for NIS2, DORA, and other frameworks
-- **Vulnerability scanning**: Package vulnerability detection (apt, brew, Windows)
-- **Security monitoring**: Process, USB, and system event monitoring
-- **Proof generation**: Timestamped, integrity-verified compliance proofs
-- **Score calculation**: Weighted compliance scoring with framework breakdowns
-- **Remediation**: Automated fix suggestions and execution
+- **Controles de conformite** : 21 controles integres pour NIS2, DORA et d'autres referentiels
+- **Scan de vulnerabilites** : Detection de vulnerabilites sur les paquets (apt, brew, Windows)
+- **Surveillance de securite** : Surveillance des processus, USB et evenements systeme
+- **Generation de preuves** : Preuves de conformite horodatees avec verification d'integrite
+- **Calcul de scores** : Notation de conformite ponderee avec ventilation par referentiel
+- **Remediation** : Suggestions de correction automatisees et execution
 
-## Built-in Checks
+## Controles integres
 
-| Check | Category | Frameworks |
-|-------|----------|------------|
-| Disk Encryption | Encryption | NIS2, DORA |
-| Firewall Status | Network | NIS2, DORA |
-| Antivirus Status | Endpoint | NIS2 |
-| MFA Enforcement | Authentication | NIS2, DORA |
-| Password Policy | Authentication | NIS2, DORA |
-| System Updates | Patching | NIS2, DORA |
-| Session Lock | Access Control | NIS2 |
-| Remote Access | Network | NIS2 |
-| Backup Status | Resilience | DORA |
-| Admin Accounts | Access Control | NIS2 |
-| Obsolete Protocols | Network | NIS2 |
-| Audit Logging | Monitoring | NIS2, DORA |
-| Auto Login | Access Control | NIS2 |
-| Bluetooth | Network | NIS2 |
-| Browser Security | Endpoint | NIS2 |
-| Guest Account | Access Control | NIS2 |
-| IPv6 Config | Network | NIS2 |
-| Kernel Hardening | System | NIS2 |
-| Log Rotation | Monitoring | NIS2 |
-| Time Sync | System | NIS2 |
-| USB Storage | Endpoint | NIS2 |
+| Controle | Categorie | Referentiels |
+|----------|-----------|--------------|
+| Chiffrement du disque | Chiffrement | NIS2, DORA |
+| Etat du pare-feu | Reseau | NIS2, DORA |
+| Etat de l'antivirus | Endpoint | NIS2 |
+| Application du MFA | Authentification | NIS2, DORA |
+| Politique de mot de passe | Authentification | NIS2, DORA |
+| Mises a jour systeme | Correctifs | NIS2, DORA |
+| Verrouillage de session | Controle d'acces | NIS2 |
+| Acces distant | Reseau | NIS2 |
+| Etat des sauvegardes | Resilience | DORA |
+| Comptes administrateur | Controle d'acces | NIS2 |
+| Protocoles obsoletes | Reseau | NIS2 |
+| Journalisation d'audit | Surveillance | NIS2, DORA |
+| Connexion automatique | Controle d'acces | NIS2 |
+| Bluetooth | Reseau | NIS2 |
+| Securite du navigateur | Endpoint | NIS2 |
+| Compte invite | Controle d'acces | NIS2 |
+| Configuration IPv6 | Reseau | NIS2 |
+| Durcissement du noyau | Systeme | NIS2 |
+| Rotation des logs | Surveillance | NIS2 |
+| Synchronisation horaire | Systeme | NIS2 |
+| Stockage USB | Endpoint | NIS2 |
 
-## Usage
+## Utilisation
 
 ```rust
 use agent_scanner::{CheckRegistry, CheckRunner, DiskEncryptionCheck};
 
-// Create registry and register checks
+// Creer le registre et enregistrer les controles
 let mut registry = CheckRegistry::new();
 registry.register(Arc::new(DiskEncryptionCheck::new()));
 
-// Run checks
+// Executer les controles
 let runner = CheckRunner::new(registry);
 let results = runner.run_all().await?;
 ```
 
-## Scoring
+## Notation
 
-The `ScoreCalculator` calculates weighted compliance scores:
+Le `ScoreCalculator` calcule les scores de conformite ponderes :
 
-- **Critical**: 4x weight
-- **High**: 3x weight
-- **Medium**: 2x weight
-- **Low**: 1x weight
-- **Info**: 0.5x weight
+- **Critique** : poids 4x
+- **Eleve** : poids 3x
+- **Moyen** : poids 2x
+- **Faible** : poids 1x
+- **Info** : poids 0.5x
 
-Scores are calculated per category and per framework.
+Les scores sont calcules par categorie et par referentiel.
 
-## Proof Generation
+## Generation de preuves
 
-Proofs include:
+Les preuves incluent :
 
-- Check result data
-- Execution timestamp
-- SHA-256 integrity hash
-- Optional HMAC-SHA256 signature
-- 12-month default retention
+- Donnees du resultat du controle
+- Horodatage d'execution
+- Hash d'integrite SHA-256
+- Signature HMAC-SHA256 optionnelle
+- Retention par defaut de 12 mois

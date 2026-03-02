@@ -1,83 +1,83 @@
-# Contributing to Sentinel GRC Agent
+# Contribuer au Sentinel GRC Agent
 
 Merci de votre interet pour Sentinel GRC Agent ! Ce guide explique comment contribuer au projet.
 
-## Prerequisites
+## Prerequis
 
-- **Rust 2024 Edition** (1.93.0+)
+- **Rust Edition 2024** (1.93.0+)
 - `rustfmt`, `clippy`, `llvm-tools-preview` (via `rustup component add`)
 - `cargo-deny`, `cargo-audit` (via `cargo install`)
 
-## Getting Started
+## Demarrage
 
 ```bash
-# Clone the repository
+# Cloner le depot
 git clone https://github.com/CTC-Kernel/sentinel-agent.git
 cd sentinel-agent
 
-# Build
+# Compiler
 cargo build
 
-# Run tests
+# Lancer les tests
 cargo test
 
-# Run all quality checks
+# Lancer toutes les verifications de qualite
 cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test && cargo deny check
 ```
 
-## Quality Gates
+## Portes de qualite
 
-All pull requests must pass:
+Toutes les pull requests doivent passer :
 
-| Check | Command |
-|-------|---------|
-| Formatting | `cargo fmt --check` |
-| Linting | `cargo clippy --all-targets -- -D warnings` |
+| Verification | Commande |
+|--------------|----------|
+| Formatage | `cargo fmt --check` |
+| Analyse statique | `cargo clippy --all-targets -- -D warnings` |
 | Tests | `cargo test` |
-| License & Security | `cargo deny check` |
-| Vulnerabilities | `cargo audit` |
+| Licences et securite | `cargo deny check` |
+| Vulnerabilites | `cargo audit` |
 
-## Code Style
+## Style de code
 
-- **No `any` types** -- strict TypeScript equivalent: all types must be explicit
-- **No `unwrap()`** on user data -- use proper error handling
-- **No `let _ =`** to suppress important `Result` values
-- Use `saturating_*()` / `.clamp()` for arithmetic to prevent overflows
-- Use `chars()` / `char_indices()` instead of byte indexing for UTF-8 safety
-- All SQL queries must use parameterized statements (no string interpolation)
+- **Pas de types `any`** -- equivalent TypeScript strict : tous les types doivent etre explicites
+- **Pas de `unwrap()`** sur les donnees utilisateur -- utiliser une gestion d'erreur appropriee
+- **Pas de `let _ =`** pour ignorer des valeurs `Result` importantes
+- Utiliser `saturating_*()` / `.clamp()` pour l'arithmetique afin d'eviter les depassements
+- Utiliser `chars()` / `char_indices()` au lieu de l'indexation par octets pour la securite UTF-8
+- Toutes les requetes SQL doivent utiliser des parametres (pas d'interpolation de chaines)
 
 ## Architecture
 
-The project is a Rust workspace with modular crates:
+Le projet est un workspace Rust avec des crates modulaires :
 
-| Crate | Purpose |
-|-------|---------|
-| `agent-common` | Shared types, config, constants |
-| `agent-core` | Main orchestration, entry point |
-| `agent-gui` | egui desktop GUI + system tray |
-| `agent-scanner` | Compliance checks, CVE scanning |
-| `agent-network` | Network topology, discovery |
-| `agent-storage` | Encrypted SQLite storage |
-| `agent-sync` | Server communication (mTLS) |
-| `agent-fim` | File integrity monitoring |
-| `agent-siem` | SIEM log forwarding |
-| `agent-persistence` | Persistent state management |
-| `agent_llm` | Local LLM analysis (experimental) |
-| `xtask` | Build automation |
+| Crate | Role |
+|-------|------|
+| `agent-common` | Types partages, configuration, constantes |
+| `agent-core` | Orchestration principale, point d'entree |
+| `agent-gui` | Interface graphique egui + barre systeme |
+| `agent-scanner` | Controles de conformite, scan CVE |
+| `agent-network` | Topologie reseau, decouverte |
+| `agent-storage` | Stockage SQLite chiffre |
+| `agent-sync` | Communication serveur (mTLS) |
+| `agent-fim` | Surveillance de l'integrite des fichiers |
+| `agent-siem` | Transfert de logs SIEM |
+| `agent-persistence` | Gestion de l'etat persistant |
+| `agent_llm` | Analyse LLM locale (experimental) |
+| `xtask` | Automatisation de build |
 
-## Pull Request Process
+## Processus de Pull Request
 
-1. Fork the repository and create a feature branch
-2. Make your changes with tests
-3. Ensure all quality gates pass locally
-4. Submit a pull request with a clear description
-5. Address review feedback
+1. Forkez le depot et creez une branche de fonctionnalite
+2. Effectuez vos modifications avec des tests
+3. Assurez-vous que toutes les portes de qualite passent en local
+4. Soumettez une pull request avec une description claire
+5. Traitez les retours de la revue de code
 
-## Reporting Issues
+## Signaler des problemes
 
-- Use GitHub Issues for bug reports and feature requests
-- For security vulnerabilities, see [SECURITY.md](SECURITY.md)
+- Utilisez les GitHub Issues pour les rapports de bugs et les demandes de fonctionnalites
+- Pour les vulnerabilites de securite, consultez [SECURITY.md](SECURITY.md)
 
-## License
+## Licence
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+En contribuant, vous acceptez que vos contributions soient placees sous la licence MIT.

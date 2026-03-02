@@ -1,40 +1,40 @@
 # agent-core
 
-Core runtime for the Sentinel GRC Agent.
+Runtime principal du Sentinel GRC Agent.
 
-## Overview
+## Presentation
 
-This crate provides the main agent runtime, including:
+Cette crate fournit le runtime principal de l'agent, incluant :
 
-- **Service management**: Windows Service and Linux systemd integration
-- **Agent lifecycle**: Startup, shutdown, pause/resume operations
-- **API client**: HTTP communication with the Sentinel GRC server
-- **Resource monitoring**: CPU, memory, and disk usage tracking
-- **System tray**: Desktop icon with status menu (macOS/Windows)
-- **Self-protection**: Anti-tampering and integrity verification
-- **Update manager**: Automatic agent updates
+- **Gestion de service** : Integration Windows Service et Linux systemd
+- **Cycle de vie de l'agent** : Demarrage, arret, pause/reprise
+- **Client API** : Communication HTTP avec le serveur Sentinel GRC
+- **Surveillance des ressources** : Suivi de l'utilisation CPU, memoire et disque
+- **Barre systeme** : Icone de bureau avec menu de statut (macOS/Windows)
+- **Auto-protection** : Anti-tampering et verification d'integrite
+- **Gestionnaire de mises a jour** : Mises a jour automatiques de l'agent
 
-## Feature Flags
+## Feature flags
 
-- `tray` (default): Enable system tray icon (tray-icon + muda + tao)
-- `gui`: Enable v2 desktop GUI support (agent-gui + agent-persistence)
+- `tray` (par defaut) : Active l'icone dans la barre systeme (tray-icon + muda + tao)
+- `gui` : Active le support de l'interface graphique v2 (agent-gui + agent-persistence)
 
 ## Modules
 
 | Module | Description |
 |--------|-------------|
-| `api_client` | HTTP client for server communication |
-| `audit_trail` | Local audit logging with persistence |
-| `cleanup` | Uninstallation and data cleanup |
-| `events` | Event and notification management |
-| `resources` | Resource monitoring and throttling |
-| `self_protection` | Anti-tampering protection |
-| `service` | Windows/Linux service management |
-| `state` | Runtime state and flags |
-| `tray` | System tray icon (feature-gated) |
-| `update_manager` | Automatic update handling |
+| `api_client` | Client HTTP pour la communication serveur |
+| `audit_trail` | Journalisation d'audit locale avec persistance |
+| `cleanup` | Desinstallation et nettoyage des donnees |
+| `events` | Gestion des evenements et notifications |
+| `resources` | Surveillance et modulation des ressources |
+| `self_protection` | Protection anti-tampering |
+| `service` | Gestion de service Windows/Linux |
+| `state` | Etat d'execution et drapeaux |
+| `tray` | Icone de la barre systeme (conditionne par feature flag) |
+| `update_manager` | Gestion des mises a jour automatiques |
 
-## Usage
+## Utilisation
 
 ```rust
 use agent_core::{AgentRuntime, AgentConfig};
@@ -46,15 +46,15 @@ runtime.run().await?;
 
 ## Architecture
 
-The `AgentRuntime` struct is the main entry point. It coordinates:
+La structure `AgentRuntime` est le point d'entree principal. Elle coordonne :
 
-1. **Initialization**: Load config, initialize database, create API client
-2. **Enrollment**: Register with server or restore existing credentials
-3. **Main loop**: Heartbeat, compliance checks, sync operations
-4. **Shutdown**: Graceful termination with cleanup
+1. **Initialisation** : Chargement de la configuration, initialisation de la base de donnees, creation du client API
+2. **Enrolement** : Enregistrement aupres du serveur ou restauration des identifiants existants
+3. **Boucle principale** : Heartbeat, controles de conformite, operations de synchronisation
+4. **Arret** : Terminaison gracieuse avec nettoyage
 
-## Security
+## Securite
 
-- All server communication uses TLS with certificate pinning
-- Credentials are encrypted at rest (DPAPI on Windows, file permissions on Unix)
-- Self-protection prevents tampering with agent binaries and config
+- Toutes les communications serveur utilisent TLS avec epinglage de certificat
+- Les identifiants sont chiffres au repos (DPAPI sous Windows, permissions fichier sous Unix)
+- L'auto-protection empeche la modification des binaires et de la configuration de l'agent
