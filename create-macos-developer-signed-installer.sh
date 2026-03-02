@@ -689,12 +689,13 @@ if [ "$NOTARIZE" == "true" ]; then
     echo -e "${YELLOW}Submitting path for notarization (this may take a while)...${NC}"
     
     SUBMISSION_ID=""
+    NOTARY_EXIT=0
     if [[ -n "$NOTARIZATION_KEYCHAIN_PROFILE" ]]; then
         echo -e "${BLUE}Using keychain profile for notarization${NC}"
         SUBMISSION_OUTPUT=$(xcrun notarytool submit "$PKG_DIR/SentinelAgent-$VERSION.pkg" \
             --keychain-profile "$NOTARIZATION_KEYCHAIN_PROFILE" \
             --verbose \
-            --wait 2>&1)
+            --wait 2>&1) || NOTARY_EXIT=$?
         SUBMISSION_ID=$(echo "$SUBMISSION_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
     else
         echo -e "${BLUE}Using Apple ID credentials for notarization${NC}"
@@ -703,8 +704,14 @@ if [ "$NOTARIZE" == "true" ]; then
             --password "$APPLE_PASSWORD" \
             --team-id "$TEAM_ID" \
             --verbose \
-            --wait 2>&1)
+            --wait 2>&1) || NOTARY_EXIT=$?
         SUBMISSION_ID=$(echo "$SUBMISSION_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
+    fi
+
+    # Always print notarytool output so CI logs are useful
+    if [[ $NOTARY_EXIT -ne 0 ]]; then
+        echo -e "${RED}notarytool exited with code $NOTARY_EXIT${NC}"
+        echo "$SUBMISSION_OUTPUT"
     fi
     
     echo -e "${BLUE}Submission complete. Checking results...${NC}"
