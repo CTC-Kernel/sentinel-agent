@@ -219,7 +219,7 @@ impl CertificateValidationCheck {
         let stores = ["My", "Root", "CA"];
 
         for store in &stores {
-            let output = Command::new("certutil")
+            let output = silent_command("certutil")
                 .args(["-store", store])
                 .output()
                 .map_err(|e| {

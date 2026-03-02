@@ -38,7 +38,7 @@ pub fn get_os_version() -> String {
     #[cfg(target_os = "windows")]
     {
         // Read ProductName from the registry via `reg query`
-        std::process::Command::new("cmd")
+        agent_common::process::silent_command("cmd")
             .args(["/C", "reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\" /v ProductName"])
             .output()
             .ok()

@@ -70,7 +70,7 @@ impl BluetoothCheck {
     async fn check_windows(&self) -> ScannerResult<BluetoothStatus> {
         debug!("Checking Windows Bluetooth Support Service status");
 
-        let output = Command::new("sc")
+        let output = silent_command("sc")
             .args(["query", "bthserv"])
             .output()
             .map_err(|e| {

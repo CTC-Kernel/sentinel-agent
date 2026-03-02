@@ -251,7 +251,7 @@ impl UpdateStatusCheck {
         };
 
         // Check Windows Update service
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -305,7 +305,7 @@ impl UpdateStatusCheck {
     async fn get_update_history(&self) -> (Option<DateTime<Utc>>, Vec<UpdateHistoryEntry>) {
         use std::process::Command;
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -384,7 +384,7 @@ impl UpdateStatusCheck {
     async fn get_pending_updates(&self) -> Vec<PendingUpdate> {
         use std::process::Command;
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -471,7 +471,7 @@ impl UpdateStatusCheck {
     async fn check_reboot_pending(&self) -> (bool, Option<DateTime<Utc>>) {
         use std::process::Command;
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

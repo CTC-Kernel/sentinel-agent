@@ -71,7 +71,7 @@ pub fn detect_reduced_motion() -> bool {
     #[cfg(target_os = "windows")]
     {
         // Check Windows "Turn off all unnecessary animations" via registry
-        std::process::Command::new("reg")
+        agent_common::process::silent_command("reg")
             .args([
                 "query",
                 r"HKCU\Control Panel\Desktop",
@@ -93,7 +93,7 @@ pub fn detect_reduced_motion() -> bool {
             })
             .unwrap_or_else(|| {
                 // Fallback: PowerShell SystemParametersInfo query
-                std::process::Command::new("powershell")
+                agent_common::process::silent_command("powershell")
                     .args([
                         "-NoProfile",
                         "-Command",

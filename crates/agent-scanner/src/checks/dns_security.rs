@@ -150,7 +150,7 @@ impl DnsSecurityCheck {
         };
 
         // Check DoH settings via registry
-        let doh_output = Command::new("reg")
+        let doh_output = silent_command("reg")
             .args([
                 "query",
                 r"HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters",
@@ -172,7 +172,7 @@ impl DnsSecurityCheck {
         }
 
         // Check DNS server configuration
-        let dns_output = Command::new("netsh")
+        let dns_output = silent_command("netsh")
             .args(["interface", "ip", "show", "dns"])
             .output()
             .map_err(|e| {
@@ -202,7 +202,7 @@ impl DnsSecurityCheck {
             .any(|s| Self::is_secure_provider(s));
 
         // Check DoH templates
-        let template_output = Command::new("netsh")
+        let template_output = silent_command("netsh")
             .args(["dns", "show", "encryption"])
             .output();
 

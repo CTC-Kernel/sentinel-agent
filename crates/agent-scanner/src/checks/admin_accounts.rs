@@ -99,7 +99,7 @@ impl AdminAccountsCheck {
     async fn check_windows(&self) -> ScannerResult<AdminAccountsStatus> {
         debug!("Checking Windows administrator accounts");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

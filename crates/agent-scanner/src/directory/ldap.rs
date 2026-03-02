@@ -167,7 +167,7 @@ impl LdapAuditor {
         }
 
         // Use PowerShell to probe LDAP/AD
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

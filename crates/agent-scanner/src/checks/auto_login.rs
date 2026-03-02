@@ -74,7 +74,7 @@ impl AutoLoginCheck {
     async fn check_windows(&self) -> ScannerResult<AutoLoginStatus> {
         debug!("Checking Windows auto-login registry settings");
 
-        let output = Command::new("reg")
+        let output = silent_command("reg")
             .args([
                 "query",
                 r"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
@@ -111,7 +111,7 @@ impl AutoLoginCheck {
         // Also check for DefaultUserName if auto-login is enabled
         let mut auto_login_user = None;
         if auto_login_enabled {
-            if let Ok(user_output) = Command::new("reg")
+            if let Ok(user_output) = silent_command("reg")
                 .args([
                     "query",
                     r"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",

@@ -246,7 +246,7 @@ fn ensure_sentinel_directories_with_acls() -> ServiceResult<()> {
     // (M) = Modify permissions
     // This ensures that when the service (SYSTEM) creates subfolders/files, 
     // the regular user GUI can still read/write them.
-    let output = std::process::Command::new("icacls")
+    let output = agent_common::process::silent_command("icacls")
         .arg(base_dir)
         .arg("/grant")
         .arg("*S-1-5-32-545:(OI)(CI)(M)") // Builtin\Users SID
@@ -608,7 +608,7 @@ fn check_environment() {
     info!("Performing environment self-check...");
 
     // Check PowerShell availability and version
-    match Command::new("powershell")
+    match silent_command("powershell")
         .args(["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"])
         .output()
     {

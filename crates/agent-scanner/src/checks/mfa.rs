@@ -94,7 +94,7 @@ impl MfaCheck {
     async fn check_windows(&self) -> ScannerResult<MfaStatus> {
         debug!("Checking Windows MFA configuration");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

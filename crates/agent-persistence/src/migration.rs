@@ -272,7 +272,7 @@ fn get_machine_id() -> Option<String> {
 fn get_machine_id() -> Option<String> {
     use std::process::Command;
 
-    Command::new("reg")
+    silent_command("reg")
         .args([
             "query",
             r"HKLM\SOFTWARE\Microsoft\Cryptography",

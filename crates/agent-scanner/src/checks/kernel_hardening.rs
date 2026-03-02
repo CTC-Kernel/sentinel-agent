@@ -110,7 +110,7 @@ impl KernelHardeningCheck {
 
         // Check DEP availability
         // Try PowerShell first (wmic is deprecated on Windows 11 24H2+)
-        let dep_result = if let Ok(ps_output) = Command::new("powershell")
+        let dep_result = if let Ok(ps_output) = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -120,7 +120,7 @@ impl KernelHardeningCheck {
             && ps_output.status.success()
         {
             String::from_utf8_lossy(&ps_output.stdout).to_string()
-        } else if let Ok(wmic_output) = Command::new("wmic")
+        } else if let Ok(wmic_output) = silent_command("wmic")
             .args(["OS", "get", "DataExecutionPrevention_Available"])
             .output()
         {
@@ -144,7 +144,7 @@ impl KernelHardeningCheck {
         }
 
         // Check ASLR via registry (MoveImages)
-        let aslr_output = Command::new("reg")
+        let aslr_output = silent_command("reg")
             .args([
                 "query",
                 r"HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management",

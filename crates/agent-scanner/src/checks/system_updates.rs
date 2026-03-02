@@ -109,7 +109,7 @@ impl SystemUpdatesCheck {
     async fn check_windows(&self) -> ScannerResult<SystemUpdatesStatus> {
         debug!("Checking Windows Update status");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

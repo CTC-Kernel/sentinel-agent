@@ -102,7 +102,7 @@ impl AntivirusCheck {
         debug!("Checking Windows Defender/Security Center status");
 
         // Check Windows Defender status via PowerShell
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -178,7 +178,7 @@ impl AntivirusCheck {
     #[cfg(target_os = "windows")]
     async fn check_windows_wmi(&self) -> ScannerResult<AntivirusStatus> {
         // Fallback to WMI for third-party AV
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

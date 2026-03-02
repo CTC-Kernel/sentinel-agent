@@ -190,7 +190,7 @@ impl DnsCollector {
         let mut config = DnsConfiguration::default();
 
         // Use PowerShell Get-DnsClientServerAddress
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -208,7 +208,7 @@ impl DnsCollector {
         }
 
         // Get search suffix and search domains
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -230,7 +230,7 @@ impl DnsCollector {
         }
 
         // Get primary DNS suffix
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

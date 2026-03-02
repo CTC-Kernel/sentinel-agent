@@ -100,7 +100,7 @@ impl ObsoleteProtocolsCheck {
     async fn check_windows(&self) -> ScannerResult<ObsoleteProtocolsStatus> {
         debug!("Checking Windows obsolete protocols");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

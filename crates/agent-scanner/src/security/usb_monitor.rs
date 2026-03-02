@@ -228,7 +228,7 @@ impl UsbMonitor {
     fn enumerate_windows(&self) -> Vec<UsbDevice> {
         use std::process::Command;
 
-        let output = match Command::new("powershell")
+        let output = match silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
