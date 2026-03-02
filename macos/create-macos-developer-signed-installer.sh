@@ -7,12 +7,13 @@ set -e
 
 # Configuration
 # Extract version from Cargo.toml if not provided via environment
-CARGO_VERSION=$(grep '^version' "$(dirname "${BASH_SOURCE[0]}")/Cargo.toml" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CARGO_VERSION=$(grep '^version' "$PROJECT_ROOT/Cargo.toml" | head -1 | sed 's/.*"\(.*\)".*/\1/')
 VERSION="${VERSION:-$CARGO_VERSION}"
 PACKAGE_NAME="SentinelAgent"
 IDENTIFIER="com.cyber-threat-consulting.sentinel-agent"
 INSTALL_LOCATION="/Applications"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 PKG_DIR="$SCRIPT_DIR/dist"
 
@@ -94,8 +95,8 @@ mkdir -p "$APP_BUNDLE/Contents/Resources"
 mkdir -p "$APP_BUNDLE/Contents/Frameworks"
 
 # Copy binary
-if [[ -f "$SCRIPT_DIR/target/release/agent-core" ]]; then
-    cp "$SCRIPT_DIR/target/release/agent-core" "$APP_BUNDLE/Contents/MacOS/SentinelAgent"
+if [[ -f "$PROJECT_ROOT/target/release/agent-core" ]]; then
+    cp "$PROJECT_ROOT/target/release/agent-core" "$APP_BUNDLE/Contents/MacOS/SentinelAgent"
     chmod +x "$APP_BUNDLE/Contents/MacOS/SentinelAgent"
     echo -e "${GREEN}✅ Binary copied to app bundle${NC}"
 else
@@ -197,7 +198,7 @@ EOF
 
 # Copy app icon
 echo -e "${YELLOW}Copying app icon...${NC}"
-ICON_SOURCE="$SCRIPT_DIR/assets/icons/sentinel-agent.icns"
+ICON_SOURCE="$PROJECT_ROOT/assets/icons/sentinel-agent.icns"
 if [[ -f "$ICON_SOURCE" ]]; then
     cp "$ICON_SOURCE" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
     echo -e "${GREEN}✅ Icon copied successfully${NC}"
@@ -432,8 +433,8 @@ DISTXML
 
 # Copy branding images
 echo -e "${YELLOW}Copying branding images...${NC}"
-if [[ -f "$SCRIPT_DIR/crates/agent-gui/assets/IA.png" ]]; then
-    cp "$SCRIPT_DIR/crates/agent-gui/assets/IA.png" "$BUILD_DIR/IA.png"
+if [[ -f "$PROJECT_ROOT/crates/agent-gui/assets/IA.png" ]]; then
+    cp "$PROJECT_ROOT/crates/agent-gui/assets/IA.png" "$BUILD_DIR/IA.png"
 fi
 
 # Create welcome HTML
