@@ -365,51 +365,6 @@ jobs:
           wix extension add -g WixToolset.Util.wixext/4.0.0
           wix extension add -g WixToolset.Firewall.wixext/4.0.0
 
-      - name: Create Trusted Self-Signed Certificate
-        run: |
-          # Créer un certificat auto-signé persistant pour éviter SmartScreen
-          $certName = "Cyber Threat Consulting"
-          $certSubject = "CN=$certName, O=Cyber Threat Consulting, C=FR"
-          $certValidity = (Get-Date).AddYears(10)
-          
-          # Créer le certificat avec Extended Key Usage pour Code Signing
-          $cert = New-SelfSignedCertificate `
-            -DnsName $certName `
-            -CertStoreLocation "Cert:\LocalMachine\My" `
-            -KeyExportPolicy Exportable `
-            -KeySpec Signature `
-            -KeyAlgorithm RSA `
-            -KeyLength 2048 `
-            -HashAlgorithm SHA256 `
-            -NotAfter $certValidity `
-            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}Basic Constraints: CA:FALSE") `
-            -FriendlyName "Sentinel GRC Agent"
-          
-          # Exporter le certificat et la clé privée
-          $pfxPath = "$env:RUNNER_TEMP\sentinel-persistent.pfx"
-          $cerPath = "$env:RUNNER_TEMP\sentinel-persistent.cer"
-          $password = "${{ secrets.CERT_PASSWORD }}"
-          
-          Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password (ConvertTo-SecureString -String $password -Force -AsPlainText)
-          Export-Certificate -Cert $cert -FilePath $cerPath
-          
-          # Ajouter aux Trusted Publishers (bypass SmartScreen)
-          Import-Certificate -FilePath $cerPath -CertStoreLocation "Cert:\LocalMachine\Root" -ErrorAction SilentlyContinue
-          Import-Certificate -FilePath $cerPath -CertStoreLocation "Cert:\LocalMachine\TrustedPublisher" -ErrorAction SilentlyContinue
-          
-          # Encoder pour stockage persistant (GitHub Secrets)
-          $pfxBytes = [System.IO.File]::ReadAllBytes($pfxPath)
-          $pfxBase64 = [System.Convert]::ToBase64String($pfxBytes)
-          
-          # Copier le certificat pour WiX
-          Copy-Item $cerPath "sentinel-selfsigned.cer"
-          
-          Write-Host "✅ Certificat auto-signé persistant créé"
-          Write-Host "   Thumbprint: $($cert.Thumbprint)"
-          Write-Host "   Valide jusqu'à: $($cert.NotAfter.ToString('yyyy-MM-dd'))"
-          Write-Host ""
-          Write-Host "🔑 Certificat et mot de passe stockés dans les secrets GitHub"
-
       - name: Build MSI
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
@@ -425,37 +380,46 @@ jobs:
           echo "MSI created: SentinelAgentSetup-$version.msi"
         shell: pwsh
 
-      - name: Sign MSI (Free Trusted Certificate)
-        env:
-          WINDOWS_SELFSIGN_PFX: ${{ secrets.WINDOWS_SELFSIGN_PFX }}
-          WINDOWS_SELFSIGN_PASSWORD: ${{ secrets.WINDOWS_SELFSIGN_PASSWORD }}
+      - name: Upload unsigned MSI for signing
+        id: upload-unsigned
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-windows-unsigned
+          path: target/release/SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi
+
+      - name: Sign MSI with SignPath
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        id: signpath
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: msi
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: target/release/signed
+
+      - name: Replace MSI with signed version
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && steps.signpath.outcome == 'success' }}
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
-          
-          # Utiliser le certificat persistant gratuit
-          if (-not [string]::IsNullOrEmpty($env:WINDOWS_SELFSIGN_PFX)) {
-            Write-Host "🔑 Using persistent trusted certificate..."
-            $certPath = "$env:RUNNER_TEMP\trusted-cert.pfx"
-            $certBytes = [System.Convert]::FromBase64String($env:WINDOWS_SELFSIGN_PFX)
-            [System.IO.File]::WriteAllBytes($certPath, $certBytes)
-            $password = $env:WINDOWS_SELFSIGN_PASSWORD
+          $signedMsi = Get-ChildItem "target\release\signed\*.msi" | Select-Object -First 1
+          if ($signedMsi) {
+            Copy-Item $signedMsi.FullName "target\release\SentinelAgentSetup-$version.msi" -Force
+            Write-Host "MSI signed successfully with SignPath"
           } else {
-            Write-Host "⚠️ No trusted certificate configured - MSI will show SmartScreen warning"
-            Write-Host "   To fix: Run the release workflow once to generate trusted certificate"
-            Write-Host "   Then add WINDOWS_SELFSIGN_PFX and WINDOWS_SELFSIGN_PASSWORD to GitHub Secrets"
-            exit 0
+            Write-Host "::warning::No signed MSI found in output directory"
           }
-          
-          # Signer le MSI avec le certificat de confiance
-          & signtool sign /f $certPath /p $password /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d "Sentinel GRC Agent" "target\release\SentinelAgentSetup-$version.msi"
-          
-          if ($LASTEXITCODE -eq 0) {
-            Write-Host "✅ MSI signed with trusted certificate (SmartScreen bypassed)"
-          } else {
-            Write-Host "❌ Failed to sign MSI"
-          }
-          
-          Remove-Item $certPath -Force -ErrorAction SilentlyContinue
+        shell: pwsh
+
+      - name: Warn if SignPath not configured
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID == '' }}
+        run: |
+          echo "::warning::SignPath not configured - MSI will not be signed."
+          echo "::warning::To enable code signing, configure SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG (vars) and SIGNPATH_API_TOKEN (secret)."
 
       - name: Generate checksums
         run: |
@@ -473,171 +437,6 @@ jobs:
           path: |
             target/release/SentinelAgentSetup-*.msi
             target/release/SHA256SUMS-windows.txt
-
-      - name: Validate complete automation
-        run: |
-          echo "🎯 SENTINEL AGENT AUTOMATION VALIDATION 🎯"
-          echo ""
-          echo "✅ Build: Windows compilation successful"
-          echo "✅ Icons: Embedded in binaries"
-          echo "✅ Console: Hidden from user"
-          echo "✅ GUI: Auto-launched after install"
-          echo "✅ Processes: Auto-killed on uninstall"
-          echo "✅ MSI: Created and signed"
-          echo "✅ Version: ${{ env.RELEASE_VERSION }}"
-          echo ""
-          echo "🚀 FULL AUTOMATION ACHIEVED 🚀"
-          echo "No manual intervention required!"
-        shell: pwsh
-
-  # ═══════════════════════════════════════════════════════════════════
-  # Windows — Self-signed MSI installer (no SmartScreen warnings)
-  # ═══════════════════════════════════════════════════════════════════
-  build-windows-selfsigned:
-    name: Build Windows Self-Signed MSI
-    runs-on: windows-latest
-    needs: [version, build-windows]
-    env:
-      RELEASE_VERSION: ${{ needs.version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.version.outputs.version }}
-
-      - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: sentinel-agent-windows
-          path: artifacts
-
-      - name: Create Self-Signed MSI
-        env:
-          WINDOWS_SELFSIGN_PFX: ${{ secrets.WINDOWS_SELFSIGN_PFX }}
-          WINDOWS_SELFSIGN_PASSWORD: ${{ secrets.WINDOWS_SELFSIGN_PASSWORD }}
-        run: |
-          $version = "${{ env.RELEASE_VERSION }}"
-          $packageDir = "SentinelAgent-SelfSigned-$version"
-          New-Item -ItemType Directory -Force -Path $packageDir
-
-          # Copy MSI from artifacts
-          Copy-Item "artifacts\SentinelAgentSetup-$version.msi" "$packageDir\SentinelAgentSelfSigned-$version.msi"
-
-          # ── Persistent certificate (from GitHub Secrets) or fallback ──
-          if (-not [string]::IsNullOrEmpty($env:WINDOWS_SELFSIGN_PFX)) {
-            Write-Host "🔐 Using persistent certificate from GitHub Secrets..."
-
-            # Decode PFX from base64 secret
-            $pfxBytes = [System.Convert]::FromBase64String($env:WINDOWS_SELFSIGN_PFX)
-            [System.IO.File]::WriteAllBytes("sentinel-selfsigned.pfx", $pfxBytes)
-            $password = ConvertTo-SecureString -String $env:WINDOWS_SELFSIGN_PASSWORD -Force -AsPlainText
-
-            # Import to extract CER for the package
-            $cert = Import-PfxCertificate -FilePath "sentinel-selfsigned.pfx" -CertStoreLocation "Cert:\LocalMachine\My" -Password $password -Exportable
-            Export-Certificate -Cert $cert -FilePath "sentinel-selfsigned.cer" | Out-Null
-
-            $pfxPassword = $env:WINDOWS_SELFSIGN_PASSWORD
-            Write-Host "  Thumbprint : $($cert.Thumbprint)"
-            Write-Host "  Expiration : $($cert.NotAfter.ToString('yyyy-MM-dd'))"
-          } else {
-            Write-Host "::warning::WINDOWS_SELFSIGN_PFX secret not configured — generating ephemeral certificate."
-            Write-Host "::warning::Generate a self-signed certificate on Windows and configure GitHub Secrets (WINDOWS_SELFSIGN_PFX, WINDOWS_SELFSIGN_PASSWORD) for a persistent thumbprint."
-
-            # Fallback: generate ephemeral certificate with random password
-            $pfxPassword = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
-            $password = ConvertTo-SecureString -String $pfxPassword -Force -AsPlainText
-
-            $cert = New-SelfSignedCertificate `
-              -Type CodeSigningCert `
-              -Subject "CN=Cyber Threat Consulting, O=Cyber Threat Consulting" `
-              -CertStoreLocation "Cert:\LocalMachine\My" `
-              -KeyExportPolicy Exportable `
-              -KeySpec Signature `
-              -KeyLength 2048 `
-              -KeyAlgorithm RSA `
-              -HashAlgorithm SHA256 `
-              -NotAfter (Get-Date).AddYears(5) `
-              -FriendlyName "Sentinel GRC Agent" `
-              -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3")
-
-            Export-PfxCertificate -Cert $cert -FilePath "sentinel-selfsigned.pfx" -Password $password | Out-Null
-            Export-Certificate -Cert $cert -FilePath "sentinel-selfsigned.cer" | Out-Null
-
-            Write-Host "  Ephemeral thumbprint : $($cert.Thumbprint)"
-          }
-
-          # Add to Trusted Publishers (for CI signing verification)
-          Import-Certificate -FilePath "sentinel-selfsigned.cer" -CertStoreLocation "Cert:\LocalMachine\Root" -ErrorAction SilentlyContinue
-          Import-Certificate -FilePath "sentinel-selfsigned.cer" -CertStoreLocation "Cert:\LocalMachine\TrustedPublisher" -ErrorAction SilentlyContinue
-
-          # Find signtool (search all installed SDK versions)
-          Write-Host "Signing MSI..."
-          $signtoolPath = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" -ErrorAction SilentlyContinue |
-            Sort-Object { [version]($_.Directory.Parent.Name) } -Descending |
-            Select-Object -First 1 -ExpandProperty FullName
-          if (-not $signtoolPath) {
-            Write-Host "::error::signtool.exe not found in any Windows SDK"
-            exit 1
-          }
-          Write-Host "Using signtool: $signtoolPath"
-
-          # Sign MSI
-          & $signtoolPath sign /f sentinel-selfsigned.pfx /p $pfxPassword /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d "Sentinel GRC Agent" "$packageDir\SentinelAgentSelfSigned-$version.msi"
-
-          # Copy certificate to package
-          Copy-Item "sentinel-selfsigned.cer" "$packageDir\"
-
-          # Copy MSI to root for checksums and artifact upload consistency
-          Copy-Item "$packageDir\SentinelAgentSelfSigned-$version.msi" "."
-
-          # Cleanup PFX (never leave private key on disk)
-          Remove-Item "sentinel-selfsigned.pfx" -Force -ErrorAction SilentlyContinue
-
-          Write-Host "✅ Self-signed MSI package created and copied to root: SentinelAgentSelfSigned-$version.msi"
-        shell: pwsh
-
-      - name: Create Installation Scripts
-        run: |
-          $version = "${{ env.RELEASE_VERSION }}"
-          $packageDir = "SentinelAgent-SelfSigned-$version"
-          
-          # Create installation script using PowerShell
-          $batchContent = '@echo off' + "`r`n" + 'echo 🔐 Installation Sentinel GRC Agent (sécurisée)' + "`r`n" + 'echo ===========================================' + "`r`n" + "`r`n" + 'REM Vérifier les droits admin' + "`r`n" + 'net session >nul 2>&1' + "`r`n" + 'if %errorLevel% neq 0 (' + "`r`n" + '    echo ❌ Droits administrateur requis' + "`r`n" + '    echo Relancez ce script en tant qu''administrateur' + "`r`n" + '    pause' + "`r`n" + '    exit /b 1' + "`r`n" + ')' + "`r`n" + "`r`n" + 'REM Installer le certificat dans Trusted Publishers' + "`r`n" + 'echo 📋 Installation du certificat de confiance...' + "`r`n" + 'certutil -addstore "TrustedPublisher" "sentinel-selfsigned.cer" >nul 2>&1' + "`r`n" + 'certutil -addstore "Root" "sentinel-selfsigned.cer" >nul 2>&1' + "`r`n" + 'echo ✅ Certificat ajouté aux Trusted Publishers' + "`r`n" + "`r`n" + 'REM Installer le MSI' + "`r`n" + 'echo 📦 Installation de Sentinel GRC Agent...' + "`r`n" + 'msiexec /i "SentinelAgentSelfSigned-' + $version + '.msi" /quiet /norestart' + "`r`n" + "`r`n" + 'if %errorLevel% equ 0 (' + "`r`n" + '    echo ✅ Installation terminée avec succès!' + "`r`n" + ') else (' + "`r`n" + '    echo ❌ Erreur lors de l''installation MSI' + "`r`n" + '    echo Code d''erreur: %errorLevel%' + "`r`n" + ')' + "`r`n" + "`r`n" + 'echo.' + "`r`n" + 'echo 🎉 Installation complète!' + "`r`n" + 'echo Le certificat est maintenant installé sur cette machine' + "`r`n" + 'echo Les futures installations n''auront plus d''avertissements' + "`r`n" + 'echo.' + "`r`n" + 'pause' + "`r`n"
-          
-          $batchContent | Out-File -FilePath "$packageDir\install.bat" -Encoding ASCII
-          
-          # Create README
-          $readmeContent = 'Sentinel GRC Agent - Installation Sécurisée Auto-signée' + "`r`n" + '================================================' + "`r`n" + "`r`n" + 'Ce package inclut:' + "`r`n" + '- L''installateur MSI signé avec certificat auto-signé' + "`r`n" + '- Le certificat public pour Trusted Publishers' + "`r`n" + '- Script d''installation automatique' + "`r`n" + "`r`n" + 'Installation:' + "`r`n" + '1. Exécuter install.bat en tant qu''administrateur' + "`r`n" + '2. Le certificat sera installé automatiquement' + "`r`n" + '3. L''agent s''installera sans avertissements' + "`r`n" + "`r`n" + 'Avantages:' + "`r`n" + '✅ Aucun avertissement SmartScreen' + "`r`n" + '✅ Installation silencieuse possible' + "`r`n" + '✅ Certificat ajouté aux Trusted Publishers' + "`r`n" + '✅ 100% gratuit' + "`r`n" + "`r`n" + 'Le certificat est ajouté aux Trusted Publishers,' + "`r`n" + 'donc plus aucun avertissement sur cette machine.'
-          
-          $readmeContent | Out-File -FilePath "$packageDir\README.txt" -Encoding ASCII
-          
-          Write-Host "✅ Installation scripts and README created in $packageDir"
-        shell: pwsh
-
-      - name: Create ZIP Package
-        run: |
-          $version = "${{ env.RELEASE_VERSION }}"
-          $packageDir = "SentinelAgent-SelfSigned-$version"
-          Compress-Archive -Path "$packageDir\*" -DestinationPath "SentinelAgent-SelfSigned-$version.zip" -Force
-          Write-Host "✅ ZIP package created: SentinelAgent-SelfSigned-$version.zip"
-        shell: pwsh
-
-      - name: Generate checksums
-        run: |
-          $version = "${{ env.RELEASE_VERSION }}"
-          $hash = Get-FileHash "SentinelAgentSelfSigned-$version.msi" -Algorithm SHA256
-          "$($hash.Hash.ToLower())  SentinelAgentSelfSigned-$version.msi" | Out-File -Encoding ASCII "SHA256SUMS-windows-selfsigned.txt"
-          
-          Get-Content "SHA256SUMS-windows-selfsigned.txt"
-        shell: pwsh
-
-      - name: Upload Self-Signed artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: sentinel-agent-windows-selfsigned
-          path: |
-            SentinelAgentSelfSigned-*.msi
-            SentinelAgent-SelfSigned-*.zip
-            SHA256SUMS-windows-selfsigned.txt
 
   # ═══════════════════════════════════════════════════════════════════
   # Linux — DEB package (Debian/Ubuntu)
@@ -815,7 +614,7 @@ jobs:
   upload-releases:
     name: Upload to Firebase Storage
     runs-on: ubuntu-latest
-    needs: [version, build-macos, build-windows, build-windows-selfsigned, build-deb, build-rpm, sbom, attestation]
+    needs: [version, build-macos, build-windows, build-deb, build-rpm, sbom, attestation]
     env:
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
@@ -907,8 +706,6 @@ jobs:
           # Upload all artifacts (versioned)
           gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-*" "$BUCKET/macos/"
           gcloud storage cp "artifacts/sentinel-agent-windows/SentinelAgentSetup-*" "$BUCKET/windows/"
-          gcloud storage cp "artifacts/sentinel-agent-windows-selfsigned/SentinelAgentSelfSigned-*.msi" "$BUCKET/windows/"
-          gcloud storage cp "artifacts/sentinel-agent-windows-selfsigned/SentinelAgent-SelfSigned-*.zip" "$BUCKET/windows/"
           gcloud storage cp "artifacts/sentinel-agent-linux-deb/sentinel-agent_*" "$BUCKET/linux_deb/"
           gcloud storage cp "artifacts/sentinel-agent-linux-rpm/sentinel-agent-*" "$BUCKET/linux_rpm/"
           gcloud storage cp "artifacts/*/SHA256SUMS*.txt" "$BUCKET/" 2>/dev/null || true
@@ -995,8 +792,7 @@ jobs:
             | Platform | Package | Format | Notes |
             |----------|---------|--------|-------|
             | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.pkg` | PKG | Signed + Notarized |
-            | Windows x64 | `SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi` | MSI | Commercial Certificate |
-            | Windows x64 | `SentinelAgentSelfSigned-${{ env.RELEASE_VERSION }}.msi` | MSI | Self-signed (No SmartScreen) |
+            | Windows x64 | `SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi` | MSI | Signed via SignPath |
             | Linux (Debian/Ubuntu) | `sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb` | DEB | |
             | Linux (RHEL/Fedora) | `sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm` | RPM | |
 
@@ -1004,31 +800,15 @@ jobs:
 
             **macOS**: Open PKG and follow installer prompts, or double-click PKG.
             **Windows**: Run the MSI installer as Administrator.
-            **Windows (No SmartScreen)**: Download `SentinelAgentSelfSigned-${{ env.RELEASE_VERSION }}.msi` and run as Administrator.
             **Linux (DEB)**: `sudo dpkg -i sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb`
             **Linux (RPM)**: `sudo rpm -i sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm`
 
             Then enroll: `sentinel-agent enroll --token <YOUR_TOKEN>`
-
-            ### SmartScreen — Zero Warning
-
-            Le MSI auto-signe installe automatiquement le certificat dans **TrustedPublisher** lors de la premiere installation.
-            Les mises a jour suivantes ne declenchent plus d'avertissement SmartScreen.
-
-            **Premiere installation :** telecharger `SentinelAgentSelfSigned-${{ env.RELEASE_VERSION }}.msi`, clic droit > Executer en tant qu'administrateur.
-            **Mises a jour :** aucune action requise, le certificat est deja approuve.
-
-            **Deploiement enterprise (zero SmartScreen des la 1ere install) :**
-            Deployer le certificat `.cer` via GPO, Intune ou SCCM dans Trusted Publishers.
-
-            **Alternative :** le ZIP `SentinelAgent-SelfSigned-${{ env.RELEASE_VERSION }}.zip` contient le MSI + certificat + script d'installation.
           files: |
             artifacts/sentinel-agent-macos/SentinelAgent-*.pkg
             artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt
             artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi
             artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt
-            artifacts/sentinel-agent-windows-selfsigned/SentinelAgentSelfSigned-*.msi
-            artifacts/sentinel-agent-windows-selfsigned/SHA256SUMS-windows-selfsigned.txt
             artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb
             artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt
             artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm
