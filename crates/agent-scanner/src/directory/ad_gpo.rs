@@ -19,9 +19,6 @@ use serde::{Deserialize, Serialize};
 use tracing::info;
 #[cfg(target_os = "windows")]
 use tracing::{debug, warn};
-#[cfg(target_os = "windows")]
-use agent_common::process::silent_command;
-#[cfg(not(target_os = "windows"))]
 use agent_common::process::silent_async_command;
 
 /// Group Policy Object auditor.
