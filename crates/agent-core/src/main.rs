@@ -14,8 +14,6 @@
 use agent_common::config::AgentConfig;
 #[cfg(feature = "tray")]
 use agent_core::tray;
-#[cfg(feature = "gui")]
-use agent_core::init_logging_with_terminal;
 use agent_core::{AgentRuntime, init_logging, service};
 use clap::{Parser, Subcommand};
 #[cfg(feature = "tray")]
@@ -197,11 +195,12 @@ fn main() -> ExitCode {
     let gui_mode = false;
 
     // Initialize logging immediately to capture setup errors.
-    // GUID mode will still use its bridge but the file appender will be active.
-    if gui_mode {
-        #[cfg(feature = "gui")]
-        init_logging_with_terminal(&cli.log_level);
-    } else {
+    // In GUI mode, logging is deferred to run_with_gui() which installs
+    // the tracing subscriber with the GUI terminal bridge and connects
+    // the event sender.  Initializing here would install a subscriber
+    // whose bridge is never connected, and the second init in
+    // run_with_gui() would silently fail (global subscriber already set).
+    if !gui_mode {
         init_logging(&cli.log_level);
     }
 
