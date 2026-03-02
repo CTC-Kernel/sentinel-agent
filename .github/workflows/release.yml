@@ -648,6 +648,17 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | sort
 
+      - name: Validate Firebase/GCP secrets
+        run: |
+          MISSING=""
+          [ -z "${{ secrets.GCP_SA_KEY }}" ] && MISSING="$MISSING GCP_SA_KEY"
+          [ -z "${{ secrets.GCP_PROJECT_ID }}" ] && MISSING="$MISSING GCP_PROJECT_ID"
+          [ -z "${{ secrets.FIREBASE_STORAGE_BUCKET }}" ] && MISSING="$MISSING FIREBASE_STORAGE_BUCKET"
+          if [ -n "$MISSING" ]; then
+            echo "::error::Missing required secrets:$MISSING — configure them in Settings → Secrets → Actions."
+            exit 1
+          fi
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -662,7 +673,7 @@ jobs:
           # 3. Upload loop
           VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://${{ secrets.FIREBASE_STORAGE_BUCKET }}/releases/agent"
-          
+
           echo "=== Cleaning up existing 'latest' aliases and metadata (All Platforms) ==="
           # Remove all aliases and metadata across all subfolders to ensure a clean state
           # This covers macos, windows, linux_deb, linux_rpm
