@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! API types for SaaS communication.
 //!
 //! This module defines the request/response types for the Sentinel GRC API.

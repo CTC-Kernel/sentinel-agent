@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Sparkline widget - clean mini time-series charts using egui_plot.
 
 use egui::{Color32, RichText, Ui, Vec2};

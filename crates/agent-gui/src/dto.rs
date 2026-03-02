@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Data transfer objects for the GUI layer.
 //!
 //! These types represent the data presented to the user in the desktop interface.

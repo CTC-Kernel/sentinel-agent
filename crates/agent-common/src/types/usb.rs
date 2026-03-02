@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! USB device monitoring types.
 
 use chrono::{DateTime, Utc};

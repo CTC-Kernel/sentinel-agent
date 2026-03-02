@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent configuration types and loader.
 //!
 //! This module defines the configuration structures for the Sentinel GRC Agent

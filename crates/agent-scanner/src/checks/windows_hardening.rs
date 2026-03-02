@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Windows system hardening compliance checks.
 //!
 //! Comprehensive registry-based security checks for Windows:

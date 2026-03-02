@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! OpenLDAP and generic LDAP security auditing.
 //!
 //! Audits LDAP server configuration for security compliance:

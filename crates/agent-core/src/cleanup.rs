@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Data cleanup functions for agent uninstallation.
 //!
 //! This module handles cleanup of agent data during uninstallation,

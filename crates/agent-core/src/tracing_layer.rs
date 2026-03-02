@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Custom tracing layer that captures log events and forwards them to the GUI.
 //!
 //! The [`GuiTracingLayer`] implements `tracing_subscriber::Layer` and sends

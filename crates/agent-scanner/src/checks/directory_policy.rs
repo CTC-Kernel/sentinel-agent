@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Directory services policy compliance checks.
 //!
 //! Audits Active Directory Group Policy, OpenLDAP, and local security policies:

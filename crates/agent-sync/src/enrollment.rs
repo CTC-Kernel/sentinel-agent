@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent enrollment with the SaaS platform.
 //!
 //! This module implements the enrollment flow where an agent registers itself

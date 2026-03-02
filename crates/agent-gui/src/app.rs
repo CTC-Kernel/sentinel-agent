@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Sentinel Agent application shell.
 //!
 //! Manages the eframe window, routing, state, and event channels between

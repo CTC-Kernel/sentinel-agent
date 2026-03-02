@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Disk encryption compliance check.
 //!
 //! Verifies that disk encryption is enabled on the system:

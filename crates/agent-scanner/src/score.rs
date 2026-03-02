@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Local compliance score calculator.
 
 use agent_common::types::{CheckResult, CheckSeverity, CheckStatus};

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Reports page — generate and export compliance, executive, and incident reports.
 
 use egui::Ui;

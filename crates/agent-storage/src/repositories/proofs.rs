@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Proof storage repository with SHA-256 integrity verification.
 //!
 //! This module provides tamper-evident storage for compliance proofs:

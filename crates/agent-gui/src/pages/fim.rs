@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! File Integrity Monitoring page -- FIM alerts and acknowledgments.
 
 use egui::Ui;

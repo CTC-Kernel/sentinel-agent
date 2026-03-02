@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Windows Update status compliance check.
 //!
 //! Comprehensive update management verification:

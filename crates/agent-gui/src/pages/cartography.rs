@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Network Cartography — 2D force-directed graph of discovered devices.
 
 use crate::app::AppState;

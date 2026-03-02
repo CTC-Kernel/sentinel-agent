@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 #![windows_subsystem = "windows"]
 //! Sentinel GRC Agent - Main entry point.
 //!

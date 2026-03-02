@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! HTTP API client for communicating with the Sentinel GRC server.
 //!
 //! This module provides the API client that handles:

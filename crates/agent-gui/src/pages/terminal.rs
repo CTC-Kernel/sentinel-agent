@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Terminal Activity Monitor -- real-time view of all agent background activity.
 
 use egui::{Color32, Ui};

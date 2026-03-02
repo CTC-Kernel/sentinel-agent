@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Premium toggle switch widget (iOS-style).
 
 use egui::{Color32, CornerRadius, Response, Sense, Stroke, Ui, Vec2};

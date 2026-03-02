@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Schema migration v2 for Sentinel Agent GUI and extended features.
 //!
 //! Adds tables for:

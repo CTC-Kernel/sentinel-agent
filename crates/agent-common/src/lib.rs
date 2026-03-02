@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent Common - Shared types and utilities for the Sentinel GRC Agent.
 //!
 //! This crate provides common types, error handling, and configuration

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Check results repository for storing compliance check execution results.
 //!
 //! This module provides CRUD operations for check results with support for:

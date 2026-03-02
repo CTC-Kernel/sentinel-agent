@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Guest account disabled compliance check.
 //!
 //! Verifies that the guest/anonymous account is disabled:

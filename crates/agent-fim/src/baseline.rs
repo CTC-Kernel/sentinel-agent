@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Baseline snapshot creation and comparison using BLAKE3.
 //!
 //! BLAKE3 is used for internal baselines (4x faster than SHA-256).

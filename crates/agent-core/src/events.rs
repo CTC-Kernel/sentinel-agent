@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Event and command handling for the Sentinel GRC Agent.
 //!
 //! This module centralizes the dispatching of events to the GUI and other

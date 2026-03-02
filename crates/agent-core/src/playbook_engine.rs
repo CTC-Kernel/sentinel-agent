@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Playbook execution engine -- evaluates conditions and triggers response actions.
 //!
 //! This module evaluates playbook conditions against the current threat state

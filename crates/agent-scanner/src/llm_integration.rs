@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! LLM integration for intelligent scan result analysis.
 //!
 //! This module provides LLM integration for the scanner.

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Playbooks sub-tab — automated response playbooks, templates, and execution log.
 
 use chrono::Utc;

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Suspicious port scanner.
 //!
 //! Detects connections on suspicious ports:

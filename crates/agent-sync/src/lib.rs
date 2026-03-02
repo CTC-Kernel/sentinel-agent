@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent Sync - SaaS communication and data synchronization.
 //!
 //! This crate handles all communication between the Sentinel GRC Agent

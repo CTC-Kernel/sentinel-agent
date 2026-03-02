@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Detection rules sub-tab — custom detection rules with condition matching and live testing.
 
 use chrono::Utc;

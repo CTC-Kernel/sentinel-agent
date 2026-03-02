@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Heartbeat communication and server command processing.
 
 use agent_common::constants::AGENT_VERSION;

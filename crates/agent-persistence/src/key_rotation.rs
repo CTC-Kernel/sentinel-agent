@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Database encryption key rotation.
 //!
 //! Provides secure rotation of the SQLCipher encryption key with backup

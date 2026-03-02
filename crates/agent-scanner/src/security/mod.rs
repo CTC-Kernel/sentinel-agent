@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Security monitoring module.
 //!
 //! This module provides real-time security incident detection by monitoring:

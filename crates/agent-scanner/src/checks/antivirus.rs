@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Antivirus status compliance check.
 //!
 //! Verifies that antivirus is active with current definitions:

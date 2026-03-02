@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Encryption key management for SQLCipher.
 //!
 //! This module handles derivation and storage of database encryption keys.

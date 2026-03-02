@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Active Directory Group Policy (GPO) auditing.
 //!
 //! Extracts and analyzes Group Policy settings for compliance:

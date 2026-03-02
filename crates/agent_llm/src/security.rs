@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! LLM-powered security classification and threat intelligence.
 
 use serde::{Deserialize, Serialize};

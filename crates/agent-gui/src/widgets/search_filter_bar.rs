@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Reusable search + filter chip bar widget.
 
 use egui::{CornerRadius, Ui, Vec2};

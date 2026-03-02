@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent Scanner - Compliance check engine and proof generation.
 //!
 //! This crate provides the compliance checking framework for the Sentinel

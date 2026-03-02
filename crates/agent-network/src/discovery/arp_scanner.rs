@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! ARP table scanner.
 //!
 //! Parses the system ARP table to discover devices on the local network

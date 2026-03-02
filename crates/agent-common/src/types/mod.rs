@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Domain types for the Sentinel GRC Agent.
 //!
 //! This module contains the core domain types used across the agent.

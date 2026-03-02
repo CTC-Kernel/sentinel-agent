@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent self-integrity verification.
 //!
 //! This module provides self-integrity checking at startup to detect

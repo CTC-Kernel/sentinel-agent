@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Linux kernel and system hardening compliance checks.
 //!
 //! Comprehensive sysctl-based security checks:

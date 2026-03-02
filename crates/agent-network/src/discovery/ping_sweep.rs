@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Concurrent subnet ping sweep.
 //!
 //! Generates all host IPs in a CIDR block and pings them concurrently

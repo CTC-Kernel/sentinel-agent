@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Compliance checks implementations.
 //!
 //! This module contains all compliance check implementations for

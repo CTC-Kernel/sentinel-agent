@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Pill-shaped status badges — premium soft tinted style.
 //!
 //! Uses `theme::badge_*()` helpers for consistent colors across all badges.

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Prompt templates and builders for different LLM use cases.
 
 use serde::{Deserialize, Serialize};

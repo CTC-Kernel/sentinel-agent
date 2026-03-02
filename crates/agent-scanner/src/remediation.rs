@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Automated remediation engine for compliance check failures.
 //!
 //! Provides pre-built remediation actions for common compliance issues,

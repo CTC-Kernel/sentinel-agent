@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! FIM alert processing and aggregation.
 
 use agent_common::types::{FimAlert, FimChangeType};

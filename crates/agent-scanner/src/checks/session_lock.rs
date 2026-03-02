@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Session lock compliance check.
 //!
 //! Verifies automatic session lock is configured:

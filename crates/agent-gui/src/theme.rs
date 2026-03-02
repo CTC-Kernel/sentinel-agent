@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Design system: Apple-inspired theme for Sentinel Agent.
 //!
 //! Supports both dark and light themes. Surface / text colors are

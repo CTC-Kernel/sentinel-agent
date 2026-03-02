@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Live activity feed widget with animated entries.
 
 use egui::{Color32, CornerRadius, RichText, Ui, Vec2};

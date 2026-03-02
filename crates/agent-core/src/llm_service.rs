@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! LLM service integration for the core agent.
 
 #[cfg(feature = "llm")]

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Domain-specific sub-states for AppState.
 //!
 //! Each struct groups related fields by functional domain (network, discovery,

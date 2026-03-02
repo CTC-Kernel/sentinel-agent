@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Credential storage repository.
 //!
 //! This module handles secure storage and retrieval of enrollment credentials

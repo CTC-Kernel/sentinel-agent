@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 use serde::{Deserialize, Serialize};
 
 /// Information about a software update retrieved from remote storage.

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Vulnerabilities page -- vulnerability findings and summary.
 
 use egui::Ui;

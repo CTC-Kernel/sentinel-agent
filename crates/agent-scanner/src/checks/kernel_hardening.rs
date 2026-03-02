@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Kernel hardening compliance check.
 //!
 //! Checks kernel security settings (ASLR, exec-shield, IP forwarding):

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Premium badge widgets — elevated variants with subtle depth.
 //!
 //! Uses the same `theme::badge_*()` system as all other badges,

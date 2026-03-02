@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Unix/Linux service implementation for the Sentinel GRC Agent.
 //!
 //! This module provides systemd integration for Linux systems.

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! File Integrity Monitoring (FIM) Engine for the Sentinel GRC Agent.
 //!
 //! This crate provides real-time file system monitoring using the `notify` crate

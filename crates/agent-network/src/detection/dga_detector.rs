@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! DGA (Domain Generation Algorithm) detector.
 //!
 //! Detects algorithmically generated domains used by malware for C2:

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Audit logging compliance check.
 //!
 //! Verifies that audit/event logging is enabled and configured:

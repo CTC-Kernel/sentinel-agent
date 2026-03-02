@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Repository modules for database access.
 //!
 //! This module provides repository patterns for CRUD operations on database entities.

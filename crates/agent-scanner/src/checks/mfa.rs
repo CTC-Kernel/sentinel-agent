@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! MFA configuration compliance check.
 //!
 //! Verifies multi-factor authentication is configured:

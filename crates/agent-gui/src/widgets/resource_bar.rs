@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Horizontal resource usage bar (CPU, memory).
 
 use egui::{CornerRadius, Rect, Ui, Vec2};

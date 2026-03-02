@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Responsive layout helpers for fluid grids and wrapping.
 
 use egui::Ui;

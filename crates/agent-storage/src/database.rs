@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! SQLite database with SQLCipher encryption.
 //!
 //! This module provides encrypted database access for the Sentinel GRC Agent.

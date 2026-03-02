@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Detection rules and IOCs (Indicators of Compromise).
 
 use crate::types::ThreatIntelligence;

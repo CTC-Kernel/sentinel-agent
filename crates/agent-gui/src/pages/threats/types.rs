@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Shared types and helpers for the EDR threats module.
 
 use chrono::{DateTime, Utc};

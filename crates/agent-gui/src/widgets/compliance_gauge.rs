@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Circular compliance score gauge widget - clean Apple-style design.
 
 use egui::{Pos2, Ui, Vec2};

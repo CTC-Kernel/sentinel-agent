@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Shared event types used across agent crates.
 //!
 //! These types define the common event vocabulary that flows between

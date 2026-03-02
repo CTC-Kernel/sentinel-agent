@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Events repository for structured agent event logging.
 //!
 //! Provides storage and retrieval of agent events displayed in the GUI

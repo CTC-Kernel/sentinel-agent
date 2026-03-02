@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! SSH Hardening compliance check.
 //!
 //! Verifies SSH server and client configuration follows security best practices:

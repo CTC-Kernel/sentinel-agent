@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Log rotation compliance check.
 //!
 //! Verifies that log rotation is configured and active:

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Network connections collector.
 //!
 //! Collects active TCP/UDP connections with process information.

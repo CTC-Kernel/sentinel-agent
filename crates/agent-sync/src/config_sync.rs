@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Configuration synchronization service for downloading config from SaaS.
 //!
 //! This module provides:

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Certificate pinning for server validation.
 //!
 //! This module provides certificate pinning to prevent MITM attacks

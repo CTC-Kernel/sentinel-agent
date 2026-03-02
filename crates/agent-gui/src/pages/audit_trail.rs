@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Audit Trail page -- historical security and system events.
 //! Premium AAA design using high-performance tables.
 

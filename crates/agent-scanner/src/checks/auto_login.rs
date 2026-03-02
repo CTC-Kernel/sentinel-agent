@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Auto-login disabled compliance check.
 //!
 //! Verifies that automatic login is disabled:

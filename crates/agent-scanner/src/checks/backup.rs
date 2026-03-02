@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Backup configuration compliance check.
 //!
 //! Verifies backup is configured and recent:
