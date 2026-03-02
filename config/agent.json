@@ -1,0 +1,36 @@
+{
+  "server_url": "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi",
+  "check_interval_secs": 3600,
+  "heartbeat_interval_secs": 60,
+  "offline_mode_days": 7,
+  "log_level": "info",
+  "tls_verify": true,
+  "usb_monitoring": true,
+  "usb_block_mass_storage": true,
+  "gui": {
+    "enabled": true,
+    "theme": "dark",
+    "minimize_to_tray": true,
+    "auto_start": true
+  },
+  "compliance": {
+    "frameworks": ["CIS", "NIST", "ISO27001"],
+    "scan_interval_secs": 86400,
+    "auto_remediate": true
+  },
+  "scanner": {
+    "enabled": true,
+    "scan_interval_secs": 43200,
+    "max_cpu_usage": 50
+  },
+  "fim": {
+    "enabled": true,
+    "watched_paths": ["C:\\Windows\\System32", "C:\\Program Files"],
+    "algorithm": "BLAKE3"
+  },
+  "network": {
+    "discovery_enabled": true,
+    "passive_scan": true,
+    "protocols": ["mdns", "ssdp", "arp"]
+  }
+}
