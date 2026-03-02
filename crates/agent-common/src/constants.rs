@@ -42,12 +42,24 @@ pub const DB_FILE_NAME: &str = "agent.db";
 /// Configuration file name.
 pub const CONFIG_FILE_NAME: &str = "agent.json";
 
+/// Firebase project ID used to construct default URLs.
+///
+/// Override at runtime via the `server_url` field in `agent.json`.
+pub const FIREBASE_PROJECT_ID: &str = "sentinel-grc-a8701";
+
+/// Firebase Storage bucket.
+pub const FIREBASE_STORAGE_BUCKET: &str = "sentinel-grc-a8701.firebasestorage.app";
+
 /// Default server URL (Firebase Cloud Functions).
 ///
 /// This is the **API** endpoint used by the agent for enrollment, heartbeats,
 /// and data uploads.  It is *not* the web dashboard URL visible to end users.
 pub const DEFAULT_SERVER_URL: &str =
     "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi";
+
+/// Base URL for release artifacts in Firebase Storage.
+pub const RELEASES_BASE_URL: &str =
+    "https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent";
 
 /// Log file name.
 pub const LOG_FILE_NAME: &str = "agent.log";

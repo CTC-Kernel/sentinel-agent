@@ -802,7 +802,10 @@ impl ApiClient {
 
     /// Fetch the latest release information from the update server.
     pub async fn get_latest_release_info(&self) -> Result<agent_common::types::UpdateInfo> {
-        let url = "https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/release-info.json";
+        let url = &format!(
+            "{}/release-info.json",
+            agent_common::constants::RELEASES_BASE_URL
+        );
         debug!("Fetching release info from {}", url);
 
         let response =
