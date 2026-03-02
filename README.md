@@ -1,9 +1,9 @@
 # Sentinel GRC Agent
 
 [![CI](https://github.com/sentinel/agent/actions/workflows/ci.yml/badge.svg)](https://github.com/sentinel/agent/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Proprietary-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange.svg)](https://www.rust-lang.org/)
-[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)]()
+[![Version](https://img.shields.io/badge/version-2.0.112-green.svg)]()
 
 A lightweight, secure endpoint agent for compliance monitoring, vulnerability scanning, network discovery, and GRC (Governance, Risk, Compliance) enforcement -- with an optional real-time desktop GUI.
 
@@ -131,6 +131,10 @@ Minimum coverage threshold: **70%**
 - **Platform**: [app.cyber-threat-consulting.com](https://app.cyber-threat-consulting.com)
 - **Contact**: ***REMOVED***
 
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
 ## License
 
-Proprietary - Copyright 2024-2026 Cyber Threat Consulting. All rights reserved.
+MIT License - Copyright 2024-2026 Cyber Threat Consulting. See [LICENSE](LICENSE) for details.
