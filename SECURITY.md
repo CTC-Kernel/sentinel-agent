@@ -1,192 +1,102 @@
-# Politique de securite
+<p align="center">
+  <img src="assets/security_seal.png" alt="Sentinel GRC Security Seal" width="200">
+</p>
 
-## Versions supportees
+<h1 align="center">POLITIQUE DE SÉCURITÉ</h1>
 
-| Version | Supportee          |
-| ------- | ------------------ |
-| 2.0.x   | :white_check_mark: |
+<p align="center">
+  <strong>Standard de Protection Militaire - Sentinel GRC Agent</strong>
+</p>
 
-## Signaler une vulnerabilite
+---
 
-Si vous decouvrez une vulnerabilite de securite dans Sentinel GRC Agent, veuillez la signaler de maniere responsable :
+## 🛡️ Engagement de Sécurité
 
-1. **NE creez PAS** de ticket GitHub public
-2. Envoyez un email a : contact@cyber-threat-consulting.com
-3. Incluez une description detaillee et les etapes de reproduction
-4. Accordez un delai de 90 jours pour la remediation avant toute divulgation publique
+La sécurité n'est pas une option, c'est notre fondation. Sentinel GRC Agent est conçu pour résister aux vecteurs de menace les plus avancés tout en assurant une conformité rigoureuse.
 
-## Analyse de securite
+### Versions Supportées
 
-### Verifications automatisees
+| Version | État du Support | Niveau de Critique |
+| :--- | :--- | :--- |
+| **2.0.x** | ✅ Actif (LTS) | Production Ready |
+| < 2.0.0 | ❌ Obsolète | Non supporté |
 
-Ce projet utilise les outils de securite automatises suivants :
+---
 
-#### cargo-audit
+## 🚨 Signaler une Vulnérabilité
 
-Analyse les dependances par rapport a la [base de donnees d'avis RustSec](https://rustsec.org/).
+Nous valorisons le travail des chercheurs en sécurité. Si vous découvrez une faille, suivez ce protocole strict pour une divulgation responsable.
 
+> [!IMPORTANT]
+> **NE CRÉEZ PAS de ticket GitHub public pour une faille de sécurité.**
+
+### Protocole de Rapport
+1. **Email** : Envoyez les détails à [contact@cyber-threat-consulting.com](mailto:contact@cyber-threat-consulting.com).
+2. **Contenu** : Description détaillée, vecteurs d'attaque et étapes de reproduction (PoC).
+3. **Confidentialité** : Accordez-nous un délai de **90 jours** pour la remédiation avant toute divulgation publique.
+
+---
+
+## 🔍 Analyse & Audit Continu
+
+### Vérifications Automatisées de Haute Précision
+
+Le pipeline de CI intègre des outils d'audit de grade industriel :
+
+#### 🦀 Cargo Audit
+Surveillance en temps réel des dépendances contre la base de données **RustSec**.
 ```bash
-# Installation
-cargo install cargo-audit
-
-# Execution locale
-cargo audit
+cargo audit # Exécuté localement et en CI
 ```
 
-**Integration CI** : Execute a chaque PR via `rustsec/audit-check@v2`
+#### 🛡️ Cargo Deny
+Garde-fou multicouche pour :
+- **Security Advisories** : Blocage immédiat des vulnérabilités connues.
+- **License Compliance** : Seules les licences approuvées (MIT, Apache 2.0, etc.) sont autorisées.
+- **Bans & Sources** : Interdiction stricte de crates non auditées ou de sources non officielles.
 
-#### cargo-deny
+---
 
-Verificateur complet de dependances pour :
-- **Avis de securite** : Vulnerabilites de securite de RustSec
-- **Licences** : S'assure que seules les licences approuvees sont utilisees
-- **Interdictions** : Bloque les crates problematiques connues
-- **Sources** : Valide les sources des registres de crates
+## 🛠️ Architecture de Défense de Nouvelle Génération
 
-```bash
-# Installation
-cargo install cargo-deny
+### Souveraineté de l'IA (agent_llm)
+Contrairement aux solutions classiques, notre moteur d'intelligence artificielle s'exécute **intégralement en local**.
+- **Zéro Fuite de Données** : Les logs, configurations et événements système ne sont jamais transmis à des API tiers (OpenAI, Anthropic, etc.).
+- **Inférence Privée** : Utilisation de modèles de langage open-source audités (Mistral, Llama).
 
-# Executer toutes les verifications
-cargo deny check
+### Intégrité Système (agent-fim)
+Le moteur de File Integrity Monitoring utilise des primitives cryptographiques fortes (**BLAKE3**, **SHA2**) pour garantir l'absence d'altération du noyau et des fichiers critiques.
 
-# Executer des verifications specifiques
-cargo deny check advisories
-cargo deny check licenses
-cargo deny check bans
-cargo deny check sources
-```
+### Sécurité du Code & Données
+- **SQLCipher (AES-256 GCM)** : Base de données locale entièrement chiffrée.
+- **mTLS 1.3** : Authentification mutuelle obligatoire pour toute synchronisation.
+- **Zero Unsafe** : Usage proscrit du mot-clé `unsafe` dans les modules critiques.
 
-**Integration CI** : Execute a chaque PR via `EmbarkStudios/cargo-deny-action@v2`
+---
 
-### Licences autorisees
+## 📜 Licences Approuvées
 
-Les licences suivantes sont approuvees pour les dependances :
+Nous n'acceptons que les licences permissives garantissant la pérennité du projet :
 
-- MIT
-- Apache-2.0
-- Apache-2.0 WITH LLVM-exception
-- MPL-2.0
-- BSD-2-Clause, BSD-3-Clause
-- ISC
-- Zlib, 0BSD
-- Unicode-DFS-2016, Unicode-3.0
-- CC0-1.0, BSL-1.0
-- OpenSSL (pour les bibliotheques de cryptographie)
-- CDLA-Permissive-2.0 (pour les donnees de certificats)
+| Type | Licences |
+| :--- | :--- |
+| **Permissives** | MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC |
+| **Spécialisées** | MPL-2.0, Zlib, OpenSSL, Unicode-DFS-2016 |
 
-## Ajouter de nouvelles dependances
+---
 
-Avant d'ajouter une nouvelle dependance :
+## 📈 Réponse aux Incidents
 
-1. **Verifier la licence** : S'assurer qu'elle figure dans la liste approuvee ci-dessus
-2. **Verifier les vulnerabilites** : Executer `cargo audit` apres l'ajout
-3. **Verifier la source** : Seul crates.io est autorise
-4. **Examiner la crate** : Verifier l'etat de maintenance et l'historique de securite
+En cas de vulnérabilité confirmée, notre équipe suit le workflow **S.A.M.V.P** :
+1. **S**élection & Triage (CVSS Scoring).
+2. **A**tténuation (Workaround immédiat).
+3. **M**ise à jour (Correctif de code).
+4. **V**érification (Audit post-patch).
+5. **P**ublication (Avis de sécurité officiel).
 
-```bash
-# Apres l'ajout d'une dependance
-cargo deny check
-cargo audit
-```
+---
 
-### Ajouter des exceptions de licence
-
-Si une nouvelle dependance necessite une licence non presente dans la liste approuvee :
-
-1. Evaluer la compatibilite de la licence
-2. L'ajouter a `deny.toml` sous `[licenses].allow`
-3. Documenter la raison dans la PR
-4. Obtenir l'approbation de l'equipe securite
-
-## Crates interdites
-
-Certaines crates sont explicitement interdites pour des raisons de securite ou d'architecture :
-
-| Crate | Raison |
-|-------|--------|
-| (aucune actuellement) | - |
-
-Pour ajouter une interdiction, mettre a jour `deny.toml` :
-
-```toml
-[bans]
-deny = [
-    { crate = "nom-de-la-crate", reason = "Description du probleme de securite" },
-]
-```
-
-## Reponse aux vulnerabilites
-
-### Lorsqu'une vulnerabilite est decouverte
-
-1. **Triage** : Evaluer la severite en utilisant CVSS
-2. **Attenuation** : Appliquer une solution de contournement temporaire si necessaire
-3. **Mise a jour** : Mettre a niveau vers la version corrigee quand elle est disponible
-4. **Verification** : Executer la suite complete d'analyse de securite
-5. **Publication** : Deployer le correctif avec un avis de securite
-
-### Ignorer des avis de securite
-
-Dans les rares cas ou aucun correctif n'est disponible :
-
-1. Documenter l'identifiant de l'avis et la raison dans `deny.toml`
-2. Creer un ticket de suivi
-3. Definir une date limite de revision
-
-```toml
-[advisories]
-ignore = [
-    "RUSTSEC-XXXX-XXXX", # Raison + lien vers le ticket de suivi
-]
-```
-
-## Securite CI/CD
-
-### Securite du pipeline
-
-- Toutes les verifications de securite s'executent a chaque PR
-- Les PR ne peuvent pas etre fusionnees si les verifications de securite echouent
-- Les dependances sont mises en cache mais verifiees
-- Les artefacts de build sont signes (prevu)
-
-### Portes de qualite
-
-| Verification | Action en cas d'echec |
-|--------------|----------------------|
-| cargo-audit | Blocage de la fusion |
-| cargo-deny advisories | Blocage de la fusion |
-| cargo-deny licenses | Blocage de la fusion |
-| cargo-deny bans | Blocage de la fusion |
-| cargo-deny sources | Blocage de la fusion |
-
-## Bonnes pratiques
-
-### Securite du code
-
-- Utiliser `#[forbid(unsafe_code)]` dans la mesure du possible
-- Preferer les abstractions sures a la manipulation directe de pointeurs
-- Utiliser des comparaisons a temps constant pour les secrets
-- Ne jamais journaliser de donnees sensibles
-
-### Securite des dependances
-
-- Verrouiller les versions exactes dans Cargo.lock
-- Examiner les changelogs avant de mettre a jour
-- Preferer les crates bien maintenues avec des politiques de securite
-- Minimiser le nombre de dependances transitives
-
-### Scanner de securite de l'agent
-
-L'agent inclut des capacites d'analyse de securite integrées :
-
-- **Scan de vulnerabilites** : Detection periodique des vulnerabilites CVE sur les paquets installes
-- **Surveillance des processus** : Detection des processus suspects et des evenements lies a la securite
-- **Surveillance de l'integrite des fichiers (FIM)** : Alertes sur les modifications non autorisees des fichiers systeme critiques
-
-### Securite a l'execution
-
-- Executer avec les privileges minimaux
-- Valider toutes les entrees externes
-- Utiliser des valeurs par defaut securisees (TLS, chiffrement)
-- Implementer une gestion d'erreur appropriee (pas de panic en production)
+<p align="center">
+  <em>Protégez ce qui compte.</em><br>
+  <strong>Cyber Threat Consulting Safety Team</strong>
+</p>
