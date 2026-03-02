@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Shared helper functions used across multiple LLM modules.
 
 use crate::analyzer::RiskLevel;

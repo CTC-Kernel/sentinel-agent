@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Service management for the Sentinel GRC Agent.
 //!
 //! This module provides platform-specific service implementations:

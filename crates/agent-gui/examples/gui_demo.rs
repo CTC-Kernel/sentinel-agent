@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! GUI Demo - Example pour lancer l'interface graphique Sentinel Agent
 //! 
 //! Usage: cargo run --example gui_demo --features render

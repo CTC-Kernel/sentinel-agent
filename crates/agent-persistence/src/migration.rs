@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Identity migration - export/import agent identity across machines.
 //!
 //! Handles hardware change detection and identity migration for when agents

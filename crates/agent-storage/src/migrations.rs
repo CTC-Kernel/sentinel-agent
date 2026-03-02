@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Database migrations for SQLite schema management.
 //!
 //! This module provides versioned database migrations with support for:

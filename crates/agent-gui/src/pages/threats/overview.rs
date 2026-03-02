@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! EDR overview tab — summary cards, severity distribution, radar, and threat feed.
 
 use std::collections::hash_map::DefaultHasher;

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! EDR response tab — quick actions, quarantine queue, and response action log.
 
 use egui::Ui;

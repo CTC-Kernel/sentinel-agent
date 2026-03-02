@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Error types for the Sentinel GRC Agent.
 //!
 //! This module defines the common error types used across all agent crates.

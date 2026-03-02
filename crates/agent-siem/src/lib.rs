@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent SIEM - Security Information and Event Management Integration
 //!
 //! Provides SIEM forwarding capabilities for the Sentinel GRC Agent:

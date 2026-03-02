@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Risk management page — risk matrix, entries, and SLA tracking.
 
 use egui::Ui;

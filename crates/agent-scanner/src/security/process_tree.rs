@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Process execution chain analysis.
 //!
 //! Builds parent-child process trees and detects suspicious execution patterns

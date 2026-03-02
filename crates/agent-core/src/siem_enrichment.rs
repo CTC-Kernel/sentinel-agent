@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! SIEM event enrichment with AI classification.
 //!
 //! When the `llm` feature is enabled, this module enriches SIEM events with

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Device resolver and classifier.
 //!
 //! Resolves hostnames via reverse DNS, maps MAC OUI prefixes to vendors,

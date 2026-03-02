@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Card container widget (elevated panel).
 
 use egui::{CornerRadius, Frame, Margin, Ui};

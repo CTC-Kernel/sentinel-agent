@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Compliance checking, scoring, and result storage.
 //!
 //! When the `llm` feature is enabled and an LLM service is available,

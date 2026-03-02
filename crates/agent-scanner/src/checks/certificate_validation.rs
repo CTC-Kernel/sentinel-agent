@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Certificate Validation compliance check.
 //!
 //! Verifies system certificate store security and certificate hygiene:

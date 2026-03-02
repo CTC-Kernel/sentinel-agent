@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Sync queue repository with overflow protection.
 //!
 //! This module provides CRUD operations for the sync queue with support for:

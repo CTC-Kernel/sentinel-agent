@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! System tray icon and menu for the Sentinel GRC Agent.
 //!
 //! Provides a lightweight, responsive system tray interface for monitoring

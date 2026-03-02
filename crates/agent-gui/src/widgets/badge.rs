@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Badge widget — Apple-inspired soft tinted badges.
 //!
 //! All badges use the unified color helpers from `theme::badge_bg()`,

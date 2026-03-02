@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Enrollment wizard -- 5-step onboarding flow.
 //!
 //! Steps:

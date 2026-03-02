@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Proof generation engine.
 //!
 //! Generates timestamped, integrity-verified proofs for compliance checks.

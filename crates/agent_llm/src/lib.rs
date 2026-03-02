@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Local LLM inference for intelligent security analysis
 //!
 //! This crate provides local LLM capabilities for security analysis,

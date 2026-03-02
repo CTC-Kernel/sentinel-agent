@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Event types for communication between the agent runtime and the GUI layer.
 //!
 //! The runtime emits [`AgentEvent`] variants that the GUI subscribes to via a channel.

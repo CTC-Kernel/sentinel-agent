@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Data retention policy implementation.
 //!
 //! This module implements the 12-month data retention policy (NFR-C2):

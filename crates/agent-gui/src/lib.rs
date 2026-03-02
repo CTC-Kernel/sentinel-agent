@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent GUI - Desktop interface for the Sentinel GRC Agent.
 //!
 //! This crate provides both the data contracts (DTOs, events) and the full

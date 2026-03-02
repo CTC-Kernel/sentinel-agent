@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Command Execution Results Reporting Service.
 //!
 //! This service handles reporting the outcome of commands received from the SaaS.

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! xtask — Build automation tasks for the Sentinel GRC Agent.
 //!
 //! Usage:

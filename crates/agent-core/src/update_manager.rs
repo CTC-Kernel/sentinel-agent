@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 use crate::api_client::ApiClient;
 use agent_common::error::{CommonError, Result};
 use agent_common::types::UpdateInfo;

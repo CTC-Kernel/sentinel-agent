@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Database backup and restore.
 //!
 //! Provides encrypted backup creation, restoration, listing, and automatic

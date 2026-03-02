@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! HTTP client configuration for SaaS communication.
 //!
 //! This module provides configured HTTP clients for communicating with the

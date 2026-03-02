@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! EDR events tab — DataTable of all security events with sorting and pagination.
 
 use egui::Ui;

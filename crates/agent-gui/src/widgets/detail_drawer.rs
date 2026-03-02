@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Slide-in detail drawer — premium AAA right-side panel.
 //!
 //! Renders a glass-morphism slide-in drawer from the right edge of the screen.

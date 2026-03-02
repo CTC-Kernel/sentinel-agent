@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Compliance proof types.
 //!
 //! Proofs provide auditable evidence of compliance check results.

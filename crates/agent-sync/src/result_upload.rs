@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Result upload service for uploading check results to SaaS.
 //!
 //! This module provides:

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Premium animated radar chart for tray-lite dashboard.
 
 use egui::{Color32, Painter, Pos2, Stroke, Ui, Vec2};

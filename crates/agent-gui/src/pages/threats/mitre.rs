@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! MITRE ATT&CK mapping for EDR detections.
 
 use crate::dto::{MitreTactic, MitreTechnique};

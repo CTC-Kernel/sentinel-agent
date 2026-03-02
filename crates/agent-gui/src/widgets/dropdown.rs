@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Dropdown/Select widget for single or multiple selection.
 
 use crate::icons;

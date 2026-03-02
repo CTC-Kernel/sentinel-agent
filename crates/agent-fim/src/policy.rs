@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! FIM policy management.
 //!
 //! Policies define which paths to monitor and which patterns to ignore.

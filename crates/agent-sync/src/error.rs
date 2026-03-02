@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Sync-specific error types.
 //!
 //! This module defines errors that can occur during SaaS communication.

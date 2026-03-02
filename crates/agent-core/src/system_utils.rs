@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! System utility functions for OS detection, machine identification, and JWT parsing.
 
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};

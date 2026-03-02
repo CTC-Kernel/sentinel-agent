@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! File system watcher using the `notify` crate.
 //!
 //! Uses inotify (Linux), FSEvents (macOS), or ReadDirectoryChanges (Windows)

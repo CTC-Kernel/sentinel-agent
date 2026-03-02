@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Authenticated HTTP client with mTLS and certificate management.
 //!
 //! This module provides an authenticated client that:

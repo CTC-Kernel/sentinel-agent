@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Database recovery and integrity checking.
 //!
 //! Provides integrity verification, database repair, and recovery from backup

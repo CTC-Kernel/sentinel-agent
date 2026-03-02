@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Remote access security compliance check.
 //!
 //! Verifies remote access security configuration:

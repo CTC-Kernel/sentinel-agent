@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! EDR investigation tab — IOC search, cross-source correlation, and process chain viewer.
 
 use chrono::{DateTime, Utc};

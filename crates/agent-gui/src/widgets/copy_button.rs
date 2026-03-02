@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Copy-to-clipboard button with visual feedback.
 
 use egui::{Response, Ui};

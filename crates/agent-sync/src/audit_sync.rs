@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent Audit Trail Synchronization Service.
 //!
 //! This service is responsible for periodically syncing local audit trail

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! USB mass storage device control compliance check.
 //!
 //! Verifies that USB mass storage devices are blocked by policy:

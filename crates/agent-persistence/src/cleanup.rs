@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Clean uninstall and reinstall preparation.
 //!
 //! Handles secure removal of all agent data and preparation for reinstallation.

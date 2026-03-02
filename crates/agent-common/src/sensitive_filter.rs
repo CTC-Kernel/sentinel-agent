@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Sensitive data filtering for logging and tracing.
 //!
 //! This module provides utilities to filter out sensitive information

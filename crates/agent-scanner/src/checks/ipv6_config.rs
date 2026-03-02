@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! IPv6 hardening compliance check.
 //!
 //! Verifies that IPv6 router advertisements and unnecessary features are disabled:

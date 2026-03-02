@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Check rules repository for storing compliance check definitions.
 //!
 //! This module provides CRUD operations for check rules with support for:

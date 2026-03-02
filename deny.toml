@@ -50,6 +50,10 @@ ignore = [
     # - No maintained alternative available
     # - Risk: LOW - compile-time only, no runtime vulnerabilities
     "RUSTSEC-2020-0168", # mach unmaintained
+    # fxhash is unmaintained, transitive dep of mistralrs-core -> bm25
+    "RUSTSEC-2025-0057", # fxhash unmaintained
+    # number_prefix is unmaintained, transitive dep of mistralrs-core -> hf-hub -> indicatif
+    "RUSTSEC-2025-0119", # number_prefix unmaintained
 ]
 
 # ============================================================================
@@ -79,8 +83,7 @@ allow = [
     # Font licenses (used by egui default fonts)
     "OFL-1.1",             # SIL Open Font License (epaint_default_fonts)
     "Ubuntu-font-1.0",     # Ubuntu Font Licence (epaint_default_fonts)
-    # Our proprietary crates
-    "LicenseRef-Proprietary",
+    "NCSA",                # libfuzzer-sys (permissive, similar to BSD-3-Clause)
 ]
 
 # Confidence threshold for license detection

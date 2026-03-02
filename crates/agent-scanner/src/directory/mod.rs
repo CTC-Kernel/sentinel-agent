@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Directory Services Auditing Module
 //!
 //! Provides compliance auditing for directory services:

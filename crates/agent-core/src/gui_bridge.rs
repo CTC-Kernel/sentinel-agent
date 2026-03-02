@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! GUI event bridge — methods on AgentRuntime that emit events to the desktop UI.
 //!
 //! All methods are gated behind `#[cfg(feature = "gui")]`.

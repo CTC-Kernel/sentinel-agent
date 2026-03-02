@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Resource monitoring and limits for the Sentinel GRC Agent.
 //!
 //! This module provides resource usage tracking and enforcement to ensure

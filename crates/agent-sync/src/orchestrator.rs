@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Sync orchestrator - coordinates sync operations.
 //!
 //! Provides centralized control over sync operations including:

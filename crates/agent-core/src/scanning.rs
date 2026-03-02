@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Vulnerability and security scanning operations.
 
 use agent_common::error::CommonError;

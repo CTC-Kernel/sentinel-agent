@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Organization banner widget - displays tenant info and connection status.
 
 use egui::{CornerRadius, RichText, Ui, Vec2};

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Font Awesome 6 Free Solid icon constants.
 //!
 //! Each constant is a `&str` containing the single Unicode codepoint

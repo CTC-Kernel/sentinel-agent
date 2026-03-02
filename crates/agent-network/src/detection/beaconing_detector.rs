@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Beaconing detector for C2 callback patterns.
 //!
 //! Detects periodic callback patterns indicative of C2 communication:

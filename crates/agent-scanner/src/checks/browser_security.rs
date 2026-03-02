@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Browser security settings compliance check.
 //!
 //! Checks default browser security configuration:

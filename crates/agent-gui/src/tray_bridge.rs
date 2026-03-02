@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! System tray integration bridge.
 //!
 //! Manages the system tray icon alongside the egui window.

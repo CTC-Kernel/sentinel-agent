@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! EDR response actions -- kill process, quarantine file, block IP.
 //!
 //! These functions perform actual host-level security response actions invoked

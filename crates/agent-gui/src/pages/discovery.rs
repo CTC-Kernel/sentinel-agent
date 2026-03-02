@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Network Discovery page -- scan, discover, and propose assets.
 
 use crate::app::AppState;

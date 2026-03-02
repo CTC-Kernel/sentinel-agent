@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Syslog transport (RFC 5424).
 //!
 //! Supports UDP, TCP, and TLS connections to syslog servers.

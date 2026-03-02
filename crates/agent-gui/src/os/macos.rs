@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! macOS-specific GUI utilities.
 //!
 //! Provides clean abstractions for Dock management and software inventory

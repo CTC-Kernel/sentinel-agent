@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! C2 (Command and Control) communication detector.
 //!
 //! Detects potential C2 communication patterns:

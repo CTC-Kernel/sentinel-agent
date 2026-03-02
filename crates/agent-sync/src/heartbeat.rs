@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Heartbeat mechanism for agent health monitoring.
 //!
 //! This module provides periodic heartbeat sending with:

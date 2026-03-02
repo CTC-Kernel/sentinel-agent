@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Windows-specific GUI utilities.
 //!
 //! Provides software inventory by scanning the Windows Registry

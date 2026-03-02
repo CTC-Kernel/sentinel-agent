@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Autonomous threat detection -> classification -> response pipeline.
 //!
 //! After each security scan cycle, this module:

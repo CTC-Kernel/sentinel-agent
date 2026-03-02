@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent Persistence - Extended persistence layer for Sentinel GRC Agent v2 features.
 //!
 //! This crate provides additional database repositories, migration support,

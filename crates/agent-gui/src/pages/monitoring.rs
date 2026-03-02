@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Monitoring page -- real-time system resource charts.
 //! Premium clean design - Apple-inspired, no fake glow effects.
 

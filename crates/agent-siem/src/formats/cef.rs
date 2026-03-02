@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! CEF (Common Event Format) formatter.
 //!
 //! Format: CEF:Version|Device Vendor|Device Product|Device Version|Signature ID|Name|Severity|Extension

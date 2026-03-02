@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Forensic timeline sub-tab — unified event timeline with filtering and correlation drawer.
 
 use chrono::{DateTime, Duration, Utc};

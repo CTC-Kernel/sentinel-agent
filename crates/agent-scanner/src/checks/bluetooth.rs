@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Bluetooth service disabled compliance check.
 //!
 //! Verifies that Bluetooth service is disabled (recommended for servers):

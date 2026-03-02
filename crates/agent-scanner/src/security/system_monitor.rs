@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! System monitoring for security configuration changes.
 
 #[cfg(target_os = "macos")]

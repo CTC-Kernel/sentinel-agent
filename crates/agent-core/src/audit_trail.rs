@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Persistent local audit trail for the Sentinel GRC Agent.
 //!
 //! Stores user actions and system events in the encrypted SQLCipher database.

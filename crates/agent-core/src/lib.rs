@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Agent Core - Core functionality for the Sentinel GRC Agent.
 //!
 //! This crate provides the main agent runtime, including:

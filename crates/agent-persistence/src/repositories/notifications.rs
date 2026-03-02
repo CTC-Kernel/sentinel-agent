@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! Notifications repository for GUI notification storage.
 //!
 //! Provides CRUD operations for user-facing notifications displayed

@@ -1,3 +1,6 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
 //! LEEF (Log Event Extended Format) formatter.
 //!
 //! Format: LEEF:Version|Vendor|Product|Version|EventID|Key1=Value1<tab>Key2=Value2...
