@@ -39,7 +39,6 @@ pub struct EnrollmentWizard {
     pub progress_message: String,
     pub show_token: bool,
     pub admin_password: String,
-    pub use_default_password: bool,
     pub show_password: bool,
 }
 
@@ -53,7 +52,6 @@ impl Default for EnrollmentWizard {
             progress_message: "Connexion au serveur...".to_string(),
             show_token: false,
             admin_password: String::new(),
-            use_default_password: false,
             show_password: false,
         }
     }
