@@ -13,6 +13,7 @@ use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::Path;
 use tracing::{debug, info, warn};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use agent_common::process::silent_command;
 
 /// Exported identity package for migration.

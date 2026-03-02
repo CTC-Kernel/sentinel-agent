@@ -7,6 +7,7 @@ use super::{IncidentSeverity, IncidentType, SecurityIncident};
 use crate::error::ScannerResult;
 use std::collections::HashSet;
 use tracing::{debug, warn};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use agent_common::process::silent_command;
 
 /// Known suspicious process names - exact matches required.
