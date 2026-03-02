@@ -12,7 +12,7 @@ Merci de votre interet pour Sentinel GRC Agent ! Ce guide explique comment contr
 
 ```bash
 # Clone the repository
-git clone https://github.com/sentinel/agent.git
+git clone https://github.com/CTC-Kernel/sentinel-agent.git
 cd sentinel-agent
 
 # Build
