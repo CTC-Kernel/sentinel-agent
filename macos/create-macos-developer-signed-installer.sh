@@ -149,7 +149,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
                 <key>NSExceptionRequiresForwardSecrecy</key>
                 <true/>
             </dict>
-            <key>YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net</key>
+            <key>${SENTINEL_SERVER_URL#https://}</key>
             <dict>
                 <key>NSExceptionMinimumTLSVersion</key>
                 <string>TLSv1.3</string>
@@ -323,7 +323,7 @@ chown -R "$REAL_USER" "$CONFIG_DIR"
 if [[ ! -f "$CONFIG_DIR/config/agent.json" ]]; then
     cat > "$CONFIG_DIR/config/agent.json" << CONFIG
 {
-    "server_url": "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi",
+    "server_url": "${SENTINEL_SERVER_URL:-"https://agentapi-your-project-hash.a.run.app"}",
     "check_interval_secs": 3600,
     "heartbeat_interval_secs": 60,
     "log_level": "info",

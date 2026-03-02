@@ -45,7 +45,11 @@
     <WixVariable Id="WixUILicenseRtf" Value="wix\license.rtf" />
 
     <!-- Custom properties for configuration -->
-    <Property Id="SERVERURL" Value="https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi" />
+    <?ifdef ServerUrl?>
+    <Property Id="SERVERURL" Value="$(var.ServerUrl)" />
+    <?else?>
+    <Property Id="SERVERURL" Value="https://agentapi-your-project-hash.a.run.app" />
+    <?endif?>
     <Property Id="ENROLLMENTTOKEN" Secure="yes" />
 
     <!-- UI Extension for custom dialogs -->
