@@ -15,7 +15,6 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-#[cfg(target_os = "windows")]
 use agent_common::process::silent_command;
 use tracing::debug;
 
