@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-BUCKET_NAME="sentinel-grc-a8701.firebasestorage.app"
+BUCKET_NAME="${FIREBASE_BUCKET_NAME:?Set FIREBASE_BUCKET_NAME env var (e.g. your-project.firebasestorage.app)}"
 BUCKET="gs://${BUCKET_NAME}/releases/agent"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CORS_FILE="${SCRIPT_DIR}/../.github/workflows/cors-config.json"

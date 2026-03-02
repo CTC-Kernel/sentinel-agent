@@ -52,6 +52,7 @@ Thumbs.db
 *.pfx
 *.cert
 *.crt
+*.cer
 *.der
 *.db
 

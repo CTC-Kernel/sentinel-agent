@@ -77,16 +77,23 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Cargo.toml
           git commit -m "release: v${VERSION}"
-          # Check if tag already exists before creating
+          # Push the commit first
+          git push origin HEAD
+
+          # Check if tag already exists locally or on remote before creating
           if git rev-parse "refs/tags/v${VERSION}" >/dev/null 2>&1; then
-            echo "Tag v${VERSION} already exists, skipping tag creation"
-            echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+            echo "Tag v${VERSION} already exists locally, skipping tag creation"
           else
             git tag "v${VERSION}"
             echo "Created tag v${VERSION}"
-            echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
           fi
-          git push origin HEAD "v${VERSION}"
+
+          # Push tag (force in case it was moved locally)
+          if git ls-remote --tags origin "refs/tags/v${VERSION}" | grep -q "v${VERSION}"; then
+            echo "Tag v${VERSION} already exists on remote, skipping tag push"
+          else
+            git push origin "v${VERSION}"
+          fi
 
   # ═══════════════════════════════════════════════════════════════════
   # macOS — Universal binary + DMG + PKG (signed + notarized)
@@ -634,7 +641,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
-          project_id: sentinel-grc-a8701
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Upload to Firebase Storage
         shell: bash
@@ -643,7 +650,7 @@ jobs:
         run: |
           # 3. Upload loop
           VERSION="${{ env.RELEASE_VERSION }}"
-          BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
+          BUCKET="gs://${{ secrets.FIREBASE_STORAGE_BUCKET }}/releases/agent"
           
           echo "=== Cleaning up existing 'latest' aliases and metadata (All Platforms) ==="
           # Remove all aliases and metadata across all subfolders to ensure a clean state
@@ -745,7 +752,7 @@ jobs:
 
       - name: Verify uploads
         run: |
-          BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
+          BUCKET="gs://${{ secrets.FIREBASE_STORAGE_BUCKET }}/releases/agent"
           echo "=== Firebase Storage contents ==="
           gsutil ls -l "$BUCKET/macos/" 2>/dev/null || echo "(no macos files)"
           gsutil ls -l "$BUCKET/windows/" 2>/dev/null || echo "(no windows files)"
@@ -755,7 +762,7 @@ jobs:
       - name: Verify public access
         run: |
           echo "=== Testing public download URLs ==="
-          BASE_URL="https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent"
+          BASE_URL="https://storage.googleapis.com/${{ secrets.FIREBASE_STORAGE_BUCKET }}/releases/agent"
           
           # Test macOS
           echo "Testing macOS download..."

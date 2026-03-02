@@ -1,5 +1,5 @@
 {
-  "server_url": "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi",
+  "server_url": "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi",
   "check_interval_secs": 3600,
   "heartbeat_interval_secs": 60,
   "offline_mode_days": 7,
