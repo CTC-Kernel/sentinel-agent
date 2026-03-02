@@ -203,9 +203,9 @@ L'agent utilise un fichier de configuration JSON :
 
 ## Support
 
-- **Documentation** : docs.example.com
-- **Contact** : contact@example.com
-- **Interface** : your-sentinel-server.example.com
+- **Documentation** : [cyber-threat-consulting.com](https://cyber-threat-consulting.com)
+- **Contact** : contact@cyber-threat-consulting.com
+- **Interface** : Votre instance Sentinel GRC (URL fournie par votre administrateur)
 
 ---
 
@@ -217,7 +217,7 @@ L'Agent Sentinel est conçu avec la confidentialité comme priorité :
 - **Données minimales** : Seules les données de conformité et de sécurité sont collectées
 - **Pas de keylogger** : L'agent ne capture pas vos frappes clavier
 - **Pas de capture d'écran** : L'agent ne prend jamais de screenshots
-- **Open audit** : Votre administrateur peut voir exactement ce qui est vérifié
+- **Audit transparent** : Votre administrateur peut voir exactement ce qui est verifie
 
 ### Données collectées
 
@@ -234,4 +234,4 @@ L'Agent Sentinel est conçu avec la confidentialité comme priorité :
 
 ---
 
-*Version 2.0.0 - Sentinel GRC Agent*
+*Version 2.0.113 - Sentinel GRC Agent*

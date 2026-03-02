@@ -3,7 +3,7 @@
 [![CI](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange.svg)](https://www.rust-lang.org/)
-[![Version](https://img.shields.io/badge/version-2.0.112-green.svg)]()
+[![Version](https://img.shields.io/badge/version-2.0.113-green.svg)]()
 
 Agent endpoint leger et securise pour la surveillance de conformite, le scan de vulnerabilites, la decouverte reseau et l'application des politiques GRC (Gouvernance, Risques, Conformite) -- avec une interface graphique de bureau optionnelle en temps reel.
 
