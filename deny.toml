@@ -125,11 +125,6 @@ expression = "LicenseRef-Proprietary"
 license-files = []
 
 [[licenses.clarify]]
-crate = "agent-system"
-expression = "LicenseRef-Proprietary"
-license-files = []
-
-[[licenses.clarify]]
 crate = "agent-gui"
 expression = "LicenseRef-Proprietary"
 license-files = []
