@@ -24,6 +24,10 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  SENTINEL_SERVER_URL: ${{ secrets.SENTINEL_SERVER_URL }}
+  SENTINEL_FIREBASE_PROJECT_ID: ${{ secrets.SENTINEL_FIREBASE_PROJECT_ID }}
+  SENTINEL_FIREBASE_STORAGE_BUCKET: ${{ secrets.SENTINEL_FIREBASE_STORAGE_BUCKET }}
+  SENTINEL_RELEASES_BASE_URL: ${{ secrets.SENTINEL_RELEASES_BASE_URL }}
 
 jobs:
   # ═══════════════════════════════════════════════════════════════════
@@ -414,6 +418,7 @@ jobs:
             -d "TargetDir=.\target\release" `
             -d "Version=$version" `
             -d "AssetsDir=.\assets\icons" `
+            -d "ServerUrl=${{ secrets.SENTINEL_SERVER_URL }}" `
             -o "target\release\SentinelAgentSetup-$version.msi" `
             wix/main.wxs `
             -ext WixToolset.UI.wixext `
