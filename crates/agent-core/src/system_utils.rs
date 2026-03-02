@@ -26,7 +26,7 @@ pub fn get_os_version() -> String {
 
     #[cfg(target_os = "macos")]
     {
-        std::process::Command::new("sw_vers")
+        agent_common::process::silent_command("sw_vers")
             .arg("-productVersion")
             .output()
             .ok()
@@ -70,7 +70,7 @@ pub fn get_machine_id() -> String {
 
     #[cfg(target_os = "macos")]
     {
-        std::process::Command::new("ioreg")
+        agent_common::process::silent_command("ioreg")
             .args(["-rd1", "-c", "IOPlatformExpertDevice"])
             .output()
             .ok()

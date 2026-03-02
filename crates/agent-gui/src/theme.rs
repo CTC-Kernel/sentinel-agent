@@ -60,7 +60,7 @@ pub fn detect_reduced_motion() -> bool {
     #[cfg(target_os = "macos")]
     {
         // Check macOS "Reduce motion" accessibility setting via defaults
-        std::process::Command::new("defaults")
+        agent_common::process::silent_command("defaults")
             .args(["read", "com.apple.universalaccess", "reduceMotion"])
             .output()
             .ok()
@@ -109,7 +109,7 @@ pub fn detect_reduced_motion() -> bool {
     #[cfg(target_os = "linux")]
     {
         // Check GNOME/GTK "enable-animations" setting via gsettings
-        std::process::Command::new("gsettings")
+        agent_common::process::silent_command("gsettings")
             .args(["get", "org.gnome.desktop.interface", "enable-animations"])
             .output()
             .ok()

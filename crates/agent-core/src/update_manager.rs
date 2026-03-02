@@ -5,7 +5,7 @@ use crate::api_client::ApiClient;
 use agent_common::error::{CommonError, Result};
 use agent_common::types::UpdateInfo;
 use semver::Version;
-use std::process::Command;
+use agent_common::process::silent_command;
 use std::sync::Arc;
 #[allow(unused_imports)]
 use tracing::{debug, error, info, warn};
@@ -228,7 +228,7 @@ impl UpdateManager {
                 // If already root, we can spawn directly. Use `sh -c` with `&` to fully detach.
                 info!("Running as root, executing detached installer");
                 let script = format!("/usr/sbin/installer -pkg \"{}\" -target / > /dev/null 2>&1 &", path_str);
-                Command::new("sh")
+                silent_command("sh")
                     .arg("-c")
                     .arg(&script)
                     .spawn()
@@ -282,13 +282,13 @@ impl UpdateManager {
         {
             if std::path::Path::new("/etc/debian_version").exists() {
                 info!("Executing: dpkg -i {}", path_str);
-                Command::new("dpkg")
+                silent_command("dpkg")
                     .args(["-i", path_str])
                     .spawn()
                     .map_err(|e| CommonError::system(format!("Failed to launch dpkg: {}", e)))?;
             } else {
                 info!("Executing: rpm -Uvh {}", path_str);
-                Command::new("rpm")
+                silent_command("rpm")
                     .args(["-Uvh", path_str])
                     .spawn()
                     .map_err(|e| CommonError::system(format!("Failed to launch rpm: {}", e)))?;

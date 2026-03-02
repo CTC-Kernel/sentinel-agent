@@ -18,7 +18,7 @@ pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonErro
 
     #[cfg(target_os = "macos")]
     {
-        let output = tokio::process::Command::new("kill")
+        let output = agent_common::process::silent_async_command("kill")
             .arg("-9")
             .arg(pid.to_string())
             .output()
@@ -33,7 +33,7 @@ pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonErro
 
     #[cfg(target_os = "linux")]
     {
-        let output = tokio::process::Command::new("kill")
+        let output = agent_common::process::silent_async_command("kill")
             .arg("-9")
             .arg(pid.to_string())
             .output()
@@ -187,7 +187,7 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
             .await
             .map_err(|e| CommonError::internal(format!("Failed to write pf rule: {}", e)))?;
 
-        let output = tokio::process::Command::new("pfctl")
+        let output = agent_common::process::silent_async_command("pfctl")
             .args(["-a", "sentinel", "-f", &anchor_file])
             .output()
             .await
@@ -203,7 +203,7 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
 
     #[cfg(target_os = "linux")]
     {
-        let output = tokio::process::Command::new("iptables")
+        let output = agent_common::process::silent_async_command("iptables")
             .args(["-A", "INPUT", "-s", ip, "-j", "DROP"])
             .output()
             .await
@@ -271,7 +271,7 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
             ip.replace(['.', ':'], "_")
         );
         let _ = tokio::fs::remove_file(&anchor_file).await;
-        let _ = tokio::process::Command::new("pfctl")
+        let _ = agent_common::process::silent_async_command("pfctl")
             .args(["-a", "sentinel", "-F", "all"])
             .output()
             .await;
@@ -279,7 +279,7 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
 
     #[cfg(target_os = "linux")]
     {
-        let output = tokio::process::Command::new("iptables")
+        let output = agent_common::process::silent_async_command("iptables")
             .args(["-D", "INPUT", "-s", ip, "-j", "DROP"])
             .output()
             .await

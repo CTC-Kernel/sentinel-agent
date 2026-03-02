@@ -214,10 +214,10 @@ fn check_debugger_windows() -> bool {
 /// Check for debugger on macOS using sysctl.
 #[cfg(target_os = "macos")]
 fn check_debugger_macos() -> bool {
-    use std::process::Command;
+    use agent_common::process::silent_command;
 
     // Check P_TRACED flag via sysctl
-    match Command::new("sysctl")
+    match silent_command("sysctl")
         .args(["kern.proc.pid", &std::process::id().to_string()])
         .output()
     {

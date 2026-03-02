@@ -188,7 +188,7 @@ pub mod software {
 /// Returns a tuple of (version, bundle_id, publisher) or an error message.
 #[cfg(target_os = "macos")]
 fn parse_info_plist(path: &Path) -> Result<(String, String, String), String> {
-    let output = std::process::Command::new("/usr/bin/plutil")
+    let output = agent_common::process::silent_command("/usr/bin/plutil")
         .args(["-convert", "xml1", "-o", "-"])
         .arg(path)
         .output()

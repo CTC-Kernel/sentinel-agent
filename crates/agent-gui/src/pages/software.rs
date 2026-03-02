@@ -208,7 +208,7 @@ impl SoftwarePage {
                             let path = std::path::Path::new(&app.path);
                             if path.is_absolute() {
                                 #[cfg(target_os = "macos")]
-                                let result = std::process::Command::new("open")
+                                let result = agent_common::process::silent_command("open")
                                     .args(["-R", &app.path])
                                     .spawn();
                                 #[cfg(target_os = "windows")]
