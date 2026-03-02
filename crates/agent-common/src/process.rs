@@ -14,6 +14,7 @@ use std::process::Command;
 ///
 /// On non-Windows platforms this is identical to [`Command::new`].
 pub fn silent_command(program: &str) -> Command {
+    #[allow(unused_mut)]
     let mut cmd = Command::new(program);
 
     #[cfg(windows)]
