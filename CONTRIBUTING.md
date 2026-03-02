@@ -1,83 +1,103 @@
-# Contribuer au Sentinel GRC Agent
+<h1 align="center">GUIDE DE CONTRIBUTION</h1>
 
-Merci de votre interet pour Sentinel GRC Agent ! Ce guide explique comment contribuer au projet.
+<p align="center">
+  <strong>Standard d'Excellence Technique - Sentinel GRC Agent</strong>
+</p>
 
-## Prerequis
+---
 
-- **Rust Edition 2024** (1.93.0+)
-- `rustfmt`, `clippy`, `llvm-tools-preview` (via `rustup component add`)
-- `cargo-deny`, `cargo-audit` (via `cargo install`)
+Merci de votre intérêt stratégique pour le **Sentinel GRC Agent**. Nous maintenons des standards de qualité extrêmement élevés pour garantir la souveraineté et la sécurité du projet. Ce guide détaille le protocole de contribution.
 
-## Demarrage
+## 🛠️ Environnement de Développement
 
+### Prérequis Systèmes
+- **Rust Edition 2024** (v1.93.0+)
+- **Composants** : `rustfmt`, `clippy`, `llvm-tools-preview`.
+- **Audit Tools** : `cargo-deny`, `cargo-audit`.
+
+### Initialisation Rapide
 ```bash
-# Cloner le depot
 git clone https://github.com/CTC-Kernel/sentinel-agent.git
 cd sentinel-agent
-
-# Compiler
-cargo build
-
-# Lancer les tests
-cargo test
-
-# Lancer toutes les verifications de qualite
-cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test && cargo deny check
+cargo build && cargo test
 ```
 
-## Portes de qualite
+---
 
-Toutes les pull requests doivent passer :
+## 🔝 Portes de Qualité (CI/CD)
 
-| Verification | Commande |
-|--------------|----------|
-| Formatage | `cargo fmt --check` |
-| Analyse statique | `cargo clippy --all-targets -- -D warnings` |
-| Tests | `cargo test` |
-| Licences et securite | `cargo deny check` |
-| Vulnerabilites | `cargo audit` |
+Toute Pull Request doit franchir les portes de qualité suivantes avant revue :
 
-## Style de code
+| Vérification | Commande de Validation | Impact |
+| :--- | :--- | :--- |
+| **Formatage** | `cargo fmt --check` | Bloquant |
+| **Linter** | `cargo clippy --all-targets -- -D warnings` | Bloquant |
+| **Tests** | `cargo test` | Bloquant |
+| **Licences** | `cargo deny check` | Critique |
+| **Sécurité** | `cargo audit` | Critique |
 
-- **Pas de types `any`** -- equivalent TypeScript strict : tous les types doivent etre explicites
-- **Pas de `unwrap()`** sur les donnees utilisateur -- utiliser une gestion d'erreur appropriee
-- **Pas de `let _ =`** pour ignorer des valeurs `Result` importantes
-- Utiliser `saturating_*()` / `.clamp()` pour l'arithmetique afin d'eviter les depassements
-- Utiliser `chars()` / `char_indices()` au lieu de l'indexation par octets pour la securite UTF-8
-- Toutes les requetes SQL doivent utiliser des parametres (pas d'interpolation de chaines)
+---
 
-## Architecture
+## 📜 Standards de Codage (Military Grade)
 
-Le projet est un workspace Rust avec des crates modulaires :
+Nous appliquons des règles de programmation défensive strictes :
 
-| Crate | Role |
-|-------|------|
-| `agent-common` | Types partages, configuration, constantes |
-| `agent-core` | Orchestration principale, point d'entree |
-| `agent-gui` | Interface graphique egui + barre systeme |
-| `agent-scanner` | Controles de conformite, scan CVE |
-| `agent-network` | Topologie reseau, decouverte |
-| `agent-storage` | Stockage SQLite chiffre |
-| `agent-sync` | Communication serveur (mTLS) |
-| `agent-fim` | Surveillance de l'integrite des fichiers |
-| `agent-siem` | Transfert de logs SIEM |
-| `agent-persistence` | Gestion de l'etat persistant |
-| `agent_llm` | Analyse LLM locale (experimental) |
-| `xtask` | Automatisation de build |
+> [!WARNING]
+> **Interdiction de `unwrap()`** sur les entrées utilisateur ou les données réseau. Utilisez une gestion d'erreur exhaustive via `anyhow` ou `thiserror`.
 
-## Processus de Pull Request
+- **Typage Strict** : Aucun type `any` ou équivalent flou. Les structures de données doivent être explicites.
+- **Arithmétique Sûre** : Utilisez systématiquement `saturating_*()` ou `.clamp()` pour éviter les overflows.
+- **Sécurité UTF-8** : Manipulation des chaînes via `chars()` ou `char_indices()`. Jamais d'indexation par octets directe.
+- **Injection SQL** : Paramétrisation obligatoire pour toutes les requêtes SQLite.
 
-1. Forkez le depot et creez une branche de fonctionnalite
-2. Effectuez vos modifications avec des tests
-3. Assurez-vous que toutes les portes de qualite passent en local
-4. Soumettez une pull request avec une description claire
-5. Traitez les retours de la revue de code
+---
 
-## Signaler des problemes
+## 🏗️ Architecture Modulaire
 
-- Utilisez les GitHub Issues pour les rapports de bugs et les demandes de fonctionnalites
-- Pour les vulnerabilites de securite, consultez [SECURITY.md](SECURITY.md)
+Le workspace est divisé en crates spécialisées pour une isolation optimale des domaines :
 
-## Licence
+```mermaid
+graph LR
+    Core[agent-core] --> GUI[agent-gui]
+    Core --> Scanner[agent-scanner]
+    Core --> Net[agent-network]
+    Core --> FIM[agent-fim]
+    Scanner --> Storage[agent-storage]
+    Scanner --> LLM[agent_llm]
+    Sync[agent-sync] --> Storage
+    SIEM[agent-siem] --> Common[agent-common]
+```
 
-En contribuant, vous acceptez que vos contributions soient placees sous la licence MIT.
+---
+
+## 🔄 Flux de Contribution (Git Flow)
+
+```mermaid
+sequenceDiagram
+    participant Dev as Développeur
+    participant Fork as Fork/Branch
+    participant QA as Portes de Qualité
+    participant Core as Main Repository
+
+    Dev->>Fork: Développement + Tests Unitaires
+    Dev->>QA: Validation Locale (fmt, clippy, audit)
+    QA->>Dev: Correction si échec
+    Dev->>Core: Soumission Pull Request
+    Core->>QA: Pipeline CI Auto
+    Core->>Dev: Revue de Code & Feedback
+    Dev->>Core: Merge (Squash & Merge)
+```
+
+---
+
+## 🚨 Signalement & Communication
+
+- **Bugs & Features** : Utilisez les [GitHub Issues](https://github.com/CTC-Kernel/sentinel-agent/issues).
+- **Sécurité** : Consultez obligatoirement le [SECURITY.md](SECURITY.md) pour les divulgations sensibles.
+
+---
+
+<p align="center">
+  <em>L'excellence technique est notre seule mesure.</em><br>
+  © 2024-2026 Cyber Threat Consulting. Sous licence MIT.
+</p>
