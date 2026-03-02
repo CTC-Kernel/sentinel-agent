@@ -1,28 +1,10 @@
 {
-  "server": {
-    "url": "https://your-sentinel-server.example.com",
-    "token": "YOUR_ENROLLMENT_TOKEN_HERE"
-  },
-  "agent": {
-    "id": null,
-    "name": "Sentinel Agent",
-    "description": "Agent de conformité endpoint"
-  },
-  "gui": {
-    "enabled": true,
-    "autostart": true,
-    "minimize_to_tray": true
-  },
-  "logging": {
-    "level": "info",
-    "file": "C:\\ProgramData\\Sentinel\\logs\\agent.log",
-    "max_size": "10MB",
-    "max_files": 5
-  },
-  "collection": {
-    "interval_seconds": 300,
-    "enable_network": true,
-    "enable_security": true,
-    "enable_compliance": true
-  }
+  "server_url": "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi",
+  "check_interval_secs": 3600,
+  "heartbeat_interval_secs": 60,
+  "offline_mode_days": 7,
+  "log_level": "info",
+  "tls_verify": true,
+  "usb_monitoring": true,
+  "usb_block_mass_storage": true
 }

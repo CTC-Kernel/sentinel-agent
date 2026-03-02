@@ -163,13 +163,13 @@
           ResetPeriodInDays="1" />
 
         <!-- Service control: stop on install/uninstall, remove on uninstall.
-             Do NOT auto-start on install — the GUI handles the runtime during
-             the interactive session. The service starts on next boot via Start="auto". -->
-        <!-- Service control: starting the service on install ensures the background tasks and ACLs run. -->
+             Do NOT start the service on install — the GUI handles the runtime
+             during the interactive session. The service starts on next boot
+             via Start="auto".  ACLs are handled by ForceResetPermissions CA
+             and the WiX PermissionEx elements on CreateFolder. -->
         <ServiceControl
           Id="SentinelServiceControl"
           Name="SentinelGRCAgent"
-          Start="install"
           Stop="both"
           Remove="uninstall"
           Wait="yes" />
@@ -360,7 +360,7 @@
     <!-- Create config file with enrollment token in ProgramData\Sentinel -->
     <CustomAction Id="CreateConfigFile"
                   Directory="SentinelDataDir"
-                  ExeCommand="cmd.exe /c mkdir &quot;[SentinelDataDir]&quot; 2>nul &amp; echo {&quot;server&quot;:{&quot;url&quot;:&quot;[SERVERURL]&quot;,&quot;token&quot;:&quot;[ENROLLMENTTOKEN]&quot;},&quot;gui&quot;:{&quot;enabled&quot;:true,&quot;autostart&quot;:true,&quot;minimize_to_tray&quot;:true}} > &quot;[SentinelDataDir]agent.json&quot;"
+                  ExeCommand="cmd.exe /c mkdir &quot;[SentinelDataDir]&quot; 2>nul &amp; echo {&quot;server_url&quot;:&quot;[SERVERURL]&quot;,&quot;enrollment_token&quot;:&quot;[ENROLLMENTTOKEN]&quot;,&quot;check_interval_secs&quot;:3600,&quot;heartbeat_interval_secs&quot;:60,&quot;log_level&quot;:&quot;info&quot;,&quot;tls_verify&quot;:true} > &quot;[SentinelDataDir]agent.json&quot;"
                   Return="ignore" />
 
     <!-- Run enrollment after install -->
