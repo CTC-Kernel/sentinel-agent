@@ -27,7 +27,7 @@
     Compressed="yes">
 
     <!-- Application icon for Add/Remove Programs -->
-    <Icon Id="SentinelIcon" SourceFile="$(var.AssetsDir)\sentinel-agent.ico" />
+    <Icon Id="SentinelIcon" SourceFile="$(var.AssetsDir)\icons\sentinel-agent.ico" />
     <Property Id="ARPPRODUCTICON" Value="SentinelIcon" />
     <Property Id="ARPHELPLINK" Value="https://app.cyber-threat-consulting.com" />
     <Property Id="ARPURLINFOABOUT" Value="https://cyber-threat-consulting.com" />
@@ -193,7 +193,7 @@
       <Component Id="IconComponent" Guid="B2C3D4E5-F6A7-8901-BCDE-F23456789012">
         <File Id="AppIconFile"
               Name="sentinel-agent.ico"
-              Source="$(var.AssetsDir)\sentinel-agent.ico"
+              Source="$(var.AssetsDir)\icons\sentinel-agent.ico"
               KeyPath="yes" />
       </Component>
 
@@ -298,36 +298,36 @@
       <!-- Create data directory with proper permissions -->
       <Component Id="DataDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012345" Directory="DataDir">
         <CreateFolder>
-          <util:PermissionEx User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
-          <util:PermissionEx User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
-          <util:PermissionEx User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-32-545" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-32-544" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-18" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
       <!-- Create models directory for LLM GGUF files -->
       <Component Id="ModelsDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012347" Directory="ModelsDir">
         <CreateFolder>
-          <util:PermissionEx User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
-          <util:PermissionEx User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
-          <util:PermissionEx User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-32-545" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-32-544" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-18" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
       <!-- Create LLM cache directory -->
       <Component Id="CacheLlmDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012348" Directory="CacheLlmDir">
         <CreateFolder>
-          <util:PermissionEx User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
-          <util:PermissionEx User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
-          <util:PermissionEx User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-32-545" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-32-544" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-18" GenericAll="yes" />
         </CreateFolder>
       </Component>
 
       <!-- Create log directory -->
       <Component Id="LogDirComponent" Guid="E5F6A7B8-C9D0-1234-EF01-567890123456" Directory="LogDir">
         <CreateFolder>
-          <util:PermissionEx User="[WIX_ACCOUNT_USERS]" GenericAll="yes" />
-          <util:PermissionEx User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" />
-          <util:PermissionEx User="[WIX_ACCOUNT_LOCALSYSTEM]" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-32-545" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-32-544" GenericAll="yes" />
+          <util:PermissionEx User="*S-1-5-18" GenericAll="yes" />
         </CreateFolder>
       </Component>
     </ComponentGroup>
@@ -408,7 +408,7 @@
          instead of [CommonAppDataFolder] because deferred CAs cannot resolve MSI properties. -->
     <CustomAction Id="ForceResetPermissions"
                   Directory="SystemFolder"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;if (Test-Path '%ProgramData%\Sentinel') { takeown /A /F '%ProgramData%\Sentinel' /R 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant 'Users:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant 'Administrators:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant 'SYSTEM:(OI)(CI)(F)' /T /C /Q 2&gt;$null }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;if (Test-Path '%ProgramData%\Sentinel') { takeown /A /F '%ProgramData%\Sentinel' /R 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-545:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-544:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-18:(OI)(CI)(F)' /T /C /Q 2&gt;$null }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
