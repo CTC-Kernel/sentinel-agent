@@ -366,7 +366,7 @@ jobs:
           cp "assets/icons/sentinel-agent.ico" "crates/agent-gui/assets/icons/"
           cp "assets/icons/sentinel-agent.ico" "crates/agent-core/assets/icons/"
           echo "Icons copied successfully"
-          cargo build --release --features gui --package agent-core
+          cargo build --release --features gui --package agent-core --no-default-features
 
       - name: Install WiX Toolset
         run: |
@@ -487,7 +487,7 @@ jobs:
         run: cargo install cargo-deb
 
       - name: Build release binary
-        run: cargo build --release --features gui --package agent-core
+        run: cargo build --release --features gui --package agent-core --no-default-features
 
       - name: Build DEB package
         run: cargo deb --package agent-core --no-build --deb-revision 1
@@ -536,7 +536,7 @@ jobs:
         run: cargo install cargo-generate-rpm
 
       - name: Build release binary
-        run: cargo build --release --features gui --package agent-core
+        run: cargo build --release --features gui --package agent-core --no-default-features
 
       - name: Strip binary
         run: strip target/release/agent-core
