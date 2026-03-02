@@ -2219,9 +2219,32 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                 }
             });
 
-            // Run the agent (blocks until shutdown)
-            if let Err(e) = runtime.run().await {
-                error!("Agent runtime error: {}", e);
+            // On Windows, check whether the background service is already
+            // running.  If it is, skip the full agent runtime to avoid
+            // duplicate scans, heartbeats, and sync.  The service handles
+            // all of that; the GUI just provides the user interface.
+            #[cfg(windows)]
+            let service_is_running = matches!(
+                crate::service::get_service_state(),
+                Ok(crate::service::ServiceState::Running)
+            );
+            #[cfg(not(windows))]
+            let service_is_running = false;
+
+            if service_is_running {
+                info!("SentinelGRCAgent service is running — GUI entering companion mode (no duplicate runtime)");
+                // Wait until the GUI requests shutdown.
+                loop {
+                    if handle.is_shutdown_requested() {
+                        break;
+                    }
+                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                }
+            } else {
+                // No service running — run the full agent runtime.
+                if let Err(e) = runtime.run().await {
+                    error!("Agent runtime error: {}", e);
+                }
             }
         });
     });
