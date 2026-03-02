@@ -1,19 +1,12 @@
-<p align="center">
-  <img src="assets/banner_main.png" alt="Sentinel GRC Agent Banner" width="100%">
-</p>
+![Sentinel GRC Agent Banner](assets/banner_main.png)
 
-<h1 align="center">SENTINEL GRC AGENT</h1>
+# Sentinel GRC Agent
+**The Sovereign Standard for Modern Security & Compliance**
 
-<p align="center">
-  <strong>Military-Grade Security & Compliance Orchestration</strong>
-</p>
-
-<p align="center">
-  <a href="https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml"><img src="https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
-  <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-2024%20edition-orange.svg" alt="Rust"></a>
-  <img src="https://img.shields.io/badge/version-2.0.113-green.svg" alt="Version">
-</p>
+[![CI Status](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Rust 2024](https://img.shields.io/badge/rust-2024%20edition-orange.svg)
+![Version](https://img.shields.io/badge/version-2.0.113-green.svg)
 
 ---
 
