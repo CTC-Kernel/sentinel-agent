@@ -259,7 +259,7 @@ jobs:
           ./macos/create-macos-developer-signed-installer.sh
           
           # Move the output to target/release for artifact upload
-          mv "dist/SentinelAgent-${VERSION}.pkg" "target/release/"
+          mv "macos/dist/SentinelAgent-${VERSION}.pkg" "target/release/"
 
       - name: Notarize PKG
         timeout-minutes: 35
