@@ -1,6 +1,6 @@
 {
   "server": {
-    "url": "https://app.cyber-threat-consulting.com",
+    "url": "https://your-sentinel-server.example.com",
     "token": "YOUR_ENROLLMENT_TOKEN_HERE"
   },
   "agent": {
