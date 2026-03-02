@@ -7,7 +7,7 @@
 //! without requiring any special privileges.
 
 use crate::error::{NetworkError, NetworkResult};
-use tokio::process::Command;
+use agent_common::process::silent_async_command;
 use tracing::debug;
 
 /// An entry parsed from the system ARP table.
@@ -29,7 +29,7 @@ pub struct ArpScanner;
 impl ArpScanner {
     /// Parse the system ARP table and return all entries.
     pub async fn scan() -> NetworkResult<Vec<ArpEntry>> {
-        let output = Command::new("arp")
+        let output = silent_async_command("arp")
             .arg("-a")
             .output()
             .await

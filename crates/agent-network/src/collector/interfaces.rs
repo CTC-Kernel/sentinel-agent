@@ -12,7 +12,7 @@
 
 use crate::error::{NetworkError, NetworkResult};
 use crate::types::{InterfaceStatus, InterfaceType, NetworkInterface};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Collects network interface information.
@@ -181,7 +181,7 @@ impl InterfaceCollector {
         let mut ipv6 = Vec::new();
 
         // Use ip addr show to get addresses
-        if let Ok(output) = Command::new("ip")
+        if let Ok(output) = silent_command("ip")
             .args(["addr", "show", "dev", iface_name])
             .output()
         {
@@ -216,7 +216,7 @@ impl InterfaceCollector {
         let mut interfaces = Vec::new();
 
         // Use ifconfig to get interface info
-        let output = Command::new("ifconfig")
+        let output = silent_command("ifconfig")
             .arg("-a")
             .output()
             .map_err(|e| NetworkError::CommandFailed(format!("ifconfig failed: {}", e)))?;

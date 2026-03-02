@@ -603,8 +603,6 @@ pub fn is_elevated() -> bool {
 
 /// Perform a basic environment check to ensure critical tools are available.
 fn check_environment() {
-    use std::process::Command;
-
     info!("Performing environment self-check...");
 
     // Check PowerShell availability and version

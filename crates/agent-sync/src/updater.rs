@@ -703,7 +703,7 @@ impl UpdateManager {
         // Timeout after HEALTH_CHECK_TIMEOUT_SECS
         let version_check = tokio::time::timeout(
             std::time::Duration::from_secs(HEALTH_CHECK_TIMEOUT_SECS),
-            tokio::process::Command::new(&binary_path)
+            agent_common::process::silent_async_command(binary_path.to_str().unwrap_or("sentinel-agent"))
                 .arg("--version")
                 .output(),
         )

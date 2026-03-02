@@ -10,7 +10,7 @@ use crate::error::NetworkError;
 use crate::error::NetworkResult;
 use crate::types::{ConnectionProtocol, ConnectionState, NetworkConnection};
 #[cfg(any(target_os = "macos", target_os = "windows"))]
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Collects active network connections.
@@ -289,7 +289,7 @@ impl ConnectionCollector {
         let mut connections = Vec::new();
 
         // Use lsof to get connections with process info
-        let output = Command::new("lsof")
+        let output = silent_command("lsof")
             .args(["-i", "-n", "-P"])
             .output()
             .map_err(|e| NetworkError::CommandFailed(format!("lsof failed: {}", e)))?;

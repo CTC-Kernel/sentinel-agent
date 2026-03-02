@@ -8,7 +8,7 @@
 
 use crate::types::DeviceType;
 use std::collections::HashMap;
-use tokio::process::Command;
+use agent_common::process::silent_async_command;
 use tracing::{debug, trace};
 
 /// Resolves hostnames and classifies discovered devices.
@@ -30,7 +30,7 @@ impl DeviceResolver {
 
         if is_windows {
             // Try Windows `nslookup` command
-            let result = Command::new("nslookup").arg(ip).output().await;
+            let result = silent_async_command("nslookup").arg(ip).output().await;
 
             match result {
                 Ok(output) if output.status.success() => {
@@ -44,7 +44,7 @@ impl DeviceResolver {
             }
         } else {
             // Try the system `host` command for reverse DNS (macOS/Linux)
-            let result = Command::new("host").arg(ip).output().await;
+            let result = silent_async_command("host").arg(ip).output().await;
 
             match result {
                 Ok(output) if output.status.success() => {

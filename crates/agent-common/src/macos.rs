@@ -3,7 +3,7 @@
 
 //! macOS specific system utilities.
 
-use std::process::Command;
+use crate::process::silent_command;
 use tracing::{info, warn};
 use crate::error::{CommonError, Result};
 
@@ -37,7 +37,7 @@ pub fn run_with_elevation(script: &str) -> Result<String> {
     // Note: AppleScript strings MUST use double quotes. Single quotes are not valid string delimiters.
     let applescript = format!("do shell script \"{}\" with administrator privileges", escaped_script);
 
-    let output = Command::new("osascript")
+    let output = silent_command("osascript")
         .args(["-e", &applescript])
         .output()
         .map_err(|e| CommonError::system(format!("Failed to execute osascript: {}", e)))?;

@@ -10,7 +10,7 @@ use crate::error::{NetworkError, NetworkResult};
 use std::net::Ipv4Addr;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use tokio::process::Command;
+use agent_common::process::silent_async_command;
 use tokio::sync::Semaphore;
 use tracing::{debug, trace, warn};
 
@@ -166,19 +166,19 @@ impl PingSweeper {
     async fn ping_host(ip: &str, timeout_ms: u64) -> bool {
         let result = if cfg!(target_os = "macos") {
             // macOS: -W is in ms
-            Command::new("ping")
+            silent_async_command("ping")
                 .args(["-c", "1", "-W", &timeout_ms.to_string(), ip])
                 .output()
                 .await
         } else if cfg!(target_os = "windows") {
-            Command::new("ping")
+            silent_async_command("ping")
                 .args(["-n", "1", "-w", &timeout_ms.to_string(), ip])
                 .output()
                 .await
         } else {
             // Linux: -W is in seconds, convert
             let timeout_secs = std::cmp::max(1, timeout_ms.div_ceil(1000));
-            Command::new("ping")
+            silent_async_command("ping")
                 .args(["-c", "1", "-W", &timeout_secs.to_string(), ip])
                 .output()
                 .await

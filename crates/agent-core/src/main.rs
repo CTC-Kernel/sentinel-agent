@@ -2355,7 +2355,7 @@ fn ctrlc_handler(shutdown: agent_core::ShutdownSignal) {
 /// Show enrollment dialog to get token from user.
 #[cfg(target_os = "macos")]
 fn show_enrollment_dialog() -> Option<String> {
-    use std::process::Command;
+    use agent_common::process::silent_command;
 
     // AppleScript dialog for enrollment token
     let script = r#"
@@ -2372,7 +2372,7 @@ Sentinel GRC → Paramètres → Agents → Enrôler un Agent" default answer ""
         end if
     "#;
 
-    let output = Command::new("osascript")
+    let output = silent_command("osascript")
         .arg("-e")
         .arg(script)
         .output()
@@ -2384,7 +2384,7 @@ Sentinel GRC → Paramètres → Agents → Enrôler un Agent" default answer ""
 
 #[cfg(target_os = "windows")]
 fn show_enrollment_dialog() -> Option<String> {
-    use std::process::Command;
+    use agent_common::process::silent_command;
 
     // PowerShell input dialog
     let script = r#"
@@ -2409,10 +2409,10 @@ fn show_enrollment_dialog() -> Option<String> {
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 fn show_enrollment_dialog() -> Option<String> {
     // Linux - try zenity or kdialog
-    use std::process::Command;
+    use agent_common::process::silent_command;
 
     // Try zenity first (GNOME/GTK)
-    if let Ok(output) = Command::new("zenity")
+    if let Ok(output) = silent_command("zenity")
         .args([
             "--entry",
             "--title=Sentinel Agent - Enrôlement",
@@ -2428,7 +2428,7 @@ fn show_enrollment_dialog() -> Option<String> {
     }
 
     // Try kdialog (KDE)
-    if let Ok(output) = Command::new("kdialog")
+    if let Ok(output) = silent_command("kdialog")
         .args([
             "--inputbox",
             "Entrez le token d'enrôlement:",
@@ -2459,7 +2459,7 @@ fn show_enrollment_dialog() -> Option<String> {
 /// Show error dialog.
 #[cfg(target_os = "macos")]
 fn show_error_dialog(title: &str, message: &str) {
-    use std::process::Command;
+    use agent_common::process::silent_command;
 
     // Sanitize inputs for AppleScript: escape backslashes, quotes, and ampersands
     fn sanitize_applescript(s: &str) -> String {
@@ -2474,12 +2474,12 @@ fn show_error_dialog(title: &str, message: &str) {
         sanitize_applescript(title)
     );
 
-    let _ = Command::new("osascript").arg("-e").arg(script).output();
+    let _ = silent_command("osascript").arg("-e").arg(script).output();
 }
 
 #[cfg(target_os = "windows")]
 fn show_error_dialog(title: &str, message: &str) {
-    use std::process::Command;
+    use agent_common::process::silent_command;
 
     // Sanitize inputs for PowerShell: escape single quotes and backticks
     fn sanitize_powershell(s: &str) -> String {
@@ -2499,10 +2499,10 @@ fn show_error_dialog(title: &str, message: &str) {
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 fn show_error_dialog(title: &str, message: &str) {
-    use std::process::Command;
+    use agent_common::process::silent_command;
 
     // Try zenity
-    let _ = Command::new("zenity")
+    let _ = silent_command("zenity")
         .args([
             "--error",
             &format!("--title={}", title),

@@ -22,7 +22,7 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for container security.
@@ -138,7 +138,7 @@ impl ContainerSecurityCheck {
         debug!("Checking Docker security configuration");
 
         // Check Docker version
-        let version_output = Command::new("docker")
+        let version_output = silent_command("docker")
             .args(["version", "--format", "{{.Server.Version}}"])
             .output();
 
@@ -158,7 +158,7 @@ impl ContainerSecurityCheck {
         }
 
         // Get Docker info for security settings
-        let info_output = Command::new("docker")
+        let info_output = silent_command("docker")
             .args(["info", "--format", "json"])
             .output();
 
@@ -259,7 +259,7 @@ impl ContainerSecurityCheck {
         debug!("Checking Podman security configuration");
 
         // Check Podman version
-        let version_output = Command::new("podman")
+        let version_output = silent_command("podman")
             .args(["version", "--format", "{{.Version}}"])
             .output();
 
@@ -283,7 +283,7 @@ impl ContainerSecurityCheck {
         }
 
         // Get Podman info
-        let info_output = Command::new("podman")
+        let info_output = silent_command("podman")
             .args(["info", "--format", "json"])
             .output();
 
@@ -338,7 +338,7 @@ impl ContainerSecurityCheck {
         };
 
         // Get list of running containers with security-relevant info
-        let ps_output = Command::new(runtime)
+        let ps_output = silent_command(runtime)
             .args(["ps", "--format", "{{.ID}}\t{{.Names}}\t{{.Image}}"])
             .output();
 
@@ -355,7 +355,7 @@ impl ContainerSecurityCheck {
                 let container_name = parts[1];
 
                 // Inspect each container for security settings
-                let inspect_output = Command::new(runtime)
+                let inspect_output = silent_command(runtime)
                     .args(["inspect", "--format", "json", container_id])
                     .output();
 

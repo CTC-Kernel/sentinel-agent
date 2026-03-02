@@ -12,7 +12,7 @@
 use crate::error::NetworkError;
 use crate::error::NetworkResult;
 use crate::types::DnsConfiguration;
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Collects DNS configuration.
@@ -82,7 +82,7 @@ impl DnsCollector {
         // If resolv.conf points to systemd-resolved, try to get real servers
         if config.servers.is_empty() {
             // Try systemd-resolve --status
-            if let Ok(output) = Command::new("systemd-resolve").arg("--status").output() {
+            if let Ok(output) = silent_command("systemd-resolve").arg("--status").output() {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 for line in stdout.lines() {
                     let line = line.trim();
@@ -100,7 +100,7 @@ impl DnsCollector {
 
             // Alternative: resolvectl status
             if config.servers.is_empty()
-                && let Ok(output) = Command::new("resolvectl").arg("status").output()
+                && let Ok(output) = silent_command("resolvectl").arg("status").output()
             {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let mut in_global = false;
@@ -138,7 +138,7 @@ impl DnsCollector {
         let mut config = DnsConfiguration::default();
 
         // Use scutil --dns for DNS configuration
-        let output = Command::new("scutil")
+        let output = silent_command("scutil")
             .arg("--dns")
             .output()
             .map_err(|e| NetworkError::CommandFailed(format!("scutil failed: {}", e)))?;

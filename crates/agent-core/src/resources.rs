@@ -259,7 +259,7 @@ impl ResourceMonitor {
         #[cfg(target_os = "macos")]
         {
             use std::process::Stdio;
-            let child = std::process::Command::new("lsof")
+            let child = agent_common::process::silent_command("lsof")
                 .args(["-i", "-n", "-P"])
                 .stdout(Stdio::piped())
                 .stderr(Stdio::null())

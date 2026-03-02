@@ -133,7 +133,7 @@ impl KeyManager {
         #[cfg(target_os = "macos")]
         {
             // Fetch IOPlatformUUID (equivalent to machine-id on macOS)
-            if let Ok(output) = std::process::Command::new("ioreg")
+            if let Ok(output) = agent_common::process::silent_command("ioreg")
                 .args(["-rd1", "-c", "IOPlatformExpertDevice"])
                 .output()
                 && let Ok(content) = String::from_utf8(output.stdout)

@@ -10,7 +10,7 @@
 use super::{ServiceError, ServiceResult, ServiceState};
 use std::fs;
 use std::path::Path;
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::{error, info, warn};
 
 /// systemd service name (matches SERVICE_NAME pattern but lowercase for Linux conventions).
@@ -229,7 +229,7 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
         .map_err(|e| ServiceError::System(format!("Failed to write unit file: {}", e)))?;
 
     // Reload systemd daemon
-    let output = Command::new("systemctl")
+    let output = silent_command("systemctl")
         .args(["daemon-reload"])
         .output()
         .map_err(|e| ServiceError::System(format!("Failed to reload systemd: {}", e)))?;
@@ -242,7 +242,7 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
     }
 
     // Enable the service
-    let output = Command::new("systemctl")
+    let output = silent_command("systemctl")
         .args(["enable", "sentinel-agent.service"])
         .output()
         .map_err(|e| ServiceError::System(format!("Failed to enable service: {}", e)))?;
@@ -277,7 +277,7 @@ pub fn uninstall_service() -> ServiceResult<()> {
 
     // Stop the service and wait for it to actually stop
     info!("Stopping sentinel-agent service...");
-    let stop_result = Command::new("systemctl")
+    let stop_result = silent_command("systemctl")
         .args(["stop", "sentinel-agent.service"])
         .output();
 
@@ -316,7 +316,7 @@ pub fn uninstall_service() -> ServiceResult<()> {
     }
 
     // Disable the service
-    let _ = Command::new("systemctl")
+    let _ = silent_command("systemctl")
         .args(["disable", "sentinel-agent.service"])
         .output();
 
@@ -325,7 +325,7 @@ pub fn uninstall_service() -> ServiceResult<()> {
         .map_err(|e| ServiceError::System(format!("Failed to remove unit file: {}", e)))?;
 
     // Reload systemd daemon
-    let _ = Command::new("systemctl").args(["daemon-reload"]).output();
+    let _ = silent_command("systemctl").args(["daemon-reload"]).output();
 
     info!("Service uninstalled successfully");
     Ok(())
@@ -338,7 +338,7 @@ pub fn get_service_state() -> ServiceResult<ServiceState> {
         return Err(ServiceError::NotInstalled);
     }
 
-    let output = Command::new("systemctl")
+    let output = silent_command("systemctl")
         .args(["is-active", "sentinel-agent.service"])
         .output()
         .map_err(|e| ServiceError::System(format!("Failed to query service status: {}", e)))?;
@@ -365,7 +365,7 @@ pub fn start_service() -> ServiceResult<()> {
         return Err(ServiceError::AlreadyRunning);
     }
 
-    let output = Command::new("systemctl")
+    let output = silent_command("systemctl")
         .args(["start", "sentinel-agent.service"])
         .output()
         .map_err(|e| ServiceError::System(format!("Failed to start service: {}", e)))?;
@@ -392,7 +392,7 @@ pub fn stop_service() -> ServiceResult<()> {
         return Err(ServiceError::NotRunning);
     }
 
-    let output = Command::new("systemctl")
+    let output = silent_command("systemctl")
         .args(["stop", "sentinel-agent.service"])
         .output()
         .map_err(|e| ServiceError::System(format!("Failed to stop service: {}", e)))?;
