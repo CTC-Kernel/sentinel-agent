@@ -742,43 +742,51 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         let mut last_network_alert_count: u32 = 0;
 
-        // Run initial network collection
+        // Run initial network collection (with 30s timeout to avoid blocking the main loop)
         info!("Running initial network collection...");
-        match self.run_network_collection().await {
-            Ok(snapshot) => {
-                #[cfg(feature = "gui")]
-                {
-                    let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
-                    self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
-                        interfaces,
-                        connections,
-                    });
-                }
-                if let Err(e) = self.upload_network_snapshot(&snapshot).await {
-                    warn!("Failed to upload initial network snapshot: {}", e);
+        match tokio::time::timeout(
+            std::time::Duration::from_secs(30),
+            self.run_network_collection(),
+        )
+        .await
+        {
+            Ok(inner) => match inner {
+                Ok(snapshot) => {
                     #[cfg(feature = "gui")]
-                    self.emit_gui_event(AgentEvent::SyncStatus {
-                        syncing: false,
-                        pending_count: 0,
-                        last_sync_at: None,
-                        error: Some(format!("Network upload failed: {}", e)),
-                    });
-                }
-                // Run initial network security detection
-                match self.run_network_security_detection(&snapshot).await {
-                    Ok(alerts) => {
-                        for alert in &alerts {
-                            #[cfg(feature = "gui")]
-                            self.emit_network_security_alert_to_gui(alert);
-                            if let Err(e) = self.upload_network_alert(alert).await {
-                                warn!("Failed to upload network alert: {}", e);
+                    {
+                        let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                        self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
+                            interfaces,
+                            connections,
+                        });
+                    }
+                    if let Err(e) = self.upload_network_snapshot(&snapshot).await {
+                        warn!("Failed to upload initial network snapshot: {}", e);
+                        #[cfg(feature = "gui")]
+                        self.emit_gui_event(AgentEvent::SyncStatus {
+                            syncing: false,
+                            pending_count: 0,
+                            last_sync_at: None,
+                            error: Some(format!("Network upload failed: {}", e)),
+                        });
+                    }
+                    // Run initial network security detection
+                    match self.run_network_security_detection(&snapshot).await {
+                        Ok(alerts) => {
+                            for alert in &alerts {
+                                #[cfg(feature = "gui")]
+                                self.emit_network_security_alert_to_gui(alert);
+                                if let Err(e) = self.upload_network_alert(alert).await {
+                                    warn!("Failed to upload network alert: {}", e);
+                                }
                             }
                         }
+                        Err(e) => warn!("Initial network security detection failed: {}", e),
                     }
-                    Err(e) => warn!("Initial network security detection failed: {}", e),
                 }
-            }
-            Err(e) => warn!("Initial network collection failed: {}", e),
+                Err(e) => warn!("Initial network collection failed: {}", e),
+            },
+            Err(_) => warn!("Initial network collection timed out after 30s, continuing without it"),
         }
 
         // Initialize FIM engine

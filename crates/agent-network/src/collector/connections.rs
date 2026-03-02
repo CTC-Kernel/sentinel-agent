@@ -9,8 +9,10 @@
 use crate::error::NetworkError;
 use crate::error::NetworkResult;
 use crate::types::{ConnectionProtocol, ConnectionState, NetworkConnection};
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 use agent_common::process::silent_command;
+#[cfg(target_os = "macos")]
+use agent_common::process::silent_async_command;
 use tracing::debug;
 
 /// Collects active network connections.
@@ -288,11 +290,22 @@ impl ConnectionCollector {
     async fn collect_macos(&self) -> NetworkResult<Vec<NetworkConnection>> {
         let mut connections = Vec::new();
 
-        // Use lsof to get connections with process info
-        let output = silent_command("lsof")
-            .args(["-i", "-n", "-P"])
-            .output()
-            .map_err(|e| NetworkError::CommandFailed(format!("lsof failed: {}", e)))?;
+        // Use lsof to get connections with process info (with 15s timeout to avoid hangs)
+        let output = match tokio::time::timeout(
+            std::time::Duration::from_secs(15),
+            silent_async_command("lsof")
+                .args(["-i", "-n", "-P"])
+                .output(),
+        )
+        .await
+        {
+            Ok(result) => result
+                .map_err(|e| NetworkError::CommandFailed(format!("lsof failed: {}", e)))?,
+            Err(_) => {
+                tracing::warn!("lsof timed out after 15s, returning empty connections");
+                return Ok(connections);
+            }
+        };
 
         let stdout = String::from_utf8_lossy(&output.stdout);
 
