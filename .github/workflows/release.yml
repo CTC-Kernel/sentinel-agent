@@ -372,6 +372,17 @@ jobs:
           wix extension add -g WixToolset.Util.wixext/4.0.0
           wix extension add -g WixToolset.Firewall.wixext/4.0.0
 
+      - name: Generate self-signed certificate
+        run: |
+          $cert = New-SelfSignedCertificate `
+            -Type CodeSigningCert `
+            -Subject "CN=Sentinel GRC Agent, O=Cyber Threat Consulting" `
+            -CertStoreLocation Cert:\CurrentUser\My `
+            -NotAfter (Get-Date).AddYears(5)
+          Export-Certificate -Cert $cert -FilePath sentinel-selfsigned.cer
+          Write-Host "Generated sentinel-selfsigned.cer"
+        shell: pwsh
+
       - name: Build MSI
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
