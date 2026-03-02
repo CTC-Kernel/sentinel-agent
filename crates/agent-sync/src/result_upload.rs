@@ -80,6 +80,12 @@ pub struct CheckResultPayload {
     /// Check severity (from check rule definition).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub severity: Option<String>,
+    /// Primary compliance framework (e.g., "ISO27001", "NIST-CSF").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub framework: Option<String>,
+    /// Control identifier for compliance mapping (defaults to check_id).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub control_id: Option<String>,
 }
 
 impl From<&CheckResult> for CheckResultPayload {
@@ -95,8 +101,10 @@ impl From<&CheckResult> for CheckResultPayload {
                 .raw_data
                 .as_ref()
                 .and_then(|s| serde_json::from_str(s).ok()),
-            category: None, // Populated from CheckRule during upload
-            severity: None, // Populated from CheckRule during upload
+            category: None,  // Populated from CheckRule during upload
+            severity: None,  // Populated from CheckRule during upload
+            framework: None, // Populated from CheckRule during upload
+            control_id: Some(result.check_rule_id.clone()), // Default to check_id
         }
     }
 }
@@ -315,11 +323,15 @@ impl ResultUploader {
         for result in results {
             let mut payload = CheckResultPayload::from(result);
 
-            // Enrich with category/severity from check rule definition
+            // Enrich with category/severity/framework from check rule definition
             match rules_repo.get(&result.check_rule_id).await {
                 Ok(Some(rule)) => {
                     payload.category = Some(rule.category);
                     payload.severity = Some(rule.severity.as_str().to_string());
+                    // Set primary framework from check rule definition
+                    if !rule.frameworks.is_empty() {
+                        payload.framework = rule.frameworks.first().cloned();
+                    }
                 }
                 Ok(None) => {
                     debug!("No check rule found for {}", result.check_rule_id);
@@ -485,6 +497,8 @@ mod tests {
         assert_eq!(payload.duration_ms, Some(150));
         assert!(payload.category.is_none());
         assert!(payload.severity.is_none());
+        assert!(payload.framework.is_none());
+        assert_eq!(payload.control_id, Some("disk_encryption".to_string()));
     }
 
     #[test]
@@ -500,6 +514,8 @@ mod tests {
                 raw_data: None,
                 category: Some("encryption".to_string()),
                 severity: Some("high".to_string()),
+                framework: Some("ISO27001".to_string()),
+                control_id: Some("test".to_string()),
             }],
             agent_id: Uuid::new_v4(),
             timestamp: Utc::now(),
@@ -509,6 +525,8 @@ mod tests {
         assert!(json.contains("check_id"));
         assert!(json.contains("agent_id"));
         assert!(json.contains("proof_hash"));
+        assert!(json.contains("framework"));
+        assert!(json.contains("control_id"));
     }
 
     #[test]
@@ -595,6 +613,8 @@ mod tests {
             raw_data: None,
             category: None,
             severity: None,
+            framework: None,
+            control_id: None,
         };
 
         let json = serde_json::to_string(&payload).unwrap();
@@ -602,5 +622,7 @@ mod tests {
         assert!(!json.contains("proof_hash"));
         assert!(!json.contains("duration_ms"));
         assert!(!json.contains("raw_data"));
+        assert!(!json.contains("framework"));
+        assert!(!json.contains("control_id"));
     }
 }
