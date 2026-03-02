@@ -931,41 +931,42 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             let llm_service: Option<std::sync::Arc<()>> = None;
 
             // Spawn command processor
+            let handle_for_commands = handle.clone();
             tokio::spawn(async move {
                 loop {
                     match command_rx.try_recv() {
                         Ok(GuiCommand::Pause) => {
                             info!("[AUDIT] GUI user requested agent pause");
-                            handle.pause();
+                            handle_for_commands.pause();
                         }
                         Ok(GuiCommand::Resume) => {
                             info!("[AUDIT] GUI user requested agent resume");
-                            handle.resume();
+                            handle_for_commands.resume();
                         }
                         Ok(GuiCommand::Shutdown) => {
                             info!("[AUDIT] GUI user requested agent shutdown");
-                            handle.request_shutdown();
+                            handle_for_commands.request_shutdown();
                             break;
                         }
                         Ok(GuiCommand::RunCheck) => {
                             info!("[AUDIT] GUI user requested manual check run");
-                            handle.trigger_check();
+                            handle_for_commands.trigger_check();
                         }
                         Ok(GuiCommand::ForceSync) => {
                             info!("GUI requested force sync");
-                            handle.trigger_sync();
+                            handle_for_commands.trigger_sync();
                         }
                         Ok(GuiCommand::StartDiscovery) => {
                             info!("GUI requested network discovery");
-                            handle.trigger_discovery();
+                            handle_for_commands.trigger_discovery();
                         }
                         Ok(GuiCommand::StopDiscovery) => {
                             info!("GUI requested discovery cancellation");
-                            handle.cancel_discovery();
+                            handle_for_commands.cancel_discovery();
                         }
                         Ok(GuiCommand::CheckUpdate) => {
                             info!("[AUDIT] GUI user requested manual update check");
-                            handle.trigger_update();
+                            handle_for_commands.trigger_update();
                         }
                         Ok(GuiCommand::ProposeAsset {
                             ip,
@@ -973,26 +974,26 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             device_type,
                         }) => {
                             info!("[AUDIT] GUI user proposed asset: {}", ip);
-                            handle.propose_asset(ip, hostname, device_type);
+                            handle_for_commands.propose_asset(ip, hostname, device_type);
                         }
                         Ok(GuiCommand::UpdateCheckInterval { interval_secs }) => {
                             info!("[AUDIT] GUI user updated check interval to {} seconds", interval_secs);
-                            handle.set_check_interval(interval_secs);
+                            handle_for_commands.set_check_interval(interval_secs);
                         }
                         Ok(GuiCommand::SetLogLevel { level }) => {
-                            handle.set_log_level(level);
+                            handle_for_commands.set_log_level(level);
                         }
                         Ok(GuiCommand::Remediate { check_id }) => {
                             info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
-                            handle.remediate(check_id);
+                            handle_for_commands.remediate(check_id);
                         }
                         Ok(GuiCommand::RemediatePreview { check_id }) => {
                             info!("[AUDIT] GUI user previewed remediation for check: {}", check_id);
-                            handle.remediate_preview(check_id);
+                            handle_for_commands.remediate_preview(check_id);
                         }
                         Ok(GuiCommand::RunSync) => {
                             info!("[AUDIT] GUI user requested sync");
-                            handle.trigger_sync();
+                            handle_for_commands.trigger_sync();
                         }
                         Ok(GuiCommand::GetSummary) => {
                             // Summary is emitted continuously via status updates; this is a no-op
