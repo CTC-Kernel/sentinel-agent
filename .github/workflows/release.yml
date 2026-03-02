@@ -388,7 +388,7 @@ jobs:
           # Exporter le certificat et la clé privée
           $pfxPath = "$env:RUNNER_TEMP\sentinel-persistent.pfx"
           $cerPath = "$env:RUNNER_TEMP\sentinel-persistent.cer"
-          $password = "***REMOVED***_CERT_PASSWORD"
+          $password = "${{ secrets.CERT_PASSWORD }}"
           
           Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password (ConvertTo-SecureString -String $password -Force -AsPlainText)
           Export-Certificate -Cert $cert -FilePath $cerPath
