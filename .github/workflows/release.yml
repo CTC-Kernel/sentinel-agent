@@ -439,8 +439,50 @@ jobs:
       - name: Warn if SignPath not configured
         if: ${{ vars.SIGNPATH_ORGANIZATION_ID == '' }}
         run: |
-          echo "::warning::SignPath not configured - MSI will not be signed."
-          echo "::warning::To enable code signing, configure SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG (vars) and SIGNPATH_API_TOKEN (secret)."
+          echo "::warning::SignPath not configured - Using free self-signed signing."
+          echo "::warning::To enable SignPath, configure SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG (vars) and SIGNPATH_API_TOKEN (secret)."
+
+      - name: Generate free self-signed certificate (fallback)
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID == '' }}
+        run: |
+          $cert = New-SelfSignedCertificate `
+            -Type CodeSigningCert `
+            -Subject "CN=Sentinel GRC Agent, O=Cyber Threat Consulting, C=FR" `
+            -CertStoreLocation Cert:\CurrentUser\My `
+            -KeyUsage DigitalSignature `
+            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3","2.5.29.19={text}CA:FALSE") `
+            -NotAfter (Get-Date).AddYears(10)
+          
+          # Export PFX for signing
+          $password = "Sentinel2024!Free"
+          $securePassword = ConvertTo-SecureString -String $password -Force -AsPlainText
+          Export-PfxCertificate -Cert $cert -FilePath "sentinel-selfsigned.pfx" -Password $securePassword | Out-Null
+          
+          # Export public certificate
+          Export-Certificate -Cert $cert -FilePath "sentinel-selfsigned.cer" | Out-Null
+          
+          Write-Host "Generated free self-signed certificate (10 years validity)"
+        shell: pwsh
+
+      - name: Sign MSI with free certificate
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID == '' }}
+        run: |
+          $version = "${{ env.RELEASE_VERSION }}"
+          $password = "Sentinel2024!Free"
+          $securePassword = ConvertTo-SecureString -String $password -Force -AsPlainText
+          
+          # Sign the MSI
+          signtool sign /f "sentinel-selfsigned.pfx" /p $password /t http://timestamp.digicert.com /fd sha256 "target\release\SentinelAgentSetup-$version.msi"
+          
+          # Verify signature
+          signtool verify /pa "target\release\SentinelAgentSetup-$version.msi"
+          
+          Write-Host "MSI signed successfully with free certificate"
+          
+          # Cleanup
+          Remove-Item "sentinel-selfsigned.pfx" -Force -ErrorAction SilentlyContinue
+          Remove-Item "sentinel-selfsigned.cer" -Force -ErrorAction SilentlyContinue
+        shell: pwsh
 
       - name: Generate checksums
         run: |
