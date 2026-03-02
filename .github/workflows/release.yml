@@ -540,7 +540,7 @@ jobs:
             Write-Host "  Expiration : $($cert.NotAfter.ToString('yyyy-MM-dd'))"
           } else {
             Write-Host "::warning::WINDOWS_SELFSIGN_PFX secret not configured — generating ephemeral certificate."
-            Write-Host "::warning::Run scripts/generate-selfsign-cert.ps1 on Windows and configure GitHub Secrets for a persistent thumbprint."
+            Write-Host "::warning::Generate a self-signed certificate on Windows and configure GitHub Secrets (WINDOWS_SELFSIGN_PFX, WINDOWS_SELFSIGN_PASSWORD) for a persistent thumbprint."
 
             # Fallback: generate ephemeral certificate with random password
             $pfxPassword = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
@@ -1019,8 +1019,7 @@ jobs:
             **Mises a jour :** aucune action requise, le certificat est deja approuve.
 
             **Deploiement enterprise (zero SmartScreen des la 1ere install) :**
-            Deployer `certs/sentinel-signing.cer` via GPO, Intune ou SCCM dans Trusted Publishers.
-            Voir [`scripts/deploy-cert-gpo.ps1`](scripts/deploy-cert-gpo.ps1) pour les instructions detaillees.
+            Deployer le certificat `.cer` via GPO, Intune ou SCCM dans Trusted Publishers.
 
             **Alternative :** le ZIP `SentinelAgent-SelfSigned-${{ env.RELEASE_VERSION }}.zip` contient le MSI + certificat + script d'installation.
           files: |
