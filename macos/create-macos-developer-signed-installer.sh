@@ -149,7 +149,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
                 <key>NSExceptionRequiresForwardSecrecy</key>
                 <true/>
             </dict>
-            <key>europe-west1-sentinel-grc-a8701.cloudfunctions.net</key>
+            <key>YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net</key>
             <dict>
                 <key>NSExceptionMinimumTLSVersion</key>
                 <string>TLSv1.3</string>
@@ -323,7 +323,7 @@ chown -R "$REAL_USER" "$CONFIG_DIR"
 if [[ ! -f "$CONFIG_DIR/config/agent.json" ]]; then
     cat > "$CONFIG_DIR/config/agent.json" << CONFIG
 {
-    "server_url": "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi",
+    "server_url": "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi",
     "check_interval_secs": 3600,
     "heartbeat_interval_secs": 60,
     "log_level": "info",

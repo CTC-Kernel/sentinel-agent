@@ -52,8 +52,8 @@ impl Default for EnrollmentWizard {
             use_qr: false,
             progress_message: "Connexion au serveur...".to_string(),
             show_token: false,
-            admin_password: "agent_admin".to_string(),
-            use_default_password: true,
+            admin_password: String::new(),
+            use_default_password: false,
             show_password: false,
         }
     }
@@ -362,39 +362,42 @@ impl EnrollmentWizard {
 
                 ui.add_space(theme::SPACE_LG);
 
-                // Default password toggle
-                ui.checkbox(
-                    &mut self.use_default_password,
-                    "Utiliser le mot de passe par défaut (agent_admin)",
+                // Password input (always required — no default password)
+                ui.label(
+                    egui::RichText::new("Mot de passe administrateur :")
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
                 );
+                ui.add_space(theme::SPACE_XS);
 
-                if !self.use_default_password {
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new("Mot de passe personnalisé :")
-                            .font(theme::font_small())
-                            .color(theme::text_secondary()),
+                ui.horizontal(|ui| {
+                    ui.add(
+                        egui::TextEdit::singleline(&mut self.admin_password)
+                            .desired_width(ui.available_width() - 40.0)
+                            .font(egui::TextStyle::Monospace)
+                            .password(!self.show_password)
+                            .hint_text("Saisir un mot de passe sécurisé (min. 8 caractères)"),
                     );
+
+                    let vis_icon = if self.show_password {
+                        icons::EYE_SLASH
+                    } else {
+                        icons::EYE
+                    };
+                    if widgets::button::icon_button(ui, vis_icon, None).clicked() {
+                        self.show_password = !self.show_password;
+                    }
+                });
+
+                // Password strength feedback
+                let pw_len = self.admin_password.trim().len();
+                if pw_len > 0 && pw_len < 8 {
                     ui.add_space(theme::SPACE_XS);
-
-                    ui.horizontal(|ui| {
-                        ui.add(
-                            egui::TextEdit::singleline(&mut self.admin_password)
-                                .desired_width(ui.available_width() - 40.0)
-                                .font(egui::TextStyle::Monospace)
-                                .password(!self.show_password)
-                                .hint_text("Saisir un mot de passe sécurisé"),
-                        );
-
-                        let vis_icon = if self.show_password {
-                            icons::EYE_SLASH
-                        } else {
-                            icons::EYE
-                        };
-                        if widgets::button::icon_button(ui, vis_icon, None).clicked() {
-                            self.show_password = !self.show_password;
-                        }
-                    });
+                    ui.label(
+                        egui::RichText::new("Le mot de passe doit contenir au moins 8 caractères.")
+                            .font(theme::font_small())
+                            .color(theme::ERROR),
+                    );
                 }
 
                 ui.add_space(theme::SPACE_LG);
@@ -415,8 +418,7 @@ impl EnrollmentWizard {
 
                     ui.add_space(theme::SPACE);
 
-                    let is_valid =
-                        self.use_default_password || !self.admin_password.trim().is_empty();
+                    let is_valid = self.admin_password.trim().len() >= 8;
 
                     let enroll_btn = egui::Button::new(
                         egui::RichText::new("Enrôler")
@@ -429,11 +431,7 @@ impl EnrollmentWizard {
 
                     if ui.add_enabled(is_valid, enroll_btn).clicked() {
                         let token = self.token_input.trim().to_string();
-                        let password = if self.use_default_password {
-                            None
-                        } else {
-                            Some(self.admin_password.trim().to_string())
-                        };
+                        let password = Some(self.admin_password.trim().to_string());
 
                         self.step = EnrollmentStep::InProgress;
                         self.progress_message = "Connexion au serveur...".to_string();

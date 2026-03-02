@@ -145,6 +145,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - name: Copy icons for Windows build
+        run: |
+          mkdir -p "crates/agent-gui/assets/icons"
+          mkdir -p "crates/agent-core/assets/icons"
+          Copy-Item "assets/icons/sentinel-agent.ico" "crates/agent-gui/assets/icons/"
+          Copy-Item "assets/icons/sentinel-agent.ico" "crates/agent-core/assets/icons/"
+        shell: pwsh
       - name: Build release binary
         run: cargo build --release --package agent-core --features gui
       - name: Upload build artifacts

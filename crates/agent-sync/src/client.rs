@@ -338,7 +338,7 @@ impl HttpClient {
         // Build the authorization header value explicitly to catch errors early
         let auth_value = format!("Bearer {}", trimmed_token);
         let auth_header = header::HeaderValue::from_str(&auth_value).map_err(|e| {
-            tracing::error!("Invalid authorization header value: {} (token len={}, first_chars={}...)", e, trimmed_token.len(), &trimmed_token[..trimmed_token.len().min(8)]);
+            tracing::error!("Invalid authorization header value: {} (token len={})", e, trimmed_token.len());
             SyncError::Config(format!("Invalid enrollment token (contains invalid characters): {}", e))
         })?;
 

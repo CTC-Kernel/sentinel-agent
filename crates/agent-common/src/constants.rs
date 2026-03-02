@@ -45,21 +45,27 @@ pub const CONFIG_FILE_NAME: &str = "agent.json";
 /// Firebase project ID used to construct default URLs.
 ///
 /// Override at runtime via the `server_url` field in `agent.json`.
-pub const FIREBASE_PROJECT_ID: &str = "sentinel-grc-a8701";
+/// **Open-source users**: replace with your own Firebase project ID.
+pub const FIREBASE_PROJECT_ID: &str = "YOUR_FIREBASE_PROJECT_ID";
 
 /// Firebase Storage bucket.
-pub const FIREBASE_STORAGE_BUCKET: &str = "sentinel-grc-a8701.firebasestorage.app";
+///
+/// **Open-source users**: replace with your own Firebase Storage bucket.
+pub const FIREBASE_STORAGE_BUCKET: &str = "YOUR_FIREBASE_PROJECT_ID.firebasestorage.app";
 
 /// Default server URL (Firebase Cloud Functions).
 ///
 /// This is the **API** endpoint used by the agent for enrollment, heartbeats,
 /// and data uploads.  It is *not* the web dashboard URL visible to end users.
+/// **Open-source users**: replace with your own Cloud Functions endpoint.
 pub const DEFAULT_SERVER_URL: &str =
-    "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi";
+    "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi";
 
 /// Base URL for release artifacts in Firebase Storage.
+///
+/// **Open-source users**: replace with your own releases path.
 pub const RELEASES_BASE_URL: &str =
-    "https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent";
+    "https://storage.googleapis.com/YOUR_FIREBASE_PROJECT_ID.firebasestorage.app/releases/agent";
 
 /// Log file name.
 pub const LOG_FILE_NAME: &str = "agent.log";
