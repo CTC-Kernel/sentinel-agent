@@ -1,4 +1,6 @@
-![Sentinel GRC Agent Banner](assets/banner_main.png)
+<p align="center">
+  ![Sentinel GRC Agent Banner](assets/banner_main.png)
+</p>
 
 # Sentinel GRC Agent
 **The Sovereign Standard for Modern Security & Compliance**

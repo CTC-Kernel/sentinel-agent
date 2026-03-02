@@ -1,4 +1,6 @@
-![Sentinel GRC Security Seal](assets/security_seal.png)
+<p align="center">
+  ![Sentinel GRC Security Seal](assets/security_seal.png)
+</p>
 
 # Security Policy
 **Commitment to Privacy & System Integrity**
