@@ -632,7 +632,7 @@ fn check_environment() {
     let tools = ["msiexec", "taskkill", "sc.exe", "netstat"];
     for tool in tools {
         // Use 'where' on Windows to check for existence
-        match Command::new("where").arg(tool).output() {
+        match silent_command("where").arg(tool).output() {
             Ok(output) if output.status.success() => {
                 let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
                 debug!("System tool '{}' found at: {}", tool, path);

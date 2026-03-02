@@ -16,6 +16,8 @@ use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+#[cfg(target_os = "windows")]
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for time synchronization.
@@ -82,7 +84,7 @@ impl TimeSyncCheck {
     async fn check_windows(&self) -> ScannerResult<TimeSyncStatus> {
         debug!("Checking Windows time synchronization (W32Time)");
 
-        let output = Command::new("w32tm")
+        let output = silent_command("w32tm")
             .args(["/query", "/status"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run w32tm: {}", e)))?;

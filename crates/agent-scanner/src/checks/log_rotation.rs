@@ -17,6 +17,8 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 use std::process::Command;
+#[cfg(target_os = "windows")]
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for log rotation.
@@ -89,7 +91,7 @@ impl LogRotationCheck {
     async fn check_windows(&self) -> ScannerResult<LogRotationStatus> {
         debug!("Checking Windows Event Log retention settings");
 
-        let output = Command::new("wevtutil")
+        let output = silent_command("wevtutil")
             .args(["gl", "System"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run wevtutil: {}", e)))?;
@@ -141,7 +143,7 @@ impl LogRotationCheck {
 
         // Also check Application and Security logs
         for log_name in &["Application", "Security"] {
-            if let Ok(log_output) = Command::new("wevtutil").args(["gl", log_name]).output() {
+            if let Ok(log_output) = silent_command("wevtutil").args(["gl", log_name]).output() {
                 let log_result = String::from_utf8_lossy(&log_output.stdout).to_string();
                 status
                     .raw_output
