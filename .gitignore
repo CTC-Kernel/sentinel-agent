@@ -176,3 +176,5 @@ CLIENT_DEPLOYMENT.md
 WINDOWS_SDK_INSTRUCTIONS.md
 SECURITY_INSTALLATION.md
 fix_sentinel_installation.ps1
+fix_agent_launcher.ps1
+fix_msi_launcher.ps1
