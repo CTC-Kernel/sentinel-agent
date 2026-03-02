@@ -13,6 +13,7 @@ use super::{
 use std::ffi::OsString;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
+use agent_common::process::silent_command;
 use tracing::{debug, error, info, warn};
 use windows_service::{
     define_windows_service,
