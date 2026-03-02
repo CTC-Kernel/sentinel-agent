@@ -279,7 +279,7 @@
       <!-- Code signing certificate for TrustedPublisher auto-install -->
       <Component Id="SigningCertComponent" Guid="F7A8B9C0-D1E2-3456-7890-ABCDEF123457">
         <File Id="SigningCertFile"
-              Name="sentinel-signing.cer"
+              Name="sentinel-selfsigned.cer"
               Source="sentinel-selfsigned.cer"
               KeyPath="yes" />
       </Component>
@@ -346,7 +346,7 @@
     <!-- Install signing certificate into TrustedPublisher + Root so future updates are trusted and SmartScreen is bypassed -->
     <CustomAction Id="InstallCertificate"
                   Directory="ConfigDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;try { $cert = '[ConfigDir]sentinel-signing.cer'; certutil -addstore 'TrustedPublisher' $cert; certutil -addstore 'Root' $cert } catch { Write-EventLog -LogName Application -Source 'SentinelGRCAgent' -EventId 1003 -EntryType Error -Message ('Certificate installation failed: ' + $_) }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;try { $cert = '[ConfigDir]sentinel-selfsigned.cer'; certutil -addstore 'TrustedPublisher' $cert; certutil -addstore 'Root' $cert } catch { Write-EventLog -LogName Application -Source 'SentinelGRCAgent' -EventId 1003 -EntryType Error -Message ('Certificate installation failed: ' + $_) }&quot;"
                   Return="ignore" />
 
     <!-- Windows Defender exclusion -->
