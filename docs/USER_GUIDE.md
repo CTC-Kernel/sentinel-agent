@@ -129,7 +129,7 @@ L'agent utilise un fichier de configuration JSON :
 
 ```json
 {
-  "server_url": "https://app.cyber-threat-consulting.com",
+  "server_url": "https://your-sentinel-server.example.com",
   "enrollment_token": "votre-token-ici",
   "check_interval_secs": 3600,
   "log_level": "info"
@@ -138,7 +138,7 @@ L'agent utilise un fichier de configuration JSON :
 
 | Paramètre | Description | Défaut |
 |-----------|-------------|--------|
-| `server_url` | URL du serveur Sentinel | app.cyber-threat-consulting.com |
+| `server_url` | URL du serveur Sentinel | your-sentinel-server.example.com |
 | `enrollment_token` | Token d'enrôlement (requis au 1er lancement) | - |
 | `check_interval_secs` | Intervalle entre les vérifications | 3600 (1h) |
 | `log_level` | Niveau de log (debug, info, warn, error) | info |
@@ -156,7 +156,7 @@ L'agent utilise un fichier de configuration JSON :
 
 ### Via l'interface web
 
-1. Connectez-vous à app.cyber-threat-consulting.com
+1. Connectez-vous à your-sentinel-server.example.com
 2. Allez dans Paramètres → Agents
 3. Cliquez sur "Enrôler un Agent"
 4. Copiez le token généré
@@ -203,9 +203,9 @@ L'agent utilise un fichier de configuration JSON :
 
 ## Support
 
-- **Documentation** : docs.cyber-threat-consulting.com
-- **Contact** : contact@cyber-threat-consulting.com
-- **Interface** : app.cyber-threat-consulting.com
+- **Documentation** : docs.example.com
+- **Contact** : contact@example.com
+- **Interface** : your-sentinel-server.example.com
 
 ---
 
