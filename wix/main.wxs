@@ -404,7 +404,7 @@
          instead of [CommonAppDataFolder] because deferred CAs cannot resolve MSI properties. -->
     <CustomAction Id="ForceResetPermissions"
                   Directory="SystemFolder"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;if (Test-Path '%ProgramData%\Sentinel') { takeown /A /F '%ProgramData%\Sentinel' /R 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-545:(OI)(CI)(F)' /T /C /Q 2&gt;$null }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;if (Test-Path '%ProgramData%\Sentinel') { takeown /A /F '%ProgramData%\Sentinel' /R 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant 'Users:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant 'Administrators:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant 'SYSTEM:(OI)(CI)(F)' /T /C /Q 2&gt;$null }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
