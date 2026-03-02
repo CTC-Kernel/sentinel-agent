@@ -1038,8 +1038,8 @@ impl AgentRuntime {
                             }
                         }
                         // Drain GRC sync queue: upload locally-created playbooks, risks, assets, etc.
-                        if let Some(ref client) = self.authenticated_client {
-                            if let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref() {
+                        if let Some(ref client) = self.authenticated_client
+                            && let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref() {
                                 match orchestrator.drain_grc_queues(client).await {
                                     Ok(count) => {
                                         if count > 0 {
@@ -1049,7 +1049,6 @@ impl AgentRuntime {
                                     Err(e) => warn!("GRC sync queue drain failed: {}", e),
                                 }
                             }
-                        }
                     }
                     Err(e) => {
                         warn!("Heartbeat failed: {}", e);
@@ -1817,8 +1816,8 @@ impl AgentRuntime {
                 self.upload_check_results().await;
 
                 // Drain GRC sync queue during force sync
-                if let Some(ref client) = self.authenticated_client {
-                    if let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref() {
+                if let Some(ref client) = self.authenticated_client
+                    && let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref() {
                         match orchestrator.drain_grc_queues(client).await {
                             Ok(count) => {
                                 if count > 0 {
@@ -1828,7 +1827,6 @@ impl AgentRuntime {
                             Err(e) => warn!("Force sync GRC queue drain failed: {}", e),
                         }
                     }
-                }
 
                 match self
                     .send_heartbeat(compliance_score, last_compliance_check_at)
