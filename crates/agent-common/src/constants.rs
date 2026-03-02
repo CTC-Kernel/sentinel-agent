@@ -71,13 +71,15 @@ pub const FIREBASE_PROJECT_ID: &str = env_or_default!("SENTINEL_FIREBASE_PROJECT
 /// **Open-source users**: replace with your own Firebase Storage bucket.
 pub const FIREBASE_STORAGE_BUCKET: &str = env_or_default!("SENTINEL_FIREBASE_STORAGE_BUCKET", "YOUR_FIREBASE_PROJECT_ID.firebasestorage.app");
 
-/// Default server URL (Firebase Cloud Functions).
+/// Default server URL (Cloud Run v2, deployed via Firebase Functions v2).
 ///
 /// This is the **API** endpoint used by the agent for enrollment, heartbeats,
 /// and data uploads.  It is *not* the web dashboard URL visible to end users.
-/// **Open-source users**: replace with your own Cloud Functions endpoint.
+/// Firebase Functions v2 deploys to Cloud Run, so the URL uses the
+/// `*.run.app` format rather than the legacy `cloudfunctions.net` format.
+/// **Open-source users**: replace with your own Cloud Run endpoint.
 pub const DEFAULT_SERVER_URL: &str =
-    env_or_default!("SENTINEL_SERVER_URL", "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi");
+    env_or_default!("SENTINEL_SERVER_URL", "https://YOUR_CLOUD_RUN_SERVICE-YOUR_PROJECT_HASH.a.run.app");
 
 /// Base URL for release artifacts in Firebase Storage.
 ///
