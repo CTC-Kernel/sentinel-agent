@@ -1,53 +1,50 @@
-# Code de conduite des contributeurs
+<h1 align="center">CODE DE CONDUITE</h1>
 
-## Notre engagement
+<p align="center">
+  <strong>Engagement pour une Communauté Professionnelle et Sécurisée</strong>
+</p>
 
-En tant que membres, contributeurs et responsables, nous nous engageons a faire de la participation
-a notre communaute une experience sans harcelement pour tous, independamment de l'age, de la
-corpulence, du handicap visible ou invisible, de l'origine ethnique, des caracteristiques sexuelles,
-de l'identite et de l'expression de genre, du niveau d'experience, de l'education, du statut
-socio-economique, de la nationalite, de l'apparence physique, de la race, de la religion ou de
-l'identite et de l'orientation sexuelles.
+---
 
-## Nos standards
+## 🤝 Notre Engagement
 
-Exemples de comportements contribuant a un environnement positif :
+En tant que membres, contributeurs et responsables du projet **Sentinel GRC Agent**, nous nous engageons à faire de la participation à notre communauté une expérience sans harcèlement pour tous, indépendamment de l'âge, de la corpulence, du handicap, de l'origine ethnique, de l'identité de genre, du niveau d'expérience, de la religion ou de l'orientation sexuelle.
 
-* Utiliser un langage accueillant et inclusif
-* Respecter les points de vue et experiences differents
-* Accepter les critiques constructives avec grace
-* Se concentrer sur ce qui est le mieux pour la communaute
-* Faire preuve d'empathie envers les autres membres de la communaute
+## ⚖️ Nos Standards d'Excellence
 
-Exemples de comportements inacceptables :
+### Comportements Valorisés
+- **Professionnalisme** : Utiliser un langage accueillant, inclusif et précis.
+- **Respect** : Valoriser les points de vue divergents et les expériences variées.
+- **Amélioration** : Accepter les critiques constructives avec élégance et objectivité.
+- **Bien Commun** : Se concentrer sur ce qui est optimal pour la sécurité globale du projet.
 
-* L'utilisation de langage ou d'images a caractere sexuel et les avances sexuelles non sollicitees
-* Le trolling, les commentaires insultants ou derogatoires, et les attaques personnelles ou politiques
-* Le harcelement public ou prive
-* La publication d'informations privees d'autrui sans autorisation explicite
-* Tout autre comportement pouvant raisonnablement etre considere comme inapproprie
+### Comportements Inacceptables
+- Utilisation de langage ou d'images à caractère sexuel.
+- Trolling, commentaires insultants ou attaques personnelles/politiques.
+- Harcèlement public ou privé sous toutes ses formes.
+- Publication d'informations privées d'autrui sans autorisation explicite.
 
-## Responsabilites en matiere d'application
+---
 
-Les responsables de la communaute sont charges de clarifier et de faire respecter nos standards
-de comportement acceptable et prendront des mesures correctives appropriees et equitables en
-reponse a tout comportement qu'ils jugent inapproprie, menacant, offensant ou nuisible.
+## 👮 Responsabilités & Application
 
-## Champ d'application
+Les responsables de la communauté sont chargés de clarifier et de faire respecter nos standards de comportement. Ils prendront des mesures correctives immédiates, équitables et proportionnées en réponse à tout comportement jugé inapproprié ou nuisible.
 
-Ce Code de conduite s'applique dans tous les espaces de la communaute, et s'applique egalement
-lorsqu'une personne represente officiellement la communaute dans des espaces publics.
+> [!IMPORTANT]
+> **Signalement** : Tout cas de comportement abusif peut être signalé confidentiellement à [***REMOVED***](mailto:***REMOVED***). Toutes les plaintes feront l'objet d'une enquête rapide.
 
-## Application
+---
 
-Les cas de comportement abusif, harcelant ou autrement inacceptable peuvent etre signales aux
-responsables de la communaute charges de l'application a l'adresse
-***REMOVED***.
+## 🌐 Champ d'Application
 
-Toutes les plaintes seront examinees et feront l'objet d'une enquete rapide et equitable.
+Ce Code de conduite s'applique dans tous les espaces de la communauté Sentinel (GitHub, forums, réseaux sociaux), ainsi que lorsqu'une personne représente officiellement le projet dans des espaces publics.
 
-## Attribution
+---
 
-Ce Code de conduite est adapte du [Contributor Covenant](https://www.contributor-covenant.org/),
-version 2.0, disponible a l'adresse
-https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
+## 📜 Attribution
+
+Ce code de conduite est adapté du [Contributor Covenant](https://www.contributor-covenant.org/), version 2.0.
+
+<p align="center">
+  © 2024-2026 Cyber Threat Consulting.
+</p>
