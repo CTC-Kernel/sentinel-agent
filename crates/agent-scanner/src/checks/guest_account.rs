@@ -74,7 +74,7 @@ impl GuestAccountCheck {
     async fn check_windows(&self) -> ScannerResult<GuestAccountStatus> {
         debug!("Checking Windows Guest account status");
 
-        let output = Command::new("net")
+        let output = silent_command("net")
             .args(["user", "Guest"])
             .output()
             .map_err(|e| {

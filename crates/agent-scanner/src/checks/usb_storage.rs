@@ -85,7 +85,7 @@ impl UsbStorageCheck {
     async fn check_windows(&self) -> ScannerResult<UsbStorageStatus> {
         debug!("Checking Windows USB mass storage policy");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

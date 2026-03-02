@@ -429,7 +429,7 @@ impl ConnectionCollector {
         let mut connections = Vec::new();
 
         // Get TCP connections
-        let tcp_output = Command::new("powershell")
+        let tcp_output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -449,7 +449,7 @@ impl ConnectionCollector {
         }
 
         // Get UDP endpoints
-        let udp_output = Command::new("powershell")
+        let udp_output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -570,7 +570,7 @@ impl ConnectionCollector {
 
     #[cfg(target_os = "windows")]
     fn get_process_name_windows(&self, pid: u32) -> Option<String> {
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

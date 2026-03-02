@@ -89,7 +89,7 @@ impl SessionLockCheck {
     async fn check_windows(&self) -> ScannerResult<SessionLockStatus> {
         debug!("Checking Windows session lock settings");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

@@ -294,7 +294,7 @@ impl ProcessMonitor {
         use std::process::Command;
 
         // Use Get-CimInstance (fallback to Get-WmiObject if needed) to get CommandLine which Get-Process lacks
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

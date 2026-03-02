@@ -12,6 +12,7 @@ use agent_common::types::{
 use chrono::Utc;
 use std::collections::HashMap;
 use std::process::Command;
+use agent_common::process::silent_command;
 use std::time::Instant;
 use tracing::{info, warn};
 
@@ -438,7 +439,7 @@ fn execute_script(script: &str, platform: &str, _requires_admin: bool) -> Result
     }
 
     let output = if platform == "windows" || cfg!(target_os = "windows") {
-        Command::new("cmd").args(["/C", script]).output()
+        silent_command("cmd").args(["/C", script]).output()
     } else {
         Command::new("sh").args(["-c", script]).output()
     };

@@ -549,7 +549,7 @@ impl SshHardeningCheck {
         };
 
         // Check if OpenSSH server is installed and running
-        let service_output = Command::new("sc").args(["query", "sshd"]).output();
+        let service_output = silent_command("sc").args(["query", "sshd"]).output();
 
         if let Ok(output) = service_output {
             let result = String::from_utf8_lossy(&output.stdout).to_string();

@@ -512,7 +512,7 @@ impl WindowsHardeningCheck {
         }
         ps_script.push_str("$results | ConvertTo-Json");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args(["-NoProfile", "-Command", &ps_script])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run PowerShell batch: {}", e)))?;
@@ -686,7 +686,7 @@ impl SecureBootCheck {
         use std::process::Command;
 
         // Use PowerShell to check Secure Boot status
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

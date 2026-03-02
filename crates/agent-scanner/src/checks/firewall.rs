@@ -98,7 +98,7 @@ impl FirewallCheck {
     async fn check_windows(&self) -> ScannerResult<FirewallStatus> {
         debug!("Checking Windows Firewall status");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -208,7 +208,7 @@ impl FirewallCheck {
 
     #[cfg(target_os = "windows")]
     async fn get_windows_rule_count(&self) -> ScannerResult<u32> {
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args(["-NoProfile", "-Command", "(Get-NetFirewallRule).Count"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(e.to_string()))?;

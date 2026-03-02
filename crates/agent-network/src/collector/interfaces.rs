@@ -317,7 +317,7 @@ impl InterfaceCollector {
         let mut interfaces = Vec::new();
 
         // Use PowerShell to get network adapter info
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -408,7 +408,7 @@ impl InterfaceCollector {
         let mut ipv4 = Vec::new();
         let mut ipv6 = Vec::new();
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

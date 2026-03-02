@@ -30,6 +30,7 @@ pub mod error;
 pub mod frameworks;
 #[cfg(target_os = "macos")]
 pub mod macos;
+pub mod process;
 pub mod sensitive_filter;
 pub mod types;
 

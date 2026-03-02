@@ -81,7 +81,7 @@ impl GpoAuditor {
         let mut settings = GpoSecuritySettings::default();
 
         // Use secedit to export local policy
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -209,7 +209,7 @@ impl GpoAuditor {
         use tokio::process::Command;
 
         // First check if we're domain-joined
-        let domain_check = Command::new("powershell")
+        let domain_check = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -230,7 +230,7 @@ impl GpoAuditor {
         }
 
         // Get domain password policy using Get-ADDefaultDomainPasswordPolicy
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -327,7 +327,7 @@ impl GpoAuditor {
     async fn get_audit_policy(&self) -> ScannerResult<AuditPolicy> {
         use tokio::process::Command;
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -440,7 +440,7 @@ impl GpoAuditor {
                     && !group_name.contains('&'),
                 "group_name must not contain PowerShell metacharacters"
             );
-            let output = Command::new("powershell")
+            let output = silent_command("powershell")
                 .args([
                     "-NoProfile",
                     "-Command",

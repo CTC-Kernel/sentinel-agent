@@ -84,7 +84,7 @@ impl BrowserSecurityCheck {
         let mut safe_browsing_enabled = None;
 
         // Check Chrome enterprise policies
-        let chrome_output = Command::new("reg")
+        let chrome_output = silent_command("reg")
             .args([
                 "query",
                 r"HKLM\SOFTWARE\Policies\Google\Chrome",
@@ -117,7 +117,7 @@ impl BrowserSecurityCheck {
         }
 
         // Check Edge enterprise policies
-        if let Ok(edge_output) = Command::new("reg")
+        if let Ok(edge_output) = silent_command("reg")
             .args(["query", r"HKLM\SOFTWARE\Policies\Microsoft\Edge"])
             .output()
         {

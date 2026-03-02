@@ -101,7 +101,7 @@ impl DiskEncryptionCheck {
         debug!("Checking BitLocker status on Windows");
 
         // Use PowerShell to get BitLocker status
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

@@ -80,7 +80,7 @@ impl AuditLoggingCheck {
     async fn check_windows(&self) -> ScannerResult<AuditLoggingStatus> {
         debug!("Checking Windows Event Log service status");
 
-        let output = Command::new("sc")
+        let output = silent_command("sc")
             .args(["query", "eventlog"])
             .output()
             .map_err(|e| {

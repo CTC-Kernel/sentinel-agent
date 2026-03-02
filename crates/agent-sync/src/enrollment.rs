@@ -213,7 +213,7 @@ fn get_machine_id() -> Option<String> {
     // On Windows, use the MachineGuid from registry
     use std::process::Command;
 
-    Command::new("reg")
+    silent_command("reg")
         .args([
             "query",
             r"HKLM\SOFTWARE\Microsoft\Cryptography",

@@ -128,7 +128,7 @@ impl SystemMonitor {
     async fn check_firewall(&self) -> Option<SecurityIncident> {
         use std::process::Command;
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -177,7 +177,7 @@ impl SystemMonitor {
         use std::process::Command;
 
         // Check Windows Defender status
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -438,7 +438,7 @@ impl SystemMonitor {
         use std::process::Command;
 
         // Use SID S-1-5-32-544 to find the Administrators group name reliably across localizations
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

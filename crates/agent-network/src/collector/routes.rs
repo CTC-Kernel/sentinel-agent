@@ -13,7 +13,7 @@
 use crate::error::NetworkError;
 use crate::error::NetworkResult;
 use crate::types::RouteEntry;
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Collects routing table information.
@@ -89,7 +89,7 @@ impl RouteCollector {
         }
 
         // Also try ip route for more detailed info
-        if let Ok(output) = Command::new("ip").args(["route", "show"]).output() {
+        if let Ok(output) = silent_command("ip").args(["route", "show"]).output() {
             let stdout = String::from_utf8_lossy(&output.stdout);
             for line in stdout.lines() {
                 if let Some(route) = self.parse_ip_route_line(line) {
@@ -221,7 +221,7 @@ impl RouteCollector {
         let mut routes = Vec::new();
 
         // Use netstat -rn for routing table
-        let output = Command::new("netstat")
+        let output = silent_command("netstat")
             .args(["-rn"])
             .output()
             .map_err(|e| NetworkError::CommandFailed(format!("netstat failed: {}", e)))?;
@@ -291,7 +291,7 @@ impl RouteCollector {
         let mut routes = Vec::new();
 
         // Use PowerShell Get-NetRoute
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

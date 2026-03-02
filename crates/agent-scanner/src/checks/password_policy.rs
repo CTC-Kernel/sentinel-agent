@@ -103,7 +103,7 @@ impl PasswordPolicyCheck {
 
         // Use 'net accounts' to get password policy
         // Use PowerShell with secedit to get password policy (avoid localization issues)
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

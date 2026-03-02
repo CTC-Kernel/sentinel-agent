@@ -301,7 +301,7 @@ impl ResourceMonitor {
         #[cfg(target_os = "windows")]
         {
             use std::process::Stdio;
-            let child = std::process::Command::new("netstat")
+            let child = agent_common::process::silent_command("netstat")
                 .args(["-ano"])
                 .stdout(Stdio::piped())
                 .stderr(Stdio::null())

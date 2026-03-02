@@ -104,7 +104,7 @@ impl BackupCheck {
     async fn check_windows(&self) -> ScannerResult<BackupStatus> {
         debug!("Checking Windows backup configuration");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

@@ -2397,7 +2397,7 @@ fn show_enrollment_dialog() -> Option<String> {
         Write-Output $token
     "#;
 
-    let output = Command::new("powershell")
+    let output = silent_command("powershell")
         .args(["-NoProfile", "-Command", script])
         .output()
         .ok()?;
@@ -2492,7 +2492,7 @@ fn show_error_dialog(title: &str, message: &str) {
         sanitize_powershell(title)
     );
 
-    let _ = Command::new("powershell")
+    let _ = silent_command("powershell")
         .args(["-NoProfile", "-Command", &script])
         .output();
 }

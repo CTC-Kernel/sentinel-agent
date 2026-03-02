@@ -130,7 +130,7 @@ impl RemoteAccessCheck {
     async fn check_windows(&self) -> ScannerResult<RemoteAccessStatus> {
         debug!("Checking Windows remote access security");
 
-        let output = Command::new("powershell")
+        let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",

@@ -71,16 +71,16 @@ impl UpdateManager {
 
         // 2. Download checksum
         let checksum_url = format!(
-            "https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/{}/{}",
-            folder, checksum_file
+            "{}/{}/{}",
+            agent_common::constants::RELEASES_BASE_URL, folder, checksum_file
         );
         debug!("Fetching checksum from {}", checksum_url);
         let expected_checksum = self.api_client.fetch_text(&checksum_url).await?;
 
         // 3. Download package
         let package_url = format!(
-            "https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/{}/{}",
-            folder, package_name
+            "{}/{}/{}",
+            agent_common::constants::RELEASES_BASE_URL, folder, package_name
         );
 
         // Use a unique temporary directory to prevent TOCTOU attacks
@@ -250,7 +250,7 @@ impl UpdateManager {
             // Forcefully terminate any running GUI processes and their children to release file locks.
             // We use /IM (Image Name) and /T (Tree Kill) /F (Force).
             // This ensures agent-gui.exe and any sub-processes are completely gone.
-            let kill_gui = Command::new("taskkill")
+            let kill_gui = silent_command("taskkill")
                 .args(["/F", "/T", "/IM", "agent-gui.exe"])
                 .output();
                 

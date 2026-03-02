@@ -82,7 +82,7 @@ impl Ipv6ConfigCheck {
     async fn check_windows(&self) -> ScannerResult<Ipv6HardeningStatus> {
         debug!("Checking Windows IPv6 hardening settings");
 
-        let output = Command::new("reg")
+        let output = silent_command("reg")
             .args([
                 "query",
                 r"HKLM\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters",
