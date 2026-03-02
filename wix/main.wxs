@@ -142,16 +142,6 @@
               Source="$(var.TargetDir)\agent-core.exe"
               KeyPath="yes" />
 
-        <!-- GUI launcher batch file - always starts with GUI -->
-        <File Id="SentinelGuiLauncher"
-              Name="sentinel-agent-gui.bat"
-              Source="scripts\sentinel-gui-launcher.bat" />
-
-        <!-- Direct CMD launcher for double-click -->
-        <File Id="SentinelDirectLauncher"
-              Name="sentinel-agent.cmd"
-              Source="scripts\sentinel-agent.cmd" />
-
         <!-- Windows Service registration using the same binary -->
         <ServiceInstall
           Id="SentinelServiceInstall"
@@ -235,8 +225,8 @@
         <Shortcut Id="DashboardShortcut"
                   Name="Tableau de bord Sentinel"
                   Description="Ouvrir le tableau de bord en ligne"
-                  Target="[SystemFolder]cmd.exe"
-                  Arguments='/c start https://app.cyber-threat-consulting.com/settings?tab=agents'
+                  Target="[WindowsFolder]explorer.exe"
+                  Arguments='https://app.cyber-threat-consulting.com/settings?tab=agents'
                   Icon="SentinelIcon" />
 
         <Shortcut Id="UninstallShortcut"
