@@ -441,17 +441,18 @@ impl AgentTray {
             }
 
             menu_ids::OPEN_DASHBOARD => {
-                info!("Opening tray popup with premium radar");
-                // Launch tray popup GUI directly
+                info!("Opening full GUI dashboard");
+                // Launch the full GUI (exe with no args defaults to GUI mode)
                 if let Ok(exe) = std::env::current_exe() {
-                    if let Err(e) = std::process::Command::new(exe)
-                        .args(["--tray-popup"])
-                        .spawn()
+                    if let Err(e) = agent_common::process::silent_command(
+                        exe.to_string_lossy().as_ref(),
+                    )
+                    .spawn()
                     {
-                        warn!("Failed to spawn tray popup: {}", e);
+                        warn!("Failed to spawn GUI: {}", e);
                     }
                 } else {
-                    warn!("Failed to resolve current executable path for tray popup");
+                    warn!("Failed to resolve current executable path");
                 }
             }
 

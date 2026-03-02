@@ -48,7 +48,7 @@ pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonErro
 
     #[cfg(target_os = "windows")]
     {
-        let output = tokio::process::silent_command("taskkill")
+        let output = silent_command("taskkill")
             .args(["/F", "/T", "/PID", &pid.to_string()])
             .output()
             .await
@@ -224,7 +224,7 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
             "SentinelBlock_{}",
             ip.replace('.', "_").replace(':', "_")
         );
-        let output = tokio::process::silent_command("netsh")
+        let output = silent_command("netsh")
             .args([
                 "advfirewall",
                 "firewall",
@@ -300,7 +300,7 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
             "SentinelBlock_{}",
             ip.replace('.', "_").replace(':', "_")
         );
-        let _ = tokio::process::silent_command("netsh")
+        let _ = silent_command("netsh")
             .args([
                 "advfirewall",
                 "firewall",

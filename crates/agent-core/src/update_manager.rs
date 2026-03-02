@@ -272,7 +272,7 @@ impl UpdateManager {
             }
 
             info!("Executing: msiexec /i {} /quiet", path_str);
-            Command::new("msiexec")
+            silent_command("msiexec")
                 .args(["/i", path_str, "/quiet"])
                 .spawn()
                 .map_err(|e| CommonError::system(format!("Failed to launch msiexec: {}", e)))?;

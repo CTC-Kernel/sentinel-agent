@@ -212,7 +212,7 @@ impl SoftwarePage {
                                     .args(["-R", &app.path])
                                     .spawn();
                                 #[cfg(target_os = "windows")]
-                                let result = std::process::Command::new("explorer")
+                                let result = agent_common::process::silent_command("explorer")
                                     .args(["/select,", &app.path])
                                     .spawn();
                                 if let Err(e) = result {
