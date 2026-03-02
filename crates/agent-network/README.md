@@ -1,85 +1,85 @@
 # agent-network
 
-Network monitoring and discovery for the Sentinel GRC Agent.
+Surveillance reseau et decouverte pour le Sentinel GRC Agent.
 
-## Overview
+## Presentation
 
-This crate provides network visibility and security detection:
+Cette crate fournit la visibilite reseau et la detection de securite :
 
-- **Network collection**: Interfaces, connections, routes, DNS
-- **Security detection**: C2, crypto mining, data exfiltration
-- **Device discovery**: ARP scanning, ping sweep, device classification
-- **Delta sync**: Efficient network state synchronization
+- **Collecte reseau** : Interfaces, connexions, routes, DNS
+- **Detection de securite** : C2, crypto-minage, exfiltration de donnees
+- **Decouverte d'appareils** : Scan ARP, ping sweep, classification des appareils
+- **Synchronisation delta** : Synchronisation efficace de l'etat reseau
 
 ## Modules
 
-### Collector
+### Collecteur
 
-Collects network state information:
+Collecte les informations d'etat du reseau :
 
-- `interfaces`: Network interface enumeration
-- `connections`: Active TCP/UDP connections
-- `routes`: Routing table entries
-- `dns`: DNS server configuration
+- `interfaces` : Enumeration des interfaces reseau
+- `connections` : Connexions TCP/UDP actives
+- `routes` : Entrees de la table de routage
+- `dns` : Configuration des serveurs DNS
 
 ### Detection
 
-Security threat detection:
+Detection des menaces de securite :
 
-- `c2_detector`: Command & control communication
-- `miner_detector`: Cryptocurrency mining traffic
-- `exfil_detector`: Data exfiltration patterns
-- `port_scanner`: Suspicious port activity
+- `c2_detector` : Communication de type Command & Control
+- `miner_detector` : Trafic de minage de crypto-monnaie
+- `exfil_detector` : Schemas d'exfiltration de donnees
+- `port_scanner` : Activite suspecte sur les ports
 
-### Discovery
+### Decouverte
 
-Network device discovery:
+Decouverte des appareils reseau :
 
-- `arp_scanner`: ARP-based device discovery
-- `ping_sweep`: ICMP-based host detection
-- `device_resolver`: MAC vendor lookup and device classification
+- `arp_scanner` : Decouverte d'appareils basee sur ARP
+- `ping_sweep` : Detection d'hotes par ICMP
+- `device_resolver` : Recherche du fabricant par MAC et classification des appareils
 
-### Sync
+### Synchronisation
 
-Efficient synchronization:
+Synchronisation efficace :
 
-- `delta`: Network state delta computation
-- `scheduler`: Smart collection scheduling
+- `delta` : Calcul des deltas d'etat reseau
+- `scheduler` : Planification intelligente de la collecte
 
-## Usage
+## Utilisation
 
 ```rust
 use agent_network::{NetworkManager, DiscoveryConfig};
 
 let manager = NetworkManager::new();
 
-// Collect network snapshot
+// Collecter un instantane reseau
 let snapshot = manager.collect_snapshot().await?;
 
-// Run security detection
+// Executer la detection de securite
 let alerts = manager.detect_threats(&snapshot).await?;
 
-// Discover devices
+// Decouvrir les appareils
 let config = DiscoveryConfig::default();
 let devices = manager.discover_devices(&config).await?;
 ```
 
-## Security Alerts
+## Alertes de securite
 
-| Alert Type | Description |
-|------------|-------------|
-| C2Communication | Command & control traffic detected |
-| CryptoMining | Cryptocurrency mining activity |
-| DataExfiltration | Potential data theft |
-| SuspiciousPort | Unusual outbound port usage |
-| MaliciousDestination | Connection to known bad IP |
-| DnsTunneling | DNS-based covert channel |
-| AnonymizationNetwork | Tor/proxy usage |
-| ConnectionAnomaly | Unusual connection patterns |
+| Type d'alerte | Description |
+|---------------|-------------|
+| C2Communication | Trafic Command & Control detecte |
+| CryptoMining | Activite de minage de crypto-monnaie |
+| DataExfiltration | Vol potentiel de donnees |
+| SuspiciousPort | Utilisation inhabituelle de ports sortants |
+| MaliciousDestination | Connexion vers une IP malveillante connue |
+| DnsTunneling | Canal couvert base sur DNS |
+| AnonymizationNetwork | Utilisation de Tor/proxy |
+| ConnectionAnomaly | Schemas de connexion inhabituels |
 
-## Device Types
+## Types d'appareils
 
-Discovered devices are classified as:
+Les appareils decouverts sont classes comme :
 
-- Router, Switch, Server, Workstation
-- Printer, IoT, Phone, Unknown
+- Routeur, Switch, Serveur, Poste de travail
+- Imprimante, IoT, Telephone, Inconnu

@@ -1,46 +1,46 @@
-# Sentinel GRC Agent Configuration
+# Configuration du Sentinel GRC Agent
 
-This directory contains example configuration files for the Sentinel GRC Agent.
+Ce repertoire contient les fichiers de configuration d'exemple pour le Sentinel GRC Agent.
 
-## Configuration Files
+## Fichiers de configuration
 
-- `agent.example.json` - Minimal configuration example
-- `agent.full.example.json` - Full configuration with all options
+- `agent.example.json` - Exemple de configuration minimale
+- `agent.full.example.json` - Configuration complete avec toutes les options
 
-## Platform-Specific Paths
+## Chemins specifiques par plateforme
 
-The agent automatically determines paths based on the operating system:
+L'agent determine automatiquement les chemins en fonction du systeme d'exploitation :
 
 ### Windows
 
-| Path Type | Location |
-|-----------|----------|
-| Config File | `C:\ProgramData\Sentinel\agent.json` |
-| Database | `C:\ProgramData\Sentinel\data\agent.db` |
+| Type de chemin | Emplacement |
+|----------------|-------------|
+| Fichier de configuration | `C:\ProgramData\Sentinel\agent.json` |
+| Base de donnees | `C:\ProgramData\Sentinel\data\agent.db` |
 | Logs | `C:\ProgramData\Sentinel\logs\` |
 
 ### Linux
 
-| Path Type | Location |
-|-----------|----------|
-| Config File | `/etc/sentinel/agent.json` |
-| Database | `/var/lib/sentinel-grc/agent.db` |
+| Type de chemin | Emplacement |
+|----------------|-------------|
+| Fichier de configuration | `/etc/sentinel/agent.json` |
+| Base de donnees | `/var/lib/sentinel-grc/agent.db` |
 | Logs | `/var/log/sentinel-grc/` |
 
 ### macOS
 
-| Path Type | Location |
-|-----------|----------|
-| Config File | `~/Library/Application Support/SentinelGRC/agent.json` |
-| Database | `~/Library/Application Support/SentinelGRC/agent.db` |
+| Type de chemin | Emplacement |
+|----------------|-------------|
+| Fichier de configuration | `~/Library/Application Support/SentinelGRC/agent.json` |
+| Base de donnees | `~/Library/Application Support/SentinelGRC/agent.db` |
 | Logs | `~/Library/Application Support/SentinelGRC/logs/` |
 
-## Environment Variables
+## Variables d'environnement
 
-All configuration values can be overridden via environment variables with the `SENTINEL_` prefix:
+Toutes les valeurs de configuration peuvent etre surchargees via des variables d'environnement avec le prefixe `SENTINEL_` :
 
-| Environment Variable | Config Field | Example |
-|---------------------|--------------|---------|
+| Variable d'environnement | Champ de configuration | Exemple |
+|--------------------------|------------------------|---------|
 | `SENTINEL_SERVER_URL` | `server_url` | `https://your-sentinel-server.example.com` |
 | `SENTINEL_CHECK_INTERVAL_SECS` | `check_interval_secs` | `3600` |
 | `SENTINEL_LOG_LEVEL` | `log_level` | `debug` |
@@ -50,14 +50,14 @@ All configuration values can be overridden via environment variables with the `S
 | `SENTINEL_SECURITY_SCAN_INTERVAL_SECS` | `security_scan_interval_secs` | `300` |
 | `SENTINEL_HEARTBEAT_INTERVAL_SECS` | `heartbeat_interval_secs` | `60` |
 
-## Configuration Priority
+## Priorite de configuration
 
-Configuration is loaded in this order (later sources override earlier):
+La configuration est chargee dans cet ordre (les sources ulterieures ecrasent les precedentes) :
 
-1. **Default values** - Hardcoded sensible defaults
-2. **JSON file** - Platform-specific path or custom path
-3. **Environment variables** - `SENTINEL_*` prefix
+1. **Valeurs par defaut** - Valeurs par defaut codees en dur
+2. **Fichier JSON** - Chemin specifique a la plateforme ou chemin personnalise
+3. **Variables d'environnement** - Prefixe `SENTINEL_*`
 
-## Development Mode
+## Mode developpement
 
-For development, place `agent.json` in the current working directory. The agent will use this file if no system-level configuration exists.
+Pour le developpement, placez `agent.json` dans le repertoire de travail courant. L'agent utilisera ce fichier si aucune configuration au niveau systeme n'existe.

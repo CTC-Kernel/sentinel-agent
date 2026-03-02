@@ -250,13 +250,13 @@ jobs:
           fi
           
           # Make scripts executable
-          chmod +x create-macos-developer-signed-installer.sh
-          
+          chmod +x macos/create-macos-developer-signed-installer.sh
+
           # Run the robust installer script
           # Pass the found identities explicitly
           SIGNING_IDENTITY="$SIGNING_IDENTITY" \
           INSTALLER_IDENTITY="$INSTALLER_IDENTITY" \
-          ./create-macos-developer-signed-installer.sh
+          ./macos/create-macos-developer-signed-installer.sh
           
           # Move the output to target/release for artifact upload
           mv "dist/SentinelAgent-${VERSION}.pkg" "target/release/"

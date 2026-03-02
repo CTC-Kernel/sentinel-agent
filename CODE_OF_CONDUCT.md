@@ -1,54 +1,53 @@
-# Contributor Covenant Code of Conduct
+# Code de conduite des contributeurs
 
-## Our Pledge
+## Notre engagement
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+En tant que membres, contributeurs et responsables, nous nous engageons a faire de la participation
+a notre communaute une experience sans harcelement pour tous, independamment de l'age, de la
+corpulence, du handicap visible ou invisible, de l'origine ethnique, des caracteristiques sexuelles,
+de l'identite et de l'expression de genre, du niveau d'experience, de l'education, du statut
+socio-economique, de la nationalite, de l'apparence physique, de la race, de la religion ou de
+l'identite et de l'orientation sexuelles.
 
-## Our Standards
+## Nos standards
 
-Examples of behavior that contributes to a positive environment:
+Exemples de comportements contribuant a un environnement positif :
 
-* Using welcoming and inclusive language
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
-* Showing empathy towards other community members
+* Utiliser un langage accueillant et inclusif
+* Respecter les points de vue et experiences differents
+* Accepter les critiques constructives avec grace
+* Se concentrer sur ce qui est le mieux pour la communaute
+* Faire preuve d'empathie envers les autres membres de la communaute
 
-Examples of unacceptable behavior:
+Exemples de comportements inacceptables :
 
-* The use of sexualized language or imagery and unwelcome sexual attention
-* Trolling, insulting or derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information without explicit permission
-* Other conduct which could reasonably be considered inappropriate
+* L'utilisation de langage ou d'images a caractere sexuel et les avances sexuelles non sollicitees
+* Le trolling, les commentaires insultants ou derogatoires, et les attaques personnelles ou politiques
+* Le harcelement public ou prive
+* La publication d'informations privees d'autrui sans autorisation explicite
+* Tout autre comportement pouvant raisonnablement etre considere comme inapproprie
 
-## Enforcement Responsibilities
+## Responsabilites en matiere d'application
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+Les responsables de la communaute sont charges de clarifier et de faire respecter nos standards
+de comportement acceptable et prendront des mesures correctives appropriees et equitables en
+reponse a tout comportement qu'ils jugent inapproprie, menacant, offensant ou nuisible.
 
-## Scope
+## Champ d'application
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
+Ce Code de conduite s'applique dans tous les espaces de la communaute, et s'applique egalement
+lorsqu'une personne represente officiellement la communaute dans des espaces publics.
 
-## Enforcement
+## Application
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
+Les cas de comportement abusif, harcelant ou autrement inacceptable peuvent etre signales aux
+responsables de la communaute charges de l'application a l'adresse
 ***REMOVED***.
 
-All complaints will be reviewed and investigated promptly and fairly.
+Toutes les plaintes seront examinees et feront l'objet d'une enquete rapide et equitable.
 
 ## Attribution
 
-This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org/),
-version 2.0, available at
+Ce Code de conduite est adapte du [Contributor Covenant](https://www.contributor-covenant.org/),
+version 2.0, disponible a l'adresse
 https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.

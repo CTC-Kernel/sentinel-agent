@@ -5,135 +5,135 @@
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange.svg)](https://www.rust-lang.org/)
 [![Version](https://img.shields.io/badge/version-2.0.112-green.svg)]()
 
-A lightweight, secure endpoint agent for compliance monitoring, vulnerability scanning, network discovery, and GRC (Governance, Risk, Compliance) enforcement -- with an optional real-time desktop GUI.
+Agent endpoint leger et securise pour la surveillance de conformite, le scan de vulnerabilites, la decouverte reseau et l'application des politiques GRC (Gouvernance, Risques, Conformite) -- avec une interface graphique de bureau optionnelle en temps reel.
 
-**Developed by [Cyber Threat Consulting](https://cyber-threat-consulting.com)**
+**Developpe par [Cyber Threat Consulting](https://cyber-threat-consulting.com)**
 
-## Overview
+## Presentation
 
-Sentinel GRC Agent is a cross-platform agent that:
+Sentinel GRC Agent est un agent multi-plateforme qui :
 
-### Compliance & Security
-- Runs **21 compliance checks** across CIS benchmarks, NIS2, ISO 27001, DORA, and SOC2 frameworks
-- Scans **151+ Homebrew packages** for known CVE vulnerabilities
-- Monitors running processes for suspicious activity
-- Provides automated remediation for failing compliance checks
-- Tracks file integrity changes
+### Conformite et Securite
+- Execute **21 controles de conformite** couvrant les referentiels CIS, NIS2, ISO 27001, DORA et SOC2
+- Scanne **151+ paquets Homebrew** a la recherche de vulnerabilites CVE connues
+- Surveille les processus en cours d'execution pour detecter les activites suspectes
+- Fournit une remediation automatisee pour les controles en echec
+- Surveille l'integrite des fichiers critiques
 
-### Network
-- Collects network topology (interfaces, active connections, routes)
-- Performs network discovery via ARP, mDNS, and SSDP
-- Detects network-level security anomalies
+### Reseau
+- Collecte la topologie reseau (interfaces, connexions actives, routes)
+- Effectue la decouverte reseau via ARP, mDNS et SSDP
+- Detecte les anomalies de securite au niveau reseau
 
-### Desktop GUI
-- Real-time desktop GUI built with **egui** and a system tray icon
-- **14 pages**: Dashboard, Monitoring (CPU/RAM/Disk/Net charts), Compliance, Software, Vulnerabilities, File Integrity, Threats, Network, Sync, Terminal (live logs), Discovery, Cartography, Notifications, Settings
-- Premium sync indicator in sidebar with animated status dot
-- Light and dark theme support
+### Interface graphique
+- Interface de bureau en temps reel construite avec **egui** et une icone dans la barre systeme
+- **14 pages** : Tableau de bord, Surveillance (graphiques CPU/RAM/Disque/Reseau), Conformite, Logiciels, Vulnerabilites, Integrite des fichiers, Menaces, Reseau, Synchronisation, Terminal (logs en direct), Decouverte, Cartographie, Notifications, Parametres
+- Indicateur de synchronisation premium dans la barre laterale avec point d'etat anime
+- Support des themes clair et sombre
 
-### Sync & Storage
-- Reports results to the Sentinel GRC platform
-- Encrypted SQLite storage (SQLCipher AES-256)
-- Certificate-based authentication (mTLS) with header fallback
-- Offline-first with store-and-forward sync
-- Smart scheduling with jitter to avoid thundering herds
-- Battery-aware scan throttling
+### Synchronisation et Stockage
+- Remonte les resultats vers la plateforme Sentinel GRC
+- Stockage SQLite chiffre (SQLCipher AES-256)
+- Authentification par certificat (mTLS) avec fallback par en-tete
+- Mode hors-ligne prioritaire avec synchronisation differee (store-and-forward)
+- Planification intelligente avec jitter pour eviter les effets de troupeau
+- Modulation des scans en fonction de la batterie
 
 ## Architecture
 
-The agent is built as a Rust workspace with modular crates:
+L'agent est construit sous forme d'un workspace Rust avec des crates modulaires :
 
 ```
 sentinel-agent/
 ├── crates/
-│   ├── agent-common/    # Shared types, config, and utilities
-│   ├── agent-system/    # Platform-specific system interactions
-│   ├── agent-storage/   # SQLite-based encrypted local storage
-│   ├── agent-scanner/   # Compliance checks, vulnerability scanner, security monitor
-│   ├── agent-network/   # Network collection, discovery, and security detection
-│   ├── agent-sync/      # SaaS communication (mTLS, result upload, rule sync)
-│   ├── agent-gui/       # egui desktop GUI with system tray
-│   └── agent-core/      # Main entry point and orchestration
-└── xtask/               # Build automation tasks
+│   ├── agent-common/    # Types partages, configuration et utilitaires
+│   ├── agent-system/    # Interactions systeme specifiques a chaque plateforme
+│   ├── agent-storage/   # Stockage local chiffre base sur SQLite
+│   ├── agent-scanner/   # Controles de conformite, scanner de vulnerabilites, moniteur de securite
+│   ├── agent-network/   # Collecte reseau, decouverte et detection de securite
+│   ├── agent-sync/      # Communication SaaS (mTLS, upload des resultats, synchronisation des regles)
+│   ├── agent-gui/       # Interface graphique egui avec barre systeme
+│   └── agent-core/      # Point d'entree principal et orchestration
+└── xtask/               # Taches d'automatisation de build
 ```
 
-## Requirements
+## Prerequis
 
-- Rust 2024 Edition (1.93.0+)
-- Supported platforms:
-  - macOS 12+ (x86_64 and Apple Silicon/ARM64)
+- Rust Edition 2024 (1.93.0+)
+- Plateformes supportees :
+  - macOS 12+ (x86_64 et Apple Silicon/ARM64)
   - Windows 10+ (x64)
   - Linux (Ubuntu 20.04+, RHEL 8+)
 
-## Building
+## Compilation
 
 ```bash
-# Build with GUI (desktop)
+# Compilation avec GUI (bureau)
 cargo build --release --package agent-core --features gui
 
-# Build headless (server)
+# Compilation headless (serveur)
 cargo build --release --package agent-core
 
-# Debug build
+# Compilation debug
 cargo build
 
-# Run tests
+# Lancer les tests
 cargo test
 
-# Run with all checks
+# Lancer toutes les verifications
 cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```
 
-## Development
+## Developpement
 
-### Prerequisites
+### Prerequis
 
 ```bash
-# Install Rust
+# Installer Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Install development tools
+# Installer les outils de developpement
 cargo install cargo-deny cargo-audit
 rustup component add rustfmt clippy llvm-tools-preview
 ```
 
-### Quality Gates
+### Portes de qualite
 
-All PRs must pass:
-- `cargo fmt --check` - Code formatting
-- `cargo clippy -- -D warnings` - Linting
-- `cargo test` - Unit tests
-- `cargo deny check` - License and security checks
-- `cargo audit` - Vulnerability scanning
+Toutes les PR doivent passer :
+- `cargo fmt --check` - Formatage du code
+- `cargo clippy -- -D warnings` - Analyse statique (linting)
+- `cargo test` - Tests unitaires
+- `cargo deny check` - Verification des licences et de la securite
+- `cargo audit` - Scan de vulnerabilites
 
-### Code Coverage
+### Couverture de code
 
-Coverage reports are generated using `cargo-llvm-cov`:
+Les rapports de couverture sont generes avec `cargo-llvm-cov` :
 
 ```bash
 cargo install cargo-llvm-cov
 cargo llvm-cov --all-features --workspace
 ```
 
-Minimum coverage threshold: **70%**
+Seuil minimum de couverture : **70%**
 
-## Security
+## Securite
 
-- All data encrypted at rest (SQLCipher/AES-256)
-- TLS 1.3 + mTLS for all communications
-- Certificate-based authentication with header fallback
-- Binary signing (Authenticode/GPG)
-- Regular security audits via cargo-audit
+- Toutes les donnees chiffrees au repos (SQLCipher/AES-256)
+- TLS 1.3 + mTLS pour toutes les communications
+- Authentification par certificat avec fallback par en-tete
+- Signature des binaires (Authenticode/GPG)
+- Audits de securite reguliers via cargo-audit
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/CTC-Kernel/sentinel-agent/issues)
-- **Website**: [cyber-threat-consulting.com](https://cyber-threat-consulting.com)
+- **Issues** : [GitHub Issues](https://github.com/CTC-Kernel/sentinel-agent/issues)
+- **Site web** : [cyber-threat-consulting.com](https://cyber-threat-consulting.com)
 
-## Contributing
+## Contribuer
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Les contributions sont les bienvenues ! Consultez [CONTRIBUTING.md](CONTRIBUTING.md) pour les directives.
 
-## License
+## Licence
 
-MIT License - Copyright 2024-2026 Cyber Threat Consulting. See [LICENSE](LICENSE) for details.
+Licence MIT - Copyright 2024-2026 Cyber Threat Consulting. Voir [LICENSE](LICENSE) pour les details.
