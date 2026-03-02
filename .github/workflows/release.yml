@@ -504,15 +504,28 @@ jobs:
           $version = "${{ env.RELEASE_VERSION }}"
           $password = "Sentinel2024!Free"
           $securePassword = ConvertTo-SecureString -String $password -Force -AsPlainText
-          
-          # Sign the MSI
-          signtool sign /f "sentinel-selfsigned.pfx" /p $password /t http://timestamp.digicert.com /fd sha256 "target\release\SentinelAgentSetup-$version.msi"
-          
-          # Verify signature
-          signtool verify /pa "target\release\SentinelAgentSetup-$version.msi"
-          
-          Write-Host "MSI signed successfully with free certificate"
-          
+
+          # Locate signtool.exe from Windows SDK (not in PATH by default on GH Actions runners)
+          $signtoolExe = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter "signtool.exe" -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match "x64" } |
+            Sort-Object { [version]($_.Directory.Parent.Name) } -Descending |
+            Select-Object -First 1
+
+          if (-not $signtoolExe) {
+            Write-Host "::warning::signtool.exe not found in Windows SDK — skipping code signing"
+          } else {
+            $signtool = $signtoolExe.FullName
+            Write-Host "Found signtool: $signtool"
+
+            # Sign the MSI
+            & $signtool sign /f "sentinel-selfsigned.pfx" /p $password /t http://timestamp.digicert.com /fd sha256 "target\release\SentinelAgentSetup-$version.msi"
+
+            # Verify signature
+            & $signtool verify /pa "target\release\SentinelAgentSetup-$version.msi"
+
+            Write-Host "MSI signed successfully with free certificate"
+          }
+
           # Cleanup
           Remove-Item "sentinel-selfsigned.pfx" -Force -ErrorAction SilentlyContinue
           Remove-Item "sentinel-selfsigned.cer" -Force -ErrorAction SilentlyContinue
