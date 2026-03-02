@@ -14,7 +14,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 6;
+pub const CURRENT_SCHEMA_VERSION: i32 = 7;
 
 /// A database migration.
 struct Migration {
@@ -421,6 +421,28 @@ const MIGRATIONS: &[Migration] = &[
             CREATE INDEX IF NOT EXISTS idx_sync_queue_entity ON sync_queue(entity_type, entity_id);
         "#,
     },
+    Migration {
+        version: 7,
+        name: "software_inventory_hostname",
+        up: r#"
+            ALTER TABLE software_inventory ADD COLUMN hostname TEXT;
+        "#,
+        down: r#"
+            -- Recreate table to drop column
+            CREATE TABLE software_inventory_backup AS SELECT id, name, version, vendor, install_date, synced FROM software_inventory;
+            DROP TABLE software_inventory;
+            CREATE TABLE software_inventory (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                version TEXT NOT NULL,
+                vendor TEXT,
+                install_date TEXT,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+            INSERT INTO software_inventory SELECT * FROM software_inventory_backup;
+            DROP TABLE software_inventory_backup;
+        "#,
+    },
 ];
 
 /// Initialize the schema_version table if it doesn't exist.
@@ -763,9 +785,12 @@ mod tests {
 
         // Run migrations
         run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 7);
+
+        // Rollback from v7 down to v0
+        rollback_migration(&mut conn, 7).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 6);
 
-        // Rollback from v6 down to v0
         rollback_migration(&mut conn, 6).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 5);
 
@@ -810,7 +835,7 @@ mod tests {
         run_migrations(&mut conn).unwrap();
 
         let migrations = get_applied_migrations(&conn).unwrap();
-        assert_eq!(migrations.len(), 6);
+        assert_eq!(migrations.len(), 7);
         assert_eq!(migrations[0].0, 1);
         assert_eq!(migrations[0].1, "initial_schema");
         assert_eq!(migrations[1].0, 2);
@@ -823,6 +848,8 @@ mod tests {
         assert_eq!(migrations[4].1, "audit_trail_sync");
         assert_eq!(migrations[5].0, 6);
         assert_eq!(migrations[5].1, "grc_entities");
+        assert_eq!(migrations[6].0, 7);
+        assert_eq!(migrations[6].1, "software_inventory_hostname");
     }
 
     #[test]
