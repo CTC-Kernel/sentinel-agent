@@ -16,7 +16,7 @@ use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 #[cfg(any(target_os = "windows", target_os = "linux"))]
-#[cfg(target_os = "windows")]
+#[cfg(any(target_os = "windows", target_os = "linux"))]
 use agent_common::process::silent_command;
 use tracing::debug;
 

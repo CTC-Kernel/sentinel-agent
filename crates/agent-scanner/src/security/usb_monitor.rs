@@ -10,6 +10,7 @@ use agent_common::types::{UsbDevice, UsbDeviceClass, UsbEvent, UsbEventType, Usb
 use chrono::Utc;
 use std::collections::HashMap;
 use tracing::{debug, info};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use agent_common::process::silent_command;
 
 /// USB device monitor that tracks connected devices.

@@ -26,6 +26,7 @@ use agent_common::constants::AGENT_VERSION;
 use agent_storage::Database;
 use tracing::{debug, info, warn};
 use uuid::Uuid;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use agent_common::process::silent_command;
 
 /// Enrollment manager for agent registration.

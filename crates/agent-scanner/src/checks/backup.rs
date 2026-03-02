@@ -517,7 +517,7 @@ impl BackupCheck {
                             .push_str(&format!("Backup timer unit: {}\n", entry.path().display()));
 
                         // Check if timer is enabled
-                        if let Ok(output) = std::process::silent_command("systemctl")
+                        if let Ok(output) = silent_command("systemctl")
                             .args(["is-enabled", &name])
                             .output()
                         {
