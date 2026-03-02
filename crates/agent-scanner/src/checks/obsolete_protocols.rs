@@ -15,9 +15,9 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-use std::process::Command;
 use tracing::debug;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+use agent_common::process::silent_command;
 
 /// Check ID for obsolete protocols.
 pub const CHECK_ID: &str = "obsolete_protocols";
@@ -420,7 +420,7 @@ impl ObsoleteProtocolsCheck {
         };
 
         // Check SMB configuration
-        if let Ok(output) = Command::new("defaults")
+        if let Ok(output) = silent_command("defaults")
             .args([
                 "read",
                 "/Library/Preferences/SystemConfiguration/com.apple.smb.server",
@@ -442,7 +442,7 @@ impl ObsoleteProtocolsCheck {
         // Check macOS version to determine TLS defaults
         // macOS 10.15 (Catalina)+ disabled TLS 1.0/1.1 for App Transport Security
         // macOS 12 (Monterey)+ fully deprecated legacy TLS
-        if let Ok(output) = Command::new("sw_vers").args(["-productVersion"]).output() {
+        if let Ok(output) = silent_command("sw_vers").args(["-productVersion"]).output() {
             let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
             status
                 .raw_output
@@ -500,7 +500,7 @@ impl ObsoleteProtocolsCheck {
         }
 
         // Check nscurl for TLS support
-        if let Ok(output) = Command::new("nscurl")
+        if let Ok(output) = silent_command("nscurl")
             .args(["--ats-diagnostics", "--verbose"])
             .output()
         {

@@ -18,6 +18,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
+use agent_common::process::silent_command;
 
 /// Check ID for update status.
 pub const UPDATE_STATUS_CHECK_ID: &str = "update_status";
@@ -238,7 +239,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "windows")]
     async fn get_service_status(&self) -> UpdateServiceStatus {
-        use std::process::Command;
 
         let mut status = UpdateServiceStatus {
             service_running: false,
@@ -303,7 +303,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "windows")]
     async fn get_update_history(&self) -> (Option<DateTime<Utc>>, Vec<UpdateHistoryEntry>) {
-        use std::process::Command;
 
         let output = silent_command("powershell")
             .args([
@@ -382,7 +381,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "windows")]
     async fn get_pending_updates(&self) -> Vec<PendingUpdate> {
-        use std::process::Command;
 
         let output = silent_command("powershell")
             .args([
@@ -469,7 +467,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "windows")]
     async fn check_reboot_pending(&self) -> (bool, Option<DateTime<Utc>>) {
-        use std::process::Command;
 
         let output = silent_command("powershell")
             .args([
@@ -563,7 +560,6 @@ impl UpdateStatusCheck {
     #[cfg(target_os = "linux")]
     async fn check_linux_updates(&self) -> ScannerResult<UpdateStatus> {
         use std::fs;
-        use std::process::Command;
 
         let mut issues = Vec::new();
         let mut last_update: Option<DateTime<Utc>> = None;
@@ -610,7 +606,7 @@ impl UpdateStatusCheck {
             }
             // Also check dnf history (newer Fedora/RHEL)
             if last_update.is_none() {
-                if let Ok(output) = Command::new("dnf")
+                if let Ok(output) = silent_command("dnf")
                     .args(["history", "list", "--setopt=tsflags=", "-q"])
                     .output()
                 {
@@ -637,7 +633,7 @@ impl UpdateStatusCheck {
         }
 
         // Check for pending updates — try apt first, then dnf/yum, then pacman
-        let pending_count = if let Some(count) = Command::new("sh")
+        let pending_count = if let Some(count) = silent_command("sh")
             .args([
                 "-c",
                 "apt list --upgradable 2>/dev/null | grep -c upgradable || echo 0",
@@ -650,7 +646,7 @@ impl UpdateStatusCheck {
             })
         {
             count
-        } else if let Some(count) = Command::new("sh")
+        } else if let Some(count) = silent_command("sh")
             .args([
                 "-c",
                 "dnf check-update 2>/dev/null | grep -cE '^[a-zA-Z]' || echo 0",
@@ -663,7 +659,7 @@ impl UpdateStatusCheck {
             })
         {
             count
-        } else if let Some(count) = Command::new("sh")
+        } else if let Some(count) = silent_command("sh")
             .args([
                 "-c",
                 "checkupdates 2>/dev/null | wc -l || echo 0",
@@ -720,13 +716,12 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "macos")]
     async fn check_macos_updates(&self) -> ScannerResult<UpdateStatus> {
-        use std::process::Command;
 
         let mut issues = Vec::new();
 
         // Check for pending updates using softwareupdate
         // Note: softwareupdate --list writes update entries to stderr, not stdout
-        let output = Command::new("softwareupdate").args(["--list"]).output();
+        let output = silent_command("softwareupdate").args(["--list"]).output();
 
         let pending_count = if let Ok(out) = output {
             let stderr = String::from_utf8_lossy(&out.stderr);

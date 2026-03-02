@@ -15,7 +15,7 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for audit logging.
@@ -117,7 +117,7 @@ impl AuditLoggingCheck {
         let mut raw_output = String::new();
 
         // Check if auditd service is active (graceful for non-systemd distros)
-        let service_running = if let Ok(service_output) = Command::new("systemctl")
+        let service_running = if let Ok(service_output) = silent_command("systemctl")
             .args(["is-active", "auditd"])
             .output()
         {
@@ -129,7 +129,7 @@ impl AuditLoggingCheck {
             service_status.trim() == "active"
         } else {
             // Non-systemd: check if auditd process is running via /proc or pidof
-            let running = Command::new("pidof")
+            let running = silent_command("pidof")
                 .args(["auditd"])
                 .output()
                 .map(|o| o.status.success())
@@ -164,7 +164,7 @@ impl AuditLoggingCheck {
         let mut audit_enabled = false;
 
         // Try running audit -c to check if auditing is enabled
-        if let Ok(output) = Command::new("/usr/sbin/audit").args(["-c"]).output() {
+        if let Ok(output) = silent_command("/usr/sbin/audit").args(["-c"]).output() {
             let stdout = String::from_utf8_lossy(&output.stdout).to_string();
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             raw_output.push_str(&format!(

@@ -21,7 +21,7 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for DNS security.
@@ -261,7 +261,7 @@ impl DnsSecurityCheck {
         };
 
         // Check systemd-resolved (modern Linux)
-        if let Ok(output) = Command::new("resolvectl").args(["status"]).output() {
+        if let Ok(output) = silent_command("resolvectl").args(["status"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -381,7 +381,7 @@ impl DnsSecurityCheck {
         };
 
         // Check current DNS configuration via scutil
-        let output = Command::new("scutil")
+        let output = silent_command("scutil")
             .args(["--dns"])
             .output()
             .map_err(|e| {
@@ -407,7 +407,7 @@ impl DnsSecurityCheck {
         }
 
         // Check for DNS configuration profiles (DoH/DoT)
-        let profiles_output = Command::new("profiles").args(["list"]).output();
+        let profiles_output = silent_command("profiles").args(["list"]).output();
 
         if let Ok(output) = profiles_output {
             let profiles = String::from_utf8_lossy(&output.stdout).to_string();
@@ -418,7 +418,7 @@ impl DnsSecurityCheck {
             // Check for DNS settings profiles
             if profiles.to_lowercase().contains("dns") {
                 // Further check profile details
-                if let Ok(detail_output) = Command::new("profiles")
+                if let Ok(detail_output) = silent_command("profiles")
                     .args(["show", "-type", "configuration"])
                     .output()
                 {
@@ -464,7 +464,7 @@ impl DnsSecurityCheck {
             .any(|s| Self::is_secure_provider(s));
 
         // macOS 14+ supports native DoH
-        if let Ok(output) = Command::new("sw_vers").args(["-productVersion"]).output() {
+        if let Ok(output) = silent_command("sw_vers").args(["-productVersion"]).output() {
             let version = String::from_utf8_lossy(&output.stdout).to_string();
             if let Some(major) = version.trim().split('.').next()
                 && let Ok(major_num) = major.parse::<u32>()

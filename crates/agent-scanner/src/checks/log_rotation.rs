@@ -16,7 +16,6 @@ use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 #[cfg(any(target_os = "windows", target_os = "linux"))]
-use std::process::Command;
 #[cfg(target_os = "windows")]
 use agent_common::process::silent_command;
 use tracing::debug;
@@ -178,7 +177,7 @@ impl LogRotationCheck {
         };
 
         // Check if logrotate is installed
-        let which_output = Command::new("which")
+        let which_output = silent_command("which")
             .args(["logrotate"])
             .output()
             .map_err(|e| {

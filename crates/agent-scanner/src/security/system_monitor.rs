@@ -8,6 +8,7 @@ use super::IncidentType;
 use super::{IncidentSeverity, SecurityIncident};
 use crate::error::ScannerResult;
 use tracing::{debug, info, warn};
+use agent_common::process::silent_command;
 
 /// System checks to perform.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,10 +63,9 @@ impl SystemMonitor {
     /// Check firewall status.
     #[cfg(target_os = "linux")]
     async fn check_firewall(&self) -> Option<SecurityIncident> {
-        use std::process::Command;
 
         // Check ufw status
-        let ufw_output = Command::new("ufw").args(["status"]).output();
+        let ufw_output = silent_command("ufw").args(["status"]).output();
 
         if let Ok(output) = ufw_output {
             let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
@@ -78,7 +78,7 @@ impl SystemMonitor {
         }
 
         // Check iptables (fallback)
-        let iptables_output = Command::new("iptables").args(["-L", "-n"]).output();
+        let iptables_output = silent_command("iptables").args(["-L", "-n"]).output();
 
         if let Ok(output) = iptables_output {
             let stdout = String::from_utf8_lossy(&output.stdout);
@@ -98,9 +98,8 @@ impl SystemMonitor {
 
     #[cfg(target_os = "macos")]
     async fn check_firewall(&self) -> Option<SecurityIncident> {
-        use std::process::Command;
 
-        let output = Command::new("defaults")
+        let output = silent_command("defaults")
             .args(["read", "/Library/Preferences/com.apple.alf", "globalstate"])
             .output();
 
@@ -126,7 +125,6 @@ impl SystemMonitor {
 
     #[cfg(target_os = "windows")]
     async fn check_firewall(&self) -> Option<SecurityIncident> {
-        use std::process::Command;
 
         let output = silent_command("powershell")
             .args([
@@ -174,7 +172,6 @@ impl SystemMonitor {
     /// Check antivirus status.
     #[cfg(target_os = "windows")]
     async fn check_antivirus(&self) -> Option<SecurityIncident> {
-        use std::process::Command;
 
         // Check Windows Defender status
         let output = silent_command("powershell")
@@ -230,10 +227,9 @@ impl SystemMonitor {
 
     #[cfg(target_os = "linux")]
     async fn check_antivirus(&self) -> Option<SecurityIncident> {
-        use std::process::Command;
 
         // Check ClamAV daemon status
-        let output = Command::new("systemctl")
+        let output = silent_command("systemctl")
             .args(["is-active", "clamav-daemon"])
             .output();
 
@@ -253,9 +249,8 @@ impl SystemMonitor {
     async fn check_antivirus(&self) -> Option<SecurityIncident> {
         // macOS has XProtect built-in, which is always active
         // Check if Gatekeeper is enabled
-        use std::process::Command;
 
-        let output = Command::new("spctl").args(["--status"]).output();
+        let output = silent_command("spctl").args(["--status"]).output();
 
         if let Ok(result) = output {
             let stdout = String::from_utf8_lossy(&result.stdout).to_lowercase();
@@ -325,10 +320,9 @@ impl SystemMonitor {
     /// Check for new admin accounts.
     #[cfg(target_os = "linux")]
     async fn check_admin_accounts(&self) -> Option<SecurityIncident> {
-        use std::process::Command;
 
         // Get members of sudo/wheel group
-        let output = Command::new("getent").args(["group", "sudo"]).output();
+        let output = silent_command("getent").args(["group", "sudo"]).output();
 
         let admins: Vec<String> = if let Ok(result) = output {
             if result.status.success() {
@@ -341,7 +335,7 @@ impl SystemMonitor {
                 }
             } else {
                 // Try wheel group instead
-                let wheel_output = Command::new("getent").args(["group", "wheel"]).output();
+                let wheel_output = silent_command("getent").args(["group", "wheel"]).output();
                 if let Ok(wheel_result) = wheel_output {
                     if wheel_result.status.success() {
                         let stdout = String::from_utf8_lossy(&wheel_result.stdout);
@@ -389,9 +383,8 @@ impl SystemMonitor {
 
     #[cfg(target_os = "macos")]
     async fn check_admin_accounts(&self) -> Option<SecurityIncident> {
-        use std::process::Command;
 
-        let output = Command::new("dscl")
+        let output = silent_command("dscl")
             .args([".", "-read", "/Groups/admin", "GroupMembership"])
             .output();
 
@@ -435,7 +428,6 @@ impl SystemMonitor {
 
     #[cfg(target_os = "windows")]
     async fn check_admin_accounts(&self) -> Option<SecurityIncident> {
-        use std::process::Command;
 
         // Use SID S-1-5-32-544 to find the Administrators group name reliably across localizations
         let output = silent_command("powershell")

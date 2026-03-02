@@ -13,7 +13,7 @@ use crate::error::{ScannerError, ScannerResult};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for IPv6 hardening.
@@ -149,7 +149,7 @@ impl Ipv6ConfigCheck {
     async fn check_linux(&self) -> ScannerResult<Ipv6HardeningStatus> {
         debug!("Checking Linux IPv6 hardening settings");
 
-        let output = Command::new("sysctl")
+        let output = silent_command("sysctl")
             .args(["-n", "net.ipv6.conf.all.accept_ra"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run sysctl: {}", e)))?;
@@ -182,7 +182,7 @@ impl Ipv6ConfigCheck {
         }
 
         // Also check if IPv6 is fully disabled
-        if let Ok(disable_output) = Command::new("sysctl")
+        if let Ok(disable_output) = silent_command("sysctl")
             .args(["-n", "net.ipv6.conf.all.disable_ipv6"])
             .output()
         {
@@ -203,7 +203,7 @@ impl Ipv6ConfigCheck {
     async fn check_macos(&self) -> ScannerResult<Ipv6HardeningStatus> {
         debug!("Checking macOS IPv6 hardening settings");
 
-        let output = Command::new("sysctl")
+        let output = silent_command("sysctl")
             .args(["net.inet6.ip6.accept_rtadv"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run sysctl: {}", e)))?;

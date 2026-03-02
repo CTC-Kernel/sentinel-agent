@@ -20,6 +20,7 @@ use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
+use agent_common::process::silent_command;
 
 // ============================================================================
 // Registry-based Hardening Check
@@ -499,7 +500,6 @@ impl WindowsHardeningCheck {
         &self,
         checks: &[HardeningCheckDef],
     ) -> ScannerResult<std::collections::HashMap<String, String>> {
-        use std::process::Command;
 
         let mut ps_script = String::from("$results = @{};\n");
         for check in checks {
@@ -683,7 +683,6 @@ impl SecureBootCheck {
 
     #[cfg(target_os = "windows")]
     async fn check_secure_boot(&self) -> ScannerResult<SecureBootStatus> {
-        use std::process::Command;
 
         // Use PowerShell to check Secure Boot status
         let output = silent_command("powershell")

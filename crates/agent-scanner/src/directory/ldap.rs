@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 #[cfg(target_os = "linux")]
 use tracing::warn;
+use agent_common::process::silent_async_command;
 
 /// LDAP server security auditor.
 pub struct LdapAuditor;
@@ -64,10 +65,9 @@ impl LdapAuditor {
         uri: &str,
         config: &mut LdapSecurityConfig,
     ) -> ScannerResult<()> {
-        use tokio::process::Command;
 
         // Check if ldapsearch is available
-        let which_result = Command::new("which").arg("ldapsearch").output().await;
+        let which_result = silent_async_command("which").arg("ldapsearch").output().await;
 
         if !which_result.is_ok_and(|o| o.status.success()) {
             warn!("ldapsearch not available, using limited probe");
@@ -75,7 +75,7 @@ impl LdapAuditor {
         }
 
         // Try anonymous bind to check if allowed
-        let anon_result = Command::new("ldapsearch")
+        let anon_result = silent_async_command("ldapsearch")
             .args([
                 "-x",
                 "-H",
@@ -106,7 +106,7 @@ impl LdapAuditor {
         }
 
         // Check for password policy support
-        let ppolicy_result = Command::new("ldapsearch")
+        let ppolicy_result = silent_async_command("ldapsearch")
             .args([
                 "-x",
                 "-H",
@@ -148,7 +148,6 @@ impl LdapAuditor {
         config: &mut LdapSecurityConfig,
     ) -> ScannerResult<()> {
         use crate::error::ScannerError;
-        use tokio::process::Command;
 
         // Reject URIs containing PowerShell metacharacters to prevent command injection
         if uri.contains('$')
@@ -167,7 +166,7 @@ impl LdapAuditor {
         }
 
         // Use PowerShell to probe LDAP/AD
-        let output = silent_command("powershell")
+        let output = silent_async_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -219,7 +218,6 @@ impl LdapAuditor {
         uri: &str,
         config: &mut LdapSecurityConfig,
     ) -> ScannerResult<()> {
-        use tokio::process::Command;
 
         // Extract host and port from URI
         let uri_parts: Vec<&str> = uri.split("://").collect();
@@ -238,7 +236,7 @@ impl LdapAuditor {
 
         // Use openssl to check TLS if LDAPS
         if uri.starts_with("ldaps://") {
-            let tls_result = Command::new("openssl")
+            let tls_result = silent_async_command("openssl")
                 .args([
                     "s_client",
                     "-connect",

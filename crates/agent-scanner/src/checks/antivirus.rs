@@ -18,7 +18,7 @@ use async_trait::async_trait;
 use chrono::Duration;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for antivirus status.
@@ -296,7 +296,7 @@ impl AntivirusCheck {
     #[cfg(target_os = "linux")]
     async fn check_clamav(&self) -> ScannerResult<AntivirusStatus> {
         // Check if clamd is running
-        let service_output = Command::new("systemctl")
+        let service_output = silent_command("systemctl")
             .args(["is-active", "clamav-daemon"])
             .output();
 
@@ -306,7 +306,7 @@ impl AntivirusCheck {
 
         if !service_running {
             // Try clamav-freshclam
-            let freshclam = Command::new("systemctl")
+            let freshclam = silent_command("systemctl")
                 .args(["is-active", "clamav-freshclam"])
                 .output();
 
@@ -327,7 +327,7 @@ impl AntivirusCheck {
         }
 
         // Get ClamAV version and signature info
-        let version_output = Command::new("clamscan").args(["--version"]).output();
+        let version_output = silent_command("clamscan").args(["--version"]).output();
 
         let version_str = version_output
             .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
@@ -360,7 +360,7 @@ impl AntivirusCheck {
 
     #[cfg(target_os = "linux")]
     async fn check_sophos(&self) -> ScannerResult<AntivirusStatus> {
-        let output = Command::new("/opt/sophos-av/bin/savdstatus").output();
+        let output = silent_command("/opt/sophos-av/bin/savdstatus").output();
 
         match output {
             Ok(o) if o.status.success() => {
@@ -397,7 +397,7 @@ impl AntivirusCheck {
 
     #[cfg(target_os = "linux")]
     async fn check_eset(&self) -> ScannerResult<AntivirusStatus> {
-        let output = Command::new("/opt/eset/esets/sbin/esets_daemon")
+        let output = silent_command("/opt/eset/esets/sbin/esets_daemon")
             .args(["--status"])
             .output();
 
@@ -440,7 +440,7 @@ impl AntivirusCheck {
 
         // macOS has built-in XProtect
         // Check XProtect version
-        let output = Command::new("system_profiler")
+        let output = silent_command("system_profiler")
             .args(["SPInstallHistoryDataType", "-json"])
             .output()
             .map_err(|e| {

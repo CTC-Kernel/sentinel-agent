@@ -26,6 +26,7 @@ use agent_common::constants::AGENT_VERSION;
 use agent_storage::Database;
 use tracing::{debug, info, warn};
 use uuid::Uuid;
+use agent_common::process::silent_command;
 
 /// Enrollment manager for agent registration.
 pub struct EnrollmentManager<'a> {
@@ -211,7 +212,6 @@ fn get_machine_id() -> Option<String> {
 #[cfg(target_os = "windows")]
 fn get_machine_id() -> Option<String> {
     // On Windows, use the MachineGuid from registry
-    use std::process::Command;
 
     silent_command("reg")
         .args([
@@ -239,9 +239,8 @@ fn get_machine_id() -> Option<String> {
 #[cfg(target_os = "macos")]
 fn get_machine_id() -> Option<String> {
     // On macOS, use IOPlatformUUID
-    use std::process::Command;
 
-    Command::new("ioreg")
+    silent_command("ioreg")
         .args(["-rd1", "-c", "IOPlatformExpertDevice"])
         .output()
         .ok()

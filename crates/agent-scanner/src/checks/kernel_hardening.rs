@@ -15,7 +15,7 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for kernel hardening.
@@ -212,7 +212,7 @@ impl KernelHardeningCheck {
         };
 
         // Check ASLR: kernel.randomize_va_space should be 2
-        if let Ok(output) = Command::new("sysctl")
+        if let Ok(output) = silent_command("sysctl")
             .args(["-n", "kernel.randomize_va_space"])
             .output()
         {
@@ -235,7 +235,7 @@ impl KernelHardeningCheck {
         }
 
         // Check IP forwarding: net.ipv4.ip_forward should be 0
-        if let Ok(output) = Command::new("sysctl")
+        if let Ok(output) = silent_command("sysctl")
             .args(["-n", "net.ipv4.ip_forward"])
             .output()
         {
@@ -256,7 +256,7 @@ impl KernelHardeningCheck {
         }
 
         // Check dmesg_restrict: kernel.dmesg_restrict should be 1
-        if let Ok(output) = Command::new("sysctl")
+        if let Ok(output) = silent_command("sysctl")
             .args(["-n", "kernel.dmesg_restrict"])
             .output()
         {
@@ -277,7 +277,7 @@ impl KernelHardeningCheck {
         }
 
         // Check kptr_restrict: kernel.kptr_restrict should be >= 1
-        if let Ok(output) = Command::new("sysctl")
+        if let Ok(output) = silent_command("sysctl")
             .args(["-n", "kernel.kptr_restrict"])
             .output()
         {
@@ -325,7 +325,7 @@ impl KernelHardeningCheck {
             .push_str("ASLR: always enabled on macOS\n");
 
         // Check SIP (System Integrity Protection) status
-        let sip_output = Command::new("csrutil")
+        let sip_output = silent_command("csrutil")
             .args(["status"])
             .output()
             .map_err(|e| {
@@ -348,7 +348,7 @@ impl KernelHardeningCheck {
         }
 
         // Check IP forwarding
-        if let Ok(output) = Command::new("sysctl")
+        if let Ok(output) = silent_command("sysctl")
             .args(["net.inet.ip.forwarding"])
             .output()
         {
@@ -371,7 +371,7 @@ impl KernelHardeningCheck {
         }
 
         // Check Gatekeeper status
-        if let Ok(output) = Command::new("spctl")
+        if let Ok(output) = silent_command("spctl")
             .args(["--status"])
             .output()
         {

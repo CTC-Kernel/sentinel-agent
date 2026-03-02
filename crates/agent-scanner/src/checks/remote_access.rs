@@ -15,7 +15,7 @@ use crate::error::ScannerError;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for remote access security.
@@ -293,12 +293,12 @@ impl RemoteAccessCheck {
         };
 
         // Check SSH service status
-        let ssh_running = if let Ok(output) = Command::new("systemctl")
+        let ssh_running = if let Ok(output) = silent_command("systemctl")
             .args(["is-active", "sshd"])
             .output()
         {
             String::from_utf8_lossy(&output.stdout).trim() == "active"
-        } else if let Ok(output) = Command::new("systemctl")
+        } else if let Ok(output) = silent_command("systemctl")
             .args(["is-active", "ssh"])
             .output()
         {
@@ -374,7 +374,7 @@ impl RemoteAccessCheck {
         }
 
         // Check for VNC servers
-        if let Ok(output) = Command::new("pgrep").args(["-a", "vnc"]).output() {
+        if let Ok(output) = silent_command("pgrep").args(["-a", "vnc"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             if !result.is_empty() {
                 status.screen_sharing_enabled = Some(true);
@@ -407,7 +407,7 @@ impl RemoteAccessCheck {
         };
 
         // Check Screen Sharing
-        if let Ok(output) = Command::new("launchctl")
+        if let Ok(output) = silent_command("launchctl")
             .args(["list", "com.apple.screensharing"])
             .output()
         {
@@ -419,7 +419,7 @@ impl RemoteAccessCheck {
         }
 
         // Check Remote Management (ARD)
-        if let Ok(output) = Command::new("launchctl")
+        if let Ok(output) = silent_command("launchctl")
             .args(["list", "com.apple.RemoteDesktop.agent"])
             .output()
         {
@@ -433,7 +433,7 @@ impl RemoteAccessCheck {
         // Check SSH (Remote Login)
         // Note: systemsetup -getremotelogin requires root on macOS.
         // If not root, also check launchctl for the SSH service.
-        if let Ok(output) = Command::new("systemsetup")
+        if let Ok(output) = silent_command("systemsetup")
             .args(["-getremotelogin"])
             .output()
         {
@@ -449,7 +449,7 @@ impl RemoteAccessCheck {
                 || result.contains("administrator access")
             {
                 // Fall back to launchctl check for SSH
-                if let Ok(ssh_output) = Command::new("launchctl")
+                if let Ok(ssh_output) = silent_command("launchctl")
                     .args(["list", "com.openssh.sshd"])
                     .output()
                     && ssh_output.status.success()

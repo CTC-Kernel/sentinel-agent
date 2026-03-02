@@ -13,7 +13,7 @@ use crate::error::{ScannerError, ScannerResult};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for disk encryption.
@@ -215,7 +215,7 @@ impl DiskEncryptionCheck {
         debug!("Checking LUKS status on Linux");
 
         // Check for LUKS encrypted partitions
-        let output = Command::new("lsblk")
+        let output = silent_command("lsblk")
             .args(["--json", "-o", "NAME,TYPE,FSTYPE,MOUNTPOINT"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run lsblk: {}", e)))?;
@@ -311,7 +311,7 @@ impl DiskEncryptionCheck {
         debug!("Checking FileVault status on macOS");
 
         // Check FileVault status
-        let output = Command::new("fdesetup")
+        let output = silent_command("fdesetup")
             .args(["status"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run fdesetup: {}", e)))?;
@@ -374,7 +374,7 @@ impl DiskEncryptionCheck {
 
     #[cfg(target_os = "macos")]
     async fn get_filevault_progress(&self) -> Option<u8> {
-        let output = Command::new("diskutil")
+        let output = silent_command("diskutil")
             .args(["apfs", "list"])
             .output()
             .ok()?;

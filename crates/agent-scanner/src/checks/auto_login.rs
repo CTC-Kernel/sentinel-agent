@@ -15,9 +15,9 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-use std::process::Command;
 use tracing::debug;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+use agent_common::process::silent_command;
 
 /// Check ID for auto-login disabled.
 pub const CHECK_ID: &str = "auto_login_disabled";
@@ -293,7 +293,7 @@ impl AutoLoginCheck {
     async fn check_macos(&self) -> ScannerResult<AutoLoginStatus> {
         debug!("Checking macOS auto-login settings");
 
-        let output = Command::new("defaults")
+        let output = silent_command("defaults")
             .args([
                 "read",
                 "/Library/Preferences/com.apple.loginwindow",

@@ -19,6 +19,8 @@ use serde::{Deserialize, Serialize};
 use tracing::info;
 #[cfg(target_os = "windows")]
 use tracing::{debug, warn};
+use agent_common::process::silent_command;
+use agent_common::process::silent_async_command;
 
 /// Group Policy Object auditor.
 pub struct GpoAuditor;
@@ -76,12 +78,11 @@ impl GpoAuditor {
 
     #[cfg(target_os = "windows")]
     async fn get_windows_local_policy(&self) -> ScannerResult<GpoSecuritySettings> {
-        use tokio::process::Command;
 
         let mut settings = GpoSecuritySettings::default();
 
         // Use secedit to export local policy
-        let output = silent_command("powershell")
+        let output = silent_async_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -206,10 +207,9 @@ impl GpoAuditor {
 
     #[cfg(target_os = "windows")]
     async fn get_windows_domain_policy(&self) -> ScannerResult<GpoSecuritySettings> {
-        use tokio::process::Command;
 
         // First check if we're domain-joined
-        let domain_check = silent_command("powershell")
+        let domain_check = silent_async_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -230,7 +230,7 @@ impl GpoAuditor {
         }
 
         // Get domain password policy using Get-ADDefaultDomainPasswordPolicy
-        let output = silent_command("powershell")
+        let output = silent_async_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -325,9 +325,8 @@ impl GpoAuditor {
 
     #[cfg(target_os = "windows")]
     async fn get_audit_policy(&self) -> ScannerResult<AuditPolicy> {
-        use tokio::process::Command;
 
-        let output = silent_command("powershell")
+        let output = silent_async_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
@@ -389,7 +388,6 @@ impl GpoAuditor {
 
     #[cfg(target_os = "windows")]
     async fn get_windows_privileged_groups(&self) -> ScannerResult<Vec<PrivilegedGroupInfo>> {
-        use tokio::process::Command;
 
         let mut groups = Vec::new();
 
@@ -440,7 +438,7 @@ impl GpoAuditor {
                     && !group_name.contains('&'),
                 "group_name must not contain PowerShell metacharacters"
             );
-            let output = silent_command("powershell")
+            let output = silent_async_command("powershell")
                 .args([
                     "-NoProfile",
                     "-Command",
@@ -498,13 +496,12 @@ impl GpoAuditor {
 
     #[cfg(not(target_os = "windows"))]
     async fn get_unix_privileged_groups(&self) -> ScannerResult<Vec<PrivilegedGroupInfo>> {
-        use tokio::process::Command;
 
         let mut groups = Vec::new();
 
         // Check sudo/wheel group
         for group_name in ["sudo", "wheel", "admin", "root"] {
-            let output = Command::new("getent")
+            let output = silent_command("getent")
                 .args(["group", group_name])
                 .output()
                 .await;

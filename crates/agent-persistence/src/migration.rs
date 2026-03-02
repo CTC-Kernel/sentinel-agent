@@ -13,6 +13,7 @@ use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::Path;
 use tracing::{debug, info, warn};
+use agent_common::process::silent_command;
 
 /// Exported identity package for migration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -243,9 +244,8 @@ fn get_machine_id() -> Option<String> {
 
 #[cfg(target_os = "macos")]
 fn get_machine_id() -> Option<String> {
-    use std::process::Command;
 
-    Command::new("ioreg")
+    silent_command("ioreg")
         .args(["-rd1", "-c", "IOPlatformExpertDevice"])
         .output()
         .ok()
@@ -270,7 +270,6 @@ fn get_machine_id() -> Option<String> {
 
 #[cfg(target_os = "windows")]
 fn get_machine_id() -> Option<String> {
-    use std::process::Command;
 
     silent_command("reg")
         .args([

@@ -15,9 +15,9 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-use std::process::Command;
 use tracing::debug;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+use agent_common::process::silent_command;
 
 /// Check ID for admin accounts.
 pub const CHECK_ID: &str = "admin_accounts";
@@ -426,7 +426,7 @@ impl AdminAccountsCheck {
         };
 
         // Get admin group members
-        if let Ok(output) = Command::new("dscl")
+        if let Ok(output) = silent_command("dscl")
             .args([".", "-read", "/Groups/admin", "GroupMembership"])
             .output()
         {
@@ -454,7 +454,7 @@ impl AdminAccountsCheck {
         }
 
         // Check if root is enabled
-        if let Ok(output) = Command::new("dscl")
+        if let Ok(output) = silent_command("dscl")
             .args([".", "-read", "/Users/root", "AuthenticationAuthority"])
             .output()
         {
@@ -468,7 +468,7 @@ impl AdminAccountsCheck {
         }
 
         // Check for other users with admin capabilities
-        if let Ok(output) = Command::new("dscacheutil")
+        if let Ok(output) = silent_command("dscacheutil")
             .args(["-q", "group", "-a", "name", "wheel"])
             .output()
         {

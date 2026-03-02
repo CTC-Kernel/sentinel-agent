@@ -15,7 +15,7 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for USB mass storage disabled.
@@ -180,7 +180,7 @@ impl UsbStorageCheck {
         };
 
         // Check if usb-storage module is loaded
-        let lsmod_output = Command::new("lsmod")
+        let lsmod_output = silent_command("lsmod")
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run lsmod: {}", e)))?;
 
@@ -278,7 +278,7 @@ impl UsbStorageCheck {
         };
 
         // Check for MDM profiles that restrict USB
-        if let Ok(output) = Command::new("profiles")
+        if let Ok(output) = silent_command("profiles")
             .args(["-C", "-o", "stdout"])
             .output()
         {
@@ -319,7 +319,7 @@ impl UsbStorageCheck {
         }
 
         // Check if any configuration profile is installed
-        if let Ok(output) = Command::new("profiles")
+        if let Ok(output) = silent_command("profiles")
             .args(["list", "-o", "stdout"])
             .output()
         {

@@ -15,7 +15,7 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for session lock.
@@ -259,7 +259,7 @@ impl SessionLockCheck {
     #[cfg(target_os = "linux")]
     fn check_gnome_settings(&self, status: &mut SessionLockStatus) {
         // Check GNOME idle settings
-        if let Ok(output) = Command::new("gsettings")
+        if let Ok(output) = silent_command("gsettings")
             .args(["get", "org.gnome.desktop.session", "idle-delay"])
             .output()
         {
@@ -281,7 +281,7 @@ impl SessionLockCheck {
         }
 
         // Check if lock on idle is enabled
-        if let Ok(output) = Command::new("gsettings")
+        if let Ok(output) = silent_command("gsettings")
             .args(["get", "org.gnome.desktop.screensaver", "lock-enabled"])
             .output()
         {
@@ -293,7 +293,7 @@ impl SessionLockCheck {
         }
 
         // Check lock delay
-        if let Ok(output) = Command::new("gsettings")
+        if let Ok(output) = silent_command("gsettings")
             .args(["get", "org.gnome.desktop.screensaver", "lock-delay"])
             .output()
         {
@@ -354,7 +354,7 @@ impl SessionLockCheck {
     #[cfg(target_os = "linux")]
     fn check_xfce_settings(&self, status: &mut SessionLockStatus) {
         // Check xfce4-screensaver settings
-        if let Ok(output) = Command::new("xfconf-query")
+        if let Ok(output) = silent_command("xfconf-query")
             .args(["-c", "xfce4-screensaver", "-p", "/lock/enabled"])
             .output()
         {
@@ -365,7 +365,7 @@ impl SessionLockCheck {
             status.lock_enabled = result.trim() == "true";
         }
 
-        if let Ok(output) = Command::new("xfconf-query")
+        if let Ok(output) = silent_command("xfconf-query")
             .args([
                 "-c",
                 "xfce4-screensaver",
@@ -408,7 +408,7 @@ impl SessionLockCheck {
     #[cfg(target_os = "linux")]
     fn check_generic_lock_tools(&self, status: &mut SessionLockStatus) {
         // Check for xss-lock or xautolock
-        if let Ok(output) = Command::new("pgrep")
+        if let Ok(output) = silent_command("pgrep")
             .args(["-a", "xss-lock|xautolock|light-locker"])
             .output()
         {
@@ -439,7 +439,7 @@ impl SessionLockCheck {
         };
 
         // Check screen saver settings
-        if let Ok(output) = Command::new("defaults")
+        if let Ok(output) = silent_command("defaults")
             .args(["read", "com.apple.screensaver", "idleTime"])
             .output()
         {
@@ -457,7 +457,7 @@ impl SessionLockCheck {
         }
 
         // Check askForPassword setting
-        if let Ok(output) = Command::new("defaults")
+        if let Ok(output) = silent_command("defaults")
             .args(["read", "com.apple.screensaver", "askForPassword"])
             .output()
         {
@@ -469,7 +469,7 @@ impl SessionLockCheck {
         }
 
         // Check askForPasswordDelay (seconds delay before requiring password)
-        if let Ok(output) = Command::new("defaults")
+        if let Ok(output) = silent_command("defaults")
             .args(["read", "com.apple.screensaver", "askForPasswordDelay"])
             .output()
         {
@@ -480,7 +480,7 @@ impl SessionLockCheck {
         }
 
         // Check system preferences for display sleep
-        if let Ok(output) = Command::new("pmset").args(["-g", "custom"]).output() {
+        if let Ok(output) = silent_command("pmset").args(["-g", "custom"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
