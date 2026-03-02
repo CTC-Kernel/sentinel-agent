@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/util"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/ui"
+     xmlns:fire="http://wixtoolset.org/schemas/v4/firewall">
+
+  <!-- Product definition - English version -->
+  <Package
+    Name="Sentinel Agent"
+    Manufacturer="Cyber Threat Consulting"
+    Version="$(var.Version)"
+    UpgradeCode="E8F3C2A1-4B5D-4E6F-8A9B-0C1D2E3F4A5B"
+    Scope="perMachine"
+    Compressed="yes"
+    Language="1033">
+
+    <!-- Application icon for Add/Remove Programs -->
+    <Icon Id="SentinelIcon" SourceFile="$(var.AssetsDir)\sentinel-agent.ico" />
+    <Property Id="ARPPRODUCTICON" Value="SentinelIcon" />
+    <Property Id="ARPHELPLINK" Value="https://app.cyber-threat-consulting.com" />
+    <Property Id="ARPURLINFOABOUT" Value="https://cyber-threat-consulting.com" />
+
+    <SummaryInformation
+      Description="Endpoint compliance monitoring agent for Sentinel GRC platform"
+      Manufacturer="Cyber Threat Consulting" />
+
+    <!-- Upgrade handling - remove previous versions -->
+    <MajorUpgrade
+      DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+      Schedule="afterInstallInitialize" />
+
+    <!-- Embedded UI for progress during silent install -->
+    <WixVariable Id="WixUILicenseRtf" Value="wix\license_en.rtf" />
+
+    <!-- Custom properties for configuration -->
+    <Property Id="SERVERURL" Value="https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi" />
+    <Property Id="ENROLLMENTTOKEN" Secure="yes" />
+
+    <!-- UI Extension for custom dialogs -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <ui:WixUI Id="WixUI_InstallDir" />
+
+    <!-- Custom UI sequence to add enrollment dialog -->
+    <UI>
+      <Dialog Id="EnrollmentDlg" Width="370" Height="270" Title="Agent Configuration">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Sentinel Agent Configuration" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="320" Height="20" Transparent="yes" NoPrefix="yes" Text="Enter the enrollment token provided by your administrator." />
+        <Control Id="ServerLabel" Type="Text" X="25" Y="50" Width="320" Height="15" Transparent="yes" NoPrefix="yes" Text="Server URL:" />
+        <Control Id="ServerEdit" Type="Edit" X="25" Y="65" Width="320" Height="18" Property="SERVERURL" />
+        <Control Id="TokenLabel" Type="Text" X="25" Y="90" Width="320" Height="15" Transparent="yes" NoPrefix="yes" Text="Enrollment Token:" />
+        <Control Id="TokenEdit" Type="Edit" X="25" Y="105" Width="320" Height="18" Property="ENROLLMENTTOKEN" Password="yes" />
+        <Control Id="AutoStartLabel" Type="Text" X="25" Y="130" Width="320" Height="15" Transparent="yes" NoPrefix="yes" Text="Start Sentinel Agent automatically at Windows startup" />
+        <Control Id="AutoStartCheckbox" Type="CheckBox" X="25" Y="145" Width="320" Height="18" Property="AUTOSTART" CheckBoxValue="1" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="Back" />
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Text="Next" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Text="Cancel" />
+      </Dialog>
+
+      <!-- Insert enrollment dialog in sequence -->
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="EnrollmentDlg" Order="4" Condition="1" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="EnrollmentDlg" Order="1" Condition="NOT Installed" />
+    </UI>
+
+    <!-- Auto-start property default -->
+    <Property Id="AUTOSTART" Value="1" />
+
+    <!-- Prerequisite checks -->
+    <Launch Condition="VersionNT64 >= 603"
+            Message="Sentinel Agent requires Windows 8.1 or Windows Server 2012 R2 (or later)." />
+    <Launch Condition="Privileged"
+            Message="Administrator rights required. Please restart the installation as administrator." />
+
+    <!-- Media definition -->
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Directory structure -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="ProgramFilesFolder" Name="Sentinel">
+        <Directory Id="BinDir" Name="bin" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="DataDir" Name="Sentinel">
+        <Directory Id="ConfigDir" Name="config" />
+        <Directory Id="LogDir" Name="logs" />
+        <Directory Id="ModelsDir" Name="models" />
+        <Directory Id="CacheDir" Name="cache">
+          <Directory Id="CacheLlmDir" Name="llm" />
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="StartMenuDir" Name="Sentinel Agent" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder" />
+
+    <!-- Component definitions -->
+    <ComponentGroup Id="ProductComponents" Directory="BinDir">
+      <!-- Main executable -->
+      <Component Id="MainExecutable" Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+        <File Id="SentinelAgentExe" Source="$(var.TargetDir)\sentinel-agent.exe" KeyPath="yes" />
+        
+        <!-- Install as Windows service -->
+        <ServiceInstall Id="SentinelGRCAgent"
+          Type="ownProcess"
+          Vital="yes"
+          Name="SentinelGRCAgent"
+          DisplayName="Sentinel GRC Agent"
+          Description="Endpoint compliance monitoring agent for Sentinel GRC platform"
+          Type="ownProcess"
+          Start="auto"
+          ErrorControl="normal"
+          Arguments="--service" />
+
+        <!-- Service recovery settings using util extension -->
+        <util:ServiceConfig
+          ServiceName="SentinelGRCAgent"
+          FirstFailureActionType="restart"
+          SecondFailureActionType="restart"
+          ThirdFailureActionType="restart"
+          RestartServiceDelayInSeconds="60"
+          ResetPeriodInDays="1" />
+
+        <!-- Service control: stop on install/uninstall, remove on uninstall -->
+        <ServiceControl
+          Id="SentinelServiceControl"
+          Name="SentinelGRCAgent"
+          Stop="both"
+          Remove="uninstall"
+          Wait="yes" />
+
+        <!-- Windows Firewall rule for outbound agent communication -->
+        <fire:FirewallException Id="SentinelAgentFirewall"
+            Name="Sentinel GRC Agent"
+            Description="Allow outbound communication for Sentinel GRC Agent"
+            Program="[#SentinelAgentExe]"
+            Scope="any"
+            Profile="all" />
+      </Component>
+
+      <!-- Auto-start GUI for current user at logon -->
+      <Component Id="AutoStartGuiComponent" Guid="B8C9D0E1-F234-4567-89AB-CDEF01234567" Directory="BinDir" Condition="AUTOSTART">
+        <RegistryKey Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run">
+          <RegistryValue Type="string" Name="SentinelAgentGUI" Value="&quot;[BinDir]sentinel-agent.exe&quot;" />
+        </RegistryKey>
+        <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent" Name="GuiAutoStart" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Configuration files -->
+      <Component Id="ConfigComponent" Guid="C3D4E5F6-A7B8-9012-3456-7890ABCDEF01" Directory="ConfigDir">
+        <File Id="AgentConfigJson" Source="config\agent.example.json" />
+      </Component>
+
+      <!-- Start menu shortcuts -->
+      <Component Id="StartMenuComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012345" Directory="StartMenuDir">
+        <Shortcut Id="AgentStartMenuShortcut"
+                  Name="Sentinel Agent"
+                  Description="Launch Sentinel GRC Agent"
+                  Target="[#SentinelAgentExe]"
+                  WorkingDirectory="BinDir"
+                  Icon="SentinelIcon" />
+        <RemoveFolder Id="StartMenuDir" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent" Name="StartMenuInstalled" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Desktop shortcut -->
+      <Component Id="DesktopComponent" Guid="E5F6A7B8-C9D0-1234-EF01-567890123456" Directory="DesktopFolder">
+        <Shortcut Id="AgentDesktopShortcut"
+                  Name="Sentinel Agent"
+                  Description="Launch Sentinel GRC Agent"
+                  Target="[#SentinelAgentExe]"
+                  WorkingDirectory="BinDir"
+                  Icon="SentinelIcon" />
+        <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent" Name="DesktopInstalled" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Feature definitions -->
+    <Feature Id="ProductFeature" Title="Sentinel Agent" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="DataDirComponent" />
+      <ComponentRef Id="ModelsDirComponent" />
+      <ComponentRef Id="CacheLlmDirComponent" />
+      <ComponentRef Id="LogDirComponent" />
+    </Feature>
+
+    <!-- Ensure all required directories exist with proper permissions -->
+    <ComponentGroup Id="DirectoryComponents">
+      <!-- Create data directory with proper permissions -->
+      <Component Id="DataDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012345" Directory="DataDir">
+        <CreateFolder>
+          <util:PermissionEx User="Users" GenericAll="yes" />
+          <util:PermissionEx User="Administrators" GenericAll="yes" />
+          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+
+      <!-- Create models directory for LLM GGUF files -->
+      <Component Id="ModelsDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012347" Directory="ModelsDir">
+        <CreateFolder>
+          <util:PermissionEx User="Users" GenericAll="yes" />
+          <util:PermissionEx User="Administrators" GenericAll="yes" />
+          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+
+      <!-- Create LLM cache directory -->
+      <Component Id="CacheLlmDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012348" Directory="CacheLlmDir">
+        <CreateFolder>
+          <util:PermissionEx User="Users" GenericAll="yes" />
+          <util:PermissionEx User="Administrators" GenericAll="yes" />
+          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+
+      <!-- Create log directory -->
+      <Component Id="LogDirComponent" Guid="E5F6A7B8-C9D0-1234-EF01-567890123456" Directory="LogDir">
+        <CreateFolder>
+          <util:PermissionEx User="Users" GenericAll="yes" />
+          <util:PermissionEx User="Administrators" GenericAll="yes" />
+          <util:PermissionEx User="SYSTEM" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+    </ComponentGroup>
+
+    <!-- Custom actions for post-install configuration -->
+    <Binary Id="CustomActionsDLL" SourceFile="wix\CustomActions.CA.dll" />
+
+    <!-- Custom action definitions -->
+    <CustomAction Id="InstallCertificate"
+                  BinaryKey="CustomActionsDLL"
+                  DllEntry="InstallCertificate"
+                  Execute="immediate"
+                  Return="check" />
+
+    <CustomAction Id="AddDefenderExclusion"
+                  BinaryKey="CustomActionsDLL"
+                  DllEntry="AddDefenderExclusion"
+                  Execute="immediate"
+                  Return="ignore" />
+
+    <CustomAction Id="RemoveDefenderExclusion"
+                  BinaryKey="CustomActionsDLL"
+                  DllEntry="RemoveDefenderExclusion"
+                  Execute="immediate"
+                  Return="ignore" />
+
+    <CustomAction Id="CreateConfigFile"
+                  BinaryKey="CustomActionsDLL"
+                  DllEntry="CreateConfigFile"
+                  Execute="immediate"
+                  Return="ignore" />
+
+    <CustomAction Id="RunEnrollment"
+                  BinaryKey="CustomActionsDLL"
+                  DllEntry="RunEnrollment"
+                  Execute="immediate"
+                  Return="ignore" />
+
+    <CustomAction Id="LaunchGui"
+                  BinaryKey="CustomActionsDLL"
+                  DllEntry="LaunchGui"
+                  Execute="immediate"
+                  Return="ignore" />
+
+    <CustomAction Id="KillGuiProcess"
+                  BinaryKey="CustomActionsDLL"
+                  DllEntry="KillGuiProcess"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <CustomAction Id="CleanupDataOnUninstall"
+                  BinaryKey="CustomActionsDLL"
+                  DllEntry="CleanupDataOnUninstall"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <!-- Forcefully reset permissions in case of legacy locked folders from older failed installations -->
+    <CustomAction Id="ForceResetPermissions"
+                  Directory="SystemFolder"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;if (Test-Path '%ProgramData%\Sentinel') { takeown /A /F '%ProgramData%\Sentinel' /R 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant 'Users:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant 'Administrators:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant 'SYSTEM:(OI)(CI)(F)' /T /C /Q 2&gt;$null }&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <!-- Installation sequence -->
+    <InstallExecuteSequence>
+      <!-- UNINSTALL: Kill processes BEFORE file removal (deferred, between InstallInitialize and InstallFinalize) -->
+      <Custom Action="KillGuiProcess" After="InstallInitialize"
+              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+
+      <!-- Cleanup on uninstall must run deferred as SYSTEM to delete locked files -->
+      <Custom Action="CleanupDataOnUninstall" After="KillGuiProcess"
+              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+
+      <!-- Force reset legacy permissions before installing files so CreateFolder can write to it -->
+      <Custom Action="ForceResetPermissions" After="InstallInitialize"
+              Condition="NOT REMOVE=&quot;ALL&quot;" />
+
+      <!-- INSTALL: All post-install actions run AFTER InstallFinalize (immediate) -->
+      <Custom Action="InstallCertificate" After="InstallFinalize"
+              Condition="NOT Installed" />
+      <Custom Action="AddDefenderExclusion" After="InstallCertificate"
+              Condition="NOT Installed" />
+      <Custom Action="CreateConfigFile" After="AddDefenderExclusion"
+              Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="RunEnrollment" After="CreateConfigFile"
+              Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="LaunchGui" After="RunEnrollment"
+              Condition="NOT Installed" />
+
+      <!-- UNINSTALL: Post-uninstall cleanup AFTER InstallFinalize (immediate) -->
+      <Custom Action="RemoveDefenderExclusion" After="LaunchGui"
+              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+    </InstallExecuteSequence>
+
+  </Package>
+</Wix>
