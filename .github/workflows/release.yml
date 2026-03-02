@@ -407,11 +407,8 @@ jobs:
           Write-Host "✅ Certificat auto-signé persistant créé"
           Write-Host "   Thumbprint: $($cert.Thumbprint)"
           Write-Host "   Valide jusqu'à: $($cert.NotAfter.ToString('yyyy-MM-dd'))"
-          Write-Host "   Mot de passe: $password"
           Write-Host ""
-          Write-Host "🔑 Pour utilisation future, ajoutez aux secrets GitHub :"
-          Write-Host "WINDOWS_SELFSIGN_PFX: $pfxBase64"
-          Write-Host "WINDOWS_SELFSIGN_PASSWORD: $password"
+          Write-Host "🔑 Certificat et mot de passe stockés dans les secrets GitHub"
 
       - name: Build MSI
         run: |

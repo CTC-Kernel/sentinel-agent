@@ -96,6 +96,10 @@ GITHUB_SECRETS*.txt
 bom.json
 *.cdx.json
 
+# Compile/debug artifacts
+compile_errors.txt
+*.txt.bak
+
 # Backup / debug files
 *.bak
 *.bak2
