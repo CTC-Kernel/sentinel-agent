@@ -1,12 +1,7 @@
-<p align="center">
-  <img src="assets/security_seal.png" alt="Sentinel GRC Security Seal" width="200">
-</p>
+![Sentinel GRC Security Seal](assets/security_seal.png)
 
-<h1 align="center">POLITIQUE DE SÉCURITÉ</h1>
-
-<p align="center">
-  <strong>Standard de Protection Militaire - Sentinel GRC Agent</strong>
-</p>
+# Security Policy
+**Commitment to Privacy & System Integrity**
 
 ---
 
