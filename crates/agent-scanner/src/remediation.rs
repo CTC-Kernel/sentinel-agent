@@ -261,7 +261,7 @@ impl RemediationEngine {
             RemediationAction {
                 check_id: "screen_lock".to_string(),
                 platform: "windows".to_string(),
-                script: r#"powershell -NoProfile -Command "Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'InactivityTimeoutSecs' -Value 300""#.to_string(),
+                script: r#"Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'InactivityTimeoutSecs' -Value 300"#.to_string(),
                 requires_reboot: false,
                 requires_admin: true,
                 risk_level: RemediationRisk::Safe,
@@ -322,12 +322,12 @@ impl RemediationEngine {
             RemediationAction {
                 check_id: "obsolete_protocols".to_string(),
                 platform: "windows".to_string(),
-                script: r#"powershell -NoProfile -Command "New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Force | New-ItemProperty -Name Enabled -Value 0 -PropertyType DWord""#.to_string(),
+                script: r#"New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Force | New-ItemProperty -Name Enabled -Value 0 -PropertyType DWord"#.to_string(),
                 requires_reboot: true,
                 requires_admin: true,
                 risk_level: RemediationRisk::Risky,
                 description: "Disable TLS 1.0 in Windows Schannel registry".to_string(),
-                rollback_script: Some(r#"powershell -NoProfile -Command "Set-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Name Enabled -Value 1""#.to_string()),
+                rollback_script: Some(r#"Set-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Name Enabled -Value 1"#.to_string()),
             },
         ]);
 
@@ -438,7 +438,11 @@ fn execute_script(script: &str, platform: &str, _requires_admin: bool) -> Result
     }
 
     let output = if platform == "windows" || cfg!(target_os = "windows") {
-        silent_command("cmd").args(["/C", script]).output()
+        // Run PowerShell directly to avoid an intermediate cmd.exe process
+        // that can flash a visible console window on Windows GUI apps.
+        silent_command("powershell")
+            .args(["-NoProfile", "-NonInteractive", "-Command", script])
+            .output()
     } else {
         silent_command("sh").args(["-c", script]).output()
     };
@@ -449,12 +453,24 @@ fn execute_script(script: &str, platform: &str, _requires_admin: bool) -> Result
             let stderr = String::from_utf8_lossy(&out.stderr).to_string();
 
             if out.status.success() {
+                if !stdout.trim().is_empty() {
+                    info!("Script output: {}", stdout.trim());
+                }
                 Ok(stdout)
             } else {
-                Err(format!("Exit code {}: {}", out.status, stderr))
+                let msg = format!("Exit code {}: {}", out.status, stderr);
+                warn!("Script failed: {}", msg);
+                if !stdout.trim().is_empty() {
+                    warn!("Script stdout: {}", stdout.trim());
+                }
+                Err(msg)
             }
         }
-        Err(e) => Err(format!("Failed to execute: {}", e)),
+        Err(e) => {
+            let msg = format!("Failed to execute: {}", e);
+            warn!("{}", msg);
+            Err(msg)
+        }
     }
 }
 

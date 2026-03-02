@@ -81,8 +81,14 @@ GoogleService-Info.plist
 firestore.indexes.json
 storage.rules
 
-# Test artifacts
+# Test artifacts & Playwright (NEVER commit - may contain network traces with secrets)
 test-results/
+.playwright-artifacts*/
+playwright-report/
+blob-report/
+*.network
+*.trace
+*.zip.trace
 test-debug-*.png
 
 # Secrets / credentials (NEVER commit)

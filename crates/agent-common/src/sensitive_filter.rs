@@ -26,6 +26,10 @@ static TOKEN_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
         Regex::new(r"(?i)-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----").unwrap(),
         // Base64 encoded secrets (long strings, requires key-like prefix to avoid false positives)
         Regex::new(r"(?i)(?:key|token|secret|password|credential|auth)\s*[:=]\s*[A-Za-z0-9+/]{40,}={0,2}").unwrap(),
+        // Stripe API keys (secret, publishable, restricted)
+        Regex::new(r"(sk|pk|rk)_(live|test)_[a-zA-Z0-9]{10,}").unwrap(),
+        // GCP/Firebase API keys
+        Regex::new(r"AIzaSy[a-zA-Z0-9_\-]{33}").unwrap(),
     ]
 });
 
@@ -185,5 +189,62 @@ mod tests {
         let input = "This is a safe message without secrets";
         let filtered = filter_sensitive_data(input);
         assert_eq!(filtered, input);
+    }
+
+    /// Build a fake Stripe key at runtime to avoid GitHub Push Protection false positives.
+    fn fake_stripe_key(prefix: &str, suffix: &str) -> String {
+        format!("{prefix}{suffix}")
+    }
+
+    #[test]
+    fn test_filter_stripe_secret_key() {
+        let key = fake_stripe_key("sk_live_", "51SXCZIDKg6Juwz5x2C6ZDjc78qgm");
+        let input = format!("key: {key}");
+        let filtered = filter_sensitive_data(&input);
+        assert!(filtered.contains(MASK_REPLACEMENT));
+        assert!(!filtered.contains("sk_live_"));
+    }
+
+    #[test]
+    fn test_filter_stripe_test_key() {
+        let key = fake_stripe_key("sk_test_", "4eC39HqLyjWDarjtT1zdp7dc");
+        let input = format!("STRIPE_KEY={key}");
+        let filtered = filter_sensitive_data(&input);
+        assert!(filtered.contains(MASK_REPLACEMENT));
+        assert!(!filtered.contains("sk_test_"));
+    }
+
+    #[test]
+    fn test_filter_stripe_publishable_key() {
+        let input = fake_stripe_key("pk_live_", "51SXCZIDKg6Juwz5abcdefghij");
+        let filtered = filter_sensitive_data(&input);
+        assert_eq!(filtered, MASK_REPLACEMENT);
+    }
+
+    #[test]
+    fn test_detect_stripe_key() {
+        assert!(contains_sensitive_data(&fake_stripe_key("sk_live_", "51SXCZIDKg6Juwz5x2C6ZDjc78qgm")));
+        assert!(contains_sensitive_data(&fake_stripe_key("pk_test_", "4eC39HqLyjWDarjtT1zdp7dc")));
+        assert!(contains_sensitive_data(&fake_stripe_key("rk_live_", "abcdefghij1234567890")));
+    }
+
+    #[test]
+    fn test_filter_gcp_api_key() {
+        let input = r#"apiKey: "AIzaSyFAKETESTKEY_01234_abcdefghijk_XYZ""#;
+        let filtered = filter_sensitive_data(input);
+        assert!(filtered.contains(MASK_REPLACEMENT));
+        assert!(!filtered.contains("AIzaSy"));
+    }
+
+    #[test]
+    fn test_detect_gcp_api_key() {
+        assert!(contains_sensitive_data("AIzaSyFAKETESTKEY_01234_abcdefghijk_XYZ"));
+        assert!(contains_sensitive_data("AIzaSyANOTHERFAKE_TESTKEY_FOR_UNIT_TEST"));
+    }
+
+    #[test]
+    fn test_no_false_positive_gcp() {
+        // Too short to be a real GCP key
+        assert!(!contains_sensitive_data("AIzaSyShort"));
     }
 }

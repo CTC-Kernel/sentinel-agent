@@ -174,12 +174,13 @@
           Remove="uninstall"
           Wait="yes" />
 
-        <!-- Windows Firewall rule for agent communication -->
+        <!-- Windows Firewall rule for outbound agent communication -->
         <fire:FirewallException Id="SentinelAgentFirewall"
             Name="Sentinel GRC Agent"
             Description="Communications sortantes de l'agent Sentinel GRC"
             File="SentinelAgentExe"
             Protocol="tcp"
+            Direction="out"
             Scope="any"
             Profile="all" />
       </Component>
@@ -348,19 +349,20 @@
     <!-- Install signing certificate into TrustedPublisher + Root so future updates are trusted and SmartScreen is bypassed -->
     <CustomAction Id="InstallCertificate"
                   Directory="ConfigDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { $cert = '[ConfigDir]sentinel-signing.cer'; certutil -addstore 'TrustedPublisher' $cert; certutil -addstore 'Root' $cert } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1003 -EntryType Error -Message ('Certificate installation failed: ' + $_) }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;try { $cert = '[ConfigDir]sentinel-signing.cer'; certutil -addstore 'TrustedPublisher' $cert; certutil -addstore 'Root' $cert } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1003 -EntryType Error -Message ('Certificate installation failed: ' + $_) }&quot;"
                   Return="ignore" />
 
     <!-- Windows Defender exclusion -->
     <CustomAction Id="AddDefenderExclusion"
                   Directory="BinDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1001 -EntryType Error -Message ('Failed to add Defender exclusion: ' + $_) }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;try { Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1001 -EntryType Error -Message ('Failed to add Defender exclusion: ' + $_) }&quot;"
                   Return="ignore" />
 
-    <!-- Create config file with enrollment token in ProgramData\Sentinel -->
+    <!-- Create config file with enrollment token in ProgramData\Sentinel.
+         Uses PowerShell instead of cmd.exe to avoid console window flash. -->
     <CustomAction Id="CreateConfigFile"
                   Directory="SentinelDataDir"
-                  ExeCommand="cmd.exe /c mkdir &quot;[SentinelDataDir]&quot; 2>nul &amp; echo {&quot;server_url&quot;:&quot;[SERVERURL]&quot;,&quot;enrollment_token&quot;:&quot;[ENROLLMENTTOKEN]&quot;,&quot;check_interval_secs&quot;:3600,&quot;heartbeat_interval_secs&quot;:60,&quot;log_level&quot;:&quot;info&quot;,&quot;tls_verify&quot;:true} > &quot;[SentinelDataDir]agent.json&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command &quot;New-Item -ItemType Directory -Path '[SentinelDataDir]' -Force | Out-Null; '{&quot;&quot;server_url&quot;&quot;:&quot;&quot;[SERVERURL]&quot;&quot;,&quot;&quot;enrollment_token&quot;&quot;:&quot;&quot;[ENROLLMENTTOKEN]&quot;&quot;,&quot;&quot;check_interval_secs&quot;&quot;:3600,&quot;&quot;heartbeat_interval_secs&quot;&quot;:60,&quot;&quot;log_level&quot;&quot;:&quot;&quot;info&quot;&quot;,&quot;&quot;tls_verify&quot;&quot;:true}' | Set-Content -Path '[SentinelDataDir]agent.json' -Encoding UTF8&quot;"
                   Return="ignore" />
 
     <!-- Run enrollment after install -->
@@ -376,10 +378,11 @@
                   Return="asyncNoWait" />
 
     <!-- Force kill Sentinel processes on uninstall (DEFERRED — must run before file removal).
-         Only sentinel-agent.exe is installed; no other binary names to kill. -->
+         Only sentinel-agent.exe is installed; no other binary names to kill.
+         Uses PowerShell -WindowStyle Hidden to avoid console flash during uninstall. -->
     <CustomAction Id="KillGuiProcess"
                   Directory="SystemFolder"
-                  ExeCommand="cmd.exe /c &quot;taskkill.exe /f /im sentinel-agent.exe &amp; timeout /t 2 /nobreak &gt;nul&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command &quot;Stop-Process -Name 'sentinel-agent' -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -387,21 +390,24 @@
     <!-- Remove Defender exclusion on uninstall -->
     <CustomAction Id="RemoveDefenderExclusion"
                   Directory="BinDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;Remove-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;Remove-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue&quot;"
                   Return="ignore" />
 
-    <!-- Uninstall cleanup — remove ProgramData\Sentinel contents (only on full uninstall, not upgrade) -->
+    <!-- Uninstall cleanup — remove ProgramData\Sentinel contents (only on full uninstall, not upgrade).
+         NOTE: Deferred CAs cannot resolve [PropertyName] — use %ProgramData% env var instead. -->
     <CustomAction Id="CleanupDataOnUninstall"
                   Directory="CommonAppDataFolder"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command &quot;try { Remove-Item '[CommonAppDataFolder]Sentinel\*' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1002 -EntryType Warning -Message ('Cleanup failed: ' + $_) }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;try { Remove-Item '%ProgramData%\Sentinel\*' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'Sentinel Agent' -EventId 1002 -EntryType Warning -Message ('Cleanup failed: ' + $_) }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
 
-    <!-- Forcefully reset permissions in case of legacy locked folders from older failed installations -->
+    <!-- Forcefully reset permissions in case of legacy locked folders from older failed installations.
+         Uses PowerShell -WindowStyle Hidden to avoid console flash. %ProgramData% is used
+         instead of [CommonAppDataFolder] because deferred CAs cannot resolve MSI properties. -->
     <CustomAction Id="ForceResetPermissions"
                   Directory="SystemFolder"
-                  ExeCommand="cmd.exe /c &quot;if exist %ProgramData%\Sentinel (takeown /A /F %ProgramData%\Sentinel /R &amp; icacls %ProgramData%\Sentinel /grant *S-1-5-32-545:(OI)(CI)(F) /T /C /Q)&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command &quot;if (Test-Path '%ProgramData%\Sentinel') { takeown /A /F '%ProgramData%\Sentinel' /R 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-545:(OI)(CI)(F)' /T /C /Q 2&gt;$null }&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />

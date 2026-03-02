@@ -1,0 +1,76 @@
+# Gitleaks custom configuration for Sentinel Agent
+# Extends default rules with project-specific patterns
+
+title = "Sentinel Agent Gitleaks Configuration"
+
+# Extend default gitleaks rules (do NOT replace them)
+[extend]
+useDefault = true
+
+# Custom rules for Stripe API keys
+[[rules]]
+id = "stripe-secret-key"
+description = "Stripe Secret Key"
+regex = '''(sk)_(live|test)_[a-zA-Z0-9]{10,}'''
+tags = ["stripe", "secret"]
+keywords = ["sk_live_", "sk_test_"]
+
+[[rules]]
+id = "stripe-publishable-key"
+description = "Stripe Publishable Key"
+regex = '''(pk)_(live|test)_[a-zA-Z0-9]{10,}'''
+tags = ["stripe", "secret"]
+keywords = ["pk_live_", "pk_test_"]
+
+[[rules]]
+id = "stripe-restricted-key"
+description = "Stripe Restricted Key"
+regex = '''(rk)_(live|test)_[a-zA-Z0-9]{10,}'''
+tags = ["stripe", "secret"]
+keywords = ["rk_live_", "rk_test_"]
+
+# Custom rules for GCP/Firebase API keys
+[[rules]]
+id = "gcp-api-key"
+description = "Google Cloud Platform API Key"
+regex = '''AIzaSy[a-zA-Z0-9_-]{33}'''
+tags = ["gcp", "firebase", "secret"]
+keywords = ["AIzaSy"]
+
+# Custom rules for Firebase App Check debug tokens
+[[rules]]
+id = "firebase-appcheck-debug-token"
+description = "Firebase App Check Debug Token"
+regex = '''[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}'''
+tags = ["firebase", "secret"]
+keywords = ["APPCHECK_DEBUG_TOKEN"]
+
+# Sentinel enrollment tokens (ent_XXXX format)
+[[rules]]
+id = "sentinel-enrollment-token"
+description = "Sentinel Agent Enrollment Token"
+regex = '''ent_[a-zA-Z0-9]{16,}'''
+tags = ["sentinel", "secret"]
+keywords = ["ent_"]
+
+# Block Playwright network trace files (may contain captured API keys)
+[[rules]]
+id = "playwright-network-trace"
+description = "Playwright network trace file (may contain API keys)"
+regex = '''(AIzaSy|sk_live_|sk_test_|pk_live_|pk_test_|Bearer\s+ey)'''
+tags = ["playwright", "trace", "secret"]
+path = '''\.network$'''
+
+# Allowlist to reduce false positives
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''(.*)?test(.*)?\.rs$''',
+    '''(.*)?tests(.*)?\.rs$''',
+    '''(.*)?_test\.go$''',
+    '''(.*)?mock(.*)?''',
+    '''(.*)?fixture(.*)?''',
+    '''(.*)?example(.*)?''',
+    '''\.gitleaks\.toml$''',
+    '''crates/agent-common/src/sensitive_filter\.rs$''',
+]
