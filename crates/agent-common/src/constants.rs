@@ -2,6 +2,24 @@
 // SPDX-License-Identifier: MIT
 
 //! Common constants for the Sentinel GRC Agent.
+//!
+//! Build-time configuration: set environment variables before `cargo build` to
+//! inject production values without committing them to source control.
+//!
+//! - `SENTINEL_FIREBASE_PROJECT_ID`
+//! - `SENTINEL_FIREBASE_STORAGE_BUCKET`
+//! - `SENTINEL_SERVER_URL`
+//! - `SENTINEL_RELEASES_BASE_URL`
+
+/// Compile-time macro: reads an env var at build time, falls back to a default.
+macro_rules! env_or_default {
+    ($env:expr, $default:expr) => {
+        match option_env!($env) {
+            Some(val) => val,
+            None => $default,
+        }
+    };
+}
 
 /// Agent version string.
 pub const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -46,12 +64,12 @@ pub const CONFIG_FILE_NAME: &str = "agent.json";
 ///
 /// Override at runtime via the `server_url` field in `agent.json`.
 /// **Open-source users**: replace with your own Firebase project ID.
-pub const FIREBASE_PROJECT_ID: &str = "YOUR_FIREBASE_PROJECT_ID";
+pub const FIREBASE_PROJECT_ID: &str = env_or_default!("SENTINEL_FIREBASE_PROJECT_ID", "YOUR_FIREBASE_PROJECT_ID");
 
 /// Firebase Storage bucket.
 ///
 /// **Open-source users**: replace with your own Firebase Storage bucket.
-pub const FIREBASE_STORAGE_BUCKET: &str = "YOUR_FIREBASE_PROJECT_ID.firebasestorage.app";
+pub const FIREBASE_STORAGE_BUCKET: &str = env_or_default!("SENTINEL_FIREBASE_STORAGE_BUCKET", "YOUR_FIREBASE_PROJECT_ID.firebasestorage.app");
 
 /// Default server URL (Firebase Cloud Functions).
 ///
@@ -59,13 +77,13 @@ pub const FIREBASE_STORAGE_BUCKET: &str = "YOUR_FIREBASE_PROJECT_ID.firebasestor
 /// and data uploads.  It is *not* the web dashboard URL visible to end users.
 /// **Open-source users**: replace with your own Cloud Functions endpoint.
 pub const DEFAULT_SERVER_URL: &str =
-    "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi";
+    env_or_default!("SENTINEL_SERVER_URL", "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi");
 
 /// Base URL for release artifacts in Firebase Storage.
 ///
 /// **Open-source users**: replace with your own releases path.
 pub const RELEASES_BASE_URL: &str =
-    "https://storage.googleapis.com/YOUR_FIREBASE_PROJECT_ID.firebasestorage.app/releases/agent";
+    env_or_default!("SENTINEL_RELEASES_BASE_URL", "https://storage.googleapis.com/YOUR_FIREBASE_PROJECT_ID.firebasestorage.app/releases/agent");
 
 /// Log file name.
 pub const LOG_FILE_NAME: &str = "agent.log";
