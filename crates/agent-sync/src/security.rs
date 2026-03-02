@@ -17,6 +17,7 @@ use sha2::Sha256;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
+use agent_common::process::silent_async_command;
 
 /// HMAC-SHA256 type alias.
 type HmacSha256 = Hmac<Sha256>;
@@ -352,7 +353,7 @@ impl SignatureValidator {
 
         // Use PowerShell Get-AuthenticodeSignature for verification
         let path_str = path.to_string_lossy().replace('\'', "''");
-        let output = silent_command("powershell")
+        let output = silent_async_command("powershell")
             .args([
                 "-NoProfile",
                 "-NonInteractive",
@@ -470,7 +471,7 @@ impl SignatureValidator {
         };
 
         // Run GPG verification with status output for parsing
-        let output = tokio::process::Command::new("gpg")
+        let output = silent_async_command("gpg")
             .args([
                 "--verify",
                 "--status-fd=1",

@@ -20,7 +20,7 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for SSH hardening.
@@ -387,7 +387,7 @@ impl SshHardeningCheck {
         };
 
         // Check if SSH server is running
-        if let Ok(output) = Command::new("systemctl")
+        if let Ok(output) = silent_command("systemctl")
             .args(["is-active", "sshd"])
             .output()
         {
@@ -396,7 +396,7 @@ impl SshHardeningCheck {
             status
                 .raw_output
                 .push_str(&format!("sshd service: {}\n", result.trim()));
-        } else if let Ok(output) = Command::new("systemctl")
+        } else if let Ok(output) = silent_command("systemctl")
             .args(["is-active", "ssh"])
             .output()
         {
@@ -474,7 +474,7 @@ impl SshHardeningCheck {
         // Check Remote Login status (macOS SSH server)
         // Note: systemsetup requires root on macOS — fall back to launchctl if needed
         let mut systemsetup_resolved = false;
-        if let Ok(output) = Command::new("systemsetup")
+        if let Ok(output) = silent_command("systemsetup")
             .args(["-getremotelogin"])
             .output()
         {
@@ -496,7 +496,7 @@ impl SshHardeningCheck {
 
         // Fallback: check sshd via launchctl if systemsetup requires root
         if !systemsetup_resolved
-            && let Ok(output) = Command::new("launchctl")
+            && let Ok(output) = silent_command("launchctl")
                 .args(["list", "com.openssh.sshd"])
                 .output()
         {

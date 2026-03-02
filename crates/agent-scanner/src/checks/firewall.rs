@@ -13,7 +13,7 @@ use crate::error::{ScannerError, ScannerResult};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for firewall configuration.
@@ -245,7 +245,7 @@ impl FirewallCheck {
 
     #[cfg(target_os = "linux")]
     async fn check_ufw(&self) -> ScannerResult<FirewallStatus> {
-        let output = Command::new("ufw")
+        let output = silent_command("ufw")
             .args(["status", "verbose"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("ufw not found: {}", e)))?;
@@ -296,7 +296,7 @@ impl FirewallCheck {
 
     #[cfg(target_os = "linux")]
     async fn check_nftables(&self) -> ScannerResult<FirewallStatus> {
-        let output = Command::new("nft")
+        let output = silent_command("nft")
             .args(["list", "ruleset"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("nft not found: {}", e)))?;
@@ -329,7 +329,7 @@ impl FirewallCheck {
 
     #[cfg(target_os = "linux")]
     async fn check_iptables(&self) -> ScannerResult<FirewallStatus> {
-        let output = match Command::new("iptables").args(["-L", "-n"]).output() {
+        let output = match silent_command("iptables").args(["-L", "-n"]).output() {
             Ok(o) => o,
             Err(_) => {
                 // iptables not installed — no firewall detected
@@ -402,7 +402,7 @@ impl FirewallCheck {
         debug!("Checking macOS Application Firewall status");
 
         let get_output = |args: &[&str]| -> Result<std::process::Output, std::io::Error> {
-            Command::new("/usr/libexec/ApplicationFirewall/socketfilterfw")
+            silent_command("/usr/libexec/ApplicationFirewall/socketfilterfw")
                 .args(args)
                 .output()
         };

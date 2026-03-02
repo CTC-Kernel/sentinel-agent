@@ -16,7 +16,9 @@ use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
+#[cfg(target_os = "macos")]
+use agent_common::process::silent_async_command;
 use tracing::debug;
 #[cfg(target_os = "macos")]
 use tracing::warn;
@@ -277,7 +279,7 @@ impl SystemUpdatesCheck {
     #[cfg(target_os = "linux")]
     fn check_apt(&self, status: &mut SystemUpdatesStatus) -> bool {
         // Check if apt is available
-        let Ok(apt_output) = Command::new("which").args(["apt"]).output() else {
+        let Ok(apt_output) = silent_command("which").args(["apt"]).output() else {
             return false;
         };
         if !apt_output.status.success() {
@@ -310,7 +312,7 @@ impl SystemUpdatesCheck {
         }
 
         // Check upgradable packages (doesn't require sudo)
-        if let Ok(output) = Command::new("apt").args(["list", "--upgradable"]).output() {
+        if let Ok(output) = silent_command("apt").args(["list", "--upgradable"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -347,7 +349,7 @@ impl SystemUpdatesCheck {
 
     #[cfg(target_os = "linux")]
     fn check_dnf(&self, status: &mut SystemUpdatesStatus) -> bool {
-        let Ok(dnf_output) = Command::new("which").args(["dnf"]).output() else {
+        let Ok(dnf_output) = silent_command("which").args(["dnf"]).output() else {
             return false;
         };
         if !dnf_output.status.success() {
@@ -357,7 +359,7 @@ impl SystemUpdatesCheck {
         status.package_manager = Some("dnf".to_string());
 
         // Check for available updates
-        if let Ok(output) = Command::new("dnf").args(["check-update", "-q"]).output() {
+        if let Ok(output) = silent_command("dnf").args(["check-update", "-q"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -370,7 +372,7 @@ impl SystemUpdatesCheck {
         }
 
         // Check for security updates
-        if let Ok(output) = Command::new("dnf")
+        if let Ok(output) = silent_command("dnf")
             .args(["updateinfo", "list", "security", "-q"])
             .output()
         {
@@ -384,7 +386,7 @@ impl SystemUpdatesCheck {
         }
 
         // Check dnf-automatic status
-        if let Ok(output) = Command::new("systemctl")
+        if let Ok(output) = silent_command("systemctl")
             .args(["is-enabled", "dnf-automatic.timer"])
             .output()
         {
@@ -397,7 +399,7 @@ impl SystemUpdatesCheck {
 
     #[cfg(target_os = "linux")]
     fn check_yum(&self, status: &mut SystemUpdatesStatus) -> bool {
-        let Ok(yum_output) = Command::new("which").args(["yum"]).output() else {
+        let Ok(yum_output) = silent_command("which").args(["yum"]).output() else {
             return false;
         };
         if !yum_output.status.success() {
@@ -407,7 +409,7 @@ impl SystemUpdatesCheck {
         status.package_manager = Some("yum".to_string());
 
         // Check for available updates
-        if let Ok(output) = Command::new("yum").args(["check-update", "-q"]).output() {
+        if let Ok(output) = silent_command("yum").args(["check-update", "-q"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -422,7 +424,7 @@ impl SystemUpdatesCheck {
         }
 
         // Check for security updates
-        if let Ok(output) = Command::new("yum")
+        if let Ok(output) = silent_command("yum")
             .args(["updateinfo", "list", "security", "-q"])
             .output()
         {
@@ -462,7 +464,7 @@ impl SystemUpdatesCheck {
         let timeout_duration = std::time::Duration::from_secs(UPDATE_CMD_TIMEOUT_SECS);
         let su_result = tokio::time::timeout(
             timeout_duration,
-            tokio::process::Command::new("softwareupdate")
+            silent_async_command("softwareupdate")
                 .args(["--list"])
                 .output(),
         )
@@ -518,7 +520,7 @@ impl SystemUpdatesCheck {
         }
 
         // Check auto-update settings (fast command, no timeout needed)
-        if let Ok(output) = Command::new("defaults")
+        if let Ok(output) = silent_command("defaults")
             .args([
                 "read",
                 "/Library/Preferences/com.apple.SoftwareUpdate",
@@ -534,7 +536,7 @@ impl SystemUpdatesCheck {
         }
 
         // Get last check date (fast command, no timeout needed)
-        if let Ok(output) = Command::new("defaults")
+        if let Ok(output) = silent_command("defaults")
             .args([
                 "read",
                 "/Library/Preferences/com.apple.SoftwareUpdate",

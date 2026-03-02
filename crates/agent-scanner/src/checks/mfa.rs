@@ -15,7 +15,7 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for MFA configuration.
@@ -311,7 +311,7 @@ impl MfaCheck {
         }
 
         // Check for U2F devices
-        if let Ok(output) = Command::new("lsusb").output() {
+        if let Ok(output) = silent_command("lsusb").output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             if result.contains("YubiKey") || result.contains("Yubico") {
                 status.mfa_configured = true;
@@ -347,7 +347,7 @@ impl MfaCheck {
         };
 
         // Check Touch ID status using bioutil -r -s (read, summary)
-        if let Ok(output) = Command::new("bioutil").args(["-r", "-s"]).output() {
+        if let Ok(output) = silent_command("bioutil").args(["-r", "-s"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             status
@@ -367,7 +367,7 @@ impl MfaCheck {
         }
 
         // Check for Smart Card support via defaults and PAM
-        if let Ok(output) = Command::new("defaults")
+        if let Ok(output) = silent_command("defaults")
             .args(["read", "/Library/Preferences/com.apple.security.smartcard"])
             .output()
         {
@@ -404,7 +404,7 @@ impl MfaCheck {
         }
 
         // Check for Apple Watch unlock
-        if let Ok(output) = Command::new("defaults")
+        if let Ok(output) = silent_command("defaults")
             .args(["read", "com.apple.security.authorization", "useSmartCards"])
             .output()
         {

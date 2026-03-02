@@ -15,7 +15,6 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
 #[cfg(target_os = "windows")]
 use agent_common::process::silent_command;
 use tracing::debug;
@@ -170,7 +169,7 @@ impl TimeSyncCheck {
         };
 
         // Try chronyc first
-        if let Ok(output) = Command::new("chronyc").args(["tracking"]).output() {
+        if let Ok(output) = silent_command("chronyc").args(["tracking"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -206,7 +205,7 @@ impl TimeSyncCheck {
         }
 
         // Fall back to timedatectl
-        if let Ok(output) = Command::new("timedatectl").args(["status"]).output() {
+        if let Ok(output) = silent_command("timedatectl").args(["status"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -274,7 +273,7 @@ impl TimeSyncCheck {
         // Check if network time is enabled
         // Note: systemsetup requires root on macOS — if not root, fall back to launchctl
         let mut systemsetup_failed = false;
-        if let Ok(output) = Command::new("systemsetup")
+        if let Ok(output) = silent_command("systemsetup")
             .args(["-getusingnetworktime"])
             .output()
         {
@@ -300,7 +299,7 @@ impl TimeSyncCheck {
 
         // Fallback: check timed service via launchctl if systemsetup requires root
         if systemsetup_failed
-            && let Ok(output) = Command::new("launchctl")
+            && let Ok(output) = silent_command("launchctl")
                 .args(["list", "com.apple.timed"])
                 .output()
         {
@@ -312,7 +311,7 @@ impl TimeSyncCheck {
         }
 
         // Check NTP server
-        if let Ok(output) = Command::new("systemsetup")
+        if let Ok(output) = silent_command("systemsetup")
             .args(["-getnetworktimeserver"])
             .output()
         {
@@ -340,7 +339,7 @@ impl TimeSyncCheck {
             .clone()
             .unwrap_or_else(|| "time.apple.com".to_string());
 
-        if let Ok(output) = Command::new("sntp")
+        if let Ok(output) = silent_command("sntp")
             .args(["-t", "5", &ntp_server])
             .output()
         {

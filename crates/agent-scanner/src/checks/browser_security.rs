@@ -15,9 +15,9 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-use std::process::Command;
 use tracing::debug;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+use agent_common::process::silent_command;
 
 /// Check ID for browser security.
 pub const CHECK_ID: &str = "browser_security";
@@ -221,7 +221,7 @@ impl BrowserSecurityCheck {
         let mut safe_browsing_enabled = None;
 
         // Check Chrome SafeBrowsingEnabled preference
-        let chrome_output = Command::new("defaults")
+        let chrome_output = silent_command("defaults")
             .args(["read", "com.google.Chrome", "SafeBrowsingEnabled"])
             .output()
             .map_err(|e| {

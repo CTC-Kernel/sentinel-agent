@@ -16,7 +16,7 @@ use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for backup configuration.
@@ -346,7 +346,7 @@ impl BackupCheck {
     #[cfg(target_os = "linux")]
     fn check_timeshift(&self, status: &mut BackupStatus) -> bool {
         // Check if timeshift is installed
-        if let Ok(output) = Command::new("which").args(["timeshift"]).output() {
+        if let Ok(output) = silent_command("which").args(["timeshift"]).output() {
             if !output.status.success() {
                 return false;
             }
@@ -358,7 +358,7 @@ impl BackupCheck {
         status.includes_system = Some(true);
 
         // Get timeshift snapshots
-        if let Ok(output) = Command::new("timeshift").args(["--list"]).output() {
+        if let Ok(output) = silent_command("timeshift").args(["--list"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -410,7 +410,7 @@ impl BackupCheck {
     #[cfg(target_os = "linux")]
     fn check_borg(&self, status: &mut BackupStatus) -> bool {
         // Check for borgbackup
-        if let Ok(output) = Command::new("which").args(["borg"]).output() {
+        if let Ok(output) = silent_command("which").args(["borg"]).output() {
             if !output.status.success() {
                 return false;
             }
@@ -441,7 +441,7 @@ impl BackupCheck {
     #[cfg(target_os = "linux")]
     fn check_rsync_cron(&self, status: &mut BackupStatus) -> bool {
         // Check user crontab for rsync
-        if let Ok(output) = Command::new("crontab").args(["-l"]).output() {
+        if let Ok(output) = silent_command("crontab").args(["-l"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
 
             if result.contains("rsync") && !result.contains("no crontab") {
@@ -517,7 +517,7 @@ impl BackupCheck {
                             .push_str(&format!("Backup timer unit: {}\n", entry.path().display()));
 
                         // Check if timer is enabled
-                        if let Ok(output) = std::process::Command::new("systemctl")
+                        if let Ok(output) = std::process::silent_command("systemctl")
                             .args(["is-enabled", &name])
                             .output()
                         {
@@ -610,7 +610,7 @@ impl BackupCheck {
         };
 
         // Check Time Machine status
-        if let Ok(output) = Command::new("tmutil").args(["status"]).output() {
+        if let Ok(output) = silent_command("tmutil").args(["status"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -623,7 +623,7 @@ impl BackupCheck {
         }
 
         // Check Time Machine destination
-        if let Ok(output) = Command::new("tmutil").args(["destinationinfo"]).output() {
+        if let Ok(output) = silent_command("tmutil").args(["destinationinfo"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -643,7 +643,7 @@ impl BackupCheck {
         }
 
         // Get latest backup info
-        if let Ok(output) = Command::new("tmutil").args(["latestbackup"]).output() {
+        if let Ok(output) = silent_command("tmutil").args(["latestbackup"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
@@ -659,7 +659,7 @@ impl BackupCheck {
         }
 
         // Check if auto-backup is enabled
-        if let Ok(output) = Command::new("defaults")
+        if let Ok(output) = silent_command("defaults")
             .args([
                 "read",
                 "/Library/Preferences/com.apple.TimeMachine",

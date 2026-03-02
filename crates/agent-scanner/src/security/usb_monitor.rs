@@ -10,6 +10,7 @@ use agent_common::types::{UsbDevice, UsbDeviceClass, UsbEvent, UsbEventType, Usb
 use chrono::Utc;
 use std::collections::HashMap;
 use tracing::{debug, info};
+use agent_common::process::silent_command;
 
 /// USB device monitor that tracks connected devices.
 pub struct UsbMonitor {
@@ -199,9 +200,8 @@ impl UsbMonitor {
     /// Enumerate USB devices on macOS using system_profiler.
     #[cfg(target_os = "macos")]
     fn enumerate_macos(&self) -> Vec<UsbDevice> {
-        use std::process::Command;
 
-        let output = match Command::new("system_profiler")
+        let output = match silent_command("system_profiler")
             .args(["SPUSBDataType", "-json"])
             .output()
         {
@@ -226,7 +226,6 @@ impl UsbMonitor {
     /// Enumerate USB devices on Windows using PowerShell.
     #[cfg(target_os = "windows")]
     fn enumerate_windows(&self) -> Vec<UsbDevice> {
-        use std::process::Command;
 
         let output = match silent_command("powershell")
             .args([

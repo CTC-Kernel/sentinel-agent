@@ -14,7 +14,7 @@ use crate::error::{ScannerError, ScannerResult};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for Bluetooth disabled.
@@ -115,7 +115,7 @@ impl BluetoothCheck {
         debug!("Checking Linux Bluetooth service status");
 
         // systemctl may not exist on non-systemd distros (Alpine, Void, Devuan)
-        if let Ok(output) = Command::new("systemctl")
+        if let Ok(output) = silent_command("systemctl")
             .args(["is-active", "bluetooth"])
             .output()
         {
@@ -167,7 +167,7 @@ impl BluetoothCheck {
     async fn check_macos(&self) -> ScannerResult<BluetoothStatus> {
         debug!("Checking macOS Bluetooth power state");
 
-        let output = Command::new("defaults")
+        let output = silent_command("defaults")
             .args([
                 "read",
                 "/Library/Preferences/com.apple.Bluetooth",

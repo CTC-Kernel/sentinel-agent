@@ -23,7 +23,7 @@ use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for certificate validation.
@@ -307,7 +307,7 @@ impl CertificateValidationCheck {
         };
 
         // Check if openssl is available
-        let openssl_available = Command::new("which").args(["openssl"]).output().is_ok_and(|o| o.status.success());
+        let openssl_available = silent_command("which").args(["openssl"]).output().is_ok_and(|o| o.status.success());
         if !openssl_available {
             status
                 .issues
@@ -331,7 +331,7 @@ impl CertificateValidationCheck {
 
             // Use find to get all .crt and .pem files
             // Parentheses group the -name clauses so -type f applies to both
-            let output = Command::new("find")
+            let output = silent_command("find")
                 .args([
                     cert_path, "-type", "f", "(", "-name", "*.crt", "-o", "-name", "*.pem", ")",
                 ])
@@ -347,7 +347,7 @@ impl CertificateValidationCheck {
                     }
 
                     // Parse certificate with openssl
-                    let cert_output = Command::new("openssl")
+                    let cert_output = silent_command("openssl")
                         .args([
                             "x509", "-in", cert_file, "-noout", "-subject", "-issuer", "-dates",
                             "-serial", "-text",
@@ -366,7 +366,7 @@ impl CertificateValidationCheck {
         }
 
         // Also check system trust
-        if let Ok(output) = Command::new("trust").args(["list"]).output() {
+        if let Ok(output) = silent_command("trust").args(["list"]).output() {
             let trust_list = String::from_utf8_lossy(&output.stdout);
             status
                 .raw_output
@@ -398,7 +398,7 @@ impl CertificateValidationCheck {
         };
 
         // Use security command to list certificates
-        let output = Command::new("security")
+        let output = silent_command("security")
             .args([
                 "find-certificate",
                 "-a",
@@ -426,7 +426,7 @@ impl CertificateValidationCheck {
             let cert_pem = format!("-----BEGIN CERTIFICATE-----{}", cert_block);
 
             // Parse with openssl
-            let parse_output = Command::new("openssl")
+            let parse_output = silent_command("openssl")
                 .args(["x509", "-noout", "-subject", "-issuer", "-dates", "-text"])
                 .stdin(std::process::Stdio::piped())
                 .stdout(std::process::Stdio::piped())

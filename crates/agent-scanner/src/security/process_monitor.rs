@@ -7,6 +7,7 @@ use super::{IncidentSeverity, IncidentType, SecurityIncident};
 use crate::error::ScannerResult;
 use std::collections::HashSet;
 use tracing::{debug, warn};
+use agent_common::process::silent_command;
 
 /// Known suspicious process names - exact matches required.
 /// The bool indicates if exact match is required (true) or contains match (false).
@@ -254,9 +255,8 @@ impl ProcessMonitor {
 
     #[cfg(target_os = "macos")]
     fn get_processes(&self) -> ScannerResult<Vec<ProcessInfo>> {
-        use std::process::Command;
 
-        let output = Command::new("ps")
+        let output = silent_command("ps")
             .args(["-axo", "pid,ppid,user,comm"])
             .output()
             .map_err(|e| crate::error::ScannerError::Command(format!("Failed to run ps: {}", e)))?;
@@ -291,7 +291,6 @@ impl ProcessMonitor {
 
     #[cfg(target_os = "windows")]
     fn get_processes(&self) -> ScannerResult<Vec<ProcessInfo>> {
-        use std::process::Command;
 
         // Use Get-CimInstance (fallback to Get-WmiObject if needed) to get CommandLine which Get-Process lacks
         let output = silent_command("powershell")

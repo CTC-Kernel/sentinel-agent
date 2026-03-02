@@ -27,3 +27,19 @@ pub fn silent_command(program: &str) -> Command {
 
     cmd
 }
+
+/// Async variant of [`silent_command`] returning a [`tokio::process::Command`].
+///
+/// Use this inside `async fn` blocks where you need `.output().await`.
+pub fn silent_async_command(program: &str) -> tokio::process::Command {
+    #[allow(unused_mut)]
+    let mut cmd = tokio::process::Command::new(program);
+
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x0800_0000);
+    }
+
+    cmd
+}

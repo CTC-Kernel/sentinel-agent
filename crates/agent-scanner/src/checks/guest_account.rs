@@ -13,7 +13,7 @@ use crate::error::{ScannerError, ScannerResult};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for guest account disabled.
@@ -152,7 +152,7 @@ impl GuestAccountCheck {
         }
 
         // Check if guest account is locked via passwd -S
-        let lock_output = Command::new("passwd").args(["-S", guest_username]).output();
+        let lock_output = silent_command("passwd").args(["-S", guest_username]).output();
 
         let account_locked = match lock_output {
             Ok(output) => {
@@ -193,7 +193,7 @@ impl GuestAccountCheck {
         let mut raw_output = String::new();
 
         // Check GuestEnabled preference first
-        let defaults_output = Command::new("defaults")
+        let defaults_output = silent_command("defaults")
             .args([
                 "read",
                 "/Library/Preferences/com.apple.loginwindow",
@@ -228,7 +228,7 @@ impl GuestAccountCheck {
         }
 
         // Fallback: Check via dscl
-        let dscl_output = Command::new("dscl")
+        let dscl_output = silent_command("dscl")
             .args([".", "-read", "/Users/Guest", "AuthenticationAuthority"])
             .output();
 
