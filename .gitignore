@@ -138,3 +138,7 @@ Installateur *.app/
 
 # Internal docs (not for public)
 docs/archived/
+docs/AUDIT_*.md
+docs/COMPREHENSIVE_*.md
+docs/UI_UX_AUDIT_*.md
+docs/firebase-permissions.md
