@@ -1,12 +1,35 @@
 # Build artifacts
 /target/
+release/
+build/
 **/*.rs.bk
+
+# Compiled binaries & installers
+*.exe
+*.dll
+*.dylib
+*.so
+*.pkg
+*.msi
+*.app/
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.zip
+*.tar.gz
+*.rlib
+*.rmeta
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # OS
 .DS_Store
@@ -16,65 +39,59 @@ Thumbs.db
 
 # Local config
 .env
+.env.*
 .env.local
+.env.production
+.env.staging
+.env.development
+
+# Certificates & keys (NEVER commit)
 *.pem
 *.key
 *.p12
+*.pfx
+*.cert
+*.crt
+*.der
 *.db
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+agent.log
+build_log.txt
 
 node_modules
 dist
 dist-ssr
 *.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
 # Capacitor
 ios/App/Pods
 ios/App/App.xcworkspace
 ios/App/build
 ios/App/DerivedData
+ios/App/App/GoogleService-Info.plist
 android/app/build
 android/build
 android/.gradle
 
 # iOS
-*.ipa
-*.dSYM.zip
-*.dSYM
 xcuserdata/
 *.xcscmblueprint
 *.xccheckout
 
-# Environment - NEVER commit these files
-.env
-.env.*
-.env.local
-.env.production
-.env.staging
-.env.development
-*.secrets
+# Firebase (NEVER commit)
+.firebase/
+.firebaserc
 apphosting.yaml
 token.json
-Certificats.p12
+GoogleService-Info.plist
 
 # Functions environment
 functions/.env
@@ -84,28 +101,40 @@ functions/*.secrets
 # Test artifacts
 test-results/
 playwright-report/
+playwright/.auth/
+test-debug-*.png
 
-# Generated config (version.ts committed with defaults, overwritten by scripts/generate-version.js at build time)
-
-# Secrets / credentials (NEVER commit these)
+# Secrets / credentials (NEVER commit)
 GITHUB_SECRETS*.txt
 *_SECRETS*.txt
 *.secrets
+*.dpapi
+.sentinel-key
 
-# Backup files (development artifacts)
+# SBOM/BOM files (contain local paths)
+bom.json
+*.cdx.json
+
+# Backup / debug files
 *.bak
 *.bak2
-
-# Logs
-*.log
-agent.log
+check.txt
+check_output.txt
+check_output_utf8.txt
+out.txt
 
 # LLM local models
 *.gguf
 
 # Sentinel agent local data (dev artifacts)
 data/
-.sentinel-key
 *.db-shm
 *.db-wal
-*.dpapi
+
+# Installer packages
+Package Installation Locale/
+SentinelAgent_SelfExtract*/
+Installateur *.app/
+
+# Internal docs (not for public)
+docs/archived/
