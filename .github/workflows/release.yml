@@ -389,6 +389,27 @@ jobs:
       - name: Build MSI
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
+          
+          # Verify required files exist
+          if (-not (Test-Path "target\release\agent-core.exe")) {
+            Write-Error "agent-core.exe not found in target\release"
+            exit 1
+          }
+          
+          if (-not (Test-Path "assets\icons\sentinel-agent.ico")) {
+            Write-Error "sentinel-agent.ico not found in assets\icons"
+            exit 1
+          }
+          
+          if (-not (Test-Path "wix\main.wxs")) {
+            Write-Error "main.wxs not found in wix directory"
+            exit 1
+          }
+          
+          Write-Host "Building MSI with version: $version"
+          Write-Host "TargetDir: .\target\release"
+          Write-Host "AssetsDir: .\assets\icons"
+          
           wix build `
             -d "TargetDir=.\target\release" `
             -d "Version=$version" `
@@ -397,8 +418,21 @@ jobs:
             wix/main.wxs `
             -ext WixToolset.UI.wixext `
             -ext WixToolset.Util.wixext `
-            -ext WixToolset.Firewall.wixext
-          echo "MSI created: SentinelAgentSetup-$version.msi"
+            -ext WixToolset.Firewall.wixext `
+            -v
+          
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "WiX build failed with exit code: $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
+          
+          if (-not (Test-Path "target\release\SentinelAgentSetup-$version.msi")) {
+            Write-Error "MSI file was not created"
+            exit 1
+          }
+          
+          $msiSize = (Get-Item "target\release\SentinelAgentSetup-$version.msi").Length
+          Write-Host "MSI created successfully: SentinelAgentSetup-$version.msi ($msiSize bytes)"
         shell: pwsh
 
       - name: Upload unsigned MSI for signing
