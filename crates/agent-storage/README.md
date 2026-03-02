@@ -1,69 +1,69 @@
 # agent-storage
 
-Encrypted local storage for the Sentinel GRC Agent.
+Stockage local chiffre pour le Sentinel GRC Agent.
 
-## Overview
+## Presentation
 
-This crate provides secure local data persistence:
+Cette crate fournit la persistance securisee des donnees locales :
 
-- **SQLCipher encryption**: AES-256-CBC database encryption
-- **Key management**: Platform-specific key protection
-- **Repositories**: Type-safe data access patterns
-- **Migrations**: Schema versioning and upgrades
+- **Chiffrement SQLCipher** : Chiffrement de base de donnees AES-256-CBC
+- **Gestion des cles** : Protection des cles specifique a chaque plateforme
+- **Repositories** : Patterns d'acces aux donnees type-safe
+- **Migrations** : Versionnage et mise a niveau du schema
 
-## Security
+## Securite
 
-### Key Management
+### Gestion des cles
 
-Keys are protected using platform-specific mechanisms:
+Les cles sont protegees par des mecanismes specifiques a chaque plateforme :
 
-| Platform | Protection |
-|----------|------------|
+| Plateforme | Protection |
+|------------|------------|
 | Windows | DPAPI (Data Protection API) |
-| Linux | File permissions (0600) + machine-id binding |
-| macOS | File permissions (0600) + IOPlatformUUID binding |
+| Linux | Permissions fichier (0600) + liaison machine-id |
+| macOS | Permissions fichier (0600) + liaison IOPlatformUUID |
 
-Keys are zeroized from memory on drop.
+Les cles sont effacees de la memoire a la destruction (zeroize).
 
-### Database Encryption
+### Chiffrement de la base de donnees
 
-All data is encrypted at rest using SQLCipher:
+Toutes les donnees sont chiffrees au repos avec SQLCipher :
 
-- AES-256-CBC encryption
-- Key derived from protected key file
-- Transparent encryption/decryption
+- Chiffrement AES-256-CBC
+- Cle derivee du fichier de cle protege
+- Chiffrement/dechiffrement transparent
 
 ## Repositories
 
-| Repository | Data |
-|------------|------|
-| `CheckResultsRepository` | Compliance check results |
-| `CheckRulesRepository` | Server-provided rules |
-| `CredentialsRepository` | Authentication credentials |
-| `ProofsRepository` | Compliance proofs |
-| `AuditTrailRepository` | Local audit logs |
-| `SyncQueueRepository` | Offline sync queue |
+| Repository | Donnees |
+|------------|---------|
+| `CheckResultsRepository` | Resultats des controles de conformite |
+| `CheckRulesRepository` | Regles fournies par le serveur |
+| `CredentialsRepository` | Identifiants d'authentification |
+| `ProofsRepository` | Preuves de conformite |
+| `AuditTrailRepository` | Journaux d'audit locaux |
+| `SyncQueueRepository` | File d'attente de synchronisation hors-ligne |
 
-## Usage
+## Utilisation
 
 ```rust
 use agent_storage::{Database, DatabaseConfig, KeyManager};
 
-// Initialize key manager
+// Initialiser le gestionnaire de cles
 let key_manager = KeyManager::new()?;
 
-// Open encrypted database
+// Ouvrir la base de donnees chiffree
 let config = DatabaseConfig::default();
 let db = Database::open(config, &key_manager)?;
 
-// Use repositories
+// Utiliser les repositories
 let repo = CheckResultsRepository::new(&db);
 let results = repo.get_pending_sync().await?;
 ```
 
 ## Migrations
 
-Schema migrations are versioned and applied automatically:
+Les migrations de schema sont versionnees et appliquees automatiquement :
 
 ```rust
 use agent_storage::migrations;

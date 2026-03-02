@@ -1,71 +1,71 @@
 # agent-sync
 
-Server synchronization for the Sentinel GRC Agent.
+Synchronisation serveur pour le Sentinel GRC Agent.
 
-## Overview
+## Presentation
 
-This crate handles all communication with the Sentinel GRC server:
+Cette crate gere toutes les communications avec le serveur Sentinel GRC :
 
-- **Authentication**: mTLS with certificate pinning
-- **Config sync**: Server configuration download
-- **Rule sync**: Compliance rule updates
-- **Result upload**: Check results and proofs
-- **Offline mode**: 7-day offline autonomy
+- **Authentification** : mTLS avec epinglage de certificat
+- **Synchronisation de la configuration** : Telechargement de la configuration serveur
+- **Synchronisation des regles** : Mises a jour des regles de conformite
+- **Upload des resultats** : Resultats des controles et preuves
+- **Mode hors-ligne** : Autonomie hors-ligne de 7 jours
 
 ## Modules
 
 | Module | Description |
 |--------|-------------|
-| `authenticated_client` | mTLS HTTP client with auto-refresh |
-| `config_sync` | Server configuration synchronization |
-| `credentials` | Secure credential storage |
-| `diagnostics` | Connection status and logging |
-| `integrity` | Binary and config integrity verification |
-| `offline` | Offline mode and sync queue |
-| `pinning` | Certificate pinning with TOFU |
-| `result_upload` | Check result batch upload |
-| `rollout` | Canary deployment support |
-| `rules` | Rule sync with ETag caching |
-| `security` | Log signing and signature verification |
-| `update` | Self-update orchestration |
+| `authenticated_client` | Client HTTP mTLS avec rafraichissement automatique |
+| `config_sync` | Synchronisation de la configuration serveur |
+| `credentials` | Stockage securise des identifiants |
+| `diagnostics` | Etat de connexion et journalisation |
+| `integrity` | Verification d'integrite des binaires et de la configuration |
+| `offline` | Mode hors-ligne et file d'attente de synchronisation |
+| `pinning` | Epinglage de certificat avec TOFU |
+| `result_upload` | Upload par lots des resultats de controles |
+| `rollout` | Support du deploiement canary |
+| `rules` | Synchronisation des regles avec cache ETag |
+| `security` | Signature des logs et verification des signatures |
+| `update` | Orchestration de la mise a jour automatique |
 
-## Security Features
+## Fonctionnalites de securite
 
-### Certificate Pinning
+### Epinglage de certificat
 
-Trust-on-first-use (TOFU) with backup pin support:
+Trust-on-first-use (TOFU) avec support de pin de secours :
 
 ```rust
 use agent_sync::CertificatePinning;
 
 let pinning = CertificatePinning::from_fingerprints(vec![
     "sha256:ABC123...",
-    "sha256:DEF456...", // Backup pin
+    "sha256:DEF456...", // Pin de secours
 ]);
 ```
 
-### Log Signing
+### Signature des logs
 
-HMAC-SHA256 log chain for tamper detection:
+Chaine de logs HMAC-SHA256 pour la detection de falsification :
 
 ```rust
 use agent_sync::LogSigner;
 
 let signer = LogSigner::new(&key);
-let entry = signer.sign("INFO", "core", "Agent started").await?;
+let entry = signer.sign("INFO", "core", "Agent demarre").await?;
 ```
 
-### Signature Verification
+### Verification de signature
 
-Binary signature validation:
+Validation de la signature des binaires :
 
-- Windows: Authenticode via PowerShell
-- Linux/macOS: GPG detached signatures
+- Windows : Authenticode via PowerShell
+- Linux/macOS : Signatures detachees GPG
 
-## Offline Mode
+## Mode hors-ligne
 
-The agent operates autonomously for up to 7 days offline:
+L'agent fonctionne de maniere autonome pendant 7 jours maximum hors-ligne :
 
-- Results queued locally with exponential backoff retry
-- Circuit breaker prevents overwhelming the server
-- Automatic resync on reconnection
+- Resultats mis en file d'attente localement avec backoff exponentiel
+- Disjoncteur (circuit breaker) pour eviter de surcharger le serveur
+- Resynchronisation automatique a la reconnexion
