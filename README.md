@@ -1,6 +1,6 @@
 # Sentinel GRC Agent
 
-[![CI](https://github.com/sentinel/agent/actions/workflows/ci.yml/badge.svg)](https://github.com/sentinel/agent/actions/workflows/ci.yml)
+[![CI](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange.svg)](https://www.rust-lang.org/)
 [![Version](https://img.shields.io/badge/version-2.0.112-green.svg)]()
@@ -32,7 +32,7 @@ Sentinel GRC Agent is a cross-platform agent that:
 - Light and dark theme support
 
 ### Sync & Storage
-- Reports results to the [Sentinel GRC platform](https://app.cyber-threat-consulting.com)
+- Reports results to the Sentinel GRC platform
 - Encrypted SQLite storage (SQLCipher AES-256)
 - Certificate-based authentication (mTLS) with header fallback
 - Offline-first with store-and-forward sync
@@ -127,9 +127,8 @@ Minimum coverage threshold: **70%**
 
 ## Support
 
+- **Issues**: [GitHub Issues](https://github.com/CTC-Kernel/sentinel-agent/issues)
 - **Website**: [cyber-threat-consulting.com](https://cyber-threat-consulting.com)
-- **Platform**: [app.cyber-threat-consulting.com](https://app.cyber-threat-consulting.com)
-- **Contact**: ***REMOVED***
 
 ## Contributing
 

@@ -41,7 +41,7 @@ All configuration values can be overridden via environment variables with the `S
 
 | Environment Variable | Config Field | Example |
 |---------------------|--------------|---------|
-| `SENTINEL_SERVER_URL` | `server_url` | `https://app.cyber-threat-consulting.com` |
+| `SENTINEL_SERVER_URL` | `server_url` | `https://your-sentinel-server.example.com` |
 | `SENTINEL_CHECK_INTERVAL_SECS` | `check_interval_secs` | `3600` |
 | `SENTINEL_LOG_LEVEL` | `log_level` | `debug` |
 | `SENTINEL_PROXY_URL` | `proxy.url` | `http://proxy:8080` |

@@ -66,25 +66,11 @@ lerna-debug.log*
 agent.log
 build_log.txt
 
-node_modules
-dist
-dist-ssr
+# Node / frontend (not part of this repo)
+node_modules/
+dist/
+dist-ssr/
 *.local
-
-# Capacitor
-ios/App/Pods
-ios/App/App.xcworkspace
-ios/App/build
-ios/App/DerivedData
-ios/App/App/GoogleService-Info.plist
-android/app/build
-android/build
-android/.gradle
-
-# iOS
-xcuserdata/
-*.xcscmblueprint
-*.xccheckout
 
 # Firebase (NEVER commit)
 .firebase/
@@ -92,16 +78,11 @@ xcuserdata/
 apphosting.yaml
 token.json
 GoogleService-Info.plist
-
-# Functions environment
-functions/.env
-functions/.env.*
-functions/*.secrets
+firestore.indexes.json
+storage.rules
 
 # Test artifacts
 test-results/
-playwright-report/
-playwright/.auth/
 test-debug-*.png
 
 # Secrets / credentials (NEVER commit)
@@ -142,3 +123,44 @@ docs/AUDIT_*.md
 docs/COMPREHENSIVE_*.md
 docs/UI_UX_AUDIT_*.md
 docs/firebase-permissions.md
+
+# AI/IDE workflow configs (local tooling)
+.agent/
+.claude/commands/bmad/
+.windsurf/
+.github/agents/
+
+# Web/mobile app artifacts (separate repo)
+3D/
+ios/
+screenshots/
+resources/
+.storybook/
+.npmrc
+.prettierrc.json
+components.json
+Dockerfile
+.dockerignore
+nginx.conf
+.env.example
+ExportOptions.plist
+metadata.json
+
+# Whitepapers & PDFs
+*.pdf
+
+# Temporary / debug files
+.rustc_info.json
+temp-*.html
+sentinel-lock-*.svg
+query
+debug-*.png
+
+# Internal solution/fix docs
+*_COMPLETE.md
+*_SOLUTION*.md
+BUILD_CONFIG.md
+BUILD_DEPLOYMENT.md
+CLIENT_DEPLOYMENT.md
+WINDOWS_SDK_INSTRUCTIONS.md
+SECURITY_INSTALLATION.md
