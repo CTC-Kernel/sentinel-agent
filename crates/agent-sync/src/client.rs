@@ -258,7 +258,8 @@ impl HttpClient {
 
     /// Build a URL for an API endpoint.
     pub fn url(&self, path: &str) -> String {
-        format!("{}{}", self.base_url, path)
+        let path = path.strip_prefix('/').unwrap_or(path);
+        format!("{}/{}", self.base_url, path)
     }
 
     /// Get the underlying reqwest client.

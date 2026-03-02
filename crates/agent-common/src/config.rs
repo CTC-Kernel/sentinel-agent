@@ -409,9 +409,18 @@ impl AgentConfig {
         }
 
         // Validate URL format
-        Url::parse(&self.server_url).map_err(|e| {
+        let url = Url::parse(&self.server_url).map_err(|e| {
             crate::error::CommonError::validation(format!("server_url is not a valid URL: {}", e))
         })?;
+
+        // Anti-Draper: Detect missing function name in direct GCF URLs (prevents 404)
+        if let Some(host) = url.host_str() {
+            if host.ends_with("cloudfunctions.net") && url.path() == "/" {
+                return Err(crate::error::CommonError::validation(
+                    "server_url targeting cloudfunctions.net must include the function name suffix (e.g., /agentApi)"
+                ));
+            }
+        }
 
         // Validate check_interval_secs
         if self.check_interval_secs == 0 {
