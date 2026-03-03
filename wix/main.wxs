@@ -175,11 +175,8 @@
         <!-- Windows Firewall rule for outbound agent communication -->
         <fire:FirewallException Id="SentinelAgentFirewall"
             Name="Sentinel GRC Agent"
-            Description="Communications sortantes de l'agent Sentinel GRC"
+            Description="Autoriser les communications de l'agent Sentinel GRC"
             File="SentinelAgentExe"
-            Protocol="tcp"
-            Outbound="yes"
-            Scope="any"
             Profile="all" />
       </Component>
 
