@@ -47,9 +47,14 @@ jobs:
       - name: Compute next version
         id: bump
         run: |
-          # Read current version from Cargo.toml
-          CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          # Read current version from Cargo.toml (more robust regex for indentation/spaces)
+          CURRENT=$(grep -E '^[[:space:]]*version[[:space:]]*=[[:space:]]*"[^"]+"' Cargo.toml | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
           echo "Current version: $CURRENT"
+          
+          if [ -z "$CURRENT" ]; then
+            echo "::error::Could not parse version from Cargo.toml"
+            exit 1
+          fi
 
           # Parse version components
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
@@ -64,18 +69,16 @@ jobs:
 
           NEXT="${MAJOR}.${MINOR}.${PATCH}"
           echo "Next version: $NEXT (bump=$BUMP)"
-
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - name: Update Cargo.toml with new version
         run: |
           VERSION="${{ steps.bump.outputs.version }}"
-          # Only replace the first occurrence (workspace.package version, line 9)
-          # Avoids overwriting dependency versions (windows, windows-service, etc.)
-          sed -i "0,/^version = \".*\"/{s/^version = \".*\"/version = \"$VERSION\"/}" Cargo.toml
-          echo "Updated Cargo.toml:"
-          head -12 Cargo.toml
+          # Only replace the first occurrence (workspace.package version)
+          sed -i "0,/^[[:space:]]*version[[:space:]]*=[[:space:]]*\".*\"/{s/^[[:space:]]*version[[:space:]]*=[[:space:]]*\".*\"/version = \"$VERSION\"/}" Cargo.toml
+          echo "Updated Cargo.toml (first 15 lines):"
+          head -15 Cargo.toml
 
       - name: Commit, tag, and push
         run: |
@@ -83,23 +86,27 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Cargo.toml
-          git commit -m "release: v${VERSION}"
-          # Push the commit first
-          git push origin HEAD
-
-          # Check if tag already exists locally or on remote before creating
-          if git rev-parse "refs/tags/v${VERSION}" >/dev/null 2>&1; then
-            echo "Tag v${VERSION} already exists locally, skipping tag creation"
+          
+          if git diff --staged --quiet; then
+            echo "No changes to Cargo.toml, skipping commit"
           else
-            git tag "v${VERSION}"
-            echo "Created tag v${VERSION}"
+            git commit -m "release: v${VERSION}"
+            git push origin HEAD || (echo "Push failed, checking for remote changes..."; git pull --rebase; git push origin HEAD)
           fi
 
-          # Push tag (force in case it was moved locally)
-          if git ls-remote --tags origin "refs/tags/v${VERSION}" | grep -q "v${VERSION}"; then
-            echo "Tag v${VERSION} already exists on remote, skipping tag push"
+          # Handle tag
+          TAG="v${VERSION}"
+          if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists locally"
           else
-            git push origin "v${VERSION}"
+            git tag "$TAG"
+            echo "Created tag $TAG"
+          fi
+
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
+            echo "Tag $TAG already exists on remote"
+          else
+            git push origin "$TAG"
           fi
 
   # ═══════════════════════════════════════════════════════════════════
