@@ -34,11 +34,11 @@ fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
     {
         let painter = ui.painter_at(rect);
         let r = f32::from(theme::CARD_ROUNDING);
-        
+
         // 1. Top-left "shimmer" arc (more pronounced highlight)
         let color_top = theme::glass_border_top();
         let stroke_top = egui::Stroke::new(theme::BORDER_MEDIUM, color_top);
-        
+
         let mut points_top = Vec::new();
         let segments = 12;
         // Top-left arc (PI to 1.5*PI)
@@ -58,7 +58,10 @@ fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
         painter.rect_stroke(
             rect.shrink(1.0),
             CornerRadius::same(theme::CARD_ROUNDING),
-            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::glass_border_top().linear_multiply(0.3)),
+            egui::Stroke::new(
+                theme::BORDER_HAIRLINE,
+                theme::glass_border_top().linear_multiply(0.3),
+            ),
             egui::epaint::StrokeKind::Inside,
         );
     }
@@ -70,9 +73,8 @@ fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
         } else {
             theme::shadow_md()
         };
-        ui.painter().add(
-            hover_shadow.as_shape(rect, CornerRadius::same(theme::CARD_ROUNDING)),
-        );
+        ui.painter()
+            .add(hover_shadow.as_shape(rect, CornerRadius::same(theme::CARD_ROUNDING)));
         // Animated border glow (subtle color multiplication)
         ui.painter().rect_stroke(
             rect,

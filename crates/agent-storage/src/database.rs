@@ -30,7 +30,9 @@ pub struct DatabaseConfig {
 impl Default for DatabaseConfig {
     fn default() -> Self {
         #[cfg(windows)]
-        let db_path = AgentConfig::platform_data_dir().join("data").join(DB_FILE_NAME);
+        let db_path = AgentConfig::platform_data_dir()
+            .join("data")
+            .join(DB_FILE_NAME);
         #[cfg(not(windows))]
         let db_path = AgentConfig::platform_data_dir().join(DB_FILE_NAME);
 
@@ -73,8 +75,11 @@ impl Database {
         if let Some(parent) = config.path.parent() {
             if !parent.exists() {
                 if let Err(e) = std::fs::create_dir_all(parent) {
-                    error!("CRITICAL: Failed to create data directory {}: {}. This will cause a crash.", 
-                        parent.display(), e);
+                    error!(
+                        "CRITICAL: Failed to create data directory {}: {}. This will cause a crash.",
+                        parent.display(),
+                        e
+                    );
                     return Err(StorageError::Initialization(format!(
                         "Failed to create data directory {}: {}",
                         parent.display(),
@@ -87,10 +92,14 @@ impl Database {
                 match std::fs::read_dir(parent) {
                     Ok(_) => debug!("Data directory is accessible: {}", parent.display()),
                     Err(e) => {
-                        error!("CRITICAL: Data directory {} exists but is not accessible: {}. Please check Windows permissions.", 
-                            parent.display(), e);
+                        error!(
+                            "CRITICAL: Data directory {} exists but is not accessible: {}. Please check Windows permissions.",
+                            parent.display(),
+                            e
+                        );
                         return Err(StorageError::Initialization(format!(
-                            "Data directory exists but is not accessible: {}", e
+                            "Data directory exists but is not accessible: {}",
+                            e
                         )));
                     }
                 }
@@ -120,18 +129,31 @@ impl Database {
                     Err(e) => {
                         if retry_count < max_retries {
                             retry_count += 1;
-                            warn!("Database is busy or cannot be opened at {}, retrying in {:?} (attempt {}/{}): {}",
-                                config.path.display(), retry_delay, retry_count, max_retries, e);
+                            warn!(
+                                "Database is busy or cannot be opened at {}, retrying in {:?} (attempt {}/{}): {}",
+                                config.path.display(),
+                                retry_delay,
+                                retry_count,
+                                max_retries,
+                                e
+                            );
                             std::thread::sleep(retry_delay);
                             result = if config.create_if_missing {
                                 Connection::open(&config.path)
                             } else {
-                                Connection::open_with_flags(&config.path, rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE)
+                                Connection::open_with_flags(
+                                    &config.path,
+                                    rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
+                                )
                             };
                             continue;
                         }
-                        error!("CRITICAL: Failed to open database at {} after {} retries. This usually indicates a permanent lock or permission issue: {}",
-                            config.path.display(), max_retries, e);
+                        error!(
+                            "CRITICAL: Failed to open database at {} after {} retries. This usually indicates a permanent lock or permission issue: {}",
+                            config.path.display(),
+                            max_retries,
+                            e
+                        );
                         return Err(StorageError::Connection(e.to_string()));
                     }
                 }
@@ -139,13 +161,20 @@ impl Database {
         };
         #[cfg(not(windows))]
         let connection = open_result.map_err(|e| {
-            error!("Failed to open database at {}: {}", config.path.display(), e);
+            error!(
+                "Failed to open database at {}: {}",
+                config.path.display(),
+                e
+            );
             StorageError::Connection(e.to_string())
         })?;
 
         // Set busy timeout immediately to handle concurrent access gracefully
-        connection.busy_timeout(std::time::Duration::from_millis(5000))
-            .map_err(|e| StorageError::Initialization(format!("Failed to set busy timeout: {}", e)))?;
+        connection
+            .busy_timeout(std::time::Duration::from_millis(5000))
+            .map_err(|e| {
+                StorageError::Initialization(format!("Failed to set busy timeout: {}", e))
+            })?;
 
         // Set the encryption key using SQLCipher pragma
         Self::set_encryption_key(&connection, &key)?;
@@ -220,15 +249,20 @@ impl Database {
 
     /// Verify that encryption is properly configured.
     fn verify_encryption(conn: &Connection) -> StorageResult<()> {
-        // Try to execute a simple query to verify the database is accessible
-        conn.execute_batch("SELECT count(*) FROM sqlite_master")
-            .map_err(|e| {
-                StorageError::Encryption(format!(
-                    "Database encryption verification failed. \
-                     This may indicate an incorrect key or corrupted database: {}",
-                    e
-                ))
-            })?;
+        // Force reading the database header to verify the key
+        // By fetching schema version, we force SQLCipher to decrypt the first page
+        let _: Result<i32, _> = conn.query_row("PRAGMA schema_version;", [], |row| row.get(0));
+
+        // Try to execute a simple query that forces page traversal
+        if let Err(e) = conn.query_row("SELECT count(*) FROM sqlite_master", [], |row| {
+            let _val: i32 = row.get(0)?;
+            Ok(())
+        }) {
+            return Err(StorageError::Encryption(format!(
+                "CRITICAL: Database encryption verification failed (invalid key or corrupted file): {}",
+                e
+            )));
+        }
 
         debug!("Database encryption verified successfully");
         Ok(())
@@ -341,10 +375,38 @@ mod tests {
 
     #[test]
     fn test_database_cannot_be_read_without_key() {
-        // This test is disabled because SQLCipher encryption behavior
-        // doesn't consistently fail with wrong keys in all environments
-        // TODO: Implement proper encryption validation
-        println!("Skipping test_database_cannot_be_read_without_key - encryption behavior inconsistent");
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test_enc.db");
+        let config = DatabaseConfig::with_path(&db_path);
+
+        // Open with Key 1
+        let key_manager1 = KeyManager::new_with_test_key();
+        let db1 = Database::open(config.clone(), &key_manager1).expect("Failed to create db");
+
+        // Write some data to make sure formatting happens
+        tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(async {
+                db1.with_connection(|conn| {
+                    conn.execute_batch("CREATE TABLE test_enc (id INTEGER PRIMARY KEY)")
+                        .unwrap();
+                    Ok(())
+                })
+                .await
+            })
+            .unwrap();
+
+        // Drop db1
+        drop(db1);
+
+        // Try opening with wrong key
+        let key_manager2 = KeyManager::new_with_key(b"wrong_key_that_is_32_bytes_long!");
+        let result = Database::open(config, &key_manager2);
+
+        assert!(
+            result.is_err(),
+            "Database should fail to open with incorrect key"
+        );
     }
 
     #[test]

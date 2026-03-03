@@ -23,15 +23,15 @@ fn main() {
 </application>
 </assembly>
 "#);
-        
+
         // Intelligent icon detection - try multiple possible paths
         let icon_paths = [
             "../../../assets/icons/sentinel-agent.ico",
-            "../../../assets/sentinel-agent.ico", 
+            "../../../assets/sentinel-agent.ico",
             "assets/icons/sentinel-agent.ico",
             "assets/sentinel-agent.ico",
         ];
-        
+
         for icon_path in &icon_paths {
             if std::path::Path::new(icon_path).exists() {
                 println!("Found icon at: {}", icon_path);
@@ -39,7 +39,7 @@ fn main() {
                 break;
             }
         }
-        
+
         res.compile().unwrap();
     }
 }

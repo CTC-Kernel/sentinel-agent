@@ -11,7 +11,9 @@ use super::AgentRuntime;
 
 impl AgentRuntime {
     /// Run a vulnerability scan and upload results.
-    pub(crate) async fn run_vulnerability_scan(&self) -> Result<VulnerabilityScanResult, CommonError> {
+    pub(crate) async fn run_vulnerability_scan(
+        &self,
+    ) -> Result<VulnerabilityScanResult, CommonError> {
         info!("Starting vulnerability scan...");
 
         let result = self

@@ -9,9 +9,9 @@
 //! fully isolated and leave no side-effects.
 
 use agent_storage::{
-    CheckResult, CheckResultQuery, CheckResultsRepository, CheckStatus, Database, DatabaseConfig,
-    KeyManager, Proof, ProofsRepository, RetentionConfig, RetentionPolicy, StorageError,
-    CURRENT_SCHEMA_VERSION,
+    CURRENT_SCHEMA_VERSION, CheckResult, CheckResultQuery, CheckResultsRepository, CheckStatus,
+    Database, DatabaseConfig, KeyManager, Proof, ProofsRepository, RetentionConfig,
+    RetentionPolicy, StorageError,
     migrations::{get_applied_migrations, is_schema_current, run_migrations},
 };
 use chrono::{Duration, Utc};
@@ -25,7 +25,7 @@ fn open_temp_db() -> (TempDir, Database) {
     let path = dir.path().join("sentinel_test.db");
 
     let config = DatabaseConfig::with_path(&path);
-    let key_manager = KeyManager::new_with_test_key();
+    let key_manager = KeyManager::new_with_key(b"01234567890123456789012345678901");
 
     let db = Database::open(config, &key_manager)
         .expect("Database::open should succeed with a test key");
@@ -242,17 +242,13 @@ async fn test_check_result_full_crud_cycle() {
     assert_eq!(fetched.check_rule_id, "firewall_check");
     assert_eq!(fetched.status, CheckStatus::Pass);
     assert_eq!(fetched.score, Some(85));
-    assert_eq!(
-        fetched.message.as_deref(),
-        Some("Firewall rules validated")
-    );
+    assert_eq!(fetched.message.as_deref(), Some("Firewall rules validated"));
     assert_eq!(fetched.duration_ms, Some(123));
-    assert!(!fetched.synced, "Newly inserted result should not be synced");
-    assert_eq!(
-        fetched.id,
-        Some(id),
-        "Fetched ID should match inserted ID"
+    assert!(
+        !fetched.synced,
+        "Newly inserted result should not be synced"
     );
+    assert_eq!(fetched.id, Some(id), "Fetched ID should match inserted ID");
 
     // UPDATE — mark synced
     let updated = repo
@@ -339,14 +335,8 @@ async fn test_get_unsynced_respects_limit() {
     }
 
     // Mark 2 as synced
-    let all = repo
-        .query(CheckResultQuery::new())
-        .await
-        .unwrap();
-    let ids: Vec<i64> = all[..2]
-        .iter()
-        .filter_map(|r| r.id)
-        .collect();
+    let all = repo.query(CheckResultQuery::new()).await.unwrap();
+    let ids: Vec<i64> = all[..2].iter().filter_map(|r| r.id).collect();
     repo.mark_synced(&ids).await.unwrap();
 
     let unsynced = repo
@@ -375,17 +365,13 @@ async fn test_get_latest_per_rule_returns_newest() {
     let earlier = now - Duration::hours(2);
 
     // Insert older fail then newer pass for the same rule
-    repo.insert(
-        &CheckResult::new("enc_check", CheckStatus::Fail).with_executed_at(earlier),
-    )
-    .await
-    .unwrap();
+    repo.insert(&CheckResult::new("enc_check", CheckStatus::Fail).with_executed_at(earlier))
+        .await
+        .unwrap();
 
-    repo.insert(
-        &CheckResult::new("enc_check", CheckStatus::Pass).with_executed_at(now),
-    )
-    .await
-    .unwrap();
+    repo.insert(&CheckResult::new("enc_check", CheckStatus::Pass).with_executed_at(now))
+        .await
+        .unwrap();
 
     let latest = repo
         .get_latest_per_rule()
@@ -571,7 +557,11 @@ async fn test_retention_policy_deletes_old_and_keeps_recent() {
         .await
         .unwrap();
     proof_repo
-        .insert(&Proof::with_timestamp(old_cr_id, r#"{"old": true}"#, old_ts))
+        .insert(&Proof::with_timestamp(
+            old_cr_id,
+            r#"{"old": true}"#,
+            old_ts,
+        ))
         .await
         .unwrap();
 
@@ -599,7 +589,10 @@ async fn test_retention_policy_deletes_old_and_keeps_recent() {
     // Execute 365-day retention
     let config = RetentionConfig::with_retention_days(365);
     let policy = RetentionPolicy::with_config(&db, config);
-    let result = policy.execute().await.expect("Retention execute should succeed");
+    let result = policy
+        .execute()
+        .await
+        .expect("Retention execute should succeed");
 
     assert_eq!(result.proofs_deleted, 1, "One old proof should be deleted");
     assert_eq!(
@@ -607,10 +600,7 @@ async fn test_retention_policy_deletes_old_and_keeps_recent() {
         "The orphaned old result should be deleted"
     );
     assert_eq!(result.total_proofs_remaining, 1, "One proof should remain");
-    assert!(
-        result.had_deletions(),
-        "had_deletions() should return true"
-    );
+    assert!(result.had_deletions(), "had_deletions() should return true");
 
     // Verify in DB
     assert_eq!(
@@ -635,7 +625,11 @@ async fn test_retention_dry_run_does_not_delete() {
         .await
         .unwrap();
     proof_repo
-        .insert(&Proof::with_timestamp(old_cr_id, r#"{"dry": true}"#, old_ts))
+        .insert(&Proof::with_timestamp(
+            old_cr_id,
+            r#"{"dry": true}"#,
+            old_ts,
+        ))
         .await
         .unwrap();
 
@@ -668,7 +662,11 @@ async fn test_retention_policy_no_deletions_when_all_data_is_recent() {
         .await
         .unwrap();
     proof_repo
-        .insert(&Proof::with_timestamp(cr_id, r#"{"fresh": true}"#, recent_ts))
+        .insert(&Proof::with_timestamp(
+            cr_id,
+            r#"{"fresh": true}"#,
+            recent_ts,
+        ))
         .await
         .unwrap();
 
@@ -687,13 +685,21 @@ async fn test_retention_policy_no_deletions_when_all_data_is_recent() {
 /// The test key produces a consistent 32-byte (256-bit) derived key.
 #[test]
 fn test_key_derivation_is_consistent_and_correct_length() {
-    let km = KeyManager::new_with_test_key();
+    let km = KeyManager::new_with_key(b"01234567890123456789012345678901");
 
-    let key1 = km.get_database_key().expect("get_database_key should succeed");
-    let key2 = km.get_database_key().expect("get_database_key should succeed on second call");
+    let key1 = km
+        .get_database_key()
+        .expect("get_database_key should succeed");
+    let key2 = km
+        .get_database_key()
+        .expect("get_database_key should succeed on second call");
 
     assert_eq!(key1.len(), 32, "Derived key must be 32 bytes");
-    assert_eq!(key2.len(), 32, "Derived key must be 32 bytes on repeated calls");
+    assert_eq!(
+        key2.len(),
+        32,
+        "Derived key must be 32 bytes on repeated calls"
+    );
     assert_eq!(
         key1, key2,
         "Key derivation must be deterministic for the same KeyManager"
@@ -707,7 +713,9 @@ fn test_key_manager_with_explicit_key_has_correct_length() {
     assert_eq!(raw.len(), 32);
 
     let km = KeyManager::new_with_key(raw);
-    let derived = km.get_database_key().expect("get_database_key should succeed");
+    let derived = km
+        .get_database_key()
+        .expect("get_database_key should succeed");
 
     assert_eq!(derived.len(), 32, "Derived key must be 32 bytes");
 }

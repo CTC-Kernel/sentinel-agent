@@ -33,13 +33,21 @@ impl AuditTrailPage {
 
         // Action bar with Export
         ui.horizontal(|ui: &mut egui::Ui| {
-            if widgets::button::secondary_button(ui, format!("{}  EXPORTER CSV", crate::icons::DOWNLOAD), true).clicked() {
+            if widgets::button::secondary_button(
+                ui,
+                format!("{}  EXPORTER CSV", crate::icons::DOWNLOAD),
+                true,
+            )
+            .clicked()
+            {
                 let success = Self::export_audit_trail_csv(state);
                 let time = ui.input(|i| i.time);
                 if success {
                     state.toasts.push(
-                        crate::widgets::toast::Toast::success("Journal d'audit exporté avec succès")
-                            .with_time(time),
+                        crate::widgets::toast::Toast::success(
+                            "Journal d'audit exporté avec succès",
+                        )
+                        .with_time(time),
                     );
                 } else {
                     state.toasts.push(
@@ -58,9 +66,10 @@ impl AuditTrailPage {
             .iter()
             .filter(|log| {
                 if let Some(ref filter) = state.audit_trail_filter
-                    && log.level.to_lowercase() != filter.to_lowercase() {
-                        return false;
-                    }
+                    && log.level.to_lowercase() != filter.to_lowercase()
+                {
+                    return false;
+                }
                 if !state.audit_trail_search.is_empty() {
                     let search = state.audit_trail_search.to_lowercase();
                     return log.message.to_lowercase().contains(&search)
@@ -132,9 +141,10 @@ impl AuditTrailPage {
             .iter()
             .filter(|log| {
                 if let Some(ref filter) = state.audit_trail_filter
-                    && log.level.to_lowercase() != filter.to_lowercase() {
-                        return false;
-                    }
+                    && log.level.to_lowercase() != filter.to_lowercase()
+                {
+                    return false;
+                }
                 if !state.audit_trail_search.is_empty() {
                     let search = state.audit_trail_search.to_lowercase();
                     return log.message.to_lowercase().contains(&search)
@@ -172,18 +182,23 @@ impl AuditTrailPage {
         let action = widgets::DetailDrawer::new("audit_detail", "Événement d'audit", icons::LIST)
             .accent(level_color)
             .subtitle(&ts)
-            .show(ui.ctx(), &mut state.audit_detail_open, |ui| {
-                widgets::detail_section(ui, "ÉVÉNEMENT D'AUDIT");
-                widgets::detail_mono(ui, "ID", &id_str);
-                widgets::detail_field(ui, "Horodatage", &ts);
-                widgets::detail_field_badge(ui, "Niveau", &level.to_uppercase(), level_color);
-                if let Some(ref s) = source {
-                    widgets::detail_mono(ui, "Source", s);
-                }
+            .show(
+                ui.ctx(),
+                &mut state.audit_detail_open,
+                |ui| {
+                    widgets::detail_section(ui, "ÉVÉNEMENT D'AUDIT");
+                    widgets::detail_mono(ui, "ID", &id_str);
+                    widgets::detail_field(ui, "Horodatage", &ts);
+                    widgets::detail_field_badge(ui, "Niveau", &level.to_uppercase(), level_color);
+                    if let Some(ref s) = source {
+                        widgets::detail_mono(ui, "Source", s);
+                    }
 
-                widgets::detail_section(ui, "DÉTAILS");
-                widgets::detail_text(ui, "Message", &message);
-            }, &actions);
+                    widgets::detail_section(ui, "DÉTAILS");
+                    widgets::detail_text(ui, "Message", &message);
+                },
+                &actions,
+            );
 
         match action {
             Some(0) => {
@@ -201,13 +216,7 @@ impl AuditTrailPage {
         let rows: Vec<Vec<String>> = state
             .logs
             .iter()
-            .map(|l| {
-                vec![
-                    l.timestamp.to_rfc3339(),
-                    l.level.clone(),
-                    l.message.clone(),
-                ]
-            })
+            .map(|l| vec![l.timestamp.to_rfc3339(), l.level.clone(), l.message.clone()])
             .collect();
         let path = crate::export::default_export_path("audit_trail.csv");
         match crate::export::export_csv(headers, &rows, &path) {
@@ -227,9 +236,10 @@ impl AuditTrailPage {
             .iter()
             .filter(|log| {
                 if let Some(ref filter) = state.audit_trail_filter
-                    && log.level.to_lowercase() != filter.to_lowercase() {
-                        return false;
-                    }
+                    && log.level.to_lowercase() != filter.to_lowercase()
+                {
+                    return false;
+                }
                 if !state.audit_trail_search.is_empty() {
                     let search = state.audit_trail_search.to_lowercase();
                     return log.message.to_lowercase().contains(&search)
@@ -277,7 +287,9 @@ impl AuditTrailPage {
             .body(|body| {
                 body.rows(text_height + 12.0, filtered_logs.len(), |mut row| {
                     let idx = row.index();
-                    let Some(log) = filtered_logs.get(idx) else { return };
+                    let Some(log) = filtered_logs.get(idx) else {
+                        return;
+                    };
                     let log = *log;
 
                     row.set_selected(state.selected_audit_entry == Some(idx));

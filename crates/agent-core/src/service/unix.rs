@@ -8,9 +8,9 @@
 //! provides helper functions for installation and status checking.
 
 use super::{ServiceError, ServiceResult, ServiceState};
+use agent_common::process::silent_command;
 use std::fs;
 use std::path::Path;
-use agent_common::process::silent_command;
 use tracing::{error, info, warn};
 
 /// systemd service name (matches SERVICE_NAME pattern but lowercase for Linux conventions).
@@ -103,17 +103,14 @@ pub fn run_as_service() -> ServiceResult<()> {
     });
 
     // Initialize encrypted database
-    let key_manager = KeyManager::new().map_err(|e| {
-        ServiceError::System(format!("Failed to initialize key manager: {}", e))
-    })?;
-    let db = Database::open(DatabaseConfig::default(), &key_manager).map_err(|e| {
-        ServiceError::System(format!("Failed to open database: {}", e))
-    })?;
+    let key_manager = KeyManager::new()
+        .map_err(|e| ServiceError::System(format!("Failed to initialize key manager: {}", e)))?;
+    let db = Database::open(DatabaseConfig::default(), &key_manager)
+        .map_err(|e| ServiceError::System(format!("Failed to open database: {}", e)))?;
 
     // Create tokio runtime for async operations
-    let rt = tokio::runtime::Runtime::new().map_err(|e| {
-        ServiceError::System(format!("Failed to create Tokio runtime: {}", e))
-    })?;
+    let rt = tokio::runtime::Runtime::new()
+        .map_err(|e| ServiceError::System(format!("Failed to create Tokio runtime: {}", e)))?;
 
     // Load credentials if enrolled
     rt.block_on(async {
@@ -171,7 +168,8 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
         || executable_path.contains('\\')
         || executable_path.contains("..")
         || executable_path.contains("//")
-        || executable_path.len() > 4096  // Reasonable path length limit
+        || executable_path.len() > 4096
+    // Reasonable path length limit
     {
         return Err(ServiceError::System(
             "Invalid executable path: must be absolute, contain no shell special characters, and be under 4096 characters".to_string(),

@@ -67,13 +67,17 @@ impl TerminalPage {
                         let time = ui.input(|i| i.time);
                         if success {
                             state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV du terminal réussi")
-                                    .with_time(time),
+                                crate::widgets::toast::Toast::success(
+                                    "Export CSV du terminal réussi",
+                                )
+                                .with_time(time),
                             );
                         } else {
                             state.toasts.push(
-                                crate::widgets::toast::Toast::error("Échec de l'export CSV du terminal")
-                                    .with_time(time),
+                                crate::widgets::toast::Toast::error(
+                                    "Échec de l'export CSV du terminal",
+                                )
+                                .with_time(time),
                             );
                         }
                     }
@@ -219,7 +223,10 @@ impl TerminalPage {
                 ui.add_space(theme::SPACE_XS);
                 let search_edit = egui::TextEdit::singleline(&mut state.terminal.search)
                     .desired_width(200.0)
-                    .margin(egui::Margin::symmetric(theme::SPACE_SM as i8, theme::SPACE_XS as i8))
+                    .margin(egui::Margin::symmetric(
+                        theme::SPACE_SM as i8,
+                        theme::SPACE_XS as i8,
+                    ))
                     .font(theme::font_mono_sm())
                     .hint_text("rechercher...");
                 ui.add(search_edit);
@@ -235,19 +242,25 @@ impl TerminalPage {
         let terminal_bg = theme::bg_deep();
         let filter_level_index = state.terminal.filter_level.index();
         let search_id = ui.id().with("terminal_search_cache");
-        let search_lower: String = ui.memory(|mem| {
-            mem.data.get_temp::<(String, String)>(search_id)
-                .filter(|(orig, _)| orig == &state.terminal.search)
-                .map(|(_, lower)| lower)
-        }).unwrap_or_else(|| {
-            let lower = if state.terminal.search.is_empty() {
-                String::new()
-            } else {
-                state.terminal.search.to_lowercase()
-            };
-            ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.terminal.search.clone(), lower.clone())));
-            lower
-        });
+        let search_lower: String = ui
+            .memory(|mem| {
+                mem.data
+                    .get_temp::<(String, String)>(search_id)
+                    .filter(|(orig, _)| orig == &state.terminal.search)
+                    .map(|(_, lower)| lower)
+            })
+            .unwrap_or_else(|| {
+                let lower = if state.terminal.search.is_empty() {
+                    String::new()
+                } else {
+                    state.terminal.search.to_lowercase()
+                };
+                ui.memory_mut(|mem| {
+                    mem.data
+                        .insert_temp(search_id, (state.terminal.search.clone(), lower.clone()))
+                });
+                lower
+            });
 
         let filtered: Vec<(usize, &_)> = state
             .terminal
@@ -337,49 +350,55 @@ impl TerminalPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(theme::TABLE_COMPACT_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let Some(&(original_idx, entry)) = filtered.get(row.index()) else { return };
-                            let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
-                            let color = level_color(&entry.level);
-                            let target_short = shorten_target(&entry.target);
+                        body.rows(
+                            theme::TABLE_COMPACT_ROW_HEIGHT,
+                            filtered.len(),
+                            |mut row| {
+                                let Some(&(original_idx, entry)) = filtered.get(row.index()) else {
+                                    return;
+                                };
+                                let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
+                                let color = level_color(&entry.level);
+                                let target_short = shorten_target(&entry.target);
 
-                            row.set_selected(state.terminal.selected_log == Some(original_idx));
+                                row.set_selected(state.terminal.selected_log == Some(original_idx));
 
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&ts)
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::text_tertiary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&entry.level)
-                                        .font(theme::font_mono_sm())
-                                        .color(color)
-                                        .strong(),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(target_short)
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::accent_text()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&entry.message)
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::text_primary()),
-                                );
-                            });
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&ts)
+                                            .font(theme::font_mono_sm())
+                                            .color(theme::text_tertiary()),
+                                    );
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&entry.level)
+                                            .font(theme::font_mono_sm())
+                                            .color(color)
+                                            .strong(),
+                                    );
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(target_short)
+                                            .font(theme::font_mono_sm())
+                                            .color(theme::accent_text()),
+                                    );
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&entry.message)
+                                            .font(theme::font_mono_sm())
+                                            .color(theme::text_primary()),
+                                    );
+                                });
 
-                            if row.response().clicked() {
-                                state.terminal.selected_log = Some(original_idx);
-                                state.terminal.detail_open = true;
-                            }
-                        });
+                                if row.response().clicked() {
+                                    state.terminal.selected_log = Some(original_idx);
+                                    state.terminal.detail_open = true;
+                                }
+                            },
+                        );
                     });
             });
     }
@@ -402,18 +421,24 @@ impl TerminalPage {
             widgets::DetailAction::secondary("Filtrer par source", icons::SEARCH),
         ];
 
-        let action = widgets::DetailDrawer::new("terminal_detail", "Entrée de log", icons::TERMINAL)
-            .accent(level_clr)
-            .subtitle(&level)
-            .show(ui.ctx(), &mut state.terminal.detail_open, |ui| {
-                widgets::detail_section(ui, "ENTRÉE DE LOG");
-                widgets::detail_field(ui, "Horodatage", &ts);
-                widgets::detail_field_badge(ui, "Niveau", &level, level_clr);
-                widgets::detail_mono(ui, "Source", &target);
+        let action =
+            widgets::DetailDrawer::new("terminal_detail", "Entrée de log", icons::TERMINAL)
+                .accent(level_clr)
+                .subtitle(&level)
+                .show(
+                    ui.ctx(),
+                    &mut state.terminal.detail_open,
+                    |ui| {
+                        widgets::detail_section(ui, "ENTRÉE DE LOG");
+                        widgets::detail_field(ui, "Horodatage", &ts);
+                        widgets::detail_field_badge(ui, "Niveau", &level, level_clr);
+                        widgets::detail_mono(ui, "Source", &target);
 
-                widgets::detail_section(ui, "MESSAGE");
-                widgets::detail_text(ui, "Contenu", &message);
-            }, &actions);
+                        widgets::detail_section(ui, "MESSAGE");
+                        widgets::detail_text(ui, "Contenu", &message);
+                    },
+                    &actions,
+                );
 
         match action {
             Some(0) => {

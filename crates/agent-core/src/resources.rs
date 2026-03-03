@@ -138,7 +138,7 @@ impl ResourceMonitor {
                 .last_network_bytes
                 .swap(current_network, Ordering::Relaxed);
             let last_time = self.last_sample_time.swap(current_time, Ordering::Relaxed);
-            
+
             if last_net > 0 && current_network >= last_net && last_time > 0 {
                 let time_delta = current_time - last_time;
                 if time_delta > 0 {
@@ -158,10 +158,8 @@ impl ResourceMonitor {
         // on macOS uses proc_pid_rusage (reliable) and on Linux uses /proc/self/io.
         let disk_kbps = {
             let current_disk = get_disk_bytes();
-            let last_disk = self
-                .last_disk_bytes
-                .swap(current_disk, Ordering::Relaxed);
-            
+            let last_disk = self.last_disk_bytes.swap(current_disk, Ordering::Relaxed);
+
             if last_disk > 0 && current_disk >= last_disk && current_time > 0 {
                 let time_delta = current_time - self.last_sample_time.load(Ordering::Relaxed);
                 if time_delta > 0 {
@@ -285,16 +283,14 @@ impl ResourceMonitor {
                     }
                 };
 
-                if !timed_out
-    && let Ok(output) = child.wait_with_output()
-{
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    for line in stdout.lines().skip(1) {
-        if let Some(conn) = self.parse_lsof_line(line) {
-            connections.push(conn);
-        }
-    }
-}
+                if !timed_out && let Ok(output) = child.wait_with_output() {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    for line in stdout.lines().skip(1) {
+                        if let Some(conn) = self.parse_lsof_line(line) {
+                            connections.push(conn);
+                        }
+                    }
+                }
             }
         }
 
@@ -359,7 +355,8 @@ impl ResourceMonitor {
         let local_full = parts[1];
         let remote_full = parts[2];
         let (local_address, local_port) = self.parse_netstat_address(local_full)?;
-        let (remote_address, remote_port) = self.parse_netstat_address(remote_full)
+        let (remote_address, remote_port) = self
+            .parse_netstat_address(remote_full)
             .map(|(a, p)| (Some(a), Some(p)))
             .unwrap_or((None, None));
 
@@ -370,7 +367,7 @@ impl ResourceMonitor {
         };
 
         let pid = pid_str.parse::<u32>().ok();
-        
+
         // Try to get process name from sysinfo if available
         let process_name = if let Some(pid_val) = pid {
             if let Ok(sys) = self.sys.lock() {
@@ -408,8 +405,11 @@ impl ResourceMonitor {
         }
 
         let port = parts[0].parse().ok()?;
-        let addr = parts[1].trim_start_matches('[').trim_end_matches(']').to_string();
-        
+        let addr = parts[1]
+            .trim_start_matches('[')
+            .trim_end_matches(']')
+            .to_string();
+
         if addr == "*" || addr == "0.0.0.0" || addr == "::" {
             Some(("0.0.0.0".to_string(), port))
         } else {
@@ -430,9 +430,17 @@ impl ResourceMonitor {
         let name_col = parts.last()?;
 
         let protocol = if type_col == "IPv4" {
-            if name_col.contains("TCP") { "TCP" } else { "UDP" }
+            if name_col.contains("TCP") {
+                "TCP"
+            } else {
+                "UDP"
+            }
         } else if type_col == "IPv6" {
-            if name_col.contains("TCP") { "TCP6" } else { "UDP6" }
+            if name_col.contains("TCP") {
+                "TCP6"
+            } else {
+                "UDP6"
+            }
         } else {
             return None;
         };
@@ -454,7 +462,10 @@ impl ResourceMonitor {
         let state = if let Some(state_start) = line.rfind('(') {
             let after_paren = state_start.checked_add(1)?;
             let before_end = line.len().checked_sub(1)?;
-            if after_paren <= before_end && line.is_char_boundary(after_paren) && line.is_char_boundary(before_end) {
+            if after_paren <= before_end
+                && line.is_char_boundary(after_paren)
+                && line.is_char_boundary(before_end)
+            {
                 line[after_paren..before_end].to_string()
             } else {
                 "LISTEN".to_string()
@@ -1002,19 +1013,19 @@ fn get_network_bytes_total() -> u64 {
 fn get_network_bytes_total() -> u64 {
     use std::sync::Mutex;
     use std::time::Instant;
-    
+
     static NETWORK_CACHE: Mutex<Option<(u64, Instant)>> = Mutex::new(None);
-    
+
     let mut guard = NETWORK_CACHE.lock().unwrap();
     let now = Instant::now();
-    
+
     // Use cached value if less than 1 second old (network stats don't change fast)
     if let Some((cached_bytes, cached_time)) = *guard {
         if now.duration_since(cached_time).as_secs() < 1 {
             return cached_bytes;
         }
     }
-    
+
     // Windows: use sysinfo Networks as fallback (the native approach requires
     // GetIfTable2 from iphlpapi which is more complex to declare via FFI).
     let networks = sysinfo::Networks::new_with_refreshed_list();
@@ -1022,7 +1033,7 @@ fn get_network_bytes_total() -> u64 {
         .values()
         .map(|data| data.total_received() + data.total_transmitted())
         .sum();
-    
+
     // Cache the result
     *guard = Some((total_bytes, now));
     total_bytes
@@ -1049,7 +1060,9 @@ fn get_process_memory() -> u64 {
                 let page_size: u64 = if raw_page_size > 0 {
                     raw_page_size as u64
                 } else {
-                    tracing::warn!("sysconf(_SC_PAGESIZE) returned {raw_page_size}, falling back to 4096");
+                    tracing::warn!(
+                        "sysconf(_SC_PAGESIZE) returned {raw_page_size}, falling back to 4096"
+                    );
                     4096
                 };
                 return rss_pages * page_size;
@@ -1547,16 +1560,19 @@ fn get_system_memory() -> (u64, u64) {
         );
         if kr == libc::KERN_SUCCESS {
             let raw_page_size = libc::sysconf(libc::_SC_PAGESIZE);
-            let page_size: u64 = if raw_page_size > 0 { raw_page_size as u64 } else { 4096 };
+            let page_size: u64 = if raw_page_size > 0 {
+                raw_page_size as u64
+            } else {
+                4096
+            };
             // Match macOS Activity Monitor formula:
             // App Memory = internal - purgeable
             // Memory Used = App Memory + Wired + Compressed
-            let app_memory = (vm_info.internal_page_count as u64)
-                .saturating_sub(vm_info.purgeable_count as u64);
-            let used = (app_memory
-                + vm_info.wire_count as u64
-                + vm_info.compressor_page_count as u64)
-                * page_size;
+            let app_memory =
+                (vm_info.internal_page_count as u64).saturating_sub(vm_info.purgeable_count as u64);
+            let used =
+                (app_memory + vm_info.wire_count as u64 + vm_info.compressor_page_count as u64)
+                    * page_size;
             (total, used)
         } else {
             (total, 0)
@@ -1597,7 +1613,12 @@ fn get_disk_bytes() -> u64 {
     unsafe {
         let mut info: libc::rusage_info_v4 = mem::zeroed();
         let pid = std::process::id() as libc::c_int;
-        if libc::proc_pid_rusage(pid, libc::RUSAGE_INFO_V4, &mut info as *mut _ as *mut libc::rusage_info_t) == 0 {
+        if libc::proc_pid_rusage(
+            pid,
+            libc::RUSAGE_INFO_V4,
+            &mut info as *mut _ as *mut libc::rusage_info_t,
+        ) == 0
+        {
             // Total bytes read + written
             let total = info.ri_diskio_bytesread + info.ri_diskio_byteswritten;
             LAST_BYTES.store(total, Ordering::Relaxed);
@@ -1613,15 +1634,21 @@ fn get_disk_bytes() -> u64 {
 
 #[cfg(windows)]
 fn get_process_memory() -> u64 {
-    use windows::Win32::System::Threading::{GetCurrentProcess};
-    use windows::Win32::System::ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
     use std::mem;
+    use windows::Win32::System::ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
+    use windows::Win32::System::Threading::GetCurrentProcess;
 
     unsafe {
         let mut pmc: PROCESS_MEMORY_COUNTERS = mem::zeroed();
         pmc.cb = mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
-        
-        if GetProcessMemoryInfo(GetCurrentProcess(), &mut pmc, mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32).is_ok() {
+
+        if GetProcessMemoryInfo(
+            GetCurrentProcess(),
+            &mut pmc,
+            mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32,
+        )
+        .is_ok()
+        {
             return pmc.WorkingSetSize as u64;
         }
     }
@@ -1808,8 +1835,13 @@ pub fn get_connections() -> Vec<NetworkConnection> {
     let mut connections = Vec::new();
 
     // Parse /proc/net/tcp and /proc/net/udp
-    let paths = ["/proc/net/tcp", "/proc/net/udp", "/proc/net/tcp6", "/proc/net/udp6"];
-    
+    let paths = [
+        "/proc/net/tcp",
+        "/proc/net/udp",
+        "/proc/net/tcp6",
+        "/proc/net/udp6",
+    ];
+
     for path in paths {
         let protocol = if path.contains("tcp6") {
             ConnectionProtocol::Tcp6
@@ -1835,7 +1867,9 @@ pub fn get_connections() -> Vec<NetworkConnection> {
 #[cfg(target_os = "linux")]
 fn parse_proc_net_line(line: &str, protocol: ConnectionProtocol) -> Option<NetworkConnection> {
     let parts: Vec<&str> = line.split_whitespace().collect();
-    if parts.len() < 4 { return None; }
+    if parts.len() < 4 {
+        return None;
+    }
 
     let local = parse_proc_addr(parts[1])?;
     let remote = parse_proc_addr(parts[2])?;
@@ -1885,20 +1919,22 @@ fn parse_proc_net_line(line: &str, protocol: ConnectionProtocol) -> Option<Netwo
 #[cfg(target_os = "linux")]
 fn parse_proc_addr(hex_addr: &str) -> Option<(String, u16)> {
     let parts: Vec<&str> = hex_addr.split(':').collect();
-    if parts.len() != 2 { return None; }
+    if parts.len() != 2 {
+        return None;
+    }
 
     let addr_hex = parts[0];
     let port_hex = parts[1];
 
     let port = u16::from_str_radix(port_hex, 16).ok()?;
-    
+
     // Handle IPv4
     if addr_hex.len() == 8 {
         let bytes = u32::from_str_radix(addr_hex, 16).ok()?;
         let ip = std::net::Ipv4Addr::from(bytes.swap_bytes());
         return Some((ip.to_string(), port));
     }
-    
+
     // Handle IPv6 (not implemented in the provided snippet, but good to note)
     if addr_hex.len() == 32 {
         // IPv6 parsing would go here

@@ -87,8 +87,7 @@ impl SelfProtection {
                     let current_preview: String = current.chars().take(16).collect();
                     error!(
                         "TAMPER DETECTED: Binary hash mismatch! Expected: {}..., Got: {}...",
-                        expected_preview,
-                        current_preview
+                        expected_preview, current_preview
                     );
                     self.tampered.store(true, Ordering::Release);
                     false

@@ -10,11 +10,14 @@
 use agent_common::types::{CheckResult, CheckStatus};
 use anyhow::Result;
 use serde_json::Value;
-use tracing::{debug, info};
 use std::sync::Arc;
+use tracing::{debug, info};
 
 #[cfg(feature = "llm")]
-use agent_llm::{LLMManager, AnalysisContext, ScanResult, SecurityEvent, RemediationRequest, SecurityIssue, SystemContext};
+use agent_llm::{
+    AnalysisContext, LLMManager, RemediationRequest, ScanResult, SecurityEvent, SecurityIssue,
+    SystemContext,
+};
 
 /// LLM integration service for the scanner.
 pub struct LLMIntegration {
@@ -59,29 +62,36 @@ impl LLMIntegration {
         {
             if let Some(manager) = &self.manager {
                 debug!("Analyzing {} check results with LLM", check_results.len());
-                
-                // Convert to agent_llm::ScanResult
-                let scan_results: Vec<ScanResult> = check_results.iter().map(|r| {
-                     let definition = registry.get(&r.check_id);
-                     let (category, severity) = if let Some(check) = &definition {
-                         (
-                            format!("{:?}", check.definition().category),
-                            format!("{:?}", check.definition().severity)
-                         )
-                     } else {
-                         ("Unknown".to_string(), "Info".to_string())
-                     };
 
-                     ScanResult {
-                        check_id: r.check_id.clone(),
-                        check_name: definition.as_ref().map(|d| d.definition().name.clone()).unwrap_or(r.check_id.clone()),
-                        category,
-                        severity,
-                        passed: r.status == CheckStatus::Pass,
-                        message: r.message.clone().unwrap_or_default(),
-                        raw_data: serde_json::to_value(&r.details).unwrap_or(serde_json::Value::Null),
-                    }
-                }).collect();
+                // Convert to agent_llm::ScanResult
+                let scan_results: Vec<ScanResult> = check_results
+                    .iter()
+                    .map(|r| {
+                        let definition = registry.get(&r.check_id);
+                        let (category, severity) = if let Some(check) = &definition {
+                            (
+                                format!("{:?}", check.definition().category),
+                                format!("{:?}", check.definition().severity),
+                            )
+                        } else {
+                            ("Unknown".to_string(), "Info".to_string())
+                        };
+
+                        ScanResult {
+                            check_id: r.check_id.clone(),
+                            check_name: definition
+                                .as_ref()
+                                .map(|d| d.definition().name.clone())
+                                .unwrap_or(r.check_id.clone()),
+                            category,
+                            severity,
+                            passed: r.status == CheckStatus::Pass,
+                            message: r.message.clone().unwrap_or_default(),
+                            raw_data: serde_json::to_value(&r.details)
+                                .unwrap_or(serde_json::Value::Null),
+                        }
+                    })
+                    .collect();
 
                 let context = AnalysisContext {
                     system_info: system_info.to_string(),
@@ -130,20 +140,27 @@ impl LLMIntegration {
         #[cfg(feature = "llm")]
         {
             if let Some(manager) = &self.manager {
-                debug!("Generating remediation plan for {} failed checks", failed_checks.len());
+                debug!(
+                    "Generating remediation plan for {} failed checks",
+                    failed_checks.len()
+                );
 
-                let issues: Vec<SecurityIssue> = failed_checks.iter().map(|r| {
-                    SecurityIssue {
+                let issues: Vec<SecurityIssue> = failed_checks
+                    .iter()
+                    .map(|r| SecurityIssue {
                         id: r.check_id.clone(),
                         title: r.check_id.clone(),
-                        description: r.message.clone().unwrap_or_else(|| format!("Check {} failed", r.check_id)),
+                        description: r
+                            .message
+                            .clone()
+                            .unwrap_or_else(|| format!("Check {} failed", r.check_id)),
                         severity: "medium".to_string(),
                         category: "compliance".to_string(),
                         affected_systems: vec![],
                         compliance_impact: String::new(),
                         discovered_at: chrono::Utc::now(),
-                    }
-                }).collect();
+                    })
+                    .collect();
 
                 let request = RemediationRequest {
                     request_id: uuid::Uuid::new_v4().to_string(),
@@ -161,7 +178,10 @@ impl LLMIntegration {
 
                 match manager.advisor().generate_remediation_plan(request).await {
                     Ok(plan) => {
-                        info!("Generated remediation plan with {} actions", plan.actions.len());
+                        info!(
+                            "Generated remediation plan with {} actions",
+                            plan.actions.len()
+                        );
                         return Ok(Some(serde_json::to_value(plan)?));
                     }
                     Err(e) => {
@@ -188,7 +208,8 @@ impl LLMIntegration {
             if let Some(manager) = &self.manager {
                 let mut classifications = Vec::new();
                 // Only classify failed checks to reduce LLM calls
-                let failed: Vec<&&CheckResult> = check_results.iter()
+                let failed: Vec<&&CheckResult> = check_results
+                    .iter()
                     .filter(|r| r.status == CheckStatus::Fail)
                     .collect();
 
@@ -202,7 +223,8 @@ impl LLMIntegration {
                         timestamp: chrono::Utc::now(),
                         source: "compliance_scanner".to_string(),
                         severity: "medium".to_string(),
-                        raw_data: serde_json::to_value(&check_result.details).unwrap_or(serde_json::Value::Null),
+                        raw_data: serde_json::to_value(&check_result.details)
+                            .unwrap_or(serde_json::Value::Null),
                     };
 
                     match manager.classifier().classify_event(&event).await {
@@ -216,7 +238,10 @@ impl LLMIntegration {
                 }
 
                 if !classifications.is_empty() {
-                    info!("Classified {} security events from compliance results", classifications.len());
+                    info!(
+                        "Classified {} security events from compliance results",
+                        classifications.len()
+                    );
                 }
                 return Ok(classifications);
             }
@@ -235,7 +260,10 @@ pub struct IntelligentCheckRunner {
 impl IntelligentCheckRunner {
     /// Create new intelligent check runner with LLM support.
     #[cfg(feature = "llm")]
-    pub async fn new(base_runner: crate::runner::CheckRunner, llm_manager: Option<Arc<LLMManager>>) -> Result<Self> {
+    pub async fn new(
+        base_runner: crate::runner::CheckRunner,
+        llm_manager: Option<Arc<LLMManager>>,
+    ) -> Result<Self> {
         Ok(Self {
             base_runner,
             llm_integration: LLMIntegration::new(llm_manager),

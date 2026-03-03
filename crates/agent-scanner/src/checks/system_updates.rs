@@ -12,13 +12,13 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+#[cfg(target_os = "macos")]
+use agent_common::process::silent_async_command;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
-#[cfg(target_os = "macos")]
-use agent_common::process::silent_async_command;
 use tracing::debug;
 #[cfg(target_os = "macos")]
 use tracing::warn;
@@ -312,15 +312,21 @@ impl SystemUpdatesCheck {
         }
 
         // Check upgradable packages (doesn't require sudo)
-        if let Ok(output) = silent_command("apt").args(["list", "--upgradable"]).output() {
+        if let Ok(output) = silent_command("apt")
+            .args(["list", "--upgradable"])
+            .output()
+        {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output
                 .push_str(&format!("=== apt list --upgradable ===\n{}\n", result));
 
             // Count upgradable packages (exclude header line)
-            let upgradable: u32 =
-                result.lines().filter(|l| l.contains("upgradable")).count().min(u32::MAX as usize) as u32;
+            let upgradable: u32 = result
+                .lines()
+                .filter(|l| l.contains("upgradable"))
+                .count()
+                .min(u32::MAX as usize) as u32;
             status.upgradable_packages = upgradable;
             status.pending_updates_count = upgradable;
 
@@ -328,7 +334,8 @@ impl SystemUpdatesCheck {
             let security: u32 = result
                 .lines()
                 .filter(|l| l.to_lowercase().contains("security"))
-                .count().min(u32::MAX as usize) as u32;
+                .count()
+                .min(u32::MAX as usize) as u32;
             status.pending_security_updates = security;
         }
 
@@ -366,7 +373,11 @@ impl SystemUpdatesCheck {
                 .push_str(&format!("=== dnf check-update ===\n{}\n", result));
 
             // Count lines (each non-empty line is an update)
-            let updates: u32 = result.lines().filter(|l| !l.trim().is_empty()).count().min(u32::MAX as usize) as u32;
+            let updates: u32 = result
+                .lines()
+                .filter(|l| !l.trim().is_empty())
+                .count()
+                .min(u32::MAX as usize) as u32;
             status.pending_updates_count = updates;
             status.upgradable_packages = updates;
         }
@@ -381,7 +392,11 @@ impl SystemUpdatesCheck {
                 .raw_output
                 .push_str(&format!("=== dnf security updates ===\n{}\n", result));
 
-            let security: u32 = result.lines().filter(|l| !l.trim().is_empty()).count().min(u32::MAX as usize) as u32;
+            let security: u32 = result
+                .lines()
+                .filter(|l| !l.trim().is_empty())
+                .count()
+                .min(u32::MAX as usize) as u32;
             status.pending_security_updates = security;
         }
 
@@ -418,7 +433,8 @@ impl SystemUpdatesCheck {
             let updates: u32 = result
                 .lines()
                 .filter(|l| !l.trim().is_empty() && !l.starts_with("Obsoleting"))
-                .count().min(u32::MAX as usize) as u32;
+                .count()
+                .min(u32::MAX as usize) as u32;
             status.pending_updates_count = updates;
             status.upgradable_packages = updates;
         }
@@ -433,7 +449,11 @@ impl SystemUpdatesCheck {
                 .raw_output
                 .push_str(&format!("=== yum security updates ===\n{}\n", result));
 
-            let security: u32 = result.lines().filter(|l| !l.trim().is_empty()).count().min(u32::MAX as usize) as u32;
+            let security: u32 = result
+                .lines()
+                .filter(|l| !l.trim().is_empty())
+                .count()
+                .min(u32::MAX as usize) as u32;
             status.pending_security_updates = security;
         }
 
@@ -484,7 +504,8 @@ impl SystemUpdatesCheck {
                 let updates: u32 = combined
                     .lines()
                     .filter(|l| l.trim().starts_with('*') || l.contains("Label:"))
-                    .count().min(u32::MAX as usize) as u32;
+                    .count()
+                    .min(u32::MAX as usize) as u32;
                 status.pending_updates_count = updates;
                 status.upgradable_packages = updates;
 
@@ -492,7 +513,8 @@ impl SystemUpdatesCheck {
                 let security: u32 = combined
                     .lines()
                     .filter(|l| l.to_lowercase().contains("security"))
-                    .count().min(u32::MAX as usize) as u32;
+                    .count()
+                    .min(u32::MAX as usize) as u32;
                 status.pending_security_updates = security;
 
                 // Check if "No new software available" message

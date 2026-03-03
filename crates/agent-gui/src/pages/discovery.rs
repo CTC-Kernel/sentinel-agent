@@ -116,7 +116,8 @@ impl DiscoveryPage {
                                         ui.painter().rect_filled(
                                             fill_rect.expand(expansion),
                                             egui::CornerRadius::same(theme::ROUNDING_SM),
-                                            theme::ACCENT.linear_multiply(alpha * (0.8 + pulse * 0.2)),
+                                            theme::ACCENT
+                                                .linear_multiply(alpha * (0.8 + pulse * 0.2)),
                                         );
                                     }
                                 }
@@ -142,7 +143,8 @@ impl DiscoveryPage {
                                         ui.painter().rect_filled(
                                             visible_shimmer,
                                             egui::CornerRadius::same(theme::ROUNDING_XS),
-                                            theme::overlay_color().linear_multiply(theme::OPACITY_TINT),
+                                            theme::overlay_color()
+                                                .linear_multiply(theme::OPACITY_TINT),
                                         );
                                     }
                                 }
@@ -195,15 +197,21 @@ impl DiscoveryPage {
         ui.add_space(theme::SPACE_MD);
 
         let search_id = ui.id().with("discovery_search_cache");
-        let search_upper: String = ui.memory(|mem| {
-            mem.data.get_temp::<(String, String)>(search_id)
-                .filter(|(orig, _)| orig == &state.discovery.search)
-                .map(|(_, upper)| upper)
-        }).unwrap_or_else(|| {
-            let upper = state.discovery.search.to_uppercase();
-            ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.discovery.search.clone(), upper.clone())));
-            upper
-        });
+        let search_upper: String = ui
+            .memory(|mem| {
+                mem.data
+                    .get_temp::<(String, String)>(search_id)
+                    .filter(|(orig, _)| orig == &state.discovery.search)
+                    .map(|(_, upper)| upper)
+            })
+            .unwrap_or_else(|| {
+                let upper = state.discovery.search.to_uppercase();
+                ui.memory_mut(|mem| {
+                    mem.data
+                        .insert_temp(search_id, (state.discovery.search.clone(), upper.clone()))
+                });
+                upper
+            });
         let filtered: Vec<usize> = state
             .discovery
             .devices
@@ -214,8 +222,16 @@ impl DiscoveryPage {
                     return true;
                 }
                 d.ip.to_uppercase().contains(&search_upper)
-                    || d.hostname.as_deref().unwrap_or("").to_uppercase().contains(&search_upper)
-                    || d.vendor.as_deref().unwrap_or("").to_uppercase().contains(&search_upper)
+                    || d.hostname
+                        .as_deref()
+                        .unwrap_or("")
+                        .to_uppercase()
+                        .contains(&search_upper)
+                    || d.vendor
+                        .as_deref()
+                        .unwrap_or("")
+                        .to_uppercase()
+                        .contains(&search_upper)
             })
             .map(|(i, _)| i)
             .collect();
@@ -241,8 +257,10 @@ impl DiscoveryPage {
                         let time = ui.input(|i| i.time);
                         if success {
                             state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV découverte terminé")
-                                    .with_time(time),
+                                crate::widgets::toast::Toast::success(
+                                    "Export CSV découverte terminé",
+                                )
+                                .with_time(time),
                             );
                         } else {
                             state.toasts.push(
@@ -365,8 +383,12 @@ impl DiscoveryPage {
                         let now = chrono::Utc::now();
                         body.rows(theme::TABLE_DATA_ROW_HEIGHT, filtered.len(), |mut row| {
                             let row_idx = row.index();
-                            let Some(&dev_idx) = filtered.get(row_idx) else { return };
-                            let Some(device) = state.discovery.devices.get(dev_idx) else { return };
+                            let Some(&dev_idx) = filtered.get(row_idx) else {
+                                return;
+                            };
+                            let Some(device) = state.discovery.devices.get(dev_idx) else {
+                                return;
+                            };
 
                             row.set_selected(state.discovery.selected_device == Some(dev_idx));
 
@@ -435,15 +457,15 @@ impl DiscoveryPage {
                                     device.last_seen.format("%d/%m %H:%M").to_string()
                                 };
                                 ui.label(
-                                    egui::RichText::new(text)
-                                        .font(theme::font_small())
-                                        .color(theme::readable_color(if ago.num_hours() < 1 {
+                                    egui::RichText::new(text).font(theme::font_small()).color(
+                                        theme::readable_color(if ago.num_hours() < 1 {
                                             theme::SUCCESS
                                         } else if ago.num_hours() < 24 {
                                             theme::WARNING
                                         } else {
                                             theme::text_secondary()
-                                        })),
+                                        }),
+                                    ),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
@@ -502,42 +524,52 @@ impl DiscoveryPage {
         let action = widgets::DetailDrawer::new("discovery_detail", "Appareil", icons::NETWORK)
             .accent(type_color)
             .subtitle(&ip)
-            .show(ui.ctx(), &mut state.discovery.detail_open, |ui| {
-                widgets::detail_section(ui, "APPAREIL DÉCOUVERT");
-                widgets::detail_mono(ui, "Adresse IP", &ip);
-                if let Some(ref m) = mac {
-                    widgets::detail_mono(ui, "Adresse MAC", m);
-                }
-                if let Some(ref h) = hostname {
-                    widgets::detail_field(ui, "Nom d'hôte", h);
-                }
-                if let Some(ref v) = vendor {
-                    widgets::detail_field(ui, "Fournisseur", v);
-                }
-                widgets::detail_field_badge(ui, "Type d'appareil", type_label, type_color);
-                widgets::detail_mono(ui, "Sous-réseau", &subnet);
+            .show(
+                ui.ctx(),
+                &mut state.discovery.detail_open,
+                |ui| {
+                    widgets::detail_section(ui, "APPAREIL DÉCOUVERT");
+                    widgets::detail_mono(ui, "Adresse IP", &ip);
+                    if let Some(ref m) = mac {
+                        widgets::detail_mono(ui, "Adresse MAC", m);
+                    }
+                    if let Some(ref h) = hostname {
+                        widgets::detail_field(ui, "Nom d'hôte", h);
+                    }
+                    if let Some(ref v) = vendor {
+                        widgets::detail_field(ui, "Fournisseur", v);
+                    }
+                    widgets::detail_field_badge(ui, "Type d'appareil", type_label, type_color);
+                    widgets::detail_mono(ui, "Sous-réseau", &subnet);
 
-                widgets::detail_section(ui, "RÉSEAU");
-                if is_gateway {
-                    widgets::detail_field_badge(ui, "Passerelle", "OUI", theme::ACCENT);
-                } else {
-                    widgets::detail_field_badge(ui, "Passerelle", "NON", theme::text_tertiary());
-                }
-                if open_ports.is_empty() {
-                    widgets::detail_field(ui, "Ports ouverts", "Aucun");
-                } else {
-                    let ports_str = open_ports
-                        .iter()
-                        .map(|p| p.to_string())
-                        .collect::<Vec<_>>()
-                        .join(", ");
-                    widgets::detail_mono(ui, "Ports ouverts", &ports_str);
-                }
+                    widgets::detail_section(ui, "RÉSEAU");
+                    if is_gateway {
+                        widgets::detail_field_badge(ui, "Passerelle", "OUI", theme::ACCENT);
+                    } else {
+                        widgets::detail_field_badge(
+                            ui,
+                            "Passerelle",
+                            "NON",
+                            theme::text_tertiary(),
+                        );
+                    }
+                    if open_ports.is_empty() {
+                        widgets::detail_field(ui, "Ports ouverts", "Aucun");
+                    } else {
+                        let ports_str = open_ports
+                            .iter()
+                            .map(|p| p.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", ");
+                        widgets::detail_mono(ui, "Ports ouverts", &ports_str);
+                    }
 
-                widgets::detail_section(ui, "TEMPORALITÉ");
-                widgets::detail_field(ui, "Première détection", &first_seen);
-                widgets::detail_field(ui, "Dernière détection", &last_seen);
-            }, &actions);
+                    widgets::detail_section(ui, "TEMPORALITÉ");
+                    widgets::detail_field(ui, "Première détection", &first_seen);
+                    widgets::detail_field(ui, "Dernière détection", &last_seen);
+                },
+                &actions,
+            );
 
         if let Some(action_idx) = action {
             let time = ui.ctx().input(|i| i.time);

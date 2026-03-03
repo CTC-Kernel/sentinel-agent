@@ -3,13 +3,10 @@
 
 //! Conversion functions from GUI DTOs to sync payloads.
 
-use agent_gui::dto::{
-    AlertRule, DetectionRule, ManagedAsset, Playbook, RiskEntry, WebhookConfig,
-};
+use agent_gui::dto::{AlertRule, DetectionRule, ManagedAsset, Playbook, RiskEntry, WebhookConfig};
 use agent_sync::{
     AlertRulePayload, AssetPayload, DetectionConditionPayload, DetectionRulePayload,
-    PlaybookActionPayload, PlaybookConditionPayload, PlaybookPayload, RiskPayload,
-    WebhookPayload,
+    PlaybookActionPayload, PlaybookConditionPayload, PlaybookPayload, RiskPayload, WebhookPayload,
 };
 
 pub fn playbook_to_payload(p: &Playbook) -> PlaybookPayload {

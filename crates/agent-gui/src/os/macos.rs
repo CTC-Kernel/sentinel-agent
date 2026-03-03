@@ -30,8 +30,12 @@ impl std::fmt::Display for MacOsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             MacOsError::PlutilError(msg) => write!(f, "Failed to execute plutil command: {}", msg),
-            MacOsError::ApplicationsDirError(err) => write!(f, "Failed to read /Applications directory: {}", err),
-            MacOsError::InvalidAppBundle(path) => write!(f, "Invalid app bundle structure: {}", path),
+            MacOsError::ApplicationsDirError(err) => {
+                write!(f, "Failed to read /Applications directory: {}", err)
+            }
+            MacOsError::InvalidAppBundle(path) => {
+                write!(f, "Invalid app bundle structure: {}", path)
+            }
             MacOsError::PlistParseError(msg) => write!(f, "Failed to parse Info.plist: {}", msg),
         }
     }
@@ -124,14 +128,13 @@ pub mod software {
     pub fn scan_installed_apps() -> MacOsResult<Vec<GuiNativeApp>> {
         let mut apps = Vec::new();
         let apps_dir = Path::new("/Applications");
-        
-        let entries = std::fs::read_dir(apps_dir)
-            .map_err(MacOsError::ApplicationsDirError)?;
+
+        let entries = std::fs::read_dir(apps_dir).map_err(MacOsError::ApplicationsDirError)?;
 
         for entry in entries {
             let entry = entry.map_err(MacOsError::ApplicationsDirError)?;
             let path = entry.path();
-            
+
             if !is_app_bundle(&path) {
                 continue;
             }
@@ -162,8 +165,8 @@ pub mod software {
             .ok_or_else(|| MacOsError::InvalidAppBundle(app_path.to_string_lossy().to_string()))?
             .to_string();
 
-        let (version, bundle_id, publisher) = parse_info_plist(plist_path)
-            .map_err(MacOsError::PlistParseError)?;
+        let (version, bundle_id, publisher) =
+            parse_info_plist(plist_path).map_err(MacOsError::PlistParseError)?;
 
         Ok(GuiNativeApp {
             name,
@@ -200,7 +203,7 @@ fn parse_info_plist(path: &Path) -> Result<(String, String, String), String> {
     }
 
     let xml = String::from_utf8_lossy(&output.stdout);
-    
+
     let version = extract_key(&xml, "CFBundleShortVersionString");
     let bundle_id = extract_key(&xml, "CFBundleIdentifier");
     let publisher = extract_publisher(&xml);

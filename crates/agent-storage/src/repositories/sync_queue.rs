@@ -97,7 +97,11 @@ pub struct SyncQueueEntry {
 
 impl SyncQueueEntry {
     /// Create a new sync queue entry with default priority and max attempts.
-    pub fn new(entity_type: SyncEntityType, entity_id: impl Into<String>, payload: impl Into<String>) -> Self {
+    pub fn new(
+        entity_type: SyncEntityType,
+        entity_id: impl Into<String>,
+        payload: impl Into<String>,
+    ) -> Self {
         Self {
             entity_type,
             entity_id: entity_id.into(),
@@ -637,7 +641,8 @@ mod tests {
 
         // Enqueue high priority
         repo.enqueue(
-            &SyncQueueEntry::new(SyncEntityType::Proof, "2", r#"{"proof": true}"#).with_priority(10),
+            &SyncQueueEntry::new(SyncEntityType::Proof, "2", r#"{"proof": true}"#)
+                .with_priority(10),
         )
         .await
         .unwrap();
@@ -826,9 +831,13 @@ mod tests {
 
         // Enqueue a few items
         for i in 0..5 {
-            repo.enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, i.to_string(), "{}"))
-                .await
-                .unwrap();
+            repo.enqueue(&SyncQueueEntry::new(
+                SyncEntityType::CheckResult,
+                i.to_string(),
+                "{}",
+            ))
+            .await
+            .unwrap();
         }
 
         // Under limit, so no eviction

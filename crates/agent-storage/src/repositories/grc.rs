@@ -33,7 +33,9 @@ pub struct RiskRepository<'a> {
 }
 
 impl<'a> RiskRepository<'a> {
-    pub fn new(db: &'a Database) -> Self { Self { db } }
+    pub fn new(db: &'a Database) -> Self {
+        Self { db }
+    }
 
     pub async fn upsert(&self, entity: &StoredRisk) -> StorageResult<()> {
         let synced_int = if entity.synced { 1 } else { 0 };
@@ -55,28 +57,48 @@ impl<'a> RiskRepository<'a> {
     }
 
     pub async fn get_all(&self) -> StorageResult<Vec<StoredRisk>> {
-        self.db.with_connection(|conn| {
-            let mut stmt = conn.prepare("SELECT * FROM risks").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
-            let rows = stmt.query_map([], |row| {
-                Ok(StoredRisk {
-                    id: row.get(0)?, title: row.get(1)?, description: row.get(2)?,
-                    probability: row.get(3)?, impact: row.get(4)?, owner: row.get(5)?,
-                    status: row.get(6)?, mitigation: row.get(7)?, source: row.get(8)?,
-                    created_at: row.get(9)?, updated_at: row.get(10)?, sla_target_days: row.get(11)?,
-                    synced: row.get::<_, i32>(12)? != 0,
-                })
-            }).map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
-            .collect::<Result<Vec<_>, _>>().map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
-            Ok(rows)
-        }).await
+        self.db
+            .with_connection(|conn| {
+                let mut stmt = conn
+                    .prepare("SELECT * FROM risks")
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+                let rows = stmt
+                    .query_map([], |row| {
+                        Ok(StoredRisk {
+                            id: row.get(0)?,
+                            title: row.get(1)?,
+                            description: row.get(2)?,
+                            probability: row.get(3)?,
+                            impact: row.get(4)?,
+                            owner: row.get(5)?,
+                            status: row.get(6)?,
+                            mitigation: row.get(7)?,
+                            source: row.get(8)?,
+                            created_at: row.get(9)?,
+                            updated_at: row.get(10)?,
+                            sla_target_days: row.get(11)?,
+                            synced: row.get::<_, i32>(12)? != 0,
+                        })
+                    })
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+                Ok(rows)
+            })
+            .await
     }
 
     pub async fn delete(&self, id: &str) -> StorageResult<()> {
         let id_cloned = id.to_string();
-        self.db.with_connection(move |conn| {
-            conn.execute("DELETE FROM risks WHERE id = ?", [id_cloned]).map_err(|e| StorageError::Query(format!("Failed to delete risk: {}", e)))?;
-            Ok(())
-        }).await
+        self.db
+            .with_connection(move |conn| {
+                conn.execute("DELETE FROM risks WHERE id = ?", [id_cloned])
+                    .map_err(|e| StorageError::Query(format!("Failed to delete risk: {}", e)))?;
+                Ok(())
+            })
+            .await
     }
 }
 
@@ -102,48 +124,79 @@ pub struct PlaybookRepository<'a> {
 }
 
 impl<'a> PlaybookRepository<'a> {
-    pub fn new(db: &'a Database) -> Self { Self { db } }
+    pub fn new(db: &'a Database) -> Self {
+        Self { db }
+    }
 
     pub async fn upsert(&self, entity: &StoredPlaybook) -> StorageResult<()> {
         let synced_int = if entity.synced { 1 } else { 0 };
-        self.db.with_connection(|conn| {
-            conn.execute(
-                r#"
+        self.db
+            .with_connection(|conn| {
+                conn.execute(
+                    r#"
                 INSERT OR REPLACE INTO playbooks
                 (id, title, description, category, steps, status, created_at, updated_at, synced)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
                 "#,
-                rusqlite::params![
-                    entity.id, entity.title, entity.description, entity.category,
-                    entity.steps, entity.status, entity.created_at, entity.updated_at, synced_int
-                ],
-            ).map_err(|e| StorageError::Query(format!("Failed to upsert playbook: {}", e)))?;
-            Ok(())
-        }).await
+                    rusqlite::params![
+                        entity.id,
+                        entity.title,
+                        entity.description,
+                        entity.category,
+                        entity.steps,
+                        entity.status,
+                        entity.created_at,
+                        entity.updated_at,
+                        synced_int
+                    ],
+                )
+                .map_err(|e| StorageError::Query(format!("Failed to upsert playbook: {}", e)))?;
+                Ok(())
+            })
+            .await
     }
 
     pub async fn get_all(&self) -> StorageResult<Vec<StoredPlaybook>> {
-        self.db.with_connection(|conn| {
-            let mut stmt = conn.prepare("SELECT * FROM playbooks").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
-            let rows = stmt.query_map([], |row| {
-                Ok(StoredPlaybook {
-                    id: row.get(0)?, title: row.get(1)?, description: row.get(2)?,
-                    category: row.get(3)?, steps: row.get(4)?, status: row.get(5)?,
-                    created_at: row.get(6)?, updated_at: row.get(7)?,
-                    synced: row.get::<_, i32>(8)? != 0,
-                })
-            }).map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
-            .collect::<Result<Vec<_>, _>>().map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
-            Ok(rows)
-        }).await
+        self.db
+            .with_connection(|conn| {
+                let mut stmt = conn
+                    .prepare("SELECT * FROM playbooks")
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+                let rows = stmt
+                    .query_map([], |row| {
+                        Ok(StoredPlaybook {
+                            id: row.get(0)?,
+                            title: row.get(1)?,
+                            description: row.get(2)?,
+                            category: row.get(3)?,
+                            steps: row.get(4)?,
+                            status: row.get(5)?,
+                            created_at: row.get(6)?,
+                            updated_at: row.get(7)?,
+                            synced: row.get::<_, i32>(8)? != 0,
+                        })
+                    })
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+                Ok(rows)
+            })
+            .await
     }
 
     pub async fn delete(&self, id: &str) -> StorageResult<()> {
         let id_cloned = id.to_string();
-        self.db.with_connection(move |conn| {
-            conn.execute("DELETE FROM playbooks WHERE id = ?", [id_cloned]).map_err(|e| StorageError::Query(format!("Failed to delete playbook: {}", e)))?;
-            Ok(())
-        }).await
+        self.db
+            .with_connection(move |conn| {
+                conn.execute("DELETE FROM playbooks WHERE id = ?", [id_cloned])
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete playbook: {}", e))
+                    })?;
+                Ok(())
+            })
+            .await
     }
 }
 
@@ -170,7 +223,9 @@ pub struct ManagedAssetRepository<'a> {
 }
 
 impl<'a> ManagedAssetRepository<'a> {
-    pub fn new(db: &'a Database) -> Self { Self { db } }
+    pub fn new(db: &'a Database) -> Self {
+        Self { db }
+    }
 
     pub async fn upsert(&self, entity: &StoredManagedAsset) -> StorageResult<()> {
         let synced_int = if entity.synced { 1 } else { 0 };
@@ -192,27 +247,45 @@ impl<'a> ManagedAssetRepository<'a> {
     }
 
     pub async fn get_all(&self) -> StorageResult<Vec<StoredManagedAsset>> {
-        self.db.with_connection(|conn| {
-            let mut stmt = conn.prepare("SELECT * FROM managed_assets").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
-            let rows = stmt.query_map([], |row| {
-                Ok(StoredManagedAsset {
-                    id: row.get(0)?, name: row.get(1)?, asset_type: row.get(2)?,
-                    criticality: row.get(3)?, owner: row.get(4)?, location: row.get(5)?,
-                    status: row.get(6)?, created_at: row.get(7)?, updated_at: row.get(8)?,
-                    synced: row.get::<_, i32>(9)? != 0,
-                })
-            }).map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
-            .collect::<Result<Vec<_>, _>>().map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
-            Ok(rows)
-        }).await
+        self.db
+            .with_connection(|conn| {
+                let mut stmt = conn
+                    .prepare("SELECT * FROM managed_assets")
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+                let rows = stmt
+                    .query_map([], |row| {
+                        Ok(StoredManagedAsset {
+                            id: row.get(0)?,
+                            name: row.get(1)?,
+                            asset_type: row.get(2)?,
+                            criticality: row.get(3)?,
+                            owner: row.get(4)?,
+                            location: row.get(5)?,
+                            status: row.get(6)?,
+                            created_at: row.get(7)?,
+                            updated_at: row.get(8)?,
+                            synced: row.get::<_, i32>(9)? != 0,
+                        })
+                    })
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+                Ok(rows)
+            })
+            .await
     }
 
     pub async fn delete(&self, id: &str) -> StorageResult<()> {
         let id_cloned = id.to_string();
-        self.db.with_connection(move |conn| {
-            conn.execute("DELETE FROM managed_assets WHERE id = ?", [id_cloned]).map_err(|e| StorageError::Query(format!("Failed to delete asset: {}", e)))?;
-            Ok(())
-        }).await
+        self.db
+            .with_connection(move |conn| {
+                conn.execute("DELETE FROM managed_assets WHERE id = ?", [id_cloned])
+                    .map_err(|e| StorageError::Query(format!("Failed to delete asset: {}", e)))?;
+                Ok(())
+            })
+            .await
     }
 }
 
@@ -235,47 +308,75 @@ pub struct KpiSnapshotRepository<'a> {
 }
 
 impl<'a> KpiSnapshotRepository<'a> {
-    pub fn new(db: &'a Database) -> Self { Self { db } }
+    pub fn new(db: &'a Database) -> Self {
+        Self { db }
+    }
 
     pub async fn upsert(&self, entity: &StoredKpiSnapshot) -> StorageResult<()> {
         let synced_int = if entity.synced { 1 } else { 0 };
-        self.db.with_connection(|conn| {
-            conn.execute(
-                r#"
+        self.db
+            .with_connection(|conn| {
+                conn.execute(
+                    r#"
                 INSERT OR REPLACE INTO kpi_snapshots
                 (id, kpi_type, value, measured_at, tags, synced)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
                 "#,
-                rusqlite::params![
-                    entity.id, entity.kpi_type, entity.value, entity.measured_at,
-                    entity.tags, synced_int
-                ],
-            ).map_err(|e| StorageError::Query(format!("Failed to upsert kpi snapshot: {}", e)))?;
-            Ok(())
-        }).await
+                    rusqlite::params![
+                        entity.id,
+                        entity.kpi_type,
+                        entity.value,
+                        entity.measured_at,
+                        entity.tags,
+                        synced_int
+                    ],
+                )
+                .map_err(|e| {
+                    StorageError::Query(format!("Failed to upsert kpi snapshot: {}", e))
+                })?;
+                Ok(())
+            })
+            .await
     }
 
     pub async fn get_all(&self) -> StorageResult<Vec<StoredKpiSnapshot>> {
-        self.db.with_connection(|conn| {
-            let mut stmt = conn.prepare("SELECT * FROM kpi_snapshots").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
-            let rows = stmt.query_map([], |row| {
-                Ok(StoredKpiSnapshot {
-                    id: row.get(0)?, kpi_type: row.get(1)?, value: row.get(2)?,
-                    measured_at: row.get(3)?, tags: row.get(4)?,
-                    synced: row.get::<_, i32>(5)? != 0,
-                })
-            }).map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
-            .collect::<Result<Vec<_>, _>>().map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
-            Ok(rows)
-        }).await
+        self.db
+            .with_connection(|conn| {
+                let mut stmt = conn
+                    .prepare("SELECT * FROM kpi_snapshots")
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+                let rows = stmt
+                    .query_map([], |row| {
+                        Ok(StoredKpiSnapshot {
+                            id: row.get(0)?,
+                            kpi_type: row.get(1)?,
+                            value: row.get(2)?,
+                            measured_at: row.get(3)?,
+                            tags: row.get(4)?,
+                            synced: row.get::<_, i32>(5)? != 0,
+                        })
+                    })
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+                Ok(rows)
+            })
+            .await
     }
 
     pub async fn delete(&self, id: &str) -> StorageResult<()> {
         let id_cloned = id.to_string();
-        self.db.with_connection(move |conn| {
-            conn.execute("DELETE FROM kpi_snapshots WHERE id = ?", [id_cloned]).map_err(|e| StorageError::Query(format!("Failed to delete kpi snapshot: {}", e)))?;
-            Ok(())
-        }).await
+        self.db
+            .with_connection(move |conn| {
+                conn.execute("DELETE FROM kpi_snapshots WHERE id = ?", [id_cloned])
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete kpi snapshot: {}", e))
+                    })?;
+                Ok(())
+            })
+            .await
     }
 }
 
@@ -302,7 +403,9 @@ pub struct AlertRuleRepository<'a> {
 }
 
 impl<'a> AlertRuleRepository<'a> {
-    pub fn new(db: &'a Database) -> Self { Self { db } }
+    pub fn new(db: &'a Database) -> Self {
+        Self { db }
+    }
 
     pub async fn upsert(&self, entity: &StoredAlertRule) -> StorageResult<()> {
         let enabled_int = if entity.enabled { 1 } else { 0 };
@@ -325,28 +428,47 @@ impl<'a> AlertRuleRepository<'a> {
     }
 
     pub async fn get_all(&self) -> StorageResult<Vec<StoredAlertRule>> {
-        self.db.with_connection(|conn| {
-            let mut stmt = conn.prepare("SELECT * FROM alert_rules").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
-            let rows = stmt.query_map([], |row| {
-                Ok(StoredAlertRule {
-                    id: row.get(0)?, name: row.get(1)?, description: row.get(2)?,
-                    severity: row.get(3)?, condition: row.get(4)?, actions: row.get(5)?,
-                    enabled: row.get::<_, i32>(6)? != 0,
-                    created_at: row.get(7)?, updated_at: row.get(8)?,
-                    synced: row.get::<_, i32>(9)? != 0,
-                })
-            }).map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
-            .collect::<Result<Vec<_>, _>>().map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
-            Ok(rows)
-        }).await
+        self.db
+            .with_connection(|conn| {
+                let mut stmt = conn
+                    .prepare("SELECT * FROM alert_rules")
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+                let rows = stmt
+                    .query_map([], |row| {
+                        Ok(StoredAlertRule {
+                            id: row.get(0)?,
+                            name: row.get(1)?,
+                            description: row.get(2)?,
+                            severity: row.get(3)?,
+                            condition: row.get(4)?,
+                            actions: row.get(5)?,
+                            enabled: row.get::<_, i32>(6)? != 0,
+                            created_at: row.get(7)?,
+                            updated_at: row.get(8)?,
+                            synced: row.get::<_, i32>(9)? != 0,
+                        })
+                    })
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+                Ok(rows)
+            })
+            .await
     }
 
     pub async fn delete(&self, id: &str) -> StorageResult<()> {
         let id_cloned = id.to_string();
-        self.db.with_connection(move |conn| {
-            conn.execute("DELETE FROM alert_rules WHERE id = ?", [id_cloned]).map_err(|e| StorageError::Query(format!("Failed to delete alert rule: {}", e)))?;
-            Ok(())
-        }).await
+        self.db
+            .with_connection(move |conn| {
+                conn.execute("DELETE FROM alert_rules WHERE id = ?", [id_cloned])
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete alert rule: {}", e))
+                    })?;
+                Ok(())
+            })
+            .await
     }
 }
 
@@ -372,50 +494,78 @@ pub struct WebhookRepository<'a> {
 }
 
 impl<'a> WebhookRepository<'a> {
-    pub fn new(db: &'a Database) -> Self { Self { db } }
+    pub fn new(db: &'a Database) -> Self {
+        Self { db }
+    }
 
     pub async fn upsert(&self, entity: &StoredWebhook) -> StorageResult<()> {
         let enabled_int = if entity.enabled { 1 } else { 0 };
         let synced_int = if entity.synced { 1 } else { 0 };
-        self.db.with_connection(|conn| {
-            conn.execute(
-                r#"
+        self.db
+            .with_connection(|conn| {
+                conn.execute(
+                    r#"
                 INSERT OR REPLACE INTO webhooks
                 (id, name, url, events, secret, enabled, created_at, updated_at, synced)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
                 "#,
-                rusqlite::params![
-                    entity.id, entity.name, entity.url, entity.events, entity.secret,
-                    enabled_int, entity.created_at, entity.updated_at, synced_int
-                ],
-            ).map_err(|e| StorageError::Query(format!("Failed to upsert webhook: {}", e)))?;
-            Ok(())
-        }).await
+                    rusqlite::params![
+                        entity.id,
+                        entity.name,
+                        entity.url,
+                        entity.events,
+                        entity.secret,
+                        enabled_int,
+                        entity.created_at,
+                        entity.updated_at,
+                        synced_int
+                    ],
+                )
+                .map_err(|e| StorageError::Query(format!("Failed to upsert webhook: {}", e)))?;
+                Ok(())
+            })
+            .await
     }
 
     pub async fn get_all(&self) -> StorageResult<Vec<StoredWebhook>> {
-        self.db.with_connection(|conn| {
-            let mut stmt = conn.prepare("SELECT * FROM webhooks").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
-            let rows = stmt.query_map([], |row| {
-                Ok(StoredWebhook {
-                    id: row.get(0)?, name: row.get(1)?, url: row.get(2)?,
-                    events: row.get(3)?, secret: row.get(4)?,
-                    enabled: row.get::<_, i32>(5)? != 0,
-                    created_at: row.get(6)?, updated_at: row.get(7)?,
-                    synced: row.get::<_, i32>(8)? != 0,
-                })
-            }).map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
-            .collect::<Result<Vec<_>, _>>().map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
-            Ok(rows)
-        }).await
+        self.db
+            .with_connection(|conn| {
+                let mut stmt = conn
+                    .prepare("SELECT * FROM webhooks")
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+                let rows = stmt
+                    .query_map([], |row| {
+                        Ok(StoredWebhook {
+                            id: row.get(0)?,
+                            name: row.get(1)?,
+                            url: row.get(2)?,
+                            events: row.get(3)?,
+                            secret: row.get(4)?,
+                            enabled: row.get::<_, i32>(5)? != 0,
+                            created_at: row.get(6)?,
+                            updated_at: row.get(7)?,
+                            synced: row.get::<_, i32>(8)? != 0,
+                        })
+                    })
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+                Ok(rows)
+            })
+            .await
     }
 
     pub async fn delete(&self, id: &str) -> StorageResult<()> {
         let id_cloned = id.to_string();
-        self.db.with_connection(move |conn| {
-            conn.execute("DELETE FROM webhooks WHERE id = ?", [id_cloned]).map_err(|e| StorageError::Query(format!("Failed to delete webhook: {}", e)))?;
-            Ok(())
-        }).await
+        self.db
+            .with_connection(move |conn| {
+                conn.execute("DELETE FROM webhooks WHERE id = ?", [id_cloned])
+                    .map_err(|e| StorageError::Query(format!("Failed to delete webhook: {}", e)))?;
+                Ok(())
+            })
+            .await
     }
 }
 
@@ -443,7 +593,9 @@ pub struct DetectionRuleRepository<'a> {
 }
 
 impl<'a> DetectionRuleRepository<'a> {
-    pub fn new(db: &'a Database) -> Self { Self { db } }
+    pub fn new(db: &'a Database) -> Self {
+        Self { db }
+    }
 
     pub async fn upsert(&self, entity: &StoredDetectionRule) -> StorageResult<()> {
         let enabled_int = if entity.enabled { 1 } else { 0 };
@@ -485,10 +637,15 @@ impl<'a> DetectionRuleRepository<'a> {
 
     pub async fn delete(&self, id: &str) -> StorageResult<()> {
         let id_cloned = id.to_string();
-        self.db.with_connection(move |conn| {
-            conn.execute("DELETE FROM detection_rules WHERE id = ?", [id_cloned]).map_err(|e| StorageError::Query(format!("Failed to delete detection rule: {}", e)))?;
-            Ok(())
-        }).await
+        self.db
+            .with_connection(move |conn| {
+                conn.execute("DELETE FROM detection_rules WHERE id = ?", [id_cloned])
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete detection rule: {}", e))
+                    })?;
+                Ok(())
+            })
+            .await
     }
 }
 
@@ -512,46 +669,76 @@ pub struct SoftwareInventoryRepository<'a> {
 }
 
 impl<'a> SoftwareInventoryRepository<'a> {
-    pub fn new(db: &'a Database) -> Self { Self { db } }
+    pub fn new(db: &'a Database) -> Self {
+        Self { db }
+    }
 
     pub async fn upsert(&self, entity: &StoredSoftwareInventory) -> StorageResult<()> {
         let synced_int = if entity.synced { 1 } else { 0 };
-        self.db.with_connection(|conn| {
-            conn.execute(
-                r#"
+        self.db
+            .with_connection(|conn| {
+                conn.execute(
+                    r#"
                 INSERT OR REPLACE INTO software_inventory
                 (id, hostname, software_name, version, vendor, install_date, synced)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
                 "#,
-                rusqlite::params![
-                    entity.id, entity.hostname, entity.software_name, entity.version,
-                    entity.vendor, entity.install_date, synced_int
-                ],
-            ).map_err(|e| StorageError::Query(format!("Failed to upsert software inventory: {}", e)))?;
-            Ok(())
-        }).await
+                    rusqlite::params![
+                        entity.id,
+                        entity.hostname,
+                        entity.software_name,
+                        entity.version,
+                        entity.vendor,
+                        entity.install_date,
+                        synced_int
+                    ],
+                )
+                .map_err(|e| {
+                    StorageError::Query(format!("Failed to upsert software inventory: {}", e))
+                })?;
+                Ok(())
+            })
+            .await
     }
 
     pub async fn get_all(&self) -> StorageResult<Vec<StoredSoftwareInventory>> {
-        self.db.with_connection(|conn| {
-            let mut stmt = conn.prepare("SELECT * FROM software_inventory").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
-            let rows = stmt.query_map([], |row| {
-                Ok(StoredSoftwareInventory {
-                    id: row.get(0)?, hostname: row.get(1)?, software_name: row.get(2)?,
-                    version: row.get(3)?, vendor: row.get(4)?, install_date: row.get(5)?,
-                    synced: row.get::<_, i32>(6)? != 0,
-                })
-            }).map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
-            .collect::<Result<Vec<_>, _>>().map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
-            Ok(rows)
-        }).await
+        self.db
+            .with_connection(|conn| {
+                let mut stmt = conn
+                    .prepare("SELECT * FROM software_inventory")
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+                let rows = stmt
+                    .query_map([], |row| {
+                        Ok(StoredSoftwareInventory {
+                            id: row.get(0)?,
+                            hostname: row.get(1)?,
+                            software_name: row.get(2)?,
+                            version: row.get(3)?,
+                            vendor: row.get(4)?,
+                            install_date: row.get(5)?,
+                            synced: row.get::<_, i32>(6)? != 0,
+                        })
+                    })
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+                Ok(rows)
+            })
+            .await
     }
 
     pub async fn delete(&self, id: &str) -> StorageResult<()> {
         let id_cloned = id.to_string();
-        self.db.with_connection(move |conn| {
-            conn.execute("DELETE FROM software_inventory WHERE id = ?", [id_cloned]).map_err(|e| StorageError::Query(format!("Failed to delete software inventory: {}", e)))?;
-            Ok(())
-        }).await
+        self.db
+            .with_connection(move |conn| {
+                conn.execute("DELETE FROM software_inventory WHERE id = ?", [id_cloned])
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete software inventory: {}", e))
+                    })?;
+                Ok(())
+            })
+            .await
     }
 }

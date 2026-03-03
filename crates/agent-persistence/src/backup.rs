@@ -110,7 +110,11 @@ impl BackupManager {
     /// Create a new backup of the database.
     ///
     /// This uses the SQLite Online Backup API to ensure a consistent copy
-    pub async fn create_backup(&self, key_manager: &agent_storage::KeyManager, reason: BackupReason) -> PersistenceResult<BackupMetadata> {
+    pub async fn create_backup(
+        &self,
+        key_manager: &agent_storage::KeyManager,
+        reason: BackupReason,
+    ) -> PersistenceResult<BackupMetadata> {
         if !self.db_path.exists() {
             return Err(PersistenceError::Backup(format!(
                 "Database file not found: {}",
@@ -140,7 +144,7 @@ impl BackupManager {
 
         // Perform online backup to a temporary file
         let temp_db_path = self.backup_dir.join(format!("{}.tmp", backup_id));
-        
+
         {
             use agent_storage::{Database, DatabaseConfig};
             use rusqlite::Connection;
@@ -150,43 +154,79 @@ impl BackupManager {
                 path: self.db_path.clone(),
                 create_if_missing: false,
             };
-            let src_db = Database::open(src_config, key_manager)
-                .map_err(|e| PersistenceError::Backup(format!("Failed to open source database: {}", e)))?;
+            let src_db = Database::open(src_config, key_manager).map_err(|e| {
+                PersistenceError::Backup(format!("Failed to open source database: {}", e))
+            })?;
 
             // Open destination database (temporary)
-            let mut dst_conn = Connection::open(&temp_db_path)
-                .map_err(|e| PersistenceError::Backup(format!("Failed to create temp backup file: {}", e)))?;
+            let mut dst_conn = Connection::open(&temp_db_path).map_err(|e| {
+                PersistenceError::Backup(format!("Failed to create temp backup file: {}", e))
+            })?;
 
             // Set the same encryption key on the destination
-            let key = key_manager.get_database_key()
-                .map_err(|e| PersistenceError::Backup(format!("Failed to get encryption key: {}", e)))?;
-            
+            let key = key_manager.get_database_key().map_err(|e| {
+                PersistenceError::Backup(format!("Failed to get encryption key: {}", e))
+            })?;
+
             // We use a block to ensure the key material is cleared
             {
                 let mut key_hex: String = key.iter().map(|b| format!("{:02x}", b)).collect();
-                dst_conn.execute_batch(&format!("PRAGMA key = \"x'{}'\"", key_hex))
-                    .map_err(|e| PersistenceError::Backup(format!("Failed to set key on backup: {}", e)))?;
+                dst_conn
+                    .execute_batch(&format!("PRAGMA key = \"x'{}'\"", key_hex))
+                    .map_err(|e| {
+                        PersistenceError::Backup(format!("Failed to set key on backup: {}", e))
+                    })?;
+                    
+                dst_conn
+                    .execute_batch(
+                        r#"
+                        PRAGMA cipher_page_size = 4096;
+                        PRAGMA kdf_iter = 256000;
+                        PRAGMA cipher_hmac_algorithm = HMAC_SHA256;
+                        PRAGMA cipher_kdf_algorithm = PBKDF2_HMAC_SHA256;
+                        "#,
+                    )
+                    .map_err(|e| {
+                        PersistenceError::Backup(format!("Failed to configure cipher settings: {}", e))
+                    })?;
                 // Manual zeroization as fallback to zeroize crate if not used here
                 unsafe {
                     let bytes = key_hex.as_bytes_mut();
-                    for b in bytes.iter_mut() { std::ptr::write_volatile(b, 0); }
+                    for b in bytes.iter_mut() {
+                        std::ptr::write_volatile(b, 0);
+                    }
                 }
             }
 
-            src_db.with_connection(|src_conn| {
-                let backup = rusqlite::backup::Backup::new(src_conn, &mut dst_conn)
-                    .map_err(|e| agent_storage::StorageError::Initialization(format!("Backup init failed: {}", e)))?;
-                
-                backup.run_to_completion(5, std::time::Duration::from_millis(10), None)
-                    .map_err(|e| agent_storage::StorageError::Initialization(format!("Backup execution failed: {}", e)))?;
-                
-                Ok(())
-            }).await.map_err(|e| PersistenceError::Backup(format!("Online backup failed: {}", e)))?;
+            src_db
+                .with_connection(|src_conn| {
+                    let backup =
+                        rusqlite::backup::Backup::new(src_conn, &mut dst_conn).map_err(|e| {
+                            agent_storage::StorageError::Initialization(format!(
+                                "Backup init failed: {}",
+                                e
+                            ))
+                        })?;
+
+                    backup
+                        .run_to_completion(5, std::time::Duration::from_millis(10), None)
+                        .map_err(|e| {
+                            agent_storage::StorageError::Initialization(format!(
+                                "Backup execution failed: {}",
+                                e
+                            ))
+                        })?;
+
+                    Ok(())
+                })
+                .await
+                .map_err(|e| PersistenceError::Backup(format!("Online backup failed: {}", e)))?;
         }
 
         // Read the temporary database file for compression
-        let db_data = fs::read(&temp_db_path)
-            .map_err(|e| PersistenceError::Backup(format!("Failed to read temp backup file: {}", e)))?;
+        let db_data = fs::read(&temp_db_path).map_err(|e| {
+            PersistenceError::Backup(format!("Failed to read temp backup file: {}", e))
+        })?;
         let original_size = db_data.len() as u64;
 
         // Compress with gzip
@@ -253,7 +293,7 @@ impl BackupManager {
     /// Restore the database from a backup.
     ///
     /// On Windows, this performs a "safe restore" by writing to a .restore file
-    /// which the service will swap into place on the next startup, avoiding 
+    /// which the service will swap into place on the next startup, avoiding
     /// "Access Denied" errors while the main database is locked.
     pub fn restore_backup(&self, backup_id: &str) -> PersistenceResult<()> {
         let backups = self.list_backups()?;
@@ -337,6 +377,18 @@ impl BackupManager {
             PersistenceError::Restore(format!("Failed to write restored database: {}", e))
         })?;
 
+        // IMPORTANT: Delete any existing WAL and SHM files, otherwise the restored 
+        // database will conflict with the existing WAL file (especially with SQLCipher salt mismatches).
+        let wal_path = PathBuf::from(format!("{}-wal", self.db_path.display()));
+        let shm_path = PathBuf::from(format!("{}-shm", self.db_path.display()));
+        
+        if wal_path.exists() {
+            let _ = fs::remove_file(&wal_path);
+        }
+        if shm_path.exists() {
+            let _ = fs::remove_file(&shm_path);
+        }
+
         info!(
             "Database restored from backup {} ({} bytes)",
             backup_id,
@@ -407,7 +459,9 @@ impl BackupManager {
             }
         }
 
-        let metadata = self.create_backup(key_manager, BackupReason::Scheduled).await?;
+        let metadata = self
+            .create_backup(key_manager, BackupReason::Scheduled)
+            .await?;
         Ok(Some(metadata))
     }
 
@@ -440,12 +494,20 @@ impl BackupManager {
             if let Err(e) = fs::remove_file(&backup_path)
                 && e.kind() != std::io::ErrorKind::NotFound
             {
-                warn!("Failed to remove old backup {}: {}", backup_path.display(), e);
+                warn!(
+                    "Failed to remove old backup {}: {}",
+                    backup_path.display(),
+                    e
+                );
             }
             if let Err(e) = fs::remove_file(&metadata_path)
                 && e.kind() != std::io::ErrorKind::NotFound
             {
-                warn!("Failed to remove old backup metadata {}: {}", metadata_path.display(), e);
+                warn!(
+                    "Failed to remove old backup metadata {}: {}",
+                    metadata_path.display(),
+                    e
+                );
             }
 
             debug!("Removed old backup: {}", backup.id);
@@ -471,26 +533,33 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
 
-    async fn create_test_db(temp_dir: &TempDir, key_manager: &agent_storage::KeyManager) -> PathBuf {
+    async fn create_test_db(
+        temp_dir: &TempDir,
+        key_manager: &agent_storage::KeyManager,
+    ) -> PathBuf {
         let db_path = temp_dir.path().join("test.db");
         let config = agent_storage::DatabaseConfig {
             path: db_path.clone(),
             create_if_missing: true,
         };
         let db = agent_storage::Database::open(config, key_manager).unwrap();
-        
+
         db.with_connection(|conn| {
             conn.execute(
                 "CREATE TABLE IF NOT EXISTS test_data (id INTEGER PRIMARY KEY, value TEXT)",
                 [],
-            ).unwrap();
+            )
+            .unwrap();
             conn.execute(
                 "INSERT INTO test_data (value) VALUES ('backup content')",
                 [],
-            ).unwrap();
+            )
+            .unwrap();
             Ok(())
-        }).await.unwrap();
-        
+        })
+        .await
+        .unwrap();
+
         db_path
     }
 
@@ -504,7 +573,10 @@ mod tests {
         let manager = BackupManager::with_backup_dir(&db_path, &backup_dir).unwrap();
 
         // Create a backup
-        let metadata = manager.create_backup(&key_manager, BackupReason::Manual).await.unwrap();
+        let metadata = manager
+            .create_backup(&key_manager, BackupReason::Manual)
+            .await
+            .unwrap();
         assert!(!metadata.id.is_empty());
         assert!(!metadata.hash.is_empty());
         assert!(metadata.compressed_size > 0);
@@ -527,7 +599,10 @@ mod tests {
         let manager = BackupManager::with_backup_dir(&db_path, &backup_dir).unwrap();
 
         // Create backup
-        let metadata = manager.create_backup(&key_manager, BackupReason::Manual).await.unwrap();
+        let metadata = manager
+            .create_backup(&key_manager, BackupReason::Manual)
+            .await
+            .unwrap();
 
         // Modify the database
         fs::write(&db_path, b"modified content").unwrap();
@@ -542,10 +617,15 @@ mod tests {
             create_if_missing: false,
         };
         let db = agent_storage::Database::open(config, &key_manager).unwrap();
-        let value: String = db.with_connection(|conn| {
-            conn.query_row("SELECT value FROM test_data WHERE id = 1", [], |row| row.get(0))
+        let value: String = db
+            .with_connection(|conn| {
+                conn.query_row("SELECT value FROM test_data WHERE id = 1", [], |row| {
+                    row.get(0)
+                })
                 .map_err(|e| agent_storage::StorageError::Query(e.to_string()))
-        }).await.unwrap();
+            })
+            .await
+            .unwrap();
         assert_eq!(value, "backup content");
     }
 
@@ -557,7 +637,10 @@ mod tests {
         let backup_dir = temp_dir.path().join("backups");
 
         let manager = BackupManager::with_backup_dir(&db_path, &backup_dir).unwrap();
-        let metadata = manager.create_backup(&key_manager, BackupReason::Manual).await.unwrap();
+        let metadata = manager
+            .create_backup(&key_manager, BackupReason::Manual)
+            .await
+            .unwrap();
 
         // Corrupt the backup file
         let backup_filename = format!(

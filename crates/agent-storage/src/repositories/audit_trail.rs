@@ -177,7 +177,8 @@ impl<'a> AuditTrailRepository<'a> {
             .unwrap_or_else(|e| {
                 tracing::warn!(
                     "Failed to parse audit trail timestamp '{}': {}, using current time",
-                    timestamp_str, e
+                    timestamp_str,
+                    e
                 );
                 Utc::now()
             });

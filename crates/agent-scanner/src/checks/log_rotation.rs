@@ -12,12 +12,12 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
-use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
-use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 use agent_common::process::silent_command;
+use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 /// Check ID for log rotation.
@@ -220,7 +220,8 @@ impl LogRotationCheck {
                 let count = entries
                     .filter_map(|e| e.ok())
                     .filter(|e| e.path().is_file())
-                    .count().min(u32::MAX as usize) as u32;
+                    .count()
+                    .min(u32::MAX as usize) as u32;
                 status.config_file_count = Some(count);
                 status.raw_output.push_str(&format!(
                     "/etc/logrotate.d/ contains {} config files\n",
@@ -280,7 +281,8 @@ impl LogRotationCheck {
                         let trimmed = l.trim();
                         !trimmed.is_empty() && !trimmed.starts_with('#')
                     })
-                    .count().min(u32::MAX as usize) as u32;
+                    .count()
+                    .min(u32::MAX as usize) as u32;
 
                 status.config_file_count = Some(active_entries);
                 status.configured = active_entries > 0;
@@ -290,31 +292,35 @@ impl LogRotationCheck {
         // Also check for ASL (Apple System Log) configuration
         let asl_conf = std::path::Path::new("/etc/asl.conf");
         if asl_conf.exists()
-            && let Ok(content) = std::fs::read_to_string(asl_conf) {
-                status
-                    .raw_output
-                    .push_str(&format!("\n=== /etc/asl.conf ===\n{}\n", content));
+            && let Ok(content) = std::fs::read_to_string(asl_conf)
+        {
+            status
+                .raw_output
+                .push_str(&format!("\n=== /etc/asl.conf ===\n{}\n", content));
 
-                // ASL configuration exists, consider as additional log management
-                if !status.configured {
-                    status.configured = true;
-                    status.rotation_type = "ASL".to_string();
-                }
+            // ASL configuration exists, consider as additional log management
+            if !status.configured {
+                status.configured = true;
+                status.rotation_type = "ASL".to_string();
             }
+        }
 
         // Check /etc/newsyslog.d/ for additional configs
         let newsyslog_d = std::path::Path::new("/etc/newsyslog.d/");
-        if newsyslog_d.exists() && newsyslog_d.is_dir()
-            && let Ok(entries) = std::fs::read_dir(newsyslog_d) {
-                let count = entries
-                    .filter_map(|e| e.ok())
-                    .filter(|e| e.path().is_file())
-                    .count().min(u32::MAX as usize) as u32;
-                status.raw_output.push_str(&format!(
-                    "/etc/newsyslog.d/ contains {} config files\n",
-                    count
-                ));
-            }
+        if newsyslog_d.exists()
+            && newsyslog_d.is_dir()
+            && let Ok(entries) = std::fs::read_dir(newsyslog_d)
+        {
+            let count = entries
+                .filter_map(|e| e.ok())
+                .filter(|e| e.path().is_file())
+                .count()
+                .min(u32::MAX as usize) as u32;
+            status.raw_output.push_str(&format!(
+                "/etc/newsyslog.d/ contains {} config files\n",
+                count
+            ));
+        }
 
         if !status.configured {
             status.issues.push(

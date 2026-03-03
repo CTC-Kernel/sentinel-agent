@@ -382,7 +382,8 @@ impl<'a> ConfigRepository<'a> {
             .unwrap_or_else(|e| {
                 tracing::warn!(
                     "Failed to parse config updated_at timestamp '{}': {}, using current time",
-                    updated_at_str, e
+                    updated_at_str,
+                    e
                 );
                 Utc::now()
             });

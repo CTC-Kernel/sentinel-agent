@@ -137,7 +137,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     // ── Build unified event list ────────────────────────────────────
     let now = Utc::now();
     let cutoff = now
-        .checked_sub_signed(Duration::seconds(state.threats.forensic_time_range.seconds()))
+        .checked_sub_signed(Duration::seconds(
+            state.threats.forensic_time_range.seconds(),
+        ))
         .unwrap_or(now);
 
     let all_events = build_timeline(state, cutoff);
@@ -244,13 +246,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     evt.detail.clone()
                 };
 
-                let cells: Vec<&str> = vec![
-                    &sev_cell,
-                    source_label,
-                    &evt.title,
-                    &detail_display,
-                    &date,
-                ];
+                let cells: Vec<&str> =
+                    vec![&sev_cell, source_label, &evt.title, &detail_display, &date];
 
                 let global_idx = start.saturating_add(row_idx);
                 let selected = state.threats.forensic_selected_event == Some(global_idx);
@@ -279,36 +276,36 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     if state.threats.forensic_detail_open
         && let Some(sel_idx) = state.threats.forensic_selected_event
     {
-            if let Some(selected_event) = events.get(sel_idx) {
-                let sev_color = severity_color(&selected_event.severity);
-                let ts_str = selected_event
-                    .timestamp
-                    .format("%d/%m/%Y %H:%M:%S")
-                    .to_string();
+        if let Some(selected_event) = events.get(sel_idx) {
+            let sev_color = severity_color(&selected_event.severity);
+            let ts_str = selected_event
+                .timestamp
+                .format("%d/%m/%Y %H:%M:%S")
+                .to_string();
 
-                // Find correlated events (within +/- 5 min from ALL sources)
-                let window_start = selected_event
-                    .timestamp
-                    .checked_sub_signed(Duration::seconds(CORRELATION_WINDOW_SECS))
-                    .unwrap_or(selected_event.timestamp);
-                let window_end = selected_event
-                    .timestamp
-                    .checked_add_signed(Duration::seconds(CORRELATION_WINDOW_SECS))
-                    .unwrap_or(selected_event.timestamp);
+            // Find correlated events (within +/- 5 min from ALL sources)
+            let window_start = selected_event
+                .timestamp
+                .checked_sub_signed(Duration::seconds(CORRELATION_WINDOW_SECS))
+                .unwrap_or(selected_event.timestamp);
+            let window_end = selected_event
+                .timestamp
+                .checked_add_signed(Duration::seconds(CORRELATION_WINDOW_SECS))
+                .unwrap_or(selected_event.timestamp);
 
-                // Use pre-built full (unfiltered) timeline for correlation
-                let correlated: Vec<&TimelineEvent> = all_events
-                    .iter()
-                    .filter(|e| {
-                        e.timestamp >= window_start
-                            && e.timestamp <= window_end
-                            && !(e.source == selected_event.source
-                                && e.title == selected_event.title
-                                && e.timestamp == selected_event.timestamp)
-                    })
-                    .collect();
+            // Use pre-built full (unfiltered) timeline for correlation
+            let correlated: Vec<&TimelineEvent> = all_events
+                .iter()
+                .filter(|e| {
+                    e.timestamp >= window_start
+                        && e.timestamp <= window_end
+                        && !(e.source == selected_event.source
+                            && e.title == selected_event.title
+                            && e.timestamp == selected_event.timestamp)
+                })
+                .collect();
 
-                let _action = widgets::DetailDrawer::new(
+            let _action = widgets::DetailDrawer::new(
                     "forensic_correlation",
                     &selected_event.title,
                     icons::CLOCK,
@@ -401,11 +398,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     },
                     &[],
                 );
-            } else {
-                // Selection index out of range — close drawer
-                state.threats.forensic_selected_event = None;
-                state.threats.forensic_detail_open = false;
-            }
+        } else {
+            // Selection index out of range — close drawer
+            state.threats.forensic_selected_event = None;
+            state.threats.forensic_detail_open = false;
+        }
     }
 
     None

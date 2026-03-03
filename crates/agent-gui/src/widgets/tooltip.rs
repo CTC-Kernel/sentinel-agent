@@ -87,33 +87,38 @@ pub fn show_tooltip_at(
             rect.center().x - tooltip_size.x / 2.0,
             rect.min.y - tooltip_size.y - theme::TOOLTIP_OFFSET,
         ),
-        TooltipPosition::Bottom => {
-            egui::pos2(rect.center().x - tooltip_size.x / 2.0, rect.max.y + theme::TOOLTIP_OFFSET)
-        }
+        TooltipPosition::Bottom => egui::pos2(
+            rect.center().x - tooltip_size.x / 2.0,
+            rect.max.y + theme::TOOLTIP_OFFSET,
+        ),
         TooltipPosition::Left => egui::pos2(
             rect.min.x - tooltip_size.x - theme::TOOLTIP_OFFSET,
             rect.center().y - tooltip_size.y / 2.0,
         ),
-        TooltipPosition::Right => {
-            egui::pos2(rect.max.x + theme::TOOLTIP_OFFSET, rect.center().y - tooltip_size.y / 2.0)
-        }
+        TooltipPosition::Right => egui::pos2(
+            rect.max.x + theme::TOOLTIP_OFFSET,
+            rect.center().y - tooltip_size.y / 2.0,
+        ),
     };
 
     // Keep tooltip on screen
     let screen = ctx.screen_rect();
     let tooltip_pos = egui::pos2(
-        tooltip_pos
-            .x
-            .clamp(screen.min.x + theme::TOOLTIP_SCREEN_MARGIN, screen.max.x - tooltip_size.x - theme::TOOLTIP_SCREEN_MARGIN),
-        tooltip_pos
-            .y
-            .clamp(screen.min.y + theme::TOOLTIP_SCREEN_MARGIN, screen.max.y - tooltip_size.y - theme::TOOLTIP_SCREEN_MARGIN),
+        tooltip_pos.x.clamp(
+            screen.min.x + theme::TOOLTIP_SCREEN_MARGIN,
+            screen.max.x - tooltip_size.x - theme::TOOLTIP_SCREEN_MARGIN,
+        ),
+        tooltip_pos.y.clamp(
+            screen.min.y + theme::TOOLTIP_SCREEN_MARGIN,
+            screen.max.y - tooltip_size.y - theme::TOOLTIP_SCREEN_MARGIN,
+        ),
     );
 
     let tooltip_rect = egui::Rect::from_min_size(tooltip_pos, tooltip_size);
 
-    ctx.layer_painter(layer_id)
-        .add(theme::premium_shadow(8, 40).as_shape(tooltip_rect, CornerRadius::same(theme::ROUNDING_MD)));
+    ctx.layer_painter(layer_id).add(
+        theme::premium_shadow(8, 40).as_shape(tooltip_rect, CornerRadius::same(theme::ROUNDING_MD)),
+    );
 
     ctx.layer_painter(layer_id).rect(
         tooltip_rect,
@@ -159,7 +164,10 @@ pub fn tooltip(ui: &Ui, response: &egui::Response, text: &str) {
 
 /// Info icon with tooltip.
 pub fn info_tooltip(ui: &mut Ui, text: &str) {
-    let (rect, response) = ui.allocate_exact_size(egui::vec2(theme::ICON_SM, theme::ICON_SM), egui::Sense::click().union(egui::Sense::hover()));
+    let (rect, response) = ui.allocate_exact_size(
+        egui::vec2(theme::ICON_SM, theme::ICON_SM),
+        egui::Sense::click().union(egui::Sense::hover()),
+    );
 
     if ui.is_rect_visible(rect) {
         let color = if response.hovered() || response.has_focus() {
@@ -194,7 +202,10 @@ pub fn info_tooltip(ui: &mut Ui, text: &str) {
 /// Help icon with tooltip (question mark style).
 pub fn help_tooltip(ui: &mut Ui, text: &str) {
     let help_size = theme::ICON_SM + theme::BORDER_THICK;
-    let (rect, response) = ui.allocate_exact_size(egui::vec2(help_size, help_size), egui::Sense::click().union(egui::Sense::hover()));
+    let (rect, response) = ui.allocate_exact_size(
+        egui::vec2(help_size, help_size),
+        egui::Sense::click().union(egui::Sense::hover()),
+    );
 
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered() || response.has_focus();
@@ -232,11 +243,8 @@ pub fn help_tooltip(ui: &mut Ui, text: &str) {
         );
 
         if response.has_focus() {
-            ui.painter().circle_stroke(
-                rect.center(),
-                help_size / 2.0 + 1.0,
-                theme::focus_ring(),
-            );
+            ui.painter()
+                .circle_stroke(rect.center(), help_size / 2.0 + 1.0, theme::focus_ring());
         }
     }
 

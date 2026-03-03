@@ -363,7 +363,10 @@ impl SettingsPage {
                         );
                     });
                 if !state.settings.architecture_url.is_empty() {
-                    ui.label(egui::RichText::new(icons::CHECK).color(theme::readable_color(theme::SUCCESS)));
+                    ui.label(
+                        egui::RichText::new(icons::CHECK)
+                            .color(theme::readable_color(theme::SUCCESS)),
+                    );
                 }
             });
             ui.add_space(theme::SPACE_XS);
@@ -539,9 +542,11 @@ impl SettingsPage {
         let confirm_id = ui.make_persistent_id("quit_confirm");
         // Modal state: (is_open, password_input, error_msg)
         let unlock_modal_id = ui.make_persistent_id("admin_unlock_modal");
-        let mut modal_state: (bool, String, Option<String>) = ui.memory(|mem| 
-            mem.data.get_temp(unlock_modal_id).unwrap_or((false, String::new(), None))
-        );
+        let mut modal_state: (bool, String, Option<String>) = ui.memory(|mem| {
+            mem.data
+                .get_temp(unlock_modal_id)
+                .unwrap_or((false, String::new(), None))
+        });
 
         if modal_state.0 {
             let ctx = ui.ctx().clone();
@@ -553,19 +558,30 @@ impl SettingsPage {
                     ui.set_min_width(320.0);
                     ui.vertical_centered(|ui| {
                         ui.add_space(theme::SPACE_MD);
-                        ui.label(egui::RichText::new(icons::LOCK).size(theme::ICON_XL).color(theme::accent_text()));
-                        ui.add_space(theme::SPACE_MD);
-                        ui.label(egui::RichText::new("Authentification Requise").font(theme::font_heading()).strong());
-                        ui.add_space(theme::SPACE_XS);
-                        ui.label("Saisissez le mot de passe administrateur pour accéder à cette zone.");
-                        ui.add_space(theme::SPACE_MD);
-                        
-                        let resp = ui.add(egui::TextEdit::singleline(&mut modal_state.1)
-                            .password(true)
-                            .hint_text("Mot de passe")
-                            .desired_width(200.0)
+                        ui.label(
+                            egui::RichText::new(icons::LOCK)
+                                .size(theme::ICON_XL)
+                                .color(theme::accent_text()),
                         );
-                        
+                        ui.add_space(theme::SPACE_MD);
+                        ui.label(
+                            egui::RichText::new("Authentification Requise")
+                                .font(theme::font_heading())
+                                .strong(),
+                        );
+                        ui.add_space(theme::SPACE_XS);
+                        ui.label(
+                            "Saisissez le mot de passe administrateur pour accéder à cette zone.",
+                        );
+                        ui.add_space(theme::SPACE_MD);
+
+                        let resp = ui.add(
+                            egui::TextEdit::singleline(&mut modal_state.1)
+                                .password(true)
+                                .hint_text("Mot de passe")
+                                .desired_width(200.0),
+                        );
+
                         // Autofocus on first appearance only
                         if !resp.has_focus() && !ui.input(|i| i.pointer.any_click()) {
                             resp.request_focus();
@@ -573,7 +589,10 @@ impl SettingsPage {
 
                         if resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                             // Validate password against SHA-256 hash (not plaintext)
-                            if verify_admin_password(&modal_state.1, &state.settings.admin_password_sha256) {
+                            if verify_admin_password(
+                                &modal_state.1,
+                                &state.settings.admin_password_sha256,
+                            ) {
                                 state.security.admin_unlocked = true;
                                 state.security.last_unlock = Some(chrono::Utc::now());
                                 modal_state.0 = false;
@@ -587,7 +606,11 @@ impl SettingsPage {
 
                         if let Some(err) = &modal_state.2 {
                             ui.add_space(theme::SPACE_XS);
-                            ui.label(egui::RichText::new(err).color(theme::readable_color(theme::ERROR)).font(theme::font_body()));
+                            ui.label(
+                                egui::RichText::new(err)
+                                    .color(theme::readable_color(theme::ERROR))
+                                    .font(theme::font_body()),
+                            );
                         }
 
                         ui.add_space(theme::SPACE_LG);
@@ -599,7 +622,10 @@ impl SettingsPage {
                             }
                             ui.add_space(theme::SPACE_SM);
                             if widgets::primary_button(ui, "DÉVERROUILLER", true).clicked() {
-                                if verify_admin_password(&modal_state.1, &state.settings.admin_password_sha256) {
+                                if verify_admin_password(
+                                    &modal_state.1,
+                                    &state.settings.admin_password_sha256,
+                                ) {
                                     state.security.admin_unlocked = true;
                                     state.security.last_unlock = Some(chrono::Utc::now());
                                     modal_state.0 = false;
@@ -613,7 +639,7 @@ impl SettingsPage {
                         });
                     });
                 });
-            
+
             // Save state back
             ui.memory_mut(|mem| mem.data.insert_temp(unlock_modal_id, modal_state));
         }
@@ -746,14 +772,11 @@ impl SettingsPage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new(format!(
-                        "{}  INTEGRATION SIEM",
-                        icons::SHARE_NODES
-                    ))
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
+                    egui::RichText::new(format!("{}  INTEGRATION SIEM", icons::SHARE_NODES))
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
                 );
 
                 ui.with_layout(

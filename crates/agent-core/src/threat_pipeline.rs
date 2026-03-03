@@ -9,9 +9,9 @@
 //! 3. Triggers matching playbooks automatically
 //! 4. Emits events to the GUI for visibility
 
+use crate::playbook_engine::{FimAlertInfo, NetworkAlertInfo, ProcessInfo, ThreatContext};
 #[cfg(feature = "gui")]
-use tracing::{info, warn, debug};
-use crate::playbook_engine::{ThreatContext, ProcessInfo, NetworkAlertInfo, FimAlertInfo};
+use tracing::{debug, info, warn};
 
 /// A detection rule match result.
 #[derive(Debug, Clone)]
@@ -43,39 +43,61 @@ pub fn evaluate_detection_rules(
 
         for condition in &rule.conditions {
             let matched = match condition.condition_type {
-                DetectionConditionType::ProcessNameContains => {
-                    context.suspicious_processes.iter().find(|p| {
-                        p.name.to_lowercase().contains(&condition.value.to_lowercase())
-                    }).map(|p| format!("Process: {} (PID {})", p.name, p.pid))
-                }
-                DetectionConditionType::CommandLineContains => {
-                    context.suspicious_processes.iter().find(|p| {
-                        p.command_line.to_lowercase().contains(&condition.value.to_lowercase())
-                    }).map(|p| format!("Command line match in process {} (PID {})", p.name, p.pid))
-                }
+                DetectionConditionType::ProcessNameContains => context
+                    .suspicious_processes
+                    .iter()
+                    .find(|p| {
+                        p.name
+                            .to_lowercase()
+                            .contains(&condition.value.to_lowercase())
+                    })
+                    .map(|p| format!("Process: {} (PID {})", p.name, p.pid)),
+                DetectionConditionType::CommandLineContains => context
+                    .suspicious_processes
+                    .iter()
+                    .find(|p| {
+                        p.command_line
+                            .to_lowercase()
+                            .contains(&condition.value.to_lowercase())
+                    })
+                    .map(|p| format!("Command line match in process {} (PID {})", p.name, p.pid)),
                 DetectionConditionType::NetworkPort => {
                     if let Ok(port) = condition.value.parse::<u16>() {
-                        context.network_alerts.iter().find(|a| {
-                            a.port == Some(port)
-                        }).map(|a| format!("Network alert on port {}: {}", port, a.description))
+                        context
+                            .network_alerts
+                            .iter()
+                            .find(|a| a.port == Some(port))
+                            .map(|a| format!("Network alert on port {}: {}", port, a.description))
                     } else {
                         // Fallback: text match on description
-                        context.network_alerts.iter().find(|a| {
-                            a.description.to_lowercase().contains(&condition.value.to_lowercase())
-                        }).map(|a| format!("Network alert: {}", a.description))
+                        context
+                            .network_alerts
+                            .iter()
+                            .find(|a| {
+                                a.description
+                                    .to_lowercase()
+                                    .contains(&condition.value.to_lowercase())
+                            })
+                            .map(|a| format!("Network alert: {}", a.description))
                     }
                 }
-                DetectionConditionType::FimPathMatch => {
-                    context.fim_alerts.iter().find(|f| {
-                        f.path.to_lowercase().contains(&condition.value.to_lowercase())
-                    }).map(|f| format!("FIM: {} ({})", f.path, f.change_type))
-                }
+                DetectionConditionType::FimPathMatch => context
+                    .fim_alerts
+                    .iter()
+                    .find(|f| {
+                        f.path
+                            .to_lowercase()
+                            .contains(&condition.value.to_lowercase())
+                    })
+                    .map(|f| format!("FIM: {} ({})", f.path, f.change_type)),
                 DetectionConditionType::SeverityLevel => {
                     // Match if any alert has severity >= threshold
                     let threshold = severity_to_level(&condition.value);
-                    context.network_alerts.iter().find(|a| {
-                        severity_to_level(&a.severity) >= threshold
-                    }).map(|a| format!("Severity {} >= {}", a.severity, condition.value))
+                    context
+                        .network_alerts
+                        .iter()
+                        .find(|a| severity_to_level(&a.severity) >= threshold)
+                        .map(|a| format!("Severity {} >= {}", a.severity, condition.value))
                 }
             };
 
@@ -144,7 +166,10 @@ pub async fn ai_classify_matches(
                 );
             }
             Err(e) => {
-                debug!("AI classification failed for rule '{}': {}", rule_match.rule_name, e);
+                debug!(
+                    "AI classification failed for rule '{}': {}",
+                    rule_match.rule_name, e
+                );
             }
         }
     }
@@ -169,8 +194,7 @@ pub async fn run_threat_pipeline(
     playbooks: &[agent_gui::dto::Playbook],
     context: &ThreatContext,
     gui_tx: &Option<std::sync::mpsc::Sender<agent_gui::events::AgentEvent>>,
-    #[cfg(feature = "llm")]
-    llm_service: Option<&crate::llm_service::LLMService>,
+    #[cfg(feature = "llm")] llm_service: Option<&crate::llm_service::LLMService>,
 ) -> PipelineResult {
     // Step 1: Evaluate detection rules
     #[allow(unused_mut)]
@@ -178,10 +202,16 @@ pub async fn run_threat_pipeline(
 
     if matches.is_empty() {
         debug!("Threat pipeline: no detection rule matches");
-        return PipelineResult { rule_matches: Vec::new(), playbook_logs: Vec::new() };
+        return PipelineResult {
+            rule_matches: Vec::new(),
+            playbook_logs: Vec::new(),
+        };
     }
 
-    info!("Threat pipeline: {} detection rule matches found", matches.len());
+    info!(
+        "Threat pipeline: {} detection rule matches found",
+        matches.len()
+    );
 
     // Step 2: AI classification (if available)
     #[cfg(feature = "llm")]
@@ -194,7 +224,8 @@ pub async fn run_threat_pipeline(
         if before != matches.len() {
             info!(
                 "AI filtered {} low-confidence matches ({} remaining)",
-                before - matches.len(), matches.len()
+                before - matches.len(),
+                matches.len()
             );
         }
     }
@@ -211,7 +242,8 @@ pub async fn run_threat_pipeline(
             context,
             #[cfg(feature = "llm")]
             llm_service,
-        ).await;
+        )
+        .await;
 
         if evaluation.triggered && evaluation.confidence >= 0.3 {
             info!(
@@ -220,7 +252,8 @@ pub async fn run_threat_pipeline(
             );
 
             // Execute the playbook actions
-            let results = crate::playbook_engine::execute_playbook_actions(&evaluation.actions).await;
+            let results =
+                crate::playbook_engine::execute_playbook_actions(&evaluation.actions).await;
 
             let success_count = results.iter().filter(|r| r.success).count();
             let total = results.len();
@@ -240,11 +273,14 @@ pub async fn run_threat_pipeline(
                 actions_executed: results.iter().map(|r| r.action.clone()).collect(),
                 success: success_count == total,
                 error: if success_count < total {
-                    Some(results.iter()
-                        .filter_map(|r| r.error.as_ref())
-                        .cloned()
-                        .collect::<Vec<_>>()
-                        .join("; "))
+                    Some(
+                        results
+                            .iter()
+                            .filter_map(|r| r.error.as_ref())
+                            .cloned()
+                            .collect::<Vec<_>>()
+                            .join("; "),
+                    )
                 } else {
                     None
                 },
@@ -274,7 +310,9 @@ pub async fn run_threat_pipeline(
                     "{}\nConfiance: {:.0}%{}",
                     rule_match.matched_value,
                     rule_match.confidence * 100.0,
-                    rule_match.ai_classification.as_ref()
+                    rule_match
+                        .ai_classification
+                        .as_ref()
                         .map(|c| format!("\nClassification IA: {}", c))
                         .unwrap_or_default()
                 ),
@@ -290,7 +328,10 @@ pub async fn run_threat_pipeline(
         }
     }
 
-    PipelineResult { rule_matches: matches, playbook_logs }
+    PipelineResult {
+        rule_matches: matches,
+        playbook_logs,
+    }
 }
 
 /// Convert stored detection rules from the database into GUI DTOs for pipeline evaluation.
@@ -298,35 +339,38 @@ pub async fn run_threat_pipeline(
 pub fn stored_rules_to_dto(
     stored: &[agent_storage::repositories::grc::StoredDetectionRule],
 ) -> Vec<agent_gui::dto::DetectionRule> {
-    stored.iter().filter_map(|s| {
-        let id = uuid::Uuid::parse_str(&s.id).ok()?;
-        let severity = match s.severity.to_lowercase().as_str() {
-            "critical" => agent_gui::dto::Severity::Critical,
-            "high" => agent_gui::dto::Severity::High,
-            "medium" => agent_gui::dto::Severity::Medium,
-            "low" => agent_gui::dto::Severity::Low,
-            "info" => agent_gui::dto::Severity::Info,
-            _ => agent_gui::dto::Severity::Medium,
-        };
-        let conditions: Vec<agent_gui::dto::DetectionCondition> =
-            serde_json::from_str(&s.conditions).unwrap_or_default();
-        let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
-            .map(|dt| dt.with_timezone(&chrono::Utc))
-            .unwrap_or_else(|_| chrono::Utc::now());
+    stored
+        .iter()
+        .filter_map(|s| {
+            let id = uuid::Uuid::parse_str(&s.id).ok()?;
+            let severity = match s.severity.to_lowercase().as_str() {
+                "critical" => agent_gui::dto::Severity::Critical,
+                "high" => agent_gui::dto::Severity::High,
+                "medium" => agent_gui::dto::Severity::Medium,
+                "low" => agent_gui::dto::Severity::Low,
+                "info" => agent_gui::dto::Severity::Info,
+                _ => agent_gui::dto::Severity::Medium,
+            };
+            let conditions: Vec<agent_gui::dto::DetectionCondition> =
+                serde_json::from_str(&s.conditions).unwrap_or_default();
+            let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(|_| chrono::Utc::now());
 
-        Some(agent_gui::dto::DetectionRule {
-            id,
-            name: s.name.clone(),
-            description: s.description.clone(),
-            severity,
-            conditions,
-            actions: Vec::new(), // Actions are resolved at playbook level
-            enabled: s.enabled,
-            created_at,
-            last_match: None,
-            match_count: 0,
+            Some(agent_gui::dto::DetectionRule {
+                id,
+                name: s.name.clone(),
+                description: s.description.clone(),
+                severity,
+                conditions,
+                actions: Vec::new(), // Actions are resolved at playbook level
+                enabled: s.enabled,
+                created_at,
+                last_match: None,
+                match_count: 0,
+            })
         })
-    }).collect()
+        .collect()
 }
 
 /// Convert stored playbooks from the database into GUI DTOs for pipeline evaluation.
@@ -334,27 +378,30 @@ pub fn stored_rules_to_dto(
 pub fn stored_playbooks_to_dto(
     stored: &[agent_storage::repositories::grc::StoredPlaybook],
 ) -> Vec<agent_gui::dto::Playbook> {
-    stored.iter().filter_map(|s| {
-        let id = uuid::Uuid::parse_str(&s.id).ok()?;
-        let actions: Vec<agent_gui::dto::PlaybookAction> =
-            serde_json::from_str(&s.steps).unwrap_or_default();
-        let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
-            .map(|dt| dt.with_timezone(&chrono::Utc))
-            .unwrap_or_else(|_| chrono::Utc::now());
+    stored
+        .iter()
+        .filter_map(|s| {
+            let id = uuid::Uuid::parse_str(&s.id).ok()?;
+            let actions: Vec<agent_gui::dto::PlaybookAction> =
+                serde_json::from_str(&s.steps).unwrap_or_default();
+            let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(|_| chrono::Utc::now());
 
-        Some(agent_gui::dto::Playbook {
-            id,
-            name: s.title.clone(),
-            description: s.description.clone(),
-            enabled: s.status == "active",
-            conditions: Vec::new(), // Conditions stored separately
-            actions,
-            created_at,
-            last_triggered: None,
-            trigger_count: 0,
-            is_template: false,
+            Some(agent_gui::dto::Playbook {
+                id,
+                name: s.title.clone(),
+                description: s.description.clone(),
+                enabled: s.status == "active",
+                conditions: Vec::new(), // Conditions stored separately
+                actions,
+                created_at,
+                last_triggered: None,
+                trigger_count: 0,
+                is_template: false,
+            })
         })
-    }).collect()
+        .collect()
 }
 
 /// Build a `ThreatContext` from security scan incidents, network alerts, and FIM alerts.
@@ -366,54 +413,71 @@ pub fn build_threat_context(
     network_alerts: &[agent_network::NetworkSecurityAlert],
     fim_alerts: &[(String, String)], // (path, change_type)
 ) -> ThreatContext {
-    let suspicious_processes = incidents.iter().filter_map(|incident| {
-        if incident.incident_type == agent_scanner::IncidentType::SuspiciousProcess
-            || incident.incident_type == agent_scanner::IncidentType::CryptoMiner
-            || incident.incident_type == agent_scanner::IncidentType::ReverseShell
-        {
-            let name = incident.evidence.get("process_name")
-                .and_then(|v| v.as_str())
-                .unwrap_or("unknown")
-                .to_string();
-            let pid = incident.evidence.get("pid")
-                .and_then(|v| v.as_u64())
-                .unwrap_or(0) as u32;
-            let command_line = incident.evidence.get("path")
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string();
-            Some(ProcessInfo { name, pid, command_line })
-        } else {
-            None
-        }
-    }).collect();
+    let suspicious_processes = incidents
+        .iter()
+        .filter_map(|incident| {
+            if incident.incident_type == agent_scanner::IncidentType::SuspiciousProcess
+                || incident.incident_type == agent_scanner::IncidentType::CryptoMiner
+                || incident.incident_type == agent_scanner::IncidentType::ReverseShell
+            {
+                let name = incident
+                    .evidence
+                    .get("process_name")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown")
+                    .to_string();
+                let pid = incident
+                    .evidence
+                    .get("pid")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0) as u32;
+                let command_line = incident
+                    .evidence
+                    .get("path")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                Some(ProcessInfo {
+                    name,
+                    pid,
+                    command_line,
+                })
+            } else {
+                None
+            }
+        })
+        .collect();
 
-    let net_alerts = network_alerts.iter().map(|alert| {
-        let severity_str = match alert.severity {
-            agent_network::types::AlertSeverity::Critical => "critical",
-            agent_network::types::AlertSeverity::High => "high",
-            agent_network::types::AlertSeverity::Medium => "medium",
-            agent_network::types::AlertSeverity::Low => "low",
-        };
-        let (remote_ip, port) = if let Some(conn) = &alert.connection {
-            (conn.remote_address.clone(), conn.remote_port)
-        } else {
-            (None, None)
-        };
-        NetworkAlertInfo {
-            remote_ip,
-            port,
-            severity: severity_str.to_string(),
-            description: alert.description.clone(),
-        }
-    }).collect();
+    let net_alerts = network_alerts
+        .iter()
+        .map(|alert| {
+            let severity_str = match alert.severity {
+                agent_network::types::AlertSeverity::Critical => "critical",
+                agent_network::types::AlertSeverity::High => "high",
+                agent_network::types::AlertSeverity::Medium => "medium",
+                agent_network::types::AlertSeverity::Low => "low",
+            };
+            let (remote_ip, port) = if let Some(conn) = &alert.connection {
+                (conn.remote_address.clone(), conn.remote_port)
+            } else {
+                (None, None)
+            };
+            NetworkAlertInfo {
+                remote_ip,
+                port,
+                severity: severity_str.to_string(),
+                description: alert.description.clone(),
+            }
+        })
+        .collect();
 
-    let fim = fim_alerts.iter().map(|(path, change_type)| {
-        FimAlertInfo {
+    let fim = fim_alerts
+        .iter()
+        .map(|(path, change_type)| FimAlertInfo {
             path: path.clone(),
             change_type: change_type.clone(),
-        }
-    }).collect();
+        })
+        .collect();
 
     ThreatContext {
         suspicious_processes,

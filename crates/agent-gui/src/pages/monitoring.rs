@@ -129,7 +129,12 @@ impl MonitoringPage {
         ui.add_space(theme::SPACE_LG);
 
         let disk_data: Vec<[f64; 2]> = state.monitoring.disk_io_history.iter().copied().collect();
-        let net_data: Vec<[f64; 2]> = state.monitoring.network_io_history.iter().copied().collect();
+        let net_data: Vec<[f64; 2]> = state
+            .monitoring
+            .network_io_history
+            .iter()
+            .copied()
+            .collect();
 
         let io_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
         let io_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![
@@ -227,7 +232,11 @@ impl MonitoringPage {
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
-                            let icon_alpha = if response.hovered() { theme::OPACITY_MEDIUM } else { theme::OPACITY_DISABLED };
+                            let icon_alpha = if response.hovered() {
+                                theme::OPACITY_MEDIUM
+                            } else {
+                                theme::OPACITY_DISABLED
+                            };
                             ui.label(
                                 egui::RichText::new(icon)
                                     .size(theme::ICON_XL)
@@ -244,16 +253,21 @@ impl MonitoringPage {
 
                     // Main line
                     ui.painter().hline(
-                        rect.left() + theme::CARD_GLOW_INSET..=rect.right() - theme::CARD_GLOW_INSET,
+                        rect.left() + theme::CARD_GLOW_INSET
+                            ..=rect.right() - theme::CARD_GLOW_INSET,
                         line_y,
                         egui::Stroke::new(theme::CARD_GLOW_STROKE, color),
                     );
 
                     // Outer glow
                     ui.painter().hline(
-                        rect.left() + theme::CARD_GLOW_OUTER_INSET..=rect.right() - theme::CARD_GLOW_OUTER_INSET,
+                        rect.left() + theme::CARD_GLOW_OUTER_INSET
+                            ..=rect.right() - theme::CARD_GLOW_OUTER_INSET,
                         line_y,
-                        egui::Stroke::new(theme::CARD_GLOW_OUTER_STROKE, color.linear_multiply(theme::OPACITY_TINT)),
+                        egui::Stroke::new(
+                            theme::CARD_GLOW_OUTER_STROKE,
+                            color.linear_multiply(theme::OPACITY_TINT),
+                        ),
                     );
 
                     ui.ctx().request_repaint();
@@ -298,11 +312,11 @@ impl MonitoringPage {
                                 let time = ui.input(|i| i.time);
                                 let pulse = ((time * 1.5).sin() * 0.5 + 0.5) as f32;
 
-                                ui.label(
-                                    egui::RichText::new("●")
-                                        .size(theme::ICON_MICRO)
-                                        .color(theme::readable_color(theme::SUCCESS).linear_multiply(PULSE_OPACITY_BASE + pulse * PULSE_OPACITY_RANGE)),
-                                );
+                                ui.label(egui::RichText::new("●").size(theme::ICON_MICRO).color(
+                                    theme::readable_color(theme::SUCCESS).linear_multiply(
+                                        PULSE_OPACITY_BASE + pulse * PULSE_OPACITY_RANGE,
+                                    ),
+                                ));
                             }
                         }
                     },
@@ -391,21 +405,18 @@ impl MonitoringPage {
         // Chart - clean rendering with egui_plot
         let chart_height = height - 70.0;
 
-        let mut plot = Plot::new(egui::Id::new(format!(
-            "chart_{}",
-            title
-        )))
-        .height(chart_height)
-        .include_y(0.0)
-        .allow_drag(false)
-        .allow_zoom(false)
-        .allow_scroll(false)
-        .allow_boxed_zoom(false)
-        .allow_double_click_reset(false)
-        .show_axes(egui::Vec2b::new(false, false))
-        .show_grid(egui::Vec2b::new(false, true))
-        .auto_bounds(egui::Vec2b::new(true, true))
-        .show_background(false);
+        let mut plot = Plot::new(egui::Id::new(format!("chart_{}", title)))
+            .height(chart_height)
+            .include_y(0.0)
+            .allow_drag(false)
+            .allow_zoom(false)
+            .allow_scroll(false)
+            .allow_boxed_zoom(false)
+            .allow_double_click_reset(false)
+            .show_axes(egui::Vec2b::new(false, false))
+            .show_grid(egui::Vec2b::new(false, true))
+            .auto_bounds(egui::Vec2b::new(true, true))
+            .show_background(false);
 
         if !auto_y {
             plot = plot.include_y(100.0);
@@ -443,7 +454,10 @@ impl MonitoringPage {
                 // Outer glow
                 plot_ui.points(
                     egui_plot::Points::new(PlotPoints::new(vec![latest]))
-                        .color(line_color.linear_multiply(GLOW_OPACITY_BASE + pulse * GLOW_OPACITY_RANGE))
+                        .color(
+                            line_color
+                                .linear_multiply(GLOW_OPACITY_BASE + pulse * GLOW_OPACITY_RANGE),
+                        )
                         .radius(6.0),
                 );
 
@@ -457,32 +471,60 @@ impl MonitoringPage {
         });
 
         // Charts update every second; no need for max-FPS repainting
-        ui.ctx().request_repaint_after(std::time::Duration::from_millis(1000));
+        ui.ctx()
+            .request_repaint_after(std::time::Duration::from_millis(1000));
     }
 
     fn export_metrics_csv(state: &AppState) {
-        let headers = &["timestamp", "cpu_percent", "memory_percent", "disk_io_kbps", "network_io_kbps"];
+        let headers = &[
+            "timestamp",
+            "cpu_percent",
+            "memory_percent",
+            "disk_io_kbps",
+            "network_io_kbps",
+        ];
         let now = chrono::Utc::now();
         // Calculate boot time reference: now - uptime
         let boot_time = now - chrono::Duration::seconds(state.resources.uptime_secs as i64);
 
         // We use cpu_history as the baseline (assuming synchronization via state.rs fix)
-        let rows: Vec<Vec<String>> = state.monitoring.cpu_history.iter().enumerate().map(|(i, [t, cpu])| {
-            let timestamp = boot_time + chrono::Duration::milliseconds((t * 1000.0) as i64);
-            
-            // Safe alignment using index, falling back to 0.0 if desync occurs (defensive)
-            let mem = state.monitoring.memory_history.get(i).map(|v| v[1]).unwrap_or(0.0);
-            let disk = state.monitoring.disk_io_history.get(i).map(|v| v[1]).unwrap_or(0.0);
-            let net = state.monitoring.network_io_history.get(i).map(|v| v[1]).unwrap_or(0.0);
+        let rows: Vec<Vec<String>> = state
+            .monitoring
+            .cpu_history
+            .iter()
+            .enumerate()
+            .map(|(i, [t, cpu])| {
+                let timestamp = boot_time + chrono::Duration::milliseconds((t * 1000.0) as i64);
 
-            vec![
-                timestamp.to_rfc3339(),
-                format!("{:.2}", cpu),
-                format!("{:.2}", mem),
-                format!("{:.2}", disk),
-                format!("{:.2}", net),
-            ]
-        }).collect();
+                // Safe alignment using index, falling back to 0.0 if desync occurs (defensive)
+                let mem = state
+                    .monitoring
+                    .memory_history
+                    .get(i)
+                    .map(|v| v[1])
+                    .unwrap_or(0.0);
+                let disk = state
+                    .monitoring
+                    .disk_io_history
+                    .get(i)
+                    .map(|v| v[1])
+                    .unwrap_or(0.0);
+                let net = state
+                    .monitoring
+                    .network_io_history
+                    .get(i)
+                    .map(|v| v[1])
+                    .unwrap_or(0.0);
+
+                vec![
+                    timestamp.to_rfc3339(),
+                    format!("{:.2}", cpu),
+                    format!("{:.2}", mem),
+                    format!("{:.2}", disk),
+                    format!("{:.2}", net),
+                ]
+            })
+            .collect();
 
         let path = crate::export::default_export_path("surveillance_ressources.csv");
         if let Err(e) = crate::export::export_csv(headers, &rows, &path) {

@@ -169,7 +169,10 @@ fn default_db_path() -> String {
     #[cfg(windows)]
     {
         // AC4: Windows database at C:\ProgramData\Sentinel\data\agent.db
-        base.join("data").join("agent.db").to_string_lossy().to_string()
+        base.join("data")
+            .join("agent.db")
+            .to_string_lossy()
+            .to_string()
     }
     #[cfg(not(windows))]
     {
@@ -364,7 +367,7 @@ impl AgentConfig {
                 .map(PathBuf::from)
                 .unwrap_or_else(|_| PathBuf::from(r"C:\ProgramData"))
                 .join("Sentinel");
-                
+
             if program_data.exists() {
                 program_data
             } else {
@@ -417,7 +420,7 @@ impl AgentConfig {
         if let Some(host) = url.host_str() {
             if host.ends_with("cloudfunctions.net") && url.path() == "/" {
                 return Err(crate::error::CommonError::validation(
-                    "server_url targeting cloudfunctions.net must include the function name suffix (e.g., /agentApi)"
+                    "server_url targeting cloudfunctions.net must include the function name suffix (e.g., /agentApi)",
                 ));
             }
         }

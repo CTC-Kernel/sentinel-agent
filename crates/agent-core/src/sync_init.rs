@@ -47,7 +47,9 @@ impl AgentRuntime {
         let orchestrator = agent_sync::SyncOrchestrator::new(db.clone());
         *self.sync_orchestrator.write().await = Some(orchestrator);
 
-        info!("Initialized sync services (config, rules, results, audit, commands, grc-orchestrator)");
+        info!(
+            "Initialized sync services (config, rules, results, audit, commands, grc-orchestrator)"
+        );
 
         // Download central detection rules from the platform
         self.sync_central_detection_rules().await;
@@ -160,17 +162,24 @@ impl AgentRuntime {
 
                         // Apply USB policy changes
                         if let Ok(Some(usb_policy)) = config_sync
-                            .get_config::<agent_common::types::UsbPolicy>(agent_sync::config_keys::USB_POLICY)
+                            .get_config::<agent_common::types::UsbPolicy>(
+                                agent_sync::config_keys::USB_POLICY,
+                            )
                             .await
                             && let Ok(mut usb) = self.usb_monitor.lock()
                         {
-                            info!("USB policy updated: {} allowlisted devices", usb_policy.allowlist.len());
+                            info!(
+                                "USB policy updated: {} allowlisted devices",
+                                usb_policy.allowlist.len()
+                            );
                             usb.update_policy(usb_policy);
                         }
 
                         // Apply SIEM config changes
                         if let Ok(Some(siem_config)) = config_sync
-                            .get_config::<agent_siem::SiemConfig>(agent_sync::config_keys::SIEM_CONFIG)
+                            .get_config::<agent_siem::SiemConfig>(
+                                agent_sync::config_keys::SIEM_CONFIG,
+                            )
                             .await
                         {
                             let mut siem_forwarder_guard = self.siem_forwarder.write().await;
@@ -182,7 +191,6 @@ impl AgentRuntime {
                                 }
                             }
                         }
-
                     } else {
                         debug!("Config sync: no changes");
                     }

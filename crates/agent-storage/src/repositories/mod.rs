@@ -10,24 +10,20 @@ pub mod check_results;
 pub mod check_rules;
 pub mod config;
 pub mod discovered_devices;
+pub mod grc;
 pub mod proofs;
 pub mod sync_queue;
-pub mod grc;
 
 pub use audit_trail::{AuditTrailRepository, StoredAuditEntry};
 pub use check_results::CheckResultsRepository;
 pub use check_rules::CheckRulesRepository;
 pub use config::ConfigRepository;
 pub use discovered_devices::{DiscoveredDevicesRepository, StoredDevice};
+pub use grc::{
+    AlertRuleRepository, DetectionRuleRepository, KpiSnapshotRepository, ManagedAssetRepository,
+    PlaybookRepository, RiskRepository, SoftwareInventoryRepository, StoredAlertRule,
+    StoredDetectionRule, StoredKpiSnapshot, StoredManagedAsset, StoredPlaybook, StoredRisk,
+    StoredSoftwareInventory, StoredWebhook, WebhookRepository,
+};
 pub use proofs::ProofsRepository;
 pub use sync_queue::SyncQueueRepository;
-pub use grc::{
-    RiskRepository, StoredRisk,
-    PlaybookRepository, StoredPlaybook,
-    ManagedAssetRepository, StoredManagedAsset,
-    KpiSnapshotRepository, StoredKpiSnapshot,
-    AlertRuleRepository, StoredAlertRule,
-    WebhookRepository, StoredWebhook,
-    DetectionRuleRepository, StoredDetectionRule,
-    SoftwareInventoryRepository, StoredSoftwareInventory,
-};

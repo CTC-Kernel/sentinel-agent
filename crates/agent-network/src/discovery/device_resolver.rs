@@ -7,8 +7,8 @@
 //! and classifies devices by type based on vendor, ports, and IP heuristics.
 
 use crate::types::DeviceType;
-use std::collections::HashMap;
 use agent_common::process::silent_async_command;
+use std::collections::HashMap;
 use tracing::{debug, trace};
 
 /// Resolves hostnames and classifies discovered devices.

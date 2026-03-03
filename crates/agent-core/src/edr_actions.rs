@@ -56,7 +56,10 @@ pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonErro
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(CommonError::internal(format!("taskkill failed: {}", stderr)));
+            return Err(CommonError::internal(format!(
+                "taskkill failed: {}",
+                stderr
+            )));
         }
     }
 
@@ -135,10 +138,9 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
     let metadata_str = tokio::fs::read_to_string(&metadata_path)
         .await
         .map_err(|e| CommonError::internal(format!("Failed to read quarantine metadata: {}", e)))?;
-    let metadata: serde_json::Value = serde_json::from_str(&metadata_str)
-        .map_err(|e| {
-            CommonError::internal(format!("Failed to parse quarantine metadata: {}", e))
-        })?;
+    let metadata: serde_json::Value = serde_json::from_str(&metadata_str).map_err(|e| {
+        CommonError::internal(format!("Failed to parse quarantine metadata: {}", e))
+    })?;
 
     let original_path = metadata
         .get("original_path")
@@ -169,20 +171,14 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
 
     // Validate IP format
     if ip.parse::<std::net::IpAddr>().is_err() {
-        return Err(CommonError::internal(format!(
-            "Invalid IP address: {}",
-            ip
-        )));
+        return Err(CommonError::internal(format!("Invalid IP address: {}", ip)));
     }
 
     #[cfg(target_os = "macos")]
     {
         // Use pf (packet filter) on macOS
         let rule = format!("block drop from {} to any\n", ip);
-        let anchor_file = format!(
-            "/tmp/sentinel_block_{}.conf",
-            ip.replace(['.', ':'], "_")
-        );
+        let anchor_file = format!("/tmp/sentinel_block_{}.conf", ip.replace(['.', ':'], "_"));
         tokio::fs::write(&anchor_file, &rule)
             .await
             .map_err(|e| CommonError::internal(format!("Failed to write pf rule: {}", e)))?;
@@ -220,10 +216,7 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
 
     #[cfg(target_os = "windows")]
     {
-        let rule_name = format!(
-            "SentinelBlock_{}",
-            ip.replace('.', "_").replace(':', "_")
-        );
+        let rule_name = format!("SentinelBlock_{}", ip.replace('.', "_").replace(':', "_"));
         let output = agent_common::process::silent_async_command("netsh")
             .args([
                 "advfirewall",
@@ -266,10 +259,7 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
 
     #[cfg(target_os = "macos")]
     {
-        let anchor_file = format!(
-            "/tmp/sentinel_block_{}.conf",
-            ip.replace(['.', ':'], "_")
-        );
+        let anchor_file = format!("/tmp/sentinel_block_{}.conf", ip.replace(['.', ':'], "_"));
         let _ = tokio::fs::remove_file(&anchor_file).await;
         let _ = agent_common::process::silent_async_command("pfctl")
             .args(["-a", "sentinel", "-F", "all"])
@@ -296,10 +286,7 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
 
     #[cfg(target_os = "windows")]
     {
-        let rule_name = format!(
-            "SentinelBlock_{}",
-            ip.replace('.', "_").replace(':', "_")
-        );
+        let rule_name = format!("SentinelBlock_{}", ip.replace('.', "_").replace(':', "_"));
         let _ = agent_common::process::silent_async_command("netsh")
             .args([
                 "advfirewall",

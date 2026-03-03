@@ -12,10 +12,10 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for USB mass storage disabled.
@@ -253,9 +253,9 @@ impl UsbStorageCheck {
                 .issues
                 .push("USB mass storage module is loaded and not blacklisted".to_string());
         } else {
-            status
-                .issues
-                .push("USB mass storage module is not blacklisted (may load on demand)".to_string());
+            status.issues.push(
+                "USB mass storage module is not blacklisted (may load on demand)".to_string(),
+            );
         }
 
         Ok(status)

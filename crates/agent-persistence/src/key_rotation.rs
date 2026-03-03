@@ -100,7 +100,7 @@ impl<'a> KeyRotationManager<'a> {
                 e
             ))
         })?;
-        
+
         let backup_metadata = tokio::runtime::Runtime::new()
             .map_err(|e| PersistenceError::KeyRotation(format!("Failed to create runtime: {}", e)))?
             .block_on(async {
@@ -114,8 +114,11 @@ impl<'a> KeyRotationManager<'a> {
                     e
                 ))
             })?;
-        
-        info!("Pre-rotation backup created successfully: {}", backup_metadata.id);
+
+        info!(
+            "Pre-rotation backup created successfully: {}",
+            backup_metadata.id
+        );
 
         // Step 2: Open database with old key
         let config = DatabaseConfig {
@@ -131,22 +134,34 @@ impl<'a> KeyRotationManager<'a> {
         })?;
 
         // Step 3: Rekey the database
-        let new_key = zeroize::Zeroizing::new(
-            new_key_manager
-                .get_database_key()
-                .map_err(|e| PersistenceError::KeyRotation(format!("Failed to get new key: {}", e)))?,
-        );
+        let new_key =
+            zeroize::Zeroizing::new(new_key_manager.get_database_key().map_err(|e| {
+                PersistenceError::KeyRotation(format!("Failed to get new key: {}", e))
+            })?);
 
         let new_key_hex = zeroize::Zeroizing::new(
-            new_key.iter().map(|b| format!("{:02x}", b)).collect::<String>(),
+            new_key
+                .iter()
+                .map(|b| format!("{:02x}", b))
+                .collect::<String>(),
         );
 
         let rekey_result = tokio::runtime::Runtime::new()
             .map_err(|e| PersistenceError::KeyRotation(format!("Failed to create runtime: {}", e)))?
             .block_on(async {
                 db.with_connection(|conn| {
+                    // Checkpoint WAL before rekeying to ensure all transactions are in the main DB
+                    if let Err(e) = conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);") {
+                        tracing::warn!("Pre-rekey checkpoint failed (ignoring): {}", e);
+                    }
+
                     conn.execute_batch(&format!("PRAGMA rekey = \"x'{}'\"", *new_key_hex))
                         .map_err(|e| StorageError::Encryption(format!("Rekey failed: {}", e)))?;
+
+                    // Checkpoint WAL after rekeying to clear any old key pages
+                    if let Err(e) = conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);") {
+                        tracing::warn!("Post-rekey checkpoint failed (ignoring): {}", e);
+                    }
                     Ok(())
                 })
                 .await
@@ -171,7 +186,8 @@ impl<'a> KeyRotationManager<'a> {
                         Ok(KeyRotationResult {
                             success: true,
                             rotated_at: Utc::now(),
-                            detail: "Key rotation completed successfully with verified backup".to_string(),
+                            detail: "Key rotation completed successfully with verified backup"
+                                .to_string(),
                         })
                     }
                     Err(e) => {
@@ -187,7 +203,10 @@ impl<'a> KeyRotationManager<'a> {
                 }
             }
             Err(e) => {
-                error!("CRITICAL: Key rotation failed: {}. Database backup available: {}", e, backup_metadata.id);
+                error!(
+                    "CRITICAL: Key rotation failed: {}. Database backup available: {}",
+                    e, backup_metadata.id
+                );
                 Err(PersistenceError::KeyRotation(format!(
                     "Rekey operation failed: {}. Database backup available: {}",
                     e, backup_metadata.id
@@ -310,9 +329,41 @@ mod tests {
 
     #[test]
     fn test_rotate_key_old_key_fails() {
-        // This test is disabled because the key rotation implementation
-        // doesn't actually invalidate the old key in the current version
-        // TODO: Fix key rotation to properly invalidate old keys
-        println!("Skipping test_rotate_key_old_key_fails - feature not implemented");
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test_rotation.db");
+
+        // 1. Create database with old key
+        let old_key_manager = KeyManager::new_with_test_key();
+        let config = DatabaseConfig::with_path(&db_path);
+        let db = Database::open(config.clone(), &old_key_manager).expect("Opening newly created DB should succeed");
+
+        // Write some data to format pages
+        tokio::runtime::Runtime::new().unwrap().block_on(async {
+            db.with_connection(|conn| {
+                conn.execute_batch("CREATE TABLE IF NOT EXISTS rotation_test (id INTEGER PRIMARY KEY)").unwrap();
+                Ok(())
+            }).await
+        }).unwrap();
+        drop(db);
+
+        // 2. Rotate to new key
+        let new_key_manager = KeyManager::new_with_key(b"new_key_that_is_32_bytes_long!!!");
+        let manager = KeyRotationManager::new(&db_path);
+        
+        // This will temporarily open the DB with the old key, rekey it, and verify with the new key.
+        let result = manager
+            .rotate_key(&old_key_manager, &new_key_manager)
+            .expect("Rotation should succeed");
+        assert!(result.success);
+
+        // 3. Try opening with OLD key - MUST FAIL
+        let result = Database::open(config, &old_key_manager);
+        assert!(result.is_err(), "Database should fail to open with old key after rotation");
+        
+        let err_str = result.unwrap_err().to_string();
+        assert!(
+            err_str.contains("encryption") || err_str.contains("not a database") || err_str.contains("auth"),
+            "Expected failure due to encryption, got: {}", err_str
+        );
     }
 }

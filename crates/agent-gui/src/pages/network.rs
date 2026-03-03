@@ -173,11 +173,7 @@ impl NetworkPage {
                         ("AUTRES", other_state, theme::text_tertiary()),
                     ];
                     for (label, count, color) in states {
-                        widgets::status_badge(
-                            ui,
-                            &format!("{}: {}", label, count),
-                            *color,
-                        );
+                        widgets::status_badge(ui, &format!("{}: {}", label, count), *color);
                         ui.add_space(theme::SPACE_SM);
                     }
                 });
@@ -206,17 +202,9 @@ impl NetworkPage {
                 let proto_total = tcp_count.saturating_add(udp_count).max(1);
 
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    widgets::status_badge(
-                        ui,
-                        &format!("TCP: {}", tcp_count),
-                        theme::ACCENT,
-                    );
+                    widgets::status_badge(ui, &format!("TCP: {}", tcp_count), theme::ACCENT);
                     ui.add_space(theme::SPACE_SM);
-                    widgets::status_badge(
-                        ui,
-                        &format!("UDP: {}", udp_count),
-                        theme::accent_text(),
-                    );
+                    widgets::status_badge(ui, &format!("UDP: {}", udp_count), theme::accent_text());
                 });
                 ui.add_space(theme::SPACE_XS);
 
@@ -224,31 +212,23 @@ impl NetworkPage {
                 // Mini stacked bar for TCP/UDP ratio
                 let bar_height = theme::PROGRESS_BAR_HEIGHT;
                 let bar_width = ui.available_width();
-                let (rect, _) = ui.allocate_exact_size(
-                    egui::vec2(bar_width, bar_height),
-                    egui::Sense::hover(),
-                );
+                let (rect, _) =
+                    ui.allocate_exact_size(egui::vec2(bar_width, bar_height), egui::Sense::hover());
                 if ui.is_rect_visible(rect) {
                     let painter = ui.painter_at(rect);
-                    let rounding =
-                        egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+                    let rounding = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
                     painter.rect_filled(rect, rounding, theme::bg_tertiary());
 
                     if tcp_count > 0 {
                         let tcp_w = tcp_ratio * bar_width;
-                        let tcp_rect = egui::Rect::from_min_size(
-                            rect.min,
-                            egui::vec2(tcp_w, bar_height),
-                        );
+                        let tcp_rect =
+                            egui::Rect::from_min_size(rect.min, egui::vec2(tcp_w, bar_height));
                         painter.rect_filled(tcp_rect, rounding, theme::ACCENT);
                     }
                     if udp_count > 0 {
                         let udp_w = (1.0 - tcp_ratio) * bar_width;
                         let udp_rect = egui::Rect::from_min_size(
-                            egui::pos2(
-                                rect.min.x + tcp_ratio * bar_width,
-                                rect.min.y,
-                            ),
+                            egui::pos2(rect.min.x + tcp_ratio * bar_width, rect.min.y),
                             egui::vec2(udp_w, bar_height),
                         );
                         painter.rect_filled(udp_rect, rounding, theme::accent_text());
@@ -268,14 +248,11 @@ impl NetworkPage {
                     ui.add_space(theme::SPACE_SM);
 
                     // Count alert types
-                    let mut alert_type_counts: Vec<(String, usize, egui::Color32)> =
-                        Vec::new();
+                    let mut alert_type_counts: Vec<(String, usize, egui::Color32)> = Vec::new();
                     for alert in state.network.alerts.iter() {
-                        let (label, color) =
-                            Self::alert_type_label_color(&alert.alert_type);
-                        if let Some(existing) = alert_type_counts
-                            .iter_mut()
-                            .find(|(l, _, _)| *l == label)
+                        let (label, color) = Self::alert_type_label_color(&alert.alert_type);
+                        if let Some(existing) =
+                            alert_type_counts.iter_mut().find(|(l, _, _)| *l == label)
                         {
                             existing.1 += 1;
                         } else {
@@ -285,11 +262,7 @@ impl NetworkPage {
 
                     ui.horizontal_wrapped(|ui: &mut egui::Ui| {
                         for (label, count, color) in &alert_type_counts {
-                            widgets::status_badge(
-                                ui,
-                                &format!("{}: {}", label, count),
-                                *color,
-                            );
+                            widgets::status_badge(ui, &format!("{}: {}", label, count), *color);
                             ui.add_space(theme::SPACE_SM);
                         }
                     });
@@ -331,39 +304,59 @@ impl NetworkPage {
                         "CLOSE_WAIT" | "TIME_WAIT" => ("CLOSED", theme::WARNING),
                         _ => (conn.state.as_str(), theme::WARNING),
                     };
-                    let title = format!(
-                        "{}:{}",
-                        conn.local_address, conn.local_port
-                    );
+                    let title = format!("{}:{}", conn.local_address, conn.local_port);
                     let actions = [
                         widgets::DetailAction::secondary("Copier", icons::COPY),
                         widgets::DetailAction::danger("Bloquer", icons::LOCK),
                     ];
-                    let drawer_action = widgets::DetailDrawer::new("net_conn_detail", &title, icons::NETWORK)
-                        .accent(theme::ACCENT)
-                        .subtitle("Connexion r\u{00e9}seau")
-                        .show(&ctx, &mut state.network.detail_open, |ui| {
-                            widgets::detail_section(ui, "CONNEXION R\u{00c9}SEAU");
-                            widgets::detail_field_badge(ui, "Protocole", &conn.protocol, theme::INFO);
-                            widgets::detail_mono(ui, "Adresse locale", &conn.local_address);
-                            widgets::detail_field(ui, "Port local", &conn.local_port.to_string());
-                            widgets::detail_mono(
-                                ui,
-                                "Adresse distante",
-                                conn.remote_address.as_deref().unwrap_or("--"),
+                    let drawer_action =
+                        widgets::DetailDrawer::new("net_conn_detail", &title, icons::NETWORK)
+                            .accent(theme::ACCENT)
+                            .subtitle("Connexion r\u{00e9}seau")
+                            .show(
+                                &ctx,
+                                &mut state.network.detail_open,
+                                |ui| {
+                                    widgets::detail_section(ui, "CONNEXION R\u{00c9}SEAU");
+                                    widgets::detail_field_badge(
+                                        ui,
+                                        "Protocole",
+                                        &conn.protocol,
+                                        theme::INFO,
+                                    );
+                                    widgets::detail_mono(ui, "Adresse locale", &conn.local_address);
+                                    widgets::detail_field(
+                                        ui,
+                                        "Port local",
+                                        &conn.local_port.to_string(),
+                                    );
+                                    widgets::detail_mono(
+                                        ui,
+                                        "Adresse distante",
+                                        conn.remote_address.as_deref().unwrap_or("--"),
+                                    );
+                                    widgets::detail_field(
+                                        ui,
+                                        "Port distant",
+                                        &conn
+                                            .remote_port
+                                            .map(|p| p.to_string())
+                                            .unwrap_or_else(|| "--".to_string()),
+                                    );
+                                    widgets::detail_field_badge(
+                                        ui,
+                                        "\u{00c9}tat",
+                                        state_label,
+                                        state_color,
+                                    );
+                                    widgets::detail_field(
+                                        ui,
+                                        "Processus",
+                                        conn.process_name.as_deref().unwrap_or("--"),
+                                    );
+                                },
+                                &actions,
                             );
-                            widgets::detail_field(
-                                ui,
-                                "Port distant",
-                                &conn.remote_port.map(|p| p.to_string()).unwrap_or_else(|| "--".to_string()),
-                            );
-                            widgets::detail_field_badge(ui, "\u{00c9}tat", state_label, state_color);
-                            widgets::detail_field(
-                                ui,
-                                "Processus",
-                                conn.process_name.as_deref().unwrap_or("--"),
-                            );
-                        }, &actions);
                     if let Some(action_idx) = drawer_action {
                         let time = ctx.input(|i| i.time);
                         if action_idx == 0 {
@@ -413,64 +406,101 @@ impl NetworkPage {
                 let has_ai = alert.ai_analysis.is_some();
                 let mut actions = Vec::new();
                 if !has_ai {
-                    actions.push(widgets::DetailAction::primary("\u{00c9}valuer avec l'IA", icons::BRAIN));
+                    actions.push(widgets::DetailAction::primary(
+                        "\u{00c9}valuer avec l'IA",
+                        icons::BRAIN,
+                    ));
                 }
                 actions.push(widgets::DetailAction::primary("Acquitter", icons::CHECK));
-                actions.push(widgets::DetailAction::secondary("Investiguer", icons::SEARCH));
+                actions.push(widgets::DetailAction::secondary(
+                    "Investiguer",
+                    icons::SEARCH,
+                ));
                 actions.push(widgets::DetailAction::danger("Ignorer", icons::EYE_SLASH));
-                let drawer_action = widgets::DetailDrawer::new("net_alert_detail", &type_label, icons::WARNING)
-                    .accent(type_color)
-                    .subtitle("Alerte r\u{00e9}seau")
-                    .show(&ctx, &mut state.network.detail_open, |ui| {
-                        widgets::detail_section(ui, "ALERTE R\u{00c9}SEAU");
-                        widgets::detail_field_badge(ui, "Type", &type_label, type_color);
-                        widgets::detail_field_badge(
-                            ui,
-                            "S\u{00e9}v\u{00e9}rit\u{00e9}",
-                            alert.severity.label(),
-                            sev_color,
-                        );
-                        widgets::detail_text(ui, "Description", &alert.description);
-                        if let Some(ref src) = alert.source_ip {
-                            widgets::detail_mono(ui, "IP source", src);
-                        }
-                        if let Some(ref dst) = alert.destination_ip {
-                            widgets::detail_mono(ui, "IP destination", dst);
-                        }
-                        widgets::detail_field(
-                            ui,
-                            "Port",
-                            &alert.destination_port.map(|p| p.to_string()).unwrap_or_else(|| "--".to_string()),
-                        );
-                        widgets::detail_field_colored(
-                            ui,
-                            "Confiance",
-                            &format!("{}%", alert.confidence),
-                            theme::readable_color(conf_color),
-                        );
-                        widgets::detail_field(
-                            ui,
-                            "Date de d\u{00e9}tection",
-                            &alert.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
-                        );
+                let drawer_action =
+                    widgets::DetailDrawer::new("net_alert_detail", &type_label, icons::WARNING)
+                        .accent(type_color)
+                        .subtitle("Alerte r\u{00e9}seau")
+                        .show(
+                            &ctx,
+                            &mut state.network.detail_open,
+                            |ui| {
+                                widgets::detail_section(ui, "ALERTE R\u{00c9}SEAU");
+                                widgets::detail_field_badge(ui, "Type", &type_label, type_color);
+                                widgets::detail_field_badge(
+                                    ui,
+                                    "S\u{00e9}v\u{00e9}rit\u{00e9}",
+                                    alert.severity.label(),
+                                    sev_color,
+                                );
+                                widgets::detail_text(ui, "Description", &alert.description);
+                                if let Some(ref src) = alert.source_ip {
+                                    widgets::detail_mono(ui, "IP source", src);
+                                }
+                                if let Some(ref dst) = alert.destination_ip {
+                                    widgets::detail_mono(ui, "IP destination", dst);
+                                }
+                                widgets::detail_field(
+                                    ui,
+                                    "Port",
+                                    &alert
+                                        .destination_port
+                                        .map(|p| p.to_string())
+                                        .unwrap_or_else(|| "--".to_string()),
+                                );
+                                widgets::detail_field_colored(
+                                    ui,
+                                    "Confiance",
+                                    &format!("{}%", alert.confidence),
+                                    theme::readable_color(conf_color),
+                                );
+                                widgets::detail_field(
+                                    ui,
+                                    "Date de d\u{00e9}tection",
+                                    &alert.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                                );
 
-                        // AI Analysis section
-                        if let Some(ref analysis) = alert.ai_analysis {
-                            widgets::detail_section(ui, "ANALYSE IA");
-                            if let Some(confidence) = alert.ai_confidence {
-                                let c = if confidence >= 80 { theme::SUCCESS } else if confidence >= 50 { theme::WARNING } else { theme::ERROR };
-                                widgets::detail_field_badge(ui, "Confiance IA", &format!("{}%", confidence), c);
-                            }
-                            if let Some(fp) = alert.is_false_positive {
-                                widgets::detail_field_badge(ui, "Faux positif", if fp { "OUI" } else { "NON" }, if fp { theme::WARNING } else { theme::SUCCESS });
-                            }
-                            widgets::detail_text(ui, "Analyse", analysis);
-                        }
-                    }, &actions);
+                                // AI Analysis section
+                                if let Some(ref analysis) = alert.ai_analysis {
+                                    widgets::detail_section(ui, "ANALYSE IA");
+                                    if let Some(confidence) = alert.ai_confidence {
+                                        let c = if confidence >= 80 {
+                                            theme::SUCCESS
+                                        } else if confidence >= 50 {
+                                            theme::WARNING
+                                        } else {
+                                            theme::ERROR
+                                        };
+                                        widgets::detail_field_badge(
+                                            ui,
+                                            "Confiance IA",
+                                            &format!("{}%", confidence),
+                                            c,
+                                        );
+                                    }
+                                    if let Some(fp) = alert.is_false_positive {
+                                        widgets::detail_field_badge(
+                                            ui,
+                                            "Faux positif",
+                                            if fp { "OUI" } else { "NON" },
+                                            if fp { theme::WARNING } else { theme::SUCCESS },
+                                        );
+                                    }
+                                    widgets::detail_text(ui, "Analyse", analysis);
+                                }
+                            },
+                            &actions,
+                        );
                 if let Some(action_idx) = drawer_action {
                     let time = ctx.input(|i| i.time);
                     let mut next = 0_usize;
-                    let ai_idx = if !has_ai { let i = next; next += 1; Some(i) } else { None };
+                    let ai_idx = if !has_ai {
+                        let i = next;
+                        next += 1;
+                        Some(i)
+                    } else {
+                        None
+                    };
                     let ack_idx = next;
                     let inv_idx = next + 1;
                     let ign_idx = next + 2;
@@ -487,7 +517,8 @@ impl NetworkPage {
                             target_id: format!("alert#{}", sel),
                         });
                         state.toasts.push(
-                            crate::widgets::toast::Toast::info("Analyse IA en cours\u{2026}").with_time(time),
+                            crate::widgets::toast::Toast::info("Analyse IA en cours\u{2026}")
+                                .with_time(time),
                         );
                     } else if action_idx == ack_idx {
                         state.network.detail_open = false;
@@ -616,7 +647,9 @@ impl NetworkPage {
                             theme::TABLE_ROW_HEIGHT,
                             state.network.interfaces.len(),
                             |mut row| {
-                                let Some(iface) = state.network.interfaces.get(row.index()) else { return };
+                                let Some(iface) = state.network.interfaces.get(row.index()) else {
+                                    return;
+                                };
                                 row.col(|ui: &mut egui::Ui| {
                                     ui.label(
                                         egui::RichText::new(&iface.name)
@@ -697,15 +730,21 @@ impl NetworkPage {
             ui.add_space(theme::SPACE_MD);
 
             let search_id = ui.id().with("network_search_cache");
-            let search_lower: String = ui.memory(|mem| {
-                mem.data.get_temp::<(String, String)>(search_id)
-                    .filter(|(orig, _)| orig == &state.network.search)
-                    .map(|(_, lower)| lower)
-            }).unwrap_or_else(|| {
-                let lower = state.network.search.to_lowercase();
-                ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.network.search.clone(), lower.clone())));
-                lower
-            });
+            let search_lower: String = ui
+                .memory(|mem| {
+                    mem.data
+                        .get_temp::<(String, String)>(search_id)
+                        .filter(|(orig, _)| orig == &state.network.search)
+                        .map(|(_, lower)| lower)
+                })
+                .unwrap_or_else(|| {
+                    let lower = state.network.search.to_lowercase();
+                    ui.memory_mut(|mem| {
+                        mem.data
+                            .insert_temp(search_id, (state.network.search.clone(), lower.clone()))
+                    });
+                    lower
+                });
             let filtered: Vec<usize> = state
                 .network
                 .connections
@@ -717,9 +756,17 @@ impl NetworkPage {
                     }
                     c.protocol.to_lowercase().contains(&search_lower)
                         || c.local_address.to_lowercase().contains(&search_lower)
-                        || c.remote_address.as_deref().unwrap_or("").to_lowercase().contains(&search_lower)
+                        || c.remote_address
+                            .as_deref()
+                            .unwrap_or("")
+                            .to_lowercase()
+                            .contains(&search_lower)
                         || c.state.to_lowercase().contains(&search_lower)
-                        || c.process_name.as_deref().unwrap_or("").to_lowercase().contains(&search_lower)
+                        || c.process_name
+                            .as_deref()
+                            .unwrap_or("")
+                            .to_lowercase()
+                            .contains(&search_lower)
                 })
                 .map(|(i, _)| i)
                 .collect();
@@ -793,14 +840,14 @@ impl NetworkPage {
                     })
                     .body(|body| {
                         body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let Some(&real_idx) = filtered.get(row.index()) else { return };
-                            let Some(conn) = state.network.connections.get(real_idx) else { return };
+                            let Some(&real_idx) = filtered.get(row.index()) else {
+                                return;
+                            };
+                            let Some(conn) = state.network.connections.get(real_idx) else {
+                                return;
+                            };
                             row.col(|ui: &mut egui::Ui| {
-                                widgets::status_badge(
-                                    ui,
-                                    &conn.protocol,
-                                    theme::INFO,
-                                );
+                                widgets::status_badge(ui, &conn.protocol, theme::INFO);
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
@@ -1064,8 +1111,12 @@ impl NetworkPage {
             });
 
         let rect = frame_resp.response.rect;
-        ui.interact(rect, ui.id().with(("net_alert_click", idx)), egui::Sense::click())
-            .clicked()
+        ui.interact(
+            rect,
+            ui.id().with(("net_alert_click", idx)),
+            egui::Sense::click(),
+        )
+        .clicked()
     }
 
     fn export_interfaces_csv(state: &AppState) -> bool {

@@ -84,7 +84,8 @@ impl TrayRadar {
         self.draw_labels(painter, center, radius);
 
         if !reduced {
-            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(100));
         }
     }
 
@@ -103,7 +104,10 @@ impl TrayRadar {
             pts.push(pts[0]);
             painter.add(egui::Shape::line(
                 pts,
-                Stroke::new(theme::BORDER_HAIRLINE, theme::border().linear_multiply(theme::OPACITY_MODERATE)),
+                Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    theme::border().linear_multiply(theme::OPACITY_MODERATE),
+                ),
             ));
         }
 
@@ -113,7 +117,10 @@ impl TrayRadar {
             let end = center + Vec2::new(angle.cos() * radius, angle.sin() * radius);
             painter.line_segment(
                 [center, end],
-                Stroke::new(theme::BORDER_HAIRLINE, theme::border().linear_multiply(theme::OPACITY_MEDIUM)),
+                Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    theme::border().linear_multiply(theme::OPACITY_MEDIUM),
+                ),
             );
         }
     }
@@ -161,7 +168,10 @@ impl TrayRadar {
 
         painter.line_segment(
             [center, scan_end],
-            Stroke::new(theme::BORDER_MEDIUM, theme::ACCENT.linear_multiply(theme::OPACITY_DISABLED)),
+            Stroke::new(
+                theme::BORDER_MEDIUM,
+                theme::ACCENT.linear_multiply(theme::OPACITY_DISABLED),
+            ),
         );
     }
 

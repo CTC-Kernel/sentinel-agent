@@ -102,22 +102,18 @@ impl AssetsPage {
                 .discovery
                 .devices
                 .iter()
-                .filter(|d| {
-                    !state.assets.assets.iter().any(|a| a.ip == d.ip)
-                })
+                .filter(|d| !state.assets.assets.iter().any(|a| a.ip == d.ip))
                 .count();
 
             if state.security.admin_unlocked {
                 let label = if discoverable > 0 {
                     format!(
                         "{}  IMPORTER DEPUIS D\u{00c9}COUVERTE ({})",
-                        icons::DOWNLOAD, discoverable
+                        icons::DOWNLOAD,
+                        discoverable
                     )
                 } else {
-                    format!(
-                        "{}  IMPORTER DEPUIS D\u{00c9}COUVERTE",
-                        icons::DOWNLOAD
-                    )
+                    format!("{}  IMPORTER DEPUIS D\u{00c9}COUVERTE", icons::DOWNLOAD)
                 };
                 if widgets::primary_button(ui, label, discoverable > 0).clicked() {
                     Self::import_from_discovery(state);
@@ -154,14 +150,10 @@ impl AssetsPage {
         ui.add_space(theme::SPACE_MD);
 
         // Search + filters
-        let crit_active =
-            state.assets.criticality_filter == Some(AssetCriticality::Critical);
-        let high_active =
-            state.assets.criticality_filter == Some(AssetCriticality::High);
-        let med_active =
-            state.assets.criticality_filter == Some(AssetCriticality::Medium);
-        let low_active =
-            state.assets.criticality_filter == Some(AssetCriticality::Low);
+        let crit_active = state.assets.criticality_filter == Some(AssetCriticality::Critical);
+        let high_active = state.assets.criticality_filter == Some(AssetCriticality::High);
+        let med_active = state.assets.criticality_filter == Some(AssetCriticality::Medium);
+        let low_active = state.assets.criticality_filter == Some(AssetCriticality::Low);
 
         let filtered = Self::filtered_indices(state);
         let result_count = filtered.len();
@@ -237,7 +229,9 @@ impl AssetsPage {
                         ui,
                         icons::BOXES_STACKED,
                         "AUCUN ACTIF ENREGISTR\u{00c9}",
-                        Some("Importez des actifs depuis la d\u{00e9}couverte r\u{00e9}seau ou ajoutez-les manuellement."),
+                        Some(
+                            "Importez des actifs depuis la d\u{00e9}couverte r\u{00e9}seau ou ajoutez-les manuellement.",
+                        ),
                     );
                 } else {
                     widgets::empty_state(
@@ -269,10 +263,18 @@ impl AssetsPage {
             .enumerate()
             .filter(|(_, a)| {
                 if !search_lower.is_empty()
-                    && !a.hostname.as_deref().unwrap_or("").to_lowercase().contains(&search_lower)
+                    && !a
+                        .hostname
+                        .as_deref()
+                        .unwrap_or("")
+                        .to_lowercase()
+                        .contains(&search_lower)
                     && !a.ip.to_lowercase().contains(&search_lower)
                     && !a.device_type.to_lowercase().contains(&search_lower)
-                    && !a.tags.iter().any(|tag| tag.to_lowercase().contains(&search_lower))
+                    && !a
+                        .tags
+                        .iter()
+                        .any(|tag| tag.to_lowercase().contains(&search_lower))
                 {
                     return false;
                 }
@@ -336,16 +338,17 @@ impl AssetsPage {
                     let now = chrono::Utc::now();
                     body.rows(theme::TABLE_ROW_HEIGHT, indices.len(), |mut row| {
                         let row_idx = row.index();
-                        let Some(&real_idx) = indices.get(row_idx) else { return };
-                        let Some(asset) = state.assets.assets.get(real_idx) else { return };
+                        let Some(&real_idx) = indices.get(row_idx) else {
+                            return;
+                        };
+                        let Some(asset) = state.assets.assets.get(real_idx) else {
+                            return;
+                        };
                         let is_selected = state.assets.selected_asset == Some(real_idx);
                         row.set_selected(is_selected);
 
                         row.col(|ui: &mut egui::Ui| {
-                            let name = asset
-                                .hostname
-                                .as_deref()
-                                .unwrap_or(&asset.ip);
+                            let name = asset.hostname.as_deref().unwrap_or(&asset.ip);
                             ui.label(
                                 egui::RichText::new(name)
                                     .font(theme::font_body())
@@ -372,14 +375,12 @@ impl AssetsPage {
                         });
 
                         row.col(|ui: &mut egui::Ui| {
-                            let (label, color) =
-                                Self::criticality_display(&asset.criticality);
+                            let (label, color) = Self::criticality_display(&asset.criticality);
                             widgets::status_badge(ui, label, color);
                         });
 
                         row.col(|ui: &mut egui::Ui| {
-                            let (label, color) =
-                                Self::lifecycle_display(&asset.lifecycle);
+                            let (label, color) = Self::lifecycle_display(&asset.lifecycle);
                             widgets::status_badge(ui, label, color);
                         });
 
@@ -404,17 +405,15 @@ impl AssetsPage {
                             } else {
                                 asset.last_seen.format("%d/%m %H:%M").to_string()
                             };
-                            ui.label(
-                                egui::RichText::new(text)
-                                    .font(theme::font_small())
-                                    .color(theme::readable_color(if ago.num_hours() < 1 {
-                                        theme::SUCCESS
-                                    } else if ago.num_hours() < 24 {
-                                        theme::WARNING
-                                    } else {
-                                        theme::text_secondary()
-                                    })),
-                            );
+                            ui.label(egui::RichText::new(text).font(theme::font_small()).color(
+                                theme::readable_color(if ago.num_hours() < 1 {
+                                    theme::SUCCESS
+                                } else if ago.num_hours() < 24 {
+                                    theme::WARNING
+                                } else {
+                                    theme::text_secondary()
+                                }),
+                            ));
                         });
 
                         if row.response().clicked() {
@@ -554,8 +553,7 @@ impl AssetsPage {
                             other => other,
                         };
                         state.assets.assets[selected].lifecycle = new_lifecycle;
-                        let asset_id =
-                            state.assets.assets[selected].id.to_string();
+                        let asset_id = state.assets.assets[selected].id.to_string();
                         *command = Some(GuiCommand::UpdateAssetLifecycle {
                             asset_id,
                             lifecycle: new_lifecycle,
@@ -577,12 +575,8 @@ impl AssetsPage {
 
     /// Import discovered devices as managed assets (skip already-imported IPs).
     fn import_from_discovery(state: &mut AppState) {
-        let existing_ips: std::collections::HashSet<String> = state
-            .assets
-            .assets
-            .iter()
-            .map(|a| a.ip.clone())
-            .collect();
+        let existing_ips: std::collections::HashSet<String> =
+            state.assets.assets.iter().map(|a| a.ip.clone()).collect();
 
         let max_assets = 1000_usize;
 
@@ -627,7 +621,9 @@ impl AssetsPage {
             AssetLifecycle::Discovered => ("D\u{00c9}COUVERT", theme::INFO),
             AssetLifecycle::Qualified => ("QUALIFI\u{00c9}", theme::ACCENT),
             AssetLifecycle::Monitored => ("SURVEILL\u{00c9}", theme::SUCCESS),
-            AssetLifecycle::Decommissioned => ("D\u{00c9}COMMISSIONN\u{00c9}", theme::text_tertiary()),
+            AssetLifecycle::Decommissioned => {
+                ("D\u{00c9}COMMISSIONN\u{00c9}", theme::text_tertiary())
+            }
         }
     }
 

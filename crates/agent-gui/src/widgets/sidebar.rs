@@ -93,7 +93,7 @@ impl Sidebar {
                             include_bytes!("../../assets/IA.png"),
                         )
                         .max_width(64.0);
-                        
+
                         let r = ui.add(logo);
                         // Subtle inner shadow for the logo container
                         ui.painter().circle_filled(
@@ -138,7 +138,11 @@ impl Sidebar {
                                     unread_notifications.to_string()
                                 };
                                 let badge_rect = egui::Rect::from_min_size(
-                                    bell_response.rect.right_top() + egui::vec2(-theme::BADGE_INDICATOR_OFFSET, -theme::BADGE_INDICATOR_OFFSET),
+                                    bell_response.rect.right_top()
+                                        + egui::vec2(
+                                            -theme::BADGE_INDICATOR_OFFSET,
+                                            -theme::BADGE_INDICATOR_OFFSET,
+                                        ),
                                     egui::vec2(theme::ICON_SM, theme::ICON_SM),
                                 );
                                 let rounding = CornerRadius::same(theme::BUTTON_ROUNDING);
@@ -150,7 +154,10 @@ impl Sidebar {
                                 ui.painter().rect_stroke(
                                     badge_rect,
                                     rounding,
-                                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::ERROR)),
+                                    egui::Stroke::new(
+                                        theme::BORDER_HAIRLINE,
+                                        theme::badge_border(theme::ERROR),
+                                    ),
                                     egui::StrokeKind::Inside,
                                 );
                                 ui.painter().text(
@@ -241,8 +248,10 @@ impl Sidebar {
 
                         // Flexible spacer: push bottom items down when space allows,
                         // but never overlap -- ScrollArea handles overflow.
-                        let bottom_height =
-                            theme::NAV_ITEM_HEIGHT * 2.0 + theme::SPACE_SM * 2.0 + theme::SPACE_XL + 2.0;
+                        let bottom_height = theme::NAV_ITEM_HEIGHT * 2.0
+                            + theme::SPACE_SM * 2.0
+                            + theme::SPACE_XL
+                            + 2.0;
                         let remaining = ui.available_height() - bottom_height;
                         if remaining > 0.0 {
                             ui.add_space(remaining);
@@ -331,8 +340,10 @@ impl Sidebar {
             egui::Color32::TRANSPARENT
         };
 
-        let (rect, response) =
-            ui.allocate_exact_size(Vec2::new(theme::SIDEBAR_WIDTH, theme::NAV_ITEM_HEIGHT), egui::Sense::click());
+        let (rect, response) = ui.allocate_exact_size(
+            Vec2::new(theme::SIDEBAR_WIDTH, theme::NAV_ITEM_HEIGHT),
+            egui::Sense::click(),
+        );
 
         if ui.is_rect_visible(rect) {
             // Background tint on hover or active
@@ -343,7 +354,8 @@ impl Sidebar {
                     theme::ACCENT.linear_multiply(0.15)
                 };
 
-                let rect_shrunk = rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
+                let rect_shrunk =
+                    rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
 
                 ui.painter().rect(
                     rect_shrunk,
@@ -380,7 +392,8 @@ impl Sidebar {
 
             // Focus ring for keyboard navigation
             if response.has_focus() {
-                let rect_shrunk = rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
+                let rect_shrunk =
+                    rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
                 ui.painter().rect_stroke(
                     rect_shrunk.expand(1.0),
                     egui::CornerRadius::same(theme::BUTTON_ROUNDING),
@@ -399,7 +412,10 @@ impl Sidebar {
                     count.to_string()
                 };
                 let badge_center = rect.right_center() + Vec2::new(-theme::NAV_BADGE_OFFSET, 0.0);
-                let badge_rect = egui::Rect::from_center_size(badge_center, Vec2::new(theme::NAV_BADGE_WIDTH, theme::NAV_BADGE_HEIGHT));
+                let badge_rect = egui::Rect::from_center_size(
+                    badge_center,
+                    Vec2::new(theme::NAV_BADGE_WIDTH, theme::NAV_BADGE_HEIGHT),
+                );
                 let rounding = CornerRadius::same(theme::BUTTON_ROUNDING);
                 ui.painter()
                     .rect_filled(badge_rect, rounding, theme::badge_bg(theme::ERROR));
@@ -515,11 +531,8 @@ impl Sidebar {
             let dot_cx = text_left - gap - dot_radius;
 
             // Draw dot
-            ui.painter().circle_filled(
-                egui::pos2(dot_cx, icon_center_y),
-                dot_radius,
-                dot_color,
-            );
+            ui.painter()
+                .circle_filled(egui::pos2(dot_cx, icon_center_y), dot_radius, dot_color);
 
             // Draw status text
             ui.painter().text(
@@ -595,9 +608,13 @@ impl Sidebar {
         let row_response = ui.horizontal(|ui: &mut egui::Ui| {
             ui.add_space(theme::SPACE_MD + theme::SPACE_SM);
             // Animated dot
-            let (dot_rect, _) = ui.allocate_exact_size(Vec2::splat(theme::STATUS_DOT_SIZE), egui::Sense::empty());
-            ui.painter()
-                .circle_filled(dot_rect.center(), theme::STATUS_DOT_SIZE / 2.0, dot_color.linear_multiply(alpha));
+            let (dot_rect, _) =
+                ui.allocate_exact_size(Vec2::splat(theme::STATUS_DOT_SIZE), egui::Sense::empty());
+            ui.painter().circle_filled(
+                dot_rect.center(),
+                theme::STATUS_DOT_SIZE / 2.0,
+                dot_color.linear_multiply(alpha),
+            );
             // Subtle glow on synced/syncing
             if pulse_speed > 0.0 {
                 ui.painter().circle_filled(
@@ -622,7 +639,9 @@ impl Sidebar {
         // Row 2: relative timestamp
         if let Some(last) = state.last_sync_at {
             ui.horizontal(|ui: &mut egui::Ui| {
-                ui.add_space(theme::SPACE_MD + theme::SPACE_SM + theme::STATUS_DOT_SIZE + theme::SPACE_XS);
+                ui.add_space(
+                    theme::SPACE_MD + theme::SPACE_SM + theme::STATUS_DOT_SIZE + theme::SPACE_XS,
+                );
                 ui.label(
                     egui::RichText::new(Self::relative_time_fr(now, last))
                         .font(theme::font_small())
@@ -642,7 +661,10 @@ impl Sidebar {
         } else if secs < agent_common::constants::SECS_PER_DAY as i64 {
             format!("il y a {} h", secs / 3600)
         } else {
-            format!("il y a {} j", secs / agent_common::constants::SECS_PER_DAY as i64)
+            format!(
+                "il y a {} j",
+                secs / agent_common::constants::SECS_PER_DAY as i64
+            )
         }
     }
 }

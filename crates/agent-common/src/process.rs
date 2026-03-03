@@ -46,7 +46,6 @@ pub fn silent_async_command(program: &str) -> tokio::process::Command {
 
     #[cfg(windows)]
     {
-
         use std::process::Stdio;
         cmd.creation_flags(0x0800_0000);
         cmd.stdin(Stdio::null());

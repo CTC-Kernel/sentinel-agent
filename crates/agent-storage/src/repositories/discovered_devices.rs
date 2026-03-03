@@ -160,7 +160,8 @@ impl<'a> DiscoveredDevicesRepository<'a> {
                 .unwrap_or_else(|e| {
                     tracing::warn!(
                         "Failed to parse device first_seen timestamp '{}': {}, using current time",
-                        first_seen_str, e
+                        first_seen_str,
+                        e
                     );
                     Utc::now()
                 }),
@@ -169,7 +170,8 @@ impl<'a> DiscoveredDevicesRepository<'a> {
                 .unwrap_or_else(|e| {
                     tracing::warn!(
                         "Failed to parse device last_seen timestamp '{}': {}, using current time",
-                        last_seen_str, e
+                        last_seen_str,
+                        e
                     );
                     Utc::now()
                 }),

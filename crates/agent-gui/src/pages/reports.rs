@@ -28,7 +28,9 @@ impl ReportsPage {
             ui,
             &["Pilotage", "Rapports"],
             "Centre de Rapports",
-            Some("G\u{00c9}N\u{00c9}RATION ET EXPORT DE RAPPORTS CONFORMIT\u{00c9} / AUDIT / INCIDENTS"),
+            Some(
+                "G\u{00c9}N\u{00c9}RATION ET EXPORT DE RAPPORTS CONFORMIT\u{00c9} / AUDIT / INCIDENTS",
+            ),
             Some(
                 "G\u{00e9}n\u{00e9}rez des rapports d\u{00e9}taill\u{00e9}s pour vos audits de conformit\u{00e9}, synth\u{00e8}ses ex\u{00e9}cutives et rapports d\u{2019}incidents. Chaque rapport peut \u{00ea}tre export\u{00e9} au format HTML.",
             ),
@@ -66,51 +68,49 @@ impl ReportsPage {
                     ReportType::Incident => theme::ERROR,
                 };
 
-                let actions = vec![
-                    widgets::DetailAction::primary("Exporter HTML", icons::DOWNLOAD),
-                ];
+                let actions = vec![widgets::DetailAction::primary(
+                    "Exporter HTML",
+                    icons::DOWNLOAD,
+                )];
 
-                let drawer_action = widgets::DetailDrawer::new(
-                    "report_detail",
-                    &report.title,
-                    icons::FILE_EXPORT,
-                )
-                .accent(accent)
-                .subtitle(report.report_type.label_fr())
-                .show(
-                    ui.ctx(),
-                    &mut state.reports.detail_open,
-                    |ui| {
-                        widgets::detail_section(ui, "INFORMATIONS G\u{00c9}N\u{00c9}RALES");
-                        widgets::detail_field(ui, "Titre", &report.title);
-                        widgets::detail_field(ui, "Type", report.report_type.label_fr());
-                        widgets::detail_field(
-                            ui,
-                            "G\u{00e9}n\u{00e9}r\u{00e9} le",
-                            &report.generated_at.format("%d/%m/%Y %H:%M").to_string(),
+                let drawer_action =
+                    widgets::DetailDrawer::new("report_detail", &report.title, icons::FILE_EXPORT)
+                        .accent(accent)
+                        .subtitle(report.report_type.label_fr())
+                        .show(
+                            ui.ctx(),
+                            &mut state.reports.detail_open,
+                            |ui| {
+                                widgets::detail_section(ui, "INFORMATIONS G\u{00c9}N\u{00c9}RALES");
+                                widgets::detail_field(ui, "Titre", &report.title);
+                                widgets::detail_field(ui, "Type", report.report_type.label_fr());
+                                widgets::detail_field(
+                                    ui,
+                                    "G\u{00e9}n\u{00e9}r\u{00e9} le",
+                                    &report.generated_at.format("%d/%m/%Y %H:%M").to_string(),
+                                );
+                                if let Some(fw) = &report.framework {
+                                    widgets::detail_field_badge(
+                                        ui,
+                                        "R\u{00e9}f\u{00e9}rentiel",
+                                        &fw.to_uppercase(),
+                                        theme::INFO,
+                                    );
+                                }
+                                if let Some(score) = report.compliance_score {
+                                    widgets::detail_field_colored(
+                                        ui,
+                                        "Score de conformit\u{00e9}",
+                                        &format!("{:.0}%", score),
+                                        theme::readable_color(theme::score_color(score)),
+                                    );
+                                }
+
+                                widgets::detail_section(ui, "R\u{00c9}SUM\u{00c9}");
+                                widgets::detail_text(ui, "", &report.summary);
+                            },
+                            &actions,
                         );
-                        if let Some(fw) = &report.framework {
-                            widgets::detail_field_badge(
-                                ui,
-                                "R\u{00e9}f\u{00e9}rentiel",
-                                &fw.to_uppercase(),
-                                theme::INFO,
-                            );
-                        }
-                        if let Some(score) = report.compliance_score {
-                            widgets::detail_field_colored(
-                                ui,
-                                "Score de conformit\u{00e9}",
-                                &format!("{:.0}%", score),
-                                theme::readable_color(theme::score_color(score)),
-                            );
-                        }
-
-                        widgets::detail_section(ui, "R\u{00c9}SUM\u{00c9}");
-                        widgets::detail_text(ui, "", &report.summary);
-                    },
-                    &actions,
-                );
 
                 if let Some(0) = drawer_action {
                     Self::export_html(state, &report);
@@ -132,7 +132,10 @@ impl ReportsPage {
         // Generate button
         ui.horizontal(|ui: &mut egui::Ui| {
             let btn_label = if is_generating {
-                format!("{}  G\u{00c9}N\u{00c9}RATION EN COURS...", icons::CIRCLE_NOTCH)
+                format!(
+                    "{}  G\u{00c9}N\u{00c9}RATION EN COURS...",
+                    icons::CIRCLE_NOTCH
+                )
             } else {
                 format!("{}  G\u{00c9}N\u{00c9}RER LE RAPPORT", icons::PLAY)
             };
@@ -156,7 +159,9 @@ impl ReportsPage {
                     state.reports.reports.pop_back();
                 }
                 state.push_toast(
-                    crate::widgets::toast::Toast::success("Rapport g\u{00e9}n\u{00e9}r\u{00e9} avec succ\u{00e8}s"),
+                    crate::widgets::toast::Toast::success(
+                        "Rapport g\u{00e9}n\u{00e9}r\u{00e9} avec succ\u{00e8}s",
+                    ),
                     ui.ctx(),
                 );
                 // Also emit command for runtime awareness
@@ -241,11 +246,8 @@ impl ReportsPage {
                 ui.add_space(theme::SPACE_SM);
 
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    if widgets::ghost_button(
-                        ui,
-                        format!("{}  EXPORTER HTML", icons::DOWNLOAD),
-                    )
-                    .clicked()
+                    if widgets::ghost_button(ui, format!("{}  EXPORTER HTML", icons::DOWNLOAD))
+                        .clicked()
                     {
                         Self::export_html(state, report);
                     }
@@ -257,24 +259,24 @@ impl ReportsPage {
                     ui,
                     icons::FILE_EXPORT,
                     "AUCUN RAPPORT DE CE TYPE",
-                    Some("Cliquez sur \u{00ab} G\u{00e9}n\u{00e9}rer le rapport \u{00bb} pour cr\u{00e9}er une nouvelle synth\u{00e8}se."),
+                    Some(
+                        "Cliquez sur \u{00ab} G\u{00e9}n\u{00e9}rer le rapport \u{00bb} pour cr\u{00e9}er une nouvelle synth\u{00e8}se.",
+                    ),
                 );
             });
         }
     }
 
-    fn show_history_tab(
-        ui: &mut Ui,
-        state: &mut AppState,
-        _command: &mut Option<GuiCommand>,
-    ) {
+    fn show_history_tab(ui: &mut Ui, state: &mut AppState, _command: &mut Option<GuiCommand>) {
         if state.reports.reports.is_empty() {
             widgets::card(ui, |ui: &mut egui::Ui| {
                 widgets::empty_state(
                     ui,
                     icons::FILE_EXPORT,
                     "AUCUN RAPPORT G\u{00c9}N\u{00c9}R\u{00c9}",
-                    Some("G\u{00e9}n\u{00e9}rez un rapport depuis l\u{2019}un des onglets pour le retrouver ici."),
+                    Some(
+                        "G\u{00e9}n\u{00e9}rez un rapport depuis l\u{2019}un des onglets pour le retrouver ici.",
+                    ),
                 );
             });
             return;
@@ -356,79 +358,68 @@ impl ReportsPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(
-                            theme::TABLE_ROW_HEIGHT,
-                            reports_vec.len(),
-                            |mut row| {
-                                let row_idx = row.index();
-                                let Some((real_idx, report)) = reports_vec.get(row_idx) else { return };
-                                let is_selected =
-                                    state.reports.selected_report == Some(*real_idx);
-                                row.set_selected(is_selected);
+                        body.rows(theme::TABLE_ROW_HEIGHT, reports_vec.len(), |mut row| {
+                            let row_idx = row.index();
+                            let Some((real_idx, report)) = reports_vec.get(row_idx) else {
+                                return;
+                            };
+                            let is_selected = state.reports.selected_report == Some(*real_idx);
+                            row.set_selected(is_selected);
 
-                                row.col(|ui: &mut egui::Ui| {
-                                    let (label, color) =
-                                        Self::report_type_display(&report.report_type);
-                                    widgets::status_badge(ui, label, color);
-                                });
+                            row.col(|ui: &mut egui::Ui| {
+                                let (label, color) = Self::report_type_display(&report.report_type);
+                                widgets::status_badge(ui, label, color);
+                            });
 
-                                row.col(|ui: &mut egui::Ui| {
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.label(
+                                    egui::RichText::new(&report.title)
+                                        .font(theme::font_body())
+                                        .color(theme::accent_text())
+                                        .strong(),
+                                );
+                            });
+
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.label(
+                                    egui::RichText::new(
+                                        report.generated_at.format("%d/%m/%Y %H:%M").to_string(),
+                                    )
+                                    .font(theme::font_small())
+                                    .color(theme::text_secondary()),
+                                );
+                            });
+
+                            row.col(|ui: &mut egui::Ui| {
+                                if let Some(score) = report.compliance_score {
                                     ui.label(
-                                        egui::RichText::new(&report.title)
+                                        egui::RichText::new(format!("{:.0}%", score))
                                             .font(theme::font_body())
-                                            .color(theme::accent_text())
+                                            .color(theme::readable_color(theme::score_color(score)))
                                             .strong(),
                                     );
-                                });
-
-                                row.col(|ui: &mut egui::Ui| {
+                                } else {
                                     ui.label(
-                                        egui::RichText::new(
-                                            report
-                                                .generated_at
-                                                .format("%d/%m/%Y %H:%M")
-                                                .to_string(),
-                                        )
-                                        .font(theme::font_small())
-                                        .color(theme::text_secondary()),
+                                        egui::RichText::new("--").color(theme::text_tertiary()),
                                     );
-                                });
+                                }
+                            });
 
-                                row.col(|ui: &mut egui::Ui| {
-                                    if let Some(score) = report.compliance_score {
-                                        ui.label(
-                                            egui::RichText::new(format!("{:.0}%", score))
-                                                .font(theme::font_body())
-                                                .color(theme::readable_color(theme::score_color(score)))
-                                                .strong(),
-                                        );
-                                    } else {
-                                        ui.label(
-                                            egui::RichText::new("--")
-                                                .color(theme::text_tertiary()),
-                                        );
-                                    }
-                                });
-
-                                row.col(|ui: &mut egui::Ui| {
-                                    if widgets::ghost_button(
-                                        ui,
-                                        format!("{}  HTML", icons::DOWNLOAD),
-                                    )
+                            row.col(|ui: &mut egui::Ui| {
+                                if widgets::ghost_button(ui, format!("{}  HTML", icons::DOWNLOAD))
                                     .clicked()
-                                    {
-                                        Self::export_html(state, report);
-                                    }
-                                });
+                                {
+                                    Self::export_html(state, report);
+                                }
+                            });
 
-                                if row.response().clicked() {
-                                    clicked_idx = Some(*real_idx);
-                                }
-                                if row.response().hovered() {
-                                    ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
-                                }
-                            },
-                        );
+                            if row.response().clicked() {
+                                clicked_idx = Some(*real_idx);
+                            }
+                            if row.response().hovered() {
+                                ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
+                            }
+                        });
                     });
             });
 
@@ -557,11 +548,7 @@ impl ReportsPage {
         let frameworks: Vec<String> = if let Some(fw) = framework {
             vec![fw.to_string()]
         } else {
-            state
-                .summary
-                .active_frameworks
-                .clone()
-                .unwrap_or_default()
+            state.summary.active_frameworks.clone().unwrap_or_default()
         };
 
         let mut total_pass = 0_usize;
@@ -633,7 +620,11 @@ impl ReportsPage {
         );
 
         let title = if let Some(fw) = framework {
-            format!("Audit conformit\u{00e9} {} \u{2014} {}", fw.to_uppercase(), date_str)
+            format!(
+                "Audit conformit\u{00e9} {} \u{2014} {}",
+                fw.to_uppercase(),
+                date_str
+            )
         } else {
             format!("Audit conformit\u{00e9} global \u{2014} {}", date_str)
         };
@@ -720,26 +711,19 @@ impl ReportsPage {
         let path = crate::export::default_export_path(&filename);
 
         if let Some(tx) = state.async_task_tx.clone() {
-            std::thread::spawn(move || {
-                match std::fs::write(&path, html.as_bytes()) {
-                    Ok(()) => {
-                        let msg = format!(
-                            "Rapport HTML export\u{00e9} : {}",
-                            path.display()
-                        );
-                        if let Err(e) =
-                            tx.send(crate::app::AsyncTaskResult::HtmlExport(true, msg))
-                        {
-                            tracing::warn!("Failed to send HTML export success: {}", e);
-                        }
+            std::thread::spawn(move || match std::fs::write(&path, html.as_bytes()) {
+                Ok(()) => {
+                    let msg = format!("Rapport HTML export\u{00e9} : {}", path.display());
+                    if let Err(e) = tx.send(crate::app::AsyncTaskResult::HtmlExport(true, msg)) {
+                        tracing::warn!("Failed to send HTML export success: {}", e);
                     }
-                    Err(e) => {
-                        let msg = format!("\u{00c9}chec export HTML : {}", e);
-                        if let Err(send_err) =
-                            tx.send(crate::app::AsyncTaskResult::HtmlExport(false, msg))
-                        {
-                            tracing::warn!("Failed to send HTML export error: {}", send_err);
-                        }
+                }
+                Err(e) => {
+                    let msg = format!("\u{00c9}chec export HTML : {}", e);
+                    if let Err(send_err) =
+                        tx.send(crate::app::AsyncTaskResult::HtmlExport(false, msg))
+                    {
+                        tracing::warn!("Failed to send HTML export error: {}", send_err);
                     }
                 }
             });

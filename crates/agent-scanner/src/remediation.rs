@@ -6,12 +6,12 @@
 //! Provides pre-built remediation actions for common compliance issues,
 //! with dry-run preview, execution, and rollback support.
 
+use agent_common::process::silent_command;
 use agent_common::types::{
     RemediationAction, RemediationResult, RemediationRisk, RemediationStatus,
 };
 use chrono::Utc;
 use std::collections::HashMap;
-use agent_common::process::silent_command;
 use std::time::Instant;
 use tracing::{info, warn};
 
@@ -111,15 +111,15 @@ impl RemediationEngine {
             };
         }
 
-    let start = Instant::now();
+        let start = Instant::now();
 
-    info!(
-        "Executing remediation for check '{}': {}",
-        action.check_id, action.description
-    );
+        info!(
+            "Executing remediation for check '{}': {}",
+            action.check_id, action.description
+        );
 
-    let result = execute_script(&action.script, &action.platform, action.requires_admin);
-    let duration_ms = start.elapsed().as_millis() as u64;
+        let result = execute_script(&action.script, &action.platform, action.requires_admin);
+        let duration_ms = start.elapsed().as_millis() as u64;
 
         match result {
             Ok(output) => {
@@ -432,8 +432,7 @@ fn execute_script(script: &str, platform: &str, _requires_admin: bool) -> Result
     #[cfg(target_os = "macos")]
     {
         if platform == "macos" && _requires_admin && !agent_common::macos::is_admin() {
-            return agent_common::macos::run_with_elevation(script)
-                .map_err(|e| e.to_string());
+            return agent_common::macos::run_with_elevation(script).map_err(|e| e.to_string());
         }
     }
 

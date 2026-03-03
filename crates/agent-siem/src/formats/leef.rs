@@ -8,8 +8,8 @@
 //! Used by: IBM QRadar.
 
 use super::SiemFormatter;
-use agent_common::constants::AGENT_VERSION;
 use crate::{SiemEvent, SiemResult};
+use agent_common::constants::AGENT_VERSION;
 
 /// LEEF (Log Event Extended Format) event formatter.
 pub struct LeefFormatter {
@@ -163,8 +163,8 @@ impl SiemFormatter for LeefFormatter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use agent_common::constants::AGENT_VERSION;
     use crate::EventCategory;
+    use agent_common::constants::AGENT_VERSION;
     use chrono::Utc;
 
     fn create_test_event() -> SiemEvent {

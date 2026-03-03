@@ -260,12 +260,21 @@ impl UpdateManager {
 
         // Verify SHA-256 integrity (mandatory — reject updates without a hash)
         if update.sha256.is_empty() {
-            error!("Update {} has no SHA-256 hash — refusing to install unverified package", update.new_version);
+            error!(
+                "Update {} has no SHA-256 hash — refusing to install unverified package",
+                update.new_version
+            );
             *self.state.write().await = UpdateState::Failed;
             if let Err(e) = fs::remove_file(&staging_path).await {
-                warn!("Failed to remove staging file {}: {}", staging_path.display(), e);
+                warn!(
+                    "Failed to remove staging file {}: {}",
+                    staging_path.display(),
+                    e
+                );
             }
-            return Err(SyncError::Config("Missing SHA-256 hash for update package".to_string()));
+            return Err(SyncError::Config(
+                "Missing SHA-256 hash for update package".to_string(),
+            ));
         }
         {
             match self
@@ -278,7 +287,11 @@ impl UpdateManager {
                     *self.state.write().await = UpdateState::Failed;
                     // Clean up staging file
                     if let Err(e) = fs::remove_file(&staging_path).await {
-                        warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+                        warn!(
+                            "Failed to cleanup staging file {}: {}",
+                            staging_path.display(),
+                            e
+                        );
                     }
                     // Mark version as failed for investigation (M1)
                     self.mark_version_failed(&to_version, "SHA-256 hash mismatch")
@@ -296,7 +309,11 @@ impl UpdateManager {
                 Err(e) => {
                     *self.state.write().await = UpdateState::Failed;
                     if let Err(e) = fs::remove_file(&staging_path).await {
-                        warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+                        warn!(
+                            "Failed to cleanup staging file {}: {}",
+                            staging_path.display(),
+                            e
+                        );
                     }
                     // Mark version as failed for investigation (M1)
                     self.mark_version_failed(&to_version, &format!("Verification error: {}", e))
@@ -324,7 +341,11 @@ impl UpdateManager {
                 Err(e) => {
                     *self.state.write().await = UpdateState::Failed;
                     if let Err(e) = fs::remove_file(&staging_path).await {
-                        warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+                        warn!(
+                            "Failed to cleanup staging file {}: {}",
+                            staging_path.display(),
+                            e
+                        );
                     }
                     // Mark version as failed for investigation (M1)
                     self.mark_version_failed(
@@ -354,7 +375,11 @@ impl UpdateManager {
         if let Err(e) = self.create_shadow_copy().await {
             *self.state.write().await = UpdateState::Failed;
             if let Err(e) = fs::remove_file(&staging_path).await {
-                warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+                warn!(
+                    "Failed to cleanup staging file {}: {}",
+                    staging_path.display(),
+                    e
+                );
             }
             return Ok(UpdateResult {
                 success: false,
@@ -401,7 +426,11 @@ impl UpdateManager {
 
         // Clean up staging file
         if let Err(e) = fs::remove_file(&staging_path).await {
-            warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+            warn!(
+                "Failed to cleanup staging file {}: {}",
+                staging_path.display(),
+                e
+            );
         }
 
         // Save metadata
@@ -703,9 +732,11 @@ impl UpdateManager {
         // Timeout after HEALTH_CHECK_TIMEOUT_SECS
         let version_check = tokio::time::timeout(
             std::time::Duration::from_secs(HEALTH_CHECK_TIMEOUT_SECS),
-            agent_common::process::silent_async_command(binary_path.to_str().unwrap_or("sentinel-agent"))
-                .arg("--version")
-                .output(),
+            agent_common::process::silent_async_command(
+                binary_path.to_str().unwrap_or("sentinel-agent"),
+            )
+            .arg("--version")
+            .output(),
         )
         .await;
 

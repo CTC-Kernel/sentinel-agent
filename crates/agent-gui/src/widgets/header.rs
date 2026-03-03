@@ -72,7 +72,8 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: 
             };
 
             // Gradient from accent to transparent
-            let left_color = theme::ACCENT.linear_multiply(theme::OPACITY_STRONG + shimmer * theme::OPACITY_TINT);
+            let left_color = theme::ACCENT
+                .linear_multiply(theme::OPACITY_STRONG + shimmer * theme::OPACITY_TINT);
             let right_color = theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE);
 
             // Draw gradient line using mesh
@@ -107,7 +108,8 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: 
             ui.painter().add(mesh);
 
             if !theme::is_reduced_motion() {
-                ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+                ui.ctx()
+                    .request_repaint_after(std::time::Duration::from_millis(100));
             }
         }
     });

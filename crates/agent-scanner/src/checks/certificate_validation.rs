@@ -19,11 +19,11 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for certificate validation.
@@ -172,11 +172,11 @@ impl CertificateValidationCheck {
             .unwrap_or(trimmed);
 
         let formats = [
-            "%b %d %H:%M:%S %Y", // "Mar 15 12:00:00 2025" (after stripping GMT/UTC)
-            "%Y-%m-%d %H:%M:%S", // "2025-03-15 12:00:00"
-            "%Y%m%d%H%M%S",      // "20250315120000"
+            "%b %d %H:%M:%S %Y",    // "Mar 15 12:00:00 2025" (after stripping GMT/UTC)
+            "%Y-%m-%d %H:%M:%S",    // "2025-03-15 12:00:00"
+            "%Y%m%d%H%M%S",         // "20250315120000"
             "%a %b %d %H:%M:%S %Y", // "Sat Mar 15 12:00:00 2025"
-            "%d/%m/%Y %H:%M:%S", // European format
+            "%d/%m/%Y %H:%M:%S",    // European format
         ];
 
         for format in &formats {
@@ -307,7 +307,10 @@ impl CertificateValidationCheck {
         };
 
         // Check if openssl is available
-        let openssl_available = silent_command("which").args(["openssl"]).output().is_ok_and(|o| o.status.success());
+        let openssl_available = silent_command("which")
+            .args(["openssl"])
+            .output()
+            .is_ok_and(|o| o.status.success());
         if !openssl_available {
             status
                 .issues
@@ -441,10 +444,11 @@ impl CertificateValidationCheck {
                 }
 
                 if let Ok(output) = child.wait_with_output()
-                    && output.status.success() {
-                        let cert_info = String::from_utf8_lossy(&output.stdout);
-                        self.parse_openssl_cert(&cert_info, &mut status);
-                    }
+                    && output.status.success()
+                {
+                    let cert_info = String::from_utf8_lossy(&output.stdout);
+                    self.parse_openssl_cert(&cert_info, &mut status);
+                }
             }
         }
 

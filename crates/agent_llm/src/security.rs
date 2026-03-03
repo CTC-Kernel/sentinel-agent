@@ -3,17 +3,17 @@
 
 //! LLM-powered security classification and threat intelligence.
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use anyhow::Result;
 use tracing::{info, warn};
 
-use std::sync::LazyLock;
-use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
-use super::prompts::{PromptTemplates, PromptBuilder};
+use super::engine::{InferenceRequest, ModelEngine};
+use super::prompts::{PromptBuilder, PromptTemplates};
 pub use crate::prompts::ThreatLevel;
-use crate::utils::{extract_lines, append_json_schema, try_parse_json};
+use crate::utils::{append_json_schema, extract_lines, try_parse_json};
+use std::sync::LazyLock;
 
 /// Compiled regex for extracting MITRE ATT&CK technique IDs (e.g. T1059, T1059.001).
 static MITRE_TECHNIQUE_RE: LazyLock<regex::Regex> =
@@ -237,15 +237,21 @@ impl SecurityClassifier {
         }
 
         let response = self.engine.infer(request).await?;
-        let classification = self.parse_classification_response(&response.text, event, start_time.elapsed())?;
+        let classification =
+            self.parse_classification_response(&response.text, event, start_time.elapsed())?;
 
-        info!("Event classified as {:?} with confidence {}",
-              classification.threat_type, classification.confidence);
+        info!(
+            "Event classified as {:?} with confidence {}",
+            classification.threat_type, classification.confidence
+        );
         Ok(classification)
     }
 
     /// Analyze vulnerability and assess its impact.
-    pub async fn analyze_vulnerability(&self, vuln: &Vulnerability) -> Result<VulnerabilityAnalysis> {
+    pub async fn analyze_vulnerability(
+        &self,
+        vuln: &Vulnerability,
+    ) -> Result<VulnerabilityAnalysis> {
         let (system_prompt, prompt) = self.build_vulnerability_prompt(vuln)?;
 
         let mut request = InferenceRequest::new(prompt)
@@ -277,7 +283,10 @@ impl SecurityClassifier {
     }
 
     /// Assess attack patterns and techniques.
-    pub async fn analyze_attack_patterns(&self, events: &[SecurityEvent]) -> Result<AttackPatternAnalysis> {
+    pub async fn analyze_attack_patterns(
+        &self,
+        events: &[SecurityEvent],
+    ) -> Result<AttackPatternAnalysis> {
         let (system_prompt, prompt) = self.build_attack_pattern_prompt(events)?;
 
         let mut request = InferenceRequest::new(prompt)
@@ -292,7 +301,10 @@ impl SecurityClassifier {
     }
 
     /// Build classification prompt for security event, returning (system_prompt, user_prompt).
-    fn build_classification_prompt(&self, event: &SecurityEvent) -> Result<(Option<String>, String)> {
+    fn build_classification_prompt(
+        &self,
+        event: &SecurityEvent,
+    ) -> Result<(Option<String>, String)> {
         let template = PromptTemplates::get("threat_classification")
             .ok_or_else(|| anyhow::anyhow!("Threat classification template not found"))?;
 
@@ -350,8 +362,12 @@ Use standard vulnerability assessment frameworks and provide specific, actionabl
     }
 
     /// Build threat report prompt, returning (system_prompt, user_prompt).
-    fn build_threat_report_prompt(&self, events: &[SecurityEvent]) -> Result<(Option<String>, String)> {
-        let events_summary = events.iter()
+    fn build_threat_report_prompt(
+        &self,
+        events: &[SecurityEvent],
+    ) -> Result<(Option<String>, String)> {
+        let events_summary = events
+            .iter()
             .map(|e| format!("{} [{}] - {}", e.id, e.event_type, e.description))
             .collect::<Vec<_>>()
             .join("\n");
@@ -376,8 +392,14 @@ Include in the report:
 
 Format as a professional threat intelligence report suitable for security leadership."#,
             events_summary,
-            events.first().map(|e| e.timestamp.to_rfc3339()).unwrap_or_default(),
-            events.last().map(|e| e.timestamp.to_rfc3339()).unwrap_or_default()
+            events
+                .first()
+                .map(|e| e.timestamp.to_rfc3339())
+                .unwrap_or_default(),
+            events
+                .last()
+                .map(|e| e.timestamp.to_rfc3339())
+                .unwrap_or_default()
         );
 
         append_json_schema(&mut user_prompt, THREAT_REPORT_SCHEMA);
@@ -388,7 +410,10 @@ Format as a professional threat intelligence report suitable for security leader
     }
 
     /// Build attack pattern analysis prompt, returning (system_prompt, user_prompt).
-    fn build_attack_pattern_prompt(&self, events: &[SecurityEvent]) -> Result<(Option<String>, String)> {
+    fn build_attack_pattern_prompt(
+        &self,
+        events: &[SecurityEvent],
+    ) -> Result<(Option<String>, String)> {
         let events_data = serde_json::to_string(events)?;
 
         let mut user_prompt = format!(
@@ -422,7 +447,12 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     /// Parse classification response from LLM text into SecurityClassification.
     ///
     /// Uses `try_parse_json` for strategies 1+2, then falls back to keyword extraction.
-    fn parse_classification_response(&self, response: &str, event: &SecurityEvent, duration: std::time::Duration) -> Result<SecurityClassification> {
+    fn parse_classification_response(
+        &self,
+        response: &str,
+        event: &SecurityEvent,
+        duration: std::time::Duration,
+    ) -> Result<SecurityClassification> {
         let now = chrono::Utc::now();
         let processing_time_ms = duration.as_millis() as u64;
 
@@ -431,7 +461,10 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
         }
 
         // Fallback - build from raw text keywords
-        warn!("Failed to parse classification JSON for event {}; building fallback from raw text", event.id);
+        warn!(
+            "Failed to parse classification JSON for event {}; building fallback from raw text",
+            event.id
+        );
         let lower = response.to_lowercase();
 
         let threat_type = if lower.contains("malware") {
@@ -489,13 +522,27 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     ) -> SecurityClassification {
         SecurityClassification {
             event_id: event.id.clone(),
-            threat_type: raw.threat_type.as_deref().map(parse_threat_type).unwrap_or(ThreatType::Unknown),
-            threat_level: raw.threat_level.as_deref().map(parse_threat_level).unwrap_or(ThreatLevel::Medium),
+            threat_type: raw
+                .threat_type
+                .as_deref()
+                .map(parse_threat_type)
+                .unwrap_or(ThreatType::Unknown),
+            threat_level: raw
+                .threat_level
+                .as_deref()
+                .map(parse_threat_level)
+                .unwrap_or(ThreatLevel::Medium),
             confidence: raw.confidence.unwrap_or(50),
-            attack_vector: raw.attack_vector.as_deref().map(parse_attack_vector).unwrap_or(AttackVector::Unknown),
+            attack_vector: raw
+                .attack_vector
+                .as_deref()
+                .map(parse_attack_vector)
+                .unwrap_or(AttackVector::Unknown),
             tactics: raw.tactics,
             techniques: raw.techniques,
-            impact_assessment: raw.impact_assessment.unwrap_or_else(|| "No impact assessment provided".to_string()),
+            impact_assessment: raw
+                .impact_assessment
+                .unwrap_or_else(|| "No impact assessment provided".to_string()),
             recommended_actions: if raw.recommended_actions.is_empty() {
                 vec!["Review event details".to_string()]
             } else {
@@ -507,7 +554,11 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     }
 
     /// Parse vulnerability analysis response from LLM text.
-    fn parse_vulnerability_analysis(&self, response: &str, vuln: &Vulnerability) -> Result<VulnerabilityAnalysis> {
+    fn parse_vulnerability_analysis(
+        &self,
+        response: &str,
+        vuln: &Vulnerability,
+    ) -> Result<VulnerabilityAnalysis> {
         let now = chrono::Utc::now();
 
         if let Ok(raw) = try_parse_json::<RawVulnerabilityAnalysis>(response) {
@@ -515,7 +566,10 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
         }
 
         // Fallback from raw text
-        warn!("Failed to parse vulnerability analysis JSON for {}; building fallback from raw text", vuln.id);
+        warn!(
+            "Failed to parse vulnerability analysis JSON for {}; building fallback from raw text",
+            vuln.id
+        );
         let lower = response.to_lowercase();
 
         let exploitability = if lower.contains("critical") {
@@ -559,15 +613,29 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     ) -> VulnerabilityAnalysis {
         VulnerabilityAnalysis {
             vulnerability_id: vuln.id.clone(),
-            exploitability: raw.exploitability.as_deref().map(parse_exploitability).unwrap_or(Exploitability::Medium),
-            business_impact: raw.business_impact.as_deref().map(parse_business_impact).unwrap_or(BusinessImpact::Significant),
+            exploitability: raw
+                .exploitability
+                .as_deref()
+                .map(parse_exploitability)
+                .unwrap_or(Exploitability::Medium),
+            business_impact: raw
+                .business_impact
+                .as_deref()
+                .map(parse_business_impact)
+                .unwrap_or(BusinessImpact::Significant),
             attack_scenarios: if raw.attack_scenarios.is_empty() {
                 vec!["No specific scenarios provided".to_string()]
             } else {
                 raw.attack_scenarios
             },
-            mitigation_priority: raw.mitigation_priority.as_deref().map(parse_mitigation_priority).unwrap_or(MitigationPriority::High),
-            patch_strategy: raw.patch_strategy.unwrap_or_else(|| "Apply vendor patches as available".to_string()),
+            mitigation_priority: raw
+                .mitigation_priority
+                .as_deref()
+                .map(parse_mitigation_priority)
+                .unwrap_or(MitigationPriority::High),
+            patch_strategy: raw
+                .patch_strategy
+                .unwrap_or_else(|| "Apply vendor patches as available".to_string()),
             compensating_controls: if raw.compensating_controls.is_empty() {
                 vec!["Enhanced monitoring".to_string()]
             } else {
@@ -578,7 +646,11 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     }
 
     /// Parse threat report response from LLM text.
-    fn parse_threat_report(&self, response: &str, events: &[SecurityEvent]) -> Result<ThreatReport> {
+    fn parse_threat_report(
+        &self,
+        response: &str,
+        events: &[SecurityEvent],
+    ) -> Result<ThreatReport> {
         let now = chrono::Utc::now();
         let event_count = events.len();
 
@@ -590,7 +662,10 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
         warn!("Failed to parse threat report JSON; building fallback from raw text");
 
         let lines = extract_lines(response, 20);
-        let title = lines.first().cloned().unwrap_or_else(|| "Threat Intelligence Report".to_string());
+        let title = lines
+            .first()
+            .cloned()
+            .unwrap_or_else(|| "Threat Intelligence Report".to_string());
         // Use the full response as executive summary, capped at 2000 chars
         let executive_summary: String = response.chars().take(2000).collect();
 
@@ -615,9 +690,15 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     ) -> ThreatReport {
         ThreatReport {
             id: uuid::Uuid::new_v4().to_string(),
-            title: raw.title.unwrap_or_else(|| "Threat Intelligence Report".to_string()),
-            executive_summary: raw.executive_summary.unwrap_or_else(|| "No executive summary provided".to_string()),
-            threat_landscape: raw.threat_landscape.unwrap_or_else(|| "No threat landscape analysis provided".to_string()),
+            title: raw
+                .title
+                .unwrap_or_else(|| "Threat Intelligence Report".to_string()),
+            executive_summary: raw
+                .executive_summary
+                .unwrap_or_else(|| "No executive summary provided".to_string()),
+            threat_landscape: raw
+                .threat_landscape
+                .unwrap_or_else(|| "No threat landscape analysis provided".to_string()),
             key_findings: if raw.key_findings.is_empty() {
                 vec!["No specific findings extracted".to_string()]
             } else {
@@ -650,14 +731,15 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
             .map(|m| m.as_str().to_string())
             .collect();
 
-        let ttps: Vec<TTP> = technique_ids.iter().map(|tid| {
-            TTP {
+        let ttps: Vec<TTP> = technique_ids
+            .iter()
+            .map(|tid| TTP {
                 tactic: "Unknown".to_string(),
                 technique: "See technique ID".to_string(),
                 technique_id: tid.clone(),
                 confidence: 30,
-            }
-        }).collect();
+            })
+            .collect();
 
         Ok(AttackPatternAnalysis {
             identified_ttps: ttps,
@@ -674,14 +756,16 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
         raw: RawAttackPatternAnalysis,
         now: chrono::DateTime<chrono::Utc>,
     ) -> AttackPatternAnalysis {
-        let ttps = raw.identified_ttps.into_iter().map(|r| {
-            TTP {
+        let ttps = raw
+            .identified_ttps
+            .into_iter()
+            .map(|r| TTP {
                 tactic: r.tactic.unwrap_or_else(|| "Unknown".to_string()),
                 technique: r.technique.unwrap_or_else(|| "Unknown".to_string()),
                 technique_id: r.technique_id.unwrap_or_else(|| "N/A".to_string()),
                 confidence: r.confidence.unwrap_or(50),
-            }
-        }).collect();
+            })
+            .collect();
 
         AttackPatternAnalysis {
             identified_ttps: ttps,
@@ -893,68 +977,173 @@ mod tests {
     #[test]
     fn test_parse_threat_type_variants() {
         assert!(matches!(parse_threat_type("Malware"), ThreatType::Malware));
-        assert!(matches!(parse_threat_type("phishing"), ThreatType::Phishing));
-        assert!(matches!(parse_threat_type("DenialOfService"), ThreatType::DenialOfService));
-        assert!(matches!(parse_threat_type("ddos"), ThreatType::DenialOfService));
-        assert!(matches!(parse_threat_type("DataExfiltration"), ThreatType::DataExfiltration));
-        assert!(matches!(parse_threat_type("PrivilegeEscalation"), ThreatType::PrivilegeEscalation));
-        assert!(matches!(parse_threat_type("LateralMovement"), ThreatType::LateralMovement));
-        assert!(matches!(parse_threat_type("CommandAndControl"), ThreatType::CommandAndControl));
-        assert!(matches!(parse_threat_type("c2"), ThreatType::CommandAndControl));
-        assert!(matches!(parse_threat_type("Reconnaissance"), ThreatType::Reconnaissance));
-        assert!(matches!(parse_threat_type("something_else"), ThreatType::Unknown));
+        assert!(matches!(
+            parse_threat_type("phishing"),
+            ThreatType::Phishing
+        ));
+        assert!(matches!(
+            parse_threat_type("DenialOfService"),
+            ThreatType::DenialOfService
+        ));
+        assert!(matches!(
+            parse_threat_type("ddos"),
+            ThreatType::DenialOfService
+        ));
+        assert!(matches!(
+            parse_threat_type("DataExfiltration"),
+            ThreatType::DataExfiltration
+        ));
+        assert!(matches!(
+            parse_threat_type("PrivilegeEscalation"),
+            ThreatType::PrivilegeEscalation
+        ));
+        assert!(matches!(
+            parse_threat_type("LateralMovement"),
+            ThreatType::LateralMovement
+        ));
+        assert!(matches!(
+            parse_threat_type("CommandAndControl"),
+            ThreatType::CommandAndControl
+        ));
+        assert!(matches!(
+            parse_threat_type("c2"),
+            ThreatType::CommandAndControl
+        ));
+        assert!(matches!(
+            parse_threat_type("Reconnaissance"),
+            ThreatType::Reconnaissance
+        ));
+        assert!(matches!(
+            parse_threat_type("something_else"),
+            ThreatType::Unknown
+        ));
     }
 
     #[test]
     fn test_parse_threat_level_variants() {
         assert!(matches!(parse_threat_level("low"), ThreatLevel::Low));
         assert!(matches!(parse_threat_level("Medium"), ThreatLevel::Medium));
-        assert!(matches!(parse_threat_level("moderate"), ThreatLevel::Medium));
+        assert!(matches!(
+            parse_threat_level("moderate"),
+            ThreatLevel::Medium
+        ));
         assert!(matches!(parse_threat_level("HIGH"), ThreatLevel::High));
-        assert!(matches!(parse_threat_level("critical"), ThreatLevel::Critical));
-        assert!(matches!(parse_threat_level("severe"), ThreatLevel::Critical));
+        assert!(matches!(
+            parse_threat_level("critical"),
+            ThreatLevel::Critical
+        ));
+        assert!(matches!(
+            parse_threat_level("severe"),
+            ThreatLevel::Critical
+        ));
         assert!(matches!(parse_threat_level("???"), ThreatLevel::Medium));
     }
 
     #[test]
     fn test_parse_attack_vector_variants() {
-        assert!(matches!(parse_attack_vector("Network"), AttackVector::Network));
-        assert!(matches!(parse_attack_vector("remote"), AttackVector::Network));
+        assert!(matches!(
+            parse_attack_vector("Network"),
+            AttackVector::Network
+        ));
+        assert!(matches!(
+            parse_attack_vector("remote"),
+            AttackVector::Network
+        ));
         assert!(matches!(parse_attack_vector("Local"), AttackVector::Local));
-        assert!(matches!(parse_attack_vector("Physical"), AttackVector::Physical));
-        assert!(matches!(parse_attack_vector("Social Engineering"), AttackVector::Social));
-        assert!(matches!(parse_attack_vector("SupplyChain"), AttackVector::SupplyChain));
-        assert!(matches!(parse_attack_vector("other"), AttackVector::Unknown));
+        assert!(matches!(
+            parse_attack_vector("Physical"),
+            AttackVector::Physical
+        ));
+        assert!(matches!(
+            parse_attack_vector("Social Engineering"),
+            AttackVector::Social
+        ));
+        assert!(matches!(
+            parse_attack_vector("SupplyChain"),
+            AttackVector::SupplyChain
+        ));
+        assert!(matches!(
+            parse_attack_vector("other"),
+            AttackVector::Unknown
+        ));
     }
 
     #[test]
     fn test_parse_exploitability_variants() {
         assert!(matches!(parse_exploitability("Low"), Exploitability::Low));
-        assert!(matches!(parse_exploitability("medium"), Exploitability::Medium));
+        assert!(matches!(
+            parse_exploitability("medium"),
+            Exploitability::Medium
+        ));
         assert!(matches!(parse_exploitability("High"), Exploitability::High));
-        assert!(matches!(parse_exploitability("Critical"), Exploitability::Critical));
-        assert!(matches!(parse_exploitability("???"), Exploitability::Medium));
+        assert!(matches!(
+            parse_exploitability("Critical"),
+            Exploitability::Critical
+        ));
+        assert!(matches!(
+            parse_exploitability("???"),
+            Exploitability::Medium
+        ));
     }
 
     #[test]
     fn test_parse_business_impact_variants() {
-        assert!(matches!(parse_business_impact("minimal"), BusinessImpact::Minimal));
-        assert!(matches!(parse_business_impact("minor"), BusinessImpact::Minor));
-        assert!(matches!(parse_business_impact("significant"), BusinessImpact::Significant));
-        assert!(matches!(parse_business_impact("moderate"), BusinessImpact::Significant));
-        assert!(matches!(parse_business_impact("major"), BusinessImpact::Major));
-        assert!(matches!(parse_business_impact("critical"), BusinessImpact::Critical));
-        assert!(matches!(parse_business_impact("???"), BusinessImpact::Significant));
+        assert!(matches!(
+            parse_business_impact("minimal"),
+            BusinessImpact::Minimal
+        ));
+        assert!(matches!(
+            parse_business_impact("minor"),
+            BusinessImpact::Minor
+        ));
+        assert!(matches!(
+            parse_business_impact("significant"),
+            BusinessImpact::Significant
+        ));
+        assert!(matches!(
+            parse_business_impact("moderate"),
+            BusinessImpact::Significant
+        ));
+        assert!(matches!(
+            parse_business_impact("major"),
+            BusinessImpact::Major
+        ));
+        assert!(matches!(
+            parse_business_impact("critical"),
+            BusinessImpact::Critical
+        ));
+        assert!(matches!(
+            parse_business_impact("???"),
+            BusinessImpact::Significant
+        ));
     }
 
     #[test]
     fn test_parse_mitigation_priority_variants() {
-        assert!(matches!(parse_mitigation_priority("low"), MitigationPriority::Low));
-        assert!(matches!(parse_mitigation_priority("medium"), MitigationPriority::Medium));
-        assert!(matches!(parse_mitigation_priority("high"), MitigationPriority::High));
-        assert!(matches!(parse_mitigation_priority("critical"), MitigationPriority::Critical));
-        assert!(matches!(parse_mitigation_priority("urgent"), MitigationPriority::Critical));
-        assert!(matches!(parse_mitigation_priority("???"), MitigationPriority::High));
+        assert!(matches!(
+            parse_mitigation_priority("low"),
+            MitigationPriority::Low
+        ));
+        assert!(matches!(
+            parse_mitigation_priority("medium"),
+            MitigationPriority::Medium
+        ));
+        assert!(matches!(
+            parse_mitigation_priority("high"),
+            MitigationPriority::High
+        ));
+        assert!(matches!(
+            parse_mitigation_priority("critical"),
+            MitigationPriority::Critical
+        ));
+        assert!(matches!(
+            parse_mitigation_priority("urgent"),
+            MitigationPriority::Critical
+        ));
+        assert!(matches!(
+            parse_mitigation_priority("???"),
+            MitigationPriority::High
+        ));
     }
 
     #[test]
@@ -1038,7 +1227,10 @@ mod tests {
 
         let raw: RawAttackPatternAnalysis = serde_json::from_str(json).unwrap();
         assert_eq!(raw.identified_ttps.len(), 1);
-        assert_eq!(raw.identified_ttps[0].technique_id.as_deref(), Some("T1059"));
+        assert_eq!(
+            raw.identified_ttps[0].technique_id.as_deref(),
+            Some("T1059")
+        );
         assert_eq!(raw.attack_stages.len(), 2);
     }
 
@@ -1094,7 +1286,10 @@ mod tests {
         let vuln = make_test_vuln();
         let result = classifier.analyze_vulnerability(&vuln).await.unwrap();
         assert!(matches!(result.exploitability, Exploitability::High));
-        assert!(matches!(result.mitigation_priority, MitigationPriority::Critical));
+        assert!(matches!(
+            result.mitigation_priority,
+            MitigationPriority::Critical
+        ));
     }
 
     #[tokio::test]

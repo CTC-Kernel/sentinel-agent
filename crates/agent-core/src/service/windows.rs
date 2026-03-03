@@ -10,10 +10,10 @@ use super::{
     SERVICE_DESCRIPTION, SERVICE_DISPLAY_NAME, SERVICE_NAME, ServiceError, ServiceResult,
     ServiceState,
 };
+use agent_common::process::silent_command;
 use std::ffi::OsString;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
-use agent_common::process::silent_command;
 use tracing::{debug, error, info, warn};
 use windows_service::{
     define_windows_service,
@@ -106,7 +106,10 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         // for both Service (SYSTEM) and GUI (Users) access.
         // MUST BE DONE BEFORE KeyManager or Database initialization!
         if let Err(e) = ensure_sentinel_directories_with_acls() {
-            warn!("Failed to set directory ACLs, but will attempt to proceed: {}", e);
+            warn!(
+                "Failed to set directory ACLs, but will attempt to proceed: {}",
+                e
+            );
         }
 
         let key_manager = match KeyManager::new() {
@@ -123,15 +126,21 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         // Check for pending safe-restore file on Windows startup
         let restore_path = default_config.path.with_extension("restore");
         if restore_path.exists() {
-            info!("Found pending database restore file at {}. Applying restore...", restore_path.display());
-            
+            info!(
+                "Found pending database restore file at {}. Applying restore...",
+                restore_path.display()
+            );
+
             let bak_path = default_config.path.with_extension("bak");
             if default_config.path.exists() {
                 if let Err(e) = std::fs::rename(&default_config.path, &bak_path) {
-                    warn!("Failed to back up current database before restore (may already be in use): {}", e);
+                    warn!(
+                        "Failed to back up current database before restore (may already be in use): {}",
+                        e
+                    );
                 }
             }
-            
+
             match std::fs::rename(&restore_path, &default_config.path) {
                 Ok(_) => info!("Database restore applied successfully"),
                 Err(e) => {
@@ -228,7 +237,7 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     Ok(())
 }
 
-/// Ensure the Sentinel directory structure exists in ProgramData with 
+/// Ensure the Sentinel directory structure exists in ProgramData with
 /// permissions that allow both the service and the GUI group access.
 fn ensure_sentinel_directories_with_acls() -> ServiceResult<()> {
     let base_dir = r"C:\ProgramData\Sentinel";
@@ -237,7 +246,10 @@ fn ensure_sentinel_directories_with_acls() -> ServiceResult<()> {
     // 1. Create the base directory if it doesn't exist
     if !std::path::Path::new(base_dir).exists() {
         std::fs::create_dir_all(base_dir).map_err(|e| {
-            ServiceError::System(format!("Failed to create base directory {}: {}", base_dir, e))
+            ServiceError::System(format!(
+                "Failed to create base directory {}: {}",
+                base_dir, e
+            ))
         })?;
         info!("Created base directory: {}", base_dir);
     }
@@ -245,7 +257,7 @@ fn ensure_sentinel_directories_with_acls() -> ServiceResult<()> {
     // 2. Set ACLs on the base directory to allow Users group to modify contents.
     // (OI)(CI) = Object Inherit, Container Inherit
     // (M) = Modify permissions
-    // This ensures that when the service (SYSTEM) creates subfolders/files, 
+    // This ensures that when the service (SYSTEM) creates subfolders/files,
     // the regular user GUI can still read/write them.
     let output = agent_common::process::silent_command("icacls")
         .arg(base_dir)
@@ -259,7 +271,10 @@ fn ensure_sentinel_directories_with_acls() -> ServiceResult<()> {
 
     if !output.status.success() {
         let err = String::from_utf8_lossy(&output.stderr);
-        warn!("icacls failed with error: {}. GUI may have permission issues.", err);
+        warn!(
+            "icacls failed with error: {}. GUI may have permission issues.",
+            err
+        );
     } else {
         info!("Successfully updated ACLs for {}", base_dir);
     }
@@ -269,7 +284,11 @@ fn ensure_sentinel_directories_with_acls() -> ServiceResult<()> {
         let path = std::path::Path::new(base_dir).join(sub);
         if !path.exists() {
             std::fs::create_dir_all(&path).map_err(|e| {
-                ServiceError::System(format!("Failed to create subdirectory {}: {}", path.display(), e))
+                ServiceError::System(format!(
+                    "Failed to create subdirectory {}: {}",
+                    path.display(),
+                    e
+                ))
             })?;
             debug!("Created subdirectory: {}", path.display());
         }
@@ -608,7 +627,11 @@ fn check_environment() {
 
     // Check PowerShell availability and version
     match silent_command("powershell")
-        .args(["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"])
+        .args([
+            "-NoProfile",
+            "-Command",
+            "$PSVersionTable.PSVersion.ToString()",
+        ])
         .output()
     {
         Ok(output) if output.status.success() => {
@@ -623,7 +646,10 @@ fn check_environment() {
             );
         }
         Err(e) => {
-            error!("PowerShell NOT available: {}. Many compliance checks will fail!", e);
+            error!(
+                "PowerShell NOT available: {}. Many compliance checks will fail!",
+                e
+            );
         }
     }
 
@@ -637,7 +663,10 @@ fn check_environment() {
                 debug!("System tool '{}' found at: {}", tool, path);
             }
             _ => {
-                warn!("System tool '{}' not found in PATH. Some features may be limited.", tool);
+                warn!(
+                    "System tool '{}' not found in PATH. Some features may be limited.",
+                    tool
+                );
             }
         }
     }

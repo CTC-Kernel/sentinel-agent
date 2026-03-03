@@ -54,7 +54,7 @@ pub mod branding {
 mod company_info {
     pub const COMPANY_NAME: &str = "Cyber Threat Consulting";
     pub const PRODUCT_NAME: &str = "Sentinel Agent";
-    pub const EMAIL: &str = "***REMOVED***";
+    pub const EMAIL: &str = "contact@cyber-threat-consulting.com";
 }
 
 /// Menu item identifiers.
@@ -444,10 +444,9 @@ impl AgentTray {
                 info!("Opening full GUI dashboard");
                 // Launch the full GUI (exe with no args defaults to GUI mode)
                 if let Ok(exe) = std::env::current_exe() {
-                    if let Err(e) = agent_common::process::silent_command(
-                        exe.to_string_lossy().as_ref(),
-                    )
-                    .spawn()
+                    if let Err(e) =
+                        agent_common::process::silent_command(exe.to_string_lossy().as_ref())
+                            .spawn()
                     {
                         warn!("Failed to spawn GUI: {}", e);
                     }

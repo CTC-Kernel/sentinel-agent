@@ -264,8 +264,7 @@ impl DgaDetector {
 
         // High entropy is suspicious (weight: 30%)
         if entropy > self.config.entropy_threshold {
-            score += 30.0
-                * ((entropy - self.config.entropy_threshold).max(0.0) / 1.5).min(1.0);
+            score += 30.0 * ((entropy - self.config.entropy_threshold).max(0.0) / 1.5).min(1.0);
         }
 
         // High consonant ratio is suspicious (weight: 20%)

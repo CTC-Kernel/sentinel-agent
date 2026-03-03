@@ -3,9 +3,9 @@
 
 //! macOS specific system utilities.
 
+use crate::error::{CommonError, Result};
 use crate::process::silent_command;
 use tracing::{info, warn};
-use crate::error::{CommonError, Result};
 
 /// Checks if the current process is running with administrator privileges.
 pub fn is_admin() -> bool {
@@ -32,10 +32,13 @@ pub fn run_with_elevation(script: &str) -> Result<String> {
         .replace('$', "\\$")
         .replace('`', "\\`")
         .replace('!', "\\!");
-    
+
     // AppleScript command: do shell script "..." with administrator privileges
     // Note: AppleScript strings MUST use double quotes. Single quotes are not valid string delimiters.
-    let applescript = format!("do shell script \"{}\" with administrator privileges", escaped_script);
+    let applescript = format!(
+        "do shell script \"{}\" with administrator privileges",
+        escaped_script
+    );
 
     let output = silent_command("osascript")
         .args(["-e", &applescript])

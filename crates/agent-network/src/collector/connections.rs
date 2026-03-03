@@ -9,10 +9,10 @@
 use crate::error::NetworkError;
 use crate::error::NetworkResult;
 use crate::types::{ConnectionProtocol, ConnectionState, NetworkConnection};
-#[cfg(target_os = "windows")]
-use agent_common::process::silent_command;
 #[cfg(target_os = "macos")]
 use agent_common::process::silent_async_command;
+#[cfg(target_os = "windows")]
+use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Collects active network connections.
@@ -299,8 +299,9 @@ impl ConnectionCollector {
         )
         .await
         {
-            Ok(result) => result
-                .map_err(|e| NetworkError::CommandFailed(format!("lsof failed: {}", e)))?,
+            Ok(result) => {
+                result.map_err(|e| NetworkError::CommandFailed(format!("lsof failed: {}", e)))?
+            }
             Err(_) => {
                 tracing::warn!("lsof timed out after 15s, returning empty connections");
                 return Ok(connections);

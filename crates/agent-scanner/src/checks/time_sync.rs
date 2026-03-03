@@ -12,10 +12,10 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for time synchronization.
@@ -305,7 +305,11 @@ impl TimeSyncCheck {
             status.service_running = output.status.success();
             status.raw_output.push_str(&format!(
                 "timed via launchctl: {}\n",
-                if output.status.success() { "running" } else { "not running" }
+                if output.status.success() {
+                    "running"
+                } else {
+                    "not running"
+                }
             ));
         }
 
@@ -416,7 +420,8 @@ impl Check for TimeSyncCheck {
             Ok::<TimeSyncStatus, crate::error::ScannerError>(status)
         };
 
-        let status_result = tokio::time::timeout(std::time::Duration::from_millis(1900), execution).await;
+        let status_result =
+            tokio::time::timeout(std::time::Duration::from_millis(1900), execution).await;
 
         let status = match status_result {
             Ok(Ok(s)) => s,
@@ -428,7 +433,9 @@ impl Check for TimeSyncCheck {
                     ntp_source: None,
                     leap_status: None,
                     service_running: false,
-                    issues: vec!["Time synchronization check timed out (NFR limit protection)".to_string()],
+                    issues: vec![
+                        "Time synchronization check timed out (NFR limit protection)".to_string(),
+                    ],
                     raw_output: "Execution timed out after 1900ms".to_string(),
                 };
                 return Ok(CheckOutput::fail(

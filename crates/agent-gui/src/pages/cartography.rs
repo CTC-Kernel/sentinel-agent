@@ -113,15 +113,22 @@ impl CartographyPage {
                     ui.add_space(theme::SPACE_LG);
 
                     // Open 3D view button
-                    if widgets::primary_button(ui, format!("{}  VUE 3D", icons::EXTERNAL_LINK), true)
-                        .clicked()
+                    if widgets::primary_button(
+                        ui,
+                        format!("{}  VUE 3D", icons::EXTERNAL_LINK),
+                        true,
+                    )
+                    .clicked()
                     {
                         if state.settings.architecture_url.starts_with("https://") {
                             if let Err(e) = open::that(&state.settings.architecture_url) {
                                 tracing::warn!("Failed to open URL: {}", e);
                             }
                         } else {
-                            tracing::warn!("Refused to open non-HTTPS URL: {}", state.settings.architecture_url);
+                            tracing::warn!(
+                                "Refused to open non-HTTPS URL: {}",
+                                state.settings.architecture_url
+                            );
                         }
                     }
 
@@ -133,8 +140,10 @@ impl CartographyPage {
                         let time = ui.input(|i| i.time);
                         if success {
                             state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV cartographie r\u{00e9}ussi")
-                                    .with_time(time),
+                                crate::widgets::toast::Toast::success(
+                                    "Export CSV cartographie r\u{00e9}ussi",
+                                )
+                                .with_time(time),
                             );
                         } else {
                             state.toasts.push(
@@ -176,7 +185,12 @@ impl CartographyPage {
 
         // Invalidate layout if device list changed
         let device_count = state.discovery.devices.len();
-        if state.cartography.layout.as_ref().is_some_and(|l| l.nodes.len() != device_count) {
+        if state
+            .cartography
+            .layout
+            .as_ref()
+            .is_some_and(|l| l.nodes.len() != device_count)
+        {
             state.cartography.layout = None;
             state.cartography.selected_device = None;
         }
@@ -186,7 +200,11 @@ impl CartographyPage {
             let layout = build_initial_layout(&state.discovery.devices);
             state.cartography.layout = Some(layout);
         }
-        let layout = state.cartography.layout.as_mut().expect("layout was just initialized above");
+        let layout = state
+            .cartography
+            .layout
+            .as_mut()
+            .expect("layout was just initialized above");
 
         // Run force simulation only if not yet converged
         if !layout.converged {
@@ -228,7 +246,8 @@ impl CartographyPage {
         // Handle zoom via scroll
         let scroll = ui.input(|i| i.smooth_scroll_delta.y);
         if scroll != 0.0 {
-            state.cartography.zoom = (state.cartography.zoom + scroll * ZOOM_SCROLL_FACTOR).clamp(ZOOM_MIN, ZOOM_MAX);
+            state.cartography.zoom =
+                (state.cartography.zoom + scroll * ZOOM_SCROLL_FACTOR).clamp(ZOOM_MIN, ZOOM_MAX);
         }
 
         let center = rect.center().to_vec2() + state.cartography.pan;
@@ -247,7 +266,10 @@ impl CartographyPage {
                 );
                 painter.line_segment(
                     [p1, p2],
-                    egui::Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_TINT)),
+                    egui::Stroke::new(
+                        theme::BORDER_THIN,
+                        theme::border().linear_multiply(theme::OPACITY_TINT),
+                    ),
                 );
             }
         }
@@ -263,7 +285,11 @@ impl CartographyPage {
             }
 
             let color = device_type_color(&node.device.device_type);
-            let base_radius = if node.device.is_gateway { NODE_RADIUS_GATEWAY } else { NODE_RADIUS_DEFAULT } * zoom;
+            let base_radius = if node.device.is_gateway {
+                NODE_RADIUS_GATEWAY
+            } else {
+                NODE_RADIUS_DEFAULT
+            } * zoom;
             let breathing = if theme::is_reduced_motion() {
                 0.5
             } else {
@@ -293,7 +319,10 @@ impl CartographyPage {
             painter.circle_stroke(
                 screen_pos,
                 base_radius,
-                egui::Stroke::new(theme::BORDER_THIN, theme::overlay_color().linear_multiply(theme::OPACITY_MODERATE)),
+                egui::Stroke::new(
+                    theme::BORDER_THIN,
+                    theme::overlay_color().linear_multiply(theme::OPACITY_MODERATE),
+                ),
             );
 
             // 4. Label (Institutional AAA)
@@ -304,7 +333,10 @@ impl CartographyPage {
                 .unwrap_or(&node.device.ip)
                 .to_uppercase();
             painter.text(
-                Pos2::new(screen_pos.x, screen_pos.y + base_radius + NODE_LABEL_OFFSET_Y),
+                Pos2::new(
+                    screen_pos.x,
+                    screen_pos.y + base_radius + NODE_LABEL_OFFSET_Y,
+                ),
                 egui::Align2::CENTER_TOP,
                 label,
                 theme::font_label(),
@@ -344,9 +376,15 @@ impl CartographyPage {
                     ("NON IDENTIFIÉ", theme::text_secondary()),
                 ];
                 for (label, color) in legend_items {
-                    let (dot_rect, _) =
-                        ui.allocate_exact_size(egui::Vec2::splat(theme::STATUS_DOT_SIZE), egui::Sense::hover());
-                    ui.painter().circle_filled(dot_rect.center(), theme::STATUS_DOT_SIZE / 2.0, color);
+                    let (dot_rect, _) = ui.allocate_exact_size(
+                        egui::Vec2::splat(theme::STATUS_DOT_SIZE),
+                        egui::Sense::hover(),
+                    );
+                    ui.painter().circle_filled(
+                        dot_rect.center(),
+                        theme::STATUS_DOT_SIZE / 2.0,
+                        color,
+                    );
                     ui.label(
                         egui::RichText::new(label)
                             .font(theme::font_label())
@@ -360,11 +398,7 @@ impl CartographyPage {
 
         // Selected Object Detail Panel (AAA Grade)
         if let Some(selected_ip) = state.cartography.selected_device.as_deref()
-            && let Some(device) = state
-                .discovery
-                .devices
-                .iter()
-                .find(|d| d.ip == selected_ip)
+            && let Some(device) = state.discovery.devices.iter().find(|d| d.ip == selected_ip)
         {
             ui.add_space(theme::SPACE_MD);
             widgets::card(ui, |ui: &mut egui::Ui| {
@@ -574,7 +608,11 @@ fn build_initial_layout(devices: &[GuiDiscoveredDevice]) -> GraphLayout {
         }
     }
 
-    GraphLayout { nodes, edges, converged: false }
+    GraphLayout {
+        nodes,
+        edges,
+        converged: false,
+    }
 }
 
 fn run_force_simulation(layout: &mut GraphLayout) {

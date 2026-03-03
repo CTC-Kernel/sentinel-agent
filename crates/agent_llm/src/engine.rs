@@ -3,15 +3,15 @@
 
 //! LLM inference engine abstraction.
 
-use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use anyhow::Result;
-use sha2::{Sha256, Digest};
+use async_trait::async_trait;
 use chrono;
-use tracing::{info, debug, warn};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::sync::Arc;
+use tracing::{debug, info, warn};
 
-use super::config::{ModelConfig, InferenceConfig, SecurityConfig, CacheConfig};
+use super::config::{CacheConfig, InferenceConfig, ModelConfig, SecurityConfig};
 
 /// Trait for LLM model engines.
 #[async_trait]
@@ -241,7 +241,8 @@ impl ResponseCache {
         if age > ttl {
             // Expired — remove the file and update the size tracker.
             if let Ok(meta) = std::fs::metadata(&path) {
-                self.cached_size.fetch_sub(meta.len(), std::sync::atomic::Ordering::Relaxed);
+                self.cached_size
+                    .fetch_sub(meta.len(), std::sync::atomic::Ordering::Relaxed);
             }
             let _ = std::fs::remove_file(&path);
             return None;
@@ -260,7 +261,10 @@ impl ResponseCache {
         // Check total cache size via the atomic counter (no dir scan).
         let current_size = self.cached_size.load(std::sync::atomic::Ordering::Relaxed);
         if current_size >= self.config.max_size_mb * 1024 * 1024 {
-            debug!("Cache directory exceeds max size ({}MB), skipping write", self.config.max_size_mb);
+            debug!(
+                "Cache directory exceeds max size ({}MB), skipping write",
+                self.config.max_size_mb
+            );
             return;
         }
 
@@ -278,7 +282,8 @@ impl ResponseCache {
                 if let Err(e) = std::fs::write(&path, data) {
                     warn!("Failed to write cache entry: {}", e);
                 } else {
-                    self.cached_size.fetch_add(data_len, std::sync::atomic::Ordering::Relaxed);
+                    self.cached_size
+                        .fetch_add(data_len, std::sync::atomic::Ordering::Relaxed);
                 }
             }
             Err(e) => warn!("Failed to serialize response for cache: {}", e),
@@ -350,7 +355,7 @@ impl MistralEngine {
 
         // Create the model loader
         let model_path = self.config.path.to_string_lossy().to_string();
-        
+
         info!("Loading GGUF model from: {}", model_path);
 
         // We assume the path allows deducing the structure or we configure it as a local file
@@ -358,20 +363,23 @@ impl MistralEngine {
         // Usually builders have a method to specify it's a local file.
         // For now, let's try passing the path as the repo and file.
         // If the path is "/path/to/model.gguf", repo might be the dir, file the filename.
-        
+
         let path = std::path::Path::new(&model_path);
         let parent = path.parent().unwrap_or(std::path::Path::new("."));
-        let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+        let filename = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
 
         // Mistralrs 0.7.0 GgufModelBuilder usage
         let load_result = (async {
-            let builder = mistralrs::GgufModelBuilder::new(
-                parent.to_string_lossy(),
-                vec![filename],
-            );
-            
+            let builder =
+                mistralrs::GgufModelBuilder::new(parent.to_string_lossy(), vec![filename]);
+
             builder.build().await.map_err(|e| anyhow::anyhow!(e))
-        }).await;
+        })
+        .await;
 
         match load_result {
             Ok(model) => {
@@ -401,8 +409,8 @@ impl ModelEngine for MistralEngine {
     async fn infer(&self, request: InferenceRequest) -> Result<InferenceResponse> {
         // --- Security validation ---
         if self.security_config.sanitize_input {
-            let total_len = request.prompt.len()
-                + request.system_prompt.as_ref().map_or(0, |s| s.len());
+            let total_len =
+                request.prompt.len() + request.system_prompt.as_ref().map_or(0, |s| s.len());
             if total_len > self.security_config.max_input_length {
                 return Err(anyhow::anyhow!(
                     "Input length ({}) exceeds maximum allowed ({})",
@@ -411,9 +419,17 @@ impl ModelEngine for MistralEngine {
                 ));
             }
 
-            for (pattern, re) in self.security_config.blocked_patterns.iter().zip(&self.blocked_patterns) {
+            for (pattern, re) in self
+                .security_config
+                .blocked_patterns
+                .iter()
+                .zip(&self.blocked_patterns)
+            {
                 if re.is_match(&request.prompt)
-                    || request.system_prompt.as_ref().is_some_and(|sp| re.is_match(sp))
+                    || request
+                        .system_prompt
+                        .as_ref()
+                        .is_some_and(|sp| re.is_match(sp))
                 {
                     return Err(anyhow::anyhow!(
                         "Input matches blocked pattern: {}",
@@ -447,30 +463,39 @@ impl ModelEngine for MistralEngine {
         // (status, memory_usage) are not blocked during inference.
         let model = {
             let guard = self.model.lock().await;
-            Arc::clone(guard.as_ref()
-                .ok_or_else(|| anyhow::anyhow!("Model not loaded"))?)
+            Arc::clone(
+                guard
+                    .as_ref()
+                    .ok_or_else(|| anyhow::anyhow!("Model not loaded"))?,
+            )
         };
 
         let start_time = std::time::Instant::now();
 
-        let temperature = request.temperature.unwrap_or(self.inference_config.temperature) as f64;
+        let temperature = request
+            .temperature
+            .unwrap_or(self.inference_config.temperature) as f64;
         let top_p = request.top_p.unwrap_or(self.inference_config.top_p) as f64;
         let top_k = self.inference_config.top_k as usize;
         let repetition_penalty = self.inference_config.repetition_penalty;
-        let max_tokens = request.max_tokens.unwrap_or(self.inference_config.max_tokens) as usize;
+        let max_tokens = request
+            .max_tokens
+            .unwrap_or(self.inference_config.max_tokens) as usize;
         let timeout_secs = self.inference_config.timeout_secs;
 
-        debug!("Starting inference: prompt_len={}, max_tokens={}, temp={:.1}",
-            request.prompt.len(), max_tokens, temperature);
+        debug!(
+            "Starting inference: prompt_len={}, max_tokens={}, temp={:.1}",
+            request.prompt.len(),
+            max_tokens,
+            temperature
+        );
 
         // Build a chat request with the given token limit.
         let build_chat_request = |max_tok: usize| {
             let mut builder = mistralrs::RequestBuilder::new();
             if let Some(ref system_prompt) = request.system_prompt {
-                builder = builder.add_message(
-                    mistralrs::TextMessageRole::System,
-                    system_prompt.clone(),
-                );
+                builder =
+                    builder.add_message(mistralrs::TextMessageRole::System, system_prompt.clone());
             }
             builder
                 .add_message(mistralrs::TextMessageRole::User, request.prompt.clone())
@@ -502,7 +527,9 @@ impl ModelEngine for MistralEngine {
         let response = match tokio::time::timeout(
             timeout_duration,
             model.send_chat_request(build_chat_request(max_tokens)),
-        ).await {
+        )
+        .await
+        {
             Ok(Ok(resp)) => resp,
             Ok(Err(e)) => {
                 return Err(anyhow::anyhow!("Inference error: {}", e));
@@ -522,14 +549,19 @@ impl ModelEngine for MistralEngine {
                 // Clone the freshly loaded model
                 let model = {
                     let guard = self.model.lock().await;
-                    Arc::clone(guard.as_ref()
-                        .ok_or_else(|| anyhow::anyhow!("Model not loaded after reload"))?)
+                    Arc::clone(
+                        guard
+                            .as_ref()
+                            .ok_or_else(|| anyhow::anyhow!("Model not loaded after reload"))?,
+                    )
                 };
 
                 match tokio::time::timeout(
                     timeout_duration,
                     model.send_chat_request(build_chat_request(reduced_tokens)),
-                ).await {
+                )
+                .await
+                {
                     Ok(Ok(resp)) => {
                         info!("Retry with reduced tokens succeeded");
                         resp
@@ -538,12 +570,16 @@ impl ModelEngine for MistralEngine {
                         return Err(anyhow::anyhow!("Inference error on retry: {}", e));
                     }
                     Err(_) => {
-                        warn!("LLM inference timed out again after {}s — giving up", timeout_secs);
+                        warn!(
+                            "LLM inference timed out again after {}s — giving up",
+                            timeout_secs
+                        );
                         {
                             let mut status = self.status.write().await;
-                            *status = ModelStatus::Error(
-                                format!("Inference timed out after {}s (retry also failed)", timeout_secs),
-                            );
+                            *status = ModelStatus::Error(format!(
+                                "Inference timed out after {}s (retry also failed)",
+                                timeout_secs
+                            ));
                         }
                         let mut model_lock = self.model.lock().await;
                         *model_lock = None;
@@ -559,16 +595,22 @@ impl ModelEngine for MistralEngine {
         let duration = start_time.elapsed();
 
         // Update inference count
-        self.inference_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.inference_count
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
-        let text = response.choices.first()
+        let text = response
+            .choices
+            .first()
             .map(|c| c.message.content.clone().unwrap_or_default())
             .ok_or_else(|| anyhow::anyhow!("LLM returned empty choices"))?;
 
         let tokens = response.usage.completion_tokens;
-        info!("Inference complete: {} tokens in {:.1}s ({:.0} tok/s)",
-            tokens, duration.as_secs_f64(),
-            tokens as f64 / duration.as_secs_f64().max(0.001));
+        info!(
+            "Inference complete: {} tokens in {:.1}s ({:.0} tok/s)",
+            tokens,
+            duration.as_secs_f64(),
+            tokens as f64 / duration.as_secs_f64().max(0.001)
+        );
 
         let response = InferenceResponse {
             text,
@@ -593,7 +635,8 @@ impl ModelEngine for MistralEngine {
     }
 
     async fn inference_count(&self) -> u64 {
-        self.inference_count.load(std::sync::atomic::Ordering::Relaxed)
+        self.inference_count
+            .load(std::sync::atomic::Ordering::Relaxed)
     }
 
     async fn reload(&self) -> Result<()> {
@@ -606,10 +649,10 @@ impl ModelEngine for MistralEngine {
     async fn unload(&self) -> Result<()> {
         let mut model_guard = self.model.lock().await;
         *model_guard = None;
-        
+
         let mut status = self.status.write().await;
         *status = ModelStatus::Unloaded;
-        
+
         info!("Model unloaded");
         Ok(())
     }
@@ -623,15 +666,21 @@ pub fn create_engine(
     cache_config: &CacheConfig,
 ) -> Result<Arc<dyn ModelEngine>> {
     let engine: Arc<dyn ModelEngine> = match config.model_type {
-        super::config::ModelType::Llama4 |
-        super::config::ModelType::Qwen3Coder |
-        super::config::ModelType::DeepSeekR1 |
-        super::config::ModelType::Gemma3 => {
-            Arc::new(MistralEngine::new(config.clone(), inference_config.clone(), security_config.clone(), cache_config.clone()))
-        }
-        super::config::ModelType::Custom(_) => {
-            Arc::new(MistralEngine::new(config.clone(), inference_config.clone(), security_config.clone(), cache_config.clone()))
-        }
+        super::config::ModelType::Llama4
+        | super::config::ModelType::Qwen3Coder
+        | super::config::ModelType::DeepSeekR1
+        | super::config::ModelType::Gemma3 => Arc::new(MistralEngine::new(
+            config.clone(),
+            inference_config.clone(),
+            security_config.clone(),
+            cache_config.clone(),
+        )),
+        super::config::ModelType::Custom(_) => Arc::new(MistralEngine::new(
+            config.clone(),
+            inference_config.clone(),
+            security_config.clone(),
+            cache_config.clone(),
+        )),
     };
 
     Ok(engine)
@@ -648,7 +697,12 @@ fn get_process_memory_mb() -> (u64, u64) {
             .args(["-o", "rss=", "-p", &pid.to_string()])
             .output()
             .ok()
-            .and_then(|o| String::from_utf8_lossy(&o.stdout).trim().parse::<u64>().ok())
+            .and_then(|o| {
+                String::from_utf8_lossy(&o.stdout)
+                    .trim()
+                    .parse::<u64>()
+                    .ok()
+            })
             .map(|kb| kb / 1024)
             .unwrap_or(0);
         // Get available from vm_stat or sysctl
@@ -656,7 +710,12 @@ fn get_process_memory_mb() -> (u64, u64) {
             .args(["-n", "hw.memsize"])
             .output()
             .ok()
-            .and_then(|o| String::from_utf8_lossy(&o.stdout).trim().parse::<u64>().ok())
+            .and_then(|o| {
+                String::from_utf8_lossy(&o.stdout)
+                    .trim()
+                    .parse::<u64>()
+                    .ok()
+            })
             .map(|bytes| bytes / (1024 * 1024))
             .unwrap_or(0);
         (allocated, available)
@@ -723,7 +782,10 @@ mod tests {
             .with_max_tokens(256);
 
         assert_eq!(request.prompt, "Analyze this");
-        assert_eq!(request.system_prompt, Some("You are a security analyst".to_string()));
+        assert_eq!(
+            request.system_prompt,
+            Some("You are a security analyst".to_string())
+        );
         assert_eq!(request.max_tokens, Some(256));
     }
 
@@ -862,7 +924,12 @@ mod tests {
         };
         let cache_config = CacheConfig::default();
 
-        MistralEngine::new(model_config, inference_config, security_config, cache_config)
+        MistralEngine::new(
+            model_config,
+            inference_config,
+            security_config,
+            cache_config,
+        )
     }
 
     #[tokio::test]
@@ -892,8 +959,7 @@ mod tests {
     #[tokio::test]
     async fn test_security_rejects_blocked_pattern_in_system_prompt() {
         let engine = make_test_engine();
-        let request = InferenceRequest::new("analyze")
-            .with_system_prompt("secret = abc123");
+        let request = InferenceRequest::new("analyze").with_system_prompt("secret = abc123");
         let result = engine.infer(request).await;
 
         assert!(result.is_err());
@@ -905,8 +971,7 @@ mod tests {
     async fn test_security_counts_system_prompt_in_length() {
         let engine = make_test_engine();
         // 60 + 60 = 120 > 100 max
-        let request = InferenceRequest::new("a".repeat(60))
-            .with_system_prompt("b".repeat(60));
+        let request = InferenceRequest::new("a".repeat(60)).with_system_prompt("b".repeat(60));
         let result = engine.infer(request).await;
 
         assert!(result.is_err());
@@ -928,7 +993,12 @@ mod tests {
             enabled: false,
             ..CacheConfig::default()
         };
-        let engine = MistralEngine::new(model_config, inference_config, security_config, cache_config);
+        let engine = MistralEngine::new(
+            model_config,
+            inference_config,
+            security_config,
+            cache_config,
+        );
 
         // With sanitize_input=false, even a very long prompt should pass security
         // (it will fail later at model loading, which is expected)

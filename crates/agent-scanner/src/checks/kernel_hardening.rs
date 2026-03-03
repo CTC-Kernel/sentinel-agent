@@ -12,10 +12,10 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for kernel hardening.
@@ -170,7 +170,9 @@ impl KernelHardeningCheck {
                 .split("0x")
                 .last()
                 .and_then(|hex_str| {
-                    let hex_trimmed = hex_str.trim().trim_end_matches(|c: char| !c.is_ascii_hexdigit());
+                    let hex_trimmed = hex_str
+                        .trim()
+                        .trim_end_matches(|c: char| !c.is_ascii_hexdigit());
                     u64::from_str_radix(hex_trimmed, 16).ok()
                 })
                 .map(|val| val == 0)
@@ -358,23 +360,20 @@ impl KernelHardeningCheck {
                 .push_str(&format!("IP forwarding: {}\n", result.trim()));
 
             if let Some(value_str) = result.split(':').next_back()
-                && let Ok(value) = value_str.trim().parse::<u32>() {
-                    status.ip_forward_disabled = value == 0;
-                    if value != 0 {
-                        status.hardened = false;
-                        status.issues.push(
-                            "IP forwarding is enabled (net.inet.ip.forwarding should be 0)"
-                                .to_string(),
-                        );
-                    }
+                && let Ok(value) = value_str.trim().parse::<u32>()
+            {
+                status.ip_forward_disabled = value == 0;
+                if value != 0 {
+                    status.hardened = false;
+                    status.issues.push(
+                        "IP forwarding is enabled (net.inet.ip.forwarding should be 0)".to_string(),
+                    );
                 }
+            }
         }
 
         // Check Gatekeeper status
-        if let Ok(output) = silent_command("spctl")
-            .args(["--status"])
-            .output()
-        {
+        if let Ok(output) = silent_command("spctl").args(["--status"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status
                 .raw_output

@@ -17,10 +17,10 @@
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for SSH hardening.
@@ -220,17 +220,26 @@ impl SshHardeningCheck {
 
             // Max auth tries
             if let Some(value) = Self::parse_config_value(line, "MaxAuthTries")
-                && let Ok(v) = value.parse::<u32>() {
-                    status.max_auth_tries = Some(v);
-                }
+                && let Ok(v) = value.parse::<u32>()
+            {
+                status.max_auth_tries = Some(v);
+            }
 
             // Login grace time
             if let Some(value) = Self::parse_config_value(line, "LoginGraceTime") {
                 // Parse value — supports suffixes: s (seconds), m (minutes), h (hours)
                 let seconds = if value.ends_with('h') {
-                    value.trim_end_matches('h').parse::<u32>().ok().map(|n| n.saturating_mul(3600))
+                    value
+                        .trim_end_matches('h')
+                        .parse::<u32>()
+                        .ok()
+                        .map(|n| n.saturating_mul(3600))
                 } else if value.ends_with('m') {
-                    value.trim_end_matches('m').parse::<u32>().ok().map(|n| n.saturating_mul(60))
+                    value
+                        .trim_end_matches('m')
+                        .parse::<u32>()
+                        .ok()
+                        .map(|n| n.saturating_mul(60))
                 } else {
                     value.trim_end_matches('s').parse::<u32>().ok()
                 };
@@ -320,24 +329,26 @@ impl SshHardeningCheck {
         }
 
         if let Some(tries) = status.max_auth_tries
-            && tries > 4 {
-                status
-                    .issues
-                    .push(format!("MaxAuthTries is too high: {}", tries));
-                status
-                    .recommendations
-                    .push("Set MaxAuthTries 3 or 4".to_string());
-            }
+            && tries > 4
+        {
+            status
+                .issues
+                .push(format!("MaxAuthTries is too high: {}", tries));
+            status
+                .recommendations
+                .push("Set MaxAuthTries 3 or 4".to_string());
+        }
 
         if let Some(grace) = status.login_grace_time
-            && grace > 60 {
-                status
-                    .issues
-                    .push(format!("LoginGraceTime is too high: {}s", grace));
-                status
-                    .recommendations
-                    .push("Set LoginGraceTime 60 or lower".to_string());
-            }
+            && grace > 60
+        {
+            status
+                .issues
+                .push(format!("LoginGraceTime is too high: {}s", grace));
+            status
+                .recommendations
+                .push("Set LoginGraceTime 60 or lower".to_string());
+        }
 
         // Medium severity issues
         if !status.x11_forwarding_disabled {
@@ -503,7 +514,11 @@ impl SshHardeningCheck {
             status.ssh_server_active = output.status.success();
             status.raw_output.push_str(&format!(
                 "sshd via launchctl: {}\n",
-                if output.status.success() { "running" } else { "not running" }
+                if output.status.success() {
+                    "running"
+                } else {
+                    "not running"
+                }
             ));
         }
 

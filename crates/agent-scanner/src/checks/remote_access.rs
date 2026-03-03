@@ -9,13 +9,13 @@
 //! - macOS: Screen sharing, SSH, remote management
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for remote access security.
@@ -203,16 +203,34 @@ impl RemoteAccessCheck {
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // RDP configuration (GPO overrides)
-            let rdp_deny = json.get("GPO_fDenyTSConnections")
+            let rdp_deny = json
+                .get("GPO_fDenyTSConnections")
                 .cloned()
-                .or_else(|| json.get("RdpEnabled").map(|e| if e.as_bool() == Some(true) { serde_json::Value::from(0) } else { serde_json::Value::from(1) }))
+                .or_else(|| {
+                    json.get("RdpEnabled").map(|e| {
+                        if e.as_bool() == Some(true) {
+                            serde_json::Value::from(0)
+                        } else {
+                            serde_json::Value::from(1)
+                        }
+                    })
+                })
                 .and_then(|v| v.as_i64());
-            
+
             let rdp_enabled = rdp_deny == Some(0);
-            
-            let nla_required = json.get("GPO_UserAuthentication")
+
+            let nla_required = json
+                .get("GPO_UserAuthentication")
                 .cloned()
-                .or_else(|| json.get("NlaRequired").map(|e| if e.as_bool() == Some(true) { serde_json::Value::from(1) } else { serde_json::Value::from(0) }))
+                .or_else(|| {
+                    json.get("NlaRequired").map(|e| {
+                        if e.as_bool() == Some(true) {
+                            serde_json::Value::from(1)
+                        } else {
+                            serde_json::Value::from(0)
+                        }
+                    })
+                })
                 .and_then(|v| v.as_i64())
                 .map(|v| v == 1);
 
@@ -220,8 +238,9 @@ impl RemoteAccessCheck {
                 .get("RdpPort")
                 .and_then(|v| v.as_u64())
                 .map(|p| u16::try_from(p).unwrap_or(3389));
-            
-            let enc_level = json.get("GPO_MinEncryptionLevel")
+
+            let enc_level = json
+                .get("GPO_MinEncryptionLevel")
                 .or_else(|| json.get("EncryptionLevel"))
                 .and_then(|v| v.as_u64());
 
@@ -454,18 +473,20 @@ impl RemoteAccessCheck {
                     .output()
                     && ssh_output.status.success()
                 {
-                        status.remote_access_enabled = true;
-                        status.raw_output.push_str("SSH detected via launchctl fallback\n");
+                    status.remote_access_enabled = true;
+                    status
+                        .raw_output
+                        .push_str("SSH detected via launchctl fallback\n");
 
-                        let ssh_config = SshConfig {
-                            enabled: true,
-                            permit_root_login: None,
-                            password_auth: Some(true),
-                            pubkey_auth: Some(true),
-                            port: Some(22),
-                            auth_methods: vec!["publickey".to_string(), "password".to_string()],
-                        };
-                        status.ssh_config = Some(ssh_config);
+                    let ssh_config = SshConfig {
+                        enabled: true,
+                        permit_root_login: None,
+                        password_auth: Some(true),
+                        pubkey_auth: Some(true),
+                        port: Some(22),
+                        auth_methods: vec!["publickey".to_string(), "password".to_string()],
+                    };
+                    status.ssh_config = Some(ssh_config);
                 }
             } else if result.to_lowercase().contains("on") {
                 status.remote_access_enabled = true;

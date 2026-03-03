@@ -59,7 +59,10 @@ impl AgentRuntime {
     }
 
     /// Upload network snapshot to the server.
-    pub(crate) async fn upload_network_snapshot(&self, snapshot: &NetworkSnapshot) -> Result<(), CommonError> {
+    pub(crate) async fn upload_network_snapshot(
+        &self,
+        snapshot: &NetworkSnapshot,
+    ) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()
@@ -88,7 +91,10 @@ impl AgentRuntime {
     }
 
     /// Upload network security alert to the server.
-    pub(crate) async fn upload_network_alert(&self, alert: &NetworkSecurityAlert) -> Result<(), CommonError> {
+    pub(crate) async fn upload_network_alert(
+        &self,
+        alert: &NetworkSecurityAlert,
+    ) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()
@@ -122,7 +128,10 @@ impl AgentRuntime {
     }
 
     /// Upload a proposed asset (discovered device) to the server.
-    pub(crate) async fn upload_proposed_asset(&self, proposal: &ProposeAssetData) -> Result<(), CommonError> {
+    pub(crate) async fn upload_proposed_asset(
+        &self,
+        proposal: &ProposeAssetData,
+    ) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()

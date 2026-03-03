@@ -3,16 +3,16 @@
 
 //! EDR module — Detection, Investigation & Response.
 
+mod detection_rules;
 mod events;
+mod forensic_timeline;
 mod investigation;
 mod mitre;
 mod overview;
+mod playbooks;
 mod response;
 mod timeline;
 mod types;
-mod playbooks;
-mod detection_rules;
-mod forensic_timeline;
 
 use egui::Ui;
 
@@ -33,7 +33,9 @@ impl ThreatsPage {
             ui,
             &["Sys & Network", "EDR"],
             "D\u{00e9}tection & R\u{00e9}ponse",
-            Some("MODULE EDR \u{2014} D\u{00c9}TECTION, INVESTIGATION ET R\u{00c9}PONSE AUX MENACES"),
+            Some(
+                "MODULE EDR \u{2014} D\u{00c9}TECTION, INVESTIGATION ET R\u{00c9}PONSE AUX MENACES",
+            ),
             Some(
                 "Surveillez les menaces en temps r\u{00e9}el, investiguez les indicateurs de compromission et d\u{00e9}clenchez des actions de r\u{00e9}ponse.",
             ),
@@ -48,12 +50,25 @@ impl ThreatsPage {
             + state.network.alerts.len()
             + state.vulnerability_findings.len();
 
-        let pending_response = state.threats.pending_actions.iter()
-            .filter(|a| matches!(a.status, crate::dto::ResponseStatus::Pending | crate::dto::ResponseStatus::InProgress))
+        let pending_response = state
+            .threats
+            .pending_actions
+            .iter()
+            .filter(|a| {
+                matches!(
+                    a.status,
+                    crate::dto::ResponseStatus::Pending | crate::dto::ResponseStatus::InProgress
+                )
+            })
             .count() as u32;
 
         let active_playbooks = state.threats.playbooks.iter().filter(|p| p.enabled).count() as u32;
-        let active_rules = state.threats.detection_rules.iter().filter(|r| r.enabled).count() as u32;
+        let active_rules = state
+            .threats
+            .detection_rules
+            .iter()
+            .filter(|r| r.enabled)
+            .count() as u32;
 
         let selected_idx = match state.threats.active_tab {
             EdrTab::Overview => 0,

@@ -10,17 +10,26 @@
 pub mod software {
     use crate::dto::GuiNativeApp;
 
-    use windows::core::HSTRING;
     use windows::Win32::System::Registry::{
-        RegCloseKey, RegEnumKeyExW, RegOpenKeyExW, RegQueryValueExW, HKEY,
-        HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, REG_SZ,
+        HKEY, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, REG_SZ, RegCloseKey, RegEnumKeyExW,
+        RegOpenKeyExW, RegQueryValueExW,
     };
+    use windows::core::HSTRING;
 
     /// Registry paths containing installed software entries.
     const UNINSTALL_PATHS: &[(&str, HKEY)] = &[
-        (r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", HKEY_LOCAL_MACHINE),
-        (r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", HKEY_LOCAL_MACHINE),
-        (r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", HKEY_CURRENT_USER),
+        (
+            r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+            HKEY_LOCAL_MACHINE,
+        ),
+        (
+            r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
+            HKEY_LOCAL_MACHINE,
+        ),
+        (
+            r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+            HKEY_CURRENT_USER,
+        ),
     ];
 
     /// Scan the Windows Registry for installed applications.
@@ -40,31 +49,24 @@ pub mod software {
                 .cmp(&b.name.to_lowercase())
                 .then_with(|| a.version.cmp(&b.version))
         });
-        apps.dedup_by(|a, b| {
-            a.name.eq_ignore_ascii_case(&b.name) && a.version == b.version
-        });
+        apps.dedup_by(|a, b| a.name.eq_ignore_ascii_case(&b.name) && a.version == b.version);
 
         Ok(apps)
     }
 
     /// Enumerate all subkeys under an Uninstall registry path and extract app metadata.
-    fn enumerate_uninstall_key(
-        root: HKEY,
-        subkey_path: &str,
-    ) -> Result<Vec<GuiNativeApp>, String> {
+    fn enumerate_uninstall_key(root: HKEY, subkey_path: &str) -> Result<Vec<GuiNativeApp>, String> {
         let mut apps = Vec::new();
         let subkey_hstring = HSTRING::from(subkey_path);
         let mut hkey = HKEY::default();
 
-        let status = unsafe {
-            RegOpenKeyExW(root, &subkey_hstring, Some(0), KEY_READ, &mut hkey)
-        };
+        let status = unsafe { RegOpenKeyExW(root, &subkey_hstring, Some(0), KEY_READ, &mut hkey) };
         if status.is_err() {
             // Log error only if it's not "Not Found" which is expected for WOW6432Node on some systems
             if status != windows::Win32::Foundation::WIN32_ERROR(2) {
                 tracing::error!("Failed to open registry key {}: {}", subkey_path, status.0);
             }
-            return Ok(apps); 
+            return Ok(apps);
         }
 
         let mut index: u32 = 0;
@@ -98,7 +100,9 @@ pub mod software {
             index += 1;
         }
 
-        unsafe { let _ = RegCloseKey(hkey); }
+        unsafe {
+            let _ = RegCloseKey(hkey);
+        }
         Ok(apps)
     }
 
@@ -107,22 +111,25 @@ pub mod software {
         let subkey_hstring = HSTRING::from(subkey_name);
         let mut hkey = HKEY::default();
 
-        let status = unsafe {
-            RegOpenKeyExW(parent_key, &subkey_hstring, Some(0), KEY_READ, &mut hkey)
-        };
+        let status =
+            unsafe { RegOpenKeyExW(parent_key, &subkey_hstring, Some(0), KEY_READ, &mut hkey) };
         if status.is_err() {
             return None;
         }
 
         let name = read_reg_string(hkey, "DisplayName").unwrap_or_default();
         if name.is_empty() {
-            unsafe { let _ = RegCloseKey(hkey); }
+            unsafe {
+                let _ = RegCloseKey(hkey);
+            }
             return None;
         }
 
         // Skip Windows updates (KB patches)
         if name.starts_with("KB") && name.chars().skip(2).all(|c| c.is_ascii_digit()) {
-            unsafe { let _ = RegCloseKey(hkey); }
+            unsafe {
+                let _ = RegCloseKey(hkey);
+            }
             return None;
         }
 
@@ -132,7 +139,9 @@ pub mod software {
             .unwrap_or(false);
 
         if system_component {
-            unsafe { let _ = RegCloseKey(hkey); }
+            unsafe {
+                let _ = RegCloseKey(hkey);
+            }
             return None;
         }
 
@@ -148,7 +157,9 @@ pub mod software {
             install_location
         };
 
-        unsafe { let _ = RegCloseKey(hkey); }
+        unsafe {
+            let _ = RegCloseKey(hkey);
+        }
 
         Some(GuiNativeApp {
             name,
@@ -198,10 +209,7 @@ pub mod software {
 
         // Convert UTF-16LE bytes to String, stripping trailing null
         let u16_slice: &[u16] = unsafe {
-            std::slice::from_raw_parts(
-                buffer.as_ptr().cast::<u16>(),
-                data_size as usize / 2,
-            )
+            std::slice::from_raw_parts(buffer.as_ptr().cast::<u16>(), data_size as usize / 2)
         };
         let s = String::from_utf16_lossy(u16_slice);
         Some(s.trim_end_matches('\0').to_string())
@@ -217,7 +225,9 @@ pub mod software {
             }
         }
         // Try the raw string as a path
-        if let Some(parent) = std::path::Path::new(trimmed.split_whitespace().next().unwrap_or("")).parent() {
+        if let Some(parent) =
+            std::path::Path::new(trimmed.split_whitespace().next().unwrap_or("")).parent()
+        {
             return parent.to_string_lossy().to_string();
         }
         String::new()
@@ -225,6 +235,10 @@ pub mod software {
 
     /// Normalize empty fields to display placeholder.
     fn normalize(field: String) -> String {
-        if field.is_empty() { "--".to_string() } else { field }
+        if field.is_empty() {
+            "--".to_string()
+        } else {
+            field
+        }
     }
 }

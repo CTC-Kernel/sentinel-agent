@@ -374,47 +374,27 @@ pub enum GuiCommand {
         framework: Option<String>,
     },
     /// Export a report as HTML file.
-    ExportReportHtml {
-        report_id: String,
-    },
+    ExportReportHtml { report_id: String },
     /// Execute a playbook manually.
-    ExecutePlaybook {
-        playbook_id: String,
-    },
+    ExecutePlaybook { playbook_id: String },
     /// Toggle playbook enabled state.
-    TogglePlaybook {
-        playbook_id: String,
-        enabled: bool,
-    },
+    TogglePlaybook { playbook_id: String, enabled: bool },
     /// Save or update a playbook.
-    SavePlaybook {
-        playbook: Box<crate::dto::Playbook>,
-    },
+    SavePlaybook { playbook: Box<crate::dto::Playbook> },
     /// Delete a playbook.
-    DeletePlaybook {
-        playbook_id: String,
-    },
+    DeletePlaybook { playbook_id: String },
     /// Save or update a detection rule.
     SaveDetectionRule {
         rule: Box<crate::dto::DetectionRule>,
     },
     /// Delete a detection rule.
-    DeleteDetectionRule {
-        rule_id: String,
-    },
+    DeleteDetectionRule { rule_id: String },
     /// Toggle detection rule enabled state.
-    ToggleDetectionRule {
-        rule_id: String,
-        enabled: bool,
-    },
+    ToggleDetectionRule { rule_id: String, enabled: bool },
     /// Save or update a risk entry.
-    SaveRisk {
-        risk: Box<crate::dto::RiskEntry>,
-    },
+    SaveRisk { risk: Box<crate::dto::RiskEntry> },
     /// Delete a risk entry.
-    DeleteRisk {
-        risk_id: String,
-    },
+    DeleteRisk { risk_id: String },
     /// Save or update a managed asset.
     SaveAsset {
         asset: Box<crate::dto::ManagedAsset>,
@@ -425,25 +405,17 @@ pub enum GuiCommand {
         lifecycle: crate::dto::AssetLifecycle,
     },
     /// Save or update an alert rule.
-    SaveAlertRule {
-        rule: Box<crate::dto::AlertRule>,
-    },
+    SaveAlertRule { rule: Box<crate::dto::AlertRule> },
     /// Delete an alert rule.
-    DeleteAlertRule {
-        rule_id: String,
-    },
+    DeleteAlertRule { rule_id: String },
     /// Save or update a webhook config.
     SaveWebhook {
         webhook: Box<crate::dto::WebhookConfig>,
     },
     /// Delete a webhook config.
-    DeleteWebhook {
-        webhook_id: String,
-    },
+    DeleteWebhook { webhook_id: String },
     /// Test a webhook by sending a test payload.
-    TestWebhook {
-        webhook_id: String,
-    },
+    TestWebhook { webhook_id: String },
     /// Send a prompt to the local LLM.
     LlmPrompt {
         /// The user's prompt text.

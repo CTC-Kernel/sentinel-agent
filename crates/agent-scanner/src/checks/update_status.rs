@@ -13,12 +13,12 @@
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
-use agent_common::process::silent_command;
 
 /// Check ID for update status.
 pub const UPDATE_STATUS_CHECK_ID: &str = "update_status";
@@ -239,7 +239,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "windows")]
     async fn get_service_status(&self) -> UpdateServiceStatus {
-
         let mut status = UpdateServiceStatus {
             service_running: false,
             start_type: "Unknown".to_string(),
@@ -303,7 +302,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "windows")]
     async fn get_update_history(&self) -> (Option<DateTime<Utc>>, Vec<UpdateHistoryEntry>) {
-
         let output = silent_command("powershell")
             .args([
                 "-NoProfile",
@@ -381,7 +379,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "windows")]
     async fn get_pending_updates(&self) -> Vec<PendingUpdate> {
-
         let output = silent_command("powershell")
             .args([
                 "-NoProfile",
@@ -467,7 +464,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "windows")]
     async fn check_reboot_pending(&self) -> (bool, Option<DateTime<Utc>>) {
-
         let output = silent_command("powershell")
             .args([
                 "-NoProfile",
@@ -641,10 +637,12 @@ impl UpdateStatusCheck {
             .output()
             .ok()
             .and_then(|o| {
-                let c = String::from_utf8_lossy(&o.stdout).trim().parse::<usize>().ok();
+                let c = String::from_utf8_lossy(&o.stdout)
+                    .trim()
+                    .parse::<usize>()
+                    .ok();
                 c.filter(|&v| v > 0)
-            })
-        {
+            }) {
             count
         } else if let Some(count) = silent_command("sh")
             .args([
@@ -655,19 +653,22 @@ impl UpdateStatusCheck {
             .ok()
             .and_then(|o| {
                 // dnf check-update exits with code 100 when updates are available
-                String::from_utf8_lossy(&o.stdout).trim().parse::<usize>().ok()
+                String::from_utf8_lossy(&o.stdout)
+                    .trim()
+                    .parse::<usize>()
+                    .ok()
             })
         {
             count
         } else if let Some(count) = silent_command("sh")
-            .args([
-                "-c",
-                "checkupdates 2>/dev/null | wc -l || echo 0",
-            ])
+            .args(["-c", "checkupdates 2>/dev/null | wc -l || echo 0"])
             .output()
             .ok()
             .and_then(|o| {
-                String::from_utf8_lossy(&o.stdout).trim().parse::<usize>().ok()
+                String::from_utf8_lossy(&o.stdout)
+                    .trim()
+                    .parse::<usize>()
+                    .ok()
             })
         {
             count
@@ -716,7 +717,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "macos")]
     async fn check_macos_updates(&self) -> ScannerResult<UpdateStatus> {
-
         let mut issues = Vec::new();
 
         // Check for pending updates using softwareupdate
@@ -725,7 +725,10 @@ impl UpdateStatusCheck {
 
         let pending_count = if let Ok(out) = output {
             let stderr = String::from_utf8_lossy(&out.stderr);
-            stderr.lines().filter(|l| l.trim_start().starts_with('*')).count()
+            stderr
+                .lines()
+                .filter(|l| l.trim_start().starts_with('*'))
+                .count()
         } else {
             0
         };

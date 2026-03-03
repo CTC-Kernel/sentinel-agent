@@ -4,7 +4,7 @@
 //! State management for the Sentinel GRC Agent.
 
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU64, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering};
 
 /// Runtime state indicators and flags.
 pub struct RuntimeState {

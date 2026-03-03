@@ -118,7 +118,12 @@ impl IntegrityChecker {
         let passed = {
             let a = current_hash.to_lowercase();
             let b = expected_hash.to_lowercase();
-            a.len() == b.len() && a.as_bytes().iter().zip(b.as_bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+            a.len() == b.len()
+                && a.as_bytes()
+                    .iter()
+                    .zip(b.as_bytes())
+                    .fold(0u8, |acc, (x, y)| acc | (x ^ y))
+                    == 0
         };
 
         let duration = start.elapsed();
@@ -321,7 +326,10 @@ pub async fn verify_or_exit(db: &Database) -> SelfCheckResult {
             error!("Agent cannot verify its integrity - aborting for safety");
             // RH-5: Use panic! instead of process::exit(1) so destructors
             // (including key zeroization) run via the panic hook in main.rs.
-            panic!("integrity check failed: cannot create integrity checker: {}", e);
+            panic!(
+                "integrity check failed: cannot create integrity checker: {}",
+                e
+            );
         }
     };
 

@@ -8,8 +8,8 @@
 //! Used by: ArcSight, QRadar, and other SIEM solutions.
 
 use super::SiemFormatter;
-use agent_common::constants::AGENT_VERSION;
 use crate::{SiemEvent, SiemResult};
+use agent_common::constants::AGENT_VERSION;
 
 /// CEF (Common Event Format) event formatter.
 pub struct CefFormatter {
@@ -175,8 +175,8 @@ impl SiemFormatter for CefFormatter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use agent_common::constants::AGENT_VERSION;
     use crate::EventCategory;
+    use agent_common::constants::AGENT_VERSION;
     use chrono::Utc;
 
     fn create_test_event() -> SiemEvent {

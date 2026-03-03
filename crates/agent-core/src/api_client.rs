@@ -595,23 +595,20 @@ impl ApiClient {
 
         let builder = self.authenticate(self.client.post(&url).json(&request));
 
-        let response = builder
-            .send()
-            .await
-            .map_err(|e| {
-                let err_type = if e.is_timeout() {
-                    "timeout"
-                } else if e.is_connect() {
-                    "connection_failure"
-                } else if e.is_request() {
-                    "request_error"
-                } else if e.is_decode() {
-                    "decode_error"
-                } else {
-                    "unknown_network_error"
-                };
-                CommonError::network(format!("Heartbeat request failed ({}): {}", err_type, e))
-            })?;
+        let response = builder.send().await.map_err(|e| {
+            let err_type = if e.is_timeout() {
+                "timeout"
+            } else if e.is_connect() {
+                "connection_failure"
+            } else if e.is_request() {
+                "request_error"
+            } else if e.is_decode() {
+                "decode_error"
+            } else {
+                "unknown_network_error"
+            };
+            CommonError::network(format!("Heartbeat request failed ({}): {}", err_type, e))
+        })?;
 
         let status = response.status();
         if !status.is_success() {
@@ -766,19 +763,16 @@ impl ApiClient {
 
         let builder = self.authenticate(self.client.post(&url).json(body));
 
-        let response = builder
-            .send()
-            .await
-            .map_err(|e| {
-                let err_type = if e.is_timeout() {
-                    "timeout"
-                } else if e.is_connect() {
-                    "connection_failure"
-                } else {
-                    "network_error"
-                };
-                CommonError::network(format!("POST {} failed ({}): {}", path, err_type, e))
-            })?;
+        let response = builder.send().await.map_err(|e| {
+            let err_type = if e.is_timeout() {
+                "timeout"
+            } else if e.is_connect() {
+                "connection_failure"
+            } else {
+                "network_error"
+            };
+            CommonError::network(format!("POST {} failed ({}): {}", path, err_type, e))
+        })?;
 
         let status = response.status();
         if !status.is_success() {
@@ -869,8 +863,9 @@ impl ApiClient {
         let mut total_bytes: u64 = 0;
 
         while let Some(chunk_result) = stream.next().await {
-            let chunk = chunk_result
-                .map_err(|e| CommonError::network(format!("Failed to read download chunk: {}", e)))?;
+            let chunk = chunk_result.map_err(|e| {
+                CommonError::network(format!("Failed to read download chunk: {}", e))
+            })?;
             total_bytes += chunk.len() as u64;
             if total_bytes > MAX_DOWNLOAD_SIZE {
                 // Clean up partial file
@@ -924,7 +919,10 @@ impl ApiClient {
     }
 
     /// Report update status to the server.
-    pub async fn report_update_status(&self, report: UpdateStatusReport) -> Result<UpdateStatusResponse> {
+    pub async fn report_update_status(
+        &self,
+        report: UpdateStatusReport,
+    ) -> Result<UpdateStatusResponse> {
         let agent_id = self
             .agent_id
             .as_ref()
@@ -935,9 +933,10 @@ impl ApiClient {
 
         let builder = self.authenticate(self.client.post(&url).json(&report));
 
-        let response = builder.send().await.map_err(|e| {
-            CommonError::network(format!("Update status report failed: {}", e))
-        })?;
+        let response = builder
+            .send()
+            .await
+            .map_err(|e| CommonError::network(format!("Update status report failed: {}", e)))?;
 
         let status = response.status();
         if !status.is_success() {

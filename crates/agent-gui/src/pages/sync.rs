@@ -119,7 +119,10 @@ impl SyncPage {
                 egui::Frame::new()
                     .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
                     .corner_radius(egui::CornerRadius::same(theme::ROUNDING_SM))
-                    .inner_margin(egui::Margin::symmetric(theme::SPACE_SM as i8, theme::SPACE_XS as i8))
+                    .inner_margin(egui::Margin::symmetric(
+                        theme::SPACE_SM as i8,
+                        theme::SPACE_XS as i8,
+                    ))
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(format!("{} ERREUR : {}", icons::WARNING, err))
@@ -184,36 +187,46 @@ impl SyncPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, state.sync.history.len(), |mut row| {
-                            let Some(entry) = state.sync.history.get(row.index()) else { return };
-
-                            row.col(|ui: &mut egui::Ui| {
-                                let (icon, color) = if entry.success {
-                                    (icons::CIRCLE_CHECK, theme::SUCCESS)
-                                } else {
-                                    (icons::CIRCLE_XMARK, theme::ERROR)
+                        body.rows(
+                            theme::TABLE_ROW_HEIGHT,
+                            state.sync.history.len(),
+                            |mut row| {
+                                let Some(entry) = state.sync.history.get(row.index()) else {
+                                    return;
                                 };
-                                ui.label(egui::RichText::new(icon).size(theme::ICON_SM + theme::BORDER_THICK).color(color));
-                            });
 
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(
-                                        entry.timestamp.format("%H:%M:%S").to_string(),
-                                    )
-                                    .font(theme::font_mono())
-                                    .color(theme::text_tertiary()),
-                                );
-                            });
+                                row.col(|ui: &mut egui::Ui| {
+                                    let (icon, color) = if entry.success {
+                                        (icons::CIRCLE_CHECK, theme::SUCCESS)
+                                    } else {
+                                        (icons::CIRCLE_XMARK, theme::ERROR)
+                                    };
+                                    ui.label(
+                                        egui::RichText::new(icon)
+                                            .size(theme::ICON_SM + theme::BORDER_THICK)
+                                            .color(color),
+                                    );
+                                });
 
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&entry.message)
-                                        .font(theme::font_body())
-                                        .color(theme::text_primary()),
-                                );
-                            });
-                        });
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(
+                                            entry.timestamp.format("%H:%M:%S").to_string(),
+                                        )
+                                        .font(theme::font_mono())
+                                        .color(theme::text_tertiary()),
+                                    );
+                                });
+
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&entry.message)
+                                            .font(theme::font_body())
+                                            .color(theme::text_primary()),
+                                    );
+                                });
+                            },
+                        );
                     });
             }
         });

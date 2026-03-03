@@ -218,11 +218,7 @@ impl<'a> Avatar<'a> {
             if response.has_focus() {
                 match self.shape {
                     AvatarShape::Circle => {
-                        painter.circle_stroke(
-                            rect.center(),
-                            size / 2.0 + 3.0,
-                            theme::focus_ring(),
-                        );
+                        painter.circle_stroke(rect.center(), size / 2.0 + 3.0, theme::focus_ring());
                     }
                     _ => {
                         painter.rect_stroke(

@@ -76,11 +76,8 @@ impl PremiumBadge {
             // Soft tinted background
             let fill = if response.hovered() {
                 // Slightly more prominent on hover
-                self.color.linear_multiply(if theme::is_dark_mode() {
-                    0.22
-                } else {
-                    0.15
-                })
+                self.color
+                    .linear_multiply(if theme::is_dark_mode() { 0.22 } else { 0.15 })
             } else {
                 bg_color
             };

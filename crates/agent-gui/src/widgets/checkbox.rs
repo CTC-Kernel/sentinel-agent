@@ -81,8 +81,13 @@ impl<'a> Checkbox<'a> {
                 .size()
                 .x;
 
-        let (rect, response) =
-            ui.allocate_exact_size(egui::vec2(total_width.max(theme::MIN_TOUCH_TARGET), box_size.max(theme::MIN_TOUCH_TARGET)), sense);
+        let (rect, response) = ui.allocate_exact_size(
+            egui::vec2(
+                total_width.max(theme::MIN_TOUCH_TARGET),
+                box_size.max(theme::MIN_TOUCH_TARGET),
+            ),
+            sense,
+        );
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;
@@ -224,8 +229,13 @@ impl<'a> RadioButton<'a> {
                 .size()
                 .x;
 
-        let (rect, response) =
-            ui.allocate_exact_size(egui::vec2(total_width.max(theme::MIN_TOUCH_TARGET), box_size.max(theme::MIN_TOUCH_TARGET)), sense);
+        let (rect, response) = ui.allocate_exact_size(
+            egui::vec2(
+                total_width.max(theme::MIN_TOUCH_TARGET),
+                box_size.max(theme::MIN_TOUCH_TARGET),
+            ),
+            sense,
+        );
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;
@@ -236,7 +246,10 @@ impl<'a> RadioButton<'a> {
             let (bg_color, border_color) = if self.disabled {
                 (theme::bg_tertiary(), theme::border())
             } else if selected {
-                (theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE), theme::ACCENT)
+                (
+                    theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE),
+                    theme::ACCENT,
+                )
             } else if is_hovered {
                 (theme::hover_bg(), theme::ACCENT)
             } else {
@@ -278,11 +291,8 @@ impl<'a> RadioButton<'a> {
 
             // Focus ring (WCAG 2.4.7 — full contrast)
             if response.has_focus() {
-                ui.painter().circle_stroke(
-                    center,
-                    radius + 3.0,
-                    theme::focus_ring(),
-                );
+                ui.painter()
+                    .circle_stroke(center, radius + 3.0, theme::focus_ring());
             }
         }
 

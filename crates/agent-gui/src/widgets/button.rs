@@ -159,7 +159,8 @@ fn draw_premium_button(
 
         // ─── Inner Bevel / Highlight (Primary Only) ───
         if is_primary && enabled && !loading {
-            let stroke_color = theme::overlay_color().linear_multiply(theme::SUBTLE_HIGHLIGHT_ALPHA as f32 / 255.0);
+            let stroke_color = theme::overlay_color()
+                .linear_multiply(theme::SUBTLE_HIGHLIGHT_ALPHA as f32 / 255.0);
             ui.painter().rect_stroke(
                 rect.shrink(theme::BORDER_THIN),
                 CornerRadius::same(theme::BUTTON_ROUNDING),
@@ -179,7 +180,10 @@ fn draw_premium_button(
             ui.painter().circle_stroke(
                 spinner_rect.center(),
                 theme::SPINNER_RADIUS,
-                Stroke::new(theme::BORDER_MEDIUM, text_color.linear_multiply(theme::OPACITY_TINT)),
+                Stroke::new(
+                    theme::BORDER_MEDIUM,
+                    text_color.linear_multiply(theme::OPACITY_TINT),
+                ),
             );
 
             if theme::is_reduced_motion() {
@@ -204,9 +208,15 @@ fn draw_premium_button(
                     let alpha = t1;
 
                     let p1 = spinner_rect.center()
-                        + egui::vec2(theme::SPINNER_RADIUS * segment_angle.cos(), theme::SPINNER_RADIUS * segment_angle.sin());
+                        + egui::vec2(
+                            theme::SPINNER_RADIUS * segment_angle.cos(),
+                            theme::SPINNER_RADIUS * segment_angle.sin(),
+                        );
                     let p2 = spinner_rect.center()
-                        + egui::vec2(theme::SPINNER_RADIUS * next_angle.cos(), theme::SPINNER_RADIUS * next_angle.sin());
+                        + egui::vec2(
+                            theme::SPINNER_RADIUS * next_angle.cos(),
+                            theme::SPINNER_RADIUS * next_angle.sin(),
+                        );
 
                     ui.painter().line_segment(
                         [p1, p2],
@@ -221,7 +231,10 @@ fn draw_premium_button(
         // ─── Text Paint ───
         let text_pos = if loading {
             ui.layout()
-                .align_size_within_rect(text_galley.size(), rect.shrink2(egui::vec2(theme::ICON_MD, 0.0)))
+                .align_size_within_rect(
+                    text_galley.size(),
+                    rect.shrink2(egui::vec2(theme::ICON_MD, 0.0)),
+                )
                 .min
         } else {
             ui.layout()
@@ -237,7 +250,6 @@ fn draw_premium_button(
         response.on_hover_cursor(egui::CursorIcon::PointingHand)
     }
 }
-
 
 // ============================================================================
 // NEW BUTTON VARIANTS
@@ -333,7 +345,10 @@ fn draw_destructive_button(
         // Text
         let text_pos = if loading {
             ui.layout()
-                .align_size_within_rect(text_galley.size(), rect.shrink2(egui::vec2(theme::ICON_MD, 0.0)))
+                .align_size_within_rect(
+                    text_galley.size(),
+                    rect.shrink2(egui::vec2(theme::ICON_MD, 0.0)),
+                )
                 .min
         } else {
             ui.layout()
@@ -391,7 +406,10 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
                     egui::pos2(rect.min.x + padding.x, underline_y),
                     egui::pos2(rect.max.x - padding.x, underline_y),
                 ],
-                Stroke::new(theme::BORDER_THIN, text_color.linear_multiply(theme::OPACITY_PRESSED)),
+                Stroke::new(
+                    theme::BORDER_THIN,
+                    text_color.linear_multiply(theme::OPACITY_PRESSED),
+                ),
             );
         }
 
@@ -441,8 +459,11 @@ pub fn icon_button_with_color(
             } else {
                 theme::bg_elevated().linear_multiply(theme::OPACITY_PRESSED)
             };
-            ui.painter()
-                .rect_filled(rect, CornerRadius::same(theme::BUTTON_ROUNDING - 2), bg_color);
+            ui.painter().rect_filled(
+                rect,
+                CornerRadius::same(theme::BUTTON_ROUNDING - 2),
+                bg_color,
+            );
         }
 
         // Focus Ring (WCAG 2.4.7)
@@ -526,12 +547,8 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
         // Focus ring for keyboard navigation
         if response.has_focus() {
             let rounding = CornerRadius::same(theme::BADGE_ROUNDING);
-            ui.painter().rect_stroke(
-                rect,
-                rounding,
-                theme::focus_ring(),
-                StrokeKind::Outside,
-            );
+            ui.painter()
+                .rect_stroke(rect, rounding, theme::focus_ring(), StrokeKind::Outside);
         }
     }
 
@@ -648,7 +665,10 @@ fn draw_spinner(ui: &Ui, rect: egui::Rect, text_size: egui::Vec2, color: Color32
     ui.painter().circle_stroke(
         spinner_rect.center(),
         theme::SPINNER_RADIUS,
-        Stroke::new(theme::BORDER_MEDIUM, color.linear_multiply(theme::OPACITY_TINT)),
+        Stroke::new(
+            theme::BORDER_MEDIUM,
+            color.linear_multiply(theme::OPACITY_TINT),
+        ),
     );
 
     if theme::is_reduced_motion() {
@@ -672,12 +692,20 @@ fn draw_spinner(ui: &Ui, rect: egui::Rect, text_size: egui::Vec2, color: Color32
             let alpha = t1;
 
             let p1 = spinner_rect.center()
-                + egui::vec2(theme::SPINNER_RADIUS * segment_angle.cos(), theme::SPINNER_RADIUS * segment_angle.sin());
+                + egui::vec2(
+                    theme::SPINNER_RADIUS * segment_angle.cos(),
+                    theme::SPINNER_RADIUS * segment_angle.sin(),
+                );
             let p2 = spinner_rect.center()
-                + egui::vec2(theme::SPINNER_RADIUS * next_angle.cos(), theme::SPINNER_RADIUS * next_angle.sin());
+                + egui::vec2(
+                    theme::SPINNER_RADIUS * next_angle.cos(),
+                    theme::SPINNER_RADIUS * next_angle.sin(),
+                );
 
-            ui.painter()
-                .line_segment([p1, p2], Stroke::new(theme::BORDER_THICK, color.linear_multiply(alpha)));
+            ui.painter().line_segment(
+                [p1, p2],
+                Stroke::new(theme::BORDER_THICK, color.linear_multiply(alpha)),
+            );
         }
 
         ui.ctx().request_repaint();
@@ -713,11 +741,8 @@ pub fn fab_button(ui: &mut Ui, icon: &str) -> Response {
 
         // Focus Ring (WCAG 2.4.7)
         if response.has_focus() {
-            ui.painter().circle_stroke(
-                rect.center(),
-                size / 2.0 + 3.0,
-                theme::focus_ring(),
-            );
+            ui.painter()
+                .circle_stroke(rect.center(), size / 2.0 + 3.0, theme::focus_ring());
         }
 
         // Icon

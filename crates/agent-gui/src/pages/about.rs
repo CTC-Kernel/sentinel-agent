@@ -163,7 +163,12 @@ impl AboutPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            Self::link_row(ui, "Official Website", branding::WEBSITE, icons::ARROW_RIGHT);
+            Self::link_row(
+                ui,
+                "Official Website",
+                branding::WEBSITE,
+                icons::ARROW_RIGHT,
+            );
             Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
             Self::link_row(
                 ui,
@@ -228,9 +233,10 @@ impl AboutPage {
                         )
                         .clicked()
                         && (url.starts_with("https://") || url.starts_with("mailto:"))
-                        && let Err(e) = open::that(url) {
-                            tracing::warn!("Failed to open URL {}: {}", url, e);
-                        }
+                        && let Err(e) = open::that(url)
+                    {
+                        tracing::warn!("Failed to open URL {}: {}", url, e);
+                    }
                 },
             );
         });
