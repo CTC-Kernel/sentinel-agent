@@ -352,6 +352,8 @@ jobs:
     name: Build Windows MSI
     runs-on: windows-latest
     needs: [version]
+    permissions:
+      contents: read
     env:
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
