@@ -450,22 +450,42 @@ jobs:
           name: sentinel-agent-windows-unsigned
           path: target/release/SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi
 
-      - name: Sign MSI with SignPath
+      - name: Sign MSI with SignPath (Direct API Fallback)
         if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
         id: signpath
-        uses: signpath/github-action-submit-signing-request@v1
-        with:
-          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
-          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
-          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
-          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
-          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
-          wait-for-completion: true
-          output-artifact-directory: target/release/signed
+        run: |
+          $version = "${{ env.RELEASE_VERSION }}"
+          $msiPath = "target\release\SentinelAgentSetup-$version.msi"
+          $outputDir = "target\release\signed"
+          $outputPath = "$outputDir\SentinelAgentSetup-$version.msi"
+          if (-not (Test-Path $outputDir)) { mkdir $outputDir -Force }
+
+          Write-Host "Installing SignPath PowerShell module..."
+          Install-Module -Name SignPath -Force -Scope CurrentUser -Repository PSGallery
+
+          Write-Host "Submitting signing request to SignPath..."
+          # We use direct parameters to bypass the specialized 'Trusted Build' login flow of the official Action
+          Submit-SigningRequest `
+            -InputArtifactPath $msiPath `
+            -ApiToken "${{ secrets.SIGNPATH_API_TOKEN }}" `
+            -OrganizationId "${{ vars.SIGNPATH_ORGANIZATION_ID }}" `
+            -ProjectSlug "${{ vars.SIGNPATH_PROJECT_SLUG }}" `
+            -SigningPolicySlug "${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}" `
+            -ArtifactConfigurationSlug "${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}" `
+            -OutputArtifactPath $outputPath `
+            -WaitForCompletion
+            
+          if (Test-Path $outputPath) {
+            Write-Host "MSI signed successfully"
+            "outcome=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            Write-Error "Signing failed: Output file not produced"
+            exit 1
+          }
+        shell: pwsh
 
       - name: Replace MSI with signed version
-        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && steps.signpath.outcome == 'success' }}
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && steps.signpath.outputs.outcome == 'success' }}
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
           $signedMsi = Get-ChildItem "target\release\signed\*.msi" | Select-Object -First 1
