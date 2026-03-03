@@ -14,7 +14,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 7;
+pub const CURRENT_SCHEMA_VERSION: i32 = 8;
 
 /// A database migration.
 struct Migration {
@@ -443,6 +443,26 @@ const MIGRATIONS: &[Migration] = &[
             DROP TABLE software_inventory_backup;
         "#,
     },
+    Migration {
+        version: 8,
+        name: "software_inventory_rename_name",
+        up: r#"
+            -- SQLite doesn't support ALTER TABLE RENAME COLUMN in older versions (pre 3.25.0),
+            -- and even later, it's safer to recreate if we want maximum reliability across platforms.
+            CREATE TABLE software_inventory_v8 AS 
+                SELECT id, name AS software_name, version, vendor, install_date, synced, hostname 
+                FROM software_inventory;
+            DROP TABLE software_inventory;
+            ALTER TABLE software_inventory_v8 RENAME TO software_inventory;
+        "#,
+        down: r#"
+            CREATE TABLE software_inventory_v7 AS 
+                SELECT id, software_name AS name, version, vendor, install_date, synced, hostname 
+                FROM software_inventory;
+            DROP TABLE software_inventory;
+            ALTER TABLE software_inventory_v7 RENAME TO software_inventory;
+        "#,
+    },
 ];
 
 /// Initialize the schema_version table if it doesn't exist.
@@ -785,9 +805,12 @@ mod tests {
 
         // Run migrations
         run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 8);
+
+        // Rollback from v8 down to v0
+        rollback_migration(&mut conn, 8).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 7);
 
-        // Rollback from v7 down to v0
         rollback_migration(&mut conn, 7).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 6);
 
@@ -835,7 +858,7 @@ mod tests {
         run_migrations(&mut conn).unwrap();
 
         let migrations = get_applied_migrations(&conn).unwrap();
-        assert_eq!(migrations.len(), 7);
+        assert_eq!(migrations.len(), 8);
         assert_eq!(migrations[0].0, 1);
         assert_eq!(migrations[0].1, "initial_schema");
         assert_eq!(migrations[1].0, 2);
@@ -850,6 +873,8 @@ mod tests {
         assert_eq!(migrations[5].1, "grc_entities");
         assert_eq!(migrations[6].0, 7);
         assert_eq!(migrations[6].1, "software_inventory_hostname");
+        assert_eq!(migrations[7].0, 8);
+        assert_eq!(migrations[7].1, "software_inventory_rename_name");
     }
 
     #[test]
