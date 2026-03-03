@@ -548,6 +548,14 @@ impl SettingsPage {
                 .unwrap_or((false, String::new(), None))
         });
 
+        let rate_limit_id = ui.make_persistent_id("admin_unlock_rate_limit");
+        // Rate limit state: (attempts, lock_until)
+        let mut rate_state: (u32, Option<chrono::DateTime<chrono::Utc>>) = ui.memory(|mem| {
+            mem.data
+                .get_temp(rate_limit_id)
+                .unwrap_or((0, None))
+        });
+
         if modal_state.0 {
             let ctx = ui.ctx().clone();
             egui::Window::new("DÉVERROUILLAGE ADMIN")
@@ -570,58 +578,79 @@ impl SettingsPage {
                                 .strong(),
                         );
                         ui.add_space(theme::SPACE_XS);
-                        ui.label(
-                            "Saisissez le mot de passe administrateur pour accéder à cette zone.",
-                        );
-                        ui.add_space(theme::SPACE_MD);
-
-                        let resp = ui.add(
-                            egui::TextEdit::singleline(&mut modal_state.1)
-                                .password(true)
-                                .hint_text("Mot de passe")
-                                .desired_width(200.0),
-                        );
-
-                        // Autofocus on first appearance only
-                        if !resp.has_focus() && !ui.input(|i| i.pointer.any_click()) {
-                            resp.request_focus();
-                        }
-
-                        if resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                            // Validate password against SHA-256 hash (not plaintext)
-                            if verify_admin_password(
-                                &modal_state.1,
-                                &state.settings.admin_password_sha256,
-                            ) {
-                                state.security.admin_unlocked = true;
-                                state.security.last_unlock = Some(chrono::Utc::now());
-                                modal_state.0 = false;
-                                modal_state.2 = None;
+                        
+                        let is_locked = if let Some(lock_time) = rate_state.1 {
+                            if chrono::Utc::now() < lock_time {
+                                true
                             } else {
-                                modal_state.2 = Some("Mot de passe incorrect".to_string());
+                                rate_state = (0, None);
+                                ui.memory_mut(|mem| mem.data.insert_temp(rate_limit_id, rate_state.clone()));
+                                false
                             }
-                            // Securely wipe password from memory after validation attempt
-                            modal_state.1.zeroize();
-                        }
+                        } else {
+                            false
+                        };
 
-                        if let Some(err) = &modal_state.2 {
-                            ui.add_space(theme::SPACE_XS);
+                        if is_locked {
+                            let remaining = (rate_state.1.unwrap() - chrono::Utc::now()).num_seconds().max(1);
                             ui.label(
-                                egui::RichText::new(err)
+                                egui::RichText::new(format!("Trop de tentatives. Veuillez réessayer dans {}s.", remaining))
                                     .color(theme::readable_color(theme::ERROR))
-                                    .font(theme::font_body()),
+                                    .font(theme::font_body())
+                                    .strong(),
                             );
-                        }
-
-                        ui.add_space(theme::SPACE_LG);
-                        ui.horizontal(|ui| {
-                            if widgets::secondary_button(ui, "ANNULER", true).clicked() {
+                            ui.add_space(theme::SPACE_LG);
+                            if widgets::secondary_button(ui, "FERMER", true).clicked() {
                                 modal_state.0 = false;
                                 modal_state.1.zeroize();
                                 modal_state.2 = None;
                             }
-                            ui.add_space(theme::SPACE_SM);
-                            if widgets::primary_button(ui, "DÉVERROUILLER", true).clicked() {
+                        } else {
+                            ui.label(
+                                "Saisissez le mot de passe administrateur pour accéder à cette zone.",
+                            );
+                            ui.add_space(theme::SPACE_MD);
+
+                            let resp = ui.add(
+                                egui::TextEdit::singleline(&mut modal_state.1)
+                                    .password(true)
+                                    .hint_text("Mot de passe")
+                                    .desired_width(200.0),
+                            );
+
+                            // Autofocus on first appearance only
+                            if !resp.has_focus() && !ui.input(|i| i.pointer.any_click()) {
+                                resp.request_focus();
+                            }
+
+                            let mut attempt_validate = false;
+                            if resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                                attempt_validate = true;
+                            }
+
+                            if let Some(err) = &modal_state.2 {
+                                ui.add_space(theme::SPACE_XS);
+                                ui.label(
+                                    egui::RichText::new(err)
+                                        .color(theme::readable_color(theme::ERROR))
+                                        .font(theme::font_body()),
+                                );
+                            }
+
+                            ui.add_space(theme::SPACE_LG);
+                            ui.horizontal(|ui| {
+                                if widgets::secondary_button(ui, "ANNULER", true).clicked() {
+                                    modal_state.0 = false;
+                                    modal_state.1.zeroize();
+                                    modal_state.2 = None;
+                                }
+                                ui.add_space(theme::SPACE_SM);
+                                if widgets::primary_button(ui, "DÉVERROUILLER", true).clicked() {
+                                    attempt_validate = true;
+                                }
+                            });
+
+                            if attempt_validate {
                                 if verify_admin_password(
                                     &modal_state.1,
                                     &state.settings.admin_password_sha256,
@@ -630,13 +659,22 @@ impl SettingsPage {
                                     state.security.last_unlock = Some(chrono::Utc::now());
                                     modal_state.0 = false;
                                     modal_state.2 = None;
+                                    rate_state = (0, None); // Reset limit on success
                                 } else {
-                                    modal_state.2 = Some("Mot de passe incorrect".to_string());
+                                    rate_state.0 += 1;
+                                    if rate_state.0 >= 5 {
+                                        let backoff_secs = 30 * 2i64.pow(rate_state.0.saturating_sub(5));
+                                        rate_state.1 = Some(chrono::Utc::now() + chrono::Duration::seconds(backoff_secs));
+                                        modal_state.2 = None; // clear error, show lock next frame
+                                    } else {
+                                        modal_state.2 = Some("Mot de passe incorrect".to_string());
+                                    }
                                 }
+                                ui.memory_mut(|mem| mem.data.insert_temp(rate_limit_id, rate_state.clone()));
                                 // Securely wipe password from memory after validation attempt
                                 modal_state.1.zeroize();
                             }
-                        });
+                        }
                     });
                 });
 

@@ -29,6 +29,7 @@ pub struct DetailAction {
     pub icon: &'static str,
     pub style: ActionStyle,
     pub enabled: bool,
+    pub loading: bool,
 }
 
 impl DetailAction {
@@ -38,6 +39,7 @@ impl DetailAction {
             icon,
             style: ActionStyle::Primary,
             enabled: true,
+            loading: false,
         }
     }
 
@@ -47,6 +49,7 @@ impl DetailAction {
             icon,
             style: ActionStyle::Secondary,
             enabled: true,
+            loading: false,
         }
     }
 
@@ -56,11 +59,17 @@ impl DetailAction {
             icon,
             style: ActionStyle::Danger,
             enabled: true,
+            loading: false,
         }
     }
 
     pub fn enabled(mut self, enabled: bool) -> Self {
         self.enabled = enabled;
+        self
+    }
+
+    pub fn loading(mut self, loading: bool) -> Self {
+        self.loading = loading;
         self
     }
 }
@@ -317,18 +326,27 @@ impl<'a> DetailDrawer<'a> {
                                     ui.add_space(theme::SPACE_SM);
                                     let label = format!("{}  {}", action.icon, action.label);
                                     let clicked = match action.style {
-                                        ActionStyle::Primary => {
-                                            button::primary_button(ui, &label, action.enabled)
-                                                .clicked()
-                                        }
-                                        ActionStyle::Secondary => {
-                                            button::secondary_button(ui, &label, action.enabled)
-                                                .clicked()
-                                        }
-                                        ActionStyle::Danger => {
-                                            button::destructive_button(ui, &label, action.enabled)
-                                                .clicked()
-                                        }
+                                        ActionStyle::Primary => button::primary_button_loading(
+                                            ui,
+                                            &label,
+                                            action.enabled,
+                                            action.loading,
+                                        )
+                                        .clicked(),
+                                        ActionStyle::Secondary => button::secondary_button_loading(
+                                            ui,
+                                            &label,
+                                            action.enabled,
+                                            action.loading,
+                                        )
+                                        .clicked(),
+                                        ActionStyle::Danger => button::destructive_button_loading(
+                                            ui,
+                                            &label,
+                                            action.enabled,
+                                            action.loading,
+                                        )
+                                        .clicked(),
                                     };
                                     if clicked {
                                         clicked_action = Some(idx);
