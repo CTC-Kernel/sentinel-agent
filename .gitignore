@@ -55,6 +55,10 @@ Thumbs.db
 *.cer
 *.der
 
+# But allow assets images
+!assets/*.png
+!assets/**/*.png
+
 # Logs
 logs/
 *.log
