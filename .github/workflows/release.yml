@@ -370,6 +370,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
+      - name: Install OpenSSL (vcpkg)
+        run: |
+          vcpkg install openssl:x64-windows-static-md
+          echo "OPENSSL_DIR=C:\vcpkg\packages\openssl_x64-windows-static-md" >> $GITHUB_ENV
+          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
+        shell: bash
+
       - name: Build release binary
         run: |
           # Copy icon to expected locations for build scripts
@@ -472,13 +479,18 @@ jobs:
 
           Write-Host "Submitting signing request to SignPath..."
           # We use direct parameters to bypass the specialized 'Trusted Build' login flow of the official Action
+          $orgId = "${{ vars.SIGNPATH_ORGANIZATION_ID }}".Trim()
+          $projectSlug = "${{ vars.SIGNPATH_PROJECT_SLUG }}".Trim()
+          $policySlug = "${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}".Trim()
+          $artifactSlug = "${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}".Trim()
+
           Submit-SigningRequest `
             -InputArtifactPath $msiPath `
             -ApiToken "${{ secrets.SIGNPATH_API_TOKEN }}" `
-            -OrganizationId "${{ vars.SIGNPATH_ORGANIZATION_ID }}" `
-            -ProjectSlug "${{ vars.SIGNPATH_PROJECT_SLUG }}" `
-            -SigningPolicySlug "${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}" `
-            -ArtifactConfigurationSlug "${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}" `
+            -OrganizationId $orgId `
+            -ProjectSlug $projectSlug `
+            -SigningPolicySlug $policySlug `
+            -ArtifactConfigurationSlug $artifactSlug `
             -OutputArtifactPath $outputPath `
             -WaitForCompletion
             
