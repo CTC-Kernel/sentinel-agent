@@ -6,7 +6,7 @@ members = [
 ]
 
 [workspace.package]
-version = "2.0.156"
+version = "2.0.157"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/CTC-Kernel/sentinel-agent"
