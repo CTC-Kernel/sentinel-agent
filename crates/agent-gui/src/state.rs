@@ -376,6 +376,8 @@ pub struct RisksState {
     pub selected_risk: Option<usize>,
     pub detail_open: bool,
     pub editing: bool,
+    /// Timestamp until the fake "saving" state ends (for double-click prevention UX)
+    pub saving_until: Option<chrono::DateTime<chrono::Utc>>,
     /// UUID of the risk currently being analyzed by AI (None = idle).
     pub ai_analyzing: Option<uuid::Uuid>,
     /// Last AI analysis result text for the selected risk.

@@ -622,12 +622,27 @@ impl VulnerabilitiesPage {
             .collect();
 
         if state.vulnerability_findings.is_empty() {
-            widgets::protected_state(
-                ui,
-                icons::SHIELD_CHECK,
-                "AUCUNE VULNÉRABILITÉ DÉTECTÉE",
-                "Le syst\u{00e8}me est \u{00e0} jour et ne pr\u{00e9}sente aucune faille connue \u{00e0} ce jour.",
-            );
+            let is_loading = state.summary.status == crate::dto::GuiAgentStatus::Starting
+                || state.summary.status == crate::dto::GuiAgentStatus::Syncing
+                || state.sync.in_progress;
+
+            if is_loading {
+                ui.push_id("vulns_skeletons", |ui: &mut egui::Ui| {
+                    let cols = 7;
+                    let column_widths = [100.0, 120.0, 80.0, 60.0, 90.0, ui.available_width() - 550.0, 100.0];
+                    for _ in 0..5 {
+                        crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
+                        ui.add_space(theme::SPACE_MD);
+                    }
+                });
+            } else {
+                widgets::protected_state(
+                    ui,
+                    icons::SHIELD_CHECK,
+                    "AUCUNE VULN\u{00c9}RABILIT\u{00c9} D\u{00c9}TECT\u{00c9}E",
+                    "Le syst\u{00e8}me est \u{00e0} jour et ne pr\u{00e9}sente aucune faille connue \u{00e0} ce jour.",
+                );
+            }
         } else if filtered.is_empty() {
             widgets::empty_state(
                 ui,

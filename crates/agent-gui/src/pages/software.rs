@@ -462,13 +462,28 @@ impl SoftwarePage {
             );
             ui.add_space(theme::SPACE_MD);
 
+            let is_loading = state.summary.status == crate::dto::GuiAgentStatus::Starting
+                || state.summary.status == crate::dto::GuiAgentStatus::Syncing
+                || state.sync.in_progress;
+
             if filtered.is_empty() {
-                widgets::empty_state(
-                    ui,
-                    icons::SOFTWARE,
-                    "AUCUNE OCCURRENCE TROUV\u{00c9}E",
-                    Some("Ajustez vos crit\u{00e8}res de recherche ou actualisez l'inventaire."),
-                );
+                if state.software.packages.is_empty() && is_loading {
+                    ui.push_id("software_packages_skeletons", |ui: &mut egui::Ui| {
+                        let cols = 5;
+                        let column_widths = [200.0, 100.0, 150.0, 100.0, 100.0];
+                        for _ in 0..5 {
+                            crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
+                            ui.add_space(theme::SPACE_MD);
+                        }
+                    });
+                } else {
+                    widgets::empty_state(
+                        ui,
+                        icons::SOFTWARE,
+                        "AUCUNE OCCURRENCE TROUV\u{00c9}E",
+                        Some("Ajustez vos crit\u{00e8}res de recherche ou actualisez l'inventaire."),
+                    );
+                }
             } else {
                 use egui_extras::{Column, TableBuilder};
 
@@ -753,15 +768,30 @@ impl SoftwarePage {
             );
             ui.add_space(theme::SPACE_MD);
 
+            let is_loading = state.summary.status == crate::dto::GuiAgentStatus::Starting
+                || state.summary.status == crate::dto::GuiAgentStatus::Syncing
+                || state.sync.in_progress;
+
             if filtered.is_empty() {
-                widgets::empty_state(
-                    ui,
-                    icons::CUBE,
-                    "AUCUNE ENTIT\u{00c9} IDENTIFI\u{00c9}E",
-                    Some(
-                        "Veuillez patienter pendant la fin de la synchronisation de l'inventaire.",
-                    ),
-                );
+                if state.software.native_apps.is_empty() && is_loading {
+                    ui.push_id("software_apps_skeletons", |ui: &mut egui::Ui| {
+                        let cols = 4;
+                        let column_widths = [200.0, 90.0, 200.0, 100.0];
+                        for _ in 0..5 {
+                            crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
+                            ui.add_space(theme::SPACE_MD);
+                        }
+                    });
+                } else {
+                    widgets::empty_state(
+                        ui,
+                        icons::CUBE,
+                        "AUCUNE ENTIT\u{00c9} IDENTIFI\u{00c9}E",
+                        Some(
+                            "Veuillez patienter pendant la fin de la synchronisation de l'inventaire.",
+                        ),
+                    );
+                }
             } else {
                 use egui_extras::{Column, TableBuilder};
 

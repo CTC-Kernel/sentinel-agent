@@ -239,14 +239,29 @@ impl RisksPage {
 
             if filtered.is_empty() {
                 if state.risks.entries.is_empty() {
-                    widgets::empty_state(
-                        ui,
-                        icons::SCALE_BALANCED,
-                        "AUCUN RISQUE ENREGISTR\u{00c9}",
-                        Some(
-                            "Utilisez \u{00ab} Auto-populer \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement.",
-                        ),
-                    );
+                    let is_loading = state.summary.status == crate::dto::GuiAgentStatus::Starting
+                        || state.summary.status == crate::dto::GuiAgentStatus::Syncing
+                        || state.sync.in_progress;
+
+                    if is_loading {
+                        ui.push_id("risks_skeletons", |ui: &mut egui::Ui| {
+                            let cols = 4;
+                            let column_widths = [ui.available_width() - 250.0, 60.0, 60.0, 80.0];
+                            for _ in 0..5 {
+                                crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
+                                ui.add_space(theme::SPACE_MD);
+                            }
+                        });
+                    } else {
+                        widgets::empty_state(
+                            ui,
+                            icons::SCALE_BALANCED,
+                            "AUCUN RISQUE ENREGISTR\u{00c9}",
+                            Some(
+                                "Utilisez \u{00ab} Auto-populer \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement.",
+                            ),
+                        );
+                    }
                 } else {
                     widgets::empty_state(
                         ui,
@@ -578,9 +593,25 @@ impl RisksPage {
         let (status_label, status_color) = Self::status_display(&risk.status);
         let is_editing = state.risks.editing;
 
+        let now = chrono::Utc::now();
+        let is_saving = if let Some(until) = state.risks.saving_until {
+            if now < until {
+                true
+            } else {
+                state.risks.saving_until = None;
+                state.risks.editing = false;
+                false
+            }
+        } else {
+            false
+        };
+
         let actions = if is_editing {
+            let mut save_action = widgets::DetailAction::primary("Enregistrer", icons::SAVE);
+            save_action.loading = is_saving;
+            
             vec![
-                widgets::DetailAction::primary("Enregistrer", icons::SAVE),
+                save_action,
                 widgets::DetailAction::secondary("Annuler", icons::XMARK),
             ]
         } else {
@@ -719,21 +750,44 @@ impl RisksPage {
 
         if let Some(action_idx) = drawer_action {
             if state.risks.editing {
+                // Ignore clicks if we are already saving
+                if is_saving {
+                    return;
+                }
+                
                 match action_idx {
                     0 => {
-                        // Save
-                        state.risks.editing = false;
+                        // Save - start saving state
+                        state.risks.saving_until = Some(now + chrono::Duration::milliseconds(650));
+                        
                         if selected < state.risks.entries.len() {
                             state.risks.entries[selected].updated_at = chrono::Utc::now();
                             let saved = state.risks.entries[selected].clone();
                             *command = Some(GuiCommand::SaveRisk {
                                 risk: Box::new(saved),
                             });
-                        }
+                            // Audit trail - record the UI action
+                            state.logs.push_front(crate::dto::GuiLogEntry {
+                                id: uuid::Uuid::new_v4(),
+                                level: "INFO".to_string(),
+                                message: format!("Modification locale du risque: {}", saved.title),
+                                source: Some("GUI".to_string()),
+                                timestamp: chrono::Utc::now(),
+                            });
+                            if state.logs.len() > 1000 {
+                                state.logs.pop_back();
+                            }
+                            
+                            let time = ui.input(|i| i.time);
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Risque sauvegard\u{00e9} localement")
+                                    .with_time(time),
+                            );
                     }
                     1 => {
                         // Cancel
                         state.risks.editing = false;
+                        state.risks.saving_until = None;
                     }
                     _ => {}
                 }

@@ -584,8 +584,23 @@ impl NetworkPage {
             });
             ui.add_space(theme::SPACE_MD);
 
+            let is_loading = state.summary.status == crate::dto::GuiAgentStatus::Starting
+                || state.summary.status == crate::dto::GuiAgentStatus::Syncing
+                || state.sync.in_progress;
+
             if state.network.interfaces.is_empty() {
-                widgets::empty_state(ui, icons::WIFI, "AUCUNE INTERFACE DÉTECTÉE", None);
+                if is_loading {
+                    ui.push_id("network_interfaces_skeletons", |ui: &mut egui::Ui| {
+                        let cols = 5;
+                        let column_widths = [120.0, 120.0, 100.0, 160.0, ui.available_width() - 500.0];
+                        for _ in 0..5 {
+                            crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
+                            ui.add_space(theme::SPACE_MD);
+                        }
+                    });
+                } else {
+                    widgets::empty_state(ui, icons::WIFI, "AUCUNE INTERFACE D\u{00c9}TECT\u{00c9}E", None);
+                }
             } else {
                 use egui_extras::{Column, TableBuilder};
 
@@ -777,8 +792,23 @@ impl NetworkPage {
 
             ui.add_space(theme::SPACE_MD);
 
+            let is_loading = state.summary.status == crate::dto::GuiAgentStatus::Starting
+                || state.summary.status == crate::dto::GuiAgentStatus::Syncing
+                || state.sync.in_progress;
+
             if filtered.is_empty() {
-                widgets::empty_state(ui, icons::NETWORK, "AUCUNE CONNEXION ACTIVE", None);
+                if state.network.connections.is_empty() && is_loading {
+                    ui.push_id("network_connections_skeletons", |ui: &mut egui::Ui| {
+                        let cols = 5;
+                        let column_widths = [80.0, 200.0, 200.0, 110.0, ui.available_width() - 590.0];
+                        for _ in 0..5 {
+                            crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
+                            ui.add_space(theme::SPACE_MD);
+                        }
+                    });
+                } else {
+                    widgets::empty_state(ui, icons::NETWORK, "AUCUNE CONNEXION ACTIVE", None);
+                }
             } else {
                 use egui_extras::{Column, TableBuilder};
 
