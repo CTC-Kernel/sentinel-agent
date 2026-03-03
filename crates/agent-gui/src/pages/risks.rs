@@ -764,7 +764,7 @@ impl RisksPage {
                             state.risks.entries[selected].updated_at = chrono::Utc::now();
                             let saved = state.risks.entries[selected].clone();
                             *command = Some(GuiCommand::SaveRisk {
-                                risk: Box::new(saved),
+                                risk: Box::new(saved.clone()),
                             });
                             // Audit trail - record the UI action
                             state.logs.push_front(crate::dto::GuiLogEntry {
@@ -783,6 +783,7 @@ impl RisksPage {
                                 crate::widgets::toast::Toast::success("Risque sauvegard\u{00e9} localement")
                                     .with_time(time),
                             );
+                        }
                     }
                     1 => {
                         // Cancel
