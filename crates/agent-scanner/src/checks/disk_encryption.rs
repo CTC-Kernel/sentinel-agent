@@ -138,17 +138,24 @@ impl DiskEncryptionCheck {
             .iter()
             .filter(|v| v.encrypted)
             .all(|v| v.protection_status.as_deref() == Some("On"));
+        
+        // Detect suspended protection: Volume is encrypted but protection is Off
+        let suspended = volumes.iter().any(|v| {
+            v.encrypted && v.protection_status.as_deref() == Some("Off")
+        });
 
-        let protection_status = if !any_encrypted {
-            "Not Encrypted"
+        let (enabled, protection_status) = if !any_encrypted {
+            (false, "Not Encrypted")
+        } else if suspended {
+            (false, "Protection Suspended") // We consider Suspended as NOT compliant
         } else if all_protected {
-            "Protected"
+            (true, "Protected")
         } else {
-            "Partially Protected"
+            (false, "Partially Protected")
         };
 
         Ok(EncryptionStatus {
-            enabled: any_encrypted,
+            enabled,
             encryption_type: "BitLocker".to_string(),
             encrypted_volumes: volumes,
             protection_status: protection_status.to_string(),

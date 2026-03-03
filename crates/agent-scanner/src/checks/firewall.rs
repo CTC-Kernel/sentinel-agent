@@ -103,7 +103,9 @@ impl FirewallCheck {
                 "-NoProfile",
                 "-Command",
                 r#"
+                $activeCategories = Get-NetConnectionProfile | Select-Object -ExpandProperty NetworkCategory
                 $profiles = Get-NetFirewallProfile | Select-Object Name, Enabled, DefaultInboundAction, DefaultOutboundAction
+                
                 $results = @()
                 foreach ($p in $profiles) {
                     $gpoPath = switch ($p.Name) {
@@ -113,9 +115,16 @@ impl FirewallCheck {
                     }
                     $gpoValue = (Get-ItemProperty -Path $gpoPath -Name 'EnableFirewall' -ErrorAction SilentlyContinue).EnableFirewall
                     
+                    # Determine if this profile is technically active
+                    $isActive = $false
+                    if ($p.Name -eq "Domain" -and $activeCategories -contains "DomainAuthenticated") { $isActive = $true }
+                    elseif ($p.Name -eq "Private" -and $activeCategories -contains "Private") { $isActive = $true }
+                    elseif ($p.Name -eq "Public" -and $activeCategories -contains "Public") { $isActive = $true }
+
                     $obj = @{
                         'Name' = $p.Name
                         'Enabled' = $p.Enabled
+                        'IsActive' = $isActive
                         'DefaultInboundAction' = $p.DefaultInboundAction
                         'DefaultOutboundAction' = $p.DefaultOutboundAction
                         'GpoEnforced' = ($null -ne $gpoValue)
@@ -144,10 +153,37 @@ impl FirewallCheck {
         // Get rule count
         let rule_count = self.get_windows_rule_count().await.ok();
 
-        let all_enabled = profiles.iter().all(|p| p.enabled);
+        // Compliance: All active profiles must be enabled. 
+
+        // Let's refine the logic: Any profile found to be Enabled=false while being Active=true is a failure.
+        // If all active profiles are Enabled=true, it's a pass.
+        // We parse the JSON again to see the IsActive field.
+        let json_data: serde_json::Value = serde_json::from_str(&raw_output).unwrap_or_default();
+        let mut all_active_protected = true;
+        let mut any_active = false;
+
+        if let Some(arr) = json_data.as_array() {
+            for item in arr {
+                let is_active = item["IsActive"].as_bool().unwrap_or(false);
+                let enabled = item["Enabled"].as_bool().unwrap_or(false);
+                if is_active {
+                    any_active = true;
+                    if !enabled {
+                        all_active_protected = false;
+                    }
+                }
+            }
+        }
+
+        // If no profiles reported active (e.g. disconnected), check if at least one is enabled for general safety
+        let enabled = if any_active {
+            all_active_protected
+        } else {
+            profiles.iter().any(|p| p.enabled)
+        };
 
         Ok(FirewallStatus {
-            enabled: all_enabled,
+            enabled,
             firewall_type: "Windows Firewall".to_string(),
             profiles,
             rule_count,

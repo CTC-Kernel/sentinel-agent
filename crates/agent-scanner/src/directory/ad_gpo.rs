@@ -79,58 +79,43 @@ impl GpoAuditor {
     async fn get_windows_local_policy(&self) -> ScannerResult<GpoSecuritySettings> {
         let mut settings = GpoSecuritySettings::default();
 
-        // Use secedit to export local policy
+        // Use secedit to export local policy - this is locale-agnostic as it uses fixed INI keys
         let output = silent_async_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
                 r#"
-                # Get password policy
-                $policy = @{}
-
-                # Use net accounts for basic settings
-                $netAccounts = net accounts 2>$null
-                foreach ($line in $netAccounts) {
-                    if ($line -match "Minimum password length:\s+(\d+)") {
-                        $policy["MinimumPasswordLength"] = [int]$Matches[1]
-                    }
-                    if ($line -match "Maximum password age \(days\):\s+(\d+)") {
-                        $policy["MaximumPasswordAge"] = [int]$Matches[1]
-                    }
-                    if ($line -match "Minimum password age \(days\):\s+(\d+)") {
-                        $policy["MinimumPasswordAge"] = [int]$Matches[1]
-                    }
-                    if ($line -match "Password history length:\s+(\d+)") {
-                        $policy["PasswordHistorySize"] = [int]$Matches[1]
-                    }
-                    if ($line -match "Lockout threshold:\s+(\w+)") {
-                        $val = $Matches[1]
-                        if ($val -eq "Never") { $policy["LockoutThreshold"] = 0 }
-                        else { $policy["LockoutThreshold"] = [int]$val }
-                    }
-                    if ($line -match "Lockout duration \(minutes\):\s+(\d+)") {
-                        $policy["LockoutDuration"] = [int]$Matches[1]
-                    }
-                    if ($line -match "Lockout observation window \(minutes\):\s+(\d+)") {
-                        $policy["LockoutObservationWindow"] = [int]$Matches[1]
-                    }
-                }
-
-                # Check if complexity is enabled (requires secedit)
                 try {
                     $tempFile = [System.IO.Path]::GetTempFileName()
                     secedit /export /cfg $tempFile /quiet 2>$null
                     $content = Get-Content $tempFile -Raw
-                    if ($content -match "PasswordComplexity\s*=\s*(\d+)") {
-                        $policy["PasswordComplexity"] = [int]$Matches[1]
-                    }
-                    if ($content -match "ClearTextPassword\s*=\s*(\d+)") {
-                        $policy["ClearTextPassword"] = [int]$Matches[1]
-                    }
                     Remove-Item $tempFile -Force 2>$null
-                } catch {}
 
-                $policy | ConvertTo-Json
+                    $policy = @{}
+                    
+                    # Helper to extract value from secedit output
+                    function Get-SecValue($key) {
+                        if ($content -match "$key\s*=\s*(\d+)") { return [int]$Matches[1] }
+                        return $null
+                    }
+
+                    # Password Policy
+                    $policy["MinimumPasswordLength"] = Get-SecValue "MinimumPasswordLength"
+                    $policy["MaximumPasswordAge"] = Get-SecValue "MaximumPasswordAge"
+                    $policy["MinimumPasswordAge"] = Get-SecValue "MinimumPasswordAge"
+                    $policy["PasswordHistorySize"] = Get-SecValue "PasswordHistorySize"
+                    $policy["PasswordComplexity"] = Get-SecValue "PasswordComplexity"
+                    $policy["ClearTextPassword"] = Get-SecValue "ClearTextPassword"
+
+                    # Account Lockout
+                    $policy["LockoutThreshold"] = Get-SecValue "LockoutBadCount"
+                    $policy["LockoutDuration"] = Get-SecValue "LockoutDuration"
+                    $policy["LockoutObservationWindow"] = Get-SecValue "ResetLockoutCount"
+
+                    $policy | ConvertTo-Json
+                } catch {
+                    "{}"
+                }
                 "#,
             ])
             .output()
@@ -141,54 +126,18 @@ impl GpoAuditor {
             let stdout = String::from_utf8_lossy(&output.stdout);
             if let Ok(policy) = serde_json::from_str::<serde_json::Value>(&stdout) {
                 settings.password_policy = PasswordPolicy {
-                    min_length: policy
-                        .get("MinimumPasswordLength")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
-                    max_age_days: policy
-                        .get("MaximumPasswordAge")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(42),
-                    min_age_days: policy
-                        .get("MinimumPasswordAge")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
-                    history_count: policy
-                        .get("PasswordHistorySize")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
-                    complexity_enabled: policy
-                        .get("PasswordComplexity")
-                        .and_then(|v| v.as_i64())
-                        .map(|v| v == 1)
-                        .unwrap_or(false),
-                    reversible_encryption: policy
-                        .get("ClearTextPassword")
-                        .and_then(|v| v.as_i64())
-                        .map(|v| v == 1)
-                        .unwrap_or(false),
+                    min_length: policy["MinimumPasswordLength"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
+                    max_age_days: policy["MaximumPasswordAge"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(42),
+                    min_age_days: policy["MinimumPasswordAge"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
+                    history_count: policy["PasswordHistorySize"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
+                    complexity_enabled: policy["PasswordComplexity"].as_u64().map(|v| v == 1).unwrap_or(false),
+                    reversible_encryption: policy["ClearTextPassword"].as_u64().map(|v| v == 1).unwrap_or(false),
                 };
 
                 settings.lockout_policy = AccountLockoutPolicy {
-                    threshold: policy
-                        .get("LockoutThreshold")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
-                    duration_minutes: policy
-                        .get("LockoutDuration")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
-                    observation_window_minutes: policy
-                        .get("LockoutObservationWindow")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
+                    threshold: policy["LockoutThreshold"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
+                    duration_minutes: policy["LockoutDuration"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
+                    observation_window_minutes: policy["LockoutObservationWindow"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
                 };
             }
         }
@@ -327,18 +276,22 @@ impl GpoAuditor {
                 "-NoProfile",
                 "-Command",
                 r#"
-                $policy = @{}
-                $auditpol = auditpol /get /category:* 2>$null
+                try {
+                    $tempFile = [System.IO.Path]::GetTempFileName()
+                    auditpol /backup /file:$tempFile /quiet 2>$null
+                    $csv = Import-Csv $tempFile -Header "Machine","Target","Subcategory","Guid","Inclusion","Exclusion"
+                    Remove-Item $tempFile -Force 2>$null
 
-                foreach ($line in $auditpol) {
-                    if ($line -match "^\s+(.+?)\s+(Success|Failure|Success and Failure|No Auditing)\s*$") {
-                        $setting = $Matches[1].Trim()
-                        $value = $Matches[2].Trim()
-                        $policy[$setting] = $value
+                    $policy = @{}
+                    foreach ($line in $csv) {
+                        if ($line.Guid) {
+                            $policy[$line.Guid.ToLower()] = [int]$line.Inclusion
+                        }
                     }
+                    $policy | ConvertTo-Json
+                } catch {
+                    "{}"
                 }
-
-                $policy | ConvertTo-Json
                 "#,
             ])
             .output()
@@ -350,26 +303,27 @@ impl GpoAuditor {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
             if let Ok(policy) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                let get_setting = |key: &str| -> AuditSetting {
+                let get_setting_by_guid = |guid: &str| -> AuditSetting {
                     policy
-                        .get(key)
-                        .and_then(|v| v.as_str())
-                        .map(|s| match s {
-                            "Success" => AuditSetting::Success,
-                            "Failure" => AuditSetting::Failure,
-                            "Success and Failure" => AuditSetting::SuccessAndFailure,
+                        .get(guid.to_lowercase())
+                        .and_then(|v| v.as_i64())
+                        .map(|v| match v {
+                            1 => AuditSetting::Success,
+                            2 => AuditSetting::Failure,
+                            3 => AuditSetting::SuccessAndFailure,
                             _ => AuditSetting::NoAuditing,
                         })
                         .unwrap_or(AuditSetting::NoAuditing)
                 };
 
-                audit.logon_events = get_setting("Logon");
-                audit.account_logon = get_setting("Credential Validation");
-                audit.account_management = get_setting("User Account Management");
-                audit.privilege_use = get_setting("Sensitive Privilege Use");
-                audit.policy_change = get_setting("Audit Policy Change");
-                audit.object_access = get_setting("File System");
-                audit.system_events = get_setting("Security State Change");
+                // Use GUIDs for locale-independence
+                audit.logon_events = get_setting_by_guid("{0cce9215-69ae-11d9-bed3-5070104468a1}"); // Logon
+                audit.account_logon = get_setting_by_guid("{0cce9217-69ae-11d9-bed3-5070104468a1}"); // Credential Validation
+                audit.account_management = get_setting_by_guid("{0cce9216-69ae-11d9-bed3-5070104468a1}"); // User Account Management
+                audit.privilege_use = get_setting_by_guid("{0cce9218-69ae-11d9-bed3-5070104468a1}"); // Sensitive Privilege Use
+                audit.policy_change = get_setting_by_guid("{0cce9219-69ae-11d9-bed3-5070104468a1}"); // Audit Policy Change
+                audit.object_access = get_setting_by_guid("{0cce921d-69ae-11d9-bed3-5070104468a1}"); // File System
+                audit.system_events = get_setting_by_guid("{0cce9210-69ae-11d9-bed3-5070104468a1}"); // Security State Change
             }
         }
 

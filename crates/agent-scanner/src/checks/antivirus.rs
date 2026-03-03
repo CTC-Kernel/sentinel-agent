@@ -178,18 +178,37 @@ impl AntivirusCheck {
     #[cfg(target_os = "windows")]
     async fn check_windows_wmi(&self) -> ScannerResult<AntivirusStatus> {
         // Fallback to WMI for third-party AV
+        // Source for productState: https://msdn.microsoft.com/en-us/library/bb432509(v=vs.85).aspx (undocumented actually)
+        // Common bitmasks: 
+        // 0xWXYZ00
+        // Y: 0x10 = Enabled, 0x00 = Disabled, 0x01 = Expired/Snoozed?
+        // Z: 0x00 = Up to date, 0x10 = Out of date
         let output = silent_command("powershell")
             .args([
                 "-NoProfile",
                 "-Command",
-                r#"Get-CimInstance -Namespace "root/SecurityCenter2" -ClassName AntiVirusProduct | Select-Object displayName, productState | ConvertTo-Json"#,
+                r#"
+                try {
+                    $products = Get-CimInstance -Namespace "root/SecurityCenter2" -ClassName AntiVirusProduct -ErrorAction Stop | 
+                        Select-Object displayName, productState
+                    if ($products) {
+                        $products | ConvertTo-Json
+                    } else {
+                        "[]"
+                    }
+                } catch {
+                    # WMI might not be available on some server versions or if Security Center is disabled
+                    "[]"
+                }
+                "#,
             ])
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("WMI query failed: {}", e)))?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
-        if raw_output.trim().is_empty() {
+        if raw_output.trim().is_empty() || raw_output.trim() == "[]" {
+            debug!("No AV products found via WMI /SecurityCenter2");
             return Ok(AntivirusStatus {
                 enabled: false,
                 av_name: "None".to_string(),
@@ -205,51 +224,62 @@ impl AntivirusCheck {
         }
 
         // Parse WMI output
-        let products: Vec<serde_json::Value> = if raw_output.trim().starts_with('[') {
-            serde_json::from_str(&raw_output).unwrap_or_default()
+        let products_json: serde_json::Value = serde_json::from_str(&raw_output).unwrap_or_default();
+        let products: Vec<serde_json::Value> = if products_json.is_array() {
+            products_json.as_array().unwrap().clone()
+        } else if products_json.is_object() {
+            vec![products_json]
         } else {
-            match serde_json::from_str::<serde_json::Value>(&raw_output) {
-                Ok(v) => vec![v],
-                Err(_) => vec![],
-            }
+            vec![]
         };
 
-        let mut av_names: Vec<String> = products
+        let mut av_info: Vec<AntivirusStatus> = products
             .iter()
-            .filter_map(|p| p["displayName"].as_str().map(|s| s.to_string()))
+            .map(|p| {
+                let name = p["displayName"].as_str().unwrap_or("Unknown").to_string();
+                let state = p["productState"].as_u64().unwrap_or(0);
+                
+                // Bit 12: Enabled (0x1000)
+                // Bit 4: Out of date (0x0010) -> 0 means up to date
+                let enabled = (state & 0x1000) != 0;
+                let definitions_current = (state & 0x0010) == 0;
+
+                AntivirusStatus {
+                    enabled,
+                    av_name: name,
+                    real_time_protection: enabled, // WMI doesn't distinguish RTP easily across all versions
+                    definition_date: None,
+                    definition_version: None,
+                    definitions_current,
+                    last_scan_date: None,
+                    service_running: enabled,
+                    additional_products: vec![],
+                    raw_output: format!("productState: 0x{:X}", state),
+                }
+            })
             .collect();
 
-        let primary = av_names
-            .first()
-            .cloned()
-            .unwrap_or_else(|| "Unknown".to_string());
-        if !av_names.is_empty() {
-            av_names.remove(0);
+        if av_info.is_empty() {
+            return Ok(AntivirusStatus {
+                enabled: false,
+                av_name: "None".to_string(),
+                real_time_protection: false,
+                definition_date: None,
+                definition_version: None,
+                definitions_current: false,
+                last_scan_date: None,
+                service_running: false,
+                additional_products: vec![],
+                raw_output: "No products in WMI list".to_string(),
+            });
         }
 
-        // productState bit flags:
-        // Bit 12: Enabled (0x1000)
-        // Bit 4: Up to date (0x0010) - 0 usually means up to date, 1 means out of date
-        let state = products
-            .first()
-            .and_then(|p| p["productState"].as_u64())
-            .unwrap_or(0);
+        // Return primary AV and list others
+        let mut primary = av_info.remove(0);
+        primary.additional_products = av_info.into_iter().map(|s| s.av_name).collect();
+        primary.raw_output = raw_output;
 
-        let enabled = (state & 0x1000) != 0;
-        let definitions_current = (state & 0x0010) == 0;
-
-        Ok(AntivirusStatus {
-            enabled,
-            av_name: primary,
-            real_time_protection: enabled,
-            definition_date: None,
-            definition_version: None,
-            definitions_current,
-            last_scan_date: None,
-            service_running: enabled,
-            additional_products: av_names,
-            raw_output,
-        })
+        Ok(primary)
     }
 
     /// Check antivirus on Linux.

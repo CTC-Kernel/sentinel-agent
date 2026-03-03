@@ -177,7 +177,8 @@
             Name="Sentinel GRC Agent"
             Description="Autoriser les communications de l'agent Sentinel GRC"
             File="SentinelAgentExe"
-            Profile="all" />
+            Profile="all"
+            Scope="any" />
       </Component>
 
       <!-- Icon file for shortcuts -->

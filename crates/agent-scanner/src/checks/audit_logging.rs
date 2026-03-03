@@ -80,8 +80,25 @@ impl AuditLoggingCheck {
     async fn check_windows(&self) -> ScannerResult<AuditLoggingStatus> {
         debug!("Checking Windows Event Log service status");
 
-        let output = silent_command("sc")
-            .args(["query", "eventlog"])
+        let output = silent_command("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                r#"
+                try {
+                    $svc = Get-Service -Name "EventLog" -ErrorAction Stop
+                    # Status 4 = Running
+                    $running = ($svc.Status -eq 4)
+                    @{
+                        'Running' = $running
+                        'Status' = [int]$svc.Status
+                        'Name' = $svc.Name
+                    } | ConvertTo-Json
+                } catch {
+                    @{ 'Running' = $false; 'Status' = 0; 'Error' = $_.Exception.Message } | ConvertTo-Json
+                }
+                "#,
+            ])
             .output()
             .map_err(|e| {
                 ScannerError::CheckExecution(format!("Failed to query Event Log service: {}", e))
@@ -97,7 +114,8 @@ impl AuditLoggingCheck {
             )));
         }
 
-        let service_running = raw_output.contains("RUNNING");
+        let json: serde_json::Value = serde_json::from_str(&raw_output).unwrap_or_default();
+        let service_running = json["Running"].as_bool().unwrap_or(false);
 
         Ok(AuditLoggingStatus {
             enabled: service_running,
