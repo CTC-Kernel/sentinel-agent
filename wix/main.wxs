@@ -382,6 +382,8 @@
     <CustomAction Id="CleanupDataOnUninstall"
                   Directory="CommonAppDataFolder"
                   ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;try { Remove-Item '%ProgramData%\Sentinel\*' -Recurse -Force -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'SentinelGRCAgent' -EventId 1002 -EntryType Warning -Message ('Cleanup failed: ' + $_) }&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
                   Return="ignore" />
 
     <!-- Forcefully reset permissions in case of legacy locked folders from older failed installations.
@@ -390,6 +392,8 @@
     <CustomAction Id="ForceResetPermissions"
                   Directory="SystemFolder"
                   ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;if (Test-Path '%ProgramData%\Sentinel') { takeown /A /F '%ProgramData%\Sentinel' /R 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-545:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-544:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-18:(OI)(CI)(F)' /T /C /Q 2&gt;$null }&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
                   Return="ignore" />
 
     <!-- Installation sequence -->
@@ -399,14 +403,14 @@
         InstallInitialize and InstallFinalize). No property resolution needed.
       -->
       <Custom Action="KillGuiProcess" After="InstallInitialize"
-              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+              Condition="REMOVE=&quot;ALL&quot;" />
 
       <!-- Cleanup on uninstall must run deferred as SYSTEM to delete locked files -->
       <Custom Action="CleanupDataOnUninstall" After="KillGuiProcess"
               Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
 
       <!-- Force reset legacy permissions before installing files so CreateFolder can write to it -->
-      <Custom Action="ForceResetPermissions" Before="ProcessComponents"
+      <Custom Action="ForceResetPermissions" After="CleanupDataOnUninstall"
               Condition="NOT REMOVE=&quot;ALL&quot;" />
 
       <!--

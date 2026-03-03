@@ -320,12 +320,12 @@
 
     <InstallExecuteSequence>
       <Custom Action="KillGuiProcess" After="InstallInitialize"
-              Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+              Condition="REMOVE=&quot;ALL&quot;" />
 
       <Custom Action="CleanupDataOnUninstall" After="KillGuiProcess"
               Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
 
-      <Custom Action="ForceResetPermissions" Before="ProcessComponents"
+      <Custom Action="ForceResetPermissions" After="CleanupDataOnUninstall"
               Condition="NOT REMOVE=&quot;ALL&quot;" />
 
       <Custom Action="InstallCertificate" After="InstallFinalize"
