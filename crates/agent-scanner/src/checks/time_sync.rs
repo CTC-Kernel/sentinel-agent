@@ -339,7 +339,7 @@ impl TimeSyncCheck {
             .unwrap_or_else(|| "time.apple.com".to_string());
 
         if let Ok(output) = silent_command("sntp")
-            .args(["-t", "5", &ntp_server])
+            .args(["-t", "1", &ntp_server])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
@@ -400,17 +400,43 @@ impl Check for TimeSyncCheck {
     }
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
-        #[cfg(target_os = "windows")]
-        let status = self.check_windows().await?;
+        let execution = async {
+            #[cfg(target_os = "windows")]
+            let status = self.check_windows().await?;
 
-        #[cfg(target_os = "linux")]
-        let status = self.check_linux().await?;
+            #[cfg(target_os = "linux")]
+            let status = self.check_linux().await?;
 
-        #[cfg(target_os = "macos")]
-        let status = self.check_macos().await?;
+            #[cfg(target_os = "macos")]
+            let status = self.check_macos().await?;
 
-        #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
-        let status = self.check_unsupported().await?;
+            #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+            let status = self.check_unsupported().await?;
+
+            Ok::<TimeSyncStatus, crate::error::ScannerError>(status)
+        };
+
+        let status_result = tokio::time::timeout(std::time::Duration::from_millis(1900), execution).await;
+
+        let status = match status_result {
+            Ok(Ok(s)) => s,
+            Ok(Err(e)) => return Err(e),
+            Err(_) => {
+                let status = TimeSyncStatus {
+                    synchronized: false,
+                    sync_method: "Timeout".to_string(),
+                    ntp_source: None,
+                    leap_status: None,
+                    service_running: false,
+                    issues: vec!["Time synchronization check timed out (NFR limit protection)".to_string()],
+                    raw_output: "Execution timed out after 1900ms".to_string(),
+                };
+                return Ok(CheckOutput::fail(
+                    "Time synchronization check timed out".to_string(),
+                    serde_json::to_value(&status).unwrap_or_default(),
+                ));
+            }
+        };
 
         let raw_data = serde_json::to_value(&status).unwrap_or_default();
 
