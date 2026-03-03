@@ -67,8 +67,7 @@
     <!-- Prerequisite checks -->
     <Launch Condition="VersionNT64 >= 603"
             Message="Sentinel Agent requires Windows 8.1 or Windows Server 2012 R2 (or later)." />
-    <Launch Condition="Privileged"
-            Message="Administrator rights required. Please restart the installation as administrator." />
+
 
     <!-- Media definition -->
     <MediaTemplate EmbedCab="yes" />
