@@ -451,15 +451,69 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
     let key_manager = match KeyManager::new() {
         Ok(km) => km,
         Err(e) => {
-            error!("Failed to initialize key manager: {}", e);
-            return ExitCode::FAILURE;
+            // If encryption is lost and agent is NOT enrolled, we can safely reset.
+            // This happens after MSI upgrades if DPAPI context changes.
+            if let agent_storage::StorageError::EncryptionLost(_) = &e {
+                if !config.is_enrolled() {
+                    warn!("Encryption context lost on un-enrolled agent. Resetting database to recover.");
+                    let db_path = std::path::PathBuf::from(&config.db_path);
+                    let key_path = db_path
+                        .parent()
+                        .map(|p| p.join("key.dpapi"))
+                        .unwrap_or_else(|| std::path::PathBuf::from("key.dpapi"));
+
+                    let _ = std::fs::remove_file(&db_path);
+                    let _ = std::fs::remove_file(&key_path);
+
+                    // Retry once
+                    match KeyManager::new() {
+                        Ok(km) => km,
+                        Err(retry_err) => {
+                            error!("Failed to recover from encryption loss: {}", retry_err);
+                            #[cfg(windows)]
+                            if !no_tray {
+                                show_fatal_error(&format!("Erreur critique de chiffrement : {}\n\nL'agent ne peut pas démarrer.", retry_err));
+                            }
+                            return ExitCode::FAILURE;
+                        }
+                    }
+                } else {
+                    error!(
+                        "Encryption context lost on ENROLLED agent. Manual recovery required: {}",
+                        e
+                    );
+                    #[cfg(windows)]
+                    if !no_tray {
+                        show_fatal_error(&format!("Clé de chiffrement perdue sur un agent déjà enrôlé : {}\n\nUne intervention manuelle ou un ré-enrôlement est requis.\n\nErreur : {}", e, e));
+                    }
+                    return ExitCode::FAILURE;
+                }
+            } else {
+                error!("Failed to initialize key manager: {}", e);
+                #[cfg(windows)]
+                if !no_tray {
+                    show_fatal_error(&format!(
+                        "Échec de l'initialisation de la clé de sécurité : {}\n\nL'agent ne peut pas démarrer.",
+                        e
+                    ));
+                }
+                return ExitCode::FAILURE;
+            }
         }
     };
 
     let db = match Database::open(db_config, &key_manager) {
         Ok(db) => db,
         Err(e) => {
+            // If we fail here, it could still be an encryption problem (e.g. key derived differently)
             error!("Failed to open database: {}", e);
+            #[cfg(windows)]
+            if !no_tray {
+                show_fatal_error(&format!(
+                    "Échec de l'ouverture de la base de données : {}\n\nL'agent ne peut pas démarrer.",
+                    e
+                ));
+            }
             return ExitCode::FAILURE;
         }
     };
@@ -2648,5 +2702,26 @@ mod ctrlc {
         }
 
         Ok(())
+    }
+}
+
+/// Show a fatal error message box on Windows for GUI mode.
+#[cfg(windows)]
+fn show_fatal_error(message: &str) {
+    use windows::core::HSTRING;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        MessageBoxW, MB_ICONERROR, MB_OK, MB_SYSTEMMODAL,
+    };
+
+    let title = HSTRING::from("Sentinel Agent Error");
+    let msg = HSTRING::from(message);
+
+    unsafe {
+        MessageBoxW(
+            None,
+            &msg,
+            &title,
+            MB_OK | MB_ICONERROR | MB_SYSTEMMODAL,
+        );
     }
 }

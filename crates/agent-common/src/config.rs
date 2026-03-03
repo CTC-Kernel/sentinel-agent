@@ -217,6 +217,11 @@ impl Default for AgentConfig {
 }
 
 impl AgentConfig {
+    /// Returns true if the agent is enrolled (has an agent_id in configuration).
+    pub fn is_enrolled(&self) -> bool {
+        self.agent_id.is_some()
+    }
+
     /// Load configuration from file and environment variables.
     ///
     /// Configuration is loaded in the following order (later values override earlier):
