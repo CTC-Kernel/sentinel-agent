@@ -54,7 +54,6 @@ Thumbs.db
 *.crt
 *.cer
 *.der
-*.db
 
 # Logs
 logs/
