@@ -184,3 +184,4 @@ agent.json
 !config/agent.example.json
 !config/agent.full.example.json
 !config/llm.example.json
+*.wixpdb
