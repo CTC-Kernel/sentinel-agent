@@ -412,12 +412,12 @@ jobs:
           
           Write-Host "Building MSI with version: $version"
           Write-Host "TargetDir: .\target\release"
-          Write-Host "AssetsDir: .\assets\icons"
+          Write-Host "AssetsDir: .\assets"
           
           wix build `
             -d "TargetDir=.\target\release" `
             -d "Version=$version" `
-            -d "AssetsDir=.\assets\icons" `
+            -d "AssetsDir=.\assets" `
             -d "ServerUrl=${{ secrets.SENTINEL_SERVER_URL }}" `
             -o "target\release\SentinelAgentSetup-$version.msi" `
             wix/main.wxs `
