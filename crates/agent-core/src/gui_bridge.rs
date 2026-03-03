@@ -14,8 +14,8 @@ use agent_common::types::CheckSeverity;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
     AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiNetworkAlert,
-    GuiNetworkConnection, GuiNetworkInterface, GuiNotification, GuiPolicySummary,
-    GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding, Severity as GuiSeverity,
+    GuiNetworkConnection, GuiNetworkInterface, GuiNotification, GuiPolicySummary, GuiResourceUsage,
+    GuiSoftwarePackage, GuiVulnerabilityFinding, Severity as GuiSeverity,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
@@ -67,7 +67,11 @@ impl AgentRuntime {
             version: AGENT_VERSION.to_string(),
             hostname,
             agent_id: self.config.agent_id.clone(),
-            organization: self.organization_name.try_read().ok().and_then(|g| g.clone()),
+            organization: self
+                .organization_name
+                .try_read()
+                .ok()
+                .and_then(|g| g.clone()),
             compliance_score: compliance_score.map(|s| s as f32),
             last_check_at,
             last_sync_at,
@@ -155,7 +159,11 @@ impl AgentRuntime {
             .iter()
             .map(|v| GuiVulnerabilityFinding {
                 cve_id: v.cve_id.clone().unwrap_or_else(|| {
-                    format!("{}-{}", v.source.to_uppercase(), v.package_name.to_uppercase())
+                    format!(
+                        "{}-{}",
+                        v.source.to_uppercase(),
+                        v.package_name.to_uppercase()
+                    )
                 }),
                 affected_software: v.package_name.clone(),
                 affected_version: v.installed_version.clone(),
@@ -175,7 +183,10 @@ impl AgentRuntime {
     }
 
     /// Convert a `CheckExecutionResult` into a `GuiCheckResult` for display in the GUI.
-    pub(crate) fn execution_result_to_gui(&self, exec_result: &CheckExecutionResult) -> GuiCheckResult {
+    pub(crate) fn execution_result_to_gui(
+        &self,
+        exec_result: &CheckExecutionResult,
+    ) -> GuiCheckResult {
         let common_result = &exec_result.result;
         let check_id = &common_result.check_id;
 
@@ -343,16 +354,15 @@ impl AgentRuntime {
             AlertSeverity::Low => GuiSeverity::Low,
         };
 
-        let (source_ip, destination_ip, destination_port) =
-            if let Some(conn) = &alert.connection {
-                (
-                    Some(conn.local_address.clone()),
-                    conn.remote_address.clone(),
-                    conn.remote_port,
-                )
-            } else {
-                (None, None, None)
-            };
+        let (source_ip, destination_ip, destination_port) = if let Some(conn) = &alert.connection {
+            (
+                Some(conn.local_address.clone()),
+                conn.remote_address.clone(),
+                conn.remote_port,
+            )
+        } else {
+            (None, None, None)
+        };
 
         self.emit_gui_event(AgentEvent::NetworkSecurityAlert {
             alert: GuiNetworkAlert {

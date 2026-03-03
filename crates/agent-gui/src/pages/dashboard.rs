@@ -98,7 +98,9 @@ impl DashboardPage {
 
             hero_grid.show(ui, &hero_items, |ui, width, &idx| {
                 // Staggered entry (hero first)
-                let alpha = ui.ctx().animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL);
+                let alpha =
+                    ui.ctx()
+                        .animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL);
 
                 ui.vertical(|ui: &mut egui::Ui| {
                     ui.set_opacity(alpha);
@@ -143,7 +145,11 @@ impl DashboardPage {
             grid.show(ui, &items, |ui, width, &idx| {
                 // Staggered entry (delay based on index)
                 let delay = 0.1 + (idx as f32 * 0.05);
-                let alpha = (ui.ctx().animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL) * (1.0 / delay)).min(1.0);
+                let alpha =
+                    (ui.ctx()
+                        .animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL)
+                        * (1.0 / delay))
+                        .min(1.0);
 
                 ui.vertical(|ui: &mut egui::Ui| {
                     ui.set_opacity(alpha);
@@ -193,8 +199,12 @@ impl DashboardPage {
             bottom_grid.show(ui, &bottom_items, |ui, width, &idx| {
                 // Staggered entry (delay based on index)
                 let delay = 0.3 + (idx as f32 * 0.1);
-                let alpha = (ui.ctx().animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL) * (1.0 / delay)).min(1.0);
-                
+                let alpha =
+                    (ui.ctx()
+                        .animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL)
+                        * (1.0 / delay))
+                        .min(1.0);
+
                 ui.vertical(|ui: &mut egui::Ui| {
                     ui.set_opacity(alpha);
                     ui.set_width(width);
@@ -205,13 +215,16 @@ impl DashboardPage {
                             }
                         }
                         _ => {
-                            let clicked =
-                                widgets::clickable_card(ui, "activity_feed_click", |ui: &mut egui::Ui| {
+                            let clicked = widgets::clickable_card(
+                                ui,
+                                "activity_feed_click",
+                                |ui: &mut egui::Ui| {
                                     ui.set_min_width(ui.available_width());
                                     ui.set_min_height(BOTTOM_CARD_MIN_HEIGHT);
                                     widgets::activity_feed(ui, state, ACTIVITY_FEED_LIMIT);
-                                })
-                                .clicked();
+                                },
+                            )
+                            .clicked();
                             if clicked {
                                 action = Some(DashboardAction::NavigateTo(Page::AuditTrail));
                             }
@@ -239,7 +252,11 @@ impl DashboardPage {
                 format!(
                     "{}  {}",
                     icons::PLAY,
-                    if is_scanning { "SCAN EN COURS..." } else { "SCAN" }
+                    if is_scanning {
+                        "SCAN EN COURS..."
+                    } else {
+                        "SCAN"
+                    }
                 ),
                 !is_scanning,
                 is_scanning,
@@ -257,7 +274,11 @@ impl DashboardPage {
                 format!(
                     "{}  {}",
                     icons::SYNC,
-                    if is_syncing { "SYNC..." } else { "SYNCHRONISER" }
+                    if is_syncing {
+                        "SYNC..."
+                    } else {
+                        "SYNCHRONISER"
+                    }
                 ),
                 !is_syncing,
                 is_syncing,
@@ -281,8 +302,10 @@ impl DashboardPage {
                 let time = ui.input(|i| i.time);
                 if success {
                     state.toasts.push(
-                        crate::widgets::toast::Toast::success("Export CSV du tableau de bord r\u{00e9}ussi")
-                            .with_time(time),
+                        crate::widgets::toast::Toast::success(
+                            "Export CSV du tableau de bord r\u{00e9}ussi",
+                        )
+                        .with_time(time),
                     );
                 } else {
                     state.toasts.push(
@@ -341,7 +364,9 @@ impl DashboardPage {
                         GuiAgentStatus::Connected => ("Op\u{00e9}rationnel", theme::SUCCESS),
                         GuiAgentStatus::Scanning => ("Analyse", theme::INFO),
                         GuiAgentStatus::Syncing => ("Sync", theme::INFO),
-                        GuiAgentStatus::Disconnected => ("D\u{00e9}connect\u{00e9}", theme::WARNING),
+                        GuiAgentStatus::Disconnected => {
+                            ("D\u{00e9}connect\u{00e9}", theme::WARNING)
+                        }
                         GuiAgentStatus::Error => ("Erreur", theme::ERROR),
                         _ => ("Attente", theme::text_tertiary()),
                     };
@@ -391,16 +416,28 @@ impl DashboardPage {
 
                 // 4-component breakdown
                 let compliance_pct = state.summary.compliance_score.unwrap_or(50.0);
-                let threat_count = state.threats.suspicious_processes.len()
-                    + state.threats.system_incidents.len();
+                let threat_count =
+                    state.threats.suspicious_processes.len() + state.threats.system_incidents.len();
                 let vuln_count = state.vulnerability_findings.len();
                 let alert_count = state.network.alerts.len();
 
                 let components: &[(&str, f32, &str)] = &[
                     ("Conformit\u{00e9}", compliance_pct, "40%"),
-                    ("Menaces", 100.0 - (threat_count as f32 * 10.0).min(100.0), "20%"),
-                    ("Vuln\u{00e9}rabilit\u{00e9}s", 100.0 - (vuln_count as f32 * 5.0).min(100.0), "25%"),
-                    ("R\u{00e9}seau", 100.0 - (alert_count as f32 * 15.0).min(100.0), "15%"),
+                    (
+                        "Menaces",
+                        100.0 - (threat_count as f32 * 10.0).min(100.0),
+                        "20%",
+                    ),
+                    (
+                        "Vuln\u{00e9}rabilit\u{00e9}s",
+                        100.0 - (vuln_count as f32 * 5.0).min(100.0),
+                        "25%",
+                    ),
+                    (
+                        "R\u{00e9}seau",
+                        100.0 - (alert_count as f32 * 15.0).min(100.0),
+                        "15%",
+                    ),
                 ];
 
                 for (label, score, weight) in components {
@@ -481,12 +518,15 @@ impl DashboardPage {
                 let btn_text = if total > DASHBOARD_MAX_RECOMMENDATIONS {
                     format!(
                         "{}  Voir les {} recommandations {}",
-                        icons::BRAIN, total, icons::ARROW_RIGHT
+                        icons::BRAIN,
+                        total,
+                        icons::ARROW_RIGHT
                     )
                 } else {
                     format!(
                         "{}  Analyse compl\u{00e8}te {}",
-                        icons::BRAIN, icons::ARROW_RIGHT
+                        icons::BRAIN,
+                        icons::ARROW_RIGHT
                     )
                 };
                 if widgets::ghost_button(ui, btn_text).clicked() {
@@ -595,8 +635,7 @@ impl DashboardPage {
             };
 
             // PERF: VecDeque->Vec copy every frame; cost is minimal (~300 * 16 = 4.8KB).
-            let mem_data: Vec<[f64; 2]> =
-                state.monitoring.memory_history.iter().copied().collect();
+            let mem_data: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
             widgets::sparkline_with_value(
                 ui,
                 "M\u{00c9}MOIRE",
@@ -710,7 +749,12 @@ impl DashboardPage {
                 ui.add_space(theme::SPACE_XS);
 
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    Self::mini_stat(ui, &format!("{}", vuln.high), "\u{00e9}lev\u{00e9}es", theme::WARNING);
+                    Self::mini_stat(
+                        ui,
+                        &format!("{}", vuln.high),
+                        "\u{00e9}lev\u{00e9}es",
+                        theme::WARNING,
+                    );
                     ui.add_space(theme::SPACE_SM);
                     Self::mini_stat(ui, &format!("{}", total), "total", theme::text_secondary());
                 });
@@ -908,7 +952,12 @@ impl DashboardPage {
             ui.add_space(theme::SPACE_SM);
 
             let total = state.software.packages.len();
-            let up_to_date = state.software.packages.iter().filter(|p| p.up_to_date).count();
+            let up_to_date = state
+                .software
+                .packages
+                .iter()
+                .filter(|p| p.up_to_date)
+                .count();
             let coverage = if total > 0 {
                 (up_to_date as f32 / total as f32) * 100.0
             } else {
@@ -969,11 +1018,14 @@ impl DashboardPage {
             // Header + period selector
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new(format!("{}  TENDANCES & INDICATEURS CL\u{00c9}S", icons::CHART_AREA))
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
+                    egui::RichText::new(format!(
+                        "{}  TENDANCES & INDICATEURS CL\u{00c9}S",
+                        icons::CHART_AREA
+                    ))
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
                 );
 
                 ui.add_space(theme::SPACE_MD);
@@ -983,13 +1035,20 @@ impl DashboardPage {
                 let current_period: KpiPeriod = ui.memory(|mem| {
                     mem.data
                         .get_temp::<u8>(period_id)
-                        .map(|v| if v == 1 { KpiPeriod::NinetyDays } else { KpiPeriod::ThirtyDays })
+                        .map(|v| {
+                            if v == 1 {
+                                KpiPeriod::NinetyDays
+                            } else {
+                                KpiPeriod::ThirtyDays
+                            }
+                        })
                         .unwrap_or(state.kpi.period)
                 });
 
                 for period in [KpiPeriod::ThirtyDays, KpiPeriod::NinetyDays] {
                     let active = current_period == period;
-                    if widgets::chip_button(ui, period.label_fr(), active, theme::ACCENT).clicked() {
+                    if widgets::chip_button(ui, period.label_fr(), active, theme::ACCENT).clicked()
+                    {
                         let val = match period {
                             KpiPeriod::ThirtyDays => 0u8,
                             KpiPeriod::NinetyDays => 1u8,
@@ -1006,12 +1065,20 @@ impl DashboardPage {
             let selected_period: KpiPeriod = ui.memory(|mem| {
                 mem.data
                     .get_temp::<u8>(period_id)
-                    .map(|v| if v == 1 { KpiPeriod::NinetyDays } else { KpiPeriod::ThirtyDays })
+                    .map(|v| {
+                        if v == 1 {
+                            KpiPeriod::NinetyDays
+                        } else {
+                            KpiPeriod::ThirtyDays
+                        }
+                    })
                     .unwrap_or(state.kpi.period)
             });
 
             let cutoff = chrono::Utc::now()
-                - chrono::Duration::seconds(i64::from(selected_period.days()).saturating_mul(SECS_PER_DAY));
+                - chrono::Duration::seconds(
+                    i64::from(selected_period.days()).saturating_mul(SECS_PER_DAY),
+                );
 
             let filtered: Vec<&crate::dto::KpiSnapshot> = state
                 .kpi
@@ -1080,7 +1147,8 @@ impl DashboardPage {
                             match idx {
                                 0 => {
                                     // Score conformite
-                                    let (arrow, color) = Self::kpi_trend_arrow(compliance_trend, true);
+                                    let (arrow, color) =
+                                        Self::kpi_trend_arrow(compliance_trend, true);
                                     Self::kpi_sparkline_cell(
                                         ui,
                                         "Score conformit\u{00e9}",
@@ -1093,7 +1161,8 @@ impl DashboardPage {
                                 }
                                 1 => {
                                     // Incidents
-                                    let (arrow, color) = Self::kpi_trend_arrow(incident_trend, false);
+                                    let (arrow, color) =
+                                        Self::kpi_trend_arrow(incident_trend, false);
                                     Self::kpi_sparkline_cell(
                                         ui,
                                         "Incidents",
@@ -1122,8 +1191,13 @@ impl DashboardPage {
                                     let (arrow, color) = Self::kpi_trend_arrow(sla_trend, true);
                                     let sla_color = theme::score_color(current_sla);
                                     egui::Frame::new()
-                                        .fill(theme::bg_tertiary().linear_multiply(theme::OPACITY_TINT))
-                                        .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
+                                        .fill(
+                                            theme::bg_tertiary()
+                                                .linear_multiply(theme::OPACITY_TINT),
+                                        )
+                                        .corner_radius(egui::CornerRadius::same(
+                                            theme::CARD_ROUNDING,
+                                        ))
                                         .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
                                         .show(ui, |ui: &mut egui::Ui| {
                                             ui.label(
@@ -1135,10 +1209,13 @@ impl DashboardPage {
                                             ui.add_space(theme::SPACE_XS);
                                             ui.horizontal(|ui: &mut egui::Ui| {
                                                 ui.label(
-                                                    egui::RichText::new(format!("{:.0}%", current_sla))
-                                                        .font(theme::font_card_value())
-                                                        .color(sla_color)
-                                                        .strong(),
+                                                    egui::RichText::new(format!(
+                                                        "{:.0}%",
+                                                        current_sla
+                                                    ))
+                                                    .font(theme::font_card_value())
+                                                    .color(sla_color)
+                                                    .strong(),
                                                 );
                                                 ui.label(
                                                     egui::RichText::new(arrow)
@@ -1148,7 +1225,12 @@ impl DashboardPage {
                                             });
                                             ui.add_space(theme::SPACE_XS);
                                             ui.vertical_centered(|ui: &mut egui::Ui| {
-                                                widgets::mini_gauge(ui, current_sla / 100.0, sla_color, KPI_GAUGE_SIZE);
+                                                widgets::mini_gauge(
+                                                    ui,
+                                                    current_sla / 100.0,
+                                                    sla_color,
+                                                    KPI_GAUGE_SIZE,
+                                                );
                                             });
                                         });
                                 }
@@ -1226,10 +1308,10 @@ impl DashboardPage {
         let first_half = &snapshots[..mid.max(1)];
         let second_half = &snapshots[mid.max(1)..];
 
-        let avg_first = first_half.iter().map(|s| extract(s)).sum::<f32>()
-            / first_half.len().max(1) as f32;
-        let avg_second = second_half.iter().map(|s| extract(s)).sum::<f32>()
-            / second_half.len().max(1) as f32;
+        let avg_first =
+            first_half.iter().map(|s| extract(s)).sum::<f32>() / first_half.len().max(1) as f32;
+        let avg_second =
+            second_half.iter().map(|s| extract(s)).sum::<f32>() / second_half.len().max(1) as f32;
 
         avg_second - avg_first
     }
@@ -1300,16 +1382,55 @@ impl DashboardPage {
         let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
         let headers = &["metrique", "valeur", "unite", "horodatage"];
         let mut rows = vec![
-            vec!["Conformit\u{00e9}".to_string(), state.summary.compliance_score.map(|s| format!("{:.1}", s)).unwrap_or_default(), "%".to_string(), timestamp.clone()],
-            vec!["CPU".to_string(), format!("{:.1}", state.resources.cpu_percent), "%".to_string(), timestamp.clone()],
-            vec!["M\u{00e9}moire".to_string(), format!("{:.1}", state.resources.memory_percent), "%".to_string(), timestamp.clone()],
-            vec!["Politiques totales".to_string(), state.policy.total_policies.to_string(), "".to_string(), timestamp.clone()],
-            vec!["Politiques conformes".to_string(), state.policy.passing.to_string(), "".to_string(), timestamp.clone()],
+            vec![
+                "Conformit\u{00e9}".to_string(),
+                state
+                    .summary
+                    .compliance_score
+                    .map(|s| format!("{:.1}", s))
+                    .unwrap_or_default(),
+                "%".to_string(),
+                timestamp.clone(),
+            ],
+            vec![
+                "CPU".to_string(),
+                format!("{:.1}", state.resources.cpu_percent),
+                "%".to_string(),
+                timestamp.clone(),
+            ],
+            vec![
+                "M\u{00e9}moire".to_string(),
+                format!("{:.1}", state.resources.memory_percent),
+                "%".to_string(),
+                timestamp.clone(),
+            ],
+            vec![
+                "Politiques totales".to_string(),
+                state.policy.total_policies.to_string(),
+                "".to_string(),
+                timestamp.clone(),
+            ],
+            vec![
+                "Politiques conformes".to_string(),
+                state.policy.passing.to_string(),
+                "".to_string(),
+                timestamp.clone(),
+            ],
         ];
 
         if let Some(ref vuln) = state.vulnerability_summary {
-            rows.push(vec!["Vuln\u{00e9}rabilit\u{00e9}s Critiques".to_string(), vuln.critical.to_string(), "".to_string(), timestamp.clone()]);
-            rows.push(vec!["Vuln\u{00e9}rabilit\u{00e9}s \u{00c9}lev\u{00e9}es".to_string(), vuln.high.to_string(), "".to_string(), timestamp]);
+            rows.push(vec![
+                "Vuln\u{00e9}rabilit\u{00e9}s Critiques".to_string(),
+                vuln.critical.to_string(),
+                "".to_string(),
+                timestamp.clone(),
+            ]);
+            rows.push(vec![
+                "Vuln\u{00e9}rabilit\u{00e9}s \u{00c9}lev\u{00e9}es".to_string(),
+                vuln.high.to_string(),
+                "".to_string(),
+                timestamp,
+            ]);
         }
 
         let path = crate::export::default_export_path("dashboard_summary.csv");

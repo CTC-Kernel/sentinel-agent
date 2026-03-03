@@ -454,7 +454,7 @@ impl<'a> CheckRulesRepository<'a> {
                     )
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
-                let pattern = format!("%\"{}\"%" , framework);
+                let pattern = format!("%\"{}\"%", framework);
                 let results = stmt
                     .query_map([&pattern], Self::row_to_check_rule)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
@@ -699,7 +699,8 @@ impl<'a> CheckRulesRepository<'a> {
             .unwrap_or_else(|e| {
                 tracing::warn!(
                     "Failed to parse created_at timestamp '{}': {}, using current time",
-                    created_at_str, e
+                    created_at_str,
+                    e
                 );
                 Utc::now()
             });
@@ -710,7 +711,8 @@ impl<'a> CheckRulesRepository<'a> {
             .unwrap_or_else(|e| {
                 tracing::warn!(
                     "Failed to parse updated_at timestamp '{}': {}, using current time",
-                    updated_at_str, e
+                    updated_at_str,
+                    e
                 );
                 Utc::now()
             });

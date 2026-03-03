@@ -7,14 +7,14 @@
 //! move between machines.
 
 use crate::error::{PersistenceError, PersistenceResult};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use agent_common::process::silent_command;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::Path;
 use tracing::{debug, info, warn};
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use agent_common::process::silent_command;
 
 /// Exported identity package for migration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -123,7 +123,10 @@ impl MigrationManager {
             use std::os::unix::fs::PermissionsExt;
             let permissions = fs::Permissions::from_mode(0o600);
             if let Err(e) = fs::set_permissions(output_path, permissions) {
-                tracing::warn!("Failed to set identity export file permissions to 0600: {}", e);
+                tracing::warn!(
+                    "Failed to set identity export file permissions to 0600: {}",
+                    e
+                );
             }
         }
 
@@ -245,7 +248,6 @@ fn get_machine_id() -> Option<String> {
 
 #[cfg(target_os = "macos")]
 fn get_machine_id() -> Option<String> {
-
     silent_command("ioreg")
         .args(["-rd1", "-c", "IOPlatformExpertDevice"])
         .output()
@@ -271,7 +273,6 @@ fn get_machine_id() -> Option<String> {
 
 #[cfg(target_os = "windows")]
 fn get_machine_id() -> Option<String> {
-
     silent_command("reg")
         .args([
             "query",

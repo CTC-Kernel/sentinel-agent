@@ -66,7 +66,10 @@ pub fn protected_state(ui: &mut Ui, icon: &str, title: &str, subtitle: &str) {
             ui.painter().circle_stroke(
                 center,
                 icon_size * 0.7,
-                Stroke::new(theme::BORDER_THICK, base_color.linear_multiply(theme::OPACITY_TINT)),
+                Stroke::new(
+                    theme::BORDER_THICK,
+                    base_color.linear_multiply(theme::OPACITY_TINT),
+                ),
             );
         }
 
@@ -100,7 +103,8 @@ pub fn protected_state(ui: &mut Ui, icon: &str, title: &str, subtitle: &str) {
         ui.add_space(theme::SPACE_XL);
 
         if !reduced {
-            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(100));
         }
     });
 }

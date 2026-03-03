@@ -23,18 +23,8 @@ use tracing::{debug, info, warn};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SyncKind {
-    /// Full sync (heartbeat + results + config + rules).
+    /// Full sync (now acts as manual GRC sync).
     Full,
-    /// Heartbeat only.
-    Heartbeat,
-    /// Results upload only.
-    Results,
-    /// Configuration sync only.
-    Config,
-    /// Rules sync only.
-    Rules,
-    /// Audit trail sync only.
-    Audit,
     /// Manual sync triggered by user.
     Manual,
     /// Playbook sync.
@@ -55,11 +45,6 @@ impl SyncKind {
     pub fn as_str(&self) -> &'static str {
         match self {
             SyncKind::Full => "full",
-            SyncKind::Heartbeat => "heartbeat",
-            SyncKind::Results => "results",
-            SyncKind::Config => "config",
-            SyncKind::Rules => "rules",
-            SyncKind::Audit => "audit",
             SyncKind::Manual => "manual",
             SyncKind::Playbooks => "playbooks",
             SyncKind::DetectionRules => "detection_rules",
@@ -139,7 +124,13 @@ macro_rules! impl_sync_queue {
             let repo = SyncQueueRepository::new(&self._db);
             let pending = match repo.get_pending(50).await {
                 Ok(p) => p,
-                Err(e) => return Err(crate::error::SyncError::Config(format!("Failed to fetch pending {}: {}", stringify!($entity), e))),
+                Err(e) => {
+                    return Err(crate::error::SyncError::Config(format!(
+                        "Failed to fetch pending {}: {}",
+                        stringify!($entity),
+                        e
+                    )))
+                }
             };
 
             let mut items = Vec::new();
@@ -152,7 +143,9 @@ macro_rules! impl_sync_queue {
                             ids.push(item.id);
                         }
                         Err(e) => {
-                            let _ = repo.record_failure(item.id, &format!("Deserialization failed: {}", e)).await;
+                            let _ = repo
+                                .record_failure(item.id, &format!("Deserialization failed: {}", e))
+                                .await;
                         }
                     }
                 }
@@ -226,12 +219,30 @@ impl SyncOrchestrator {
         let mut total = 0u32;
 
         // Upload locally-created GRC entities from the sync queue
-        match self.sync_playbooks(client).await { Ok(n) => total += n, Err(e) => warn!("Playbooks queue drain: {}", e) }
-        match self.sync_detection_rules(client).await { Ok(n) => total += n, Err(e) => warn!("Detection rules queue drain: {}", e) }
-        match self.sync_risks(client).await { Ok(n) => total += n, Err(e) => warn!("Risks queue drain: {}", e) }
-        match self.sync_assets(client).await { Ok(n) => total += n, Err(e) => warn!("Assets queue drain: {}", e) }
-        match self.sync_kpi(client).await { Ok(n) => total += n, Err(e) => warn!("KPI queue drain: {}", e) }
-        match self.sync_alerting(client).await { Ok(n) => total += n, Err(e) => warn!("Alert rules queue drain: {}", e) }
+        match self.sync_playbooks(client).await {
+            Ok(n) => total += n,
+            Err(e) => warn!("Playbooks queue drain: {}", e),
+        }
+        match self.sync_detection_rules(client).await {
+            Ok(n) => total += n,
+            Err(e) => warn!("Detection rules queue drain: {}", e),
+        }
+        match self.sync_risks(client).await {
+            Ok(n) => total += n,
+            Err(e) => warn!("Risks queue drain: {}", e),
+        }
+        match self.sync_assets(client).await {
+            Ok(n) => total += n,
+            Err(e) => warn!("Assets queue drain: {}", e),
+        }
+        match self.sync_kpi(client).await {
+            Ok(n) => total += n,
+            Err(e) => warn!("KPI queue drain: {}", e),
+        }
+        match self.sync_alerting(client).await {
+            Ok(n) => total += n,
+            Err(e) => warn!("Alert rules queue drain: {}", e),
+        }
 
         // Download GRC entities from SaaS into local SQLite
         match self.download_grc_entities(client).await {
@@ -276,12 +287,7 @@ impl SyncOrchestrator {
 
         // Perform the sync operations based on kind
         let result = match kind {
-            SyncKind::Heartbeat => self.sync_heartbeat(client).await,
-            SyncKind::Results => self.sync_results(client).await,
-            SyncKind::Config => self.sync_config(client).await,
-            SyncKind::Rules => self.sync_rules(client).await,
-            SyncKind::Audit => self.sync_audit(client).await,
-            SyncKind::Full | SyncKind::Manual => self.sync_full(client).await,
+            SyncKind::Full | SyncKind::Manual => self.drain_grc_queues(client).await,
             SyncKind::Playbooks => self.sync_playbooks(client).await,
             SyncKind::DetectionRules => self.sync_detection_rules(client).await,
             SyncKind::Risks => self.sync_risks(client).await,
@@ -386,55 +392,6 @@ impl SyncOrchestrator {
         &self.circuit_breaker
     }
 
-    /// Perform a full sync (heartbeat + results + config + rules).
-    async fn sync_full(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
-        let mut total = 0u32;
-
-        // Heartbeat first
-        match self.sync_heartbeat(client).await {
-            Ok(n) => total += n,
-            Err(e) => {
-                warn!("Heartbeat sync failed during full sync: {}", e);
-                return Err(e);
-            }
-        }
-
-        // Config sync
-        match self.sync_config(client).await {
-            Ok(n) => total += n,
-            Err(e) => warn!("Config sync failed during full sync: {}", e),
-        }
-
-        // Rules sync
-        match self.sync_rules(client).await {
-            Ok(n) => total += n,
-            Err(e) => warn!("Rules sync failed during full sync: {}", e),
-        }
-
-        // Results upload
-        match self.sync_results(client).await {
-            Ok(n) => total += n,
-            Err(e) => warn!("Results sync failed during full sync: {}", e),
-        }
-
-        // Audit sync
-        match self.sync_audit(client).await {
-            Ok(n) => total += n,
-            Err(e) => warn!("Audit sync failed during full sync: {}", e),
-        }
-
-        // Download GRC entities from SaaS into local SQLite (Two-Way Sync)
-        match self.download_grc_entities(client).await {
-            Ok(n) => {
-                info!("Downloaded and reconciled {} GRC entity records from SaaS", n);
-                total += n;
-            }
-            Err(e) => warn!("GRC entity download failed during full sync: {}", e),
-        }
-
-        Ok(total)
-    }
-
     /// Download GRC entities from the SaaS and persist them to local SQLite.
     ///
     /// This is the core of the Two-Way Sync architecture. On each full sync,
@@ -442,11 +399,10 @@ impl SyncOrchestrator {
     /// SQLite tables so the GUI can display the correct data even after a restart.
     async fn download_grc_entities(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
         use agent_storage::repositories::grc::{
-            StoredRisk, StoredPlaybook, StoredManagedAsset, StoredAlertRule, StoredWebhook,
-            StoredDetectionRule, StoredSoftwareInventory,
-            RiskRepository, PlaybookRepository, ManagedAssetRepository,
-            AlertRuleRepository, WebhookRepository, DetectionRuleRepository,
-            SoftwareInventoryRepository,
+            AlertRuleRepository, DetectionRuleRepository, ManagedAssetRepository,
+            PlaybookRepository, RiskRepository, SoftwareInventoryRepository, StoredAlertRule,
+            StoredDetectionRule, StoredManagedAsset, StoredPlaybook, StoredRisk,
+            StoredSoftwareInventory, StoredWebhook, WebhookRepository,
         };
 
         let mut count = 0u32;
@@ -494,7 +450,11 @@ impl SyncOrchestrator {
                         description: p.description.clone(),
                         category: "general".to_string(),
                         steps: serde_json::to_string(&p.actions).unwrap_or_default(),
-                        status: if p.enabled { "active".to_string() } else { "inactive".to_string() },
+                        status: if p.enabled {
+                            "active".to_string()
+                        } else {
+                            "inactive".to_string()
+                        },
                         created_at: p.created_at.to_rfc3339(),
                         updated_at: now.clone(),
                         synced: true,
@@ -547,7 +507,10 @@ impl SyncOrchestrator {
                         id: r.id.clone(),
                         name: r.name.clone(),
                         description: r.rule_type.clone(),
-                        severity: r.severity_threshold.clone().unwrap_or_else(|| "medium".to_string()),
+                        severity: r
+                            .severity_threshold
+                            .clone()
+                            .unwrap_or_else(|| "medium".to_string()),
                         condition: serde_json::to_string(&r.detection_types).unwrap_or_default(),
                         actions: "[]".to_string(),
                         enabled: r.enabled,
@@ -632,7 +595,12 @@ impl SyncOrchestrator {
                     .unwrap_or_else(|| "unknown".to_string());
                 for s in &software {
                     let stored = StoredSoftwareInventory {
-                        id: format!("{}-{}-{}", hostname, s.name, s.version.as_deref().unwrap_or("unknown")),
+                        id: format!(
+                            "{}-{}-{}",
+                            hostname,
+                            s.name,
+                            s.version.as_deref().unwrap_or("unknown")
+                        ),
                         hostname: hostname.clone(),
                         software_name: s.name.clone(),
                         version: s.version.clone().unwrap_or_default(),
@@ -654,163 +622,42 @@ impl SyncOrchestrator {
         Ok(count)
     }
 
-
-    /// Sync audit trail.
-    async fn sync_audit(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
-        use crate::types::AuditTrailEntry;
-        use agent_storage::AuditTrailRepository;
-
-        // 1. Fetch unsynced entries from local storage
-        let repo = AuditTrailRepository::new(&self._db);
-        let stored_entries = repo.fetch_unsynced(50).await.map_err(|e| {
-            crate::error::SyncError::Config(format!(
-                "Failed to fetch unsynced audit entries: {}",
-                e
-            ))
-        })?;
-
-        if stored_entries.is_empty() {
-            return Ok(0);
-        }
-
-        let ids: Vec<i64> = stored_entries.iter().filter_map(|e| e.id).collect();
-        let api_entries: Vec<AuditTrailEntry> = stored_entries
-            .iter()
-            .map(|e| AuditTrailEntry {
-                action: e.action_type.clone(),
-                actor: e.actor.clone(),
-                details: e.details.clone(),
-                timestamp: e.timestamp,
-                metadata: serde_json::from_str(&e.action_data).unwrap_or_default(),
-            })
-            .collect();
-
-        debug!("Syncing {} audit entries to SaaS", api_entries.len());
-
-        // 2. Upload to SaaS
-        let server_count = client.sync_audit_trail(api_entries).await?;
-        info!("Successfully synced {} audit entries to SaaS", server_count);
-
-        // 3. Mark as synced in local storage
-        repo.mark_synced(&ids).await.map_err(|e| {
-            crate::error::SyncError::Config(format!(
-                "Failed to mark audit entries as synced: {}",
-                e
-            ))
-        })?;
-
-        Ok(server_count)
-    }
-
-    /// Sync heartbeat.
-    async fn sync_heartbeat(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
-        let agent_id = client.agent_id().await?;
-        debug!("Sending heartbeat for agent {}", agent_id);
-
-        let request = crate::types::HeartbeatRequest {
-            timestamp: Utc::now(),
-            agent_version: agent_common::constants::AGENT_VERSION.to_string(),
-            status: "active".to_string(),
-            hostname: hostname::get()
-                .ok()
-                .and_then(|h| h.into_string().ok())
-                .unwrap_or_else(|| "unknown".to_string()),
-            os_info: std::env::consts::OS.to_string(),
-            cpu_percent: 0.0,
-            memory_bytes: 0,
-            last_check_at: None,
-            compliance_score: None,
-            pending_sync_count: 0,
-            self_check_result: None,
-            memory_percent: None,
-            memory_total_bytes: None,
-            disk_percent: None,
-            disk_used_bytes: None,
-            disk_total_bytes: None,
-            uptime_seconds: None,
-            ip_address: None,
-            network_bytes_sent: None,
-            network_bytes_recv: None,
-            disk_io_kbps: None,
-            processes: Vec::new(),
-            connections: Vec::new(),
-            llm_status: None,
-            llm_inference_count: None,
-        };
-
-        let _response: crate::types::HeartbeatResponse = client
-            .post_json(&format!("/v1/agents/{}/heartbeat", agent_id), &request)
-            .await?;
-
-        Ok(1)
-    }
-
-    /// Sync configuration.
-    async fn sync_config(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
-        let agent_id = client.agent_id().await?;
-        debug!("Syncing config for agent {}", agent_id);
-
-        let _config: serde_json::Value = client
-            .get(&format!("/v1/agents/{}/config", agent_id))
-            .await?;
-
-        // 1. Download and store central playbooks
-        match client.download_playbooks().await {
-            Ok(playbooks) => {
-                info!("Downloaded {} central playbooks", playbooks.len());
-                if let Ok(json) = serde_json::to_string(&playbooks) {
-                    let repo = agent_storage::ConfigRepository::new(&self._db);
-                    let _ = repo.set_with_source("central_playbooks", &json, agent_storage::ConfigSource::Remote).await;
-                }
-            }
-            Err(e) => warn!("Failed to download playbooks: {}", e),
-        }
-
-        // 2. Download and store central alert rules
-        match client.download_alert_rules().await {
-            Ok(rules) => {
-                info!("Downloaded {} central alert rules", rules.len());
-                if let Ok(json) = serde_json::to_string(&rules) {
-                    let repo = agent_storage::ConfigRepository::new(&self._db);
-                    let _ = repo.set_with_source("central_alert_rules", &json, agent_storage::ConfigSource::Remote).await;
-                }
-            }
-            Err(e) => warn!("Failed to download alert rules: {}", e),
-        }
-
-        Ok(1)
-    }
-
-    /// Sync rules.
-    async fn sync_rules(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
-        // Rules are included in config response, but we also download detection rules separately
-        match client.download_detection_rules().await {
-            Ok(rules) => {
-                info!("Downloaded {} central detection rules", rules.len());
-                if let Ok(json) = serde_json::to_string(&rules) {
-                    let repo = agent_storage::ConfigRepository::new(&self._db);
-                    let _ = repo.set_with_source("central_detection_rules", &json, agent_storage::ConfigSource::Remote).await;
-                }
-            }
-            Err(e) => warn!("Failed to download detection rules: {}", e),
-        }
-        
-        Ok(0)
-    }
-
-    /// Sync pending results.
-    async fn sync_results(&self, _client: &AuthenticatedClient) -> SyncResult<u32> {
-        // Query pending results from DB and upload them
-        // For now, return 0 as the sync queue processing is handled separately
-        Ok(0)
-    }
-
-    impl_sync_queue!(sync_playbooks, agent_storage::SyncEntityType::Playbook, crate::types::PlaybookPayload, sync_playbooks);
-    impl_sync_queue!(sync_detection_rules, agent_storage::SyncEntityType::DetectionRule, crate::types::DetectionRulePayload, sync_detection_rules);
-    impl_sync_queue!(sync_risks, agent_storage::SyncEntityType::Risk, crate::types::RiskPayload, sync_risks);
-    impl_sync_queue!(sync_assets, agent_storage::SyncEntityType::Asset, crate::types::AssetPayload, sync_assets);
-    impl_sync_queue!(sync_kpi, agent_storage::SyncEntityType::Kpi, crate::types::KpiSnapshotPayload, sync_kpi_snapshots);
-    impl_sync_queue!(sync_alerting, agent_storage::SyncEntityType::AlertRule, crate::types::AlertRulePayload, sync_alert_rules);
+    impl_sync_queue!(
+        sync_playbooks,
+        agent_storage::SyncEntityType::Playbook,
+        crate::types::PlaybookPayload,
+        sync_playbooks
+    );
+    impl_sync_queue!(
+        sync_detection_rules,
+        agent_storage::SyncEntityType::DetectionRule,
+        crate::types::DetectionRulePayload,
+        sync_detection_rules
+    );
+    impl_sync_queue!(
+        sync_risks,
+        agent_storage::SyncEntityType::Risk,
+        crate::types::RiskPayload,
+        sync_risks
+    );
+    impl_sync_queue!(
+        sync_assets,
+        agent_storage::SyncEntityType::Asset,
+        crate::types::AssetPayload,
+        sync_assets
+    );
+    impl_sync_queue!(
+        sync_kpi,
+        agent_storage::SyncEntityType::Kpi,
+        crate::types::KpiSnapshotPayload,
+        sync_kpi_snapshots
+    );
+    impl_sync_queue!(
+        sync_alerting,
+        agent_storage::SyncEntityType::AlertRule,
+        crate::types::AlertRulePayload,
+        sync_alert_rules
+    );
 
     /// Record a sync history entry.
     async fn record_history_async(
@@ -885,10 +732,6 @@ mod tests {
     #[test]
     fn test_sync_kind_as_str() {
         assert_eq!(SyncKind::Full.as_str(), "full");
-        assert_eq!(SyncKind::Heartbeat.as_str(), "heartbeat");
-        assert_eq!(SyncKind::Results.as_str(), "results");
-        assert_eq!(SyncKind::Config.as_str(), "config");
-        assert_eq!(SyncKind::Rules.as_str(), "rules");
         assert_eq!(SyncKind::Manual.as_str(), "manual");
         assert_eq!(SyncKind::Playbooks.as_str(), "playbooks");
         assert_eq!(SyncKind::DetectionRules.as_str(), "detection_rules");

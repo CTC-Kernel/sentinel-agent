@@ -111,7 +111,11 @@ impl<'a> Alert<'a> {
         let (bg_color, border_color, accent_color) = self.level.colors();
         let icon = self.icon.unwrap_or_else(|| self.level.icon());
 
-        let padding = if self.compact { theme::SPACE_MD } else { theme::SPACE };
+        let padding = if self.compact {
+            theme::SPACE_MD
+        } else {
+            theme::SPACE
+        };
         let available_width = ui.available_width();
 
         egui::Frame::new()
@@ -181,7 +185,8 @@ impl<'a> Alert<'a> {
                                 button_text,
                             );
 
-                            let button_size = galley.size() + egui::vec2(theme::SPACE_LG, theme::SPACE_MD);
+                            let button_size =
+                                galley.size() + egui::vec2(theme::SPACE_LG, theme::SPACE_MD);
                             let (button_rect, button_response) =
                                 ui.allocate_exact_size(button_size, Sense::click());
 
@@ -211,7 +216,8 @@ impl<'a> Alert<'a> {
                                 );
 
                                 ui.painter().galley(
-                                    button_rect.min + egui::vec2(theme::SPACE_MD, theme::SPACE_XS + 2.0),
+                                    button_rect.min
+                                        + egui::vec2(theme::SPACE_MD, theme::SPACE_XS + 2.0),
                                     galley,
                                     button_text,
                                 );
@@ -241,8 +247,10 @@ impl<'a> Alert<'a> {
 
                     // Dismiss button (meets MIN_TOUCH_TARGET)
                     if self.dismissible {
-                        let (close_rect, close_response) =
-                            ui.allocate_exact_size(egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET), Sense::click());
+                        let (close_rect, close_response) = ui.allocate_exact_size(
+                            egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET),
+                            Sense::click(),
+                        );
 
                         if ui.is_rect_visible(close_rect) {
                             let is_hovered = close_response.hovered();

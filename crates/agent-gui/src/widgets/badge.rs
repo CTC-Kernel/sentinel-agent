@@ -98,9 +98,9 @@ impl<'a> Badge<'a> {
 
         let text_color = theme::badge_text(base);
 
-        let galley =
-            ui.painter()
-                .layout_no_wrap(self.text.to_string(), font.clone(), text_color);
+        let galley = ui
+            .painter()
+            .layout_no_wrap(self.text.to_string(), font.clone(), text_color);
 
         let text_size = galley.size();
         let badge_w = text_size.x + h_pad * 2.0;
@@ -218,8 +218,10 @@ pub fn status_dot(ui: &mut Ui, color: Color32) -> egui::Response {
 /// Animated status dot with subtle pulse.
 pub fn status_dot_animated(ui: &mut Ui, color: Color32, pulse: bool) -> egui::Response {
     let size = theme::STATUS_DOT_SIZE;
-    let (rect, response) =
-        ui.allocate_exact_size(egui::vec2(size + theme::SPACE_XS, size + theme::SPACE_XS), egui::Sense::hover());
+    let (rect, response) = ui.allocate_exact_size(
+        egui::vec2(size + theme::SPACE_XS, size + theme::SPACE_XS),
+        egui::Sense::hover(),
+    );
 
     if ui.is_rect_visible(rect) {
         let center = rect.center();
@@ -234,7 +236,8 @@ pub fn status_dot_animated(ui: &mut Ui, color: Color32, pulse: bool) -> egui::Re
                 size / 2.0 + theme::BORDER_THICK,
                 color.linear_multiply(alpha * theme::OPACITY_TINT),
             );
-            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(100));
         }
 
         ui.painter().circle_filled(center, size / 2.0, color);

@@ -49,16 +49,23 @@ impl KeyManager {
                 Ok(k) => k,
                 Err(e) => {
                     // Check if database exists before regenerating key
-                    let db_path = AgentConfig::platform_data_dir().join(agent_common::constants::DB_FILE_NAME);
+                    let db_path = AgentConfig::platform_data_dir()
+                        .join(agent_common::constants::DB_FILE_NAME);
                     if db_path.exists() {
-                        tracing::error!("Encryption key decryption failed but database exists. Refusing to regenerate key to prevent data loss: {}", e);
+                        tracing::error!(
+                            "Encryption key decryption failed but database exists. Refusing to regenerate key to prevent data loss: {}",
+                            e
+                        );
                         return Err(StorageError::EncryptionLost(format!(
                             "Database exists but key cannot be decrypted ({}). Manual recovery or backup required.",
                             e
                         )));
                     }
 
-                    warn!("Failed to load existing key ({}), generating new key as no DB exists", e);
+                    warn!(
+                        "Failed to load existing key ({}), generating new key as no DB exists",
+                        e
+                    );
                     let new_key = Self::generate_key();
                     if let Err(store_err) = Self::store_key(&key_path, &new_key) {
                         warn!("Failed to store new key: {}", store_err);
@@ -166,7 +173,9 @@ impl KeyManager {
     fn get_key_path() -> PathBuf {
         #[cfg(windows)]
         {
-            AgentConfig::platform_data_dir().join("data").join(KEY_FILE_NAME)
+            AgentConfig::platform_data_dir()
+                .join("data")
+                .join(KEY_FILE_NAME)
         }
         #[cfg(not(windows))]
         {
@@ -270,12 +279,17 @@ impl KeyManager {
         };
 
         if let Err(e) = result {
-            return Err(StorageError::KeyManagement(format!("DPAPI decryption failed: {}", e)));
+            return Err(StorageError::KeyManagement(format!(
+                "DPAPI decryption failed: {}",
+                e
+            )));
         }
 
         // Null pointer check before accessing decrypted data
         if data_out.pbData.is_null() {
-            return Err(StorageError::KeyManagement("DPAPI decryption returned null pointer".to_string()));
+            return Err(StorageError::KeyManagement(
+                "DPAPI decryption returned null pointer".to_string(),
+            ));
         }
 
         // Bounds check: verify DPAPI returned exactly KEY_LENGTH bytes
@@ -288,7 +302,7 @@ impl KeyManager {
                 )));
             }
             return Err(StorageError::KeyManagement(format!(
-                "Invalid decrypted key size: expected {} bytes, got {}", 
+                "Invalid decrypted key size: expected {} bytes, got {}",
                 KEY_LENGTH, decrypted_len
             )));
         }
@@ -306,9 +320,9 @@ impl KeyManager {
 
         // Free the DPAPI-allocated memory
         unsafe {
-            let _ = windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
-                data_out.pbData as *mut _,
-            )));
+            let _ = windows::Win32::Foundation::LocalFree(Some(
+                windows::Win32::Foundation::HLOCAL(data_out.pbData as *mut _),
+            ));
         }
 
         debug!(
@@ -404,9 +418,9 @@ impl KeyManager {
                 std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec();
 
             // Free the allocated memory
-            let _ = windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
-                data_out.pbData as *mut _,
-            )));
+            let _ = windows::Win32::Foundation::LocalFree(Some(
+                windows::Win32::Foundation::HLOCAL(data_out.pbData as *mut _),
+            ));
 
             // Write encrypted data to file
             fs::write(path, &encrypted).map_err(|e| {

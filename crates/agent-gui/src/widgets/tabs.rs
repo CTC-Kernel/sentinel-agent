@@ -220,7 +220,10 @@ impl<'a> TabBar<'a> {
                     count.to_string()
                 };
                 let badge_rect = egui::Rect::from_center_size(
-                    egui::pos2(rect.max.x - padding.x - theme::SPACE_SM - 2.0, rect.center().y),
+                    egui::pos2(
+                        rect.max.x - padding.x - theme::SPACE_SM - 2.0,
+                        rect.center().y,
+                    ),
                     egui::vec2(theme::ICON_MD, theme::ICON_SM + 2.0),
                 );
                 let rounding = CornerRadius::same((theme::ICON_SM + 2.0) as u8 / 2);
@@ -342,7 +345,10 @@ impl<'a> TabBar<'a> {
                         } else {
                             count.to_string()
                         };
-                        let badge_center = egui::pos2(rect.max.x - theme::SPACE_XS - 2.0, rect.min.y + theme::SPACE_XS + 2.0);
+                        let badge_center = egui::pos2(
+                            rect.max.x - theme::SPACE_XS - 2.0,
+                            rect.min.y + theme::SPACE_XS + 2.0,
+                        );
                         let badge_rect = egui::Rect::from_center_size(
                             badge_center,
                             egui::vec2(theme::SPACE, theme::SPACE_MD + 2.0),
@@ -356,7 +362,10 @@ impl<'a> TabBar<'a> {
                         ui.painter().rect_stroke(
                             badge_rect,
                             rounding,
-                            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::ERROR)),
+                            egui::Stroke::new(
+                                theme::BORDER_HAIRLINE,
+                                theme::badge_border(theme::ERROR),
+                            ),
                             egui::StrokeKind::Inside,
                         );
                         ui.painter().text(
@@ -403,7 +412,10 @@ impl<'a> TabBar<'a> {
                     ui.spacing_mut().item_spacing.x = theme::SPACE_XS;
 
                     let tab_width = if tab_count > 0 {
-                        (available_width - theme::SPACE_SM - tab_count.saturating_sub(1) as f32 * theme::SPACE_XS) / tab_count as f32
+                        (available_width
+                            - theme::SPACE_SM
+                            - tab_count.saturating_sub(1) as f32 * theme::SPACE_XS)
+                            / tab_count as f32
                     } else {
                         0.0
                     };

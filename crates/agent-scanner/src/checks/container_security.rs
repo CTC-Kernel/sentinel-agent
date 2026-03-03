@@ -19,10 +19,10 @@
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for container security.
@@ -143,15 +143,16 @@ impl ContainerSecurityCheck {
             .output();
 
         if let Ok(output) = version_output
-            && output.status.success() {
-                let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                status.runtime = "docker".to_string();
-                status.runtime_version = Some(version.clone());
-                status.daemon_running = true;
-                status
-                    .raw_output
-                    .push_str(&format!("Docker version: {}\n", version));
-            }
+            && output.status.success()
+        {
+            let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            status.runtime = "docker".to_string();
+            status.runtime_version = Some(version.clone());
+            status.daemon_running = true;
+            status
+                .raw_output
+                .push_str(&format!("Docker version: {}\n", version));
+        }
 
         if !status.daemon_running {
             return Ok(());
@@ -187,9 +188,10 @@ impl ContainerSecurityCheck {
                     // Get seccomp profile
                     for opt in &options {
                         if opt.contains("seccomp")
-                            && let Some(profile) = opt.split('=').next_back() {
-                                status.seccomp_profile = Some(profile.to_string());
-                            }
+                            && let Some(profile) = opt.split('=').next_back()
+                        {
+                            status.seccomp_profile = Some(profile.to_string());
+                        }
                     }
                 }
 
@@ -264,19 +266,20 @@ impl ContainerSecurityCheck {
             .output();
 
         if let Ok(output) = version_output
-            && output.status.success() {
-                let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                if status.runtime.is_empty() || status.runtime == "none" {
-                    status.runtime = "podman".to_string();
-                    status.runtime_version = Some(version.clone());
-                    status.daemon_running = true;
-                    // Podman is rootless by default
-                    status.rootless_mode = true;
-                }
-                status
-                    .raw_output
-                    .push_str(&format!("Podman version: {}\n", version));
+            && output.status.success()
+        {
+            let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if status.runtime.is_empty() || status.runtime == "none" {
+                status.runtime = "podman".to_string();
+                status.runtime_version = Some(version.clone());
+                status.daemon_running = true;
+                // Podman is rootless by default
+                status.rootless_mode = true;
             }
+            status
+                .raw_output
+                .push_str(&format!("Podman version: {}\n", version));
+        }
 
         if status.runtime != "podman" {
             return Ok(());
@@ -316,9 +319,10 @@ impl ContainerSecurityCheck {
 
                 // Storage info
                 if let Some(store) = info.get("store")
-                    && let Some(driver) = store.get("graphDriverName").and_then(|v| v.as_str()) {
-                        status.storage_driver = Some(driver.to_string());
-                    }
+                    && let Some(driver) = store.get("graphDriverName").and_then(|v| v.as_str())
+                {
+                    status.storage_driver = Some(driver.to_string());
+                }
             }
         }
 
@@ -364,41 +368,44 @@ impl ContainerSecurityCheck {
 
                     if let Ok(inspects) =
                         serde_json::from_str::<Vec<serde_json::Value>>(&inspect_json)
-                        && let Some(inspect) = inspects.first() {
-                            // Check if privileged
-                            if let Some(host_config) = inspect.get("HostConfig") {
-                                if let Some(privileged) =
-                                    host_config.get("Privileged").and_then(|v| v.as_bool())
-                                    && privileged {
-                                        status
-                                            .privileged_containers
-                                            .push(container_name.to_string());
-                                    }
-
-                                // Check resource limits
-                                let has_limits = host_config
-                                    .get("Memory")
-                                    .and_then(|v| v.as_i64())
-                                    .unwrap_or(0)
-                                    > 0
-                                    || host_config
-                                        .get("CpuPeriod")
-                                        .and_then(|v| v.as_i64())
-                                        .unwrap_or(0)
-                                        > 0;
-
-                                if !has_limits {
-                                    status.unlimited_containers.push(container_name.to_string());
-                                }
+                        && let Some(inspect) = inspects.first()
+                    {
+                        // Check if privileged
+                        if let Some(host_config) = inspect.get("HostConfig") {
+                            if let Some(privileged) =
+                                host_config.get("Privileged").and_then(|v| v.as_bool())
+                                && privileged
+                            {
+                                status
+                                    .privileged_containers
+                                    .push(container_name.to_string());
                             }
 
-                            // Check if running as root
-                            if let Some(config) = inspect.get("Config")
-                                && let Some(user) = config.get("User").and_then(|v| v.as_str())
-                                    && (user.is_empty() || user == "0" || user == "root") {
-                                        status.root_containers.push(container_name.to_string());
-                                    }
+                            // Check resource limits
+                            let has_limits = host_config
+                                .get("Memory")
+                                .and_then(|v| v.as_i64())
+                                .unwrap_or(0)
+                                > 0
+                                || host_config
+                                    .get("CpuPeriod")
+                                    .and_then(|v| v.as_i64())
+                                    .unwrap_or(0)
+                                    > 0;
+
+                            if !has_limits {
+                                status.unlimited_containers.push(container_name.to_string());
+                            }
                         }
+
+                        // Check if running as root
+                        if let Some(config) = inspect.get("Config")
+                            && let Some(user) = config.get("User").and_then(|v| v.as_str())
+                            && (user.is_empty() || user == "0" || user == "root")
+                        {
+                            status.root_containers.push(container_name.to_string());
+                        }
+                    }
                 }
             }
         }

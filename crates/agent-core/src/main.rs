@@ -94,7 +94,9 @@ fn main() -> ExitCode {
         // Even though we are a "windows" subsystem (so double-clicking doesn't spawn a console),
         // we still want printf/println to work if launched from an existing cmd/powershell.
         unsafe {
-            let _ = windows::Win32::System::Console::AttachConsole(windows::Win32::System::Console::ATTACH_PARENT_PROCESS);
+            let _ = windows::Win32::System::Console::AttachConsole(
+                windows::Win32::System::Console::ATTACH_PARENT_PROCESS,
+            );
         }
 
         use std::fs::{self, OpenOptions};
@@ -102,7 +104,7 @@ fn main() -> ExitCode {
         let log_dir = r"C:\ProgramData\Sentinel\logs";
         let log_file = r"C:\ProgramData\Sentinel\logs\startup.log";
         let _ = fs::create_dir_all(log_dir);
-        
+
         // Prevent infinite growth by keeping it under 5MB
         if let Ok(metadata) = fs::metadata(log_file) {
             if metadata.len() > 5 * 1024 * 1024 {
@@ -110,11 +112,7 @@ fn main() -> ExitCode {
             }
         }
 
-        if let Ok(mut f) = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(log_file)
-        {
+        if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(log_file) {
             let _ = writeln!(
                 f,
                 "[{}] starting, args: {:?}",
@@ -138,7 +136,7 @@ fn main() -> ExitCode {
             .location()
             .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
             .unwrap_or_else(|| "unknown".to_string());
-        
+
         let msg = format!("PANIC at {}: {}", location, payload);
         eprintln!("{}", msg);
 
@@ -150,7 +148,7 @@ fn main() -> ExitCode {
             let log_dir = r"C:\ProgramData\Sentinel\logs";
             let panic_log = r"C:\ProgramData\Sentinel\logs\panic.log";
             let _ = fs::create_dir_all(log_dir);
-            
+
             // Prevent infinite growth
             if let Ok(metadata) = fs::metadata(panic_log) {
                 if metadata.len() > 5 * 1024 * 1024 {
@@ -158,11 +156,7 @@ fn main() -> ExitCode {
                 }
             }
 
-            if let Ok(mut f) = OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(panic_log)
-            {
+            if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(panic_log) {
                 let _ = writeln!(
                     f,
                     "[{}] {}",
@@ -278,7 +272,10 @@ fn handle_enroll(token: &str, server_url: Option<&str>) -> ExitCode {
             ExitCode::SUCCESS
         }
         Err(e) => {
-            error!("Enrollment failed: {}. Please check: the token is valid and not expired, you have network connectivity, the token hasn't reached its usage limit", e);
+            error!(
+                "Enrollment failed: {}. Please check: the token is valid and not expired, you have network connectivity, the token hasn't reached its usage limit",
+                e
+            );
             ExitCode::FAILURE
         }
     }
@@ -310,7 +307,9 @@ fn handle_install() -> ExitCode {
 
     match service::install_service(&executable) {
         Ok(()) => {
-            info!("Service installed successfully. Use 'sentinel-agent start' to start the service.");
+            info!(
+                "Service installed successfully. Use 'sentinel-agent start' to start the service."
+            );
             ExitCode::SUCCESS
         }
         Err(service::ServiceError::AlreadyInstalled) => {
@@ -360,7 +359,9 @@ fn handle_uninstall(purge: bool, keep_logs: bool) -> ExitCode {
     } else if purge {
         info!("Agent completely removed.");
     } else {
-        info!("Agent service removed. Configuration and data preserved. Use '--purge' to remove all data.");
+        info!(
+            "Agent service removed. Configuration and data preserved. Use '--purge' to remove all data."
+        );
     }
 
     ExitCode::SUCCESS
@@ -614,30 +615,31 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     }
 
     // Create tray icon
-    let (agent_tray, _command_rx): (tray::AgentTray, _) = match tray::AgentTray::new(shutdown.clone()) {
-        Ok(tray) => tray,
-        Err(e) => {
-            warn!(
-                "Failed to create tray icon: {}. Running in headless mode.",
-                e
-            );
-            // Fall back to headless mode
-            let rt = match tokio::runtime::Runtime::new() {
-                Ok(rt) => rt,
-                Err(e) => {
-                    error!("Failed to create Tokio runtime: {}", e);
-                    return ExitCode::FAILURE;
-                }
-            };
-            return match rt.block_on(runtime.run()) {
-                Ok(()) => ExitCode::SUCCESS,
-                Err(e) => {
-                    error!("Agent error: {}", e);
-                    ExitCode::FAILURE
-                }
-            };
-        }
-    };
+    let (agent_tray, _command_rx): (tray::AgentTray, _) =
+        match tray::AgentTray::new(shutdown.clone()) {
+            Ok(tray) => tray,
+            Err(e) => {
+                warn!(
+                    "Failed to create tray icon: {}. Running in headless mode.",
+                    e
+                );
+                // Fall back to headless mode
+                let rt = match tokio::runtime::Runtime::new() {
+                    Ok(rt) => rt,
+                    Err(e) => {
+                        error!("Failed to create Tokio runtime: {}", e);
+                        return ExitCode::FAILURE;
+                    }
+                };
+                return match rt.block_on(runtime.run()) {
+                    Ok(()) => ExitCode::SUCCESS,
+                    Err(e) => {
+                        error!("Agent error: {}", e);
+                        ExitCode::FAILURE
+                    }
+                };
+            }
+        };
 
     // Create Tokio runtime for async operations
     let rt = match tokio::runtime::Runtime::new() {
@@ -2273,16 +2275,21 @@ struct EnrollmentResult {
 }
 
 #[cfg(feature = "gui")]
-async fn enroll_with_config(config: &AgentConfig, admin_password: Option<String>) -> Result<EnrollmentResult, String> {
+async fn enroll_with_config(
+    config: &AgentConfig,
+    admin_password: Option<String>,
+) -> Result<EnrollmentResult, String> {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
-    use agent_sync::{EnrollmentManager, CredentialsRepository};
+    use agent_sync::{CredentialsRepository, EnrollmentManager};
 
     let db_config = DatabaseConfig::default();
     let key_manager = KeyManager::new().map_err(|e| format!("KeyManager: {}", e))?;
     let db = Database::open(db_config, &key_manager).map_err(|e| format!("DB: {}", e))?;
     let enrollment_manager = EnrollmentManager::new(config, &db);
 
-    let token = config.enrollment_token.as_ref()
+    let token = config
+        .enrollment_token
+        .as_ref()
         .ok_or_else(|| "No enrollment token".to_string())?;
 
     let creds = enrollment_manager
@@ -2292,7 +2299,10 @@ async fn enroll_with_config(config: &AgentConfig, admin_password: Option<String>
 
     // Store credentials to DB (enroll() doesn't do this, only ensure_enrolled() does)
     let credentials_repo = CredentialsRepository::new(&db);
-    credentials_repo.store(&creds).await.map_err(|e| format!("Failed to store credentials: {}", e))?;
+    credentials_repo
+        .store(&creds)
+        .await
+        .map_err(|e| format!("Failed to store credentials: {}", e))?;
 
     Ok(EnrollmentResult {
         agent_id: creds.agent_id.to_string(),
@@ -2307,7 +2317,8 @@ async fn enroll_with_config(config: &AgentConfig, admin_password: Option<String>
 async fn wait_for_finish(rx: &std::sync::mpsc::Receiver<agent_gui::enrollment::EnrollmentCommand>) {
     loop {
         match rx.try_recv() {
-            Ok(agent_gui::enrollment::EnrollmentCommand::Finish) | Err(std::sync::mpsc::TryRecvError::Disconnected) => break,
+            Ok(agent_gui::enrollment::EnrollmentCommand::Finish)
+            | Err(std::sync::mpsc::TryRecvError::Disconnected) => break,
             Ok(_) => {}
             Err(std::sync::mpsc::TryRecvError::Empty) => {
                 tokio::time::sleep(std::time::Duration::from_millis(50)).await;
@@ -2320,9 +2331,7 @@ async fn wait_for_finish(rx: &std::sync::mpsc::Receiver<agent_gui::enrollment::E
 ///
 /// Returns `(suggested_probability, suggested_impact, analysis, mitigation_suggestions)`.
 #[cfg(all(feature = "gui", feature = "llm"))]
-fn parse_risk_analysis_response(
-    text: &str,
-) -> (Option<u8>, Option<u8>, String, Vec<String>) {
+fn parse_risk_analysis_response(text: &str) -> (Option<u8>, Option<u8>, String, Vec<String>) {
     #[derive(Default, serde::Deserialize)]
     #[serde(default)]
     struct RawRiskAnalysis {
@@ -2337,7 +2346,11 @@ fn parse_risk_analysis_response(
         return (
             raw.suggested_probability.map(|v| v.clamp(1, 5)),
             raw.suggested_impact.map(|v| v.clamp(1, 5)),
-            if raw.analysis.is_empty() { text.to_string() } else { raw.analysis },
+            if raw.analysis.is_empty() {
+                text.to_string()
+            } else {
+                raw.analysis
+            },
             raw.mitigation_suggestions,
         );
     }
@@ -2352,7 +2365,11 @@ fn parse_risk_analysis_response(
             return (
                 raw.suggested_probability.map(|v| v.clamp(1, 5)),
                 raw.suggested_impact.map(|v| v.clamp(1, 5)),
-                if raw.analysis.is_empty() { text.to_string() } else { raw.analysis },
+                if raw.analysis.is_empty() {
+                    text.to_string()
+                } else {
+                    raw.analysis
+                },
                 raw.mitigation_suggestions,
             );
         }
@@ -2577,7 +2594,9 @@ mod ctrlc {
                 if let Some(sig) = signals.forever().next() {
                     match sig {
                         signal_hook::consts::SIGINT => {
-                            tracing::info!("Received SIGINT (Ctrl+C), initiating graceful shutdown...");
+                            tracing::info!(
+                                "Received SIGINT (Ctrl+C), initiating graceful shutdown..."
+                            );
                         }
                         signal_hook::consts::SIGTERM => {
                             tracing::info!("Received SIGTERM, initiating graceful shutdown...");
@@ -2586,7 +2605,10 @@ mod ctrlc {
                             tracing::info!("Received SIGHUP, initiating graceful shutdown...");
                         }
                         _ => {
-                            tracing::info!("Received signal {}, initiating graceful shutdown...", sig);
+                            tracing::info!(
+                                "Received signal {}, initiating graceful shutdown...",
+                                sig
+                            );
                         }
                     }
                     handler();
@@ -2602,9 +2624,7 @@ mod ctrlc {
             let _ = HANDLER_CALLBACK.set(Box::new(handler));
 
             // Console control handler function
-            unsafe extern "system" fn console_handler(
-                ctrl_type: u32,
-            ) -> windows::core::BOOL {
+            unsafe extern "system" fn console_handler(ctrl_type: u32) -> windows::core::BOOL {
                 // CTRL_C_EVENT = 0, CTRL_BREAK_EVENT = 1, CTRL_CLOSE_EVENT = 2
                 // CTRL_LOGOFF_EVENT = 5, CTRL_SHUTDOWN_EVENT = 6
                 if ctrl_type <= 2 || ctrl_type == 5 || ctrl_type == 6 {

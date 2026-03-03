@@ -12,10 +12,10 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for MFA configuration.
@@ -356,8 +356,7 @@ impl MfaCheck {
 
             // bioutil -r -s outputs user biometric info when Touch ID is enrolled
             // Typical output: "User 501: type=1 (Touch ID) / count=N"
-            if output.status.success()
-                && (result.contains("Touch ID") || result.contains("type=1"))
+            if output.status.success() && (result.contains("Touch ID") || result.contains("type=1"))
             {
                 status.mfa_configured = true;
                 status.available_methods.push("Touch ID".to_string());
@@ -372,15 +371,12 @@ impl MfaCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!(
-                "=== smartcard preferences ===\n{}\n",
-                result
-            ));
+            status
+                .raw_output
+                .push_str(&format!("=== smartcard preferences ===\n{}\n", result));
 
             // Check if smart card enforcement or pairing is configured
-            if result.contains("enforceSmartCard = 1")
-                || result.contains("allowSmartCard = 1")
-            {
+            if result.contains("enforceSmartCard = 1") || result.contains("allowSmartCard = 1") {
                 status.mfa_configured = true;
                 status.available_methods.push("Smart Card".to_string());
                 if status.mfa_provider.is_none() {

@@ -70,7 +70,7 @@ impl<'a> RecoveryManager<'a> {
     /// Perform comprehensive verification after VACUUM operation.
     fn perform_post_vacuum_verification(&self) -> PersistenceResult<PostVacuumVerification> {
         let mut failed_checks = Vec::new();
-        
+
         // Re-run full integrity check
         match self.check_integrity() {
             Ok(report) => {
@@ -95,7 +95,10 @@ impl<'a> RecoveryManager<'a> {
         };
 
         let db = Database::open(config, self.key_manager).map_err(|e| {
-            PersistenceError::Recovery(format!("Cannot open database for post-VACUUM verification: {}", e))
+            PersistenceError::Recovery(format!(
+                "Cannot open database for post-VACUUM verification: {}",
+                e
+            ))
         })?;
 
         // Check database can perform basic operations
@@ -104,12 +107,15 @@ impl<'a> RecoveryManager<'a> {
             .block_on(async {
                 db.with_connection(|conn| {
                     // Test basic query
-                    let _: Option<i32> = conn
-                        .query_row("SELECT 1", [], |row| row.get(0))
-                        .map_err(|e| {
-                            agent_storage::StorageError::Query(format!("Basic query failed: {}", e))
-                        })?;
-                    
+                    let _: Option<i32> =
+                        conn.query_row("SELECT 1", [], |row| row.get(0))
+                            .map_err(|e| {
+                                agent_storage::StorageError::Query(format!(
+                                    "Basic query failed: {}",
+                                    e
+                                ))
+                            })?;
+
                     // Test schema access
                     let _: Option<i32> = conn
                         .query_row(
@@ -118,9 +124,12 @@ impl<'a> RecoveryManager<'a> {
                             |row| row.get(0),
                         )
                         .map_err(|e| {
-                            agent_storage::StorageError::Query(format!("Schema query failed: {}", e))
+                            agent_storage::StorageError::Query(format!(
+                                "Schema query failed: {}",
+                                e
+                            ))
                         })?;
-                    
+
                     Ok(())
                 })
                 .await
@@ -143,7 +152,7 @@ impl<'a> RecoveryManager<'a> {
         }
 
         let all_passed = failed_checks.is_empty();
-        
+
         Ok(PostVacuumVerification {
             all_passed,
             failed_checks,
@@ -331,10 +340,10 @@ impl<'a> RecoveryManager<'a> {
         match result {
             Ok(()) => {
                 info!("VACUUM completed, performing comprehensive post-repair verification");
-                
+
                 // Perform comprehensive post-VACUUM verification
                 let post_vacuum_checks = self.perform_post_vacuum_verification()?;
-                
+
                 if post_vacuum_checks.all_passed {
                     info!("Database repair (VACUUM) completed and verified successfully");
                     Ok(true)

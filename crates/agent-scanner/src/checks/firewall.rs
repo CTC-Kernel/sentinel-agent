@@ -10,10 +10,10 @@
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 use crate::error::{ScannerError, ScannerResult};
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for firewall configuration.
@@ -191,7 +191,7 @@ impl FirewallCheck {
                     .map(|s| s.to_string());
 
                 let gpo_enforced = p["GpoEnforced"].as_bool();
-                
+
                 FirewallProfile {
                     name,
                     enabled,
@@ -276,7 +276,8 @@ impl FirewallCheck {
         let rule_count = raw_output
             .lines()
             .filter(|l| l.contains("ALLOW") || l.contains("DENY") || l.contains("REJECT"))
-            .count().min(u32::MAX as usize) as u32;
+            .count()
+            .min(u32::MAX as usize) as u32;
 
         Ok(FirewallStatus {
             enabled,
@@ -309,7 +310,8 @@ impl FirewallCheck {
         let rule_count = raw_output
             .lines()
             .filter(|l| l.trim().starts_with("rule") || l.contains("accept") || l.contains("drop"))
-            .count().min(u32::MAX as usize) as u32;
+            .count()
+            .min(u32::MAX as usize) as u32;
 
         Ok(FirewallStatus {
             enabled,
@@ -338,7 +340,8 @@ impl FirewallCheck {
                     firewall_type: "none".to_string(),
                     profiles: vec![],
                     rule_count: None,
-                    raw_output: "No firewall tool found (checked ufw, nftables, iptables)".to_string(),
+                    raw_output: "No firewall tool found (checked ufw, nftables, iptables)"
+                        .to_string(),
                 });
             }
         };
@@ -381,7 +384,8 @@ impl FirewallCheck {
         let rule_count = raw_output
             .lines()
             .filter(|l| !l.starts_with("Chain") && !l.starts_with("target") && !l.trim().is_empty())
-            .count().min(u32::MAX as usize) as u32;
+            .count()
+            .min(u32::MAX as usize) as u32;
 
         Ok(FirewallStatus {
             enabled: has_rules
@@ -412,10 +416,12 @@ impl FirewallCheck {
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to check ALF: {}", e)))?;
 
         let mut raw_output = String::from_utf8_lossy(&output.stdout).to_string();
-        
+
         // If it failed or output is empty, try with elevation
         if (!output.status.success() || raw_output.trim().is_empty())
-            && let Ok(elevated) = agent_common::macos::run_with_elevation("/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate")
+            && let Ok(elevated) = agent_common::macos::run_with_elevation(
+                "/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate",
+            )
         {
             raw_output = elevated;
         }
@@ -427,9 +433,12 @@ impl FirewallCheck {
             .ok()
             .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
             .unwrap_or_default();
-            
+
         if stealth_output.trim().is_empty() {
-            stealth_output = agent_common::macos::run_with_elevation("/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode").unwrap_or_default();
+            stealth_output = agent_common::macos::run_with_elevation(
+                "/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode",
+            )
+            .unwrap_or_default();
         }
 
         // Check block all incoming
@@ -437,9 +446,12 @@ impl FirewallCheck {
             .ok()
             .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
             .unwrap_or_default();
-            
+
         if block_output.trim().is_empty() {
-            block_output = agent_common::macos::run_with_elevation("/usr/libexec/ApplicationFirewall/socketfilterfw --getblockall").unwrap_or_default();
+            block_output = agent_common::macos::run_with_elevation(
+                "/usr/libexec/ApplicationFirewall/socketfilterfw --getblockall",
+            )
+            .unwrap_or_default();
         }
 
         let block_all = block_output.contains("enabled");

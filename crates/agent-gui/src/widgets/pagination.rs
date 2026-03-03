@@ -260,8 +260,10 @@ impl Pagination {
         ui.horizontal(|ui| {
             // Previous
             let prev_enabled = state.has_prev();
-            let (prev_rect, prev_response) =
-                ui.allocate_exact_size(egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET), Sense::click());
+            let (prev_rect, prev_response) = ui.allocate_exact_size(
+                egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET),
+                Sense::click(),
+            );
 
             if ui.is_rect_visible(prev_rect) {
                 let color = if prev_enabled {
@@ -291,14 +293,21 @@ impl Pagination {
             // Page indicator (dots)
             for p in 1..=state.total_pages.min(5) {
                 let is_current = p == state.current_page || (state.current_page > 5 && p == 5);
-                let size = if is_current { theme::PAGINATION_DOT_ACTIVE } else { theme::PAGINATION_DOT_INACTIVE };
+                let size = if is_current {
+                    theme::PAGINATION_DOT_ACTIVE
+                } else {
+                    theme::PAGINATION_DOT_INACTIVE
+                };
                 let color = if is_current {
                     theme::ACCENT
                 } else {
                     theme::text_tertiary()
                 };
 
-                let (dot_rect, _) = ui.allocate_exact_size(egui::vec2(theme::PAGINATION_DOT_TOUCH, theme::PAGINATION_DOT_TOUCH), Sense::hover());
+                let (dot_rect, _) = ui.allocate_exact_size(
+                    egui::vec2(theme::PAGINATION_DOT_TOUCH, theme::PAGINATION_DOT_TOUCH),
+                    Sense::hover(),
+                );
 
                 if ui.is_rect_visible(dot_rect) {
                     ui.painter()
@@ -308,8 +317,10 @@ impl Pagination {
 
             // Next
             let next_enabled = state.has_next();
-            let (next_rect, next_response) =
-                ui.allocate_exact_size(egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET), Sense::click());
+            let (next_rect, next_response) = ui.allocate_exact_size(
+                egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET),
+                Sense::click(),
+            );
 
             if ui.is_rect_visible(next_rect) {
                 let color = if next_enabled {
@@ -349,8 +360,11 @@ impl Pagination {
 
             // Background
             if is_hovered {
-                ui.painter()
-                    .rect_filled(rect, CornerRadius::same(theme::ROUNDING_MD), theme::hover_bg());
+                ui.painter().rect_filled(
+                    rect,
+                    CornerRadius::same(theme::ROUNDING_MD),
+                    theme::hover_bg(),
+                );
             }
 
             // Icon
@@ -409,7 +423,8 @@ impl Pagination {
             };
 
             if bg != Color32::TRANSPARENT {
-                ui.painter().rect_filled(rect, CornerRadius::same(theme::ROUNDING_MD), bg);
+                ui.painter()
+                    .rect_filled(rect, CornerRadius::same(theme::ROUNDING_MD), bg);
             }
 
             // Text

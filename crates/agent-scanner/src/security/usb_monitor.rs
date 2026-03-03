@@ -6,12 +6,12 @@
 //! Periodically polls connected USB devices and detects connections/disconnections.
 //! Supports an allowlist-based policy for device control.
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use agent_common::process::silent_command;
 use agent_common::types::{UsbDevice, UsbDeviceClass, UsbEvent, UsbEventType, UsbPolicy};
 use chrono::Utc;
 use std::collections::HashMap;
 use tracing::{debug, info};
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use agent_common::process::silent_command;
 
 /// USB device monitor that tracks connected devices.
 pub struct UsbMonitor {
@@ -201,7 +201,6 @@ impl UsbMonitor {
     /// Enumerate USB devices on macOS using system_profiler.
     #[cfg(target_os = "macos")]
     fn enumerate_macos(&self) -> Vec<UsbDevice> {
-
         let output = match silent_command("system_profiler")
             .args(["SPUSBDataType", "-json"])
             .output()
@@ -227,7 +226,6 @@ impl UsbMonitor {
     /// Enumerate USB devices on Windows using PowerShell.
     #[cfg(target_os = "windows")]
     fn enumerate_windows(&self) -> Vec<UsbDevice> {
-
         let output = match silent_command("powershell")
             .args([
                 "-NoProfile",

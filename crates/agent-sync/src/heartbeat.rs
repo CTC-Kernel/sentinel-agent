@@ -319,24 +319,26 @@ impl HeartbeatService {
     async fn collect_processes(&self) -> Vec<crate::types::AgentProcess> {
         use sysinfo::{ProcessRefreshKind, ProcessesToUpdate};
         let mut sys = self.sys.write().await;
-        
+
         // Refresh processes
         sys.refresh_processes_specifics(
             ProcessesToUpdate::All,
             true,
-            ProcessRefreshKind::nothing()
-                .with_cpu()
-                .with_memory(),
+            ProcessRefreshKind::nothing().with_cpu().with_memory(),
         );
-        
+
         let mut processes = Vec::new();
         // Limit to top 20 processes by CPU to avoid huge payload
         let mut process_list: Vec<_> = sys.processes().values().collect();
-        process_list.sort_by(|a, b| b.cpu_usage().partial_cmp(&a.cpu_usage()).unwrap_or(std::cmp::Ordering::Equal));
-        
+        process_list.sort_by(|a, b| {
+            b.cpu_usage()
+                .partial_cmp(&a.cpu_usage())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+
         // Use total memory for percentage calculation
         let total_mem = sys.total_memory() as f64;
-        
+
         for p in process_list.into_iter().take(20) {
             let mem_bytes = p.memory();
             let mem_percent = if total_mem > 0.0 {
@@ -344,20 +346,23 @@ impl HeartbeatService {
             } else {
                 0.0
             };
-            
+
             processes.push(crate::types::AgentProcess {
                 pid: p.pid().as_u32(),
                 name: p.name().to_string_lossy().to_string(),
                 cpu_percent: p.cpu_usage() as f64,
                 memory_bytes: mem_bytes,
                 memory_percent: mem_percent,
-                user: p.user_id().map(|u| u.to_string()).unwrap_or_else(|| "unknown".to_string()),
+                user: p
+                    .user_id()
+                    .map(|u| u.to_string())
+                    .unwrap_or_else(|| "unknown".to_string()),
                 // RH-3: Only send the process name (first element of cmd()),
                 // NOT the full argument list which may contain secrets/tokens.
                 command_line: p.cmd().first().map(|s| s.to_string_lossy().to_string()),
             });
         }
-        
+
         processes
     }
 

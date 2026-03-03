@@ -352,7 +352,9 @@ impl InterfaceCollector {
                 .as_str()
                 .and_then(|s| self.parse_link_speed(s));
 
-            let if_index = adapter["ifIndex"].as_i64().and_then(|i| u32::try_from(i).ok());
+            let if_index = adapter["ifIndex"]
+                .as_i64()
+                .and_then(|i| u32::try_from(i).ok());
 
             // Get IP addresses for this interface
             let (ipv4_addresses, ipv6_addresses) = if let Some(idx) = if_index {

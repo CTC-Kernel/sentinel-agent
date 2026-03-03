@@ -3,9 +3,9 @@
 
 use crate::api_client::ApiClient;
 use agent_common::error::{CommonError, Result};
+use agent_common::process::silent_command;
 use agent_common::types::UpdateInfo;
 use semver::Version;
-use agent_common::process::silent_command;
 use std::sync::Arc;
 #[allow(unused_imports)]
 use tracing::{debug, error, info, warn};
@@ -72,7 +72,9 @@ impl UpdateManager {
         // 2. Download checksum
         let checksum_url = format!(
             "{}/{}/{}",
-            agent_common::constants::RELEASES_BASE_URL, folder, checksum_file
+            agent_common::constants::RELEASES_BASE_URL,
+            folder,
+            checksum_file
         );
         debug!("Fetching checksum from {}", checksum_url);
         let expected_checksum = self.api_client.fetch_text(&checksum_url).await?;
@@ -80,7 +82,9 @@ impl UpdateManager {
         // 3. Download package
         let package_url = format!(
             "{}/{}/{}",
-            agent_common::constants::RELEASES_BASE_URL, folder, package_name
+            agent_common::constants::RELEASES_BASE_URL,
+            folder,
+            package_name
         );
 
         // Use a unique temporary directory to prevent TOCTOU attacks
@@ -183,16 +187,12 @@ impl UpdateManager {
             .to_lowercase();
 
         // Validate hash format: must be exactly 64 hex characters (SHA-256)
-        if expected_hash.len() != 64
-            || !expected_hash.chars().all(|c| c.is_ascii_hexdigit())
-        {
+        if expected_hash.len() != 64 || !expected_hash.chars().all(|c| c.is_ascii_hexdigit()) {
             error!(
                 "Invalid SHA-256 format: expected 64 hex chars, got {} chars",
                 expected_hash.len()
             );
-            return Err(CommonError::validation(
-                "Invalid SHA-256 checksum format",
-            ));
+            return Err(CommonError::validation("Invalid SHA-256 checksum format"));
         }
 
         // Use constant-time comparison to prevent timing attacks
@@ -227,17 +227,25 @@ impl UpdateManager {
             if agent_common::macos::is_admin() {
                 // If already root, we can spawn directly. Use `sh -c` with `&` to fully detach.
                 info!("Running as root, executing detached installer");
-                let script = format!("/usr/sbin/installer -pkg \"{}\" -target / > /dev/null 2>&1 &", path_str);
+                let script = format!(
+                    "/usr/sbin/installer -pkg \"{}\" -target / > /dev/null 2>&1 &",
+                    path_str
+                );
                 silent_command("sh")
                     .arg("-c")
                     .arg(&script)
                     .spawn()
-                    .map_err(|e| CommonError::system(format!("Failed to launch installer: {}", e)))?;
+                    .map_err(|e| {
+                        CommonError::system(format!("Failed to launch installer: {}", e))
+                    })?;
             } else {
                 info!("Not running as root, requesting elevation for detached installer");
-                // AppleScript `do shell script` blocks until completion by default. 
+                // AppleScript `do shell script` blocks until completion by default.
                 // Adding `> /dev/null 2>&1 &` makes it return immediately.
-                let script = format!("/usr/sbin/installer -pkg \"{}\" -target / > /dev/null 2>&1 &", path_str);
+                let script = format!(
+                    "/usr/sbin/installer -pkg \"{}\" -target / > /dev/null 2>&1 &",
+                    path_str
+                );
                 agent_common::macos::run_with_elevation(&script)?;
             }
             info!("macOS installer spawned successfully");
@@ -246,14 +254,14 @@ impl UpdateManager {
         #[cfg(target_os = "windows")]
         {
             info!("Executing pre-update process termination for robust install...");
-            
+
             // Forcefully terminate any running GUI processes and their children to release file locks.
             // We use /IM (Image Name) and /T (Tree Kill) /F (Force).
             // This ensures agent-gui.exe and any sub-processes are completely gone.
             let kill_gui = silent_command("taskkill")
                 .args(["/F", "/T", "/IM", "agent-gui.exe"])
                 .output();
-                
+
             match kill_gui {
                 Ok(output) if output.status.success() => {
                     info!("Successfully terminated agent-gui.exe process tree.");
@@ -263,11 +271,17 @@ impl UpdateManager {
                     if stderr.contains("not found") || stderr.contains("introuvable") {
                         debug!("No agent-gui.exe process found to terminate.");
                     } else {
-                        warn!("Taskkill reported an issue (GUI may still be locked): {}. Proceeding with MSI.", stderr);
+                        warn!(
+                            "Taskkill reported an issue (GUI may still be locked): {}. Proceeding with MSI.",
+                            stderr
+                        );
                     }
                 }
                 Err(e) => {
-                    warn!("Failed to execute taskkill for agent-gui.exe: {}. Proceeding with MSI.", e);
+                    warn!(
+                        "Failed to execute taskkill for agent-gui.exe: {}. Proceeding with MSI.",
+                        e
+                    );
                 }
             }
 
@@ -295,11 +309,13 @@ impl UpdateManager {
             }
         }
 
-        info!("Installer started in the background. The agent will now exit to allow self-update, and will be restarted automatically.");
-        
+        info!(
+            "Installer started in the background. The agent will now exit to allow self-update, and will be restarted automatically."
+        );
+
         // Sleep very briefly to ensure logs flush
         std::thread::sleep(std::time::Duration::from_millis(500));
-        
+
         // Terminate the process with success code so the installer can seamlessly replace the binary
         std::process::exit(0);
     }

@@ -503,7 +503,12 @@ impl UpdateService {
         let valid = {
             let a = computed_hash.to_lowercase();
             let b = expected_hash.to_lowercase();
-            a.len() == b.len() && a.as_bytes().iter().zip(b.as_bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+            a.len() == b.len()
+                && a.as_bytes()
+                    .iter()
+                    .zip(b.as_bytes())
+                    .fold(0u8, |acc, (x, y)| acc | (x ^ y))
+                    == 0
         };
 
         if valid {

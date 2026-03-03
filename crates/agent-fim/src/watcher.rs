@@ -178,7 +178,11 @@ fn process_event(
             }
             _ => {
                 if let Err(e) = baseline.update(path) {
-                    tracing::warn!("Failed to update FIM baseline for {}: {}", path.display(), e);
+                    tracing::warn!(
+                        "Failed to update FIM baseline for {}: {}",
+                        path.display(),
+                        e
+                    );
                 }
             }
         }
@@ -197,7 +201,7 @@ fn process_event(
 /// Check if a path should be ignored based on patterns.
 fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
     let path_str = path.to_string_lossy();
-    
+
     // On Windows, use case-insensitive matching and normalize separators
     #[cfg(target_os = "windows")]
     let path_norm = path_str.to_lowercase().replace('\\', "/");

@@ -56,7 +56,9 @@ impl LLMService {
     #[cfg(feature = "llm")]
     pub async fn new(config_path: Option<std::path::PathBuf>) -> Result<Self> {
         let config_path = config_path.unwrap_or_else(|| {
-            agent_common::config::AgentConfig::platform_data_dir().join("config").join("llm.json")
+            agent_common::config::AgentConfig::platform_data_dir()
+                .join("config")
+                .join("llm.json")
         });
 
         info!("Initializing LLM service with config: {:?}", config_path);
@@ -99,13 +101,19 @@ impl LLMService {
     /// Automatically downloads the model from HuggingFace if not present.
     pub async fn initialize(&self) -> Result<()> {
         if !self.config_path.exists() {
-            return Err(anyhow::anyhow!("Fichier de configuration LLM introuvable à {:?}", self.config_path));
+            return Err(anyhow::anyhow!(
+                "Fichier de configuration LLM introuvable à {:?}",
+                self.config_path
+            ));
         }
         let config = LLMConfig::from_file(&self.config_path)?;
 
         // Auto-download model if not present
         if !config.model.path.exists() {
-            info!("Model file not found at {:?}, attempting auto-download...", config.model.path);
+            info!(
+                "Model file not found at {:?}, attempting auto-download...",
+                config.model.path
+            );
             self.download_model(&config).await?;
         }
 
@@ -229,7 +237,9 @@ impl LLMService {
                                 }
                                 DownloadControl::Cancelled => {
                                     info!("Download cancelled while paused");
-                                    return Err(anyhow::anyhow!("Téléchargement annulé par l'utilisateur"));
+                                    return Err(anyhow::anyhow!(
+                                        "Téléchargement annulé par l'utilisateur"
+                                    ));
                                 }
                                 DownloadControl::Paused => continue,
                             }
@@ -354,15 +364,18 @@ impl LLMService {
     #[cfg(feature = "llm")]
     pub async fn get_config(&self) -> Result<LLMConfig> {
         if !self.config_path.exists() {
-            info!("Fichier de configuration absent, création d'une configuration par défaut à {:?}", self.config_path);
-            
+            info!(
+                "Fichier de configuration absent, création d'une configuration par défaut à {:?}",
+                self.config_path
+            );
+
             // Ensure config directory exists
             if let Some(parent) = self.config_path.parent() {
                 let _ = std::fs::create_dir_all(parent);
             }
 
             let mut config = LLMConfig::default();
-            
+
             // Resolve relative paths based on config path parent
             if let Some(parent) = self.config_path.parent() {
                 if config.model.path.is_relative() {
@@ -372,12 +385,15 @@ impl LLMService {
                     config.cache.directory = parent.join(&config.cache.directory);
                 }
             }
-            
+
             // Save it so that reload() after download can find it
             if let Err(e) = config.save_to_file(&self.config_path) {
-                warn!("Impossible de sauvegarder la configuration par défaut: {}", e);
+                warn!(
+                    "Impossible de sauvegarder la configuration par défaut: {}",
+                    e
+                );
             }
-            
+
             return Ok(config);
         }
         LLMConfig::from_file(&self.config_path)

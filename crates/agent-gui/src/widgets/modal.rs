@@ -190,7 +190,9 @@ impl Modal {
                 // Header with icon and title
                 ui.vertical(|ui| {
                     // Top colored bar
-                    let header_rect = ui.allocate_space(egui::vec2(self.width, theme::MODAL_HEADER_BAR)).1;
+                    let header_rect = ui
+                        .allocate_space(egui::vec2(self.width, theme::MODAL_HEADER_BAR))
+                        .1;
                     ui.painter().rect_filled(
                         header_rect,
                         CornerRadius {

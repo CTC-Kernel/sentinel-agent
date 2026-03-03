@@ -364,13 +364,11 @@ impl SiemForwarder {
         // Format all events
         let formatted: Vec<String> = events
             .iter()
-            .filter_map(|e| {
-                match self.formatter.format(e) {
-                    Ok(formatted) => Some(formatted),
-                    Err(err) => {
-                        tracing::warn!("Failed to format SIEM event: {}", err);
-                        None
-                    }
+            .filter_map(|e| match self.formatter.format(e) {
+                Ok(formatted) => Some(formatted),
+                Err(err) => {
+                    tracing::warn!("Failed to format SIEM event: {}", err);
+                    None
                 }
             })
             .collect();

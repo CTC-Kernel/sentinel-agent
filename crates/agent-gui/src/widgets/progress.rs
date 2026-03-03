@@ -61,11 +61,14 @@ pub fn progress_bar_styled(
                 ProgressStyle::Gradient => {
                     // Gradient from warning to success based on progress
                     let r = (theme::WARNING.r() as f32 * (1.0 - progress)
-                        + theme::SUCCESS.r() as f32 * progress).clamp(0.0, 255.0) as u8;
+                        + theme::SUCCESS.r() as f32 * progress)
+                        .clamp(0.0, 255.0) as u8;
                     let g = (theme::WARNING.g() as f32 * (1.0 - progress)
-                        + theme::SUCCESS.g() as f32 * progress).clamp(0.0, 255.0) as u8;
+                        + theme::SUCCESS.g() as f32 * progress)
+                        .clamp(0.0, 255.0) as u8;
                     let b = (theme::WARNING.b() as f32 * (1.0 - progress)
-                        + theme::SUCCESS.b() as f32 * progress).clamp(0.0, 255.0) as u8;
+                        + theme::SUCCESS.b() as f32 * progress)
+                        .clamp(0.0, 255.0) as u8;
                     Color32::from_rgb(r, g, b)
                 }
             };
@@ -84,7 +87,11 @@ pub fn progress_bar_styled(
                 .intersect(fill_rect);
 
                 if shine_rect.width() > 0.0 {
-                    painter.rect_filled(shine_rect, rounding, theme::overlay_color().linear_multiply(theme::OPACITY_SUBTLE));
+                    painter.rect_filled(
+                        shine_rect,
+                        rounding,
+                        theme::overlay_color().linear_multiply(theme::OPACITY_SUBTLE),
+                    );
                 }
             }
         }
@@ -130,7 +137,10 @@ pub fn progress_bar_indeterminate(ui: &mut Ui) -> egui::Response {
             // Static centered bar when reduced motion
             let bar_width = rect.width() * theme::INDETERMINATE_BAR_RATIO;
             let bar_x = rect.min.x + (rect.width() - bar_width) / 2.0;
-            let bar_rect = egui::Rect::from_min_size(egui::pos2(bar_x, rect.min.y), egui::vec2(bar_width, height));
+            let bar_rect = egui::Rect::from_min_size(
+                egui::pos2(bar_x, rect.min.y),
+                egui::vec2(bar_width, height),
+            );
             painter.rect_filled(bar_rect, rounding, theme::ACCENT);
         } else {
             // Animated fill
@@ -144,10 +154,14 @@ pub fn progress_bar_indeterminate(ui: &mut Ui) -> egui::Response {
                 rect.min.x + (rect.width() - bar_width) * (2.0 - cycle)
             };
 
-            let bar_rect = egui::Rect::from_min_size(egui::pos2(bar_x, rect.min.y), egui::vec2(bar_width, height));
+            let bar_rect = egui::Rect::from_min_size(
+                egui::pos2(bar_x, rect.min.y),
+                egui::vec2(bar_width, height),
+            );
             painter.rect_filled(bar_rect, rounding, theme::ACCENT);
 
-            ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(50));
         }
     }
 

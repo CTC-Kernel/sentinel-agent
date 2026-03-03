@@ -277,11 +277,7 @@ impl<'a> DataTable<'a> {
 
                         // Hover/focus effect
                         if is_hovered {
-                            ui.painter().rect_filled(
-                                cell_rect,
-                                0,
-                                theme::hover_bg(),
-                            );
+                            ui.painter().rect_filled(cell_rect, 0, theme::hover_bg());
                         }
 
                         // Focus ring for keyboard navigation
@@ -332,9 +328,16 @@ impl<'a> DataTable<'a> {
                             };
 
                             if let Some(icon) = sort_icon {
-                                let icon_alpha = if is_sorted { 1.0 } else { theme::OPACITY_PRESSED };
+                                let icon_alpha = if is_sorted {
+                                    1.0
+                                } else {
+                                    theme::OPACITY_PRESSED
+                                };
                                 ui.painter().text(
-                                    egui::pos2(cell_rect.max.x - theme::ICON_MD, cell_rect.center().y),
+                                    egui::pos2(
+                                        cell_rect.max.x - theme::ICON_MD,
+                                        cell_rect.center().y,
+                                    ),
                                     egui::Align2::CENTER_CENTER,
                                     icon,
                                     theme::font_label(),

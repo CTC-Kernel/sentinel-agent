@@ -174,7 +174,11 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         );
 
         // Add space for close button if dismissible
-        let close_width = if toast.dismissible { theme::MIN_TOUCH_TARGET } else { 0.0 };
+        let close_width = if toast.dismissible {
+            theme::MIN_TOUCH_TARGET
+        } else {
+            0.0
+        };
         let toast_width = galley.size().x + theme::SPACE_XL + close_width;
         let toast_height = theme::TOAST_HEIGHT;
 
@@ -212,12 +216,18 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
             toast_rect,
             toast_rounding,
             theme::bg_secondary().linear_multiply(alpha * 0.98),
-            Stroke::new(theme::BORDER_THIN, color.linear_multiply(alpha * theme::OPACITY_DISABLED)),
+            Stroke::new(
+                theme::BORDER_THIN,
+                color.linear_multiply(alpha * theme::OPACITY_DISABLED),
+            ),
             StrokeKind::Inside,
         );
 
         // Colored accent bar on left
-        let accent_rect = egui::Rect::from_min_size(toast_rect.min, egui::vec2(theme::TOAST_ACCENT_BAR, toast_height));
+        let accent_rect = egui::Rect::from_min_size(
+            toast_rect.min,
+            egui::vec2(theme::TOAST_ACCENT_BAR, toast_height),
+        );
         ui.painter().rect_filled(
             accent_rect,
             CornerRadius {
@@ -242,7 +252,10 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         // Close button if dismissible (MIN_TOUCH_TARGET for accessibility)
         if toast.dismissible {
             let close_rect = egui::Rect::from_center_size(
-                egui::pos2(toast_rect.max.x - theme::TOAST_CLOSE_INSET, toast_rect.center().y),
+                egui::pos2(
+                    toast_rect.max.x - theme::TOAST_CLOSE_INSET,
+                    toast_rect.center().y,
+                ),
                 egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET),
             );
 

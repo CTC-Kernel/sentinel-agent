@@ -221,8 +221,11 @@ impl<'a> CommandPalette<'a> {
                     ui.allocate_exact_size(screen.size(), Sense::click());
 
                 if ui.is_rect_visible(backdrop_rect) {
-                    ui.painter()
-                        .rect_filled(backdrop_rect, 0, Color32::from_black_alpha(theme::BACKDROP_ALPHA / 2));
+                    ui.painter().rect_filled(
+                        backdrop_rect,
+                        0,
+                        Color32::from_black_alpha(theme::BACKDROP_ALPHA / 2),
+                    );
                 }
 
                 if backdrop_response.clicked() {
@@ -320,7 +323,10 @@ impl<'a> CommandPalette<'a> {
                                         let is_selected = i == state.selected_index;
 
                                         let (item_rect, item_response) = ui.allocate_exact_size(
-                                            egui::vec2(palette_width, theme::COMMAND_PALETTE_ROW_HEIGHT),
+                                            egui::vec2(
+                                                palette_width,
+                                                theme::COMMAND_PALETTE_ROW_HEIGHT,
+                                            ),
                                             Sense::click(),
                                         );
 
@@ -330,13 +336,14 @@ impl<'a> CommandPalette<'a> {
                                             // Background
                                             if is_selected || is_hovered {
                                                 let bg = if is_selected {
-                                                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
+                                                    theme::ACCENT
+                                                        .linear_multiply(theme::OPACITY_TINT)
                                                 } else {
                                                     theme::hover_bg()
                                                 };
 
-                                                let inner_rect =
-                                                    item_rect.shrink2(egui::vec2(theme::SPACE_SM, 2.0));
+                                                let inner_rect = item_rect
+                                                    .shrink2(egui::vec2(theme::SPACE_SM, 2.0));
                                                 ui.painter().rect_filled(
                                                     inner_rect,
                                                     CornerRadius::same(theme::SPACE_SM as u8),
@@ -366,11 +373,18 @@ impl<'a> CommandPalette<'a> {
                                             }
 
                                             let text_x = content_rect.min.x
-                                                + if cmd.icon.is_some() { theme::MIN_TOUCH_TARGET } else { 0.0 };
+                                                + if cmd.icon.is_some() {
+                                                    theme::MIN_TOUCH_TARGET
+                                                } else {
+                                                    0.0
+                                                };
 
                                             // Label
                                             ui.painter().text(
-                                                egui::pos2(text_x, content_rect.center().y - theme::SPACE_SM),
+                                                egui::pos2(
+                                                    text_x,
+                                                    content_rect.center().y - theme::SPACE_SM,
+                                                ),
                                                 egui::Align2::LEFT_CENTER,
                                                 &cmd.label,
                                                 theme::font_body(),
@@ -409,7 +423,11 @@ impl<'a> CommandPalette<'a> {
                                                             - theme::SPACE_SM,
                                                         content_rect.center().y - 10.0,
                                                     ),
-                                                    shortcut_galley.size() + egui::vec2(theme::SPACE_SM, theme::SPACE_XS),
+                                                    shortcut_galley.size()
+                                                        + egui::vec2(
+                                                            theme::SPACE_SM,
+                                                            theme::SPACE_XS,
+                                                        ),
                                                 );
                                                 ui.painter().rect_filled(
                                                     shortcut_rect,
@@ -417,7 +435,8 @@ impl<'a> CommandPalette<'a> {
                                                     theme::bg_tertiary(),
                                                 );
                                                 ui.painter().galley(
-                                                    shortcut_rect.min + egui::vec2(theme::SPACE_XS, 2.0),
+                                                    shortcut_rect.min
+                                                        + egui::vec2(theme::SPACE_XS, 2.0),
                                                     shortcut_galley,
                                                     theme::text_secondary(),
                                                 );
@@ -425,7 +444,8 @@ impl<'a> CommandPalette<'a> {
                                         }
 
                                         if item_response.hovered() {
-                                            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                                            ui.ctx()
+                                                .set_cursor_icon(egui::CursorIcon::PointingHand);
                                         }
 
                                         if item_response.clicked() {
@@ -433,7 +453,9 @@ impl<'a> CommandPalette<'a> {
                                             state.close();
                                         }
 
-                                        if item_response.hovered() && ui.input(|i| i.pointer.delta() != egui::Vec2::ZERO) {
+                                        if item_response.hovered()
+                                            && ui.input(|i| i.pointer.delta() != egui::Vec2::ZERO)
+                                        {
                                             state.selected_index = i;
                                         }
                                     }

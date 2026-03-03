@@ -12,12 +12,12 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-use agent_common::process::silent_command;
 
 /// Check ID for auto-login disabled.
 pub const CHECK_ID: &str = "auto_login_disabled";
@@ -211,14 +211,21 @@ impl AutoLoginCheck {
                     !trimmed.starts_with('#')
                         && trimmed.starts_with("autologin-user")
                         && trimmed.contains('=')
-                        && trimmed.split('=').last().is_some_and(|v| !v.trim().is_empty())
+                        && trimmed
+                            .split('=')
+                            .last()
+                            .is_some_and(|v| !v.trim().is_empty())
                 });
 
                 let auto_login_user = if auto_login_enabled {
                     content.lines().find_map(|line| {
                         let trimmed = line.trim();
                         if !trimmed.starts_with('#') && trimmed.starts_with("autologin-user=") {
-                            trimmed.split('=').last().map(|u| u.trim().to_string()).filter(|u| !u.is_empty())
+                            trimmed
+                                .split('=')
+                                .last()
+                                .map(|u| u.trim().to_string())
+                                .filter(|u| !u.is_empty())
                         } else {
                             None
                         }
@@ -277,7 +284,8 @@ impl AutoLoginCheck {
             }
         }
 
-        raw_output.push_str("No display manager configuration found (checked GDM, LightDM, SDDM)\n");
+        raw_output
+            .push_str("No display manager configuration found (checked GDM, LightDM, SDDM)\n");
 
         // If no display manager config found, auto-login is considered disabled
         Ok(AutoLoginStatus {

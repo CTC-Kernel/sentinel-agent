@@ -6,8 +6,8 @@
 //! This module provides utilities to filter out sensitive information
 //! like tokens, passwords, API keys, and other secrets from logs.
 
-use std::sync::LazyLock;
 use regex::Regex;
+use std::sync::LazyLock;
 
 /// Patterns to detect and mask sensitive data
 static TOKEN_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
@@ -25,7 +25,10 @@ static TOKEN_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
         // Certificate content
         Regex::new(r"(?i)-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----").unwrap(),
         // Base64 encoded secrets (long strings, requires key-like prefix to avoid false positives)
-        Regex::new(r"(?i)(?:key|token|secret|password|credential|auth)\s*[:=]\s*[A-Za-z0-9+/]{40,}={0,2}").unwrap(),
+        Regex::new(
+            r"(?i)(?:key|token|secret|password|credential|auth)\s*[:=]\s*[A-Za-z0-9+/]{40,}={0,2}",
+        )
+        .unwrap(),
         // Stripe API keys (secret, publishable, restricted)
         Regex::new(r"(sk|pk|rk)_(live|test)_[a-zA-Z0-9]{10,}").unwrap(),
         // GCP/Firebase API keys
@@ -223,9 +226,18 @@ mod tests {
 
     #[test]
     fn test_detect_stripe_key() {
-        assert!(contains_sensitive_data(&fake_stripe_key("sk_live_", "51SXCZIDKg6Juwz5x2C6ZDjc78qgm")));
-        assert!(contains_sensitive_data(&fake_stripe_key("pk_test_", "4eC39HqLyjWDarjtT1zdp7dc")));
-        assert!(contains_sensitive_data(&fake_stripe_key("rk_live_", "abcdefghij1234567890")));
+        assert!(contains_sensitive_data(&fake_stripe_key(
+            "sk_live_",
+            "51SXCZIDKg6Juwz5x2C6ZDjc78qgm"
+        )));
+        assert!(contains_sensitive_data(&fake_stripe_key(
+            "pk_test_",
+            "4eC39HqLyjWDarjtT1zdp7dc"
+        )));
+        assert!(contains_sensitive_data(&fake_stripe_key(
+            "rk_live_",
+            "abcdefghij1234567890"
+        )));
     }
 
     #[test]
@@ -238,8 +250,12 @@ mod tests {
 
     #[test]
     fn test_detect_gcp_api_key() {
-        assert!(contains_sensitive_data("AIzaSyFAKETESTKEY_01234_abcdefghijk_XYZ"));
-        assert!(contains_sensitive_data("AIzaSyANOTHERFAKE_TESTKEY_FOR_UNIT_TEST"));
+        assert!(contains_sensitive_data(
+            "AIzaSyFAKETESTKEY_01234_abcdefghijk_XYZ"
+        ));
+        assert!(contains_sensitive_data(
+            "AIzaSyANOTHERFAKE_TESTKEY_FOR_UNIT_TEST"
+        ));
     }
 
     #[test]

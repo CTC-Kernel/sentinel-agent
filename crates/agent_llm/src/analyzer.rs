@@ -3,14 +3,16 @@
 
 //! LLM-powered analysis of compliance and security results.
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use anyhow::Result;
 use tracing::{info, warn};
 
-use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
-use super::prompts::{PromptTemplates, SecurityPromptBuilder, SecurityContext, ScanResults, ThreatLevel};
+use super::engine::{InferenceRequest, ModelEngine};
+use super::prompts::{
+    PromptTemplates, ScanResults, SecurityContext, SecurityPromptBuilder, ThreatLevel,
+};
 use crate::utils::{append_json_schema, parse_risk_level, try_parse_json};
 
 /// Analysis context for LLM processing.
@@ -325,7 +327,10 @@ impl LLMAnalyzer {
 
     /// Analyze scan results and provide insights.
     pub async fn analyze(&self, context: AnalysisContext) -> Result<AnalysisResult> {
-        info!("Starting LLM analysis for {} scan results", context.scan_results.len());
+        info!(
+            "Starting LLM analysis for {} scan results",
+            context.scan_results.len()
+        );
         let start_time = std::time::Instant::now();
 
         // Prepare the analysis prompt
@@ -344,9 +349,13 @@ impl LLMAnalyzer {
         let response = self.engine.infer(request).await?;
 
         // Parse the response
-        let result = self.parse_analysis_response(&response.text, &context, start_time.elapsed())?;
+        let result =
+            self.parse_analysis_response(&response.text, &context, start_time.elapsed())?;
 
-        info!("Analysis completed in {}ms", result.metadata.processing_time_ms);
+        info!(
+            "Analysis completed in {}ms",
+            result.metadata.processing_time_ms
+        );
         Ok(result)
     }
 
@@ -386,7 +395,9 @@ impl LLMAnalyzer {
             .ok_or_else(|| anyhow::anyhow!("Security analysis template not found"))?;
 
         // Identify failed checks
-        let failed_checks: Vec<_> = context.scan_results.iter()
+        let failed_checks: Vec<_> = context
+            .scan_results
+            .iter()
             .filter(|r| !r.passed)
             .map(|r| format!("{}: {}", r.check_name, r.message))
             .collect();
@@ -403,10 +414,12 @@ impl LLMAnalyzer {
         };
 
         let scan_results_obj = ScanResults {
-            summary: format!("{} total checks, {} passed, {} failed",
+            summary: format!(
+                "{} total checks, {} passed, {} failed",
                 context.scan_results.len(),
                 context.scan_results.iter().filter(|r| r.passed).count(),
-                context.scan_results.iter().filter(|r| !r.passed).count()),
+                context.scan_results.iter().filter(|r| !r.passed).count()
+            ),
             failed_checks: failed_checks_str,
             security_findings,
             compliance_score: self.calculate_compliance_score(&context.scan_results),
@@ -424,17 +437,21 @@ impl LLMAnalyzer {
 
     /// Extract security findings from scan results.
     fn extract_security_findings(&self, results: &[ScanResult]) -> Result<String> {
-        let security_results: Vec<_> = results.iter()
-            .filter(|r| r.category.to_lowercase().contains("security") ||
-                        r.severity.to_lowercase().contains("high") ||
-                        r.severity.to_lowercase().contains("critical"))
+        let security_results: Vec<_> = results
+            .iter()
+            .filter(|r| {
+                r.category.to_lowercase().contains("security")
+                    || r.severity.to_lowercase().contains("high")
+                    || r.severity.to_lowercase().contains("critical")
+            })
             .collect();
 
         if security_results.is_empty() {
             return Ok("No critical security findings detected.".to_string());
         }
 
-        let findings: Vec<String> = security_results.iter()
+        let findings: Vec<String> = security_results
+            .iter()
             .map(|r| format!("{}: {}", r.check_name, r.message))
             .collect();
         Ok(findings.join("\n"))
@@ -443,7 +460,8 @@ impl LLMAnalyzer {
     /// Assess overall threat level from scan results.
     fn assess_threat_level(&self, results: &[ScanResult]) -> ThreatLevel {
         let failed_count = results.iter().filter(|r| !r.passed).count();
-        let critical_count = results.iter()
+        let critical_count = results
+            .iter()
             .filter(|r| !r.passed && r.severity.to_lowercase().contains("critical"))
             .count();
 
@@ -486,7 +504,11 @@ impl LLMAnalyzer {
         match try_parse_json::<RawAnalysisResponse>(response) {
             Ok(raw) => {
                 info!("Parsed LLM analysis response as JSON");
-                Ok(self.raw_to_analysis_result(raw, context, build_metadata(80, response.len() as u32)))
+                Ok(self.raw_to_analysis_result(
+                    raw,
+                    context,
+                    build_metadata(80, response.len() as u32),
+                ))
             }
             Err(_) => {
                 warn!(
@@ -495,7 +517,11 @@ impl LLMAnalyzer {
                     response.len(),
                     &response[..response.len().min(200)]
                 );
-                Ok(self.heuristic_analysis_result(response, context, build_metadata(40, response.len() as u32)))
+                Ok(self.heuristic_analysis_result(
+                    response,
+                    context,
+                    build_metadata(40, response.len() as u32),
+                ))
             }
         }
     }
@@ -522,7 +548,8 @@ impl LLMAnalyzer {
             },
         };
 
-        let priority_issues: Vec<PriorityIssue> = raw.priority_issues
+        let priority_issues: Vec<PriorityIssue> = raw
+            .priority_issues
             .into_iter()
             .enumerate()
             .map(|(i, issue)| PriorityIssue {
@@ -530,7 +557,11 @@ impl LLMAnalyzer {
                 title: issue.title,
                 description: issue.description,
                 affected_systems: vec![context.asset_type.clone()],
-                severity: if issue.severity.is_empty() { "Medium".to_string() } else { issue.severity },
+                severity: if issue.severity.is_empty() {
+                    "Medium".to_string()
+                } else {
+                    issue.severity
+                },
                 urgency: parse_urgency_level(&issue.urgency),
                 business_impact: if issue.business_impact.is_empty() {
                     "See issue description".to_string()
@@ -557,11 +588,13 @@ impl LLMAnalyzer {
                 impact_level: ImpactLevel::Significant,
                 affected_requirements: vec![],
                 potential_penalties: vec!["Non-compliance findings".to_string()],
-                gap_description: "Compliance impact could not be determined from LLM response".to_string(),
+                gap_description: "Compliance impact could not be determined from LLM response"
+                    .to_string(),
             },
         };
 
-        let recommendations: Vec<Recommendation> = raw.recommendations
+        let recommendations: Vec<Recommendation> = raw
+            .recommendations
             .into_iter()
             .enumerate()
             .map(|(i, rec)| Recommendation {
@@ -569,8 +602,16 @@ impl LLMAnalyzer {
                 title: rec.title,
                 description: rec.description,
                 recommendation_type: parse_recommendation_type(&rec.recommendation_type),
-                priority: if rec.priority.is_empty() { "Medium".to_string() } else { rec.priority },
-                estimated_effort: if rec.effort.is_empty() { "To be estimated".to_string() } else { rec.effort },
+                priority: if rec.priority.is_empty() {
+                    "Medium".to_string()
+                } else {
+                    rec.priority
+                },
+                estimated_effort: if rec.effort.is_empty() {
+                    "To be estimated".to_string()
+                } else {
+                    rec.effort
+                },
                 dependencies: vec![],
             })
             .collect();
@@ -642,7 +683,9 @@ impl LLMAnalyzer {
         }
 
         // --- Heuristic priority issues from failed scan results ---
-        let priority_issues: Vec<PriorityIssue> = context.scan_results.iter()
+        let priority_issues: Vec<PriorityIssue> = context
+            .scan_results
+            .iter()
             .filter(|r| !r.passed)
             .take(10) // Cap at 10 most relevant
             .enumerate()
@@ -685,7 +728,9 @@ impl LLMAnalyzer {
         let compliance_impact = ComplianceImpact {
             framework: context.compliance_framework.clone(),
             impact_level,
-            affected_requirements: context.scan_results.iter()
+            affected_requirements: context
+                .scan_results
+                .iter()
                 .filter(|r| !r.passed)
                 .map(|r| r.check_id.clone())
                 .collect(),
@@ -707,7 +752,10 @@ impl LLMAnalyzer {
                 recommendations.push(Recommendation {
                     id: format!("rec-{}", rec_idx),
                     title: format!("Address {} issues", r.category),
-                    description: format!("Review and remediate failed checks in the {} category", r.category),
+                    description: format!(
+                        "Review and remediate failed checks in the {} category",
+                        r.category
+                    ),
                     recommendation_type: RecommendationType::Technical,
                     priority: r.severity.clone(),
                     estimated_effort: "To be estimated".to_string(),
@@ -749,10 +797,12 @@ impl LLMAnalyzer {
 
     /// Derive a `RiskLevel` from scan results when no LLM signal is available.
     fn risk_level_from_scan_results(&self, results: &[ScanResult]) -> RiskLevel {
-        let critical = results.iter()
+        let critical = results
+            .iter()
             .filter(|r| !r.passed && r.severity.to_lowercase().contains("critical"))
             .count();
-        let high = results.iter()
+        let high = results
+            .iter()
             .filter(|r| !r.passed && r.severity.to_lowercase().contains("high"))
             .count();
 
@@ -768,14 +818,23 @@ impl LLMAnalyzer {
     }
 
     /// Build security event analysis prompt, returning (system_prompt, user_prompt).
-    fn build_security_event_prompt(&self, event: &SecurityEvent) -> Result<(Option<String>, String)> {
+    fn build_security_event_prompt(
+        &self,
+        event: &SecurityEvent,
+    ) -> Result<(Option<String>, String)> {
         let template = PromptTemplates::get("threat_classification")
             .ok_or_else(|| anyhow::anyhow!("Threat classification template not found"))?;
 
         let mut variables = std::collections::HashMap::new();
-        variables.insert("event_details".to_string(), serde_json::to_string_pretty(event)?);
+        variables.insert(
+            "event_details".to_string(),
+            serde_json::to_string_pretty(event)?,
+        );
         variables.insert("system_info".to_string(), event.system_info.clone());
-        variables.insert("historical_context".to_string(), event.historical_context.clone());
+        variables.insert(
+            "historical_context".to_string(),
+            event.historical_context.clone(),
+        );
 
         let (system_prompt, mut user_prompt) = template.render_parts(&variables);
 
@@ -787,7 +846,11 @@ impl LLMAnalyzer {
     /// Parse security analysis response from LLM.
     ///
     /// Uses `try_parse_json` for strategies 1+2, then falls back to heuristics.
-    fn parse_security_analysis(&self, response: &str, event: &SecurityEvent) -> Result<SecurityAnalysis> {
+    fn parse_security_analysis(
+        &self,
+        response: &str,
+        event: &SecurityEvent,
+    ) -> Result<SecurityAnalysis> {
         match try_parse_json::<RawSecurityAnalysis>(response) {
             Ok(raw) => {
                 info!("Parsed LLM security analysis response as JSON");
@@ -806,11 +869,23 @@ impl LLMAnalyzer {
     }
 
     /// Convert a parsed `RawSecurityAnalysis` into the domain `SecurityAnalysis`.
-    fn raw_to_security_analysis(&self, raw: RawSecurityAnalysis, event: &SecurityEvent) -> SecurityAnalysis {
+    fn raw_to_security_analysis(
+        &self,
+        raw: RawSecurityAnalysis,
+        event: &SecurityEvent,
+    ) -> SecurityAnalysis {
         SecurityAnalysis {
             event_id: event.id.clone(),
-            threat_type: if raw.threat_type.is_empty() { "Unknown".to_string() } else { raw.threat_type },
-            severity: if raw.severity.is_empty() { "Medium".to_string() } else { raw.severity },
+            threat_type: if raw.threat_type.is_empty() {
+                "Unknown".to_string()
+            } else {
+                raw.threat_type
+            },
+            severity: if raw.severity.is_empty() {
+                "Medium".to_string()
+            } else {
+                raw.severity
+            },
             confidence: raw.confidence.unwrap_or(70),
             recommendations: if raw.recommendations.is_empty() {
                 vec!["Review the security event manually".to_string()]
@@ -822,7 +897,11 @@ impl LLMAnalyzer {
     }
 
     /// Build a heuristic `SecurityAnalysis` when JSON parsing fails entirely.
-    fn heuristic_security_analysis(&self, response: &str, event: &SecurityEvent) -> SecurityAnalysis {
+    fn heuristic_security_analysis(
+        &self,
+        response: &str,
+        event: &SecurityEvent,
+    ) -> SecurityAnalysis {
         let response_lower = response.to_lowercase();
 
         // --- Heuristic threat type ---
@@ -896,9 +975,16 @@ impl LLMAnalyzer {
 
     /// Build summary prompt for multiple results, returning (system_prompt, user_prompt).
     fn build_summary_prompt(&self, results: &[AnalysisResult]) -> Result<(Option<String>, String)> {
-        let summary_text = results.iter()
-            .map(|r| format!("Analysis {}: Risk Level {:?}, {} priority issues",
-                r.id, r.risk_assessment.risk_level, r.priority_issues.len()))
+        let summary_text = results
+            .iter()
+            .map(|r| {
+                format!(
+                    "Analysis {}: Risk Level {:?}, {} priority issues",
+                    r.id,
+                    r.risk_assessment.risk_level,
+                    r.priority_issues.len()
+                )
+            })
             .collect::<Vec<_>>()
             .join("\n");
 
@@ -915,9 +1001,15 @@ impl LLMAnalyzer {
     fn parse_summary_response(&self, response: &str) -> Result<AnalysisSummary> {
         Ok(AnalysisSummary {
             summary: response.to_string(),
-            key_risks: vec!["Access Control weaknesses".to_string(), "Configuration gaps".to_string()],
+            key_risks: vec![
+                "Access Control weaknesses".to_string(),
+                "Configuration gaps".to_string(),
+            ],
             overall_risk_level: RiskLevel::Medium,
-            immediate_actions: vec!["Review failed controls".to_string(), "Update security policies".to_string()],
+            immediate_actions: vec![
+                "Review failed controls".to_string(),
+                "Update security policies".to_string(),
+            ],
             generated_at: chrono::Utc::now(),
         })
     }
@@ -985,30 +1077,63 @@ mod tests {
 
     #[test]
     fn test_parse_urgency_level() {
-        assert!(matches!(parse_urgency_level("immediate"), UrgencyLevel::Immediate));
+        assert!(matches!(
+            parse_urgency_level("immediate"),
+            UrgencyLevel::Immediate
+        ));
         assert!(matches!(parse_urgency_level("High"), UrgencyLevel::High));
-        assert!(matches!(parse_urgency_level("medium"), UrgencyLevel::Medium));
+        assert!(matches!(
+            parse_urgency_level("medium"),
+            UrgencyLevel::Medium
+        ));
         assert!(matches!(parse_urgency_level("low"), UrgencyLevel::Low));
-        assert!(matches!(parse_urgency_level("garbage"), UrgencyLevel::Medium)); // default
+        assert!(matches!(
+            parse_urgency_level("garbage"),
+            UrgencyLevel::Medium
+        )); // default
     }
 
     #[test]
     fn test_parse_impact_level() {
         assert!(matches!(parse_impact_level("none"), ImpactLevel::None));
         assert!(matches!(parse_impact_level("minor"), ImpactLevel::Minor));
-        assert!(matches!(parse_impact_level("significant"), ImpactLevel::Significant));
+        assert!(matches!(
+            parse_impact_level("significant"),
+            ImpactLevel::Significant
+        ));
         assert!(matches!(parse_impact_level("major"), ImpactLevel::Major));
-        assert!(matches!(parse_impact_level("critical"), ImpactLevel::Critical));
+        assert!(matches!(
+            parse_impact_level("critical"),
+            ImpactLevel::Critical
+        ));
     }
 
     #[test]
     fn test_parse_recommendation_type() {
-        assert!(matches!(parse_recommendation_type("configuration"), RecommendationType::Configuration));
-        assert!(matches!(parse_recommendation_type("process"), RecommendationType::Process));
-        assert!(matches!(parse_recommendation_type("technical"), RecommendationType::Technical));
-        assert!(matches!(parse_recommendation_type("training"), RecommendationType::Training));
-        assert!(matches!(parse_recommendation_type("policy"), RecommendationType::Policy));
-        assert!(matches!(parse_recommendation_type("config"), RecommendationType::Configuration));
+        assert!(matches!(
+            parse_recommendation_type("configuration"),
+            RecommendationType::Configuration
+        ));
+        assert!(matches!(
+            parse_recommendation_type("process"),
+            RecommendationType::Process
+        ));
+        assert!(matches!(
+            parse_recommendation_type("technical"),
+            RecommendationType::Technical
+        ));
+        assert!(matches!(
+            parse_recommendation_type("training"),
+            RecommendationType::Training
+        ));
+        assert!(matches!(
+            parse_recommendation_type("policy"),
+            RecommendationType::Policy
+        ));
+        assert!(matches!(
+            parse_recommendation_type("config"),
+            RecommendationType::Configuration
+        ));
     }
 
     // -----------------------------------------------------------------------
@@ -1095,17 +1220,28 @@ mod tests {
             ]
         }"#;
 
-        let result = analyzer.parse_analysis_response(response, &context, duration).unwrap();
+        let result = analyzer
+            .parse_analysis_response(response, &context, duration)
+            .unwrap();
 
         assert!(matches!(result.risk_assessment.risk_level, RiskLevel::High));
         assert_eq!(result.risk_assessment.risk_score, 82);
         assert_eq!(result.risk_assessment.risk_categories.len(), 2);
         assert_eq!(result.priority_issues.len(), 1);
         assert_eq!(result.priority_issues[0].title, "Root SSH Access");
-        assert!(matches!(result.priority_issues[0].urgency, UrgencyLevel::Immediate));
-        assert!(matches!(result.compliance_impact.impact_level, ImpactLevel::Major));
+        assert!(matches!(
+            result.priority_issues[0].urgency,
+            UrgencyLevel::Immediate
+        ));
+        assert!(matches!(
+            result.compliance_impact.impact_level,
+            ImpactLevel::Major
+        ));
         assert_eq!(result.recommendations.len(), 1);
-        assert!(matches!(result.recommendations[0].recommendation_type, RecommendationType::Configuration));
+        assert!(matches!(
+            result.recommendations[0].recommendation_type,
+            RecommendationType::Configuration
+        ));
         assert_eq!(result.metadata.confidence_score, 80);
     }
 
@@ -1133,9 +1269,14 @@ mod tests {
 
 Let me know if you need more details."#;
 
-        let result = analyzer.parse_analysis_response(response, &context, duration).unwrap();
+        let result = analyzer
+            .parse_analysis_response(response, &context, duration)
+            .unwrap();
 
-        assert!(matches!(result.risk_assessment.risk_level, RiskLevel::Critical));
+        assert!(matches!(
+            result.risk_assessment.risk_level,
+            RiskLevel::Critical
+        ));
         assert_eq!(result.risk_assessment.risk_score, 95);
         // Unified confidence for JSON-parsed results
         assert_eq!(result.metadata.confidence_score, 80);
@@ -1151,14 +1292,34 @@ Let me know if you need more details."#;
                          The firewall being disabled is a high risk issue that needs immediate attention. \
                          Password policies should be reviewed.";
 
-        let result = analyzer.parse_analysis_response(response, &context, duration).unwrap();
+        let result = analyzer
+            .parse_analysis_response(response, &context, duration)
+            .unwrap();
 
         // Should detect "critical" keyword
-        assert!(matches!(result.risk_assessment.risk_level, RiskLevel::Critical));
+        assert!(matches!(
+            result.risk_assessment.risk_level,
+            RiskLevel::Critical
+        ));
         // Should find risk categories from keywords
-        assert!(result.risk_assessment.risk_categories.contains(&"Access Control".to_string()));
-        assert!(result.risk_assessment.risk_categories.contains(&"Network Security".to_string()));
-        assert!(result.risk_assessment.risk_categories.contains(&"Password Policy".to_string()));
+        assert!(
+            result
+                .risk_assessment
+                .risk_categories
+                .contains(&"Access Control".to_string())
+        );
+        assert!(
+            result
+                .risk_assessment
+                .risk_categories
+                .contains(&"Network Security".to_string())
+        );
+        assert!(
+            result
+                .risk_assessment
+                .risk_categories
+                .contains(&"Password Policy".to_string())
+        );
         // Priority issues should come from failed scan results
         assert_eq!(result.priority_issues.len(), 2); // 2 failed checks
         assert_eq!(result.metadata.confidence_score, 40);
@@ -1251,7 +1412,10 @@ End of analysis."#;
         assert_eq!(result.threat_type, "Unknown");
         assert_eq!(result.severity, "Medium");
         assert_eq!(result.confidence, 70); // default when confidence is None
-        assert_eq!(result.recommendations, vec!["Review the security event manually"]);
+        assert_eq!(
+            result.recommendations,
+            vec!["Review the security event manually"]
+        );
     }
 
     #[test]
@@ -1263,12 +1427,17 @@ End of analysis."#;
         // Minimal valid JSON with only required fields
         let response = r#"{"risk_level": "low", "risk_score": 15}"#;
 
-        let result = analyzer.parse_analysis_response(response, &context, duration).unwrap();
+        let result = analyzer
+            .parse_analysis_response(response, &context, duration)
+            .unwrap();
 
         assert!(matches!(result.risk_assessment.risk_level, RiskLevel::Low));
         assert_eq!(result.risk_assessment.risk_score, 15);
         // Default risk categories when empty
-        assert_eq!(result.risk_assessment.risk_categories, vec!["General".to_string()]);
+        assert_eq!(
+            result.risk_assessment.risk_categories,
+            vec!["General".to_string()]
+        );
         assert!(result.priority_issues.is_empty());
         assert!(result.recommendations.is_empty());
     }
@@ -1287,7 +1456,10 @@ End of analysis."#;
             message: "Failed".to_string(),
             raw_data: serde_json::json!({}),
         }];
-        assert!(matches!(analyzer.risk_level_from_scan_results(&results), RiskLevel::Critical));
+        assert!(matches!(
+            analyzer.risk_level_from_scan_results(&results),
+            RiskLevel::Critical
+        ));
 
         // Test with no failures
         let results = vec![ScanResult {
@@ -1299,7 +1471,10 @@ End of analysis."#;
             message: "Passed".to_string(),
             raw_data: serde_json::json!({}),
         }];
-        assert!(matches!(analyzer.risk_level_from_scan_results(&results), RiskLevel::Low));
+        assert!(matches!(
+            analyzer.risk_level_from_scan_results(&results),
+            RiskLevel::Low
+        ));
     }
 
     // -----------------------------------------------------------------------

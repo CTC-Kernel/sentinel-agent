@@ -33,7 +33,9 @@ impl NotificationsPage {
         // Tab bar
         let unread = state.notifications.iter().filter(|n| !n.read).count();
         let tabs = vec![
-            widgets::Tab::new("NOTIFICATIONS").icon(icons::BELL).badge(unread as u32),
+            widgets::Tab::new("NOTIFICATIONS")
+                .icon(icons::BELL)
+                .badge(unread as u32),
             widgets::Tab::new("R\u{00c8}GLES D'ALERTE").icon(icons::SHIELD_CHECK),
             widgets::Tab::new("WEBHOOKS").icon(icons::GLOBE),
         ];
@@ -86,8 +88,10 @@ impl NotificationsPage {
                         let time = ui.input(|i| i.time);
                         if success {
                             state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV notifications r\u{00e9}ussi")
-                                    .with_time(time),
+                                crate::widgets::toast::Toast::success(
+                                    "Export CSV notifications r\u{00e9}ussi",
+                                )
+                                .with_time(time),
                             );
                         } else {
                             state.toasts.push(
@@ -151,13 +155,11 @@ impl NotificationsPage {
                         } else {
                             theme::BORDER_THIN
                         },
-                        border_color.linear_multiply(
-                            if notif.read {
-                                theme::OPACITY_MODERATE
-                            } else {
-                                1.0
-                            },
-                        ),
+                        border_color.linear_multiply(if notif.read {
+                            theme::OPACITY_MODERATE
+                        } else {
+                            1.0
+                        }),
                     ))
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.horizontal(|ui: &mut egui::Ui| {
@@ -471,7 +473,9 @@ impl NotificationsPage {
                     let type_labels: Vec<String> =
                         all_types.iter().map(|t| t.label_fr().to_string()).collect();
                     egui::ComboBox::from_id_salt("rule_type_combo")
-                        .selected_text(&type_labels[rule_type_idx.min(type_labels.len().saturating_sub(1))])
+                        .selected_text(
+                            &type_labels[rule_type_idx.min(type_labels.len().saturating_sub(1))],
+                        )
                         .show_ui(ui, |ui| {
                             for (i, label) in type_labels.iter().enumerate() {
                                 ui.selectable_value(&mut rule_type_idx, i, label);
@@ -488,7 +492,9 @@ impl NotificationsPage {
                     );
                     let sev_labels = ["CRITIQUE", "\u{00c9}LEV\u{00c9}", "MOYEN", "FAIBLE", "INFO"];
                     egui::ComboBox::from_id_salt("rule_severity_combo")
-                        .selected_text(sev_labels[severity_idx.min(sev_labels.len().saturating_sub(1))])
+                        .selected_text(
+                            sev_labels[severity_idx.min(sev_labels.len().saturating_sub(1))],
+                        )
                         .show_ui(ui, |ui| {
                             for (i, label) in sev_labels.iter().enumerate() {
                                 ui.selectable_value(&mut severity_idx, i, *label);
@@ -521,17 +527,12 @@ impl NotificationsPage {
 
             ui.horizontal(|ui: &mut egui::Ui| {
                 let can_save = !name.trim().is_empty();
-                if widgets::primary_button(
-                    ui,
-                    format!("{}  Enregistrer", icons::CHECK),
-                    can_save,
-                )
-                .clicked()
+                if widgets::primary_button(ui, format!("{}  Enregistrer", icons::CHECK), can_save)
+                    .clicked()
                     && can_save
                 {
                     let all_types = AlertRuleType::all();
-                    let rule_type =
-                        all_types[rule_type_idx.min(all_types.len().saturating_sub(1))];
+                    let rule_type = all_types[rule_type_idx.min(all_types.len().saturating_sub(1))];
                     let severity = match severity_idx {
                         0 => Severity::Critical,
                         1 => Severity::High,
@@ -588,7 +589,8 @@ impl NotificationsPage {
             m.data.insert_temp(form_id.with("name"), name);
             m.data.insert_temp(form_id.with("type_idx"), rule_type_idx);
             m.data.insert_temp(form_id.with("sev_idx"), severity_idx);
-            m.data.insert_temp(form_id.with("escalation"), escalation_str);
+            m.data
+                .insert_temp(form_id.with("escalation"), escalation_str);
             m.data.insert_temp(form_id.with("enabled"), enabled);
         });
     }
@@ -627,7 +629,9 @@ impl NotificationsPage {
                     ui,
                     icons::GLOBE,
                     "Aucun webhook configur\u{00e9}",
-                    Some("Ajoutez des webhooks pour envoyer les alertes vers Slack, Teams ou d'autres services."),
+                    Some(
+                        "Ajoutez des webhooks pour envoyer les alertes vers Slack, Teams ou d'autres services.",
+                    ),
                 );
             });
         } else {
@@ -720,7 +724,8 @@ impl NotificationsPage {
                                     });
                                     row.col(|ui: &mut egui::Ui| {
                                         let display_url = if wh.url.chars().count() > 40 {
-                                            let truncated: String = wh.url.chars().take(37).collect();
+                                            let truncated: String =
+                                                wh.url.chars().take(37).collect();
                                             format!("{}...", truncated)
                                         } else {
                                             wh.url.clone()
@@ -894,7 +899,9 @@ impl NotificationsPage {
                             .color(theme::text_secondary()),
                     );
                     egui::ComboBox::from_id_salt("webhook_format_combo")
-                        .selected_text(format_labels[format_idx.min(format_labels.len().saturating_sub(1))])
+                        .selected_text(
+                            format_labels[format_idx.min(format_labels.len().saturating_sub(1))],
+                        )
                         .show_ui(ui, |ui| {
                             for (i, label) in format_labels.iter().enumerate() {
                                 ui.selectable_value(&mut format_idx, i, *label);
@@ -917,20 +924,17 @@ impl NotificationsPage {
 
             ui.horizontal(|ui: &mut egui::Ui| {
                 let can_save = !name.trim().is_empty() && !url.trim().is_empty();
-                if widgets::primary_button(
-                    ui,
-                    format!("{}  Enregistrer", icons::CHECK),
-                    can_save,
-                )
-                .clicked()
+                if widgets::primary_button(ui, format!("{}  Enregistrer", icons::CHECK), can_save)
+                    .clicked()
                     && can_save
                 {
                     let webhook = WebhookConfig {
                         id: uuid::Uuid::new_v4(),
                         name: name.trim().to_string(),
                         url: url.trim().to_string(),
-                        format: format_options[format_idx.min(format_options.len().saturating_sub(1))]
-                            .to_string(),
+                        format: format_options
+                            [format_idx.min(format_options.len().saturating_sub(1))]
+                        .to_string(),
                         enabled,
                         last_sent: None,
                         error: None,
@@ -998,27 +1002,40 @@ impl NotificationsPage {
 
         let mut actions = Vec::new();
         if !read {
-            actions.push(widgets::DetailAction::primary("Marquer comme lue", icons::CHECK));
+            actions.push(widgets::DetailAction::primary(
+                "Marquer comme lue",
+                icons::CHECK,
+            ));
         }
         actions.push(widgets::DetailAction::danger("Supprimer", icons::TRASH));
 
         let action = widgets::DetailDrawer::new("notification_detail", "Notification", icons::BELL)
             .accent(sev_color)
             .subtitle(&title)
-            .show(ui.ctx(), &mut state.notification_detail_open, |ui| {
-                widgets::detail_section(ui, "NOTIFICATION");
-                widgets::detail_field(ui, "Titre", &title);
-                widgets::detail_field_badge(ui, "Sévérité", &severity.to_uppercase(), sev_color);
-                widgets::detail_field(ui, "Date", &ts);
-                widgets::detail_field_badge(ui, "Lue", read_label, read_color);
+            .show(
+                ui.ctx(),
+                &mut state.notification_detail_open,
+                |ui| {
+                    widgets::detail_section(ui, "NOTIFICATION");
+                    widgets::detail_field(ui, "Titre", &title);
+                    widgets::detail_field_badge(
+                        ui,
+                        "Sévérité",
+                        &severity.to_uppercase(),
+                        sev_color,
+                    );
+                    widgets::detail_field(ui, "Date", &ts);
+                    widgets::detail_field_badge(ui, "Lue", read_label, read_color);
 
-                widgets::detail_section(ui, "CONTENU");
-                widgets::detail_text(ui, "Message", &body);
+                    widgets::detail_section(ui, "CONTENU");
+                    widgets::detail_text(ui, "Message", &body);
 
-                if let Some(ref act) = action_url {
-                    widgets::detail_field(ui, "Action associée", act);
-                }
-            }, &actions);
+                    if let Some(ref act) = action_url {
+                        widgets::detail_field(ui, "Action associée", act);
+                    }
+                },
+                &actions,
+            );
 
         if let Some(idx) = action {
             if !read && idx == 0 {
@@ -1026,7 +1043,9 @@ impl NotificationsPage {
                     n.read = true;
                 }
                 state.unread_notification_count = state.unread_notification_count.saturating_sub(1);
-                *command = Some(GuiCommand::MarkNotificationRead { notification_id: notif_id });
+                *command = Some(GuiCommand::MarkNotificationRead {
+                    notification_id: notif_id,
+                });
             } else if (read && idx == 0) || (!read && idx == 1) {
                 state.notifications.remove(selected);
                 state.notification_detail_open = false;

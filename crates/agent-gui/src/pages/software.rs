@@ -96,20 +96,28 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_LG);
 
         let search_id = ui.id().with("software_search_cache");
-        let search_upper: String = ui.memory(|mem| {
-            mem.data.get_temp::<(String, String)>(search_id)
-                .filter(|(orig, _)| orig == &state.software.search)
-                .map(|(_, upper)| upper)
-        }).unwrap_or_else(|| {
-            let upper = state.software.search.to_uppercase();
-            ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.software.search.clone(), upper.clone())));
-            upper
-        });
+        let search_upper: String = ui
+            .memory(|mem| {
+                mem.data
+                    .get_temp::<(String, String)>(search_id)
+                    .filter(|(orig, _)| orig == &state.software.search)
+                    .map(|(_, upper)| upper)
+            })
+            .unwrap_or_else(|| {
+                let upper = state.software.search.to_uppercase();
+                ui.memory_mut(|mem| {
+                    mem.data
+                        .insert_temp(search_id, (state.software.search.clone(), upper.clone()))
+                });
+                upper
+            });
 
         match active {
             SoftwareTab::Packages => Self::show_packages(ui, state, &search_upper, &mut command),
             #[cfg(any(target_os = "macos", target_os = "windows"))]
-            SoftwareTab::Applications => Self::show_native_apps(ui, state, &search_upper, &mut command),
+            SoftwareTab::Applications => {
+                Self::show_native_apps(ui, state, &search_upper, &mut command)
+            }
             #[cfg(not(any(target_os = "macos", target_os = "windows")))]
             SoftwareTab::Applications => { /* unreachable on unsupported platforms */ }
         }
@@ -123,32 +131,71 @@ impl SoftwarePage {
                         let pkg = state.software.packages[sel_idx].clone();
                         let mut actions = Vec::new();
                         if !pkg.up_to_date {
-                            actions.push(
-                                widgets::DetailAction::primary("Mettre \u{00e0} jour", icons::DOWNLOAD),
-                            );
+                            actions.push(widgets::DetailAction::primary(
+                                "Mettre \u{00e0} jour",
+                                icons::DOWNLOAD,
+                            ));
                         }
-                        actions.push(widgets::DetailAction::secondary("D\u{00e9}tails", icons::INFO));
+                        actions.push(widgets::DetailAction::secondary(
+                            "D\u{00e9}tails",
+                            icons::INFO,
+                        ));
 
-                        let drawer_action = widgets::DetailDrawer::new("software_pkg_detail", &pkg.name, icons::SOFTWARE)
-                            .accent(if pkg.up_to_date { theme::SUCCESS } else { theme::WARNING })
-                            .subtitle(&pkg.version)
-                            .show(ui.ctx(), &mut state.software.detail_open, |ui| {
+                        let drawer_action = widgets::DetailDrawer::new(
+                            "software_pkg_detail",
+                            &pkg.name,
+                            icons::SOFTWARE,
+                        )
+                        .accent(if pkg.up_to_date {
+                            theme::SUCCESS
+                        } else {
+                            theme::WARNING
+                        })
+                        .subtitle(&pkg.version)
+                        .show(
+                            ui.ctx(),
+                            &mut state.software.detail_open,
+                            |ui| {
                                 widgets::detail_section(ui, "LOGICIEL");
                                 widgets::detail_field(ui, "Nom", &pkg.name);
                                 widgets::detail_mono(ui, "Version actuelle", &pkg.version);
-                                widgets::detail_field(ui, "\u{00c9}diteur", pkg.publisher.as_deref().unwrap_or("--"));
+                                widgets::detail_field(
+                                    ui,
+                                    "\u{00c9}diteur",
+                                    pkg.publisher.as_deref().unwrap_or("--"),
+                                );
                                 if let Some(ref installed) = pkg.installed_at {
-                                    widgets::detail_field(ui, "Date d'installation", &installed.format("%d/%m/%Y").to_string());
+                                    widgets::detail_field(
+                                        ui,
+                                        "Date d'installation",
+                                        &installed.format("%d/%m/%Y").to_string(),
+                                    );
                                 }
                                 if pkg.up_to_date {
-                                    widgets::detail_field_badge(ui, "\u{00c0} jour", "OUI", theme::SUCCESS);
+                                    widgets::detail_field_badge(
+                                        ui,
+                                        "\u{00c0} jour",
+                                        "OUI",
+                                        theme::SUCCESS,
+                                    );
                                 } else {
-                                    widgets::detail_field_badge(ui, "\u{00c0} jour", "NON", theme::WARNING);
+                                    widgets::detail_field_badge(
+                                        ui,
+                                        "\u{00c0} jour",
+                                        "NON",
+                                        theme::WARNING,
+                                    );
                                 }
                                 if let Some(ref latest) = pkg.latest_version {
-                                    widgets::detail_mono(ui, "Derni\u{00e8}re version disponible", latest);
+                                    widgets::detail_mono(
+                                        ui,
+                                        "Derni\u{00e8}re version disponible",
+                                        latest,
+                                    );
                                 }
-                            }, &actions);
+                            },
+                            &actions,
+                        );
 
                         if let Some(action_idx) = drawer_action
                             && !pkg.up_to_date
@@ -188,21 +235,29 @@ impl SoftwarePage {
                             "Identifiant produit"
                         };
 
-                        let actions = vec![
-                            widgets::DetailAction::secondary(open_label, icons::FOLDER),
-                        ];
+                        let actions =
+                            vec![widgets::DetailAction::secondary(open_label, icons::FOLDER)];
 
-                        let drawer_action = widgets::DetailDrawer::new("software_app_detail", &app.name, icons::CUBE)
-                            .accent(theme::ACCENT)
-                            .subtitle(&app.bundle_id)
-                            .show(ui.ctx(), &mut state.software.detail_open, |ui| {
+                        let drawer_action = widgets::DetailDrawer::new(
+                            "software_app_detail",
+                            &app.name,
+                            icons::CUBE,
+                        )
+                        .accent(theme::ACCENT)
+                        .subtitle(&app.bundle_id)
+                        .show(
+                            ui.ctx(),
+                            &mut state.software.detail_open,
+                            |ui| {
                                 widgets::detail_section(ui, section_label);
                                 widgets::detail_field(ui, "Nom", &app.name);
                                 widgets::detail_mono(ui, "Version", &app.version);
                                 widgets::detail_mono(ui, id_label, &app.bundle_id);
                                 widgets::detail_field(ui, "\u{00c9}diteur", &app.publisher);
                                 widgets::detail_mono(ui, "Chemin", &app.path);
-                            }, &actions);
+                            },
+                            &actions,
+                        );
 
                         if let Some(0) = drawer_action {
                             let path = std::path::Path::new(&app.path);
@@ -241,7 +296,12 @@ impl SoftwarePage {
 
     // -- Tab: Paquets (Homebrew) --
 
-    fn show_packages(ui: &mut Ui, state: &mut AppState, search_upper: &str, _command: &mut Option<GuiCommand>) {
+    fn show_packages(
+        ui: &mut Ui,
+        state: &mut AppState,
+        search_upper: &str,
+        _command: &mut Option<GuiCommand>,
+    ) {
         let filtered: Vec<usize> = state
             .software
             .packages
@@ -253,7 +313,11 @@ impl SoftwarePage {
                 }
                 p.name.to_uppercase().contains(search_upper)
                     || p.version.to_uppercase().contains(search_upper)
-                    || p.publisher.as_deref().unwrap_or("").to_uppercase().contains(search_upper)
+                    || p.publisher
+                        .as_deref()
+                        .unwrap_or("")
+                        .to_uppercase()
+                        .contains(search_upper)
             })
             .map(|(i, _)| i)
             .collect();
@@ -483,24 +547,27 @@ impl SoftwarePage {
                             let real_idx = filtered[row.index()];
                             let pkg = &state.software.packages[real_idx];
                             row.col(|ui: &mut egui::Ui| {
-                                let response = ui.vertical(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&pkg.name)
-                                            .font(theme::font_body())
-                                            .color(theme::text_primary())
-                                            .strong(),
-                                    );
-                                    if let Some(ref installed) = pkg.installed_at {
+                                let response = ui
+                                    .vertical(|ui: &mut egui::Ui| {
                                         ui.label(
-                                            egui::RichText::new(format!(
-                                                "Install\u{00e9} le {}",
-                                                installed.format("%d/%m/%Y")
-                                            ))
-                                            .font(theme::font_min())
-                                            .color(theme::text_tertiary()),
+                                            egui::RichText::new(&pkg.name)
+                                                .font(theme::font_body())
+                                                .color(theme::text_primary())
+                                                .strong(),
                                         );
-                                    }
-                                }).response.interact(egui::Sense::click());
+                                        if let Some(ref installed) = pkg.installed_at {
+                                            ui.label(
+                                                egui::RichText::new(format!(
+                                                    "Install\u{00e9} le {}",
+                                                    installed.format("%d/%m/%Y")
+                                                ))
+                                                .font(theme::font_min())
+                                                .color(theme::text_tertiary()),
+                                            );
+                                        }
+                                    })
+                                    .response
+                                    .interact(egui::Sense::click());
                                 if response.clicked() {
                                     clicked_idx = Some(real_idx);
                                 }
@@ -532,7 +599,12 @@ impl SoftwarePage {
                                 }
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                if widgets::ghost_button(ui, format!("{}  D\u{00c9}TAILS", icons::EYE)).clicked() {
+                                if widgets::ghost_button(
+                                    ui,
+                                    format!("{}  D\u{00c9}TAILS", icons::EYE),
+                                )
+                                .clicked()
+                                {
                                     clicked_idx = Some(real_idx);
                                 }
                             });
@@ -577,7 +649,12 @@ impl SoftwarePage {
     // -- Tab: Applications (native apps — macOS & Windows) --
 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
-    fn show_native_apps(ui: &mut Ui, state: &mut AppState, search_upper: &str, _command: &mut Option<GuiCommand>) {
+    fn show_native_apps(
+        ui: &mut Ui,
+        state: &mut AppState,
+        search_upper: &str,
+        _command: &mut Option<GuiCommand>,
+    ) {
         let filtered: Vec<usize> = state
             .software
             .native_apps
@@ -722,11 +799,15 @@ impl SoftwarePage {
                         });
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
-                                egui::RichText::new(if cfg!(target_os = "macos") { "IDENTIFIANT (BUNDLE ID)" } else { "IDENTIFIANT PRODUIT" })
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
+                                egui::RichText::new(if cfg!(target_os = "macos") {
+                                    "IDENTIFIANT (BUNDLE ID)"
+                                } else {
+                                    "IDENTIFIANT PRODUIT"
+                                })
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
                         header.col(|ui: &mut egui::Ui| {
@@ -744,12 +825,14 @@ impl SoftwarePage {
                             let real_idx = filtered[row.index()];
                             let app = &state.software.native_apps[real_idx];
                             row.col(|ui: &mut egui::Ui| {
-                                let response = ui.label(
-                                    egui::RichText::new(&app.name)
-                                        .font(theme::font_body())
-                                        .color(theme::text_primary())
-                                        .strong(),
-                                ).interact(egui::Sense::click());
+                                let response = ui
+                                    .label(
+                                        egui::RichText::new(&app.name)
+                                            .font(theme::font_body())
+                                            .color(theme::text_primary())
+                                            .strong(),
+                                    )
+                                    .interact(egui::Sense::click());
                                 if response.clicked() {
                                     clicked_idx = Some(real_idx);
                                 }
@@ -788,7 +871,12 @@ impl SoftwarePage {
                             });
 
                             row.col(|ui: &mut egui::Ui| {
-                                if widgets::ghost_button(ui, format!("{}  D\u{00c9}TAILS", icons::EYE)).clicked() {
+                                if widgets::ghost_button(
+                                    ui,
+                                    format!("{}  D\u{00c9}TAILS", icons::EYE),
+                                )
+                                .clicked()
+                                {
                                     clicked_idx = Some(real_idx);
                                 }
                             });
@@ -914,7 +1002,10 @@ fn platform_upgrade_command(safe_name: &str) -> String {
     }
     #[cfg(target_os = "linux")]
     {
-        format!("sudo apt upgrade '{}' || sudo dnf upgrade '{}'", safe_name, safe_name)
+        format!(
+            "sudo apt upgrade '{}' || sudo dnf upgrade '{}'",
+            safe_name, safe_name
+        )
     }
     #[cfg(target_os = "windows")]
     {

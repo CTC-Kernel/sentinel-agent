@@ -3,10 +3,10 @@
 
 //! Heartbeat communication and server command processing.
 
-use agent_common::constants::AGENT_VERSION;
-use agent_common::error::CommonError;
 use crate::api_client::HeartbeatRequest;
 use crate::system_utils::get_os_version;
+use agent_common::constants::AGENT_VERSION;
+use agent_common::error::CommonError;
 use std::sync::atomic::Ordering;
 use tracing::{error, info, warn};
 
@@ -53,13 +53,21 @@ impl AgentRuntime {
 
         // Check module status for self_check_result
         let fim_status = if let Some(engine) = self.fim_engine.read().await.as_ref() {
-            if engine.is_running() { "active" } else { "inactive" }
+            if engine.is_running() {
+                "active"
+            } else {
+                "inactive"
+            }
         } else {
             "not_configured"
         };
 
         let siem_status = if let Some(forwarder) = self.siem_forwarder.read().await.as_ref() {
-            if forwarder.is_enabled() { "active" } else { "inactive" }
+            if forwarder.is_enabled() {
+                "active"
+            } else {
+                "inactive"
+            }
         } else {
             "not_configured"
         };
@@ -148,7 +156,11 @@ impl AgentRuntime {
                         .map(|h| h.to_string_lossy().to_string())
                         .unwrap_or_else(|_| "unknown".to_string()),
                     agent_id: self.config.agent_id.clone(),
-                    organization: self.organization_name.try_read().ok().and_then(|g| g.clone()),
+                    organization: self
+                        .organization_name
+                        .try_read()
+                        .ok()
+                        .and_then(|g| g.clone()),
                     compliance_score: compliance_score.map(|s| s as f32),
                     last_check_at: last_compliance_check,
                     last_sync_at: Some(now),
@@ -160,7 +172,7 @@ impl AgentRuntime {
                         .unwrap_or_else(|e| e.into_inner())
                         .clone(),
                     policy_summary: None,
-                }
+                },
             });
 
             #[cfg(feature = "gui")]
@@ -225,16 +237,26 @@ impl AgentRuntime {
                             info!("Server command: diagnostics ({})", cmd.id);
                             let usage = self.resource_monitor.get_usage();
                             let sys = crate::resources::get_system_resources();
-                            let fim_status = if let Some(engine) = self.fim_engine.read().await.as_ref() {
-                                if engine.is_running() { "active" } else { "inactive" }
-                            } else {
-                                "not_configured"
-                            };
-                            let siem_status = if let Some(fwd) = self.siem_forwarder.read().await.as_ref() {
-                                if fwd.is_enabled() { "active" } else { "inactive" }
-                            } else {
-                                "not_configured"
-                            };
+                            let fim_status =
+                                if let Some(engine) = self.fim_engine.read().await.as_ref() {
+                                    if engine.is_running() {
+                                        "active"
+                                    } else {
+                                        "inactive"
+                                    }
+                                } else {
+                                    "not_configured"
+                                };
+                            let siem_status =
+                                if let Some(fwd) = self.siem_forwarder.read().await.as_ref() {
+                                    if fwd.is_enabled() {
+                                        "active"
+                                    } else {
+                                        "inactive"
+                                    }
+                                } else {
+                                    "not_configured"
+                                };
                             let diagnostics = serde_json::json!({
                                 "system": {
                                     "hostname": hostname::get().map(|h| h.to_string_lossy().to_string()).unwrap_or_default(),
@@ -259,10 +281,7 @@ impl AgentRuntime {
                                 },
                             });
                             service
-                                .report_success(
-                                    &cmd.id,
-                                    Some(diagnostics.to_string()),
-                                )
+                                .report_success(&cmd.id, Some(diagnostics.to_string()))
                                 .await
                         }
                         "update" => {
@@ -276,21 +295,29 @@ impl AgentRuntime {
                             info!("Server command: remediate ({})", cmd.id);
                             #[cfg(feature = "gui")]
                             {
-                                let check_id = cmd.payload.get("check_id")
+                                let check_id = cmd
+                                    .payload
+                                    .get("check_id")
                                     .and_then(|v| v.as_str())
                                     .unwrap_or_default()
                                     .to_string();
-                                let action = cmd.payload.get("action")
+                                let action = cmd
+                                    .payload
+                                    .get("action")
                                     .and_then(|v| v.as_str())
                                     .unwrap_or("execute")
                                     .to_string();
 
                                 if check_id.is_empty() {
                                     service
-                                        .report_failure(&cmd.id, "Missing check_id in payload".to_string())
+                                        .report_failure(
+                                            &cmd.id,
+                                            "Missing check_id in payload".to_string(),
+                                        )
                                         .await
                                 } else {
-                                    let actions = self.remediation_engine.get_platform_remediation(&check_id);
+                                    let actions =
+                                        self.remediation_engine.get_platform_remediation(&check_id);
                                     if let Some(rem_action) = actions.first() {
                                         let result = if action == "rollback" {
                                             self.remediation_engine.rollback(rem_action)
@@ -305,8 +332,13 @@ impl AgentRuntime {
                                                     agent_common::types::remediation::RemediationStatus::Success
                                                 );
                                                 if success {
-                                                    info!("Remediation for '{}' succeeded", check_id);
-                                                    self.state.force_check.store(true, Ordering::Release);
+                                                    info!(
+                                                        "Remediation for '{}' succeeded",
+                                                        check_id
+                                                    );
+                                                    self.state
+                                                        .force_check
+                                                        .store(true, Ordering::Release);
                                                     service
                                                         .report_success(
                                                             &cmd.id,
@@ -318,11 +350,17 @@ impl AgentRuntime {
                                                         .await
                                                 } else {
                                                     let err_msg = result.error.unwrap_or_default();
-                                                    warn!("Remediation for '{}' failed: {}", check_id, err_msg);
+                                                    warn!(
+                                                        "Remediation for '{}' failed: {}",
+                                                        check_id, err_msg
+                                                    );
                                                     service
                                                         .report_failure(
                                                             &cmd.id,
-                                                            format!("Remediation failed: {}", err_msg),
+                                                            format!(
+                                                                "Remediation failed: {}",
+                                                                err_msg
+                                                            ),
                                                         )
                                                         .await
                                                 }
@@ -331,7 +369,10 @@ impl AgentRuntime {
                                                 service
                                                     .report_failure(
                                                         &cmd.id,
-                                                        format!("No rollback available for '{}'", check_id),
+                                                        format!(
+                                                            "No rollback available for '{}'",
+                                                            check_id
+                                                        ),
                                                     )
                                                     .await
                                             }
@@ -340,7 +381,10 @@ impl AgentRuntime {
                                         service
                                             .report_failure(
                                                 &cmd.id,
-                                                format!("No remediation available for '{}'", check_id),
+                                                format!(
+                                                    "No remediation available for '{}'",
+                                                    check_id
+                                                ),
                                             )
                                             .await
                                     }

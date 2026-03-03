@@ -3,9 +3,9 @@
 
 //! LLM configuration management.
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use anyhow::Result;
 
 /// Main LLM configuration.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -265,7 +265,10 @@ impl LLMConfig {
     /// Validate configuration.
     pub fn validate(&self) -> Result<()> {
         if !self.model.path.exists() {
-            return Err(anyhow::anyhow!("Model file does not exist: {:?}", self.model.path));
+            return Err(anyhow::anyhow!(
+                "Model file does not exist: {:?}",
+                self.model.path
+            ));
         }
 
         if self.inference.temperature < 0.0 || self.inference.temperature > 2.0 {
@@ -293,21 +296,32 @@ impl LLMConfig {
         }
 
         if !(1.0..=2.0).contains(&self.inference.repetition_penalty) {
-            return Err(anyhow::anyhow!("repetition_penalty must be between 1.0 and 2.0"));
+            return Err(anyhow::anyhow!(
+                "repetition_penalty must be between 1.0 and 2.0"
+            ));
         }
 
         if self.security.sanitize_input && self.security.max_input_length == 0 {
-            return Err(anyhow::anyhow!("max_input_length must be > 0 when sanitize_input is enabled"));
+            return Err(anyhow::anyhow!(
+                "max_input_length must be > 0 when sanitize_input is enabled"
+            ));
         }
 
         for pattern in &self.security.blocked_patterns {
             if let Err(e) = regex::Regex::new(pattern) {
-                return Err(anyhow::anyhow!("Invalid blocked pattern '{}': {}", pattern, e));
+                return Err(anyhow::anyhow!(
+                    "Invalid blocked pattern '{}': {}",
+                    pattern,
+                    e
+                ));
             }
         }
 
         if self.cache.enabled && std::fs::create_dir_all(&self.cache.directory).is_err() {
-            return Err(anyhow::anyhow!("Cache directory cannot be created: {:?}", self.cache.directory));
+            return Err(anyhow::anyhow!(
+                "Cache directory cannot be created: {:?}",
+                self.cache.directory
+            ));
         }
 
         Ok(())

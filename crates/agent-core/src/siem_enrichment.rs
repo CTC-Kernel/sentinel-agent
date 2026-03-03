@@ -84,7 +84,10 @@ pub async fn enrich_siem_event(
             );
         }
         Err(e) => {
-            debug!("SIEM AI enrichment failed for event {}: {}", event.event_id, e);
+            debug!(
+                "SIEM AI enrichment failed for event {}: {}",
+                event.event_id, e
+            );
         }
     }
 }

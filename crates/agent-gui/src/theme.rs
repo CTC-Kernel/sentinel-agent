@@ -263,11 +263,7 @@ pub fn text_on_accent() -> Color32 {
 /// Dark mode: bright cyan (ACCENT_LIGHT). Light mode: deeper blue (ACCENT).
 #[inline]
 pub fn accent_text() -> Color32 {
-    if is_dark_mode() {
-        ACCENT_LIGHT
-    } else {
-        ACCENT
-    }
+    if is_dark_mode() { ACCENT_LIGHT } else { ACCENT }
 }
 
 // ============================================================================
@@ -427,7 +423,6 @@ pub fn badge_border(color: Color32) -> Color32 {
         color_blend(Color32::WHITE, color, 0.25)
     }
 }
-
 
 // ============================================================================
 // Semantic font sizes (use these instead of inline FontId::proportional())
@@ -609,7 +604,6 @@ pub fn table_row_bg(row_index: usize) -> Color32 {
 pub fn table_row_hover() -> Color32 {
     ACCENT.linear_multiply(if is_dark_mode() { 0.10 } else { 0.06 })
 }
-
 
 // ============================================================================
 // Glass morphism helpers
@@ -1184,16 +1178,16 @@ pub const SKELETON_HIGHLIGHT_LIGHT: Color32 = Color32::from_rgb(245, 245, 250);
 
 /// Avatar auto-generated color palette (10 pleasant hues).
 pub const AVATAR_COLORS: [Color32; 10] = [
-    Color32::from_rgb(99, 102, 241),  // Indigo
-    Color32::from_rgb(139, 92, 246),  // Violet
-    Color32::from_rgb(236, 72, 153),  // Pink
-    Color32::from_rgb(244, 63, 94),   // Rose
-    Color32::from_rgb(249, 115, 22),  // Orange
-    Color32::from_rgb(234, 179, 8),   // Yellow
-    Color32::from_rgb(34, 197, 94),   // Green
-    Color32::from_rgb(20, 184, 166),  // Teal
-    Color32::from_rgb(6, 182, 212),   // Cyan
-    Color32::from_rgb(59, 130, 246),  // Blue
+    Color32::from_rgb(99, 102, 241), // Indigo
+    Color32::from_rgb(139, 92, 246), // Violet
+    Color32::from_rgb(236, 72, 153), // Pink
+    Color32::from_rgb(244, 63, 94),  // Rose
+    Color32::from_rgb(249, 115, 22), // Orange
+    Color32::from_rgb(234, 179, 8),  // Yellow
+    Color32::from_rgb(34, 197, 94),  // Green
+    Color32::from_rgb(20, 184, 166), // Teal
+    Color32::from_rgb(6, 182, 212),  // Cyan
+    Color32::from_rgb(59, 130, 246), // Blue
 ];
 
 /// Threat radar visualization height.
@@ -1297,8 +1291,8 @@ pub const SPLASH_FADE_OUT_DURATION: f32 = 0.4;
 pub fn enrollment_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
-            Color32::from_rgb(18, 24, 36),  // Deep sophisticated blue-gray center
-            Color32::from_rgb(8, 10, 14),    // Near-black elegant outer
+            Color32::from_rgb(18, 24, 36), // Deep sophisticated blue-gray center
+            Color32::from_rgb(8, 10, 14),  // Near-black elegant outer
         )
     } else {
         (
@@ -1324,8 +1318,8 @@ pub const ENROLLMENT_GLOW_RADIUS: f32 = 60.0;
 pub fn sidebar_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
-            Color32::from_rgb(25, 25, 30),  // Lighter top (Spotlight)
-            Color32::from_rgb(14, 14, 18),  // Soft bottom (keeps text readable)
+            Color32::from_rgb(25, 25, 30), // Lighter top (Spotlight)
+            Color32::from_rgb(14, 14, 18), // Soft bottom (keeps text readable)
         )
     } else {
         (

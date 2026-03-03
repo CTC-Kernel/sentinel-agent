@@ -119,11 +119,7 @@ impl FimPage {
                     ];
                     for (label, count, color) in types {
                         if *count > 0 {
-                            widgets::status_badge(
-                                ui,
-                                &format!("{}: {}", label, count),
-                                *color,
-                            );
+                            widgets::status_badge(ui, &format!("{}: {}", label, count), *color);
                             ui.add_space(theme::SPACE_SM);
                         }
                     }
@@ -163,12 +159,9 @@ impl FimPage {
                             .strong(),
                     );
                     ui.label(
-                        egui::RichText::new(format!(
-                            "({}/{})",
-                            acked_count, total_alerts,
-                        ))
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary()),
+                        egui::RichText::new(format!("({}/{})", acked_count, total_alerts,))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
                     );
                 });
 
@@ -198,7 +191,9 @@ impl FimPage {
                 ui,
                 icons::FILE_SHIELD,
                 "AUCUNE ALERTE FIM",
-                Some("Aucune modification de fichier critique détectée. La surveillance est active et fonctionnelle."),
+                Some(
+                    "Aucune modification de fichier critique détectée. La surveillance est active et fonctionnelle.",
+                ),
             );
             ui.add_space(theme::SPACE_XL);
         } else {
@@ -227,8 +222,10 @@ impl FimPage {
                 ui.add_space(theme::SPACE_MD);
 
                 // Collect ack commands before the table (borrow-safe)
-                let alert_ids: Vec<String> = state.fim.alerts.iter().map(|a| a.id.clone()).collect();
-                let alert_acked: Vec<bool> = state.fim.alerts.iter().map(|a| a.acknowledged).collect();
+                let alert_ids: Vec<String> =
+                    state.fim.alerts.iter().map(|a| a.id.clone()).collect();
+                let alert_acked: Vec<bool> =
+                    state.fim.alerts.iter().map(|a| a.acknowledged).collect();
                 let admin_unlocked = state.security.admin_unlocked;
                 let mut ack_command = None;
 
@@ -286,88 +283,93 @@ impl FimPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, state.fim.alerts.len(), |mut row| {
-                            let idx = row.index();
-                            let Some(alert) = state.fim.alerts.get(idx) else { return };
+                        body.rows(
+                            theme::TABLE_ROW_HEIGHT,
+                            state.fim.alerts.len(),
+                            |mut row| {
+                                let idx = row.index();
+                                let Some(alert) = state.fim.alerts.get(idx) else {
+                                    return;
+                                };
 
-                            row.col(|ui: &mut egui::Ui| {
-                                let (label, color) = Self::change_type_display(&alert.change_type);
-                                widgets::status_badge(ui, label, color);
-                            });
+                                row.col(|ui: &mut egui::Ui| {
+                                    let (label, color) =
+                                        Self::change_type_display(&alert.change_type);
+                                    widgets::status_badge(ui, label, color);
+                                });
 
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.vertical(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&alert.path)
-                                            .font(theme::font_mono())
-                                            .color(theme::text_primary()),
-                                    );
-                                    let hash_text = match (&alert.old_hash, &alert.new_hash) {
-                                        (Some(old), Some(new)) => {
-                                            Some(format!("HASH : {} \u{2192} {}", old, new))
-                                        }
-                                        (Some(old), None) => {
-                                            Some(format!("HASH : {}", old))
-                                        }
-                                        (None, Some(new)) => {
-                                            Some(format!("HASH : {}", new))
-                                        }
-                                        (None, None) => None,
-                                    };
-                                    if let Some(ref text) = hash_text {
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.vertical(|ui: &mut egui::Ui| {
                                         ui.label(
-                                            egui::RichText::new(text)
-                                                .font(theme::font_mono_sm())
-                                                .color(theme::text_tertiary()),
+                                            egui::RichText::new(&alert.path)
+                                                .font(theme::font_mono())
+                                                .color(theme::text_primary()),
+                                        );
+                                        let hash_text = match (&alert.old_hash, &alert.new_hash) {
+                                            (Some(old), Some(new)) => {
+                                                Some(format!("HASH : {} \u{2192} {}", old, new))
+                                            }
+                                            (Some(old), None) => Some(format!("HASH : {}", old)),
+                                            (None, Some(new)) => Some(format!("HASH : {}", new)),
+                                            (None, None) => None,
+                                        };
+                                        if let Some(ref text) = hash_text {
+                                            ui.label(
+                                                egui::RichText::new(text)
+                                                    .font(theme::font_mono_sm())
+                                                    .color(theme::text_tertiary()),
+                                            );
+                                        }
+                                    });
+                                });
+
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(
+                                            alert.timestamp.format("%d/%m %H:%M:%S").to_string(),
+                                        )
+                                        .font(theme::font_mono_sm())
+                                        .color(theme::text_tertiary()),
+                                    );
+                                });
+
+                                row.col(|ui: &mut egui::Ui| {
+                                    if alert_acked[idx] {
+                                        ui.label(
+                                            egui::RichText::new(format!(
+                                                "{}  ACQUITT\u{00c9}",
+                                                icons::CIRCLE_CHECK
+                                            ))
+                                            .font(theme::font_label())
+                                            .color(theme::text_tertiary())
+                                            .strong(),
+                                        );
+                                    } else if admin_unlocked {
+                                        if widgets::chip_button(
+                                            ui,
+                                            &format!("{}  ACQUITTER", icons::CHECK),
+                                            false,
+                                            theme::ACCENT,
+                                        )
+                                        .clicked()
+                                        {
+                                            ack_command = Some(idx);
+                                        }
+                                    } else {
+                                        widgets::chip_button(
+                                            ui,
+                                            &format!("{}  ACQUITTER", icons::LOCK),
+                                            false,
+                                            theme::text_tertiary(),
                                         );
                                     }
                                 });
-                            });
 
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(alert.timestamp.format("%d/%m %H:%M:%S").to_string())
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::text_tertiary()),
-                                );
-                            });
-
-                            row.col(|ui: &mut egui::Ui| {
-                                if alert_acked[idx] {
-                                    ui.label(
-                                        egui::RichText::new(format!(
-                                            "{}  ACQUITT\u{00c9}",
-                                            icons::CIRCLE_CHECK
-                                        ))
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong(),
-                                    );
-                                } else if admin_unlocked {
-                                    if widgets::chip_button(
-                                        ui,
-                                        &format!("{}  ACQUITTER", icons::CHECK),
-                                        false,
-                                        theme::ACCENT,
-                                    )
-                                    .clicked()
-                                    {
-                                        ack_command = Some(idx);
-                                    }
-                                } else {
-                                    widgets::chip_button(
-                                        ui,
-                                        &format!("{}  ACQUITTER", icons::LOCK),
-                                        false,
-                                        theme::text_tertiary(),
-                                    );
+                                if row.response().clicked() {
+                                    clicked_row = Some(idx);
                                 }
-                            });
-
-                            if row.response().clicked() {
-                                clicked_row = Some(idx);
-                            }
-                        });
+                            },
+                        );
                     });
 
                 if let Some(idx) = clicked_row {
@@ -402,42 +404,60 @@ impl FimPage {
             if !alert.acknowledged {
                 actions.push(widgets::DetailAction::primary("Acquitter", icons::CHECK));
             }
-            actions.push(widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD));
+            actions.push(widgets::DetailAction::secondary(
+                "Exporter",
+                icons::DOWNLOAD,
+            ));
 
             let action = widgets::DetailDrawer::new("fim_detail", &alert.path, icons::FILE_SHIELD)
                 .accent(type_color)
                 .subtitle("Alerte FIM")
-                .show(&ctx, &mut state.fim.detail_open, |ui| {
-                    widgets::detail_section(ui, "D\u{00c9}TAILS DE L'ALERTE");
-                    widgets::detail_mono(ui, "ID", &alert.id);
-                    widgets::detail_mono(ui, "Chemin du fichier", &alert.path);
-                    widgets::detail_field_badge(
-                        ui,
-                        "Type de modification",
-                        type_label,
-                        type_color,
-                    );
-                    widgets::detail_field(
-                        ui,
-                        "Date de d\u{00e9}tection",
-                        &alert.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
-                    );
+                .show(
+                    &ctx,
+                    &mut state.fim.detail_open,
+                    |ui| {
+                        widgets::detail_section(ui, "D\u{00c9}TAILS DE L'ALERTE");
+                        widgets::detail_mono(ui, "ID", &alert.id);
+                        widgets::detail_mono(ui, "Chemin du fichier", &alert.path);
+                        widgets::detail_field_badge(
+                            ui,
+                            "Type de modification",
+                            type_label,
+                            type_color,
+                        );
+                        widgets::detail_field(
+                            ui,
+                            "Date de d\u{00e9}tection",
+                            &alert.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                        );
 
-                    widgets::detail_section(ui, "HACHAGES");
-                    if let Some(ref old) = alert.old_hash {
-                        widgets::detail_mono(ui, "Hash pr\u{00e9}c\u{00e9}dent", old);
-                    }
-                    if let Some(ref new) = alert.new_hash {
-                        widgets::detail_mono(ui, "Hash actuel", new);
-                    }
+                        widgets::detail_section(ui, "HACHAGES");
+                        if let Some(ref old) = alert.old_hash {
+                            widgets::detail_mono(ui, "Hash pr\u{00e9}c\u{00e9}dent", old);
+                        }
+                        if let Some(ref new) = alert.new_hash {
+                            widgets::detail_mono(ui, "Hash actuel", new);
+                        }
 
-                    widgets::detail_section(ui, "STATUT");
-                    if alert.acknowledged {
-                        widgets::detail_field_badge(ui, "Acquitt\u{00e9}e", "OUI", theme::SUCCESS);
-                    } else {
-                        widgets::detail_field_badge(ui, "Acquitt\u{00e9}e", "NON", theme::WARNING);
-                    }
-                }, &actions);
+                        widgets::detail_section(ui, "STATUT");
+                        if alert.acknowledged {
+                            widgets::detail_field_badge(
+                                ui,
+                                "Acquitt\u{00e9}e",
+                                "OUI",
+                                theme::SUCCESS,
+                            );
+                        } else {
+                            widgets::detail_field_badge(
+                                ui,
+                                "Acquitt\u{00e9}e",
+                                "NON",
+                                theme::WARNING,
+                            );
+                        }
+                    },
+                    &actions,
+                );
 
             if let Some(action_idx) = action {
                 if !alert.acknowledged && action_idx == 0 {
@@ -457,10 +477,8 @@ impl FimPage {
                             );
                         } else {
                             state.toasts.push(
-                                crate::widgets::toast::Toast::error(
-                                    "\u{00c9}chec de l'export CSV",
-                                )
-                                .with_time(time),
+                                crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
+                                    .with_time(time),
                             );
                         }
                     }
@@ -536,7 +554,12 @@ impl FimPage {
                     e.path.clone(),
                     e.change_type.to_string(),
                     e.timestamp.to_rfc3339(),
-                    if e.acknowledged { "Acquitté" } else { "En attente" }.to_string(),
+                    if e.acknowledged {
+                        "Acquitté"
+                    } else {
+                        "En attente"
+                    }
+                    .to_string(),
                 ])
             })
             .collect();

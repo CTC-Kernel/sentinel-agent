@@ -7,10 +7,10 @@
 //! using system `ping` to discover live hosts without raw sockets.
 
 use crate::error::{NetworkError, NetworkResult};
+use agent_common::process::silent_async_command;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use agent_common::process::silent_async_command;
 use tokio::sync::Semaphore;
 use tracing::{debug, trace, warn};
 

@@ -35,7 +35,11 @@ pub fn parse_risk_level(s: &str) -> RiskLevel {
 /// Strips leading bullet markers (`-`, `*`, digits followed by `.`) before collecting.
 pub fn extract_lines(text: &str, max: usize) -> Vec<String> {
     text.lines()
-        .map(|l| l.trim().trim_start_matches(|c: char| c == '-' || c == '*' || c.is_ascii_digit() || c == '.'))
+        .map(|l| {
+            l.trim().trim_start_matches(|c: char| {
+                c == '-' || c == '*' || c.is_ascii_digit() || c == '.'
+            })
+        })
         .map(|l| l.trim().to_string())
         .filter(|l| !l.is_empty())
         .take(max)
@@ -69,10 +73,12 @@ pub fn try_parse_json<T: DeserializeOwned>(response: &str) -> std::result::Resul
 /// Shared test utilities available to all modules in this crate.
 #[cfg(test)]
 pub mod test_helpers {
-    use std::sync::Arc;
-    use anyhow::Result;
     use crate::config::LLMConfig;
-    use crate::engine::{ModelEngine, ModelStatus, InferenceRequest, InferenceResponse, MemoryUsage};
+    use crate::engine::{
+        InferenceRequest, InferenceResponse, MemoryUsage, ModelEngine, ModelStatus,
+    };
+    use anyhow::Result;
+    use std::sync::Arc;
 
     /// A mock engine that always returns a pre-configured response text.
     pub struct MockEngine {
@@ -82,22 +88,36 @@ pub mod test_helpers {
     impl MockEngine {
         /// Create an `Arc<dyn ModelEngine>` wrapping a `MockEngine` with the given response.
         pub fn arc(text: impl Into<String>) -> Arc<dyn ModelEngine> {
-            Arc::new(Self { response_text: text.into() })
+            Arc::new(Self {
+                response_text: text.into(),
+            })
         }
     }
 
     #[async_trait::async_trait]
     impl ModelEngine for MockEngine {
-        async fn status(&self) -> ModelStatus { ModelStatus::Ready }
+        async fn status(&self) -> ModelStatus {
+            ModelStatus::Ready
+        }
         async fn infer(&self, _request: InferenceRequest) -> Result<InferenceResponse> {
             Ok(InferenceResponse::new(self.response_text.clone()))
         }
         async fn memory_usage(&self) -> MemoryUsage {
-            MemoryUsage { allocated_mb: 0, peak_mb: 0, available_mb: 0 }
+            MemoryUsage {
+                allocated_mb: 0,
+                peak_mb: 0,
+                available_mb: 0,
+            }
         }
-        async fn inference_count(&self) -> u64 { 0 }
-        async fn reload(&self) -> Result<()> { Ok(()) }
-        async fn unload(&self) -> Result<()> { Ok(()) }
+        async fn inference_count(&self) -> u64 {
+            0
+        }
+        async fn reload(&self) -> Result<()> {
+            Ok(())
+        }
+        async fn unload(&self) -> Result<()> {
+            Ok(())
+        }
     }
 
     /// Build a default `LLMConfig` suitable for tests (no model file needed).
@@ -201,7 +221,9 @@ mod tests {
     #[test]
     fn test_try_parse_json_direct() {
         #[derive(serde::Deserialize)]
-        struct Simple { value: String }
+        struct Simple {
+            value: String,
+        }
         let result: std::result::Result<Simple, _> = try_parse_json(r#"{"value": "hello"}"#);
         assert!(result.is_ok());
         assert_eq!(result.unwrap().value, "hello");
@@ -210,7 +232,9 @@ mod tests {
     #[test]
     fn test_try_parse_json_with_surrounding_text() {
         #[derive(serde::Deserialize)]
-        struct Simple { value: String }
+        struct Simple {
+            value: String,
+        }
         let result: std::result::Result<Simple, _> =
             try_parse_json("Here is the result:\n{\"value\": \"world\"}\nDone.");
         assert!(result.is_ok());
@@ -221,7 +245,9 @@ mod tests {
     fn test_try_parse_json_failure() {
         #[derive(Debug, serde::Deserialize)]
         #[allow(dead_code)]
-        struct Simple { value: String }
+        struct Simple {
+            value: String,
+        }
         let result: std::result::Result<Simple, _> = try_parse_json("no json at all");
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), "no json at all");

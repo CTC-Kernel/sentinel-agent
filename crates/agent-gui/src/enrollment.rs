@@ -61,7 +61,10 @@ impl Default for EnrollmentWizard {
 #[derive(Debug, Clone)]
 pub enum EnrollmentCommand {
     /// User submitted enrollment details including password.
-    SubmitEnrollment { token: String, admin_password: Option<String> },
+    SubmitEnrollment {
+        token: String,
+        admin_password: Option<String>,
+    },
     /// User submitted a QR payload.
     SubmitQr(String),
     /// User wants to skip / cancel.
@@ -209,7 +212,9 @@ impl EnrollmentWizard {
 
                     ui.add_space(theme::SPACE_LG);
 
-                    if widgets::button::primary_button(ui, "Commencer l'inscription", true).clicked() {
+                    if widgets::button::primary_button(ui, "Commencer l'inscription", true)
+                        .clicked()
+                    {
                         self.step = EnrollmentStep::TokenEntry;
                     }
 
@@ -242,11 +247,9 @@ impl EnrollmentWizard {
 
                 if self.use_qr {
                     ui.label(
-                        egui::RichText::new(
-                            "Collez le contenu du QR code ci-dessous.",
-                        )
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
+                        egui::RichText::new("Collez le contenu du QR code ci-dessous.")
+                            .font(theme::font_small())
+                            .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_SM);
 
@@ -353,9 +356,11 @@ impl EnrollmentWizard {
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
-                    egui::RichText::new("Définissez le mot de passe administrateur pour cet agent.")
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
+                    egui::RichText::new(
+                        "Définissez le mot de passe administrateur pour cet agent.",
+                    )
+                    .font(theme::font_small())
+                    .color(theme::text_secondary()),
                 );
 
                 ui.add_space(theme::SPACE_LG);
@@ -478,8 +483,7 @@ impl EnrollmentWizard {
 
                 if success {
                     ui.label(
-                        egui::RichText::new("\u{2705}")
-                            .font(egui::FontId::proportional(48.0)),
+                        egui::RichText::new("\u{2705}").font(egui::FontId::proportional(48.0)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
@@ -490,8 +494,7 @@ impl EnrollmentWizard {
                     );
                 } else {
                     ui.label(
-                        egui::RichText::new("\u{274c}")
-                            .font(egui::FontId::proportional(48.0)),
+                        egui::RichText::new("\u{274c}").font(egui::FontId::proportional(48.0)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
@@ -517,7 +520,11 @@ impl EnrollmentWizard {
                         .font(theme::font_body())
                         .color(theme::text_on_accent()),
                 )
-                .fill(if success { theme::ACCENT } else { theme::WARNING })
+                .fill(if success {
+                    theme::ACCENT
+                } else {
+                    theme::WARNING
+                })
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
                 .min_size(egui::Vec2::new(160.0, 40.0));
 

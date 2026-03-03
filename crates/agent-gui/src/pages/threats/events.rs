@@ -15,7 +15,7 @@ use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColum
 use crate::widgets::pagination::PaginationState;
 
 use super::mitre;
-use super::types::{build_threat_list, severity_display, kind_badge};
+use super::types::{build_threat_list, kind_badge, severity_display};
 
 const ITEMS_PER_PAGE: usize = 25;
 
@@ -37,7 +37,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         ui.add_space(theme::SPACE_SM);
 
         // Severity dropdown filter
-        let severity_labels = ["TOUTES", "CRITIQUE", "\u{00c9}LEV\u{00c9}E", "MOYENNE", "FAIBLE"];
+        let severity_labels = [
+            "TOUTES",
+            "CRITIQUE",
+            "\u{00c9}LEV\u{00c9}E",
+            "MOYENNE",
+            "FAIBLE",
+        ];
         let mut severity_idx = match state.threats.events_severity_filter {
             None => 0,
             Some(Severity::Critical) => 1,
@@ -45,7 +51,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             Some(Severity::Medium) => 3,
             Some(Severity::Low) | Some(Severity::Info) => 4,
         };
-        if widgets::dropdown(ui, "events_severity_filter", &severity_labels, &mut severity_idx) {
+        if widgets::dropdown(
+            ui,
+            "events_severity_filter",
+            &severity_labels,
+            &mut severity_idx,
+        ) {
             state.threats.events_severity_filter = match severity_idx {
                 1 => Some(Severity::Critical),
                 2 => Some(Severity::High),
@@ -143,7 +154,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     table.show_header(ui, &mut _sort);
 
     if page_threats.is_empty() {
-        table.show_empty(ui, "Aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9}");
+        table.show_empty(
+            ui,
+            "Aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9}",
+        );
     } else {
         for (row_idx, threat) in page_threats.iter().enumerate() {
             let (sev_icon, _) = severity_display(threat.severity);
@@ -159,14 +173,20 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             let subtype = match threat.kind {
                 "network" => threat.title.to_lowercase(),
                 "system" => threat.description.to_lowercase(),
-                "process" => format!("{} {}", threat.title, threat.command_line.as_deref().unwrap_or("")).to_lowercase(),
+                "process" => format!(
+                    "{} {}",
+                    threat.title,
+                    threat.command_line.as_deref().unwrap_or("")
+                )
+                .to_lowercase(),
                 _ => String::new(),
             };
             let mitre_id = mitre::mitre_mapping(threat.kind, &subtype)
                 .map(|t| t.id.to_string())
                 .unwrap_or_else(|| "\u{2014}".to_string());
 
-            let confidence = threat.confidence
+            let confidence = threat
+                .confidence
                 .map(|c| format!("{}%", c))
                 .unwrap_or_else(|| "\u{2014}".to_string());
 
@@ -220,48 +240,68 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             let subtype = match threat.kind {
                 "network" => threat.title.to_lowercase(),
                 "system" => threat.description.to_lowercase(),
-                "process" => format!("{} {}", threat.title, threat.command_line.as_deref().unwrap_or("")).to_lowercase(),
+                "process" => format!(
+                    "{} {}",
+                    threat.title,
+                    threat.command_line.as_deref().unwrap_or("")
+                )
+                .to_lowercase(),
                 _ => String::new(),
             };
             let mitre_info = mitre::mitre_mapping(threat.kind, &subtype);
 
-            let actions = [
-                widgets::DetailAction::secondary("Copier les d\u{00e9}tails", icons::COPY),
-            ];
+            let actions = [widgets::DetailAction::secondary(
+                "Copier les d\u{00e9}tails",
+                icons::COPY,
+            )];
 
-            let drawer_action = widgets::DetailDrawer::new("events_detail", &threat.title, icons::LIST)
-                .accent(sev_color)
-                .subtitle(kind_label)
-                .show(ui.ctx(), &mut state.threats.detail_open, |ui| {
-                    widgets::detail_section(ui, "\u{00c9}V\u{00c9}NEMENT DE S\u{00c9}CURIT\u{00c9}");
-                    widgets::detail_field(ui, "Titre", &threat.title);
-                    widgets::detail_field_badge(ui, "Type", kind_label, sev_color);
-                    widgets::detail_field_badge(ui, "S\u{00e9}v\u{00e9}rit\u{00e9}", threat.severity, sev_color);
-                    widgets::detail_field(ui, "Date", &ts);
+            let drawer_action =
+                widgets::DetailDrawer::new("events_detail", &threat.title, icons::LIST)
+                    .accent(sev_color)
+                    .subtitle(kind_label)
+                    .show(
+                        ui.ctx(),
+                        &mut state.threats.detail_open,
+                        |ui| {
+                            widgets::detail_section(
+                                ui,
+                                "\u{00c9}V\u{00c9}NEMENT DE S\u{00c9}CURIT\u{00c9}",
+                            );
+                            widgets::detail_field(ui, "Titre", &threat.title);
+                            widgets::detail_field_badge(ui, "Type", kind_label, sev_color);
+                            widgets::detail_field_badge(
+                                ui,
+                                "S\u{00e9}v\u{00e9}rit\u{00e9}",
+                                threat.severity,
+                                sev_color,
+                            );
+                            widgets::detail_field(ui, "Date", &ts);
 
-                    if let Some(conf) = threat.confidence {
-                        widgets::detail_field_colored(
-                            ui,
-                            "Confiance",
-                            &format!("{}%", conf),
-                            theme::readable_color(sev_color),
-                        );
-                    }
+                            if let Some(conf) = threat.confidence {
+                                widgets::detail_field_colored(
+                                    ui,
+                                    "Confiance",
+                                    &format!("{}%", conf),
+                                    theme::readable_color(sev_color),
+                                );
+                            }
 
-                    widgets::detail_section(ui, "D\u{00c9}TAILS");
-                    widgets::detail_text(ui, "Description", &threat.description);
+                            widgets::detail_section(ui, "D\u{00c9}TAILS");
+                            widgets::detail_text(ui, "Description", &threat.description);
 
-                    if let Some(ref cmd) = threat.command_line {
-                        widgets::detail_mono(ui, "Ligne de commande", cmd);
-                    }
+                            if let Some(ref cmd) = threat.command_line {
+                                widgets::detail_mono(ui, "Ligne de commande", cmd);
+                            }
 
-                    if let Some(ref mitre) = mitre_info {
-                        widgets::detail_section(ui, "MITRE ATT&CK");
-                        widgets::detail_field(ui, "Technique", mitre.id);
-                        widgets::detail_field(ui, "Nom", mitre.name_fr);
-                        widgets::detail_field(ui, "Tactique", mitre.tactic.label_fr());
-                    }
-                }, &actions);
+                            if let Some(ref mitre) = mitre_info {
+                                widgets::detail_section(ui, "MITRE ATT&CK");
+                                widgets::detail_field(ui, "Technique", mitre.id);
+                                widgets::detail_field(ui, "Nom", mitre.name_fr);
+                                widgets::detail_field(ui, "Tactique", mitre.tactic.label_fr());
+                            }
+                        },
+                        &actions,
+                    );
 
             if let Some(0) = drawer_action {
                 let details = format!(

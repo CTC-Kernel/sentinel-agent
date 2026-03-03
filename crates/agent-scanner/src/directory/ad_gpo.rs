@@ -15,11 +15,11 @@ use super::types::*;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_async_command;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 #[cfg(target_os = "windows")]
 use tracing::{debug, warn};
-use agent_common::process::silent_async_command;
 
 /// Group Policy Object auditor.
 pub struct GpoAuditor;
@@ -77,7 +77,6 @@ impl GpoAuditor {
 
     #[cfg(target_os = "windows")]
     async fn get_windows_local_policy(&self) -> ScannerResult<GpoSecuritySettings> {
-
         let mut settings = GpoSecuritySettings::default();
 
         // Use secedit to export local policy
@@ -206,7 +205,6 @@ impl GpoAuditor {
 
     #[cfg(target_os = "windows")]
     async fn get_windows_domain_policy(&self) -> ScannerResult<GpoSecuritySettings> {
-
         // First check if we're domain-joined
         let domain_check = silent_async_command("powershell")
             .args([
@@ -324,7 +322,6 @@ impl GpoAuditor {
 
     #[cfg(target_os = "windows")]
     async fn get_audit_policy(&self) -> ScannerResult<AuditPolicy> {
-
         let output = silent_async_command("powershell")
             .args([
                 "-NoProfile",
@@ -387,7 +384,6 @@ impl GpoAuditor {
 
     #[cfg(target_os = "windows")]
     async fn get_windows_privileged_groups(&self) -> ScannerResult<Vec<PrivilegedGroupInfo>> {
-
         let mut groups = Vec::new();
 
         // List of privileged groups to check
@@ -495,7 +491,6 @@ impl GpoAuditor {
 
     #[cfg(not(target_os = "windows"))]
     async fn get_unix_privileged_groups(&self) -> ScannerResult<Vec<PrivilegedGroupInfo>> {
-
         let mut groups = Vec::new();
 
         // Check sudo/wheel group
@@ -506,35 +501,33 @@ impl GpoAuditor {
                 .await;
 
             if let Ok(output) = output
-                && output.status.success() {
-                    let line = String::from_utf8_lossy(&output.stdout);
-                    let parts: Vec<&str> = line.trim().split(':').collect();
+                && output.status.success()
+            {
+                let line = String::from_utf8_lossy(&output.stdout);
+                let parts: Vec<&str> = line.trim().split(':').collect();
 
-                    if parts.len() >= 4 {
-                        let members: Vec<String> = parts[3]
-                            .split(',')
-                            .filter(|s| !s.is_empty())
-                            .map(|s| s.to_string())
-                            .collect();
+                if parts.len() >= 4 {
+                    let members: Vec<String> = parts[3]
+                        .split(',')
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .collect();
 
-                        groups.push(PrivilegedGroupInfo {
-                            name: group_name.to_string(),
-                            sid: None,
-                            dn: None,
-                            member_count: members.len(),
-                            members,
-                            risk_level: if group_name == "root" {
-                                DirectorySeverity::Critical
-                            } else {
-                                DirectorySeverity::High
-                            },
-                            description: format!(
-                                "Unix {} group with elevated privileges",
-                                group_name
-                            ),
-                        });
-                    }
+                    groups.push(PrivilegedGroupInfo {
+                        name: group_name.to_string(),
+                        sid: None,
+                        dn: None,
+                        member_count: members.len(),
+                        members,
+                        risk_level: if group_name == "root" {
+                            DirectorySeverity::Critical
+                        } else {
+                            DirectorySeverity::High
+                        },
+                        description: format!("Unix {} group with elevated privileges", group_name),
+                    });
                 }
+            }
         }
 
         Ok(groups)

@@ -61,20 +61,33 @@ impl AgentRuntime {
 
             let results = if let Some(ref llm_svc) = self.llm_service {
                 if llm_svc.is_available().await {
-                    info!("LLM available — using IntelligentCheckRunner for AI-enriched compliance analysis");
+                    info!(
+                        "LLM available — using IntelligentCheckRunner for AI-enriched compliance analysis"
+                    );
                     let llm_runner = CheckRunner::with_defaults(self.check_registry.clone());
-                    match llm_svc.create_intelligent_runner(llm_runner, self.check_registry.clone()).await {
+                    match llm_svc
+                        .create_intelligent_runner(llm_runner, self.check_registry.clone())
+                        .await
+                    {
                         Ok(intelligent_runner) => {
                             let hostname = hostname::get()
                                 .map(|h| h.to_string_lossy().to_string())
                                 .unwrap_or_else(|_| "unknown".to_string());
-                            let system_info = format!("{} {} ({})", std::env::consts::OS, crate::system_utils::get_os_version(), hostname);
+                            let system_info = format!(
+                                "{} {} ({})",
+                                std::env::consts::OS,
+                                crate::system_utils::get_os_version(),
+                                hostname
+                            );
                             let framework = active_frameworks
                                 .as_ref()
                                 .and_then(|f| f.first().cloned())
                                 .unwrap_or_else(|| "general".to_string());
 
-                            match intelligent_runner.run_with_analysis(&system_info, &framework, "endpoint").await {
+                            match intelligent_runner
+                                .run_with_analysis(&system_info, &framework, "endpoint")
+                                .await
+                            {
                                 Ok(scan_result) => {
                                     if scan_result.scan_metadata.llm_enabled {
                                         info!(
@@ -88,7 +101,10 @@ impl AgentRuntime {
                                     scan_result.base_results
                                 }
                                 Err(e) => {
-                                    warn!("IntelligentCheckRunner failed, falling back to standard runner: {}", e);
+                                    warn!(
+                                        "IntelligentCheckRunner failed, falling back to standard runner: {}",
+                                        e
+                                    );
                                     runner.run_filtered(active_frameworks.as_deref()).await
                                 }
                             }
@@ -172,7 +188,10 @@ impl AgentRuntime {
         // If LLM analysis produced results, log and emit to GUI
         #[cfg(feature = "llm")]
         if let Some(ref analysis) = llm_analysis {
-            info!("LLM compliance analysis available: {} bytes", analysis.to_string().len());
+            info!(
+                "LLM compliance analysis available: {} bytes",
+                analysis.to_string().len()
+            );
             #[cfg(feature = "gui")]
             {
                 let summary = analysis

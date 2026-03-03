@@ -94,8 +94,9 @@ impl ModelRegistry {
     /// Recommend model based on use case and hardware constraints.
     pub fn recommend_model(use_case: UseCase, vram_gb: u32) -> Option<ModelInfo> {
         let models = Self::get_recommended_models();
-        
-        let candidates: Vec<_> = models.values()
+
+        let candidates: Vec<_> = models
+            .values()
             .filter(|m| m.vram_gb_min <= vram_gb)
             .filter(|m| match use_case {
                 UseCase::CodeAnalysis => m.capabilities.code_analysis,
@@ -108,7 +109,8 @@ impl ModelRegistry {
             .collect();
 
         // Return the model with highest parameter count that fits
-        candidates.into_iter()
+        candidates
+            .into_iter()
             .max_by_key(|m| m.parameter_count)
             .cloned()
     }

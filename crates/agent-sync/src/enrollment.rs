@@ -23,11 +23,11 @@ use crate::error::{SyncError, SyncResult};
 use crate::types::{EnrollmentRequest, StoredCredentials};
 use agent_common::config::AgentConfig;
 use agent_common::constants::AGENT_VERSION;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use agent_common::process::silent_command;
 use agent_storage::Database;
 use tracing::{debug, info, warn};
 use uuid::Uuid;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use agent_common::process::silent_command;
 
 /// Enrollment manager for agent registration.
 pub struct EnrollmentManager<'a> {
@@ -66,7 +66,9 @@ impl<'a> EnrollmentManager<'a> {
                     credentials.certificate_expires_at
                 );
                 warn!("Certificate has expired. Agent needs re-enrollment.");
-                return Err(SyncError::Certificate("Agent certificate has expired. Re-enrollment required.".to_string()));
+                return Err(SyncError::Certificate(
+                    "Agent certificate has expired. Re-enrollment required.".to_string(),
+                ));
             } else if credentials.certificate_expires_within(30) {
                 warn!(
                     "Certificate expires soon ({}), renewal recommended",
@@ -97,7 +99,11 @@ impl<'a> EnrollmentManager<'a> {
     }
 
     /// Perform enrollment with the SaaS.
-    pub async fn enroll(&self, token: &str, admin_password: Option<String>) -> SyncResult<StoredCredentials> {
+    pub async fn enroll(
+        &self,
+        token: &str,
+        admin_password: Option<String>,
+    ) -> SyncResult<StoredCredentials> {
         let client = HttpClient::for_enrollment(self.config)?;
 
         // Gather system information

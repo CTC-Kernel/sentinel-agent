@@ -7,8 +7,8 @@
 use super::IncidentType;
 use super::{IncidentSeverity, SecurityIncident};
 use crate::error::ScannerResult;
-use tracing::{debug, info, warn};
 use agent_common::process::silent_command;
+use tracing::{debug, info, warn};
 
 /// System checks to perform.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -63,7 +63,6 @@ impl SystemMonitor {
     /// Check firewall status.
     #[cfg(target_os = "linux")]
     async fn check_firewall(&self) -> Option<SecurityIncident> {
-
         // Check ufw status
         let ufw_output = silent_command("ufw").args(["status"]).output();
 
@@ -98,7 +97,6 @@ impl SystemMonitor {
 
     #[cfg(target_os = "macos")]
     async fn check_firewall(&self) -> Option<SecurityIncident> {
-
         let output = silent_command("defaults")
             .args(["read", "/Library/Preferences/com.apple.alf", "globalstate"])
             .output();
@@ -125,7 +123,6 @@ impl SystemMonitor {
 
     #[cfg(target_os = "windows")]
     async fn check_firewall(&self) -> Option<SecurityIncident> {
-
         let output = silent_command("powershell")
             .args([
                 "-NoProfile",
@@ -172,7 +169,6 @@ impl SystemMonitor {
     /// Check antivirus status.
     #[cfg(target_os = "windows")]
     async fn check_antivirus(&self) -> Option<SecurityIncident> {
-
         // Check Windows Defender status
         let output = silent_command("powershell")
             .args([
@@ -227,7 +223,6 @@ impl SystemMonitor {
 
     #[cfg(target_os = "linux")]
     async fn check_antivirus(&self) -> Option<SecurityIncident> {
-
         // Check ClamAV daemon status
         let output = silent_command("systemctl")
             .args(["is-active", "clamav-daemon"])
@@ -320,7 +315,6 @@ impl SystemMonitor {
     /// Check for new admin accounts.
     #[cfg(target_os = "linux")]
     async fn check_admin_accounts(&self) -> Option<SecurityIncident> {
-
         // Get members of sudo/wheel group
         let output = silent_command("getent").args(["group", "sudo"]).output();
 
@@ -383,7 +377,6 @@ impl SystemMonitor {
 
     #[cfg(target_os = "macos")]
     async fn check_admin_accounts(&self) -> Option<SecurityIncident> {
-
         let output = silent_command("dscl")
             .args([".", "-read", "/Groups/admin", "GroupMembership"])
             .output();
@@ -428,7 +421,6 @@ impl SystemMonitor {
 
     #[cfg(target_os = "windows")]
     async fn check_admin_accounts(&self) -> Option<SecurityIncident> {
-
         // Use SID S-1-5-32-544 to find the Administrators group name reliably across localizations
         let output = silent_command("powershell")
             .args([

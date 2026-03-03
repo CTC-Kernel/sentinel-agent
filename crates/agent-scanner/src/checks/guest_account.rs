@@ -10,10 +10,10 @@
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 use crate::error::{ScannerError, ScannerResult};
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for guest account disabled.
@@ -152,7 +152,9 @@ impl GuestAccountCheck {
         }
 
         // Check if guest account is locked via passwd -S
-        let lock_output = silent_command("passwd").args(["-S", guest_username]).output();
+        let lock_output = silent_command("passwd")
+            .args(["-S", guest_username])
+            .output();
 
         let account_locked = match lock_output {
             Ok(output) => {

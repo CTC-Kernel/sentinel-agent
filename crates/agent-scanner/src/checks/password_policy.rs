@@ -12,12 +12,12 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-use agent_common::process::silent_command;
 
 /// Check ID for password policy.
 pub const CHECK_ID: &str = "password_policy";
@@ -401,7 +401,9 @@ impl PasswordPolicyCheck {
         }
 
         // Also check pwpolicy -getglobalpolicy (older method)
-        let output = silent_command("pwpolicy").args(["-getglobalpolicy"]).output();
+        let output = silent_command("pwpolicy")
+            .args(["-getglobalpolicy"])
+            .output();
 
         if let Ok(output) = output {
             let raw = String::from_utf8_lossy(&output.stdout).to_string();

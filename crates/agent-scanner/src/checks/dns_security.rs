@@ -18,10 +18,10 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for DNS security.
@@ -397,13 +397,14 @@ impl DnsSecurityCheck {
         for line in result.lines() {
             let trimmed = line.trim();
             if trimmed.starts_with("nameserver")
-                && let Some(addr_part) = trimmed.split_whitespace().last() {
-                    // Extract just the IP address (remove brackets if present)
-                    let server = addr_part.trim_matches(|c| c == '[' || c == ']');
-                    if !status.dns_servers.contains(&server.to_string()) {
-                        status.dns_servers.push(server.to_string());
-                    }
+                && let Some(addr_part) = trimmed.split_whitespace().last()
+            {
+                // Extract just the IP address (remove brackets if present)
+                let server = addr_part.trim_matches(|c| c == '[' || c == ']');
+                if !status.dns_servers.contains(&server.to_string()) {
+                    status.dns_servers.push(server.to_string());
                 }
+            }
         }
 
         // Check for DNS configuration profiles (DoH/DoT)
@@ -436,17 +437,18 @@ impl DnsSecurityCheck {
 
         // Check for DoH/DoT in /etc/resolver
         if std::path::Path::new("/etc/resolver").exists()
-            && let Ok(entries) = std::fs::read_dir("/etc/resolver") {
-                for entry in entries.filter_map(|e| e.ok()) {
-                    if let Ok(content) = std::fs::read_to_string(entry.path()) {
-                        status.raw_output.push_str(&format!(
-                            "/etc/resolver/{}:\n{}\n",
-                            entry.file_name().to_string_lossy(),
-                            content
-                        ));
-                    }
+            && let Ok(entries) = std::fs::read_dir("/etc/resolver")
+        {
+            for entry in entries.filter_map(|e| e.ok()) {
+                if let Ok(content) = std::fs::read_to_string(entry.path()) {
+                    status.raw_output.push_str(&format!(
+                        "/etc/resolver/{}:\n{}\n",
+                        entry.file_name().to_string_lossy(),
+                        content
+                    ));
                 }
             }
+        }
 
         // Check for dnscrypt-proxy (Homebrew)
         if std::path::Path::new("/usr/local/etc/dnscrypt-proxy.toml").exists()
@@ -468,11 +470,12 @@ impl DnsSecurityCheck {
             let version = String::from_utf8_lossy(&output.stdout).to_string();
             if let Some(major) = version.trim().split('.').next()
                 && let Ok(major_num) = major.parse::<u32>()
-                    && major_num >= 14 {
-                        status
-                            .raw_output
-                            .push_str("macOS 14+ detected (native DoH support)\n");
-                    }
+                && major_num >= 14
+            {
+                status
+                    .raw_output
+                    .push_str("macOS 14+ detected (native DoH support)\n");
+            }
         }
 
         // Determine overall security status

@@ -107,10 +107,7 @@ impl LLMPanel {
     // Tab 0: Assistant IA (Chat)
     // ====================================================================
 
-    fn show_assistant_tab(
-        ui: &mut egui::Ui,
-        state: &mut AppState,
-    ) -> Option<GuiCommand> {
+    fn show_assistant_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
 
         // Empty state
@@ -207,8 +204,8 @@ impl LLMPanel {
                 let response = ui.add_enabled(!state.ai.is_processing, text_edit);
 
                 // Send on Enter
-                let enter_pressed = response.lost_focus()
-                    && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                let enter_pressed =
+                    response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
 
                 let send_btn = egui::Button::new(
                     egui::RichText::new(icons::PAPER_PLANE)
@@ -285,10 +282,7 @@ impl LLMPanel {
                 .fill(bg_color)
                 .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
                 .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-                .stroke(egui::Stroke::new(
-                    theme::BORDER_HAIRLINE,
-                    theme::border(),
-                ))
+                .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
                 .show(ui, |ui: &mut egui::Ui| {
                     // Role badge
                     ui.horizontal(|ui: &mut egui::Ui| {
@@ -350,56 +344,53 @@ impl LLMPanel {
 
     /// Render a processing/loading indicator while the LLM is working.
     fn render_processing_indicator(ui: &mut egui::Ui) {
-        ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui: &mut egui::Ui| {
-            let max_width = (ui.available_width() * 0.75).min(600.0);
-            ui.set_max_width(max_width);
+        ui.with_layout(
+            egui::Layout::left_to_right(egui::Align::TOP),
+            |ui: &mut egui::Ui| {
+                let max_width = (ui.available_width() * 0.75).min(600.0);
+                ui.set_max_width(max_width);
 
-            egui::Frame::new()
-                .fill(theme::bg_elevated())
-                .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
-                .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-                .stroke(egui::Stroke::new(
-                    theme::BORDER_HAIRLINE,
-                    theme::border(),
-                ))
-                .show(ui, |ui: &mut egui::Ui| {
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(icons::ROBOT)
-                                .size(theme::ICON_SM)
-                                .color(theme::SUCCESS),
-                        );
+                egui::Frame::new()
+                    .fill(theme::bg_elevated())
+                    .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
+                    .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+                    .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
+                    .show(ui, |ui: &mut egui::Ui| {
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icons::ROBOT)
+                                    .size(theme::ICON_SM)
+                                    .color(theme::SUCCESS),
+                            );
+                            ui.add_space(theme::SPACE_XS);
+                            ui.label(
+                                egui::RichText::new("IA")
+                                    .font(theme::font_label())
+                                    .color(theme::SUCCESS)
+                                    .strong(),
+                            );
+                        });
                         ui.add_space(theme::SPACE_XS);
-                        ui.label(
-                            egui::RichText::new("IA")
-                                .font(theme::font_label())
-                                .color(theme::SUCCESS)
-                                .strong(),
-                        );
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            ui.spinner();
+                            ui.add_space(theme::SPACE_SM);
+                            ui.label(
+                                egui::RichText::new("Analyse en cours...")
+                                    .font(theme::font_body())
+                                    .color(theme::text_secondary())
+                                    .italics(),
+                            );
+                        });
                     });
-                    ui.add_space(theme::SPACE_XS);
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.spinner();
-                        ui.add_space(theme::SPACE_SM);
-                        ui.label(
-                            egui::RichText::new("Analyse en cours...")
-                                .font(theme::font_body())
-                                .color(theme::text_secondary())
-                                .italics(),
-                        );
-                    });
-                });
-        });
+            },
+        );
     }
 
     // ====================================================================
     // Tab 1: Recommandations (existing content, extracted)
     // ====================================================================
 
-    fn show_recommendations_tab(
-        ui: &mut egui::Ui,
-        state: &mut AppState,
-    ) -> Option<GuiCommand> {
+    fn show_recommendations_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
         // Build recommendations from AppState and cache count for badge
@@ -543,55 +534,57 @@ impl LLMPanel {
                 widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
             ];
 
-            let drawer_action = widgets::DetailDrawer::new(
-                "ai_recommendation_detail",
-                &rec.title,
-                kind_icon,
-            )
-            .accent(sev_color)
-            .subtitle(kind_label)
-            .show(ui.ctx(), &mut state.ai.detail_open, |ui| {
-                widgets::detail_section(ui, "RECOMMANDATION");
-                widgets::detail_field_badge(
-                    ui,
-                    "Priorit\u{00e9}",
-                    rec.severity.label(),
-                    sev_color,
-                );
-                widgets::detail_field_badge(
-                    ui,
-                    "Source",
-                    kind_label,
-                    kind_color(rec.kind),
-                );
-                widgets::detail_field(
-                    ui,
-                    "Cat\u{00e9}gorie",
-                    &format_category(&rec.category),
-                );
+            let drawer_action =
+                widgets::DetailDrawer::new("ai_recommendation_detail", &rec.title, kind_icon)
+                    .accent(sev_color)
+                    .subtitle(kind_label)
+                    .show(
+                        ui.ctx(),
+                        &mut state.ai.detail_open,
+                        |ui| {
+                            widgets::detail_section(ui, "RECOMMANDATION");
+                            widgets::detail_field_badge(
+                                ui,
+                                "Priorit\u{00e9}",
+                                rec.severity.label(),
+                                sev_color,
+                            );
+                            widgets::detail_field_badge(
+                                ui,
+                                "Source",
+                                kind_label,
+                                kind_color(rec.kind),
+                            );
+                            widgets::detail_field(
+                                ui,
+                                "Cat\u{00e9}gorie",
+                                &format_category(&rec.category),
+                            );
 
-                widgets::detail_section(ui, "D\u{00c9}TAILS");
-                widgets::detail_text(ui, "Description", &rec.subtitle);
-                if !rec.detail.is_empty() {
-                    widgets::detail_text(ui, "Contexte", &rec.detail);
-                }
+                            widgets::detail_section(ui, "D\u{00c9}TAILS");
+                            widgets::detail_text(ui, "Description", &rec.subtitle);
+                            if !rec.detail.is_empty() {
+                                widgets::detail_text(ui, "Contexte", &rec.detail);
+                            }
 
-                widgets::detail_section(ui, "REM\u{00c9}DIATION");
-                let remediation = category_remediation(&rec.category);
-                widgets::detail_text(ui, "Action recommand\u{00e9}e", remediation);
+                            widgets::detail_section(ui, "REM\u{00c9}DIATION");
+                            let remediation = category_remediation(&rec.category);
+                            widgets::detail_text(ui, "Action recommand\u{00e9}e", remediation);
 
-                if !rec.frameworks.is_empty() {
-                    widgets::detail_section(ui, "R\u{00c9}F\u{00c9}RENTIELS");
-                    for fw in &rec.frameworks {
-                        widgets::detail_field_badge(
-                            ui,
-                            "",
-                            &fw.to_uppercase(),
-                            theme::INFO,
-                        );
-                    }
-                }
-            }, &actions);
+                            if !rec.frameworks.is_empty() {
+                                widgets::detail_section(ui, "R\u{00c9}F\u{00c9}RENTIELS");
+                                for fw in &rec.frameworks {
+                                    widgets::detail_field_badge(
+                                        ui,
+                                        "",
+                                        &fw.to_uppercase(),
+                                        theme::INFO,
+                                    );
+                                }
+                            }
+                        },
+                        &actions,
+                    );
 
             if let Some(action_idx) = drawer_action {
                 match action_idx {
@@ -611,10 +604,7 @@ impl LLMPanel {
     // Tab 2: Statut Mod\u{00e8}le
     // ====================================================================
 
-    fn show_model_status_tab(
-        ui: &mut egui::Ui,
-        state: &mut AppState,
-    ) -> Option<GuiCommand> {
+    fn show_model_status_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
 
         // Extract values to avoid borrow conflicts
@@ -670,17 +660,14 @@ impl LLMPanel {
                 )
             };
 
-            widgets::empty_state(
-                ui,
-                icons::MICROCHIP,
-                title,
-                Some(detail),
-            );
+            widgets::empty_state(ui, icons::MICROCHIP, title, Some(detail));
 
             // Show error detail if present
             if model_status_str.starts_with("error:") {
                 ui.add_space(theme::SPACE_SM);
-                let error_detail = model_status_str.strip_prefix("error: ").unwrap_or(&model_status_str);
+                let error_detail = model_status_str
+                    .strip_prefix("error: ")
+                    .unwrap_or(&model_status_str);
                 egui::Frame::new()
                     .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
                     .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
@@ -705,9 +692,7 @@ impl LLMPanel {
             ui.add_space(theme::SPACE_LG);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                ui.add_space(
-                    (ui.available_width() - 400.0).max(0.0) / 2.0,
-                );
+                ui.add_space((ui.available_width() - 400.0).max(0.0) / 2.0);
 
                 // Only show "load" button if model might exist (not if not_configured)
                 if model_status_str != "not_configured" {
@@ -741,7 +726,10 @@ impl LLMPanel {
                     theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE)
                 })
                 .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
+                .stroke(egui::Stroke::new(
+                    theme::BORDER_THIN,
+                    theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
+                ));
 
                 if ui.add(download_btn).clicked() {
                     state.ai.download.phase = crate::dto::DownloadPhase::Downloading;
@@ -787,9 +775,9 @@ impl LLMPanel {
                         } else {
                             &status.model_name
                         })
-                            .font(theme::font_heading())
-                            .color(theme::text_primary())
-                            .strong(),
+                        .font(theme::font_heading())
+                        .color(theme::text_primary())
+                        .strong(),
                     );
                 });
             });
@@ -903,7 +891,10 @@ impl LLMPanel {
                 )
                 .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
                 .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
+                .stroke(egui::Stroke::new(
+                    theme::BORDER_THIN,
+                    theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
+                ));
 
                 if ui.add(status_btn).clicked() {
                     command = Some(GuiCommand::LlmGetStatus);
@@ -918,10 +909,7 @@ impl LLMPanel {
     // Download progress UI
     // ====================================================================
 
-    fn render_download_progress(
-        ui: &mut egui::Ui,
-        state: &mut AppState,
-    ) -> Option<GuiCommand> {
+    fn render_download_progress(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
 
         // Extract all needed values before the mutable closure
@@ -1024,11 +1012,7 @@ impl LLMPanel {
                     let painter = ui.painter();
 
                     // Background track
-                    painter.rect_filled(
-                        rect,
-                        egui::CornerRadius::same(6),
-                        theme::bg_elevated(),
-                    );
+                    painter.rect_filled(rect, egui::CornerRadius::same(6), theme::bg_elevated());
 
                     // Fill
                     let fill_width = rect.width() * progress;
@@ -1044,11 +1028,7 @@ impl LLMPanel {
                             theme::ACCENT
                         };
 
-                        painter.rect_filled(
-                            fill_rect,
-                            egui::CornerRadius::same(6),
-                            fill_color,
-                        );
+                        painter.rect_filled(fill_rect, egui::CornerRadius::same(6), fill_color);
                     }
                 }
 
@@ -1060,7 +1040,11 @@ impl LLMPanel {
                     ui.label(
                         egui::RichText::new(format!("{}%", progress_percent))
                             .font(theme::font_stat())
-                            .color(if is_paused { theme::WARNING } else { theme::ACCENT })
+                            .color(if is_paused {
+                                theme::WARNING
+                            } else {
+                                theme::ACCENT
+                            })
                             .strong(),
                     );
 
@@ -1112,7 +1096,8 @@ impl LLMPanel {
 
                 // Request repaint while downloading for animation
                 if !is_paused {
-                    ui.ctx().request_repaint_after(std::time::Duration::from_millis(500));
+                    ui.ctx()
+                        .request_repaint_after(std::time::Duration::from_millis(500));
                 }
             }
 
@@ -1178,7 +1163,10 @@ impl LLMPanel {
                     )
                     .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
                     .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                    .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ERROR.linear_multiply(theme::OPACITY_MUTED)));
+                    .stroke(egui::Stroke::new(
+                        theme::BORDER_THIN,
+                        theme::ERROR.linear_multiply(theme::OPACITY_MUTED),
+                    ));
 
                     if ui.add(cancel_btn).clicked() {
                         state.ai.download.phase = crate::dto::DownloadPhase::Idle;
@@ -1223,8 +1211,8 @@ impl LLMPanel {
     pub fn compute_ai_score(state: &AppState) -> f32 {
         let compliance = state.summary.compliance_score.unwrap_or(50.0);
 
-        let threat_count = state.threats.suspicious_processes.len()
-            + state.threats.system_incidents.len();
+        let threat_count =
+            state.threats.suspicious_processes.len() + state.threats.system_incidents.len();
         let threat_component = 100.0 - (threat_count as f32 * 10.0).min(100.0);
 
         let vuln_count = state.vulnerability_findings.len();
@@ -1289,10 +1277,7 @@ impl LLMPanel {
                 recs.push(Recommendation {
                     kind: "vulnerability",
                     severity: vuln.severity,
-                    title: format!(
-                        "Corriger : {} sur {}",
-                        vuln.cve_id, vuln.affected_software
-                    ),
+                    title: format!("Corriger : {} sur {}", vuln.cve_id, vuln.affected_software),
                     subtitle: fix_label.to_string(),
                     detail: vuln.description.clone(),
                     category: "vulnerability".to_string(),
@@ -1306,10 +1291,7 @@ impl LLMPanel {
             recs.push(Recommendation {
                 kind: "network",
                 severity: alert.severity,
-                title: format!(
-                    "Investiguer : {}",
-                    alert_type_label(&alert.alert_type)
-                ),
+                title: format!("Investiguer : {}", alert_type_label(&alert.alert_type)),
                 subtitle: alert.description.clone(),
                 detail: format!(
                     "{}{}{}",
@@ -1361,9 +1343,7 @@ impl LLMPanel {
             ui,
             icons::BRAIN,
             "ANALYSE EN ATTENTE",
-            Some(
-                "Lancez un audit de conformit\u{00e9} pour activer l'analyse IA automatique.",
-            ),
+            Some("Lancez un audit de conformit\u{00e9} pour activer l'analyse IA automatique."),
         );
     }
 
@@ -1424,11 +1404,7 @@ impl LLMPanel {
                     let alert_count = state.network.alerts.len();
 
                     let components: &[(&str, f32, &str)] = &[
-                        (
-                            "Conformit\u{00e9}",
-                            compliance_pct,
-                            "40%",
-                        ),
+                        ("Conformit\u{00e9}", compliance_pct, "40%"),
                         (
                             "Menaces",
                             100.0 - (threat_count as f32 * 10.0).min(100.0),
@@ -1450,12 +1426,9 @@ impl LLMPanel {
                         let color = theme::score_color(*score);
                         ui.horizontal(|ui: &mut egui::Ui| {
                             ui.label(
-                                egui::RichText::new(format!(
-                                    "{} ({})",
-                                    label, weight
-                                ))
-                                .font(theme::font_small())
-                                .color(theme::text_secondary()),
+                                egui::RichText::new(format!("{} ({})", label, weight))
+                                    .font(theme::font_small())
+                                    .color(theme::text_secondary()),
                             );
                             ui.with_layout(
                                 egui::Layout::right_to_left(egui::Align::Center),
@@ -1587,7 +1560,7 @@ impl LLMPanel {
             .sense(egui::Sense::click())
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
             .column(Column::initial(100.0).at_least(80.0)) // Priority
-            .column(Column::initial(90.0).at_least(70.0))  // Source
+            .column(Column::initial(90.0).at_least(70.0)) // Source
             .column(Column::initial(300.0).range(150.0..=600.0)) // Recommandation
             .column(Column::remainder()); // Rem\u{00e9}diation
 
@@ -1792,31 +1765,51 @@ impl LLMStatusWidget {
 fn category_remediation(category: &str) -> &'static str {
     match category {
         "encryption" => "Activez le chiffrement complet du disque (FileVault/BitLocker/LUKS)",
-        "firewall" => "Activez le pare-feu syst\u{00e8}me et v\u{00e9}rifiez les r\u{00e8}gles de filtrage",
+        "firewall" => {
+            "Activez le pare-feu syst\u{00e8}me et v\u{00e9}rifiez les r\u{00e8}gles de filtrage"
+        }
         "antivirus" => "Installez et activez une solution antivirus \u{00e0} jour",
         "authentication" => "Renforcez la politique d'authentification et activez le MFA",
         "updates" => "Appliquez les mises \u{00e0} jour de s\u{00e9}curit\u{00e9} en attente",
         "session_lock" => "Configurez le verrouillage automatique de session",
         "backup" => "Mettez en place une strat\u{00e9}gie de sauvegarde r\u{00e9}guli\u{00e8}re",
         "protocols" => "D\u{00e9}sactivez les protocoles obsol\u{00e8}tes (SSLv3, TLS 1.0/1.1)",
-        "accounts" => "V\u{00e9}rifiez les comptes utilisateurs et supprimez les comptes inutilis\u{00e9}s",
+        "accounts" => {
+            "V\u{00e9}rifiez les comptes utilisateurs et supprimez les comptes inutilis\u{00e9}s"
+        }
         "mfa" => "Activez l'authentification multi-facteurs sur tous les acc\u{00e8}s",
-        "remote_access" => "S\u{00e9}curisez les acc\u{00e8}s distants et limitez les ports ouverts",
-        "audit_logging" => "Activez la journalisation des \u{00e9}v\u{00e9}nements de s\u{00e9}curit\u{00e9}",
+        "remote_access" => {
+            "S\u{00e9}curisez les acc\u{00e8}s distants et limitez les ports ouverts"
+        }
+        "audit_logging" => {
+            "Activez la journalisation des \u{00e9}v\u{00e9}nements de s\u{00e9}curit\u{00e9}"
+        }
         "device_control" => "Restreignez l'acc\u{00e8}s aux p\u{00e9}riph\u{00e9}riques amovibles",
         "kernel_security" => "Renforcez la s\u{00e9}curit\u{00e9} du noyau (SIP, Secure Boot)",
         "network_hardening" => "Renforcez la configuration r\u{00e9}seau et segmentez les flux",
         "time_sync" => "Configurez la synchronisation NTP avec un serveur fiable",
         "browser_security" => "Appliquez les politiques de s\u{00e9}curit\u{00e9} du navigateur",
-        "directory_policy" => "V\u{00e9}rifiez les strat\u{00e9}gies GPO et politiques Active Directory",
-        "privileged_access" => "Limitez les acc\u{00e8}s privil\u{00e9}gi\u{00e9}s et appliquez le moindre privil\u{00e8}ge",
-        "network_security" => "Renforcez les contr\u{00f4}les de s\u{00e9}curit\u{00e9} r\u{00e9}seau",
+        "directory_policy" => {
+            "V\u{00e9}rifiez les strat\u{00e9}gies GPO et politiques Active Directory"
+        }
+        "privileged_access" => {
+            "Limitez les acc\u{00e8}s privil\u{00e9}gi\u{00e9}s et appliquez le moindre privil\u{00e8}ge"
+        }
+        "network_security" => {
+            "Renforcez les contr\u{00f4}les de s\u{00e9}curit\u{00e9} r\u{00e9}seau"
+        }
         "access_control" => "V\u{00e9}rifiez les contr\u{00f4}les d'acc\u{00e8}s et permissions",
         "container_security" => "S\u{00e9}curisez les conteneurs et images Docker",
-        "certificate_management" => "Renouvelez les certificats expir\u{00e9}s et v\u{00e9}rifiez la cha\u{00ee}ne de confiance",
+        "certificate_management" => {
+            "Renouvelez les certificats expir\u{00e9}s et v\u{00e9}rifiez la cha\u{00ee}ne de confiance"
+        }
         "data_protection" => "Classifiez et prot\u{00e9}gez les donn\u{00e9}es sensibles",
-        "cloud_security" => "V\u{00e9}rifiez la configuration de s\u{00e9}curit\u{00e9} des services cloud",
-        "general" => "V\u{00e9}rifiez la conformit\u{00e9} g\u{00e9}n\u{00e9}rale du syst\u{00e8}me",
+        "cloud_security" => {
+            "V\u{00e9}rifiez la configuration de s\u{00e9}curit\u{00e9} des services cloud"
+        }
+        "general" => {
+            "V\u{00e9}rifiez la conformit\u{00e9} g\u{00e9}n\u{00e9}rale du syst\u{00e8}me"
+        }
         _ => "V\u{00e9}rifiez la conformit\u{00e9} du contr\u{00f4}le concern\u{00e9}",
     }
 }
@@ -1933,7 +1926,10 @@ mod tests {
 
     #[test]
     fn test_risk_label() {
-        assert_eq!(LLMPanel::risk_label(90.0), "POSTURE S\u{00c9}CURIS\u{00c9}E");
+        assert_eq!(
+            LLMPanel::risk_label(90.0),
+            "POSTURE S\u{00c9}CURIS\u{00c9}E"
+        );
         assert_eq!(LLMPanel::risk_label(70.0), "RISQUE MOD\u{00c9}R\u{00c9}");
         assert_eq!(LLMPanel::risk_label(40.0), "RISQUE \u{00c9}LEV\u{00c9}");
         assert_eq!(LLMPanel::risk_label(10.0), "RISQUE CRITIQUE");

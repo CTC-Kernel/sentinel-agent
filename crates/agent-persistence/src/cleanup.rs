@@ -252,7 +252,7 @@ impl CleanupManager {
 
     /// Securely delete a file by overwriting with zeros before removing.
     ///
-    /// On Windows, this handles potential file locking by retrying and 
+    /// On Windows, this handles potential file locking by retrying and
     /// ensuring sync before removal.
     fn secure_delete(&self, path: &Path) -> Result<(), std::io::Error> {
         if !path.exists() {
@@ -264,10 +264,7 @@ impl CleanupManager {
         let retry_delay = std::time::Duration::from_millis(100);
 
         loop {
-            match std::fs::OpenOptions::new()
-                .write(true)
-                .open(path)
-            {
+            match std::fs::OpenOptions::new().write(true).open(path) {
                 Ok(file) => {
                     if let Ok(metadata) = file.metadata() {
                         let size = metadata.len() as usize;
@@ -288,7 +285,10 @@ impl CleanupManager {
                     break;
                 }
                 Err(e) => {
-                    if retry_count < max_retries && (e.kind() == std::io::ErrorKind::PermissionDenied || e.kind() == std::io::ErrorKind::Other) {
+                    if retry_count < max_retries
+                        && (e.kind() == std::io::ErrorKind::PermissionDenied
+                            || e.kind() == std::io::ErrorKind::Other)
+                    {
                         retry_count += 1;
                         std::thread::sleep(retry_delay);
                         continue;

@@ -9,12 +9,18 @@ use egui::{Color32, CornerRadius, Ui};
 /// Render a shimmer/skeleton loading placeholder.
 pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
     let animated = !theme::is_reduced_motion();
-    let time = if animated { ui.input(|i| i.time) as f32 } else { 0.0 };
+    let time = if animated {
+        ui.input(|i| i.time) as f32
+    } else {
+        0.0
+    };
     let avail_width = ui.available_width();
     let dark = theme::is_dark_mode();
 
     for i in 0..rows {
-        let row_rect = ui.allocate_space(egui::vec2(avail_width, theme::TABLE_ROW_HEIGHT)).1;
+        let row_rect = ui
+            .allocate_space(egui::vec2(avail_width, theme::TABLE_ROW_HEIGHT))
+            .1;
 
         // Shimmer effect: moving highlight (static when reduced motion)
         let phase = if animated {
@@ -30,8 +36,11 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
             Color32::from_black_alpha(alpha_byte)
         };
 
-        ui.painter()
-            .rect_filled(row_rect, CornerRadius::same(theme::BUTTON_ROUNDING - 2), fill);
+        ui.painter().rect_filled(
+            row_rect,
+            CornerRadius::same(theme::BUTTON_ROUNDING - 2),
+            fill,
+        );
 
         // Simulate columns with varying widths
         let col_widths = [0.15, 0.25, 0.35, 0.15];
@@ -47,14 +56,18 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
                 egui::pos2(x, row_rect.min.y + theme::SPACE_SM + 2.0),
                 egui::vec2(avail_width * w - theme::SPACE, theme::SPACE),
             );
-            ui.painter()
-                .rect_filled(col_rect, CornerRadius::same(theme::SPACE_XS as u8), col_fill);
+            ui.painter().rect_filled(
+                col_rect,
+                CornerRadius::same(theme::SPACE_XS as u8),
+                col_fill,
+            );
             x += avail_width * w;
         }
     }
 
     if animated {
-        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+        ui.ctx()
+            .request_repaint_after(std::time::Duration::from_millis(100));
     }
 }
 
@@ -68,7 +81,9 @@ pub fn error_state(ui: &mut Ui, message: &str) -> bool {
         // Error icon
         ui.label(
             egui::RichText::new(crate::icons::ERROR)
-                .font(egui::FontId::proportional(theme::SPACE_XL + theme::SPACE_SM))
+                .font(egui::FontId::proportional(
+                    theme::SPACE_XL + theme::SPACE_SM,
+                ))
                 .color(theme::readable_color(theme::ERROR)),
         );
 

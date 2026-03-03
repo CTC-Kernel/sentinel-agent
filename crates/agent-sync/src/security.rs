@@ -10,6 +10,7 @@
 
 use crate::authenticated_client::AuthenticatedClient;
 use crate::error::{SyncError, SyncResult};
+use agent_common::process::silent_async_command;
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
 use serde::{Deserialize, Serialize};
@@ -17,7 +18,6 @@ use sha2::Sha256;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
-use agent_common::process::silent_async_command;
 
 /// HMAC-SHA256 type alias.
 type HmacSha256 = Hmac<Sha256>;
@@ -250,7 +250,8 @@ impl LogSigner {
 
     /// Verify a signature against data using constant-time comparison.
     pub fn verify_data(&self, data: &str, signature: &str) -> bool {
-        self.verify_hmac_constant_time(data, signature).unwrap_or_default()
+        self.verify_hmac_constant_time(data, signature)
+            .unwrap_or_default()
     }
 }
 

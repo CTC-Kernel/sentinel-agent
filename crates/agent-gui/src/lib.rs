@@ -18,6 +18,8 @@ pub mod os;
 pub mod state;
 
 #[cfg(feature = "render")]
+pub mod animation;
+#[cfg(feature = "render")]
 pub mod app;
 #[cfg(feature = "render")]
 pub mod enrollment;
@@ -29,8 +31,6 @@ pub mod icons;
 pub mod llm_panel;
 #[cfg(feature = "render")]
 pub mod pages;
-#[cfg(feature = "render")]
-pub mod animation;
 #[cfg(feature = "render")]
 pub mod theme;
 #[cfg(feature = "render")]

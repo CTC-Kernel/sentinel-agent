@@ -13,15 +13,15 @@
 //! - Cryptographic settings
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
+#[cfg(target_os = "windows")]
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
-#[cfg(target_os = "windows")]
-use agent_common::process::silent_command;
 
 // ============================================================================
 // Registry-based Hardening Check
@@ -102,7 +102,7 @@ impl WindowsHardeningCheck {
                 check.path.replace("HKLM", "HKLM:").replace("HKCU", "HKCU:"),
                 check.value
             );
-            
+
             let current_value = registry_results.get(&key).cloned();
             let compliant = if let Some(ref val) = current_value {
                 self.check_value_compliance(val, check.expected)
@@ -501,7 +501,6 @@ impl WindowsHardeningCheck {
         &self,
         checks: &[HardeningCheckDef],
     ) -> ScannerResult<std::collections::HashMap<String, String>> {
-
         let mut ps_script = String::from("$results = @{};\n");
         for check in checks {
             let path = check.path.replace("HKLM", "HKLM:").replace("HKCU", "HKCU:");
@@ -516,7 +515,9 @@ impl WindowsHardeningCheck {
         let output = silent_command("powershell")
             .args(["-NoProfile", "-Command", &ps_script])
             .output()
-            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run PowerShell batch: {}", e)))?;
+            .map_err(|e| {
+                ScannerError::CheckExecution(format!("Failed to run PowerShell batch: {}", e))
+            })?;
 
         let stdout = String::from_utf8_lossy(&output.stdout);
         let mut results = std::collections::HashMap::new();
@@ -684,7 +685,6 @@ impl SecureBootCheck {
 
     #[cfg(target_os = "windows")]
     async fn check_secure_boot(&self) -> ScannerResult<SecureBootStatus> {
-
         // Use PowerShell to check Secure Boot status
         let output = silent_command("powershell")
             .args([

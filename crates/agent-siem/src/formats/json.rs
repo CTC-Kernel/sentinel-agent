@@ -135,8 +135,8 @@ impl SiemFormatter for JsonFormatter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use agent_common::constants::AGENT_VERSION;
     use crate::EventCategory;
+    use agent_common::constants::AGENT_VERSION;
     use chrono::Utc;
 
     fn create_test_event() -> SiemEvent {

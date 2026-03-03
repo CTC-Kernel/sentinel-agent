@@ -6,10 +6,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{
-    PendingConfirmation, ResponseActionType, ResponseLogEntry,
-    ResponseStatus,
-};
+use crate::dto::{PendingConfirmation, ResponseActionType, ResponseLogEntry, ResponseStatus};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -67,7 +64,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     state.threats.confirm_action = Some(PendingConfirmation {
                         action_type: ResponseActionType::QuarantineFile,
                         target: f.path.clone(),
-                        detail: format!("Changement d\u{00e9}tect\u{00e9} le {}", f.timestamp.format("%d/%m/%Y %H:%M")),
+                        detail: format!(
+                            "Changement d\u{00e9}tect\u{00e9} le {}",
+                            f.timestamp.format("%d/%m/%Y %H:%M")
+                        ),
                     });
                 }
             }
@@ -135,22 +135,18 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             pid: 0, // PID would come from actual process data
                         })
                     }
-                    ResponseActionType::QuarantineFile => {
-                        Some(GuiCommand::QuarantineFile {
-                            path: pending.target.clone(),
-                        })
-                    }
+                    ResponseActionType::QuarantineFile => Some(GuiCommand::QuarantineFile {
+                        path: pending.target.clone(),
+                    }),
                     ResponseActionType::BlockIp => {
                         Some(GuiCommand::BlockIp {
                             ip: pending.target.clone(),
                             duration_secs: 3600, // 1 hour default
                         })
                     }
-                    ResponseActionType::RestoreFile => {
-                        Some(GuiCommand::RestoreQuarantinedFile {
-                            quarantine_id: pending.target.clone(),
-                        })
-                    }
+                    ResponseActionType::RestoreFile => Some(GuiCommand::RestoreQuarantinedFile {
+                        quarantine_id: pending.target.clone(),
+                    }),
                 };
 
                 // Add to response log
@@ -169,9 +165,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 }
 
                 state.toasts.push(
-                    crate::widgets::toast::Toast::info(
-                        format!("Action envoy\u{00e9}e : {} sur {}", confirm_text, pending.target),
-                    )
+                    crate::widgets::toast::Toast::info(format!(
+                        "Action envoy\u{00e9}e : {} sur {}",
+                        confirm_text, pending.target
+                    ))
                     .with_time(time),
                 );
                 state.threats.confirm_action = None;
@@ -186,11 +183,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     // ── Quarantine Queue ────────────────────────────────────────────
     widgets::card(ui, |ui: &mut egui::Ui| {
         ui.label(
-            egui::RichText::new(format!("FILE DE QUARANTAINE ({})", state.threats.quarantine_queue.len()))
-                .font(theme::font_label())
-                .color(theme::text_tertiary())
-                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                .strong(),
+            egui::RichText::new(format!(
+                "FILE DE QUARANTAINE ({})",
+                state.threats.quarantine_queue.len()
+            ))
+            .font(theme::font_label())
+            .color(theme::text_tertiary())
+            .extra_letter_spacing(theme::TRACKING_NORMAL)
+            .strong(),
         );
         ui.add_space(theme::SPACE_SM);
 
@@ -235,11 +235,17 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
-                            if widgets::ghost_button(ui, format!("{}  Restaurer", icons::UNDO)).clicked() {
+                            if widgets::ghost_button(ui, format!("{}  Restaurer", icons::UNDO))
+                                .clicked()
+                            {
                                 state.threats.confirm_action = Some(PendingConfirmation {
                                     action_type: ResponseActionType::RestoreFile,
                                     target: file.id.to_string(),
-                                    detail: format!("Restaurer {} vers {}", file.sha256.chars().take(8).collect::<String>(), file.original_path),
+                                    detail: format!(
+                                        "Restaurer {} vers {}",
+                                        file.sha256.chars().take(8).collect::<String>(),
+                                        file.original_path
+                                    ),
                                 });
                             }
                         },
@@ -255,11 +261,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     // ── Response Action Log ─────────────────────────────────────────
     widgets::card(ui, |ui: &mut egui::Ui| {
         ui.label(
-            egui::RichText::new(format!("JOURNAL DES ACTIONS ({})", state.threats.response_log.len()))
-                .font(theme::font_label())
-                .color(theme::text_tertiary())
-                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                .strong(),
+            egui::RichText::new(format!(
+                "JOURNAL DES ACTIONS ({})",
+                state.threats.response_log.len()
+            ))
+            .font(theme::font_label())
+            .color(theme::text_tertiary())
+            .extra_letter_spacing(theme::TRACKING_NORMAL)
+            .strong(),
         );
         ui.add_space(theme::SPACE_SM);
 
@@ -268,7 +277,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 ui,
                 icons::LIST,
                 "AUCUNE ACTION",
-                Some("Les actions de r\u{00e9}ponse ex\u{00e9}cut\u{00e9}es seront enregistr\u{00e9}es ici."),
+                Some(
+                    "Les actions de r\u{00e9}ponse ex\u{00e9}cut\u{00e9}es seront enregistr\u{00e9}es ici.",
+                ),
             );
         } else {
             let page_size = 15;
@@ -277,7 +288,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 state.threats.response_page = total_pages.saturating_sub(1);
             }
             let start = state.threats.response_page.saturating_mul(page_size);
-            let entries: Vec<_> = state.threats.response_log.iter()
+            let entries: Vec<_> = state
+                .threats
+                .response_log
+                .iter()
                 .skip(start)
                 .take(page_size)
                 .collect();
@@ -292,11 +306,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
                 ui.horizontal(|ui: &mut egui::Ui| {
                     // Status icon with color bar
-                    ui.label(
-                        egui::RichText::new(icon)
-                            .size(theme::ICON_SM)
-                            .color(color),
-                    );
+                    ui.label(egui::RichText::new(icon).size(theme::ICON_SM).color(color));
                     ui.add_space(theme::SPACE_XS);
 
                     // Action type badge

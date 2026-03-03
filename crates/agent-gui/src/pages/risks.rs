@@ -59,10 +59,8 @@ impl RisksPage {
                 r.status == RiskStatus::Open
                     && r.sla_target_days
                         .map(|days| {
-                            let elapsed = now
-                                .signed_duration_since(r.created_at)
-                                .num_days()
-                                .max(0) as u32;
+                            let elapsed =
+                                now.signed_duration_since(r.created_at).num_days().max(0) as u32;
                             elapsed > days
                         })
                         .unwrap_or(false)
@@ -245,7 +243,9 @@ impl RisksPage {
                         ui,
                         icons::SCALE_BALANCED,
                         "AUCUN RISQUE ENREGISTR\u{00c9}",
-                        Some("Utilisez \u{00ab} Auto-populer \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement."),
+                        Some(
+                            "Utilisez \u{00ab} Auto-populer \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement.",
+                        ),
                     );
                 } else {
                     widgets::empty_state(
@@ -285,10 +285,8 @@ impl RisksPage {
             let total_width = label_margin + cell_size * 5.0 + theme::SPACE_SM;
             let total_height = label_margin + cell_size * 5.0 + theme::SPACE_SM;
 
-            let (rect, _) = ui.allocate_exact_size(
-                egui::vec2(total_width, total_height),
-                egui::Sense::hover(),
-            );
+            let (rect, _) =
+                ui.allocate_exact_size(egui::vec2(total_width, total_height), egui::Sense::hover());
 
             if ui.is_rect_visible(rect) {
                 let painter = ui.painter_at(rect);
@@ -479,8 +477,12 @@ impl RisksPage {
                 .body(|body| {
                     body.rows(theme::TABLE_ROW_HEIGHT, indices.len(), |mut row| {
                         let row_idx = row.index();
-                        let Some(&real_idx) = indices.get(row_idx) else { return };
-                        let Some(risk) = state.risks.entries.get(real_idx) else { return };
+                        let Some(&real_idx) = indices.get(row_idx) else {
+                            return;
+                        };
+                        let Some(risk) = state.risks.entries.get(real_idx) else {
+                            return;
+                        };
                         let is_selected = state.risks.selected_risk == Some(real_idx);
                         row.set_selected(is_selected);
 
@@ -541,11 +543,9 @@ impl RisksPage {
 
                         row.col(|ui: &mut egui::Ui| {
                             ui.label(
-                                egui::RichText::new(
-                                    risk.created_at.format("%d/%m/%Y").to_string(),
-                                )
-                                .font(theme::font_small())
-                                .color(theme::text_tertiary()),
+                                egui::RichText::new(risk.created_at.format("%d/%m/%Y").to_string())
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary()),
                             );
                         });
 
@@ -593,131 +593,127 @@ impl RisksPage {
         let ctx = ui.ctx().clone();
         let mut detail_open = state.risks.detail_open;
 
-        let drawer_action = widgets::DetailDrawer::new(
-            "risk_detail",
-            &risk.title,
-            icons::SCALE_BALANCED,
-        )
-        .accent(score_color)
-        .subtitle(&format!("Score : {}", score))
-        .show(
-            &ctx,
-            &mut detail_open,
-            |ui| {
-                if is_editing {
-                    Self::render_edit_form(ui, state, selected);
-                } else {
-                    widgets::detail_section(ui, "RISQUE");
-                    widgets::detail_field(ui, "Titre", &risk.title);
-                    widgets::detail_text(ui, "Description", &risk.description);
-                    widgets::detail_field(
-                        ui,
-                        "Probabilit\u{00e9}",
-                        &format!("{}/5", risk.probability),
-                    );
-                    widgets::detail_field(ui, "Impact", &format!("{}/5", risk.impact));
-                    widgets::detail_field_colored(
-                        ui,
-                        "Score",
-                        &format!("{}", score),
-                        theme::readable_color(score_color),
-                    );
-                    widgets::detail_field_badge(ui, "Statut", status_label, status_color);
-
-                    widgets::detail_section(ui, "GESTION");
-                    let owner_display = if risk.owner.is_empty() {
-                        "Non assign\u{00e9}"
-                    } else {
-                        &risk.owner
-                    };
-                    widgets::detail_field(ui, "Propri\u{00e9}taire", owner_display);
-                    widgets::detail_field(ui, "Source", &risk.source);
-                    if let Some(sla) = risk.sla_target_days {
-                        widgets::detail_field(
-                            ui,
-                            "SLA cible",
-                            &format!("{} jours", sla),
-                        );
-                    }
-
-                    widgets::detail_section(ui, "ATT\u{00c9}NUATION");
-                    let mitigation_display = if risk.mitigation.is_empty() {
-                        "Aucun plan d\u{00e9}fini"
-                    } else {
-                        &risk.mitigation
-                    };
-                    widgets::detail_text(ui, "Plan", mitigation_display);
-
-                    // AI Risk Analysis section
-                    widgets::detail_section(ui, "ANALYSE IA");
-                    let is_analyzing = state.risks.ai_analyzing == Some(risk.id);
-                    if is_analyzing {
-                        ui.horizontal(|ui: &mut egui::Ui| {
-                            ui.spinner();
-                            ui.label(
-                                egui::RichText::new("  Analyse en cours...")
-                                    .font(theme::font_small())
-                                    .color(theme::text_secondary()),
+        let drawer_action =
+            widgets::DetailDrawer::new("risk_detail", &risk.title, icons::SCALE_BALANCED)
+                .accent(score_color)
+                .subtitle(&format!("Score : {}", score))
+                .show(
+                    &ctx,
+                    &mut detail_open,
+                    |ui| {
+                        if is_editing {
+                            Self::render_edit_form(ui, state, selected);
+                        } else {
+                            widgets::detail_section(ui, "RISQUE");
+                            widgets::detail_field(ui, "Titre", &risk.title);
+                            widgets::detail_text(ui, "Description", &risk.description);
+                            widgets::detail_field(
+                                ui,
+                                "Probabilit\u{00e9}",
+                                &format!("{}/5", risk.probability),
                             );
-                        });
-                    } else if widgets::secondary_button(
-                        ui,
-                        format!("{}  Analyser avec l\u{2019}IA", icons::BRAIN),
-                        true,
-                    )
-                    .clicked()
-                    {
-                        state.risks.ai_analyzing = Some(risk.id);
-                        state.risks.ai_analysis_result = None;
-                        state.risks.ai_mitigation_suggestions.clear();
-                        *command = Some(GuiCommand::LlmAnalyzeRisk {
-                            risk_id: risk.id.to_string(),
-                            risk_title: risk.title.clone(),
-                            risk_description: risk.description.clone(),
-                            current_probability: risk.probability,
-                            current_impact: risk.impact,
-                        });
-                    }
-
-                    // Display AI analysis result if available
-                    if let Some(ref analysis_text) = state.risks.ai_analysis_result {
-                        ui.add_space(theme::SPACE_XS);
-                        widgets::detail_text(ui, "R\u{00e9}sultat", analysis_text);
-                        if !state.risks.ai_mitigation_suggestions.is_empty() {
-                            ui.add_space(theme::SPACE_XS);
-                            ui.label(
-                                egui::RichText::new("Suggestions de mitigation :")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
+                            widgets::detail_field(ui, "Impact", &format!("{}/5", risk.impact));
+                            widgets::detail_field_colored(
+                                ui,
+                                "Score",
+                                &format!("{}", score),
+                                theme::readable_color(score_color),
                             );
-                            for suggestion in &state.risks.ai_mitigation_suggestions {
+                            widgets::detail_field_badge(ui, "Statut", status_label, status_color);
+
+                            widgets::detail_section(ui, "GESTION");
+                            let owner_display = if risk.owner.is_empty() {
+                                "Non assign\u{00e9}"
+                            } else {
+                                &risk.owner
+                            };
+                            widgets::detail_field(ui, "Propri\u{00e9}taire", owner_display);
+                            widgets::detail_field(ui, "Source", &risk.source);
+                            if let Some(sla) = risk.sla_target_days {
+                                widgets::detail_field(ui, "SLA cible", &format!("{} jours", sla));
+                            }
+
+                            widgets::detail_section(ui, "ATT\u{00c9}NUATION");
+                            let mitigation_display = if risk.mitigation.is_empty() {
+                                "Aucun plan d\u{00e9}fini"
+                            } else {
+                                &risk.mitigation
+                            };
+                            widgets::detail_text(ui, "Plan", mitigation_display);
+
+                            // AI Risk Analysis section
+                            widgets::detail_section(ui, "ANALYSE IA");
+                            let is_analyzing = state.risks.ai_analyzing == Some(risk.id);
+                            if is_analyzing {
                                 ui.horizontal(|ui: &mut egui::Ui| {
+                                    ui.spinner();
                                     ui.label(
-                                        egui::RichText::new(format!("  \u{2022} {}", suggestion))
+                                        egui::RichText::new("  Analyse en cours...")
                                             .font(theme::font_small())
                                             .color(theme::text_secondary()),
                                     );
                                 });
+                            } else if widgets::secondary_button(
+                                ui,
+                                format!("{}  Analyser avec l\u{2019}IA", icons::BRAIN),
+                                true,
+                            )
+                            .clicked()
+                            {
+                                state.risks.ai_analyzing = Some(risk.id);
+                                state.risks.ai_analysis_result = None;
+                                state.risks.ai_mitigation_suggestions.clear();
+                                *command = Some(GuiCommand::LlmAnalyzeRisk {
+                                    risk_id: risk.id.to_string(),
+                                    risk_title: risk.title.clone(),
+                                    risk_description: risk.description.clone(),
+                                    current_probability: risk.probability,
+                                    current_impact: risk.impact,
+                                });
                             }
-                        }
-                    }
 
-                    widgets::detail_section(ui, "TEMPORALIT\u{00c9}");
-                    widgets::detail_field(
-                        ui,
-                        "Cr\u{00e9}\u{00e9} le",
-                        &risk.created_at.format("%d/%m/%Y %H:%M").to_string(),
-                    );
-                    widgets::detail_field(
-                        ui,
-                        "Mis \u{00e0} jour le",
-                        &risk.updated_at.format("%d/%m/%Y %H:%M").to_string(),
-                    );
-                }
-            },
-            &actions,
-        );
+                            // Display AI analysis result if available
+                            if let Some(ref analysis_text) = state.risks.ai_analysis_result {
+                                ui.add_space(theme::SPACE_XS);
+                                widgets::detail_text(ui, "R\u{00e9}sultat", analysis_text);
+                                if !state.risks.ai_mitigation_suggestions.is_empty() {
+                                    ui.add_space(theme::SPACE_XS);
+                                    ui.label(
+                                        egui::RichText::new("Suggestions de mitigation :")
+                                            .font(theme::font_label())
+                                            .color(theme::text_tertiary())
+                                            .strong(),
+                                    );
+                                    for suggestion in &state.risks.ai_mitigation_suggestions {
+                                        ui.horizontal(|ui: &mut egui::Ui| {
+                                            ui.label(
+                                                egui::RichText::new(format!(
+                                                    "  \u{2022} {}",
+                                                    suggestion
+                                                ))
+                                                .font(theme::font_small())
+                                                .color(theme::text_secondary()),
+                                            );
+                                        });
+                                    }
+                                }
+                            }
+
+                            widgets::detail_section(ui, "TEMPORALIT\u{00c9}");
+                            widgets::detail_field(
+                                ui,
+                                "Cr\u{00e9}\u{00e9} le",
+                                &risk.created_at.format("%d/%m/%Y %H:%M").to_string(),
+                            );
+                            widgets::detail_field(
+                                ui,
+                                "Mis \u{00e0} jour le",
+                                &risk.updated_at.format("%d/%m/%Y %H:%M").to_string(),
+                            );
+                        }
+                    },
+                    &actions,
+                );
 
         state.risks.detail_open = detail_open;
 
@@ -816,7 +812,11 @@ impl RisksPage {
                     .color(theme::text_tertiary()),
             );
             let mut impact_val = state.risks.entries[idx].impact as i32;
-            ui.add(egui::DragValue::new(&mut impact_val).range(1..=5).speed(0.1));
+            ui.add(
+                egui::DragValue::new(&mut impact_val)
+                    .range(1..=5)
+                    .speed(0.1),
+            );
             state.risks.entries[idx].impact = (impact_val.clamp(1, 5)) as u8;
         });
         ui.add_space(theme::SPACE_SM);
@@ -898,10 +898,9 @@ impl RisksPage {
             state.risks.entries.push(RiskEntry {
                 id: uuid::Uuid::new_v4(),
                 title,
-                description: check
-                    .message
-                    .clone()
-                    .unwrap_or_else(|| "D\u{00e9}tect\u{00e9} par audit de conformit\u{00e9}".to_string()),
+                description: check.message.clone().unwrap_or_else(|| {
+                    "D\u{00e9}tect\u{00e9} par audit de conformit\u{00e9}".to_string()
+                }),
                 probability: prob,
                 impact,
                 owner: String::new(),
@@ -922,7 +921,10 @@ impl RisksPage {
             if vuln.severity != Severity::Critical {
                 continue;
             }
-            let title = format!("Vuln\u{00e9}rabilit\u{00e9} : {} ({})", vuln.cve_id, vuln.affected_software);
+            let title = format!(
+                "Vuln\u{00e9}rabilit\u{00e9} : {} ({})",
+                vuln.cve_id, vuln.affected_software
+            );
             if existing_titles.contains(&title) {
                 continue;
             }
@@ -954,7 +956,10 @@ impl RisksPage {
             if proc.confidence < 80 {
                 continue;
             }
-            let title = format!("Menace : processus suspect \u{00ab} {} \u{00bb}", proc.process_name);
+            let title = format!(
+                "Menace : processus suspect \u{00ab} {} \u{00bb}",
+                proc.process_name
+            );
             if existing_titles.contains(&title) {
                 continue;
             }

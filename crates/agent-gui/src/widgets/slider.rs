@@ -153,7 +153,11 @@ impl Slider {
             if ui.is_rect_visible(rect) {
                 let painter = ui.painter();
                 let range = self.max - self.min;
-                let t = if range.abs() > f32::EPSILON { (*value - self.min) / range } else { 0.0 };
+                let t = if range.abs() > f32::EPSILON {
+                    (*value - self.min) / range
+                } else {
+                    0.0
+                };
                 let thumb_x = track_rect.min.x + t * track_rect.width();
                 let thumb_center = egui::pos2(thumb_x, track_rect.center().y);
 
@@ -229,7 +233,10 @@ impl Slider {
                     painter.circle_stroke(
                         thumb_center,
                         thumb_radius + theme::SPACE_XS,
-                        egui::Stroke::new(theme::BORDER_THICK, accent.linear_multiply(theme::OPACITY_MEDIUM)),
+                        egui::Stroke::new(
+                            theme::BORDER_THICK,
+                            accent.linear_multiply(theme::OPACITY_MEDIUM),
+                        ),
                     );
                 }
             }

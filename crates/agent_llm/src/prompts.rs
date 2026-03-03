@@ -50,16 +50,14 @@ impl PromptTemplate {
     /// Render the template with given variables.
     pub fn render(&self, variables: &HashMap<String, String>) -> String {
         let mut result = self.template.clone();
-        
+
         for (key, value) in variables {
             let placeholder = format!("{{{}}}", key);
             result = result.replace(&placeholder, value);
         }
 
         // Remove any unreplaced placeholders
-        result = PLACEHOLDER_RE
-            .replace_all(&result, "")
-            .to_string();
+        result = PLACEHOLDER_RE.replace_all(&result, "").to_string();
 
         result
     }
@@ -103,7 +101,7 @@ impl PromptBuilder {
     }
 
     /// Set multiple variables.
-    pub fn set_all<I, K, V>(mut self, vars: I) -> Self 
+    pub fn set_all<I, K, V>(mut self, vars: I) -> Self
     where
         I: IntoIterator<Item = (K, V)>,
         K: Into<String>,
@@ -141,7 +139,8 @@ impl SecurityPromptBuilder {
 
     /// Set security context.
     pub fn security_context(mut self, context: &SecurityContext) -> Self {
-        self.builder = self.builder
+        self.builder = self
+            .builder
             .set("system_info", &context.system_info)
             .set("threat_level", context.threat_level.to_string())
             .set("compliance_framework", &context.compliance_framework)
@@ -151,7 +150,8 @@ impl SecurityPromptBuilder {
 
     /// Set scan results.
     pub fn scan_results(mut self, results: &ScanResults) -> Self {
-        self.builder = self.builder
+        self.builder = self
+            .builder
             .set("scan_summary", &results.summary)
             .set("failed_checks", &results.failed_checks)
             .set("security_findings", &results.security_findings)
@@ -373,9 +373,7 @@ mod tests {
     #[test]
     fn test_prompt_builder() {
         let template = PromptTemplate::new("test", "Value: {value}");
-        let prompt = PromptBuilder::new(template)
-            .set("value", "42")
-            .build();
+        let prompt = PromptBuilder::new(template).set("value", "42").build();
 
         assert_eq!(prompt, "Value: 42");
     }
@@ -407,8 +405,8 @@ mod tests {
 
     #[test]
     fn test_build_parts() {
-        let template = PromptTemplate::new("test", "Value: {value}")
-            .system_prompt("System instruction");
+        let template =
+            PromptTemplate::new("test", "Value: {value}").system_prompt("System instruction");
         let (system, user) = PromptBuilder::new(template)
             .set("value", "42")
             .build_parts();

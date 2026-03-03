@@ -12,13 +12,13 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 #[cfg(target_os = "windows")]
 use chrono::Duration;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for antivirus status.
@@ -227,14 +227,14 @@ impl AntivirusCheck {
             av_names.remove(0);
         }
 
-        // productState bit flags: 
+        // productState bit flags:
         // Bit 12: Enabled (0x1000)
         // Bit 4: Up to date (0x0010) - 0 usually means up to date, 1 means out of date
         let state = products
             .first()
             .and_then(|p| p["productState"].as_u64())
             .unwrap_or(0);
-        
+
         let enabled = (state & 0x1000) != 0;
         let definitions_current = (state & 0x0010) == 0;
 
@@ -345,10 +345,17 @@ impl AntivirusCheck {
             definitions_current: {
                 let db_path = std::path::Path::new("/var/lib/clamav/daily.cld");
                 let alt_db_path = std::path::Path::new("/var/lib/clamav/daily.cvd");
-                let path = if db_path.exists() { db_path } else { alt_db_path };
+                let path = if db_path.exists() {
+                    db_path
+                } else {
+                    alt_db_path
+                };
                 path.metadata()
                     .and_then(|m| m.modified())
-                    .map(|t| t.elapsed().unwrap_or_default().as_secs() < 7 * agent_common::constants::SECS_PER_DAY)
+                    .map(|t| {
+                        t.elapsed().unwrap_or_default().as_secs()
+                            < 7 * agent_common::constants::SECS_PER_DAY
+                    })
                     .unwrap_or(false)
             },
             last_scan_date: None,
@@ -469,11 +476,17 @@ impl AntivirusCheck {
             definition_version: None,
             definitions_current: {
                 // Check XProtect last update by file modification time
-                let xprotect_path = std::path::Path::new("/Library/Apple/System/Library/CoreServices/XProtect.bundle");
+                let xprotect_path = std::path::Path::new(
+                    "/Library/Apple/System/Library/CoreServices/XProtect.bundle",
+                );
                 if xprotect_path.exists() {
-                    xprotect_path.metadata()
+                    xprotect_path
+                        .metadata()
                         .and_then(|m| m.modified())
-                        .map(|t| t.elapsed().unwrap_or_default().as_secs() < 7 * agent_common::constants::SECS_PER_DAY)
+                        .map(|t| {
+                            t.elapsed().unwrap_or_default().as_secs()
+                                < 7 * agent_common::constants::SECS_PER_DAY
+                        })
                         .unwrap_or(false)
                 } else {
                     false

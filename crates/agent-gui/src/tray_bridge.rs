@@ -98,14 +98,8 @@ impl TrayBridge {
             MenuItem::with_id(ids::RESOURCES, "CPU: --% | Mémoire: -- MB", false, None);
 
         // === Show / Dashboard ===
-        let show_item =
-            MenuItem::with_id(ids::SHOW, "● Ouvrir Sentinel Agent", true, None);
-        let quick_item = MenuItem::with_id(
-            ids::QUICK_STATUS,
-            "🛡️  Radar Sécurité",
-            true,
-            None,
-        );
+        let show_item = MenuItem::with_id(ids::SHOW, "● Ouvrir Sentinel Agent", true, None);
+        let quick_item = MenuItem::with_id(ids::QUICK_STATUS, "🛡️  Radar Sécurité", true, None);
 
         // === Control Section ===
         let pause_item = MenuItem::with_id(ids::PAUSE, "⏸  Mettre en pause", true, None);
@@ -118,10 +112,8 @@ impl TrayBridge {
 
         // === Help Submenu ===
         let help_submenu = Submenu::new("❓  Aide", true);
-        let guide_item =
-            MenuItem::with_id(ids::OPEN_GUIDE, "📖  Guide utilisateur", true, None);
-        let console_item =
-            MenuItem::with_id(ids::OPEN_CONSOLE, "🌐  Console", true, None);
+        let guide_item = MenuItem::with_id(ids::OPEN_GUIDE, "📖  Guide utilisateur", true, None);
+        let console_item = MenuItem::with_id(ids::OPEN_CONSOLE, "🌐  Console", true, None);
         let about_item = MenuItem::with_id(ids::ABOUT, "ℹ️  À propos", true, None);
 
         help_submenu.append(&guide_item).map_err(&m)?;
@@ -355,10 +347,7 @@ pub fn open_about() {
         branding::EMAIL,
     );
 
-    let about_url = format!(
-        "{}?version={}&os={}",
-        branding::WEBSITE, version, os_info
-    );
+    let about_url = format!("{}?version={}&os={}", branding::WEBSITE, version, os_info);
     if open::that(&about_url).is_err() {
         let _ = open::that(branding::WEBSITE);
     }

@@ -14,12 +14,12 @@
 //!
 //! No HTTP requests are made; the tests use only in-process state.
 
+use agent_storage::{Database, DatabaseConfig, KeyManager};
 use agent_sync::{
     CircuitBreaker, CircuitState, ConflictStrategy, OfflineTracker, SyncKind, SyncOrchestrator,
     SyncStatus,
     offline::{SyncEntityType, SyncQueueItem, resolve_config_conflict, resolve_rule_conflict},
 };
-use agent_storage::{Database, DatabaseConfig, KeyManager};
 use chrono::{Duration, Utc};
 use std::sync::Arc;
 use tempfile::TempDir;
@@ -60,7 +60,10 @@ fn make_queue_item(attempts: u32, max_attempts: u32, created_offset_hours: i64) 
 async fn test_circuit_breaker_starts_closed() {
     let cb = CircuitBreaker::new();
     assert_eq!(cb.state().await, CircuitState::Closed);
-    assert!(cb.is_allowed().await, "Requests must be allowed when Closed");
+    assert!(
+        cb.is_allowed().await,
+        "Requests must be allowed when Closed"
+    );
     assert_eq!(cb.failure_count(), 0);
 }
 
@@ -100,7 +103,11 @@ async fn test_circuit_breaker_success_resets_to_closed() {
     cb.record_success().await;
 
     assert_eq!(cb.state().await, CircuitState::Closed);
-    assert_eq!(cb.failure_count(), 0, "Failure count must reset to 0 after success");
+    assert_eq!(
+        cb.failure_count(),
+        0,
+        "Failure count must reset to 0 after success"
+    );
     assert!(cb.is_allowed().await);
 }
 
@@ -187,7 +194,10 @@ async fn test_offline_tracker_enter_offline_mode() {
     let tracker = OfflineTracker::new();
     tracker.enter_offline_mode().await;
 
-    assert!(tracker.is_offline(), "Must be offline after enter_offline_mode");
+    assert!(
+        tracker.is_offline(),
+        "Must be offline after enter_offline_mode"
+    );
     let duration = tracker.offline_duration().await;
     assert!(duration.is_some(), "Duration must be Some when offline");
     assert!(
@@ -204,7 +214,10 @@ async fn test_offline_tracker_exit_offline_mode() {
     assert!(tracker.is_offline());
 
     tracker.exit_offline_mode().await;
-    assert!(!tracker.is_offline(), "Must be online after exit_offline_mode");
+    assert!(
+        !tracker.is_offline(),
+        "Must be online after exit_offline_mode"
+    );
     assert!(
         tracker.offline_duration().await.is_none(),
         "Duration must be None after exiting offline mode"
@@ -412,11 +425,6 @@ async fn test_orchestrator_circuit_breaker_state_visible_in_status() {
 fn test_sync_kind_as_str_values() {
     let cases = [
         (SyncKind::Full, "full"),
-        (SyncKind::Heartbeat, "heartbeat"),
-        (SyncKind::Results, "results"),
-        (SyncKind::Config, "config"),
-        (SyncKind::Rules, "rules"),
-        (SyncKind::Audit, "audit"),
         (SyncKind::Manual, "manual"),
         (SyncKind::Playbooks, "playbooks"),
         (SyncKind::DetectionRules, "detection_rules"),
@@ -461,8 +469,8 @@ fn test_resolve_config_conflict_server_always_wins() {
 
     let resolution = resolve_config_conflict(
         "check_interval_secs",
-        "3600",  // local
-        "7200",  // remote
+        "3600", // local
+        "7200", // remote
         local_ts,
         remote_ts,
     );
@@ -472,13 +480,13 @@ fn test_resolve_config_conflict_server_always_wins() {
         ConflictStrategy::ServerWins,
         "Strategy must always be ServerWins for config"
     );
-    assert_eq!(
-        resolution.after, "7200",
-        "Server (remote) value must win"
-    );
+    assert_eq!(resolution.after, "7200", "Server (remote) value must win");
     assert_eq!(resolution.before, "3600");
     assert_eq!(resolution.key, "check_interval_secs");
-    assert!(!resolution.needs_review, "Config conflicts never need review");
+    assert!(
+        !resolution.needs_review,
+        "Config conflicts never need review"
+    );
 }
 
 /// `resolve_config_conflict` still uses `ServerWins` even when local is newer.
@@ -487,13 +495,7 @@ fn test_resolve_config_conflict_server_wins_even_if_local_is_newer() {
     let local_ts = Utc::now(); // local is newer
     let remote_ts = Utc::now() - Duration::hours(2);
 
-    let resolution = resolve_config_conflict(
-        "sync_batch_size",
-        "200",
-        "100",
-        local_ts,
-        remote_ts,
-    );
+    let resolution = resolve_config_conflict("sync_batch_size", "200", "100", local_ts, remote_ts);
 
     assert_eq!(resolution.strategy, ConflictStrategy::ServerWins);
     assert_eq!(
@@ -528,8 +530,7 @@ fn test_resolve_rule_conflict_most_recent_local_wins() {
     let old_ts = Utc::now() - Duration::hours(3);
 
     let res = resolve_rule_conflict(
-        "av_rule",
-        "3.0",  // local
+        "av_rule", "3.0",  // local
         "2.0",  // remote
         new_ts, // local is newer
         old_ts, // remote is older
@@ -591,9 +592,21 @@ fn test_sync_queue_item_exponential_backoff_increases_delay() {
     let delay_2 = (item_a2.calculate_next_retry() - now).num_seconds();
 
     // 2^0 = 1s, 2^1 = 2s, 2^2 = 4s (allow ±1s tolerance for timing)
-    assert!(delay_0 >= 1 && delay_0 <= 2, "Attempt 0 delay ~1s, got {}s", delay_0);
-    assert!(delay_1 >= 2 && delay_1 <= 3, "Attempt 1 delay ~2s, got {}s", delay_1);
-    assert!(delay_2 >= 4 && delay_2 <= 5, "Attempt 2 delay ~4s, got {}s", delay_2);
+    assert!(
+        delay_0 >= 1 && delay_0 <= 2,
+        "Attempt 0 delay ~1s, got {}s",
+        delay_0
+    );
+    assert!(
+        delay_1 >= 2 && delay_1 <= 3,
+        "Attempt 1 delay ~2s, got {}s",
+        delay_1
+    );
+    assert!(
+        delay_2 >= 4 && delay_2 <= 5,
+        "Attempt 2 delay ~4s, got {}s",
+        delay_2
+    );
 }
 
 /// At high attempt counts the backoff is capped at MAX_RETRY_DELAY_SECS (3600s).
@@ -655,9 +668,8 @@ fn test_sync_entity_type_round_trip() {
 
     for variant in &variants {
         let s = variant.as_str();
-        let parsed = SyncEntityType::parse_str(s).unwrap_or_else(|| {
-            panic!("parse_str('{}') returned None for {:?}", s, variant)
-        });
+        let parsed = SyncEntityType::parse_str(s)
+            .unwrap_or_else(|| panic!("parse_str('{}') returned None for {:?}", s, variant));
         assert_eq!(
             &parsed, variant,
             "Round-trip failed for {:?}: '{}' → {:?}",

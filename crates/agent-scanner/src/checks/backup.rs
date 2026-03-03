@@ -12,11 +12,11 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for backup configuration.

@@ -33,7 +33,8 @@ pub fn empty_state_with_action<F: FnOnce()>(
             let time = ui.input(|i| i.time);
             let pulse = ((time * theme::ANIM_PULSE_SPEED as f64).sin() * 0.5 + 0.5) as f32;
             // Limit breathing animation to ~10fps
-            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(100));
             theme::OPACITY_DISABLED + pulse * theme::OPACITY_TINT
         };
 
@@ -90,7 +91,11 @@ pub fn empty_state_compact(ui: &mut Ui, icon: &str, message: &str) {
         ui.add_space(theme::SPACE_MD);
 
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(RichText::new(icon).size(theme::ICON_SM).color(theme::text_tertiary()));
+            ui.label(
+                RichText::new(icon)
+                    .size(theme::ICON_SM)
+                    .color(theme::text_tertiary()),
+            );
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 RichText::new(message)
@@ -170,12 +175,15 @@ pub fn pending_state(ui: &mut Ui, message: &str) {
             let painter = ui.painter_at(rect);
             let num_dots: usize = 8;
             for i in 0..num_dots {
-                let angle = time * theme::ANIM_SPINNER_SPEED as f32 + (i as f32 / num_dots as f32) * std::f32::consts::TAU;
-                let alpha = theme::OPACITY_TINT + (i as f32 / num_dots as f32) * theme::OPACITY_STRONG;
+                let angle = time * theme::ANIM_SPINNER_SPEED as f32
+                    + (i as f32 / num_dots as f32) * std::f32::consts::TAU;
+                let alpha =
+                    theme::OPACITY_TINT + (i as f32 / num_dots as f32) * theme::OPACITY_STRONG;
                 let pos = center + egui::vec2(radius * angle.cos(), radius * angle.sin());
                 painter.circle_filled(pos, theme::SPACE_XS, theme::ACCENT.linear_multiply(alpha));
             }
-            ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(50));
         }
 
         ui.add_space(theme::SPACE_MD);

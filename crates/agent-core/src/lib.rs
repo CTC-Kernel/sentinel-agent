@@ -21,16 +21,16 @@ pub mod api_client;
 pub mod audit_trail;
 pub mod cleanup;
 pub mod events;
-#[cfg(feature = "gui")]
-pub mod sync_converters;
 #[cfg(feature = "llm")]
 pub mod llm_service;
 pub mod logging;
 pub mod resources;
 pub mod self_protection;
-pub mod siem_enrichment;
 pub mod service;
+pub mod siem_enrichment;
 pub mod state;
+#[cfg(feature = "gui")]
+pub mod sync_converters;
 pub mod system_utils;
 pub mod tracing_layer;
 pub mod update_manager;
@@ -45,24 +45,24 @@ mod network_ops;
 pub mod playbook_engine;
 mod remediation_ops;
 mod scanning;
-pub mod threat_pipeline;
 mod self_update;
 mod sync_init;
+pub mod threat_pipeline;
 
 #[cfg(feature = "tray")]
 pub mod tray;
 
 // Re-export logging functions for backward compatibility.
-pub use logging::{init_logging, set_tracing_level};
 #[cfg(feature = "gui")]
 pub use logging::init_logging_with_terminal;
+pub use logging::{init_logging, set_tracing_level};
 
 use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
+use agent_network::NetworkManager;
 #[cfg(feature = "gui")]
 use agent_network::{DiscoveryConfig, NetworkDiscovery};
-use agent_network::NetworkManager;
 #[cfg(feature = "gui")]
 use agent_scanner::RemediationEngine;
 use agent_scanner::{
@@ -79,12 +79,15 @@ use agent_scanner::{
     },
 };
 use agent_storage::Database;
-use agent_sync::{AuthenticatedClient, ConfigSyncService, ResultUploader, RuleSyncService, AuditSyncService, CommandResultsService, SyncOrchestrator};
+use agent_sync::{
+    AuditSyncService, AuthenticatedClient, CommandResultsService, ConfigSyncService,
+    ResultUploader, RuleSyncService, SyncOrchestrator,
+};
 use api_client::ApiClient;
 use resources::ResourceMonitor;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use tokio::sync::{mpsc, RwLock};
+use tokio::sync::{RwLock, mpsc};
 use tracing::{debug, error, info, warn};
 
 // Import orphaned modules
@@ -94,8 +97,7 @@ use agent_siem::SiemForwarder;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
     FimChangeType as GuiFimChangeType, GuiDiscoveredDevice, GuiFimAlert, GuiPolicySummary,
-    GuiSuspiciousProcess, GuiUsbEvent, GuiVulnerabilitySummary,
-    UsbEventType as GuiUsbEventType,
+    GuiSuspiciousProcess, GuiUsbEvent, GuiVulnerabilitySummary, UsbEventType as GuiUsbEventType,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
@@ -590,8 +592,8 @@ impl AgentRuntime {
     pub async fn run(&self) -> Result<(), CommonError> {
         info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
         let safe_url = self.config.server_url.replace(
-            &self.config.server_url, 
-            "https://cyber-threat-consulting.com"
+            &self.config.server_url,
+            "https://cyber-threat-consulting.com",
         );
         info!("Server URL: {}", safe_url);
         info!(
@@ -708,7 +710,8 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         let mut fim_changes_today: u32 = 0;
         #[cfg(feature = "gui")]
-        let mut fim_last_day: u64 = chrono::Utc::now().timestamp().max(0) as u64 / agent_common::constants::SECS_PER_DAY;
+        let mut fim_last_day: u64 =
+            chrono::Utc::now().timestamp().max(0) as u64 / agent_common::constants::SECS_PER_DAY;
 
         // Run initial security scan on startup (quick check)
         info!("Running initial security scan...");
@@ -786,7 +789,9 @@ impl AgentRuntime {
                 }
                 Err(e) => warn!("Initial network collection failed: {}", e),
             },
-            Err(_) => warn!("Initial network collection timed out after 30s, continuing without it"),
+            Err(_) => {
+                warn!("Initial network collection timed out after 30s, continuing without it")
+            }
         }
 
         // Initialize FIM engine
@@ -827,7 +832,12 @@ impl AgentRuntime {
                         ("HTTP".to_string(), url.clone())
                     }
                 };
-                (config.enabled, format_str.to_string(), transport_str, destination_str)
+                (
+                    config.enabled,
+                    format_str.to_string(),
+                    transport_str,
+                    destination_str,
+                )
             };
 
             match SiemForwarder::new(config) {
@@ -885,7 +895,8 @@ impl AgentRuntime {
                             title: format!("File Integrity Alert: {}", alert.path.display()),
                             description: format!(
                                 "File {} was modified. Change type: {:?}.",
-                                alert.path.display(), alert.change
+                                alert.path.display(),
+                                alert.change
                             ),
                             evidence: serde_json::json!({
                                 "path": alert.path,
@@ -901,11 +912,21 @@ impl AgentRuntime {
                         #[cfg(feature = "gui")]
                         {
                             let gui_change_type = match alert.change {
-                                agent_common::types::FimChangeType::Created => GuiFimChangeType::Created,
-                                agent_common::types::FimChangeType::Modified => GuiFimChangeType::Modified,
-                                agent_common::types::FimChangeType::Deleted => GuiFimChangeType::Deleted,
-                                agent_common::types::FimChangeType::PermissionChanged => GuiFimChangeType::PermissionChanged,
-                                agent_common::types::FimChangeType::Renamed => GuiFimChangeType::Renamed,
+                                agent_common::types::FimChangeType::Created => {
+                                    GuiFimChangeType::Created
+                                }
+                                agent_common::types::FimChangeType::Modified => {
+                                    GuiFimChangeType::Modified
+                                }
+                                agent_common::types::FimChangeType::Deleted => {
+                                    GuiFimChangeType::Deleted
+                                }
+                                agent_common::types::FimChangeType::PermissionChanged => {
+                                    GuiFimChangeType::PermissionChanged
+                                }
+                                agent_common::types::FimChangeType::Renamed => {
+                                    GuiFimChangeType::Renamed
+                                }
                             };
                             self.emit_gui_event(AgentEvent::FimAlert {
                                 alert: GuiFimAlert {
@@ -918,7 +939,8 @@ impl AgentRuntime {
                                     acknowledged: false,
                                 },
                             });
-                            let today = chrono::Utc::now().timestamp().max(0) as u64 / agent_common::constants::SECS_PER_DAY;
+                            let today = chrono::Utc::now().timestamp().max(0) as u64
+                                / agent_common::constants::SECS_PER_DAY;
                             if today != fim_last_day {
                                 fim_changes_today = 0;
                                 fim_last_day = today;
@@ -958,7 +980,9 @@ impl AgentRuntime {
                                 category: agent_siem::EventCategory::FileIntegrity,
                                 name: "File Integrity Change".to_string(),
                                 description: report.description,
-                                source_host: hostname::get().map(|h| h.to_string_lossy().to_string()).unwrap_or_default(),
+                                source_host: hostname::get()
+                                    .map(|h| h.to_string_lossy().to_string())
+                                    .unwrap_or_default(),
                                 source_ip: None,
                                 destination_ip: None,
                                 destination_port: None,
@@ -996,7 +1020,8 @@ impl AgentRuntime {
             {
                 let fim_engine = self.fim_engine.read().await;
                 if let Some(engine) = fim_engine.as_ref() {
-                    let today = chrono::Utc::now().timestamp().max(0) as u64 / agent_common::constants::SECS_PER_DAY;
+                    let today = chrono::Utc::now().timestamp().max(0) as u64
+                        / agent_common::constants::SECS_PER_DAY;
                     if today != fim_last_day {
                         fim_changes_today = 0;
                         fim_last_day = today;
@@ -1032,7 +1057,12 @@ impl AgentRuntime {
                         }
                         #[cfg(feature = "gui")]
                         {
-                            self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
+                            self.emit_status_update(
+                                last_check_at,
+                                compliance_score,
+                                cached_pending_sync,
+                                cached_policy_summary,
+                            );
                             self.emit_resource_update(None);
                         }
                         if let Some(audit_sync) = self.audit_sync.read().await.as_ref() {
@@ -1047,16 +1077,17 @@ impl AgentRuntime {
                         }
                         // Drain GRC sync queue: upload locally-created playbooks, risks, assets, etc.
                         if let Some(ref client) = self.authenticated_client
-                            && let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref() {
-                                match orchestrator.drain_grc_queues(client).await {
-                                    Ok(count) => {
-                                        if count > 0 {
-                                            info!("GRC sync: {} items synced", count);
-                                        }
+                            && let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref()
+                        {
+                            match orchestrator.drain_grc_queues(client).await {
+                                Ok(count) => {
+                                    if count > 0 {
+                                        info!("GRC sync: {} items synced", count);
                                     }
-                                    Err(e) => warn!("GRC sync queue drain failed: {}", e),
                                 }
+                                Err(e) => warn!("GRC sync queue drain failed: {}", e),
                             }
+                        }
                     }
                     Err(e) => {
                         warn!("Heartbeat failed: {}", e);
@@ -1074,7 +1105,12 @@ impl AgentRuntime {
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
-                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
+                    self.emit_status_update(
+                        last_check_at,
+                        compliance_score,
+                        cached_pending_sync,
+                        cached_policy_summary,
+                    );
                 }
                 match self.run_vulnerability_scan().await {
                     Ok(result) => {
@@ -1100,10 +1136,18 @@ impl AgentRuntime {
                             let mut low = 0u32;
                             for v in &result.vulnerabilities {
                                 match v.severity {
-                                    agent_scanner::vulnerability::Severity::Critical => critical = critical.saturating_add(1),
-                                    agent_scanner::vulnerability::Severity::High => high = high.saturating_add(1),
-                                    agent_scanner::vulnerability::Severity::Medium => medium = medium.saturating_add(1),
-                                    agent_scanner::vulnerability::Severity::Low => low = low.saturating_add(1),
+                                    agent_scanner::vulnerability::Severity::Critical => {
+                                        critical = critical.saturating_add(1)
+                                    }
+                                    agent_scanner::vulnerability::Severity::High => {
+                                        high = high.saturating_add(1)
+                                    }
+                                    agent_scanner::vulnerability::Severity::Medium => {
+                                        medium = medium.saturating_add(1)
+                                    }
+                                    agent_scanner::vulnerability::Severity::Low => {
+                                        low = low.saturating_add(1)
+                                    }
                                 }
                             }
                             self.emit_gui_event(AgentEvent::VulnerabilityUpdate {
@@ -1140,7 +1184,9 @@ impl AgentRuntime {
             }
 
             // Run security scan if interval has passed (skip when paused)
-            if !is_paused && last_security_scan.elapsed().as_secs() >= self.security_scan_interval_secs {
+            if !is_paused
+                && last_security_scan.elapsed().as_secs() >= self.security_scan_interval_secs
+            {
                 is_active = true;
                 match self.run_security_scan().await {
                     Ok(result) => {
@@ -1155,14 +1201,20 @@ impl AgentRuntime {
                                     "error",
                                 );
                                 for incident in &result.incidents {
-                                    if incident.incident_type == agent_scanner::IncidentType::SuspiciousProcess
-                                        || incident.incident_type == agent_scanner::IncidentType::CryptoMiner
+                                    if incident.incident_type
+                                        == agent_scanner::IncidentType::SuspiciousProcess
+                                        || incident.incident_type
+                                            == agent_scanner::IncidentType::CryptoMiner
                                     {
-                                        let process_name = incident.evidence.get("process_name")
+                                        let process_name = incident
+                                            .evidence
+                                            .get("process_name")
                                             .and_then(|v| v.as_str())
                                             .unwrap_or("unknown")
                                             .to_string();
-                                        let command_line = incident.evidence.get("path")
+                                        let command_line = incident
+                                            .evidence
+                                            .get("path")
                                             .and_then(|v| v.as_str())
                                             .unwrap_or("")
                                             .to_string();
@@ -1204,7 +1256,12 @@ impl AgentRuntime {
                 }
                 // Run USB device scan alongside security scan
                 // Collect events inside mutex scope, then release before async upload
-                let usb_events = self.usb_monitor.lock().ok().map(|mut usb| usb.scan()).unwrap_or_default();
+                let usb_events = self
+                    .usb_monitor
+                    .lock()
+                    .ok()
+                    .map(|mut usb| usb.scan())
+                    .unwrap_or_default();
 
                 for event in &usb_events {
                     debug!(
@@ -1231,7 +1288,9 @@ impl AgentRuntime {
                 for event in usb_events {
                     let gui_event_type = match event.event_type {
                         agent_common::types::UsbEventType::Connected => GuiUsbEventType::Connected,
-                        agent_common::types::UsbEventType::Disconnected => GuiUsbEventType::Disconnected,
+                        agent_common::types::UsbEventType::Disconnected => {
+                            GuiUsbEventType::Disconnected
+                        }
                     };
                     self.emit_gui_event(AgentEvent::UsbEvent {
                         event: GuiUsbEvent {
@@ -1255,8 +1314,10 @@ impl AgentRuntime {
                         #[cfg(feature = "gui")]
                         {
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
-                                interfaces_count: u32::try_from(snapshot.interfaces.len()).unwrap_or(u32::MAX),
-                                connections_count: u32::try_from(snapshot.connections.len()).unwrap_or(u32::MAX),
+                                interfaces_count: u32::try_from(snapshot.interfaces.len())
+                                    .unwrap_or(u32::MAX),
+                                connections_count: u32::try_from(snapshot.connections.len())
+                                    .unwrap_or(u32::MAX),
                                 alerts_count: last_network_alert_count,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
@@ -1296,15 +1357,19 @@ impl AgentRuntime {
             }
 
             // Run network connection scan if interval has passed (skip when paused)
-            if !is_paused && last_network_connections.elapsed() >= current_network_connection_interval {
+            if !is_paused
+                && last_network_connections.elapsed() >= current_network_connection_interval
+            {
                 is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
                         #[cfg(feature = "gui")]
                         {
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
-                                interfaces_count: u32::try_from(snapshot.interfaces.len()).unwrap_or(u32::MAX),
-                                connections_count: u32::try_from(snapshot.connections.len()).unwrap_or(u32::MAX),
+                                interfaces_count: u32::try_from(snapshot.interfaces.len())
+                                    .unwrap_or(u32::MAX),
+                                connections_count: u32::try_from(snapshot.connections.len())
+                                    .unwrap_or(u32::MAX),
                                 alerts_count: last_network_alert_count,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
@@ -1378,8 +1443,10 @@ impl AgentRuntime {
                         {
                             last_network_alert_count = alert_count;
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
-                                interfaces_count: u32::try_from(snapshot.interfaces.len()).unwrap_or(u32::MAX),
-                                connections_count: u32::try_from(snapshot.connections.len()).unwrap_or(u32::MAX),
+                                interfaces_count: u32::try_from(snapshot.interfaces.len())
+                                    .unwrap_or(u32::MAX),
+                                connections_count: u32::try_from(snapshot.connections.len())
+                                    .unwrap_or(u32::MAX),
                                 alerts_count: alert_count,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
@@ -1427,11 +1494,15 @@ impl AgentRuntime {
                 let mut playbooks: Vec<agent_gui::dto::Playbook> = Vec::new();
 
                 if let Some(ref db) = self.db {
-                    let rule_repo = agent_storage::repositories::grc::DetectionRuleRepository::new(db);
+                    let rule_repo =
+                        agent_storage::repositories::grc::DetectionRuleRepository::new(db);
                     match rule_repo.get_all().await {
                         Ok(stored_rules) => {
                             detection_rules = threat_pipeline::stored_rules_to_dto(&stored_rules);
-                            debug!("Loaded {} detection rules for pipeline", detection_rules.len());
+                            debug!(
+                                "Loaded {} detection rules for pipeline",
+                                detection_rules.len()
+                            );
                         }
                         Err(e) => warn!("Failed to load detection rules for pipeline: {}", e),
                     }
@@ -1454,21 +1525,24 @@ impl AgentRuntime {
                         &self.gui_event_tx,
                         #[cfg(feature = "llm")]
                         self.llm_service.as_ref().map(|s| s.as_ref()),
-                    ).await;
+                    )
+                    .await;
 
                     if let Some(ref client) = self.authenticated_client {
                         // Upload detection matches to the platform
                         if !pipeline_result.rule_matches.is_empty() {
                             let match_payloads: Vec<agent_sync::DetectionMatchPayload> =
-                                pipeline_result.rule_matches.iter().map(|m| {
-                                    agent_sync::DetectionMatchPayload {
+                                pipeline_result
+                                    .rule_matches
+                                    .iter()
+                                    .map(|m| agent_sync::DetectionMatchPayload {
                                         rule_id: m.rule_id.clone(),
                                         rule_name: m.rule_name.clone(),
                                         matched_at: chrono::Utc::now(),
                                         trigger_details: m.matched_value.clone(),
                                         severity: m.severity.clone(),
-                                    }
-                                }).collect();
+                                    })
+                                    .collect();
                             match client.sync_detection_matches(match_payloads).await {
                                 Ok(resp) => info!(
                                     "Uploaded {} detection matches to platform",
@@ -1480,19 +1554,20 @@ impl AgentRuntime {
 
                         // Upload playbook execution logs to the platform
                         if !pipeline_result.playbook_logs.is_empty() {
-                            let log_payloads: Vec<agent_sync::PlaybookLogPayload> =
-                                pipeline_result.playbook_logs.iter().map(|l| {
-                                    agent_sync::PlaybookLogPayload {
-                                        id: l.id.to_string(),
-                                        playbook_id: l.playbook_id.to_string(),
-                                        playbook_name: l.playbook_name.clone(),
-                                        triggered_at: l.triggered_at,
-                                        trigger_event: l.trigger_event.clone(),
-                                        actions_executed: l.actions_executed.clone(),
-                                        success: l.success,
-                                        error: l.error.clone(),
-                                    }
-                                }).collect();
+                            let log_payloads: Vec<agent_sync::PlaybookLogPayload> = pipeline_result
+                                .playbook_logs
+                                .iter()
+                                .map(|l| agent_sync::PlaybookLogPayload {
+                                    id: l.id.to_string(),
+                                    playbook_id: l.playbook_id.to_string(),
+                                    playbook_name: l.playbook_name.clone(),
+                                    triggered_at: l.triggered_at,
+                                    trigger_event: l.trigger_event.clone(),
+                                    actions_executed: l.actions_executed.clone(),
+                                    success: l.success,
+                                    error: l.error.clone(),
+                                })
+                                .collect();
                             match client.sync_playbook_logs(log_payloads).await {
                                 Ok(resp) => info!(
                                     "Uploaded {} playbook logs to platform",
@@ -1521,7 +1596,9 @@ impl AgentRuntime {
                             agent_scanner::IncidentSeverity::Medium => 5,
                             agent_scanner::IncidentSeverity::Low => 3,
                         };
-                        let process_name = inc.evidence.get("process_name")
+                        let process_name = inc
+                            .evidence
+                            .get("process_name")
                             .and_then(|v| v.as_str())
                             .map(String::from);
                         let mut event = agent_siem::SiemEvent {
@@ -1626,13 +1703,19 @@ impl AgentRuntime {
             }
 
             // Run compliance checks if interval has passed (skip when paused)
-            if !is_paused && last_compliance_check_time.elapsed().as_secs() >= self.state.get_check_interval()
+            if !is_paused
+                && last_compliance_check_time.elapsed().as_secs() >= self.state.get_check_interval()
             {
                 is_active = true;
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
-                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
+                    self.emit_status_update(
+                        last_check_at,
+                        compliance_score,
+                        cached_pending_sync,
+                        cached_policy_summary,
+                    );
                 }
 
                 let (check_results, score) = self.run_compliance_checks().await;
@@ -1654,7 +1737,9 @@ impl AgentRuntime {
                             let passed = u32::try_from(score.passed_count).unwrap_or(u32::MAX);
                             let failed = u32::try_from(score.failed_count).unwrap_or(u32::MAX);
                             let errored = u32::try_from(score.error_count).unwrap_or(u32::MAX);
-                            total.saturating_sub(passed.saturating_add(failed).saturating_add(errored))
+                            total.saturating_sub(
+                                passed.saturating_add(failed).saturating_add(errored),
+                            )
                         },
                     });
 
@@ -1676,7 +1761,12 @@ impl AgentRuntime {
                             "warning"
                         },
                     );
-                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
+                    self.emit_status_update(
+                        last_check_at,
+                        compliance_score,
+                        cached_pending_sync,
+                        cached_policy_summary,
+                    );
                 }
 
                 last_compliance_check_time = std::time::Instant::now();
@@ -1702,7 +1792,12 @@ impl AgentRuntime {
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
-                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
+                    self.emit_status_update(
+                        last_check_at,
+                        compliance_score,
+                        cached_pending_sync,
+                        cached_policy_summary,
+                    );
                 }
 
                 match self.run_vulnerability_scan().await {
@@ -1729,9 +1824,13 @@ impl AgentRuntime {
                             let mut low = 0u32;
                             for v in &result.vulnerabilities {
                                 match v.severity {
-                                    agent_scanner::Severity::Critical => critical = critical.saturating_add(1),
+                                    agent_scanner::Severity::Critical => {
+                                        critical = critical.saturating_add(1)
+                                    }
                                     agent_scanner::Severity::High => high = high.saturating_add(1),
-                                    agent_scanner::Severity::Medium => medium = medium.saturating_add(1),
+                                    agent_scanner::Severity::Medium => {
+                                        medium = medium.saturating_add(1)
+                                    }
                                     agent_scanner::Severity::Low => low = low.saturating_add(1),
                                 }
                             }
@@ -1781,7 +1880,9 @@ impl AgentRuntime {
                             let passed = u32::try_from(score.passed_count).unwrap_or(u32::MAX);
                             let failed = u32::try_from(score.failed_count).unwrap_or(u32::MAX);
                             let errored = u32::try_from(score.error_count).unwrap_or(u32::MAX);
-                            total.saturating_sub(passed.saturating_add(failed).saturating_add(errored))
+                            total.saturating_sub(
+                                passed.saturating_add(failed).saturating_add(errored),
+                            )
                         },
                     });
 
@@ -1803,7 +1904,12 @@ impl AgentRuntime {
                         },
                     );
                     self.state.scanning.store(false, Ordering::Release);
-                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
+                    self.emit_status_update(
+                        last_check_at,
+                        compliance_score,
+                        cached_pending_sync,
+                        cached_policy_summary,
+                    );
                 }
                 last_vuln_scan = std::time::Instant::now();
                 last_compliance_check_time = std::time::Instant::now();
@@ -1825,16 +1931,17 @@ impl AgentRuntime {
 
                 // Drain GRC sync queue during force sync
                 if let Some(ref client) = self.authenticated_client
-                    && let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref() {
-                        match orchestrator.drain_grc_queues(client).await {
-                            Ok(count) => {
-                                if count > 0 {
-                                    info!("Force sync: {} GRC items synced", count);
-                                }
+                    && let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref()
+                {
+                    match orchestrator.drain_grc_queues(client).await {
+                        Ok(count) => {
+                            if count > 0 {
+                                info!("Force sync: {} GRC items synced", count);
                             }
-                            Err(e) => warn!("Force sync GRC queue drain failed: {}", e),
                         }
+                        Err(e) => warn!("Force sync GRC queue drain failed: {}", e),
                     }
+                }
 
                 match self
                     .send_heartbeat(compliance_score, last_compliance_check_at)
@@ -1878,7 +1985,12 @@ impl AgentRuntime {
                 last_heartbeat = std::time::Instant::now();
                 #[cfg(feature = "gui")]
                 {
-                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
+                    self.emit_status_update(
+                        last_check_at,
+                        compliance_score,
+                        cached_pending_sync,
+                        cached_policy_summary,
+                    );
                     self.emit_resource_update(None);
                 }
                 self.state.force_sync.store(false, Ordering::Release);
@@ -1886,9 +1998,10 @@ impl AgentRuntime {
 
             // Check for force_update flag (trigger from GUI button)
             if self.state.force_update.swap(false, Ordering::AcqRel)
-                && let Err(e) = self.run_self_update().await {
-                    warn!("Self-update failed: {}", e);
-                }
+                && let Err(e) = self.run_self_update().await
+            {
+                warn!("Self-update failed: {}", e);
+            }
 
             // Check for force_discovery flag (GUI network discovery)
             #[cfg(feature = "gui")]
@@ -2078,8 +2191,6 @@ impl AgentRuntime {
             }
         }
 
-
-
         // --- Graceful Shutdown Sequence ---
         info!("Performing final cleanup and data flush...");
 
@@ -2100,7 +2211,11 @@ impl AgentRuntime {
                 agent_version: AGENT_VERSION.to_string(),
                 status: "offline".to_string(),
                 hostname: hostname.clone(),
-                os_info: format!("{} {}", std::env::consts::OS, system_utils::get_os_version()),
+                os_info: format!(
+                    "{} {}",
+                    std::env::consts::OS,
+                    system_utils::get_os_version()
+                ),
                 cpu_percent: usage.cpu_percent,
                 memory_bytes: usage.memory_bytes,
                 memory_percent: resources::get_system_resources().memory_percent,

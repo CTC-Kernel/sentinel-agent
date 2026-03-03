@@ -264,8 +264,15 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
                 ui.push_id(row_idx, |ui: &mut egui::Ui| {
                     egui::Frame::new()
-                        .fill(if row_idx % 2 == 1 { theme::table_row_bg(row_idx) } else { egui::Color32::TRANSPARENT })
-                        .inner_margin(egui::Margin::symmetric(theme::SPACE_MD as i8, theme::SPACE_SM as i8))
+                        .fill(if row_idx % 2 == 1 {
+                            theme::table_row_bg(row_idx)
+                        } else {
+                            egui::Color32::TRANSPARENT
+                        })
+                        .inner_margin(egui::Margin::symmetric(
+                            theme::SPACE_MD as i8,
+                            theme::SPACE_SM as i8,
+                        ))
                         .show(ui, |ui: &mut egui::Ui| {
                             ui.horizontal(|ui: &mut egui::Ui| {
                                 // Left: playbook info
@@ -278,15 +285,21 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                             .strong(),
                                     );
                                     ui.label(
-                                        egui::RichText::new(format!("Conditions : {} \u{2014} Actions : {}", conds, acts))
-                                            .font(theme::font_min())
-                                            .color(theme::text_secondary()),
+                                        egui::RichText::new(format!(
+                                            "Conditions : {} \u{2014} Actions : {}",
+                                            conds, acts
+                                        ))
+                                        .font(theme::font_min())
+                                        .color(theme::text_secondary()),
                                     );
                                     if triggered != "\u{2014}" {
                                         ui.label(
-                                            egui::RichText::new(format!("Dernier d\u{00e9}clenchement : {}", triggered))
-                                                .font(theme::font_min())
-                                                .color(theme::text_tertiary()),
+                                            egui::RichText::new(format!(
+                                                "Dernier d\u{00e9}clenchement : {}",
+                                                triggered
+                                            ))
+                                            .font(theme::font_min())
+                                            .color(theme::text_tertiary()),
                                         );
                                     }
                                 });
@@ -295,11 +308,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui: &mut egui::Ui| {
-                                        if widgets::ghost_button(
-                                            ui,
-                                            icons::TRASH.to_string(),
-                                        )
-                                        .clicked()
+                                        if widgets::ghost_button(ui, icons::TRASH.to_string())
+                                            .clicked()
                                         {
                                             delete_id = Some(pb.id.to_string());
                                         }
@@ -317,7 +327,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // Apply toggle commands
             for (id, enabled) in toggle_commands {
-                if let Some(pb) = state.threats.playbooks.iter_mut().find(|p| p.id.to_string() == id) {
+                if let Some(pb) = state
+                    .threats
+                    .playbooks
+                    .iter_mut()
+                    .find(|p| p.id.to_string() == id)
+                {
                     pb.enabled = enabled;
                 }
                 command = Some(GuiCommand::TogglePlaybook {
@@ -416,7 +431,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             }
             let log_start = state.threats.playbook_log_page.saturating_mul(page_size);
             let log_end = log_total.min(log_start.saturating_add(page_size));
-            let entries: Vec<_> = state.threats.playbook_log.iter()
+            let entries: Vec<_> = state
+                .threats
+                .playbook_log
+                .iter()
                 .skip(log_start)
                 .take(log_end.saturating_sub(log_start))
                 .collect();
@@ -431,7 +449,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let date = entry.triggered_at.format("%d/%m/%Y %H:%M").to_string();
                 let result_cell = format!(
                     "{} {}",
-                    if entry.success { icons::CHECK } else { icons::CIRCLE_XMARK },
+                    if entry.success {
+                        icons::CHECK
+                    } else {
+                        icons::CIRCLE_XMARK
+                    },
                     result_label
                 );
 
@@ -564,11 +586,8 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                 f.conditions.remove(idx);
             }
 
-            if widgets::ghost_button(
-                ui,
-                format!("{}  Ajouter une condition", icons::PLUS),
-            )
-            .clicked()
+            if widgets::ghost_button(ui, format!("{}  Ajouter une condition", icons::PLUS))
+                .clicked()
             {
                 f.conditions.push(PlaybookCondition {
                     condition_type: PlaybookConditionType::ProcessNameMatch,
@@ -617,12 +636,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                 f.actions.remove(idx);
             }
 
-            if widgets::ghost_button(
-                ui,
-                format!("{}  Ajouter une action", icons::PLUS),
-            )
-            .clicked()
-            {
+            if widgets::ghost_button(ui, format!("{}  Ajouter une action", icons::PLUS)).clicked() {
                 f.actions.push(PlaybookAction {
                     action_type: PlaybookActionType::KillProcess,
                     parameters: String::new(),
@@ -636,12 +650,8 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                 let can_save =
                     !f.name.trim().is_empty() && !f.conditions.is_empty() && !f.actions.is_empty();
 
-                if widgets::primary_button(
-                    ui,
-                    format!("{}  Enregistrer", icons::SAVE),
-                    can_save,
-                )
-                .clicked()
+                if widgets::primary_button(ui, format!("{}  Enregistrer", icons::SAVE), can_save)
+                    .clicked()
                     && can_save
                 {
                     let playbook = Playbook {
@@ -672,12 +682,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
 
                 ui.add_space(theme::SPACE_SM);
 
-                if widgets::ghost_button(
-                    ui,
-                    format!("{}  Annuler", icons::XMARK),
-                )
-                .clicked()
-                {
+                if widgets::ghost_button(ui, format!("{}  Annuler", icons::XMARK)).clicked() {
                     state.threats.playbook_editing = false;
                     f.name.clear();
                     f.description.clear();

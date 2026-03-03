@@ -164,32 +164,30 @@ impl ProcessTreeAnalyzer {
 
             // Check for Office app spawning shells
             if let Some(parent_pid) = node.parent_pid
-                && let Some(parent) = nodes.iter().find(|n| n.pid == parent_pid) {
-                    let parent_name_lower = parent.name.to_lowercase();
-                    let child_name_lower = node.name.to_lowercase();
+                && let Some(parent) = nodes.iter().find(|n| n.pid == parent_pid)
+            {
+                let parent_name_lower = parent.name.to_lowercase();
+                let child_name_lower = node.name.to_lowercase();
 
-                    let parent_is_office = OFFICE_APPS
-                        .iter()
-                        .any(|app| parent_name_lower.contains(&app.to_lowercase()));
+                let parent_is_office = OFFICE_APPS
+                    .iter()
+                    .any(|app| parent_name_lower.contains(&app.to_lowercase()));
 
-                    let child_is_shell = ["cmd", "powershell", "pwsh", "bash", "sh", "python"]
-                        .iter()
-                        .any(|s| child_name_lower.contains(s));
+                let child_is_shell = ["cmd", "powershell", "pwsh", "bash", "sh", "python"]
+                    .iter()
+                    .any(|s| child_name_lower.contains(s));
 
-                    if parent_is_office && child_is_shell {
-                        let chain = self.build_chain(node.pid, &nodes);
-                        events.push(SuspiciousProcessEvent {
-                            process: node.clone(),
-                            chain,
-                            reason: format!(
-                                "Shell spawned by Office application ({})",
-                                parent.name
-                            ),
-                            confidence: 80,
-                            detected_at: Utc::now(),
-                        });
-                    }
+                if parent_is_office && child_is_shell {
+                    let chain = self.build_chain(node.pid, &nodes);
+                    events.push(SuspiciousProcessEvent {
+                        process: node.clone(),
+                        chain,
+                        reason: format!("Shell spawned by Office application ({})", parent.name),
+                        confidence: 80,
+                        detected_at: Utc::now(),
+                    });
                 }
+            }
         }
 
         events
@@ -224,9 +222,10 @@ impl ProcessTreeAnalyzer {
         let pids: Vec<(u32, Option<u32>)> = nodes.iter().map(|n| (n.pid, n.parent_pid)).collect();
         for (pid, parent_pid) in &pids {
             if let Some(ppid) = parent_pid
-                && let Some(parent) = nodes.iter_mut().find(|n| n.pid == *ppid) {
-                    parent.children.push(*pid);
-                }
+                && let Some(parent) = nodes.iter_mut().find(|n| n.pid == *ppid)
+            {
+                parent.children.push(*pid);
+            }
         }
 
         nodes

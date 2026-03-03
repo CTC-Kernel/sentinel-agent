@@ -59,10 +59,8 @@ pub(super) fn event_timeline(ui: &mut Ui, threats: &[ThreatEvent]) {
         // Draw timeline bar
         let bar_height = 40.0_f32;
         let available_w = ui.available_width();
-        let (rect, _) = ui.allocate_exact_size(
-            egui::vec2(available_w, bar_height),
-            egui::Sense::hover(),
-        );
+        let (rect, _) =
+            ui.allocate_exact_size(egui::vec2(available_w, bar_height), egui::Sense::hover());
 
         if ui.is_rect_visible(rect) {
             let painter = ui.painter_at(rect);

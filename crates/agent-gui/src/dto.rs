@@ -438,7 +438,6 @@ impl GuiNotification {
     }
 }
 
-
 /// A software package entry for GUI display.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -1343,7 +1342,12 @@ impl AssetLifecycle {
     }
 
     pub fn all() -> &'static [Self] {
-        &[Self::Discovered, Self::Qualified, Self::Monitored, Self::Decommissioned]
+        &[
+            Self::Discovered,
+            Self::Qualified,
+            Self::Monitored,
+            Self::Decommissioned,
+        ]
     }
 }
 
@@ -1449,7 +1453,11 @@ impl AlertRuleType {
     }
 
     pub fn all() -> &'static [Self] {
-        &[Self::SeverityThreshold, Self::TypeFilter, Self::EscalationDelay]
+        &[
+            Self::SeverityThreshold,
+            Self::TypeFilter,
+            Self::EscalationDelay,
+        ]
     }
 }
 

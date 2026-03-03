@@ -12,12 +12,12 @@ use std::sync::mpsc;
 // macOS: toggle Dock icon visibility when hiding/showing the window.
 // ---------------------------------------------------------------------------
 
-use eframe::egui;
-pub use crate::state::{AppState, SyncHistoryEntry};
 use crate::enrollment::{EnrollmentCommand, EnrollmentWizard};
 use crate::events::{AgentEvent, GuiCommand};
-use crate::{icons, pages, theme, widgets};
+pub use crate::state::{AppState, SyncHistoryEntry};
 use crate::tray_bridge::{TrayAction, TrayBridge};
+use crate::{icons, pages, theme, widgets};
+use eframe::egui;
 
 /// Maximum per-frame delta time to prevent animation jumps on lag spikes.
 const FRAME_DT_MAX: f32 = 0.05;
@@ -241,7 +241,12 @@ impl SentinelApp {
     fn process_events(&mut self) {
         while let Ok(event) = self.event_rx.try_recv() {
             // Special handling for enrollment result in app shell
-            if let crate::events::AgentEvent::EnrollmentResult { success, ref message, .. } = event {
+            if let crate::events::AgentEvent::EnrollmentResult {
+                success,
+                ref message,
+                ..
+            } = event
+            {
                 self.enrollment_wizard.set_result(success, message.clone());
             }
 
@@ -269,12 +274,14 @@ impl SentinelApp {
                         // Borderless satellite style
                         ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(false));
                         ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
-                            theme::TRAY_WIDTH, theme::TRAY_HEIGHT,
+                            theme::TRAY_WIDTH,
+                            theme::TRAY_HEIGHT,
                         )));
                     } else {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
                         ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
-                            theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT,
+                            theme::WINDOW_WIDTH,
+                            theme::WINDOW_HEIGHT,
                         )));
                     }
                 }
@@ -346,7 +353,9 @@ impl SentinelApp {
                     // Title Bar (Satellite style)
                     widgets::card(ui, |ui: &mut egui::Ui| {
                         ui.horizontal(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new(icons::SHIELD).color(theme::accent_text()));
+                            ui.label(
+                                egui::RichText::new(icons::SHIELD).color(theme::accent_text()),
+                            );
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new("RAPPORT CYBER RAPIDE")
@@ -384,15 +393,11 @@ impl SentinelApp {
 
                     // Radar Chart Section
                     ui.vertical(|ui: &mut egui::Ui| {
-                        let (compliance, threats, vulns, resources, network) = self.state.radar_scores();
+                        let (compliance, threats, vulns, resources, network) =
+                            self.state.radar_scores();
 
-                        let radar = widgets::TrayRadar::new(
-                            compliance,
-                            threats,
-                            vulns,
-                            resources,
-                            network,
-                        );
+                        let radar =
+                            widgets::TrayRadar::new(compliance, threats, vulns, resources, network);
                         radar.show(ui, theme::TRAY_RADAR_SIZE);
                     });
 
@@ -466,9 +471,13 @@ impl eframe::App for SentinelApp {
                     std::thread::spawn(move || {
                         let result = {
                             #[cfg(target_os = "macos")]
-                            { crate::os::macos::software::scan_installed_apps() }
+                            {
+                                crate::os::macos::software::scan_installed_apps()
+                            }
                             #[cfg(target_os = "windows")]
-                            { crate::os::windows::software::scan_installed_apps() }
+                            {
+                                crate::os::windows::software::scan_installed_apps()
+                            }
                         };
                         match result {
                             Ok(apps) => {
@@ -498,8 +507,8 @@ impl eframe::App for SentinelApp {
                     for action in actions {
                         let _ = action_tx.send(action.clone());
                         match action {
-                            crate::tray_bridge::TrayAction::ShowWindow |
-                            crate::tray_bridge::TrayAction::QuickStatus => {
+                            crate::tray_bridge::TrayAction::ShowWindow
+                            | crate::tray_bridge::TrayAction::QuickStatus => {
                                 ctx_clone.send_viewport_cmd(egui::ViewportCommand::Visible(true));
                                 ctx_clone.send_viewport_cmd(egui::ViewportCommand::Focus);
                             }
@@ -543,28 +552,36 @@ impl eframe::App for SentinelApp {
 
         // Process async task results from background threads
         while let Ok(result) = self.async_results_rx.try_recv() {
-             match result {
-                 AsyncTaskResult::CsvExport(success, message) => {
-                     let time = ctx.input(|i| i.time);
-                     if success {
-                         self.state.toasts.push(crate::widgets::toast::Toast::success(message).with_time(time));
-                     } else {
-                         self.state.toasts.push(crate::widgets::toast::Toast::error(message).with_time(time));
-                     }
-                 }
-                 AsyncTaskResult::HtmlExport(success, message) => {
-                     let time = ctx.input(|i| i.time);
-                     if success {
-                         self.state.toasts.push(crate::widgets::toast::Toast::success(message).with_time(time));
-                     } else {
-                         self.state.toasts.push(crate::widgets::toast::Toast::error(message).with_time(time));
-                     }
-                 }
-                 #[cfg(any(target_os = "macos", target_os = "windows"))]
-                 AsyncTaskResult::NativeApps(apps) => {
-                     self.state.software.native_apps = apps;
-                 }
-             }
+            match result {
+                AsyncTaskResult::CsvExport(success, message) => {
+                    let time = ctx.input(|i| i.time);
+                    if success {
+                        self.state
+                            .toasts
+                            .push(crate::widgets::toast::Toast::success(message).with_time(time));
+                    } else {
+                        self.state
+                            .toasts
+                            .push(crate::widgets::toast::Toast::error(message).with_time(time));
+                    }
+                }
+                AsyncTaskResult::HtmlExport(success, message) => {
+                    let time = ctx.input(|i| i.time);
+                    if success {
+                        self.state
+                            .toasts
+                            .push(crate::widgets::toast::Toast::success(message).with_time(time));
+                    } else {
+                        self.state
+                            .toasts
+                            .push(crate::widgets::toast::Toast::error(message).with_time(time));
+                    }
+                }
+                #[cfg(any(target_os = "macos", target_os = "windows"))]
+                AsyncTaskResult::NativeApps(apps) => {
+                    self.state.software.native_apps = apps;
+                }
+            }
         }
 
         // ── Splash screen (first ~2.5 seconds) ──
@@ -754,7 +771,9 @@ impl eframe::App for SentinelApp {
                             .inner_margin(egui::Margin::same(0)) // Remove inner padding, use CentralPanel padding
                             .show(ui, |ui: &mut egui::Ui| match self.page {
                                 Page::Dashboard => {
-                                    if let Some(action) = pages::DashboardPage::show(ui, &mut self.state) {
+                                    if let Some(action) =
+                                        pages::DashboardPage::show(ui, &mut self.state)
+                                    {
                                         match action {
                                             pages::DashboardAction::Command(cmd) => {
                                                 self.send_command(cmd);
@@ -868,30 +887,24 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Reports => {
-                                    if let Some(cmd) =
-                                        pages::ReportsPage::show(ui, &mut self.state)
+                                    if let Some(cmd) = pages::ReportsPage::show(ui, &mut self.state)
                                     {
                                         self.send_command(cmd);
                                     }
                                 }
                                 Page::Risks => {
-                                    if let Some(cmd) =
-                                        pages::RisksPage::show(ui, &mut self.state)
-                                    {
+                                    if let Some(cmd) = pages::RisksPage::show(ui, &mut self.state) {
                                         self.send_command(cmd);
                                     }
                                 }
                                 Page::Assets => {
-                                    if let Some(cmd) =
-                                        pages::AssetsPage::show(ui, &mut self.state)
+                                    if let Some(cmd) = pages::AssetsPage::show(ui, &mut self.state)
                                     {
                                         self.send_command(cmd);
                                     }
                                 }
                                 Page::AI => {
-                                    if let Some(cmd) =
-                                        self.llm_panel.show(ui, &mut self.state)
-                                    {
+                                    if let Some(cmd) = self.llm_panel.show(ui, &mut self.state) {
                                         self.send_command(cmd);
                                     }
                                 }
@@ -926,7 +939,8 @@ impl SentinelApp {
             let a = if elapsed < theme::SPLASH_FADE_IN {
                 elapsed / theme::SPLASH_FADE_IN
             } else if elapsed > theme::SPLASH_FADE_OUT_START {
-                1.0 - ((elapsed - theme::SPLASH_FADE_OUT_START) / theme::SPLASH_FADE_OUT_DURATION).min(1.0)
+                1.0 - ((elapsed - theme::SPLASH_FADE_OUT_START) / theme::SPLASH_FADE_OUT_DURATION)
+                    .min(1.0)
             } else {
                 1.0
             };

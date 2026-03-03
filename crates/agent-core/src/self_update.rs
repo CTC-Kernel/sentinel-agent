@@ -3,11 +3,11 @@
 
 //! Self-update management.
 
+use crate::api_client::UpdateStatusReport;
 use agent_common::constants::AGENT_VERSION;
 use agent_common::error::CommonError;
 #[cfg(feature = "gui")]
 use agent_common::types::UpdateStatus;
-use crate::api_client::UpdateStatusReport;
 use std::sync::Arc;
 use tracing::{error, info, warn};
 
@@ -91,7 +91,8 @@ impl AgentRuntime {
                 );
 
                 // Report downloading status to server
-                self.report_update("downloading", Some(&info.version), None).await;
+                self.report_update("downloading", Some(&info.version), None)
+                    .await;
 
                 #[cfg(feature = "gui")]
                 self.emit_gui_event(agent_gui::events::AgentEvent::UpdateStatusChanged {
@@ -102,13 +103,15 @@ impl AgentRuntime {
                 let target_version = info.version.clone();
 
                 // Report installing status to server
-                self.report_update("installing", Some(&target_version), None).await;
+                self.report_update("installing", Some(&target_version), None)
+                    .await;
 
                 if let Err(e) = update_manager.perform_update(info).await {
                     error!("Self-update failed: {}", e);
 
                     // Report failure to server
-                    self.report_update("failed", Some(&target_version), Some(&format!("{}", e))).await;
+                    self.report_update("failed", Some(&target_version), Some(&format!("{}", e)))
+                        .await;
 
                     #[cfg(feature = "gui")]
                     {
@@ -125,7 +128,8 @@ impl AgentRuntime {
                 }
 
                 // Report success to server
-                self.report_update("completed", Some(&target_version), None).await;
+                self.report_update("completed", Some(&target_version), None)
+                    .await;
 
                 info!("Self-update initiated successfully.");
                 #[cfg(feature = "gui")]
@@ -154,7 +158,8 @@ impl AgentRuntime {
                 error!("Failed to check for updates: {}", e);
 
                 // Report failure to server
-                self.report_update("failed", None, Some(&format!("{}", e))).await;
+                self.report_update("failed", None, Some(&format!("{}", e)))
+                    .await;
 
                 #[cfg(feature = "gui")]
                 {

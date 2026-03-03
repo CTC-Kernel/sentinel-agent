@@ -12,10 +12,10 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for session lock.
@@ -150,12 +150,17 @@ impl SessionLockCheck {
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // Screen saver active (GPO overrides)
-            let active = json.get("GPO_ScreenSaveActive")
+            let active = json
+                .get("GPO_ScreenSaveActive")
                 .or_else(|| json.get("ScreenSaveActive"))
                 .and_then(|v| {
-                    if v.is_string() { v.as_str() } 
-                    else if v.is_number() { Some(if v.as_i64() == Some(1) { "1" } else { "0" }) }
-                    else { None }
+                    if v.is_string() {
+                        v.as_str()
+                    } else if v.is_number() {
+                        Some(if v.as_i64() == Some(1) { "1" } else { "0" })
+                    } else {
+                        None
+                    }
                 });
             status.lock_enabled = active == Some("1");
 
@@ -164,9 +169,13 @@ impl SessionLockCheck {
                 .get("GPO_ScreenSaveTimeOut")
                 .or_else(|| json.get("ScreenSaveTimeOut"))
                 .and_then(|v| {
-                    if v.is_string() { v.as_str().and_then(|s| s.parse::<u32>().ok()) }
-                    else if v.is_number() { v.as_u64().map(|n| n as u32) }
-                    else { None }
+                    if v.is_string() {
+                        v.as_str().and_then(|s| s.parse::<u32>().ok())
+                    } else if v.is_number() {
+                        v.as_u64().map(|n| n as u32)
+                    } else {
+                        None
+                    }
                 })
             {
                 status.timeout_minutes = Some(timeout.div_ceil(60));
@@ -177,9 +186,13 @@ impl SessionLockCheck {
                 .get("GPO_ScreenSaverIsSecure")
                 .or_else(|| json.get("ScreenSaverIsSecure"))
                 .and_then(|v| {
-                    if v.is_string() { v.as_str() }
-                    else if v.is_number() { Some(if v.as_i64() == Some(1) { "1" } else { "0" }) }
-                    else { None }
+                    if v.is_string() {
+                        v.as_str()
+                    } else if v.is_number() {
+                        Some(if v.as_i64() == Some(1) { "1" } else { "0" })
+                    } else {
+                        None
+                    }
                 });
             status.require_password = secure == Some("1");
 
@@ -189,7 +202,8 @@ impl SessionLockCheck {
                 status.lock_on_suspend = true;
             } else if let Some(power) = json.get("PowerCfgOutput").and_then(|v| v.as_str()) {
                 // Look for "Current AC Power Setting Index: 0x00000001" or localized equivalent
-                status.lock_on_suspend = power.contains("0x00000001") || power.to_lowercase().contains("yes");
+                status.lock_on_suspend =
+                    power.contains("0x00000001") || power.to_lowercase().contains("yes");
             }
         }
 

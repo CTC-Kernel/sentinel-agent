@@ -47,7 +47,10 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 let points_glow = points.clone();
                 painter.add(egui::Shape::line(
                     points_glow,
-                    egui::Stroke::new(stroke_width + theme::SPACE_XS, color.linear_multiply(theme::OPACITY_TINT)),
+                    egui::Stroke::new(
+                        stroke_width + theme::SPACE_XS,
+                        color.linear_multiply(theme::OPACITY_TINT),
+                    ),
                 ));
 
                 let Some(&last_point) = points.last() else {
@@ -59,11 +62,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 ));
 
                 painter.circle_filled(last_point, stroke_width * 0.5, color);
-                painter.circle_filled(
-                    last_point,
-                    stroke_width * 0.25,
-                    theme::text_on_accent(),
-                );
+                painter.circle_filled(last_point, stroke_width * 0.25, theme::text_on_accent());
             }
 
             // Score text

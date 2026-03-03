@@ -11,10 +11,10 @@
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[allow(unused_imports)]
 use crate::error::{ScannerError, ScannerResult};
+use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use agent_common::process::silent_command;
 use tracing::debug;
 
 /// Check ID for Bluetooth disabled.
@@ -140,9 +140,7 @@ impl BluetoothCheck {
         let bt_path = std::path::Path::new("/sys/class/bluetooth");
         if bt_path.exists() {
             if let Ok(entries) = std::fs::read_dir(bt_path) {
-                let has_adapter = entries
-                    .filter_map(|e| e.ok())
-                    .any(|_| true);
+                let has_adapter = entries.filter_map(|e| e.ok()).any(|_| true);
                 if has_adapter {
                     return Ok(BluetoothStatus {
                         bluetooth_disabled: false,

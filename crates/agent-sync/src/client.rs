@@ -26,7 +26,8 @@ const MAX_LOG_BODY_LEN: usize = 200;
 fn truncate_for_log(s: &str, max_len: usize) -> String {
     if s.len() > max_len {
         // Find a valid UTF-8 char boundary at or before max_len
-        let end = s.char_indices()
+        let end = s
+            .char_indices()
             .take_while(|&(i, _)| i <= max_len)
             .last()
             .map(|(i, _)| i)
@@ -327,20 +328,37 @@ impl HttpClient {
     {
         let url = self.url(path);
         debug!("Base URL: '{}'", self.safe_log_url(&self.base_url));
-        debug!("POST {} (with bearer token, len={})", self.safe_log_url(&url), token.len());
+        debug!(
+            "POST {} (with bearer token, len={})",
+            self.safe_log_url(&url),
+            token.len()
+        );
 
         // Trim token and strip non-ASCII characters to prevent invalid header values
-        let trimmed_token: String = token.trim().chars().filter(|c| c.is_ascii() && *c != '\n' && *c != '\r').collect();
+        let trimmed_token: String = token
+            .trim()
+            .chars()
+            .filter(|c| c.is_ascii() && *c != '\n' && *c != '\r')
+            .collect();
 
         if trimmed_token.is_empty() {
-            return Err(SyncError::Config("Enrollment token is empty after sanitization".to_string()));
+            return Err(SyncError::Config(
+                "Enrollment token is empty after sanitization".to_string(),
+            ));
         }
 
         // Build the authorization header value explicitly to catch errors early
         let auth_value = format!("Bearer {}", trimmed_token);
         let auth_header = header::HeaderValue::from_str(&auth_value).map_err(|e| {
-            tracing::error!("Invalid authorization header value: {} (token len={})", e, trimmed_token.len());
-            SyncError::Config(format!("Invalid enrollment token (contains invalid characters): {}", e))
+            tracing::error!(
+                "Invalid authorization header value: {} (token len={})",
+                e,
+                trimmed_token.len()
+            );
+            SyncError::Config(format!(
+                "Invalid enrollment token (contains invalid characters): {}",
+                e
+            ))
         })?;
 
         let response = self
@@ -411,7 +429,11 @@ impl HttpClient {
         R: serde::de::DeserializeOwned,
     {
         let url = self.url(path);
-        debug!("GET {} (If-None-Match: {:?})", self.safe_log_url(&url), if_none_match);
+        debug!(
+            "GET {} (If-None-Match: {:?})",
+            self.safe_log_url(&url),
+            if_none_match
+        );
 
         let mut request = self
             .client
@@ -455,7 +477,10 @@ impl HttpClient {
         } else {
             // Try to parse error response
             let error_text = response.text().await.unwrap_or_default();
-            debug!("Error response body: {}", truncate_for_log(&error_text, MAX_LOG_BODY_LEN));
+            debug!(
+                "Error response body: {}",
+                truncate_for_log(&error_text, MAX_LOG_BODY_LEN)
+            );
 
             if let Ok(api_error) =
                 serde_json::from_str::<crate::types::ApiErrorResponse>(&error_text)
@@ -570,7 +595,10 @@ impl HttpClient {
 
         if status.is_success() {
             let body_text = response.text().await.map_err(SyncError::Http)?;
-            debug!("Response body: {}", truncate_for_log(&body_text, MAX_LOG_BODY_LEN));
+            debug!(
+                "Response body: {}",
+                truncate_for_log(&body_text, MAX_LOG_BODY_LEN)
+            );
 
             let body = serde_json::from_str::<R>(&body_text).map_err(|e| {
                 tracing::error!(
@@ -584,7 +612,10 @@ impl HttpClient {
         } else {
             // Try to parse error response
             let error_text = response.text().await.unwrap_or_default();
-            debug!("Error response body: {}", truncate_for_log(&error_text, MAX_LOG_BODY_LEN));
+            debug!(
+                "Error response body: {}",
+                truncate_for_log(&error_text, MAX_LOG_BODY_LEN)
+            );
 
             // Try to parse as API error
             if let Ok(api_error) =

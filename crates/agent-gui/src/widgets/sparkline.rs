@@ -32,13 +32,23 @@ impl Default for SparklineConfig {
 }
 
 /// Renders a clean sparkline chart using egui_plot.
-pub fn sparkline(ui: &mut Ui, id_salt: &str, data: &[[f64; 2]], size: Vec2, config: &SparklineConfig) {
+pub fn sparkline(
+    ui: &mut Ui,
+    id_salt: &str,
+    data: &[[f64; 2]],
+    size: Vec2,
+    config: &SparklineConfig,
+) {
     if data.is_empty() {
         // Empty state
         let (rect, _) = ui.allocate_exact_size(size, egui::Sense::hover());
         if ui.is_rect_visible(rect) {
             let painter = ui.painter_at(rect);
-            painter.rect_filled(rect, theme::PROGRESS_BAR_ROUNDING, theme::bg_tertiary().linear_multiply(theme::OPACITY_TINT));
+            painter.rect_filled(
+                rect,
+                theme::PROGRESS_BAR_ROUNDING,
+                theme::bg_tertiary().linear_multiply(theme::OPACITY_TINT),
+            );
 
             // Subtle grid lines
             let grid_color = theme::border().linear_multiply(theme::OPACITY_TINT);

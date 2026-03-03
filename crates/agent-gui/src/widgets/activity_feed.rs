@@ -60,7 +60,11 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
     ui.vertical(|ui: &mut egui::Ui| {
         // Header
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(RichText::new(icons::STREAM).size(theme::ICON_XS).color(theme::accent_text()));
+            ui.label(
+                RichText::new(icons::STREAM)
+                    .size(theme::ICON_XS)
+                    .color(theme::accent_text()),
+            );
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 RichText::new("ACTIVITÉ EN DIRECT")
@@ -82,9 +86,11 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                     };
 
                     ui.label(
-                        RichText::new("●")
-                            .size(theme::STATUS_DOT_SIZE)
-                            .color(theme::SUCCESS.linear_multiply(theme::OPACITY_MEDIUM + theme::OPACITY_MEDIUM * pulse)),
+                        RichText::new("●").size(theme::STATUS_DOT_SIZE).color(
+                            theme::SUCCESS.linear_multiply(
+                                theme::OPACITY_MEDIUM + theme::OPACITY_MEDIUM * pulse,
+                            ),
+                        ),
                     );
                     ui.label(
                         RichText::new("EN DIRECT")
@@ -93,7 +99,8 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                     );
 
                     if !theme::is_reduced_motion() {
-                        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+                        ui.ctx()
+                            .request_repaint_after(std::time::Duration::from_millis(100));
                     }
                 },
             );
@@ -106,7 +113,8 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
         let fp_id = ui.id().with("activity_feed_fp");
         let prev_fp: Option<(usize, usize)> = ui.memory(|mem| mem.data.get_temp(fp_id));
         let events: Vec<ActivityEvent> = if prev_fp.as_ref() == Some(&fingerprint) {
-            ui.memory(|mem| mem.data.get_temp(cache_id)).unwrap_or_default()
+            ui.memory(|mem| mem.data.get_temp(cache_id))
+                .unwrap_or_default()
         } else {
             let built = build_events_from_state(state);
             ui.memory_mut(|mem| {
@@ -170,8 +178,15 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
         }
 
         // Left color indicator bar
-        let bar_rect = egui::Rect::from_min_size(rect.left_top(), Vec2::new(theme::ACCENT_BAR_WIDTH, rect.height()));
-        painter.rect_filled(bar_rect, CornerRadius::same(theme::ROUNDING_XS), color.linear_multiply(theme::OPACITY_STRONG));
+        let bar_rect = egui::Rect::from_min_size(
+            rect.left_top(),
+            Vec2::new(theme::ACCENT_BAR_WIDTH, rect.height()),
+        );
+        painter.rect_filled(
+            bar_rect,
+            CornerRadius::same(theme::ROUNDING_XS),
+            color.linear_multiply(theme::OPACITY_STRONG),
+        );
 
         // Icon
         let icon_pos = egui::pos2(rect.left() + theme::SPACE, rect.center().y);
@@ -195,7 +210,10 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
 
         // Detail (if any)
         if let Some(ref detail) = event.detail {
-            let detail_pos = egui::pos2(rect.left() + theme::SPACE_XL, rect.center().y + theme::SPACE_SM);
+            let detail_pos = egui::pos2(
+                rect.left() + theme::SPACE_XL,
+                rect.center().y + theme::SPACE_SM,
+            );
             painter.text(
                 detail_pos,
                 egui::Align2::LEFT_CENTER,

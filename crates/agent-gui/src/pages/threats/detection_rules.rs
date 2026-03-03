@@ -106,7 +106,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 ui,
                 icons::CROSSHAIRS,
                 "AUCUNE R\u{00c8}GLE",
-                Some("Cr\u{00e9}ez une r\u{00e8}gle de d\u{00e9}tection personnalis\u{00e9}e pour surveiller des indicateurs sp\u{00e9}cifiques."),
+                Some(
+                    "Cr\u{00e9}ez une r\u{00e8}gle de d\u{00e9}tection personnalis\u{00e9}e pour surveiller des indicateurs sp\u{00e9}cifiques.",
+                ),
             );
         } else {
             let mut toggle_commands: Vec<(String, bool)> = Vec::new();
@@ -136,8 +138,15 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
                 ui.push_id(row_idx, |ui: &mut egui::Ui| {
                     egui::Frame::new()
-                        .fill(if row_idx % 2 == 1 { theme::table_row_bg(row_idx) } else { egui::Color32::TRANSPARENT })
-                        .inner_margin(egui::Margin::symmetric(theme::SPACE_MD as i8, theme::SPACE_SM as i8))
+                        .fill(if row_idx % 2 == 1 {
+                            theme::table_row_bg(row_idx)
+                        } else {
+                            egui::Color32::TRANSPARENT
+                        })
+                        .inner_margin(egui::Margin::symmetric(
+                            theme::SPACE_MD as i8,
+                            theme::SPACE_SM as i8,
+                        ))
                         .show(ui, |ui: &mut egui::Ui| {
                             ui.horizontal(|ui: &mut egui::Ui| {
                                 // Left: rule info
@@ -169,7 +178,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui: &mut egui::Ui| {
-                                        if widgets::ghost_button(ui, icons::TRASH.to_string()).clicked() {
+                                        if widgets::ghost_button(ui, icons::TRASH.to_string())
+                                            .clicked()
+                                        {
                                             delete_id = Some(rule.id.to_string());
                                         }
                                         ui.add_space(theme::SPACE_XS);
@@ -318,11 +329,8 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                 f.conditions.remove(idx);
             }
 
-            if widgets::ghost_button(
-                ui,
-                format!("{}  Ajouter une condition", icons::PLUS),
-            )
-            .clicked()
+            if widgets::ghost_button(ui, format!("{}  Ajouter une condition", icons::PLUS))
+                .clicked()
             {
                 f.conditions.push(DetectionCondition {
                     condition_type: DetectionConditionType::ProcessNameContains,
@@ -382,16 +390,11 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
 
                 ui.add_space(theme::SPACE_SM);
 
-                let can_save = !f.name.trim().is_empty()
-                    && !f.conditions.is_empty()
-                    && !f.actions.is_empty();
+                let can_save =
+                    !f.name.trim().is_empty() && !f.conditions.is_empty() && !f.actions.is_empty();
 
-                if widgets::primary_button(
-                    ui,
-                    format!("{}  Enregistrer", icons::SAVE),
-                    can_save,
-                )
-                .clicked()
+                if widgets::primary_button(ui, format!("{}  Enregistrer", icons::SAVE), can_save)
+                    .clicked()
                     && can_save
                 {
                     let severity = SEVERITY_OPTIONS

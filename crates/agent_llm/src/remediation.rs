@@ -3,14 +3,14 @@
 
 //! LLM-powered remediation recommendations and guidance.
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use anyhow::Result;
 use tracing::{info, warn};
 
-use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
-use super::prompts::{PromptTemplates, PromptBuilder};
+use super::engine::{InferenceRequest, ModelEngine};
+use super::prompts::{PromptBuilder, PromptTemplates};
 pub use crate::analyzer::RiskLevel;
 use crate::utils::{extract_lines, parse_risk_level, try_parse_json};
 
@@ -122,8 +122,14 @@ impl RemediationAdvisor {
     }
 
     /// Generate remediation plan for identified issues.
-    pub async fn generate_remediation_plan(&self, request: RemediationRequest) -> Result<RemediationPlan> {
-        info!("Generating remediation plan for {} issues", request.issues.len());
+    pub async fn generate_remediation_plan(
+        &self,
+        request: RemediationRequest,
+    ) -> Result<RemediationPlan> {
+        info!(
+            "Generating remediation plan for {} issues",
+            request.issues.len()
+        );
         let start_time = std::time::Instant::now();
 
         // Build the remediation prompt
@@ -142,9 +148,13 @@ impl RemediationAdvisor {
         let response = self.engine.infer(inference_request).await?;
 
         // Parse the response
-        let plan = self.parse_remediation_response(&response.text, &request, start_time.elapsed())?;
+        let plan =
+            self.parse_remediation_response(&response.text, &request, start_time.elapsed())?;
 
-        info!("Remediation plan generated with {} actions", plan.actions.len());
+        info!(
+            "Remediation plan generated with {} actions",
+            plan.actions.len()
+        );
         Ok(plan)
     }
 
@@ -164,7 +174,10 @@ impl RemediationAdvisor {
     }
 
     /// Validate remediation steps before execution.
-    pub async fn validate_remediation(&self, plan: &RemediationPlan) -> Result<RemediationValidation> {
+    pub async fn validate_remediation(
+        &self,
+        plan: &RemediationPlan,
+    ) -> Result<RemediationValidation> {
         let (system_prompt, prompt) = self.build_validation_prompt(plan)?;
 
         let mut request = InferenceRequest::new(prompt)
@@ -179,16 +192,23 @@ impl RemediationAdvisor {
     }
 
     /// Build remediation prompt from request, returning (system_prompt, user_prompt).
-    fn build_remediation_prompt(&self, request: &RemediationRequest) -> Result<(Option<String>, String)> {
+    fn build_remediation_prompt(
+        &self,
+        request: &RemediationRequest,
+    ) -> Result<(Option<String>, String)> {
         let template = PromptTemplates::get("remediation")
             .ok_or_else(|| anyhow::anyhow!("Remediation template not found"))?;
 
         // Format issues for the prompt
-        let issues_text = request.issues.iter()
-            .map(|issue| format!("{} [{}]: {}",
-                issue.title,
-                issue.severity,
-                issue.description))
+        let issues_text = request
+            .issues
+            .iter()
+            .map(|issue| {
+                format!(
+                    "{} [{}]: {}",
+                    issue.title, issue.severity, issue.description
+                )
+            })
             .collect::<Vec<_>>()
             .join("\n");
 
@@ -212,7 +232,10 @@ impl RemediationAdvisor {
     }
 
     /// Build issue-specific remediation prompt, returning (system_prompt, user_prompt).
-    fn build_issue_remediation_prompt(&self, issue: &SecurityIssue) -> Result<(Option<String>, String)> {
+    fn build_issue_remediation_prompt(
+        &self,
+        issue: &SecurityIssue,
+    ) -> Result<(Option<String>, String)> {
         let user_prompt = format!(
             r#"Provide detailed remediation steps for the following security issue:
 
@@ -259,11 +282,15 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
 
     /// Build validation prompt for remediation plan, returning (system_prompt, user_prompt).
     fn build_validation_prompt(&self, plan: &RemediationPlan) -> Result<(Option<String>, String)> {
-        let actions_text = plan.actions.iter()
-            .map(|action| format!("{} [{}]: {}",
-                action.title,
-                action.priority,
-                action.description))
+        let actions_text = plan
+            .actions
+            .iter()
+            .map(|action| {
+                format!(
+                    "{} [{}]: {}",
+                    action.title, action.priority, action.description
+                )
+            })
             .collect::<Vec<_>>()
             .join("\n");
 
@@ -293,8 +320,7 @@ IMPORTANT: You MUST respond with a single JSON object conforming to this schema:
 }}
 
 Respond ONLY with valid JSON. No markdown fences, no commentary."#,
-            actions_text,
-            plan.system_context
+            actions_text, plan.system_context
         );
 
         Ok((
@@ -304,7 +330,12 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
     }
 
     /// Parse remediation response from LLM.
-    fn parse_remediation_response(&self, response: &str, request: &RemediationRequest, duration: std::time::Duration) -> Result<RemediationPlan> {
+    fn parse_remediation_response(
+        &self,
+        response: &str,
+        request: &RemediationRequest,
+        duration: std::time::Duration,
+    ) -> Result<RemediationPlan> {
         let now = chrono::Utc::now();
         let generation_time_ms = duration.as_millis() as u64;
 
@@ -318,22 +349,20 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
             id: uuid::Uuid::new_v4().to_string(),
             title: format!("Remediation Plan for {}", request.request_id),
             description: response.chars().take(500).collect::<String>(),
-            actions: vec![
-                RemediationAction {
-                    id: "action-1".to_string(),
-                    title: "Review LLM Output".to_string(),
-                    description: response.to_string(),
-                    action_type: ActionType::Configuration,
-                    priority: Priority::High,
-                    estimated_duration: "Unknown".to_string(),
-                    dependencies: vec![],
-                    commands: vec![],
-                    verification_steps: vec!["Manually review the raw LLM response".to_string()],
-                    rollback_steps: vec![],
-                    risk_level: RiskLevel::Medium,
-                    prerequisites: vec![],
-                }
-            ],
+            actions: vec![RemediationAction {
+                id: "action-1".to_string(),
+                title: "Review LLM Output".to_string(),
+                description: response.to_string(),
+                action_type: ActionType::Configuration,
+                priority: Priority::High,
+                estimated_duration: "Unknown".to_string(),
+                dependencies: vec![],
+                commands: vec![],
+                verification_steps: vec!["Manually review the raw LLM response".to_string()],
+                rollback_steps: vec![],
+                risk_level: RiskLevel::Medium,
+                prerequisites: vec![],
+            }],
             system_context: format!("{:?}", request.system_context),
             estimated_total_duration: "Unknown".to_string(),
             overall_risk: RiskLevel::Medium,
@@ -377,16 +406,27 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
                     id: a.id.unwrap_or_else(|| format!("action-{}", i + 1)),
                     title: a.title.unwrap_or_else(|| format!("Action {}", i + 1)),
                     description: a.description.unwrap_or_default(),
-                    action_type: a.action_type.as_deref().map(parse_action_type)
+                    action_type: a
+                        .action_type
+                        .as_deref()
+                        .map(parse_action_type)
                         .unwrap_or(ActionType::Configuration),
-                    priority: a.priority.as_deref().map(parse_priority)
+                    priority: a
+                        .priority
+                        .as_deref()
+                        .map(parse_priority)
                         .unwrap_or(Priority::Medium),
-                    estimated_duration: a.estimated_duration.unwrap_or_else(|| "Unknown".to_string()),
+                    estimated_duration: a
+                        .estimated_duration
+                        .unwrap_or_else(|| "Unknown".to_string()),
                     dependencies: a.dependencies,
                     commands: a.commands,
                     verification_steps: a.verification_steps,
                     rollback_steps: a.rollback_steps,
-                    risk_level: a.risk_level.as_deref().map(parse_risk_level)
+                    risk_level: a
+                        .risk_level
+                        .as_deref()
+                        .map(parse_risk_level)
                         .unwrap_or(RiskLevel::Medium),
                     prerequisites: a.prerequisites,
                 })
@@ -395,12 +435,21 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
 
         RemediationPlan {
             id: uuid::Uuid::new_v4().to_string(),
-            title: raw.title.unwrap_or_else(|| format!("Remediation Plan for {}", request.request_id)),
-            description: raw.description.unwrap_or_else(|| "Automatically generated remediation plan".to_string()),
+            title: raw
+                .title
+                .unwrap_or_else(|| format!("Remediation Plan for {}", request.request_id)),
+            description: raw
+                .description
+                .unwrap_or_else(|| "Automatically generated remediation plan".to_string()),
             actions,
             system_context: format!("{:?}", request.system_context),
-            estimated_total_duration: raw.estimated_total_duration.unwrap_or_else(|| "Unknown".to_string()),
-            overall_risk: raw.overall_risk.as_deref().map(parse_risk_level)
+            estimated_total_duration: raw
+                .estimated_total_duration
+                .unwrap_or_else(|| "Unknown".to_string()),
+            overall_risk: raw
+                .overall_risk
+                .as_deref()
+                .map(parse_risk_level)
                 .unwrap_or(RiskLevel::Medium),
             created_at: now,
             generation_time_ms,
@@ -408,7 +457,11 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
     }
 
     /// Parse issue-specific remediation response.
-    fn parse_issue_remediation(&self, response: &str, issue: &SecurityIssue) -> Result<IssueRemediation> {
+    fn parse_issue_remediation(
+        &self,
+        response: &str,
+        issue: &SecurityIssue,
+    ) -> Result<IssueRemediation> {
         if let Ok(raw) = try_parse_json::<RawIssueRemediation>(response) {
             return Ok(self.raw_to_issue_remediation(raw, issue));
         }
@@ -435,7 +488,11 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
     }
 
     /// Convert intermediate issue remediation into the domain type.
-    fn raw_to_issue_remediation(&self, raw: RawIssueRemediation, issue: &SecurityIssue) -> IssueRemediation {
+    fn raw_to_issue_remediation(
+        &self,
+        raw: RawIssueRemediation,
+        issue: &SecurityIssue,
+    ) -> IssueRemediation {
         IssueRemediation {
             issue_id: issue.id.clone(),
             immediate_actions: if raw.immediate_actions.is_empty() {
@@ -455,12 +512,18 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
                 raw.rollback_procedure
             },
             estimated_time: raw.estimated_time.unwrap_or_else(|| "Unknown".to_string()),
-            risk_assessment: raw.risk_assessment.unwrap_or_else(|| "No risk assessment provided".to_string()),
+            risk_assessment: raw
+                .risk_assessment
+                .unwrap_or_else(|| "No risk assessment provided".to_string()),
         }
     }
 
     /// Parse validation response.
-    fn parse_validation_response(&self, response: &str, plan: &RemediationPlan) -> Result<RemediationValidation> {
+    fn parse_validation_response(
+        &self,
+        response: &str,
+        plan: &RemediationPlan,
+    ) -> Result<RemediationValidation> {
         if let Ok(raw) = try_parse_json::<RawRemediationValidation>(response) {
             return Ok(self.raw_to_validation(raw, plan));
         }
@@ -481,7 +544,10 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
             plan_id: plan.id.clone(),
             is_valid: !likely_invalid,
             safety_concerns: if likely_invalid {
-                vec!["Validation response could not be parsed; raw text suggests concerns".to_string()]
+                vec![
+                    "Validation response could not be parsed; raw text suggests concerns"
+                        .to_string(),
+                ]
             } else {
                 vec![]
             },
@@ -495,7 +561,11 @@ Respond ONLY with valid JSON. No markdown fences, no commentary."#,
     }
 
     /// Convert intermediate validation result into the domain type.
-    fn raw_to_validation(&self, raw: RawRemediationValidation, plan: &RemediationPlan) -> RemediationValidation {
+    fn raw_to_validation(
+        &self,
+        raw: RawRemediationValidation,
+        plan: &RemediationPlan,
+    ) -> RemediationValidation {
         RemediationValidation {
             plan_id: plan.id.clone(),
             is_valid: raw.is_valid.unwrap_or(true),
@@ -673,8 +743,14 @@ mod tests {
 
     #[test]
     fn test_parse_action_type_variants() {
-        assert!(matches!(parse_action_type("configuration"), ActionType::Configuration));
-        assert!(matches!(parse_action_type("Config"), ActionType::Configuration));
+        assert!(matches!(
+            parse_action_type("configuration"),
+            ActionType::Configuration
+        ));
+        assert!(matches!(
+            parse_action_type("Config"),
+            ActionType::Configuration
+        ));
         assert!(matches!(parse_action_type("patch"), ActionType::Patch));
         assert!(matches!(parse_action_type("Update"), ActionType::Patch));
         assert!(matches!(parse_action_type("service"), ActionType::Service));
@@ -682,9 +758,15 @@ mod tests {
         assert!(matches!(parse_action_type("Firewall"), ActionType::Network));
         assert!(matches!(parse_action_type("access"), ActionType::Access));
         assert!(matches!(parse_action_type("IAM"), ActionType::Access));
-        assert!(matches!(parse_action_type("monitoring"), ActionType::Monitoring));
+        assert!(matches!(
+            parse_action_type("monitoring"),
+            ActionType::Monitoring
+        ));
         assert!(matches!(parse_action_type("policy"), ActionType::Policy));
-        assert!(matches!(parse_action_type("unknown_thing"), ActionType::Configuration));
+        assert!(matches!(
+            parse_action_type("unknown_thing"),
+            ActionType::Configuration
+        ));
     }
 
     #[test]

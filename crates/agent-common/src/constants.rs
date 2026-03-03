@@ -64,12 +64,16 @@ pub const CONFIG_FILE_NAME: &str = "agent.json";
 ///
 /// Override at runtime via the `server_url` field in `agent.json`.
 /// **Open-source users**: replace with your own Firebase project ID.
-pub const FIREBASE_PROJECT_ID: &str = env_or_default!("SENTINEL_FIREBASE_PROJECT_ID", "your-project-id");
+pub const FIREBASE_PROJECT_ID: &str =
+    env_or_default!("SENTINEL_FIREBASE_PROJECT_ID", "your-project-id");
 
 /// Firebase Storage bucket.
 ///
 /// **Open-source users**: replace with your own Firebase Storage bucket.
-pub const FIREBASE_STORAGE_BUCKET: &str = env_or_default!("SENTINEL_FIREBASE_STORAGE_BUCKET", "your-project-id.firebasestorage.app");
+pub const FIREBASE_STORAGE_BUCKET: &str = env_or_default!(
+    "SENTINEL_FIREBASE_STORAGE_BUCKET",
+    "your-project-id.firebasestorage.app"
+);
 
 /// Default server URL (Cloud Run v2, deployed via Firebase Functions v2).
 ///
@@ -78,14 +82,18 @@ pub const FIREBASE_STORAGE_BUCKET: &str = env_or_default!("SENTINEL_FIREBASE_STO
 /// Firebase Functions v2 deploys to Cloud Run, so the URL uses the
 /// `*.run.app` format rather than the legacy `cloudfunctions.net` format.
 /// **Open-source users**: replace with your own Cloud Run endpoint.
-pub const DEFAULT_SERVER_URL: &str =
-    env_or_default!("SENTINEL_SERVER_URL", "https://agentapi-your-project-hash.a.run.app");
+pub const DEFAULT_SERVER_URL: &str = env_or_default!(
+    "SENTINEL_SERVER_URL",
+    "https://agentapi-your-project-hash.a.run.app"
+);
 
 /// Base URL for release artifacts in Firebase Storage.
 ///
 /// **Open-source users**: replace with your own releases path.
-pub const RELEASES_BASE_URL: &str =
-    env_or_default!("SENTINEL_RELEASES_BASE_URL", "https://storage.googleapis.com/your-project-id.firebasestorage.app/releases/agent");
+pub const RELEASES_BASE_URL: &str = env_or_default!(
+    "SENTINEL_RELEASES_BASE_URL",
+    "https://storage.googleapis.com/your-project-id.firebasestorage.app/releases/agent"
+);
 
 /// Log file name.
 pub const LOG_FILE_NAME: &str = "agent.log";

@@ -16,15 +16,23 @@ pub mod security;
 pub mod utils;
 
 // Re-export main components
-pub use analyzer::{AnalysisResult, LLMAnalyzer, SecurityAnalysis, AnalysisContext, ScanResult};
+pub use analyzer::{AnalysisContext, AnalysisResult, LLMAnalyzer, ScanResult, SecurityAnalysis};
 pub use config::LLMConfig;
-pub use engine::{ModelEngine, MistralEngine, create_engine, ModelStatus, MemoryUsage, InferenceRequest, InferenceResponse};
-pub use models::{ModelRegistry, ModelInfo};
-pub use remediation::{RemediationAdvisor, RemediationPlan, RemediationAction, ActionType, RemediationRequest, SecurityIssue, SystemContext};
-pub use security::{SecurityClassifier, SecurityClassification, ThreatType, ThreatLevel, SecurityEvent};
+pub use engine::{
+    InferenceRequest, InferenceResponse, MemoryUsage, MistralEngine, ModelEngine, ModelStatus,
+    create_engine,
+};
+pub use models::{ModelInfo, ModelRegistry};
+pub use remediation::{
+    ActionType, RemediationAction, RemediationAdvisor, RemediationPlan, RemediationRequest,
+    SecurityIssue, SystemContext,
+};
+pub use security::{
+    SecurityClassification, SecurityClassifier, SecurityEvent, ThreatLevel, ThreatType,
+};
 
-use std::sync::Arc;
 use anyhow::Result;
+use std::sync::Arc;
 
 /// Model statistics.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -97,7 +105,12 @@ impl LLMManager {
 
 /// Create a new LLM manager with default configuration.
 pub async fn create_llm_manager(config: LLMConfig) -> Result<LLMManager> {
-    let engine = engine::create_engine(&config.model, &config.inference, &config.security, &config.cache)?;
+    let engine = engine::create_engine(
+        &config.model,
+        &config.inference,
+        &config.security,
+        &config.cache,
+    )?;
     let analyzer = LLMAnalyzer::new(engine.clone(), &config);
     let classifier = SecurityClassifier::new(engine.clone(), &config);
     let advisor = RemediationAdvisor::new(engine.clone(), &config);

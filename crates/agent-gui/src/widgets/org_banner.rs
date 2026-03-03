@@ -60,7 +60,8 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         1.0
                     } else {
                         let time = ui.input(|i| i.time);
-                        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+                        ui.ctx()
+                            .request_repaint_after(std::time::Duration::from_millis(100));
                         ((time * 2.5).sin() * 0.5 + 0.5) as f32
                     };
 
@@ -91,7 +92,9 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         ui.painter().circle_filled(
                             dot_center,
                             dot_size * 0.5,
-                            status_color.linear_multiply(theme::OPACITY_STRONG + theme::OPACITY_TINT * pulse),
+                            status_color.linear_multiply(
+                                theme::OPACITY_STRONG + theme::OPACITY_TINT * pulse,
+                            ),
                         );
                     }
 
@@ -193,13 +196,16 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                             1.0
                         } else {
                             let time = ui.input(|i| i.time);
-                            ((time * 1.5).sin() * theme::OPACITY_MODERATE as f64 + theme::OPACITY_PRESSED as f64) as f32
+                            ((time * 1.5).sin() * theme::OPACITY_MODERATE as f64
+                                + theme::OPACITY_PRESSED as f64) as f32
                         };
 
                         let badge_text = format!("{}", state.summary.pending_sync_count);
 
-                        let badge_rect =
-                            egui::Rect::from_min_size(ui.cursor().min, Vec2::new(theme::SPACE_LG, theme::BADGE_MIN_HEIGHT));
+                        let badge_rect = egui::Rect::from_min_size(
+                            ui.cursor().min,
+                            Vec2::new(theme::SPACE_LG, theme::BADGE_MIN_HEIGHT),
+                        );
 
                         let rounding = CornerRadius::same(9);
                         let base_bg = theme::badge_bg(theme::INFO);
@@ -209,7 +215,10 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         ui.painter().rect_stroke(
                             badge_rect,
                             rounding,
-                            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::INFO)),
+                            egui::Stroke::new(
+                                theme::BORDER_HAIRLINE,
+                                theme::badge_border(theme::INFO),
+                            ),
                             egui::StrokeKind::Inside,
                         );
                         ui.painter().text(
@@ -228,7 +237,8 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         );
 
                         if !theme::is_reduced_motion() {
-                            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+                            ui.ctx()
+                                .request_repaint_after(std::time::Duration::from_millis(100));
                         }
                     });
 
@@ -265,7 +275,8 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                     .clicked()
                     {
                         // Open browser to console dashboard (HTTPS only)
-                        let console_url = format!("{}/dashboard", crate::pages::about::branding::CONSOLE);
+                        let console_url =
+                            format!("{}/dashboard", crate::pages::about::branding::CONSOLE);
                         if console_url.starts_with("https://") {
                             if let Err(e) = open::that(&console_url) {
                                 tracing::warn!("Failed to open URL {}: {}", console_url, e);

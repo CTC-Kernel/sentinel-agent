@@ -7,9 +7,9 @@
 //! and executes the appropriate response chain. When the `llm` feature is
 //! enabled, AI-powered confidence scoring enriches the evaluation.
 
-use tracing::info;
 #[cfg(all(feature = "gui", feature = "llm"))]
 use tracing::debug;
+use tracing::info;
 
 /// Playbook condition evaluation result.
 #[derive(Debug)]
@@ -25,11 +25,25 @@ pub struct PlaybookEvaluation {
 /// A resolved action to execute as part of a playbook.
 #[derive(Debug, Clone)]
 pub enum ResolvedAction {
-    KillProcess { name: String, pid: u32 },
-    QuarantineFile { path: String },
-    BlockIp { ip: String, duration_secs: u64 },
-    Alert { title: String, severity: String, description: String },
-    Notify { message: String },
+    KillProcess {
+        name: String,
+        pid: u32,
+    },
+    QuarantineFile {
+        path: String,
+    },
+    BlockIp {
+        ip: String,
+        duration_secs: u64,
+    },
+    Alert {
+        title: String,
+        severity: String,
+        description: String,
+    },
+    Notify {
+        message: String,
+    },
 }
 
 /// Result of a single playbook action execution.
@@ -85,8 +99,7 @@ pub struct FimAlertInfo {
 pub async fn evaluate_playbook(
     playbook: &agent_gui::dto::Playbook,
     threat_context: &ThreatContext,
-    #[cfg(feature = "llm")]
-    llm_service: Option<&crate::llm_service::LLMService>,
+    #[cfg(feature = "llm")] llm_service: Option<&crate::llm_service::LLMService>,
 ) -> PlaybookEvaluation {
     use agent_gui::dto::PlaybookConditionType;
 
@@ -130,10 +143,8 @@ pub async fn evaluate_playbook(
                     if alert.description.to_lowercase().contains(&condition_value)
                         || alert.severity.to_lowercase() == condition_value
                     {
-                        matched_conditions.push(format!(
-                            "Network alert matches '{}'",
-                            condition.value
-                        ));
+                        matched_conditions
+                            .push(format!("Network alert matches '{}'", condition.value));
                         if let Some(ref ip) = alert.remote_ip {
                             actions.push(ResolvedAction::BlockIp {
                                 ip: ip.clone(),
@@ -149,10 +160,8 @@ pub async fn evaluate_playbook(
                     if fim_alert.path.to_lowercase().contains(&condition_value)
                         || fim_alert.change_type.to_lowercase() == condition_value
                     {
-                        matched_conditions.push(format!(
-                            "FIM alert on path matching '{}'",
-                            condition.value
-                        ));
+                        matched_conditions
+                            .push(format!("FIM alert on path matching '{}'", condition.value));
                         actions.push(ResolvedAction::QuarantineFile {
                             path: fim_alert.path.clone(),
                         });
@@ -163,10 +172,8 @@ pub async fn evaluate_playbook(
             PlaybookConditionType::SeverityThreshold => {
                 for alert in &threat_context.network_alerts {
                     if alert.severity.to_lowercase() == condition_value {
-                        matched_conditions.push(format!(
-                            "Severity '{}' matches threshold",
-                            condition.value
-                        ));
+                        matched_conditions
+                            .push(format!("Severity '{}' matches threshold", condition.value));
                         base_confidence += 0.2;
                     }
                 }
@@ -211,10 +218,7 @@ pub async fn evaluate_playbook(
         actions.push(ResolvedAction::Alert {
             title: format!("Playbook '{}' triggered", playbook.name),
             severity: "medium".to_string(),
-            description: format!(
-                "Conditions matched: {}",
-                matched_conditions.join(", ")
-            ),
+            description: format!("Conditions matched: {}", matched_conditions.join(", ")),
         });
 
         // Enhance confidence with LLM if available
@@ -249,10 +253,7 @@ pub async fn evaluate_playbook(
                         // Use AI confidence to modulate base confidence
                         let ai_confidence = classification.confidence as f32 / 100.0;
                         base_confidence = (base_confidence + ai_confidence) / 2.0;
-                        debug!(
-                            "AI-enhanced playbook confidence: {:.2}",
-                            base_confidence
-                        );
+                        debug!("AI-enhanced playbook confidence: {:.2}", base_confidence);
                     }
                     Err(e) => {
                         debug!("LLM classification for playbook failed: {}", e);

@@ -6,8 +6,8 @@
 //! Each struct groups related fields by functional domain (network, discovery,
 //! terminal, etc.) to keep `AppState` maintainable.
 
-use std::collections::VecDeque;
 use eframe::egui;
+use std::collections::VecDeque;
 
 // ---------------------------------------------------------------------------
 // Network
@@ -129,7 +129,7 @@ impl Default for TerminalState {
 pub struct SyncState {
     pub in_progress: bool,
     pub error: Option<String>,
-// Removed: pub history: VecDeque<super::app::SyncHistoryEntry>,
+    // Removed: pub history: VecDeque<super::app::SyncHistoryEntry>,
     pub history: VecDeque<SyncHistoryEntry>,
 }
 
@@ -307,7 +307,6 @@ pub struct ComplianceFilter {
     pub ai_analysis_result: Option<String>,
 }
 
-
 // ---------------------------------------------------------------------------
 // AI / Intelligence Artificielle
 // ---------------------------------------------------------------------------
@@ -462,7 +461,6 @@ pub struct SoftwareState {
     pub selected_package: Option<usize>,
     pub detail_open: bool,
 }
-
 
 // ---------------------------------------------------------------------------
 // Settings
@@ -650,15 +648,17 @@ impl AppState {
 
     pub fn radar_scores(&self) -> (f32, f32, f32, f32, f32) {
         let compliance = self.summary.compliance_score.unwrap_or(0.0) / 100.0;
-        let threats = 1.0 - (self.threats.suspicious_processes.len() as f32 / Self::RADAR_MAX_THREATS).min(1.0);
-        let vulns = 1.0 - (self.vulnerability_findings.len() as f32 / Self::RADAR_MAX_VULNS).min(1.0);
+        let threats = 1.0
+            - (self.threats.suspicious_processes.len() as f32 / Self::RADAR_MAX_THREATS).min(1.0);
+        let vulns =
+            1.0 - (self.vulnerability_findings.len() as f32 / Self::RADAR_MAX_VULNS).min(1.0);
         let resources = 1.0 - (self.resources.cpu_percent as f32 / 100.0).min(1.0);
         let network = 1.0 - (self.network.alert_count as f32 / Self::RADAR_MAX_ALERTS).min(1.0);
         (compliance, threats, vulns, resources, network)
     }
 
     /// Process an event from the agent runtime.
-    /// 
+    ///
     /// This method centralizes all state updates and ensures reactive computation
     /// of summary statistics. Each event handler updates the appropriate sub-state
     /// and triggers necessary recomputations.
@@ -697,7 +697,13 @@ impl AppState {
                 primary_ip,
                 primary_mac,
             } => {
-                self.update_network_summary(interfaces_count, connections_count, alerts_count, primary_ip, primary_mac);
+                self.update_network_summary(
+                    interfaces_count,
+                    connections_count,
+                    alerts_count,
+                    primary_ip,
+                    primary_mac,
+                );
             }
             AgentEvent::NetworkDetailUpdate {
                 interfaces,
@@ -741,9 +747,7 @@ impl AppState {
                 self.cartography.layout = None;
             }
             AgentEvent::DiscoveryProgress {
-                phase,
-                progress,
-                ..
+                phase, progress, ..
             } => {
                 self.discovery.in_progress = true;
                 self.discovery.phase = phase;
@@ -850,7 +854,12 @@ impl AppState {
             }
             AgentEvent::PlaybookTriggered { log_entry } => {
                 // Update playbook last_triggered / trigger_count
-                if let Some(pb) = self.threats.playbooks.iter_mut().find(|p| p.id == log_entry.playbook_id) {
+                if let Some(pb) = self
+                    .threats
+                    .playbooks
+                    .iter_mut()
+                    .find(|p| p.id == log_entry.playbook_id)
+                {
                     pb.last_triggered = Some(log_entry.triggered_at);
                     pb.trigger_count = pb.trigger_count.saturating_add(1);
                 }
@@ -894,9 +903,15 @@ impl AppState {
                 let summary = if let Some(fp) = is_false_positive {
                     let conf = confidence.unwrap_or(0);
                     if fp {
-                        format!("[Analyse: {}] Faux positif probable (confiance: {}%)\n\n{}", target, conf, analysis)
+                        format!(
+                            "[Analyse: {}] Faux positif probable (confiance: {}%)\n\n{}",
+                            target, conf, analysis
+                        )
                     } else {
-                        format!("[Analyse: {}] Menace confirmée (confiance: {}%)\n\n{}", target, conf, analysis)
+                        format!(
+                            "[Analyse: {}] Menace confirmée (confiance: {}%)\n\n{}",
+                            target, conf, analysis
+                        )
                     }
                 } else {
                     format!("[Analyse: {}]\n\n{}", target, analysis)
@@ -926,7 +941,8 @@ impl AppState {
                     {
                         self.threats.suspicious_processes[idx].ai_analysis = Some(analysis);
                         self.threats.suspicious_processes[idx].ai_confidence = confidence;
-                        self.threats.suspicious_processes[idx].is_false_positive = is_false_positive;
+                        self.threats.suspicious_processes[idx].is_false_positive =
+                            is_false_positive;
                     }
                 } else if let Some(idx_str) = target.strip_prefix("incident#") {
                     // System incident
@@ -991,10 +1007,7 @@ impl AppState {
                 self.ai.download.speed_bps = 0;
                 self.ai.download.error = None;
             }
-            AgentEvent::LlmDownloadFailed {
-                model_name,
-                error,
-            } => {
+            AgentEvent::LlmDownloadFailed { model_name, error } => {
                 self.ai.download.phase = crate::dto::DownloadPhase::Failed;
                 self.ai.download.model_name = model_name;
                 self.ai.download.speed_bps = 0;
@@ -1062,25 +1075,33 @@ impl AppState {
         let t = usage.uptime_secs as f64;
 
         {
-            self.monitoring.cpu_history.push_back([t, usage.cpu_percent]);
+            self.monitoring
+                .cpu_history
+                .push_back([t, usage.cpu_percent]);
             while self.monitoring.cpu_history.len() > MAX_HISTORY {
                 self.monitoring.cpu_history.pop_front();
             }
         }
         {
-            self.monitoring.memory_history.push_back([t, usage.memory_percent]);
+            self.monitoring
+                .memory_history
+                .push_back([t, usage.memory_percent]);
             while self.monitoring.memory_history.len() > MAX_HISTORY {
                 self.monitoring.memory_history.pop_front();
             }
         }
         {
-            self.monitoring.disk_io_history.push_back([t, usage.disk_kbps as f64]);
+            self.monitoring
+                .disk_io_history
+                .push_back([t, usage.disk_kbps as f64]);
             while self.monitoring.disk_io_history.len() > MAX_HISTORY {
                 self.monitoring.disk_io_history.pop_front();
             }
         }
         {
-            self.monitoring.network_io_history.push_back([t, usage.network_io_bytes as f64 / 1024.0]);
+            self.monitoring
+                .network_io_history
+                .push_back([t, usage.network_io_bytes as f64 / 1024.0]);
             while self.monitoring.network_io_history.len() > MAX_HISTORY {
                 self.monitoring.network_io_history.pop_front();
             }
@@ -1123,7 +1144,7 @@ impl AppState {
     ) {
         self.sync.in_progress = syncing;
         self.summary.pending_sync_count = pending_count;
-        
+
         if let Some(ts) = last_sync_at {
             self.summary.last_sync_at = Some(ts);
             self.sync.history.push_front(SyncHistoryEntry {
@@ -1226,7 +1247,8 @@ impl AppState {
         // For now, we'll skip the non-existent fields
 
         // Update notification count (count only unread notifications)
-        self.unread_notification_count = self.notifications.iter().filter(|n| !n.read).count() as u32;
+        self.unread_notification_count =
+            self.notifications.iter().filter(|n| !n.read).count() as u32;
     }
 
     fn recompute_policy(&mut self) {

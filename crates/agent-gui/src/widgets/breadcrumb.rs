@@ -148,8 +148,10 @@ impl<'a> Breadcrumb<'a> {
                 // Show ellipsis after first item if needed
                 if show_ellipsis && original_idx > 0 && !shown_ellipsis {
                     // Ellipsis button (meets MIN_TOUCH_TARGET)
-                    let (rect, response) =
-                        ui.allocate_exact_size(egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET), Sense::click());
+                    let (rect, response) = ui.allocate_exact_size(
+                        egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET),
+                        Sense::click(),
+                    );
 
                     if ui.is_rect_visible(rect) {
                         let is_hovered = response.hovered();
@@ -209,9 +211,9 @@ impl<'a> Breadcrumb<'a> {
                 }
                 content.push_str(item.label);
 
-                let galley =
-                    ui.painter()
-                        .layout_no_wrap(content, theme::font_body(), text_color);
+                let galley = ui
+                    .painter()
+                    .layout_no_wrap(content, theme::font_body(), text_color);
 
                 let padding = egui::vec2(theme::SPACE_SM, theme::SPACE_XS);
                 let item_size = galley.size() + padding * 2.0;
@@ -229,8 +231,11 @@ impl<'a> Breadcrumb<'a> {
 
                     // Background on hover
                     if is_hovered {
-                        ui.painter()
-                            .rect_filled(rect, CornerRadius::same(theme::SPACE_XS as u8), theme::hover_bg());
+                        ui.painter().rect_filled(
+                            rect,
+                            CornerRadius::same(theme::SPACE_XS as u8),
+                            theme::hover_bg(),
+                        );
                     }
 
                     // Text — recolor the existing galley instead of re-laying-out
@@ -240,11 +245,7 @@ impl<'a> Breadcrumb<'a> {
                         text_color
                     };
 
-                    ui.painter().galley(
-                        rect.min + padding,
-                        galley,
-                        final_color,
-                    );
+                    ui.painter().galley(rect.min + padding, galley, final_color);
 
                     // Underline for current
                     if is_current {

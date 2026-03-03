@@ -69,10 +69,7 @@ impl<'a> SearchFilterBar<'a> {
                 let (bg, fg) = if *active {
                     (theme::badge_bg(*color), theme::badge_text(*color))
                 } else {
-                    (
-                        egui::Color32::TRANSPARENT,
-                        theme::badge_text(*color),
-                    )
+                    (egui::Color32::TRANSPARENT, theme::badge_text(*color))
                 };
 
                 let border_color = theme::badge_border(*color);

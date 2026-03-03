@@ -49,7 +49,9 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
             let glow_alpha = (anim_progress - 0.5) * 2.0 * theme::OPACITY_TINT;
             ui.painter().rect_filled(
                 track_rect.expand(theme::BORDER_THICK),
-                CornerRadius::same((track_rect.height() / 2.0 + theme::BORDER_THICK).min(255.0) as u8),
+                CornerRadius::same(
+                    (track_rect.height() / 2.0 + theme::BORDER_THICK).min(255.0) as u8
+                ),
                 bg_on.linear_multiply(glow_alpha),
             );
         }
@@ -58,18 +60,26 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
         ui.painter().rect_filled(track_rect, rounding, bg_color);
 
         // Track border (subtle)
-        let border_alpha = if is_hovered { theme::OPACITY_MUTED } else { theme::OPACITY_TINT };
+        let border_alpha = if is_hovered {
+            theme::OPACITY_MUTED
+        } else {
+            theme::OPACITY_TINT
+        };
         ui.painter().rect_stroke(
             track_rect,
             rounding,
-            Stroke::new(theme::BORDER_HAIRLINE, theme::overlay_color().linear_multiply(border_alpha)),
+            Stroke::new(
+                theme::BORDER_HAIRLINE,
+                theme::overlay_color().linear_multiply(border_alpha),
+            ),
             egui::StrokeKind::Inside,
         );
 
         // Knob
         let knob_radius = (track_rect.height() / 2.0) - theme::BORDER_THICK;
         let knob_x = egui::lerp(
-            track_rect.left() + knob_radius + theme::BORDER_THICK..=track_rect.right() - knob_radius - theme::BORDER_THICK,
+            track_rect.left() + knob_radius + theme::BORDER_THICK
+                ..=track_rect.right() - knob_radius - theme::BORDER_THICK,
             anim_progress,
         );
         let knob_center = egui::pos2(knob_x, track_rect.center().y);
@@ -97,7 +107,9 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
             knob_radius - theme::BORDER_THIN,
             Stroke::new(
                 theme::BORDER_THIN,
-                theme::overlay_color().linear_multiply((theme::KNOB_HIGHLIGHT_BASE * highlight_pulse / 255.0).clamp(0.0, 1.0)),
+                theme::overlay_color().linear_multiply(
+                    (theme::KNOB_HIGHLIGHT_BASE * highlight_pulse / 255.0).clamp(0.0, 1.0),
+                ),
             ),
         );
 
@@ -119,4 +131,3 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
 
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
-

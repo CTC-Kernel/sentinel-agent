@@ -12,11 +12,11 @@
 
 use super::types::*;
 use crate::error::ScannerResult;
+use agent_common::process::silent_async_command;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info};
 #[cfg(target_os = "linux")]
 use tracing::warn;
-use agent_common::process::silent_async_command;
+use tracing::{debug, info};
 
 /// LDAP server security auditor.
 pub struct LdapAuditor;
@@ -65,9 +65,11 @@ impl LdapAuditor {
         uri: &str,
         config: &mut LdapSecurityConfig,
     ) -> ScannerResult<()> {
-
         // Check if ldapsearch is available
-        let which_result = silent_async_command("which").arg("ldapsearch").output().await;
+        let which_result = silent_async_command("which")
+            .arg("ldapsearch")
+            .output()
+            .await;
 
         if !which_result.is_ok_and(|o| o.status.success()) {
             warn!("ldapsearch not available, using limited probe");
@@ -218,7 +220,6 @@ impl LdapAuditor {
         uri: &str,
         config: &mut LdapSecurityConfig,
     ) -> ScannerResult<()> {
-
         // Extract host and port from URI
         let uri_parts: Vec<&str> = uri.split("://").collect();
         if uri_parts.len() < 2 {

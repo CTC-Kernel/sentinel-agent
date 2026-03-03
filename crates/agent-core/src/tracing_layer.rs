@@ -169,7 +169,11 @@ impl tracing::field::Visit for MessageVisitor {
         if should_set_message {
             self.message = format!("{:?}", value);
             // Remove surrounding quotes if present
-            if let Some(stripped) = self.message.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
+            if let Some(stripped) = self
+                .message
+                .strip_prefix('"')
+                .and_then(|s| s.strip_suffix('"'))
+            {
                 self.message = stripped.to_string();
             }
         }
@@ -189,7 +193,11 @@ impl tracing::field::Visit for MessageVisitor {
         if should_set_message {
             self.message = format!("{:?}", value);
             // Remove surrounding quotes if present
-            if let Some(stripped) = self.message.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
+            if let Some(stripped) = self
+                .message
+                .strip_prefix('"')
+                .and_then(|s| s.strip_suffix('"'))
+            {
                 self.message = stripped.to_string();
             }
         }

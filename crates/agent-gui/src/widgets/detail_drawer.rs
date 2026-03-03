@@ -166,20 +166,22 @@ impl<'a> DetailDrawer<'a> {
             .fixed_pos(egui::pos2(drawer_x, screen.min.y))
             .order(egui::Order::Foreground)
             .show(ctx, |ui| {
-                let drawer_rect =
-                    egui::Rect::from_min_size(egui::pos2(drawer_x, screen.min.y), egui::vec2(drawer_width, screen.height()));
+                let drawer_rect = egui::Rect::from_min_size(
+                    egui::pos2(drawer_x, screen.min.y),
+                    egui::vec2(drawer_width, screen.height()),
+                );
 
                 // Full-height glass background
-                ui.painter().rect_filled(
-                    drawer_rect,
-                    CornerRadius::ZERO,
-                    theme::bg_secondary(),
-                );
+                ui.painter()
+                    .rect_filled(drawer_rect, CornerRadius::ZERO, theme::bg_secondary());
 
                 // Left border with accent
                 ui.painter().line_segment(
                     [drawer_rect.left_top(), drawer_rect.left_bottom()],
-                    egui::Stroke::new(theme::BORDER_MEDIUM, self.accent_color.linear_multiply(theme::OPACITY_MEDIUM)),
+                    egui::Stroke::new(
+                        theme::BORDER_MEDIUM,
+                        self.accent_color.linear_multiply(theme::OPACITY_MEDIUM),
+                    ),
                 );
 
                 // Shadow on the left edge (theme-aware)
@@ -253,7 +255,8 @@ impl<'a> DetailDrawer<'a> {
                                 egui::Layout::right_to_left(egui::Align::Center),
                                 |ui| {
                                     ui.add_space(theme::SPACE_MD);
-                                    if button::icon_button(ui, icons::XMARK, Some("Fermer")).clicked()
+                                    if button::icon_button(ui, icons::XMARK, Some("Fermer"))
+                                        .clicked()
                                     {
                                         should_close = true;
                                     }
@@ -264,12 +267,7 @@ impl<'a> DetailDrawer<'a> {
                         ui.add_space(theme::SPACE_SM);
 
                         // Accent divider
-                        let divider_rect = ui
-                            .allocate_space(egui::vec2(
-                                content_width,
-                                2.0,
-                            ))
-                            .1;
+                        let divider_rect = ui.allocate_space(egui::vec2(content_width, 2.0)).1;
                         if ui.is_rect_visible(divider_rect) {
                             ui.painter().rect_filled(
                                 divider_rect,
@@ -293,12 +291,7 @@ impl<'a> DetailDrawer<'a> {
                         if !actions.is_empty() {
                             ui.add_space(theme::SPACE_LG);
 
-                            let action_rect = ui
-                                .allocate_space(egui::vec2(
-                                    content_width,
-                                    1.0,
-                                ))
-                                .1;
+                            let action_rect = ui.allocate_space(egui::vec2(content_width, 1.0)).1;
                             ui.painter().rect_filled(
                                 action_rect,
                                 CornerRadius::ZERO,
@@ -509,11 +502,8 @@ pub fn detail_progress(ui: &mut Ui, label: &str, fraction: f32, color: Color32) 
     let width = ui.available_width();
     let (rect, _) = ui.allocate_exact_size(egui::vec2(width, bar_height), egui::Sense::hover());
     if ui.is_rect_visible(rect) {
-        ui.painter().rect_filled(
-            rect,
-            CornerRadius::same(3),
-            theme::bg_tertiary(),
-        );
+        ui.painter()
+            .rect_filled(rect, CornerRadius::same(3), theme::bg_tertiary());
         let fill_w = rect.width() * fraction.clamp(0.0, 1.0);
         if fill_w > 0.0 {
             let fill_rect = egui::Rect::from_min_size(rect.min, egui::vec2(fill_w, bar_height));

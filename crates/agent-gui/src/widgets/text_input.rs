@@ -226,7 +226,10 @@ pub fn text_input_with_options(
     // Text edit area (slightly inset)
     let text_rect = egui::Rect::from_min_size(
         rect.min + egui::vec2(theme::SPACE_MD, theme::SPACE_XS),
-        egui::vec2(desired_width - theme::SPACE_LG - right_padding, input_height - theme::SPACE_SM),
+        egui::vec2(
+            desired_width - theme::SPACE_LG - right_padding,
+            input_height - theme::SPACE_SM,
+        ),
     );
 
     let text_response = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
@@ -235,7 +238,10 @@ pub fn text_input_with_options(
             egui::TextEdit::singleline(value)
                 .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
                 .font(theme::font_body())
-                .margin(egui::Margin::symmetric(0, (theme::SPACE_XS + theme::BORDER_THICK) as i8))
+                .margin(egui::Margin::symmetric(
+                    0,
+                    (theme::SPACE_XS + theme::BORDER_THICK) as i8,
+                ))
                 .frame(false)
                 .desired_width(text_rect.width()),
         )
@@ -335,7 +341,10 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
 
         // Search icon
         painter.text(
-            egui::pos2(rect.min.x + theme::SPACE_MD + theme::BORDER_THICK, rect.center().y),
+            egui::pos2(
+                rect.min.x + theme::SPACE_MD + theme::BORDER_THICK,
+                rect.center().y,
+            ),
             egui::Align2::LEFT_CENTER,
             icons::SEARCH,
             theme::font_body(),
@@ -347,7 +356,10 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
     let search_icon_offset = theme::TABLE_ROW_HEIGHT;
     let text_rect = egui::Rect::from_min_size(
         rect.min + egui::vec2(search_icon_offset, theme::SPACE_XS),
-        egui::vec2(desired_width - search_icon_offset * 2.0, input_height - theme::SPACE_SM),
+        egui::vec2(
+            desired_width - search_icon_offset * 2.0,
+            input_height - theme::SPACE_SM,
+        ),
     );
 
     let text_response = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
@@ -356,7 +368,10 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
             egui::TextEdit::singleline(value)
                 .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
                 .font(theme::font_body())
-                .margin(egui::Margin::symmetric(0, (theme::SPACE_XS + theme::BORDER_THICK) as i8))
+                .margin(egui::Margin::symmetric(
+                    0,
+                    (theme::SPACE_XS + theme::BORDER_THICK) as i8,
+                ))
                 .frame(false)
                 .desired_width(text_rect.width()),
         )

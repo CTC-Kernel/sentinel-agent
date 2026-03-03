@@ -14,7 +14,7 @@ use crate::theme;
 use crate::widgets;
 
 use super::mitre;
-use super::types::{severity_display, network_alert_type_label};
+use super::types::{network_alert_type_label, severity_display};
 
 /// A single IOC search result across all data sources.
 struct IocSearchResult {
@@ -41,7 +41,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
         ui.horizontal(|ui: &mut egui::Ui| {
             // IOC type dropdown
-            let ioc_labels = ["Adresse IP", "Domaine", "Hash (SHA-256)", "Processus", "CVE"];
+            let ioc_labels = [
+                "Adresse IP",
+                "Domaine",
+                "Hash (SHA-256)",
+                "Processus",
+                "CVE",
+            ];
             let mut ioc_idx = match state.threats.ioc_type {
                 IocSearchType::Ip => 0,
                 IocSearchType::Domain => 1,
@@ -80,8 +86,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             ui.add_space(theme::SPACE_SM);
 
-            if widgets::button::primary_button(ui, format!("{}  RECHERCHER", icons::SEARCH), true).clicked()
-                || (ui.input(|i| i.key_pressed(egui::Key::Enter)) && !state.threats.ioc_search.is_empty())
+            if widgets::button::primary_button(ui, format!("{}  RECHERCHER", icons::SEARCH), true)
+                .clicked()
+                || (ui.input(|i| i.key_pressed(egui::Key::Enter))
+                    && !state.threats.ioc_search.is_empty())
             {
                 // Search is live — results computed below from current query
             }
@@ -97,7 +105,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             ui,
             icons::SEARCH,
             "AUCUNE RECHERCHE",
-            Some("Entrez un indicateur de compromission (IP, hash, domaine, processus ou CVE) pour lancer une recherche multi-sources."),
+            Some(
+                "Entrez un indicateur de compromission (IP, hash, domaine, processus ou CVE) pour lancer une recherche multi-sources.",
+            ),
         );
         state.threats.ioc_results_count = 0;
         return None;
@@ -110,11 +120,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     widgets::card(ui, |ui: &mut egui::Ui| {
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new(format!("R\u{00c9}SULTATS ({} correspondances)", results.len()))
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
+                egui::RichText::new(format!(
+                    "R\u{00c9}SULTATS ({} correspondances)",
+                    results.len()
+                ))
+                .font(theme::font_label())
+                .color(theme::text_tertiary())
+                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                .strong(),
             );
         });
         ui.add_space(theme::SPACE_SM);
@@ -124,7 +137,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 ui,
                 icons::SHIELD_CHECK,
                 "AUCUNE CORRESPONDANCE",
-                Some("Aucun \u{00e9}v\u{00e9}nement ne correspond \u{00e0} cet indicateur dans les sources de d\u{00e9}tection."),
+                Some(
+                    "Aucun \u{00e9}v\u{00e9}nement ne correspond \u{00e0} cet indicateur dans les sources de d\u{00e9}tection.",
+                ),
             );
         } else {
             for result in &results {
@@ -219,9 +234,13 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
         IocSearchType::Ip => {
             // Search network alerts by source_ip / destination_ip
             for alert in &state.network.alerts {
-                let src_match = alert.source_ip.as_deref()
+                let src_match = alert
+                    .source_ip
+                    .as_deref()
                     .is_some_and(|ip| ip.to_lowercase().contains(query));
-                let dst_match = alert.destination_ip.as_deref()
+                let dst_match = alert
+                    .destination_ip
+                    .as_deref()
                     .is_some_and(|ip| ip.to_lowercase().contains(query));
                 if src_match || dst_match {
                     let mitre = mitre::mitre_mapping("network", &alert.alert_type);
@@ -232,7 +251,10 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                             "SRC: {} \u{2192} DST: {}:{}",
                             alert.source_ip.as_deref().unwrap_or("--"),
                             alert.destination_ip.as_deref().unwrap_or("--"),
-                            alert.destination_port.map(|p| p.to_string()).unwrap_or_else(|| "--".to_string()),
+                            alert
+                                .destination_port
+                                .map(|p| p.to_string())
+                                .unwrap_or_else(|| "--".to_string()),
                         ),
                         severity: alert.severity.as_str(),
                         timestamp: alert.detected_at,
@@ -262,9 +284,13 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
         IocSearchType::Hash => {
             // Search FIM alerts by old_hash / new_hash
             for alert in &state.fim.alerts {
-                let old_match = alert.old_hash.as_deref()
+                let old_match = alert
+                    .old_hash
+                    .as_deref()
                     .is_some_and(|h| h.to_lowercase().contains(query));
-                let new_match = alert.new_hash.as_deref()
+                let new_match = alert
+                    .new_hash
+                    .as_deref()
                     .is_some_and(|h| h.to_lowercase().contains(query));
                 if old_match || new_match {
                     let mitre = mitre::mitre_mapping("fim", "");
@@ -289,7 +315,8 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                 if proc.process_name.to_lowercase().contains(query)
                     || proc.command_line.to_lowercase().contains(query)
                 {
-                    let subtype = format!("{} {}", proc.process_name, proc.command_line).to_lowercase();
+                    let subtype =
+                        format!("{} {}", proc.process_name, proc.command_line).to_lowercase();
                     let mitre = mitre::mitre_mapping("process", &subtype);
                     let severity = if proc.confidence >= 90 {
                         "critical"

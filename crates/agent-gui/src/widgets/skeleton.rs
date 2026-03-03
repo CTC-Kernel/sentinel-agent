@@ -120,7 +120,8 @@ impl Skeleton {
 
             let color = if animated {
                 let t = ui.input(|i| i.time);
-                let pulse = ((t as f32 * theme::ANIM_SKELETON_SPEED).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
+                let pulse =
+                    ((t as f32 * theme::ANIM_SKELETON_SPEED).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
                 let highlight = if theme::is_dark_mode() {
                     theme::SKELETON_HIGHLIGHT_DARK
                 } else {

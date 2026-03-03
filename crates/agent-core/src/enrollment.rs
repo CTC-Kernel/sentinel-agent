@@ -3,10 +3,10 @@
 
 //! Agent enrollment and API client initialization.
 
-use agent_common::error::CommonError;
-use agent_common::constants::AGENT_VERSION;
 use crate::api_client::{ApiClient, EnrollmentRequest};
-use crate::system_utils::{get_os_version, get_machine_id, parse_organization_id_from_token};
+use crate::system_utils::{get_machine_id, get_os_version, parse_organization_id_from_token};
+use agent_common::constants::AGENT_VERSION;
+use agent_common::error::CommonError;
 use tracing::info;
 
 use super::AgentRuntime;
