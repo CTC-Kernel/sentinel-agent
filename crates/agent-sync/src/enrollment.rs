@@ -125,6 +125,7 @@ impl<'a> EnrollmentManager<'a> {
             agent_version: AGENT_VERSION.to_string(),
             machine_id,
             admin_password,
+            organization_id: agent_common::jwt::parse_organization_id_from_token(token),
         };
 
         // Call enrollment endpoint

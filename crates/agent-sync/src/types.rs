@@ -35,6 +35,10 @@ pub struct EnrollmentRequest {
     /// Admin password for the agent (optional).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub admin_password: Option<String>,
+
+    /// Organization identifier.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub organization_id: Option<String>,
 }
 
 /// Enrollment response from the SaaS.
@@ -1255,6 +1259,7 @@ mod tests {
             agent_version: "0.1.0".to_string(),
             machine_id: Some("machine-id".to_string()),
             admin_password: None,
+            organization_id: None,
         };
 
         let json = serde_json::to_string(&request).unwrap();
