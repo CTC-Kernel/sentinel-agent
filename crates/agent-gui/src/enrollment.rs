@@ -40,6 +40,7 @@ pub struct EnrollmentWizard {
     pub show_token: bool,
     pub admin_password: String,
     pub show_password: bool,
+    pub is_enrolling: bool,
 }
 
 impl Default for EnrollmentWizard {
@@ -53,6 +54,7 @@ impl Default for EnrollmentWizard {
             show_token: false,
             admin_password: String::new(),
             show_password: false,
+            is_enrolling: false,
         }
     }
 }
@@ -308,11 +310,6 @@ impl EnrollmentWizard {
 
                     ui.add_space(theme::SPACE);
 
-                    let has_input = if self.use_qr {
-                        !self.qr_input.trim().is_empty()
-                    } else {
-                        !self.token_input.trim().is_empty()
-                    };
 
                     let next_btn = egui::Button::new(
                         egui::RichText::new("Suivant")
@@ -323,11 +320,18 @@ impl EnrollmentWizard {
                     .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
                     .min_size(egui::Vec2::new(120.0, 36.0));
 
-                    if ui.add_enabled(has_input, next_btn).clicked() {
+                    let is_valid = if self.use_qr {
+                        !self.qr_input.trim().is_empty()
+                    } else {
+                        !self.token_input.trim().is_empty()
+                    };
+
+                    if ui.add_enabled(is_valid && !self.is_enrolling, next_btn).clicked() {
                         if self.use_qr {
                             // QR goes directly to enrollment (no admin setup for QR)
                             let qr = self.qr_input.trim().to_string();
                             self.step = EnrollmentStep::InProgress;
+                            self.is_enrolling = true;
                             self.progress_message = "Traitement du code QR...".to_string();
                             command = Some(EnrollmentCommand::SubmitQr(qr));
                         } else {
@@ -432,11 +436,12 @@ impl EnrollmentWizard {
                     .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
                     .min_size(egui::Vec2::new(120.0, 36.0));
 
-                    if ui.add_enabled(is_valid, enroll_btn).clicked() {
+                    if ui.add_enabled(is_valid && !self.is_enrolling, enroll_btn).clicked() {
                         let token = self.token_input.trim().to_string();
                         let password = Some(self.admin_password.trim().to_string());
 
                         self.step = EnrollmentStep::InProgress;
+                        self.is_enrolling = true;
                         self.progress_message = "Connexion au serveur...".to_string();
                         command = Some(EnrollmentCommand::SubmitEnrollment {
                             token,
@@ -577,6 +582,7 @@ impl EnrollmentWizard {
 
     /// Set the enrollment result. Called by the app when enrollment completes.
     pub fn set_result(&mut self, success: bool, message: String) {
+        self.is_enrolling = false;
         self.step = EnrollmentStep::Complete { success, message };
     }
 

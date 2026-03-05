@@ -195,6 +195,7 @@ pub async fn run_threat_pipeline(
     context: &ThreatContext,
     gui_tx: &Option<std::sync::mpsc::Sender<agent_gui::events::AgentEvent>>,
     #[cfg(feature = "llm")] llm_service: Option<&crate::llm_service::LLMService>,
+    audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
 ) -> PipelineResult {
     // Step 1: Evaluate detection rules
     #[allow(unused_mut)]
@@ -253,7 +254,7 @@ pub async fn run_threat_pipeline(
 
             // Execute the playbook actions
             let results =
-                crate::playbook_engine::execute_playbook_actions(&evaluation.actions).await;
+                crate::playbook_engine::execute_playbook_actions(&evaluation.playbook_name, &evaluation.actions, audit_trail).await;
 
             let success_count = results.iter().filter(|r| r.success).count();
             let total = results.len();

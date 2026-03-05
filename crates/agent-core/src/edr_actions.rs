@@ -11,6 +11,13 @@ use tracing::{info, warn};
 
 /// Kill a process by name and PID.
 pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonError> {
+    // Anti-Draper protection: Prevent the agent from killing itself
+    let my_pid = std::process::id();
+    if pid == my_pid {
+        warn!("Anti-Draper triggered: Attempted to kill own process (PID: {})", pid);
+        return Err(CommonError::internal("Anti-Draper protection: Cannot terminate the Sentinel Agent process"));
+    }
+
     info!(
         "Attempting to kill process '{}' (PID: {})",
         process_name, pid
@@ -168,6 +175,19 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
 /// after the specified duration.
 pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
     info!("Blocking IP '{}' for {} seconds", ip, duration_secs);
+
+    // Anti-Draper protection: Prevent blocking localhost or the backend server
+    if ip == "127.0.0.1" || ip == "::1" || ip.starts_with("127.") {
+        warn!("Anti-Draper triggered: Attempted to block localhost ({})", ip);
+        return Err(CommonError::internal("Anti-Draper protection: Cannot block localhost"));
+    }
+
+    if let Ok(config) = agent_common::config::AgentConfig::load(None) {
+        if config.server_url.contains(ip) {
+            warn!("Anti-Draper triggered: Attempted to block backend API server ({})", ip);
+            return Err(CommonError::internal("Anti-Draper protection: Cannot block the backend API server"));
+        }
+    }
 
     // Validate IP format
     if ip.parse::<std::net::IpAddr>().is_err() {

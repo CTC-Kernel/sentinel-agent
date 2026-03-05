@@ -1525,6 +1525,7 @@ impl AgentRuntime {
                         &self.gui_event_tx,
                         #[cfg(feature = "llm")]
                         self.llm_service.as_ref().map(|s| s.as_ref()),
+                        self.audit_trail.as_ref(),
                     )
                     .await;
 

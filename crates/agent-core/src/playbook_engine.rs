@@ -276,7 +276,11 @@ pub async fn evaluate_playbook(
 }
 
 /// Execute playbook actions and collect results.
-pub async fn execute_playbook_actions(actions: &[ResolvedAction]) -> Vec<ActionResult> {
+pub async fn execute_playbook_actions(
+    playbook_name: &str,
+    actions: &[ResolvedAction],
+    audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
+) -> Vec<ActionResult> {
     let mut results = Vec::new();
 
     for action in actions {
@@ -347,6 +351,15 @@ pub async fn execute_playbook_actions(actions: &[ResolvedAction]) -> Vec<ActionR
                 }
             }
         };
+
+        if let Some(trail) = audit_trail {
+            trail.log(crate::audit_trail::AuditAction::PlaybookActionExecuted {
+                playbook_name: playbook_name.to_string(),
+                action: result.action.clone(),
+                success: result.success,
+            }, "system", result.error.clone()).await;
+        }
+
         results.push(result);
     }
 

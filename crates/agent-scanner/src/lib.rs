@@ -60,6 +60,7 @@ pub mod scheduler;
 pub mod score;
 pub mod security;
 pub mod vulnerability;
+pub mod mdm_software;
 
 #[cfg(any(feature = "llm_simple", feature = "llm"))]
 pub mod llm_integration;
@@ -76,9 +77,15 @@ pub use security::usb_monitor::UsbMonitor;
 pub use security::{
     IncidentSeverity, IncidentType, SecurityIncident, SecurityMonitor, SecurityScanResult,
 };
-pub use vulnerability::package_scanner::InstalledPackage;
+// Re-export MDM software types
+pub use mdm_software::{
+    MDMSoftwareScanner, MDMSoftwareInventory, SoftwareCategory, ManagementSource,
+    DeploymentStatus, PolicyCompliance, ComplianceStatus, SoftwareUpdate, UpdateType,
+    SoftwareDependency, SoftwareMetadata, DigitalSignature, InstallationMethod,
+};
 pub use vulnerability::{
     ScanType, Severity, VulnerabilityFinding, VulnerabilityScanResult, VulnerabilityScanner,
+    package_scanner::InstalledPackage,
 };
 
 // Directory services auditing
