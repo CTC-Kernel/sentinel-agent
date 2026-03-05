@@ -9,11 +9,9 @@
 //! policy compliance, and management features.
 
 use crate::error::ScannerResult;
-use crate::scanner::vulnerability::{
+use crate::vulnerability::{
     package_scanner::{InstalledPackage, PackageScanner},
-    VulnerabilityFinding,
 };
-use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -352,24 +350,24 @@ impl MDMSoftwareScanner {
         #[cfg(target_os = "windows")]
         {
             scanners.push(Arc::new(
-                crate::scanner::vulnerability::windows_scanner::WindowsScanner::new()
+                crate::vulnerability::windows_scanner::WindowsScanner::new()
             ));
         }
         
         #[cfg(target_os = "macos")]
         {
             scanners.push(Arc::new(
-                crate::scanner::vulnerability::brew_scanner::BrewScanner::new()
+                crate::vulnerability::brew_scanner::BrewScanner::new()
             ));
             scanners.push(Arc::new(
-                crate::scanner::vulnerability::macos_app_scanner::MacOSAppScanner::new()
+                crate::vulnerability::macos_app_scanner::MacOsAppScanner::new()
             ));
         }
         
         #[cfg(target_os = "linux")]
         {
             scanners.push(Arc::new(
-                crate::scanner::vulnerability::apt_scanner::AptScanner::new()
+                crate::vulnerability::apt_scanner::AptScanner::new()
             ));
         }
         
@@ -613,7 +611,7 @@ impl MDMSoftwareScanner {
     }
     
     /// Detect management source
-    fn detect_management_source(&self, name: &str) -> ManagementSource {
+    fn detect_management_source(&self, _name: &str) -> ManagementSource {
         // This would integrate with MDM policies to determine management source
         // For now, assume manual installation
         ManagementSource::Manual
@@ -647,7 +645,7 @@ impl Default for MDMSoftwareScanner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scanner::vulnerability::package_scanner::InstalledPackage;
+    use crate::vulnerability::package_scanner::InstalledPackage;
     
     #[test]
     fn test_category_detection() {

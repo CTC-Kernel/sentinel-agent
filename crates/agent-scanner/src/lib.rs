@@ -90,7 +90,7 @@ pub use vulnerability::{
 
 // Directory services auditing
 pub use directory::{
-    AclFinding, AuditPolicy, AuditSetting, ComplianceStatus, DirectoryAuditResult,
+    AclFinding, AuditPolicy, AuditSetting, DirectoryAuditResult,
     DirectoryAuditor, DirectoryCategory, DirectoryCheck, DirectoryCheckResult,
     DirectoryComplianceSummary, DirectoryFinding, DirectorySeverity, DirectoryType, GpoAuditor,
     GpoSecuritySettings, GpoSetting, LdapAuditor, LdapConfigFinding, LdapPasswordPolicy,

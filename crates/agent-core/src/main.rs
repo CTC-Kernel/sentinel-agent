@@ -1387,7 +1387,16 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         }
                                     }
 
-                                    let results = agent_core::playbook_engine::execute_playbook_actions(&resolved_actions).await;
+                                    let results = {
+                                        let audit_trail = db_clone.as_ref().map(|db| {
+                                            std::sync::Arc::new(agent_core::audit_trail::LocalAuditTrail::new(db.clone()))
+                                        });
+                                        agent_core::playbook_engine::execute_playbook_actions(
+                                            &playbook.name,
+                                            &resolved_actions,
+                                            audit_trail.as_ref()
+                                        ).await
+                                    };
                                     let actions_executed: Vec<String> = results.iter().map(|r| r.action.clone()).collect();
                                     let all_success = results.iter().all(|r| r.success);
                                     let first_error = results.iter().find(|r| !r.success).and_then(|r| r.error.clone());
