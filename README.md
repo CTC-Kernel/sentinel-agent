@@ -3,7 +3,8 @@
 
 **The Sovereign Standard for Modern Security & Compliance**
 
-🏢 **[Cyber Threat Consulting](https://cyber-threat-consulting.com)** - Expert en souveraineté numérique et cyber-défense
+🏢 **[Cyber Threat Consulting](https://cyber-threat-consulting.com)** 
+Expert en souveraineté numérique et cyber-défense
 
 <p align="center">
   <img src="crates/agent-gui/assets/IA.png" alt="Sentinel GRC Agent IA" width="400">
@@ -17,7 +18,7 @@
 
 ---
 
-Sentinel GRC Agent est un agent d'endpoint souverain et ultra-performant, conçu pour la surveillance rigoureuse de la conformité, le scan profond de vulnérabilités, l'analyse intelligente par IA et l'intégration SIEM. C'est le pilier technique de la plateforme GRC (Gouvernance, Risques, Conformité) pour les environnements à haute exigence de sécurité.
+Sentinel GRC Agent est un agent d'endpoint souverain et ultra-performant, conçu pour la surveillance rigoureuse de controls de conformités, le scan profond de vulnérabilités, l'analyse intelligente par IA et l'intégration SIEM. C'est le pilier technique de la plateforme GRC (Gouvernance, Risques, Conformité) pour les environnements à haute exigence de sécurité.
 
 > [!IMPORTANT]
 > **Développé par [Cyber Threat Consulting](https://cyber-threat-consulting.com)**
