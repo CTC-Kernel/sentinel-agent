@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner_main.png" alt="Sentinel GRC Agent Banner" width="800">
+  <img src="crates/agent-gui/assets/IA.png" alt="Sentinel GRC Agent IA" width="800">
 </p>
 
 # Sentinel GRC Agent
