@@ -335,7 +335,7 @@ impl KeyManager {
     /// Store a key to file with secure permissions (Unix).
     #[cfg(unix)]
     fn store_key(path: &Path, key: &[u8; KEY_LENGTH]) -> StorageResult<()> {
-        // Ensure parent directory exists
+        // Ensure parent directory exists with restrictive permissions
         if let Some(parent) = path.parent()
             && !parent.exists()
         {
@@ -346,6 +346,12 @@ impl KeyManager {
                     e
                 ))
             })?;
+            // Restrict directory to owner-only (0700)
+            use std::os::unix::fs::PermissionsExt;
+            let dir_perms = fs::Permissions::from_mode(0o700);
+            if let Err(e) = fs::set_permissions(parent, dir_perms) {
+                warn!("Failed to set key directory permissions to 0700: {}", e);
+            }
         }
 
         // Write the key

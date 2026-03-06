@@ -86,6 +86,15 @@ impl Database {
                         e
                     )));
                 }
+                // Restrict directory permissions to owner-only (0700) on Unix
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    let perms = std::fs::Permissions::from_mode(0o700);
+                    if let Err(e) = std::fs::set_permissions(parent, perms) {
+                        warn!("Failed to set data directory permissions to 0700: {}", e);
+                    }
+                }
                 info!("Created data directory: {}", parent.display());
             } else {
                 // Check if directory is writable
@@ -106,8 +115,8 @@ impl Database {
             }
         }
 
-        // Get the encryption key
-        let key = key_manager.get_database_key()?;
+        // Get the encryption key (zeroized after use via drop)
+        let mut key = key_manager.get_database_key()?;
 
         // Open the database connection
         let open_result = if config.create_if_missing {
@@ -179,6 +188,10 @@ impl Database {
         // Set the encryption key using SQLCipher pragma
         Self::set_encryption_key(&connection, &key)?;
 
+        // Zeroize key material from memory now that it's been set
+        zeroize::Zeroize::zeroize(&mut key);
+        drop(key);
+
         // Verify encryption is working by executing a simple query
         Self::verify_encryption(&connection)?;
 
@@ -216,15 +229,8 @@ impl Database {
         let pragma = format!("PRAGMA key = \"x'{}'\"", key_hex);
         let result = conn.execute_batch(&pragma);
 
-        // Zeroize key material from memory immediately after use
-        // Safety: overwrite the String's backing buffer with zeros
-        // SAFETY: we overwrite the key hex bytes with zeros to prevent memory leaking
-        unsafe {
-            let bytes = key_hex.as_bytes_mut();
-            for b in bytes.iter_mut() {
-                std::ptr::write_volatile(b, 0);
-            }
-        }
+        // Zeroize key material from memory immediately after PRAGMA is set
+        zeroize::Zeroize::zeroize(&mut key_hex);
         drop(key_hex);
 
         result.map_err(|e| {

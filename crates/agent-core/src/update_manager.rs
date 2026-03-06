@@ -224,29 +224,29 @@ impl UpdateManager {
 
         #[cfg(target_os = "macos")]
         {
-            if agent_common::macos::is_admin() {
-                // If already root, we can spawn directly. Use `sh -c` with `&` to fully detach.
-                info!("Running as root, executing detached installer");
-                let script = format!(
-                    "/usr/sbin/installer -pkg \"{}\" -target / > /dev/null 2>&1 &",
+            // Validate the installer path to prevent command injection.
+            // The path comes from our own temp directory, but defense-in-depth
+            // requires rejecting any shell metacharacters.
+            if path_str.contains(|c: char| matches!(c, ';' | '|' | '&' | '$' | '`' | '\'' | '"' | '\\' | '\n' | '\r' | '(' | ')' | '{' | '}' | '<' | '>')) {
+                return Err(CommonError::validation(format!(
+                    "Installer path contains unsafe characters: {}",
                     path_str
-                );
-                silent_command("sh")
-                    .arg("-c")
-                    .arg(&script)
+                )));
+            }
+
+            if agent_common::macos::is_admin() {
+                // If already root, spawn the installer directly using argument array
+                // (no shell interpolation) to prevent command injection.
+                info!("Running as root, executing detached installer");
+                silent_command("/usr/sbin/installer")
+                    .args(["-pkg", path_str, "-target", "/"])
                     .spawn()
                     .map_err(|e| {
                         CommonError::system(format!("Failed to launch installer: {}", e))
                     })?;
             } else {
                 info!("Not running as root, requesting elevation for detached installer");
-                // AppleScript `do shell script` blocks until completion by default.
-                // Adding `> /dev/null 2>&1 &` makes it return immediately.
-                let script = format!(
-                    "/usr/sbin/installer -pkg \"{}\" -target / > /dev/null 2>&1 &",
-                    path_str
-                );
-                agent_common::macos::run_with_elevation(&script)?;
+                agent_common::macos::run_installer_elevated(path_str)?;
             }
             info!("macOS installer spawned successfully");
         }

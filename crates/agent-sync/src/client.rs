@@ -77,7 +77,8 @@ impl HttpClient {
         }
         #[cfg(not(debug_assertions))]
         if !config.tls_verify {
-            tracing::warn!("tls_verify=false is ignored in release builds for security");
+            tracing::error!("SECURITY: tls_verify=false is forbidden in release builds — ignoring");
+            // TLS verification is always enforced in release builds regardless of config.
         }
 
         // Configure custom CA certificate if provided
@@ -137,7 +138,8 @@ impl HttpClient {
         }
         #[cfg(not(debug_assertions))]
         if !config.tls_verify {
-            tracing::warn!("tls_verify=false is ignored in release builds for security");
+            tracing::error!("SECURITY: tls_verify=false is forbidden in release builds — ignoring");
+            // TLS verification is always enforced in release builds regardless of config.
         }
 
         if let Some(ref ca_path) = config.ca_cert_path {
@@ -206,7 +208,8 @@ impl HttpClient {
         }
         #[cfg(not(debug_assertions))]
         if !config.tls_verify {
-            tracing::warn!("tls_verify=false is ignored in release builds for security");
+            tracing::error!("SECURITY: tls_verify=false is forbidden in release builds — ignoring");
+            // TLS verification is always enforced in release builds regardless of config.
         }
 
         // Configure custom CA certificate if provided

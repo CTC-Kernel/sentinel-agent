@@ -14,7 +14,7 @@ Expert en souveraineté numérique et cyber-défense
 [![CI Status](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Rust 2024](https://img.shields.io/badge/rust-2024%20edition-orange.svg)
-![Version](https://img.shields.io/badge/version-2.0.113-green.svg)
+![Version](https://img.shields.io/badge/version-2.0.169-green.svg)
 
 ---
 

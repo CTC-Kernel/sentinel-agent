@@ -106,7 +106,8 @@ jobs:
           COVERAGE=$(cargo llvm-cov report --json | jq '.data[0].totals.lines.percent')
           echo "Coverage: $COVERAGE%"
           if (( $(echo "$COVERAGE < 70" | bc -l) )); then
-            echo "::warning::Coverage is below 70% threshold: $COVERAGE%"
+            echo "::error::Coverage is below 70% threshold: $COVERAGE%"
+            exit 1
           fi
       - name: Upload coverage to artifacts
         uses: actions/upload-artifact@v4
