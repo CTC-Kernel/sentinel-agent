@@ -854,7 +854,7 @@ mod tests {
 
     #[test]
     fn test_log_signer_from_hex_key() {
-        let key = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        let key = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef";
         let signer = LogSigner::from_hex_key(key);
         assert!(signer.is_ok());
     }

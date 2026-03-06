@@ -1276,8 +1276,8 @@ mod tests {
         let json = r#"{
             "agent_id": "550e8400-e29b-41d4-a716-446655440000",
             "organization_id": "550e8400-e29b-41d4-a716-446655440001",
-            "client_certificate": "-----BEGIN CERTIFICATE-----\nMIIB...",
-            "client_private_key": "-----BEGIN PRIVATE KEY-----\nMIIE...",
+            "client_certificate": "-----BEGIN CERTIFICATE-----\nFAKE...",
+            "client_private_key": "-----BEGIN PRIVATE KEY-----\nFAKE...",
             "certificate_expires_at": "2027-01-23T00:00:00Z",
             "server_fingerprints": ["sha256:abc123"]
         }"#;
