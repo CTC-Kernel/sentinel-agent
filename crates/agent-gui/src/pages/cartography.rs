@@ -12,7 +12,7 @@ use crate::widgets;
 use egui::{Color32, Pos2, Ui, Vec2};
 
 // ── Page-local constants ────────────────────────────────────────────────────
-const CANVAS_HEIGHT: f32 = 500.0;
+const CANVAS_HEIGHT: f32 = theme::CANVAS_MIN_HEIGHT;
 const GRID_DIVISIONS: usize = 8;
 const ZOOM_SCROLL_FACTOR: f32 = 0.002;
 const ZOOM_MIN: f32 = 0.3;

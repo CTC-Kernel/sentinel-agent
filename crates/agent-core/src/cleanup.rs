@@ -72,6 +72,15 @@ impl CleanupResult {
 pub fn cleanup_data(options: &CleanupOptions) -> CleanupResult {
     let mut result = CleanupResult::new();
 
+    // Purge requires elevated privileges since it removes system directories
+    if options.purge && !crate::service::is_admin() {
+        result.errors.push(
+            "Elevated privileges required to purge system data. Run as root/Administrator."
+                .to_string(),
+        );
+        return result;
+    }
+
     if !options.purge {
         // Default uninstall: only remove service, preserve all data
         info!("Preserving configuration, logs, and database (use --purge to remove)");

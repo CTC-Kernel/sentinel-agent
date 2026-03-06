@@ -181,6 +181,13 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
 pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
     info!("Blocking IP '{}' for {} seconds", ip, duration_secs);
 
+    // Firewall operations require elevated privileges
+    if !crate::service::is_admin() {
+        return Err(CommonError::internal(
+            "Elevated privileges required to modify firewall rules",
+        ));
+    }
+
     // Anti-Draper protection: Prevent blocking localhost or the backend server
     if ip == "127.0.0.1" || ip == "::1" || ip.starts_with("127.") {
         warn!(

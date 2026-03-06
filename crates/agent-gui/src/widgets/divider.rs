@@ -222,7 +222,7 @@ impl<'a> Divider<'a> {
                 }
             }
             DividerStyle::Dotted => {
-                let dot_spacing = 6.0;
+                let dot_spacing = theme::ICON_MICRO;
 
                 if horizontal {
                     let mut x = rect.min.x;

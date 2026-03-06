@@ -7,22 +7,32 @@
 //! - Splunk HEC (HTTP Event Collector)
 //! - Azure Sentinel (Log Analytics)
 //! - Elastic (bulk API)
-//! - Generic HTTP endpoints
+//! - Generic HTTP/HTTPS endpoints
+//!
+//! Uses reqwest for full HTTPS/TLS support with retry logic.
 
 use super::SiemTransportTrait;
 use crate::{SiemError, SiemResult};
 use async_trait::async_trait;
 use std::sync::atomic::{AtomicBool, Ordering};
-use tracing::{debug, error};
+use std::time::Duration;
+use tracing::{debug, warn};
+
+/// Maximum number of retry attempts for transient failures.
+const MAX_RETRIES: u32 = 3;
+
+/// Base delay for exponential backoff (milliseconds).
+const BASE_RETRY_DELAY_MS: u64 = 500;
 
 /// HTTP transport for SIEM integration.
 pub struct HttpTransport {
     url: String,
     auth_token: Option<String>,
     auth_header: Option<String>,
-    #[allow(dead_code)] // Reserved for TLS verification when reqwest/native-tls is added
+    #[cfg_attr(not(test), allow(dead_code))]
     verify_tls: bool,
     connected: AtomicBool,
+    client: reqwest::Client,
 }
 
 impl HttpTransport {
@@ -33,24 +43,26 @@ impl HttpTransport {
         auth_header: Option<String>,
         verify_tls: bool,
     ) -> Self {
+        let client = reqwest::Client::builder()
+            .danger_accept_invalid_certs(!verify_tls)
+            .timeout(Duration::from_secs(30))
+            .connect_timeout(Duration::from_secs(10))
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new());
+
         Self {
             url,
             auth_token,
             auth_header,
             verify_tls,
             connected: AtomicBool::new(false),
+            client,
         }
     }
 
     /// Create an HTTP transport configured for Splunk HEC.
     pub fn for_splunk(url: String, hec_token: String) -> Self {
-        Self {
-            url,
-            auth_token: Some(hec_token),
-            auth_header: Some("Splunk".to_string()),
-            verify_tls: true,
-            connected: AtomicBool::new(false),
-        }
+        Self::new(url, Some(hec_token), Some("Splunk".to_string()), true)
     }
 
     /// Create an HTTP transport configured for Azure Sentinel.
@@ -59,150 +71,91 @@ impl HttpTransport {
             "https://{}.ods.opinsights.azure.com/api/logs?api-version=2016-04-01",
             workspace_id
         );
-
-        Self {
-            url,
-            auth_token: Some(shared_key),
-            auth_header: Some("SharedKey".to_string()),
-            verify_tls: true,
-            connected: AtomicBool::new(false),
-        }
+        Self::new(url, Some(shared_key), Some("SharedKey".to_string()), true)
     }
 
     /// Create an HTTP transport configured for Elastic.
     pub fn for_elastic(url: String, api_key: Option<String>) -> Self {
-        Self {
-            url,
-            auth_token: api_key,
-            auth_header: Some("ApiKey".to_string()),
-            verify_tls: true,
-            connected: AtomicBool::new(false),
-        }
+        Self::new(url, api_key, Some("ApiKey".to_string()), true)
     }
 
-    /// Send data using a simple HTTP client implementation.
-    /// Note: In production, you'd use reqwest or similar.
-    async fn send_http(&self, data: &str) -> SiemResult<usize> {
-        // Parse URL
-        let url = url::Url::parse(&self.url)
-            .map_err(|e| SiemError::ConfigError(format!("Invalid URL: {}", e)))?;
+    /// Send data with retry logic and exponential backoff.
+    async fn send_with_retry(&self, data: &str) -> SiemResult<usize> {
+        let mut last_error = None;
 
-        let host = url
-            .host_str()
-            .ok_or_else(|| SiemError::ConfigError("URL missing host".to_string()))?;
+        for attempt in 0..=MAX_RETRIES {
+            if attempt > 0 {
+                let delay = BASE_RETRY_DELAY_MS * 2u64.pow(attempt - 1);
+                debug!("Retry attempt {}/{} after {}ms", attempt, MAX_RETRIES, delay);
+                tokio::time::sleep(Duration::from_millis(delay)).await;
+            }
 
-        let port = url.port_or_known_default().unwrap_or(443);
-        let path = url.path();
-        let query = url.query().map(|q| format!("?{}", q)).unwrap_or_default();
-
-        // Build HTTP request
-        let mut headers = vec![
-            format!("Host: {}", host),
-            "Content-Type: application/json".to_string(),
-            format!("Content-Length: {}", data.len()),
-            "Connection: keep-alive".to_string(),
-        ];
-
-        // Add authorization header
-        // Sanitize auth values to prevent HTTP header injection (\r\n sequences)
-        if let (Some(token), Some(header_type)) = (&self.auth_token, &self.auth_header) {
-            let clean_type = header_type.replace(['\r', '\n'], "");
-            let clean_token = token.replace(['\r', '\n'], "");
-            headers.push(format!("Authorization: {} {}", clean_type, clean_token));
-        } else if let Some(ref token) = self.auth_token {
-            let clean_token = token.replace(['\r', '\n'], "");
-            headers.push(format!("Authorization: Bearer {}", clean_token));
-        }
-
-        // Build the request using byte concatenation with Content-Length framing.
-        // Content-Length in the headers already declares the exact body size,
-        // so the receiver will only read that many bytes regardless of body content.
-        // We also strip bare \r\n sequences from the data to prevent any ambiguity.
-        let sanitized_data = data.replace("\r\n", "\n");
-
-        // Update Content-Length to match sanitized data
-        headers.retain(|h| !h.starts_with("Content-Length:"));
-        headers.push(format!("Content-Length: {}", sanitized_data.len()));
-
-        let request = format!(
-            "POST {}{} HTTP/1.1\r\n{}\r\n\r\n{}",
-            path,
-            query,
-            headers.join("\r\n"),
-            sanitized_data
-        );
-
-        // Connect and send
-        let addr = format!("{}:{}", host, port);
-        debug!("Sending HTTP request to {}", addr);
-
-        let is_https = url.scheme() == "https";
-
-        if is_https {
-            // HTTPS requires TLS — reject instead of silently faking success
-            error!(
-                "HTTPS transport is not yet implemented. Configure an HTTP endpoint or use a TLS-terminating proxy."
-            );
-            self.connected.store(false, Ordering::SeqCst);
-            return Err(SiemError::ConfigError(
-                "HTTPS transport not implemented. Use HTTP with a TLS proxy, or configure a plain HTTP endpoint.".to_string(),
-            ));
-        }
-
-        // HTTP (non-TLS) connection
-        match tokio::net::TcpStream::connect(&addr).await {
-            Ok(mut stream) => {
-                use tokio::io::{AsyncReadExt, AsyncWriteExt};
-
-                // Send request
-                stream
-                    .write_all(request.as_bytes())
-                    .await
-                    .map_err(|e| SiemError::SendError(format!("Failed to send: {}", e)))?;
-
-                // Read response
-                let mut response = vec![0u8; 4096];
-                let n = stream
-                    .read(&mut response)
-                    .await
-                    .map_err(|e| SiemError::SendError(format!("Failed to read response: {}", e)))?;
-
-                let response_str = String::from_utf8_lossy(&response[..n]);
-                debug!(
-                    "HTTP response: {}",
-                    response_str.lines().next().unwrap_or("")
-                );
-
-                // Parse HTTP status code from response status line (e.g. "HTTP/1.1 200 OK")
-                let status_code = response_str
-                    .lines()
-                    .next()
-                    .and_then(|line| line.split_whitespace().nth(1))
-                    .and_then(|code| code.parse::<u16>().ok())
-                    .unwrap_or(0);
-
-                match status_code {
-                    200..=299 => {
-                        self.connected.store(true, Ordering::SeqCst);
-                        Ok(data.len())
+            match self.send_once(data).await {
+                Ok(bytes) => return Ok(bytes),
+                Err(e) => {
+                    // Don't retry on auth errors or config errors
+                    if matches!(e, SiemError::AuthError(_) | SiemError::ConfigError(_)) {
+                        return Err(e);
                     }
-                    401 | 403 => {
-                        self.connected.store(false, Ordering::SeqCst);
-                        Err(SiemError::AuthError("Authentication failed".to_string()))
-                    }
-                    429 => Err(SiemError::RateLimitExceeded),
-                    _ => {
-                        let status_line = response_str.lines().next().unwrap_or("Unknown");
-                        error!("HTTP error response: {}", status_line);
-                        Err(SiemError::SendError(format!("HTTP error: {}", status_line)))
-                    }
+                    warn!("SIEM HTTP send attempt {} failed: {}", attempt + 1, e);
+                    last_error = Some(e);
                 }
             }
-            Err(e) => {
+        }
+
+        Err(last_error.unwrap_or_else(|| SiemError::SendError("All retries exhausted".to_string())))
+    }
+
+    /// Single send attempt.
+    async fn send_once(&self, data: &str) -> SiemResult<usize> {
+        let mut request = self
+            .client
+            .post(&self.url)
+            .header("Content-Type", "application/json")
+            .body(data.to_string());
+
+        // Add authorization header
+        if let (Some(token), Some(header_type)) = (&self.auth_token, &self.auth_header) {
+            request = request.header("Authorization", format!("{} {}", header_type, token));
+        } else if let Some(ref token) = self.auth_token {
+            request = request.header("Authorization", format!("Bearer {}", token));
+        }
+
+        let data_len = data.len();
+
+        let response = request.send().await.map_err(|e| {
+            self.connected.store(false, Ordering::SeqCst);
+            if e.is_connect() {
+                SiemError::ConnectionError(format!("Failed to connect to {}: {}", self.url, e))
+            } else if e.is_timeout() {
+                SiemError::Timeout
+            } else {
+                SiemError::SendError(format!("Request failed: {}", e))
+            }
+        })?;
+
+        let status = response.status();
+
+        match status.as_u16() {
+            200..=299 => {
+                self.connected.store(true, Ordering::SeqCst);
+                debug!("HTTP {} - {} bytes sent", status, data_len);
+                Ok(data_len)
+            }
+            401 | 403 => {
                 self.connected.store(false, Ordering::SeqCst);
-                Err(SiemError::ConnectionError(format!(
-                    "Failed to connect to {}: {}",
-                    addr, e
+                Err(SiemError::AuthError(format!(
+                    "Authentication failed (HTTP {})",
+                    status
+                )))
+            }
+            429 => Err(SiemError::RateLimitExceeded),
+            _ => {
+                let body = response.text().await.unwrap_or_default();
+                Err(SiemError::SendError(format!(
+                    "HTTP {} - {}",
+                    status,
+                    body.chars().take(200).collect::<String>()
                 )))
             }
         }
@@ -212,7 +165,7 @@ impl HttpTransport {
 #[async_trait]
 impl SiemTransportTrait for HttpTransport {
     async fn send(&self, data: &str) -> SiemResult<usize> {
-        self.send_http(data).await
+        self.send_with_retry(data).await
     }
 
     async fn is_connected(&self) -> bool {
@@ -239,6 +192,7 @@ mod tests {
 
         assert_eq!(transport.url, "https://siem.example.com/api/events");
         assert_eq!(transport.auth_token, Some("token123".to_string()));
+        assert!(transport.verify_tls);
     }
 
     #[test]

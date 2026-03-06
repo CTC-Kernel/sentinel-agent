@@ -60,7 +60,7 @@ fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
             CornerRadius::same(theme::CARD_ROUNDING),
             egui::Stroke::new(
                 theme::BORDER_HAIRLINE,
-                theme::glass_border_top().linear_multiply(0.3),
+                theme::glass_border_top().linear_multiply(theme::OPACITY_MODERATE),
             ),
             egui::epaint::StrokeKind::Inside,
         );
@@ -93,6 +93,30 @@ fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
 /// Draw a card container.
 pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
     render_card(ui, add_contents);
+}
+
+/// Draw a danger/destructive card container (red-tinted).
+pub fn danger_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
+    let is_dark = theme::is_dark_mode();
+
+    let shadow = if is_dark {
+        theme::shadow_md()
+    } else {
+        theme::shadow_sm()
+    };
+
+    Frame::new()
+        .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
+        .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
+        .inner_margin(Margin::same(theme::SPACE_LG as i8))
+        .stroke(egui::Stroke::new(
+            theme::BORDER_MEDIUM,
+            theme::ERROR.linear_multiply(theme::OPACITY_MEDIUM),
+        ))
+        .shadow(shadow)
+        .show(ui, |ui: &mut egui::Ui| {
+            add_contents(ui);
+        });
 }
 
 /// Draw a clickable card container. Returns a `Response` with click sensing

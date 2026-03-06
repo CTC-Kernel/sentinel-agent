@@ -36,10 +36,14 @@
 //! forwarder.send_event(&event).await?;
 //! ```
 
+pub mod collector;
+pub mod correlation;
 pub mod error;
 pub mod formats;
 pub mod transports;
 
+pub use collector::{LogCollector, LogCollectorConfig, LogSource};
+pub use correlation::{CorrelationAlert, CorrelationEngine, CorrelationRule};
 pub use error::{SiemError, SiemResult};
 pub use formats::{CefFormatter, JsonFormatter, LeefFormatter, SiemFormatter};
 pub use transports::{HttpTransport, SiemTransportTrait, SyslogTransport};

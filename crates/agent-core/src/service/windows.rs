@@ -310,6 +310,12 @@ pub fn run_as_service() -> ServiceResult<()> {
 ///
 /// Requires administrator privileges.
 pub fn install_service(executable_path: &str) -> ServiceResult<()> {
+    if !is_elevated() {
+        return Err(ServiceError::PermissionDenied(
+            "Administrator privileges required to install service. Run as Administrator.".to_string(),
+        ));
+    }
+
     let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
     let service_manager =
         ServiceManager::local_computer(None::<&str>, manager_access).map_err(|e| {
@@ -368,6 +374,12 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
 ///
 /// Requires administrator privileges.
 pub fn uninstall_service() -> ServiceResult<()> {
+    if !is_elevated() {
+        return Err(ServiceError::PermissionDenied(
+            "Administrator privileges required to uninstall service. Run as Administrator.".to_string(),
+        ));
+    }
+
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager =
         ServiceManager::local_computer(None::<&str>, manager_access).map_err(|e| {
@@ -447,7 +459,15 @@ pub fn get_service_state() -> ServiceResult<ServiceState> {
 }
 
 /// Start the service.
+///
+/// Requires administrator privileges.
 pub fn start_service() -> ServiceResult<()> {
+    if !is_elevated() {
+        return Err(ServiceError::PermissionDenied(
+            "Administrator privileges required to start service. Run as Administrator.".to_string(),
+        ));
+    }
+
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager =
         ServiceManager::local_computer(None::<&str>, manager_access).map_err(|e| {
@@ -478,7 +498,15 @@ pub fn start_service() -> ServiceResult<()> {
 }
 
 /// Stop the service.
+///
+/// Requires administrator privileges.
 pub fn stop_service() -> ServiceResult<()> {
+    if !is_elevated() {
+        return Err(ServiceError::PermissionDenied(
+            "Administrator privileges required to stop service. Run as Administrator.".to_string(),
+        ));
+    }
+
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager =
         ServiceManager::local_computer(None::<&str>, manager_access).map_err(|e| {

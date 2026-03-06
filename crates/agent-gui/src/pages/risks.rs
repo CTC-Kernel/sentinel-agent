@@ -361,12 +361,12 @@ impl RisksPage {
                         painter.rect_filled(
                             cell_rect,
                             egui::CornerRadius::same(theme::ROUNDING_SM),
-                            color.linear_multiply(0.25),
+                            color.linear_multiply(theme::OPACITY_MUTED),
                         );
                         painter.rect_stroke(
                             cell_rect,
                             egui::CornerRadius::same(theme::ROUNDING_SM),
-                            egui::Stroke::new(theme::BORDER_THIN, color.linear_multiply(0.5)),
+                            egui::Stroke::new(theme::BORDER_THIN, color.linear_multiply(theme::OPACITY_MEDIUM)),
                             egui::StrokeKind::Inside,
                         );
 
@@ -1062,6 +1062,7 @@ impl RisksPage {
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(

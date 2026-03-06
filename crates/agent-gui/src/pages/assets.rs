@@ -639,6 +639,7 @@ impl AssetsPage {
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(

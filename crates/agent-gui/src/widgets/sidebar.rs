@@ -99,7 +99,7 @@ impl Sidebar {
                         ui.painter().circle_filled(
                             r.rect.center(),
                             32.0,
-                            theme::bg_sidebar().linear_multiply(0.1),
+                            theme::bg_sidebar().linear_multiply(theme::OPACITY_SUBTLE),
                         );
 
                         ui.add_space(theme::SPACE_MD);
@@ -351,7 +351,7 @@ impl Sidebar {
                 let fill = if is_current {
                     bg_fill
                 } else {
-                    theme::ACCENT.linear_multiply(0.15)
+                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
                 };
 
                 let rect_shrunk =
@@ -476,7 +476,7 @@ impl Sidebar {
                 let fill = if is_current {
                     bg_fill
                 } else {
-                    theme::ACCENT.linear_multiply(0.15)
+                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
                 };
                 let rect_shrunk =
                     rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));

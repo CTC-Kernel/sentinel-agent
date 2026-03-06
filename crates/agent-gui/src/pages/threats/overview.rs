@@ -1290,7 +1290,7 @@ fn summary_card(
     ui.vertical(|ui: &mut egui::Ui| {
         ui.set_width(width);
         widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.set_min_height(72.0);
+            ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
             let response = ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
 
             let safe_color = theme::readable_color(color);

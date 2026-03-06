@@ -72,7 +72,7 @@ impl DiscoveryPage {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.add_space(theme::SPACE_XS);
                         let progress = state.discovery.progress;
-                        let bar_width = theme::SPLASH_PROGRESS_WIDTH.max(200.0);
+                        let bar_width = theme::SPLASH_PROGRESS_WIDTH;
                         let bar_height = theme::PROGRESS_BAR_HEIGHT_THIN;
                         let (bar_rect, _) = ui.allocate_exact_size(
                             egui::Vec2::new(bar_width, bar_height),
@@ -245,7 +245,7 @@ impl DiscoveryPage {
         .result_count(result_count)
         .show(ui);
 
-        ui.add_space(theme::SPACE_SM);
+        ui.add_space(theme::SPACE_MD);
 
         // Action Buttons (AAA Grade)
         ui.horizontal(|ui: &mut egui::Ui| {
@@ -273,7 +273,7 @@ impl DiscoveryPage {
             );
         });
 
-        ui.add_space(theme::SPACE_SM);
+        ui.add_space(theme::SPACE_MD);
 
         // Device table (AAA Grade)
         if filtered.is_empty() && !state.discovery.in_progress {

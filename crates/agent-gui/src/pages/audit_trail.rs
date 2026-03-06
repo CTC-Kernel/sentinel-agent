@@ -29,7 +29,7 @@ impl AuditTrailPage {
                 "Consultez l'historique détaillé des actions de l'agent, des détections de menaces et des changements de configuration.",
             ),
         );
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_LG);
 
         // Action bar with Export
         ui.horizontal(|ui: &mut egui::Ui| {
@@ -229,7 +229,7 @@ impl AuditTrailPage {
     }
 
     fn render_table(ui: &mut Ui, state: &mut AppState) {
-        let text_height = 18.0; // Estimate for better row spacing
+        let row_height = theme::TABLE_ROW_HEIGHT;
 
         let filtered_logs: Vec<_> = state
             .logs
@@ -285,7 +285,7 @@ impl AuditTrailPage {
                 });
             })
             .body(|body| {
-                body.rows(text_height + 12.0, filtered_logs.len(), |mut row| {
+                body.rows(row_height, filtered_logs.len(), |mut row| {
                     let idx = row.index();
                     let Some(log) = filtered_logs.get(idx) else {
                         return;

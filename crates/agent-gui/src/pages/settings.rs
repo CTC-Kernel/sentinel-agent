@@ -588,8 +588,8 @@ impl SettingsPage {
                             false
                         };
 
-                        if is_locked {
-                            let remaining = (rate_state.1.unwrap() - chrono::Utc::now()).num_seconds().max(1);
+                        if let (true, Some(lock_until)) = (is_locked, rate_state.1) {
+                            let remaining = (lock_until - chrono::Utc::now()).num_seconds().max(1);
                             ui.label(
                                 egui::RichText::new(format!("Trop de tentatives. Veuillez réessayer dans {}s.", remaining))
                                     .color(theme::readable_color(theme::ERROR))
@@ -681,14 +681,8 @@ impl SettingsPage {
 
         let confirming = ui.memory(|mem| mem.data.get_temp::<bool>(confirm_id).unwrap_or(false));
 
-        // Danger zone with red-tinted frame for visual hierarchy
-        egui::Frame::new()
-            .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
-            .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
-            .inner_margin(egui::Margin::same(theme::SPACE_LG as i8))
-            .stroke(egui::Stroke::new(theme::BORDER_MEDIUM, theme::ERROR.linear_multiply(theme::OPACITY_MEDIUM)))
-            .shadow(if theme::is_dark_mode() { theme::shadow_md() } else { theme::shadow_sm() })
-            .show(ui, |ui: &mut egui::Ui| {
+        // Danger zone with red-tinted card for visual hierarchy
+        widgets::danger_card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(format!("{}  ZONE CRITIQUE", icons::WARNING))
                     .font(theme::font_label())

@@ -53,7 +53,7 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
         let mut x = row_rect.min.x + theme::SPACE_SM;
         for &w in &col_widths {
             let col_rect = egui::Rect::from_min_size(
-                egui::pos2(x, row_rect.min.y + theme::SPACE_SM + 2.0),
+                egui::pos2(x, row_rect.min.y + theme::SPACE_MD),
                 egui::vec2(avail_width * w - theme::SPACE, theme::SPACE),
             );
             ui.painter().rect_filled(

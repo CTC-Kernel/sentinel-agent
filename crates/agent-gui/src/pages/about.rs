@@ -28,10 +28,11 @@ pub struct AboutPage;
 impl AboutPage {
     pub fn show(ui: &mut Ui) -> Option<GuiCommand> {
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Configuration", "\u{00c0} propos"],
             "About",
-            Some("Product information and technical support"),
+            Some("PRODUCT INFORMATION AND TECHNICAL SUPPORT"),
             Some(
                 "Sentinel Agent version info and credits. When contacting support, please mention the build number and unique installation ID.",
             ),
@@ -76,28 +77,18 @@ impl AboutPage {
 
         ui.add_space(theme::SPACE);
 
-        let total_width = ui.available_width();
-        let use_two_cols = total_width >= 600.0;
-
-        if use_two_cols {
-            let col_gap = theme::SPACE;
-            let col_w = (total_width - col_gap) * 0.5;
-            ui.horizontal_top(|ui: &mut egui::Ui| {
-                ui.spacing_mut().item_spacing.x = col_gap;
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.set_width(col_w);
-                    Self::system_card(ui);
-                });
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.set_width(col_w);
-                    Self::resources_card(ui);
-                });
+        // Two-column responsive grid for system + resources
+        let grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE);
+        let panels: Vec<u8> = vec![0, 1];
+        grid.show(ui, &panels, |ui, width, idx| {
+            ui.vertical(|ui: &mut egui::Ui| {
+                ui.set_width(width);
+                match idx {
+                    0 => Self::system_card(ui),
+                    _ => Self::resources_card(ui),
+                }
             });
-        } else {
-            Self::system_card(ui);
-            ui.add_space(theme::SPACE);
-            Self::resources_card(ui);
-        }
+        });
 
         ui.add_space(theme::SPACE);
 

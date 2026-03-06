@@ -288,7 +288,7 @@ impl TerminalPage {
             .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
             .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
             .show(ui, |ui: &mut egui::Ui| {
-                ui.set_min_height(400.0);
+                ui.set_min_height(theme::VIEWPORT_MIN_HEIGHT);
 
                 if filtered.is_empty() {
                     crate::widgets::empty_state(
@@ -303,7 +303,7 @@ impl TerminalPage {
                 let table = TableBuilder::new(ui)
                     .striped(false)
                     .resizable(true)
-                    .max_scroll_height(400.0)
+                    .max_scroll_height(theme::VIEWPORT_MIN_HEIGHT)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(90.0).at_least(80.0))
                     .column(Column::initial(70.0).at_least(60.0))

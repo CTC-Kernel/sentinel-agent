@@ -1258,6 +1258,13 @@ pub const PAGINATION_DOT_INACTIVE: f32 = 6.0;
 /// Pagination dot touch area.
 pub const PAGINATION_DOT_TOUCH: f32 = 12.0;
 
+/// Terminal / canvas viewport minimum height.
+pub const VIEWPORT_MIN_HEIGHT: f32 = 400.0;
+/// Cartography canvas height.
+pub const CANVAS_MIN_HEIGHT: f32 = 500.0;
+/// Summary card minimum inner height (ensures uniform row height).
+pub const SUMMARY_CARD_MIN_HEIGHT: f32 = 72.0;
+
 /// Search filter bar input height.
 pub const SEARCH_INPUT_HEIGHT: f32 = 28.0;
 

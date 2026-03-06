@@ -457,54 +457,196 @@ impl MDMSoftwareScanner {
     async fn convert_to_mdm_inventory(&self, package: InstalledPackage) -> MDMSoftwareInventory {
         let category = self.detect_category(&package.name);
         let is_system = self.is_system_software(&package.name, &package.version);
-        let management_source = self.detect_management_source(&package.name);
+        let source = package.description.clone().unwrap_or_default();
+        let management_source = self.detect_management_source(&package.name, &source);
+        let installation_method = Self::detect_installation_method(&source);
+        let install_path = Self::detect_install_path(&package.name, &source);
+
+        let mut properties = HashMap::new();
+        if !source.is_empty() {
+            properties.insert(
+                "source".to_string(),
+                serde_json::Value::String(source),
+            );
+        }
 
         MDMSoftwareInventory {
             name: package.name.clone(),
             version: package.version.clone(),
             vendor: package.publisher,
-            install_path: None, // Would need additional scanning
-            install_date: None, // Would need additional scanning
-            last_used: None,    // Would need additional scanning
-            size_bytes: None,   // Would need additional scanning
+            install_path,
+            install_date: None,
+            last_used: None,
+            size_bytes: None,
             is_system,
             architecture: package.arch,
             category,
             is_managed: matches!(management_source, ManagementSource::Policy),
             management_source,
-            deployment_status: DeploymentStatus::Deployed, // Already installed
-            policy_compliance: Vec::new(),                 // Would need policy engine
-            available_updates: Vec::new(),                 // Would need update checker
-            dependencies: Vec::new(),                      // Would need dependency resolver
+            deployment_status: DeploymentStatus::Deployed,
+            policy_compliance: Vec::new(),
+            available_updates: Vec::new(),
+            dependencies: Vec::new(),
             metadata: SoftwareMetadata {
-                signature: None,        // Would need signature verification
-                hashes: HashMap::new(), // Would need file hashing
-                installation_method: InstallationMethod::PackageManager,
+                signature: None,
+                hashes: HashMap::new(),
+                installation_method,
                 license: None,
                 support_end_date: None,
-                properties: HashMap::new(),
+                properties,
             },
             last_inventory: Utc::now(),
         }
     }
 
-    /// Enhance inventory with additional information
+    /// Detect the installation method from the package source.
+    fn detect_installation_method(source: &str) -> InstallationMethod {
+        match source {
+            "brew" | "brew-cask" | "apt" | "dpkg" | "winget" => {
+                InstallationMethod::PackageManager
+            }
+            "macos-app-bundle" => InstallationMethod::Other("app-bundle".to_string()),
+            "windows-registry" => InstallationMethod::EXE,
+            "msstore" => InstallationMethod::AppStore,
+            _ if source.is_empty() => InstallationMethod::Manual,
+            _ => InstallationMethod::Other(source.to_string()),
+        }
+    }
+
+    /// Detect install path from package name and source.
+    fn detect_install_path(name: &str, source: &str) -> Option<String> {
+        match source {
+            // ── macOS ──
+            "macos-app-bundle" | "brew-cask" => {
+                let path = format!("/Applications/{}.app", name);
+                if std::path::Path::new(&path).exists() {
+                    return Some(path);
+                }
+                None
+            }
+            "brew" => {
+                for prefix in &["/opt/homebrew/Cellar", "/usr/local/Cellar"] {
+                    let dir = format!("{}/{}", prefix, name);
+                    if std::path::Path::new(&dir).exists() {
+                        return Some(dir);
+                    }
+                }
+                None
+            }
+
+            // ── Linux ──
+            "apt" | "dpkg" => {
+                // Check common binary locations
+                for dir in &["/usr/bin", "/usr/sbin", "/usr/local/bin"] {
+                    let path = format!("{}/{}", dir, name);
+                    if std::path::Path::new(&path).exists() {
+                        return Some(path);
+                    }
+                }
+                None
+            }
+
+            // ── Windows ──
+            "windows-registry" | "winget" => {
+                #[cfg(target_os = "windows")]
+                {
+                    // Try standard Program Files locations
+                    if let Ok(pf) = std::env::var("ProgramFiles") {
+                        let path = format!("{}\\{}", pf, name);
+                        if std::path::Path::new(&path).exists() {
+                            return Some(path);
+                        }
+                    }
+                    if let Ok(pf86) = std::env::var("ProgramFiles(x86)") {
+                        let path = format!("{}\\{}", pf86, name);
+                        if std::path::Path::new(&path).exists() {
+                            return Some(path);
+                        }
+                    }
+                    if let Ok(local) = std::env::var("LOCALAPPDATA") {
+                        let path = format!("{}\\{}", local, name);
+                        if std::path::Path::new(&path).exists() {
+                            return Some(path);
+                        }
+                    }
+                }
+                None
+            }
+
+            _ => None,
+        }
+    }
+
+    /// Enhance inventory with additional information.
+    ///
+    /// Performs batch operations per platform (brew outdated/deps, apt upgradable,
+    /// winget upgrade) once, then applies per-item enrichment.
     async fn enhance_inventory(
         &self,
         mut inventory: Vec<MDMSoftwareInventory>,
     ) -> Vec<MDMSoftwareInventory> {
-        // Sort by name for consistency
         inventory.sort_by(|a, b| a.name.cmp(&b.name));
 
-        // Add additional metadata and checks
+        // ── macOS: brew outdated + deps ──
+        #[cfg(target_os = "macos")]
+        let (brew_updates, brew_deps) = {
+            let updates = Self::fetch_brew_outdated().await;
+            let deps = Self::fetch_brew_deps().await;
+            (updates, deps)
+        };
+
+        // ── Linux: apt upgradable + dpkg deps ──
+        #[cfg(target_os = "linux")]
+        let (apt_updates, dpkg_deps) = {
+            let updates = Self::fetch_apt_upgradable().await;
+            let deps = Self::fetch_dpkg_deps().await;
+            (updates, deps)
+        };
+
+        // ── Windows: winget upgradable ──
+        #[cfg(target_os = "windows")]
+        let winget_updates = Self::fetch_winget_upgradable().await;
+
         for software in &mut inventory {
-            // Check for available updates (placeholder)
-            software.available_updates = self.check_for_updates(software).await;
+            let source = software
+                .metadata
+                .properties
+                .get("source")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
 
-            // Detect dependencies (placeholder)
-            software.dependencies = self.detect_dependencies(software).await;
+            // ── macOS enrichment ──
+            #[cfg(target_os = "macos")]
+            if matches!(source.as_str(), "brew" | "brew-cask") {
+                if let Some(update) = brew_updates.get(&software.name) {
+                    software.available_updates = vec![update.clone()];
+                }
+                if let Some(deps) = brew_deps.get(&software.name) {
+                    software.dependencies = deps.clone();
+                }
+            }
 
-            // Calculate hashes (placeholder)
+            // ── Linux enrichment ──
+            #[cfg(target_os = "linux")]
+            if matches!(source.as_str(), "apt" | "dpkg") {
+                if let Some(update) = apt_updates.get(&software.name) {
+                    software.available_updates = vec![update.clone()];
+                }
+                if let Some(deps) = dpkg_deps.get(&software.name) {
+                    software.dependencies = deps.clone();
+                }
+            }
+
+            // ── Windows enrichment ──
+            #[cfg(target_os = "windows")]
+            if matches!(source.as_str(), "windows-registry" | "winget") {
+                if let Some(update) = winget_updates.get(&software.name) {
+                    software.available_updates = vec![update.clone()];
+                }
+            }
+
+            // Calculate hashes per-item (I/O-bound, offloaded to blocking thread)
             software.metadata.hashes = self.calculate_hashes(software).await;
         }
 
@@ -667,32 +809,438 @@ impl MDMSoftwareScanner {
             || name_lower.starts_with("gnu")
     }
 
-    /// Detect management source
-    fn detect_management_source(&self, _name: &str) -> ManagementSource {
-        // This would integrate with MDM policies to determine management source
-        // For now, assume manual installation
-        ManagementSource::Manual
+    /// Detect management source from the package name and scanner source.
+    fn detect_management_source(&self, name: &str, source: &str) -> ManagementSource {
+        match source {
+            // Package managers = automated deployment
+            "brew" | "brew-cask" | "apt" | "dpkg" | "winget" => ManagementSource::Automated,
+
+            // macOS app bundles: check for App Store receipt
+            "macos-app-bundle" => {
+                let receipt = format!("/Applications/{}.app/Contents/_MASReceipt/receipt", name);
+                if std::path::Path::new(&receipt).exists() {
+                    ManagementSource::Policy
+                } else {
+                    ManagementSource::Manual
+                }
+            }
+
+            // Microsoft Store = managed distribution
+            "msstore" => ManagementSource::Policy,
+
+            // Windows registry = manually installed (EXE/MSI)
+            "windows-registry" => ManagementSource::Manual,
+
+            _ => ManagementSource::Manual,
+        }
     }
 
-    /// Check for available updates (placeholder implementation)
-    async fn check_for_updates(&self, _software: &MDMSoftwareInventory) -> Vec<SoftwareUpdate> {
-        // This would integrate with update services
-        Vec::new()
+    /// Calculate file hashes (SHA-256 + BLAKE3) for the software binary.
+    async fn calculate_hashes(&self, software: &MDMSoftwareInventory) -> HashMap<String, String> {
+        let binary = match Self::resolve_binary_path(software) {
+            Some(p) => p,
+            None => return HashMap::new(),
+        };
+
+        match tokio::task::spawn_blocking(move || Self::compute_file_hashes(&binary)).await {
+            Ok(Ok(hashes)) => hashes,
+            _ => HashMap::new(),
+        }
     }
 
-    /// Detect dependencies (placeholder implementation)
-    async fn detect_dependencies(
-        &self,
-        _software: &MDMSoftwareInventory,
-    ) -> Vec<SoftwareDependency> {
-        // This would implement dependency resolution
-        Vec::new()
+    /// Resolve the main binary path for a software entry.
+    fn resolve_binary_path(software: &MDMSoftwareInventory) -> Option<String> {
+        let install_path = software.install_path.as_deref()?;
+        let path = std::path::Path::new(install_path);
+
+        // Direct file (Linux /usr/bin/name, etc.)
+        if path.is_file() {
+            return Some(install_path.to_string());
+        }
+
+        // macOS .app bundle → Contents/MacOS/<binary>
+        if install_path.ends_with(".app") {
+            return Self::resolve_macos_app_binary(install_path, &software.name);
+        }
+
+        // Windows directory → look for .exe
+        #[cfg(target_os = "windows")]
+        {
+            if let Some(exe) = Self::resolve_windows_exe(install_path, &software.name) {
+                return Some(exe);
+            }
+        }
+
+        // Generic directory → try to find a binary with the package name
+        #[cfg(not(target_os = "windows"))]
+        {
+            let bin_name = software.name.to_lowercase().replace(' ', "-");
+            let candidate = path.join(&bin_name);
+            if candidate.is_file() {
+                return Some(candidate.to_string_lossy().to_string());
+            }
+        }
+
+        None
     }
 
-    /// Calculate file hashes (placeholder implementation)
-    async fn calculate_hashes(&self, _software: &MDMSoftwareInventory) -> HashMap<String, String> {
-        // This would calculate SHA-256, MD5, etc. hashes
-        HashMap::new()
+    /// Resolve the main binary inside a macOS .app bundle.
+    fn resolve_macos_app_binary(app_path: &str, name: &str) -> Option<String> {
+        let macos_dir = format!("{}/Contents/MacOS", app_path);
+        // Try exact name (spaces removed)
+        let binary_name = name.replace(' ', "");
+        let main_binary = format!("{}/{}", macos_dir, binary_name);
+        if std::path::Path::new(&main_binary).exists() {
+            return Some(main_binary);
+        }
+        // Fallback: first file in Contents/MacOS
+        if let Ok(mut entries) = std::fs::read_dir(&macos_dir)
+            && let Some(Ok(entry)) = entries.next()
+            && entry.path().is_file()
+        {
+            return Some(entry.path().to_string_lossy().to_string());
+        }
+        None
+    }
+
+    /// Resolve the main .exe inside a Windows install directory.
+    #[cfg(target_os = "windows")]
+    fn resolve_windows_exe(install_dir: &str, name: &str) -> Option<String> {
+        let dir = std::path::Path::new(install_dir);
+        if !dir.is_dir() {
+            return None;
+        }
+
+        // Try <name>.exe directly
+        let exe_name = format!("{}.exe", name.replace(' ', ""));
+        let candidate = dir.join(&exe_name);
+        if candidate.is_file() {
+            return Some(candidate.to_string_lossy().to_string());
+        }
+
+        // Fallback: first .exe in the directory
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.extension().and_then(|e| e.to_str()) == Some("exe") && p.is_file() {
+                    return Some(p.to_string_lossy().to_string());
+                }
+            }
+        }
+
+        None
+    }
+
+    /// Compute SHA-256 and BLAKE3 hashes of a file using streaming I/O.
+    fn compute_file_hashes(path: &str) -> std::io::Result<HashMap<String, String>> {
+        use sha2::{Digest, Sha256};
+        use std::io::Read;
+
+        let mut file = std::fs::File::open(path)?;
+        let mut sha256 = Sha256::new();
+        let mut b3 = blake3::Hasher::new();
+        let mut buf = [0u8; 8192];
+
+        loop {
+            let n = file.read(&mut buf)?;
+            if n == 0 {
+                break;
+            }
+            sha256.update(&buf[..n]);
+            b3.update(&buf[..n]);
+        }
+
+        let mut hashes = HashMap::new();
+        hashes.insert("sha256".to_string(), hex::encode(sha256.finalize()));
+        hashes.insert("blake3".to_string(), b3.finalize().to_hex().to_string());
+        Ok(hashes)
+    }
+
+    // ── Batch helpers for platform-specific enrichment ──────────────────
+
+    /// Find the Homebrew executable path.
+    #[cfg(target_os = "macos")]
+    fn find_brew_path() -> Option<String> {
+        if agent_common::process::silent_command("brew")
+            .arg("--version")
+            .output()
+            .is_ok()
+        {
+            return Some("brew".to_string());
+        }
+        for path in &["/opt/homebrew/bin/brew", "/usr/local/bin/brew"] {
+            if std::path::Path::new(path).exists() {
+                return Some((*path).to_string());
+            }
+        }
+        None
+    }
+
+    /// Batch-fetch outdated Homebrew packages (formulae + casks).
+    #[cfg(target_os = "macos")]
+    async fn fetch_brew_outdated() -> HashMap<String, SoftwareUpdate> {
+        let mut updates = HashMap::new();
+
+        let brew = match Self::find_brew_path() {
+            Some(p) => p,
+            None => return updates,
+        };
+
+        let output = match agent_common::process::silent_command(&brew)
+            .args(["outdated", "--json"])
+            .output()
+        {
+            Ok(o) if o.status.success() => o,
+            _ => return updates,
+        };
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let parsed: serde_json::Value = match serde_json::from_str(&stdout) {
+            Ok(v) => v,
+            Err(_) => return updates,
+        };
+
+        // Formulae
+        if let Some(formulae) = parsed.get("formulae").and_then(|f| f.as_array()) {
+            for f in formulae {
+                if let (Some(name), Some(ver)) = (
+                    f.get("name").and_then(|n| n.as_str()),
+                    f.get("current_version").and_then(|v| v.as_str()),
+                ) {
+                    updates.insert(
+                        name.to_string(),
+                        SoftwareUpdate {
+                            version: ver.to_string(),
+                            update_type: UpdateType::Minor,
+                            is_security: false,
+                            cve_ids: Vec::new(),
+                            release_date: None,
+                            download_size: None,
+                            release_notes: None,
+                        },
+                    );
+                }
+            }
+        }
+
+        // Casks
+        if let Some(casks) = parsed.get("casks").and_then(|c| c.as_array()) {
+            for c in casks {
+                if let (Some(name), Some(ver)) = (
+                    c.get("name").and_then(|n| n.as_str()),
+                    c.get("current_version").and_then(|v| v.as_str()),
+                ) {
+                    updates.insert(
+                        name.to_string(),
+                        SoftwareUpdate {
+                            version: ver.to_string(),
+                            update_type: UpdateType::Minor,
+                            is_security: false,
+                            cve_ids: Vec::new(),
+                            release_date: None,
+                            download_size: None,
+                            release_notes: None,
+                        },
+                    );
+                }
+            }
+        }
+
+        updates
+    }
+
+    /// Batch-fetch Homebrew dependency graph for all installed formulae.
+    #[cfg(target_os = "macos")]
+    async fn fetch_brew_deps() -> HashMap<String, Vec<SoftwareDependency>> {
+        let mut deps_map = HashMap::new();
+
+        let brew = match Self::find_brew_path() {
+            Some(p) => p,
+            None => return deps_map,
+        };
+
+        let output = match agent_common::process::silent_command(&brew)
+            .args(["deps", "--installed", "--for-each"])
+            .output()
+        {
+            Ok(o) if o.status.success() => o,
+            _ => return deps_map,
+        };
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        for line in stdout.lines() {
+            // Format: "package: dep1 dep2 dep3"
+            if let Some((name, deps_str)) = line.split_once(':') {
+                let deps: Vec<SoftwareDependency> = deps_str
+                    .split_whitespace()
+                    .map(|dep| SoftwareDependency {
+                        name: dep.to_string(),
+                        version_requirement: "*".to_string(),
+                        is_optional: false,
+                        is_satisfied: true,
+                    })
+                    .collect();
+                if !deps.is_empty() {
+                    deps_map.insert(name.trim().to_string(), deps);
+                }
+            }
+        }
+
+        deps_map
+    }
+
+    /// Batch-fetch upgradable APT packages.
+    #[cfg(target_os = "linux")]
+    async fn fetch_apt_upgradable() -> HashMap<String, SoftwareUpdate> {
+        let mut updates = HashMap::new();
+
+        let output = match agent_common::process::silent_command("apt")
+            .args(["list", "--upgradable"])
+            .output()
+        {
+            Ok(o) if o.status.success() => o,
+            _ => return updates,
+        };
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        for line in stdout.lines() {
+            // Format: "package/source version arch [upgradable from: old_ver]"
+            if let Some(slash_pos) = line.find('/') {
+                let name = &line[..slash_pos];
+                let rest = &line[slash_pos + 1..];
+                let version = rest
+                    .split_whitespace()
+                    .nth(1)
+                    .unwrap_or("unknown")
+                    .to_string();
+
+                updates.insert(
+                    name.to_string(),
+                    SoftwareUpdate {
+                        version,
+                        update_type: UpdateType::Patch,
+                        is_security: line.contains("-security"),
+                        cve_ids: Vec::new(),
+                        release_date: None,
+                        download_size: None,
+                        release_notes: None,
+                    },
+                );
+            }
+        }
+
+        updates
+    }
+
+    /// Batch-fetch dpkg dependency graph for all installed packages.
+    #[cfg(target_os = "linux")]
+    async fn fetch_dpkg_deps() -> HashMap<String, Vec<SoftwareDependency>> {
+        let mut deps_map = HashMap::new();
+
+        // dpkg-query with Pre-Depends + Depends fields
+        let output = match agent_common::process::silent_command("dpkg-query")
+            .args(["-W", "-f=${Package}\t${Depends}\n"])
+            .output()
+        {
+            Ok(o) if o.status.success() => o,
+            _ => return deps_map,
+        };
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        for line in stdout.lines() {
+            if let Some((name, deps_str)) = line.split_once('\t') {
+                if deps_str.is_empty() {
+                    continue;
+                }
+                // Format: "dep1 (>= 1.0), dep2, dep3 | dep3-alt"
+                let deps: Vec<SoftwareDependency> = deps_str
+                    .split(',')
+                    .filter_map(|dep_entry| {
+                        // Take the first alternative before '|'
+                        let dep = dep_entry.split('|').next()?.trim();
+                        if dep.is_empty() {
+                            return None;
+                        }
+                        let mut parts = dep.splitn(2, ' ');
+                        let dep_name = parts.next()?.to_string();
+                        let version_req = parts
+                            .next()
+                            .unwrap_or("*")
+                            .trim_matches(|c| c == '(' || c == ')')
+                            .to_string();
+                        Some(SoftwareDependency {
+                            name: dep_name,
+                            version_requirement: version_req,
+                            is_optional: false,
+                            is_satisfied: true,
+                        })
+                    })
+                    .collect();
+                if !deps.is_empty() {
+                    deps_map.insert(name.to_string(), deps);
+                }
+            }
+        }
+
+        deps_map
+    }
+
+    /// Batch-fetch upgradable winget packages (Windows).
+    #[cfg(target_os = "windows")]
+    async fn fetch_winget_upgradable() -> HashMap<String, SoftwareUpdate> {
+        let mut updates = HashMap::new();
+
+        let output = match agent_common::process::silent_command("winget")
+            .args(["upgrade", "--accept-source-agreements", "--disable-interactivity"])
+            .output()
+        {
+            Ok(o) if o.status.success() => o,
+            _ => return updates,
+        };
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let lines: Vec<&str> = stdout.lines().collect();
+
+        // Find the separator line (---...) that precedes package rows
+        let separator_idx = lines.iter().position(|l| l.starts_with("---"));
+        if let Some(idx) = separator_idx {
+            for line in &lines[idx + 1..] {
+                if line.trim().is_empty() {
+                    continue;
+                }
+                // Format: Name  Id  Version  Available  Source
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                if parts.len() >= 4 {
+                    let available = parts[parts.len() - 2].to_string();
+                    let current = parts[parts.len() - 3].to_string();
+
+                    // Reconstruct name from leading parts
+                    let name_parts = &parts[..parts.len().saturating_sub(4)];
+                    let name = if name_parts.is_empty() {
+                        parts[parts.len() - 4].to_string()
+                    } else {
+                        name_parts.join(" ")
+                    };
+
+                    if !current.is_empty() && !available.is_empty() && current != available {
+                        updates.insert(
+                            name,
+                            SoftwareUpdate {
+                                version: available,
+                                update_type: UpdateType::Minor,
+                                is_security: false,
+                                cve_ids: Vec::new(),
+                                release_date: None,
+                                download_size: None,
+                                release_notes: None,
+                            },
+                        );
+                    }
+                }
+            }
+        }
+
+        updates
     }
 }
 
@@ -743,7 +1291,8 @@ mod tests {
         let scanner = MDMSoftwareScanner::new();
         let package = InstalledPackage::new("Chrome", "120.0.0.0")
             .with_publisher("Google")
-            .with_arch("x64");
+            .with_arch("x64")
+            .with_description("brew-cask");
 
         let mdm_software = scanner.convert_to_mdm_inventory(package).await;
 
@@ -752,5 +1301,108 @@ mod tests {
         assert_eq!(mdm_software.vendor, Some("Google".to_string()));
         assert_eq!(mdm_software.category, SoftwareCategory::Browser);
         assert_eq!(mdm_software.deployment_status, DeploymentStatus::Deployed);
+        // Source should be stored in metadata properties
+        assert_eq!(
+            mdm_software.metadata.properties.get("source"),
+            Some(&serde_json::Value::String("brew-cask".to_string()))
+        );
+        assert_eq!(
+            mdm_software.management_source,
+            ManagementSource::Automated
+        );
+    }
+
+    #[test]
+    fn test_management_source_detection() {
+        let scanner = MDMSoftwareScanner::new();
+
+        // Package managers → Automated
+        assert_eq!(
+            scanner.detect_management_source("node", "brew"),
+            ManagementSource::Automated
+        );
+        assert_eq!(
+            scanner.detect_management_source("curl", "apt"),
+            ManagementSource::Automated
+        );
+        assert_eq!(
+            scanner.detect_management_source("vscode", "winget"),
+            ManagementSource::Automated
+        );
+
+        // MS Store → Policy
+        assert_eq!(
+            scanner.detect_management_source("WhatsApp", "msstore"),
+            ManagementSource::Policy
+        );
+
+        // Windows registry → Manual
+        assert_eq!(
+            scanner.detect_management_source("Notepad++", "windows-registry"),
+            ManagementSource::Manual
+        );
+
+        // Unknown → Manual
+        assert_eq!(
+            scanner.detect_management_source("unknown", ""),
+            ManagementSource::Manual
+        );
+    }
+
+    #[test]
+    fn test_installation_method_detection() {
+        // Package managers
+        assert!(matches!(
+            MDMSoftwareScanner::detect_installation_method("brew"),
+            InstallationMethod::PackageManager
+        ));
+        assert!(matches!(
+            MDMSoftwareScanner::detect_installation_method("apt"),
+            InstallationMethod::PackageManager
+        ));
+        assert!(matches!(
+            MDMSoftwareScanner::detect_installation_method("winget"),
+            InstallationMethod::PackageManager
+        ));
+
+        // macOS app bundle
+        assert!(matches!(
+            MDMSoftwareScanner::detect_installation_method("macos-app-bundle"),
+            InstallationMethod::Other(_)
+        ));
+
+        // Windows registry → EXE
+        assert_eq!(
+            MDMSoftwareScanner::detect_installation_method("windows-registry"),
+            InstallationMethod::EXE
+        );
+
+        // MS Store → AppStore
+        assert_eq!(
+            MDMSoftwareScanner::detect_installation_method("msstore"),
+            InstallationMethod::AppStore
+        );
+
+        // Empty → Manual
+        assert_eq!(
+            MDMSoftwareScanner::detect_installation_method(""),
+            InstallationMethod::Manual
+        );
+    }
+
+    #[test]
+    fn test_detect_install_path_linux() {
+        // apt packages should try /usr/bin, /usr/sbin, /usr/local/bin
+        // (won't find anything on non-Linux but should not panic)
+        let result = MDMSoftwareScanner::detect_install_path("nonexistent-pkg-12345", "apt");
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_detect_install_path_windows() {
+        // Should not panic on non-Windows
+        let result =
+            MDMSoftwareScanner::detect_install_path("nonexistent-pkg-12345", "windows-registry");
+        assert!(result.is_none());
     }
 }

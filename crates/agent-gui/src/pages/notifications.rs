@@ -169,8 +169,9 @@ impl NotificationsPage {
 
                             if !notif.read {
                                 ui.painter().circle_filled(
-                                    ui.available_rect_before_wrap().min + egui::vec2(0.0, 8.0),
-                                    4.0,
+                                    ui.available_rect_before_wrap().min
+                                        + egui::vec2(0.0, theme::SPACE_SM),
+                                    theme::STATUS_DOT_SIZE / 2.0,
                                     theme::ACCENT,
                                 );
                                 ui.add_space(theme::SPACE_MD);

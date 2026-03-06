@@ -40,9 +40,11 @@ const KPI_GAUGE_SIZE: f32 = 56.0;
 /// Seconds per day for KPI period filtering.
 const SECS_PER_DAY: i64 = 86_400;
 /// Minimum inner height for indicator cards (ensures uniform row height).
-const INDICATOR_CARD_MIN_HEIGHT: f32 = 96.0;
+const INDICATOR_CARD_MIN_HEIGHT: f32 = theme::SUMMARY_CARD_MIN_HEIGHT + theme::SPACE_LG;
 /// Minimum inner height for bottom-row cards (recommendations + feed).
 const BOTTOM_CARD_MIN_HEIGHT: f32 = 200.0;
+/// Minimum inner height for the AI posture score hero card.
+const AI_SCORE_CARD_MIN_HEIGHT: f32 = 220.0;
 
 /// Actions returned by the dashboard page.
 pub enum DashboardAction {
@@ -391,7 +393,7 @@ impl DashboardPage {
 
         widgets::clickable_card(ui, "ai_score_card", |ui: &mut egui::Ui| {
             ui.set_min_width(ui.available_width());
-            ui.set_min_height(220.0);
+            ui.set_min_height(AI_SCORE_CARD_MIN_HEIGHT);
             ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("SCORE DE S\u{00c9}CURIT\u{00c9} IA")

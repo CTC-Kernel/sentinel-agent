@@ -31,52 +31,46 @@ impl FimPage {
         ui.add_space(theme::SPACE_LG);
 
         // ── Summary cards (AAA Grade) ───────────────────────────────────
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                let card_gap = theme::SPACE_SM;
-                let card_w = ((ui.available_width() - card_gap * 3.0) / 4.0).max(0.0);
-                ui.spacing_mut().item_spacing.x = card_gap;
-
-                Self::summary_card(
-                    ui,
-                    card_w,
+        {
+            let unacked: String = state
+                .fim
+                .alerts
+                .iter()
+                .filter(|a| !a.acknowledged)
+                .count()
+                .to_string();
+            let items: Vec<(&str, String, egui::Color32, &str)> = vec![
+                (
                     "FICHIERS SURVEILLÉS",
-                    &state.fim.monitored_count.to_string(),
+                    state.fim.monitored_count.to_string(),
                     theme::INFO,
                     icons::FILE_SHIELD,
-                );
-                Self::summary_card(
-                    ui,
-                    card_w,
+                ),
+                (
                     "MODIFICATIONS AUJOURD'HUI",
-                    &state.fim.changes_today.to_string(),
+                    state.fim.changes_today.to_string(),
                     theme::WARNING,
                     icons::PENCIL,
-                );
-                Self::summary_card(
-                    ui,
-                    card_w,
+                ),
+                (
                     "ALERTES ACTIVES",
-                    &state.fim.alerts.len().to_string(),
+                    state.fim.alerts.len().to_string(),
                     theme::ERROR,
                     icons::WARNING,
-                );
-                Self::summary_card(
-                    ui,
-                    card_w,
+                ),
+                (
                     "NON ACQUITTÉES",
-                    &state
-                        .fim
-                        .alerts
-                        .iter()
-                        .filter(|a| !a.acknowledged)
-                        .count()
-                        .to_string(),
+                    unacked,
                     theme::ACCENT,
                     icons::CLOCK,
-                );
+                ),
+            ];
+
+            let grid = widgets::ResponsiveGrid::new(200.0, theme::SPACE_SM);
+            grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
+                Self::summary_card(ui, width, label, value, *color, icon);
             });
-        });
+        }
 
         ui.add_space(theme::SPACE_LG);
 
@@ -503,6 +497,7 @@ impl FimPage {
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(

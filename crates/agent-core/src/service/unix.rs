@@ -353,7 +353,15 @@ pub fn get_service_state() -> ServiceResult<ServiceState> {
 }
 
 /// Start the service via systemctl.
+///
+/// Requires root privileges.
 pub fn start_service() -> ServiceResult<()> {
+    if !is_root() {
+        return Err(ServiceError::PermissionDenied(
+            "Root privileges required to start service".to_string(),
+        ));
+    }
+
     if !Path::new(SYSTEMD_UNIT_PATH).exists() {
         return Err(ServiceError::NotInstalled);
     }
@@ -380,7 +388,15 @@ pub fn start_service() -> ServiceResult<()> {
 }
 
 /// Stop the service via systemctl.
+///
+/// Requires root privileges.
 pub fn stop_service() -> ServiceResult<()> {
+    if !is_root() {
+        return Err(ServiceError::PermissionDenied(
+            "Root privileges required to stop service".to_string(),
+        ));
+    }
+
     if !Path::new(SYSTEMD_UNIT_PATH).exists() {
         return Err(ServiceError::NotInstalled);
     }

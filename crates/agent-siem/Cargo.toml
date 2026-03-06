@@ -18,6 +18,8 @@ async-trait.workspace = true
 uuid.workspace = true
 hostname.workspace = true
 url.workspace = true
+reqwest.workspace = true
+regex.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
