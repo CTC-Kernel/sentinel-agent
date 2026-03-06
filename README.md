@@ -1,9 +1,12 @@
+
+# Sentinel-GRC Agent for End point
+
+**The Sovereign Standard for Modern Security & Compliance**
+
 <p align="center">
   <img src="crates/agent-gui/assets/IA.png" alt="Sentinel GRC Agent IA" width="400">
 </p>
 
-# Sentinel GRC Agent
-**The Sovereign Standard for Modern Security & Compliance**
 
 [![CI Status](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
