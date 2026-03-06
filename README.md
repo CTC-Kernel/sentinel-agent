@@ -1,5 +1,5 @@
 <p align="center">
-  ![Sentinel GRC Agent Banner](https://raw.githubusercontent.com/CTC-Kernel/sentinel-agent/main/assets/banner_main.png)
+  <img src="assets/banner_main.png" alt="Sentinel GRC Agent Banner" width="800">
 </p>
 
 # Sentinel GRC Agent
