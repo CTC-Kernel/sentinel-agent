@@ -1466,4 +1466,39 @@ mod tests {
             "550e8400-e29b-41d4-a716-446655440000"
         );
     }
+
+    #[test]
+    fn test_enrollment_result_untagged_deserialization() {
+        // Exact JSON returned by the server (re-enrollment case)
+        let json = r#"{
+            "agent_id": "d51b0ea4-dac4-333a-7ddc-a9ba73b95670",
+            "organization_id": "b7822f05-eab1-0332-1e6e-9a68617085f7",
+            "server_certificate": "eyJ2ZXJzaW9uIjoz",
+            "client_certificate": "eyJ2ZXJzaW9uIjoz",
+            "client_key": "LS0tLS1CRUdJTi",
+            "hmac_secret": "NAPT+sz+test",
+            "certificate_expires_at": "2027-03-06T16:50:38.367Z",
+            "config": {
+                "check_interval_secs": 3600,
+                "heartbeat_interval_secs": 60,
+                "log_level": "info",
+                "enabled_checks": ["all"],
+                "offline_mode_days": 7
+            },
+            "status": "re_enrolled"
+        }"#;
+
+        // This is what the actual code does: deserialize as EnrollmentResult (untagged enum)
+        let result: EnrollmentResult = serde_json::from_str(json).unwrap();
+        match result {
+            EnrollmentResult::Success(resp) => {
+                assert_eq!(resp.agent_id.to_string(), "d51b0ea4-dac4-333a-7ddc-a9ba73b95670");
+                assert_eq!(resp.organization_id.to_string(), "b7822f05-eab1-0332-1e6e-9a68617085f7");
+                assert_eq!(resp.client_private_key, "LS0tLS1CRUdJTi");
+            }
+            EnrollmentResult::AlreadyEnrolled { .. } => {
+                panic!("Expected Success variant, got AlreadyEnrolled");
+            }
+        }
+    }
 }
