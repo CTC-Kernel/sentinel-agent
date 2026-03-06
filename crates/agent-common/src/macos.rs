@@ -1,0 +1,56 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
+//! macOS specific system utilities.
+
+use crate::error::{CommonError, Result};
+use crate::process::silent_command;
+use tracing::{info, warn};
+
+/// Checks if the current process is running with administrator privileges.
+pub fn is_admin() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        // On macOS/Unix, we check if the effective user ID is 0 (root)
+        unsafe { libc::geteuid() == 0 }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        false
+    }
+}
+
+/// Runs a command with administrator privileges using AppleScript.
+/// This will trigger the native macOS password prompt in a window.
+pub fn run_with_elevation(script: &str) -> Result<String> {
+    info!("Requesting privilege elevation for command: {}", script);
+
+    // Escape double quotes and backslashes for AppleScript strings
+    let escaped_script = script
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('$', "\\$")
+        .replace('`', "\\`")
+        .replace('!', "\\!");
+
+    // AppleScript command: do shell script "..." with administrator privileges
+    // Note: AppleScript strings MUST use double quotes. Single quotes are not valid string delimiters.
+    let applescript = format!(
+        "do shell script \"{}\" with administrator privileges",
+        escaped_script
+    );
+
+    let output = silent_command("osascript")
+        .args(["-e", &applescript])
+        .output()
+        .map_err(|e| CommonError::system(format!("Failed to execute osascript: {}", e)))?;
+
+    if output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        Ok(stdout)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        warn!("Privilege elevation failed or cancelled: {}", stderr);
+        Err(CommonError::system(format!("Elevation failed: {}", stderr)))
+    }
+}

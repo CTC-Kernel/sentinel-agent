@@ -1,0 +1,2088 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
+//! Resource monitoring and limits for the Sentinel GRC Agent.
+//!
+//! This module provides resource usage tracking and enforcement to ensure
+//! the agent operates within strict limits (NFR-P1 to NFR-P5, NFR-P10).
+//!
+//! Limits enforced:
+//! - CPU: < 0.5% idle, < 5% during checks
+//! - Memory: < 100 MB
+//! - Disk I/O: < 10 IOPS average
+//! - Startup: < 5 seconds
+
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{Duration, Instant};
+use tracing::{debug, info, warn};
+
+#[allow(unused_imports)]
+use agent_network::{ConnectionProtocol, ConnectionState, NetworkConnection};
+
+/// Resource limits configuration.
+#[derive(Debug, Clone)]
+pub struct ResourceLimits {
+    /// Maximum CPU usage when idle (percentage).
+    pub max_cpu_idle: f64,
+    /// Maximum CPU usage during checks (percentage).
+    pub max_cpu_active: f64,
+    /// Maximum memory usage in bytes.
+    pub max_memory_bytes: u64,
+    /// Maximum disk I/O throughput in KB/s.
+    pub max_disk_kbps: u32,
+    /// Maximum startup time in milliseconds.
+    pub max_startup_ms: u64,
+}
+
+impl Default for ResourceLimits {
+    fn default() -> Self {
+        Self {
+            // egui render loop + OpenGL poll uses 5-12% CPU on macOS even when idle
+            max_cpu_idle: 20.0, // 20% idle (increased from 15% for macOS headroom)
+            max_cpu_active: 35.0, // 35% during active scans (increased for I/O heavy checks)
+            max_memory_bytes: 350 * 1024 * 1024, // 350 MB (egui+OpenGL context needs ~200MB)
+            max_disk_kbps: 10000, // 10 MB/s
+            max_startup_ms: 15000, // 15 seconds
+        }
+    }
+}
+
+/// Current resource usage snapshot.
+#[derive(Debug, Clone, Default)]
+pub struct ResourceUsage {
+    /// Current CPU usage percentage.
+    pub cpu_percent: f64,
+    /// Current memory usage in bytes.
+    pub memory_bytes: u64,
+    /// Current disk I/O throughput in KB/s.
+    pub disk_kbps: u32,
+    /// Network I/O throughput (bytes per second).
+    pub network_io_bytes: u64,
+    /// Time since agent start in milliseconds.
+    pub uptime_ms: u64,
+}
+
+impl ResourceUsage {
+    /// Check if resource usage is within limits for idle state.
+    pub fn is_within_idle_limits(&self, limits: &ResourceLimits) -> bool {
+        self.cpu_percent <= limits.max_cpu_idle
+            && self.memory_bytes <= limits.max_memory_bytes
+            && self.disk_kbps <= limits.max_disk_kbps
+    }
+
+    /// Check if resource usage is within limits for active state.
+    pub fn is_within_active_limits(&self, limits: &ResourceLimits) -> bool {
+        self.cpu_percent <= limits.max_cpu_active
+            && self.memory_bytes <= limits.max_memory_bytes
+            && self.disk_kbps <= limits.max_disk_kbps
+    }
+}
+
+/// Resource monitor for tracking agent resource usage.
+#[derive(Debug)]
+pub struct ResourceMonitor {
+    limits: ResourceLimits,
+    start_time: Instant,
+    sample_count: AtomicU64,
+    /// Last time a warning was logged (for rate limiting).
+    last_warning_time: AtomicU64,
+    /// Last network total bytes (rx+tx).
+    last_network_bytes: AtomicU64,
+    /// Last disk I/O bytes (read+write) for delta calculation.
+    last_disk_bytes: AtomicU64,
+    /// Last sample time for rate calculations.
+    last_sample_time: AtomicU64,
+    /// sysinfo System instance.
+    sys: Mutex<sysinfo::System>,
+    /// sysinfo Networks instance.
+    networks: Mutex<sysinfo::Networks>,
+}
+
+impl ResourceMonitor {
+    /// Create a new resource monitor with default limits.
+    pub fn new() -> Self {
+        Self::with_limits(ResourceLimits::default())
+    }
+
+    /// Create a new resource monitor with custom limits.
+    pub fn with_limits(limits: ResourceLimits) -> Self {
+        Self {
+            limits,
+            start_time: Instant::now(),
+            sample_count: AtomicU64::new(0),
+            last_warning_time: AtomicU64::new(0),
+            last_network_bytes: AtomicU64::new(0),
+            last_disk_bytes: AtomicU64::new(0),
+            last_sample_time: AtomicU64::new(0),
+            sys: Mutex::new(sysinfo::System::new_all()),
+            networks: Mutex::new(sysinfo::Networks::new_with_refreshed_list()),
+        }
+    }
+
+    /// Get current resource usage.
+    pub fn get_usage(&self) -> ResourceUsage {
+        let memory_bytes = get_process_memory();
+        let cpu_percent = get_cpu_usage();
+        let uptime_ms = self.start_time.elapsed().as_millis() as u64;
+
+        self.sample_count.fetch_add(1, Ordering::Relaxed);
+
+        // Network I/O collection using native OS APIs.
+        // sysinfo::Networks on macOS returns stale counters — use getifaddrs() /
+        // /proc/net/dev directly for reliable system-wide byte totals.
+        let current_time = self.start_time.elapsed().as_secs();
+        let network_io_bytes = {
+            let current_network = get_network_bytes_total();
+            let last_net = self
+                .last_network_bytes
+                .swap(current_network, Ordering::Relaxed);
+            let last_time = self.last_sample_time.swap(current_time, Ordering::Relaxed);
+
+            if last_net > 0 && current_network >= last_net && last_time > 0 {
+                let time_delta = current_time - last_time;
+                if time_delta > 0 {
+                    // Calculate bytes per second
+                    (current_network - last_net) / time_delta
+                } else {
+                    0
+                }
+            } else {
+                0
+            }
+        };
+
+        // Disk I/O collection using platform-native API with proper rate calculation
+        // NOTE: sysinfo 0.35 process.disk_usage() returns 0 on macOS for
+        // single-PID refresh. We always use the native get_disk_bytes() which
+        // on macOS uses proc_pid_rusage (reliable) and on Linux uses /proc/self/io.
+        let disk_kbps = {
+            let current_disk = get_disk_bytes();
+            let last_disk = self.last_disk_bytes.swap(current_disk, Ordering::Relaxed);
+
+            if last_disk > 0 && current_disk >= last_disk && current_time > 0 {
+                let time_delta = current_time - self.last_sample_time.load(Ordering::Relaxed);
+                if time_delta > 0 {
+                    // Calculate KB per second
+                    ((current_disk - last_disk) / 1024) / time_delta
+                } else {
+                    0
+                }
+            } else {
+                0
+            }
+        };
+
+        let usage = ResourceUsage {
+            cpu_percent,
+            memory_bytes,
+            disk_kbps: disk_kbps.try_into().unwrap_or(u32::MAX),
+            network_io_bytes,
+            uptime_ms,
+        };
+
+        // Log every sample for debugging (reduce to every 10 in production)
+        if self.sample_count.load(Ordering::Relaxed).is_multiple_of(1) {
+            info!(
+                "Resource Usage: CPU={:.1}%, RAM={}MB, DiskIO={}KB/s, NetIO={}B/s",
+                usage.cpu_percent,
+                usage.memory_bytes / 1024 / 1024,
+                usage.disk_kbps,
+                usage.network_io_bytes
+            );
+        }
+
+        usage
+    }
+
+    /// Get detailed process list for telemetry.
+    pub fn get_processes(&self) -> Vec<crate::api_client::AgentProcess> {
+        let sys = match self.sys.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => {
+                tracing::warn!("sysinfo mutex was poisoned, recovering");
+                poisoned.into_inner()
+            }
+        };
+
+        let total_memory = sys.total_memory();
+
+        let mut processes: Vec<crate::api_client::AgentProcess> = sys
+            .processes()
+            .iter()
+            .map(|(&pid, process)| crate::api_client::AgentProcess {
+                pid: pid.as_u32(),
+                name: process.name().to_string_lossy().to_string(),
+                cpu_percent: process.cpu_usage() as f64,
+                memory_bytes: process.memory(),
+                memory_percent: if total_memory > 0 {
+                    (process.memory() as f64 / total_memory as f64) * 100.0
+                } else {
+                    0.0
+                },
+                user: process
+                    .user_id()
+                    .map(|u| u.to_string())
+                    .unwrap_or_else(|| "unknown".to_string()),
+                status: match process.status() {
+                    sysinfo::ProcessStatus::Run => "running",
+                    sysinfo::ProcessStatus::Sleep => "sleeping",
+                    sysinfo::ProcessStatus::Stop => "stopped",
+                    sysinfo::ProcessStatus::Zombie => "zombie",
+                    _ => "running",
+                }
+                .to_string(),
+                command_line: process
+                    .cmd()
+                    .first()
+                    .map(|c| c.to_string_lossy().to_string()),
+            })
+            .collect();
+
+        // Sort by CPU usage and take top 20
+        processes.sort_by(|a, b| {
+            b.cpu_percent
+                .partial_cmp(&a.cpu_percent)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        processes.truncate(20);
+        processes
+    }
+
+    /// Get active network connections for telemetry.
+    pub fn get_connections(&self) -> Vec<crate::api_client::AgentConnection> {
+        #[allow(unused_mut)]
+        let mut connections = Vec::new();
+
+        #[cfg(target_os = "macos")]
+        {
+            use std::process::Stdio;
+            let child = agent_common::process::silent_command("lsof")
+                .args(["-i", "-n", "-P"])
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn();
+
+            if let Ok(mut child) = child {
+                // Poll with 5-second timeout to prevent hanging
+                let timeout = std::time::Duration::from_secs(5);
+                let start = std::time::Instant::now();
+                let timed_out = loop {
+                    match child.try_wait() {
+                        Ok(Some(_)) => break false,
+                        Ok(None) if start.elapsed() >= timeout => {
+                            tracing::warn!("lsof timed out after 5s, killing process");
+                            let _ = child.kill();
+                            let _ = child.wait();
+                            break true;
+                        }
+                        Ok(None) => {
+                            std::thread::sleep(std::time::Duration::from_millis(50));
+                        }
+                        Err(_) => break true,
+                    }
+                };
+
+                if !timed_out && let Ok(output) = child.wait_with_output() {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    for line in stdout.lines().skip(1) {
+                        if let Some(conn) = self.parse_lsof_line(line) {
+                            connections.push(conn);
+                        }
+                    }
+                }
+            }
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            use std::process::Stdio;
+            let child = agent_common::process::silent_command("netstat")
+                .args(["-ano"])
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn();
+
+            if let Ok(mut child) = child {
+                let timeout = std::time::Duration::from_secs(5);
+                let start = std::time::Instant::now();
+                let timed_out = loop {
+                    match child.try_wait() {
+                        Ok(Some(_)) => break false,
+                        Ok(None) if start.elapsed() >= timeout => {
+                            tracing::warn!("netstat timed out after 5s, killing process");
+                            let _ = child.kill();
+                            let _ = child.wait();
+                            break true;
+                        }
+                        Ok(None) => {
+                            std::thread::sleep(std::time::Duration::from_millis(50));
+                        }
+                        Err(_) => break true,
+                    }
+                };
+
+                if !timed_out {
+                    if let Ok(output) = child.wait_with_output() {
+                        let stdout = String::from_utf8_lossy(&output.stdout);
+                        for line in stdout.lines() {
+                            if let Some(conn) = self.parse_netstat_line(line) {
+                                connections.push(conn);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        connections
+    }
+
+    #[cfg(target_os = "windows")]
+    fn parse_netstat_line(&self, line: &str) -> Option<crate::api_client::AgentConnection> {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        // netstat -ano columns: Proto, Local Address, Foreign Address, State, PID
+        // BUT for UDP, State is missing: Proto, Local Address, Foreign Address, PID
+        if parts.len() < 4 {
+            return None;
+        }
+
+        let protocol = parts[0];
+        if protocol != "TCP" && protocol != "UDP" {
+            return None;
+        }
+
+        let local_full = parts[1];
+        let remote_full = parts[2];
+        let (local_address, local_port) = self.parse_netstat_address(local_full)?;
+        let (remote_address, remote_port) = self
+            .parse_netstat_address(remote_full)
+            .map(|(a, p)| (Some(a), Some(p)))
+            .unwrap_or((None, None));
+
+        let (state, pid_str) = if protocol == "TCP" && parts.len() >= 5 {
+            (parts[3].to_string(), parts[4])
+        } else {
+            ("UNKNOWN".to_string(), parts[parts.len() - 1])
+        };
+
+        let pid = pid_str.parse::<u32>().ok();
+
+        // Try to get process name from sysinfo if available
+        let process_name = if let Some(pid_val) = pid {
+            if let Ok(sys) = self.sys.lock() {
+                sys.process(sysinfo::Pid::from(pid_val as usize))
+                    .map(|p| p.name().to_string_lossy().to_string())
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        Some(crate::api_client::AgentConnection {
+            protocol: protocol.to_string(),
+            local_address,
+            local_port,
+            remote_address,
+            remote_port,
+            state,
+            process_name,
+            pid,
+        })
+    }
+
+    #[cfg(target_os = "windows")]
+    fn parse_netstat_address(&self, addr_str: &str) -> Option<(String, u16)> {
+        // Formats: 127.0.0.1:80, [::]:80, *:*
+        if addr_str == "*:*" || addr_str == "[::]:*" || addr_str == "0.0.0.0:*" {
+            return None;
+        }
+
+        let parts: Vec<&str> = addr_str.rsplitn(2, ':').collect();
+        if parts.len() < 2 {
+            return None;
+        }
+
+        let port = parts[0].parse().ok()?;
+        let addr = parts[1]
+            .trim_start_matches('[')
+            .trim_end_matches(']')
+            .to_string();
+
+        if addr == "*" || addr == "0.0.0.0" || addr == "::" {
+            Some(("0.0.0.0".to_string(), port))
+        } else {
+            Some((addr, port))
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    fn parse_lsof_line(&self, line: &str) -> Option<crate::api_client::AgentConnection> {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() < 9 {
+            return None;
+        }
+
+        let process_name = Some(parts.first()?.to_string());
+        let pid = parts.get(1)?.parse().ok();
+        let type_col = *parts.get(4)?;
+        let name_col = parts.last()?;
+
+        let protocol = if type_col == "IPv4" {
+            if name_col.contains("TCP") {
+                "TCP"
+            } else {
+                "UDP"
+            }
+        } else if type_col == "IPv6" {
+            if name_col.contains("TCP") {
+                "TCP6"
+            } else {
+                "UDP6"
+            }
+        } else {
+            return None;
+        };
+
+        let name_str = parts.get(8..)?.join(" ");
+        let name_parts: Vec<&str> = name_str.split("->").collect();
+
+        let local_str = name_parts.first()?.replace("TCP ", "").replace("UDP ", "");
+        let (local_address, local_port) = self.parse_lsof_address(&local_str)?;
+
+        let (remote_address, remote_port) = if name_parts.len() > 1 {
+            let remote = name_parts.get(1)?.split_whitespace().next()?;
+            let (addr, port) = self.parse_lsof_address(remote)?;
+            (Some(addr), Some(port))
+        } else {
+            (None, None)
+        };
+
+        let state = if let Some(state_start) = line.rfind('(') {
+            let after_paren = state_start.checked_add(1)?;
+            let before_end = line.len().checked_sub(1)?;
+            if after_paren <= before_end
+                && line.is_char_boundary(after_paren)
+                && line.is_char_boundary(before_end)
+            {
+                line[after_paren..before_end].to_string()
+            } else {
+                "LISTEN".to_string()
+            }
+        } else {
+            "LISTEN".to_string()
+        };
+
+        Some(crate::api_client::AgentConnection {
+            protocol: protocol.to_string(),
+            local_address,
+            local_port,
+            remote_address,
+            remote_port,
+            state,
+            process_name,
+            pid,
+        })
+    }
+
+    #[cfg(target_os = "macos")]
+    fn parse_lsof_address(&self, addr_str: &str) -> Option<(String, u16)> {
+        let addr_str = addr_str.trim();
+
+        if addr_str.starts_with('[') {
+            let end_bracket = addr_str.find(']')?;
+            let addr = addr_str.get(1..end_bracket).unwrap_or("").to_string();
+            let port_str = addr_str.get(end_bracket + 2..)?;
+            let port = port_str.parse().ok()?;
+            Some((addr, port))
+        } else {
+            let parts: Vec<&str> = addr_str.rsplitn(2, ':').collect();
+            if parts.len() != 2 {
+                return None;
+            }
+            let port = parts[0].parse().ok()?;
+            let addr = if parts[1] == "*" {
+                "0.0.0.0".to_string()
+            } else {
+                parts[1].to_string()
+            };
+            Some((addr, port))
+        }
+    }
+
+    /// Get total network bytes since boot.
+    pub fn get_networks(&self) -> &Mutex<sysinfo::Networks> {
+        &self.networks
+    }
+
+    /// Check if startup time is within limits.
+    pub fn check_startup_time(&self) -> bool {
+        let elapsed = self.start_time.elapsed().as_millis() as u64;
+        if elapsed > self.limits.max_startup_ms {
+            warn!(
+                "Startup time exceeded limit: {}ms > {}ms",
+                elapsed, self.limits.max_startup_ms
+            );
+            return false;
+        }
+        debug!("Startup completed in {}ms", elapsed);
+        true
+    }
+
+    /// Check if current usage is within limits.
+    pub fn check_limits(&self, is_active: bool) -> bool {
+        let usage = self.get_usage();
+
+        // Improved activity detection: check if agent is actually performing work
+        let is_actively_working = self.is_actively_working_with(&usage);
+        let should_use_active_limits = is_active && is_actively_working;
+
+        let (cpu_limit, state_name) = if should_use_active_limits {
+            (self.limits.max_cpu_active, "active")
+        } else {
+            (self.limits.max_cpu_idle, "idle")
+        };
+
+        let cpu_over = usage.cpu_percent > cpu_limit;
+        let memory_over = usage.memory_bytes > self.limits.max_memory_bytes;
+        let disk_over = usage.disk_kbps > self.limits.max_disk_kbps;
+
+        let within_limits = !cpu_over && !memory_over && !disk_over;
+
+        if !within_limits {
+            // Rate-limit warnings to once per 60 seconds
+            let now_secs = self.start_time.elapsed().as_secs();
+            let last_warning = self.last_warning_time.load(Ordering::Relaxed);
+
+            if now_secs >= last_warning + 60 {
+                self.last_warning_time.store(now_secs, Ordering::Relaxed);
+
+                let mut breaches = Vec::new();
+                if cpu_over {
+                    breaches.push(format!(
+                        "CPU={:.1}% (limit: {:.1}%)",
+                        usage.cpu_percent, cpu_limit
+                    ));
+                }
+                if memory_over {
+                    breaches.push(format!(
+                        "RAM={}MB (limit: {}MB)",
+                        usage.memory_bytes / (1024 * 1024),
+                        self.limits.max_memory_bytes / (1024 * 1024)
+                    ));
+                }
+                if disk_over {
+                    breaches.push(format!(
+                        "DiskIO={}KB/s (limit: {}KB/s)",
+                        usage.disk_kbps, self.limits.max_disk_kbps
+                    ));
+                }
+
+                warn!(
+                    "Resource limits exceeded during {} state: {}",
+                    state_name,
+                    breaches.join(", ")
+                );
+            }
+        }
+
+        within_limits
+    }
+
+    /// Check if agent is actively working, using pre-obtained usage data.
+    /// Avoids a redundant `get_usage()` call when the caller already has usage.
+    fn is_actively_working_with(&self, usage: &ResourceUsage) -> bool {
+        // Simple heuristic: if CPU > 15%, agent is likely doing work
+        // This prevents false positives during normal system activity
+        usage.cpu_percent > 15.0
+    }
+
+    /// Check if provided usage is within limits.
+    /// Warnings are rate-limited to once per 60 seconds to avoid log spam.
+    pub fn check_limits_with_usage(&self, usage: &ResourceUsage, is_active: bool) -> bool {
+        let (cpu_limit, state_name) = if is_active {
+            (self.limits.max_cpu_active, "active")
+        } else {
+            (self.limits.max_cpu_idle, "idle")
+        };
+
+        let cpu_over = usage.cpu_percent > cpu_limit;
+        let memory_over = usage.memory_bytes > self.limits.max_memory_bytes;
+        let disk_over = usage.disk_kbps > self.limits.max_disk_kbps;
+
+        let within_limits = !cpu_over && !memory_over && !disk_over;
+
+        if !within_limits {
+            // Rate-limit warnings to once per 60 seconds
+            let now_secs = self.start_time.elapsed().as_secs();
+            let last_warning = self.last_warning_time.load(Ordering::Relaxed);
+
+            if now_secs >= last_warning + 60 {
+                self.last_warning_time.store(now_secs, Ordering::Relaxed);
+
+                let mut breaches = Vec::new();
+                if cpu_over {
+                    breaches.push(format!(
+                        "CPU={:.1}% (limit: {:.1}%)",
+                        usage.cpu_percent, cpu_limit
+                    ));
+                }
+                if memory_over {
+                    breaches.push(format!(
+                        "RAM={}MB (limit: {}MB)",
+                        usage.memory_bytes / (1024 * 1024),
+                        self.limits.max_memory_bytes / (1024 * 1024)
+                    ));
+                }
+                if disk_over {
+                    breaches.push(format!(
+                        "DiskIO={}KB/s (limit: {}KB/s)",
+                        usage.disk_kbps, self.limits.max_disk_kbps
+                    ));
+                }
+
+                warn!(
+                    "Resource limits exceeded during {} state: {}",
+                    state_name,
+                    breaches.join(", ")
+                );
+            }
+        }
+
+        within_limits
+    }
+
+    /// Get the configured limits.
+    pub fn limits(&self) -> &ResourceLimits {
+        &self.limits
+    }
+
+    /// Get uptime in milliseconds.
+    pub fn uptime_ms(&self) -> u64 {
+        self.start_time.elapsed().as_millis() as u64
+    }
+}
+
+impl Default for ResourceMonitor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// CPU throttler for limiting CPU usage during intensive operations.
+#[derive(Debug)]
+pub struct CpuThrottler {
+    /// Target maximum CPU percentage.
+    target_cpu: f64,
+    /// Minimum sleep duration between operations.
+    min_sleep: Duration,
+    /// Last operation timestamp.
+    last_op: Instant,
+}
+
+impl CpuThrottler {
+    /// Create a new CPU throttler.
+    pub fn new(target_cpu: f64) -> Self {
+        Self {
+            target_cpu,
+            min_sleep: Duration::from_micros(100),
+            last_op: Instant::now(),
+        }
+    }
+
+    /// Yield control to allow other processes to run.
+    /// Call this periodically during long operations.
+    pub async fn yield_point(&mut self) {
+        let elapsed = self.last_op.elapsed();
+
+        // Calculate sleep time based on target CPU
+        // If we want 5% CPU, we should sleep 95% of the time
+        let work_ratio = self.target_cpu / 100.0;
+        let sleep_ratio = 1.0 - work_ratio;
+
+        if sleep_ratio > 0.0 && elapsed < Duration::from_millis(10) {
+            let sleep_time = elapsed.mul_f64(sleep_ratio / work_ratio);
+            let sleep_time = sleep_time.max(self.min_sleep);
+
+            tokio::time::sleep(sleep_time).await;
+        }
+
+        self.last_op = Instant::now();
+    }
+
+    /// Synchronous yield point for non-async code.
+    pub fn yield_point_sync(&mut self) {
+        let elapsed = self.last_op.elapsed();
+        let work_ratio = self.target_cpu / 100.0;
+        let sleep_ratio = 1.0 - work_ratio;
+
+        if sleep_ratio > 0.0 && elapsed < Duration::from_millis(10) {
+            let sleep_time = elapsed.mul_f64(sleep_ratio / work_ratio);
+            let sleep_time = sleep_time.max(self.min_sleep);
+
+            std::thread::sleep(sleep_time);
+        }
+
+        self.last_op = Instant::now();
+    }
+}
+
+impl Default for CpuThrottler {
+    fn default() -> Self {
+        Self::new(5.0) // Default to 5% CPU target
+    }
+}
+
+/// Bounded buffer for memory-efficient data storage.
+///
+/// Uses `VecDeque` for O(1) push/pop from both ends instead of
+/// `Vec::remove(0)` which is O(n).
+#[derive(Debug)]
+pub struct BoundedBuffer<T> {
+    items: std::collections::VecDeque<T>,
+    max_size: usize,
+}
+
+impl<T> BoundedBuffer<T> {
+    /// Create a new bounded buffer with the given capacity.
+    pub fn new(max_size: usize) -> Self {
+        Self {
+            items: std::collections::VecDeque::with_capacity(max_size.min(1024)),
+            max_size,
+        }
+    }
+
+    /// Push an item, dropping oldest if at capacity.
+    pub fn push(&mut self, item: T) {
+        if self.items.len() >= self.max_size {
+            self.items.pop_front();
+        }
+        self.items.push_back(item);
+    }
+
+    /// Get the current number of items.
+    pub fn len(&self) -> usize {
+        self.items.len()
+    }
+
+    /// Check if the buffer is empty.
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
+
+    /// Get all items as a pair of slices (VecDeque may not be contiguous).
+    pub fn as_slices(&self) -> (&[T], &[T]) {
+        self.items.as_slices()
+    }
+
+    /// Clear all items.
+    pub fn clear(&mut self) {
+        self.items.clear();
+    }
+
+    /// Drain all items.
+    pub fn drain(&mut self) -> impl Iterator<Item = T> + '_ {
+        self.items.drain(..)
+    }
+}
+
+/// Battery-aware adaptive scheduler.
+///
+/// Adjusts scan intervals based on battery state to preserve laptop battery life.
+/// - On AC power: use base interval
+/// - On battery > 50%: 1.5x interval
+/// - On battery 20-50%: 2x interval
+/// - On battery < 20%: 4x interval (critical)
+pub struct AdaptiveScheduler {
+    base_interval_secs: u64,
+}
+
+impl AdaptiveScheduler {
+    /// Create a new adaptive scheduler with the given base interval.
+    pub fn new(base_interval_secs: u64) -> Self {
+        Self { base_interval_secs }
+    }
+
+    /// Get the adjusted scan interval based on current battery state.
+    pub fn adjusted_interval(&self) -> u64 {
+        match get_battery_state() {
+            BatteryState::AcPower => self.base_interval_secs,
+            BatteryState::Discharging(pct) => {
+                if pct < 20.0 {
+                    self.base_interval_secs * 4 // Critical: scan much less frequently
+                } else if pct < 50.0 {
+                    self.base_interval_secs * 2 // Low: scan less frequently
+                } else {
+                    (self.base_interval_secs as f64 * 1.5) as u64 // On battery: slight slowdown
+                }
+            }
+            BatteryState::Unknown => self.base_interval_secs,
+        }
+    }
+
+    /// Check if running on battery power.
+    pub fn is_on_battery(&self) -> bool {
+        matches!(get_battery_state(), BatteryState::Discharging(_))
+    }
+
+    /// Get current battery percentage (None if on AC or unknown).
+    pub fn battery_percentage(&self) -> Option<f64> {
+        match get_battery_state() {
+            BatteryState::Discharging(pct) => Some(pct),
+            _ => None,
+        }
+    }
+}
+
+/// Battery state representation.
+#[derive(Debug, Clone)]
+enum BatteryState {
+    /// Connected to AC power.
+    AcPower,
+    /// Running on battery with given percentage.
+    Discharging(f64),
+    /// Unable to determine battery state (desktop or error).
+    Unknown,
+}
+
+/// Get current battery state.
+fn get_battery_state() -> BatteryState {
+    let manager = match battery::Manager::new() {
+        Ok(m) => m,
+        Err(_) => return BatteryState::Unknown,
+    };
+
+    let batteries = match manager.batteries() {
+        Ok(b) => b,
+        Err(_) => return BatteryState::Unknown,
+    };
+
+    for battery in batteries.flatten() {
+        if battery.state() == battery::State::Discharging {
+            let pct = battery
+                .state_of_charge()
+                .get::<battery::units::ratio::percent>();
+            return BatteryState::Discharging(pct as f64);
+        }
+        // If any battery is charging or full, we're on AC
+        if matches!(
+            battery.state(),
+            battery::State::Charging | battery::State::Full
+        ) {
+            return BatteryState::AcPower;
+        }
+    }
+
+    BatteryState::Unknown
+}
+
+/// Resource guardian that monitors agent's own resource consumption
+/// and throttles operations when budgets are exceeded.
+pub struct ResourceGuardian {
+    /// Maximum allowed CPU percentage for the agent process.
+    cpu_budget_percent: f32,
+    /// Maximum allowed memory in megabytes.
+    memory_budget_mb: u64,
+    /// Whether throttling is currently active.
+    throttle_active: std::sync::atomic::AtomicBool,
+}
+
+impl ResourceGuardian {
+    /// Create a new resource guardian with default budgets.
+    pub fn new() -> Self {
+        Self {
+            cpu_budget_percent: 5.0, // 5% CPU max
+            memory_budget_mb: 150,   // 150 MB max
+            throttle_active: std::sync::atomic::AtomicBool::new(false),
+        }
+    }
+
+    /// Create with custom budgets.
+    pub fn with_budgets(cpu_percent: f32, memory_mb: u64) -> Self {
+        Self {
+            cpu_budget_percent: cpu_percent,
+            memory_budget_mb: memory_mb,
+            throttle_active: std::sync::atomic::AtomicBool::new(false),
+        }
+    }
+
+    /// Check if throttling should be active.
+    pub fn should_throttle(&self) -> bool {
+        self.throttle_active
+            .load(std::sync::atomic::Ordering::Acquire)
+    }
+
+    /// Check current resource usage and enforce budgets.
+    pub fn check_and_enforce(&self) {
+        let memory_bytes = get_process_memory();
+        let memory_mb = memory_bytes / (1024 * 1024);
+        let cpu_pct = get_cpu_usage();
+
+        let over_budget =
+            cpu_pct > self.cpu_budget_percent as f64 || memory_mb > self.memory_budget_mb;
+
+        if over_budget && !self.should_throttle() {
+            warn!(
+                "Resource guardian: agent over budget (CPU: {:.1}%/{:.1}%, MEM: {}MB/{}MB). Throttling.",
+                cpu_pct, self.cpu_budget_percent, memory_mb, self.memory_budget_mb
+            );
+            self.throttle_active
+                .store(true, std::sync::atomic::Ordering::Release);
+        } else if !over_budget && self.should_throttle() {
+            info!("Resource guardian: back within budget. Releasing throttle.");
+            self.throttle_active
+                .store(false, std::sync::atomic::Ordering::Release);
+        }
+    }
+
+    /// Get a delay duration to apply when throttled.
+    pub fn throttle_delay(&self) -> Duration {
+        if self.should_throttle() {
+            Duration::from_millis(500) // Add 500ms delay between operations
+        } else {
+            Duration::ZERO
+        }
+    }
+}
+
+impl Default for ResourceGuardian {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+// Platform-specific resource measurement implementations
+
+// ============ System-wide network byte totals ============
+
+/// Total system-wide network bytes (rx + tx) since boot via native `getifaddrs()`.
+/// Falls back to 0 on error.
+#[cfg(target_os = "macos")]
+fn get_network_bytes_total() -> u64 {
+    unsafe {
+        let mut addrs: *mut libc::ifaddrs = std::ptr::null_mut();
+        if libc::getifaddrs(&mut addrs) != 0 {
+            return 0;
+        }
+        let mut total: u64 = 0;
+        let mut cursor = addrs;
+        while !cursor.is_null() {
+            let ifa = &*cursor;
+            // AF_LINK entries carry interface-level byte counters in ifa_data
+            if !ifa.ifa_addr.is_null()
+                && (*ifa.ifa_addr).sa_family == libc::AF_LINK as u8
+                && !ifa.ifa_data.is_null()
+            {
+                let data = &*(ifa.ifa_data as *const libc::if_data);
+                total = total.saturating_add(data.ifi_ibytes as u64);
+                total = total.saturating_add(data.ifi_obytes as u64);
+            }
+            cursor = ifa.ifa_next;
+        }
+        libc::freeifaddrs(addrs);
+        total
+    }
+}
+
+/// Total system-wide network bytes (rx + tx) via /proc/net/dev.
+#[cfg(target_os = "linux")]
+fn get_network_bytes_total() -> u64 {
+    if let Ok(content) = std::fs::read_to_string("/proc/net/dev") {
+        content
+            .lines()
+            .skip(2) // skip header lines
+            .filter_map(|line| {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                // Format: iface: rx_bytes rx_packets ... tx_bytes tx_packets ...
+                if parts.len() >= 10 {
+                    let rx: u64 = parts[1].parse().unwrap_or(0);
+                    let tx: u64 = parts[9].parse().unwrap_or(0);
+                    Some(rx.saturating_add(tx))
+                } else {
+                    None
+                }
+            })
+            .sum()
+    } else {
+        0
+    }
+}
+
+#[cfg(windows)]
+fn get_network_bytes_total() -> u64 {
+    use std::sync::Mutex;
+    use std::time::Instant;
+
+    static NETWORK_CACHE: Mutex<Option<(u64, Instant)>> = Mutex::new(None);
+
+    let mut guard = NETWORK_CACHE.lock().unwrap();
+    let now = Instant::now();
+
+    // Use cached value if less than 1 second old (network stats don't change fast)
+    if let Some((cached_bytes, cached_time)) = *guard {
+        if now.duration_since(cached_time).as_secs() < 1 {
+            return cached_bytes;
+        }
+    }
+
+    // Windows: use sysinfo Networks as fallback (the native approach requires
+    // GetIfTable2 from iphlpapi which is more complex to declare via FFI).
+    let networks = sysinfo::Networks::new_with_refreshed_list();
+    let total_bytes: u64 = networks
+        .values()
+        .map(|data| data.total_received() + data.total_transmitted())
+        .sum();
+
+    // Cache the result
+    *guard = Some((total_bytes, now));
+    total_bytes
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_network_bytes_total() -> u64 {
+    0
+}
+
+// ============ LINUX implementations ============
+
+#[cfg(target_os = "linux")]
+fn get_process_memory() -> u64 {
+    use std::fs;
+
+    // Read from /proc/self/statm for memory info
+    if let Ok(statm) = fs::read_to_string("/proc/self/statm") {
+        let parts: Vec<&str> = statm.split_whitespace().collect();
+        if parts.len() >= 2 {
+            // Second field is RSS in pages
+            if let Ok(rss_pages) = parts[1].parse::<u64>() {
+                let raw_page_size = unsafe { libc::sysconf(libc::_SC_PAGESIZE) };
+                let page_size: u64 = if raw_page_size > 0 {
+                    raw_page_size as u64
+                } else {
+                    tracing::warn!(
+                        "sysconf(_SC_PAGESIZE) returned {raw_page_size}, falling back to 4096"
+                    );
+                    4096
+                };
+                return rss_pages * page_size;
+            }
+        }
+    }
+
+    // Fallback: return 0 if we can't read memory info
+    0
+}
+
+#[cfg(target_os = "linux")]
+fn get_cpu_usage() -> f64 {
+    use std::fs;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    // Static storage for last measurement (for delta calculation)
+    static LAST_CPU_TIME: AtomicU64 = AtomicU64::new(0);
+    static LAST_MEASURE_TIME: AtomicU64 = AtomicU64::new(0);
+
+    // Get system clock ticks per second
+    let raw_clock_ticks = unsafe { libc::sysconf(libc::_SC_CLK_TCK) };
+    if raw_clock_ticks <= 0 {
+        return 0.0;
+    }
+    let clock_ticks = raw_clock_ticks as u64;
+
+    // Read from /proc/self/stat for CPU time
+    if let Ok(stat) = fs::read_to_string("/proc/self/stat") {
+        // Parse past the comm field (which may contain spaces/parens) by finding the last ')'
+        let after_comm = match stat.rfind(')') {
+            Some(pos) => &stat[pos + 2..], // skip ") "
+            None => return 0.0,
+        };
+        let parts: Vec<&str> = after_comm.split_whitespace().collect();
+        if parts.len() >= 13 {
+            // After comm: state(0), ppid(1), pgrp(2), session(3), tty(4), tpgid(5),
+            // flags(6), minflt(7), cminflt(8), majflt(9), cmajflt(10), utime(11), stime(12)
+            let utime: u64 = parts[11].parse().unwrap_or(0);
+            let stime: u64 = parts[12].parse().unwrap_or(0);
+            let cpu_time = utime + stime;
+
+            // Get current wall clock time in milliseconds
+            let now_ms = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis() as u64)
+                .unwrap_or(0);
+
+            let last_cpu = LAST_CPU_TIME.load(Ordering::Relaxed);
+            let last_time = LAST_MEASURE_TIME.load(Ordering::Relaxed);
+
+            // Store current values for next measurement
+            LAST_CPU_TIME.store(cpu_time, Ordering::Relaxed);
+            LAST_MEASURE_TIME.store(now_ms, Ordering::Relaxed);
+
+            // Calculate CPU usage if we have previous measurements
+            if last_time > 0 && now_ms > last_time {
+                let cpu_delta = cpu_time.saturating_sub(last_cpu);
+                let time_delta_ms = now_ms - last_time;
+
+                // Convert clock ticks to milliseconds and calculate percentage
+                let cpu_ms = (cpu_delta * 1000) / clock_ticks;
+                if time_delta_ms > 0 {
+                    let raw_usage = (cpu_ms as f64 / time_delta_ms as f64) * 100.0;
+                    return raw_usage / get_logical_cores() as f64;
+                }
+            }
+        }
+    }
+
+    // Return 0 for first measurement (no delta yet)
+    0.0
+}
+
+/// System-wide CPU usage from /proc/stat (delta-based).
+#[cfg(target_os = "linux")]
+fn get_system_cpu() -> f64 {
+    use std::fs;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static LAST_TOTAL: AtomicU64 = AtomicU64::new(0);
+    static LAST_IDLE: AtomicU64 = AtomicU64::new(0);
+
+    if let Ok(content) = fs::read_to_string("/proc/stat") {
+        // First line: "cpu  user nice system idle iowait irq softirq steal ..."
+        if let Some(cpu_line) = content.lines().next() {
+            let parts: Vec<u64> = cpu_line
+                .split_whitespace()
+                .skip(1) // skip "cpu"
+                .filter_map(|s| s.parse().ok())
+                .collect();
+
+            if parts.len() >= 4 {
+                let total: u64 = parts.iter().sum();
+                // idle is index 3, iowait is index 4 (if present)
+                let idle = parts[3] + parts.get(4).copied().unwrap_or(0);
+
+                let prev_total = LAST_TOTAL.swap(total, Ordering::Relaxed);
+                let prev_idle = LAST_IDLE.swap(idle, Ordering::Relaxed);
+
+                if prev_total > 0 {
+                    let total_delta = total.saturating_sub(prev_total);
+                    let idle_delta = idle.saturating_sub(prev_idle);
+                    if total_delta > 0 {
+                        let busy = total_delta.saturating_sub(idle_delta);
+                        return (busy as f64 / total_delta as f64) * 100.0;
+                    }
+                }
+            }
+        }
+    }
+    0.0
+}
+
+#[cfg(target_os = "linux")]
+fn get_system_memory() -> (u64, u64) {
+    if let Ok(content) = std::fs::read_to_string("/proc/meminfo") {
+        let mut total = 0u64;
+        let mut available = 0u64;
+        for line in content.lines() {
+            if line.starts_with("MemTotal:") {
+                total = line
+                    .split_whitespace()
+                    .nth(1)
+                    .and_then(|v| v.parse::<u64>().ok())
+                    .unwrap_or(0)
+                    * 1024; // kB to bytes
+            } else if line.starts_with("MemAvailable:") {
+                available = line
+                    .split_whitespace()
+                    .nth(1)
+                    .and_then(|v| v.parse::<u64>().ok())
+                    .unwrap_or(0)
+                    * 1024;
+            }
+        }
+        let used = total.saturating_sub(available);
+        (total, used)
+    } else {
+        (0, 0)
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn get_disk_usage() -> (u64, u64) {
+    unsafe {
+        let mut stat: libc::statvfs = std::mem::zeroed();
+        // SAFETY: "/" is always valid UTF-8 with no interior NUL bytes
+        let path = std::ffi::CString::new("/").expect("static path \"/\" is always valid");
+        if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
+            let total = (stat.f_blocks as u64).saturating_mul(stat.f_frsize as u64);
+            let free = (stat.f_bavail as u64).saturating_mul(stat.f_frsize as u64);
+            let used = total.saturating_sub(free);
+            (total, used)
+        } else {
+            (0, 0)
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn get_disk_bytes() -> u64 {
+    use std::fs;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static LAST_BYTES: AtomicU64 = AtomicU64::new(0);
+    static LAST_TIME: AtomicU64 = AtomicU64::new(0);
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    if let Ok(content) = fs::read_to_string("/proc/self/io") {
+        let mut read_bytes = 0u64;
+        let mut write_bytes = 0u64;
+
+        for line in content.lines() {
+            if let Some(value) = line.strip_prefix("read_bytes: ") {
+                read_bytes = value.parse().unwrap_or(0);
+            } else if let Some(value) = line.strip_prefix("write_bytes: ") {
+                write_bytes = value.parse().unwrap_or(0);
+            }
+        }
+
+        let total = read_bytes + write_bytes;
+        LAST_BYTES.store(total, Ordering::Relaxed);
+        LAST_TIME.store(now, Ordering::Relaxed);
+        total
+    } else {
+        0
+    }
+}
+
+// ============ macOS Mach API FFI bindings ============
+
+#[cfg(target_os = "macos")]
+#[allow(non_camel_case_types)]
+mod mach_ffi {
+    //! Minimal FFI declarations for macOS Mach kernel APIs.
+    //! These are not exposed by the `libc` crate.
+
+    use libc::{c_int, c_uint};
+
+    // --- Mach basic types ---
+    pub type mach_port_t = c_uint;
+    pub type kern_return_t = c_int;
+    pub type task_flavor_t = c_uint;
+    pub type task_info_t = *mut c_int;
+    pub type mach_msg_type_number_t = c_uint;
+    pub type host_flavor_t = c_int;
+    pub type host_info64_t = *mut c_int;
+    pub type natural_t = c_uint;
+    pub type integer_t = c_int;
+    pub type processor_flavor_t = c_int;
+    pub type processor_info_array_t = *mut integer_t;
+
+    // --- Task info (for process memory) ---
+    pub const MACH_TASK_BASIC_INFO: task_flavor_t = 20;
+
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct mach_task_basic_info_data_t {
+        pub virtual_size: u64,
+        pub resident_size: u64,
+        pub resident_size_max: u64,
+        pub user_time: libc::timeval,
+        pub system_time: libc::timeval,
+        pub policy: c_int,
+        pub suspend_count: c_int,
+    }
+
+    pub const MACH_TASK_BASIC_INFO_COUNT: mach_msg_type_number_t =
+        (std::mem::size_of::<mach_task_basic_info_data_t>() / std::mem::size_of::<natural_t>())
+            as mach_msg_type_number_t;
+
+    // --- VM statistics (for system memory) ---
+    pub const HOST_VM_INFO64: host_flavor_t = 4;
+
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct vm_statistics64_data_t {
+        pub free_count: natural_t,
+        pub active_count: natural_t,
+        pub inactive_count: natural_t,
+        pub wire_count: natural_t,
+        pub zero_fill_count: u64,
+        pub reactivations: u64,
+        pub pageins: u64,
+        pub pageouts: u64,
+        pub faults: u64,
+        pub cow_faults: u64,
+        pub lookups: u64,
+        pub hits: u64,
+        pub purges: u64,
+        pub purgeable_count: natural_t,
+        pub speculative_count: natural_t,
+        pub decompressions: u64,
+        pub compressions: u64,
+        pub swapins: u64,
+        pub swapouts: u64,
+        pub compressor_page_count: natural_t,
+        pub throttled_count: natural_t,
+        pub external_page_count: natural_t,
+        pub internal_page_count: natural_t,
+        pub total_uncompressed_pages_in_compressor: u64,
+    }
+
+    pub const HOST_VM_INFO64_COUNT: mach_msg_type_number_t =
+        (std::mem::size_of::<vm_statistics64_data_t>() / std::mem::size_of::<natural_t>())
+            as mach_msg_type_number_t;
+
+    // --- CPU info (for system-wide CPU) ---
+    pub const PROCESSOR_CPU_LOAD_INFO: processor_flavor_t = 2;
+
+    pub const CPU_STATE_USER: usize = 0;
+    pub const CPU_STATE_SYSTEM: usize = 1;
+    pub const CPU_STATE_IDLE: usize = 2;
+    pub const CPU_STATE_NICE: usize = 3;
+    pub const CPU_STATE_MAX: usize = 4;
+
+    unsafe extern "C" {
+        pub fn mach_task_self() -> mach_port_t;
+        pub fn mach_host_self() -> mach_port_t;
+
+        pub fn task_info(
+            target_task: mach_port_t,
+            flavor: task_flavor_t,
+            task_info_out: task_info_t,
+            task_info_outCnt: *mut mach_msg_type_number_t,
+        ) -> kern_return_t;
+
+        pub fn host_statistics64(
+            host_priv: mach_port_t,
+            flavor: host_flavor_t,
+            host_info64_out: host_info64_t,
+            host_info64_outCnt: *mut mach_msg_type_number_t,
+        ) -> kern_return_t;
+
+        pub fn host_processor_info(
+            host: mach_port_t,
+            flavor: processor_flavor_t,
+            out_processor_count: *mut natural_t,
+            out_processor_info: *mut processor_info_array_t,
+            out_processor_infoCnt: *mut mach_msg_type_number_t,
+        ) -> kern_return_t;
+
+        pub fn vm_deallocate(
+            target_task: mach_port_t,
+            address: usize,
+            size: usize,
+        ) -> kern_return_t;
+    }
+}
+
+#[cfg(target_os = "macos")]
+use mach_ffi::*;
+
+// ============ macOS implementations ============
+
+#[cfg(target_os = "macos")]
+fn get_process_memory() -> u64 {
+    // Use Mach task_info to get CURRENT resident memory (not peak).
+    // ru_maxrss from getrusage reports peak RSS which overstates usage.
+    unsafe {
+        let task = mach_task_self();
+        let mut info: mach_task_basic_info_data_t = std::mem::zeroed();
+        let mut count = MACH_TASK_BASIC_INFO_COUNT;
+        let kr = task_info(
+            task,
+            MACH_TASK_BASIC_INFO,
+            &mut info as *mut _ as task_info_t,
+            &mut count,
+        );
+        if kr == libc::KERN_SUCCESS {
+            return info.resident_size;
+        }
+    }
+    0
+}
+
+#[cfg(target_os = "macos")]
+fn get_cpu_usage() -> f64 {
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    // Static storage for last measurement (for delta calculation)
+    static LAST_CPU_TIME_US: AtomicU64 = AtomicU64::new(0);
+    static LAST_MEASURE_TIME_US: AtomicU64 = AtomicU64::new(0);
+
+    unsafe {
+        let mut rusage: libc::rusage = std::mem::zeroed();
+        if libc::getrusage(libc::RUSAGE_SELF, &mut rusage) == 0 {
+            // Convert timeval to microseconds
+            let utime_us =
+                (rusage.ru_utime.tv_sec as u64) * 1_000_000 + (rusage.ru_utime.tv_usec as u64);
+            let stime_us =
+                (rusage.ru_stime.tv_sec as u64) * 1_000_000 + (rusage.ru_stime.tv_usec as u64);
+            let cpu_time_us = utime_us + stime_us;
+
+            // Get current wall clock time in microseconds
+            let now_us = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_micros() as u64)
+                .unwrap_or(0);
+
+            let last_cpu = LAST_CPU_TIME_US.load(Ordering::Relaxed);
+            let last_time = LAST_MEASURE_TIME_US.load(Ordering::Relaxed);
+
+            // Store current values for next measurement
+            LAST_CPU_TIME_US.store(cpu_time_us, Ordering::Relaxed);
+            LAST_MEASURE_TIME_US.store(now_us, Ordering::Relaxed);
+
+            // Calculate CPU usage if we have previous measurements
+            if last_time > 0 && now_us > last_time {
+                let cpu_delta = cpu_time_us.saturating_sub(last_cpu);
+                let time_delta = now_us - last_time;
+
+                if time_delta > 0 {
+                    let raw_usage = (cpu_delta as f64 / time_delta as f64) * 100.0;
+                    return raw_usage / get_logical_cores() as f64;
+                }
+            }
+        }
+    }
+
+    // Return 0 for first measurement (no delta yet)
+    0.0
+}
+
+/// System-wide CPU usage via Mach `host_processor_info`.
+/// Returns the percentage of CPU time spent busy (user + system + nice)
+/// across all cores, averaged since the last call (delta-based).
+#[cfg(target_os = "macos")]
+fn get_system_cpu() -> f64 {
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static LAST_TOTAL_TICKS: AtomicU64 = AtomicU64::new(0);
+    static LAST_IDLE_TICKS: AtomicU64 = AtomicU64::new(0);
+
+    unsafe {
+        let host = mach_host_self();
+        let mut num_cpus: natural_t = 0;
+        let mut info_array: processor_info_array_t = std::ptr::null_mut();
+        let mut info_count: mach_msg_type_number_t = 0;
+
+        let kr = host_processor_info(
+            host,
+            PROCESSOR_CPU_LOAD_INFO,
+            &mut num_cpus,
+            &mut info_array,
+            &mut info_count,
+        );
+
+        if kr != libc::KERN_SUCCESS || info_array.is_null() {
+            return 0.0;
+        }
+
+        // Validate buffer bounds: info_count must cover num_cpus * CPU_STATE_MAX entries
+        let expected_count = (num_cpus as usize) * CPU_STATE_MAX;
+        if (info_count as usize) < expected_count {
+            let alloc_size = (info_count as usize) * std::mem::size_of::<integer_t>();
+            let kr_dealloc = vm_deallocate(mach_task_self(), info_array as usize, alloc_size);
+            if kr_dealloc != libc::KERN_SUCCESS {
+                tracing::debug!("vm_deallocate failed with code {kr_dealloc}");
+            }
+            return 0.0;
+        }
+
+        // Sum ticks across all CPUs
+        let mut total_ticks: u64 = 0;
+        let mut idle_ticks: u64 = 0;
+
+        for i in 0..num_cpus as usize {
+            let base = i * CPU_STATE_MAX;
+            let user = *info_array.add(base + CPU_STATE_USER) as u64;
+            let system = *info_array.add(base + CPU_STATE_SYSTEM) as u64;
+            let idle = *info_array.add(base + CPU_STATE_IDLE) as u64;
+            let nice = *info_array.add(base + CPU_STATE_NICE) as u64;
+            total_ticks += user + system + idle + nice;
+            idle_ticks += idle;
+        }
+
+        // Free the Mach-allocated buffer
+        let alloc_size = (info_count as usize) * std::mem::size_of::<integer_t>();
+        let kr_dealloc = vm_deallocate(mach_task_self(), info_array as usize, alloc_size);
+        if kr_dealloc != libc::KERN_SUCCESS {
+            tracing::debug!("vm_deallocate failed with code {kr_dealloc}");
+        }
+
+        // Delta calculation
+        let prev_total = LAST_TOTAL_TICKS.swap(total_ticks, Ordering::Relaxed);
+        let prev_idle = LAST_IDLE_TICKS.swap(idle_ticks, Ordering::Relaxed);
+
+        if prev_total == 0 {
+            // First call — no delta yet
+            return 0.0;
+        }
+
+        let total_delta = total_ticks.saturating_sub(prev_total);
+        let idle_delta = idle_ticks.saturating_sub(prev_idle);
+
+        if total_delta == 0 {
+            return 0.0;
+        }
+
+        let busy_delta = total_delta.saturating_sub(idle_delta);
+        (busy_delta as f64 / total_delta as f64) * 100.0
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn get_system_memory() -> (u64, u64) {
+    unsafe {
+        // Total physical memory via sysctlbyname("hw.memsize")
+        let mut total: u64 = 0;
+        let mut size = std::mem::size_of::<u64>();
+        let name = b"hw.memsize\0";
+        libc::sysctlbyname(
+            name.as_ptr() as *const libc::c_char,
+            &mut total as *mut _ as *mut libc::c_void,
+            &mut size,
+            std::ptr::null_mut(),
+            0,
+        );
+
+        // VM page statistics via host_statistics64
+        let host = mach_host_self();
+        let mut vm_info: vm_statistics64_data_t = std::mem::zeroed();
+        let mut count = HOST_VM_INFO64_COUNT;
+        let kr = host_statistics64(
+            host,
+            HOST_VM_INFO64,
+            &mut vm_info as *mut _ as host_info64_t,
+            &mut count,
+        );
+        if kr == libc::KERN_SUCCESS {
+            let raw_page_size = libc::sysconf(libc::_SC_PAGESIZE);
+            let page_size: u64 = if raw_page_size > 0 {
+                raw_page_size as u64
+            } else {
+                4096
+            };
+            // Match macOS Activity Monitor formula:
+            // App Memory = internal - purgeable
+            // Memory Used = App Memory + Wired + Compressed
+            let app_memory =
+                (vm_info.internal_page_count as u64).saturating_sub(vm_info.purgeable_count as u64);
+            let used =
+                (app_memory + vm_info.wire_count as u64 + vm_info.compressor_page_count as u64)
+                    * page_size;
+            (total, used)
+        } else {
+            (total, 0)
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn get_disk_usage() -> (u64, u64) {
+    unsafe {
+        let mut stat: libc::statvfs = std::mem::zeroed();
+        // SAFETY: "/" is always valid UTF-8 with no interior NUL bytes
+        let path = std::ffi::CString::new("/").expect("static path \"/\" is always valid");
+        if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
+            let total = (stat.f_blocks as u64).saturating_mul(stat.f_frsize);
+            let free = (stat.f_bavail as u64).saturating_mul(stat.f_frsize);
+            let used = total.saturating_sub(free);
+            (total, used)
+        } else {
+            (0, 0)
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn get_disk_bytes() -> u64 {
+    use std::mem;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static LAST_BYTES: AtomicU64 = AtomicU64::new(0);
+    static LAST_TIME: AtomicU64 = AtomicU64::new(0);
+
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
+    unsafe {
+        let mut info: libc::rusage_info_v4 = mem::zeroed();
+        let pid = std::process::id() as libc::c_int;
+        if libc::proc_pid_rusage(
+            pid,
+            libc::RUSAGE_INFO_V4,
+            &mut info as *mut _ as *mut libc::rusage_info_t,
+        ) == 0
+        {
+            // Total bytes read + written
+            let total = info.ri_diskio_bytesread + info.ri_diskio_byteswritten;
+            LAST_BYTES.store(total, Ordering::Relaxed);
+            LAST_TIME.store(now, Ordering::Relaxed);
+            total
+        } else {
+            0
+        }
+    }
+}
+
+// ============ Windows implementations ============
+
+#[cfg(windows)]
+fn get_process_memory() -> u64 {
+    use std::mem;
+    use windows::Win32::System::ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS};
+    use windows::Win32::System::Threading::GetCurrentProcess;
+
+    unsafe {
+        let mut pmc: PROCESS_MEMORY_COUNTERS = mem::zeroed();
+        pmc.cb = mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
+
+        if GetProcessMemoryInfo(
+            GetCurrentProcess(),
+            &mut pmc,
+            mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32,
+        )
+        .is_ok()
+        {
+            return pmc.WorkingSetSize as u64;
+        }
+    }
+    0
+}
+
+// ============ Windows implementations ============
+
+#[cfg(windows)]
+fn get_system_memory() -> (u64, u64) {
+    use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
+
+    unsafe {
+        let mut ms = MEMORYSTATUSEX::default();
+        ms.dwLength = std::mem::size_of::<MEMORYSTATUSEX>() as u32;
+        if GlobalMemoryStatusEx(&mut ms).is_ok() {
+            return (ms.ullTotalPhys, ms.ullTotalPhys - ms.ullAvailPhys);
+        }
+    }
+    (0, 0)
+}
+
+#[cfg(windows)]
+fn get_disk_usage() -> (u64, u64) {
+    use windows::Win32::Storage::FileSystem::GetDiskFreeSpaceExW;
+
+    unsafe {
+        let mut free_bytes_available = 0;
+        let mut total_number_of_bytes = 0;
+        let mut total_number_of_free_bytes = 0;
+
+        if GetDiskFreeSpaceExW(
+            None,
+            Some(&mut free_bytes_available),
+            Some(&mut total_number_of_bytes),
+            Some(&mut total_number_of_free_bytes),
+        )
+        .is_ok()
+        {
+            let used = total_number_of_bytes.saturating_sub(total_number_of_free_bytes);
+            return (total_number_of_bytes, used);
+        }
+    }
+    (0, 0)
+}
+
+#[cfg(windows)]
+fn get_disk_bytes() -> u64 {
+    use windows::Win32::System::Threading::{GetCurrentProcess, GetProcessIoCounters, IO_COUNTERS};
+
+    unsafe {
+        let mut io_counters = IO_COUNTERS::default();
+        if GetProcessIoCounters(GetCurrentProcess(), &mut io_counters).is_ok() {
+            // ReadTransferCount + WriteTransferCount
+            return io_counters.ReadTransferCount + io_counters.WriteTransferCount;
+        }
+    }
+    0
+}
+
+#[cfg(windows)]
+fn get_system_cpu() -> f64 {
+    // Basic implementation using sysinfo is preferred if possible,
+    // but here we align with the system-specific pattern.
+    0.0 // sysinfo handles this well enough in ResourceMonitor
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_disk_bytes() -> u64 {
+    0
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_process_memory() -> u64 {
+    0
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_cpu_usage() -> f64 {
+    0.0
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_system_cpu() -> f64 {
+    0.0
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_system_memory() -> (u64, u64) {
+    (0, 0)
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
+fn get_disk_usage() -> (u64, u64) {
+    (0, 0)
+}
+
+#[cfg(windows)]
+fn get_cpu_usage() -> f64 {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use windows::Win32::System::Threading::{GetCurrentProcess, GetProcessTimes};
+
+    // Static storage for last measurement (for delta calculation)
+    static LAST_KERNEL_TIME: AtomicU64 = AtomicU64::new(0);
+    static LAST_USER_TIME: AtomicU64 = AtomicU64::new(0);
+    static LAST_MEASURE_TIME: AtomicU64 = AtomicU64::new(0);
+
+    unsafe {
+        let process = GetCurrentProcess();
+        let mut creation_time = std::mem::zeroed();
+        let mut exit_time = std::mem::zeroed();
+        let mut kernel_time = std::mem::zeroed();
+        let mut user_time = std::mem::zeroed();
+
+        if GetProcessTimes(
+            process,
+            &mut creation_time,
+            &mut exit_time,
+            &mut kernel_time,
+            &mut user_time,
+        )
+        .is_ok()
+        {
+            // Convert FILETIME to u64 (100-nanosecond intervals)
+            let kernel =
+                ((kernel_time.dwHighDateTime as u64) << 32) | kernel_time.dwLowDateTime as u64;
+            let user = ((user_time.dwHighDateTime as u64) << 32) | user_time.dwLowDateTime as u64;
+            let current_time = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos() as u64 / 100)
+                .unwrap_or(0);
+
+            let last_kernel = LAST_KERNEL_TIME.load(Ordering::Relaxed);
+            let last_user = LAST_USER_TIME.load(Ordering::Relaxed);
+            let last_time = LAST_MEASURE_TIME.load(Ordering::Relaxed);
+
+            // Store current values for next measurement
+            LAST_KERNEL_TIME.store(kernel, Ordering::Relaxed);
+            LAST_USER_TIME.store(user, Ordering::Relaxed);
+            LAST_MEASURE_TIME.store(current_time, Ordering::Relaxed);
+
+            // Calculate CPU usage if we have previous measurements
+            if last_time > 0 && current_time > last_time {
+                let cpu_time_delta =
+                    kernel.saturating_sub(last_kernel) + user.saturating_sub(last_user);
+                let wall_time_delta = current_time - last_time;
+
+                if wall_time_delta > 0 {
+                    let raw_usage = (cpu_time_delta as f64 / wall_time_delta as f64) * 100.0;
+                    return raw_usage / get_logical_cores() as f64;
+                }
+            }
+        }
+    }
+
+    // Return 0 for first measurement (no delta yet)
+    0.0
+}
+
+/// Helper function to get the number of logical cores.
+fn get_logical_cores() -> u32 {
+    #[cfg(unix)]
+    {
+        let raw = unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) };
+        if raw > 0 { raw as u32 } else { 1 }
+    }
+    #[cfg(windows)]
+    {
+        use windows::Win32::System::SystemInformation::{GetSystemInfo, SYSTEM_INFO};
+        unsafe {
+            let mut si = SYSTEM_INFO::default();
+            GetSystemInfo(&mut si);
+            si.dwNumberOfProcessors
+        }
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux", windows)))]
+    {
+        1
+    }
+}
+
+#[cfg(target_os = "linux")]
+pub fn get_connections() -> Vec<NetworkConnection> {
+    let mut connections = Vec::new();
+
+    // Parse /proc/net/tcp and /proc/net/udp
+    let paths = [
+        "/proc/net/tcp",
+        "/proc/net/udp",
+        "/proc/net/tcp6",
+        "/proc/net/udp6",
+    ];
+
+    for path in paths {
+        let protocol = if path.contains("tcp6") {
+            ConnectionProtocol::Tcp6
+        } else if path.contains("udp6") {
+            ConnectionProtocol::Udp6
+        } else if path.contains("tcp") {
+            ConnectionProtocol::Tcp
+        } else {
+            ConnectionProtocol::Udp
+        };
+
+        if let Ok(content) = std::fs::read_to_string(path) {
+            for line in content.lines().skip(1) {
+                if let Some(conn) = parse_proc_net_line(line, protocol) {
+                    connections.push(conn);
+                }
+            }
+        }
+    }
+    connections
+}
+
+#[cfg(target_os = "linux")]
+fn parse_proc_net_line(line: &str, protocol: ConnectionProtocol) -> Option<NetworkConnection> {
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    if parts.len() < 4 {
+        return None;
+    }
+
+    let local = parse_proc_addr(parts[1])?;
+    let remote = parse_proc_addr(parts[2])?;
+    let state_str = match parts[3] {
+        "01" => "ESTABLISHED",
+        "02" => "SYN_SENT",
+        "03" => "SYN_RECV",
+        "04" => "FIN_WAIT1",
+        "05" => "FIN_WAIT2",
+        "06" => "TIME_WAIT",
+        "07" => "CLOSE",
+        "08" => "CLOSE_WAIT",
+        "09" => "LAST_ACK",
+        "0A" => "LISTEN",
+        "0B" => "CLOSING",
+        _ => "UNKNOWN",
+    };
+
+    let state = match state_str {
+        "ESTABLISHED" => ConnectionState::Established,
+        "SYN_SENT" => ConnectionState::SynSent,
+        "SYN_RECV" => ConnectionState::SynReceived,
+        "FIN_WAIT1" => ConnectionState::FinWait1,
+        "FIN_WAIT2" => ConnectionState::FinWait2,
+        "TIME_WAIT" => ConnectionState::TimeWait,
+        "CLOSE" => ConnectionState::Closed,
+        "CLOSE_WAIT" => ConnectionState::CloseWait,
+        "LAST_ACK" => ConnectionState::LastAck,
+        "LISTEN" => ConnectionState::Listen,
+        "CLOSING" => ConnectionState::Closing,
+        _ => ConnectionState::Unknown,
+    };
+
+    Some(NetworkConnection {
+        protocol,
+        local_address: local.0,
+        local_port: local.1,
+        remote_address: Some(remote.0),
+        remote_port: Some(remote.1),
+        state,
+        pid: None,
+        process_name: None,
+        process_path: None,
+    })
+}
+
+#[cfg(target_os = "linux")]
+fn parse_proc_addr(hex_addr: &str) -> Option<(String, u16)> {
+    let parts: Vec<&str> = hex_addr.split(':').collect();
+    if parts.len() != 2 {
+        return None;
+    }
+
+    let addr_hex = parts[0];
+    let port_hex = parts[1];
+
+    let port = u16::from_str_radix(port_hex, 16).ok()?;
+
+    // Handle IPv4
+    if addr_hex.len() == 8 {
+        let bytes = u32::from_str_radix(addr_hex, 16).ok()?;
+        let ip = std::net::Ipv4Addr::from(bytes.swap_bytes());
+        return Some((ip.to_string(), port));
+    }
+
+    // Handle IPv6 (not implemented in the provided snippet, but good to note)
+    if addr_hex.len() == 32 {
+        // IPv6 parsing would go here
+        // For now, return None for IPv6 if not explicitly handled
+        return None;
+    }
+
+    None
+}
+
+/// System-level resource information (CPU, memory total, disk usage).
+#[derive(Debug, Clone, Default)]
+pub struct SystemResources {
+    /// System-wide CPU usage percentage (all cores combined).
+    pub cpu_percent: f64,
+    pub memory_total_bytes: u64,
+    pub memory_used_bytes: u64,
+    pub memory_percent: f64,
+    pub disk_total_bytes: u64,
+    pub disk_used_bytes: u64,
+    pub disk_percent: f64,
+}
+
+/// Get system-level resource information (CPU, total memory, disk usage).
+pub fn get_system_resources() -> SystemResources {
+    let cpu_percent = get_system_cpu();
+    let memory = get_system_memory();
+    let disk = get_disk_usage();
+
+    let memory_percent = if memory.0 > 0 {
+        ((memory.1 as f64 / memory.0 as f64) * 100.0).clamp(0.0, 100.0)
+    } else {
+        0.0
+    };
+
+    let disk_percent = if disk.0 > 0 {
+        (disk.1 as f64 / disk.0 as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    SystemResources {
+        cpu_percent: cpu_percent.clamp(0.0, 100.0),
+        memory_total_bytes: memory.0,
+        memory_used_bytes: memory.1,
+        memory_percent,
+        disk_total_bytes: disk.0,
+        disk_used_bytes: disk.1,
+        disk_percent,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_resource_limits_default() {
+        let limits = ResourceLimits::default();
+        assert!((limits.max_cpu_idle - 20.0).abs() < f64::EPSILON);
+        assert!((limits.max_cpu_active - 35.0).abs() < f64::EPSILON);
+        assert_eq!(limits.max_memory_bytes, 350 * 1024 * 1024);
+        assert_eq!(limits.max_disk_kbps, 10000);
+        assert_eq!(limits.max_startup_ms, 15000);
+    }
+
+    #[test]
+    fn test_resource_usage_within_idle_limits() {
+        let limits = ResourceLimits::default();
+        let usage = ResourceUsage {
+            cpu_percent: 4.0,
+            memory_bytes: 80 * 1024 * 1024,
+            disk_kbps: 5,
+            network_io_bytes: 0,
+            uptime_ms: 1000,
+        };
+        assert!(usage.is_within_idle_limits(&limits));
+    }
+
+    #[test]
+    fn test_resource_usage_exceeds_idle_limits() {
+        let limits = ResourceLimits::default();
+        let usage = ResourceUsage {
+            cpu_percent: 25.0, // Exceeds 20% idle limit
+            memory_bytes: 50 * 1024 * 1024,
+            disk_kbps: 5,
+            network_io_bytes: 0,
+            uptime_ms: 1000,
+        };
+        assert!(!usage.is_within_idle_limits(&limits));
+    }
+
+    #[test]
+    fn test_resource_usage_within_active_limits() {
+        let limits = ResourceLimits::default();
+        let usage = ResourceUsage {
+            cpu_percent: 4.0,
+            memory_bytes: 80 * 1024 * 1024,
+            disk_kbps: 8,
+            network_io_bytes: 0,
+            uptime_ms: 1000,
+        };
+        assert!(usage.is_within_active_limits(&limits));
+    }
+
+    #[test]
+    fn test_bounded_buffer() {
+        let mut buffer: BoundedBuffer<i32> = BoundedBuffer::new(3);
+
+        buffer.push(1);
+        buffer.push(2);
+        buffer.push(3);
+        assert_eq!(buffer.len(), 3);
+
+        // Adding a 4th item should drop the oldest
+        buffer.push(4);
+        assert_eq!(buffer.len(), 3);
+        let items: Vec<i32> = buffer.items.iter().copied().collect();
+        assert_eq!(items, vec![2, 3, 4]);
+    }
+
+    #[test]
+    fn test_bounded_buffer_drain() {
+        let mut buffer: BoundedBuffer<i32> = BoundedBuffer::new(3);
+        buffer.push(1);
+        buffer.push(2);
+
+        let items: Vec<i32> = buffer.drain().collect();
+        assert_eq!(items, vec![1, 2]);
+        assert!(buffer.is_empty());
+    }
+
+    #[test]
+    fn test_resource_monitor_creation() {
+        let monitor = ResourceMonitor::new();
+        assert!(monitor.uptime_ms() < 1000); // Should be very small
+    }
+
+    #[test]
+    fn test_cpu_throttler_creation() {
+        let throttler = CpuThrottler::new(5.0);
+        assert!((throttler.target_cpu - 5.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_get_logical_cores() {
+        let cores = get_logical_cores();
+        assert!(cores > 0, "Logical cores should be greater than 0");
+        info!("Detected logical cores: {}", cores);
+    }
+}

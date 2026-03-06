@@ -1,0 +1,266 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
+//! Sensitive data filtering for logging and tracing.
+//!
+//! This module provides utilities to filter out sensitive information
+//! like tokens, passwords, API keys, and other secrets from logs.
+
+use regex::Regex;
+use std::sync::LazyLock;
+
+/// Patterns to detect and mask sensitive data
+static TOKEN_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
+    vec![
+        // JWT tokens (Bearer)
+        Regex::new(r"(?i)bearer\s+[a-zA-Z0-9\-._~+/]+=*").unwrap(),
+        // API keys in headers - simplified pattern
+        Regex::new(r"(?i)api[_-]?key\s*[:=]\s*[a-zA-Z0-9\-._~+/]+=*").unwrap(),
+        // Authorization headers
+        Regex::new(r"(?i)authorization\s*[:=]\s*[a-zA-Z0-9\-._~+/]+=*").unwrap(),
+        // Enrollment tokens (xxxxx-xxxxx-xxxxx format)
+        Regex::new(r"\b[a-zA-Z0-9]{5}(?:-[a-zA-Z0-9]{5}){2,}\b").unwrap(),
+        // Generic secret patterns
+        Regex::new(r"(?i)(secret|password|passphrase|private[_-]?key)\s*[:=]\s*[^\s]{8,}").unwrap(),
+        // Certificate content
+        Regex::new(r"(?i)-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----").unwrap(),
+        // Base64 encoded secrets (long strings, requires key-like prefix to avoid false positives)
+        Regex::new(
+            r"(?i)(?:key|token|secret|password|credential|auth)\s*[:=]\s*[A-Za-z0-9+/]{40,}={0,2}",
+        )
+        .unwrap(),
+        // Stripe API keys (secret, publishable, restricted)
+        Regex::new(r"(sk|pk|rk)_(live|test)_[a-zA-Z0-9]{10,}").unwrap(),
+        // GCP/Firebase API keys
+        Regex::new(r"AIzaSy[a-zA-Z0-9_\-]{33}").unwrap(),
+    ]
+});
+
+/// Replacement text for masked sensitive data
+const MASK_REPLACEMENT: &str = "***REDACTED***";
+
+/// Filter sensitive data from a string.
+///
+/// This function scans the input for various patterns that might indicate
+/// sensitive information and replaces them with a placeholder.
+pub fn filter_sensitive_data(input: &str) -> String {
+    let mut filtered = input.to_string();
+
+    for pattern in TOKEN_PATTERNS.iter() {
+        filtered = pattern.replace_all(&filtered, MASK_REPLACEMENT).to_string();
+    }
+
+    filtered
+}
+
+/// Check if a string contains sensitive data patterns.
+pub fn contains_sensitive_data(input: &str) -> bool {
+    TOKEN_PATTERNS.iter().any(|pattern| pattern.is_match(input))
+}
+
+/// Filter sensitive data from a JSON string while preserving structure.
+pub fn filter_json_sensitive_data(json_str: &str) -> String {
+    // First try to parse as JSON to filter specific fields
+    if let Ok(mut value) = serde_json::from_str::<serde_json::Value>(json_str) {
+        filter_sensitive_json_value(&mut value);
+        serde_json::to_string(&value).unwrap_or_else(|_| filter_sensitive_data(json_str))
+    } else {
+        // Fallback to regex-based filtering
+        filter_sensitive_data(json_str)
+    }
+}
+
+/// Recursively filter sensitive data from JSON values.
+fn filter_sensitive_json_value(value: &mut serde_json::Value) {
+    match value {
+        serde_json::Value::Object(map) => {
+            for (key, val) in map.iter_mut() {
+                if is_sensitive_key(key) {
+                    *val = serde_json::Value::String(MASK_REPLACEMENT.to_string());
+                } else {
+                    filter_sensitive_json_value(val);
+                }
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for item in arr.iter_mut() {
+                filter_sensitive_json_value(item);
+            }
+        }
+        serde_json::Value::String(s) => {
+            if contains_sensitive_data(s) {
+                *value = serde_json::Value::String(MASK_REPLACEMENT.to_string());
+            }
+        }
+        _ => {} // Other types are not sensitive
+    }
+}
+
+/// Check if a JSON key name suggests sensitive data.
+///
+/// Uses targeted matching to avoid false positives on benign keys
+/// like "keyboard", "monkey", "turkey", etc.
+fn is_sensitive_key(key: &str) -> bool {
+    let key_lower = key.to_lowercase();
+
+    // Exact sensitive keywords that are always sensitive
+    const EXACT_SENSITIVE: &[&str] = &[
+        "token",
+        "password",
+        "passwd",
+        "secret",
+        "credential",
+        "credentials",
+        "private_key",
+        "privatekey",
+        "private-key",
+        "api_key",
+        "apikey",
+        "api-key",
+        "access_key",
+        "accesskey",
+        "access-key",
+        "secret_key",
+        "secretkey",
+        "secret-key",
+        "auth_token",
+        "auth_key",
+        "authorization",
+        "passphrase",
+        "pass_phrase",
+    ];
+
+    // Check exact match first
+    if EXACT_SENSITIVE.contains(&key_lower.as_str()) {
+        return true;
+    }
+
+    // Suffix/prefix patterns that indicate sensitivity
+    // Explicit parentheses to clarify && vs || precedence
+    key_lower.ends_with("_token")
+        || key_lower.ends_with("_secret")
+        || key_lower.ends_with("_password")
+        || (key_lower.ends_with("_key")
+            && !key_lower.contains("keyboard")
+            && !key_lower.contains("hotkey"))
+        || key_lower.ends_with("_credential")
+        || key_lower.starts_with("auth_")
+        || key_lower.starts_with("x-api-")
+        || key_lower.contains("certificate")
+        || (key_lower.contains("private")
+            && !key_lower.contains("private_ip")
+            && !key_lower.contains("private_address"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_filter_bearer_token() {
+        let input = "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+        let filtered = filter_sensitive_data(input);
+        assert_eq!(filtered, "Authorization: ***REDACTED***");
+    }
+
+    #[test]
+    fn test_filter_enrollment_token() {
+        let input = "Token: abcde-fghij-klmno";
+        let filtered = filter_sensitive_data(input);
+        assert_eq!(filtered, "Token: ***REDACTED***");
+    }
+
+    #[test]
+    fn test_filter_api_key() {
+        let input = "api_key=sk-1234567890abcdef";
+        let filtered = filter_sensitive_data(input);
+        assert_eq!(filtered, "***REDACTED***");
+    }
+
+    #[test]
+    fn test_filter_json() {
+        let json = r#"{"token": "secret123", "name": "test", "password": "pass123"}"#;
+        let filtered = filter_json_sensitive_data(json);
+        assert!(filtered.contains("***REDACTED***"));
+        assert!(filtered.contains("test"));
+        assert!(!filtered.contains("secret123"));
+        assert!(!filtered.contains("pass123"));
+    }
+
+    #[test]
+    fn test_preserve_safe_data() {
+        let input = "This is a safe message without secrets";
+        let filtered = filter_sensitive_data(input);
+        assert_eq!(filtered, input);
+    }
+
+    /// Build a fake Stripe key at runtime to avoid GitHub Push Protection false positives.
+    fn fake_stripe_key(prefix: &str, suffix: &str) -> String {
+        format!("{prefix}{suffix}")
+    }
+
+    #[test]
+    fn test_filter_stripe_secret_key() {
+        let key = fake_stripe_key("sk_live_", "51SXCZIDKg6Juwz5x2C6ZDjc78qgm");
+        let input = format!("key: {key}");
+        let filtered = filter_sensitive_data(&input);
+        assert!(filtered.contains(MASK_REPLACEMENT));
+        assert!(!filtered.contains("sk_live_"));
+    }
+
+    #[test]
+    fn test_filter_stripe_test_key() {
+        let key = fake_stripe_key("sk_test_", "4eC39HqLyjWDarjtT1zdp7dc");
+        let input = format!("STRIPE_KEY={key}");
+        let filtered = filter_sensitive_data(&input);
+        assert!(filtered.contains(MASK_REPLACEMENT));
+        assert!(!filtered.contains("sk_test_"));
+    }
+
+    #[test]
+    fn test_filter_stripe_publishable_key() {
+        let input = fake_stripe_key("pk_live_", "51SXCZIDKg6Juwz5abcdefghij");
+        let filtered = filter_sensitive_data(&input);
+        assert_eq!(filtered, MASK_REPLACEMENT);
+    }
+
+    #[test]
+    fn test_detect_stripe_key() {
+        assert!(contains_sensitive_data(&fake_stripe_key(
+            "sk_live_",
+            "51SXCZIDKg6Juwz5x2C6ZDjc78qgm"
+        )));
+        assert!(contains_sensitive_data(&fake_stripe_key(
+            "pk_test_",
+            "4eC39HqLyjWDarjtT1zdp7dc"
+        )));
+        assert!(contains_sensitive_data(&fake_stripe_key(
+            "rk_live_",
+            "abcdefghij1234567890"
+        )));
+    }
+
+    #[test]
+    fn test_filter_gcp_api_key() {
+        let input = r#"apiKey: "AIzaSyFAKETESTKEY_01234_abcdefghijk_XYZ""#;
+        let filtered = filter_sensitive_data(input);
+        assert!(filtered.contains(MASK_REPLACEMENT));
+        assert!(!filtered.contains("AIzaSy"));
+    }
+
+    #[test]
+    fn test_detect_gcp_api_key() {
+        assert!(contains_sensitive_data(
+            "AIzaSyFAKETESTKEY_01234_abcdefghijk_XYZ"
+        ));
+        assert!(contains_sensitive_data(
+            "AIzaSyANOTHERFAKE_TESTKEY_FOR_UNIT_TEST"
+        ));
+    }
+
+    #[test]
+    fn test_no_false_positive_gcp() {
+        // Too short to be a real GCP key
+        assert!(!contains_sensitive_data("AIzaSyShort"));
+    }
+}

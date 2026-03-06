@@ -1,0 +1,922 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
+//! Database migrations for SQLite schema management.
+//!
+//! This module provides versioned database migrations with support for:
+//! - Sequential migration execution
+//! - Idempotent operations (safe to re-run)
+//! - Rollback on failure
+//! - Schema version tracking
+
+use crate::error::{StorageError, StorageResult};
+use rusqlite::Connection;
+use tracing::{debug, error, info, warn};
+
+/// Current schema version (incremented with each migration).
+pub const CURRENT_SCHEMA_VERSION: i32 = 8;
+
+/// A database migration.
+struct Migration {
+    version: i32,
+    name: &'static str,
+    up: &'static str,
+    down: &'static str,
+}
+
+/// All migrations in order.
+const MIGRATIONS: &[Migration] = &[
+    Migration {
+        version: 1,
+        name: "initial_schema",
+        up: r#"
+            -- Agent configuration table
+            -- Stores local agent settings synced from SaaS
+            CREATE TABLE IF NOT EXISTS agent_config (
+                key TEXT PRIMARY KEY NOT NULL,
+                value TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                synced_at TEXT,
+                source TEXT NOT NULL DEFAULT 'local' CHECK (source IN ('local', 'remote'))
+            );
+
+            -- Check rules table
+            -- Stores compliance check definitions downloaded from SaaS
+            CREATE TABLE IF NOT EXISTS check_rules (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                category TEXT NOT NULL,
+                severity TEXT NOT NULL CHECK (severity IN ('critical', 'high', 'medium', 'low', 'info')),
+                enabled INTEGER NOT NULL DEFAULT 1,
+                check_type TEXT NOT NULL,
+                parameters TEXT,  -- JSON blob for check-specific config
+                frameworks TEXT,  -- JSON array of framework mappings (NIS2, DORA, RGPD)
+                version TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            );
+
+            -- Check results table
+            -- Stores compliance check execution results
+            CREATE TABLE IF NOT EXISTS check_results (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                check_rule_id TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('pass', 'fail', 'error', 'skip', 'not_applicable')),
+                score INTEGER CHECK (score >= 0 AND score <= 100),
+                message TEXT,
+                raw_data TEXT,  -- JSON blob with detailed check output
+                executed_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                duration_ms INTEGER,
+                synced INTEGER NOT NULL DEFAULT 0,
+                FOREIGN KEY (check_rule_id) REFERENCES check_rules(id) ON DELETE CASCADE
+            );
+
+            -- Create index for efficient queries
+            CREATE INDEX IF NOT EXISTS idx_check_results_rule_id ON check_results(check_rule_id);
+            CREATE INDEX IF NOT EXISTS idx_check_results_executed_at ON check_results(executed_at);
+            CREATE INDEX IF NOT EXISTS idx_check_results_synced ON check_results(synced);
+
+            -- Proofs table
+            -- Stores tamper-evident compliance evidence with SHA-256 integrity hash
+            CREATE TABLE IF NOT EXISTS proofs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                check_result_id INTEGER NOT NULL,
+                data TEXT NOT NULL,  -- JSON blob with proof evidence
+                hash TEXT NOT NULL,  -- SHA-256 hash of (check_result_id + data + created_at)
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                synced INTEGER NOT NULL DEFAULT 0,
+                FOREIGN KEY (check_result_id) REFERENCES check_results(id) ON DELETE CASCADE
+            );
+
+            -- Create index for proof lookups
+            CREATE INDEX IF NOT EXISTS idx_proofs_check_result_id ON proofs(check_result_id);
+            CREATE INDEX IF NOT EXISTS idx_proofs_created_at ON proofs(created_at);
+            CREATE INDEX IF NOT EXISTS idx_proofs_synced ON proofs(synced);
+
+            -- Sync queue table
+            -- Stores pending uploads for offline/retry scenarios
+            CREATE TABLE IF NOT EXISTS sync_queue (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entity_type TEXT NOT NULL CHECK (entity_type IN ('check_result', 'proof', 'heartbeat', 'config')),
+                entity_id INTEGER NOT NULL,
+                payload TEXT NOT NULL,  -- JSON blob of data to sync
+                priority INTEGER NOT NULL DEFAULT 0,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                max_attempts INTEGER NOT NULL DEFAULT 10,
+                last_attempt_at TEXT,
+                last_error TEXT,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                next_retry_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            );
+
+            -- Create indexes for sync queue processing
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_priority ON sync_queue(priority DESC, created_at ASC);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_next_retry ON sync_queue(next_retry_at);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_entity ON sync_queue(entity_type, entity_id);
+        "#,
+        down: r#"
+            DROP INDEX IF EXISTS idx_sync_queue_entity;
+            DROP INDEX IF EXISTS idx_sync_queue_next_retry;
+            DROP INDEX IF EXISTS idx_sync_queue_priority;
+            DROP TABLE IF EXISTS sync_queue;
+
+            DROP INDEX IF EXISTS idx_proofs_synced;
+            DROP INDEX IF EXISTS idx_proofs_created_at;
+            DROP INDEX IF EXISTS idx_proofs_check_result_id;
+            DROP TABLE IF EXISTS proofs;
+
+            DROP INDEX IF EXISTS idx_check_results_synced;
+            DROP INDEX IF EXISTS idx_check_results_executed_at;
+            DROP INDEX IF EXISTS idx_check_results_rule_id;
+            DROP TABLE IF EXISTS check_results;
+
+            DROP TABLE IF EXISTS check_rules;
+            DROP TABLE IF EXISTS agent_config;
+        "#,
+    },
+    Migration {
+        version: 2,
+        name: "extend_check_rules",
+        up: r#"
+            ALTER TABLE check_rules ADD COLUMN check_command TEXT;
+            ALTER TABLE check_rules ADD COLUMN expected_result TEXT;
+            ALTER TABLE check_rules ADD COLUMN remediation TEXT;
+            ALTER TABLE check_rules ADD COLUMN platforms TEXT;
+            ALTER TABLE check_rules ADD COLUMN control_id TEXT;
+        "#,
+        down: r#"
+            -- SQLite does not support DROP COLUMN before 3.35.0,
+            -- so we recreate the table without the new columns.
+            CREATE TABLE check_rules_backup AS
+                SELECT id, name, description, category, severity, enabled, check_type,
+                       parameters, frameworks, version, created_at, updated_at
+                FROM check_rules;
+            DROP TABLE check_rules;
+            CREATE TABLE check_rules (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                category TEXT NOT NULL,
+                severity TEXT NOT NULL CHECK (severity IN ('critical', 'high', 'medium', 'low', 'info')),
+                enabled INTEGER NOT NULL DEFAULT 1,
+                check_type TEXT NOT NULL,
+                parameters TEXT,
+                frameworks TEXT,
+                version TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            );
+            INSERT INTO check_rules SELECT * FROM check_rules_backup;
+            DROP TABLE check_rules_backup;
+        "#,
+    },
+    Migration {
+        version: 3,
+        name: "discovered_devices",
+        up: r#"
+            -- Discovered devices table for network cartography persistence
+            CREATE TABLE IF NOT EXISTS discovered_devices (
+                ip TEXT PRIMARY KEY NOT NULL,
+                mac TEXT,
+                hostname TEXT,
+                vendor TEXT,
+                device_type TEXT NOT NULL DEFAULT 'unknown',
+                open_ports TEXT,  -- JSON array of port numbers
+                first_seen TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                last_seen TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                is_gateway INTEGER NOT NULL DEFAULT 0,
+                subnet TEXT NOT NULL
+            );
+
+            -- Indexes for efficient queries
+            CREATE INDEX IF NOT EXISTS idx_discovered_devices_last_seen ON discovered_devices(last_seen);
+            CREATE INDEX IF NOT EXISTS idx_discovered_devices_subnet ON discovered_devices(subnet);
+            CREATE INDEX IF NOT EXISTS idx_discovered_devices_device_type ON discovered_devices(device_type);
+        "#,
+        down: r#"
+            DROP INDEX IF EXISTS idx_discovered_devices_device_type;
+            DROP INDEX IF EXISTS idx_discovered_devices_subnet;
+            DROP INDEX IF EXISTS idx_discovered_devices_last_seen;
+            DROP TABLE IF EXISTS discovered_devices;
+        "#,
+    },
+    Migration {
+        version: 4,
+        name: "audit_trail",
+        up: r#"
+            -- Persistent local audit trail for GRC compliance
+            CREATE TABLE IF NOT EXISTS audit_trail (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                action_type TEXT NOT NULL,
+                action_data TEXT NOT NULL,  -- JSON representation of AuditAction
+                actor TEXT NOT NULL,
+                details TEXT
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_timestamp ON audit_trail(timestamp);
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_action_type ON audit_trail(action_type);
+        "#,
+        down: r#"
+            DROP INDEX IF EXISTS idx_audit_trail_action_type;
+            DROP INDEX IF EXISTS idx_audit_trail_timestamp;
+            DROP TABLE IF EXISTS audit_trail;
+        "#,
+    },
+    Migration {
+        version: 5,
+        name: "audit_trail_sync",
+        up: r#"
+            ALTER TABLE audit_trail ADD COLUMN synced INTEGER NOT NULL DEFAULT 0;
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_synced ON audit_trail(synced);
+        "#,
+        down: r#"
+            DROP INDEX IF EXISTS idx_audit_trail_synced;
+            -- Recreate table to drop column
+            CREATE TABLE audit_trail_backup AS SELECT id, timestamp, action_type, action_data, actor, details FROM audit_trail;
+            DROP TABLE audit_trail;
+            CREATE TABLE audit_trail (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                action_type TEXT NOT NULL,
+                action_data TEXT NOT NULL,
+                actor TEXT NOT NULL,
+                details TEXT
+            );
+            INSERT INTO audit_trail (id, timestamp, action_type, action_data, actor, details) 
+            SELECT id, timestamp, action_type, action_data, actor, details FROM audit_trail_backup;
+            DROP TABLE audit_trail_backup;
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_timestamp ON audit_trail(timestamp);
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_action_type ON audit_trail(action_type);
+        "#,
+    },
+    Migration {
+        version: 6,
+        name: "grc_entities",
+        up: r#"
+            CREATE TABLE IF NOT EXISTS risks (
+                id TEXT PRIMARY KEY NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                probability INTEGER NOT NULL,
+                impact INTEGER NOT NULL,
+                owner TEXT NOT NULL,
+                status TEXT NOT NULL,
+                mitigation TEXT NOT NULL,
+                source TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                sla_target_days INTEGER,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS playbooks (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT NOT NULL,
+                trigger_type TEXT NOT NULL,
+                severity TEXT NOT NULL,
+                steps TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS managed_assets (
+                id TEXT PRIMARY KEY NOT NULL,
+                ip TEXT NOT NULL,
+                hostname TEXT,
+                mac TEXT,
+                vendor TEXT,
+                device_type TEXT NOT NULL,
+                criticality TEXT NOT NULL,
+                lifecycle TEXT NOT NULL,
+                tags TEXT NOT NULL,
+                risk_score REAL NOT NULL,
+                vulnerability_count INTEGER NOT NULL,
+                open_ports TEXT NOT NULL,
+                software TEXT NOT NULL,
+                first_seen TEXT NOT NULL,
+                last_seen TEXT NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS kpi_snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                compliance_score REAL NOT NULL,
+                incident_count INTEGER NOT NULL,
+                open_vulns INTEGER NOT NULL,
+                closed_vulns INTEGER NOT NULL,
+                remediation_sla_pct REAL NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS alert_rules (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                rule_type TEXT NOT NULL,
+                severity_threshold TEXT,
+                detection_types TEXT NOT NULL,
+                escalation_minutes INTEGER,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS webhooks (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                url TEXT NOT NULL,
+                token TEXT,
+                events TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                verify_ssl INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS detection_rules (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT NOT NULL,
+                severity TEXT NOT NULL,
+                conditions TEXT NOT NULL,
+                actions TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                last_match TEXT,
+                match_count INTEGER NOT NULL DEFAULT 0,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS software_inventory (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                version TEXT NOT NULL,
+                vendor TEXT,
+                install_date TEXT,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+
+            -- Recreate sync_queue to drop the entity_type CHECK constraint and change entity_id to TEXT
+            -- to accommodate UUIDs for the new entity types.
+            CREATE TABLE sync_queue_backup AS SELECT * FROM sync_queue;
+            DROP TABLE sync_queue;
+            CREATE TABLE sync_queue (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entity_type TEXT NOT NULL,
+                entity_id TEXT NOT NULL,
+                payload TEXT NOT NULL,
+                priority INTEGER NOT NULL DEFAULT 0,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                max_attempts INTEGER NOT NULL DEFAULT 10,
+                last_attempt_at TEXT,
+                last_error TEXT,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                next_retry_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            );
+            INSERT INTO sync_queue (id, entity_type, entity_id, payload, priority, attempts, max_attempts, last_attempt_at, last_error, created_at, next_retry_at)
+            SELECT id, entity_type, CAST(entity_id AS TEXT), payload, priority, attempts, max_attempts, last_attempt_at, last_error, created_at, next_retry_at FROM sync_queue_backup;
+            DROP TABLE sync_queue_backup;
+
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_priority ON sync_queue(priority DESC, created_at ASC);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_next_retry ON sync_queue(next_retry_at);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_entity ON sync_queue(entity_type, entity_id);
+
+        "#,
+        down: r#"
+            DROP TABLE IF EXISTS risks;
+            DROP TABLE IF EXISTS playbooks;
+            DROP TABLE IF EXISTS managed_assets;
+            DROP TABLE IF EXISTS kpi_snapshots;
+            DROP TABLE IF EXISTS alert_rules;
+            DROP TABLE IF EXISTS webhooks;
+            DROP TABLE IF EXISTS detection_rules;
+            DROP TABLE IF EXISTS software_inventory;
+
+            -- Revert sync_queue to INTEGER entity_id and add checklist back
+            CREATE TABLE sync_queue_backup AS SELECT * FROM sync_queue;
+            DROP TABLE sync_queue;
+            CREATE TABLE sync_queue (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entity_type TEXT NOT NULL CHECK (entity_type IN ('check_result', 'proof', 'heartbeat', 'config')),
+                entity_id INTEGER NOT NULL,
+                payload TEXT NOT NULL,
+                priority INTEGER NOT NULL DEFAULT 0,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                max_attempts INTEGER NOT NULL DEFAULT 10,
+                last_attempt_at TEXT,
+                last_error TEXT,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                next_retry_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            );
+            INSERT OR IGNORE INTO sync_queue SELECT id, entity_type, CAST(entity_id AS INTEGER), payload, priority, attempts, max_attempts, last_attempt_at, last_error, created_at, next_retry_at FROM sync_queue_backup;
+            DROP TABLE sync_queue_backup;
+
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_priority ON sync_queue(priority DESC, created_at ASC);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_next_retry ON sync_queue(next_retry_at);
+            CREATE INDEX IF NOT EXISTS idx_sync_queue_entity ON sync_queue(entity_type, entity_id);
+        "#,
+    },
+    Migration {
+        version: 7,
+        name: "software_inventory_hostname",
+        up: r#"
+            ALTER TABLE software_inventory ADD COLUMN hostname TEXT;
+        "#,
+        down: r#"
+            -- Recreate table to drop column
+            CREATE TABLE software_inventory_backup AS SELECT id, name, version, vendor, install_date, synced FROM software_inventory;
+            DROP TABLE software_inventory;
+            CREATE TABLE software_inventory (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                version TEXT NOT NULL,
+                vendor TEXT,
+                install_date TEXT,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+            INSERT INTO software_inventory SELECT * FROM software_inventory_backup;
+            DROP TABLE software_inventory_backup;
+        "#,
+    },
+    Migration {
+        version: 8,
+        name: "software_inventory_rename_name",
+        up: r#"
+            -- SQLite doesn't support ALTER TABLE RENAME COLUMN in older versions (pre 3.25.0),
+            -- and even later, it's safer to recreate if we want maximum reliability across platforms.
+            CREATE TABLE software_inventory_v8 AS 
+                SELECT id, name AS software_name, version, vendor, install_date, synced, hostname 
+                FROM software_inventory;
+            DROP TABLE software_inventory;
+            ALTER TABLE software_inventory_v8 RENAME TO software_inventory;
+        "#,
+        down: r#"
+            CREATE TABLE software_inventory_v7 AS 
+                SELECT id, software_name AS name, version, vendor, install_date, synced, hostname 
+                FROM software_inventory;
+            DROP TABLE software_inventory;
+            ALTER TABLE software_inventory_v7 RENAME TO software_inventory;
+        "#,
+    },
+];
+
+/// Initialize the schema_version table if it doesn't exist.
+fn ensure_schema_version_table(conn: &Connection) -> StorageResult<()> {
+    conn.execute_batch(
+        r#"
+        CREATE TABLE IF NOT EXISTS schema_version (
+            version INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+        );
+        "#,
+    )
+    .map_err(|e| {
+        StorageError::Migration(format!("Failed to create schema_version table: {}", e))
+    })?;
+
+    debug!("Schema version table ready");
+    Ok(())
+}
+
+/// Get the current schema version from the database.
+fn get_schema_version(conn: &Connection) -> StorageResult<i32> {
+    let version: i32 = conn
+        .query_row(
+            "SELECT COALESCE(MAX(version), 0) FROM schema_version",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| StorageError::Migration(format!("Failed to query schema version: {}", e)))?;
+
+    Ok(version)
+}
+
+/// Run a single migration within a transaction.
+fn run_migration(conn: &mut Connection, migration: &Migration) -> StorageResult<()> {
+    info!(
+        "Running migration v{}: {}",
+        migration.version, migration.name
+    );
+
+    let tx = conn.transaction().map_err(|e| {
+        StorageError::Migration(format!("Failed to start migration transaction: {}", e))
+    })?;
+
+    // Execute the migration SQL
+    if let Err(e) = tx.execute_batch(migration.up) {
+        error!(
+            "Migration v{} failed: {}. Rolling back...",
+            migration.version, e
+        );
+        // Transaction will automatically rollback on drop
+        return Err(StorageError::Migration(format!(
+            "Migration v{} failed: {}",
+            migration.version, e
+        )));
+    }
+
+    // Record the migration
+    if let Err(e) = tx.execute(
+        "INSERT INTO schema_version (version, name) VALUES (?, ?)",
+        [&migration.version.to_string(), migration.name],
+    ) {
+        error!("Failed to record migration v{}: {}", migration.version, e);
+        return Err(StorageError::Migration(format!(
+            "Failed to record migration v{}: {}",
+            migration.version, e
+        )));
+    }
+
+    tx.commit().map_err(|e| {
+        StorageError::Migration(format!(
+            "Failed to commit migration v{}: {}",
+            migration.version, e
+        ))
+    })?;
+
+    info!(
+        "Migration v{} ({}) applied successfully",
+        migration.version, migration.name
+    );
+    Ok(())
+}
+
+/// Run pending migrations to bring database to current schema version.
+pub fn run_migrations(conn: &mut Connection) -> StorageResult<()> {
+    // Ensure schema_version table exists
+    ensure_schema_version_table(conn)?;
+
+    // Enable foreign keys
+    conn.execute_batch("PRAGMA foreign_keys = ON;")
+        .map_err(|e| StorageError::Migration(format!("Failed to enable foreign keys: {}", e)))?;
+
+    // Get current version
+    let current_version = get_schema_version(conn)?;
+    debug!("Current schema version: {}", current_version);
+
+    if current_version >= CURRENT_SCHEMA_VERSION {
+        debug!("Database schema is up to date (v{})", current_version);
+        return Ok(());
+    }
+
+    info!(
+        "Migrating database from v{} to v{}",
+        current_version, CURRENT_SCHEMA_VERSION
+    );
+
+    // Run pending migrations
+    for migration in MIGRATIONS.iter() {
+        if migration.version > current_version {
+            run_migration(conn, migration)?;
+        }
+    }
+
+    info!(
+        "Database migration complete. Now at schema version {}",
+        CURRENT_SCHEMA_VERSION
+    );
+    Ok(())
+}
+
+/// Rollback a specific migration (for recovery/testing).
+pub fn rollback_migration(conn: &mut Connection, version: i32) -> StorageResult<()> {
+    let migration = MIGRATIONS
+        .iter()
+        .find(|m| m.version == version)
+        .ok_or_else(|| StorageError::Migration(format!("Migration v{} not found", version)))?;
+
+    let current_version = get_schema_version(conn)?;
+    if version > current_version {
+        warn!(
+            "Migration v{} not applied (current: v{}), skipping rollback",
+            version, current_version
+        );
+        return Ok(());
+    }
+
+    info!(
+        "Rolling back migration v{}: {}",
+        migration.version, migration.name
+    );
+
+    let tx = conn.transaction().map_err(|e| {
+        StorageError::Migration(format!("Failed to start rollback transaction: {}", e))
+    })?;
+
+    // Execute rollback SQL
+    tx.execute_batch(migration.down).map_err(|e| {
+        StorageError::Migration(format!("Rollback v{} failed: {}", migration.version, e))
+    })?;
+
+    // Remove migration record
+    tx.execute("DELETE FROM schema_version WHERE version = ?", [version])
+        .map_err(|e| {
+            StorageError::Migration(format!(
+                "Failed to remove migration record v{}: {}",
+                version, e
+            ))
+        })?;
+
+    tx.commit().map_err(|e| {
+        StorageError::Migration(format!(
+            "Failed to commit rollback v{}: {}",
+            migration.version, e
+        ))
+    })?;
+
+    info!("Rollback of migration v{} complete", version);
+    Ok(())
+}
+
+/// Check if database schema is up to date.
+pub fn is_schema_current(conn: &Connection) -> StorageResult<bool> {
+    ensure_schema_version_table(conn)?;
+    let version = get_schema_version(conn)?;
+    Ok(version >= CURRENT_SCHEMA_VERSION)
+}
+
+/// Get list of applied migrations.
+pub fn get_applied_migrations(conn: &Connection) -> StorageResult<Vec<(i32, String, String)>> {
+    ensure_schema_version_table(conn)?;
+
+    let mut stmt = conn
+        .prepare("SELECT version, name, applied_at FROM schema_version ORDER BY version")
+        .map_err(|e| StorageError::Migration(format!("Failed to query migrations: {}", e)))?;
+
+    let migrations = stmt
+        .query_map([], |row| {
+            Ok((
+                row.get::<_, i32>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+            ))
+        })
+        .map_err(|e| StorageError::Migration(format!("Failed to read migrations: {}", e)))?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| StorageError::Migration(format!("Failed to collect migrations: {}", e)))?;
+
+    Ok(migrations)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    fn create_test_db() -> (TempDir, Connection) {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.db");
+        let conn = Connection::open(&db_path).unwrap();
+        (temp_dir, conn)
+    }
+
+    #[test]
+    fn test_run_migrations() {
+        let (_temp_dir, mut conn) = create_test_db();
+
+        // Run migrations
+        run_migrations(&mut conn).unwrap();
+
+        // Verify schema version
+        let version = get_schema_version(&conn).unwrap();
+        assert_eq!(version, CURRENT_SCHEMA_VERSION);
+
+        // Verify tables exist
+        let tables: Vec<String> = conn
+            .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+            .unwrap()
+            .query_map([], |row| row.get(0))
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+
+        assert!(tables.contains(&"agent_config".to_string()));
+        assert!(tables.contains(&"check_rules".to_string()));
+        assert!(tables.contains(&"check_results".to_string()));
+        assert!(tables.contains(&"proofs".to_string()));
+        assert!(tables.contains(&"sync_queue".to_string()));
+        assert!(tables.contains(&"schema_version".to_string()));
+        assert!(tables.contains(&"risks".to_string()));
+        assert!(tables.contains(&"playbooks".to_string()));
+        assert!(tables.contains(&"managed_assets".to_string()));
+        assert!(tables.contains(&"kpi_snapshots".to_string()));
+        assert!(tables.contains(&"alert_rules".to_string()));
+        assert!(tables.contains(&"webhooks".to_string()));
+        assert!(tables.contains(&"detection_rules".to_string()));
+        assert!(tables.contains(&"software_inventory".to_string()));
+    }
+
+    #[test]
+    fn test_migrations_are_idempotent() {
+        let (_temp_dir, mut conn) = create_test_db();
+
+        // Run migrations twice
+        run_migrations(&mut conn).unwrap();
+        run_migrations(&mut conn).unwrap();
+
+        // Should still be at current version
+        let version = get_schema_version(&conn).unwrap();
+        assert_eq!(version, CURRENT_SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn test_foreign_key_constraint() {
+        let (_temp_dir, mut conn) = create_test_db();
+        run_migrations(&mut conn).unwrap();
+
+        // Try to insert a check_result with invalid check_rule_id
+        let result = conn.execute(
+            "INSERT INTO check_results (check_rule_id, status, executed_at) VALUES (?, ?, ?)",
+            ["nonexistent_rule", "pass", "2026-01-23T00:00:00Z"],
+        );
+
+        // Should fail due to foreign key constraint
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_insert_and_query_data() {
+        let (_temp_dir, mut conn) = create_test_db();
+        run_migrations(&mut conn).unwrap();
+
+        // Insert a check rule
+        conn.execute(
+            r#"INSERT INTO check_rules (id, name, category, severity, check_type, version)
+               VALUES ('disk_encryption', 'Disk Encryption Check', 'security', 'critical', 'disk_encryption', '1.0')"#,
+            [],
+        )
+        .unwrap();
+
+        // Insert a check result
+        conn.execute(
+            r#"INSERT INTO check_results (check_rule_id, status, score, executed_at)
+               VALUES ('disk_encryption', 'pass', 100, '2026-01-23T12:00:00Z')"#,
+            [],
+        )
+        .unwrap();
+
+        // Get the result ID
+        let result_id: i64 = conn
+            .query_row("SELECT last_insert_rowid()", [], |row| row.get(0))
+            .unwrap();
+
+        // Insert a proof
+        conn.execute(
+            r#"INSERT INTO proofs (check_result_id, data, hash, created_at)
+               VALUES (?, '{"bitlocker": "enabled"}', 'abc123hash', '2026-01-23T12:00:00Z')"#,
+            [result_id],
+        )
+        .unwrap();
+
+        // Query and verify
+        let count: i32 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM check_results WHERE status = 'pass'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 1);
+
+        // Verify cascade delete
+        conn.execute("DELETE FROM check_rules WHERE id = 'disk_encryption'", [])
+            .unwrap();
+
+        let result_count: i32 = conn
+            .query_row("SELECT COUNT(*) FROM check_results", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(result_count, 0);
+
+        let proof_count: i32 = conn
+            .query_row("SELECT COUNT(*) FROM proofs", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(proof_count, 0);
+    }
+
+    #[test]
+    fn test_rollback_migration() {
+        let (_temp_dir, mut conn) = create_test_db();
+
+        // Run migrations
+        run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 8);
+
+        // Rollback from v8 down to v0
+        rollback_migration(&mut conn, 8).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 7);
+
+        rollback_migration(&mut conn, 7).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 6);
+
+        rollback_migration(&mut conn, 6).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 5);
+
+        rollback_migration(&mut conn, 5).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 4);
+
+        rollback_migration(&mut conn, 4).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 3);
+
+        rollback_migration(&mut conn, 3).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 2);
+
+        rollback_migration(&mut conn, 2).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 1);
+
+        rollback_migration(&mut conn, 1).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 0);
+
+        // Verify our application tables are gone (excluding SQLite internal tables)
+        let tables: Vec<String> = conn
+            .prepare(
+                "SELECT name FROM sqlite_master WHERE type='table'
+                 AND name NOT IN ('schema_version', 'sqlite_sequence')
+                 ORDER BY name",
+            )
+            .unwrap()
+            .query_map([], |row| row.get(0))
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+
+        assert!(
+            tables.is_empty(),
+            "Unexpected tables after rollback: {:?}",
+            tables
+        );
+    }
+
+    #[test]
+    fn test_get_applied_migrations() {
+        let (_temp_dir, mut conn) = create_test_db();
+        run_migrations(&mut conn).unwrap();
+
+        let migrations = get_applied_migrations(&conn).unwrap();
+        assert_eq!(migrations.len(), 8);
+        assert_eq!(migrations[0].0, 1);
+        assert_eq!(migrations[0].1, "initial_schema");
+        assert_eq!(migrations[1].0, 2);
+        assert_eq!(migrations[1].1, "extend_check_rules");
+        assert_eq!(migrations[2].0, 3);
+        assert_eq!(migrations[2].1, "discovered_devices");
+        assert_eq!(migrations[3].0, 4);
+        assert_eq!(migrations[3].1, "audit_trail");
+        assert_eq!(migrations[4].0, 5);
+        assert_eq!(migrations[4].1, "audit_trail_sync");
+        assert_eq!(migrations[5].0, 6);
+        assert_eq!(migrations[5].1, "grc_entities");
+        assert_eq!(migrations[6].0, 7);
+        assert_eq!(migrations[6].1, "software_inventory_hostname");
+        assert_eq!(migrations[7].0, 8);
+        assert_eq!(migrations[7].1, "software_inventory_rename_name");
+    }
+
+    #[test]
+    fn test_sync_queue_constraints() {
+        let (_temp_dir, mut conn) = create_test_db();
+        run_migrations(&mut conn).unwrap();
+
+        // Valid entity type
+        conn.execute(
+            "INSERT INTO sync_queue (entity_type, entity_id, payload) VALUES ('check_result', '1', '{}')",
+            [],
+        )
+        .unwrap();
+
+        // With V6, the check constraint on entity_type was removed to allow dynamically
+        // syncing new entity types (risks, playbooks).
+    }
+
+    #[test]
+    fn test_check_results_status_constraint() {
+        let (_temp_dir, mut conn) = create_test_db();
+        run_migrations(&mut conn).unwrap();
+
+        // Add a rule first
+        conn.execute(
+            "INSERT INTO check_rules (id, name, category, severity, check_type, version) VALUES ('test', 'Test', 'test', 'low', 'test', '1.0')",
+            [],
+        )
+        .unwrap();
+
+        // Valid status
+        conn.execute(
+            "INSERT INTO check_results (check_rule_id, status) VALUES ('test', 'pass')",
+            [],
+        )
+        .unwrap();
+
+        // Invalid status should fail
+        let result = conn.execute(
+            "INSERT INTO check_results (check_rule_id, status) VALUES ('test', 'invalid_status')",
+            [],
+        );
+        assert!(result.is_err());
+    }
+}

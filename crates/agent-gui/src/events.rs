@@ -1,0 +1,502 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
+//! Event types for communication between the agent runtime and the GUI layer.
+//!
+//! The runtime emits [`AgentEvent`] variants that the GUI subscribes to via a channel.
+//! The GUI sends [`GuiCommand`] variants back to the runtime.
+
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+use crate::dto::{
+    AgentSummary, GuiCheckResult, GuiNetworkAlert, GuiNetworkConnection, GuiNetworkInterface,
+    GuiNotification, GuiResourceUsage, GuiSoftwarePackage, GuiSystemIncident,
+    GuiVulnerabilityFinding, GuiVulnerabilitySummary, UpdateStatus,
+};
+
+/// A single terminal log entry captured from the tracing subsystem.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TerminalLogEntry {
+    /// Timestamp of the log event.
+    pub timestamp: DateTime<Utc>,
+    /// Log level (TRACE, DEBUG, INFO, WARN, ERROR).
+    pub level: String,
+    /// Module / target that emitted the log.
+    pub target: String,
+    /// Human-readable message.
+    pub message: String,
+}
+
+/// Events emitted by the agent runtime for the GUI to consume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum AgentEvent {
+    /// Agent status has changed.
+    StatusChanged {
+        /// Updated agent summary.
+        summary: AgentSummary,
+    },
+    /// A compliance check completed.
+    CheckCompleted {
+        /// The check result.
+        result: GuiCheckResult,
+    },
+    /// Resource usage updated.
+    ResourceUpdate {
+        /// Current resource usage.
+        usage: GuiResourceUsage,
+    },
+    /// A new notification was generated.
+    Notification {
+        /// The notification.
+        notification: GuiNotification,
+    },
+    /// Sync status changed (started, completed, failed).
+    SyncStatus {
+        /// Whether sync is in progress.
+        syncing: bool,
+        /// Number of pending items.
+        pending_count: u32,
+        /// Last sync timestamp.
+        last_sync_at: Option<DateTime<Utc>>,
+        /// Error message if sync failed.
+        error: Option<String>,
+    },
+    /// Network data updated.
+    NetworkUpdate {
+        /// Number of network interfaces.
+        interfaces_count: u32,
+        /// Number of active connections.
+        connections_count: u32,
+        /// Number of security alerts.
+        alerts_count: u32,
+        /// Primary IP address.
+        primary_ip: Option<String>,
+        /// Primary MAC address.
+        primary_mac: Option<String>,
+    },
+    /// Detailed network data (interfaces + connections) for the Network page.
+    NetworkDetailUpdate {
+        /// Network interfaces.
+        interfaces: Vec<GuiNetworkInterface>,
+        /// Active network connections.
+        connections: Vec<GuiNetworkConnection>,
+    },
+    /// Network security alert detected.
+    NetworkSecurityAlert {
+        /// The alert.
+        alert: GuiNetworkAlert,
+    },
+    /// Enrollment completed (success or failure).
+    EnrollmentResult {
+        /// Whether enrollment succeeded.
+        success: bool,
+        /// Status message.
+        message: String,
+        /// Agent ID if enrollment succeeded.
+        agent_id: Option<String>,
+    },
+    /// Vulnerability scan results updated.
+    VulnerabilityUpdate {
+        /// Vulnerability summary.
+        summary: GuiVulnerabilitySummary,
+    },
+    /// Software inventory updated.
+    SoftwareUpdate {
+        /// List of installed software packages.
+        packages: Vec<GuiSoftwarePackage>,
+    },
+    /// Vulnerability findings updated.
+    VulnerabilityFindings {
+        /// List of vulnerability findings.
+        findings: Vec<GuiVulnerabilityFinding>,
+    },
+    /// A tracing log event captured for the terminal view.
+    TerminalLog {
+        /// The captured log entry.
+        entry: TerminalLogEntry,
+    },
+    /// Discovery results updated.
+    DiscoveryUpdate {
+        /// Discovered devices.
+        devices: Vec<crate::dto::GuiDiscoveredDevice>,
+    },
+    /// Discovery scan progress.
+    DiscoveryProgress {
+        /// Current phase description.
+        phase: String,
+        /// Progress percentage (0.0-1.0).
+        progress: f32,
+        /// Number of devices found so far.
+        devices_found: usize,
+    },
+    /// File integrity alert.
+    FimAlert {
+        /// The FIM alert.
+        alert: crate::dto::GuiFimAlert,
+    },
+    /// USB device event.
+    UsbEvent {
+        /// The USB event.
+        event: crate::dto::GuiUsbEvent,
+    },
+    /// Suspicious process detected.
+    SuspiciousProcess {
+        /// The suspicious process event.
+        process: crate::dto::GuiSuspiciousProcess,
+    },
+    /// Security incident detected by the system monitor.
+    SystemIncident {
+        /// The system incident.
+        incident: GuiSystemIncident,
+    },
+    /// FIM statistics update.
+    FimStats {
+        /// Number of monitored files.
+        monitored_count: u32,
+        /// Number of changes today.
+        changes_today: u32,
+    },
+    /// Agent is shutting down.
+    ShuttingDown,
+    /// Update status has changed.
+    UpdateStatusChanged {
+        /// Updated update status.
+        status: UpdateStatus,
+    },
+    /// SIEM configuration status.
+    SiemConfigUpdate {
+        /// Whether the SIEM forwarder is enabled.
+        enabled: bool,
+        /// Output format (CEF, LEEF, JSON).
+        format: String,
+        /// Transport protocol (Syslog, HTTP).
+        transport: String,
+        /// Destination address (host:port or URL).
+        destination: String,
+    },
+    /// Result of a response action (kill, quarantine, block).
+    ResponseActionResult {
+        /// ID of the response action.
+        action_id: uuid::Uuid,
+        /// Whether the action succeeded.
+        success: bool,
+        /// Error message if the action failed.
+        error: Option<String>,
+    },
+    /// A report has been generated.
+    ReportGenerated {
+        report: Box<crate::dto::GeneratedReport>,
+    },
+    /// A playbook was triggered automatically.
+    PlaybookTriggered {
+        log_entry: Box<crate::dto::PlaybookLogEntry>,
+    },
+    /// A KPI snapshot for trend tracking.
+    KpiSnapshot {
+        snapshot: Box<crate::dto::KpiSnapshot>,
+    },
+    /// LLM chat response received.
+    LlmChatResponse {
+        /// The assistant's response message.
+        message: String,
+        /// Processing time in milliseconds.
+        processing_time_ms: u64,
+    },
+    /// LLM analysis result for a specific item (vulnerability, threat, etc.).
+    LlmAnalysisComplete {
+        /// What was analyzed (e.g. "CVE-2024-1234", "process:sshd").
+        target: String,
+        /// The analysis text from the LLM.
+        analysis: String,
+        /// Optional severity override suggested by the LLM.
+        severity_override: Option<String>,
+        /// Whether the LLM considers this a false positive.
+        is_false_positive: Option<bool>,
+        /// Confidence score (0-100).
+        confidence: Option<u8>,
+    },
+    /// LLM model status update.
+    LlmStatusUpdate {
+        /// Name of the loaded model.
+        model_name: String,
+        /// Model status (ready, loading, error, unloaded).
+        status: String,
+        /// Total inference count.
+        inference_count: u64,
+        /// Memory allocated in MB.
+        memory_mb: u64,
+    },
+    /// LLM model download progress.
+    LlmDownloadProgress {
+        /// Name of the model being downloaded.
+        model_name: String,
+        /// Download progress percentage (0-100).
+        progress_percent: u8,
+        /// Bytes downloaded so far.
+        downloaded_bytes: u64,
+        /// Total size in bytes (0 if unknown).
+        total_bytes: u64,
+        /// Download speed in bytes per second.
+        speed_bps: u64,
+    },
+    /// LLM model download completed.
+    LlmDownloadComplete {
+        /// Name of the model that was downloaded.
+        model_name: String,
+        /// Total size in bytes.
+        total_bytes: u64,
+    },
+    /// LLM model download failed.
+    LlmDownloadFailed {
+        /// Name of the model.
+        model_name: String,
+        /// Error message.
+        error: String,
+    },
+    /// AI risk analysis result.
+    LlmRiskAnalysis {
+        /// ID of the risk entry that was analyzed.
+        risk_id: String,
+        /// AI-suggested probability (1-5), if available.
+        suggested_probability: Option<u8>,
+        /// AI-suggested impact (1-5), if available.
+        suggested_impact: Option<u8>,
+        /// Free-form analysis text from the LLM.
+        analysis: String,
+        /// Suggested mitigation strategies.
+        mitigation_suggestions: Vec<String>,
+    },
+}
+
+/// Commands sent from the GUI to the agent runtime.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum GuiCommand {
+    /// Pause agent operations.
+    Pause,
+    /// Resume agent operations.
+    Resume,
+    /// Trigger an immediate compliance check.
+    RunCheck,
+    /// Force a sync with the server.
+    ForceSync,
+    /// Trigger a sync with the server.
+    RunSync,
+    /// Request the current agent summary.
+    GetSummary,
+    /// Request list of check results.
+    GetCheckResults,
+    /// Mark a notification as read.
+    MarkNotificationRead {
+        /// Notification ID.
+        notification_id: String,
+    },
+    /// Request shutdown.
+    Shutdown,
+    /// Start network discovery scan.
+    StartDiscovery,
+    /// Stop network discovery scan.
+    StopDiscovery,
+    /// Propose a discovered device as an asset.
+    ProposeAsset {
+        /// IP address.
+        ip: String,
+        /// Hostname if resolved.
+        hostname: Option<String>,
+        /// Device type classification.
+        device_type: String,
+    },
+    /// Update the check interval.
+    UpdateCheckInterval {
+        /// New interval in seconds.
+        interval_secs: u64,
+    },
+    /// Set the log level.
+    SetLogLevel {
+        /// Log level (0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR).
+        level: u8,
+    },
+    /// Execute remediation for a check.
+    Remediate {
+        /// Check ID to remediate.
+        check_id: String,
+    },
+    /// Preview remediation (dry-run).
+    RemediatePreview {
+        /// Check ID to preview remediation for.
+        check_id: String,
+    },
+    /// Acknowledge a FIM alert.
+    AcknowledgeFimAlert {
+        /// Alert ID.
+        alert_id: String,
+    },
+    /// Trigger a check for updates.
+    CheckUpdate,
+    /// Mark all notifications as read.
+    MarkAllNotificationsRead,
+    /// Export audit trail to CSV.
+    ExportCsvAuditTrail,
+    /// Kill a suspicious process.
+    KillProcess {
+        /// Process name.
+        process_name: String,
+        /// Process ID.
+        pid: u32,
+    },
+    /// Quarantine a file (move to secure location).
+    QuarantineFile {
+        /// File path to quarantine.
+        path: String,
+    },
+    /// Restore a quarantined file to its original location.
+    RestoreQuarantinedFile {
+        /// Quarantine entry ID.
+        quarantine_id: String,
+    },
+    /// Block an IP address via firewall rules.
+    BlockIp {
+        /// IP address to block.
+        ip: String,
+        /// Duration in seconds (0 = permanent).
+        duration_secs: u64,
+    },
+    /// Unblock a previously blocked IP address.
+    UnblockIp {
+        /// IP address to unblock.
+        ip: String,
+    },
+    /// Generate a report.
+    GenerateReport {
+        report_type: crate::dto::ReportType,
+        framework: Option<String>,
+    },
+    /// Export a report as HTML file.
+    ExportReportHtml { report_id: String },
+    /// Execute a playbook manually.
+    ExecutePlaybook { playbook_id: String },
+    /// Toggle playbook enabled state.
+    TogglePlaybook { playbook_id: String, enabled: bool },
+    /// Save or update a playbook.
+    SavePlaybook { playbook: Box<crate::dto::Playbook> },
+    /// Delete a playbook.
+    DeletePlaybook { playbook_id: String },
+    /// Save or update a detection rule.
+    SaveDetectionRule {
+        rule: Box<crate::dto::DetectionRule>,
+    },
+    /// Delete a detection rule.
+    DeleteDetectionRule { rule_id: String },
+    /// Toggle detection rule enabled state.
+    ToggleDetectionRule { rule_id: String, enabled: bool },
+    /// Save or update a risk entry.
+    SaveRisk { risk: Box<crate::dto::RiskEntry> },
+    /// Delete a risk entry.
+    DeleteRisk { risk_id: String },
+    /// Save or update a managed asset.
+    SaveAsset {
+        asset: Box<crate::dto::ManagedAsset>,
+    },
+    /// Update asset lifecycle state.
+    UpdateAssetLifecycle {
+        asset_id: String,
+        lifecycle: crate::dto::AssetLifecycle,
+    },
+    /// Save or update an alert rule.
+    SaveAlertRule { rule: Box<crate::dto::AlertRule> },
+    /// Delete an alert rule.
+    DeleteAlertRule { rule_id: String },
+    /// Save or update a webhook config.
+    SaveWebhook {
+        webhook: Box<crate::dto::WebhookConfig>,
+    },
+    /// Delete a webhook config.
+    DeleteWebhook { webhook_id: String },
+    /// Test a webhook by sending a test payload.
+    TestWebhook { webhook_id: String },
+    /// Send a prompt to the local LLM.
+    LlmPrompt {
+        /// The user's prompt text.
+        prompt: String,
+        /// Optional context type for prompt enrichment.
+        context: Option<crate::dto::LlmPromptContext>,
+    },
+    /// Analyze a specific vulnerability finding with AI.
+    LlmAnalyzeVulnerability {
+        /// Index of the finding in the current findings list.
+        finding_index: usize,
+    },
+    /// Classify a threat event with AI.
+    LlmClassifyThreat {
+        /// Description of the event to classify.
+        event_description: String,
+        /// Target identifier for routing the response (e.g. "process#0", "incident#2", "alert#1").
+        target_id: String,
+    },
+    /// Request current LLM model status.
+    LlmGetStatus,
+    /// Reload the LLM model.
+    LlmReloadModel,
+    /// Start downloading the LLM model.
+    LlmStartDownload,
+    /// Pause the current LLM model download.
+    LlmPauseDownload,
+    /// Resume a paused LLM model download.
+    LlmResumeDownload,
+    /// Cancel the current LLM model download.
+    LlmCancelDownload,
+    /// Analyze a risk entry with AI for enhanced scoring and mitigation.
+    LlmAnalyzeRisk {
+        /// UUID of the risk entry.
+        risk_id: String,
+        /// Title of the risk.
+        risk_title: String,
+        /// Description of the risk.
+        risk_description: String,
+        /// Current probability (1-5).
+        current_probability: u8,
+        /// Current impact (1-5).
+        current_impact: u8,
+    },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_agent_event_serialization() {
+        let event = AgentEvent::SyncStatus {
+            syncing: true,
+            pending_count: 5,
+            last_sync_at: Some(Utc::now()),
+            error: None,
+        };
+
+        let json = serde_json::to_string(&event).unwrap();
+        assert!(json.contains("\"type\":\"sync_status\""));
+        assert!(json.contains("\"syncing\":true"));
+    }
+
+    #[test]
+    fn test_gui_command_serialization() {
+        let cmd = GuiCommand::Pause;
+        let json = serde_json::to_string(&cmd).unwrap();
+        assert!(json.contains("\"type\":\"pause\""));
+
+        let cmd = GuiCommand::MarkNotificationRead {
+            notification_id: "abc-123".to_string(),
+        };
+        let json = serde_json::to_string(&cmd).unwrap();
+        assert!(json.contains("notification_id"));
+    }
+
+    #[test]
+    fn test_shutting_down_event() {
+        let event = AgentEvent::ShuttingDown;
+        let json = serde_json::to_string(&event).unwrap();
+        assert!(json.contains("shutting_down"));
+    }
+}

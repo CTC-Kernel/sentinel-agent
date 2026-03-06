@@ -1,0 +1,55 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
+//! Pill-shaped status badges — premium soft tinted style.
+//!
+//! Uses `theme::badge_*()` helpers for consistent colors across all badges.
+
+use egui::{CornerRadius, Ui, Vec2};
+
+use crate::theme;
+
+/// Draw a pill-shaped status badge with premium soft-tinted styling.
+///
+/// `text` is the badge label.
+/// `color` is the semantic color (SUCCESS, WARNING, ERROR, INFO, ACCENT, etc.).
+pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
+    let h_pad = theme::SPACE_SM;
+    let v_pad = theme::ACCENT_BAR_WIDTH;
+
+    let bg_color = theme::badge_bg(color);
+    let border_color = theme::badge_border(color);
+    let text_color = theme::badge_text(color);
+
+    let galley = ui
+        .painter()
+        .layout_no_wrap(text.to_string(), theme::font_small(), text_color);
+
+    let text_size = galley.size();
+    let desired_size = Vec2::new(
+        text_size.x + h_pad * 2.0,
+        (text_size.y + v_pad * 2.0).max(theme::BADGE_MIN_HEIGHT),
+    );
+
+    let (rect, _) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
+
+    if ui.is_rect_visible(rect) {
+        let radius = (rect.height() / 2.0).round().min(255.0) as u8;
+
+        // Soft tinted background
+        ui.painter()
+            .rect_filled(rect, CornerRadius::same(radius), bg_color);
+
+        // Subtle border for definition
+        ui.painter().rect_stroke(
+            rect,
+            CornerRadius::same(radius),
+            egui::Stroke::new(theme::BORDER_HAIRLINE, border_color),
+            egui::StrokeKind::Inside,
+        );
+
+        // Centered text
+        let text_pos = ui.layout().align_size_within_rect(text_size, rect).min;
+        ui.painter().galley(text_pos, galley, text_color);
+    }
+}

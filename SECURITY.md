@@ -1,5 +1,5 @@
 <p align="center">
-  ![Sentinel GRC Security Seal](assets/security_seal.png)
+  ![Sentinel GRC Security Seal](https://github.com/CTC-Kernel/sentinel-agent/blob/main/assets/security_seal.png)
 </p>
 
 # Security Policy

@@ -1,0 +1,668 @@
+// Copyright (c) 2024-2026 Cyber Threat Consulting
+// SPDX-License-Identifier: MIT
+
+//! Heartbeat mechanism for agent health monitoring.
+//!
+//! This module provides periodic heartbeat sending with:
+//! - System metrics collection (CPU, memory)
+//! - Exponential backoff retry on failures
+//! - Offline mode triggering after consecutive failures
+//! - Command processing from heartbeat responses
+
+use crate::authenticated_client::AuthenticatedClient;
+use crate::error::{SyncError, SyncResult};
+use crate::types::{AgentCommand, HeartbeatRequest, HeartbeatResponse, SelfCheckResult};
+use agent_common::constants::{
+    AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS, MAX_SYNC_RETRIES, RETRY_BACKOFF_BASE_MS,
+    RETRY_BACKOFF_MAX_MS,
+};
+use chrono::{DateTime, Utc};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::time::Duration;
+use sysinfo::{Disks, System};
+use tokio::sync::RwLock;
+use tokio::time::{interval, sleep};
+use tracing::{debug, error, info, warn};
+
+/// Number of consecutive failures before triggering offline mode.
+const OFFLINE_MODE_THRESHOLD: u32 = 3;
+
+/// Heartbeat service for periodic health reporting.
+pub struct HeartbeatService {
+    client: Arc<AuthenticatedClient>,
+    /// Current heartbeat interval.
+    interval_secs: RwLock<u64>,
+    /// Consecutive failure count.
+    consecutive_failures: AtomicU32,
+    /// Whether the agent is in offline mode.
+    offline_mode: AtomicBool,
+    /// Last successful heartbeat timestamp.
+    last_success: RwLock<Option<DateTime<Utc>>>,
+    /// Last check execution timestamp (for heartbeat payload).
+    last_check_at: RwLock<Option<DateTime<Utc>>>,
+    /// Current compliance score (for heartbeat payload).
+    compliance_score: RwLock<Option<f32>>,
+    /// Pending sync count (for heartbeat payload).
+    pending_sync_count: AtomicU32,
+    /// Self-check result to send on first heartbeat.
+    self_check_result: RwLock<Option<SelfCheckResult>>,
+    /// System info for metrics collection.
+    sys: RwLock<System>,
+}
+
+impl HeartbeatService {
+    /// Create a new heartbeat service.
+    pub fn new(client: Arc<AuthenticatedClient>) -> Self {
+        let mut sys = System::new_all();
+        sys.refresh_all();
+        Self {
+            client,
+            interval_secs: RwLock::new(DEFAULT_HEARTBEAT_INTERVAL_SECS),
+            consecutive_failures: AtomicU32::new(0),
+            offline_mode: AtomicBool::new(false),
+            last_success: RwLock::new(None),
+            last_check_at: RwLock::new(None),
+            compliance_score: RwLock::new(None),
+            pending_sync_count: AtomicU32::new(0),
+            self_check_result: RwLock::new(None),
+            sys: RwLock::new(sys),
+        }
+    }
+
+    /// Set the heartbeat interval.
+    pub async fn set_interval(&self, secs: u64) {
+        let mut interval = self.interval_secs.write().await;
+        *interval = secs;
+        info!("Heartbeat interval set to {} seconds", secs);
+    }
+
+    /// Get the current heartbeat interval.
+    pub async fn interval(&self) -> u64 {
+        *self.interval_secs.read().await
+    }
+
+    /// Check if the agent is in offline mode.
+    pub fn is_offline(&self) -> bool {
+        self.offline_mode.load(Ordering::SeqCst)
+    }
+
+    /// Get the last successful heartbeat timestamp.
+    pub async fn last_success(&self) -> Option<DateTime<Utc>> {
+        *self.last_success.read().await
+    }
+
+    /// Get consecutive failure count.
+    pub fn consecutive_failures(&self) -> u32 {
+        self.consecutive_failures.load(Ordering::SeqCst)
+    }
+
+    /// Update the last check timestamp.
+    pub async fn set_last_check_at(&self, timestamp: DateTime<Utc>) {
+        let mut last = self.last_check_at.write().await;
+        *last = Some(timestamp);
+    }
+
+    /// Update the compliance score.
+    pub async fn set_compliance_score(&self, score: f32) {
+        let mut current = self.compliance_score.write().await;
+        *current = Some(score);
+    }
+
+    /// Update the pending sync count.
+    pub fn set_pending_sync_count(&self, count: u32) {
+        self.pending_sync_count.store(count, Ordering::SeqCst);
+    }
+
+    /// Set the self-check result to send on next heartbeat.
+    pub async fn set_self_check_result(&self, result: SelfCheckResult) {
+        let mut current = self.self_check_result.write().await;
+        *current = Some(result);
+    }
+
+    /// Send a single heartbeat with retry logic.
+    ///
+    /// Returns the response on success, or the last error on failure.
+    pub async fn send_heartbeat(&self) -> SyncResult<HeartbeatResponse> {
+        let agent_id = self.client.agent_id().await?;
+        let request = self.build_request().await;
+
+        debug!("Sending heartbeat for agent {}", agent_id);
+
+        // Try with exponential backoff
+        let mut last_error = None;
+        let mut backoff_ms = RETRY_BACKOFF_BASE_MS;
+
+        for attempt in 0..=MAX_SYNC_RETRIES {
+            if attempt > 0 {
+                debug!("Heartbeat retry attempt {} after {}ms", attempt, backoff_ms);
+                sleep(Duration::from_millis(backoff_ms)).await;
+                backoff_ms = (backoff_ms * 2).min(RETRY_BACKOFF_MAX_MS);
+            }
+
+            match self
+                .client
+                .post_json(&format!("/v1/agents/{}/heartbeat", agent_id), &request)
+                .await
+            {
+                Ok(response) => {
+                    self.on_success().await;
+                    return Ok(response);
+                }
+                Err(e) => {
+                    if !e.is_retryable() {
+                        // Non-retryable error, fail immediately
+                        self.on_failure().await;
+                        return Err(e);
+                    }
+                    last_error = Some(e);
+                }
+            }
+        }
+
+        // All retries exhausted
+        self.on_failure().await;
+        Err(last_error.unwrap_or_else(|| SyncError::Timeout))
+    }
+
+    /// Build a heartbeat request with current metrics.
+    async fn build_request(&self) -> HeartbeatRequest {
+        // Refresh system info
+        {
+            let mut sys = self.sys.write().await;
+            sys.refresh_cpu_all();
+            sys.refresh_memory();
+        }
+
+        let sys = self.sys.read().await;
+
+        // Calculate CPU usage (average across all CPUs)
+        let cpu_percent =
+            sys.cpus().iter().map(|c| c.cpu_usage()).sum::<f32>() / sys.cpus().len().max(1) as f32;
+
+        let memory_bytes = sys.used_memory();
+        let memory_total = sys.total_memory();
+        let memory_percent = if memory_total > 0 {
+            Some((memory_bytes as f32 / memory_total as f32) * 100.0)
+        } else {
+            None
+        };
+
+        // Drop the read lock before calling collect_processes() which needs a write lock
+        drop(sys);
+
+        // Calculate disk usage (root/main disk)
+        let (disk_percent, disk_used, disk_total) = {
+            let disks = Disks::new_with_refreshed_list();
+            let disk_list: Vec<_> = disks.iter().collect();
+            if let Some(disk) = disk_list
+                .iter()
+                .find(|d| {
+                    let mount = d.mount_point().to_string_lossy();
+                    mount == "/" || mount == "C:\\"
+                })
+                .copied()
+                .or_else(|| disk_list.first().copied())
+            {
+                let total = disk.total_space();
+                let available = disk.available_space();
+                let used = total.saturating_sub(available);
+                let percent = if total > 0 {
+                    (used as f32 / total as f32) * 100.0
+                } else {
+                    0.0
+                };
+                (Some(percent), Some(used), Some(total))
+            } else {
+                (None, None, None)
+            }
+        };
+
+        let hostname = hostname::get()
+            .map(|h| h.to_string_lossy().to_string())
+            .unwrap_or_else(|_| "unknown".to_string());
+
+        let os_info = {
+            let info = os_info::get();
+            format!(
+                "{} {} ({})",
+                info.os_type(),
+                info.version(),
+                std::env::consts::ARCH
+            )
+        };
+
+        // Get self-check result (only sent on first heartbeat)
+        let self_check_result = {
+            let mut result = self.self_check_result.write().await;
+            result.take()
+        };
+
+        // Disk I/O throughput (kB/s) — collect from current process disk usage
+        let disk_io_kbps: Option<u32> = {
+            let mut sys_for_disk = System::new();
+            let pid = sysinfo::get_current_pid()
+                .unwrap_or(sysinfo::Pid::from(std::process::id() as usize));
+            sys_for_disk.refresh_processes_specifics(
+                sysinfo::ProcessesToUpdate::Some(&[pid]),
+                true,
+                sysinfo::ProcessRefreshKind::nothing().with_disk_usage(),
+            );
+            if let Some(process) = sys_for_disk.process(pid) {
+                let usage = process.disk_usage();
+                Some(((usage.read_bytes + usage.written_bytes) / 1024).min(u32::MAX as u64) as u32)
+            } else {
+                Some(0)
+            }
+        };
+
+        // System uptime
+        let uptime_seconds = Some(System::uptime());
+
+        // Network metrics
+        let networks = sysinfo::Networks::new_with_refreshed_list();
+        let (mut total_sent, mut total_recv) = (0u64, 0u64);
+        let mut ip_address: Option<String> = None;
+        for (_name, data) in &networks {
+            total_sent += data.total_transmitted();
+            total_recv += data.total_received();
+        }
+        // Try to get the local IP address from network interfaces
+        if let Ok(addrs) = std::net::UdpSocket::bind("0.0.0.0:0")
+            && addrs.connect("8.8.8.8:80").is_ok()
+            && let Ok(local) = addrs.local_addr()
+        {
+            ip_address = Some(local.ip().to_string());
+        }
+
+        let last_check_at = *self.last_check_at.read().await;
+        let compliance_score = *self.compliance_score.read().await;
+
+        let processes = self.collect_processes().await;
+        let connections = self.collect_connections().await;
+
+        HeartbeatRequest {
+            timestamp: Utc::now(),
+            agent_version: AGENT_VERSION.to_string(),
+            status: if self.is_offline() {
+                "degraded"
+            } else {
+                "active"
+            }
+            .to_string(),
+            hostname,
+            os_info,
+            cpu_percent,
+            memory_bytes,
+            last_check_at,
+            compliance_score,
+            pending_sync_count: self.pending_sync_count.load(Ordering::SeqCst),
+            self_check_result,
+            memory_percent,
+            memory_total_bytes: Some(memory_total),
+            disk_percent,
+            disk_used_bytes: disk_used,
+            disk_total_bytes: disk_total,
+            disk_io_kbps,
+            uptime_seconds,
+            ip_address,
+            network_bytes_sent: Some(total_sent),
+            network_bytes_recv: Some(total_recv),
+            processes,
+            connections,
+            llm_status: None,
+            llm_inference_count: None,
+        }
+    }
+
+    /// Collect running processes.
+    async fn collect_processes(&self) -> Vec<crate::types::AgentProcess> {
+        use sysinfo::{ProcessRefreshKind, ProcessesToUpdate};
+        let mut sys = self.sys.write().await;
+
+        // Refresh processes
+        sys.refresh_processes_specifics(
+            ProcessesToUpdate::All,
+            true,
+            ProcessRefreshKind::nothing().with_cpu().with_memory(),
+        );
+
+        let mut processes = Vec::new();
+        // Limit to top 20 processes by CPU to avoid huge payload
+        let mut process_list: Vec<_> = sys.processes().values().collect();
+        process_list.sort_by(|a, b| {
+            b.cpu_usage()
+                .partial_cmp(&a.cpu_usage())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        // Use total memory for percentage calculation
+        let total_mem = sys.total_memory() as f64;
+
+        for p in process_list.into_iter().take(20) {
+            let mem_bytes = p.memory();
+            let mem_percent = if total_mem > 0.0 {
+                (mem_bytes as f64 / total_mem) * 100.0
+            } else {
+                0.0
+            };
+
+            processes.push(crate::types::AgentProcess {
+                pid: p.pid().as_u32(),
+                name: p.name().to_string_lossy().to_string(),
+                cpu_percent: p.cpu_usage() as f64,
+                memory_bytes: mem_bytes,
+                memory_percent: mem_percent,
+                user: p
+                    .user_id()
+                    .map(|u| u.to_string())
+                    .unwrap_or_else(|| "unknown".to_string()),
+                // RH-3: Only send the process name (first element of cmd()),
+                // NOT the full argument list which may contain secrets/tokens.
+                command_line: p.cmd().first().map(|s| s.to_string_lossy().to_string()),
+            });
+        }
+
+        processes
+    }
+
+    /// Collect network connections.
+    /// Note: sysinfo doesn't support connections directly yet, so we return empty for now
+    /// to avoid complicating with OS-specific lsof/netstat calls in this step.
+    /// Future improvement: use netstat2 crate.
+    async fn collect_connections(&self) -> Vec<crate::types::AgentConnection> {
+        Vec::new()
+    }
+
+    /// Handle successful heartbeat.
+    async fn on_success(&self) {
+        let was_offline = self.offline_mode.swap(false, Ordering::SeqCst);
+        self.consecutive_failures.store(0, Ordering::SeqCst);
+
+        let mut last = self.last_success.write().await;
+        *last = Some(Utc::now());
+
+        if was_offline {
+            info!("Agent back online after heartbeat success");
+        }
+    }
+
+    /// Handle failed heartbeat.
+    async fn on_failure(&self) {
+        let failures = self.consecutive_failures.fetch_add(1, Ordering::SeqCst) + 1;
+
+        if failures >= OFFLINE_MODE_THRESHOLD {
+            let was_offline = self.offline_mode.swap(true, Ordering::SeqCst);
+            if !was_offline {
+                warn!(
+                    "Agent entering offline mode after {} consecutive heartbeat failures",
+                    failures
+                );
+            }
+        } else {
+            warn!(
+                "Heartbeat failed ({}/{} before offline mode)",
+                failures, OFFLINE_MODE_THRESHOLD
+            );
+        }
+    }
+
+    /// Process commands from a heartbeat response.
+    pub async fn process_commands(&self, response: &HeartbeatResponse) -> Vec<AgentCommand> {
+        let mut commands = Vec::new();
+
+        for command in &response.commands {
+            debug!("Received command: {:?}", command);
+            commands.push(command.clone());
+        }
+
+        if response.config_changed {
+            debug!("Configuration changed, sync required");
+        }
+
+        if response.rules_changed {
+            debug!("Rules changed, sync required");
+        }
+
+        commands
+    }
+
+    /// Run the heartbeat loop.
+    ///
+    /// This method runs forever, sending heartbeats at the configured interval.
+    /// Use with `tokio::spawn` or similar.
+    pub async fn run(&self, shutdown: tokio::sync::watch::Receiver<bool>) {
+        info!("Starting heartbeat service");
+
+        let mut shutdown = shutdown;
+
+        loop {
+            let interval_secs = self.interval().await;
+            let mut ticker = interval(Duration::from_secs(interval_secs));
+
+            tokio::select! {
+                _ = ticker.tick() => {
+                    match self.send_heartbeat().await {
+                        Ok(response) => {
+                            let commands = self.process_commands(&response).await;
+                            if !commands.is_empty() {
+                                info!("Received {} commands from server", commands.len());
+                                // Commands are returned for the caller to handle
+                            }
+                        }
+                        Err(e) => {
+                            error!("Heartbeat failed: {}", e);
+                        }
+                    }
+                }
+                _ = shutdown.changed() => {
+                    if *shutdown.borrow() {
+                        info!("Heartbeat service shutting down");
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /// Reset offline mode (e.g., after manual recovery).
+    pub fn reset_offline_mode(&self) {
+        self.offline_mode.store(false, Ordering::SeqCst);
+        self.consecutive_failures.store(0, Ordering::SeqCst);
+        info!("Offline mode reset");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use agent_common::config::AgentConfig;
+    use agent_storage::{Database, DatabaseConfig, KeyManager};
+    use std::sync::Arc;
+    use tempfile::TempDir;
+
+    async fn create_test_client() -> (TempDir, Arc<AuthenticatedClient>) {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.db");
+
+        let db_config = DatabaseConfig::with_path(&db_path);
+        let key_manager = KeyManager::new_with_test_key();
+        let db = Database::open(db_config, &key_manager).unwrap();
+
+        let config = AgentConfig {
+            server_url: "https://api.test.com".to_string(),
+            tls_verify: false,
+            ..Default::default()
+        };
+
+        let client = AuthenticatedClient::new(config, Arc::new(db));
+        (temp_dir, Arc::new(client))
+    }
+
+    #[tokio::test]
+    async fn test_heartbeat_service_creation() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        assert_eq!(service.interval().await, DEFAULT_HEARTBEAT_INTERVAL_SECS);
+        assert!(!service.is_offline());
+        assert_eq!(service.consecutive_failures(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_set_interval() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        service.set_interval(120).await;
+        assert_eq!(service.interval().await, 120);
+    }
+
+    #[tokio::test]
+    async fn test_offline_mode_tracking() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        // Simulate failures
+        for _ in 0..OFFLINE_MODE_THRESHOLD {
+            service.on_failure().await;
+        }
+
+        assert!(service.is_offline());
+        assert_eq!(service.consecutive_failures(), OFFLINE_MODE_THRESHOLD);
+
+        // Reset
+        service.reset_offline_mode();
+        assert!(!service.is_offline());
+        assert_eq!(service.consecutive_failures(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_success_resets_failures() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        // Simulate some failures
+        service.on_failure().await;
+        service.on_failure().await;
+        assert_eq!(service.consecutive_failures(), 2);
+
+        // Success resets
+        service.on_success().await;
+        assert_eq!(service.consecutive_failures(), 0);
+        assert!(!service.is_offline());
+    }
+
+    #[tokio::test]
+    async fn test_success_exits_offline_mode() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        // Enter offline mode
+        for _ in 0..OFFLINE_MODE_THRESHOLD {
+            service.on_failure().await;
+        }
+        assert!(service.is_offline());
+
+        // Success exits offline mode
+        service.on_success().await;
+        assert!(!service.is_offline());
+    }
+
+    #[tokio::test]
+    async fn test_last_check_at() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        let timestamp = Utc::now();
+        service.set_last_check_at(timestamp).await;
+
+        let request = service.build_request().await;
+        assert_eq!(request.last_check_at, Some(timestamp));
+    }
+
+    #[tokio::test]
+    async fn test_compliance_score() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        service.set_compliance_score(85.5).await;
+
+        let request = service.build_request().await;
+        assert_eq!(request.compliance_score, Some(85.5));
+    }
+
+    #[tokio::test]
+    async fn test_pending_sync_count() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        service.set_pending_sync_count(10);
+
+        let request = service.build_request().await;
+        assert_eq!(request.pending_sync_count, 10);
+    }
+
+    #[tokio::test]
+    async fn test_self_check_result_sent_once() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        let result = SelfCheckResult {
+            passed: true,
+            binary_hash: "abc123".to_string(),
+            error: None,
+        };
+        service.set_self_check_result(result).await;
+
+        // First request includes self-check
+        let request1 = service.build_request().await;
+        assert!(request1.self_check_result.is_some());
+
+        // Second request does not
+        let request2 = service.build_request().await;
+        assert!(request2.self_check_result.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_build_request_metrics() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        let request = service.build_request().await;
+
+        assert_eq!(request.agent_version, AGENT_VERSION);
+        assert_eq!(request.status, "active");
+        assert!(!request.hostname.is_empty());
+        assert!(!request.os_info.is_empty());
+        // CPU and memory should have some value
+        assert!(request.cpu_percent >= 0.0);
+        assert!(request.memory_bytes > 0);
+        // Extended metrics
+        assert!(request.memory_percent.is_some());
+        assert!(request.memory_total_bytes.is_some());
+        assert!(request.uptime_seconds.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_process_commands() {
+        let (_temp_dir, client) = create_test_client().await;
+        let service = HeartbeatService::new(client);
+
+        let response = HeartbeatResponse {
+            timestamp: Utc::now(),
+            commands: vec![
+                AgentCommand::ForceSync,
+                AgentCommand::RunChecks {
+                    check_ids: vec!["disk".to_string()],
+                },
+            ],
+            config_changed: true,
+            rules_changed: false,
+            organization_name: None,
+        };
+
+        let commands = service.process_commands(&response).await;
+        assert_eq!(commands.len(), 2);
+    }
+}
