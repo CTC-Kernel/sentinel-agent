@@ -241,21 +241,91 @@ fn handle_enroll(token: &str, server_url: Option<&str>) -> ExitCode {
         config.server_url = url.to_string();
     }
 
-    // Initialize database
+    // Initialize database (with recovery for encryption mismatches since enrollment
+    // is always done on a non-enrolled agent)
     let db_config = DatabaseConfig::default();
     let key_manager = match KeyManager::new() {
         Ok(km) => km,
         Err(e) => {
-            error!("Failed to initialize key manager: {}", e);
-            return ExitCode::FAILURE;
+            if let agent_storage::StorageError::EncryptionLost(_) = &e {
+                warn!("Encryption context lost during enrollment. Resetting to recover: {}", e);
+                let db_path = std::path::PathBuf::from(&config.db_path);
+                #[cfg(windows)]
+                let key_file = "key.dpapi";
+                #[cfg(not(windows))]
+                let key_file = ".sentinel-key";
+                let key_path = db_path
+                    .parent()
+                    .map(|p| p.join(key_file))
+                    .unwrap_or_else(|| std::path::PathBuf::from(key_file));
+
+                let _ = std::fs::remove_file(&db_path);
+                if let Err(re) = std::fs::remove_file(&key_path) {
+                    warn!("Failed to remove old key file: {}", re);
+                }
+                match KeyManager::new() {
+                    Ok(km) => km,
+                    Err(retry_err) => {
+                        error!("Failed to recover key manager: {}", retry_err);
+                        return ExitCode::FAILURE;
+                    }
+                }
+            } else {
+                error!("Failed to initialize key manager: {}", e);
+                return ExitCode::FAILURE;
+            }
         }
     };
 
-    let db = match Database::open(db_config, &key_manager) {
+    let db = match Database::open(db_config.clone(), &key_manager) {
         Ok(db) => db,
         Err(e) => {
-            error!("Failed to open database: {}", e);
-            return ExitCode::FAILURE;
+            if matches!(&e, agent_storage::StorageError::Encryption(_)) {
+                warn!("Database encryption mismatch during enrollment: {}. Resetting.", e);
+                let db_path = std::path::PathBuf::from(&config.db_path);
+                #[cfg(windows)]
+                let key_file = "key.dpapi";
+                #[cfg(not(windows))]
+                let key_file = ".sentinel-key";
+                let key_path = db_path
+                    .parent()
+                    .map(|p| p.join(key_file))
+                    .unwrap_or_else(|| std::path::PathBuf::from(key_file));
+
+                if db_path.exists() {
+                    let backup_path = db_path.with_extension("db.bak");
+                    if let Err(re) = std::fs::rename(&db_path, &backup_path) {
+                        warn!("Failed to backup database: {}", re);
+                        let _ = std::fs::remove_file(&db_path);
+                    } else {
+                        info!("Backed up old database to {:?}", backup_path);
+                    }
+                }
+                if let Err(re) = std::fs::remove_file(&key_path) {
+                    warn!("Failed to remove old key file: {}", re);
+                }
+
+                let key_manager = match KeyManager::new() {
+                    Ok(km) => km,
+                    Err(retry_err) => {
+                        error!("Failed to recover key manager after reset: {}", retry_err);
+                        return ExitCode::FAILURE;
+                    }
+                };
+                match Database::open(db_config, &key_manager) {
+                    Ok(db) => {
+                        info!("Database recreated successfully for enrollment");
+                        db
+                    }
+                    Err(retry_err) => {
+                        error!("Failed to open database after reset: {}", retry_err);
+                        return ExitCode::FAILURE;
+                    }
+                }
+            } else {
+                error!("Failed to open database: {}", e);
+                return ExitCode::FAILURE;
+            }
         }
     };
 
@@ -457,13 +527,28 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
                 if !config.is_enrolled() {
                     warn!("Encryption context lost on un-enrolled agent. Resetting database to recover.");
                     let db_path = std::path::PathBuf::from(&config.db_path);
+                    #[cfg(windows)]
+                    let key_file = "key.dpapi";
+                    #[cfg(not(windows))]
+                    let key_file = ".sentinel-key";
                     let key_path = db_path
                         .parent()
-                        .map(|p| p.join("key.dpapi"))
-                        .unwrap_or_else(|| std::path::PathBuf::from("key.dpapi"));
+                        .map(|p| p.join(key_file))
+                        .unwrap_or_else(|| std::path::PathBuf::from(key_file));
 
-                    let _ = std::fs::remove_file(&db_path);
-                    let _ = std::fs::remove_file(&key_path);
+                    // Back up existing DB before deleting
+                    if db_path.exists() {
+                        let backup_path = db_path.with_extension("db.bak");
+                        if let Err(e) = std::fs::rename(&db_path, &backup_path) {
+                            warn!("Failed to backup database: {}", e);
+                            let _ = std::fs::remove_file(&db_path);
+                        } else {
+                            info!("Backed up old database to {:?}", backup_path);
+                        }
+                    }
+                    if let Err(e) = std::fs::remove_file(&key_path) {
+                        warn!("Failed to remove old key file: {}", e);
+                    }
 
                     // Retry once
                     match KeyManager::new() {
@@ -502,19 +587,64 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
         }
     };
 
-    let db = match Database::open(db_config, &key_manager) {
+    let db = match Database::open(db_config.clone(), &key_manager) {
         Ok(db) => db,
         Err(e) => {
-            // If we fail here, it could still be an encryption problem (e.g. key derived differently)
-            error!("Failed to open database: {}", e);
-            #[cfg(windows)]
-            if !no_tray {
-                show_fatal_error(&format!(
-                    "Échec de l'ouverture de la base de données : {}\n\nL'agent ne peut pas démarrer.",
+            // If encryption verification fails and agent is NOT enrolled, reset DB and key
+            // to recover. This can happen when the DB was created without encryption or with
+            // a different key (e.g. after an upgrade or platform key context change).
+            let is_encryption_error = matches!(&e, agent_storage::StorageError::Encryption(_));
+            if is_encryption_error && !config.is_enrolled() {
+                warn!(
+                    "Database encryption mismatch on un-enrolled agent: {}. Resetting to recover.",
                     e
-                ));
+                );
+                let db_path = std::path::PathBuf::from(&config.db_path);
+                #[cfg(windows)]
+                let key_file = "key.dpapi";
+                #[cfg(not(windows))]
+                let key_file = ".sentinel-key";
+                let key_path = db_path
+                    .parent()
+                    .map(|p| p.join(key_file))
+                    .unwrap_or_else(|| std::path::PathBuf::from(key_file));
+
+                // Back up existing DB before deleting
+                if db_path.exists() {
+                    let backup_path = db_path.with_extension("db.bak");
+                    if let Err(e) = std::fs::rename(&db_path, &backup_path) {
+                        warn!("Failed to backup database: {}", e);
+                        let _ = std::fs::remove_file(&db_path);
+                    } else {
+                        info!("Backed up old database to {:?}", backup_path);
+                    }
+                }
+                if let Err(e) = std::fs::remove_file(&key_path) {
+                    warn!("Failed to remove old key file: {}", e);
+                }
+
+                // Recreate key manager and database
+                let key_manager = match KeyManager::new() {
+                    Ok(km) => km,
+                    Err(retry_err) => {
+                        error!("Failed to recover key manager after reset: {}", retry_err);
+                        return ExitCode::FAILURE;
+                    }
+                };
+                match Database::open(db_config, &key_manager) {
+                    Ok(db) => {
+                        info!("Database recreated successfully after encryption reset");
+                        db
+                    }
+                    Err(retry_err) => {
+                        error!("Failed to open database after reset: {}", retry_err);
+                        return ExitCode::FAILURE;
+                    }
+                }
+            } else {
+                error!("Failed to open database: {}", e);
+                return ExitCode::FAILURE;
             }
-            return ExitCode::FAILURE;
         }
     };
 
