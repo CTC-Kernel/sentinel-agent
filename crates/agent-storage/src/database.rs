@@ -222,16 +222,29 @@ impl Database {
             )));
         }
 
-        // Convert key to hex string for SQLCipher
-        let mut key_hex: String = key.iter().map(|b| format!("{:02x}", b)).collect();
+        // Convert key to hex in a stack-allocated buffer to avoid heap allocation
+        // of sensitive material. 32 bytes → 64 hex chars + prefix (16) + suffix (2) = 82.
+        const HEX_CHARS: &[u8; 16] = b"0123456789abcdef";
+        let mut pragma_buf = [0u8; 82];
+        let prefix = b"PRAGMA key = \"x'";
+        let suffix = b"'\"";
+        pragma_buf[..prefix.len()].copy_from_slice(prefix);
+        let mut offset = prefix.len();
+        for &byte in key.iter().take(32) {
+            pragma_buf[offset] = HEX_CHARS[(byte >> 4) as usize];
+            pragma_buf[offset + 1] = HEX_CHARS[(byte & 0x0f) as usize];
+            offset += 2;
+        }
+        pragma_buf[offset..offset + suffix.len()].copy_from_slice(suffix);
+        let pragma_len = offset + suffix.len();
 
-        // Set the key using PRAGMA key
-        let pragma = format!("PRAGMA key = \"x'{}'\"", key_hex);
-        let result = conn.execute_batch(&pragma);
+        // SAFETY: pragma_buf contains only ASCII hex characters and known ASCII prefix/suffix
+        let pragma = std::str::from_utf8(&pragma_buf[..pragma_len])
+            .expect("PRAGMA buffer is always valid ASCII");
+        let result = conn.execute_batch(pragma);
 
-        // Zeroize key material from memory immediately after PRAGMA is set
-        zeroize::Zeroize::zeroize(&mut key_hex);
-        drop(key_hex);
+        // Zeroize the key hex from the stack buffer
+        zeroize::Zeroize::zeroize(&mut pragma_buf);
 
         result.map_err(|e| {
             StorageError::Encryption(format!("Failed to set encryption key: {}", e))

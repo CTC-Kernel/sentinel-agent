@@ -629,7 +629,15 @@ impl VulnerabilitiesPage {
             if is_loading {
                 ui.push_id("vulns_skeletons", |ui: &mut egui::Ui| {
                     let cols = 7;
-                    let column_widths = [100.0, 120.0, 80.0, 60.0, 90.0, ui.available_width() - 550.0, 100.0];
+                    let column_widths = [
+                        100.0,
+                        120.0,
+                        80.0,
+                        60.0,
+                        90.0,
+                        ui.available_width() - 550.0,
+                        100.0,
+                    ];
                     for _ in 0..5 {
                         crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
                         ui.add_space(theme::SPACE_MD);

@@ -253,8 +253,12 @@ pub async fn run_threat_pipeline(
             );
 
             // Execute the playbook actions
-            let results =
-                crate::playbook_engine::execute_playbook_actions(&evaluation.playbook_name, &evaluation.actions, audit_trail).await;
+            let results = crate::playbook_engine::execute_playbook_actions(
+                &evaluation.playbook_name,
+                &evaluation.actions,
+                audit_trail,
+            )
+            .await;
 
             let success_count = results.iter().filter(|r| r.success).count();
             let total = results.len();
@@ -291,12 +295,12 @@ pub async fn run_threat_pipeline(
             playbook_logs.push(log_entry.clone());
 
             // Emit playbook triggered event to GUI
-            if let Some(tx) = gui_tx {
-                if let Err(e) = tx.send(agent_gui::events::AgentEvent::PlaybookTriggered {
+            if let Some(tx) = gui_tx
+                && let Err(e) = tx.send(agent_gui::events::AgentEvent::PlaybookTriggered {
                     log_entry: Box::new(log_entry),
-                }) {
-                    warn!("Failed to send PlaybookTriggered event: {}", e);
-                }
+                })
+            {
+                warn!("Failed to send PlaybookTriggered event: {}", e);
             }
         }
     }

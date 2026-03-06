@@ -176,7 +176,7 @@ impl BackupManager {
                     .map_err(|e| {
                         PersistenceError::Backup(format!("Failed to set key on backup: {}", e))
                     })?;
-                    
+
                 dst_conn
                     .execute_batch(
                         r#"
@@ -187,7 +187,10 @@ impl BackupManager {
                         "#,
                     )
                     .map_err(|e| {
-                        PersistenceError::Backup(format!("Failed to configure cipher settings: {}", e))
+                        PersistenceError::Backup(format!(
+                            "Failed to configure cipher settings: {}",
+                            e
+                        ))
                     })?;
                 // Manual zeroization as fallback to zeroize crate if not used here
                 unsafe {
@@ -377,11 +380,11 @@ impl BackupManager {
             PersistenceError::Restore(format!("Failed to write restored database: {}", e))
         })?;
 
-        // IMPORTANT: Delete any existing WAL and SHM files, otherwise the restored 
+        // IMPORTANT: Delete any existing WAL and SHM files, otherwise the restored
         // database will conflict with the existing WAL file (especially with SQLCipher salt mismatches).
         let wal_path = PathBuf::from(format!("{}-wal", self.db_path.display()));
         let shm_path = PathBuf::from(format!("{}-shm", self.db_path.display()));
-        
+
         if wal_path.exists() {
             let _ = fs::remove_file(&wal_path);
         }

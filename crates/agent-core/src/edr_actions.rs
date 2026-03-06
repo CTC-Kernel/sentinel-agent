@@ -14,8 +14,13 @@ pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonErro
     // Anti-Draper protection: Prevent the agent from killing itself
     let my_pid = std::process::id();
     if pid == my_pid {
-        warn!("Anti-Draper triggered: Attempted to kill own process (PID: {})", pid);
-        return Err(CommonError::internal("Anti-Draper protection: Cannot terminate the Sentinel Agent process"));
+        warn!(
+            "Anti-Draper triggered: Attempted to kill own process (PID: {})",
+            pid
+        );
+        return Err(CommonError::internal(
+            "Anti-Draper protection: Cannot terminate the Sentinel Agent process",
+        ));
     }
 
     info!(
@@ -178,15 +183,25 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
 
     // Anti-Draper protection: Prevent blocking localhost or the backend server
     if ip == "127.0.0.1" || ip == "::1" || ip.starts_with("127.") {
-        warn!("Anti-Draper triggered: Attempted to block localhost ({})", ip);
-        return Err(CommonError::internal("Anti-Draper protection: Cannot block localhost"));
+        warn!(
+            "Anti-Draper triggered: Attempted to block localhost ({})",
+            ip
+        );
+        return Err(CommonError::internal(
+            "Anti-Draper protection: Cannot block localhost",
+        ));
     }
 
-    if let Ok(config) = agent_common::config::AgentConfig::load(None) {
-        if config.server_url.contains(ip) {
-            warn!("Anti-Draper triggered: Attempted to block backend API server ({})", ip);
-            return Err(CommonError::internal("Anti-Draper protection: Cannot block the backend API server"));
-        }
+    if let Ok(config) = agent_common::config::AgentConfig::load(None)
+        && config.server_url.contains(ip)
+    {
+        warn!(
+            "Anti-Draper triggered: Attempted to block backend API server ({})",
+            ip
+        );
+        return Err(CommonError::internal(
+            "Anti-Draper protection: Cannot block the backend API server",
+        ));
     }
 
     // Validate IP format

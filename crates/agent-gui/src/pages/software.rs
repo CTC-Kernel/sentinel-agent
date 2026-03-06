@@ -481,7 +481,9 @@ impl SoftwarePage {
                         ui,
                         icons::SOFTWARE,
                         "AUCUNE OCCURRENCE TROUV\u{00c9}E",
-                        Some("Ajustez vos crit\u{00e8}res de recherche ou actualisez l'inventaire."),
+                        Some(
+                            "Ajustez vos crit\u{00e8}res de recherche ou actualisez l'inventaire.",
+                        ),
                     );
                 }
             } else {

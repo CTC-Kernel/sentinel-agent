@@ -593,17 +593,17 @@ fn test_sync_queue_item_exponential_backoff_increases_delay() {
 
     // 2^0 = 1s, 2^1 = 2s, 2^2 = 4s (allow ±1s tolerance for timing)
     assert!(
-        delay_0 >= 1 && delay_0 <= 2,
+        (1..=2).contains(&delay_0),
         "Attempt 0 delay ~1s, got {}s",
         delay_0
     );
     assert!(
-        delay_1 >= 2 && delay_1 <= 3,
+        (2..=3).contains(&delay_1),
         "Attempt 1 delay ~2s, got {}s",
         delay_1
     );
     assert!(
-        delay_2 >= 4 && delay_2 <= 5,
+        (4..=5).contains(&delay_2),
         "Attempt 2 delay ~4s, got {}s",
         delay_2
     );

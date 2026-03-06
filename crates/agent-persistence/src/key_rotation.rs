@@ -335,21 +335,29 @@ mod tests {
         // 1. Create database with old key
         let old_key_manager = KeyManager::new_with_test_key();
         let config = DatabaseConfig::with_path(&db_path);
-        let db = Database::open(config.clone(), &old_key_manager).expect("Opening newly created DB should succeed");
+        let db = Database::open(config.clone(), &old_key_manager)
+            .expect("Opening newly created DB should succeed");
 
         // Write some data to format pages
-        tokio::runtime::Runtime::new().unwrap().block_on(async {
-            db.with_connection(|conn| {
-                conn.execute_batch("CREATE TABLE IF NOT EXISTS rotation_test (id INTEGER PRIMARY KEY)").unwrap();
-                Ok(())
-            }).await
-        }).unwrap();
+        tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(async {
+                db.with_connection(|conn| {
+                    conn.execute_batch(
+                        "CREATE TABLE IF NOT EXISTS rotation_test (id INTEGER PRIMARY KEY)",
+                    )
+                    .unwrap();
+                    Ok(())
+                })
+                .await
+            })
+            .unwrap();
         drop(db);
 
         // 2. Rotate to new key
         let new_key_manager = KeyManager::new_with_key(b"new_key_that_is_32_bytes_long!!!");
         let manager = KeyRotationManager::new(&db_path);
-        
+
         // This will temporarily open the DB with the old key, rekey it, and verify with the new key.
         let result = manager
             .rotate_key(&old_key_manager, &new_key_manager)
@@ -358,12 +366,18 @@ mod tests {
 
         // 3. Try opening with OLD key - MUST FAIL
         let result = Database::open(config, &old_key_manager);
-        assert!(result.is_err(), "Database should fail to open with old key after rotation");
-        
+        assert!(
+            result.is_err(),
+            "Database should fail to open with old key after rotation"
+        );
+
         let err_str = result.unwrap_err().to_string();
         assert!(
-            err_str.contains("encryption") || err_str.contains("not a database") || err_str.contains("auth"),
-            "Expected failure due to encryption, got: {}", err_str
+            err_str.contains("encryption")
+                || err_str.contains("not a database")
+                || err_str.contains("auth"),
+            "Expected failure due to encryption, got: {}",
+            err_str
         );
     }
 }

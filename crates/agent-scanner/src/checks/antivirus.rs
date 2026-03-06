@@ -179,7 +179,7 @@ impl AntivirusCheck {
     async fn check_windows_wmi(&self) -> ScannerResult<AntivirusStatus> {
         // Fallback to WMI for third-party AV
         // Source for productState: https://msdn.microsoft.com/en-us/library/bb432509(v=vs.85).aspx (undocumented actually)
-        // Common bitmasks: 
+        // Common bitmasks:
         // 0xWXYZ00
         // Y: 0x10 = Enabled, 0x00 = Disabled, 0x01 = Expired/Snoozed?
         // Z: 0x00 = Up to date, 0x10 = Out of date
@@ -224,7 +224,8 @@ impl AntivirusCheck {
         }
 
         // Parse WMI output
-        let products_json: serde_json::Value = serde_json::from_str(&raw_output).unwrap_or_default();
+        let products_json: serde_json::Value =
+            serde_json::from_str(&raw_output).unwrap_or_default();
         let products: Vec<serde_json::Value> = if products_json.is_array() {
             products_json.as_array().unwrap().clone()
         } else if products_json.is_object() {
@@ -238,7 +239,7 @@ impl AntivirusCheck {
             .map(|p| {
                 let name = p["displayName"].as_str().unwrap_or("Unknown").to_string();
                 let state = p["productState"].as_u64().unwrap_or(0);
-                
+
                 // Bit 12: Enabled (0x1000)
                 // Bit 4: Out of date (0x0010) -> 0 means up to date
                 let enabled = (state & 0x1000) != 0;

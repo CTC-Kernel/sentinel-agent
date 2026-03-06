@@ -248,7 +248,10 @@ fn handle_enroll(token: &str, server_url: Option<&str>) -> ExitCode {
         Ok(km) => km,
         Err(e) => {
             if let agent_storage::StorageError::EncryptionLost(_) = &e {
-                warn!("Encryption context lost during enrollment. Resetting to recover: {}", e);
+                warn!(
+                    "Encryption context lost during enrollment. Resetting to recover: {}",
+                    e
+                );
                 let db_path = std::path::PathBuf::from(&config.db_path);
                 #[cfg(windows)]
                 let key_file = "key.dpapi";
@@ -281,7 +284,10 @@ fn handle_enroll(token: &str, server_url: Option<&str>) -> ExitCode {
         Ok(db) => db,
         Err(e) => {
             if matches!(&e, agent_storage::StorageError::Encryption(_)) {
-                warn!("Database encryption mismatch during enrollment: {}. Resetting.", e);
+                warn!(
+                    "Database encryption mismatch during enrollment: {}. Resetting.",
+                    e
+                );
                 let db_path = std::path::PathBuf::from(&config.db_path);
                 #[cfg(windows)]
                 let key_file = "key.dpapi";
@@ -525,7 +531,9 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
             // This happens after MSI upgrades if DPAPI context changes.
             if let agent_storage::StorageError::EncryptionLost(_) = &e {
                 if !config.is_enrolled() {
-                    warn!("Encryption context lost on un-enrolled agent. Resetting database to recover.");
+                    warn!(
+                        "Encryption context lost on un-enrolled agent. Resetting database to recover."
+                    );
                     let db_path = std::path::PathBuf::from(&config.db_path);
                     #[cfg(windows)]
                     let key_file = "key.dpapi";
@@ -557,7 +565,10 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
                             error!("Failed to recover from encryption loss: {}", retry_err);
                             #[cfg(windows)]
                             if !no_tray {
-                                show_fatal_error(&format!("Erreur critique de chiffrement : {}\n\nL'agent ne peut pas démarrer.", retry_err));
+                                show_fatal_error(&format!(
+                                    "Erreur critique de chiffrement : {}\n\nL'agent ne peut pas démarrer.",
+                                    retry_err
+                                ));
                             }
                             return ExitCode::FAILURE;
                         }
@@ -569,7 +580,10 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
                     );
                     #[cfg(windows)]
                     if !no_tray {
-                        show_fatal_error(&format!("Clé de chiffrement perdue sur un agent déjà enrôlé : {}\n\nUne intervention manuelle ou un ré-enrôlement est requis.\n\nErreur : {}", e, e));
+                        show_fatal_error(&format!(
+                            "Clé de chiffrement perdue sur un agent déjà enrôlé : {}\n\nUne intervention manuelle ou un ré-enrôlement est requis.\n\nErreur : {}",
+                            e, e
+                        ));
                     }
                     return ExitCode::FAILURE;
                 }
@@ -2847,20 +2861,15 @@ mod ctrlc {
 /// Show a fatal error message box on Windows for GUI mode.
 #[cfg(windows)]
 fn show_fatal_error(message: &str) {
-    use windows::core::HSTRING;
     use windows::Win32::UI::WindowsAndMessaging::{
-        MessageBoxW, MB_ICONERROR, MB_OK, MB_SYSTEMMODAL,
+        MB_ICONERROR, MB_OK, MB_SYSTEMMODAL, MessageBoxW,
     };
+    use windows::core::HSTRING;
 
     let title = HSTRING::from("Sentinel Agent Error");
     let msg = HSTRING::from(message);
 
     unsafe {
-        MessageBoxW(
-            None,
-            &msg,
-            &title,
-            MB_OK | MB_ICONERROR | MB_SYSTEMMODAL,
-        );
+        MessageBoxW(None, &msg, &title, MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
     }
 }

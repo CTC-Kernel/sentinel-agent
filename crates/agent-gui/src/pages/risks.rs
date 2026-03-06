@@ -248,7 +248,11 @@ impl RisksPage {
                             let cols = 4;
                             let column_widths = [ui.available_width() - 250.0, 60.0, 60.0, 80.0];
                             for _ in 0..5 {
-                                crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
+                                crate::widgets::skeleton::skeleton_table_row(
+                                    ui,
+                                    cols,
+                                    &column_widths,
+                                );
                                 ui.add_space(theme::SPACE_MD);
                             }
                         });
@@ -609,7 +613,7 @@ impl RisksPage {
         let actions = if is_editing {
             let mut save_action = widgets::DetailAction::primary("Enregistrer", icons::SAVE);
             save_action.loading = is_saving;
-            
+
             vec![
                 save_action,
                 widgets::DetailAction::secondary("Annuler", icons::XMARK),
@@ -754,12 +758,12 @@ impl RisksPage {
                 if is_saving {
                     return;
                 }
-                
+
                 match action_idx {
                     0 => {
                         // Save - start saving state
                         state.risks.saving_until = Some(now + chrono::Duration::milliseconds(650));
-                        
+
                         if selected < state.risks.entries.len() {
                             state.risks.entries[selected].updated_at = chrono::Utc::now();
                             let saved = state.risks.entries[selected].clone();
@@ -777,11 +781,13 @@ impl RisksPage {
                             if state.logs.len() > 1000 {
                                 state.logs.pop_back();
                             }
-                            
+
                             let time = ui.input(|i| i.time);
                             state.toasts.push(
-                                crate::widgets::toast::Toast::success("Risque sauvegard\u{00e9} localement")
-                                    .with_time(time),
+                                crate::widgets::toast::Toast::success(
+                                    "Risque sauvegard\u{00e9} localement",
+                                )
+                                .with_time(time),
                             );
                         }
                     }

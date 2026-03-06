@@ -47,9 +47,9 @@ fn main() -> Result<()> {
 
             let mut rows = stmt.query([])?;
             while let Some(row) = rows.next()? {
-                for i in 0..column_count {
+                for (i, col_name) in column_names.iter().enumerate().take(column_count) {
                     let val: rusqlite::types::Value = row.get(i)?;
-                    print!("{}: {:?} | ", column_names[i], val);
+                    print!("{}: {:?} | ", col_name, val);
                 }
                 println!();
             }

@@ -54,13 +54,13 @@ pub mod check;
 pub mod checks;
 pub mod directory;
 pub mod error;
+pub mod mdm_software;
 pub mod proof;
 pub mod runner;
 pub mod scheduler;
 pub mod score;
 pub mod security;
 pub mod vulnerability;
-pub mod mdm_software;
 
 #[cfg(any(feature = "llm_simple", feature = "llm"))]
 pub mod llm_integration;
@@ -79,9 +79,9 @@ pub use security::{
 };
 // Re-export MDM software types
 pub use mdm_software::{
-    MDMSoftwareScanner, MDMSoftwareInventory, SoftwareCategory, ManagementSource,
-    DeploymentStatus, PolicyCompliance, ComplianceStatus, SoftwareUpdate, UpdateType,
-    SoftwareDependency, SoftwareMetadata, DigitalSignature, InstallationMethod,
+    ComplianceStatus, DeploymentStatus, DigitalSignature, InstallationMethod, MDMSoftwareInventory,
+    MDMSoftwareScanner, ManagementSource, PolicyCompliance, SoftwareCategory, SoftwareDependency,
+    SoftwareMetadata, SoftwareUpdate, UpdateType,
 };
 pub use vulnerability::{
     ScanType, Severity, VulnerabilityFinding, VulnerabilityScanResult, VulnerabilityScanner,
@@ -90,12 +90,12 @@ pub use vulnerability::{
 
 // Directory services auditing
 pub use directory::{
-    AclFinding, AuditPolicy, AuditSetting, DirectoryAuditResult,
-    DirectoryAuditor, DirectoryCategory, DirectoryCheck, DirectoryCheckResult,
-    DirectoryComplianceSummary, DirectoryFinding, DirectorySeverity, DirectoryType, GpoAuditor,
-    GpoSecuritySettings, GpoSetting, LdapAuditor, LdapConfigFinding, LdapPasswordPolicy,
-    LdapSecurityConfig, PrivilegedGroupInfo, TlsConfiguration, check_privileged_groups,
-    run_ldap_checks, run_policy_checks,
+    AclFinding, AuditPolicy, AuditSetting, DirectoryAuditResult, DirectoryAuditor,
+    DirectoryCategory, DirectoryCheck, DirectoryCheckResult, DirectoryComplianceSummary,
+    DirectoryFinding, DirectorySeverity, DirectoryType, GpoAuditor, GpoSecuritySettings,
+    GpoSetting, LdapAuditor, LdapConfigFinding, LdapPasswordPolicy, LdapSecurityConfig,
+    PrivilegedGroupInfo, TlsConfiguration, check_privileged_groups, run_ldap_checks,
+    run_policy_checks,
 };
 
 pub mod remediation;

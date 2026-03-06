@@ -126,18 +126,45 @@ impl GpoAuditor {
             let stdout = String::from_utf8_lossy(&output.stdout);
             if let Ok(policy) = serde_json::from_str::<serde_json::Value>(&stdout) {
                 settings.password_policy = PasswordPolicy {
-                    min_length: policy["MinimumPasswordLength"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
-                    max_age_days: policy["MaximumPasswordAge"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(42),
-                    min_age_days: policy["MinimumPasswordAge"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
-                    history_count: policy["PasswordHistorySize"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
-                    complexity_enabled: policy["PasswordComplexity"].as_u64().map(|v| v == 1).unwrap_or(false),
-                    reversible_encryption: policy["ClearTextPassword"].as_u64().map(|v| v == 1).unwrap_or(false),
+                    min_length: policy["MinimumPasswordLength"]
+                        .as_u64()
+                        .and_then(|v| u32::try_from(v).ok())
+                        .unwrap_or(0),
+                    max_age_days: policy["MaximumPasswordAge"]
+                        .as_u64()
+                        .and_then(|v| u32::try_from(v).ok())
+                        .unwrap_or(42),
+                    min_age_days: policy["MinimumPasswordAge"]
+                        .as_u64()
+                        .and_then(|v| u32::try_from(v).ok())
+                        .unwrap_or(0),
+                    history_count: policy["PasswordHistorySize"]
+                        .as_u64()
+                        .and_then(|v| u32::try_from(v).ok())
+                        .unwrap_or(0),
+                    complexity_enabled: policy["PasswordComplexity"]
+                        .as_u64()
+                        .map(|v| v == 1)
+                        .unwrap_or(false),
+                    reversible_encryption: policy["ClearTextPassword"]
+                        .as_u64()
+                        .map(|v| v == 1)
+                        .unwrap_or(false),
                 };
 
                 settings.lockout_policy = AccountLockoutPolicy {
-                    threshold: policy["LockoutThreshold"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
-                    duration_minutes: policy["LockoutDuration"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
-                    observation_window_minutes: policy["LockoutObservationWindow"].as_u64().and_then(|v| u32::try_from(v).ok()).unwrap_or(0),
+                    threshold: policy["LockoutThreshold"]
+                        .as_u64()
+                        .and_then(|v| u32::try_from(v).ok())
+                        .unwrap_or(0),
+                    duration_minutes: policy["LockoutDuration"]
+                        .as_u64()
+                        .and_then(|v| u32::try_from(v).ok())
+                        .unwrap_or(0),
+                    observation_window_minutes: policy["LockoutObservationWindow"]
+                        .as_u64()
+                        .and_then(|v| u32::try_from(v).ok())
+                        .unwrap_or(0),
                 };
             }
         }
@@ -319,7 +346,8 @@ impl GpoAuditor {
                 // Use GUIDs for locale-independence
                 audit.logon_events = get_setting_by_guid("{0cce9215-69ae-11d9-bed3-5070104468a1}"); // Logon
                 audit.account_logon = get_setting_by_guid("{0cce9217-69ae-11d9-bed3-5070104468a1}"); // Credential Validation
-                audit.account_management = get_setting_by_guid("{0cce9216-69ae-11d9-bed3-5070104468a1}"); // User Account Management
+                audit.account_management =
+                    get_setting_by_guid("{0cce9216-69ae-11d9-bed3-5070104468a1}"); // User Account Management
                 audit.privilege_use = get_setting_by_guid("{0cce9218-69ae-11d9-bed3-5070104468a1}"); // Sensitive Privilege Use
                 audit.policy_change = get_setting_by_guid("{0cce9219-69ae-11d9-bed3-5070104468a1}"); // Audit Policy Change
                 audit.object_access = get_setting_by_guid("{0cce921d-69ae-11d9-bed3-5070104468a1}"); // File System

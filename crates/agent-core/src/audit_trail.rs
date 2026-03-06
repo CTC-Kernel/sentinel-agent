@@ -14,14 +14,29 @@ use tracing::{error, info};
 /// Type of audit event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AuditAction {
-    ScanStarted { scan_type: String },
-    ScanFinished { scan_type: String, score: f32 },
-    RemediationApplied { check_id: String },
-    ConfigChanged { component: String },
-    PlaybookActionExecuted { playbook_name: String, action: String, success: bool },
+    ScanStarted {
+        scan_type: String,
+    },
+    ScanFinished {
+        scan_type: String,
+        score: f32,
+    },
+    RemediationApplied {
+        check_id: String,
+    },
+    ConfigChanged {
+        component: String,
+    },
+    PlaybookActionExecuted {
+        playbook_name: String,
+        action: String,
+        success: bool,
+    },
     AgentStarted,
     AgentShutdown,
-    UpdateChecked { version_found: Option<String> },
+    UpdateChecked {
+        version_found: Option<String>,
+    },
 }
 
 /// A recorded audit log entry.

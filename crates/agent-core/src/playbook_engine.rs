@@ -353,11 +353,17 @@ pub async fn execute_playbook_actions(
         };
 
         if let Some(trail) = audit_trail {
-            trail.log(crate::audit_trail::AuditAction::PlaybookActionExecuted {
-                playbook_name: playbook_name.to_string(),
-                action: result.action.clone(),
-                success: result.success,
-            }, "system", result.error.clone()).await;
+            trail
+                .log(
+                    crate::audit_trail::AuditAction::PlaybookActionExecuted {
+                        playbook_name: playbook_name.to_string(),
+                        action: result.action.clone(),
+                        success: result.success,
+                    },
+                    "system",
+                    result.error.clone(),
+                )
+                .await;
         }
 
         results.push(result);

@@ -227,7 +227,9 @@ impl UpdateManager {
             // Validate the installer path to prevent command injection.
             // The path comes from our own temp directory, but defense-in-depth
             // requires rejecting any shell metacharacters.
-            if path_str.contains(|c: char| matches!(c, ';' | '|' | '&' | '$' | '`' | '\'' | '"' | '\\' | '\n' | '\r' | '(' | ')' | '{' | '}' | '<' | '>')) {
+            if path_str.contains([
+                ';', '|', '&', '$', '`', '\'', '"', '\\', '\n', '\r', '(', ')', '{', '}', '<', '>',
+            ]) {
                 return Err(CommonError::validation(format!(
                     "Installer path contains unsafe characters: {}",
                     path_str

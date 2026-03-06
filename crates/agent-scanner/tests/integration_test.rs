@@ -365,7 +365,7 @@ fn test_scan_summary_score_is_100_when_all_pass() {
 
     let results: Vec<_> = (0..5)
         .map(|i| CheckExecutionResult {
-            result: CheckResult::pass(&format!("c{}", i)),
+            result: CheckResult::pass(format!("c{}", i)),
             proof: None,
             duration_ms: 10,
         })
@@ -385,7 +385,7 @@ fn test_scan_summary_score_is_0_when_all_fail() {
 
     let results: Vec<_> = (0..3)
         .map(|i| CheckExecutionResult {
-            result: CheckResult::fail(&format!("c{}", i), "failed"),
+            result: CheckResult::fail(format!("c{}", i), "failed"),
             proof: None,
             duration_ms: 10,
         })

@@ -310,7 +310,6 @@ impl EnrollmentWizard {
 
                     ui.add_space(theme::SPACE);
 
-
                     let next_btn = egui::Button::new(
                         egui::RichText::new("Suivant")
                             .font(theme::font_body())
@@ -326,7 +325,10 @@ impl EnrollmentWizard {
                         !self.token_input.trim().is_empty()
                     };
 
-                    if ui.add_enabled(is_valid && !self.is_enrolling, next_btn).clicked() {
+                    if ui
+                        .add_enabled(is_valid && !self.is_enrolling, next_btn)
+                        .clicked()
+                    {
                         if self.use_qr {
                             // QR goes directly to enrollment (no admin setup for QR)
                             let qr = self.qr_input.trim().to_string();
@@ -436,7 +438,10 @@ impl EnrollmentWizard {
                     .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
                     .min_size(egui::Vec2::new(120.0, 36.0));
 
-                    if ui.add_enabled(is_valid && !self.is_enrolling, enroll_btn).clicked() {
+                    if ui
+                        .add_enabled(is_valid && !self.is_enrolling, enroll_btn)
+                        .clicked()
+                    {
                         let token = self.token_input.trim().to_string();
                         let password = Some(self.admin_password.trim().to_string());
 

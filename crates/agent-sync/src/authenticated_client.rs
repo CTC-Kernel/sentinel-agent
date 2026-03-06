@@ -917,7 +917,10 @@ impl AuthenticatedClient {
                 client
             }
             Err(e) => {
-                debug!("mTLS not available ({}), using header-based auth", e);
+                warn!(
+                    "mTLS not available ({}), falling back to header-based auth",
+                    e
+                );
                 HttpClient::with_header_auth(&config, &credentials.client_certificate)?
             }
         };

@@ -53,7 +53,10 @@ impl std::fmt::Debug for EnrollmentRequest {
             .field("os_version", &self.os_version)
             .field("agent_version", &self.agent_version)
             .field("machine_id", &self.machine_id)
-            .field("admin_password", &self.admin_password.as_ref().map(|_| "[REDACTED]"))
+            .field(
+                "admin_password",
+                &self.admin_password.as_ref().map(|_| "[REDACTED]"),
+            )
             .field("organization_id", &self.organization_id)
             .finish()
     }

@@ -592,14 +592,20 @@ impl NetworkPage {
                 if is_loading {
                     ui.push_id("network_interfaces_skeletons", |ui: &mut egui::Ui| {
                         let cols = 5;
-                        let column_widths = [120.0, 120.0, 100.0, 160.0, ui.available_width() - 500.0];
+                        let column_widths =
+                            [120.0, 120.0, 100.0, 160.0, ui.available_width() - 500.0];
                         for _ in 0..5 {
                             crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
                             ui.add_space(theme::SPACE_MD);
                         }
                     });
                 } else {
-                    widgets::empty_state(ui, icons::WIFI, "AUCUNE INTERFACE D\u{00c9}TECT\u{00c9}E", None);
+                    widgets::empty_state(
+                        ui,
+                        icons::WIFI,
+                        "AUCUNE INTERFACE D\u{00c9}TECT\u{00c9}E",
+                        None,
+                    );
                 }
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -800,7 +806,8 @@ impl NetworkPage {
                 if state.network.connections.is_empty() && is_loading {
                     ui.push_id("network_connections_skeletons", |ui: &mut egui::Ui| {
                         let cols = 5;
-                        let column_widths = [80.0, 200.0, 200.0, 110.0, ui.available_width() - 590.0];
+                        let column_widths =
+                            [80.0, 200.0, 200.0, 110.0, ui.available_width() - 590.0];
                         for _ in 0..5 {
                             crate::widgets::skeleton::skeleton_table_row(ui, cols, &column_widths);
                             ui.add_space(theme::SPACE_MD);

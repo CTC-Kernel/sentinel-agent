@@ -422,12 +422,13 @@ impl AgentConfig {
         })?;
 
         // Anti-Draper: Detect missing function name in direct GCF URLs (prevents 404)
-        if let Some(host) = url.host_str() {
-            if host.ends_with("cloudfunctions.net") && url.path() == "/" {
-                return Err(crate::error::CommonError::validation(
-                    "server_url targeting cloudfunctions.net must include the function name suffix (e.g., /agentApi)",
-                ));
-            }
+        if let Some(host) = url.host_str()
+            && host.ends_with("cloudfunctions.net")
+            && url.path() == "/"
+        {
+            return Err(crate::error::CommonError::validation(
+                "server_url targeting cloudfunctions.net must include the function name suffix (e.g., /agentApi)",
+            ));
         }
 
         // Validate check_interval_secs

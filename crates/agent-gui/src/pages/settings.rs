@@ -550,11 +550,8 @@ impl SettingsPage {
 
         let rate_limit_id = ui.make_persistent_id("admin_unlock_rate_limit");
         // Rate limit state: (attempts, lock_until)
-        let mut rate_state: (u32, Option<chrono::DateTime<chrono::Utc>>) = ui.memory(|mem| {
-            mem.data
-                .get_temp(rate_limit_id)
-                .unwrap_or((0, None))
-        });
+        let mut rate_state: (u32, Option<chrono::DateTime<chrono::Utc>>) =
+            ui.memory(|mem| mem.data.get_temp(rate_limit_id).unwrap_or((0, None)));
 
         if modal_state.0 {
             let ctx = ui.ctx().clone();
@@ -578,13 +575,13 @@ impl SettingsPage {
                                 .strong(),
                         );
                         ui.add_space(theme::SPACE_XS);
-                        
+
                         let is_locked = if let Some(lock_time) = rate_state.1 {
                             if chrono::Utc::now() < lock_time {
                                 true
                             } else {
                                 rate_state = (0, None);
-                                ui.memory_mut(|mem| mem.data.insert_temp(rate_limit_id, rate_state.clone()));
+                                ui.memory_mut(|mem| mem.data.insert_temp(rate_limit_id, rate_state));
                                 false
                             }
                         } else {
@@ -670,7 +667,7 @@ impl SettingsPage {
                                         modal_state.2 = Some("Mot de passe incorrect".to_string());
                                     }
                                 }
-                                ui.memory_mut(|mem| mem.data.insert_temp(rate_limit_id, rate_state.clone()));
+                                ui.memory_mut(|mem| mem.data.insert_temp(rate_limit_id, rate_state));
                                 // Securely wipe password from memory after validation attempt
                                 modal_state.1.zeroize();
                             }
@@ -709,7 +706,7 @@ impl SettingsPage {
                             .font(theme::font_body())
                             .color(theme::text_secondary())
                     );
-                    
+
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         if widgets::button::secondary_button(ui, "DÉVERROUILLER (ADMIN)", true).clicked() {
                              ui.memory_mut(|mem| mem.data.insert_temp(unlock_modal_id, (true, String::new(), None::<String>)));

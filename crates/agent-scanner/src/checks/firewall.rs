@@ -153,7 +153,7 @@ impl FirewallCheck {
         // Get rule count
         let rule_count = self.get_windows_rule_count().await.ok();
 
-        // Compliance: All active profiles must be enabled. 
+        // Compliance: All active profiles must be enabled.
 
         // Let's refine the logic: Any profile found to be Enabled=false while being Active=true is a failure.
         // If all active profiles are Enabled=true, it's a pass.
