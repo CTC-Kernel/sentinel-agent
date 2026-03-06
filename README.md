@@ -3,6 +3,8 @@
 
 **The Sovereign Standard for Modern Security & Compliance**
 
+🏢 **[Cyber Threat Consulting](https://cyber-threat-consulting.com)** - Expert en souveraineté numérique et cyber-défense
+
 <p align="center">
   <img src="crates/agent-gui/assets/IA.png" alt="Sentinel GRC Agent IA" width="400">
 </p>
@@ -19,7 +21,8 @@ Sentinel GRC Agent est un agent d'endpoint souverain et ultra-performant, conçu
 
 > [!IMPORTANT]
 > **Développé par [Cyber Threat Consulting](https://cyber-threat-consulting.com)**
-> Solutions de souveraineté numérique et de cyber-défense.
+> 🌐 Solutions de souveraineté numérique et de cyber-défense
+> 📧 [contact@cyber-threat-consulting.com](mailto:contact@cyber-threat-consulting.com)
 
 ## 🛡️ Fonctionnalités Premium AAA
 
@@ -233,7 +236,7 @@ sentinel-agent --test-connectivity
 
 ---
 
-## �🔒 Sécurité par Conception
+## � Sécurité par Conception
 
 - **Zero-Trust Communication** : mTLS 1.3 avec certificats forcés.
 - **Chiffrement Militaire** : AES-256 GCM (SQLCipher) pour toutes les données persistantes.
@@ -262,7 +265,8 @@ sentinel-agent --test-connectivity
 
 - **🐛 Rapports de Bugs** : [GitHub Issues](https://github.com/CTC-Kernel/sentinel-agent/issues)
 - **💡 Suggestions** : [GitHub Discussions](https://github.com/CTC-Kernel/sentinel-agent/discussions)
-- **📧 Consulting** : [contact@cyber-threat-consulting.com](mailto:contact@cyber-threat-consulting.com)
+- **📧 Consulting** : [contact@cyber-threat-consulting.com](mailto:contact@cyber-threat-consulting.com) | [cyber-threat-consulting.com](https://cyber-threat-consulting.com)
+- **🏢 Website** : [cyber-threat-consulting.com](https://cyber-threat-consulting.com)
 - **📚 Documentation** : [Wiki du Projet](https://github.com/CTC-Kernel/sentinel-agent/wiki)
 
 ### Licence
@@ -283,5 +287,7 @@ Ce projet est sous **Licence MIT** - voir le fichier [LICENSE](LICENSE) pour les
 <p align="center">
   <strong>🛡️ Sentinel GRC Agent - La Sécurité Souveraine pour l'Ère Numérique</strong>
   <br>
-  <em>Built with ❤️ and Rust by Cyber Threat Consulting</em>
+  <em>Built with ❤️ and Rust by <a href="https://cyber-threat-consulting.com">Cyber Threat Consulting</a></em>
+  <br>
+  <a href="https://cyber-threat-consulting.com">🌐 Visitez notre site</a>
 </p>
