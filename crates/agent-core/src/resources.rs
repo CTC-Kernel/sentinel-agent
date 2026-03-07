@@ -335,6 +335,8 @@ impl ResourceMonitor {
             }
         }
 
+        // Truncate to 100 to respect server schema limit (HeartbeatSchema.connections.max(100))
+        connections.truncate(100);
         connections
     }
 
