@@ -390,14 +390,16 @@ pub struct ResultResponse {
 }
 
 /// Software entry for inventory upload.
+///
+/// Fields must match the server-side `SoftwarePayload` schema
+/// (name, vendor, version) to avoid 500 errors from unknown fields.
 #[derive(Debug, Serialize)]
 pub struct SoftwareEntry {
     pub name: String,
-    pub version: String,
-    pub vendor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub arch: Option<String>,
-    pub is_system: bool,
+    pub version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vendor: Option<String>,
 }
 
 /// Wrapper for sensitive credential strings that are securely erased on drop.
@@ -1319,10 +1321,8 @@ mod tests {
     fn test_software_entry_serialization() {
         let entry = SoftwareEntry {
             name: "Firefox".to_string(),
-            version: "120.0".to_string(),
+            version: Some("120.0".to_string()),
             vendor: Some("Mozilla".to_string()),
-            arch: Some("x86_64".to_string()),
-            is_system: false,
         };
 
         let json = serde_json::to_string(&entry).unwrap();

@@ -187,8 +187,12 @@ impl HttpClient {
     ) -> SyncResult<Self> {
         debug!("Creating HTTP client with mTLS");
 
-        // Combine certificate and private key into PKCS#12/PEM identity
-        let identity_pem = format!("{}\n{}", certificate_pem, private_key_pem);
+        // Ensure certificate and key are in PEM format (wrap raw base64 if needed)
+        let cert = Self::ensure_pem(certificate_pem, "CERTIFICATE");
+        let key = Self::ensure_pem(private_key_pem, "PRIVATE KEY");
+
+        // Combine certificate and private key into PEM identity
+        let identity_pem = format!("{}\n{}", cert, key);
         let identity = reqwest::Identity::from_pem(identity_pem.as_bytes()).map_err(|e| {
             SyncError::Certificate(format!("Invalid client certificate/key: {}", e))
         })?;
@@ -246,6 +250,32 @@ impl HttpClient {
             auth_certificate: None,
             organization_id: config.organization_id.clone(),
         })
+    }
+
+    /// Ensure a credential string is in PEM format.
+    ///
+    /// If the string already has PEM headers (`-----BEGIN ...-----`), it is
+    /// returned as-is. Otherwise it is assumed to be raw base64 and wrapped
+    /// with the appropriate PEM header/footer.
+    fn ensure_pem(data: &str, label: &str) -> String {
+        let trimmed = data.trim();
+        if trimmed.starts_with("-----BEGIN ") {
+            return trimmed.to_string();
+        }
+        // Strip any whitespace / newlines from raw base64
+        let clean: String = trimmed.chars().filter(|c| !c.is_whitespace()).collect();
+        // Wrap in 64-char lines as per PEM spec
+        let lines: Vec<&str> = clean
+            .as_bytes()
+            .chunks(64)
+            .map(|chunk| std::str::from_utf8(chunk).unwrap_or(""))
+            .collect();
+        format!(
+            "-----BEGIN {}-----\n{}\n-----END {}-----",
+            label,
+            lines.join("\n"),
+            label
+        )
     }
 
     /// Check if this client uses mTLS (has identity configured).
@@ -703,5 +733,42 @@ mod tests {
         let client = HttpClient::for_enrollment(&config).unwrap();
 
         assert_eq!(client.base_url(), "https://api.test.com");
+    }
+
+    #[test]
+    fn test_ensure_pem_already_pem() {
+        let pem = "-----BEGIN CERTIFICATE-----\nMIIBxTCC...\n-----END CERTIFICATE-----";
+        let result = HttpClient::ensure_pem(pem, "CERTIFICATE");
+        assert_eq!(result, pem);
+    }
+
+    #[test]
+    fn test_ensure_pem_raw_base64() {
+        let raw = "MIIBxTCCAWugAwIBAgIUY2F0";
+        let result = HttpClient::ensure_pem(raw, "CERTIFICATE");
+        assert!(result.starts_with("-----BEGIN CERTIFICATE-----\n"));
+        assert!(result.ends_with("\n-----END CERTIFICATE-----"));
+        assert!(result.contains("MIIBxTCCAWugAwIBAgIUY2F0"));
+    }
+
+    #[test]
+    fn test_ensure_pem_raw_base64_with_whitespace() {
+        let raw = "  MIIBxTCC\n  AWugAwIB  \n";
+        let result = HttpClient::ensure_pem(raw, "PRIVATE KEY");
+        assert!(result.starts_with("-----BEGIN PRIVATE KEY-----\n"));
+        assert!(result.contains("MIIBxTCCAWugAwIB"));
+        // Whitespace should be stripped from the base64 content
+        assert!(!result.contains("  "));
+    }
+
+    #[test]
+    fn test_ensure_pem_long_base64_wraps_at_64_chars() {
+        let raw = "A".repeat(128);
+        let result = HttpClient::ensure_pem(&raw, "CERTIFICATE");
+        let lines: Vec<&str> = result.lines().collect();
+        // header + 2 data lines (64+64) + footer = 4 lines
+        assert_eq!(lines.len(), 4);
+        assert_eq!(lines[1].len(), 64);
+        assert_eq!(lines[2].len(), 64);
     }
 }
