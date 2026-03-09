@@ -1,5 +1,6 @@
 {
-  "server_url": "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi",
+  "server_url": "https://europe-west4-sentinel-grc-a8701.cloudfunctions.net/agentApi",
+  "enrollment_token": "",
   "check_interval_secs": 3600,
   "heartbeat_interval_secs": 60,
   "offline_mode_days": 7,
@@ -25,7 +26,8 @@
   },
   "fim": {
     "enabled": true,
-    "watched_paths": ["C:\\Windows\\System32", "C:\\Program Files"],
+    "watched_paths": ["C:\\Windows\\System32\\drivers", "C:\\Windows\\System32\\GroupPolicy", "C:\\Program Files"],
+    "ignore_patterns": ["*.log", "*.tmp", "*.etl"],
     "algorithm": "BLAKE3"
   },
   "network": {

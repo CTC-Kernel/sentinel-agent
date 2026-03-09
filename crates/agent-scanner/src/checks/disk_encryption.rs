@@ -90,6 +90,8 @@ impl DiskEncryptionCheck {
                 "linux".to_string(),
                 "macos".to_string(),
             ])
+            // PowerShell cold-start on Windows can take 3-5s
+            .nfr_limit(8_000)
             .build();
 
         Self { definition }

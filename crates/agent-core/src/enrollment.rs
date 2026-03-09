@@ -121,7 +121,12 @@ impl AgentRuntime {
             }
         };
 
-        if self.config.enrollment_token.is_none() {
+        let has_token = self
+            .config
+            .enrollment_token
+            .as_ref()
+            .is_some_and(|t| !t.trim().is_empty());
+        if !has_token {
             warn!(
                 "Cannot re-enroll: no enrollment_token in configuration. \
                  Please add an enrollment token to the agent config and restart."

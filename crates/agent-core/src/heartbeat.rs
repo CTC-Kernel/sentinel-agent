@@ -45,7 +45,7 @@ impl AgentRuntime {
                     .map(|data| (data.transmitted(), data.received()))
                     .fold((0, 0), |acc, (t, r)| (acc.0 + t, acc.1 + r)),
                 Err(e) => {
-                    warn!("Failed to lock network monitor (mutex poisoned): {}", e);
+                    error!("Failed to lock network monitor (mutex poisoned): {}", e);
                     (0, 0)
                 }
             }
@@ -332,7 +332,22 @@ impl AgentRuntime {
                                         let result = if action == "rollback" {
                                             self.remediation_engine.rollback(rem_action)
                                         } else {
-                                            Some(self.remediation_engine.execute(rem_action))
+                                            let engine = std::sync::Arc::clone(&self.remediation_engine);
+                                            let rem = rem_action.clone();
+                                            match tokio::time::timeout(
+                                                std::time::Duration::from_secs(300),
+                                                tokio::task::spawn_blocking(move || engine.execute(&rem)),
+                                            ).await {
+                                                Ok(Ok(r)) => Some(r),
+                                                Ok(Err(e)) => {
+                                                    warn!("Remediation task panicked: {}", e);
+                                                    None
+                                                }
+                                                Err(_) => {
+                                                    warn!("Remediation for '{}' timed out after 5 minutes", check_id);
+                                                    None
+                                                }
+                                            }
                                         };
 
                                         match result {

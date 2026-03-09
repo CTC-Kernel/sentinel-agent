@@ -84,7 +84,16 @@ pub async fn watch_files(
                     );
                 }
                 Ok(Err(e)) => {
-                    warn!("FIM watch error: {}", e);
+                    // PathNotFound errors are common for protected OS directories
+                    // (e.g., C:\Windows\System32\config) — demote to debug.
+                    if matches!(e.kind, notify::ErrorKind::PathNotFound) {
+                        debug!(
+                            "FIM: skipping inaccessible path {:?}: {}",
+                            e.paths, e
+                        );
+                    } else {
+                        warn!("FIM watch error: {}", e);
+                    }
                 }
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
                     // Normal timeout, check shutdown flag

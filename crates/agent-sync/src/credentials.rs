@@ -238,6 +238,10 @@ impl<'a> CredentialsRepository<'a> {
     }
 
     /// Update the client certificate (for renewal).
+    ///
+    /// All three fields (certificate, private key, expiry) are updated
+    /// atomically inside a SAVEPOINT transaction. If any field update fails
+    /// the entire operation is rolled back to avoid inconsistent state.
     pub async fn update_certificate(
         &self,
         certificate: &str,
@@ -247,7 +251,15 @@ impl<'a> CredentialsRepository<'a> {
         debug!("Updating certificate (expires: {})", expires_at);
 
         self.db
-            .with_connection(|conn| {
+            .with_connection_mut(|conn| {
+                // Use a savepoint so partial failures are rolled back atomically
+                let tx = conn.savepoint().map_err(|e| {
+                    agent_storage::StorageError::Query(format!(
+                        "Failed to begin certificate update transaction: {}",
+                        e
+                    ))
+                })?;
+
                 let updates = [
                     (keys::CLIENT_CERTIFICATE, certificate.to_string()),
                     (keys::CLIENT_PRIVATE_KEY, private_key.to_string()),
@@ -255,7 +267,7 @@ impl<'a> CredentialsRepository<'a> {
                 ];
 
                 for (key, value) in updates {
-                    let rows = conn
+                    let rows = tx
                         .execute(
                             r#"
                             UPDATE agent_config
@@ -278,6 +290,13 @@ impl<'a> CredentialsRepository<'a> {
                         )));
                     }
                 }
+
+                tx.commit().map_err(|e| {
+                    agent_storage::StorageError::Query(format!(
+                        "Failed to commit certificate update: {}",
+                        e
+                    ))
+                })?;
 
                 Ok(())
             })

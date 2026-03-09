@@ -269,11 +269,16 @@ impl HttpClient {
         }
         // Strip any whitespace / newlines from raw base64
         let clean: String = trimmed.chars().filter(|c| !c.is_whitespace()).collect();
-        // Wrap in 64-char lines as per PEM spec
+        // Wrap in 64-char lines as per PEM spec.
+        // Since we filtered to ASCII-only characters above, all chunks are
+        // guaranteed to be valid UTF-8 — the expect() documents this invariant.
         let lines: Vec<&str> = clean
             .as_bytes()
             .chunks(64)
-            .map(|chunk| std::str::from_utf8(chunk).unwrap_or(""))
+            .map(|chunk| {
+                std::str::from_utf8(chunk)
+                    .expect("BUG: ASCII-filtered base64 produced invalid UTF-8 chunk")
+            })
             .collect();
         format!(
             "-----BEGIN {}-----\n{}\n-----END {}-----",
