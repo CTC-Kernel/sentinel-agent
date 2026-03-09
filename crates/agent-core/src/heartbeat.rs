@@ -189,6 +189,16 @@ impl AgentRuntime {
             let command_results = self.command_results.read().await;
             if let Some(ref service) = *command_results {
                 for cmd in &response.commands {
+                    // Validate field sizes to prevent memory/log exhaustion
+                    if !cmd.is_within_bounds() {
+                        warn!(
+                            "Rejecting oversized server command (id_len={}, type_len={})",
+                            cmd.id.len(),
+                            cmd.command_type.len()
+                        );
+                        continue;
+                    }
+
                     if !cmd.is_valid() {
                         warn!(
                             "Rejecting unknown/disallowed server command type '{}' (id={})",

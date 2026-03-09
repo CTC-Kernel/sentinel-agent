@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo check:*)",
+      "Bash(OPENSSL_LIB_DIR=\"C:/Program Files/OpenSSL-Win64/lib/VC/x64/MD\" OPENSSL_INCLUDE_DIR=\"C:/Program Files/OpenSSL-Win64/include\" cargo check:*)",
+      "Bash(OPENSSL_LIB_DIR=\"C:/Program Files/OpenSSL-Win64/lib/VC/x64/MD\" OPENSSL_INCLUDE_DIR=\"C:/Program Files/OpenSSL-Win64/include\" cargo test:*)",
+      "Bash(export:*)",
+      "Bash(touch:*)"
+    ]
+  }
+}

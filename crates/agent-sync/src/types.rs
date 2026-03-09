@@ -130,7 +130,10 @@ pub struct InitialConfig {
 }
 
 /// Stored credentials after successful enrollment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+///
+/// `Debug` is manually implemented to redact sensitive fields
+/// (`client_certificate`, `client_private_key`) from log output.
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct StoredCredentials {
     /// Unique agent identifier.
@@ -153,6 +156,20 @@ pub struct StoredCredentials {
 
     /// Timestamp of enrollment.
     pub enrolled_at: DateTime<Utc>,
+}
+
+impl std::fmt::Debug for StoredCredentials {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StoredCredentials")
+            .field("agent_id", &self.agent_id)
+            .field("organization_id", &self.organization_id)
+            .field("client_certificate", &"[REDACTED]")
+            .field("client_private_key", &"[REDACTED]")
+            .field("certificate_expires_at", &self.certificate_expires_at)
+            .field("server_fingerprints", &self.server_fingerprints)
+            .field("enrolled_at", &self.enrolled_at)
+            .finish()
+    }
 }
 
 impl StoredCredentials {

@@ -314,11 +314,31 @@ pub struct IncidentReportResponse {
     pub acknowledged: bool,
 }
 
+/// Maximum allowed length for command ID and type fields.
+const MAX_COMMAND_FIELD_LEN: usize = 256;
+
+/// Maximum allowed size of a command payload in bytes.
+const MAX_COMMAND_PAYLOAD_SIZE: usize = 64 * 1024; // 64 KB
+
 impl AgentCommand {
     /// Validate that this command is an allowed type.
     /// Returns true if the command_type is in the whitelist, false otherwise.
     pub fn is_valid(&self) -> bool {
         ALLOWED_COMMANDS.contains(&self.command_type.as_str())
+    }
+
+    /// Validate that command fields are within safe bounds.
+    /// Prevents oversized payloads from causing memory or log exhaustion.
+    pub fn is_within_bounds(&self) -> bool {
+        if self.id.len() > MAX_COMMAND_FIELD_LEN {
+            return false;
+        }
+        if self.command_type.len() > MAX_COMMAND_FIELD_LEN {
+            return false;
+        }
+        // Check payload size by estimating serialized length
+        let payload_size = self.payload.to_string().len();
+        payload_size <= MAX_COMMAND_PAYLOAD_SIZE
     }
 }
 
@@ -619,6 +639,13 @@ impl ApiClient {
                 .await
                 .unwrap_or_else(|_| "Unknown error".to_string());
             warn!("Heartbeat failed with status {}: {}", status, error_text);
+            // Return typed auth error for 401/403 to enable proper re-enrollment
+            if status.as_u16() == 401 || status.as_u16() == 403 {
+                return Err(CommonError::auth(format!(
+                    "Heartbeat failed: {} - {}",
+                    status, error_text
+                )));
+            }
             return Err(CommonError::network(format!(
                 "Heartbeat failed: {} - {}",
                 status, error_text

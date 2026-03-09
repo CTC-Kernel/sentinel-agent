@@ -176,6 +176,7 @@ pub struct AgentEvent {
 /// Default vulnerability scan interval (6 hours).
 const DEFAULT_VULN_SCAN_INTERVAL_SECS: u64 = 6 * 60 * 60;
 
+
 /// Default security scan interval (5 minutes).
 const DEFAULT_SECURITY_SCAN_INTERVAL_SECS: u64 = 5 * 60;
 
@@ -260,6 +261,10 @@ pub struct AgentRuntime {
     /// LLM service for AI-powered analysis (feature-gated).
     #[cfg(feature = "llm")]
     llm_service: Option<Arc<llm_service::LLMService>>,
+    /// Consecutive authentication failure count for re-enrollment tracking.
+    auth_failure_count: std::sync::atomic::AtomicU32,
+    /// Timestamp of the last re-enrollment attempt (epoch seconds).
+    last_re_enrollment_attempt: std::sync::atomic::AtomicU64,
 }
 
 /// A lightweight handle to the running agent that can be shared with the GUI
@@ -397,6 +402,11 @@ impl RuntimeHandle {
 }
 
 impl AgentRuntime {
+    /// Number of consecutive auth failures before attempting re-enrollment.
+    const AUTH_FAILURE_THRESHOLD: u32 = 3;
+    /// Maximum re-enrollment attempts before giving up.
+    const MAX_RE_ENROLLMENT_ATTEMPTS: u32 = 6;
+
     /// Create a new agent runtime with the given configuration.
     pub fn new(config: AgentConfig) -> Self {
         let resource_monitor = ResourceMonitor::new();
@@ -503,6 +513,8 @@ impl AgentRuntime {
             organization_name: RwLock::new(None),
             #[cfg(feature = "llm")]
             llm_service: None,
+            auth_failure_count: std::sync::atomic::AtomicU32::new(0),
+            last_re_enrollment_attempt: std::sync::atomic::AtomicU64::new(0),
         }
     }
 
@@ -591,11 +603,7 @@ impl AgentRuntime {
     /// Run the agent main loop.
     pub async fn run(&self) -> Result<(), CommonError> {
         info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
-        let safe_url = self.config.server_url.replace(
-            &self.config.server_url,
-            "https://cyber-threat-consulting.com",
-        );
-        info!("Server URL: {}", safe_url);
+        info!("Server URL: https://cyber-threat-consulting.com [redacted]");
         info!(
             "Check interval: {} seconds",
             self.config.check_interval_secs
@@ -1043,6 +1051,12 @@ impl AgentRuntime {
                     Ok(_) => {
                         debug!("Heartbeat sent successfully");
 
+                        // Reset auth failure counter on successful heartbeat
+                        if self.auth_failure_count.load(Ordering::Acquire) > 0 {
+                            info!("Connection restored, resetting authentication failure counter");
+                            self.auth_failure_count.store(0, Ordering::Release);
+                        }
+
                         #[cfg(feature = "gui")]
                         {
                             cached_pending_sync = self.get_pending_sync_count().await as u32;
@@ -1093,8 +1107,95 @@ impl AgentRuntime {
                         warn!("Heartbeat failed: {}", e);
                         #[cfg(feature = "gui")]
                         self.emit_notification("Heartbeat échoué", &format!("{}", e), "warning");
-                        if e.to_string().contains("401") || e.to_string().contains("403") {
-                            warn!("Authentication error, attempting re-enrollment logic...");
+                        if e.is_auth_error() {
+                            let failures = self
+                                .auth_failure_count
+                                .fetch_add(1, Ordering::AcqRel)
+                                + 1;
+                            warn!(
+                                "Authentication error (failure #{}/{})",
+                                failures,
+                                Self::MAX_RE_ENROLLMENT_ATTEMPTS
+                            );
+
+                            // Attempt re-enrollment with exponential backoff
+                            if failures >= Self::AUTH_FAILURE_THRESHOLD
+                                && failures <= Self::MAX_RE_ENROLLMENT_ATTEMPTS
+                            {
+                                let now_secs = std::time::SystemTime::now()
+                                    .duration_since(std::time::UNIX_EPOCH)
+                                    .unwrap_or_default()
+                                    .as_secs();
+                                let last_attempt = self
+                                    .last_re_enrollment_attempt
+                                    .load(Ordering::Acquire);
+
+                                // Exponential backoff: 30s, 120s, 600s based on attempt number
+                                let attempt_index = failures - Self::AUTH_FAILURE_THRESHOLD;
+                                let cooldown_secs: u64 = match attempt_index {
+                                    0 => 30,
+                                    1 => 120,
+                                    _ => 600,
+                                };
+
+                                if now_secs.saturating_sub(last_attempt) >= cooldown_secs {
+                                    self.last_re_enrollment_attempt
+                                        .store(now_secs, Ordering::Release);
+                                    info!(
+                                        "Initiating automatic re-enrollment (attempt {})",
+                                        attempt_index + 1
+                                    );
+                                    match self.attempt_re_enrollment().await {
+                                        Ok(true) => {
+                                            info!("Re-enrollment succeeded, resetting auth failure counter");
+                                            self.auth_failure_count
+                                                .store(0, Ordering::Relaxed);
+                                            #[cfg(feature = "gui")]
+                                            self.emit_notification(
+                                                "Ré-enregistrement réussi",
+                                                "L'agent a été ré-enregistré avec succès auprès du serveur.",
+                                                "info",
+                                            );
+                                        }
+                                        Ok(false) => {
+                                            warn!(
+                                                "Re-enrollment not possible (no enrollment token). \
+                                                 Agent will continue in degraded mode."
+                                            );
+                                        }
+                                        Err(re_err) => {
+                                            error!(
+                                                "Re-enrollment attempt failed: {}. \
+                                                 Will retry after backoff.",
+                                                re_err
+                                            );
+                                            #[cfg(feature = "gui")]
+                                            self.emit_notification(
+                                                "Ré-enregistrement échoué",
+                                                &format!("{}", re_err),
+                                                "error",
+                                            );
+                                        }
+                                    }
+                                } else {
+                                    debug!(
+                                        "Re-enrollment cooldown active ({}s remaining)",
+                                        cooldown_secs.saturating_sub(
+                                            now_secs.saturating_sub(last_attempt)
+                                        )
+                                    );
+                                }
+                            } else if failures > Self::MAX_RE_ENROLLMENT_ATTEMPTS {
+                                // Already exceeded max attempts — log periodically
+                                if failures % 10 == 0 {
+                                    error!(
+                                        "Re-enrollment exhausted after {} attempts. \
+                                         Agent running in offline/degraded mode. \
+                                         Manual intervention required.",
+                                        Self::MAX_RE_ENROLLMENT_ATTEMPTS
+                                    );
+                                }
+                            }
                         }
                     }
                 }
@@ -1780,7 +1881,26 @@ impl AgentRuntime {
                         Ok(()) => {
                             debug!("Certificate renewal check complete");
                         }
-                        Err(e) => warn!("Certificate renewal check failed: {}", e),
+                        Err(e) => {
+                            warn!("Certificate renewal check failed: {}", e);
+                            // If renewal failed due to auth/cert error, try re-enrollment
+                            if e.is_auth_error() {
+                                warn!("Certificate expired or rejected, triggering re-enrollment");
+                                match self.attempt_re_enrollment().await {
+                                    Ok(true) => {
+                                        info!("Re-enrollment after certificate expiry succeeded");
+                                        self.auth_failure_count.store(0, Ordering::Release);
+                                    }
+                                    Ok(false) => warn!(
+                                        "Cannot re-enroll: no enrollment token configured"
+                                    ),
+                                    Err(re_err) => error!(
+                                        "Re-enrollment after certificate expiry failed: {}",
+                                        re_err
+                                    ),
+                                }
+                            }
+                        }
                     }
                 }
                 last_cert_check = std::time::Instant::now();

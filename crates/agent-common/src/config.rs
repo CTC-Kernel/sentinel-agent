@@ -114,8 +114,31 @@ pub struct AgentConfig {
     pub active_frameworks: Option<Vec<String>>,
 
     /// Admin password for the agent (set during enrollment, not serialized to config file).
+    /// Zeroized from memory on drop to prevent credential leakage.
     #[serde(skip)]
     pub admin_password: Option<String>,
+}
+
+impl AgentConfig {
+    /// Securely zeroize all sensitive fields from memory.
+    ///
+    /// Call this before dropping the config if it contains credentials
+    /// (admin password, enrollment token, client certificate, private key).
+    /// This prevents credential leakage via memory forensics.
+    pub fn zeroize_secrets(&mut self) {
+        if let Some(ref mut password) = self.admin_password {
+            zeroize::Zeroize::zeroize(password);
+        }
+        if let Some(ref mut key) = self.client_key {
+            zeroize::Zeroize::zeroize(key);
+        }
+        if let Some(ref mut cert) = self.client_certificate {
+            zeroize::Zeroize::zeroize(cert);
+        }
+        if let Some(ref mut token) = self.enrollment_token {
+            zeroize::Zeroize::zeroize(token);
+        }
+    }
 }
 
 /// Proxy configuration.

@@ -52,6 +52,8 @@ pub struct HttpClient {
     auth_certificate: Option<String>,
     /// Organization ID for X-Organization-Id header.
     organization_id: Option<String>,
+    /// Whether the client was created with mTLS identity.
+    mtls_enabled: bool,
 }
 
 impl HttpClient {
@@ -114,6 +116,7 @@ impl HttpClient {
             base_url: config.server_url.trim_end_matches('/').to_string(),
             auth_certificate: None,
             organization_id: config.organization_id.clone(),
+            mtls_enabled: false,
         })
     }
 
@@ -173,6 +176,7 @@ impl HttpClient {
             base_url: config.server_url.trim_end_matches('/').to_string(),
             auth_certificate: Some(certificate.to_string()),
             organization_id: config.organization_id.clone(),
+            mtls_enabled: false,
         })
     }
 
@@ -249,6 +253,7 @@ impl HttpClient {
             base_url: config.server_url.trim_end_matches('/').to_string(),
             auth_certificate: None,
             organization_id: config.organization_id.clone(),
+            mtls_enabled: true,
         })
     }
 
@@ -280,9 +285,7 @@ impl HttpClient {
 
     /// Check if this client uses mTLS (has identity configured).
     pub fn is_mtls(&self) -> bool {
-        // Note: reqwest doesn't expose whether identity is set,
-        // so we track this separately in AuthenticatedClient
-        false
+        self.mtls_enabled
     }
 
     /// Get the base URL.
