@@ -12,6 +12,28 @@ use tracing::{error, info, warn};
 
 use super::AgentRuntime;
 
+/// Run a remediation action on a blocking thread with a 5-minute timeout.
+///
+/// Free function so the `spawn_blocking` closure captures only owned values.
+#[cfg(feature = "gui")]
+async fn run_remediation_blocking(
+    engine: std::sync::Arc<agent_scanner::RemediationEngine>,
+    action: agent_common::types::RemediationAction,
+) -> Option<agent_common::types::RemediationResult> {
+    let handle = tokio::task::spawn_blocking(move || engine.execute(&action));
+    match tokio::time::timeout(std::time::Duration::from_secs(300), handle).await {
+        Ok(Ok(r)) => Some(r),
+        Ok(Err(e)) => {
+            warn!("Remediation task panicked: {}", e);
+            None
+        }
+        Err(_) => {
+            warn!("Remediation timed out after 5 minutes");
+            None
+        }
+    }
+}
+
 impl AgentRuntime {
     /// Send a heartbeat to the server with real compliance data.
     ///
@@ -333,21 +355,7 @@ impl AgentRuntime {
                                             self.remediation_engine.rollback(rem_action)
                                         } else {
                                             let engine = std::sync::Arc::clone(&self.remediation_engine);
-                                            let rem = rem_action.clone();
-                                            match tokio::time::timeout(
-                                                std::time::Duration::from_secs(300),
-                                                tokio::task::spawn_blocking(move || engine.execute(&rem)),
-                                            ).await {
-                                                Ok(Ok(r)) => Some(r),
-                                                Ok(Err(e)) => {
-                                                    warn!("Remediation task panicked: {}", e);
-                                                    None
-                                                }
-                                                Err(_) => {
-                                                    warn!("Remediation for '{}' timed out after 5 minutes", check_id);
-                                                    None
-                                                }
-                                            }
+                                            run_remediation_blocking(engine, (*rem_action).clone()).await
                                         };
 
                                         match result {

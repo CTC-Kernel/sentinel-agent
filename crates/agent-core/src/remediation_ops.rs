@@ -10,11 +10,35 @@ use std::sync::Arc;
 #[cfg(feature = "gui")]
 use tracing::{info, warn};
 
+/// Maximum time allowed for a single remediation action (5 minutes).
+#[cfg(feature = "gui")]
+const REMEDIATION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(300);
+
+/// Run a remediation action on a blocking thread with a timeout.
+///
+/// Extracted as a free function so that the `spawn_blocking` closure
+/// captures only owned (`'static`) values and doesn't borrow `&self`.
+#[cfg(feature = "gui")]
+async fn run_remediation(
+    engine: Arc<agent_scanner::RemediationEngine>,
+    action: agent_common::types::RemediationAction,
+) -> Option<agent_common::types::RemediationResult> {
+    let handle = tokio::task::spawn_blocking(move || engine.execute(&action));
+    match tokio::time::timeout(REMEDIATION_TIMEOUT, handle).await {
+        Ok(Ok(r)) => Some(r),
+        Ok(Err(e)) => {
+            warn!("Remediation task panicked: {}", e);
+            None
+        }
+        Err(_) => {
+            warn!("Remediation timed out after {:?}", REMEDIATION_TIMEOUT);
+            None
+        }
+    }
+}
+
 #[cfg(feature = "gui")]
 impl AgentRuntime {
-    /// Maximum time allowed for a single remediation action (5 minutes).
-    const REMEDIATION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(300);
-
     /// Execute remediation for a specific check.
     pub async fn remediate(&self, check_id: &str) -> bool {
         info!("Applying remediation for check \'{}\'", check_id);
@@ -22,23 +46,12 @@ impl AgentRuntime {
         let actions = self.remediation_engine.get_platform_remediation(check_id);
         if let Some(action) = actions.first() {
             let engine = Arc::clone(&self.remediation_engine);
-            let action = action.clone();
-            let result = match tokio::time::timeout(
-                Self::REMEDIATION_TIMEOUT,
-                tokio::task::spawn_blocking(move || engine.execute(&action)),
-            )
-            .await
-            {
-                Ok(Ok(r)) => r,
-                Ok(Err(e)) => {
-                    warn!("Remediation task panicked for '{}': {}", check_id, e);
-                    return false;
-                }
-                Err(_) => {
-                    warn!("Remediation for '{}' timed out after {:?}", check_id, Self::REMEDIATION_TIMEOUT);
+            let result = match run_remediation(engine, (*action).clone()).await {
+                Some(r) => r,
+                None => {
                     self.emit_notification(
                         "Remédiation Expirée",
-                        &format!("La remédiation pour \'{}\' a dépassé le délai maximum.", check_id),
+                        &format!("La remédiation pour \'{}\' a échoué ou a dépassé le délai.", check_id),
                         "error",
                     );
                     return false;
