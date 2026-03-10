@@ -233,19 +233,21 @@ impl LogSigner {
 
     /// Sign a string and return the signature (for LogEntry integration).
     ///
-    /// Returns an empty string if HMAC computation fails (which should never happen
-    /// since keys are validated at construction).
+    /// # Panics
+    /// Panics if HMAC computation fails, which should never happen since keys
+    /// are validated at construction. An empty signature would be a security risk
+    /// as it could be accepted by a permissive verifier.
     pub fn sign_data(&self, data: &str) -> String {
-        match self.compute_hmac(data) {
-            Ok(sig) => sig,
-            Err(e) => {
-                tracing::error!(
-                    "HMAC computation failed unexpectedly: {} - returning empty signature",
-                    e
-                );
-                String::new()
-            }
-        }
+        self.compute_hmac(data).unwrap_or_else(|e| {
+            // This should never happen since keys are validated at construction.
+            // Panicking is safer than returning an empty signature that could
+            // bypass integrity verification.
+            panic!(
+                "CRITICAL: HMAC computation failed unexpectedly: {}. \
+                 This indicates a corrupted HMAC key.",
+                e
+            );
+        })
     }
 
     /// Verify a signature against data using constant-time comparison.

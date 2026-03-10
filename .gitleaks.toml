@@ -62,15 +62,13 @@ tags = ["playwright", "trace", "secret"]
 path = '''\.network$'''
 
 # Allowlist to reduce false positives
+# SECURITY: Keep this list narrow — only exclude specific files with known test credentials,
+# not broad patterns that could hide real secrets in test files.
 [allowlist]
 description = "Global allowlist"
 paths = [
-    '''(.*)?test(.*)?\.rs$''',
-    '''(.*)?tests(.*)?\.rs$''',
-    '''(.*)?_test\.go$''',
-    '''(.*)?mock(.*)?''',
-    '''(.*)?fixture(.*)?''',
-    '''(.*)?example(.*)?''',
     '''\.gitleaks\.toml$''',
     '''crates/agent-common/src/sensitive_filter\.rs$''',
+    '''config/agent\.example\.json$''',
+    '''config/agent\.full\.example\.json$''',
 ]

@@ -917,8 +917,9 @@ impl AuthenticatedClient {
                 client
             }
             Err(e) => {
-                warn!(
-                    "mTLS not available ({}), falling back to header-based auth",
+                tracing::error!(
+                    "SECURITY: mTLS not available ({}), falling back to header-based auth. \
+                     This degrades security from channel-level to application-layer authentication.",
                     e
                 );
                 HttpClient::with_header_auth(&config, &credentials.client_certificate)?

@@ -532,8 +532,13 @@ impl HttpClient {
     /// and streams the response to avoid buffering the entire payload in memory.
     pub async fn download(&self, url: &str) -> SyncResult<Vec<u8>> {
         // Use the URL directly if it's an absolute URL, otherwise build from base
-        let full_url = if url.starts_with("http://") || url.starts_with("https://") {
+        let full_url = if url.starts_with("https://") {
             url.to_string()
+        } else if url.starts_with("http://") {
+            // SECURITY: Reject plaintext HTTP downloads to prevent MITM
+            return Err(SyncError::Config(
+                "HTTP downloads are forbidden — only HTTPS is allowed".to_string(),
+            ));
         } else {
             self.url(url)
         };
@@ -541,7 +546,16 @@ impl HttpClient {
         debug!("Downloading from {}", self.safe_log_url(&full_url));
 
         let request = self.client.get(&full_url);
-        let response = self.apply_auth(request).send().await.map_err(|e| {
+
+        // SECURITY: Only apply auth headers when downloading from our own server
+        // to prevent credential leakage to third-party hosts
+        let is_same_origin = full_url.starts_with(&self.base_url);
+        let response = if is_same_origin {
+            self.apply_auth(request).send().await
+        } else {
+            request.send().await
+        }
+        .map_err(|e| {
             if e.is_timeout() {
                 SyncError::Timeout
             } else if e.is_connect() {

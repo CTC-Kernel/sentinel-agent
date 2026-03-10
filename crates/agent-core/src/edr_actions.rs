@@ -91,6 +91,11 @@ pub async fn quarantine_file(path: &str) -> Result<String, CommonError> {
         return Err(CommonError::internal(format!("File not found: {}", path)));
     }
 
+    // SECURITY: Canonicalize path to resolve symlinks and prevent path traversal
+    let source = source.canonicalize().map_err(|e| {
+        CommonError::internal(format!("Failed to resolve path '{}': {}", path, e))
+    })?;
+
     // Create quarantine directory under the local data directory
     let quarantine_dir = directories::BaseDirs::new()
         .map(|dirs| dirs.data_local_dir().to_path_buf())
@@ -130,6 +135,16 @@ pub async fn quarantine_file(path: &str) -> Result<String, CommonError> {
 
 /// Restore a quarantined file to its original location.
 pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonError> {
+    // SECURITY: Validate quarantine_id to prevent path traversal (must be UUID format)
+    if !quarantine_id
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '-')
+    {
+        return Err(CommonError::internal(
+            "Invalid quarantine ID: must contain only alphanumeric characters and hyphens",
+        ));
+    }
+
     let quarantine_dir = directories::BaseDirs::new()
         .map(|dirs| dirs.data_local_dir().to_path_buf())
         .unwrap_or_else(|| std::path::PathBuf::from("/tmp"))
@@ -158,6 +173,19 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
         .get("original_path")
         .and_then(|v| v.as_str())
         .ok_or_else(|| CommonError::internal("Missing original_path in metadata"))?;
+
+    // SECURITY: Validate the restore path is not a system-critical location
+    let restore_path = std::path::Path::new(original_path);
+    let canonical_parent = restore_path.parent().and_then(|p| p.canonicalize().ok());
+    if let Some(ref parent) = canonical_parent {
+        let parent_str = parent.to_string_lossy();
+        if parent_str == "/" || parent_str == "/bin" || parent_str == "/sbin" || parent_str == "/usr/bin" || parent_str == "/usr/sbin" {
+            return Err(CommonError::internal(format!(
+                "Refusing to restore file to system-critical directory: {}",
+                original_path
+            )));
+        }
+    }
 
     // Restore file to its original location
     tokio::fs::rename(&quarantined_file, original_path)
@@ -188,8 +216,15 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
         ));
     }
 
+    // Validate IP format first
+    let parsed_ip: std::net::IpAddr = ip
+        .parse()
+        .map_err(|_| CommonError::internal(format!("Invalid IP address: {}", ip)))?;
+
     // Anti-Draper protection: Prevent blocking localhost or the backend server
-    if ip == "127.0.0.1" || ip == "::1" || ip.starts_with("127.") {
+    // SECURITY: Use parsed IP to prevent bypass via alternative representations
+    // (e.g., 0.0.0.0, ::ffff:127.0.0.1, 0:0:0:0:0:0:0:1)
+    if parsed_ip.is_loopback() || parsed_ip.is_unspecified() {
         warn!(
             "Anti-Draper triggered: Attempted to block localhost ({})",
             ip
@@ -199,21 +234,21 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
         ));
     }
 
-    if let Ok(config) = agent_common::config::AgentConfig::load(None)
-        && config.server_url.contains(ip)
-    {
-        warn!(
-            "Anti-Draper triggered: Attempted to block backend API server ({})",
-            ip
-        );
-        return Err(CommonError::internal(
-            "Anti-Draper protection: Cannot block the backend API server",
-        ));
-    }
-
-    // Validate IP format
-    if ip.parse::<std::net::IpAddr>().is_err() {
-        return Err(CommonError::internal(format!("Invalid IP address: {}", ip)));
+    if let Ok(config) = agent_common::config::AgentConfig::load(None) {
+        // Parse the server URL host and compare at IP level
+        if let Ok(url) = url::Url::parse(&config.server_url) {
+            if let Some(host) = url.host_str() {
+                if host == ip || host == parsed_ip.to_string() {
+                    warn!(
+                        "Anti-Draper triggered: Attempted to block backend API server ({})",
+                        ip
+                    );
+                    return Err(CommonError::internal(
+                        "Anti-Draper protection: Cannot block the backend API server",
+                    ));
+                }
+            }
+        }
     }
 
     #[cfg(target_os = "macos")]

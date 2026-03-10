@@ -421,6 +421,14 @@ impl AgentConfig {
             crate::error::CommonError::validation(format!("server_url is not a valid URL: {}", e))
         })?;
 
+        // SECURITY: Enforce HTTPS scheme in release builds to prevent plaintext communication
+        #[cfg(not(debug_assertions))]
+        if url.scheme() != "https" {
+            return Err(crate::error::CommonError::validation(
+                "server_url must use HTTPS scheme in production (http:// is forbidden)",
+            ));
+        }
+
         // Anti-Draper: Detect missing function name in direct GCF URLs (prevents 404)
         if let Some(host) = url.host_str()
             && host.ends_with("cloudfunctions.net")

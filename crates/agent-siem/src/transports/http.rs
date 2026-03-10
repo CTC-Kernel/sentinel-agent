@@ -43,12 +43,23 @@ impl HttpTransport {
         auth_header: Option<String>,
         verify_tls: bool,
     ) -> Self {
-        let client = reqwest::Client::builder()
-            .danger_accept_invalid_certs(!verify_tls)
+        let mut builder = reqwest::Client::builder()
+            .min_tls_version(reqwest::tls::Version::TLS_1_2)
             .timeout(Duration::from_secs(30))
-            .connect_timeout(Duration::from_secs(10))
-            .build()
-            .unwrap_or_else(|_| reqwest::Client::new());
+            .connect_timeout(Duration::from_secs(10));
+
+        // SECURITY: Disabling TLS verification is only allowed in debug builds
+        #[cfg(debug_assertions)]
+        if !verify_tls {
+            debug!("TLS verification disabled (development mode — debug build only)");
+            builder = builder.danger_accept_invalid_certs(true);
+        }
+        #[cfg(not(debug_assertions))]
+        if !verify_tls {
+            warn!("SECURITY: verify_tls=false is forbidden in release builds — ignoring");
+        }
+
+        let client = builder.build().unwrap_or_else(|_| reqwest::Client::new());
 
         Self {
             url,

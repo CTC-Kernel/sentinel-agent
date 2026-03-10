@@ -92,10 +92,18 @@ impl KeyManager {
     }
 
     /// Create a key manager with a specific key.
+    ///
+    /// # Panics
+    /// Panics if the key is not exactly 32 bytes (256 bits for AES-256).
     pub fn new_with_key(key: &[u8]) -> Self {
+        assert!(
+            key.len() == KEY_LENGTH,
+            "Encryption key must be exactly {} bytes, got {}",
+            KEY_LENGTH,
+            key.len()
+        );
         let mut key_array = [0u8; KEY_LENGTH];
-        let len = key.len().min(KEY_LENGTH);
-        key_array[..len].copy_from_slice(&key[..len]);
+        key_array.copy_from_slice(key);
         Self { key: key_array }
     }
 
@@ -107,15 +115,22 @@ impl KeyManager {
     pub fn get_database_key(&self) -> StorageResult<Vec<u8>> {
         #[cfg(unix)]
         {
+            use hmac::{Hmac, Mac};
+
             let hwid = self.get_hwid().map_err(|e| {
                 StorageError::KeyManagement(format!("Failed to retrieve Hardware ID: {}", e))
             })?;
 
-            let mut final_key = self.key;
-            for (i, byte) in final_key.iter_mut().enumerate() {
-                *byte ^= hwid[i % hwid.len()];
-            }
-            Ok(final_key.to_vec())
+            // SECURITY: Use HMAC-SHA256 as a proper KDF instead of XOR.
+            // The HWID is used as the HMAC key and the stored key as the message,
+            // producing a non-invertible derivation bound to this machine.
+            let mut mac = Hmac::<Sha256>::new_from_slice(&hwid).map_err(|e| {
+                StorageError::KeyManagement(format!("Failed to initialize HMAC for key derivation: {}", e))
+            })?;
+            mac.update(&self.key);
+            let result = mac.finalize().into_bytes();
+
+            Ok(result.to_vec())
         }
         #[cfg(not(unix))]
         {
@@ -157,10 +172,13 @@ impl KeyManager {
         }
 
         if id.is_empty() {
-            // Fallback to hostname if machine-specific ID is unavailable
-            id = hostname::get()
-                .map(|h| h.to_string_lossy().to_string())
-                .unwrap_or_else(|_| "sentinel-fallback-id".to_string());
+            // SECURITY: Refuse to fall back to hostname or static string.
+            // A weak HWID would allow the database to be decrypted on any machine.
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "No machine-specific hardware ID found (machine-id or IOPlatformUUID). \
+                 Cannot derive a secure database encryption key without machine binding.",
+            ));
         }
 
         // Return SHA256 hash of the machine ID as entropy

@@ -33,6 +33,16 @@ static TOKEN_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
         Regex::new(r"(sk|pk|rk)_(live|test)_[a-zA-Z0-9]{10,}").unwrap(),
         // GCP/Firebase API keys
         Regex::new(r"AIzaSy[a-zA-Z0-9_\-]{33}").unwrap(),
+        // AWS access key IDs
+        Regex::new(r"AKIA[0-9A-Z]{16}").unwrap(),
+        // GitHub personal access tokens (classic and fine-grained)
+        Regex::new(r"gh[po]_[a-zA-Z0-9]{36,}").unwrap(),
+        // GitHub Actions tokens
+        Regex::new(r"ghs_[a-zA-Z0-9]{36,}").unwrap(),
+        // Connection strings with embedded credentials
+        Regex::new(r"(?i)(?:postgres|mysql|mongodb|redis|amqp)://[^:]+:[^@]+@").unwrap(),
+        // SSH private keys
+        Regex::new(r"-----BEGIN OPENSSH PRIVATE KEY-----").unwrap(),
     ]
 });
 
@@ -128,6 +138,13 @@ fn is_sensitive_key(key: &str) -> bool {
         "authorization",
         "passphrase",
         "pass_phrase",
+        "connection_string",
+        "conn_string",
+        "database_url",
+        "dsn",
+        "signing_key",
+        "encryption_key",
+        "client_secret",
     ];
 
     // Check exact match first

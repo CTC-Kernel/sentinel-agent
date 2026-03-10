@@ -5,7 +5,14 @@
 
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 
-/// Extract organization ID from JWT token.
+/// Extract organization ID from JWT token payload (base64 decode only).
+///
+/// # Security Note
+/// This function does NOT verify the JWT signature. The extracted `organization_id`
+/// is used only as a client-side hint for the enrollment request. The server is the
+/// sole authority for validating the enrollment token and binding the agent to an
+/// organization. Do NOT use the returned value for any security-critical decision
+/// on the client side.
 pub fn parse_organization_id_from_token(token: &str) -> Option<String> {
     let parts: Vec<&str> = token.split('.').collect();
     if parts.len() != 3 {

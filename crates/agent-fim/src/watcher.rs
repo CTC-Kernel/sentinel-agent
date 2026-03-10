@@ -120,8 +120,11 @@ fn process_event(
         _ => return, // Ignore other events
     };
 
-    for path in &event.paths {
-        // Skip ignored patterns
+    for raw_path in &event.paths {
+        // SECURITY: Resolve symlinks to detect evasion via symlink-to-ignored-path
+        let path = &raw_path.canonicalize().unwrap_or_else(|_| raw_path.clone());
+
+        // Skip ignored patterns (checked against the canonical path)
         if is_ignored_path(path, ignore_patterns) {
             continue;
         }
