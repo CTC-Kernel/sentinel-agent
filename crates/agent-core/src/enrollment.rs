@@ -8,7 +8,8 @@ use crate::system_utils::{get_machine_id, get_os_version};
 use agent_common::constants::AGENT_VERSION;
 use agent_common::error::CommonError;
 use agent_common::jwt::parse_organization_id_from_token;
-use tracing::info;
+use agent_sync::EnrollmentManager;
+use tracing::{error, info, warn};
 
 use super::AgentRuntime;
 
@@ -98,5 +99,79 @@ impl AgentRuntime {
         );
 
         Ok(())
+    }
+
+    /// Attempt automatic re-enrollment after persistent authentication failures.
+    ///
+    /// This method:
+    /// 1. Clears stale credentials from the encrypted database
+    /// 2. Performs a fresh enrollment using the enrollment token
+    /// 3. Updates the API client with new credentials
+    /// 4. Invalidates the authenticated client cache (forces refresh)
+    /// 5. Re-initializes sync services
+    ///
+    /// Returns `Ok(true)` on successful re-enrollment, `Ok(false)` if re-enrollment
+    /// is not possible (no token), or `Err` on failure.
+    pub(crate) async fn attempt_re_enrollment(&self) -> Result<bool, CommonError> {
+        let db = match &self.db {
+            Some(db) => db,
+            None => {
+                warn!("Cannot re-enroll: no database available");
+                return Ok(false);
+            }
+        };
+
+        let has_token = self
+            .config
+            .enrollment_token
+            .as_ref()
+            .is_some_and(|t| !t.trim().is_empty());
+        if !has_token {
+            warn!(
+                "Cannot re-enroll: no enrollment_token in configuration. \
+                 Please add an enrollment token to the agent config and restart."
+            );
+            return Ok(false);
+        }
+
+        info!("Starting automatic re-enrollment...");
+
+        // Use the sync-layer EnrollmentManager for the heavy lifting
+        let manager = EnrollmentManager::new(&self.config, db);
+        let credentials = match manager.re_enroll().await {
+            Ok(creds) => creds,
+            Err(e) => {
+                error!("Re-enrollment failed: {}", e);
+                return Err(CommonError::network(format!("Re-enrollment failed: {}", e)));
+            }
+        };
+
+        // Update the API client with new credentials
+        {
+            let mut api_client = self.api_client.write().await;
+            if let Some(ref mut client) = *api_client {
+                client.set_agent_id(credentials.agent_id.to_string());
+                client.set_credentials(
+                    credentials.client_certificate.clone(),
+                    credentials.client_private_key.clone(),
+                );
+                client.set_organization_id(credentials.organization_id.to_string());
+            }
+        }
+
+        // Invalidate the authenticated client cache so it picks up new creds
+        if let Some(ref auth_client) = self.authenticated_client {
+            auth_client.invalidate().await;
+        }
+
+        // Re-initialize sync services with fresh credentials
+        self.init_sync_services().await;
+
+        info!(
+            "Re-enrollment complete. New agent ID: {}, org: {}",
+            credentials.agent_id, credentials.organization_id
+        );
+
+        Ok(true)
     }
 }

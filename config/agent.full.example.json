@@ -1,5 +1,5 @@
 {
-  "server_url": "https://your-sentinel-server.example.com",
+  "server_url": "https://europe-west4-sentinel-grc-a8701.cloudfunctions.net/agentApi",
 
   "agent_id": null,
 

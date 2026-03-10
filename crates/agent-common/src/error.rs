@@ -53,6 +53,10 @@ pub enum CommonError {
     /// Generic error for unexpected conditions.
     #[error("internal error: {0}")]
     Internal(String),
+
+    /// Authentication error (401/403 from server).
+    #[error("authentication error: {0}")]
+    Auth(String),
 }
 
 impl From<std::io::Error> for CommonError {
@@ -103,6 +107,16 @@ impl CommonError {
     /// Create an internal error.
     pub fn internal(msg: impl Into<String>) -> Self {
         Self::Internal(msg.into())
+    }
+
+    /// Create an authentication error (401/403 from server).
+    pub fn auth(msg: impl Into<String>) -> Self {
+        Self::Auth(msg.into())
+    }
+
+    /// Check if this is an authentication error (401/403) requiring re-enrollment.
+    pub fn is_auth_error(&self) -> bool {
+        matches!(self, Self::Auth(_))
     }
 }
 

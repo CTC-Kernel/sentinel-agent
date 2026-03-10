@@ -106,6 +106,15 @@ impl SyncError {
     pub fn connection(message: impl Into<String>) -> Self {
         SyncError::ConnectionFailed(message.into())
     }
+
+    /// Check if this is an authentication error (401/403) that may require re-enrollment.
+    pub fn is_auth_error(&self) -> bool {
+        match self {
+            SyncError::ServerError { status, .. } => *status == 401 || *status == 403,
+            SyncError::InvalidToken(_) | SyncError::Certificate(_) => true,
+            _ => false,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -158,5 +167,35 @@ mod tests {
     fn test_not_retryable_already_enrolled() {
         let err = SyncError::AlreadyEnrolled("agent-123".to_string());
         assert!(!err.is_retryable());
+    }
+
+    #[test]
+    fn test_is_auth_error_401() {
+        let err = SyncError::server(401, "Unauthorized");
+        assert!(err.is_auth_error());
+    }
+
+    #[test]
+    fn test_is_auth_error_403() {
+        let err = SyncError::server(403, "Forbidden");
+        assert!(err.is_auth_error());
+    }
+
+    #[test]
+    fn test_is_auth_error_certificate() {
+        let err = SyncError::Certificate("expired".to_string());
+        assert!(err.is_auth_error());
+    }
+
+    #[test]
+    fn test_not_auth_error_500() {
+        let err = SyncError::server(500, "Internal Server Error");
+        assert!(!err.is_auth_error());
+    }
+
+    #[test]
+    fn test_not_auth_error_timeout() {
+        let err = SyncError::Timeout;
+        assert!(!err.is_auth_error());
     }
 }

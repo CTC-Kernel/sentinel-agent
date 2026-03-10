@@ -12,6 +12,28 @@ use tracing::{error, info, warn};
 
 use super::AgentRuntime;
 
+/// Run a remediation action on a blocking thread with a 5-minute timeout.
+///
+/// Free function so the `spawn_blocking` closure captures only owned values.
+#[cfg(feature = "gui")]
+async fn run_remediation_blocking(
+    engine: std::sync::Arc<agent_scanner::RemediationEngine>,
+    action: agent_common::types::RemediationAction,
+) -> Option<agent_common::types::RemediationResult> {
+    let handle = tokio::task::spawn_blocking(move || engine.execute(&action));
+    match tokio::time::timeout(std::time::Duration::from_secs(300), handle).await {
+        Ok(Ok(r)) => Some(r),
+        Ok(Err(e)) => {
+            warn!("Remediation task panicked: {}", e);
+            None
+        }
+        Err(_) => {
+            warn!("Remediation timed out after 5 minutes");
+            None
+        }
+    }
+}
+
 impl AgentRuntime {
     /// Send a heartbeat to the server with real compliance data.
     ///
@@ -45,7 +67,7 @@ impl AgentRuntime {
                     .map(|data| (data.transmitted(), data.received()))
                     .fold((0, 0), |acc, (t, r)| (acc.0 + t, acc.1 + r)),
                 Err(e) => {
-                    warn!("Failed to lock network monitor (mutex poisoned): {}", e);
+                    error!("Failed to lock network monitor (mutex poisoned): {}", e);
                     (0, 0)
                 }
             }
@@ -189,6 +211,16 @@ impl AgentRuntime {
             let command_results = self.command_results.read().await;
             if let Some(ref service) = *command_results {
                 for cmd in &response.commands {
+                    // Validate field sizes to prevent memory/log exhaustion
+                    if !cmd.is_within_bounds() {
+                        warn!(
+                            "Rejecting oversized server command (id_len={}, type_len={})",
+                            cmd.id.len(),
+                            cmd.command_type.len()
+                        );
+                        continue;
+                    }
+
                     if !cmd.is_valid() {
                         warn!(
                             "Rejecting unknown/disallowed server command type '{}' (id={})",
@@ -322,7 +354,8 @@ impl AgentRuntime {
                                         let result = if action == "rollback" {
                                             self.remediation_engine.rollback(rem_action)
                                         } else {
-                                            Some(self.remediation_engine.execute(rem_action))
+                                            let engine = std::sync::Arc::clone(&self.remediation_engine);
+                                            run_remediation_blocking(engine, (*rem_action).clone()).await
                                         };
 
                                         match result {

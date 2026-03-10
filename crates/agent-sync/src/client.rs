@@ -52,6 +52,8 @@ pub struct HttpClient {
     auth_certificate: Option<String>,
     /// Organization ID for X-Organization-Id header.
     organization_id: Option<String>,
+    /// Whether the client was created with mTLS identity.
+    mtls_enabled: bool,
 }
 
 impl HttpClient {
@@ -114,6 +116,7 @@ impl HttpClient {
             base_url: config.server_url.trim_end_matches('/').to_string(),
             auth_certificate: None,
             organization_id: config.organization_id.clone(),
+            mtls_enabled: false,
         })
     }
 
@@ -173,6 +176,7 @@ impl HttpClient {
             base_url: config.server_url.trim_end_matches('/').to_string(),
             auth_certificate: Some(certificate.to_string()),
             organization_id: config.organization_id.clone(),
+            mtls_enabled: false,
         })
     }
 
@@ -249,6 +253,7 @@ impl HttpClient {
             base_url: config.server_url.trim_end_matches('/').to_string(),
             auth_certificate: None,
             organization_id: config.organization_id.clone(),
+            mtls_enabled: true,
         })
     }
 
@@ -264,11 +269,16 @@ impl HttpClient {
         }
         // Strip any whitespace / newlines from raw base64
         let clean: String = trimmed.chars().filter(|c| !c.is_whitespace()).collect();
-        // Wrap in 64-char lines as per PEM spec
+        // Wrap in 64-char lines as per PEM spec.
+        // Since we filtered to ASCII-only characters above, all chunks are
+        // guaranteed to be valid UTF-8 — the expect() documents this invariant.
         let lines: Vec<&str> = clean
             .as_bytes()
             .chunks(64)
-            .map(|chunk| std::str::from_utf8(chunk).unwrap_or(""))
+            .map(|chunk| {
+                std::str::from_utf8(chunk)
+                    .expect("BUG: ASCII-filtered base64 produced invalid UTF-8 chunk")
+            })
             .collect();
         format!(
             "-----BEGIN {}-----\n{}\n-----END {}-----",
@@ -280,9 +290,7 @@ impl HttpClient {
 
     /// Check if this client uses mTLS (has identity configured).
     pub fn is_mtls(&self) -> bool {
-        // Note: reqwest doesn't expose whether identity is set,
-        // so we track this separately in AuthenticatedClient
-        false
+        self.mtls_enabled
     }
 
     /// Get the base URL.

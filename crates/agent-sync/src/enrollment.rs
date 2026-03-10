@@ -188,6 +188,52 @@ impl<'a> EnrollmentManager<'a> {
         info!("Agent unenrolled");
         Ok(())
     }
+
+    /// Re-enroll the agent after an authentication failure.
+    ///
+    /// This clears stale credentials and performs a fresh enrollment
+    /// using the enrollment token from config. Returns the new credentials
+    /// on success or an error if re-enrollment is not possible.
+    ///
+    /// # When this is called
+    ///
+    /// - Server returns 401/403 ("Agent not found") repeatedly
+    /// - Certificate has expired and renewal is not possible
+    /// - Credentials in DB are corrupted or mismatched
+    pub async fn re_enroll(&self) -> SyncResult<StoredCredentials> {
+        let token = self
+            .config
+            .enrollment_token
+            .as_ref()
+            .filter(|t| !t.trim().is_empty())
+            .ok_or(SyncError::NotEnrolled)?;
+
+        // Log the current state before clearing
+        let credentials_repo = CredentialsRepository::new(self.db);
+        if let Ok(Some(old_creds)) = credentials_repo.load().await {
+            warn!(
+                "Clearing stale credentials for agent {} (enrolled at: {})",
+                old_creds.agent_id, old_creds.enrolled_at
+            );
+        }
+
+        // Clear all old credentials
+        credentials_repo.clear().await?;
+        info!("Stale credentials cleared, starting fresh enrollment");
+
+        // Perform fresh enrollment
+        let credentials = self.enroll(token, None).await?;
+
+        // Store new credentials
+        credentials_repo.store(&credentials).await?;
+
+        info!(
+            "Re-enrollment successful. New agent ID: {}, certificate expires: {}",
+            credentials.agent_id, credentials.certificate_expires_at
+        );
+
+        Ok(credentials)
+    }
 }
 
 /// Get the system hostname.

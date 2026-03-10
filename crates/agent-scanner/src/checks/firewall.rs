@@ -88,6 +88,8 @@ impl FirewallCheck {
                 "linux".to_string(),
                 "macos".to_string(),
             ])
+            // PowerShell + multiple profile queries can take 3-5s on Windows
+            .nfr_limit(8_000)
             .build();
 
         Self { definition }
