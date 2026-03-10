@@ -257,16 +257,16 @@ impl ObsoleteProtocolsCheck {
         // Missing registry keys means the system default applies.
 
         let client_enabled = json
-            .get(&format!("{}_ClientEnabled", prefix))
+            .get(format!("{}_ClientEnabled", prefix))
             .and_then(|v| v.as_u64());
         let server_enabled = json
-            .get(&format!("{}_ServerEnabled", prefix))
+            .get(format!("{}_ServerEnabled", prefix))
             .and_then(|v| v.as_u64());
         let client_disabled = json
-            .get(&format!("{}_ClientDisabled", prefix))
+            .get(format!("{}_ClientDisabled", prefix))
             .and_then(|v| v.as_u64());
         let server_disabled = json
-            .get(&format!("{}_ServerDisabled", prefix))
+            .get(format!("{}_ServerDisabled", prefix))
             .and_then(|v| v.as_u64());
 
         // If explicitly disabled

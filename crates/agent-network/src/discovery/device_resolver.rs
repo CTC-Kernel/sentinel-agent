@@ -9,7 +9,10 @@
 use crate::types::DeviceType;
 use agent_common::process::silent_async_command;
 use std::collections::HashMap;
+use std::time::Duration;
 use tracing::{debug, trace};
+
+const DNS_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Resolves hostnames and classifies discovered devices.
 pub struct DeviceResolver {
@@ -30,7 +33,18 @@ impl DeviceResolver {
 
         if is_windows {
             // Try Windows `nslookup` command
-            let result = silent_async_command("nslookup").arg(ip).output().await;
+            let result = match tokio::time::timeout(
+                DNS_TIMEOUT,
+                silent_async_command("nslookup").arg(ip).output(),
+            )
+            .await
+            {
+                Ok(r) => r,
+                Err(_) => {
+                    trace!("nslookup timed out for {}", ip);
+                    return None;
+                }
+            };
 
             match result {
                 Ok(output) if output.status.success() => {
@@ -44,7 +58,18 @@ impl DeviceResolver {
             }
         } else {
             // Try the system `host` command for reverse DNS (macOS/Linux)
-            let result = silent_async_command("host").arg(ip).output().await;
+            let result = match tokio::time::timeout(
+                DNS_TIMEOUT,
+                silent_async_command("host").arg(ip).output(),
+            )
+            .await
+            {
+                Ok(r) => r,
+                Err(_) => {
+                    trace!("host lookup timed out for {}", ip);
+                    return None;
+                }
+            };
 
             match result {
                 Ok(output) if output.status.success() => {

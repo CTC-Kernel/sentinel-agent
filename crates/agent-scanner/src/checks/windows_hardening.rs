@@ -522,8 +522,8 @@ impl WindowsHardeningCheck {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let mut results = std::collections::HashMap::new();
 
-        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
-            if let Some(obj) = json.as_object() {
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout)
+            && let Some(obj) = json.as_object() {
                 for (key, value) in obj {
                     let val_str = match value {
                         serde_json::Value::Number(n) => n.to_string(),
@@ -534,7 +534,6 @@ impl WindowsHardeningCheck {
                     results.insert(key.clone(), val_str);
                 }
             }
-        }
 
         Ok(results)
     }

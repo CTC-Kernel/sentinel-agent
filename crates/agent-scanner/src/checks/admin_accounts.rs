@@ -196,8 +196,8 @@ impl AdminAccountsCheck {
             }
 
             // Fallback parsing from net localgroup output
-            if status.admin_count == 0 {
-                if let Some(output) = json.get("NetOutput").and_then(|v| v.as_str()) {
+            if status.admin_count == 0
+                && let Some(output) = json.get("NetOutput").and_then(|v| v.as_str()) {
                     let mut in_members = false;
                     for line in output.lines() {
                         let line = line.trim();
@@ -218,7 +218,6 @@ impl AdminAccountsCheck {
                         }
                     }
                 }
-            }
         }
 
         // Validate compliance

@@ -118,8 +118,8 @@ impl Ipv6ConfigCheck {
 
         // Parse the registry value (hex)
         for line in raw_output.lines() {
-            if line.contains("DisabledComponents") {
-                if let Some(hex_val) = line.split_whitespace().last() {
+            if line.contains("DisabledComponents")
+                && let Some(hex_val) = line.split_whitespace().last() {
                     let hex_str = hex_val.trim_start_matches("0x");
                     if let Ok(value) = u32::from_str_radix(hex_str, 16) {
                         status.disabled_components = Some(value);
@@ -132,7 +132,6 @@ impl Ipv6ConfigCheck {
                         status.hardened = value == 0xFF || (value & 0x20) != 0;
                     }
                 }
-            }
         }
 
         if !status.hardened {

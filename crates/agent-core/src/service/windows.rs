@@ -132,14 +132,13 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
             );
 
             let bak_path = default_config.path.with_extension("bak");
-            if default_config.path.exists() {
-                if let Err(e) = std::fs::rename(&default_config.path, &bak_path) {
+            if default_config.path.exists()
+                && let Err(e) = std::fs::rename(&default_config.path, &bak_path) {
                     warn!(
                         "Failed to back up current database before restore (may already be in use): {}",
                         e
                     );
                 }
-            }
 
             match std::fs::rename(&restore_path, &default_config.path) {
                 Ok(_) => info!("Database restore applied successfully"),

@@ -640,11 +640,10 @@ impl MDMSoftwareScanner {
 
             // ── Windows enrichment ──
             #[cfg(target_os = "windows")]
-            if matches!(source.as_str(), "windows-registry" | "winget") {
-                if let Some(update) = winget_updates.get(&software.name) {
+            if matches!(source.as_str(), "windows-registry" | "winget")
+                && let Some(update) = winget_updates.get(&software.name) {
                     software.available_updates = vec![update.clone()];
                 }
-            }
 
             // Calculate hashes per-item (I/O-bound, offloaded to blocking thread)
             software.metadata.hashes = self.calculate_hashes(software).await;

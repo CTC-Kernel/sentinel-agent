@@ -110,8 +110,8 @@ impl AutoLoginCheck {
 
         // Also check for DefaultUserName if auto-login is enabled
         let mut auto_login_user = None;
-        if auto_login_enabled {
-            if let Ok(user_output) = silent_command("reg")
+        if auto_login_enabled
+            && let Ok(user_output) = silent_command("reg")
                 .args([
                     "query",
                     r"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
@@ -122,14 +122,12 @@ impl AutoLoginCheck {
             {
                 let user_str = String::from_utf8_lossy(&user_output.stdout).to_string();
                 for line in user_str.lines() {
-                    if line.contains("DefaultUserName") {
-                        if let Some(value) = line.split_whitespace().last() {
+                    if line.contains("DefaultUserName")
+                        && let Some(value) = line.split_whitespace().last() {
                             auto_login_user = Some(value.to_string());
                         }
-                    }
                 }
             }
-        }
 
         Ok(AutoLoginStatus {
             auto_login_disabled: !auto_login_enabled,

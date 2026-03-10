@@ -42,10 +42,28 @@ pub async fn watch_files(
     };
 
     for path in &policy.watched_paths {
-        if path.exists() {
-            match watcher.watch(path, mode) {
-                Ok(()) => info!("FIM watching: {}", path.display()),
-                Err(e) => warn!("Failed to watch {}: {}", path.display(), e),
+        if !path.exists() {
+            debug!("FIM: skipping non-existent path: {}", path.display());
+            continue;
+        }
+
+        match watcher.watch(path, mode) {
+            Ok(()) => info!("FIM watching: {}", path.display()),
+            Err(e) => {
+                // On Windows, protected OS directories (e.g. C:\Windows\System32\config)
+                // exist but deny ReadDirectoryChanges access to non-SYSTEM processes.
+                // Demote these to debug instead of warning to avoid noisy logs.
+                if matches!(e.kind, notify::ErrorKind::PathNotFound)
+                    || matches!(e.kind, notify::ErrorKind::Io(_))
+                {
+                    debug!(
+                        "FIM: cannot watch {} (access denied or protected): {}",
+                        path.display(),
+                        e
+                    );
+                } else {
+                    warn!("Failed to watch {}: {}", path.display(), e);
+                }
             }
         }
     }

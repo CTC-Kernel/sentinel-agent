@@ -205,11 +205,10 @@ impl SystemUpdatesCheck {
             }
 
             // Last install date
-            if let Some(date_str) = json.get("LastInstallDate").and_then(|v| v.as_str()) {
-                if let Ok(date) = DateTime::parse_from_rfc3339(date_str) {
+            if let Some(date_str) = json.get("LastInstallDate").and_then(|v| v.as_str())
+                && let Ok(date) = DateTime::parse_from_rfc3339(date_str) {
                     status.last_install_date = Some(date.with_timezone(&Utc));
                 }
-            }
 
             // Auto-update settings
             if let Some(no_auto) = json.get("NoAutoUpdate").and_then(|v| v.as_u64()) {

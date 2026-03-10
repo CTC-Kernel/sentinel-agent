@@ -280,11 +280,10 @@ fn get_machine_id() -> Option<String> {
             let stdout = String::from_utf8_lossy(&output.stdout);
             // Parse the registry output to extract MachineGuid
             for line in stdout.lines() {
-                if line.contains("MachineGuid") {
-                    if let Some(guid) = line.split_whitespace().last() {
+                if line.contains("MachineGuid")
+                    && let Some(guid) = line.split_whitespace().last() {
                         return Some(guid.to_string());
                     }
-                }
             }
             None
         })

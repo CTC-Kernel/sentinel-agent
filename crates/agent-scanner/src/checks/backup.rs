@@ -229,12 +229,11 @@ impl BackupCheck {
             }
 
             // VSS
-            if json.get("VSS_LastCopy").is_some() {
-                if !status.backup_configured {
+            if json.get("VSS_LastCopy").is_some()
+                && !status.backup_configured {
                     status.backup_configured = true;
                     status.backup_type = Some("Volume Shadow Copy".to_string());
                 }
-            }
 
             // Third-party backup
             for (key, _) in json.as_object().unwrap_or(&serde_json::Map::new()) {

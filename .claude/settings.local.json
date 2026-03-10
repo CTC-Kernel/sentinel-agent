@@ -5,7 +5,11 @@
       "Bash(OPENSSL_LIB_DIR=\"C:/Program Files/OpenSSL-Win64/lib/VC/x64/MD\" OPENSSL_INCLUDE_DIR=\"C:/Program Files/OpenSSL-Win64/include\" cargo check:*)",
       "Bash(OPENSSL_LIB_DIR=\"C:/Program Files/OpenSSL-Win64/lib/VC/x64/MD\" OPENSSL_INCLUDE_DIR=\"C:/Program Files/OpenSSL-Win64/include\" cargo test:*)",
       "Bash(export:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(cd \"/c/dev/Cyber Threat COnsulting/sentinel-agent\" && grep -A50 '^name = \"reqwest\"' Cargo.lock | head -60)",
+      "Bash(cd \"/c/dev/Cyber Threat COnsulting/sentinel-agent\" && grep -A80 '^name = \"reqwest\"' Cargo.lock | tail -40)",
+      "Bash(cd \"/c/dev/Cyber Threat COnsulting/sentinel-agent\" && cargo tree -p agent-core -i openssl-sys 2>&1 | head -20)",
+      "Bash(cd \"/c/dev/Cyber Threat COnsulting/sentinel-agent\" && echo $OPENSSL_DIR ; echo $OPENSSL_LIB_DIR)"
     ]
   }
 }

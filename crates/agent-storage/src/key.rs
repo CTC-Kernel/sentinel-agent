@@ -286,7 +286,7 @@ impl KeyManager {
         // then free the buffer with LocalFree regardless of success/failure.
         let result = unsafe {
             CryptUnprotectData(
-                &mut data_in,
+                &data_in,
                 None, // description (optional)
                 None, // entropy (optional)
                 None, // reserved
@@ -398,8 +398,8 @@ impl KeyManager {
         use windows::Win32::Security::Cryptography::{CRYPT_INTEGER_BLOB, CryptProtectData};
 
         // Ensure parent directory exists
-        if let Some(parent) = path.parent() {
-            if !parent.exists() {
+        if let Some(parent) = path.parent()
+            && !parent.exists() {
                 fs::create_dir_all(parent).map_err(|e| {
                     StorageError::KeyManagement(format!(
                         "Failed to create key directory {}: {}",
@@ -408,7 +408,6 @@ impl KeyManager {
                     ))
                 })?;
             }
-        }
 
         // Encrypt the key using DPAPI
         let mut data_in = CRYPT_INTEGER_BLOB {
@@ -420,7 +419,7 @@ impl KeyManager {
 
         unsafe {
             CryptProtectData(
-                &mut data_in,
+                &data_in,
                 None, // description (optional)
                 None, // entropy (optional)
                 None, // reserved

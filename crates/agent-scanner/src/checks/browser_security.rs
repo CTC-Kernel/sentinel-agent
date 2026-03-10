@@ -120,15 +120,13 @@ impl BrowserSecurityCheck {
         if let Ok(edge_output) = silent_command("reg")
             .args(["query", r"HKLM\SOFTWARE\Policies\Microsoft\Edge"])
             .output()
-        {
-            if edge_output.status.success() {
+            && edge_output.status.success() {
                 managed_browsers.push("Microsoft Edge".to_string());
                 policy_sources
                     .push("Registry (HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge)".to_string());
                 let edge_raw = String::from_utf8_lossy(&edge_output.stdout).to_string();
                 raw_output.push_str(&format!("=== Edge Policies ===\n{}\n", edge_raw.trim()));
             }
-        }
 
         let policies_configured = !managed_browsers.is_empty();
 

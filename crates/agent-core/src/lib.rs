@@ -403,7 +403,9 @@ impl RuntimeHandle {
 
 impl AgentRuntime {
     /// Number of consecutive auth failures before attempting re-enrollment.
-    const AUTH_FAILURE_THRESHOLD: u32 = 3;
+    /// Set to 1 so re-enrollment triggers on the first heartbeat auth failure
+    /// (the startup probe already attempts immediate re-enrollment).
+    const AUTH_FAILURE_THRESHOLD: u32 = 1;
     /// Maximum re-enrollment attempts before giving up.
     const MAX_RE_ENROLLMENT_ATTEMPTS: u32 = 6;
 
@@ -627,8 +629,50 @@ impl AgentRuntime {
         match self.ensure_enrolled().await {
             Ok(()) => {
                 info!("Agent enrollment verified");
-                // Initialize sync services now that we're enrolled
-                self.init_sync_services().await;
+
+                // Verify enrollment is still valid with a probe heartbeat before
+                // initializing heavy sync services. If the server returns 401
+                // ("Agent not found"), re-enroll immediately instead of waiting
+                // for 3 heartbeat failures in the main loop.
+                let enrollment_valid = match self.send_heartbeat(None, None).await {
+                    Ok(()) => {
+                        info!("Enrollment health check passed");
+                        true
+                    }
+                    Err(e) if e.is_auth_error() => {
+                        warn!(
+                            "Enrollment health check failed ({}), attempting immediate re-enrollment",
+                            e
+                        );
+                        match self.attempt_re_enrollment().await {
+                            Ok(true) => {
+                                info!("Immediate re-enrollment succeeded");
+                                self.auth_failure_count.store(0, Ordering::Release);
+                                true
+                            }
+                            Ok(false) => {
+                                warn!("Cannot re-enroll: no enrollment token configured");
+                                false
+                            }
+                            Err(re_err) => {
+                                error!("Immediate re-enrollment failed: {}", re_err);
+                                false
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        // Non-auth error (network, timeout, etc.) — proceed anyway,
+                        // sync services will retry later.
+                        warn!("Enrollment health check failed (non-auth: {}), proceeding", e);
+                        true
+                    }
+                };
+
+                if enrollment_valid {
+                    self.init_sync_services().await;
+                } else {
+                    warn!("Skipping sync service init — enrollment invalid");
+                }
             }
             Err(e) => {
                 warn!("Enrollment failed: {}. Running in offline mode.", e);
@@ -1119,8 +1163,7 @@ impl AgentRuntime {
                             );
 
                             // Attempt re-enrollment with exponential backoff
-                            if failures >= Self::AUTH_FAILURE_THRESHOLD
-                                && failures <= Self::MAX_RE_ENROLLMENT_ATTEMPTS
+                            if (Self::AUTH_FAILURE_THRESHOLD..=Self::MAX_RE_ENROLLMENT_ATTEMPTS).contains(&failures)
                             {
                                 let now_secs = std::time::SystemTime::now()
                                     .duration_since(std::time::UNIX_EPOCH)
@@ -1187,7 +1230,7 @@ impl AgentRuntime {
                                 }
                             } else if failures > Self::MAX_RE_ENROLLMENT_ATTEMPTS {
                                 // Already exceeded max attempts — log periodically
-                                if failures % 10 == 0 {
+                                if failures.is_multiple_of(10) {
                                     error!(
                                         "Re-enrollment exhausted after {} attempts. \
                                          Agent running in offline/degraded mode. \

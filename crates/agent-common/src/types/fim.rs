@@ -132,10 +132,18 @@ impl FimPolicy {
     pub fn default_watched_paths() -> Vec<PathBuf> {
         #[cfg(target_os = "windows")]
         {
-            vec![
+            let mut paths = vec![
+                // hosts file — readable by all users
                 PathBuf::from(r"C:\Windows\System32\drivers\etc"),
-                PathBuf::from(r"C:\Windows\System32\config"),
-            ]
+            ];
+            // Registry hive directory — requires SYSTEM/admin privileges.
+            // Only include if the path is accessible (avoids noisy errors
+            // when running as a normal user or non-elevated service).
+            let config_path = PathBuf::from(r"C:\Windows\System32\config");
+            if std::fs::read_dir(&config_path).is_ok() {
+                paths.push(config_path);
+            }
+            paths
         }
         #[cfg(target_os = "macos")]
         {

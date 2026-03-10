@@ -8,6 +8,7 @@
 
 use crate::error::{NetworkError, NetworkResult};
 use agent_common::process::silent_async_command;
+use std::time::Duration;
 use tracing::debug;
 
 /// An entry parsed from the system ARP table.
@@ -29,11 +30,15 @@ pub struct ArpScanner;
 impl ArpScanner {
     /// Parse the system ARP table and return all entries.
     pub async fn scan() -> NetworkResult<Vec<ArpEntry>> {
-        let output = silent_async_command("arp")
-            .arg("-a")
-            .output()
-            .await
-            .map_err(|e| NetworkError::CommandFailed(format!("arp -a failed: {}", e)))?;
+        const ARP_TIMEOUT: Duration = Duration::from_secs(30);
+
+        let output = tokio::time::timeout(
+            ARP_TIMEOUT,
+            silent_async_command("arp").arg("-a").output(),
+        )
+        .await
+        .map_err(|_| NetworkError::CommandFailed("arp -a timed out after 30s".to_string()))?
+        .map_err(|e| NetworkError::CommandFailed(format!("arp -a failed: {}", e)))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);

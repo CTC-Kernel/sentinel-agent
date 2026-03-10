@@ -106,11 +106,10 @@ fn main() -> ExitCode {
         let _ = fs::create_dir_all(log_dir);
 
         // Prevent infinite growth by keeping it under 5MB
-        if let Ok(metadata) = fs::metadata(log_file) {
-            if metadata.len() > 5 * 1024 * 1024 {
+        if let Ok(metadata) = fs::metadata(log_file)
+            && metadata.len() > 5 * 1024 * 1024 {
                 let _ = fs::rename(log_file, format!("{}.old", log_file));
             }
-        }
 
         if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(log_file) {
             let _ = writeln!(
@@ -150,11 +149,10 @@ fn main() -> ExitCode {
             let _ = fs::create_dir_all(log_dir);
 
             // Prevent infinite growth
-            if let Ok(metadata) = fs::metadata(panic_log) {
-                if metadata.len() > 5 * 1024 * 1024 {
+            if let Ok(metadata) = fs::metadata(panic_log)
+                && metadata.len() > 5 * 1024 * 1024 {
                     let _ = fs::rename(panic_log, format!("{}.old", panic_log));
                 }
-            }
 
             if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(panic_log) {
                 let _ = writeln!(

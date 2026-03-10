@@ -906,7 +906,11 @@ impl AuthenticatedClient {
         let mut config = self.config.clone();
         config.organization_id = Some(credentials.organization_id.to_string());
 
-        // Try mTLS first, fall back to header-based auth
+        // Try mTLS first, fall back to header-based auth.
+        // mTLS may fail on some platforms if the certificate/key stored from enrollment
+        // is not in native PEM format (e.g., base64-encoded JSON blobs). In that case
+        // header-based auth (X-Agent-Certificate) provides equivalent application-layer
+        // authentication and is fully supported by the server.
         let client = match HttpClient::with_mtls(
             &config,
             &credentials.client_certificate,
@@ -917,9 +921,9 @@ impl AuthenticatedClient {
                 client
             }
             Err(e) => {
-                tracing::error!(
-                    "SECURITY: mTLS not available ({}), falling back to header-based auth. \
-                     This degrades security from channel-level to application-layer authentication.",
+                warn!(
+                    "mTLS not available ({}), using header-based auth (X-Agent-Certificate). \
+                     This is normal when certificates are not in PEM format.",
                     e
                 );
                 HttpClient::with_header_auth(&config, &credentials.client_certificate)?

@@ -322,8 +322,8 @@ impl ResourceMonitor {
                     }
                 };
 
-                if !timed_out {
-                    if let Ok(output) = child.wait_with_output() {
+                if !timed_out
+                    && let Ok(output) = child.wait_with_output() {
                         let stdout = String::from_utf8_lossy(&output.stdout);
                         for line in stdout.lines() {
                             if let Some(conn) = self.parse_netstat_line(line) {
@@ -331,7 +331,6 @@ impl ResourceMonitor {
                             }
                         }
                     }
-                }
             }
         }
 
@@ -1018,15 +1017,20 @@ fn get_network_bytes_total() -> u64 {
 
     static NETWORK_CACHE: Mutex<Option<(u64, Instant)>> = Mutex::new(None);
 
-    let mut guard = NETWORK_CACHE.lock().unwrap();
+    let mut guard = match NETWORK_CACHE.lock() {
+        Ok(g) => g,
+        Err(poisoned) => {
+            tracing::warn!("NETWORK_CACHE mutex was poisoned, recovering");
+            poisoned.into_inner()
+        }
+    };
     let now = Instant::now();
 
     // Use cached value if less than 1 second old (network stats don't change fast)
-    if let Some((cached_bytes, cached_time)) = *guard {
-        if now.duration_since(cached_time).as_secs() < 1 {
+    if let Some((cached_bytes, cached_time)) = *guard
+        && now.duration_since(cached_time).as_secs() < 1 {
             return cached_bytes;
         }
-    }
 
     // Windows: use sysinfo Networks as fallback (the native approach requires
     // GetIfTable2 from iphlpapi which is more complex to declare via FFI).

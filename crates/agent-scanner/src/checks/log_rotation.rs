@@ -120,19 +120,16 @@ impl LogRotationCheck {
         // Parse maxSize and retention from wevtutil output
         for line in raw_output.lines() {
             let line_lower = line.to_lowercase();
-            if line_lower.contains("maxsize:") || line_lower.contains("maxsize :") {
-                if let Some(size_str) = line.split(':').last() {
-                    if let Ok(size) = size_str.trim().parse::<u64>() {
+            if (line_lower.contains("maxsize:") || line_lower.contains("maxsize :"))
+                && let Some(size_str) = line.split(':').next_back()
+                    && let Ok(size) = size_str.trim().parse::<u64>() {
                         status.max_log_size = Some(size);
                     }
-                }
-            }
-            if line_lower.contains("retention:") || line_lower.contains("retention :") {
-                if let Some(retention_str) = line.split(':').last() {
+            if (line_lower.contains("retention:") || line_lower.contains("retention :"))
+                && let Some(retention_str) = line.split(':').next_back() {
                     let retention = retention_str.trim().to_lowercase();
                     status.retention_configured = Some(retention == "true" || retention == "yes");
                 }
-            }
         }
 
         // Consider configured if maxSize is set and reasonable (> 0)

@@ -120,7 +120,7 @@ impl GpoAuditor {
             ])
             .output()
             .await
-            .map_err(|e| ScannerError::Io(e))?;
+            .map_err(ScannerError::Io)?;
 
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
@@ -190,7 +190,7 @@ impl GpoAuditor {
             ])
             .output()
             .await
-            .map_err(|e| ScannerError::Io(e))?;
+            .map_err(ScannerError::Io)?;
 
         let is_domain = String::from_utf8_lossy(&domain_check.stdout)
             .trim()
@@ -231,7 +231,7 @@ impl GpoAuditor {
             ])
             .output()
             .await
-            .map_err(|e| ScannerError::Io(e))?;
+            .map_err(ScannerError::Io)?;
 
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
@@ -323,7 +323,7 @@ impl GpoAuditor {
             ])
             .output()
             .await
-            .map_err(|e| ScannerError::Io(e))?;
+            .map_err(ScannerError::Io)?;
 
         let mut audit = AuditPolicy::default();
 
@@ -435,8 +435,8 @@ impl GpoAuditor {
                 .output()
                 .await;
 
-            if let Ok(output) = output {
-                if output.status.success() {
+            if let Ok(output) = output
+                && output.status.success() {
                     let members_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
                     let members: Vec<String> = if members_str.is_empty() {
                         Vec::new()
@@ -465,7 +465,6 @@ impl GpoAuditor {
                         description: description.to_string(),
                     });
                 }
-            }
         }
 
         Ok(groups)

@@ -131,8 +131,8 @@ impl SystemMonitor {
             ])
             .output();
 
-        if let Ok(result) = output {
-            if result.status.success() {
+        if let Ok(result) = output
+            && result.status.success() {
                 #[derive(serde::Deserialize)]
                 #[serde(rename_all = "PascalCase")]
                 struct FirewallProfile {
@@ -156,7 +156,6 @@ impl SystemMonitor {
                     })));
                 }
             }
-        }
 
         None
     }
@@ -188,8 +187,8 @@ impl SystemMonitor {
             ])
             .output();
 
-        if let Ok(result) = output {
-            if result.status.success() {
+        if let Ok(result) = output
+            && result.status.success() {
                 #[derive(serde::Deserialize)]
                 #[serde(rename_all = "PascalCase")]
                 struct DefenderStatus {
@@ -200,9 +199,9 @@ impl SystemMonitor {
                 }
 
                 let stdout = String::from_utf8_lossy(&result.stdout);
-                if let Ok(status) = serde_json::from_str::<DefenderStatus>(&stdout) {
-                    if status.real_time_enabled == Some(false)
-                        || status.antivirus_enabled == Some(false)
+                if let Ok(status) = serde_json::from_str::<DefenderStatus>(&stdout)
+                    && (status.real_time_enabled == Some(false)
+                        || status.antivirus_enabled == Some(false))
                     {
                         return Some(SecurityIncident::antivirus_disabled(
                             "Windows Defender",
@@ -214,9 +213,7 @@ impl SystemMonitor {
                             }),
                         ));
                     }
-                }
             }
-        }
 
         None
     }
@@ -435,8 +432,8 @@ impl SystemMonitor {
             ])
             .output();
 
-        if let Ok(result) = output {
-            if result.status.success() {
+        if let Ok(result) = output
+            && result.status.success() {
                 let stdout = String::from_utf8_lossy(&result.stdout);
                 let admins: Vec<String> = stdout.lines().map(|s| s.trim().to_string()).collect();
 
@@ -462,7 +459,6 @@ impl SystemMonitor {
                     }
                 }
             }
-        }
 
         None
     }

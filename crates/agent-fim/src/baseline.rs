@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::RwLock;
-use tracing::debug;
+use tracing::{debug, warn};
 use walkdir::WalkDir;
 
 /// Manages file baselines for integrity comparison.
@@ -77,10 +77,13 @@ impl BaselineManager {
 
     /// Look up the baseline for a given path.
     pub fn get(&self, path: &Path) -> Option<FimBaseline> {
-        self.baselines
-            .read()
-            .ok()
-            .and_then(|b| b.get(path).cloned())
+        match self.baselines.read() {
+            Ok(b) => b.get(path).cloned(),
+            Err(poisoned) => {
+                warn!("Baseline RwLock poisoned during read, recovering");
+                poisoned.into_inner().get(path).cloned()
+            }
+        }
     }
 
     /// Update the baseline for a specific file.
@@ -97,12 +100,24 @@ impl BaselineManager {
 
     /// Remove a path from the baseline (e.g., when file is deleted).
     pub fn remove(&self, path: &Path) -> Option<FimBaseline> {
-        self.baselines.write().ok().and_then(|mut b| b.remove(path))
+        match self.baselines.write() {
+            Ok(mut b) => b.remove(path),
+            Err(poisoned) => {
+                warn!("Baseline RwLock poisoned during write, recovering");
+                poisoned.into_inner().remove(path)
+            }
+        }
     }
 
     /// Get the total number of baselined files.
     pub fn count(&self) -> usize {
-        self.baselines.read().map(|b| b.len()).unwrap_or(0)
+        match self.baselines.read() {
+            Ok(b) => b.len(),
+            Err(poisoned) => {
+                warn!("Baseline RwLock poisoned during count, recovering");
+                poisoned.into_inner().len()
+            }
+        }
     }
 }
 

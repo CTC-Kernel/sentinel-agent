@@ -236,9 +236,9 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
 
     if let Ok(config) = agent_common::config::AgentConfig::load(None) {
         // Parse the server URL host and compare at IP level
-        if let Ok(url) = url::Url::parse(&config.server_url) {
-            if let Some(host) = url.host_str() {
-                if host == ip || host == parsed_ip.to_string() {
+        if let Ok(url) = url::Url::parse(&config.server_url)
+            && let Some(host) = url.host_str()
+                && (host == ip || host == parsed_ip.to_string()) {
                     warn!(
                         "Anti-Draper triggered: Attempted to block backend API server ({})",
                         ip
@@ -247,8 +247,6 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
                         "Anti-Draper protection: Cannot block the backend API server",
                     ));
                 }
-            }
-        }
     }
 
     #[cfg(target_os = "macos")]
@@ -293,7 +291,7 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
 
     #[cfg(target_os = "windows")]
     {
-        let rule_name = format!("SentinelBlock_{}", ip.replace('.', "_").replace(':', "_"));
+        let rule_name = format!("SentinelBlock_{}", ip.replace(['.', ':'], "_"));
         let output = agent_common::process::silent_async_command("netsh")
             .args([
                 "advfirewall",
@@ -363,7 +361,7 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
 
     #[cfg(target_os = "windows")]
     {
-        let rule_name = format!("SentinelBlock_{}", ip.replace('.', "_").replace(':', "_"));
+        let rule_name = format!("SentinelBlock_{}", ip.replace(['.', ':'], "_"));
         let _ = agent_common::process::silent_async_command("netsh")
             .args([
                 "advfirewall",

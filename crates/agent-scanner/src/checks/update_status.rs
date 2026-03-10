@@ -204,11 +204,10 @@ impl UpdateStatusCheck {
         if important_count > 5 {
             score -= 20.0;
         }
-        if let Some(days) = days_since {
-            if days > MAX_DAYS_SINCE_UPDATE {
+        if let Some(days) = days_since
+            && days > MAX_DAYS_SINCE_UPDATE {
                 score -= (days - MAX_DAYS_SINCE_UPDATE).min(30) as f32;
             }
-        }
         if reboot_required {
             score -= 10.0;
         }
@@ -272,8 +271,8 @@ impl UpdateStatusCheck {
             ])
             .output();
 
-        if let Ok(out) = output {
-            if out.status.success() {
+        if let Ok(out) = output
+            && out.status.success() {
                 let stdout = String::from_utf8_lossy(&out.stdout);
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
                     status.service_running = json
@@ -295,7 +294,6 @@ impl UpdateStatusCheck {
                         .map(|s| s.to_string());
                 }
             }
-        }
 
         status
     }
@@ -333,13 +331,13 @@ impl UpdateStatusCheck {
         let mut entries = Vec::new();
         let mut last_update: Option<DateTime<Utc>> = None;
 
-        if let Ok(out) = output {
-            if out.status.success() {
+        if let Ok(out) = output
+            && out.status.success() {
                 let stdout = String::from_utf8_lossy(&out.stdout);
                 if let Ok(items) = serde_json::from_str::<Vec<serde_json::Value>>(&stdout) {
                     for item in items {
-                        if let Some(date_str) = item.get("Date").and_then(|v| v.as_str()) {
-                            if let Ok(date) = DateTime::parse_from_rfc3339(date_str) {
+                        if let Some(date_str) = item.get("Date").and_then(|v| v.as_str())
+                            && let Ok(date) = DateTime::parse_from_rfc3339(date_str) {
                                 let date_utc = date.with_timezone(&Utc);
                                 if last_update.is_none()
                                     || last_update.map(|d| d < date_utc).unwrap_or(false)
@@ -368,11 +366,9 @@ impl UpdateStatusCheck {
                                         .to_string(),
                                 });
                             }
-                        }
                     }
                 }
             }
-        }
 
         (last_update, entries)
     }
@@ -406,8 +402,8 @@ impl UpdateStatusCheck {
 
         let mut updates = Vec::new();
 
-        if let Ok(out) = output {
-            if out.status.success() {
+        if let Ok(out) = output
+            && out.status.success() {
                 let stdout = String::from_utf8_lossy(&out.stdout);
                 // Handle both single object and array
                 if let Ok(items) = serde_json::from_str::<Vec<serde_json::Value>>(&stdout) {
@@ -457,7 +453,6 @@ impl UpdateStatusCheck {
                     });
                 }
             }
-        }
 
         updates
     }
@@ -495,8 +490,8 @@ impl UpdateStatusCheck {
             ])
             .output();
 
-        if let Ok(out) = output {
-            if out.status.success() {
+        if let Ok(out) = output
+            && out.status.success() {
                 let stdout = String::from_utf8_lossy(&out.stdout);
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
                     let reboot = json
@@ -506,7 +501,6 @@ impl UpdateStatusCheck {
                     return (reboot, None);
                 }
             }
-        }
 
         (false, None)
     }

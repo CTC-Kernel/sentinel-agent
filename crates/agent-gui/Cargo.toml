@@ -22,7 +22,6 @@ llm = ["dep:agent_llm"]
 agent-common = { path = "../agent-common" }
 agent-storage = { path = "../agent-storage" }
 agent-sync = { path = "../agent-sync" }
-openssl = { workspace = true, features = ["vendored"] }
 agent_llm = { path = "../agent_llm", optional = true }
 anyhow.workspace = true
 serde.workspace = true
