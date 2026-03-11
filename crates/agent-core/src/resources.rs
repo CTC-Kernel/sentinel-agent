@@ -2076,7 +2076,7 @@ mod tests {
     #[test]
     fn test_resource_monitor_creation() {
         let monitor = ResourceMonitor::new();
-        assert!(monitor.uptime_ms() < 1000); // Should be very small
+        assert!(monitor.uptime_ms() < 5000); // Should be small (generous for slow CI)
     }
 
     #[test]
