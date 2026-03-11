@@ -182,7 +182,7 @@ impl AgentRuntime {
                     organization: self
                         .organization_name
                         .read()
-                        .unwrap_or_else(|e| e.into_inner())
+                        .await
                         .clone(),
                     compliance_score: compliance_score.map(|s| s as f32),
                     last_check_at: last_compliance_check,
