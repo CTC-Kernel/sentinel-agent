@@ -518,16 +518,15 @@ impl<'a> CheckResultsRepository<'a> {
         };
 
         let executed_at_str: String = row.get(6)?;
-        let executed_at = match DateTime::parse_from_rfc3339(&executed_at_str) {
-            Ok(dt) => dt.with_timezone(&Utc),
-            Err(e) => {
-                warn!(
-                    "Failed to parse timestamp '{}' for check result {}: {}. Using current time.",
-                    executed_at_str, id, e
-                );
-                Utc::now()
-            }
-        };
+        let executed_at = DateTime::parse_from_rfc3339(&executed_at_str)
+            .map(|dt| dt.with_timezone(&Utc))
+            .map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    6,
+                    rusqlite::types::Type::Text,
+                    Box::new(e),
+                )
+            })?;
 
         let synced_int: i32 = row.get(8)?;
 

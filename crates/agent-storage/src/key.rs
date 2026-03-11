@@ -274,7 +274,7 @@ impl KeyManager {
             ))
         })?;
 
-        let mut data_in = CRYPT_INTEGER_BLOB {
+        let data_in = CRYPT_INTEGER_BLOB {
             cbData: encrypted_data.len() as u32,
             pbData: encrypted_data.as_ptr() as *mut u8,
         };
@@ -410,7 +410,7 @@ impl KeyManager {
             }
 
         // Encrypt the key using DPAPI
-        let mut data_in = CRYPT_INTEGER_BLOB {
+        let data_in = CRYPT_INTEGER_BLOB {
             cbData: KEY_LENGTH as u32,
             pbData: key.as_ptr() as *mut u8,
         };

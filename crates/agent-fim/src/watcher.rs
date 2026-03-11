@@ -148,17 +148,28 @@ fn process_event(
     };
 
     for raw_path in &event.paths {
-        // SECURITY: Resolve symlinks to detect evasion via symlink-to-ignored-path
-        let path = &raw_path.canonicalize().unwrap_or_else(|_| raw_path.clone());
+        // SECURITY: Resolve symlinks to detect evasion via symlink-to-ignored-path.
+        // If canonicalize fails (broken symlink, race), skip the path to avoid
+        // processing an unresolved symlink that could bypass ignore patterns.
+        let path = match raw_path.canonicalize() {
+            Ok(p) => p,
+            Err(_) => {
+                debug!(
+                    "FIM: skipping {} (canonicalize failed, possible broken symlink)",
+                    raw_path.display()
+                );
+                continue;
+            }
+        };
 
         // Skip ignored patterns (checked against the canonical path)
-        if is_ignored_path(path, ignore_patterns) {
+        if is_ignored_path(&path, ignore_patterns) {
             continue;
         }
 
         // Debounce: skip if we recently processed this path
         let now = Instant::now();
-        if let Some(last) = debounce_map.get(path)
+        if let Some(last) = debounce_map.get(&path)
             && now.duration_since(*last) < debounce_duration
         {
             continue;
@@ -168,13 +179,13 @@ fn process_event(
         debug!("FIM event: {:?} on {}", change_type, path.display());
 
         // Build the alert
-        let old_baseline = baseline.get(path);
+        let old_baseline = baseline.get(&path);
         let old_hash = old_baseline.as_ref().map(|b| b.hash.clone());
 
         let (new_hash, new_size) = if change_type != FimChangeType::Deleted && path.exists() {
-            match crate::baseline::compute_blake3(path) {
+            match crate::baseline::compute_blake3(&path) {
                 Ok(hash) => {
-                    let size = std::fs::metadata(path).map(|m| m.len()).ok();
+                    let size = std::fs::metadata(&path).map(|m| m.len()).ok();
                     (Some(hash), size)
                 }
                 Err(_) => (None, None),
@@ -204,10 +215,10 @@ fn process_event(
         // Update baseline
         match change_type {
             FimChangeType::Deleted => {
-                baseline.remove(path);
+                baseline.remove(&path);
             }
             _ => {
-                if let Err(e) = baseline.update(path) {
+                if let Err(e) = baseline.update(&path) {
                     tracing::warn!(
                         "Failed to update FIM baseline for {}: {}",
                         path.display(),

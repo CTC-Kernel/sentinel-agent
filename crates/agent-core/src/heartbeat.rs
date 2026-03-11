@@ -61,16 +61,17 @@ impl AgentRuntime {
 
         // Get total network bytes since boot
         let network_bytes = {
-            match self.resource_monitor.get_networks().lock() {
-                Ok(networks) => networks
-                    .values()
-                    .map(|data| (data.transmitted(), data.received()))
-                    .fold((0, 0), |acc, (t, r)| (acc.0 + t, acc.1 + r)),
-                Err(e) => {
-                    error!("Failed to lock network monitor (mutex poisoned): {}", e);
-                    (0, 0)
+            let networks = match self.resource_monitor.get_networks().lock() {
+                Ok(guard) => guard,
+                Err(poisoned) => {
+                    warn!("Network monitor mutex was poisoned, recovering");
+                    poisoned.into_inner()
                 }
-            }
+            };
+            networks
+                .values()
+                .map(|data| (data.transmitted(), data.received()))
+                .fold((0, 0), |acc, (t, r)| (acc.0 + t, acc.1 + r))
         };
 
         // Check module status for self_check_result
@@ -180,9 +181,9 @@ impl AgentRuntime {
                     agent_id: self.config.agent_id.clone(),
                     organization: self
                         .organization_name
-                        .try_read()
-                        .ok()
-                        .and_then(|g| g.clone()),
+                        .read()
+                        .unwrap_or_else(|e| e.into_inner())
+                        .clone(),
                     compliance_score: compliance_score.map(|s| s as f32),
                     last_check_at: last_compliance_check,
                     last_sync_at: Some(now),
@@ -333,14 +334,22 @@ impl AgentRuntime {
                                     .and_then(|v| v.as_str())
                                     .unwrap_or_default()
                                     .to_string();
+                                const ALLOWED_ACTIONS: &[&str] = &["execute", "rollback"];
                                 let action = cmd
                                     .payload
                                     .get("action")
                                     .and_then(|v| v.as_str())
-                                    .unwrap_or("execute")
-                                    .to_string();
+                                    .unwrap_or("execute");
 
-                                if check_id.is_empty() {
+                                if !ALLOWED_ACTIONS.contains(&action) {
+                                    warn!("Rejecting remediation with invalid action: {}", action);
+                                    service
+                                        .report_failure(
+                                            &cmd.id,
+                                            format!("Invalid remediation action: {}", action),
+                                        )
+                                        .await
+                                } else if check_id.is_empty() {
                                     service
                                         .report_failure(
                                             &cmd.id,

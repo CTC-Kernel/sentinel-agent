@@ -383,7 +383,7 @@ impl<'a> RetentionPolicy<'a> {
                         [&cutoff_str],
                         |row| row.get(0),
                     )
-                    .unwrap_or(0);
+                    .map_err(|e| StorageError::Query(format!("Failed to count sync queue items for dry-run: {}", e)))?;
 
                 // Get current statistics
                 let total_proofs_remaining: i64 = conn
