@@ -43,6 +43,7 @@ impl HttpTransport {
         auth_header: Option<String>,
         verify_tls: bool,
     ) -> Self {
+        #[allow(unused_mut)]
         let mut builder = reqwest::Client::builder()
             .min_tls_version(reqwest::tls::Version::TLS_1_2)
             .timeout(Duration::from_secs(30))
