@@ -37,6 +37,7 @@ pub mod types;
 
 // Re-export commonly used items at crate root
 pub use config::AgentConfig;
+pub use config::SecureConfig;
 pub use error::{CommonError, Result};
 pub use sensitive_filter::{
     contains_sensitive_data, filter_json_sensitive_data, filter_sensitive_data,

@@ -91,6 +91,10 @@ pub struct EnrollmentResponse {
     #[serde(default)]
     pub server_fingerprints: Vec<String>,
 
+    /// HMAC secret for request signing (alternative to mTLS).
+    #[serde(default)]
+    pub hmac_secret: Option<String>,
+
     /// Initial configuration from the SaaS.
     /// Accepts both 'config' (from Cloud Function) and 'initial_config'.
     #[serde(default, alias = "config")]
@@ -460,6 +464,7 @@ pub enum AgentCommand {
 
 /// Severity levels for vulnerabilities and incidents.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
 pub enum Severity {
     Critical,
     High,
@@ -1367,6 +1372,7 @@ mod tests {
             certificate_expires_at: Utc::now() + chrono::Duration::days(365),
             server_certificate: Some("server_cert".to_string()),
             server_fingerprints: vec!["sha256:test".to_string()],
+            hmac_secret: Some("test_hmac_secret".to_string()),
             initial_config: None,
         };
 

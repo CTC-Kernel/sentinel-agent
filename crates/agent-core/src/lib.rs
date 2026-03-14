@@ -57,7 +57,7 @@ pub mod tray;
 pub use logging::init_logging_with_terminal;
 pub use logging::{init_logging, set_tracing_level};
 
-use agent_common::config::AgentConfig;
+use agent_common::config::{AgentConfig, SecureConfig};
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
 use agent_network::NetworkManager;
@@ -193,7 +193,7 @@ pub struct ProposeAssetData {
 
 /// Agent runtime managing the main execution loop.
 pub struct AgentRuntime {
-    config: AgentConfig,
+    config: SecureConfig,
     resource_monitor: ResourceMonitor,
     api_client: RwLock<Option<ApiClient>>,
     /// Heartbeat interval in seconds (dynamic).
@@ -411,6 +411,7 @@ impl AgentRuntime {
 
     /// Create a new agent runtime with the given configuration.
     pub fn new(config: AgentConfig) -> Self {
+        let config = SecureConfig::from(config);
         let resource_monitor = ResourceMonitor::new();
         let vulnerability_scanner = VulnerabilityScanner::new();
         let security_monitor = SecurityMonitor::new();
@@ -522,7 +523,7 @@ impl AgentRuntime {
 
     /// Set the database and create an authenticated client for sync services.
     pub fn with_database(mut self, db: Arc<Database>) -> Self {
-        let auth_client = Arc::new(AuthenticatedClient::new(self.config.clone(), db.clone()));
+        let auth_client = Arc::new(AuthenticatedClient::new(self.config.0.clone(), db.clone()));
         self.db = Some(db.clone());
         self.authenticated_client = Some(auth_client);
 

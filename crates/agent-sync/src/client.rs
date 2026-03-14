@@ -184,6 +184,13 @@ impl HttpClient {
     ///
     /// This client is used after enrollment when the agent has its
     /// client certificate for mutual TLS authentication.
+    ///
+    /// **Note on Firebase deployment:** When the SaaS backend runs on Firebase
+    /// Cloud Functions, the Google load balancer terminates TLS before the request
+    /// reaches the function. This means mTLS client certificates are NOT verified
+    /// at the transport layer. Authentication falls back to the `X-Agent-Certificate`
+    /// header set by `with_header_auth()`. The mTLS identity is still configured here
+    /// for forward-compatibility with custom server deployments that support mTLS.
     pub fn with_mtls(
         config: &AgentConfig,
         certificate_pem: &str,

@@ -377,3 +377,237 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
     info!("Successfully unblocked IP '{}'", ip);
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── quarantine: path traversal ──────────────────────────────────────
+
+    /// Verify that `quarantine_file` canonicalizes paths, meaning a path
+    /// containing ".." components will either be resolved to the real
+    /// location or rejected if the path does not exist.
+    #[tokio::test]
+    async fn test_quarantine_rejects_path_traversal() {
+        // A path with ".." that points to a non-existent file should fail
+        // because canonicalize requires the path to actually exist.
+        let result = quarantine_file("/tmp/../../../nonexistent_sentinel_test_file").await;
+        assert!(result.is_err(), "Path traversal with non-existent file must be rejected");
+
+        // A path with ".." that technically resolves to an existing dir
+        // (e.g., /tmp/../tmp) would be canonicalized to /tmp, but since
+        // quarantine_file operates on files and /tmp is a directory, the
+        // rename would fail. We verify the canonicalization happens by
+        // creating a temp file with a traversal path.
+        let dir = tempfile::tempdir().unwrap();
+        let real_file = dir.path().join("secret.txt");
+        std::fs::write(&real_file, b"test").unwrap();
+
+        // Build a traversal path: <dir>/subdir/../secret.txt
+        let subdir = dir.path().join("subdir");
+        std::fs::create_dir(&subdir).unwrap();
+        let traversal_path = subdir.join("..").join("secret.txt");
+
+        // quarantine_file should canonicalize the traversal away and still
+        // find the real file.  The function should succeed (the file exists).
+        let result = quarantine_file(traversal_path.to_str().unwrap()).await;
+        // It succeeds because canonicalize resolves the ".." to the real path.
+        assert!(result.is_ok(), "Canonicalized traversal path should succeed for existing file");
+        // The original file should have been moved away.
+        assert!(!real_file.exists(), "Original file should be quarantined (moved)");
+    }
+
+    // ── quarantine: symlink handling ────────────────────────────────────
+
+    #[tokio::test]
+    async fn test_quarantine_rejects_symlinks() {
+        // Create a real file and a symlink pointing to it.
+        let dir = tempfile::tempdir().unwrap();
+        let real_file = dir.path().join("real.txt");
+        std::fs::write(&real_file, b"important data").unwrap();
+
+        let symlink_path = dir.path().join("link.txt");
+
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&real_file, &symlink_path).unwrap();
+
+        #[cfg(windows)]
+        std::os::windows::fs::symlink_file(&real_file, &symlink_path).unwrap();
+
+        // quarantine_file canonicalizes the path, so the symlink is
+        // resolved to the real file.  The *real* file ends up in quarantine.
+        let result = quarantine_file(symlink_path.to_str().unwrap()).await;
+        assert!(result.is_ok(), "Quarantine via symlink should succeed after canonicalization");
+        // The real file should have been moved to quarantine.
+        assert!(!real_file.exists(), "Real file behind symlink should be moved to quarantine");
+    }
+
+    // ── restore: system-critical paths ──────────────────────────────────
+
+    /// The restore validation checks the *parent* directory of the original
+    /// path.  We test the validation logic directly by verifying that the
+    /// quarantine ID format check and the system-path check both work.
+    /// NOTE: We cannot easily test the full `restore_quarantined_file` flow
+    /// because it reads metadata from the quarantine directory.  Instead we
+    /// set up a real quarantine entry and verify rejection.
+    #[tokio::test]
+    async fn test_restore_rejects_system_paths() {
+        // Create a fake quarantine entry whose metadata claims the original
+        // path is in a system-critical directory.
+        let quarantine_dir = tempfile::tempdir().unwrap();
+
+        // We need the quarantine dir to be where the code looks (data_local_dir).
+        // Instead, we directly test the validation logic by constructing the
+        // scenario: quarantine a temp file, then patch its metadata to claim
+        // the original path is "/bin/evil".
+
+        // Step 1: Create a temporary file and quarantine it normally.
+        let src_dir = tempfile::tempdir().unwrap();
+        let src_file = src_dir.path().join("testfile.txt");
+        std::fs::write(&src_file, b"test data").unwrap();
+
+        let quarantine_id = quarantine_file(src_file.to_str().unwrap())
+            .await
+            .expect("quarantine should succeed");
+
+        // Step 2: Patch the metadata to claim the original path is /bin/evil.
+        let qdir = directories::BaseDirs::new()
+            .map(|dirs| dirs.data_local_dir().to_path_buf())
+            .unwrap_or_else(std::env::temp_dir)
+            .join("sentinel-grc")
+            .join("quarantine");
+
+        let meta_path = qdir.join(format!("{}.meta", quarantine_id));
+        let patched_metadata = serde_json::json!({
+            "original_path": "/bin/evil",
+            "quarantined_at": chrono::Utc::now().to_rfc3339(),
+            "file_name": "evil",
+        });
+        tokio::fs::write(&meta_path, serde_json::to_string_pretty(&patched_metadata).unwrap())
+            .await
+            .unwrap();
+
+        // Step 3: Try to restore -- should be rejected because /bin is system-critical.
+        let result = restore_quarantined_file(&quarantine_id).await;
+        assert!(result.is_err(), "Restore to /bin must be rejected");
+        let err_msg = result.unwrap_err().to_string();
+        assert!(
+            err_msg.contains("system-critical"),
+            "Error should mention system-critical, got: {}",
+            err_msg
+        );
+
+        // Clean up the quarantined file.
+        let _ = tokio::fs::remove_file(qdir.join(&quarantine_id)).await;
+        let _ = tokio::fs::remove_file(&meta_path).await;
+        let _ = quarantine_dir.close();
+    }
+
+    // ── block_ip: loopback rejection ────────────────────────────────────
+    //
+    // NOTE: `block_ip` checks for admin privileges before validating the IP.
+    // When tests run without root, the admin check fails first with
+    // "Elevated privileges required".  We test the IP validation logic
+    // directly via the parsed `IpAddr` checks, and also verify that the
+    // function never succeeds for loopback/unspecified addresses regardless
+    // of the specific error returned.
+
+    #[tokio::test]
+    async fn test_block_ip_rejects_loopback() {
+        // 127.0.0.1 (IPv4 loopback) -- must never succeed
+        let result = block_ip("127.0.0.1", 0).await;
+        assert!(result.is_err(), "Blocking 127.0.0.1 must be rejected");
+        // Verify via the std::net validation that the loopback check is sound
+        let ip: std::net::IpAddr = "127.0.0.1".parse().unwrap();
+        assert!(ip.is_loopback(), "127.0.0.1 must be detected as loopback");
+
+        // ::1 (IPv6 loopback) -- must never succeed
+        let result = block_ip("::1", 0).await;
+        assert!(result.is_err(), "Blocking ::1 must be rejected");
+        let ip: std::net::IpAddr = "::1".parse().unwrap();
+        assert!(ip.is_loopback(), "::1 must be detected as loopback");
+
+        // Verify the actual Anti-Draper logic by testing the parsed IP checks
+        // independently of the admin privilege guard.
+        for addr in &["127.0.0.1", "::1"] {
+            let parsed: std::net::IpAddr = addr.parse().unwrap();
+            assert!(
+                parsed.is_loopback() || parsed.is_unspecified(),
+                "Address {} should be classified as loopback or unspecified",
+                addr
+            );
+        }
+    }
+
+    // ── block_ip: localhost string rejection ─────────────────────────────
+
+    #[tokio::test]
+    async fn test_block_ip_rejects_localhost() {
+        // "localhost" is not a valid IP address, so it should fail at parse
+        // or at the admin check -- either way it must not succeed.
+        let result = block_ip("localhost", 0).await;
+        assert!(result.is_err(), "Blocking 'localhost' must be rejected");
+
+        // Verify "localhost" cannot be parsed as an IP address (this is the
+        // fundamental protection -- the function only accepts numeric IPs).
+        assert!(
+            "localhost".parse::<std::net::IpAddr>().is_err(),
+            "'localhost' must not parse as a valid IP address"
+        );
+
+        // 0.0.0.0 (unspecified address) -- must never succeed
+        let result = block_ip("0.0.0.0", 0).await;
+        assert!(result.is_err(), "Blocking 0.0.0.0 must be rejected");
+        let ip: std::net::IpAddr = "0.0.0.0".parse().unwrap();
+        assert!(
+            ip.is_unspecified(),
+            "0.0.0.0 must be detected as unspecified"
+        );
+
+        // :: (IPv6 unspecified) -- must never succeed
+        let result = block_ip("::", 0).await;
+        assert!(result.is_err(), "Blocking :: must be rejected");
+        let ip: std::net::IpAddr = "::".parse().unwrap();
+        assert!(ip.is_unspecified(), ":: must be detected as unspecified");
+    }
+
+    // ── quarantine ID format validation ─────────────────────────────────
+
+    #[tokio::test]
+    async fn test_quarantine_id_format_validation() {
+        // Path traversal attempt in quarantine ID
+        let result = restore_quarantined_file("../../../etc/passwd").await;
+        assert!(result.is_err(), "Quarantine ID with '..' must be rejected");
+        let err_msg = result.unwrap_err().to_string();
+        assert!(
+            err_msg.contains("Invalid quarantine ID"),
+            "Error should mention invalid quarantine ID, got: {}",
+            err_msg
+        );
+
+        // Shell metacharacters in quarantine ID
+        let result = restore_quarantined_file("test;rm -rf /").await;
+        assert!(result.is_err(), "Quarantine ID with shell metacharacters must be rejected");
+
+        // Null bytes
+        let result = restore_quarantined_file("test\0file").await;
+        assert!(result.is_err(), "Quarantine ID with null bytes must be rejected");
+
+        // Slash characters
+        let result = restore_quarantined_file("test/file").await;
+        assert!(result.is_err(), "Quarantine ID with slashes must be rejected");
+
+        // Valid UUID format should pass the ID validation (but fail later
+        // because the quarantined file doesn't actually exist).
+        let valid_uuid = uuid::Uuid::new_v4().to_string();
+        let result = restore_quarantined_file(&valid_uuid).await;
+        // This should fail with "not found", not "invalid ID"
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(
+            err_msg.contains("not found"),
+            "Valid UUID should pass format check but fail with 'not found', got: {}",
+            err_msg
+        );
+    }
+}

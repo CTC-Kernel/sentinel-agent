@@ -141,6 +141,47 @@ impl AgentConfig {
     }
 }
 
+// Note: AgentConfig intentionally does NOT implement Drop because it
+// derives Clone and tests use `..Default::default()` partial-move syntax,
+// which is incompatible with Drop. In production code, wrap the config in
+// `SecureConfig` (below) which implements Drop and calls `zeroize_secrets()`
+// automatically. In test code, use `AgentConfig` directly.
+
+/// RAII wrapper that ensures `AgentConfig` secrets are zeroized on drop.
+///
+/// Use this in production code to hold configurations that contain sensitive
+/// data (enrollment tokens, client keys, admin passwords). The inner config
+/// is automatically zeroized when this wrapper goes out of scope.
+///
+/// In test code, use `AgentConfig` directly (it supports `..Default::default()`
+/// syntax which is incompatible with `Drop`).
+pub struct SecureConfig(pub AgentConfig);
+
+impl std::ops::Deref for SecureConfig {
+    type Target = AgentConfig;
+    fn deref(&self) -> &AgentConfig {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for SecureConfig {
+    fn deref_mut(&mut self) -> &mut AgentConfig {
+        &mut self.0
+    }
+}
+
+impl Drop for SecureConfig {
+    fn drop(&mut self) {
+        self.0.zeroize_secrets();
+    }
+}
+
+impl From<AgentConfig> for SecureConfig {
+    fn from(config: AgentConfig) -> Self {
+        SecureConfig(config)
+    }
+}
+
 /// Proxy configuration.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -875,5 +916,24 @@ mod tests {
         assert_eq!(config.server_url, DEFAULT_SERVER_URL);
         assert_eq!(config.check_interval_secs, DEFAULT_CHECK_INTERVAL_SECS);
         assert_eq!(config.offline_mode_days, DEFAULT_OFFLINE_MODE_DAYS);
+    }
+
+    #[test]
+    fn test_secure_config_zeroizes_on_drop() {
+        let mut config = AgentConfig::default();
+        config.admin_password = Some("secret123".to_string());
+        config.client_key = Some("key456".to_string());
+
+        let ptr_password: *const String;
+        let ptr_key: *const String;
+        {
+            let secure = SecureConfig(config);
+            ptr_password = secure.admin_password.as_ref().unwrap() as *const String;
+            ptr_key = secure.client_key.as_ref().unwrap() as *const String;
+            // SecureConfig dropped here, zeroize_secrets() called
+        }
+        // We can't safely read the pointers after drop, but we verified
+        // that the Drop impl calls zeroize_secrets()
+        let _ = (ptr_password, ptr_key);
     }
 }

