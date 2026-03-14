@@ -160,7 +160,10 @@ impl FirewallCheck {
         // Let's refine the logic: Any profile found to be Enabled=false while being Active=true is a failure.
         // If all active profiles are Enabled=true, it's a pass.
         // We parse the JSON again to see the IsActive field.
-        let json_data: serde_json::Value = serde_json::from_str(&raw_output).unwrap_or_default();
+        let json_data: serde_json::Value = serde_json::from_str(&raw_output).unwrap_or_else(|e| {
+            tracing::warn!("Failed to parse firewall profile JSON: {}", e);
+            serde_json::Value::Null
+        });
         let mut all_active_protected = true;
         let mut any_active = false;
 

@@ -941,12 +941,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
                     match cmd {
                         Some(EnrollmentCommand::SubmitEnrollment { token, admin_password }) => {
-                            info!("GUI enrollment: received token and password");
+                            info!("GUI enrollment: received token");
                             config.enrollment_token = Some(token);
                             config.admin_password = admin_password.clone();
 
                             // Open DB and attempt enrollment
                             let result = enroll_with_config(&config, admin_password).await;
+
+                            // Clear admin password from config after enrollment attempt
+                            // to minimize time sensitive data stays in memory.
+                            if let Some(ref mut pw) = config.admin_password {
+                                zeroize::Zeroize::zeroize(pw);
+                            }
+                            config.admin_password = None;
                             match result {
                                 Ok(enrollment) => {
                                     config.agent_id = Some(enrollment.agent_id.clone());
@@ -994,11 +1001,28 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     if let Some(url) =
                                         payload.get("server_url").and_then(|v| v.as_str())
                                     {
-                                        // Validate server URL to prevent phishing via malicious QR codes
-                                        if url.starts_with("https://") && !url.contains('@') && !url.contains(' ') {
+                                        // Validate server URL to prevent phishing via malicious QR codes.
+                                        // Must be HTTPS, no embedded credentials, no special chars,
+                                        // and must have a valid hostname.
+                                        let url_valid = url.starts_with("https://")
+                                            && !url.contains('@')
+                                            && !url.contains(' ')
+                                            && !url.contains('\\')
+                                            && url.parse::<url::Url>().is_ok_and(|u| {
+                                                u.scheme() == "https"
+                                                    && u.host_str().is_some_and(|h| {
+                                                        !h.is_empty()
+                                                            && h != "localhost"
+                                                            && !h.starts_with("127.")
+                                                            && !h.starts_with("[::1]")
+                                                    })
+                                                    && u.username().is_empty()
+                                                    && u.password().is_none()
+                                            });
+                                        if url_valid {
                                             config.server_url = url.to_string();
                                         } else {
-                                            warn!("Rejected invalid server_url from QR code: must be HTTPS without credentials");
+                                            warn!("Rejected invalid server_url from QR code: must be valid HTTPS URL without credentials or loopback");
                                         }
                                     }
                                 }

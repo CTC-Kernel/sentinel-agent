@@ -142,7 +142,10 @@ impl SystemMonitor {
 
                 let stdout = String::from_utf8_lossy(&result.stdout);
                 let profiles: Vec<FirewallProfile> =
-                    serde_json::from_str(&stdout).unwrap_or_default();
+                    serde_json::from_str(&stdout).unwrap_or_else(|e| {
+                        tracing::warn!("Failed to parse firewall profile JSON: {}", e);
+                        vec![]
+                    });
 
                 let disabled: Vec<&FirewallProfile> =
                     profiles.iter().filter(|p| !p.enabled).collect();

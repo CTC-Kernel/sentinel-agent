@@ -77,7 +77,7 @@ pub async fn watch_files(
     tokio::task::spawn_blocking(move || {
         let _watcher = watcher; // prevent drop until this closure exits
         let mut debounce_map: HashMap<PathBuf, Instant> = HashMap::new();
-        const MAX_DEBOUNCE_ENTRIES: usize = 50_000;
+        const MAX_DEBOUNCE_ENTRIES: usize = 10_000;
 
         loop {
             if shutdown.load(Ordering::Acquire) {
@@ -89,8 +89,14 @@ pub async fn watch_files(
                 Ok(Ok(event)) => {
                     // Evict stale debounce entries to bound memory usage
                     if debounce_map.len() > MAX_DEBOUNCE_ENTRIES {
+                        let before = debounce_map.len();
                         let cutoff = Instant::now() - debounce_duration;
                         debounce_map.retain(|_, t| *t > cutoff);
+                        tracing::debug!(
+                            "FIM debounce eviction: {} → {} entries",
+                            before,
+                            debounce_map.len()
+                        );
                     }
                     process_event(
                         event,

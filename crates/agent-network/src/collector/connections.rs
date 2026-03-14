@@ -252,10 +252,14 @@ impl ConnectionCollector {
                 for i in 0..4 {
                     let start = i * 8;
                     let group = &addr_hex[start..start + 8];
-                    // Reverse byte order within group
-                    let bytes: Vec<u8> = (0..4)
-                        .map(|j| u8::from_str_radix(&group[j * 2..j * 2 + 2], 16).unwrap_or(0))
-                        .collect();
+                    // Reverse byte order within group — reject on invalid hex
+                    let mut bytes = Vec::with_capacity(4);
+                    for j in 0..4 {
+                        match u8::from_str_radix(&group[j * 2..j * 2 + 2], 16) {
+                            Ok(b) => bytes.push(b),
+                            Err(_) => return None, // Reject malformed address
+                        }
+                    }
                     segments.push(format!(
                         "{:02x}{:02x}:{:02x}{:02x}",
                         bytes[3], bytes[2], bytes[1], bytes[0]
@@ -270,7 +274,7 @@ impl ConnectionCollector {
 
     #[cfg(target_os = "linux")]
     fn parse_tcp_state(&self, hex_state: &str) -> ConnectionState {
-        match u8::from_str_radix(hex_state, 16).unwrap_or(0) {
+        match u8::from_str_radix(hex_state.trim(), 16).unwrap_or(0) {
             0x01 => ConnectionState::Established,
             0x02 => ConnectionState::SynSent,
             0x03 => ConnectionState::SynReceived,
@@ -454,7 +458,10 @@ impl ConnectionCollector {
 
         let tcp_stdout = String::from_utf8_lossy(&tcp_output.stdout);
         let tcp_conns: Vec<serde_json::Value> =
-            serde_json::from_str(&tcp_stdout).unwrap_or_default();
+            serde_json::from_str(&tcp_stdout).unwrap_or_else(|e| {
+                tracing::warn!("Failed to parse TCP connections JSON: {}", e);
+                vec![]
+            });
 
         for conn in tcp_conns {
             if let Some(nc) = self.parse_windows_tcp_connection(&conn) {
@@ -474,7 +481,10 @@ impl ConnectionCollector {
 
         let udp_stdout = String::from_utf8_lossy(&udp_output.stdout);
         let udp_endpoints: Vec<serde_json::Value> =
-            serde_json::from_str(&udp_stdout).unwrap_or_default();
+            serde_json::from_str(&udp_stdout).unwrap_or_else(|e| {
+                tracing::warn!("Failed to parse UDP endpoints JSON: {}", e);
+                vec![]
+            });
 
         for endpoint in udp_endpoints {
             if let Some(nc) = self.parse_windows_udp_endpoint(&endpoint) {

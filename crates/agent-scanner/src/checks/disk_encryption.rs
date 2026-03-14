@@ -173,12 +173,18 @@ impl DiskEncryptionCheck {
 
         // Try to parse as JSON array or single object
         let volumes: Vec<serde_json::Value> = if output.trim().starts_with('[') {
-            serde_json::from_str(output).unwrap_or_default()
+            serde_json::from_str(output).unwrap_or_else(|e| {
+                tracing::warn!("Failed to parse BitLocker JSON array: {}", e);
+                vec![]
+            })
         } else {
             // Single volume returns as object, not array
             match serde_json::from_str::<serde_json::Value>(output) {
                 Ok(v) => vec![v],
-                Err(_) => vec![],
+                Err(e) => {
+                    tracing::warn!("Failed to parse BitLocker JSON: {}", e);
+                    vec![]
+                }
             }
         };
 

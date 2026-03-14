@@ -28,6 +28,8 @@ pub struct NetworkState {
     pub selected_connection: Option<usize>,
     pub selected_alert: Option<usize>,
     pub detail_open: bool,
+    /// Current page for connections table (0-indexed).
+    pub connections_page: usize,
 }
 
 impl Default for NetworkState {
@@ -46,6 +48,7 @@ impl Default for NetworkState {
             selected_connection: None,
             selected_alert: None,
             detail_open: false,
+            connections_page: 0,
         }
     }
 }
@@ -305,6 +308,8 @@ pub struct ComplianceFilter {
     pub ai_analyzing: bool,
     /// Last AI analysis result text for the selected check.
     pub ai_analysis_result: Option<String>,
+    /// Current page for paginated table view (0-indexed).
+    pub current_page: usize,
 }
 
 // ---------------------------------------------------------------------------

@@ -227,6 +227,7 @@ impl UpdateManager {
         // requires rejecting any shell metacharacters.
         if path_str.contains([
             ';', '|', '&', '$', '`', '\'', '"', '\\', '\n', '\r', '(', ')', '{', '}', '<', '>',
+            '*', '?', '[', ']', '!', '#', '~',
         ]) {
             return Err(CommonError::validation(format!(
                 "Installer path contains unsafe characters: {}",

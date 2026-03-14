@@ -329,7 +329,10 @@ impl InterfaceCollector {
         let stdout = String::from_utf8_lossy(&output.stdout);
 
         // Parse JSON output
-        let adapters: Vec<serde_json::Value> = serde_json::from_str(&stdout).unwrap_or_default();
+        let adapters: Vec<serde_json::Value> = serde_json::from_str(&stdout).unwrap_or_else(|e| {
+            tracing::warn!("Failed to parse network adapters JSON: {}", e);
+            vec![]
+        });
 
         for adapter in adapters {
             let name = adapter["Name"].as_str().unwrap_or("").to_string();
@@ -424,7 +427,10 @@ impl InterfaceCollector {
         if let Ok(output) = output {
             let stdout = String::from_utf8_lossy(&output.stdout);
             let addresses: Vec<serde_json::Value> =
-                serde_json::from_str(&stdout).unwrap_or_default();
+                serde_json::from_str(&stdout).unwrap_or_else(|e| {
+                    tracing::warn!("Failed to parse IP addresses JSON: {}", e);
+                    vec![]
+                });
 
             for addr in addresses {
                 let ip = addr["IPAddress"].as_str().unwrap_or("");
