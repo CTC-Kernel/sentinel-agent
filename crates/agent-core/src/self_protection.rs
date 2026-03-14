@@ -52,7 +52,13 @@ pub struct SelfProtection {
 impl SelfProtection {
     /// Initialize self-protection by computing startup hashes.
     pub fn new(config_path: PathBuf) -> Self {
-        let binary_path = std::env::current_exe().unwrap_or_default();
+        let binary_path = match std::env::current_exe() {
+            Ok(p) => p,
+            Err(e) => {
+                warn!("Failed to resolve current executable path: {}. Binary integrity checks will fail.", e);
+                PathBuf::new()
+            }
+        };
 
         let startup_binary_hash = compute_file_hash(&binary_path).ok();
         let startup_config_hash = compute_file_hash(&config_path).ok();
@@ -77,7 +83,10 @@ impl SelfProtection {
     /// Verify binary integrity.
     pub fn verify_binary(&self) -> bool {
         let Some(ref expected) = self.startup_binary_hash else {
-            return true; // Can't verify, assume OK
+            // Fail-secure: if we couldn't compute the hash at startup,
+            // something is wrong and we should not assume integrity.
+            warn!("Binary hash unavailable at startup — cannot verify integrity");
+            return false;
         };
 
         match compute_file_hash(&self.binary_path) {
@@ -96,8 +105,14 @@ impl SelfProtection {
                 }
             }
             Err(e) => {
-                warn!("Failed to verify binary: {}", e);
-                true // Don't flag if we can't read
+                // Fail-secure: if we can't read the binary, it may have been
+                // replaced or locked by another process — flag as suspicious.
+                warn!(
+                    "Failed to verify binary integrity ({}): {}",
+                    self.binary_path.display(),
+                    e
+                );
+                false
             }
         }
     }
@@ -105,7 +120,7 @@ impl SelfProtection {
     /// Verify config file integrity.
     pub fn verify_config(&self) -> bool {
         let Some(ref expected) = self.startup_config_hash else {
-            return true;
+            return true; // No baseline hash → skip config verification
         };
 
         match compute_file_hash(&self.config_path) {
@@ -121,7 +136,15 @@ impl SelfProtection {
                     true
                 }
             }
-            Err(_) => true,
+            Err(e) => {
+                // Config file unreadable — may indicate tampering or deletion
+                warn!(
+                    "Cannot read config file for integrity check ({}): {}",
+                    self.config_path.display(),
+                    e
+                );
+                false
+            }
         }
     }
 

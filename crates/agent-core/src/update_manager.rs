@@ -11,8 +11,9 @@ use std::sync::Arc;
 use tracing::{debug, error, info, warn};
 
 /// Characters that are forbidden in installer paths to prevent shell injection.
-const UNSAFE_PATH_CHARS: [char; 16] = [
+const UNSAFE_PATH_CHARS: [char; 23] = [
     ';', '|', '&', '$', '`', '\'', '"', '\\', '\n', '\r', '(', ')', '{', '}', '<', '>',
+    '*', '?', '[', ']', '!', '#', '~',
 ];
 
 /// Validate that an installer path does not contain shell metacharacters.

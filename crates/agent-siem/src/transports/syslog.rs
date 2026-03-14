@@ -29,10 +29,23 @@ pub struct SyslogTransport {
 
 impl SyslogTransport {
     /// Create a new syslog transport.
+    ///
+    /// If `tls` is `true`, the first `send()` call will return an error because
+    /// native TLS syslog is not yet implemented. Use a TLS-terminating proxy
+    /// (e.g., stunnel, HAProxy) in front of a plain TCP syslog target instead.
     pub fn new(host: String, port: u16, protocol: SyslogProtocol, tls: bool) -> Self {
         let hostname = hostname::get()
             .map(|h| h.to_string_lossy().to_string())
             .unwrap_or_else(|_| "unknown".to_string());
+
+        if tls {
+            tracing::warn!(
+                "Syslog TLS requested but not yet implemented — connection to {}:{} will fail. \
+                 Use a TLS-terminating proxy (stunnel/HAProxy) with plain TCP instead.",
+                host,
+                port
+            );
+        }
 
         Self {
             host,

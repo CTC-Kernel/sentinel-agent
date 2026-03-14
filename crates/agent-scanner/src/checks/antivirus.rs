@@ -225,7 +225,10 @@ impl AntivirusCheck {
 
         // Parse WMI output
         let products_json: serde_json::Value =
-            serde_json::from_str(&raw_output).unwrap_or_default();
+            serde_json::from_str(&raw_output).unwrap_or_else(|e| {
+                tracing::warn!("Failed to parse WMI antivirus JSON: {}", e);
+                serde_json::Value::Null
+            });
         let products: Vec<serde_json::Value> = if products_json.is_array() {
             products_json.as_array().unwrap().clone()
         } else if products_json.is_object() {

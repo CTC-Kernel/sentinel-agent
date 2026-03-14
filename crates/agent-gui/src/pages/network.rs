@@ -32,11 +32,19 @@ impl NetworkPage {
 
         if state.network.interfaces.is_empty() && state.network.connections.is_empty() {
             ui.add_space(theme::SPACE_LG);
+
+            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
+            if is_scanning {
+                // Show skeleton loaders during scan
+                widgets::loading_skeleton(ui, 4);
+                return command;
+            }
+
             widgets::protected_state(
                 ui,
                 icons::WARNING,
                 "AUCUNE DONNÉE RÉSEAU",
-                "Veuillez lancer un scan pour détecter les interfaces et les connexions.",
+                "Lancez un scan pour cartographier les interfaces et connexions de cet endpoint.",
             );
 
             ui.add_space(theme::SPACE_MD);

@@ -449,12 +449,24 @@ impl<'a> ProofsRepository<'a> {
         let created_at_str: String = row.get(4)?;
         let created_at = match DateTime::parse_from_rfc3339(&created_at_str) {
             Ok(dt) => dt.with_timezone(&Utc),
-            Err(e) => {
-                warn!(
-                    "Failed to parse timestamp '{}' for proof {} (result_id={}): {}. Using current time. This may affect retention policy calculations.",
-                    created_at_str, id, check_result_id, e
-                );
-                Utc::now()
+            Err(_) => {
+                // Try alternative formats before falling back
+                chrono::NaiveDateTime::parse_from_str(&created_at_str, "%Y-%m-%dT%H:%M:%SZ")
+                    .or_else(|_| {
+                        chrono::NaiveDateTime::parse_from_str(
+                            &created_at_str,
+                            "%Y-%m-%d %H:%M:%S",
+                        )
+                    })
+                    .map(|dt| dt.and_utc())
+                    .unwrap_or_else(|e| {
+                        warn!(
+                            "Failed to parse timestamp '{}' for proof {} (result_id={}): {}. \
+                             Using current time — proof retention may be affected.",
+                            created_at_str, id, check_result_id, e
+                        );
+                        Utc::now()
+                    })
             }
         };
 

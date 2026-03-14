@@ -183,8 +183,8 @@ pub async fn evaluate_playbook(
                 if let Ok(threshold) = condition_value.parse::<f32>() {
                     for alert in &threat_context.network_alerts {
                         // If the alert description contains a CVSS-like score, compare
-                        if alert.severity == "critical" && threshold <= 9.0
-                            || alert.severity == "high" && threshold <= 7.0
+                        if (alert.severity == "critical" && threshold <= 9.0)
+                            || (alert.severity == "high" && threshold <= 7.0)
                         {
                             matched_conditions.push(format!(
                                 "CVSS threshold {:.1} matched by {} alert",

@@ -362,6 +362,8 @@ impl CompliancePage {
             } else {
                 state.compliance.status_filter = target;
             }
+            // Reset pagination when filter changes
+            state.compliance.current_page = 0;
         }
 
         ui.add_space(theme::SPACE_SM);
@@ -484,9 +486,52 @@ impl CompliancePage {
                     Self::render_matrix_view(ui, state, &filtered);
                 });
             } else if state.compliance.group_by == ComplianceGroupBy::None {
+                // Paginated flat list (50 items per page)
+                const PAGE_SIZE: usize = 50;
+                let total_pages = filtered.len().div_ceil(PAGE_SIZE);
+                let page = state.compliance.current_page.min(total_pages.saturating_sub(1));
+                let start = page * PAGE_SIZE;
+                let end = (start + PAGE_SIZE).min(filtered.len());
+                let page_indices: Vec<usize> = filtered[start..end].to_vec();
+
                 ui.push_id("compliance_table_flat", |ui: &mut egui::Ui| {
-                    Self::render_check_table(ui, state, &filtered, &mut command);
+                    Self::render_check_table(ui, state, &page_indices, &mut command);
                 });
+
+                // Pagination controls
+                if total_pages > 1 {
+                    ui.add_space(theme::SPACE_MD);
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.with_layout(
+                            egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
+                            |ui: &mut egui::Ui| {
+                                ui.horizontal(|ui: &mut egui::Ui| {
+                                    if widgets::ghost_button(ui, icons::CHEVRON_LEFT.to_string())
+                                        .clicked()
+                                        && page > 0
+                                    {
+                                        state.compliance.current_page = page - 1;
+                                    }
+                                    ui.label(
+                                        egui::RichText::new(format!(
+                                            "Page {} / {}",
+                                            page + 1,
+                                            total_pages
+                                        ))
+                                        .font(theme::font_body())
+                                        .color(theme::text_secondary()),
+                                    );
+                                    if widgets::ghost_button(ui, icons::CHEVRON_RIGHT.to_string())
+                                        .clicked()
+                                        && page + 1 < total_pages
+                                    {
+                                        state.compliance.current_page = page + 1;
+                                    }
+                                });
+                            },
+                        );
+                    });
+                }
             } else {
                 let groups = Self::build_groups(state, &filtered);
                 for (group_name, indices) in &groups {
