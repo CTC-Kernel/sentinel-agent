@@ -27,7 +27,11 @@ pub fn set_tracing_level(level: &str) {
 pub fn init_logging(log_level: &str) {
     use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
-    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
+    // Build filter: use RUST_LOG env if set, otherwise use the configured level.
+    // Always suppress noisy arboard clipboard errors (benign on headless/service sessions).
+    let filter_str = std::env::var("RUST_LOG").unwrap_or_else(|_| log_level.to_string());
+    let filter_str = format!("{},arboard=off,eframe=warn", filter_str);
+    let filter = EnvFilter::try_new(&filter_str).unwrap_or_else(|_| EnvFilter::new(log_level));
     let (filter_layer, reload_handle) = tracing_subscriber::reload::Layer::new(filter);
 
     // Initial log directory and file appender
@@ -64,7 +68,11 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
     let bridge = crate::tracing_layer::GuiTracingBridge::new();
     let gui_layer = crate::tracing_layer::GuiTracingLayer::new(&bridge);
 
-    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
+    // Build filter: suppress noisy arboard clipboard errors (benign on headless/service sessions)
+    let filter_str = std::env::var("RUST_LOG").unwrap_or_else(|_| log_level.to_string());
+    let filter_str = format!("{},arboard=off,eframe=warn", filter_str);
+    let filter =
+        EnvFilter::try_new(&filter_str).unwrap_or_else(|_| EnvFilter::new(log_level));
     let (filter_layer, reload_handle) = tracing_subscriber::reload::Layer::new(filter);
 
     // Initial log directory and file appender

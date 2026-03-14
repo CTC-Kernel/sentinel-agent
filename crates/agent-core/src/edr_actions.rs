@@ -99,7 +99,7 @@ pub async fn quarantine_file(path: &str) -> Result<String, CommonError> {
     // Create quarantine directory under the local data directory
     let quarantine_dir = directories::BaseDirs::new()
         .map(|dirs| dirs.data_local_dir().to_path_buf())
-        .unwrap_or_else(|| std::path::PathBuf::from("/tmp"))
+        .unwrap_or_else(std::env::temp_dir)
         .join("sentinel-grc")
         .join("quarantine");
 
@@ -147,7 +147,7 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
 
     let quarantine_dir = directories::BaseDirs::new()
         .map(|dirs| dirs.data_local_dir().to_path_buf())
-        .unwrap_or_else(|| std::path::PathBuf::from("/tmp"))
+        .unwrap_or_else(std::env::temp_dir)
         .join("sentinel-grc")
         .join("quarantine");
 

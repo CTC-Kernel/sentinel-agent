@@ -125,6 +125,7 @@
       <Directory Id="SentinelDataDir" Name="Sentinel">
         <Directory Id="DataDir" Name="data" />
         <Directory Id="ModelsDir" Name="models" />
+        <Directory Id="BackupsDir" Name="backups" />
         <Directory Id="CacheDir" Name="cache">
           <Directory Id="CacheLlmDir" Name="llm" />
         </Directory>
@@ -302,6 +303,11 @@
         <CreateFolder />
       </Component>
 
+      <!-- Create backups directory for database safe-restore -->
+      <Component Id="BackupsDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012349" Directory="BackupsDir">
+        <CreateFolder />
+      </Component>
+
       <!-- Create LLM cache directory -->
       <Component Id="CacheLlmDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012348" Directory="CacheLlmDir">
         <CreateFolder />
@@ -407,8 +413,10 @@
       <Custom Action="CleanupDataOnUninstall" After="KillGuiProcess"
               Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
 
-      <!-- Force reset legacy permissions before installing files so CreateFolder can write to it -->
-      <Custom Action="ForceResetPermissions" After="CleanupDataOnUninstall"
+      <!-- Force reset legacy permissions before installing files so CreateFolder can write to it.
+           Runs during install/upgrade (not full removal). Placed after InstallInitialize
+           to ensure it executes early in the deferred sequence. -->
+      <Custom Action="ForceResetPermissions" After="InstallInitialize"
               Condition="NOT REMOVE=&quot;ALL&quot;" />
 
       <!--

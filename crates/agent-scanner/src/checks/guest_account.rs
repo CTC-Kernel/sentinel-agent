@@ -70,43 +70,86 @@ impl GuestAccountCheck {
     }
 
     /// Check guest account on Windows.
+    ///
+    /// Uses PowerShell with SID-based lookup (RID 501) to avoid localization issues
+    /// with `net user Guest` which uses localized "Account active" strings.
     #[cfg(target_os = "windows")]
     async fn check_windows(&self) -> ScannerResult<GuestAccountStatus> {
         debug!("Checking Windows Guest account status");
 
-        let output = silent_command("net")
-            .args(["user", "Guest"])
+        // Use PowerShell with SID-based lookup for localization-safe detection.
+        // RID 501 is always the Guest account regardless of language.
+        let output = silent_command("powershell")
+            .args([
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                r#"try {
+                    $guest = Get-LocalUser | Where-Object { $_.SID.Value -like '*-501' }
+                    if ($guest) {
+                        @{ exists = $true; enabled = $guest.Enabled; name = $guest.Name } | ConvertTo-Json
+                    } else {
+                        @{ exists = $false; enabled = $false; name = '' } | ConvertTo-Json
+                    }
+                } catch {
+                    @{ exists = $false; enabled = $false; name = ''; error = $_.Exception.Message } | ConvertTo-Json
+                }"#,
+            ])
             .output()
             .map_err(|e| {
                 ScannerError::CheckExecution(format!("Failed to query Guest account: {}", e))
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-        // If the command fails, the Guest account might not exist
-        if !output.status.success() {
+        // Parse JSON result
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(raw_output.trim()) {
+            let exists = json.get("exists").and_then(|v| v.as_bool()).unwrap_or(false);
+            let enabled = json.get("enabled").and_then(|v| v.as_bool()).unwrap_or(false);
+
             return Ok(GuestAccountStatus {
-                guest_disabled: true,
-                account_exists: false,
-                account_locked: None,
-                detection_method: "net user Guest (account not found)".to_string(),
-                raw_output: format!("stdout: {}\nstderr: {}", raw_output, stderr),
+                guest_disabled: !enabled,
+                account_exists: exists,
+                account_locked: Some(!enabled),
+                detection_method: "PowerShell Get-LocalUser (SID *-501)".to_string(),
+                raw_output,
             });
         }
 
-        // Parse "Account active" line
-        let account_active = raw_output
-            .lines()
-            .any(|line| line.contains("Account active") && line.to_lowercase().contains("yes"));
+        // Fallback: use net user with less reliable parsing
+        let fallback = silent_command("net")
+            .args(["user", "Guest"])
+            .output();
 
-        Ok(GuestAccountStatus {
-            guest_disabled: !account_active,
-            account_exists: true,
-            account_locked: Some(!account_active),
-            detection_method: "net user Guest".to_string(),
-            raw_output,
-        })
+        match fallback {
+            Ok(fb_output) if fb_output.status.success() => {
+                let fb_raw = String::from_utf8_lossy(&fb_output.stdout).to_string();
+                // Look for "Yes" or "No" after the last colon on the "Account active" line
+                // This is fragile but serves as a fallback
+                let account_active = fb_raw
+                    .lines()
+                    .any(|line| {
+                        let lower = line.to_lowercase();
+                        (lower.contains("account active") || lower.contains("compte actif"))
+                            && (lower.ends_with("yes") || lower.ends_with("oui"))
+                    });
+
+                Ok(GuestAccountStatus {
+                    guest_disabled: !account_active,
+                    account_exists: true,
+                    account_locked: Some(!account_active),
+                    detection_method: "net user Guest (fallback)".to_string(),
+                    raw_output: fb_raw,
+                })
+            }
+            _ => Ok(GuestAccountStatus {
+                guest_disabled: true,
+                account_exists: false,
+                account_locked: None,
+                detection_method: "Guest account not found".to_string(),
+                raw_output,
+            }),
+        }
     }
 
     /// Check guest account on Linux.

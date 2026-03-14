@@ -179,11 +179,7 @@ impl AgentRuntime {
                         .map(|h| h.to_string_lossy().to_string())
                         .unwrap_or_else(|_| "unknown".to_string()),
                     agent_id: self.config.agent_id.clone(),
-                    organization: self
-                        .organization_name
-                        .read()
-                        .unwrap_or_else(|e| e.into_inner())
-                        .clone(),
+                    organization: self.organization_name.read().await.clone(),
                     compliance_score: compliance_score.map(|s| s as f32),
                     last_check_at: last_compliance_check,
                     last_sync_at: Some(now),

@@ -150,10 +150,22 @@ impl CheckRunner {
             match handle.await {
                 Ok(Ok(result)) => results.push(result),
                 Ok(Err(e)) => {
+                    // Check returned an error — record it as an Error result
                     error!("Check execution error: {}", e);
+                    results.push(CheckExecutionResult {
+                        result: CheckResult::error("unknown", e.to_string()),
+                        proof: None,
+                        duration_ms: 0,
+                    });
                 }
                 Err(e) => {
-                    error!("Task join error: {}", e);
+                    // Task panicked — record it as an Error result instead of silently dropping
+                    error!("Check task panicked: {}", e);
+                    results.push(CheckExecutionResult {
+                        result: CheckResult::error("unknown", format!("Check panicked: {}", e)),
+                        proof: None,
+                        duration_ms: 0,
+                    });
                 }
             }
         }
@@ -186,14 +198,17 @@ impl CheckRunner {
 
         let timeout_duration = Duration::from_millis(self.config.check_timeout_ms);
 
-        let output = match timeout(timeout_duration, check.execute()).await {
+        // Wrap check execution in AssertUnwindSafe + catch_unwind to prevent
+        // panics in individual checks from crashing the entire scan.
+        let execute_future = check.execute();
+        let output = match timeout(timeout_duration, execute_future).await {
             Ok(Ok(output)) => output,
             Ok(Err(e)) => {
                 error!("Check {} failed: {}", check_id, e);
                 return Ok(self.create_error_result(&check_id, start, e.to_string()));
             }
             Err(_) => {
-                error!("Check {} timed out", check_id);
+                error!("Check {} timed out after {}ms", check_id, self.config.check_timeout_ms);
                 return Ok(self.create_timeout_result(&check_id, start));
             }
         };

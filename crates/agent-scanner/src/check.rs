@@ -167,26 +167,22 @@ impl CheckRegistry {
                     return false;
                 }
 
-                // If active_frameworks is set, check must be in at least one of them.
-                // If the check has NO frameworks defined, it is considered "general" and included?
-                // OR strict mode: must match.
-                // Given GRC context: usually strict.
-                // However, without clarification, if active_frameworks is provided, we filter.
+                // Framework filtering logic:
+                // - None          → run all enabled checks (no restriction)
+                // - Some([])      → run all enabled checks (empty list = no restriction)
+                // - Some([...])   → run checks that match any active framework,
+                //                   PLUS "baseline" checks with no framework tag
+                //                   (these are general security checks that always apply)
                 if let Some(active) = active_frameworks {
                     if active.is_empty() {
-                        return true; // No active frameworks list means all enabled checks run (or none? usually all)
-                        // Actually, common config pattern: empty list = no restriction or no frameworks enabled?
-                        // Let's assume Option::None means "all", Option::Some(empty) means "none".
-                        // Wait, Config loads it as Option<Vec<String>>.
+                        return true;
                     }
 
                     let def = c.definition();
                     if def.frameworks.is_empty() {
-                        // Checks without specific framework tag are usually baseline/general.
-                        // We'll include them for now to be safe, or should we exclude?
-                        // "Align Compliance Frameworks" suggests we only want those in the framework.
-                        // Let's match: if active_frameworks is present, check MUST have overlap.
-                        return false;
+                        // Checks without a specific framework tag are baseline/general
+                        // security checks that should always run regardless of frameworks.
+                        return true;
                     }
 
                     // Check if any of the check's frameworks are in the active list

@@ -672,6 +672,10 @@ impl AgentRuntime {
                     self.init_sync_services().await;
                 } else {
                     warn!("Skipping sync service init — enrollment invalid");
+                    warn!(
+                        "To fix this, add a valid enrollment_token to agent.json and restart the agent. \
+                         On Windows: C:\\ProgramData\\Sentinel\\agent.json"
+                    );
                 }
             }
             Err(e) => {

@@ -174,7 +174,14 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
             use agent_sync::{CredentialsRepository, EnrollmentManager};
 
             let enrollment_manager = EnrollmentManager::new(&config, &db);
-            if enrollment_manager.is_enrolled().await.unwrap_or(false) {
+            let is_enrolled = match enrollment_manager.is_enrolled().await {
+                Ok(enrolled) => enrolled,
+                Err(e) => {
+                    warn!("Failed to check enrollment status (database may be corrupted): {}", e);
+                    false
+                }
+            };
+            if is_enrolled {
                 let creds_repo = CredentialsRepository::new(&db);
                 if let Ok(Some(creds)) = creds_repo.load().await {
                     config.agent_id = Some(creds.agent_id.to_string());

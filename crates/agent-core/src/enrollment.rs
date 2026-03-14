@@ -129,7 +129,17 @@ impl AgentRuntime {
         if !has_token {
             warn!(
                 "Cannot re-enroll: no enrollment_token in configuration. \
-                 Please add an enrollment token to the agent config and restart."
+                 Please add a valid enrollment token to the agent config and restart."
+            );
+            #[cfg(target_os = "windows")]
+            warn!(
+                "Config file location: C:\\ProgramData\\Sentinel\\agent.json — \
+                 set the \"enrollment_token\" field to the token from the SaaS console."
+            );
+            #[cfg(target_os = "linux")]
+            warn!(
+                "Config file location: /etc/sentinel/agent.json — \
+                 set the \"enrollment_token\" field to the token from the SaaS console."
             );
             return Ok(false);
         }

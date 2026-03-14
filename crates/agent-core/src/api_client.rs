@@ -40,11 +40,17 @@ pub struct EnrollmentRequest {
 pub struct EnrollmentResponse {
     pub agent_id: String,
     pub organization_id: String,
-    pub server_certificate: String,
+    #[serde(default)]
+    pub server_certificate: Option<String>,
     pub client_certificate: String,
+    /// Accepts both `client_key` (Cloud Function) and `client_private_key`.
+    #[serde(alias = "client_private_key")]
     pub client_key: String,
     pub certificate_expires_at: String,
+    /// Server-provided agent config. Optional — may not be present in all SaaS versions.
+    #[serde(default, alias = "initial_config")]
     pub config: ServerAgentConfig,
+    #[serde(default)]
     pub message: Option<String>,
 }
 
@@ -141,6 +147,29 @@ pub struct ServerAgentConfig {
     pub proxy_url: Option<String>,
 }
 
+impl Default for ServerAgentConfig {
+    fn default() -> Self {
+        Self {
+            check_interval_secs: default_check_interval(),
+            heartbeat_interval_secs: default_heartbeat_interval(),
+            log_level: default_log_level(),
+            enabled_checks: Vec::new(),
+            offline_mode_days: default_offline_days(),
+            enable_auto_remediation: false,
+            enable_realtime_monitoring: false,
+            enable_process_monitoring: false,
+            enable_network_monitoring: false,
+            enable_software_inventory: false,
+            enable_cis_benchmarks: false,
+            auto_update_enabled: default_true_fn(),
+            update_channel: default_update_channel(),
+            disabled_checks: Vec::new(),
+            proxy_enabled: false,
+            proxy_url: None,
+        }
+    }
+}
+
 fn default_check_interval() -> u64 {
     3600
 }
@@ -204,7 +233,7 @@ pub struct AgentProcess {
     pub memory_bytes: u64,
     pub memory_percent: f64,
     pub user: String,
-    pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub command_line: Option<String>,
 }
 

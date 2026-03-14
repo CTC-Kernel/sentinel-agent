@@ -224,14 +224,6 @@ impl ResourceMonitor {
                     .user_id()
                     .map(|u| u.to_string())
                     .unwrap_or_else(|| "unknown".to_string()),
-                status: match process.status() {
-                    sysinfo::ProcessStatus::Run => "running",
-                    sysinfo::ProcessStatus::Sleep => "sleeping",
-                    sysinfo::ProcessStatus::Stop => "stopped",
-                    sysinfo::ProcessStatus::Zombie => "zombie",
-                    _ => "running",
-                }
-                .to_string(),
                 command_line: process
                     .cmd()
                     .first()
