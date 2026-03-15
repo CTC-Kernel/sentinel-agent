@@ -118,9 +118,9 @@ impl<'a> Alert<'a> {
         };
         let available_width = ui.available_width();
 
-        egui::Frame::new()
+        let frame_resp = egui::Frame::new()
             .fill(bg_color)
-            .corner_radius(CornerRadius::same(theme::BUTTON_ROUNDING))
+            .corner_radius(CornerRadius::same(theme::ROUNDING_LG))
             .stroke(egui::Stroke::new(theme::BORDER_THIN, border_color))
             .inner_margin(egui::Margin::same(padding as i8))
             .show(ui, |ui| {
@@ -297,6 +297,21 @@ impl<'a> Alert<'a> {
                     }
                 });
             });
+
+        // Left accent bar for visual hierarchy
+        let frame_rect = frame_resp.response.rect;
+        ui.painter().rect_filled(
+            egui::Rect::from_min_size(
+                frame_rect.left_top(),
+                egui::vec2(theme::ACCENT_BAR_WIDTH, frame_rect.height()),
+            ),
+            CornerRadius {
+                nw: theme::ROUNDING_LG,
+                sw: theme::ROUNDING_LG,
+                ..Default::default()
+            },
+            accent_color,
+        );
 
         result
     }

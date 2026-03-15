@@ -243,14 +243,26 @@ impl<'a> DataTable<'a> {
             .1;
 
         if ui.is_rect_visible(header_rect) {
+            // Header background with refined rounding
             ui.painter().rect_filled(
                 header_rect,
                 CornerRadius {
-                    nw: theme::SPACE_SM as u8,
-                    ne: theme::SPACE_SM as u8,
+                    nw: theme::BUTTON_ROUNDING,
+                    ne: theme::BUTTON_ROUNDING,
                     ..Default::default()
                 },
                 theme::bg_tertiary(),
+            );
+            // Bottom accent line for clear header/body separation
+            ui.painter().line_segment(
+                [
+                    egui::pos2(header_rect.min.x, header_rect.max.y),
+                    egui::pos2(header_rect.max.x, header_rect.max.y),
+                ],
+                egui::Stroke::new(
+                    theme::BORDER_THIN,
+                    theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
+                ),
             );
         }
 
@@ -502,15 +514,23 @@ impl<'a> DataTable<'a> {
             ui.painter().rect_filled(
                 rect,
                 CornerRadius {
-                    sw: theme::SPACE_SM as u8,
-                    se: theme::SPACE_SM as u8,
+                    sw: theme::BUTTON_ROUNDING,
+                    se: theme::BUTTON_ROUNDING,
                     ..Default::default()
                 },
-                theme::bg_secondary(),
+                theme::bg_deep(),
             );
 
+            // Empty state icon
             ui.painter().text(
-                rect.center(),
+                egui::pos2(rect.center().x, rect.center().y - 12.0),
+                egui::Align2::CENTER_CENTER,
+                crate::icons::FOLDER_OPEN,
+                egui::FontId::proportional(theme::ICON_LG),
+                theme::text_tertiary().linear_multiply(theme::OPACITY_DISABLED),
+            );
+            ui.painter().text(
+                egui::pos2(rect.center().x, rect.center().y + 14.0),
                 egui::Align2::CENTER_CENTER,
                 message,
                 theme::font_body(),

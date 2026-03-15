@@ -160,9 +160,9 @@ pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 135, 0);
 #[inline]
 pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(10, 10, 12) // Deeper dark for premium depth (was 16,16,20)
+        Color32::from_rgb(12, 13, 18) // Deep navy undertone (Sequoia-inspired)
     } else {
-        Color32::from_rgb(245, 245, 247) // Apple System Gray 6 Light (slightly cooler)
+        Color32::from_rgb(243, 244, 250) // Cool off-white with subtle blue tint
     }
 }
 
@@ -170,9 +170,9 @@ pub fn bg_primary() -> Color32 {
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(18, 18, 22) // Elevated depth (was 24,24,28)
+        Color32::from_rgb(20, 21, 28) // Elevated navy surface
     } else {
-        Color32::WHITE
+        Color32::from_rgb(253, 253, 255) // Near-white with warmth
     }
 }
 
@@ -180,18 +180,19 @@ pub fn bg_secondary() -> Color32 {
 #[inline]
 pub fn bg_elevated() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(58, 58, 60) // System Gray 4 Dark
+        Color32::from_rgb(48, 49, 56) // Softer elevated surface with navy tint
     } else {
-        Color32::from_rgb(245, 245, 250) // Slightly tinted — distinct from bg_secondary (white)
+        Color32::from_rgb(236, 238, 247) // Distinct cool-tinted elevated surface
     }
 }
 
+/// Tertiary surface (button groups, input fields, subtle containers).
 #[inline]
 pub fn bg_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(28, 28, 30) // System Gray 6 Dark
+        Color32::from_rgb(28, 29, 36) // Tertiary with consistent navy undertone
     } else {
-        Color32::from_rgb(229, 229, 234) // System Gray 5 Light
+        Color32::from_rgb(230, 232, 241) // Cool-tinted tertiary surface
     }
 }
 
@@ -199,9 +200,9 @@ pub fn bg_tertiary() -> Color32 {
 #[inline]
 pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(6, 6, 8) // Darker than primary for clear separation (was 12,12,16)
+        Color32::from_rgb(8, 9, 15) // Deep navy sidebar for clear depth separation
     } else {
-        Color32::from_rgb(240, 240, 245) // Slightly deeper light gray
+        Color32::from_rgb(236, 238, 247) // Cool-tinted sidebar with brand presence
     }
 }
 
@@ -209,9 +210,9 @@ pub fn bg_sidebar() -> Color32 {
 #[inline]
 pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(6, 6, 8) // Near-black but softer on OLED
+        Color32::from_rgb(6, 7, 13) // Near-black with navy undertone for terminal/canvas
     } else {
-        Color32::from_rgb(248, 248, 252)
+        Color32::from_rgb(246, 247, 253) // Clean cool surface for inset areas
     }
 }
 
@@ -612,27 +613,27 @@ pub fn table_row_hover() -> Color32 {
 /// Semi-transparent card background for glass effect.
 pub fn glass_card_bg() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgba_premultiplied(18, 18, 20, 220)
+        Color32::from_rgba_premultiplied(18, 20, 28, 225) // Navy-tinted frosted glass
     } else {
-        Color32::from_rgba_premultiplied(255, 255, 255, 230)
+        Color32::from_rgba_premultiplied(250, 251, 255, 238) // Cool frosted glass
     }
 }
 
 /// Glass card border (brighter top-left edge).
 pub fn glass_border_top() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(20)
+        Color32::from_white_alpha(28) // Slightly brighter shimmer edge
     } else {
-        Color32::from_white_alpha(100)
+        Color32::from_white_alpha(180) // Crisp highlight for clean light-mode elevation
     }
 }
 
 /// Glass card border (darker bottom-right edge).
 pub fn glass_border_bottom() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(5)
+        Color32::from_white_alpha(6)
     } else {
-        Color32::from_black_alpha(15)
+        Color32::from_black_alpha(18) // Slightly stronger bottom edge in light mode
     }
 }
 
@@ -910,7 +911,7 @@ pub fn shadow_sm() -> Shadow {
     if is_dark_mode() {
         premium_shadow(4, 12)
     } else {
-        premium_shadow(4, 8)
+        premium_shadow(6, 16) // Stronger lift for clear elevation in light mode
     }
 }
 
@@ -919,7 +920,7 @@ pub fn shadow_md() -> Shadow {
     if is_dark_mode() {
         premium_shadow(8, 24)
     } else {
-        premium_shadow(8, 16)
+        premium_shadow(12, 24) // More prominent card elevation in light mode
     }
 }
 
@@ -928,7 +929,7 @@ pub fn shadow_lg() -> Shadow {
     if is_dark_mode() {
         premium_shadow(16, 48)
     } else {
-        premium_shadow(12, 32)
+        premium_shadow(16, 38) // Deeper floating effect in light mode
     }
 }
 
@@ -1158,21 +1159,21 @@ pub const SKELETON_CARD_ROUNDING: u8 = 12;
 
 // ── Toggle switch colors ──
 
-/// Toggle switch off-state background (dark mode).
-pub const SWITCH_OFF_DARK: Color32 = Color32::from_rgb(60, 60, 67);
-/// Toggle switch off-state background (light mode).
-pub const SWITCH_OFF_LIGHT: Color32 = Color32::from_rgb(200, 200, 206);
+/// Toggle switch off-state background (dark mode, navy-tinted).
+pub const SWITCH_OFF_DARK: Color32 = Color32::from_rgb(52, 53, 62);
+/// Toggle switch off-state background (light mode, cool-tinted).
+pub const SWITCH_OFF_LIGHT: Color32 = Color32::from_rgb(196, 198, 210);
 
 // ── Skeleton placeholder colors ──
 
-/// Skeleton placeholder base color (dark mode).
-pub const SKELETON_BASE_DARK: Color32 = Color32::from_rgb(45, 45, 50);
-/// Skeleton placeholder base color (light mode).
-pub const SKELETON_BASE_LIGHT: Color32 = Color32::from_rgb(230, 230, 235);
-/// Skeleton placeholder highlight color (dark mode).
-pub const SKELETON_HIGHLIGHT_DARK: Color32 = Color32::from_rgb(60, 60, 65);
-/// Skeleton placeholder highlight color (light mode).
-pub const SKELETON_HIGHLIGHT_LIGHT: Color32 = Color32::from_rgb(245, 245, 250);
+/// Skeleton placeholder base color (dark mode, navy-tinted).
+pub const SKELETON_BASE_DARK: Color32 = Color32::from_rgb(40, 42, 52);
+/// Skeleton placeholder base color (light mode, cool-tinted).
+pub const SKELETON_BASE_LIGHT: Color32 = Color32::from_rgb(228, 230, 240);
+/// Skeleton placeholder highlight color (dark mode, navy-tinted).
+pub const SKELETON_HIGHLIGHT_DARK: Color32 = Color32::from_rgb(55, 57, 66);
+/// Skeleton placeholder highlight color (light mode, cool-tinted).
+pub const SKELETON_HIGHLIGHT_LIGHT: Color32 = Color32::from_rgb(242, 244, 253);
 
 // ── Avatar color palette ──
 
@@ -1298,13 +1299,13 @@ pub const SPLASH_FADE_OUT_DURATION: f32 = 0.4;
 pub fn enrollment_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
-            Color32::from_rgb(18, 24, 36), // Deep sophisticated blue-gray center
-            Color32::from_rgb(8, 10, 14),  // Near-black elegant outer
+            Color32::from_rgb(16, 20, 32), // Deep navy center with brand depth
+            Color32::from_rgb(8, 9, 15),   // Near-black elegant outer
         )
     } else {
         (
-            Color32::from_rgb(248, 249, 252), // Premium off-white center
-            Color32::from_rgb(235, 237, 242), // Sophisticated light gray outer
+            Color32::from_rgb(246, 248, 255), // Luminous cool-white center
+            Color32::from_rgb(232, 235, 248), // Refined cool gray outer
         )
     }
 }
@@ -1325,13 +1326,13 @@ pub const ENROLLMENT_GLOW_RADIUS: f32 = 60.0;
 pub fn sidebar_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
-            Color32::from_rgb(25, 25, 30), // Lighter top (Spotlight)
-            Color32::from_rgb(14, 14, 18), // Soft bottom (keeps text readable)
+            Color32::from_rgb(18, 20, 30), // Navy-tinted spotlight top
+            Color32::from_rgb(10, 11, 18), // Deep navy bottom
         )
     } else {
         (
-            Color32::from_rgb(245, 245, 250),
-            Color32::from_rgb(230, 230, 235),
+            Color32::from_rgb(241, 243, 253), // Cool luminous top
+            Color32::from_rgb(228, 230, 244), // Refined cool bottom
         )
     }
 }

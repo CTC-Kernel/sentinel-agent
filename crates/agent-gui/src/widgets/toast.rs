@@ -211,14 +211,14 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         ui.painter()
             .add(shadow.as_shape(toast_rect, toast_rounding));
 
-        // Background with colored left accent
+        // Frosted glass background with colored border accent
         ui.painter().rect(
             toast_rect,
             toast_rounding,
-            theme::bg_secondary().linear_multiply(alpha * 0.98),
+            theme::glass_card_bg().linear_multiply(alpha),
             Stroke::new(
                 theme::BORDER_THIN,
-                color.linear_multiply(alpha * theme::OPACITY_DISABLED),
+                color.linear_multiply(alpha * theme::OPACITY_MODERATE),
             ),
             StrokeKind::Inside,
         );

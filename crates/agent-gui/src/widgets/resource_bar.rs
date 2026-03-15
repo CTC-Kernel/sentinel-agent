@@ -38,13 +38,12 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
     let painter = ui.painter_at(rect);
     let rounding = CornerRadius::same(3);
 
-    // Track.
-    let track_color = theme::bg_secondary().linear_multiply(theme::OPACITY_MEDIUM);
-    painter.rect_filled(rect, rounding, track_color);
+    // Track (uses bg_deep for inset appearance).
+    painter.rect_filled(rect, rounding, theme::bg_deep());
     painter.rect_stroke(
         rect,
         rounding,
-        egui::Stroke::new(theme::BORDER_THIN, theme::border()),
+        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()),
         egui::StrokeKind::Inside,
     );
 

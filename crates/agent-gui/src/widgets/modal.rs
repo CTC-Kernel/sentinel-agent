@@ -135,12 +135,14 @@ impl Modal {
             .show(ctx, |ui| {
                 let backdrop_response = ui.allocate_response(screen.size(), egui::Sense::click());
 
-                // Dark backdrop
-                ui.painter().rect_filled(
-                    screen,
-                    CornerRadius::ZERO,
-                    Color32::from_black_alpha(theme::BACKDROP_ALPHA),
-                );
+                // Frosted backdrop (navy-tinted in dark mode for depth)
+                let backdrop_color = if theme::is_dark_mode() {
+                    Color32::from_rgba_premultiplied(4, 6, 14, theme::BACKDROP_ALPHA)
+                } else {
+                    Color32::from_black_alpha(theme::BACKDROP_ALPHA)
+                };
+                ui.painter()
+                    .rect_filled(screen, CornerRadius::ZERO, backdrop_color);
 
                 // Close on backdrop click
                 if backdrop_response.clicked() && self.show_close {

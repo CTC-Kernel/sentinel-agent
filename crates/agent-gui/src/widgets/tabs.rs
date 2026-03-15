@@ -253,13 +253,18 @@ impl<'a> TabBar<'a> {
                 );
             }
 
-            // Selected underline
+            // Selected underline (thicker, rounded, inset for premium feel)
             if is_selected {
+                let inset = theme::SPACE_SM;
                 let underline_rect = egui::Rect::from_min_size(
-                    egui::pos2(rect.min.x, rect.max.y - theme::BORDER_THICK),
-                    egui::vec2(rect.width(), theme::BORDER_THICK),
+                    egui::pos2(rect.min.x + inset, rect.max.y - theme::ACCENT_BAR_WIDTH),
+                    egui::vec2(rect.width() - inset * 2.0, theme::ACCENT_BAR_WIDTH),
                 );
-                painter.rect_filled(underline_rect, CornerRadius::ZERO, theme::ACCENT);
+                painter.rect_filled(
+                    underline_rect,
+                    CornerRadius::same(theme::ROUNDING_XS),
+                    theme::ACCENT,
+                );
             }
         }
 

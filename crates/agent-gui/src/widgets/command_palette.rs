@@ -221,11 +221,13 @@ impl<'a> CommandPalette<'a> {
                     ui.allocate_exact_size(screen.size(), Sense::click());
 
                 if ui.is_rect_visible(backdrop_rect) {
-                    ui.painter().rect_filled(
-                        backdrop_rect,
-                        0,
-                        Color32::from_black_alpha(theme::BACKDROP_ALPHA / 2),
-                    );
+                    let backdrop_color = if theme::is_dark_mode() {
+                        Color32::from_rgba_premultiplied(4, 6, 14, theme::BACKDROP_ALPHA / 2)
+                    } else {
+                        Color32::from_black_alpha(theme::BACKDROP_ALPHA / 2)
+                    };
+                    ui.painter()
+                        .rect_filled(backdrop_rect, 0, backdrop_color);
                 }
 
                 if backdrop_response.clicked() {
@@ -244,9 +246,9 @@ impl<'a> CommandPalette<'a> {
             .fixed_pos(egui::pos2(palette_x, palette_y))
             .show(ctx, |ui| {
                 egui::Frame::new()
-                    .fill(theme::bg_secondary())
-                    .corner_radius(CornerRadius::same(theme::SPACE_MD as u8))
-                    .shadow(theme::shadow_xl())
+                    .fill(theme::glass_card_bg())
+                    .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
+                    .shadow(theme::shadow_2xl())
                     .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
                     .inner_margin(egui::Margin::same(0))
                     .show(ui, |ui| {

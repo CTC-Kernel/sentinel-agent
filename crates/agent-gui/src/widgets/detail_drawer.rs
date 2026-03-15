@@ -139,18 +139,20 @@ impl<'a> DetailDrawer<'a> {
             ctx.animate_value_with_time(anim_id, 1.0, theme::ANIM_NORMAL)
         };
 
-        // Backdrop (visual only — non-interactive to avoid stealing scroll events)
+        // Frosted backdrop (navy-tinted in dark mode)
         let backdrop_alpha = (theme::BACKDROP_ALPHA as f32 / 2.0 * anim_t) as u8;
+        let backdrop_color = if theme::is_dark_mode() {
+            Color32::from_rgba_premultiplied(4, 6, 14, backdrop_alpha)
+        } else {
+            Color32::from_black_alpha(backdrop_alpha)
+        };
         egui::Area::new(egui::Id::new("drawer_backdrop").with(self.id))
             .fixed_pos(screen.min)
             .order(egui::Order::Foreground)
             .interactable(false)
             .show(ctx, |ui| {
-                ui.painter().rect_filled(
-                    screen,
-                    CornerRadius::ZERO,
-                    Color32::from_black_alpha(backdrop_alpha),
-                );
+                ui.painter()
+                    .rect_filled(screen, CornerRadius::ZERO, backdrop_color);
             });
 
         // Track if drawer was already open on previous frame to avoid dismiss race
@@ -453,9 +455,10 @@ pub fn detail_text(ui: &mut Ui, label: &str, text: &str) {
     ui.add_space(theme::SPACE_XS);
 
     egui::Frame::new()
-        .fill(theme::bg_tertiary())
-        .corner_radius(CornerRadius::same(theme::ROUNDING_SM))
-        .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+        .fill(theme::bg_deep())
+        .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
+        .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
         .show(ui, |ui| {
             ui.add(
                 egui::Label::new(
@@ -481,9 +484,10 @@ pub fn detail_mono(ui: &mut Ui, label: &str, value: &str) {
     ui.add_space(theme::SPACE_XS);
 
     egui::Frame::new()
-        .fill(theme::bg_tertiary())
-        .corner_radius(CornerRadius::same(theme::ROUNDING_SM))
-        .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+        .fill(theme::bg_deep())
+        .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
+        .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
         .show(ui, |ui| {
             ui.add(
                 egui::Label::new(

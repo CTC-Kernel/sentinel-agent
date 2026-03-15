@@ -89,7 +89,7 @@ impl<'a, T> Dropdown<'a, T> {
 
             painter.rect(
                 rect,
-                CornerRadius::same(theme::BUTTON_ROUNDING),
+                CornerRadius::same(theme::INPUT_ROUNDING),
                 bg_color,
                 egui::Stroke::new(
                     theme::BORDER_THIN,
@@ -105,9 +105,9 @@ impl<'a, T> Dropdown<'a, T> {
             // Focus ring for keyboard navigation
             if response.has_focus() {
                 painter.rect_stroke(
-                    rect,
-                    CornerRadius::same(theme::BUTTON_ROUNDING),
-                    theme::focus_ring(),
+                    rect.expand(theme::BORDER_THICK),
+                    CornerRadius::same(theme::INPUT_ROUNDING),
+                    egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT.linear_multiply(0.6)),
                     egui::StrokeKind::Outside,
                 );
             }
@@ -205,8 +205,8 @@ impl<'a, T> Dropdown<'a, T> {
             area.show(ui.ctx(), |ui| {
                 egui::Frame::new()
                     .fill(theme::bg_secondary())
-                    .corner_radius(CornerRadius::same(theme::BUTTON_ROUNDING))
-                    .shadow(theme::premium_shadow(16, 60))
+                    .corner_radius(CornerRadius::same(theme::INPUT_ROUNDING))
+                    .shadow(theme::shadow_lg())
                     .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
                     .inner_margin(egui::Margin::same(theme::SPACE_XS as i8))
                     .show(ui, |ui| {

@@ -61,20 +61,27 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
             let center = rect.center();
             let painter = ui.painter_at(rect);
 
-            // Clean background circle (no fake glow)
+            // Outer glow ring (theme-aware soft halo)
+            painter.circle_filled(
+                center,
+                icon_size * 1.05,
+                base_color.linear_multiply(theme::OPACITY_TINT * 0.5),
+            );
+
+            // Main background circle with glass-like fill
             painter.circle_filled(
                 center,
                 icon_size * 0.9,
                 base_color.linear_multiply(theme::OPACITY_SUBTLE),
             );
 
-            // Subtle border ring
+            // Top highlight arc for glass depth
             painter.circle_stroke(
                 center,
                 icon_size * 0.9,
                 egui::Stroke::new(
                     theme::BORDER_MEDIUM,
-                    base_color.linear_multiply(theme::OPACITY_MUTED),
+                    base_color.linear_multiply(theme::OPACITY_MODERATE),
                 ),
             );
 

@@ -203,21 +203,21 @@ pub fn text_input_with_options(
     if ui.is_rect_visible(rect) {
         let painter = ui.painter_at(rect);
 
-        // Background
+        // Background with modern rounded corners
         painter.rect(
             rect,
-            egui::CornerRadius::same(theme::BUTTON_ROUNDING),
-            theme::bg_secondary(),
+            egui::CornerRadius::same(theme::INPUT_ROUNDING),
+            theme::bg_deep(),
             egui::Stroke::new(theme::BORDER_THIN, border_color),
             egui::epaint::StrokeKind::Inside,
         );
 
-        // Focus ring when active
+        // Focus ring when active (accent-tinted glow)
         if response.has_focus() {
             painter.rect_stroke(
                 rect.expand(theme::BORDER_THICK),
-                egui::CornerRadius::same(theme::ROUNDING_LG),
-                theme::focus_ring(),
+                egui::CornerRadius::same(theme::INPUT_ROUNDING),
+                egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT.linear_multiply(0.6)),
                 egui::epaint::StrokeKind::Outside,
             );
         }
@@ -330,11 +330,11 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
     if ui.is_rect_visible(rect) {
         let painter = ui.painter_at(rect);
 
-        // Background
+        // Background with modern rounded corners
         painter.rect(
             rect,
-            egui::CornerRadius::same(theme::BUTTON_ROUNDING),
-            theme::bg_secondary(),
+            egui::CornerRadius::same(theme::INPUT_ROUNDING),
+            theme::bg_deep(),
             egui::Stroke::new(theme::BORDER_THIN, theme::border()),
             egui::epaint::StrokeKind::Inside,
         );

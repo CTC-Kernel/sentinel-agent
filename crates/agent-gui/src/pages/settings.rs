@@ -201,7 +201,7 @@ impl SettingsPage {
 
         ui.add_space(theme::SPACE);
 
-        // Dark / Light mode toggle (AAA Grade)
+        // Dark / Light mode toggle (AAA Grade) — Enhanced theme switcher
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("APPARENCE DE L'INTERFACE")
@@ -213,28 +213,62 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_MD);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                let (mode_label, mode_icon) = if state.settings.dark_mode {
-                    ("MODE SOMBRE", icons::MOON)
+                // Theme mode visual indicator
+                let is_dark = state.settings.dark_mode;
+                let (mode_label, mode_icon, mode_desc) = if is_dark {
+                    (
+                        "MODE SOMBRE",
+                        icons::MOON,
+                        "Interface optimisée pour faible luminosité avec sous-tons navy.",
+                    )
                 } else {
-                    ("MODE CLAIR", icons::SUN)
+                    (
+                        "MODE CLAIR",
+                        icons::SUN,
+                        "Interface lumineuse avec teintes froides et élévation prononcée.",
+                    )
                 };
-                ui.label(
-                    egui::RichText::new(format!("{}  {}", mode_icon, mode_label))
-                        .font(theme::font_min())
-                        .color(theme::text_primary())
-                        .strong(),
+
+                // Icon with accent background circle
+                let icon_size = theme::ICON_XL + theme::SPACE_SM;
+                let (icon_rect, _) = ui.allocate_exact_size(
+                    egui::vec2(icon_size, icon_size),
+                    egui::Sense::hover(),
                 );
-                ui.add_space(theme::SPACE_MD);
-                widgets::toggle_switch(ui, &mut state.settings.dark_mode);
+                ui.painter().circle_filled(
+                    icon_rect.center(),
+                    icon_size / 2.0,
+                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+                );
+                ui.painter().text(
+                    icon_rect.center(),
+                    egui::Align2::CENTER_CENTER,
+                    mode_icon,
+                    egui::FontId::proportional(theme::ICON_LG),
+                    theme::accent_text(),
+                );
+
+                ui.add_space(theme::SPACE_SM);
+
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(mode_label)
+                                .font(theme::font_body())
+                                .color(theme::text_primary())
+                                .strong(),
+                        );
+                        ui.add_space(theme::SPACE_SM);
+                        widgets::toggle_switch(ui, &mut state.settings.dark_mode);
+                    });
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new(mode_desc)
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                });
             });
-            ui.add_space(theme::SPACE_XS);
-            ui.label(
-                egui::RichText::new(
-                    "Basculez entre l'affichage haute performance sombre et le mode haute luminosité clair.",
-                )
-                .font(theme::font_label())
-                .color(theme::text_tertiary()),
-            );
         });
 
         ui.add_space(theme::SPACE);

@@ -11,12 +11,8 @@ use crate::theme;
 fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
     let is_dark = theme::is_dark_mode();
 
-    // Base shadow: stronger in light mode to lift off white background
-    let shadow = if is_dark {
-        theme::shadow_md()
-    } else {
-        theme::shadow_sm()
-    };
+    // Consistent card elevation for both themes
+    let shadow = theme::shadow_md();
 
     let frame_resp = Frame::new()
         .fill(theme::bg_secondary())
@@ -30,18 +26,17 @@ fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
 
     let rect = frame_resp.response.rect;
 
-    // Glassmorphism 2.0: subtle top-edge highlight + inner glow for volume
-    {
+    // Theme-adaptive surface treatment
+    if is_dark {
+        // Dark mode: shimmer arc + inner glow for depth and volume
         let painter = ui.painter_at(rect);
         let r = f32::from(theme::CARD_ROUNDING);
 
-        // 1. Top-left "shimmer" arc (more pronounced highlight)
         let color_top = theme::glass_border_top();
         let stroke_top = egui::Stroke::new(theme::BORDER_MEDIUM, color_top);
 
         let mut points_top = Vec::new();
         let segments = 12;
-        // Top-left arc (PI to 1.5*PI)
         for i in 0..=segments {
             let t = i as f32 / segments as f32;
             let angle = std::f32::consts::PI + (std::f32::consts::PI * 0.5 * t);
@@ -50,11 +45,9 @@ fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
                 rect.top() + r + r * angle.sin() + 1.2,
             ));
         }
-        // Top edge partially across
         points_top.push(egui::pos2(rect.center().x, rect.top() + 1.2));
         painter.add(egui::Shape::line(points_top, stroke_top));
 
-        // 2. Inner glow / lift (very subtle stroke offset inside)
         painter.rect_stroke(
             rect.shrink(1.0),
             CornerRadius::same(theme::CARD_ROUNDING),
@@ -62,6 +55,14 @@ fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
                 theme::BORDER_HAIRLINE,
                 theme::glass_border_top().linear_multiply(theme::OPACITY_MODERATE),
             ),
+            egui::epaint::StrokeKind::Inside,
+        );
+    } else {
+        // Light mode: clean inset highlight for refined elevation (no shimmer)
+        ui.painter_at(rect).rect_stroke(
+            rect.shrink(0.5),
+            CornerRadius::same(theme::CARD_ROUNDING),
+            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::glass_border_top()),
             egui::epaint::StrokeKind::Inside,
         );
     }

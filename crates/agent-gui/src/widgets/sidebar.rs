@@ -304,13 +304,23 @@ impl Sidebar {
     }
 
     fn section_label(ui: &mut Ui, text: &str) {
-        ui.add_space(theme::SPACE_XS);
+        ui.add_space(theme::SPACE_SM);
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.add_space(theme::SPACE_MD);
+            // Accent dot indicator
+            let (dot_rect, _) =
+                ui.allocate_exact_size(Vec2::splat(4.0), egui::Sense::empty());
+            ui.painter().circle_filled(
+                dot_rect.center(),
+                2.0,
+                theme::accent_text().linear_multiply(theme::OPACITY_MODERATE),
+            );
+            ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new(text)
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_WIDE)
                     .strong(),
             );
         });
@@ -364,6 +374,19 @@ impl Sidebar {
                     egui::Stroke::NONE,
                     egui::epaint::StrokeKind::Inside,
                 );
+
+                // Active indicator bar (left accent strip)
+                if is_current {
+                    let bar_rect = egui::Rect::from_min_size(
+                        egui::pos2(rect_shrunk.left(), rect_shrunk.top() + 6.0),
+                        egui::vec2(theme::ACCENT_BAR_WIDTH, rect_shrunk.height() - 12.0),
+                    );
+                    ui.painter().rect_filled(
+                        bar_rect,
+                        CornerRadius::same(theme::ROUNDING_XS),
+                        theme::accent_text(),
+                    );
+                }
             }
 
             // Icon and label - centered vertically with proper alignment
@@ -487,6 +510,19 @@ impl Sidebar {
                     egui::Stroke::NONE,
                     egui::epaint::StrokeKind::Inside,
                 );
+
+                // Active indicator bar
+                if is_current {
+                    let bar_rect = egui::Rect::from_min_size(
+                        egui::pos2(rect_shrunk.left(), rect_shrunk.top() + 6.0),
+                        egui::vec2(theme::ACCENT_BAR_WIDTH, rect_shrunk.height() - 12.0),
+                    );
+                    ui.painter().rect_filled(
+                        bar_rect,
+                        CornerRadius::same(theme::ROUNDING_XS),
+                        theme::accent_text(),
+                    );
+                }
             }
 
             // Brain icon
