@@ -117,7 +117,7 @@ pub fn show_tooltip_at(
     let tooltip_rect = egui::Rect::from_min_size(tooltip_pos, tooltip_size);
 
     ctx.layer_painter(layer_id).add(
-        theme::premium_shadow(8, 40).as_shape(tooltip_rect, CornerRadius::same(theme::ROUNDING_MD)),
+        theme::shadow_md().as_shape(tooltip_rect, CornerRadius::same(theme::ROUNDING_MD)),
     );
 
     ctx.layer_painter(layer_id).rect(

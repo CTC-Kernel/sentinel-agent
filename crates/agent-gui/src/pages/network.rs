@@ -827,6 +827,8 @@ impl NetworkPage {
             } else {
                 use egui_extras::{Column, TableBuilder};
 
+                // Capture ctx before table borrows ui mutably
+                let ctx_for_cursor = ui.ctx().clone();
                 let table = TableBuilder::new(ui)
                     .striped(false)
                     .resizable(true)
@@ -945,7 +947,11 @@ impl NetworkPage {
                                 });
                             });
 
-                            if row.response().clicked() {
+                            let row_resp = row.response();
+                            if row_resp.hovered() {
+                                ctx_for_cursor.set_cursor_icon(egui::CursorIcon::PointingHand);
+                            }
+                            if row_resp.clicked() {
                                 clicked_conn = Some(real_idx);
                             }
                         });
@@ -1157,12 +1163,15 @@ impl NetworkPage {
             });
 
         let rect = frame_resp.response.rect;
-        ui.interact(
+        let resp = ui.interact(
             rect,
             ui.id().with(("net_alert_click", idx)),
             egui::Sense::click(),
-        )
-        .clicked()
+        );
+        if resp.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+        }
+        resp.clicked()
     }
 
     fn export_interfaces_csv(state: &AppState) -> bool {

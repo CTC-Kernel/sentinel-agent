@@ -490,6 +490,16 @@ impl<'a> DataTable<'a> {
                 ],
                 egui::Stroke::new(theme::BORDER_HAIRLINE, theme::separator()),
             );
+
+            // Focus ring for keyboard navigation (WCAG 2.4.7)
+            if self.selectable && response.has_focus() {
+                ui.painter().rect_stroke(
+                    row_rect.shrink(1.0),
+                    egui::CornerRadius::same(theme::ROUNDING_XS),
+                    theme::focus_ring(),
+                    egui::StrokeKind::Inside,
+                );
+            }
         }
 
         if self.selectable && response.hovered() {

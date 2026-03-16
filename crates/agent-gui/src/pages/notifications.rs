@@ -208,7 +208,11 @@ impl NotificationsPage {
                         });
                     });
 
-                if resp.response.interact(egui::Sense::click()).clicked() {
+                let click_resp = resp.response.interact(egui::Sense::click());
+                if click_resp.hovered() {
+                    ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                }
+                if click_resp.clicked() {
                     state.selected_notification = Some(idx);
                     state.notification_detail_open = true;
                 }

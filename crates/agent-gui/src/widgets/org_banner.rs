@@ -207,7 +207,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                             Vec2::new(theme::SPACE_LG, theme::BADGE_MIN_HEIGHT),
                         );
 
-                        let rounding = CornerRadius::same(9);
+                        let rounding = CornerRadius::same(theme::ROUNDING_LG);
                         let base_bg = theme::badge_bg(theme::INFO);
                         let fade = theme::OPACITY_PRESSED + theme::OPACITY_MODERATE * pulse;
                         let bg = base_bg.linear_multiply(fade);

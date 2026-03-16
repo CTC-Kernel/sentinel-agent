@@ -1256,13 +1256,15 @@ fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
         });
 
     let rect = frame_resp.response.rect;
-    let clicked = ui
-        .interact(
-            rect,
-            ui.id().with(("threat_click", idx)),
-            egui::Sense::click(),
-        )
-        .clicked();
+    let click_resp = ui.interact(
+        rect,
+        ui.id().with(("threat_click", idx)),
+        egui::Sense::click(),
+    );
+    if click_resp.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    let clicked = click_resp.clicked();
 
     let bar_rect =
         egui::Rect::from_min_size(rect.left_top(), egui::vec2(accent_bar_width, rect.height()));
@@ -1624,7 +1626,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                     painter.rect_filled(
                         bg_rect,
                         theme::ROUNDING_SM,
-                        theme::bg_secondary().linear_multiply(theme::OPACITY_STRONG),
+                        theme::bg_elevated(),
                     );
                     painter.galley(text_rect.min, galley, theme::text_primary());
                 }

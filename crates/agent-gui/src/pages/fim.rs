@@ -225,6 +225,7 @@ impl FimPage {
 
                 use egui_extras::{Column, TableBuilder};
 
+                let ctx_for_cursor = ui.ctx().clone();
                 let table = TableBuilder::new(ui)
                     .striped(false)
                     .resizable(true)
@@ -359,7 +360,12 @@ impl FimPage {
                                     }
                                 });
 
-                                if row.response().clicked() {
+                                let row_resp = row.response();
+                                if row_resp.hovered() {
+                                    ctx_for_cursor
+                                        .set_cursor_icon(egui::CursorIcon::PointingHand);
+                                }
+                                if row_resp.clicked() {
                                     clicked_row = Some(idx);
                                 }
                             },

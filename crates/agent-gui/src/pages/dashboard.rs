@@ -660,6 +660,7 @@ impl DashboardPage {
                 egui::RichText::new("CONTR\u{00d4}LES")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
                     .strong(),
             );
 
@@ -721,6 +722,7 @@ impl DashboardPage {
                 egui::RichText::new("VULN\u{00c9}RABILIT\u{00c9}S")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
                     .strong(),
             );
 
@@ -789,6 +791,7 @@ impl DashboardPage {
                 egui::RichText::new("MENACES")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
                     .strong(),
             );
             ui.add_space(theme::SPACE_SM);
@@ -842,6 +845,7 @@ impl DashboardPage {
                 egui::RichText::new("INT\u{00c9}GRIT\u{00c9} FICHIERS")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
                     .strong(),
             );
             ui.add_space(theme::SPACE_SM);
@@ -890,6 +894,7 @@ impl DashboardPage {
                 egui::RichText::new("R\u{00c9}SEAU")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
                     .strong(),
             );
             ui.add_space(theme::SPACE_SM);
@@ -949,6 +954,7 @@ impl DashboardPage {
                 egui::RichText::new("LOGICIELS")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
                     .strong(),
             );
             ui.add_space(theme::SPACE_SM);
@@ -1263,6 +1269,7 @@ impl DashboardPage {
                     egui::RichText::new(label)
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_TIGHT)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_XS);

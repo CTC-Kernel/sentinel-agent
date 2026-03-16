@@ -236,7 +236,7 @@ impl EnrollmentWizard {
             ui.vertical_centered(|ui| {
                 ui.label(
                     egui::RichText::new("Authentification")
-                        .font(egui::FontId::proportional(18.0))
+                        .font(theme::font_heading())
                         .color(theme::text_primary())
                         .strong(),
                 );
@@ -356,7 +356,7 @@ impl EnrollmentWizard {
             ui.vertical_centered(|ui| {
                 ui.label(
                     egui::RichText::new("Configuration Admin")
-                        .font(egui::FontId::proportional(18.0))
+                        .font(theme::font_heading())
                         .color(theme::text_primary())
                         .strong(),
                 );
@@ -493,23 +493,23 @@ impl EnrollmentWizard {
 
                 if success {
                     ui.label(
-                        egui::RichText::new("\u{2705}").font(egui::FontId::proportional(48.0)),
+                        egui::RichText::new("\u{2705}").font(egui::FontId::proportional(theme::ICON_2XL)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
                         egui::RichText::new("Enrôlement réussi !")
-                            .font(egui::FontId::proportional(22.0))
+                            .font(theme::font_title())
                             .color(theme::SUCCESS)
                             .strong(),
                     );
                 } else {
                     ui.label(
-                        egui::RichText::new("\u{274c}").font(egui::FontId::proportional(48.0)),
+                        egui::RichText::new("\u{274c}").font(egui::FontId::proportional(theme::ICON_2XL)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
                         egui::RichText::new("Échec de l'enrôlement")
-                            .font(egui::FontId::proportional(22.0))
+                            .font(theme::font_title())
                             .color(theme::ERROR)
                             .strong(),
                     );

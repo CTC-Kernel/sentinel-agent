@@ -261,10 +261,15 @@ pub fn text_on_accent() -> Color32 {
 }
 
 /// Accent-colored text — readable in both themes.
-/// Dark mode: bright cyan (ACCENT_LIGHT). Light mode: deeper blue (ACCENT).
+/// Dark mode: bright cyan (ACCENT_LIGHT). Light mode: deeper blue for WCAG AA
+/// compliance (4.58:1 on bg_secondary).
 #[inline]
 pub fn accent_text() -> Color32 {
-    if is_dark_mode() { ACCENT_LIGHT } else { ACCENT }
+    if is_dark_mode() {
+        ACCENT_LIGHT
+    } else {
+        Color32::from_rgb(0, 112, 235) // Darker accent for text readability on light surfaces
+    }
 }
 
 // ============================================================================
@@ -571,6 +576,17 @@ pub const TRAY_SATELLITE_CARD_WIDTH: f32 = 135.0;
 /// Modal backdrop alpha (0-255).
 pub const BACKDROP_ALPHA: u8 = 180;
 
+/// Backdrop color (navy-tinted in dark mode for brand depth, black in light mode).
+#[inline]
+pub fn backdrop_color(alpha: u8) -> Color32 {
+    if is_dark_mode() {
+        // Navy-tinted backdrop matching the dark theme palette
+        Color32::from_rgba_premultiplied(4, 6, 14, alpha)
+    } else {
+        Color32::from_black_alpha(alpha)
+    }
+}
+
 // ============================================================================
 // Table constants
 // ============================================================================
@@ -700,6 +716,14 @@ pub fn font_mono() -> FontId {
 /// Small monospace font (11px - terminal, settings, technical annotations).
 pub fn font_mono_sm() -> FontId {
     FontId::new(11.0, egui::FontFamily::Monospace)
+}
+
+/// Icon font at a given size (proportional, for FA icons used as visual elements).
+///
+/// Use this instead of `FontId::proportional(size)` for icons rendered via
+/// `painter.text()` to keep icon sizing centralized in the design system.
+pub fn font_icon(size: f32) -> FontId {
+    FontId::new(size, egui::FontFamily::Proportional)
 }
 
 /// COMEX-ready header font (32px Extra-Bold/strong).

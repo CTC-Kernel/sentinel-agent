@@ -81,9 +81,7 @@ pub fn error_state(ui: &mut Ui, message: &str) -> bool {
         // Error icon
         ui.label(
             egui::RichText::new(crate::icons::ERROR)
-                .font(egui::FontId::proportional(
-                    theme::SPACE_XL + theme::SPACE_SM,
-                ))
+                .font(egui::FontId::proportional(theme::ICON_2XL))
                 .color(theme::readable_color(theme::ERROR)),
         );
 

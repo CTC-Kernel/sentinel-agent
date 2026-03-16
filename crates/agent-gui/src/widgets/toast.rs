@@ -119,7 +119,11 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
     let mut remaining = Vec::new();
     let screen = ui.available_rect_before_wrap();
 
+    // Keyboard: Escape dismisses the most recent dismissible toast
+    let escape_pressed = ui.input(|i| i.key_pressed(egui::Key::Escape));
+
     let mut y_offset = 0.0;
+    let mut escape_consumed = false;
 
     for toast in toasts.iter().rev() {
         // Skip dismissed toasts
@@ -134,6 +138,12 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         }
 
         let mut toast_clone = toast.clone();
+
+        // Dismiss via Escape key (most recent first)
+        if escape_pressed && !escape_consumed && toast.dismissible {
+            toast_clone.dismissed = true;
+            escape_consumed = true;
+        }
 
         // Fade + slide-up entrance, fade-out exit
         let entrance_duration = theme::ANIM_NORMAL as f64;
@@ -206,7 +216,10 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
             egui::Rect::from_center_size(toast_center, egui::vec2(toast_width, toast_height));
 
         // Shadow (behind everything)
-        let shadow = theme::premium_shadow(16, (50.0 * alpha).clamp(0.0, 255.0) as u8);
+        let shadow = theme::premium_shadow(
+            theme::shadow_lg().blur,
+            (50.0 * alpha).clamp(0.0, 255.0) as u8,
+        );
         let toast_rounding = CornerRadius::same(theme::TOAST_ROUNDING);
         ui.painter()
             .add(shadow.as_shape(toast_rect, toast_rounding));

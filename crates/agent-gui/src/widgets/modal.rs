@@ -6,7 +6,7 @@
 use crate::icons;
 use crate::theme;
 use crate::widgets::button;
-use egui::{Color32, CornerRadius, Ui};
+use egui::{CornerRadius, Ui};
 
 /// Modal dialog result.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -136,13 +136,11 @@ impl Modal {
                 let backdrop_response = ui.allocate_response(screen.size(), egui::Sense::click());
 
                 // Frosted backdrop (navy-tinted in dark mode for depth)
-                let backdrop_color = if theme::is_dark_mode() {
-                    Color32::from_rgba_premultiplied(4, 6, 14, theme::BACKDROP_ALPHA)
-                } else {
-                    Color32::from_black_alpha(theme::BACKDROP_ALPHA)
-                };
-                ui.painter()
-                    .rect_filled(screen, CornerRadius::ZERO, backdrop_color);
+                ui.painter().rect_filled(
+                    screen,
+                    CornerRadius::ZERO,
+                    theme::backdrop_color(theme::BACKDROP_ALPHA),
+                );
 
                 // Close on backdrop click
                 if backdrop_response.clicked() && self.show_close {

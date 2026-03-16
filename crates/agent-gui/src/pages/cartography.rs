@@ -200,11 +200,9 @@ impl CartographyPage {
             let layout = build_initial_layout(&state.discovery.devices);
             state.cartography.layout = Some(layout);
         }
-        let layout = state
-            .cartography
-            .layout
-            .as_mut()
-            .expect("layout was just initialized above");
+        let Some(layout) = state.cartography.layout.as_mut() else {
+            return command;
+        };
 
         // Run force simulation only if not yet converged
         if !layout.converged {

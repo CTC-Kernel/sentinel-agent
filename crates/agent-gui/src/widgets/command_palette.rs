@@ -5,7 +5,7 @@
 
 use crate::icons;
 use crate::theme;
-use egui::{Color32, CornerRadius, Key, Sense};
+use egui::{CornerRadius, Key, Sense};
 
 /// A command/action item in the palette.
 #[derive(Debug, Clone)]
@@ -221,13 +221,11 @@ impl<'a> CommandPalette<'a> {
                     ui.allocate_exact_size(screen.size(), Sense::click());
 
                 if ui.is_rect_visible(backdrop_rect) {
-                    let backdrop_color = if theme::is_dark_mode() {
-                        Color32::from_rgba_premultiplied(4, 6, 14, theme::BACKDROP_ALPHA / 2)
-                    } else {
-                        Color32::from_black_alpha(theme::BACKDROP_ALPHA / 2)
-                    };
-                    ui.painter()
-                        .rect_filled(backdrop_rect, 0, backdrop_color);
+                    ui.painter().rect_filled(
+                        backdrop_rect,
+                        0,
+                        theme::backdrop_color(theme::BACKDROP_ALPHA / 2),
+                    );
                 }
 
                 if backdrop_response.clicked() {

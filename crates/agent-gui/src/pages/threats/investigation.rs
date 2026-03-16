@@ -74,7 +74,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 IocSearchType::Domain => "example.com, malware.xyz...",
                 IocSearchType::Hash => "SHA-256 hash...",
                 IocSearchType::Process => "powershell, curl, nc...",
-                IocSearchType::Cve => "CVE-2024-XXXXX...",
+                IocSearchType::Cve => "CVE-2024-12345...",
             };
             let input_width = (ui.available_width() - 120.0).max(200.0);
             ui.add_sized(

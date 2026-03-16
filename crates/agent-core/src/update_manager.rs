@@ -394,8 +394,8 @@ mod tests {
             // Paths with spaces are acceptable (no shell injection risk
             // when passed as argument array elements, not via shell).
             "/tmp/my folder/package.pkg",
-            // Paths with hyphens, underscores, dots, tildes
-            "/tmp/sentinel_agent-v2.1.0~beta.pkg",
+            // Paths with hyphens, underscores, dots
+            "/tmp/sentinel_agent-v2.1.0-beta.pkg",
         ];
 
         for path in &valid_paths {

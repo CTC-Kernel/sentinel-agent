@@ -474,7 +474,7 @@ impl<'a> TabBar<'a> {
 
                                 // Shadow for selected
                                 if is_selected {
-                                    let shadow = theme::premium_shadow(4, 15);
+                                    let shadow = theme::shadow_sm();
                                     ui.painter().add(shadow.as_shape(
                                         rect,
                                         CornerRadius::same(theme::BUTTON_ROUNDING - 2),

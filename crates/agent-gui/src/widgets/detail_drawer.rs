@@ -141,18 +141,16 @@ impl<'a> DetailDrawer<'a> {
 
         // Frosted backdrop (navy-tinted in dark mode)
         let backdrop_alpha = (theme::BACKDROP_ALPHA as f32 / 2.0 * anim_t) as u8;
-        let backdrop_color = if theme::is_dark_mode() {
-            Color32::from_rgba_premultiplied(4, 6, 14, backdrop_alpha)
-        } else {
-            Color32::from_black_alpha(backdrop_alpha)
-        };
         egui::Area::new(egui::Id::new("drawer_backdrop").with(self.id))
             .fixed_pos(screen.min)
             .order(egui::Order::Foreground)
             .interactable(false)
             .show(ctx, |ui| {
-                ui.painter()
-                    .rect_filled(screen, CornerRadius::ZERO, backdrop_color);
+                ui.painter().rect_filled(
+                    screen,
+                    CornerRadius::ZERO,
+                    theme::backdrop_color(backdrop_alpha),
+                );
             });
 
         // Track if drawer was already open on previous frame to avoid dismiss race
@@ -282,7 +280,7 @@ impl<'a> DetailDrawer<'a> {
                         if ui.is_rect_visible(divider_rect) {
                             ui.painter().rect_filled(
                                 divider_rect,
-                                CornerRadius::same(1),
+                                CornerRadius::same(theme::ROUNDING_XS),
                                 self.accent_color.linear_multiply(theme::OPACITY_MEDIUM),
                             );
                         }
@@ -525,12 +523,12 @@ pub fn detail_progress(ui: &mut Ui, label: &str, fraction: f32, color: Color32) 
     let (rect, _) = ui.allocate_exact_size(egui::vec2(width, bar_height), egui::Sense::hover());
     if ui.is_rect_visible(rect) {
         ui.painter()
-            .rect_filled(rect, CornerRadius::same(3), theme::bg_tertiary());
+            .rect_filled(rect, CornerRadius::same(theme::PROGRESS_BAR_ROUNDING), theme::bg_tertiary());
         let fill_w = rect.width() * fraction.clamp(0.0, 1.0);
         if fill_w > 0.0 {
             let fill_rect = egui::Rect::from_min_size(rect.min, egui::vec2(fill_w, bar_height));
             ui.painter()
-                .rect_filled(fill_rect, CornerRadius::same(3), color);
+                .rect_filled(fill_rect, CornerRadius::same(theme::PROGRESS_BAR_ROUNDING), color);
         }
     }
     ui.add_space(theme::SPACE_SM);

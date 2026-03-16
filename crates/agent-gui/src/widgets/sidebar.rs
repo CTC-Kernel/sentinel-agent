@@ -178,9 +178,20 @@ impl Sidebar {
 
                         // Sync status at the top
                         Self::sync_indicator(ui, sync_state);
-                        ui.add_space(theme::SPACE_MD);
-                        ui.separator();
-                        ui.add_space(theme::SPACE_MD);
+                        ui.add_space(theme::SPACE_SM);
+                        // Themed divider (softer than egui default)
+                        let sep_rect = ui
+                            .allocate_space(egui::vec2(
+                                theme::SIDEBAR_WIDTH - theme::SPACE_LG * 2.0,
+                                theme::BORDER_HAIRLINE,
+                            ))
+                            .1;
+                        ui.painter().rect_filled(
+                            sep_rect,
+                            egui::CornerRadius::ZERO,
+                            theme::border(),
+                        );
+                        ui.add_space(theme::SPACE_SM);
 
                         // Group: Principal
                         ui.add_space(theme::SPACE_SM);
@@ -274,7 +285,18 @@ impl Sidebar {
 
                         // Workspace context (AAA Grade)
                         if let Some(org) = organization {
-                            ui.separator();
+                            // Themed divider
+                            let sep_rect = ui
+                                .allocate_space(egui::vec2(
+                                    theme::SIDEBAR_WIDTH - theme::SPACE_LG * 2.0,
+                                    theme::BORDER_HAIRLINE,
+                                ))
+                                .1;
+                            ui.painter().rect_filled(
+                                sep_rect,
+                                egui::CornerRadius::ZERO,
+                                theme::border(),
+                            );
                             ui.add_space(theme::SPACE_SM);
                             ui.horizontal(|ui: &mut egui::Ui| {
                                 ui.add_space(theme::SPACE_MD);

@@ -132,5 +132,14 @@ pub fn clickable_card(
     if response.hovered() {
         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
     }
+    // Focus ring for keyboard navigation (WCAG 2.4.7)
+    if response.has_focus() {
+        ui.painter().rect_stroke(
+            rect.expand(2.0),
+            CornerRadius::same(theme::CARD_ROUNDING + 2),
+            theme::focus_ring(),
+            egui::epaint::StrokeKind::Outside,
+        );
+    }
     response
 }
