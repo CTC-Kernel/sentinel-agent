@@ -239,12 +239,9 @@ jobs:
           rm -f "$RUNNER_TEMP/password_inst.txt"
 
 
-      - name: Build and Notarize PKG
+      - name: Build PKG
         env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          NOTARIZE: true
+          NOTARIZE: "false"
           VERSION: ${{ env.RELEASE_VERSION }}
         run: |
           # Ensure keychain is unlocked and in search list
@@ -303,7 +300,7 @@ jobs:
             --password "$APPLE_APP_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --output-format json \
-            --wait --timeout 30m 2>&1) || true
+            --wait --timeout 30m) || true
 
           echo "$SUBMIT_OUTPUT"
 
@@ -350,13 +347,17 @@ jobs:
         run: |
           VERSION="${{ env.RELEASE_VERSION }}"
           cd target/release
-          echo "=== Verifying PKG signature and notarization ==="
+          echo "=== Verifying PKG signature ==="
           pkgutil --check-signature "SentinelAgent-${VERSION}.pkg"
-          spctl --assess --type install --verbose "SentinelAgent-${VERSION}.pkg"
-          
-          echo "=== Verifying Latest PKG signature and notarization ==="
+
+          echo "=== Verifying PKG notarization (stapler) ==="
+          xcrun stapler validate "SentinelAgent-${VERSION}.pkg"
+
+          echo "=== Verifying Latest PKG signature ==="
           pkgutil --check-signature "SentinelAgent-latest.pkg"
-          spctl --assess --type install --verbose "SentinelAgent-latest.pkg"
+
+          echo "=== Verifying Latest PKG notarization (stapler) ==="
+          xcrun stapler validate "SentinelAgent-latest.pkg"
 
       - name: Generate checksums
         run: |
