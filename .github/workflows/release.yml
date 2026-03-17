@@ -291,22 +291,46 @@ jobs:
         run: |
           VERSION="${{ env.RELEASE_VERSION }}"
           PKG_PATH="target/release/SentinelAgent-${VERSION}.pkg"
-          
+
           if [ ! -f "$PKG_PATH" ]; then
-            echo "::warning::PKG not found at $PKG_PATH"
-          else
-            echo "Notarizing $PKG_PATH..."
-            if xcrun notarytool submit "$PKG_PATH" \
-              --apple-id "$APPLE_ID" \
-              --password "$APPLE_APP_PASSWORD" \
-              --team-id "$APPLE_TEAM_ID" \
-              --verbose \
-              --wait --timeout 30m; then
-              xcrun stapler staple "$PKG_PATH"
-              echo "PKG notarization complete!"
-            else
-              echo "::warning::PKG notarization timed out."
+            echo "::error::PKG not found at $PKG_PATH"
+            exit 1
+          fi
+
+          echo "Submitting $PKG_PATH for notarization..."
+          SUBMIT_OUTPUT=$(xcrun notarytool submit "$PKG_PATH" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --output-format json \
+            --wait --timeout 30m 2>&1) || true
+
+          echo "$SUBMIT_OUTPUT"
+
+          # Extract status from JSON output
+          STATUS=$(echo "$SUBMIT_OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','Unknown'))" 2>/dev/null || echo "Unknown")
+
+          if [ "$STATUS" = "Accepted" ]; then
+            echo "Notarization accepted! Stapling ticket..."
+            xcrun stapler staple "$PKG_PATH"
+            echo "PKG notarization and stapling complete!"
+          elif [ "$STATUS" = "Invalid" ]; then
+            # Fetch the log for diagnostic details
+            SUBMISSION_ID=$(echo "$SUBMIT_OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || echo "")
+            if [ -n "$SUBMISSION_ID" ]; then
+              echo "::group::Notarization Log"
+              xcrun notarytool log "$SUBMISSION_ID" \
+                --apple-id "$APPLE_ID" \
+                --password "$APPLE_APP_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" || true
+              echo "::endgroup::"
             fi
+            echo "::error::Notarization rejected by Apple. Check the log above for details."
+            exit 1
+          else
+            echo "::error::Notarization failed with status: $STATUS"
+            echo "::error::Ensure APPLE_ID, APPLE_APP_PASSWORD, and APPLE_TEAM_ID secrets are correctly configured."
+            exit 1
           fi
 
       - name: Create and Staple Latest Aliases
