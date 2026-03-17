@@ -209,6 +209,16 @@ impl Default for SiemConfig {
     }
 }
 
+impl SiemConfig {
+    /// Human-readable destination label for reporting.
+    pub fn destination_label(&self) -> String {
+        match &self.transport {
+            SiemTransport::Syslog { host, port, .. } => format!("{}:{}", host, port),
+            SiemTransport::Http { url, .. } => url.clone(),
+        }
+    }
+}
+
 /// SIEM forwarder statistics.
 #[derive(Debug, Clone, Default)]
 pub struct SiemStats {
@@ -226,6 +236,9 @@ pub struct SiemStats {
     pub is_connected: bool,
 }
 
+/// Maximum number of recent events kept for platform reporting.
+const RECENT_EVENTS_LIMIT: usize = 100;
+
 /// Main SIEM forwarder.
 pub struct SiemForwarder {
     config: SiemConfig,
@@ -233,6 +246,8 @@ pub struct SiemForwarder {
     transport: Box<dyn SiemTransportTrait + Send + Sync>,
     buffer: Arc<RwLock<Vec<SiemEvent>>>,
     stats: Arc<RwLock<SiemStats>>,
+    /// Ring buffer of recently sent events for platform reporting.
+    recent_events: Arc<RwLock<Vec<SiemEvent>>>,
 }
 
 impl SiemForwarder {
@@ -279,6 +294,7 @@ impl SiemForwarder {
             transport,
             buffer: Arc::new(RwLock::new(Vec::new())),
             stats: Arc::new(RwLock::new(SiemStats::default())),
+            recent_events: Arc::new(RwLock::new(Vec::new())),
         })
     }
 
@@ -321,6 +337,16 @@ impl SiemForwarder {
                 stats.last_success = Some(Utc::now());
                 stats.is_connected = true;
                 stats.last_error = None;
+                drop(stats);
+
+                // Keep recent events for platform reporting
+                let mut recent = self.recent_events.write().await;
+                recent.push(event.clone());
+                let overflow = recent.len().saturating_sub(RECENT_EVENTS_LIMIT);
+                if overflow > 0 {
+                    recent.drain(..overflow);
+                }
+
                 debug!("Event sent successfully: {} bytes", bytes_sent);
                 Ok(())
             }
@@ -409,6 +435,17 @@ impl SiemForwarder {
     /// Get current statistics.
     pub async fn stats(&self) -> SiemStats {
         self.stats.read().await.clone()
+    }
+
+    /// Take and drain recent events for platform reporting.
+    pub async fn take_recent_events(&self) -> Vec<SiemEvent> {
+        let mut recent = self.recent_events.write().await;
+        std::mem::take(&mut *recent)
+    }
+
+    /// Get a reference to the current SIEM configuration.
+    pub fn config(&self) -> &SiemConfig {
+        &self.config
     }
 
     /// Check if the forwarder is enabled.

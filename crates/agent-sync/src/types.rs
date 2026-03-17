@@ -1258,6 +1258,76 @@ pub struct DiscoveredAssetResponse {
 // Log Upload Sync Types
 // ============================================================================
 
+// ============================================================================
+// SIEM Sync Types
+// ============================================================================
+
+/// SIEM event payload for platform sync.
+#[derive(Debug, Clone, Serialize)]
+pub struct SiemEventPayload {
+    /// Event timestamp.
+    pub timestamp: DateTime<Utc>,
+    /// Severity (0-10).
+    pub severity: u8,
+    /// Event category.
+    pub category: String,
+    /// Event name.
+    pub name: String,
+    /// Description.
+    pub description: String,
+    /// Source host.
+    pub source_host: String,
+    /// Source IP.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_ip: Option<String>,
+    /// Destination IP.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub destination_ip: Option<String>,
+    /// Unique event ID.
+    pub event_id: String,
+}
+
+/// SIEM forwarding statistics for platform sync.
+#[derive(Debug, Clone, Serialize)]
+pub struct SiemStatsPayload {
+    /// Whether the SIEM forwarder is enabled.
+    pub enabled: bool,
+    /// Output format (CEF, LEEF, JSON).
+    pub format: String,
+    /// Transport protocol.
+    pub transport: String,
+    /// Destination address.
+    pub destination: String,
+    /// Total events sent since last report.
+    pub events_sent: u64,
+    /// Total events dropped since last report.
+    pub events_dropped: u64,
+    /// Total bytes sent since last report.
+    pub bytes_sent: u64,
+    /// Whether the transport is currently connected.
+    pub is_connected: bool,
+    /// Last error message, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_error: Option<String>,
+    /// Timestamp of this stats report.
+    pub reported_at: DateTime<Utc>,
+}
+
+/// SIEM sync request containing events and stats.
+#[derive(Debug, Clone, Serialize)]
+pub struct SiemSyncRequest {
+    /// Recent SIEM events (limited batch).
+    pub events: Vec<SiemEventPayload>,
+    /// Current forwarding statistics.
+    pub stats: SiemStatsPayload,
+}
+
+/// SIEM sync response.
+#[derive(Debug, Clone, Deserialize)]
+pub struct SiemSyncResponse {
+    pub acknowledged: bool,
+}
+
 /// Log entry for sync.
 #[derive(Debug, Clone, Serialize)]
 pub struct LogEntryPayload {

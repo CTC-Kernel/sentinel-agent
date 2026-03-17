@@ -413,8 +413,10 @@ impl SettingsPage {
 
         ui.add_space(theme::SPACE);
 
-        // SIEM Forwarding status (AAA Grade)
-        Self::siem_card(ui, state);
+        // SIEM Forwarding configuration (AAA Grade)
+        if let Some(cmd) = Self::siem_card(ui, state) {
+            command = Some(cmd);
+        }
 
         ui.add_space(theme::SPACE);
 
@@ -831,69 +833,153 @@ impl SettingsPage {
         });
     }
 
-    fn siem_card(ui: &mut Ui, state: &AppState) {
+    fn siem_card(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let mut command = None;
+
         widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(format!("{}  INTEGRATION SIEM", icons::SHARE_NODES))
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-
-                ui.with_layout(
-                    egui::Layout::right_to_left(egui::Align::Center),
-                    |ui: &mut egui::Ui| {
-                        if state.settings.siem_enabled {
-                            ui.label(
-                                egui::RichText::new(format!("{}  ACTIF", icons::CIRCLE_CHECK))
-                                    .font(theme::font_label())
-                                    .color(theme::readable_color(theme::SUCCESS))
-                                    .strong(),
-                            );
-                        } else {
-                            ui.label(
-                                egui::RichText::new(format!("{}  INACTIF", icons::WARNING))
-                                    .font(theme::font_label())
-                                    .color(theme::readable_color(theme::WARNING))
-                                    .strong(),
-                            );
-                        }
-                    },
-                );
-            });
-
+            ui.label(
+                egui::RichText::new(format!("{}  INTÉGRATION SIEM", icons::SHARE_NODES))
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
             ui.add_space(theme::SPACE_MD);
 
+            // Toggle SIEM on/off
+            ui.horizontal(|ui: &mut egui::Ui| {
+                let (status_label, status_color) = if state.settings.siem_enabled {
+                    (
+                        format!("{}  TRANSFERT ACTIF", icons::CIRCLE_CHECK),
+                        theme::readable_color(theme::SUCCESS),
+                    )
+                } else {
+                    (
+                        format!("{}  TRANSFERT INACTIF", icons::WARNING),
+                        theme::readable_color(theme::WARNING),
+                    )
+                };
+                ui.label(
+                    egui::RichText::new(status_label)
+                        .font(theme::font_body())
+                        .color(status_color)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_MD);
+                let prev = state.settings.siem_enabled;
+                widgets::toggle_switch(ui, &mut state.settings.siem_enabled);
+                if state.settings.siem_enabled != prev {
+                    command = Some(GuiCommand::UpdateSiemConfig {
+                        enabled: state.settings.siem_enabled,
+                        format: state.settings.siem_format.clone(),
+                        transport: state.settings.siem_transport.clone(),
+                        destination: state.settings.siem_destination.clone(),
+                    });
+                }
+            });
+
+            ui.add_space(theme::SPACE_SM);
+
             if state.settings.siem_enabled {
-                Self::setting_row(
-                    ui,
-                    "FORMAT",
-                    &state.settings.siem_format,
-                    icons::ARROW_RIGHT,
+                // Format selector
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new("FORMAT DE SORTIE")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_TIGHT)
+                        .strong(),
                 );
-                Self::setting_row(
-                    ui,
-                    "TRANSPORT",
-                    &state.settings.siem_transport,
-                    icons::ARROW_RIGHT,
+                ui.add_space(theme::SPACE_XS);
+                let formats = ["CEF", "LEEF", "JSON"];
+                let mut format_idx = formats
+                    .iter()
+                    .position(|f| *f == state.settings.siem_format)
+                    .unwrap_or(0);
+                if widgets::button_group(ui, &formats, format_idx).is_some_and(|i| {
+                    format_idx = i;
+                    true
+                }) {
+                    state.settings.siem_format = formats[format_idx].to_string();
+                    command = Some(GuiCommand::UpdateSiemConfig {
+                        enabled: state.settings.siem_enabled,
+                        format: state.settings.siem_format.clone(),
+                        transport: state.settings.siem_transport.clone(),
+                        destination: state.settings.siem_destination.clone(),
+                    });
+                }
+
+                ui.add_space(theme::SPACE_MD);
+
+                // Transport selector
+                ui.label(
+                    egui::RichText::new("PROTOCOLE DE TRANSPORT")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_TIGHT)
+                        .strong(),
                 );
-                Self::setting_row(
-                    ui,
-                    "DESTINATION",
-                    &state.settings.siem_destination,
-                    icons::ARROW_RIGHT,
+                ui.add_space(theme::SPACE_XS);
+                let transports = ["Syslog", "HTTP"];
+                let mut transport_idx = transports
+                    .iter()
+                    .position(|t| *t == state.settings.siem_transport)
+                    .unwrap_or(0);
+                if widgets::button_group(ui, &transports, transport_idx).is_some_and(|i| {
+                    transport_idx = i;
+                    true
+                }) {
+                    state.settings.siem_transport = transports[transport_idx].to_string();
+                    command = Some(GuiCommand::UpdateSiemConfig {
+                        enabled: state.settings.siem_enabled,
+                        format: state.settings.siem_format.clone(),
+                        transport: state.settings.siem_transport.clone(),
+                        destination: state.settings.siem_destination.clone(),
+                    });
+                }
+
+                ui.add_space(theme::SPACE_MD);
+
+                // Destination input
+                ui.label(
+                    egui::RichText::new("ADRESSE DE DESTINATION")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_TIGHT)
+                        .strong(),
                 );
+                ui.add_space(theme::SPACE_XS);
+
+                let hint = if state.settings.siem_transport == "HTTP" {
+                    "https://siem.example.com/api/events"
+                } else {
+                    "syslog.example.com:514"
+                };
+                let prev_dest = state.settings.siem_destination.clone();
+                widgets::text_input(
+                    ui,
+                    &mut state.settings.siem_destination,
+                    hint,
+                );
+                if state.settings.siem_destination != prev_dest {
+                    command = Some(GuiCommand::UpdateSiemConfig {
+                        enabled: state.settings.siem_enabled,
+                        format: state.settings.siem_format.clone(),
+                        transport: state.settings.siem_transport.clone(),
+                        destination: state.settings.siem_destination.clone(),
+                    });
+                }
             } else {
                 ui.label(
                     egui::RichText::new(
-                        "Le transfert SIEM n'est pas configur\u{00e9}. Configurez-le dans le fichier de configuration de l'agent.",
+                        "Activez le transfert pour envoyer les événements de sécurité vers votre SIEM.",
                     )
                     .font(theme::font_label())
                     .color(theme::text_tertiary()),
                 );
             }
         });
+
+        command
     }
 }

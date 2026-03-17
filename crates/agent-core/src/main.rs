@@ -2442,6 +2442,31 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             });
                         }
 
+                        Ok(GuiCommand::UpdateSiemConfig {
+                            enabled,
+                            format,
+                            transport,
+                            destination,
+                        }) => {
+                            info!(
+                                "[AUDIT] SIEM config updated via GUI: enabled={}, format={}, transport={}, dest={}",
+                                enabled, format, transport, destination
+                            );
+                            // Update the runtime SIEM config and notify the GUI
+                            handle_for_commands.update_siem_config(
+                                enabled,
+                                format.clone(),
+                                transport.clone(),
+                                destination.clone(),
+                            );
+                            let _ = bg_event_tx.send(AgentEvent::SiemConfigUpdate {
+                                enabled,
+                                format,
+                                transport,
+                                destination,
+                            });
+                        }
+
                         Err(mpsc::TryRecvError::Empty) => {
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                         }

@@ -40,6 +40,9 @@ use crate::types::{
     KpiSyncRequest,
     // Log upload
     LogEntryPayload,
+    // SIEM sync
+    SiemSyncRequest,
+    SiemSyncResponse,
     LogUploadRequest,
     LogUploadResponse,
     // Network sync
@@ -799,6 +802,28 @@ impl AuthenticatedClient {
         self.post_json(
             &format!("/v1/agents/{}/discovered-assets", agent_id),
             &asset,
+        )
+        .await
+    }
+
+    /// Upload SIEM events and forwarding statistics to the SaaS.
+    ///
+    /// Sends recent SIEM events and current forwarder stats for the platform
+    /// SIEM tab to display.
+    pub async fn sync_siem_data(
+        &self,
+        request: SiemSyncRequest,
+    ) -> SyncResult<SiemSyncResponse> {
+        let agent_id = self.agent_id().await?;
+        debug!(
+            "Syncing SIEM data for agent {}: {} events, connected={}",
+            agent_id,
+            request.events.len(),
+            request.stats.is_connected
+        );
+        self.post_json(
+            &format!("/v1/agents/{}/siem", agent_id),
+            &request,
         )
         .await
     }

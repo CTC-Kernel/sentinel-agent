@@ -23,6 +23,14 @@ pub struct RuntimeState {
     pub log_level: Arc<AtomicU8>,
     /// Channel for sending remediation requests from GUI to the background loop.
     pub remediation_tx: tokio::sync::mpsc::Sender<RemediationRequest>,
+    /// Whether the SIEM forwarder is enabled.
+    pub siem_enabled: Arc<AtomicBool>,
+    /// SIEM output format (CEF, LEEF, JSON).
+    pub siem_format: std::sync::Mutex<String>,
+    /// SIEM transport protocol (Syslog, HTTP).
+    pub siem_transport: std::sync::Mutex<String>,
+    /// SIEM destination address (host:port or URL).
+    pub siem_destination: std::sync::Mutex<String>,
 }
 
 /// A request to remediate or preview a check.
@@ -53,6 +61,10 @@ impl RuntimeState {
                 )),
                 log_level: Arc::new(AtomicU8::new(2)), // info
                 remediation_tx: tx,
+                siem_enabled: Arc::new(AtomicBool::new(false)),
+                siem_format: std::sync::Mutex::new("CEF".to_string()),
+                siem_transport: std::sync::Mutex::new("Syslog".to_string()),
+                siem_destination: std::sync::Mutex::new(String::new()),
             },
             rx,
         )

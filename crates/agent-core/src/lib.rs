@@ -373,6 +373,30 @@ impl RuntimeHandle {
         set_tracing_level(level_str);
     }
 
+    /// Update SIEM forwarder configuration at runtime.
+    pub fn update_siem_config(
+        &self,
+        enabled: bool,
+        format: String,
+        transport: String,
+        destination: String,
+    ) {
+        info!(
+            "SIEM config updated via handle: enabled={}, format={}, transport={}, dest={}",
+            enabled, format, transport, destination
+        );
+        self.state.siem_enabled.store(enabled, std::sync::atomic::Ordering::Release);
+        if let Ok(mut fmt) = self.state.siem_format.lock() {
+            *fmt = format;
+        }
+        if let Ok(mut tr) = self.state.siem_transport.lock() {
+            *tr = transport;
+        }
+        if let Ok(mut dest) = self.state.siem_destination.lock() {
+            *dest = destination;
+        }
+    }
+
     /// Trigger remediation for a check.
     pub fn remediate(&self, check_id: String) {
         if let Err(e) = self
@@ -1149,6 +1173,50 @@ impl AgentRuntime {
                                     }
                                 }
                                 Err(e) => warn!("GRC sync queue drain failed: {}", e),
+                            }
+                        }
+
+                        // Sync SIEM data to the platform
+                        if let Some(ref client) = self.authenticated_client {
+                            if let Some(ref siem) = *self.siem_forwarder.read().await {
+                                let stats = siem.stats().await;
+                                let recent = siem.take_recent_events().await;
+                                let cfg = siem.config();
+
+                                let events: Vec<agent_sync::SiemEventPayload> = recent
+                                    .iter()
+                                    .map(|e| agent_sync::SiemEventPayload {
+                                        timestamp: e.timestamp,
+                                        severity: e.severity,
+                                        category: format!("{:?}", e.category),
+                                        name: e.name.clone(),
+                                        description: e.description.clone(),
+                                        source_host: e.source_host.clone(),
+                                        source_ip: e.source_ip.clone(),
+                                        destination_ip: e.destination_ip.clone(),
+                                        event_id: e.event_id.clone(),
+                                    })
+                                    .collect();
+
+                                let request = agent_sync::SiemSyncRequest {
+                                    events,
+                                    stats: agent_sync::SiemStatsPayload {
+                                        enabled: cfg.enabled,
+                                        format: format!("{:?}", cfg.format),
+                                        transport: format!("{:?}", cfg.transport),
+                                        destination: cfg.destination_label(),
+                                        events_sent: stats.events_sent,
+                                        events_dropped: stats.events_dropped,
+                                        bytes_sent: stats.bytes_sent,
+                                        is_connected: stats.is_connected,
+                                        last_error: stats.last_error.clone(),
+                                        reported_at: chrono::Utc::now(),
+                                    },
+                                };
+
+                                if let Err(e) = client.sync_siem_data(request).await {
+                                    warn!("Failed to sync SIEM data to platform: {}", e);
+                                }
                             }
                         }
                     }
@@ -2181,6 +2249,7 @@ impl AgentRuntime {
                 if let Some(ref tx) = self.gui_event_tx {
                     let tx = tx.clone();
                     let db_clone = self.db.clone();
+                    let sync_client = self.authenticated_client.clone();
 
                     let subnet = {
                         let network_manager = self.network_manager.read().await;
@@ -2277,6 +2346,35 @@ impl AgentRuntime {
                                         info!(
                                             "Persisted {} discovered devices to database",
                                             stored.len()
+                                        );
+                                    }
+                                }
+
+                                // Sync discovered devices to the platform
+                                if let Some(ref client) = sync_client {
+                                    let mut synced = 0u32;
+                                    for d in &devices {
+                                        let payload = agent_sync::DiscoveredAssetPayload {
+                                            ip: d.ip.clone(),
+                                            hostname: d.hostname.clone(),
+                                            device_type: Some(d.device_type.clone()),
+                                            source: Some("network_discovery".to_string()),
+                                        };
+                                        match client.report_discovered_asset(payload).await {
+                                            Ok(_) => synced += 1,
+                                            Err(e) => {
+                                                warn!(
+                                                    "Failed to sync discovered device {}: {}",
+                                                    d.ip, e
+                                                );
+                                            }
+                                        }
+                                    }
+                                    if synced > 0 {
+                                        info!(
+                                            "Synced {}/{} discovered devices to platform",
+                                            synced,
+                                            devices.len()
                                         );
                                     }
                                 }

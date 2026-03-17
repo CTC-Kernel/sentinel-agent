@@ -460,6 +460,17 @@ pub enum GuiCommand {
         /// Current impact (1-5).
         current_impact: u8,
     },
+    /// Update the SIEM forwarder configuration.
+    UpdateSiemConfig {
+        /// Whether the SIEM forwarder is enabled.
+        enabled: bool,
+        /// Output format (CEF, LEEF, JSON).
+        format: String,
+        /// Transport protocol (Syslog, HTTP).
+        transport: String,
+        /// Destination address (host:port or URL).
+        destination: String,
+    },
 }
 
 #[cfg(test)]
