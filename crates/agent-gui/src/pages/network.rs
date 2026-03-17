@@ -635,6 +635,7 @@ impl NetworkPage {
                                 egui::RichText::new("NOM")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });
@@ -643,6 +644,7 @@ impl NetworkPage {
                                 egui::RichText::new("TYPE")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });
@@ -651,6 +653,7 @@ impl NetworkPage {
                                 egui::RichText::new("STATUT")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });
@@ -659,6 +662,7 @@ impl NetworkPage {
                                 egui::RichText::new("IPV4")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });
@@ -667,6 +671,7 @@ impl NetworkPage {
                                 egui::RichText::new("MAC")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });
@@ -849,6 +854,7 @@ impl NetworkPage {
                                 egui::RichText::new("PROTO")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });
@@ -857,6 +863,7 @@ impl NetworkPage {
                                 egui::RichText::new("LOCAL")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });
@@ -865,6 +872,7 @@ impl NetworkPage {
                                 egui::RichText::new("DISTANT")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });
@@ -873,6 +881,7 @@ impl NetworkPage {
                                 egui::RichText::new("\u{00c9}TAT")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });
@@ -881,6 +890,7 @@ impl NetworkPage {
                                 egui::RichText::new("PROCESSUS")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
+                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                                     .strong(),
                             );
                         });

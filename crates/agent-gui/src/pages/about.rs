@@ -98,6 +98,7 @@ impl AboutPage {
                 egui::RichText::new("LEGAL NOTICES")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_SM);
@@ -129,6 +130,7 @@ impl AboutPage {
                 egui::RichText::new("SYSTEM")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -150,6 +152,7 @@ impl AboutPage {
                 egui::RichText::new("RESOURCES")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);

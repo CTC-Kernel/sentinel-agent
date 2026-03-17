@@ -31,6 +31,12 @@ pub struct RuntimeState {
     pub siem_transport: std::sync::Mutex<String>,
     /// SIEM destination address (host:port or URL).
     pub siem_destination: std::sync::Mutex<String>,
+    /// Whether the SIEM log collector is enabled.
+    pub log_collector_enabled: Arc<AtomicBool>,
+    /// Active log sources for the collector.
+    pub log_collector_sources: std::sync::Mutex<Vec<String>>,
+    /// Log collector polling interval in seconds.
+    pub log_collector_poll_secs: Arc<AtomicU64>,
 }
 
 /// A request to remediate or preview a check.
@@ -65,6 +71,12 @@ impl RuntimeState {
                 siem_format: std::sync::Mutex::new("CEF".to_string()),
                 siem_transport: std::sync::Mutex::new("Syslog".to_string()),
                 siem_destination: std::sync::Mutex::new(String::new()),
+                log_collector_enabled: Arc::new(AtomicBool::new(false)),
+                log_collector_sources: std::sync::Mutex::new(vec![
+                    "system".to_string(),
+                    "auth".to_string(),
+                ]),
+                log_collector_poll_secs: Arc::new(AtomicU64::new(60)),
             },
             rx,
         )

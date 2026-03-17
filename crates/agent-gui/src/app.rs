@@ -191,6 +191,39 @@ impl SentinelApp {
         }
     }
 
+    /// Apply persisted GUI preferences loaded from eframe storage.
+    ///
+    /// Called once at startup from the `run_native` closure before the first
+    /// frame is rendered.  Also re-sends the relevant `GuiCommand`s so the
+    /// agent-core runtime picks up the restored values.
+    pub fn apply_persisted_preferences(&mut self, prefs: crate::state::GuiPreferences) {
+        prefs.apply_to(&mut self.state);
+        self.last_dark_mode = self.state.settings.dark_mode;
+
+        // Re-send commands to agent-core so runtime matches restored prefs
+        self.send_command(GuiCommand::UpdateCheckInterval {
+            interval_secs: self.state.settings.check_interval_secs,
+        });
+        self.send_command(GuiCommand::SetLogLevel {
+            level: self.state.settings.log_level.index() as u8,
+        });
+        if self.state.settings.siem_enabled {
+            self.send_command(GuiCommand::UpdateSiemConfig {
+                enabled: self.state.settings.siem_enabled,
+                format: self.state.settings.siem_format.clone(),
+                transport: self.state.settings.siem_transport.clone(),
+                destination: self.state.settings.siem_destination.clone(),
+            });
+        }
+        if self.state.settings.log_collector_enabled {
+            self.send_command(GuiCommand::UpdateLogCollectorConfig {
+                enabled: self.state.settings.log_collector_enabled,
+                sources: self.state.settings.log_collector_sources.clone(),
+                poll_interval_secs: self.state.settings.log_collector_poll_secs,
+            });
+        }
+    }
+
     /// Configure the eframe `NativeOptions`.
     pub fn native_options() -> eframe::NativeOptions {
         eframe::NativeOptions {
@@ -458,6 +491,14 @@ impl SentinelApp {
 // ============================================================================
 
 impl eframe::App for SentinelApp {
+    /// Persist GUI preferences to eframe storage on shutdown & periodically.
+    fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        let prefs = crate::state::GuiPreferences::from_state(&self.state);
+        if let Ok(json) = serde_json::to_string(&prefs) {
+            storage.set_string("gui_preferences", json);
+        }
+    }
+
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Apply theme once on first frame, and re-apply when dark_mode toggles.
         if !self.theme_applied {
@@ -787,7 +828,8 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Monitoring => {
-                                    if let Some(cmd) = pages::MonitoringPage::show(ui, &self.state)
+                                    if let Some(cmd) =
+                                        pages::MonitoringPage::show(ui, &mut self.state)
                                     {
                                         self.send_command(cmd);
                                     }

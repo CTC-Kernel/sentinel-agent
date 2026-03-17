@@ -397,6 +397,28 @@ impl RuntimeHandle {
         }
     }
 
+    /// Update SIEM log collector configuration at runtime.
+    pub fn update_log_collector_config(
+        &self,
+        enabled: bool,
+        sources: &[String],
+        poll_interval_secs: u64,
+    ) {
+        info!(
+            "Log collector config updated via handle: enabled={}, sources={:?}, poll={}s",
+            enabled, sources, poll_interval_secs
+        );
+        self.state
+            .log_collector_enabled
+            .store(enabled, std::sync::atomic::Ordering::Release);
+        if let Ok(mut src) = self.state.log_collector_sources.lock() {
+            *src = sources.to_vec();
+        }
+        self.state
+            .log_collector_poll_secs
+            .store(poll_interval_secs, std::sync::atomic::Ordering::Release);
+    }
+
     /// Trigger remediation for a check.
     pub fn remediate(&self, check_id: String) {
         if let Err(e) = self

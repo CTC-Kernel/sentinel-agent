@@ -178,9 +178,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui: &mut egui::Ui| {
-                                        if widgets::ghost_button(ui, icons::TRASH.to_string())
-                                            .clicked()
-                                        {
+                                        let del_resp = widgets::ghost_button(ui, icons::TRASH.to_string())
+                                            .on_hover_text("Supprimer");
+                                        if del_resp.clicked() {
                                             delete_id = Some(rule.id.to_string());
                                         }
                                         ui.add_space(theme::SPACE_XS);
@@ -317,7 +317,9 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                         ui.add_space(theme::SPACE_XS);
                         widgets::text_input(ui, &mut cond.value, "Valeur...");
                         ui.add_space(theme::SPACE_XS);
-                        if widgets::ghost_button(ui, icons::TRASH.to_string()).clicked() {
+                        let del_resp = widgets::ghost_button(ui, icons::TRASH.to_string())
+                            .on_hover_text("Supprimer");
+                        if del_resp.clicked() {
                             remove_cond_idx = Some(i);
                         }
                     });

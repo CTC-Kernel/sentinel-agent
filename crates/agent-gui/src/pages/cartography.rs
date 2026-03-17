@@ -433,7 +433,7 @@ impl CartographyPage {
                 ui.add_space(theme::SPACE_MD);
 
                 egui::Grid::new("device_detail_grid")
-                    .spacing(egui::vec2(24.0, 8.0))
+                    .spacing(egui::vec2(theme::SPACE_LG, theme::SPACE_SM))
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new("ADRESSE MAC")

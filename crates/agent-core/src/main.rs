@@ -1731,6 +1731,26 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::ToggleDetectionRule { rule_id, enabled }) => {
                             info!("[AUDIT] GUI toggled detection rule {}: enabled={}", rule_id, enabled);
+                            // Persist toggle to SQLite so it survives restarts
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let rid = rule_id.clone();
+                                tokio::spawn(async move {
+                                    let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
+                                    match repo.get_all().await {
+                                        Ok(rules) => {
+                                            if let Some(mut rule) = rules.into_iter().find(|r| r.id == rid) {
+                                                rule.enabled = enabled;
+                                                rule.synced = false;
+                                                if let Err(e) = repo.upsert(&rule).await {
+                                                    warn!("Failed to persist detection rule toggle: {}", e);
+                                                }
+                                            }
+                                        }
+                                        Err(e) => warn!("Failed to load detection rules for toggle: {}", e),
+                                    }
+                                });
+                            }
                         }
 
                         Ok(GuiCommand::SaveRisk { risk }) => {
@@ -2465,6 +2485,23 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 transport,
                                 destination,
                             });
+                        }
+
+                        Ok(GuiCommand::UpdateLogCollectorConfig {
+                            enabled,
+                            sources,
+                            poll_interval_secs,
+                        }) => {
+                            info!(
+                                "[AUDIT] Log collector config updated via GUI: enabled={}, sources={:?}, poll={}s",
+                                enabled, sources, poll_interval_secs
+                            );
+                            // Update runtime log collector config
+                            handle_for_commands.update_log_collector_config(
+                                enabled,
+                                &sources,
+                                poll_interval_secs,
+                            );
                         }
 
                         Err(mpsc::TryRecvError::Empty) => {

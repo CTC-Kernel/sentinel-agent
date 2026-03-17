@@ -141,6 +141,7 @@ impl SyncPage {
                 egui::RichText::new("HISTORIQUE DES TRANSFERTS")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);

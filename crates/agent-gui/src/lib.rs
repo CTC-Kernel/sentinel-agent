@@ -58,7 +58,18 @@ pub fn run_gui(
     eframe::run_native(
         "Sentinel Agent",
         options,
-        Box::new(|_cc| Ok(Box::new(sentinel_app))),
+        Box::new(|cc| {
+            let mut app = sentinel_app;
+            // Restore persisted GUI preferences (dark mode, SIEM config, etc.)
+            if let Some(storage) = cc.storage {
+                if let Some(json) = storage.get_string("gui_preferences") {
+                    if let Ok(prefs) = serde_json::from_str::<state::GuiPreferences>(&json) {
+                        app.apply_persisted_preferences(prefs);
+                    }
+                }
+            }
+            Ok(Box::new(app))
+        }),
     )
 }
 
@@ -80,6 +91,16 @@ pub fn run_tray_popup(
     eframe::run_native(
         "Sentinel - Vue Rapide",
         options,
-        Box::new(|_cc| Ok(Box::new(sentinel_app))),
+        Box::new(|cc| {
+            let mut app = sentinel_app;
+            if let Some(storage) = cc.storage {
+                if let Some(json) = storage.get_string("gui_preferences") {
+                    if let Ok(prefs) = serde_json::from_str::<state::GuiPreferences>(&json) {
+                        app.apply_persisted_preferences(prefs);
+                    }
+                }
+            }
+            Ok(Box::new(app))
+        }),
     )
 }

@@ -178,6 +178,8 @@ impl FimPage {
         }
 
         ui.add_space(theme::SPACE_LG);
+        widgets::divider_thin(ui);
+        ui.add_space(theme::SPACE_LG);
 
         // ── Alerts table (AAA Grade) ─────────────────────────────────────
         if state.fim.alerts.is_empty() {

@@ -420,6 +420,13 @@ impl SettingsPage {
 
         ui.add_space(theme::SPACE);
 
+        // SIEM Log Collector configuration (AAA Grade)
+        if let Some(cmd) = Self::log_collector_card(ui, state) {
+            command = Some(cmd);
+        }
+
+        ui.add_space(theme::SPACE);
+
         // Bottom cards section with responsive layout
         Self::show_bottom_cards(ui, state, &mut command);
 
@@ -973,6 +980,169 @@ impl SettingsPage {
                 ui.label(
                     egui::RichText::new(
                         "Activez le transfert pour envoyer les événements de sécurité vers votre SIEM.",
+                    )
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary()),
+                );
+            }
+        });
+
+        command
+    }
+
+    fn log_collector_card(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let mut command = None;
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new(format!("{}  COLLECTEUR DE LOGS SIEM", icons::DATABASE))
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            // Toggle collector on/off
+            ui.horizontal(|ui: &mut egui::Ui| {
+                let (status_label, status_color) = if state.settings.log_collector_enabled {
+                    (
+                        format!("{}  COLLECTE ACTIVE", icons::CIRCLE_CHECK),
+                        theme::readable_color(theme::SUCCESS),
+                    )
+                } else {
+                    (
+                        format!("{}  COLLECTE INACTIVE", icons::WARNING),
+                        theme::readable_color(theme::WARNING),
+                    )
+                };
+                ui.label(
+                    egui::RichText::new(status_label)
+                        .font(theme::font_body())
+                        .color(status_color)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_MD);
+                let prev = state.settings.log_collector_enabled;
+                widgets::toggle_switch(ui, &mut state.settings.log_collector_enabled);
+                if state.settings.log_collector_enabled != prev {
+                    command = Some(GuiCommand::UpdateLogCollectorConfig {
+                        enabled: state.settings.log_collector_enabled,
+                        sources: state.settings.log_collector_sources.clone(),
+                        poll_interval_secs: state.settings.log_collector_poll_secs,
+                    });
+                }
+            });
+
+            ui.add_space(theme::SPACE_SM);
+
+            if state.settings.log_collector_enabled {
+                // Sources selection
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new("SOURCES DE JOURNAUX")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_TIGHT)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_XS);
+
+                let all_sources = [
+                    ("system", "Système", icons::SERVER),
+                    ("auth", "Authentification", icons::LOCK),
+                    ("application", "Application", icons::SOFTWARE),
+                    ("firewall", "Pare-feu", icons::SHIELD),
+                ];
+
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    let mut changed = false;
+                    for (key, label, icon) in &all_sources {
+                        let active = state
+                            .settings
+                            .log_collector_sources
+                            .contains(&key.to_string());
+                        let text = format!("{}  {}", icon, label);
+                        let color = if active { theme::SUCCESS } else { theme::text_tertiary() };
+                        if widgets::chip_button(ui, &text, active, color).clicked() {
+                            if active {
+                                state
+                                    .settings
+                                    .log_collector_sources
+                                    .retain(|s| s != *key);
+                            } else {
+                                state
+                                    .settings
+                                    .log_collector_sources
+                                    .push(key.to_string());
+                            }
+                            changed = true;
+                        }
+                        ui.add_space(theme::SPACE_XS);
+                    }
+
+                    if changed {
+                        command = Some(GuiCommand::UpdateLogCollectorConfig {
+                            enabled: state.settings.log_collector_enabled,
+                            sources: state.settings.log_collector_sources.clone(),
+                            poll_interval_secs: state.settings.log_collector_poll_secs,
+                        });
+                    }
+                });
+
+                ui.add_space(theme::SPACE_MD);
+
+                // Polling interval
+                ui.label(
+                    egui::RichText::new("INTERVALLE DE COLLECTE")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_TIGHT)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_XS);
+
+                let mut poll_secs = state.settings.log_collector_poll_secs as f32;
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("10s")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                    let changed = widgets::Slider::new(10.0, 300.0)
+                        .step(10.0)
+                        .style(widgets::SliderStyle::Stepped)
+                        .show_ticks()
+                        .hide_value()
+                        .show(ui, &mut poll_secs);
+                    if changed {
+                        state.settings.log_collector_poll_secs = poll_secs as u64;
+                        command = Some(GuiCommand::UpdateLogCollectorConfig {
+                            enabled: state.settings.log_collector_enabled,
+                            sources: state.settings.log_collector_sources.clone(),
+                            poll_interval_secs: state.settings.log_collector_poll_secs,
+                        });
+                    }
+                    ui.label(
+                        egui::RichText::new("300s")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                });
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new(format!(
+                        "INTERVALLE ACTUEL : {} SECONDES",
+                        state.settings.log_collector_poll_secs,
+                    ))
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .strong(),
+                );
+            } else {
+                ui.label(
+                    egui::RichText::new(
+                        "Activez le collecteur pour récupérer les journaux système et les afficher dans la page Surveillance.",
                     )
                     .font(theme::font_label())
                     .color(theme::text_tertiary()),

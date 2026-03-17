@@ -473,6 +473,7 @@ impl AssetsPage {
                 widgets::detail_field_badge(ui, "Criticit\u{00e9}", crit_label, crit_color);
                 widgets::detail_field_badge(ui, "Cycle de vie", lc_label, lc_color);
 
+                ui.add_space(theme::SPACE_SM);
                 widgets::detail_section(ui, "S\u{00c9}CURIT\u{00c9}");
                 let risk_color = if asset.risk_score >= 8.0 {
                     theme::ERROR
@@ -504,6 +505,7 @@ impl AssetsPage {
                 }
 
                 if !asset.software.is_empty() {
+                    ui.add_space(theme::SPACE_SM);
                     widgets::detail_section(ui, "LOGICIELS");
                     for sw in asset.software.iter().take(20) {
                         widgets::detail_field(ui, "", sw);
@@ -518,6 +520,7 @@ impl AssetsPage {
                 }
 
                 if !asset.tags.is_empty() {
+                    ui.add_space(theme::SPACE_SM);
                     widgets::detail_section(ui, "\u{00c9}TIQUETTES");
                     ui.horizontal_wrapped(|ui: &mut egui::Ui| {
                         for tag in &asset.tags {
@@ -527,6 +530,7 @@ impl AssetsPage {
                     });
                 }
 
+                ui.add_space(theme::SPACE_SM);
                 widgets::detail_section(ui, "TEMPORALIT\u{00c9}");
                 widgets::detail_field(
                     ui,

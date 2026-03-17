@@ -506,10 +506,9 @@ impl CompliancePage {
                             egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
                             |ui: &mut egui::Ui| {
                                 ui.horizontal(|ui: &mut egui::Ui| {
-                                    if widgets::ghost_button(ui, icons::CHEVRON_LEFT.to_string())
-                                        .clicked()
-                                        && page > 0
-                                    {
+                                    let prev_resp = widgets::ghost_button(ui, icons::CHEVRON_LEFT.to_string())
+                                        .on_hover_text("Page précédente");
+                                    if prev_resp.clicked() && page > 0 {
                                         state.compliance.current_page = page - 1;
                                     }
                                     ui.label(
@@ -521,10 +520,9 @@ impl CompliancePage {
                                         .font(theme::font_body())
                                         .color(theme::text_secondary()),
                                     );
-                                    if widgets::ghost_button(ui, icons::CHEVRON_RIGHT.to_string())
-                                        .clicked()
-                                        && page + 1 < total_pages
-                                    {
+                                    let next_resp = widgets::ghost_button(ui, icons::CHEVRON_RIGHT.to_string())
+                                        .on_hover_text("Page suivante");
+                                    if next_resp.clicked() && page + 1 < total_pages {
                                         state.compliance.current_page = page + 1;
                                     }
                                 });

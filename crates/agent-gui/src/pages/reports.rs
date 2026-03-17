@@ -216,7 +216,7 @@ impl ReportsPage {
                         );
                         ui.label(
                             egui::RichText::new(format!("{:.0}%", score))
-                                .font(theme::font_stat())
+                                .font(theme::font_card_value())
                                 .color(theme::readable_color(theme::score_color(score)))
                                 .strong(),
                         );

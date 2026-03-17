@@ -176,7 +176,7 @@ impl TerminalPage {
             );
             ui.label(
                 egui::RichText::new(value)
-                    .font(theme::font_heading())
+                    .font(theme::font_card_value())
                     .color(color)
                     .strong(),
             );
@@ -222,7 +222,7 @@ impl TerminalPage {
                 );
                 ui.add_space(theme::SPACE_XS);
                 let search_edit = egui::TextEdit::singleline(&mut state.terminal.search)
-                    .desired_width(200.0)
+                    .desired_width((ui.available_width() - 300.0).max(150.0))
                     .margin(egui::Margin::symmetric(
                         theme::SPACE_SM as i8,
                         theme::SPACE_XS as i8,

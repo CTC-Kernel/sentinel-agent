@@ -7,7 +7,86 @@
 //! terminal, etc.) to keep `AppState` maintainable.
 
 use eframe::egui;
+use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
+
+// ---------------------------------------------------------------------------
+// Persisted GUI Preferences
+// ---------------------------------------------------------------------------
+
+/// GUI preferences that are persisted across restarts via eframe storage.
+///
+/// Only contains settings the user explicitly configures -- not runtime state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuiPreferences {
+    pub dark_mode: bool,
+    pub check_interval_secs: u64,
+    pub log_level: u8,
+    pub siem_enabled: bool,
+    pub siem_format: String,
+    pub siem_transport: String,
+    pub siem_destination: String,
+    pub log_collector_enabled: bool,
+    pub log_collector_sources: Vec<String>,
+    pub log_collector_poll_secs: u64,
+    pub discovery_enabled: bool,
+    pub architecture_url: String,
+}
+
+impl Default for GuiPreferences {
+    fn default() -> Self {
+        Self {
+            dark_mode: true,
+            check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
+            log_level: 2, // Info
+            siem_enabled: false,
+            siem_format: "CEF".to_string(),
+            siem_transport: "Syslog".to_string(),
+            siem_destination: String::new(),
+            log_collector_enabled: false,
+            log_collector_sources: vec!["system".to_string(), "auth".to_string()],
+            log_collector_poll_secs: 60,
+            discovery_enabled: false,
+            architecture_url: String::new(),
+        }
+    }
+}
+
+impl GuiPreferences {
+    /// Snapshot current settings into a persistable struct.
+    pub fn from_state(state: &AppState) -> Self {
+        Self {
+            dark_mode: state.settings.dark_mode,
+            check_interval_secs: state.settings.check_interval_secs,
+            log_level: state.settings.log_level.index() as u8,
+            siem_enabled: state.settings.siem_enabled,
+            siem_format: state.settings.siem_format.clone(),
+            siem_transport: state.settings.siem_transport.clone(),
+            siem_destination: state.settings.siem_destination.clone(),
+            log_collector_enabled: state.settings.log_collector_enabled,
+            log_collector_sources: state.settings.log_collector_sources.clone(),
+            log_collector_poll_secs: state.settings.log_collector_poll_secs,
+            discovery_enabled: state.discovery.enabled,
+            architecture_url: state.settings.architecture_url.clone(),
+        }
+    }
+
+    /// Apply persisted preferences to the app state.
+    pub fn apply_to(&self, state: &mut AppState) {
+        state.settings.dark_mode = self.dark_mode;
+        state.settings.check_interval_secs = self.check_interval_secs;
+        state.settings.log_level = crate::dto::LogLevel::from_index(self.log_level as usize);
+        state.settings.siem_enabled = self.siem_enabled;
+        state.settings.siem_format.clone_from(&self.siem_format);
+        state.settings.siem_transport.clone_from(&self.siem_transport);
+        state.settings.siem_destination.clone_from(&self.siem_destination);
+        state.settings.log_collector_enabled = self.log_collector_enabled;
+        state.settings.log_collector_sources = self.log_collector_sources.clone();
+        state.settings.log_collector_poll_secs = self.log_collector_poll_secs;
+        state.discovery.enabled = self.discovery_enabled;
+        state.settings.architecture_url.clone_from(&self.architecture_url);
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Network
@@ -278,6 +357,8 @@ pub struct MonitoringHistory {
     pub memory_history: VecDeque<[f64; 2]>,
     pub disk_io_history: VecDeque<[f64; 2]>,
     pub network_io_history: VecDeque<[f64; 2]>,
+    /// Active tab on the surveillance page (0=Resources, 1=SIEM Logs, 2=Stats).
+    pub active_tab: usize,
 }
 
 impl Default for MonitoringHistory {
@@ -287,6 +368,49 @@ impl Default for MonitoringHistory {
             memory_history: VecDeque::with_capacity(300),
             disk_io_history: VecDeque::with_capacity(300),
             network_io_history: VecDeque::with_capacity(300),
+            active_tab: 0,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SIEM View
+// ---------------------------------------------------------------------------
+
+/// SIEM log viewer state for the surveillance page.
+pub struct SiemViewState {
+    /// Recent SIEM log entries displayed in the log well.
+    pub log_entries: VecDeque<crate::dto::GuiSiemLogEntry>,
+    /// SIEM forwarder statistics.
+    pub stats: crate::dto::GuiSiemStats,
+    /// Search query for log filtering.
+    pub search: String,
+    /// Severity filter.
+    pub severity_filter: Option<crate::dto::SiemLogSeverity>,
+    /// Source filter.
+    pub source_filter: Option<crate::dto::SiemLogSource>,
+    /// Selected log entry index.
+    pub selected_log: Option<usize>,
+    /// Detail drawer open.
+    pub detail_open: bool,
+    /// Auto-scroll to latest entries.
+    pub auto_scroll: bool,
+    /// Current page for log table pagination.
+    pub logs_page: usize,
+}
+
+impl Default for SiemViewState {
+    fn default() -> Self {
+        Self {
+            log_entries: VecDeque::with_capacity(1000),
+            stats: crate::dto::GuiSiemStats::default(),
+            search: String::new(),
+            severity_filter: None,
+            source_filter: None,
+            selected_log: None,
+            detail_open: false,
+            auto_scroll: true,
+            logs_page: 0,
         }
     }
 }
@@ -493,6 +617,12 @@ pub struct SettingsState {
     pub siem_transport: String,
     /// SIEM destination address (host:port or URL).
     pub siem_destination: String,
+    /// Whether the SIEM log collector is enabled.
+    pub log_collector_enabled: bool,
+    /// Active log sources for the collector.
+    pub log_collector_sources: Vec<String>,
+    /// Log collector polling interval in seconds.
+    pub log_collector_poll_secs: u64,
 }
 
 impl Default for SettingsState {
@@ -513,6 +643,12 @@ impl Default for SettingsState {
             siem_format: "CEF".to_string(),
             siem_transport: "Syslog".to_string(),
             siem_destination: String::new(),
+            log_collector_enabled: false,
+            log_collector_sources: vec![
+                "system".to_string(),
+                "auth".to_string(),
+            ],
+            log_collector_poll_secs: 60,
         }
     }
 }
@@ -560,6 +696,7 @@ pub struct AppState {
     pub async_task_tx: Option<std::sync::mpsc::SyncSender<super::app::AsyncTaskResult>>,
 
     pub monitoring: MonitoringHistory,
+    pub siem: SiemViewState,
     pub network: NetworkState,
     pub discovery: DiscoveryState,
     pub cartography: CartographyState,
@@ -606,6 +743,7 @@ impl Default for AppState {
             async_task_tx: None,
 
             monitoring: MonitoringHistory::default(),
+            siem: SiemViewState::default(),
             network: NetworkState::default(),
             discovery: DiscoveryState::default(),
             cartography: CartographyState::default(),
@@ -812,6 +950,16 @@ impl AppState {
                 self.settings.siem_format = format;
                 self.settings.siem_transport = transport;
                 self.settings.siem_destination = destination;
+            }
+            AgentEvent::SiemLogBatch { entries } => {
+                const MAX_SIEM_LOGS: usize = 1000;
+                for entry in entries {
+                    self.siem.log_entries.push_front(entry);
+                }
+                self.siem.log_entries.truncate(MAX_SIEM_LOGS);
+            }
+            AgentEvent::SiemStatsUpdate { stats } => {
+                self.siem.stats = stats;
             }
             AgentEvent::ResponseActionResult {
                 action_id,

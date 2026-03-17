@@ -1631,6 +1631,151 @@ pub struct LlmDownloadState {
     pub error: Option<String>,
 }
 
+// ---------------------------------------------------------------------------
+// SIEM / Log Collector
+// ---------------------------------------------------------------------------
+
+/// SIEM log source for GUI display.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "snake_case")]
+pub enum SiemLogSource {
+    /// System/kernel logs.
+    System,
+    /// Authentication/security logs.
+    Auth,
+    /// Application logs.
+    Application,
+    /// Firewall logs.
+    Firewall,
+}
+
+impl SiemLogSource {
+    /// Human-readable French label.
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::System => "Système",
+            Self::Auth => "Authentification",
+            Self::Application => "Application",
+            Self::Firewall => "Pare-feu",
+        }
+    }
+
+    /// All variants.
+    pub fn all() -> &'static [Self] {
+        &[Self::System, Self::Auth, Self::Application, Self::Firewall]
+    }
+}
+
+/// SIEM log severity level for GUI display.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(rename_all = "snake_case")]
+pub enum SiemLogSeverity {
+    /// Informational.
+    Info,
+    /// Notice-level events.
+    Notice,
+    /// Warnings.
+    Warning,
+    /// Errors.
+    Error,
+    /// Critical events.
+    Critical,
+}
+
+impl SiemLogSeverity {
+    /// Short label for badges.
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::Info => "INF",
+            Self::Notice => "NTC",
+            Self::Warning => "WRN",
+            Self::Error => "ERR",
+            Self::Critical => "CRT",
+        }
+    }
+
+    /// Full label.
+    pub fn full_label(&self) -> &'static str {
+        match self {
+            Self::Info => "Info",
+            Self::Notice => "Notice",
+            Self::Warning => "Warning",
+            Self::Error => "Erreur",
+            Self::Critical => "Critique",
+        }
+    }
+
+    /// Convert from numeric severity (0-10 scale used by SIEM crate).
+    pub fn from_numeric(value: u8) -> Self {
+        match value {
+            0..=2 => Self::Info,
+            3..=4 => Self::Notice,
+            5 => Self::Warning,
+            6..=7 => Self::Error,
+            _ => Self::Critical,
+        }
+    }
+
+    /// All variants.
+    pub fn all() -> &'static [Self] {
+        &[
+            Self::Info,
+            Self::Notice,
+            Self::Warning,
+            Self::Error,
+            Self::Critical,
+        ]
+    }
+}
+
+/// A SIEM log entry for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiSiemLogEntry {
+    /// Unique event identifier.
+    pub id: String,
+    /// Event timestamp.
+    pub timestamp: DateTime<Utc>,
+    /// Severity level.
+    pub severity: SiemLogSeverity,
+    /// Log source.
+    pub source: SiemLogSource,
+    /// Event category (Security, System, Network, etc.).
+    pub category: String,
+    /// Human-readable message.
+    pub message: String,
+    /// Source hostname.
+    pub hostname: Option<String>,
+    /// Process name.
+    pub process: Option<String>,
+    /// Process ID.
+    pub pid: Option<u32>,
+    /// Username (if extracted).
+    pub user: Option<String>,
+}
+
+/// SIEM forwarder statistics for GUI display.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiSiemStats {
+    /// Total events forwarded successfully.
+    pub events_sent: u64,
+    /// Total events dropped (errors).
+    pub events_dropped: u64,
+    /// Events currently buffered.
+    pub events_buffered: u32,
+    /// Whether the forwarder is connected.
+    pub connected: bool,
+    /// Last successful send timestamp.
+    pub last_sent_at: Option<DateTime<Utc>>,
+    /// Forwarder uptime in seconds.
+    pub uptime_secs: u64,
+    /// Events per minute rate.
+    pub events_per_minute: f32,
+    /// Event count breakdown by category: (category_name, count).
+    pub category_counts: Vec<(String, u32)>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

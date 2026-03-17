@@ -35,6 +35,8 @@ impl RisksPage {
         // Risk matrix heatmap
         Self::draw_risk_matrix(ui, state);
         ui.add_space(theme::SPACE_MD);
+        widgets::divider_thin(ui);
+        ui.add_space(theme::SPACE_MD);
 
         // Summary cards
         let total = state.risks.entries.len();
@@ -222,6 +224,8 @@ impl RisksPage {
             }
         }
 
+        ui.add_space(theme::SPACE_SM);
+        widgets::divider_thin(ui);
         ui.add_space(theme::SPACE_SM);
 
         // Risk table

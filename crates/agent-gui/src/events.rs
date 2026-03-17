@@ -255,6 +255,16 @@ pub enum AgentEvent {
         /// Error message.
         error: String,
     },
+    /// Batch of SIEM log entries for the surveillance page.
+    SiemLogBatch {
+        /// Log entries collected by the SIEM log collector.
+        entries: Vec<crate::dto::GuiSiemLogEntry>,
+    },
+    /// Updated SIEM forwarder statistics.
+    SiemStatsUpdate {
+        /// Current forwarder statistics.
+        stats: crate::dto::GuiSiemStats,
+    },
     /// AI risk analysis result.
     LlmRiskAnalysis {
         /// ID of the risk entry that was analyzed.
@@ -470,6 +480,15 @@ pub enum GuiCommand {
         transport: String,
         /// Destination address (host:port or URL).
         destination: String,
+    },
+    /// Update the SIEM log collector configuration.
+    UpdateLogCollectorConfig {
+        /// Whether the log collector is enabled.
+        enabled: bool,
+        /// Active log sources (system, auth, application, firewall).
+        sources: Vec<String>,
+        /// Polling interval in seconds.
+        poll_interval_secs: u64,
     },
 }
 
