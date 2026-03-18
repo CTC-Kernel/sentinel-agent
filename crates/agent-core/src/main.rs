@@ -23,7 +23,7 @@ use std::process::ExitCode;
 use std::sync::atomic::Ordering;
 #[cfg(feature = "tray")]
 use tao::event_loop::{ControlFlow, EventLoopBuilder};
-#[cfg(feature = "gui")]
+#[cfg(any(feature = "gui", feature = "tray"))]
 use tracing::debug;
 use tracing::{error, info, warn};
 
@@ -851,8 +851,29 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     // so we can't await this handle. The agent runs until tray shutdown.
     let _agent_handle = rt.spawn(async move { runtime.run().await });
 
-    // Subscribe to menu events
-    let menu_channel = MenuEvent::receiver();
+    // Use set_event_handler (recommended by tray-icon for tao/winit users)
+    // instead of channel-based receiver for reliable event delivery on Windows.
+    let menu_events: std::sync::Arc<std::sync::Mutex<std::collections::VecDeque<MenuEvent>>> =
+        std::sync::Arc::new(std::sync::Mutex::new(std::collections::VecDeque::new()));
+    let tray_events: std::sync::Arc<
+        std::sync::Mutex<std::collections::VecDeque<tray_icon::TrayIconEvent>>,
+    > = std::sync::Arc::new(std::sync::Mutex::new(std::collections::VecDeque::new()));
+
+    let menu_q = menu_events.clone();
+    MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
+        if let Ok(mut q) = menu_q.lock() {
+            q.push_back(event);
+        }
+    }));
+
+    let tray_q = tray_events.clone();
+    tray_icon::TrayIconEvent::set_event_handler(Some(
+        move |event: tray_icon::TrayIconEvent| {
+            if let Ok(mut q) = tray_q.lock() {
+                q.push_back(event);
+            }
+        },
+    ));
 
     info!("Sentinel GRC Agent is running. Use tray icon to pause, resume, or quit.");
 
@@ -870,15 +891,41 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
             return;
         }
 
-        // Check for menu events (non-blocking, drain all pending)
-        while let Ok(event) = menu_channel.try_recv() {
-            agent_tray.handle_menu_event(&event);
+        // Drain tray icon click events
+        if let Ok(mut q) = tray_events.lock() {
+            while let Some(event) = q.pop_front() {
+                debug!("Tray icon event: {:?}", event);
+                if let tray_icon::TrayIconEvent::Click {
+                    button: tray_icon::MouseButton::Left,
+                    button_state: tray_icon::MouseButtonState::Up,
+                    ..
+                } = event
+                {
+                    info!("Tray icon left-clicked, opening dashboard");
+                    // Launch the full GUI
+                    if let Ok(exe) = std::env::current_exe() {
+                        if let Err(e) =
+                            agent_common::process::silent_command(exe.to_string_lossy().as_ref())
+                                .spawn()
+                        {
+                            warn!("Failed to spawn GUI: {}", e);
+                        }
+                    }
+                }
+            }
         }
 
-        // Use WaitUntil with 1 second interval to check shutdown periodically
-        // This keeps CPU near 0% while still responding to Ctrl+C within 1s
+        // Drain menu events
+        if let Ok(mut q) = menu_events.lock() {
+            while let Some(event) = q.pop_front() {
+                agent_tray.handle_menu_event(&event);
+            }
+        }
+
+        // Use WaitUntil with 200ms interval for responsive event processing
+        // This keeps CPU near 0% while still responding promptly to clicks
         *control_flow =
-            ControlFlow::WaitUntil(std::time::Instant::now() + std::time::Duration::from_secs(1));
+            ControlFlow::WaitUntil(std::time::Instant::now() + std::time::Duration::from_millis(200));
     })
 }
 

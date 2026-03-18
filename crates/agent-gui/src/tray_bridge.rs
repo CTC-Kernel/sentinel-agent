@@ -8,11 +8,19 @@
 //!
 //! The tray menu mirrors all capabilities of the standalone tray mode:
 //! status, version, resources, controls, logs, help, and quit.
+//!
+//! ## Event handling (Windows / winit compatibility)
+//!
+//! Uses `set_event_handler` as recommended by `tray-icon` for winit-based
+//! applications.  Events are captured in a global `Arc<Mutex<VecDeque>>`
+//! and drained by the poll thread, which then forwards them to eframe.
 
 use agent_common::constants::AGENT_VERSION;
 use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
+use std::collections::VecDeque;
+use std::sync::{Arc, Mutex, OnceLock};
 use tracing::{debug, info, warn};
-use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
+use tray_icon::{Icon, TrayIcon, TrayIconBuilder, TrayIconEvent};
 
 /// Embedded tray icon PNG.
 /// On macOS, we use a 22x22 template image for the status bar.
@@ -66,6 +74,45 @@ mod ids {
     pub const QUIT: &str = "tray_quit";
 }
 
+// ============================================================================
+// Global event queues (set_event_handler approach for winit compatibility)
+// ============================================================================
+
+/// Pending menu events captured by the global handler.
+static MENU_EVENTS: OnceLock<Arc<Mutex<VecDeque<MenuEvent>>>> = OnceLock::new();
+
+/// Pending tray icon events captured by the global handler.
+static TRAY_ICON_EVENTS: OnceLock<Arc<Mutex<VecDeque<TrayIconEvent>>>> = OnceLock::new();
+
+fn menu_events_queue() -> &'static Arc<Mutex<VecDeque<MenuEvent>>> {
+    MENU_EVENTS.get_or_init(|| Arc::new(Mutex::new(VecDeque::new())))
+}
+
+fn tray_icon_events_queue() -> &'static Arc<Mutex<VecDeque<TrayIconEvent>>> {
+    TRAY_ICON_EVENTS.get_or_init(|| Arc::new(Mutex::new(VecDeque::new())))
+}
+
+/// Install global event handlers once.  Must be called before any tray icon
+/// is created so that `OnceCell`-based handlers inside `tray-icon` / `muda`
+/// are initialised to our closures rather than to `None`.
+fn install_event_handlers() {
+    let menu_q = menu_events_queue().clone();
+    MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
+        info!("MENU EVENT HANDLER: id={}", event.id().0);
+        if let Ok(mut q) = menu_q.lock() {
+            q.push_back(event);
+        }
+    }));
+
+    let tray_q = tray_icon_events_queue().clone();
+    TrayIconEvent::set_event_handler(Some(move |event: TrayIconEvent| {
+        debug!("TRAY ICON EVENT HANDLER: {:?}", event);
+        if let Ok(mut q) = tray_q.lock() {
+            q.push_back(event);
+        }
+    }));
+}
+
 /// System tray wrapper that works alongside the egui window.
 pub struct TrayBridge {
     _tray_icon: TrayIcon,
@@ -78,6 +125,10 @@ pub struct TrayBridge {
 impl TrayBridge {
     /// Create the tray icon and full menu.
     pub fn new() -> Result<Self, String> {
+        // Install set_event_handler BEFORE building the tray icon so that
+        // the OnceCell inside muda / tray-icon is set to our handler.
+        install_event_handlers();
+
         let m = |e: muda::Error| e.to_string();
 
         // === Header Section ===
@@ -171,13 +222,14 @@ impl TrayBridge {
         } else {
             TrayIconBuilder::new()
                 .with_menu(Box::new(menu))
+                .with_menu_on_left_click(true)
                 .with_tooltip("Sentinel Agent — Actif")
                 .with_icon(icon)
                 .build()
                 .map_err(|e| format!("tray build: {}", e))?
         };
 
-        info!("System tray icon created (full menu)");
+        info!("System tray icon created (full menu, event handlers installed)");
         Ok(Self {
             _tray_icon: tray_icon,
             status_item,
@@ -209,78 +261,82 @@ impl TrayBridge {
         }
     }
 
-    /// Poll pending menu events and return actions.
+    /// Drain pending tray and menu events and return actions.
+    ///
+    /// Events are captured by the global `set_event_handler` closures and
+    /// buffered in `Arc<Mutex<VecDeque>>`.  This method drains those queues
+    /// from any thread.
     pub fn poll_events() -> Vec<TrayAction> {
         let mut actions = Vec::new();
 
-        // 1. Poll TrayIconEvent (any click)
-        let icon_rx = tray_icon::TrayIconEvent::receiver();
-        while let Ok(event) = icon_rx.try_recv() {
-            info!("RAW TRAY ICON EVENT: {:?}", event);
-            if let tray_icon::TrayIconEvent::Click {
-                button: tray_icon::MouseButton::Left,
-                button_state: tray_icon::MouseButtonState::Up,
-                ..
-            } = event
-            {
-                debug!("Tray icon left-clicked, showing window");
-                actions.push(TrayAction::ShowWindow);
+        // 1. Drain TrayIconEvent queue (icon clicks)
+        if let Ok(mut q) = tray_icon_events_queue().lock() {
+            while let Some(event) = q.pop_front() {
+                if let TrayIconEvent::Click {
+                    button: tray_icon::MouseButton::Left,
+                    button_state: tray_icon::MouseButtonState::Up,
+                    ..
+                } = event
+                {
+                    debug!("Tray icon left-clicked, showing window");
+                    actions.push(TrayAction::ShowWindow);
+                }
             }
         }
 
-        // 2. Poll MenuEvent (clicks on items within the tray menu)
-        let rx = MenuEvent::receiver();
-        while let Ok(event) = rx.try_recv() {
-            info!("RAW TRAY MENU EVENT: {:?}", event);
-            let id_str = event.id().0.as_str();
-            debug!("RECEIVED TRAY MENU EVENT: id={}", id_str);
-            match id_str {
-                ids::SHOW => {
-                    debug!("Tray: show window requested");
-                    actions.push(TrayAction::ShowWindow);
-                }
-                ids::QUICK_STATUS => {
-                    debug!("Tray: quick status requested");
-                    actions.push(TrayAction::QuickStatus);
-                }
-                ids::PAUSE => {
-                    info!("Tray: pause requested");
-                    actions.push(TrayAction::Pause);
-                }
-                ids::RESUME => {
-                    info!("Tray: resume requested");
-                    actions.push(TrayAction::Resume);
-                }
-                ids::CHECK => {
-                    debug!("Tray: run check requested");
-                    actions.push(TrayAction::RunCheck);
-                }
-                ids::SYNC => {
-                    debug!("Tray: force sync requested");
-                    actions.push(TrayAction::ForceSync);
-                }
-                ids::OPEN_LOGS => {
-                    info!("Tray: open logs requested");
-                    actions.push(TrayAction::OpenLogs);
-                }
-                ids::OPEN_GUIDE => {
-                    info!("Tray: open guide requested");
-                    actions.push(TrayAction::OpenGuide);
-                }
-                ids::OPEN_CONSOLE => {
-                    info!("Tray: open console requested");
-                    actions.push(TrayAction::OpenConsole);
-                }
-                ids::ABOUT => {
-                    info!("Tray: about requested");
-                    actions.push(TrayAction::About);
-                }
-                ids::QUIT => {
-                    info!("Tray: quit requested");
-                    actions.push(TrayAction::Quit);
-                }
-                _ => {
-                    debug!("Tray: unhandled menu item clicked: {}", id_str);
+        // 2. Drain MenuEvent queue (menu item clicks)
+        if let Ok(mut q) = menu_events_queue().lock() {
+            while let Some(event) = q.pop_front() {
+                let id_str = event.id().0.as_str();
+                debug!("Processing tray menu event: id={}", id_str);
+                match id_str {
+                    ids::SHOW => {
+                        debug!("Tray: show window requested");
+                        actions.push(TrayAction::ShowWindow);
+                    }
+                    ids::QUICK_STATUS => {
+                        debug!("Tray: quick status requested");
+                        actions.push(TrayAction::QuickStatus);
+                    }
+                    ids::PAUSE => {
+                        info!("Tray: pause requested");
+                        actions.push(TrayAction::Pause);
+                    }
+                    ids::RESUME => {
+                        info!("Tray: resume requested");
+                        actions.push(TrayAction::Resume);
+                    }
+                    ids::CHECK => {
+                        debug!("Tray: run check requested");
+                        actions.push(TrayAction::RunCheck);
+                    }
+                    ids::SYNC => {
+                        debug!("Tray: force sync requested");
+                        actions.push(TrayAction::ForceSync);
+                    }
+                    ids::OPEN_LOGS => {
+                        info!("Tray: open logs requested");
+                        actions.push(TrayAction::OpenLogs);
+                    }
+                    ids::OPEN_GUIDE => {
+                        info!("Tray: open guide requested");
+                        actions.push(TrayAction::OpenGuide);
+                    }
+                    ids::OPEN_CONSOLE => {
+                        info!("Tray: open console requested");
+                        actions.push(TrayAction::OpenConsole);
+                    }
+                    ids::ABOUT => {
+                        info!("Tray: about requested");
+                        actions.push(TrayAction::About);
+                    }
+                    ids::QUIT => {
+                        info!("Tray: quit requested");
+                        actions.push(TrayAction::Quit);
+                    }
+                    _ => {
+                        debug!("Tray: unhandled menu item clicked: {}", id_str);
+                    }
                 }
             }
         }

@@ -302,10 +302,24 @@ impl AgentTray {
         // Create tray icon
         let icon = create_icon(AgentTrayStatus::Active)?;
 
-        let tray_icon = TrayIconBuilder::new()
+        let mut builder = TrayIconBuilder::new()
             .with_menu(Box::new(menu))
             .with_tooltip(AgentTrayStatus::Active.tooltip())
-            .with_icon(icon)
+            .with_icon(icon);
+
+        // On Windows, show the context menu on left-click too (not just right-click)
+        #[cfg(target_os = "windows")]
+        {
+            builder = builder.with_menu_on_left_click(true);
+        }
+
+        // On macOS, use template icon for dark/light menu bar
+        #[cfg(target_os = "macos")]
+        {
+            builder = builder.with_icon_as_template(true);
+        }
+
+        let tray_icon = builder
             .build()
             .map_err(|e| TrayError::IconCreate(e.to_string()))?;
 

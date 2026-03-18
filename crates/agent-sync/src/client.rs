@@ -198,15 +198,36 @@ impl HttpClient {
     ) -> SyncResult<Self> {
         debug!("Creating HTTP client with mTLS");
 
-        // Ensure certificate and key are in PEM format (wrap raw base64 if needed)
+        // Normalize and ensure certificate and key are in valid PEM format
         let cert = Self::ensure_pem(certificate_pem, "CERTIFICATE");
         let key = Self::ensure_pem(private_key_pem, "PRIVATE KEY");
 
+        debug!(
+            "mTLS cert format: starts_with_begin={}, len={}, key format: starts_with_begin={}, len={}",
+            cert.starts_with("-----BEGIN "),
+            cert.len(),
+            key.starts_with("-----BEGIN "),
+            key.len(),
+        );
+
         // Combine certificate and private key into PEM identity
         let identity_pem = format!("{}\n{}", cert, key);
-        let identity = reqwest::Identity::from_pem(identity_pem.as_bytes()).map_err(|e| {
-            SyncError::Certificate(format!("Invalid client certificate/key: {}", e))
-        })?;
+        let identity = match reqwest::Identity::from_pem(identity_pem.as_bytes()) {
+            Ok(id) => id,
+            Err(e) => {
+                // If the key was wrapped as PKCS#8 ("PRIVATE KEY") but is actually PKCS#1,
+                // try re-wrapping as "RSA PRIVATE KEY"
+                debug!("Identity::from_pem failed with PRIVATE KEY label: {}", e);
+                let key_rsa = Self::ensure_pem(private_key_pem, "RSA PRIVATE KEY");
+                let identity_pem_rsa = format!("{}\n{}", cert, key_rsa);
+                reqwest::Identity::from_pem(identity_pem_rsa.as_bytes()).map_err(|e2| {
+                    SyncError::Certificate(format!(
+                        "Invalid client certificate/key (tried PKCS#8 and PKCS#1): {}",
+                        e2
+                    ))
+                })?
+            }
+        };
 
         let mut builder = ClientBuilder::new()
             .timeout(Duration::from_secs(HTTP_TIMEOUT_SECS))
@@ -251,9 +272,22 @@ impl HttpClient {
             builder = builder.proxy(proxy);
         }
 
-        let client = builder
-            .build()
-            .map_err(|e| SyncError::Config(format!("Failed to build mTLS HTTP client: {}", e)))?;
+        let client = builder.build().map_err(|e| {
+            // Extract the PEM label from the key for diagnostics (without logging key material)
+            let key_label = key
+                .lines()
+                .next()
+                .unwrap_or("(empty)")
+                .trim_start_matches("-----BEGIN ")
+                .trim_end_matches("-----");
+            SyncError::Config(format!(
+                "Failed to build mTLS HTTP client: {}. Key type: '{}', cert lines: {}, key lines: {}",
+                e,
+                key_label,
+                cert.lines().count(),
+                key.lines().count(),
+            ))
+        })?;
 
         Ok(Self {
             client,
@@ -264,17 +298,29 @@ impl HttpClient {
         })
     }
 
-    /// Ensure a credential string is in PEM format.
+    /// Ensure a credential string is in valid PEM format.
     ///
-    /// If the string already has PEM headers (`-----BEGIN ...-----`), it is
-    /// returned as-is. Otherwise it is assumed to be raw base64 and wrapped
-    /// with the appropriate PEM header/footer.
+    /// Handles several common formats from server APIs:
+    /// - Already valid PEM: returned after normalizing line endings
+    /// - PEM with literal `\n` escape sequences (common from JSON APIs): unescaped
+    /// - Raw base64 (no PEM headers): wrapped with the appropriate header/footer
     fn ensure_pem(data: &str, label: &str) -> String {
-        let trimmed = data.trim();
+        // Step 1: Replace literal "\n" / "\r\n" escape sequences with actual newlines.
+        // This handles double-escaped PEM from JSON APIs where the server returns
+        // the certificate with escaped newlines (e.g., "-----BEGIN CERTIFICATE-----\\nMIIB...")
+        let normalized = data
+            .replace("\\r\\n", "\n")
+            .replace("\\n", "\n")
+            .replace("\r\n", "\n");
+        let trimmed = normalized.trim();
+
+        // Step 2: If it already has PEM headers, preserve the original label
+        // (e.g., "RSA PRIVATE KEY" vs "PRIVATE KEY") and just normalize formatting
         if trimmed.starts_with("-----BEGIN ") {
             return trimmed.to_string();
         }
-        // Strip any whitespace / newlines from raw base64
+
+        // Step 3: Raw base64 — strip whitespace and wrap with PEM headers
         let clean: String = trimmed.chars().filter(|c| !c.is_whitespace()).collect();
         // Wrap in 64-char lines as per PEM spec.
         // Since we filtered to ASCII-only characters above, all chunks are
