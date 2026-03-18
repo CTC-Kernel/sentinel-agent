@@ -15,6 +15,17 @@ ar = "x86_64-w64-mingw32-ar"
 [target.x86_64-unknown-linux-gnu]
 rustflags = ["-C", "link-args=-Wl,-z,relro,-z,now,-z,noexecstack"]
 
-# Security hardening: ASLR + DEP (Windows MSVC)
+# Security hardening: ASLR + DEP + static CRT (Windows MSVC)
+# +crt-static embeds VCRUNTIME140.dll into the binary so it runs on any Windows
+# machine without requiring the Visual C++ Redistributable to be installed.
 [target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "link-args=/DYNAMICBASE /NXCOMPAT /HIGHENTROPYVA"]
+rustflags = ["-C", "target-feature=+crt-static", "-C", "link-args=/DYNAMICBASE /NXCOMPAT /HIGHENTROPYVA"]
+
+# OpenSSL paths for SQLCipher encryption (Windows).
+# Uses the MT (static CRT) variant to match +crt-static.
+# force=true overrides any conflicting system env vars.
+[env]
+OPENSSL_LIB_DIR = { value = "C:/Program Files/OpenSSL-Win64/lib/VC/x64/MT", force = true }
+OPENSSL_INCLUDE_DIR = { value = "C:/Program Files/OpenSSL-Win64/include", force = true }
+OPENSSL_STATIC = { value = "1", force = true }
+OPENSSL_NO_VENDOR = { value = "1", force = true }
