@@ -313,23 +313,15 @@ impl ProcessMonitor {
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        let processes: Vec<WinProcess> = if stdout.trim().is_empty() {
-            Vec::new()
-        } else if stdout.trim().starts_with('[') {
-            serde_json::from_str(&stdout).unwrap_or_else(|e| {
+        let raw = agent_common::process::parse_powershell_json_array(&stdout)
+            .unwrap_or_else(|e| {
                 tracing::warn!("Failed to parse process list JSON: {}", e);
-                Vec::new()
-            })
-        } else {
-            // Handle single object output from ConvertTo-Json
-            match serde_json::from_str::<WinProcess>(&stdout) {
-                Ok(p) => vec![p],
-                Err(e) => {
-                    tracing::warn!("Failed to parse single process JSON: {}", e);
-                    Vec::new()
-                }
-            }
-        };
+                vec![]
+            });
+        let processes: Vec<WinProcess> = raw
+            .into_iter()
+            .filter_map(|v| serde_json::from_value(v).ok())
+            .collect();
 
         Ok(processes
             .into_iter()

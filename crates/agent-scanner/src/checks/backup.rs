@@ -194,7 +194,7 @@ impl BackupCheck {
             // Windows Backup
             if json
                 .get("WindowsBackup_Configured")
-                .and_then(|v| v.as_bool())
+                .and_then(|v| agent_common::process::ps_json_as_bool(v))
                 == Some(true)
             {
                 status.backup_configured = true;

@@ -71,10 +71,12 @@ impl RuntimeState {
                 siem_format: std::sync::Mutex::new("CEF".to_string()),
                 siem_transport: std::sync::Mutex::new("Syslog".to_string()),
                 siem_destination: std::sync::Mutex::new(String::new()),
-                log_collector_enabled: Arc::new(AtomicBool::new(false)),
+                log_collector_enabled: Arc::new(AtomicBool::new(true)),
                 log_collector_sources: std::sync::Mutex::new(vec![
                     "system".to_string(),
                     "auth".to_string(),
+                    "application".to_string(),
+                    "firewall".to_string(),
                 ]),
                 log_collector_poll_secs: Arc::new(AtomicU64::new(60)),
             },

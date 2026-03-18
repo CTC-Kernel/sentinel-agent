@@ -160,22 +160,21 @@ impl FirewallCheck {
         // Let's refine the logic: Any profile found to be Enabled=false while being Active=true is a failure.
         // If all active profiles are Enabled=true, it's a pass.
         // We parse the JSON again to see the IsActive field.
-        let json_data: serde_json::Value = serde_json::from_str(&raw_output).unwrap_or_else(|e| {
-            tracing::warn!("Failed to parse firewall profile JSON: {}", e);
-            serde_json::Value::Null
-        });
+        let json_data = agent_common::process::parse_powershell_json_array(&raw_output)
+            .unwrap_or_else(|e| {
+                tracing::warn!("Failed to parse firewall profile JSON: {}", e);
+                vec![]
+            });
         let mut all_active_protected = true;
         let mut any_active = false;
 
-        if let Some(arr) = json_data.as_array() {
-            for item in arr {
-                let is_active = item["IsActive"].as_bool().unwrap_or(false);
-                let enabled = item["Enabled"].as_bool().unwrap_or(false);
-                if is_active {
-                    any_active = true;
-                    if !enabled {
-                        all_active_protected = false;
-                    }
+        for item in &json_data {
+            let is_active = agent_common::process::ps_json_as_bool(&item["IsActive"]).unwrap_or(false);
+            let enabled = agent_common::process::ps_json_as_bool(&item["Enabled"]).unwrap_or(false);
+            if is_active {
+                any_active = true;
+                if !enabled {
+                    all_active_protected = false;
                 }
             }
         }
@@ -211,7 +210,7 @@ impl FirewallCheck {
             .iter()
             .map(|p| {
                 let name = p["Name"].as_str().unwrap_or("Unknown").to_string();
-                let enabled = p["Enabled"].as_bool().unwrap_or(false);
+                let enabled = agent_common::process::ps_json_as_bool(&p["Enabled"]).unwrap_or(false);
                 let inbound = p["DefaultInboundAction"]
                     .as_u64()
                     .map(|a| match a {
@@ -231,7 +230,7 @@ impl FirewallCheck {
                     })
                     .map(|s| s.to_string());
 
-                let gpo_enforced = p["GpoEnforced"].as_bool();
+                let gpo_enforced = agent_common::process::ps_json_as_bool(&p["GpoEnforced"]);
 
                 FirewallProfile {
                     name,

@@ -208,7 +208,7 @@ impl RemoteAccessCheck {
                 .cloned()
                 .or_else(|| {
                     json.get("RdpEnabled").map(|e| {
-                        if e.as_bool() == Some(true) {
+                        if agent_common::process::ps_json_as_bool(e) == Some(true) {
                             serde_json::Value::from(0)
                         } else {
                             serde_json::Value::from(1)
@@ -224,7 +224,7 @@ impl RemoteAccessCheck {
                 .cloned()
                 .or_else(|| {
                     json.get("NlaRequired").map(|e| {
-                        if e.as_bool() == Some(true) {
+                        if agent_common::process::ps_json_as_bool(e) == Some(true) {
                             serde_json::Value::from(1)
                         } else {
                             serde_json::Value::from(0)
@@ -268,7 +268,7 @@ impl RemoteAccessCheck {
             }
 
             // SSH configuration
-            if json.get("SshEnabled").and_then(|v| v.as_bool()) == Some(true) {
+            if json.get("SshEnabled").and_then(|v| agent_common::process::ps_json_as_bool(v)) == Some(true) {
                 status.remote_access_enabled = true;
                 status.ssh_config = Some(SshConfig {
                     enabled: true,
@@ -281,7 +281,7 @@ impl RemoteAccessCheck {
             }
 
             // WinRM
-            if json.get("WinRMRunning").and_then(|v| v.as_bool()) == Some(true) {
+            if json.get("WinRMRunning").and_then(|v| agent_common::process::ps_json_as_bool(v)) == Some(true) {
                 status.remote_management_enabled = Some(true);
                 status.remote_access_enabled = true;
             }

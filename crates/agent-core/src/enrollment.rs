@@ -126,29 +126,42 @@ impl AgentRuntime {
             .enrollment_token
             .as_ref()
             .is_some_and(|t| !t.trim().is_empty());
-        if !has_token {
-            warn!(
-                "Cannot re-enroll: no enrollment_token in configuration. \
-                 Please add a valid enrollment token to the agent config and restart."
-            );
-            #[cfg(target_os = "windows")]
-            warn!(
-                "Config file location: C:\\ProgramData\\Sentinel\\agent.json — \
-                 set the \"enrollment_token\" field to the token from the SaaS console."
-            );
-            #[cfg(target_os = "linux")]
-            warn!(
-                "Config file location: /etc/sentinel/agent.json — \
-                 set the \"enrollment_token\" field to the token from the SaaS console."
-            );
-            return Ok(false);
-        }
+
+        // If no token in config, prompt the user via a native dialog
+        let dialog_token = if !has_token {
+            info!("No enrollment token in configuration, prompting user...");
+            match agent_common::process::show_enrollment_dialog() {
+                Some(token) => {
+                    info!("Enrollment token provided via dialog");
+                    Some(token)
+                }
+                None => {
+                    warn!(
+                        "Cannot re-enroll: no enrollment_token in configuration and user cancelled dialog. \
+                         Please add a valid enrollment token to the agent config and restart."
+                    );
+                    #[cfg(target_os = "windows")]
+                    warn!(
+                        "Config file location: C:\\ProgramData\\Sentinel\\agent.json — \
+                         set the \"enrollment_token\" field to the token from the SaaS console."
+                    );
+                    #[cfg(target_os = "linux")]
+                    warn!(
+                        "Config file location: /etc/sentinel/agent.json — \
+                         set the \"enrollment_token\" field to the token from the SaaS console."
+                    );
+                    return Ok(false);
+                }
+            }
+        } else {
+            None // token is already in config, re_enroll() will use it
+        };
 
         info!("Starting automatic re-enrollment...");
 
         // Use the sync-layer EnrollmentManager for the heavy lifting
         let manager = EnrollmentManager::new(&self.config, db);
-        let credentials = match manager.re_enroll().await {
+        let credentials = match manager.re_enroll_with_token(dialog_token).await {
             Ok(creds) => creds,
             Err(e) => {
                 error!("Re-enrollment failed: {}", e);

@@ -303,17 +303,15 @@ impl RouteCollector {
         let stdout = String::from_utf8_lossy(&output.stdout);
 
         // Parse JSON output — log warning on parse failure instead of silent empty
-        let route_entries: Vec<serde_json::Value> = match serde_json::from_str(&stdout) {
-            Ok(entries) => entries,
-            Err(e) => {
+        let route_entries: Vec<serde_json::Value> =
+            agent_common::process::parse_powershell_json_array(&stdout).unwrap_or_else(|e| {
                 tracing::warn!(
                     "Failed to parse route table JSON from PowerShell: {}. Raw output: {}",
                     e,
                     &stdout[..stdout.len().min(200)]
                 );
                 Vec::new()
-            }
-        };
+            });
 
         for entry in route_entries {
             let dest_prefix = entry["DestinationPrefix"].as_str().unwrap_or("0.0.0.0/0");

@@ -329,10 +329,11 @@ impl InterfaceCollector {
         let stdout = String::from_utf8_lossy(&output.stdout);
 
         // Parse JSON output
-        let adapters: Vec<serde_json::Value> = serde_json::from_str(&stdout).unwrap_or_else(|e| {
-            tracing::warn!("Failed to parse network adapters JSON: {}", e);
-            vec![]
-        });
+        let adapters: Vec<serde_json::Value> =
+            agent_common::process::parse_powershell_json_array(&stdout).unwrap_or_else(|e| {
+                tracing::warn!("Failed to parse network adapters JSON: {}", e);
+                vec![]
+            });
 
         for adapter in adapters {
             let name = adapter["Name"].as_str().unwrap_or("").to_string();
@@ -426,11 +427,21 @@ impl InterfaceCollector {
 
         if let Ok(output) = output {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            let addresses: Vec<serde_json::Value> =
-                serde_json::from_str(&stdout).unwrap_or_else(|e| {
-                    tracing::warn!("Failed to parse IP addresses JSON: {}", e);
-                    vec![]
-                });
+            let trimmed = stdout.trim();
+            let addresses: Vec<serde_json::Value> = if trimmed.is_empty() {
+                vec![]
+            } else {
+                // PowerShell returns a single object when there's one result, array for multiple
+                serde_json::from_str::<Vec<serde_json::Value>>(trimmed)
+                    .or_else(|_| {
+                        serde_json::from_str::<serde_json::Value>(trimmed)
+                            .map(|v| vec![v])
+                    })
+                    .unwrap_or_else(|e| {
+                        tracing::warn!("Failed to parse IP addresses JSON: {}", e);
+                        vec![]
+                    })
+            };
 
             for addr in addresses {
                 let ip = addr["IPAddress"].as_str().unwrap_or("");

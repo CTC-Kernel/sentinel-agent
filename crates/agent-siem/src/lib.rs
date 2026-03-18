@@ -437,6 +437,19 @@ impl SiemForwarder {
         self.stats.read().await.clone()
     }
 
+    /// Record an event for platform reporting without sending to external SIEM.
+    ///
+    /// Use this to ensure events collected by the log collector are available
+    /// in the platform's SIEM tab even when external SIEM forwarding is disabled.
+    pub async fn record_event(&self, event: SiemEvent) {
+        let mut recent = self.recent_events.write().await;
+        recent.push(event);
+        let overflow = recent.len().saturating_sub(RECENT_EVENTS_LIMIT);
+        if overflow > 0 {
+            recent.drain(..overflow);
+        }
+    }
+
     /// Take and drain recent events for platform reporting.
     pub async fn take_recent_events(&self) -> Vec<SiemEvent> {
         let mut recent = self.recent_events.write().await;

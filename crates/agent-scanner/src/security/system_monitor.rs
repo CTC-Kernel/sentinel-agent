@@ -133,26 +133,21 @@ impl SystemMonitor {
 
         if let Ok(result) = output
             && result.status.success() {
-                #[derive(serde::Deserialize)]
-                #[serde(rename_all = "PascalCase")]
-                struct FirewallProfile {
-                    name: String,
-                    enabled: bool,
-                }
-
                 let stdout = String::from_utf8_lossy(&result.stdout);
-                let profiles: Vec<FirewallProfile> =
-                    serde_json::from_str(&stdout).unwrap_or_else(|e| {
+                let profiles = agent_common::process::parse_powershell_json_array(&stdout)
+                    .unwrap_or_else(|e| {
                         tracing::warn!("Failed to parse firewall profile JSON: {}", e);
                         vec![]
                     });
 
-                let disabled: Vec<&FirewallProfile> =
-                    profiles.iter().filter(|p| !p.enabled).collect();
+                let disabled: Vec<&serde_json::Value> =
+                    profiles.iter().filter(|p| {
+                        !agent_common::process::ps_json_as_bool(&p["Enabled"]).unwrap_or(false)
+                    }).collect();
 
                 if !disabled.is_empty() {
                     let disabled_names: Vec<&str> =
-                        disabled.iter().map(|p| p.name.as_str()).collect();
+                        disabled.iter().filter_map(|p| p["Name"].as_str()).collect();
                     return Some(SecurityIncident::firewall_disabled(serde_json::json!({
                         "firewall": "windows_firewall",
                         "disabled_profiles": disabled_names,

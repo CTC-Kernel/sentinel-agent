@@ -458,7 +458,7 @@ impl ConnectionCollector {
 
         let tcp_stdout = String::from_utf8_lossy(&tcp_output.stdout);
         let tcp_conns: Vec<serde_json::Value> =
-            serde_json::from_str(&tcp_stdout).unwrap_or_else(|e| {
+            agent_common::process::parse_powershell_json_array(&tcp_stdout).unwrap_or_else(|e| {
                 tracing::warn!("Failed to parse TCP connections JSON: {}", e);
                 vec![]
             });
@@ -481,7 +481,7 @@ impl ConnectionCollector {
 
         let udp_stdout = String::from_utf8_lossy(&udp_output.stdout);
         let udp_endpoints: Vec<serde_json::Value> =
-            serde_json::from_str(&udp_stdout).unwrap_or_else(|e| {
+            agent_common::process::parse_powershell_json_array(&udp_stdout).unwrap_or_else(|e| {
                 tracing::warn!("Failed to parse UDP endpoints JSON: {}", e);
                 vec![]
             });

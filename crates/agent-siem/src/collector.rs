@@ -62,6 +62,12 @@ pub struct RawLogEntry {
     pub process: Option<String>,
     /// Process ID (if extracted).
     pub pid: Option<u32>,
+    /// Windows Event ID (if applicable).
+    pub event_id: Option<u32>,
+    /// User associated with the event (if extracted).
+    pub user: Option<String>,
+    /// Log level / severity string (e.g. "Error", "Warning", "Information").
+    pub level: Option<String>,
 }
 
 /// Configuration for the log collector.
@@ -82,8 +88,8 @@ pub struct LogCollectorConfig {
 impl Default for LogCollectorConfig {
     fn default() -> Self {
         Self {
-            enabled: false,
-            sources: vec![LogSource::System, LogSource::Auth],
+            enabled: true,
+            sources: vec![LogSource::System, LogSource::Auth, LogSource::Application, LogSource::Firewall],
             lookback_secs: 300,
             poll_interval_secs: 60,
             severity_filter: vec![
@@ -178,10 +184,22 @@ impl LogCollector {
     }
 
     /// Check if a log entry matches the severity filter.
+    ///
+    /// Events with well-known Windows Security Event IDs (4625, 4720, 7045, etc.)
+    /// always pass the filter regardless of message keywords.
     fn matches_severity_filter(&self, entry: &RawLogEntry) -> bool {
         if self.config.severity_filter.is_empty() {
             return true;
         }
+
+        // Windows events with known security Event IDs always pass
+        #[cfg(target_os = "windows")]
+        if let Some(eid) = entry.event_id {
+            if classify_windows_event(eid).is_some_and(|(_, sev)| sev >= 5) {
+                return true;
+            }
+        }
+
         let msg_lower = entry.message.to_lowercase();
         self.config
             .severity_filter
@@ -198,13 +216,41 @@ impl LogCollector {
             LogSource::Application => EventCategory::System,
         };
 
-        let severity = classify_severity(&entry.message);
+        // Use Windows Event ID classification for severity/name when available
+        #[cfg(target_os = "windows")]
+        let (event_name, severity) = entry
+            .event_id
+            .and_then(|id| classify_windows_event(id).map(|(name, sev)| (name.to_string(), sev)))
+            .unwrap_or_else(|| {
+                (format!("{}_log_event", entry.source), classify_severity(&entry.message))
+            });
+        #[cfg(not(target_os = "windows"))]
+        let (event_name, severity) = (
+            format!("{}_log_event", entry.source),
+            classify_severity(&entry.message),
+        );
+
+        // Prefer structured user field, fall back to regex extraction
+        let user = entry
+            .user
+            .or_else(|| extract_user(&entry.message));
+
+        let mut custom_fields = serde_json::json!({
+            "log_source": entry.source.to_string(),
+            "raw_message": entry.message,
+        });
+        if let Some(eid) = entry.event_id {
+            custom_fields["windows_event_id"] = serde_json::json!(eid);
+        }
+        if let Some(ref lvl) = entry.level {
+            custom_fields["level"] = serde_json::json!(lvl);
+        }
 
         SiemEvent {
             timestamp: entry.timestamp.unwrap_or_else(Utc::now),
             severity,
             category,
-            name: format!("{}_log_event", entry.source),
+            name: event_name,
             description: entry.message.clone(),
             source_host: entry
                 .hostname
@@ -212,14 +258,11 @@ impl LogCollector {
             source_ip: None,
             destination_ip: None,
             destination_port: None,
-            user: extract_user(&entry.message),
+            user,
             process_name: entry.process,
             process_id: entry.pid,
             file_path: None,
-            custom_fields: serde_json::json!({
-                "log_source": entry.source.to_string(),
-                "raw_message": entry.message,
-            }),
+            custom_fields,
             event_id: uuid::Uuid::new_v4().to_string(),
             agent_version: AGENT_VERSION.to_string(),
         }
@@ -346,7 +389,10 @@ impl LogCollector {
         }
     }
 
-    /// Collect logs on Windows via wevtutil.
+    /// Collect logs on Windows via PowerShell `Get-WinEvent` with structured JSON output.
+    ///
+    /// Uses `Get-WinEvent` instead of `wevtutil` to get structured fields:
+    /// Event ID, timestamp, provider, user, computer, level, and message.
     #[cfg(target_os = "windows")]
     async fn collect_windows(
         &self,
@@ -360,28 +406,88 @@ impl LogCollector {
             LogSource::Application => "Application",
         };
 
-        // Build XPath query for events since the given time
-        let ms_since = (Utc::now() - *since).num_milliseconds().max(1) as u64;
-        let query = format!(
-            "*[System[TimeCreated[timediff(@SystemTime) <= {}]]]",
-            ms_since
+        let since_str = since.format("%Y-%m-%dT%H:%M:%S").to_string();
+
+        // Use Get-WinEvent with FilterHashtable for efficient structured queries.
+        // Select only the fields we need to keep output size manageable.
+        let script = format!(
+            r#"try {{
+    $events = Get-WinEvent -FilterHashtable @{{LogName='{channel}'; StartTime='{since_str}'}} -MaxEvents 500 -ErrorAction Stop |
+        Select-Object Id, TimeCreated, ProviderName, LevelDisplayName, Level, MachineName,
+            @{{N='User';E={{$_.UserId.Translate([System.Security.Principal.NTAccount]).Value}}}},
+            Message |
+        ForEach-Object {{
+            @{{
+                Id = $_.Id
+                TimeCreated = $_.TimeCreated.ToUniversalTime().ToString('o')
+                Provider = $_.ProviderName
+                Level = $_.LevelDisplayName
+                LevelId = $_.Level
+                Computer = $_.MachineName
+                User = $_.User
+                Message = if ($_.Message.Length -gt 512) {{ $_.Message.Substring(0, 512) }} else {{ $_.Message }}
+            }}
+        }}
+    $events | ConvertTo-Json -Depth 2 -Compress
+}} catch [System.Exception] {{
+    # Fallback: no events found or access denied — return empty array
+    Write-Output '[]'
+}}"#
         );
 
-        let output = agent_common::process::silent_async_command("wevtutil")
-            .args(["qe", channel, "/q", &query, "/f:text", "/c:200"])
+        let output = agent_common::process::silent_async_command("powershell")
+            .args(["-NoProfile", "-NonInteractive", "-Command", &script])
             .output()
             .await
-            .map_err(|e| format!("Failed to run wevtutil: {}", e))?;
-
-        if !output.status.success() {
-            return Err(format!(
-                "wevtutil failed: {}",
-                String::from_utf8_lossy(&output.stderr)
-            ));
-        }
+            .map_err(|e| format!("Failed to run Get-WinEvent: {}", e))?;
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        Ok(parse_windows_events(&stdout, source))
+        let events = agent_common::process::parse_powershell_json_array(&stdout)
+            .unwrap_or_else(|e| {
+                if !stdout.trim().is_empty() {
+                    warn!("Failed to parse Windows Event Log JSON: {}", e);
+                }
+                vec![]
+            });
+
+        Ok(events
+            .into_iter()
+            .map(|evt| {
+                let event_id = evt["Id"].as_u64().unwrap_or(0);
+                let message = evt["Message"].as_str().unwrap_or("").to_string();
+                let provider = evt["Provider"].as_str().unwrap_or("");
+                let level = evt["Level"].as_str().unwrap_or("");
+                let computer = evt["Computer"].as_str().map(|s| s.to_string());
+                let user = evt["User"].as_str().map(|s| s.to_string());
+
+                // Parse ISO 8601 timestamp from PowerShell
+                let timestamp = evt["TimeCreated"]
+                    .as_str()
+                    .and_then(|s| {
+                        chrono::DateTime::parse_from_rfc3339(s)
+                            .ok()
+                            .map(|dt| dt.with_timezone(&Utc))
+                    });
+
+                // Build enriched message with event ID prefix
+                let enriched_message = format!(
+                    "EventID={} Provider={} Level={} {}",
+                    event_id, provider, level, message
+                );
+
+                RawLogEntry {
+                    message: enriched_message,
+                    source,
+                    timestamp,
+                    hostname: computer,
+                    process: Some(provider.to_string()),
+                    pid: None,
+                    event_id: Some(event_id as u32),
+                    user,
+                    level: Some(level.to_string()),
+                }
+            })
+            .collect())
     }
 
     /// Get buffered raw log entries count.
@@ -456,6 +562,9 @@ fn parse_macos_log(output: &str, source: LogSource) -> Vec<RawLogEntry> {
             hostname: None,
             process: None,
             pid: None,
+            event_id: None,
+            user: None,
+            level: None,
         })
         .collect()
 }
@@ -495,48 +604,78 @@ fn parse_syslog_lines(output: &str, source: LogSource) -> Vec<RawLogEntry> {
                 hostname,
                 process,
                 pid,
+                event_id: None,
+                user: None,
+                level: None,
             }
         })
         .collect()
 }
 
-/// Parse Windows Event Log text output.
+/// Well-known Windows Security Event IDs and their categories.
+///
+/// Used to enrich SIEM events with meaningful names and proper severity.
 #[cfg(target_os = "windows")]
-fn parse_windows_events(output: &str, source: LogSource) -> Vec<RawLogEntry> {
-    // wevtutil text format separates events by blank lines
-    let mut entries = Vec::new();
-    let mut current_message = String::new();
+pub(crate) fn classify_windows_event(event_id: u32) -> Option<(&'static str, u8)> {
+    // Returns (event_name, severity)
+    match event_id {
+        // Authentication events
+        4624 => Some(("Logon Success", 2)),
+        4625 => Some(("Logon Failure", 6)),
+        4634 => Some(("Logoff", 2)),
+        4648 => Some(("Explicit Credentials Logon", 5)),
+        4771 => Some(("Kerberos Pre-Auth Failed", 6)),
+        4776 => Some(("NTLM Authentication", 3)),
 
-    for line in output.lines() {
-        if line.trim().is_empty() && !current_message.is_empty() {
-            entries.push(RawLogEntry {
-                message: current_message.trim().to_string(),
-                source,
-                timestamp: None,
-                hostname: None,
-                process: None,
-                pid: None,
-            });
-            current_message.clear();
-        } else {
-            if !current_message.is_empty() {
-                current_message.push(' ');
-            }
-            current_message.push_str(line.trim());
-        }
-    }
-    if !current_message.is_empty() {
-        entries.push(RawLogEntry {
-            message: current_message.trim().to_string(),
-            source,
-            timestamp: None,
-            hostname: None,
-            process: None,
-            pid: None,
-        });
-    }
+        // Account management
+        4720 => Some(("User Account Created", 7)),
+        4722 => Some(("User Account Enabled", 5)),
+        4723 => Some(("Password Change Attempt", 4)),
+        4724 => Some(("Password Reset Attempt", 5)),
+        4725 => Some(("User Account Disabled", 5)),
+        4726 => Some(("User Account Deleted", 7)),
+        4728 => Some(("Member Added to Security Group", 7)),
+        4732 => Some(("Member Added to Local Group", 6)),
+        4735 => Some(("Local Group Changed", 6)),
+        4740 => Some(("Account Locked Out", 7)),
+        4756 => Some(("Member Added to Universal Group", 7)),
 
-    entries
+        // Privilege escalation
+        4672 => Some(("Special Privileges Assigned", 5)),
+        4673 => Some(("Privileged Service Called", 5)),
+        4674 => Some(("Operation on Privileged Object", 5)),
+        4703 => Some(("Token Right Adjusted", 6)),
+
+        // Process & service events
+        4688 => Some(("Process Created", 3)),
+        4689 => Some(("Process Terminated", 2)),
+        7045 => Some(("Service Installed", 7)),
+        7040 => Some(("Service Start Type Changed", 6)),
+
+        // Policy changes
+        4719 => Some(("Audit Policy Changed", 8)),
+        4739 => Some(("Domain Policy Changed", 7)),
+
+        // Object access
+        4663 => Some(("Object Access Attempt", 4)),
+        4670 => Some(("Object Permissions Changed", 5)),
+
+        // Scheduled tasks
+        4698 => Some(("Scheduled Task Created", 6)),
+        4702 => Some(("Scheduled Task Updated", 5)),
+
+        // Firewall
+        2003 => Some(("Firewall Profile Changed", 7)),
+        2004 => Some(("Firewall Rule Added", 5)),
+        2005 => Some(("Firewall Rule Modified", 5)),
+        2006 => Some(("Firewall Rule Deleted", 6)),
+
+        // System events
+        1102 => Some(("Audit Log Cleared", 9)),
+        6008 => Some(("Unexpected Shutdown", 7)),
+
+        _ => None,
+    }
 }
 
 /// Return the last N lines of a string.
@@ -604,6 +743,9 @@ mod tests {
             hostname: None,
             process: None,
             pid: None,
+            event_id: None,
+            user: None,
+            level: None,
         };
         assert!(collector.matches_severity_filter(&matching));
 
@@ -614,6 +756,9 @@ mod tests {
             hostname: None,
             process: None,
             pid: None,
+            event_id: None,
+            user: None,
+            level: None,
         };
         assert!(!collector.matches_severity_filter(&not_matching));
     }

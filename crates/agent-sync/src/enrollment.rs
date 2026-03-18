@@ -201,12 +201,27 @@ impl<'a> EnrollmentManager<'a> {
     /// - Certificate has expired and renewal is not possible
     /// - Credentials in DB are corrupted or mismatched
     pub async fn re_enroll(&self) -> SyncResult<StoredCredentials> {
-        let token = self
-            .config
-            .enrollment_token
-            .as_ref()
-            .filter(|t| !t.trim().is_empty())
-            .ok_or(SyncError::NotEnrolled)?;
+        self.re_enroll_with_token(None).await
+    }
+
+    /// Re-enroll the agent, optionally using a provided token instead of the config token.
+    pub async fn re_enroll_with_token(
+        &self,
+        override_token: Option<String>,
+    ) -> SyncResult<StoredCredentials> {
+        let owned_token;
+        let token = if let Some(ref t) = override_token {
+            t.as_str()
+        } else {
+            owned_token = self
+                .config
+                .enrollment_token
+                .as_ref()
+                .filter(|t| !t.trim().is_empty())
+                .ok_or(SyncError::NotEnrolled)?
+                .clone();
+            &owned_token
+        };
 
         // Log the current state before clearing
         let credentials_repo = CredentialsRepository::new(self.db);

@@ -91,8 +91,10 @@ pub struct ResourceMonitor {
     last_network_bytes: AtomicU64,
     /// Last disk I/O bytes (read+write) for delta calculation.
     last_disk_bytes: AtomicU64,
-    /// Last sample time for rate calculations.
+    /// Last sample time for network rate calculations.
     last_sample_time: AtomicU64,
+    /// Last sample time for disk I/O rate calculations.
+    last_disk_sample_time: AtomicU64,
     /// sysinfo System instance.
     sys: Mutex<sysinfo::System>,
     /// sysinfo Networks instance.
@@ -115,6 +117,7 @@ impl ResourceMonitor {
             last_network_bytes: AtomicU64::new(0),
             last_disk_bytes: AtomicU64::new(0),
             last_sample_time: AtomicU64::new(0),
+            last_disk_sample_time: AtomicU64::new(0),
             sys: Mutex::new(sysinfo::System::new_all()),
             networks: Mutex::new(sysinfo::Networks::new_with_refreshed_list()),
         }
@@ -159,9 +162,12 @@ impl ResourceMonitor {
         let disk_kbps = {
             let current_disk = get_disk_bytes();
             let last_disk = self.last_disk_bytes.swap(current_disk, Ordering::Relaxed);
+            let last_disk_time = self
+                .last_disk_sample_time
+                .swap(current_time, Ordering::Relaxed);
 
-            if last_disk > 0 && current_disk >= last_disk && current_time > 0 {
-                let time_delta = current_time - self.last_sample_time.load(Ordering::Relaxed);
+            if last_disk > 0 && current_disk >= last_disk && last_disk_time > 0 {
+                let time_delta = current_time.saturating_sub(last_disk_time);
                 if time_delta > 0 {
                     // Calculate KB per second
                     ((current_disk - last_disk) / 1024) / time_delta
@@ -181,9 +187,10 @@ impl ResourceMonitor {
             uptime_ms,
         };
 
-        // Log every sample for debugging (reduce to every 10 in production)
-        if self.sample_count.load(Ordering::Relaxed).is_multiple_of(1) {
-            info!(
+        // Log resource usage every 30 samples (~30s) at debug level
+        let sample = self.sample_count.load(Ordering::Relaxed);
+        if sample > 0 && sample % 30 == 0 {
+            debug!(
                 "Resource Usage: CPU={:.1}%, RAM={}MB, DiskIO={}KB/s, NetIO={}B/s",
                 usage.cpu_percent,
                 usage.memory_bytes / 1024 / 1024,

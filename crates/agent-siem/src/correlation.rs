@@ -352,6 +352,75 @@ fn default_rules() -> Vec<CorrelationRule> {
             alert_severity: 9,
             enabled: true,
         },
+        // ── Windows Event ID correlation rules ──
+        CorrelationRule {
+            id: "windows_logon_failure_burst".to_string(),
+            name: "Windows Logon Failure Burst".to_string(),
+            description: "Multiple Windows logon failures (Event ID 4625) — possible brute force"
+                .to_string(),
+            categories: vec![EventCategory::Authentication],
+            pattern: r"EventID=4625".to_string(),
+            min_severity: 0,
+            threshold: 5,
+            window_secs: 300, // 5 failures in 5 minutes
+            alert_severity: 8,
+            enabled: true,
+        },
+        CorrelationRule {
+            id: "windows_account_changes".to_string(),
+            name: "Rapid Account Changes".to_string(),
+            description:
+                "Multiple user account modifications in short time — possible compromise"
+                    .to_string(),
+            categories: vec![EventCategory::Authentication, EventCategory::Security],
+            pattern: r"EventID=(4720|4722|4725|4726|4728|4732|4756)".to_string(),
+            min_severity: 0,
+            threshold: 3,
+            window_secs: 300,
+            alert_severity: 9,
+            enabled: true,
+        },
+        CorrelationRule {
+            id: "windows_service_install_burst".to_string(),
+            name: "Multiple Services Installed".to_string(),
+            description:
+                "Multiple new services installed (Event ID 7045) — possible malware persistence"
+                    .to_string(),
+            categories: vec![EventCategory::System],
+            pattern: r"EventID=7045".to_string(),
+            min_severity: 0,
+            threshold: 3,
+            window_secs: 600, // 3 services in 10 minutes
+            alert_severity: 8,
+            enabled: true,
+        },
+        CorrelationRule {
+            id: "windows_audit_log_cleared".to_string(),
+            name: "Audit Log Cleared".to_string(),
+            description: "Windows audit log was cleared (Event ID 1102) — anti-forensics indicator"
+                .to_string(),
+            categories: vec![EventCategory::Security, EventCategory::System],
+            pattern: r"EventID=1102".to_string(),
+            min_severity: 0,
+            threshold: 1,   // Single event is critical
+            window_secs: 60,
+            alert_severity: 10,
+            enabled: true,
+        },
+        CorrelationRule {
+            id: "windows_firewall_changes".to_string(),
+            name: "Firewall Configuration Changes".to_string(),
+            description:
+                "Multiple firewall rule changes — possible lateral movement preparation"
+                    .to_string(),
+            categories: vec![EventCategory::Network, EventCategory::Security],
+            pattern: r"EventID=(2003|2004|2005|2006)".to_string(),
+            min_severity: 0,
+            threshold: 5,
+            window_secs: 300,
+            alert_severity: 7,
+            enabled: true,
+        },
     ]
 }
 

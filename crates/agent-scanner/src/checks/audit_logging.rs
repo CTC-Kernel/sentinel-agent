@@ -115,7 +115,7 @@ impl AuditLoggingCheck {
         }
 
         let json: serde_json::Value = serde_json::from_str(&raw_output).unwrap_or_default();
-        let service_running = json["Running"].as_bool().unwrap_or(false);
+        let service_running = agent_common::process::ps_json_as_bool(&json["Running"]).unwrap_or(false);
 
         Ok(AuditLoggingStatus {
             enabled: service_running,

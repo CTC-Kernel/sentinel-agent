@@ -256,6 +256,10 @@ pub struct AgentRuntime {
     fim_engine: RwLock<Option<FimEngine>>,
     /// SIEM forwarder for security events.
     siem_forwarder: RwLock<Option<SiemForwarder>>,
+    /// Log collector for OS event log ingestion (Windows Event Log, syslog, etc.).
+    log_collector: RwLock<Option<agent_siem::LogCollector>>,
+    /// Correlation engine for detecting patterns across collected events.
+    correlation_engine: RwLock<Option<agent_siem::CorrelationEngine>>,
     /// FIM alert receiver.
     fim_rx: tokio::sync::Mutex<Option<mpsc::Receiver<agent_common::types::FimAlert>>>,
     /// LLM service for AI-powered analysis (feature-gated).
@@ -558,6 +562,8 @@ impl AgentRuntime {
             remediation_rx: tokio::sync::Mutex::new(rx),
             fim_engine: RwLock::new(None),
             siem_forwarder: RwLock::new(None),
+            log_collector: RwLock::new(None),
+            correlation_engine: RwLock::new(None),
             fim_rx: tokio::sync::Mutex::new(None),
             organization_name: RwLock::new(None),
             #[cfg(feature = "llm")]
@@ -848,6 +854,9 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         let mut last_network_alert_count: u32 = 0;
 
+        // Log collector timer — polls OS event logs at the configured interval
+        let mut last_log_collection = std::time::Instant::now();
+
         // Run initial network collection (with 30s timeout to avoid blocking the main loop)
         info!("Running initial network collection...");
         match tokio::time::timeout(
@@ -963,6 +972,40 @@ impl AgentRuntime {
             }
         }
 
+        // Initialize log collector for OS event log ingestion
+        {
+            let collector_config = agent_siem::LogCollectorConfig {
+                enabled: self
+                    .state
+                    .log_collector_enabled
+                    .load(std::sync::atomic::Ordering::Acquire),
+                sources: vec![
+                    agent_siem::LogSource::System,
+                    agent_siem::LogSource::Auth,
+                    agent_siem::LogSource::Application,
+                    agent_siem::LogSource::Firewall,
+                ],
+                lookback_secs: 300,
+                poll_interval_secs: self
+                    .state
+                    .log_collector_poll_secs
+                    .load(std::sync::atomic::Ordering::Acquire),
+                ..Default::default()
+            };
+            let collector = agent_siem::LogCollector::new(collector_config);
+            let mut guard = self.log_collector.write().await;
+            *guard = Some(collector);
+            info!("Log collector initialized");
+        }
+
+        // Initialize correlation engine with default rules
+        {
+            let engine = agent_siem::CorrelationEngine::with_default_rules();
+            let mut guard = self.correlation_engine.write().await;
+            *guard = Some(engine);
+            info!("Correlation engine initialized");
+        }
+
         info!("Agent main loop started");
         loop {
             // Check for shutdown signal
@@ -970,9 +1013,6 @@ impl AgentRuntime {
                 info!("Shutdown requested, stopping main loop");
                 break;
             }
-
-            // Check resource limits periodically
-            self.resource_monitor.check_limits(true);
 
             let mut is_active = false;
             let is_paused = self.is_paused();
@@ -1712,6 +1752,114 @@ impl AgentRuntime {
                 last_network_security = std::time::Instant::now();
                 let mut network_manager = self.network_manager.write().await;
                 current_network_security_interval = network_manager.next_security_interval();
+            }
+
+            // ── Log collection & correlation ──
+            // Collect OS event logs and forward to SIEM + run through correlation engine
+            {
+                let poll_secs = self
+                    .state
+                    .log_collector_poll_secs
+                    .load(std::sync::atomic::Ordering::Acquire);
+                let collector_enabled = self
+                    .state
+                    .log_collector_enabled
+                    .load(std::sync::atomic::Ordering::Acquire);
+
+                if collector_enabled && last_log_collection.elapsed().as_secs() >= poll_secs {
+                    let collector_guard = self.log_collector.read().await;
+                    if let Some(ref collector) = *collector_guard {
+                        let siem_events = collector.collect().await;
+                        if !siem_events.is_empty() {
+                            debug!(
+                                "Log collector gathered {} events from OS logs",
+                                siem_events.len()
+                            );
+
+                            // Forward collected events to SIEM and record for platform
+                            let siem_guard = self.siem_forwarder.read().await;
+                            if let Some(siem) = siem_guard.as_ref() {
+                                for event in &siem_events {
+                                    if siem.is_enabled() {
+                                        // External SIEM enabled: send + record
+                                        if let Err(e) = siem.send_event(event).await {
+                                            warn!("Failed to forward log event to SIEM: {}", e);
+                                            // Still record for platform even if SIEM send fails
+                                            siem.record_event(event.clone()).await;
+                                            break;
+                                        }
+                                    } else {
+                                        // No external SIEM: just record for platform tab
+                                        siem.record_event(event.clone()).await;
+                                    }
+                                }
+                            }
+                            drop(siem_guard);
+
+                            // Run events through correlation engine
+                            let corr_guard = self.correlation_engine.read().await;
+                            if let Some(ref engine) = *corr_guard {
+                                let alerts = engine.process_events(&siem_events).await;
+                                if !alerts.is_empty() {
+                                    warn!(
+                                        "Correlation engine triggered {} alert(s)",
+                                        alerts.len()
+                                    );
+
+                                    // Forward correlation alerts to SIEM
+                                    let siem_guard = self.siem_forwarder.read().await;
+                                    if let Some(siem) = siem_guard.as_ref()
+                                        && siem.is_enabled()
+                                    {
+                                        let host = hostname::get()
+                                            .map(|h| h.to_string_lossy().to_string())
+                                            .unwrap_or_default();
+                                        for alert in &alerts {
+                                            let event = engine.alert_to_event(alert, &host);
+                                            let _ = siem.send_event(&event).await;
+                                        }
+                                    }
+                                    drop(siem_guard);
+
+                                    // Upload correlation alerts as security incidents
+                                    for alert in &alerts {
+                                        if let Some(ref client) = self.authenticated_client {
+                                            let payload = serde_json::json!({
+                                                "incident_type": "correlation_alert",
+                                                "severity": if alert.severity >= 8 { "critical" }
+                                                    else if alert.severity >= 6 { "high" }
+                                                    else { "medium" },
+                                                "title": alert.rule_name,
+                                                "description": format!(
+                                                    "{} ({} events in {}s)",
+                                                    alert.description, alert.event_count,
+                                                    (alert.last_event - alert.first_event).num_seconds()
+                                                ),
+                                                "evidence": {
+                                                    "rule_id": alert.rule_id,
+                                                    "event_count": alert.event_count,
+                                                    "sample_event_ids": alert.sample_event_ids,
+                                                },
+                                                "confidence": 80,
+                                                "detected_at": alert.generated_at.to_rfc3339(),
+                                            });
+                                            if let Err(e) = client.post_json::<_, serde_json::Value>(
+                                                &format!("/v1/agents/{}/incidents",
+                                                    self.config.agent_id.as_deref().unwrap_or("unknown")),
+                                                &payload
+                                            ).await {
+                                                warn!("Failed to upload correlation alert: {}", e);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            drop(corr_guard);
+                        }
+                    }
+                    drop(collector_guard);
+                    last_log_collection = std::time::Instant::now();
+                }
             }
 
             // ── Autonomous threat pipeline ──

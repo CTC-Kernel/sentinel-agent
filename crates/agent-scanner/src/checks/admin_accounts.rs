@@ -173,7 +173,7 @@ impl AdminAccountsCheck {
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // Built-in admin status
-            if let Some(enabled) = json.get("BuiltinAdminEnabled").and_then(|v| v.as_bool()) {
+            if let Some(enabled) = json.get("BuiltinAdminEnabled").and_then(|v| agent_common::process::ps_json_as_bool(v)) {
                 status.builtin_admin_enabled = Some(enabled);
             }
 
