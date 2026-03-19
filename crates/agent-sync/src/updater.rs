@@ -365,7 +365,36 @@ impl UpdateManager {
                 }
             }
         } else {
-            warn!("No signature validator configured - skipping code signature verification");
+            #[cfg(not(debug_assertions))]
+            {
+                error!("Code signature verification is required but no validator configured — rejecting update");
+                *self.state.write().await = UpdateState::Failed;
+                if let Err(e) = fs::remove_file(&staging_path).await {
+                    warn!(
+                        "Failed to cleanup staging file {}: {}",
+                        staging_path.display(),
+                        e
+                    );
+                }
+                self.mark_version_failed(
+                    &to_version,
+                    "No signature validator configured",
+                )
+                .await;
+                return Ok(UpdateResult {
+                    success: false,
+                    from_version,
+                    to_version,
+                    state: UpdateState::Failed,
+                    error: Some("Code signature verification is required but no validator configured".into()),
+                    rolled_back: false,
+                    timestamp: Utc::now(),
+                });
+            }
+            #[cfg(debug_assertions)]
+            {
+                warn!("No signature validator configured — skipping verification (debug build only)");
+            }
         }
 
         // Update state: Installing

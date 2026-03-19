@@ -155,7 +155,36 @@ impl<'a> KeyRotationManager<'a> {
                         tracing::warn!("Pre-rekey checkpoint failed (ignoring): {}", e);
                     }
 
-                    conn.execute_batch(&format!("PRAGMA rekey = \"x'{}'\"", *new_key_hex))
+                    assert!(
+                        new_key_hex.chars().all(|c| c.is_ascii_hexdigit()),
+                        "key must be hex-only"
+                    );
+
+                    // Build the PRAGMA in a stack-allocated buffer to avoid heap
+                    // allocation of sensitive key material.
+                    const HEX_CHARS: &[u8; 16] = b"0123456789abcdef";
+                    let _ = HEX_CHARS; // suppress unused warning; hex is pre-validated above
+                    let prefix = b"PRAGMA rekey = \"x'";
+                    let suffix = b"'\"";
+                    // Max key: 64 hex chars; prefix(18) + 64 + suffix(2) = 84
+                    let mut pragma_buf = [0u8; 84];
+                    pragma_buf[..prefix.len()].copy_from_slice(prefix);
+                    let key_bytes = new_key_hex.as_bytes();
+                    pragma_buf[prefix.len()..prefix.len() + key_bytes.len()]
+                        .copy_from_slice(key_bytes);
+                    let end = prefix.len() + key_bytes.len();
+                    pragma_buf[end..end + suffix.len()].copy_from_slice(suffix);
+                    let pragma_len = end + suffix.len();
+
+                    // SAFETY: pragma_buf contains only ASCII hex characters and known ASCII prefix/suffix
+                    let pragma = std::str::from_utf8(&pragma_buf[..pragma_len])
+                        .expect("PRAGMA buffer is always valid ASCII");
+                    let result = conn.execute_batch(pragma);
+
+                    // Zeroize the key hex from the stack buffer
+                    zeroize::Zeroize::zeroize(&mut pragma_buf);
+
+                    result
                         .map_err(|e| StorageError::Encryption(format!("Rekey failed: {}", e)))?;
 
                     // Checkpoint WAL after rekeying to clear any old key pages

@@ -505,7 +505,8 @@ fn handle_status() -> ExitCode {
 
 /// Run in foreground mode.
 #[allow(unused_variables)] // log_level used only with "gui" feature
-fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> ExitCode {
+#[allow(unused_mut)] // mut needed on Windows with gui feature for headless fallback
+fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -> ExitCode {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
     use agent_sync::EnrollmentManager;
 
@@ -692,9 +693,32 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
     }
 
     // ── GUI mode: delegate enrollment + runtime to GUI ──
+    // On Windows Server or headless environments, the GUI may fail to
+    // initialize (no GPU, no display). Detect this early and fall back
+    // to headless mode automatically.
     #[cfg(feature = "gui")]
     if !no_tray {
-        return run_with_gui(config, is_enrolled, log_level);
+        #[cfg(target_os = "windows")]
+        if is_windows_server() {
+            info!("Windows Server detected — starting in headless mode (no GUI)");
+            no_tray = true;
+        }
+
+        if !no_tray {
+            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                run_with_gui(config.clone(), is_enrolled, log_level)
+            })) {
+                Ok(ExitCode::SUCCESS) => return ExitCode::SUCCESS,
+                Ok(_) => {
+                    warn!("GUI exited with error. Falling back to headless mode.");
+                }
+                Err(_) => {
+                    warn!("GUI panicked during startup (likely no display/GPU). Falling back to headless mode.");
+                }
+            }
+            // Fall through to headless mode below
+            no_tray = true;
+        }
     }
 
     // ── Legacy / headless enrollment flow ──
@@ -2905,5 +2929,26 @@ fn show_fatal_error(message: &str) {
 
     unsafe {
         MessageBoxW(None, &msg, &title, MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
+    }
+}
+
+/// Detect Windows Server editions (no desktop experience / no GPU).
+///
+/// Checks the OS product type via the Win32 API. Returns `true` for
+/// Server, Domain Controller, and other non-workstation SKUs.
+#[cfg(target_os = "windows")]
+fn is_windows_server() -> bool {
+    use std::process::Command;
+    // `wmic os get ProductType` returns: 1=Workstation, 2=DomainController, 3=Server
+    match Command::new("wmic")
+        .args(["os", "get", "ProductType", "/value"])
+        .output()
+    {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            // ProductType=2 or ProductType=3 → server
+            stdout.contains("ProductType=2") || stdout.contains("ProductType=3")
+        }
+        Err(_) => false, // Can't determine — assume workstation
     }
 }
