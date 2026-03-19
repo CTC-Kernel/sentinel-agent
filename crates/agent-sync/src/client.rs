@@ -604,6 +604,20 @@ impl HttpClient {
             self.url(url)
         };
 
+        // Validate download URL belongs to a trusted host
+        let download_host = url::Url::parse(&full_url)
+            .ok()
+            .and_then(|u| u.host_str().map(|h| h.to_string()));
+        let base_host = url::Url::parse(&self.base_url)
+            .ok()
+            .and_then(|u| u.host_str().map(|h| h.to_string()));
+        if download_host != base_host {
+            return Err(SyncError::Config(format!(
+                "Download URL host mismatch: expected host from {}, got {}",
+                self.base_url, full_url
+            )));
+        }
+
         debug!("Downloading from {}", self.safe_log_url(&full_url));
 
         let request = self.client.get(&full_url);
@@ -702,6 +716,14 @@ impl HttpClient {
         debug!("Response status: {}", status);
 
         if status.is_success() {
+            if let Some(len) = response.content_length() {
+                if len > 10 * 1024 * 1024 {
+                    return Err(SyncError::Config(format!(
+                        "Response too large: {} bytes",
+                        len
+                    )));
+                }
+            }
             let body_text = response.text().await.map_err(SyncError::Http)?;
             debug!(
                 "Response body: {}",

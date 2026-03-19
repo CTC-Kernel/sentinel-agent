@@ -40,7 +40,15 @@ impl<'a> CredentialsRepository<'a> {
         debug!("Storing credentials for agent {}", credentials.agent_id);
 
         self.db
-            .with_connection(|conn| {
+            .with_connection_mut(|conn| {
+                // Use a savepoint so partial failures are rolled back atomically
+                let tx = conn.savepoint().map_err(|e| {
+                    agent_storage::StorageError::Query(format!(
+                        "Failed to begin credential store transaction: {}",
+                        e
+                    ))
+                })?;
+
                 // Store all credential fields
                 let fields = [
                     (keys::AGENT_ID, credentials.agent_id.to_string()),
@@ -69,7 +77,7 @@ impl<'a> CredentialsRepository<'a> {
                 ];
 
                 for (key, value) in fields {
-                    conn.execute(
+                    tx.execute(
                         r#"
                         INSERT INTO agent_config (key, value, source)
                         VALUES (?1, ?2, 'local')
@@ -86,6 +94,13 @@ impl<'a> CredentialsRepository<'a> {
                         ))
                     })?;
                 }
+
+                tx.commit().map_err(|e| {
+                    agent_storage::StorageError::Query(format!(
+                        "Failed to commit credential store: {}",
+                        e
+                    ))
+                })?;
 
                 Ok(())
             })

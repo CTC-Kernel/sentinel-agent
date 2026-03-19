@@ -73,8 +73,8 @@ impl HeartbeatService {
     /// Set the heartbeat interval.
     pub async fn set_interval(&self, secs: u64) {
         let mut interval = self.interval_secs.write().await;
-        *interval = secs;
-        info!("Heartbeat interval set to {} seconds", secs);
+        *interval = secs.max(10);
+        info!("Heartbeat interval set to {} seconds", *interval);
     }
 
     /// Get the current heartbeat interval.

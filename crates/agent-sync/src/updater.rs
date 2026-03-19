@@ -24,6 +24,10 @@ use tokio::fs;
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 
+/// Minimum safe version — updates targeting versions below this are rejected
+/// to prevent downgrade attacks or known-bad rollouts.
+const MIN_SAFE_VERSION: &str = "2.0.196";
+
 /// Maximum time to wait for health check after update (seconds).
 const HEALTH_CHECK_TIMEOUT_SECS: u64 = 60;
 
@@ -232,6 +236,28 @@ impl UpdateManager {
     async fn do_apply_update(&self, update: &AvailableUpdate) -> SyncResult<UpdateResult> {
         let from_version = update.current_version.clone();
         let to_version = update.new_version.clone();
+
+        // Enforce minimum version floor to prevent downgrade attacks
+        let min_version = Version::parse(MIN_SAFE_VERSION).expect("BUG: invalid MIN_SAFE_VERSION");
+        if to_version < min_version {
+            error!(
+                "Update target version {} is below minimum safe version {} — rejecting",
+                to_version, min_version
+            );
+            *self.state.write().await = UpdateState::Failed;
+            return Ok(UpdateResult {
+                success: false,
+                from_version,
+                to_version,
+                state: UpdateState::Failed,
+                error: Some(format!(
+                    "Target version is below minimum safe version {}",
+                    MIN_SAFE_VERSION
+                )),
+                rolled_back: false,
+                timestamp: Utc::now(),
+            });
+        }
 
         info!("Starting update from {} to {}", from_version, to_version);
 

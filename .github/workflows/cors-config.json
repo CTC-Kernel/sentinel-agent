@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["*"],
+    "origin": ["https://app.cyber-threat-consulting.com", "https://cyber-threat-consulting.com", "https://sentinel-grc-a8701.web.app"],
     "method": ["GET"],
     "responseHeader": ["Content-Type", "Access-Control-Allow-Origin"],
     "maxAgeSeconds": 3600

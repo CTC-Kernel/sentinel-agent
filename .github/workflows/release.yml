@@ -776,25 +776,21 @@ jobs:
 
       - name: Attest macOS artifacts
         uses: actions/attest-build-provenance@v2
-        continue-on-error: true
         with:
           subject-path: artifacts/sentinel-agent-macos/SentinelAgent-*
 
       - name: Attest Windows artifacts
         uses: actions/attest-build-provenance@v2
-        continue-on-error: true
         with:
           subject-path: artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi
 
       - name: Attest Linux DEB artifacts
         uses: actions/attest-build-provenance@v2
-        continue-on-error: true
         with:
           subject-path: artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb
 
       - name: Attest Linux RPM artifacts
         uses: actions/attest-build-provenance@v2
-        continue-on-error: true
         with:
           subject-path: artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm
 

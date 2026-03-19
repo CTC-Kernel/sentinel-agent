@@ -26,6 +26,7 @@ semver.workspace = true
 hmac.workspace = true
 zeroize.workspace = true
 futures-util.workspace = true
+url.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

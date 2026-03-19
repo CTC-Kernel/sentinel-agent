@@ -149,7 +149,7 @@ pub enum SyslogProtocol {
 }
 
 /// SIEM transport configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum SiemTransport {
     /// Syslog transport (RFC 5424).
@@ -166,6 +166,40 @@ pub enum SiemTransport {
         auth_header: Option<String>,
         verify_tls: bool,
     },
+}
+
+impl std::fmt::Debug for SiemTransport {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SiemTransport::Syslog {
+                host,
+                port,
+                protocol,
+                tls,
+            } => f
+                .debug_struct("Syslog")
+                .field("host", host)
+                .field("port", port)
+                .field("protocol", protocol)
+                .field("tls", tls)
+                .finish(),
+            SiemTransport::Http {
+                url,
+                auth_token,
+                auth_header,
+                verify_tls,
+            } => f
+                .debug_struct("Http")
+                .field("url", url)
+                .field(
+                    "auth_token",
+                    &auth_token.as_ref().map(|_| "[REDACTED]"),
+                )
+                .field("auth_header", auth_header)
+                .field("verify_tls", verify_tls)
+                .finish(),
+        }
+    }
 }
 
 /// SIEM forwarder configuration.
