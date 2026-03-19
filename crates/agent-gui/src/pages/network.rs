@@ -622,10 +622,10 @@ impl NetworkPage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(120.0).at_least(80.0)) // Name
-                    .column(Column::initial(120.0).at_least(80.0)) // Type
-                    .column(Column::initial(100.0).at_least(60.0)) // Status
-                    .column(Column::initial(160.0).at_least(100.0)) // IPv4
+                    .column(Column::initial(90.0).range(60.0..=160.0))  // Name
+                    .column(Column::initial(90.0).range(60.0..=140.0))  // Type
+                    .column(Column::initial(70.0).range(50.0..=120.0))  // Status
+                    .column(Column::initial(120.0).range(80.0..=200.0)) // IPv4
                     .column(Column::remainder()); // MAC
 
                 table
@@ -839,10 +839,10 @@ impl NetworkPage {
                     .resizable(true)
                     .sense(egui::Sense::click())
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(80.0).at_least(40.0))
-                    .column(Column::initial(200.0).at_least(100.0))
-                    .column(Column::initial(200.0).at_least(100.0))
-                    .column(Column::initial(110.0).at_least(80.0))
+                    .column(Column::initial(60.0).range(40.0..=80.0))
+                    .column(Column::initial(140.0).range(80.0..=300.0))
+                    .column(Column::initial(140.0).range(80.0..=300.0))
+                    .column(Column::initial(90.0).range(60.0..=140.0))
                     .column(Column::remainder());
 
                 let mut clicked_conn: Option<usize> = None;

@@ -467,12 +467,12 @@ impl RisksPage {
                 .resizable(true)
                 .sense(egui::Sense::click())
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::initial(200.0).range(120.0..=400.0))
-                .column(Column::initial(60.0).at_least(50.0))
-                .column(Column::initial(60.0).at_least(50.0))
-                .column(Column::initial(60.0).at_least(50.0))
-                .column(Column::initial(110.0).at_least(90.0))
-                .column(Column::initial(120.0).at_least(80.0))
+                .column(Column::initial(160.0).range(90.0..=400.0))
+                .column(Column::initial(50.0).range(40.0..=70.0))
+                .column(Column::initial(50.0).range(40.0..=70.0))
+                .column(Column::initial(50.0).range(40.0..=70.0))
+                .column(Column::initial(90.0).range(70.0..=140.0))
+                .column(Column::initial(100.0).range(60.0..=160.0))
                 .column(Column::remainder());
 
             table

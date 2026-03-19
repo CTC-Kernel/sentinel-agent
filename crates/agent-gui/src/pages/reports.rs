@@ -303,10 +303,10 @@ impl ReportsPage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(140.0).at_least(100.0))
-                    .column(Column::initial(250.0).range(150.0..=500.0))
-                    .column(Column::initial(130.0).at_least(100.0))
-                    .column(Column::initial(80.0).at_least(60.0))
+                    .column(Column::initial(110.0).range(80.0..=180.0))
+                    .column(Column::initial(180.0).range(100.0..=500.0))
+                    .column(Column::initial(100.0).range(70.0..=160.0))
+                    .column(Column::initial(70.0).range(50.0..=100.0))
                     .column(Column::remainder());
 
                 table

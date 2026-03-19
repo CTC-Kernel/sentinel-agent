@@ -304,12 +304,12 @@ impl AssetsPage {
                 .resizable(true)
                 .sense(egui::Sense::click())
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::initial(160.0).range(100.0..=300.0))
-                .column(Column::initial(120.0).at_least(90.0))
-                .column(Column::initial(100.0).at_least(80.0))
-                .column(Column::initial(90.0).at_least(70.0))
-                .column(Column::initial(110.0).at_least(90.0))
-                .column(Column::initial(80.0).at_least(60.0))
+                .column(Column::initial(120.0).range(80.0..=250.0))
+                .column(Column::initial(90.0).range(60.0..=150.0))
+                .column(Column::initial(80.0).range(60.0..=120.0))
+                .column(Column::initial(70.0).range(50.0..=100.0))
+                .column(Column::initial(90.0).range(60.0..=140.0))
+                .column(Column::initial(70.0).range(50.0..=100.0))
                 .column(Column::remainder());
 
             table

@@ -295,13 +295,13 @@ impl DiscoveryPage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(130.0).at_least(100.0)) // IP
-                    .column(Column::initial(180.0).range(120.0..=400.0)) // Hostname
-                    .column(Column::initial(140.0).at_least(120.0)) // MAC
-                    .column(Column::initial(140.0).at_least(100.0)) // Vendor
-                    .column(Column::initial(100.0).at_least(80.0)) // Type
-                    .column(Column::initial(120.0).at_least(80.0)) // Ports
-                    .column(Column::initial(110.0).at_least(90.0)) // Last seen
+                    .column(Column::initial(110.0).range(80.0..=160.0)) // IP
+                    .column(Column::initial(140.0).range(80.0..=400.0)) // Hostname
+                    .column(Column::initial(120.0).range(80.0..=160.0)) // MAC
+                    .column(Column::initial(110.0).range(70.0..=200.0)) // Vendor
+                    .column(Column::initial(80.0).range(60.0..=120.0)) // Type
+                    .column(Column::initial(80.0).range(60.0..=140.0)) // Ports
+                    .column(Column::initial(90.0).range(70.0..=130.0)) // Last seen
                     .column(Column::remainder()); // Actions
 
                 table

@@ -495,11 +495,11 @@ impl SoftwarePage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(200.0).at_least(150.0))
-                    .column(Column::initial(100.0).at_least(80.0))
-                    .column(Column::initial(150.0).at_least(120.0))
-                    .column(Column::initial(100.0).at_least(80.0))
-                    .column(Column::initial(100.0).at_least(90.0))
+                    .column(Column::initial(150.0).range(100.0..=300.0))
+                    .column(Column::initial(80.0).range(60.0..=120.0))
+                    .column(Column::initial(120.0).range(80.0..=200.0))
+                    .column(Column::initial(80.0).range(60.0..=120.0))
+                    .column(Column::initial(80.0).range(60.0..=120.0))
                     .column(Column::remainder());
 
                 table
@@ -803,11 +803,11 @@ impl SoftwarePage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(200.0).range(140.0..=500.0))
-                    .column(Column::initial(90.0).at_least(80.0))
-                    .column(Column::initial(200.0).at_least(160.0))
-                    .column(Column::remainder())
-                    .column(Column::initial(100.0).at_least(90.0));
+                    .column(Column::initial(200.0).range(120.0..=500.0))
+                    .column(Column::initial(80.0).at_least(60.0))
+                    .column(Column::initial(180.0).at_least(120.0))
+                    .column(Column::initial(90.0).at_least(70.0))
+                    .column(Column::remainder());
 
                 table
                     .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
@@ -851,6 +851,7 @@ impl SoftwarePage {
                                     .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                         });
+                        header.col(|_ui: &mut egui::Ui| {}); // Actions (remainder)
                     })
                     .body(|body| {
                         body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {

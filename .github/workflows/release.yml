@@ -395,11 +395,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - name: Install OpenSSL (vcpkg)
+      - name: Install OpenSSL (vcpkg) and set Perl for vendored builds
         run: |
           vcpkg install openssl:x64-windows-static-md
           echo "OPENSSL_DIR=C:\vcpkg\packages\openssl_x64-windows-static-md" >> $GITHUB_ENV
           echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
+          echo "PERL=C:/Strawberry/perl/bin/perl.exe" >> $GITHUB_ENV
         shell: bash
 
       - name: Build release binary

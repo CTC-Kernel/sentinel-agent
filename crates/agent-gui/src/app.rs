@@ -779,15 +779,16 @@ impl eframe::App for SentinelApp {
             ctx.request_repaint();
         }
 
-        // Content area – ScrollArea is here so the scrollbar sits at the
-        // window edge while content keeps a 24 px right margin.
+        // Content area – Scrollbar sits flush at the window edge (macOS-style).
+        // Content gets a right margin via the inner Frame so it never touches
+        // the scrollbar.
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()
                     .fill(theme::bg_primary())
                     .inner_margin(egui::Margin {
                         left: theme::SPACE_LG as i8,
-                        right: theme::SPACE_LG as i8, // Match left for symmetry
+                        right: 0, // No right margin: scrollbar flush with window edge
                         top: theme::SPACE_LG as i8,
                         bottom: theme::SPACE_LG as i8,
                     }),
@@ -809,7 +810,12 @@ impl eframe::App for SentinelApp {
                     .auto_shrink(egui::Vec2b::new(false, false))
                     .show(ui, |ui: &mut egui::Ui| {
                         egui::Frame::new()
-                            .inner_margin(egui::Margin::same(0)) // Remove inner padding, use CentralPanel padding
+                            .inner_margin(egui::Margin {
+                                left: 0,
+                                right: theme::SPACE as i8, // 16px gap between content and scrollbar
+                                top: 0,
+                                bottom: 0,
+                            })
                             .show(ui, |ui: &mut egui::Ui| match self.page {
                                 Page::Dashboard => {
                                     if let Some(action) =

@@ -617,9 +617,13 @@ pub fn table_row_bg(row_index: usize) -> Color32 {
     }
 }
 
-/// Get row hover highlight color (accent-tinted for coherence).
+/// Get row hover highlight color (subtle semi-transparent tint).
 pub fn table_row_hover() -> Color32 {
-    ACCENT.linear_multiply(if is_dark_mode() { 0.10 } else { 0.06 })
+    if is_dark_mode() {
+        Color32::from_white_alpha(14)
+    } else {
+        Color32::from_black_alpha(10)
+    }
 }
 
 // ============================================================================
@@ -850,6 +854,16 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     style.spacing.button_padding = Vec2::new(SPACE_MD, SPACE_SM);
     style.spacing.indent = SPACE;
 
+    // Scrollbar — thin macOS-style with padding from content
+    style.spacing.scroll = egui::style::ScrollStyle {
+        bar_width: 6.0,
+        handle_min_length: 20.0,
+        bar_inner_margin: 4.0,  // Gap between content edge and scrollbar track
+        bar_outer_margin: 2.0,  // Gap between scrollbar track and window edge
+        floating: true,         // Overlay scrollbar (doesn't consume layout space)
+        ..style.spacing.scroll
+    };
+
     // Visuals
     let mut visuals = if dark {
         Visuals::dark()
@@ -871,7 +885,13 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.widgets.noninteractive.bg_stroke = Stroke::NONE;
 
     // Widgets hovered
-    visuals.widgets.hovered.bg_fill = bg_elevated(); // Slightly lighter/raised
+    // Use a subtle semi-transparent tint instead of opaque bg_elevated so that
+    // secondary/tertiary text on table rows remains readable in dark mode.
+    visuals.widgets.hovered.bg_fill = if is_dark_mode() {
+        Color32::from_white_alpha(14)
+    } else {
+        Color32::from_black_alpha(10)
+    };
     visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, text_primary());
     visuals.widgets.hovered.corner_radius = btn_rounding;
     visuals.widgets.hovered.bg_stroke = Stroke::NONE;
@@ -1073,10 +1093,14 @@ pub fn disabled_color(color: Color32) -> Color32 {
     color.linear_multiply(OPACITY_DISABLED)
 }
 
-/// Hover background for interactive elements (accent-tinted).
+/// Hover background for interactive elements (subtle semi-transparent tint).
 #[inline]
 pub fn hover_bg() -> Color32 {
-    ACCENT.linear_multiply(if is_dark_mode() { 0.12 } else { 0.08 })
+    if is_dark_mode() {
+        Color32::from_white_alpha(14)
+    } else {
+        Color32::from_black_alpha(10)
+    }
 }
 
 /// Active/pressed background for interactive elements (accent-tinted).

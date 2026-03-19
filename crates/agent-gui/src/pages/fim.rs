@@ -233,10 +233,10 @@ impl FimPage {
                     .resizable(true)
                     .sense(egui::Sense::click())
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(110.0).at_least(80.0))
-                    .column(Column::remainder())
-                    .column(Column::initial(140.0).at_least(100.0))
-                    .column(Column::initial(140.0).at_least(120.0));
+                    .column(Column::initial(90.0).range(60.0..=140.0))   // TYPE
+                    .column(Column::remainder())                         // CHEMIN
+                    .column(Column::initial(110.0).range(70.0..=160.0))  // DATE
+                    .column(Column::initial(110.0).range(70.0..=160.0)); // STATUT
 
                 let mut clicked_row: Option<usize> = None;
 

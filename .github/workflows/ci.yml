@@ -156,6 +156,9 @@ jobs:
           Copy-Item "assets/icons/sentinel-agent.ico" "crates/agent-gui/assets/icons/"
           Copy-Item "assets/icons/sentinel-agent.ico" "crates/agent-core/assets/icons/"
         shell: pwsh
+      - name: Set Perl for vendored OpenSSL builds
+        run: echo "PERL=C:/Strawberry/perl/bin/perl.exe" >> $GITHUB_ENV
+        shell: bash
       - name: Build release binary
         run: cargo build --release --package agent-core --features gui
       - name: Upload build artifacts

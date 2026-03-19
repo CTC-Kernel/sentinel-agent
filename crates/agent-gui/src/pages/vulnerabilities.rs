@@ -669,13 +669,13 @@ impl VulnerabilitiesPage {
                 .striped(false)
                 .resizable(true)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::initial(100.0).at_least(80.0)) // CVE ID
-                .column(Column::initial(120.0).at_least(100.0)) // Logiciel
-                .column(Column::initial(80.0).at_least(60.0)) // Sévérité
-                .column(Column::initial(60.0).at_least(50.0)) // CVSS
-                .column(Column::initial(90.0).at_least(70.0)) // Source
-                .column(Column::remainder()) // Analyse et correctifs
-                .column(Column::initial(100.0).at_least(90.0)); // Actions
+                .column(Column::initial(100.0).at_least(70.0)) // CVE ID
+                .column(Column::initial(110.0).at_least(80.0)) // Logiciel
+                .column(Column::initial(70.0).at_least(50.0)) // Sévérité
+                .column(Column::initial(55.0).at_least(45.0)) // CVSS
+                .column(Column::initial(80.0).at_least(60.0)) // Source
+                .column(Column::initial(90.0).at_least(70.0)) // Actions
+                .column(Column::remainder()); // Analyse et correctifs
 
             table
                 .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
@@ -726,7 +726,7 @@ impl VulnerabilitiesPage {
                     });
                     header.col(|ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new("ANALYSE ET CORRECTIFS")
+                            egui::RichText::new("ACTIONS")
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
@@ -735,7 +735,7 @@ impl VulnerabilitiesPage {
                     });
                     header.col(|ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new("ACTIONS")
+                            egui::RichText::new("ANALYSE ET CORRECTIFS")
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
@@ -822,7 +822,16 @@ impl VulnerabilitiesPage {
                             }
                         });
 
-                        // Analysis & fix column
+                        // Actions column
+                        row.col(|ui: &mut egui::Ui| {
+                            if widgets::ghost_button(ui, format!("{}  D\u{00c9}TAILS", icons::EYE))
+                                .clicked()
+                            {
+                                clicked_idx = Some(real_idx);
+                            }
+                        });
+
+                        // Analysis & fix column (remainder)
                         row.col(|ui: &mut egui::Ui| {
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(
@@ -863,14 +872,6 @@ impl VulnerabilitiesPage {
                                     );
                                 }
                             });
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            if widgets::ghost_button(ui, format!("{}  D\u{00c9}TAILS", icons::EYE))
-                                .clicked()
-                            {
-                                clicked_idx = Some(real_idx);
-                            }
                         });
                     });
                 });
