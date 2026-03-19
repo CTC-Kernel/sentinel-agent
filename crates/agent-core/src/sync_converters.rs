@@ -72,7 +72,7 @@ pub fn risk_to_payload(r: &RiskEntry) -> RiskPayload {
         mitigation: r.mitigation.clone(),
         source: r.source.clone(),
         created_at: r.created_at,
-        updated_at: r.updated_at,
+        updated_at: Some(r.updated_at),
         sla_target_days: r.sla_target_days,
     }
 }

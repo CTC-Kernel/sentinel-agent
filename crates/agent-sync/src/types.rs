@@ -836,7 +836,8 @@ pub struct RiskPayload {
     pub mitigation: String,
     pub source: String,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    #[serde(default)]
+    pub updated_at: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sla_target_days: Option<u32>,
 }

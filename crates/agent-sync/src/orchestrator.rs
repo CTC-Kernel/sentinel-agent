@@ -424,7 +424,7 @@ impl SyncOrchestrator {
                         mitigation: r.mitigation.clone(),
                         source: r.source.clone(),
                         created_at: r.created_at.to_rfc3339(),
-                        updated_at: r.updated_at.to_rfc3339(),
+                        updated_at: r.updated_at.unwrap_or(r.created_at).to_rfc3339(),
                         sla_target_days: r.sla_target_days.map(|v| v as i32),
                         synced: true,
                     };
