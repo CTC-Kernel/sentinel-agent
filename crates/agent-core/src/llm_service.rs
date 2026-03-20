@@ -579,6 +579,20 @@ pub enum LLMServiceStatus {
     Error(String),
 }
 
+impl std::fmt::Display for LLMServiceStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NotAvailable => write!(f, "not_available"),
+            Self::NotConfigured => write!(f, "not_configured"),
+            Self::Downloading { model_name, progress_percent, .. } => {
+                write!(f, "downloading ({} {}%)", model_name, progress_percent)
+            }
+            Self::Ready { model_name, .. } => write!(f, "ready ({})", model_name),
+            Self::Error(msg) => write!(f, "error: {}", msg),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
