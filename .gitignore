@@ -185,3 +185,10 @@ agent.json
 !config/agent.full.example.json
 !config/llm.example.json
 *.wixpdb
+*.jar
+
+# Diagnostic output
+diag_output*.txt
+
+# Stale script copies
+scripts/diag_results.rs
