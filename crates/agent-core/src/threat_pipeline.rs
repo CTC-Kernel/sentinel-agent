@@ -393,12 +393,15 @@ pub fn stored_playbooks_to_dto(
                 .map(|dt| dt.with_timezone(&chrono::Utc))
                 .unwrap_or_else(|_| chrono::Utc::now());
 
+            let conditions: Vec<agent_gui::dto::PlaybookCondition> =
+                serde_json::from_str(&s.conditions).unwrap_or_default();
+
             Some(agent_gui::dto::Playbook {
                 id,
                 name: s.title.clone(),
                 description: s.description.clone(),
                 enabled: s.status == "active",
-                conditions: Vec::new(), // Conditions stored separately
+                conditions,
                 actions,
                 created_at,
                 last_triggered: None,

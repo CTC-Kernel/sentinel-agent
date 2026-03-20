@@ -40,6 +40,7 @@ mod compliance;
 pub mod edr_actions;
 mod enrollment;
 mod gui_bridge;
+mod risk_generation;
 mod heartbeat;
 mod network_ops;
 pub mod playbook_engine;
@@ -1093,7 +1094,7 @@ impl AgentRuntime {
                             // Accumulate for threat pipeline
                             pipeline_fim_alerts.push((
                                 alert.path.to_string_lossy().to_string(),
-                                format!("{:?}", alert.change),
+                                format!("{}", alert.change),
                             ));
                         }
 
@@ -1176,6 +1177,58 @@ impl AgentRuntime {
                 }
             }
 
+            // 1b. Sync GUI SIEM config changes to the actual forwarder
+            #[cfg(feature = "gui")]
+            {
+                let gui_enabled = self.state.siem_enabled.load(Ordering::Acquire);
+                let mut siem_guard = self.siem_forwarder.write().await;
+                if let Some(ref mut siem) = *siem_guard {
+                    if siem.is_enabled() != gui_enabled {
+                        let mut new_config = siem.config().clone();
+                        new_config.enabled = gui_enabled;
+                        if let Ok(fmt) = self.state.siem_format.lock() {
+                            new_config.format = match fmt.as_str() {
+                                "CEF" => agent_siem::SiemFormat::Cef,
+                                "LEEF" => agent_siem::SiemFormat::Leef,
+                                _ => agent_siem::SiemFormat::Json,
+                            };
+                        }
+                        if let Ok(dest) = self.state.siem_destination.lock() {
+                            if !dest.is_empty() {
+                                if let Ok(tr) = self.state.siem_transport.lock() {
+                                    match tr.as_str() {
+                                        "HTTP" => {
+                                            new_config.transport = agent_siem::SiemTransport::Http {
+                                                url: dest.clone(),
+                                                auth_token: None,
+                                                auth_header: None,
+                                                verify_tls: true,
+                                            };
+                                        }
+                                        _ => {
+                                            let parts: Vec<&str> = dest.splitn(2, ':').collect();
+                                            let host = parts.first().unwrap_or(&"localhost").to_string();
+                                            let port = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(514);
+                                            new_config.transport = agent_siem::SiemTransport::Syslog {
+                                                host,
+                                                port,
+                                                protocol: agent_siem::SyslogProtocol::Tcp,
+                                                tls: false,
+                                            };
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if let Err(e) = siem.update_config(new_config) {
+                            warn!("Failed to apply GUI SIEM config: {}", e);
+                        } else {
+                            info!("SIEM forwarder config synced from GUI (enabled={})", gui_enabled);
+                        }
+                    }
+                }
+            }
+
             // 2. Heartbeat & Config Sync
             if last_heartbeat.elapsed().as_secs() >= *self.heartbeat_interval_secs.read().await {
                 last_heartbeat = std::time::Instant::now();
@@ -1250,7 +1303,7 @@ impl AgentRuntime {
                                     .map(|e| agent_sync::SiemEventPayload {
                                         timestamp: e.timestamp,
                                         severity: e.severity,
-                                        category: format!("{:?}", e.category),
+                                        category: format!("{}", e.category),
                                         name: e.name.clone(),
                                         description: e.description.clone(),
                                         source_host: e.source_host.clone(),
@@ -1264,8 +1317,8 @@ impl AgentRuntime {
                                     events,
                                     stats: agent_sync::SiemStatsPayload {
                                         enabled: cfg.enabled,
-                                        format: format!("{:?}", cfg.format),
-                                        transport: format!("{:?}", cfg.transport),
+                                        format: format!("{}", cfg.format),
+                                        transport: format!("{}", cfg.transport),
                                         destination: cfg.destination_label(),
                                         events_sent: stats.events_sent,
                                         events_dropped: stats.events_dropped,
@@ -1570,6 +1623,7 @@ impl AgentRuntime {
                         agent_common::types::UsbEventType::Disconnected => {
                             GuiUsbEventType::Disconnected
                         }
+                        agent_common::types::UsbEventType::Blocked => GuiUsbEventType::Blocked,
                     };
                     self.emit_gui_event(AgentEvent::UsbEvent {
                         event: GuiUsbEvent {
@@ -1824,8 +1878,17 @@ impl AgentRuntime {
                                     // Upload correlation alerts as security incidents
                                     for alert in &alerts {
                                         if let Some(ref client) = self.authenticated_client {
+                                            let incident_type = match alert.rule_id.as_str() {
+                                                "brute_force" | "windows_logon_failure_burst" => "credential_theft",
+                                                "privilege_escalation" => "privilege_escalation",
+                                                "file_integrity_burst" | "windows_audit_log_cleared"
+                                                    | "windows_account_changes" => "unauthorized_change",
+                                                "windows_service_install_burst" => "malware",
+                                                "windows_firewall_changes" => "firewall_disabled",
+                                                "network_scan" | "critical_errors" | _ => "suspicious_process",
+                                            };
                                             let payload = serde_json::json!({
-                                                "incident_type": "correlation_alert",
+                                                "incident_type": incident_type,
                                                 "severity": if alert.severity >= 8 { "critical" }
                                                     else if alert.severity >= 6 { "high" }
                                                     else { "medium" },
@@ -2004,7 +2067,7 @@ impl AgentRuntime {
                             process_id: None,
                             file_path: None,
                             custom_fields: serde_json::json!({
-                                "incident_type": format!("{:?}", inc.incident_type),
+                                "incident_type": format!("{}", inc.incident_type),
                                 "confidence": inc.confidence,
                             }),
                             event_id: uuid::Uuid::new_v4().to_string(),
@@ -2057,7 +2120,7 @@ impl AgentRuntime {
                             process_id: None,
                             file_path: None,
                             custom_fields: serde_json::json!({
-                                "alert_type": format!("{:?}", alert.alert_type),
+                                "alert_type": format!("{}", alert.alert_type),
                                 "confidence": alert.confidence,
                                 "iocs_matched": alert.iocs_matched,
                             }),
@@ -2112,6 +2175,9 @@ impl AgentRuntime {
 
                 self.store_check_results(&check_results).await;
                 self.upload_check_results().await;
+
+                // Auto-generate risks from failing checks and queue for platform sync
+                self.auto_generate_risks(&check_results).await;
 
                 #[cfg(feature = "gui")]
                 {
@@ -2478,7 +2544,7 @@ impl AgentRuntime {
                                         mac: d.mac.clone(),
                                         hostname: d.hostname.clone(),
                                         vendor: d.vendor.clone(),
-                                        device_type: format!("{:?}", d.device_type),
+                                        device_type: format!("{}", d.device_type),
                                         open_ports: d.open_ports.clone(),
                                         first_seen: d.first_seen,
                                         last_seen: d.last_seen,

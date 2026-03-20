@@ -450,6 +450,7 @@ impl SyncOrchestrator {
                         description: p.description.clone(),
                         category: "general".to_string(),
                         steps: serde_json::to_string(&p.actions).unwrap_or_default(),
+                        conditions: serde_json::to_string(&p.conditions).unwrap_or_else(|_| "[]".to_string()),
                         status: if p.enabled {
                             "active".to_string()
                         } else {

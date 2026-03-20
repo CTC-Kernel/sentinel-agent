@@ -68,7 +68,7 @@ pub fn risk_to_payload(r: &RiskEntry) -> RiskPayload {
         probability: r.probability,
         impact: r.impact,
         owner: r.owner.clone(),
-        status: r.status.as_str().to_string(),
+        status: format!("{}", r.status),
         mitigation: r.mitigation.clone(),
         source: r.source.clone(),
         created_at: r.created_at,

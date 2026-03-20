@@ -1704,6 +1704,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         description: pb_clone.description.clone(),
                                         category: "general".to_string(),
                                         steps: serde_json::to_string(&pb_clone.actions).unwrap_or_default(),
+                                        conditions: serde_json::to_string(&pb_clone.conditions).unwrap_or_else(|_| "[]".to_string()),
                                         status: if pb_clone.enabled { "active".to_string() } else { "inactive".to_string() },
                                         created_at: pb_clone.created_at.to_rfc3339(),
                                         updated_at: now,
@@ -1840,7 +1841,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         probability: risk_clone.probability as i32,
                                         impact: risk_clone.impact as i32,
                                         owner: risk_clone.owner.clone(),
-                                        status: format!("{:?}", risk_clone.status),
+                                        status: format!("{}", risk_clone.status),
                                         mitigation: risk_clone.mitigation.clone(),
                                         source: risk_clone.source.clone(),
                                         created_at: risk_clone.created_at.to_rfc3339(),
@@ -1890,10 +1891,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         id: asset_clone.id.to_string(),
                                         name: asset_clone.hostname.clone().unwrap_or_else(|| asset_clone.ip.clone()),
                                         asset_type: asset_clone.device_type.clone(),
-                                        criticality: format!("{:?}", asset_clone.criticality),
+                                        criticality: format!("{}", asset_clone.criticality),
                                         owner: "unknown".to_string(),
                                         location: asset_clone.ip.clone(),
-                                        status: format!("{:?}", asset_clone.lifecycle),
+                                        status: format!("{}", asset_clone.lifecycle),
                                         created_at: asset_clone.first_seen.to_rfc3339(),
                                         updated_at: asset_clone.last_seen.to_rfc3339(),
                                         synced: false,
@@ -2184,7 +2185,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             other => {
                                                 let _ = tx.send(AgentEvent::LlmStatusUpdate {
                                                     model_name: "N/A".to_string(),
-                                                    status: format!("{:?}", other),
+                                                    status: format!("{}", other),
                                                     inference_count: 0,
                                                     memory_mb: 0,
                                                 });
@@ -2423,7 +2424,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                 let _ = tx.send(AgentEvent::LlmAnalysisComplete {
                                                     target: target_id.clone(),
                                                     analysis,
-                                                    severity_override: Some(format!("{:?}", classification.threat_level)),
+                                                    severity_override: Some(format!("{}", classification.threat_level)),
                                                     is_false_positive: None,
                                                     confidence: Some(classification.confidence),
                                                 });

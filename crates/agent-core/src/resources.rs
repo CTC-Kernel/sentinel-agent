@@ -7,10 +7,10 @@
 //! the agent operates within strict limits (NFR-P1 to NFR-P5, NFR-P10).
 //!
 //! Limits enforced:
-//! - CPU: < 0.5% idle, < 5% during checks
-//! - Memory: < 100 MB
-//! - Disk I/O: < 10 IOPS average
-//! - Startup: < 5 seconds
+//! - CPU: < 20% idle, < 35% during checks (egui+OpenGL overhead on macOS)
+//! - Memory: < 512 MB (egui+OpenGL context needs ~200MB + scan buffers)
+//! - Disk I/O: < 10 MB/s
+//! - Startup: < 15 seconds
 
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -41,7 +41,7 @@ impl Default for ResourceLimits {
             // egui render loop + OpenGL poll uses 5-12% CPU on macOS even when idle
             max_cpu_idle: 20.0, // 20% idle (increased from 15% for macOS headroom)
             max_cpu_active: 35.0, // 35% during active scans (increased for I/O heavy checks)
-            max_memory_bytes: 350 * 1024 * 1024, // 350 MB (egui+OpenGL context needs ~200MB)
+            max_memory_bytes: 512 * 1024 * 1024, // 512 MB (egui+OpenGL ~200MB + scan buffers ~150MB)
             max_disk_kbps: 10000, // 10 MB/s
             max_startup_ms: 15000, // 15 seconds
         }
@@ -2001,7 +2001,7 @@ mod tests {
         let limits = ResourceLimits::default();
         assert!((limits.max_cpu_idle - 20.0).abs() < f64::EPSILON);
         assert!((limits.max_cpu_active - 35.0).abs() < f64::EPSILON);
-        assert_eq!(limits.max_memory_bytes, 350 * 1024 * 1024);
+        assert_eq!(limits.max_memory_bytes, 512 * 1024 * 1024);
         assert_eq!(limits.max_disk_kbps, 10000);
         assert_eq!(limits.max_startup_ms, 15000);
     }

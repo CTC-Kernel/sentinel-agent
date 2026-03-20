@@ -112,7 +112,8 @@ pub struct StoredPlaybook {
     pub title: String,
     pub description: String,
     pub category: String,
-    pub steps: String, // JSON
+    pub steps: String,      // JSON of actions
+    pub conditions: String, // JSON of conditions
     pub status: String,
     pub created_at: String,
     pub updated_at: String,
@@ -135,8 +136,8 @@ impl<'a> PlaybookRepository<'a> {
                 conn.execute(
                     r#"
                 INSERT OR REPLACE INTO playbooks
-                (id, title, description, category, steps, status, created_at, updated_at, synced)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+                (id, title, description, category, steps, conditions, status, created_at, updated_at, synced)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
                 "#,
                     rusqlite::params![
                         entity.id,
@@ -144,6 +145,7 @@ impl<'a> PlaybookRepository<'a> {
                         entity.description,
                         entity.category,
                         entity.steps,
+                        entity.conditions,
                         entity.status,
                         entity.created_at,
                         entity.updated_at,
@@ -160,7 +162,7 @@ impl<'a> PlaybookRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let mut stmt = conn
-                    .prepare("SELECT * FROM playbooks")
+                    .prepare("SELECT id, name, description, trigger_type, severity, steps, enabled, created_at, updated_at, synced, conditions FROM playbooks")
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
                 let rows = stmt
                     .query_map([], |row| {
@@ -169,11 +171,12 @@ impl<'a> PlaybookRepository<'a> {
                             title: row.get(1)?,
                             description: row.get(2)?,
                             category: row.get(3)?,
-                            steps: row.get(4)?,
-                            status: row.get(5)?,
-                            created_at: row.get(6)?,
-                            updated_at: row.get(7)?,
-                            synced: row.get::<_, i32>(8)? != 0,
+                            steps: row.get(5)?,
+                            conditions: row.get::<_, String>(10).unwrap_or_else(|_| "[]".to_string()),
+                            status: if row.get::<_, i32>(6).unwrap_or(1) != 0 { "active".to_string() } else { "inactive".to_string() },
+                            created_at: row.get(7)?,
+                            updated_at: row.get(8)?,
+                            synced: row.get::<_, i32>(9)? != 0,
                         })
                     })
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?

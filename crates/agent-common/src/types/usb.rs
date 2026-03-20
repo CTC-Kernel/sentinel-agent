@@ -89,6 +89,8 @@ pub enum UsbEventType {
     Connected,
     /// A USB device was disconnected.
     Disconnected,
+    /// A USB device was blocked by policy.
+    Blocked,
 }
 
 /// A USB device change event.

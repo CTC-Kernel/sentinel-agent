@@ -287,6 +287,32 @@ pub enum AlertSeverity {
     Critical,
 }
 
+impl std::fmt::Display for AlertSeverity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Low => write!(f, "low"),
+            Self::Medium => write!(f, "medium"),
+            Self::High => write!(f, "high"),
+            Self::Critical => write!(f, "critical"),
+        }
+    }
+}
+
+impl std::fmt::Display for NetworkAlertType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::C2Communication => write!(f, "c2_communication"),
+            Self::CryptoMining => write!(f, "crypto_mining"),
+            Self::DataExfiltration => write!(f, "data_exfiltration"),
+            Self::SuspiciousPort => write!(f, "suspicious_port"),
+            Self::MaliciousDestination => write!(f, "malicious_destination"),
+            Self::DnsTunneling => write!(f, "dns_tunneling"),
+            Self::AnonymizationNetwork => write!(f, "anonymization_network"),
+            Self::ConnectionAnomaly => write!(f, "connection_anomaly"),
+        }
+    }
+}
+
 // ============================================================================
 // Delta Sync Types
 // ============================================================================

@@ -208,6 +208,7 @@ impl std::fmt::Display for FimChangeType {
 pub enum UsbEventType {
     Connected,
     Disconnected,
+    Blocked,
 }
 
 impl UsbEventType {
@@ -215,6 +216,7 @@ impl UsbEventType {
         match self {
             UsbEventType::Connected => "connected",
             UsbEventType::Disconnected => "disconnected",
+            UsbEventType::Blocked => "blocked",
         }
     }
 
@@ -222,6 +224,7 @@ impl UsbEventType {
         match self {
             UsbEventType::Connected => "Connecté",
             UsbEventType::Disconnected => "Déconnecté",
+            UsbEventType::Blocked => "Bloqué",
         }
     }
 }
@@ -1095,6 +1098,17 @@ pub enum RiskStatus {
     Closed,
 }
 
+impl std::fmt::Display for RiskStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Open => write!(f, "open"),
+            Self::Mitigating => write!(f, "mitigating"),
+            Self::Accepted => write!(f, "accepted"),
+            Self::Closed => write!(f, "closed"),
+        }
+    }
+}
+
 impl RiskStatus {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -1278,6 +1292,17 @@ pub enum AssetCriticality {
     Low,
 }
 
+impl std::fmt::Display for AssetCriticality {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Critical => write!(f, "critical"),
+            Self::High => write!(f, "high"),
+            Self::Medium => write!(f, "medium"),
+            Self::Low => write!(f, "low"),
+        }
+    }
+}
+
 impl AssetCriticality {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -1320,6 +1345,17 @@ pub enum AssetLifecycle {
     Qualified,
     Monitored,
     Decommissioned,
+}
+
+impl std::fmt::Display for AssetLifecycle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Discovered => write!(f, "discovered"),
+            Self::Qualified => write!(f, "qualified"),
+            Self::Monitored => write!(f, "monitored"),
+            Self::Decommissioned => write!(f, "decommissioned"),
+        }
+    }
 }
 
 impl AssetLifecycle {

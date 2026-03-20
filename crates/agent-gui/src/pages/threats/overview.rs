@@ -665,6 +665,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         let ev_color = match u.event_type {
                             UsbEventType::Connected => theme::WARNING,
                             UsbEventType::Disconnected => theme::INFO,
+                            UsbEventType::Blocked => theme::ERROR,
                         };
                         let actions = [
                             widgets::DetailAction::primary("Autoriser", icons::CHECK),

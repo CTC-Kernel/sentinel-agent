@@ -67,7 +67,7 @@ impl AgentRuntime {
                     "remediation": v.remediation,
                     "detected_at": v.detected_at.to_rfc3339(),
                     "source": v.source,
-                    "ai_confidence": v.ai_confidence,
+                    "ai_confidence": v.ai_confidence.map(|c| f64::from(c) / 100.0),
                     "is_false_positive": v.is_false_positive,
                     "ai_analysis": v.ai_analysis,
                 })

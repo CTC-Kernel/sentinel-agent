@@ -23,6 +23,18 @@ pub enum FimChangeType {
     Renamed,
 }
 
+impl std::fmt::Display for FimChangeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Created => write!(f, "created"),
+            Self::Modified => write!(f, "modified"),
+            Self::Deleted => write!(f, "deleted"),
+            Self::PermissionChanged => write!(f, "permission_changed"),
+            Self::Renamed => write!(f, "renamed"),
+        }
+    }
+}
+
 impl FimChangeType {
     /// Human-readable label for the change type.
     pub fn label(&self) -> &'static str {

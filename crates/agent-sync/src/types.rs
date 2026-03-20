@@ -1115,6 +1115,7 @@ impl From<agent_common::types::UsbEvent> for UsbEventPayload {
         let event_type = match event.event_type {
             UsbEventType::Connected => "connected",
             UsbEventType::Disconnected => "disconnected",
+            UsbEventType::Blocked => "blocked",
         }
         .to_string();
 

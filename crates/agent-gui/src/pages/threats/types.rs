@@ -137,6 +137,7 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
         let severity = match u.event_type {
             UsbEventType::Connected => "medium",
             UsbEventType::Disconnected => "low",
+            UsbEventType::Blocked => "high",
         };
         events.push(ThreatEvent {
             kind: "usb",

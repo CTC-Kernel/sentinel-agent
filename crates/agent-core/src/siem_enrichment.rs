@@ -35,7 +35,7 @@ pub async fn enrich_siem_event(
 
     let sec_event = agent_llm::SecurityEvent {
         id: event.event_id.clone(),
-        event_type: format!("{:?}", event.category),
+        event_type: format!("{}", event.category),
         description: event.description.clone(),
         system_info: event.source_host.clone(),
         historical_context: String::new(),
@@ -54,7 +54,7 @@ pub async fn enrich_siem_event(
             };
             fields.insert(
                 "ai_classification".to_string(),
-                serde_json::json!(format!("{:?}", classification.threat_type)),
+                serde_json::json!(format!("{}", classification.threat_type)),
             );
             fields.insert(
                 "ai_confidence".to_string(),
@@ -62,7 +62,7 @@ pub async fn enrich_siem_event(
             );
             fields.insert(
                 "threat_level".to_string(),
-                serde_json::json!(format!("{:?}", classification.threat_level)),
+                serde_json::json!(format!("{}", classification.threat_level)),
             );
             if !classification.tactics.is_empty() {
                 fields.insert(

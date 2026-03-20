@@ -105,8 +105,8 @@ impl AgentRuntime {
             .ok_or_else(|| CommonError::config("Agent not enrolled"))?;
 
         let payload = serde_json::json!({
-            "alert_type": format!("{:?}", alert.alert_type),
-            "severity": format!("{:?}", alert.severity),
+            "alert_type": format!("{}", alert.alert_type),
+            "severity": format!("{}", alert.severity),
             "title": alert.title,
             "description": alert.description,
             "connection": alert.connection,

@@ -201,7 +201,6 @@ impl Sidebar {
                             (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
                             (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
                             (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
-                            (Page::AuditTrail, icons::LIST, "Journal d'Audit"),
                             (Page::Software, icons::SOFTWARE, "Logiciels"),
                             (
                                 Page::Vulnerabilities,
@@ -214,7 +213,6 @@ impl Sidebar {
                                 "Int\u{00e9}grit\u{00e9} fichiers",
                             ),
                             (Page::Threats, icons::SKULL, "Menaces"),
-                            (Page::AI, icons::BRAIN, "Intelligence IA"),
                             (Page::Reports, icons::FILE_EXPORT, "Rapports"),
                             (Page::Risks, icons::SCALE_BALANCED, "Risques"),
                             (Page::Notifications, icons::BELL, "Notifications"),
