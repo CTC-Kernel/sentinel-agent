@@ -1205,6 +1205,34 @@ impl AppState {
                     processing_time_ms: None,
                 });
             }
+            AgentEvent::RisksLoaded { risks } => {
+                // Merge loaded risks into GUI state, deduplicating by ID
+                let existing_ids: std::collections::HashSet<uuid::Uuid> =
+                    self.risks.entries.iter().map(|r| r.id).collect();
+                for risk in risks {
+                    if !existing_ids.contains(&risk.id) {
+                        self.risks.entries.push(risk);
+                    }
+                }
+            }
+            AgentEvent::AdminPasswordSet { hash } => {
+                self.settings.admin_password_sha256 = hash;
+            }
+            AgentEvent::AssetsLoaded { assets } => {
+                // Merge loaded assets into GUI state, deduplicating by ID
+                let existing_ids: std::collections::HashSet<uuid::Uuid> =
+                    self.assets.assets.iter().map(|a| a.id).collect();
+                for asset in assets {
+                    if existing_ids.contains(&asset.id) {
+                        // Update existing asset
+                        if let Some(existing) = self.assets.assets.iter_mut().find(|a| a.id == asset.id) {
+                            *existing = asset;
+                        }
+                    } else {
+                        self.assets.assets.push(asset);
+                    }
+                }
+            }
         }
 
         // Single recompute at end of every event

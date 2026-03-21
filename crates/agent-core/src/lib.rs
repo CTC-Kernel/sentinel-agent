@@ -36,6 +36,7 @@ pub mod tracing_layer;
 pub mod update_manager;
 
 // Domain modules (impl AgentRuntime split)
+mod asset_sync;
 mod compliance;
 pub mod edr_actions;
 mod enrollment;
@@ -1113,11 +1114,9 @@ impl AgentRuntime {
                             }
                         }
 
-                        // Forward to SIEM
+                        // Forward to SIEM (always record for platform, optionally send to external)
                         let siem_guard = self.siem_forwarder.read().await;
-                        if let Some(siem) = siem_guard.as_ref()
-                            && siem.is_enabled()
-                        {
+                        if let Some(siem) = siem_guard.as_ref() {
                             let mut event = agent_siem::SiemEvent {
                                 timestamp: chrono::Utc::now(),
                                 severity: 5,
@@ -1151,8 +1150,14 @@ impl AgentRuntime {
                                 siem_enrichment::enrich_siem_event(&mut event).await;
                             }
 
-                            if let Err(e) = siem.send_event(&event).await {
-                                warn!("Failed to forward FIM event to SIEM: {}", e);
+                            // Always record for platform SIEM tab
+                            siem.record_event(event.clone()).await;
+
+                            // Optionally forward to external SIEM
+                            if siem.is_enabled() {
+                                if let Err(e) = siem.send_event(&event).await {
+                                    warn!("Failed to forward FIM event to external SIEM: {}", e);
+                                }
                             }
                         }
                     }
@@ -1290,6 +1295,10 @@ impl AgentRuntime {
                                 Err(e) => warn!("GRC sync queue drain failed: {}", e),
                             }
                         }
+
+                        // Push assets from SQLite to GUI after GRC sync
+                        #[cfg(feature = "gui")]
+                        self.sync_assets_to_gui().await;
 
                         // Sync SIEM data to the platform
                         if let Some(ref client) = self.authenticated_client {
@@ -1830,21 +1839,18 @@ impl AgentRuntime {
                                 siem_events.len()
                             );
 
-                            // Forward collected events to SIEM and record for platform
+                            // Record all events for platform sync, then optionally forward to external SIEM
                             let siem_guard = self.siem_forwarder.read().await;
                             if let Some(siem) = siem_guard.as_ref() {
                                 for event in &siem_events {
+                                    // Always record for platform (SIEM tab in SaaS)
+                                    siem.record_event(event.clone()).await;
+
+                                    // Additionally forward to external SIEM if configured
                                     if siem.is_enabled() {
-                                        // External SIEM enabled: send + record
                                         if let Err(e) = siem.send_event(event).await {
-                                            warn!("Failed to forward log event to SIEM: {}", e);
-                                            // Still record for platform even if SIEM send fails
-                                            siem.record_event(event.clone()).await;
-                                            break;
+                                            warn!("Failed to forward log event to external SIEM: {}", e);
                                         }
-                                    } else {
-                                        // No external SIEM: just record for platform tab
-                                        siem.record_event(event.clone()).await;
                                     }
                                 }
                             }
@@ -1860,17 +1866,18 @@ impl AgentRuntime {
                                         alerts.len()
                                     );
 
-                                    // Forward correlation alerts to SIEM
+                                    // Forward correlation alerts to SIEM (record for platform + optional external)
                                     let siem_guard = self.siem_forwarder.read().await;
-                                    if let Some(siem) = siem_guard.as_ref()
-                                        && siem.is_enabled()
-                                    {
+                                    if let Some(siem) = siem_guard.as_ref() {
                                         let host = hostname::get()
                                             .map(|h| h.to_string_lossy().to_string())
                                             .unwrap_or_default();
                                         for alert in &alerts {
                                             let event = engine.alert_to_event(alert, &host);
-                                            let _ = siem.send_event(&event).await;
+                                            siem.record_event(event.clone()).await;
+                                            if siem.is_enabled() {
+                                                let _ = siem.send_event(&event).await;
+                                            }
                                         }
                                     }
                                     drop(siem_guard);
@@ -2030,11 +2037,9 @@ impl AgentRuntime {
                     }
                 }
 
-                // Forward security incidents and network alerts to SIEM with AI enrichment
+                // Forward security incidents and network alerts to SIEM (record for platform + optional external)
                 let siem_guard = self.siem_forwarder.read().await;
-                if let Some(siem) = siem_guard.as_ref()
-                    && siem.is_enabled()
-                {
+                if let Some(siem) = siem_guard.as_ref() {
                     let host = hostname::get()
                         .map(|h| h.to_string_lossy().to_string())
                         .unwrap_or_default();
@@ -2083,8 +2088,11 @@ impl AgentRuntime {
                         {
                             siem_enrichment::enrich_siem_event(&mut event).await;
                         }
-                        if let Err(e) = siem.send_event(&event).await {
-                            warn!("Failed to forward security incident to SIEM: {}", e);
+                        siem.record_event(event.clone()).await;
+                        if siem.is_enabled() {
+                            if let Err(e) = siem.send_event(&event).await {
+                                warn!("Failed to forward security incident to external SIEM: {}", e);
+                            }
                         }
                     }
 
@@ -2137,8 +2145,11 @@ impl AgentRuntime {
                         {
                             siem_enrichment::enrich_siem_event(&mut event).await;
                         }
-                        if let Err(e) = siem.send_event(&event).await {
-                            warn!("Failed to forward network alert to SIEM: {}", e);
+                        siem.record_event(event.clone()).await;
+                        if siem.is_enabled() {
+                            if let Err(e) = siem.send_event(&event).await {
+                                warn!("Failed to forward network alert to external SIEM: {}", e);
+                            }
                         }
                     }
 

@@ -17,6 +17,11 @@ use crate::widgets;
 /// Verify an admin password attempt against a stored SHA-256 hash.
 /// Uses constant-time comparison to prevent timing side-channel attacks.
 fn verify_admin_password(attempt: &str, expected_hash: &str) -> bool {
+    // If no admin password has been configured yet, accept "admin" as default
+    // to allow initial access. The user should change it in settings.
+    if expected_hash.is_empty() {
+        return attempt == "admin";
+    }
     let mut hasher = Sha256::new();
     hasher.update(attempt.as_bytes());
     let computed = format!("{:x}", hasher.finalize());

@@ -1014,6 +1014,14 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Some(EnrollmentCommand::SubmitEnrollment { token, admin_password }) => {
                             info!("GUI enrollment: received token");
                             config.enrollment_token = Some(token);
+
+                            // Hash admin password for GUI unlock before zeroizing
+                            if let Some(ref pw) = admin_password {
+                                use sha2::{Digest, Sha256};
+                                let hash = format!("{:x}", Sha256::digest(pw.as_bytes()));
+                                let _ = bg_event_tx.send(AgentEvent::AdminPasswordSet { hash });
+                            }
+
                             config.admin_password = admin_password.clone();
 
                             // Open DB and attempt enrollment
@@ -1917,6 +1925,24 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::UpdateAssetLifecycle { asset_id, lifecycle }) => {
                             info!("[AUDIT] GUI updated asset lifecycle {}: {:?}", asset_id, lifecycle);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let aid = asset_id.clone();
+                                let status = format!("{}", lifecycle);
+                                tokio::spawn(async move {
+                                    let repo = agent_storage::repositories::grc::ManagedAssetRepository::new(&db_clone);
+                                    if let Ok(mut all) = repo.get_all().await {
+                                        if let Some(asset) = all.iter_mut().find(|a| a.id == aid) {
+                                            asset.status = status;
+                                            asset.updated_at = chrono::Utc::now().to_rfc3339();
+                                            asset.synced = false;
+                                            if let Err(e) = repo.upsert(asset).await {
+                                                tracing::warn!("Failed to update asset lifecycle: {}", e);
+                                            }
+                                        }
+                                    }
+                                });
+                            }
                         }
                         Ok(GuiCommand::SaveAlertRule { rule }) => {
                             info!("[AUDIT] GUI saved alert rule: {}", rule.name);

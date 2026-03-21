@@ -278,6 +278,21 @@ pub enum AgentEvent {
         /// Suggested mitigation strategies.
         mitigation_suggestions: Vec<String>,
     },
+    /// Risks loaded or auto-generated from the backend.
+    RisksLoaded {
+        /// Risk entries to merge into GUI state.
+        risks: Vec<crate::dto::RiskEntry>,
+    },
+    /// Admin password hash set during enrollment.
+    AdminPasswordSet {
+        /// SHA-256 hash of the admin password.
+        hash: String,
+    },
+    /// Assets loaded from SQLite or platform sync.
+    AssetsLoaded {
+        /// Managed assets to merge into GUI state.
+        assets: Vec<crate::dto::ManagedAsset>,
+    },
 }
 
 /// Commands sent from the GUI to the agent runtime.
