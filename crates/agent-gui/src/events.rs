@@ -293,6 +293,16 @@ pub enum AgentEvent {
         /// Managed assets to merge into GUI state.
         assets: Vec<crate::dto::ManagedAsset>,
     },
+    /// Playbooks loaded from SQLite.
+    PlaybooksLoaded {
+        /// Playbook entries to merge into GUI state.
+        playbooks: Vec<crate::dto::Playbook>,
+    },
+    /// Detection rules loaded from SQLite.
+    DetectionRulesLoaded {
+        /// Detection rule entries to merge into GUI state.
+        rules: Vec<crate::dto::DetectionRule>,
+    },
 }
 
 /// Commands sent from the GUI to the agent runtime.

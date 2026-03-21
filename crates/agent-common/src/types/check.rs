@@ -97,6 +97,39 @@ pub enum CheckCategory {
     CloudSecurity,
 }
 
+impl std::fmt::Display for CheckCategory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Encryption => write!(f, "encryption"),
+            Self::Antivirus => write!(f, "antivirus"),
+            Self::Firewall => write!(f, "firewall"),
+            Self::Authentication => write!(f, "authentication"),
+            Self::SessionLock => write!(f, "session_lock"),
+            Self::Updates => write!(f, "updates"),
+            Self::Protocols => write!(f, "protocols"),
+            Self::Backup => write!(f, "backup"),
+            Self::Accounts => write!(f, "accounts"),
+            Self::Mfa => write!(f, "mfa"),
+            Self::RemoteAccess => write!(f, "remote_access"),
+            Self::AuditLogging => write!(f, "audit_logging"),
+            Self::DeviceControl => write!(f, "device_control"),
+            Self::KernelSecurity => write!(f, "kernel_security"),
+            Self::NetworkHardening => write!(f, "network_hardening"),
+            Self::TimeSync => write!(f, "time_sync"),
+            Self::BrowserSecurity => write!(f, "browser_security"),
+            Self::DirectoryPolicy => write!(f, "directory_policy"),
+            Self::PrivilegedAccess => write!(f, "privileged_access"),
+            Self::General => write!(f, "general"),
+            Self::NetworkSecurity => write!(f, "network_security"),
+            Self::AccessControl => write!(f, "access_control"),
+            Self::ContainerSecurity => write!(f, "container_security"),
+            Self::CertificateManagement => write!(f, "certificate_management"),
+            Self::DataProtection => write!(f, "data_protection"),
+            Self::CloudSecurity => write!(f, "cloud_security"),
+        }
+    }
+}
+
 /// Definition of a compliance check.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]

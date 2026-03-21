@@ -195,7 +195,7 @@ impl AgentRuntime {
                 let def = check.definition();
                 (
                     def.name.clone(),
-                    format!("{:?}", def.category).to_lowercase(),
+                    format!("{}", def.category),
                     self.check_severity_to_gui(&def.severity),
                     def.frameworks.clone(),
                 )

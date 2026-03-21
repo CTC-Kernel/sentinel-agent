@@ -88,5 +88,25 @@ impl AgentRuntime {
                 assets: gui_assets,
             });
         }
+
+        // Also load playbooks from SQLite
+        let pb_repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
+        if let Ok(stored_pbs) = pb_repo.get_all().await {
+            let playbooks = crate::threat_pipeline::stored_playbooks_to_dto(&stored_pbs);
+            if !playbooks.is_empty() {
+                info!("Loaded {} playbook(s) from SQLite into GUI", playbooks.len());
+                self.emit_gui_event(agent_gui::events::AgentEvent::PlaybooksLoaded { playbooks });
+            }
+        }
+
+        // Also load detection rules from SQLite
+        let rule_repo = agent_storage::repositories::grc::DetectionRuleRepository::new(db);
+        if let Ok(stored_rules) = rule_repo.get_all().await {
+            let rules = crate::threat_pipeline::stored_rules_to_dto(&stored_rules);
+            if !rules.is_empty() {
+                info!("Loaded {} detection rule(s) from SQLite into GUI", rules.len());
+                self.emit_gui_event(agent_gui::events::AgentEvent::DetectionRulesLoaded { rules });
+            }
+        }
     }
 }

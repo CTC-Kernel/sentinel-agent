@@ -1240,9 +1240,37 @@ pub struct DiscoveredAssetPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hostname: Option<String>,
 
+    /// MAC address.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mac_address: Option<String>,
+
+    /// Hardware vendor (from OUI lookup).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vendor: Option<String>,
+
     /// Device type classification.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub device_type: Option<String>,
+
+    /// Open TCP ports found during scan.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub open_ports: Vec<u16>,
+
+    /// Whether this device is a network gateway.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_gateway: Option<bool>,
+
+    /// Subnet (e.g., "192.168.1.0/24").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subnet: Option<String>,
+
+    /// First seen timestamp.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub first_seen: Option<DateTime<Utc>>,
+
+    /// Last seen timestamp.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_seen: Option<DateTime<Utc>>,
 
     /// Discovery source.
     #[serde(skip_serializing_if = "Option::is_none")]

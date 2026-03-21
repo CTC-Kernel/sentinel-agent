@@ -76,7 +76,7 @@ impl AgentRuntime {
 
         let payload = serde_json::json!({
             "vulnerabilities": vulnerabilities,
-            "scan_type": format!("{:?}", scan_result.scan_type).to_lowercase(),
+            "scan_type": format!("{}", scan_result.scan_type),
         });
 
         let url = format!("/v1/agents/{}/vulnerabilities", agent_id);

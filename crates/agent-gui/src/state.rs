@@ -17,7 +17,11 @@ use std::collections::VecDeque;
 /// GUI preferences that are persisted across restarts via eframe storage.
 ///
 /// Only contains settings the user explicitly configures -- not runtime state.
+/// All fields have `#[serde(default)]` for backward compatibility when new
+/// fields are added — otherwise deserialization of old stored JSON silently
+/// fails and resets everything to defaults.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct GuiPreferences {
     pub dark_mode: bool,
     pub check_interval_secs: u64,
@@ -31,6 +35,7 @@ pub struct GuiPreferences {
     pub log_collector_poll_secs: u64,
     pub discovery_enabled: bool,
     pub architecture_url: String,
+    pub admin_password_sha256: String,
 }
 
 impl Default for GuiPreferences {
@@ -48,6 +53,7 @@ impl Default for GuiPreferences {
             log_collector_poll_secs: 60,
             discovery_enabled: false,
             architecture_url: String::new(),
+            admin_password_sha256: String::new(),
         }
     }
 }
@@ -68,6 +74,7 @@ impl GuiPreferences {
             log_collector_poll_secs: state.settings.log_collector_poll_secs,
             discovery_enabled: state.discovery.enabled,
             architecture_url: state.settings.architecture_url.clone(),
+            admin_password_sha256: state.settings.admin_password_sha256.clone(),
         }
     }
 
@@ -85,6 +92,9 @@ impl GuiPreferences {
         state.settings.log_collector_poll_secs = self.log_collector_poll_secs;
         state.discovery.enabled = self.discovery_enabled;
         state.settings.architecture_url.clone_from(&self.architecture_url);
+        if !self.admin_password_sha256.is_empty() {
+            state.settings.admin_password_sha256.clone_from(&self.admin_password_sha256);
+        }
     }
 }
 
@@ -1224,12 +1234,37 @@ impl AppState {
                     self.assets.assets.iter().map(|a| a.id).collect();
                 for asset in assets {
                     if existing_ids.contains(&asset.id) {
-                        // Update existing asset
                         if let Some(existing) = self.assets.assets.iter_mut().find(|a| a.id == asset.id) {
                             *existing = asset;
                         }
                     } else {
                         self.assets.assets.push(asset);
+                    }
+                }
+            }
+            AgentEvent::PlaybooksLoaded { playbooks } => {
+                let existing_ids: std::collections::HashSet<uuid::Uuid> =
+                    self.threats.playbooks.iter().map(|p| p.id).collect();
+                for pb in playbooks {
+                    if existing_ids.contains(&pb.id) {
+                        if let Some(existing) = self.threats.playbooks.iter_mut().find(|p| p.id == pb.id) {
+                            *existing = pb;
+                        }
+                    } else {
+                        self.threats.playbooks.push(pb);
+                    }
+                }
+            }
+            AgentEvent::DetectionRulesLoaded { rules } => {
+                let existing_ids: std::collections::HashSet<uuid::Uuid> =
+                    self.threats.detection_rules.iter().map(|r| r.id).collect();
+                for rule in rules {
+                    if existing_ids.contains(&rule.id) {
+                        if let Some(existing) = self.threats.detection_rules.iter_mut().find(|r| r.id == rule.id) {
+                            *existing = rule;
+                        }
+                    } else {
+                        self.threats.detection_rules.push(rule);
                     }
                 }
             }

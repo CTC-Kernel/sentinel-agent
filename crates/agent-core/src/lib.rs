@@ -2620,7 +2620,14 @@ impl AgentRuntime {
                                         let payload = agent_sync::DiscoveredAssetPayload {
                                             ip: d.ip.clone(),
                                             hostname: d.hostname.clone(),
-                                            device_type: Some(d.device_type.clone()),
+                                            mac_address: d.mac.clone(),
+                                            vendor: d.vendor.clone(),
+                                            device_type: Some(format!("{}", d.device_type)),
+                                            open_ports: d.open_ports.clone(),
+                                            is_gateway: Some(d.is_gateway),
+                                            subnet: Some(d.subnet.clone()),
+                                            first_seen: Some(d.first_seen),
+                                            last_seen: Some(d.last_seen),
                                             source: Some("network_discovery".to_string()),
                                         };
                                         match client.report_discovered_asset(payload).await {

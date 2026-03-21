@@ -693,7 +693,7 @@ mod tests {
     #[test]
     fn test_log_collector_config_default() {
         let config = LogCollectorConfig::default();
-        assert!(!config.enabled);
+        assert!(config.enabled);
         assert!(config.sources.contains(&LogSource::System));
         assert!(config.sources.contains(&LogSource::Auth));
         assert_eq!(config.poll_interval_secs, 60);

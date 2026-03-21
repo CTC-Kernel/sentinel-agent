@@ -200,28 +200,25 @@ impl SentinelApp {
         prefs.apply_to(&mut self.state);
         self.last_dark_mode = self.state.settings.dark_mode;
 
-        // Re-send commands to agent-core so runtime matches restored prefs
+        // Re-send ALL commands to agent-core so runtime matches restored prefs.
+        // Send unconditionally (even when disabled) to ensure runtime state is consistent.
         self.send_command(GuiCommand::UpdateCheckInterval {
             interval_secs: self.state.settings.check_interval_secs,
         });
         self.send_command(GuiCommand::SetLogLevel {
             level: self.state.settings.log_level.index() as u8,
         });
-        if self.state.settings.siem_enabled {
-            self.send_command(GuiCommand::UpdateSiemConfig {
-                enabled: self.state.settings.siem_enabled,
-                format: self.state.settings.siem_format.clone(),
-                transport: self.state.settings.siem_transport.clone(),
-                destination: self.state.settings.siem_destination.clone(),
-            });
-        }
-        if self.state.settings.log_collector_enabled {
-            self.send_command(GuiCommand::UpdateLogCollectorConfig {
-                enabled: self.state.settings.log_collector_enabled,
-                sources: self.state.settings.log_collector_sources.clone(),
-                poll_interval_secs: self.state.settings.log_collector_poll_secs,
-            });
-        }
+        self.send_command(GuiCommand::UpdateSiemConfig {
+            enabled: self.state.settings.siem_enabled,
+            format: self.state.settings.siem_format.clone(),
+            transport: self.state.settings.siem_transport.clone(),
+            destination: self.state.settings.siem_destination.clone(),
+        });
+        self.send_command(GuiCommand::UpdateLogCollectorConfig {
+            enabled: self.state.settings.log_collector_enabled,
+            sources: self.state.settings.log_collector_sources.clone(),
+            poll_interval_secs: self.state.settings.log_collector_poll_secs,
+        });
     }
 
     /// Configure the eframe `NativeOptions`.

@@ -145,7 +145,7 @@ impl AgentRuntime {
                         let def = c.definition();
                         (
                             def.severity,
-                            format!("{:?}", def.category).to_lowercase(),
+                            format!("{}", def.category),
                             def.frameworks.clone(),
                         )
                     }
@@ -302,7 +302,7 @@ impl AgentRuntime {
                 StorageCheckRule::new(
                     &def.id,
                     &def.name,
-                    format!("{:?}", def.category).to_lowercase(),
+                    format!("{}", def.category),
                     severity,
                     &def.id,
                     "builtin-1.0",
