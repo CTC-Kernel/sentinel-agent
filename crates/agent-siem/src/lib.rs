@@ -351,11 +351,18 @@ impl SiemForwarder {
         })
     }
 
-    /// Send a single event.
+    /// Send a single event to the external SIEM transport.
     pub async fn send_event(&self, event: &SiemEvent) -> SiemResult<()> {
         if !self.config.enabled {
             debug!("SIEM forwarding disabled, skipping event");
             return Ok(());
+        }
+
+        // Skip if destination is the unconfigured default (localhost:514)
+        if let SiemTransport::Syslog { ref host, port, .. } = self.config.transport {
+            if host == "localhost" && port == 514 {
+                return Ok(());
+            }
         }
 
         // Check severity filter
