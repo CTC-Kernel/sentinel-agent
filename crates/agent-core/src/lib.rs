@@ -926,9 +926,19 @@ impl AgentRuntime {
             *fim_guard = Some(engine);
         }
 
-        // Initialize SIEM forwarder with default config (disabled)
+        // Initialize SIEM forwarder with platform endpoint as default destination
         {
-            let config = agent_siem::SiemConfig::default();
+            let platform_siem_url = format!("{}/v1/agents/{}/siem",
+                self.config.server_url,
+                self.config.agent_id.as_deref().unwrap_or("unknown"),
+            );
+            let mut config = agent_siem::SiemConfig::default();
+            config.transport = agent_siem::SiemTransport::Http {
+                url: platform_siem_url,
+                auth_token: None,
+                auth_header: None,
+                verify_tls: true,
+            };
 
             // Extract GUI-relevant fields before config is moved
             #[cfg(feature = "gui")]
@@ -1183,14 +1193,20 @@ impl AgentRuntime {
             }
 
             // 1b. Sync GUI SIEM config changes to the actual forwarder
+            // Only enable external SIEM transport if a real destination is configured.
             #[cfg(feature = "gui")]
             {
                 let gui_enabled = self.state.siem_enabled.load(Ordering::Acquire);
+                let has_destination = self.state.siem_destination.lock()
+                    .map(|d| !d.is_empty())
+                    .unwrap_or(false);
+                // Don't activate external transport without a configured destination
+                let effective_enabled = gui_enabled && has_destination;
                 let mut siem_guard = self.siem_forwarder.write().await;
                 if let Some(ref mut siem) = *siem_guard {
-                    if siem.is_enabled() != gui_enabled {
+                    if siem.is_enabled() != effective_enabled {
                         let mut new_config = siem.config().clone();
-                        new_config.enabled = gui_enabled;
+                        new_config.enabled = effective_enabled;
                         if let Ok(fmt) = self.state.siem_format.lock() {
                             new_config.format = match fmt.as_str() {
                                 "CEF" => agent_siem::SiemFormat::Cef,
@@ -1198,8 +1214,8 @@ impl AgentRuntime {
                                 _ => agent_siem::SiemFormat::Json,
                             };
                         }
-                        if let Ok(dest) = self.state.siem_destination.lock() {
-                            if !dest.is_empty() {
+                        if has_destination {
+                            if let Ok(dest) = self.state.siem_destination.lock() {
                                 if let Ok(tr) = self.state.siem_transport.lock() {
                                     match tr.as_str() {
                                         "HTTP" => {
@@ -1227,8 +1243,8 @@ impl AgentRuntime {
                         }
                         if let Err(e) = siem.update_config(new_config) {
                             warn!("Failed to apply GUI SIEM config: {}", e);
-                        } else {
-                            info!("SIEM forwarder config synced from GUI (enabled={})", gui_enabled);
+                        } else if effective_enabled {
+                            info!("SIEM forwarder config synced from GUI (enabled=true)");
                         }
                     }
                 }
