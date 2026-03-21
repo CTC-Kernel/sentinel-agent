@@ -108,5 +108,126 @@ impl AgentRuntime {
                 self.emit_gui_event(agent_gui::events::AgentEvent::DetectionRulesLoaded { rules });
             }
         }
+
+        // Re-enqueue unsynced entities to ensure they reach the platform.
+        // This covers data created before sync was properly wired.
+        self.requeue_unsynced_entities(db).await;
+    }
+
+    #[cfg(feature = "gui")]
+    async fn requeue_unsynced_entities(&self, db: &agent_storage::Database) {
+        use tracing::{debug, info};
+
+        let sync_repo = agent_storage::SyncQueueRepository::new(db);
+
+        // Re-enqueue unsynced playbooks
+        let pb_repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
+        if let Ok(pbs) = pb_repo.get_all().await {
+            let mut count = 0u32;
+            for pb in pbs.iter().filter(|p| !p.synced) {
+                let payload = crate::sync_converters::playbook_to_payload(
+                    &crate::threat_pipeline::stored_playbook_to_single_dto(pb),
+                );
+                if let Ok(json) = serde_json::to_string(&payload) {
+                    let entry = agent_storage::SyncQueueEntry::new(
+                        agent_storage::SyncEntityType::Playbook,
+                        pb.id.clone(),
+                        json,
+                    );
+                    let _ = sync_repo.enqueue(&entry).await;
+                    count += 1;
+                }
+            }
+            if count > 0 {
+                info!("Re-enqueued {} unsynced playbook(s) for platform upload", count);
+            }
+        }
+
+        // Re-enqueue unsynced detection rules
+        let rule_repo = agent_storage::repositories::grc::DetectionRuleRepository::new(db);
+        if let Ok(rules) = rule_repo.get_all().await {
+            let mut count = 0u32;
+            for rule in rules.iter().filter(|r| !r.synced) {
+                let payload = crate::sync_converters::detection_rule_to_payload(
+                    &crate::threat_pipeline::stored_rule_to_single_dto(rule),
+                );
+                if let Ok(json) = serde_json::to_string(&payload) {
+                    let entry = agent_storage::SyncQueueEntry::new(
+                        agent_storage::SyncEntityType::DetectionRule,
+                        rule.id.clone(),
+                        json,
+                    );
+                    let _ = sync_repo.enqueue(&entry).await;
+                    count += 1;
+                }
+            }
+            if count > 0 {
+                info!("Re-enqueued {} unsynced detection rule(s) for platform upload", count);
+            }
+        }
+
+        // Re-enqueue unsynced assets
+        let asset_repo = agent_storage::repositories::grc::ManagedAssetRepository::new(db);
+        if let Ok(assets) = asset_repo.get_all().await {
+            let mut count = 0u32;
+            for asset in assets.iter().filter(|a| !a.synced) {
+                let gui_asset = self.stored_asset_to_dto(asset);
+                let payload = crate::sync_converters::asset_to_payload(&gui_asset);
+                if let Ok(json) = serde_json::to_string(&payload) {
+                    let entry = agent_storage::SyncQueueEntry::new(
+                        agent_storage::SyncEntityType::Asset,
+                        asset.id.clone(),
+                        json,
+                    );
+                    let _ = sync_repo.enqueue(&entry).await;
+                    count += 1;
+                }
+            }
+            if count > 0 {
+                info!("Re-enqueued {} unsynced asset(s) for platform upload", count);
+            }
+        }
+
+        debug!("Unsynced entity re-enqueue complete");
+    }
+
+    #[cfg(feature = "gui")]
+    fn stored_asset_to_dto(&self, s: &agent_storage::repositories::grc::StoredManagedAsset) -> agent_gui::dto::ManagedAsset {
+        let id = uuid::Uuid::parse_str(&s.id).unwrap_or_else(|_| uuid::Uuid::new_v4());
+        let first_seen = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+            .map(|dt| dt.with_timezone(&chrono::Utc))
+            .unwrap_or_else(|_| chrono::Utc::now());
+        let last_seen = chrono::DateTime::parse_from_rfc3339(&s.updated_at)
+            .map(|dt| dt.with_timezone(&chrono::Utc))
+            .unwrap_or_else(|_| chrono::Utc::now());
+        let criticality = match s.criticality.as_str() {
+            "critical" | "Critical" => agent_gui::dto::AssetCriticality::Critical,
+            "high" | "High" => agent_gui::dto::AssetCriticality::High,
+            "low" | "Low" => agent_gui::dto::AssetCriticality::Low,
+            _ => agent_gui::dto::AssetCriticality::Medium,
+        };
+        let lifecycle = match s.status.as_str() {
+            "qualified" | "Qualified" => agent_gui::dto::AssetLifecycle::Qualified,
+            "monitored" | "Monitored" => agent_gui::dto::AssetLifecycle::Monitored,
+            "decommissioned" | "Decommissioned" => agent_gui::dto::AssetLifecycle::Decommissioned,
+            _ => agent_gui::dto::AssetLifecycle::Discovered,
+        };
+        agent_gui::dto::ManagedAsset {
+            id,
+            ip: s.location.clone(),
+            hostname: if s.name == s.location { None } else { Some(s.name.clone()) },
+            mac: None,
+            vendor: None,
+            device_type: s.asset_type.clone(),
+            criticality,
+            lifecycle,
+            tags: Vec::new(),
+            risk_score: 0.0,
+            vulnerability_count: 0,
+            open_ports: Vec::new(),
+            software: Vec::new(),
+            first_seen,
+            last_seen,
+        }
     }
 }

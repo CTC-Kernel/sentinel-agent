@@ -926,19 +926,11 @@ impl AgentRuntime {
             *fim_guard = Some(engine);
         }
 
-        // Initialize SIEM forwarder with platform endpoint as default destination
+        // Initialize SIEM forwarder (disabled by default).
+        // Events always reach the platform via record_event() + heartbeat sync.
+        // The external transport (syslog/HTTP) is only for third-party SIEM (Splunk, QRadar, etc.)
         {
-            let platform_siem_url = format!("{}/v1/agents/{}/siem",
-                self.config.server_url,
-                self.config.agent_id.as_deref().unwrap_or("unknown"),
-            );
-            let mut config = agent_siem::SiemConfig::default();
-            config.transport = agent_siem::SiemTransport::Http {
-                url: platform_siem_url,
-                auth_token: None,
-                auth_header: None,
-                verify_tls: true,
-            };
+            let config = agent_siem::SiemConfig::default();
 
             // Extract GUI-relevant fields before config is moved
             #[cfg(feature = "gui")]

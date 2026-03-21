@@ -182,7 +182,7 @@ impl std::fmt::Display for SiemTransport {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Syslog { host, port, .. } => write!(f, "syslog://{}:{}", host, port),
-            Self::Http { url, .. } => write!(f, "http://{}", url),
+            Self::Http { url, .. } => write!(f, "{}", url),
         }
     }
 }
