@@ -93,16 +93,150 @@ impl Default for LogCollectorConfig {
             lookback_secs: 300,
             poll_interval_secs: 60,
             severity_filter: vec![
-                "error".to_string(),
-                "warning".to_string(),
+                // Authentication & access
+                "authentication".to_string(),
+                "login".to_string(),
+                "logon".to_string(),
+                "logoff".to_string(),
+                "sudo".to_string(),
+                "su:".to_string(),
+                "passwd".to_string(),
+                "credential".to_string(),
+                "denied".to_string(),
+                "unauthorized".to_string(),
+                "forbidden".to_string(),
+                "permission".to_string(),
+                "privilege".to_string(),
+                "escalation".to_string(),
+                // Threats & attacks
+                "fail".to_string(),
+                "failed".to_string(),
+                "invalid".to_string(),
+                "violation".to_string(),
+                "blocked".to_string(),
+                "reject".to_string(),
+                "attack".to_string(),
+                "exploit".to_string(),
+                "malware".to_string(),
+                "suspicious".to_string(),
+                "intrusion".to_string(),
+                "brute".to_string(),
+                "overflow".to_string(),
+                "injection".to_string(),
+                // Firewall & network
+                "firewall".to_string(),
+                "iptables".to_string(),
+                "drop".to_string(),
+                "stealth".to_string(),
+                // System integrity
                 "critical".to_string(),
                 "alert".to_string(),
-                "fail".to_string(),
-                "denied".to_string(),
+                "panic".to_string(),
+                "segfault".to_string(),
+                "killed".to_string(),
+                "oom".to_string(),
+                "tamper".to_string(),
+                "integrity".to_string(),
+                // Services
+                "sshd".to_string(),
+                "ftpd".to_string(),
+                "audit".to_string(),
             ],
         }
     }
 }
+
+/// Processes that generate noise unrelated to security.
+/// Their log entries are dropped before severity filtering.
+const IGNORED_PROCESSES: &[&str] = &[
+    "imagent",
+    "sharingd",
+    "contactsd",
+    "IMDPersistenceAgent",
+    "callservicesd",
+    "Photos",
+    "photolibraryd",
+    "photoanalysisd",
+    "mediaanalysisd",
+    "mediaaccessibilityd",
+    "rapportd",
+    "AMPDevicesAgent",
+    "AMPLibraryAgent",
+    "amsaccountsd",
+    "amsengagementd",
+    "suggestd",
+    "parsecd",
+    "knowledge-agent",
+    "intelligenceplatformd",
+    "coreduetd",
+    "bilomd",
+    "bird",               // iCloud daemon
+    "cloudd",
+    "nsurlsessiond",
+    "mDNSResponder",
+    "apsd",               // Apple Push Service
+    "remindd",
+    "CalendarAgent",
+    "AddressBookSourceSync",
+    "weatherd",
+    "ScreenTimeAgent",
+    "UsageTrackingAgent",
+    "studentd",
+    "translationd",
+    "tipsd",
+    "Spotlight",
+    "mdworker",
+    "mdworker_shared",
+    "mds_stores",
+    "com.apple.geod",
+    "geod",
+    "locationd",          // location services (not security)
+    "itunescloudd",
+    "commerce",
+    "storedownloadd",
+    "appstoreagent",
+    "nbagent",
+    "gamecontrollerd",
+    "accessoryupdaterd",
+    "WiFiAgent",          // Wi-Fi status (not security events)
+    "WirelessRadioManagerd",
+    "bluetoothd",
+    "timed",
+    "com.apple.preferences",
+    "NowPlayingTouchUI",
+    "ControlCenter",
+    "Dock",
+    "Finder",
+    "WindowManager",
+    "SystemUIServer",
+    "NotificationCenter",
+    "TCC",                // Transparency Consent (noisy, not actionable)
+];
+
+/// Subsystem prefixes whose log entries are not security-relevant.
+const IGNORED_SUBSYSTEMS: &[&str] = &[
+    "com.apple.contacts",
+    "com.apple.photos",
+    "com.apple.mediaplayer",
+    "com.apple.coredata",
+    "com.apple.spotlight",
+    "com.apple.xpc",
+    "com.apple.CloudKit",
+    "com.apple.icloud",
+    "com.apple.amp",
+    "com.apple.suggestions",
+    "com.apple.commerce",
+    "com.apple.remindd",
+    "com.apple.weather",
+    "com.apple.screentime",
+    "com.apple.translation",
+    "com.apple.gamecontroller",
+    "com.apple.locationd",
+    "com.apple.geod",
+    "com.apple.bluetooth",
+    "com.apple.wifi",
+    "com.apple.sharing",
+];
 
 /// System log collector.
 pub struct LogCollector {
@@ -175,12 +309,36 @@ impl LogCollector {
             }
         }
 
-        // Convert to SIEM events
+        // Convert to SIEM events (drop noise first, then apply severity filter)
         raw_entries
             .into_iter()
+            .filter(|e| !self.is_noise(e))
             .filter(|e| self.matches_severity_filter(e))
             .map(|e| self.to_siem_event(e))
             .collect()
+    }
+
+    /// Check if a log entry is from a non-security process or subsystem.
+    /// Returns `true` if the entry should be **dropped** (not security-relevant).
+    fn is_noise(&self, entry: &RawLogEntry) -> bool {
+        // Check process name against ignore list
+        if let Some(ref proc) = entry.process {
+            let proc_lower = proc.to_lowercase();
+            if IGNORED_PROCESSES
+                .iter()
+                .any(|p| proc_lower == p.to_lowercase())
+            {
+                return true;
+            }
+        }
+
+        // Check message for ignored subsystem prefixes (macOS unified log format)
+        let msg = &entry.message;
+        if IGNORED_SUBSYSTEMS.iter().any(|sub| msg.contains(sub)) {
+            return true;
+        }
+
+        false
     }
 
     /// Check if a log entry matches the severity filter.

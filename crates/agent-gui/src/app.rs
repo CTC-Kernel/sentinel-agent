@@ -224,6 +224,7 @@ impl SentinelApp {
     /// Configure the eframe `NativeOptions`.
     pub fn native_options() -> eframe::NativeOptions {
         eframe::NativeOptions {
+            persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel Agent")
                 .with_inner_size([theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT])
@@ -236,6 +237,7 @@ impl SentinelApp {
     /// Configure compact options for tray menu popup.
     pub fn tray_popup_options() -> eframe::NativeOptions {
         eframe::NativeOptions {
+            persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel - Vue Rapide")
                 .with_inner_size([theme::SPLASH_CONTENT_WIDTH, theme::TRAY_POPUP_MAX_HEIGHT])
@@ -246,6 +248,16 @@ impl SentinelApp {
                 .with_transparent(true),
             ..Default::default()
         }
+    }
+
+    /// Directory where eframe persists GUI preferences (dark mode, SIEM, etc.).
+    fn preferences_dir() -> std::path::PathBuf {
+        directories::ProjectDirs::from("com", "CyberThreatConsulting", "SentinelAgent")
+            .map(|dirs| dirs.data_local_dir().to_path_buf())
+            .unwrap_or_else(|| {
+                // Fallback to platform data dir
+                agent_common::config::AgentConfig::platform_data_dir().join("gui")
+            })
     }
 
     /// Decode embedded PNG app icon into egui IconData.
