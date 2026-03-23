@@ -609,7 +609,7 @@ impl CompliancePage {
                     icons::SHIELD_CHECK,
                 ));
                 actions.push(widgets::DetailAction::primary(
-                    "Corriger dans les param\u{00e8}tres",
+                    "Ouvrir les param\u{00e8}tres syst\u{00e8}me",
                     icons::SETTINGS,
                 ));
             }
@@ -719,9 +719,12 @@ impl CompliancePage {
                         });
                     }
                     4 if is_failed => {
-                        // Navigate to Settings page to fix the issue
+                        // Open OS system settings for this specific check
+                        if !crate::os_settings::open_for_check(&check_id_for_prompt) {
+                            // Fallback: navigate to agent Settings page if no OS mapping
+                            state.pending_navigation = Some(crate::app::Page::Settings);
+                        }
                         state.compliance.detail_open = false;
-                        state.pending_navigation = Some(crate::app::Page::Settings);
                     }
                     _ => {}
                 }
