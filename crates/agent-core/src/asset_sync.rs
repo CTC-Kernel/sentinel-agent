@@ -109,6 +109,74 @@ impl AgentRuntime {
             }
         }
 
+        // Also load alert rules and webhooks from SQLite
+        {
+            let alert_repo = agent_storage::repositories::grc::AlertRuleRepository::new(db);
+            let webhook_repo = agent_storage::repositories::grc::WebhookRepository::new(db);
+            let stored_rules = alert_repo.get_all().await.unwrap_or_default();
+            let stored_webhooks = webhook_repo.get_all().await.unwrap_or_default();
+
+            let gui_rules: Vec<agent_gui::dto::AlertRule> = stored_rules
+                .iter()
+                .filter_map(|s| {
+                    let id = uuid::Uuid::parse_str(&s.id).ok()?;
+                    let severity_threshold = match s.severity.as_str() {
+                        "critical" | "Critical" => Some(agent_gui::dto::Severity::Critical),
+                        "high" | "High" => Some(agent_gui::dto::Severity::High),
+                        "low" | "Low" => Some(agent_gui::dto::Severity::Low),
+                        "info" | "Info" => Some(agent_gui::dto::Severity::Info),
+                        _ => Some(agent_gui::dto::Severity::Medium),
+                    };
+                    let rule_type = match s.description.as_str() {
+                        "TypeFilter" => agent_gui::dto::AlertRuleType::TypeFilter,
+                        "EscalationDelay" => agent_gui::dto::AlertRuleType::EscalationDelay,
+                        _ => agent_gui::dto::AlertRuleType::SeverityThreshold,
+                    };
+                    let detection_types: Vec<String> =
+                        serde_json::from_str(&s.condition).unwrap_or_default();
+                    let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                        .map(|dt| dt.with_timezone(&chrono::Utc))
+                        .unwrap_or_else(|_| chrono::Utc::now());
+
+                    Some(agent_gui::dto::AlertRule {
+                        id,
+                        name: s.name.clone(),
+                        rule_type,
+                        severity_threshold,
+                        detection_types,
+                        escalation_minutes: None,
+                        enabled: s.enabled,
+                        created_at,
+                    })
+                })
+                .collect();
+
+            let gui_webhooks: Vec<agent_gui::dto::WebhookConfig> = stored_webhooks
+                .iter()
+                .filter_map(|s| {
+                    let id = uuid::Uuid::parse_str(&s.id).ok()?;
+                    Some(agent_gui::dto::WebhookConfig {
+                        id,
+                        name: s.name.clone(),
+                        url: s.url.clone(),
+                        format: s.events.clone(),
+                        enabled: s.enabled,
+                        last_sent: None,
+                        error: None,
+                    })
+                })
+                .collect();
+
+            if !gui_rules.is_empty() || !gui_webhooks.is_empty() {
+                info!(
+                    "Loaded {} alert rule(s) and {} webhook(s) from SQLite into GUI",
+                    gui_rules.len(),
+                    gui_webhooks.len()
+                );
+                self.emit_alerting_loaded(gui_rules, gui_webhooks);
+            }
+        }
+
         // Re-enqueue unsynced entities to ensure they reach the platform.
         // This covers data created before sync was properly wired.
         self.requeue_unsynced_entities(db).await;

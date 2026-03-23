@@ -19,8 +19,8 @@
     "top_p": 0.9,
     "top_k": 40,
     "repetition_penalty": 1.1,
-    "max_tokens": 1024,
-    "timeout_secs": 120
+    "max_tokens": 512,
+    "timeout_secs": 180
   },
   "cache": {
     "enabled": true,

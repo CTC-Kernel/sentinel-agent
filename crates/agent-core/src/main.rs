@@ -955,6 +955,74 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
 
 /// Run the agent with the egui desktop GUI.
 ///
+/// Reload all alert rules and webhooks from SQLite and emit AlertingLoaded.
+#[cfg(feature = "gui")]
+async fn emit_alerting_loaded_from_db(
+    db: &agent_storage::Database,
+    tx: &std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) {
+    let alert_repo = agent_storage::repositories::grc::AlertRuleRepository::new(db);
+    let webhook_repo = agent_storage::repositories::grc::WebhookRepository::new(db);
+    let stored_rules = alert_repo.get_all().await.unwrap_or_default();
+    let stored_webhooks = webhook_repo.get_all().await.unwrap_or_default();
+
+    let gui_rules: Vec<agent_gui::dto::AlertRule> = stored_rules
+        .iter()
+        .filter_map(|s| {
+            let id = uuid::Uuid::parse_str(&s.id).ok()?;
+            let severity_threshold = match s.severity.as_str() {
+                "critical" | "Critical" => Some(agent_gui::dto::Severity::Critical),
+                "high" | "High" => Some(agent_gui::dto::Severity::High),
+                "low" | "Low" => Some(agent_gui::dto::Severity::Low),
+                "info" | "Info" => Some(agent_gui::dto::Severity::Info),
+                _ => Some(agent_gui::dto::Severity::Medium),
+            };
+            let rule_type = match s.description.as_str() {
+                "TypeFilter" => agent_gui::dto::AlertRuleType::TypeFilter,
+                "EscalationDelay" => agent_gui::dto::AlertRuleType::EscalationDelay,
+                _ => agent_gui::dto::AlertRuleType::SeverityThreshold,
+            };
+            let detection_types: Vec<String> =
+                serde_json::from_str(&s.condition).unwrap_or_default();
+            let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(|_| chrono::Utc::now());
+
+            Some(agent_gui::dto::AlertRule {
+                id,
+                name: s.name.clone(),
+                rule_type,
+                severity_threshold,
+                detection_types,
+                escalation_minutes: None,
+                enabled: s.enabled,
+                created_at,
+            })
+        })
+        .collect();
+
+    let gui_webhooks: Vec<agent_gui::dto::WebhookConfig> = stored_webhooks
+        .iter()
+        .filter_map(|s| {
+            let id = uuid::Uuid::parse_str(&s.id).ok()?;
+            Some(agent_gui::dto::WebhookConfig {
+                id,
+                name: s.name.clone(),
+                url: s.url.clone(),
+                format: s.events.clone(),
+                enabled: s.enabled,
+                last_sent: None,
+                error: None,
+            })
+        })
+        .collect();
+
+    let _ = tx.send(agent_gui::events::AgentEvent::AlertingLoaded {
+        rules: gui_rules,
+        webhooks: gui_webhooks,
+    });
+}
+
 /// The GUI handles enrollment (if not yet enrolled), dashboard, and all
 /// pages.  The agent runtime is spawned in a background thread.
 #[cfg(feature = "gui")]
@@ -1213,6 +1281,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             memory_mb: mem,
                         });
                         info!("LLM service initialized for command processing");
+                        runtime.set_llm_loaded(true);
                         Some(arc_svc)
                     }
                     Err(e) => {
@@ -1325,6 +1394,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let pname = process_name.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
+                                // Emit pending action before executing
+                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                    action: agent_gui::dto::ResponseAction {
+                                        id: action_id,
+                                        action_type: agent_gui::dto::ResponseActionType::KillProcess,
+                                        target: pname.clone(),
+                                        target_detail: format!("PID {}", pid),
+                                        status: agent_gui::dto::ResponseStatus::Pending,
+                                        created_at: chrono::Utc::now(),
+                                        completed_at: None,
+                                        error: None,
+                                    },
+                                });
                                 match agent_core::edr_actions::kill_process(&pname, pid).await {
                                     Ok(()) => {
                                         let _ = tx.send(AgentEvent::ResponseActionResult {
@@ -1350,9 +1432,35 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let file_path = path.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
+                                // Emit pending action before executing
+                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                    action: agent_gui::dto::ResponseAction {
+                                        id: action_id,
+                                        action_type: agent_gui::dto::ResponseActionType::QuarantineFile,
+                                        target: file_path.clone(),
+                                        target_detail: String::new(),
+                                        status: agent_gui::dto::ResponseStatus::Pending,
+                                        created_at: chrono::Utc::now(),
+                                        completed_at: None,
+                                        error: None,
+                                    },
+                                });
                                 match agent_core::edr_actions::quarantine_file(&file_path).await {
                                     Ok(quarantine_id) => {
                                         info!("File quarantined successfully: {}", quarantine_id);
+                                        // Emit quarantine entry
+                                        let _ = tx.send(AgentEvent::FileQuarantined {
+                                            entry: agent_gui::dto::QuarantinedFile {
+                                                id: uuid::Uuid::parse_str(&quarantine_id)
+                                                    .unwrap_or_else(|_| uuid::Uuid::new_v4()),
+                                                original_path: file_path.clone(),
+                                                sha256: String::new(),
+                                                size_bytes: 0,
+                                                quarantined_at: chrono::Utc::now(),
+                                                reason: "User-initiated quarantine".to_string(),
+                                                restored: false,
+                                            },
+                                        });
                                         let _ = tx.send(AgentEvent::ResponseActionResult {
                                             action_id,
                                             success: true,
@@ -1401,6 +1509,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let ip_addr = ip.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
+                                // Emit pending action before executing
+                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                    action: agent_gui::dto::ResponseAction {
+                                        id: action_id,
+                                        action_type: agent_gui::dto::ResponseActionType::BlockIp,
+                                        target: ip_addr.clone(),
+                                        target_detail: format!("{}s", duration_secs),
+                                        status: agent_gui::dto::ResponseStatus::Pending,
+                                        created_at: chrono::Utc::now(),
+                                        completed_at: None,
+                                        error: None,
+                                    },
+                                });
                                 match agent_core::edr_actions::block_ip(&ip_addr, duration_secs).await {
                                     Ok(()) => {
                                         let _ = tx.send(AgentEvent::ResponseActionResult {
@@ -1951,6 +2072,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rule_clone = rule.clone();
                                 let payload_clone = payload.clone();
+                                let tx = bg_event_tx.clone();
                                 tokio::spawn(async move {
                                     let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredAlertRule {
@@ -1978,6 +2100,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         );
                                         let _ = repo2.enqueue(&entry).await;
                                     }
+                                    // Reload and emit AlertingLoaded
+                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
                                 });
                             }
                         }
@@ -1986,11 +2110,14 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rid = rule_id.clone();
+                                let tx = bg_event_tx.clone();
                                 tokio::spawn(async move {
                                     let repo = agent_storage::repositories::grc::AlertRuleRepository::new(&db_clone);
                                     if let Err(e) = repo.delete(&rid).await {
                                         warn!("Failed to delete alert rule from SQLite: {}", e);
                                     }
+                                    // Reload and emit AlertingLoaded
+                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
                                 });
                             }
                         }
@@ -1999,6 +2126,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let wh_clone = webhook.clone();
+                                let tx = bg_event_tx.clone();
                                 tokio::spawn(async move {
                                     let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredWebhook {
@@ -2026,6 +2154,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         );
                                         let _ = repo2.enqueue(&entry).await;
                                     }
+                                    // Reload and emit AlertingLoaded
+                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
                                 });
                             }
                         }
@@ -2034,11 +2164,14 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let wid = webhook_id.clone();
+                                let tx = bg_event_tx.clone();
                                 tokio::spawn(async move {
                                     let repo = agent_storage::repositories::grc::WebhookRepository::new(&db_clone);
                                     if let Err(e) = repo.delete(&wid).await {
                                         warn!("Failed to delete webhook from SQLite: {}", e);
                                     }
+                                    // Reload and emit AlertingLoaded
+                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
                                 });
                             }
                         }

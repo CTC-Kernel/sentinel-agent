@@ -243,6 +243,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             // Collect IDs and toggle state changes to apply after iteration
             let mut toggle_commands: Vec<(String, bool)> = Vec::new();
             let mut delete_id: Option<String> = None;
+            let mut execute_id: Option<String> = None;
 
             for (row_idx, pb) in state.threats.playbooks.iter().enumerate() {
                 let conds = pb
@@ -304,7 +305,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     }
                                 });
 
-                                // Right: toggle + delete
+                                // Right: toggle + execute + delete
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui: &mut egui::Ui| {
@@ -312,6 +313,16 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                             .clicked()
                                         {
                                             delete_id = Some(pb.id.to_string());
+                                        }
+                                        ui.add_space(theme::SPACE_XS);
+                                        if pb.enabled
+                                            && widgets::ghost_button(
+                                                ui,
+                                                format!("{}  Ex\u{00e9}cuter", icons::BOLT),
+                                            )
+                                            .clicked()
+                                        {
+                                            execute_id = Some(pb.id.to_string());
                                         }
                                         ui.add_space(theme::SPACE_XS);
                                         let mut enabled = pb.enabled;
@@ -345,6 +356,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             if let Some(ref id) = delete_id {
                 state.threats.playbooks.retain(|p| p.id.to_string() != *id);
                 command = Some(GuiCommand::DeletePlaybook {
+                    playbook_id: id.clone(),
+                });
+            }
+
+            // Apply execute
+            if let Some(ref id) = execute_id {
+                command = Some(GuiCommand::ExecutePlaybook {
                     playbook_id: id.clone(),
                 });
             }

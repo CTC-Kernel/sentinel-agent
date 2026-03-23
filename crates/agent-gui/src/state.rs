@@ -538,6 +538,8 @@ pub struct AssetsState {
     pub lifecycle_filter: Option<crate::dto::AssetLifecycle>,
     pub selected_asset: Option<usize>,
     pub detail_open: bool,
+    /// Whether the inline asset creation form is open.
+    pub asset_editing: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -1267,6 +1269,18 @@ impl AppState {
                         self.threats.detection_rules.push(rule);
                     }
                 }
+            }
+            AgentEvent::AlertingLoaded { rules, webhooks } => {
+                self.alerting.rules = rules;
+                self.alerting.webhooks = webhooks;
+            }
+            AgentEvent::ResponseActionSubmitted { action } => {
+                self.threats.pending_actions.push_front(action);
+                self.threats.pending_actions.truncate(200);
+            }
+            AgentEvent::FileQuarantined { entry } => {
+                self.threats.quarantine_queue.push_front(entry);
+                self.threats.quarantine_queue.truncate(200);
             }
         }
 

@@ -303,6 +303,23 @@ pub enum AgentEvent {
         /// Detection rule entries to merge into GUI state.
         rules: Vec<crate::dto::DetectionRule>,
     },
+    /// Alert rules and webhooks loaded from backend.
+    AlertingLoaded {
+        /// Alert rule entries to merge into GUI state.
+        rules: Vec<crate::dto::AlertRule>,
+        /// Webhook configurations to merge into GUI state.
+        webhooks: Vec<crate::dto::WebhookConfig>,
+    },
+    /// A response action was submitted.
+    ResponseActionSubmitted {
+        /// The submitted response action.
+        action: crate::dto::ResponseAction,
+    },
+    /// A file was quarantined.
+    FileQuarantined {
+        /// The quarantined file entry.
+        entry: crate::dto::QuarantinedFile,
+    },
 }
 
 /// Commands sent from the GUI to the agent runtime.

@@ -6,6 +6,9 @@
 use egui::Ui;
 use egui_extras::{Column, TableBuilder};
 
+use chrono::Utc;
+use uuid::Uuid;
+
 use crate::app::AppState;
 use crate::dto::{AssetCriticality, AssetLifecycle, ManagedAsset};
 use crate::events::GuiCommand;
@@ -132,6 +135,18 @@ impl AssetsPage {
                 );
             }
 
+            ui.add_space(theme::SPACE_SM);
+
+            if widgets::button::secondary_button(
+                ui,
+                format!("{}  Nouvel actif", icons::PLUS),
+                !state.assets.asset_editing,
+            )
+            .clicked()
+            {
+                state.assets.asset_editing = true;
+            }
+
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
@@ -209,6 +224,12 @@ impl AssetsPage {
         });
 
         ui.add_space(theme::SPACE_SM);
+
+        // Inline new asset form
+        if state.assets.asset_editing {
+            Self::show_asset_form(ui, state, &mut command);
+            ui.add_space(theme::SPACE_MD);
+        }
 
         // Asset table
         let filtered = Self::filtered_indices(state);
@@ -670,6 +691,158 @@ impl AssetsPage {
                             );
                         },
                     );
+                });
+            });
+        });
+    }
+
+    /// Inline form to create a new managed asset.
+    fn show_asset_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        /// Inline editing state for the new-asset form.
+        struct InlineAssetForm {
+            hostname: String,
+            ip: String,
+            device_type: String,
+            criticality_idx: usize,
+        }
+
+        thread_local! {
+            static FORM: std::cell::RefCell<InlineAssetForm> = const { std::cell::RefCell::new(InlineAssetForm {
+                hostname: String::new(),
+                ip: String::new(),
+                device_type: String::new(),
+                criticality_idx: 2, // Medium by default
+            }) };
+        }
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("NOUVEL ACTIF")
+                    .font(theme::font_label())
+                    .color(theme::accent_text())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            FORM.with(|form| {
+                let mut f = form.borrow_mut();
+
+                // Hostname
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("Nom")
+                            .font(theme::font_label())
+                            .color(theme::text_secondary()),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    widgets::text_input(ui, &mut f.hostname, "Nom d'h\u{00f4}te...");
+                });
+                ui.add_space(theme::SPACE_XS);
+
+                // IP address
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("IP")
+                            .font(theme::font_label())
+                            .color(theme::text_secondary()),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    widgets::text_input(ui, &mut f.ip, "192.168.1.1...");
+                });
+                ui.add_space(theme::SPACE_XS);
+
+                // Device type
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("Type")
+                            .font(theme::font_label())
+                            .color(theme::text_secondary()),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    widgets::text_input(ui, &mut f.device_type, "serveur, poste, routeur...");
+                });
+                ui.add_space(theme::SPACE_XS);
+
+                // Criticality dropdown
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("Criticit\u{00e9}")
+                            .font(theme::font_label())
+                            .color(theme::text_secondary()),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    let crit_labels: Vec<&str> =
+                        AssetCriticality::all().iter().map(|c| c.label_fr()).collect();
+                    widgets::dropdown(ui, "asset_crit", &crit_labels, &mut f.criticality_idx);
+                });
+                ui.add_space(theme::SPACE_MD);
+
+                // Save / Cancel
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    let can_save = !f.ip.trim().is_empty();
+
+                    if widgets::primary_button(
+                        ui,
+                        format!("{}  Enregistrer", icons::SAVE),
+                        can_save,
+                    )
+                    .clicked()
+                        && can_save
+                    {
+                        let criticality = AssetCriticality::all()
+                            .get(f.criticality_idx)
+                            .copied()
+                            .unwrap_or(AssetCriticality::Medium);
+                        let now = Utc::now();
+                        let asset = ManagedAsset {
+                            id: Uuid::new_v4(),
+                            ip: f.ip.trim().to_string(),
+                            hostname: if f.hostname.trim().is_empty() {
+                                None
+                            } else {
+                                Some(f.hostname.trim().to_string())
+                            },
+                            mac: None,
+                            vendor: None,
+                            device_type: if f.device_type.trim().is_empty() {
+                                "inconnu".to_string()
+                            } else {
+                                f.device_type.trim().to_string()
+                            },
+                            criticality,
+                            lifecycle: AssetLifecycle::Discovered,
+                            tags: Vec::new(),
+                            risk_score: 0.0,
+                            vulnerability_count: 0,
+                            open_ports: Vec::new(),
+                            software: Vec::new(),
+                            first_seen: now,
+                            last_seen: now,
+                        };
+
+                        *command = Some(GuiCommand::SaveAsset {
+                            asset: Box::new(asset.clone()),
+                        });
+                        state.assets.assets.push(asset);
+                        state.assets.asset_editing = false;
+
+                        // Reset form
+                        f.hostname.clear();
+                        f.ip.clear();
+                        f.device_type.clear();
+                        f.criticality_idx = 2;
+                    }
+
+                    ui.add_space(theme::SPACE_SM);
+
+                    if widgets::ghost_button(ui, format!("{}  Annuler", icons::XMARK)).clicked() {
+                        state.assets.asset_editing = false;
+                        f.hostname.clear();
+                        f.ip.clear();
+                        f.device_type.clear();
+                        f.criticality_idx = 2;
+                    }
                 });
             });
         });

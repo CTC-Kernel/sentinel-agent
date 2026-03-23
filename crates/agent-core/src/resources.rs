@@ -27,8 +27,10 @@ pub struct ResourceLimits {
     pub max_cpu_idle: f64,
     /// Maximum CPU usage during checks (percentage).
     pub max_cpu_active: f64,
-    /// Maximum memory usage in bytes.
+    /// Maximum memory usage in bytes (base, without LLM).
     pub max_memory_bytes: u64,
+    /// Additional memory allowance when LLM model is loaded (bytes).
+    pub llm_memory_allowance_bytes: u64,
     /// Maximum disk I/O throughput in KB/s.
     pub max_disk_kbps: u32,
     /// Maximum startup time in milliseconds.
@@ -42,6 +44,7 @@ impl Default for ResourceLimits {
             max_cpu_idle: 20.0, // 20% idle (increased from 15% for macOS headroom)
             max_cpu_active: 35.0, // 35% during active scans (increased for I/O heavy checks)
             max_memory_bytes: 512 * 1024 * 1024, // 512 MB (egui+OpenGL ~200MB + scan buffers ~150MB)
+            llm_memory_allowance_bytes: 6 * 1024 * 1024 * 1024, // 6 GB for GGUF model (Q4_K_M ~4-5GB + KV cache)
             max_disk_kbps: 10000, // 10 MB/s
             max_startup_ms: 15000, // 15 seconds
         }
@@ -99,6 +102,8 @@ pub struct ResourceMonitor {
     sys: Mutex<sysinfo::System>,
     /// sysinfo Networks instance.
     networks: Mutex<sysinfo::Networks>,
+    /// Whether the LLM model is currently loaded (relaxes memory limits).
+    llm_loaded: std::sync::atomic::AtomicBool,
 }
 
 impl ResourceMonitor {
@@ -120,6 +125,21 @@ impl ResourceMonitor {
             last_disk_sample_time: AtomicU64::new(0),
             sys: Mutex::new(sysinfo::System::new_all()),
             networks: Mutex::new(sysinfo::Networks::new_with_refreshed_list()),
+            llm_loaded: std::sync::atomic::AtomicBool::new(false),
+        }
+    }
+
+    /// Signal that the LLM model is loaded, relaxing memory limits.
+    pub fn set_llm_loaded(&self, loaded: bool) {
+        self.llm_loaded.store(loaded, Ordering::Release);
+    }
+
+    /// Get the effective memory limit (base + LLM allowance if model is loaded).
+    pub fn effective_memory_limit(&self) -> u64 {
+        if self.llm_loaded.load(Ordering::Acquire) {
+            self.limits.max_memory_bytes + self.limits.llm_memory_allowance_bytes
+        } else {
+            self.limits.max_memory_bytes
         }
     }
 
@@ -545,7 +565,8 @@ impl ResourceMonitor {
         };
 
         let cpu_over = usage.cpu_percent > cpu_limit;
-        let memory_over = usage.memory_bytes > self.limits.max_memory_bytes;
+        let effective_mem_limit = self.effective_memory_limit();
+        let memory_over = usage.memory_bytes > effective_mem_limit;
         let disk_over = usage.disk_kbps > self.limits.max_disk_kbps;
 
         let within_limits = !cpu_over && !memory_over && !disk_over;
@@ -569,7 +590,7 @@ impl ResourceMonitor {
                     breaches.push(format!(
                         "RAM={}MB (limit: {}MB)",
                         usage.memory_bytes / (1024 * 1024),
-                        self.limits.max_memory_bytes / (1024 * 1024)
+                        effective_mem_limit / (1024 * 1024)
                     ));
                 }
                 if disk_over {
@@ -601,14 +622,19 @@ impl ResourceMonitor {
     /// Check if provided usage is within limits.
     /// Warnings are rate-limited to once per 60 seconds to avoid log spam.
     pub fn check_limits_with_usage(&self, usage: &ResourceUsage, is_active: bool) -> bool {
-        let (cpu_limit, state_name) = if is_active {
+        let llm_active = self.llm_loaded.load(Ordering::Acquire);
+        let (cpu_limit, state_name) = if llm_active {
+            // LLM inference is CPU-heavy (40-100%); relax CPU limit
+            (95.0, "llm-active")
+        } else if is_active {
             (self.limits.max_cpu_active, "active")
         } else {
             (self.limits.max_cpu_idle, "idle")
         };
 
         let cpu_over = usage.cpu_percent > cpu_limit;
-        let memory_over = usage.memory_bytes > self.limits.max_memory_bytes;
+        let effective_mem_limit = self.effective_memory_limit();
+        let memory_over = usage.memory_bytes > effective_mem_limit;
         let disk_over = usage.disk_kbps > self.limits.max_disk_kbps;
 
         let within_limits = !cpu_over && !memory_over && !disk_over;
@@ -632,7 +658,7 @@ impl ResourceMonitor {
                     breaches.push(format!(
                         "RAM={}MB (limit: {}MB)",
                         usage.memory_bytes / (1024 * 1024),
-                        self.limits.max_memory_bytes / (1024 * 1024)
+                        effective_mem_limit / (1024 * 1024)
                     ));
                 }
                 if disk_over {

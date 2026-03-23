@@ -650,6 +650,18 @@ impl AgentRuntime {
         self.resource_monitor.get_usage()
     }
 
+    /// Signal that the LLM model is loaded/unloaded, adjusting memory limits.
+    pub fn set_llm_loaded(&self, loaded: bool) {
+        self.resource_monitor.set_llm_loaded(loaded);
+        if loaded {
+            info!("LLM model loaded — resource memory limit raised to {}MB",
+                self.resource_monitor.effective_memory_limit() / (1024 * 1024));
+        } else {
+            info!("LLM model unloaded — resource memory limit restored to {}MB",
+                self.resource_monitor.effective_memory_limit() / (1024 * 1024));
+        }
+    }
+
     /// Wait for shutdown signal.
     async fn wait_for_shutdown(&self) {
         while !self.is_shutdown_requested() {
@@ -756,6 +768,12 @@ impl AgentRuntime {
         let mut cached_pending_sync: u32 = 0;
         #[cfg(feature = "gui")]
         let mut cached_policy_summary: Option<GuiPolicySummary> = None;
+
+        // KPI tracking counters for GUI snapshots
+        #[cfg(feature = "gui")]
+        let mut kpi_incident_count: u32 = 0;
+        #[cfg(feature = "gui")]
+        let mut kpi_open_vulns: u32 = 0;
 
         // Emit initial GUI state
         #[cfg(feature = "gui")]
@@ -1514,6 +1532,7 @@ impl AgentRuntime {
                             self.emit_gui_event(AgentEvent::VulnerabilityFindings {
                                 findings: self.build_vulnerability_findings(&result),
                             });
+                            kpi_open_vulns = count as u32;
                             last_check_at = Some(chrono::Utc::now());
                         }
                     }
@@ -1550,6 +1569,10 @@ impl AgentRuntime {
                                     "error",
                                 );
                                 for incident in &result.incidents {
+                                    // Emit SystemIncident for every detected incident
+                                    self.emit_system_incident(incident);
+
+                                    // Also emit SuspiciousProcess for process-related incidents
                                     if incident.incident_type
                                         == agent_scanner::IncidentType::SuspiciousProcess
                                         || incident.incident_type
@@ -1587,6 +1610,7 @@ impl AgentRuntime {
                         // Accumulate incidents for threat pipeline
                         #[cfg(feature = "gui")]
                         {
+                            kpi_incident_count = kpi_incident_count.saturating_add(count as u32);
                             pipeline_incidents.extend(result.incidents.iter().cloned());
                         }
 
@@ -1846,6 +1870,30 @@ impl AgentRuntime {
                                 "Log collector gathered {} events from OS logs",
                                 siem_events.len()
                             );
+
+                            // Push collected events to the desktop GUI
+                            #[cfg(feature = "gui")]
+                            {
+                                self.emit_siem_log_batch(siem_events.clone());
+
+                                // Build category counts for stats
+                                let mut cat_map: std::collections::HashMap<String, u32> =
+                                    std::collections::HashMap::new();
+                                for ev in &siem_events {
+                                    *cat_map.entry(format!("{:?}", ev.category)).or_insert(0) += 1;
+                                }
+                                let siem_connected = self
+                                    .state
+                                    .siem_enabled
+                                    .load(std::sync::atomic::Ordering::Acquire);
+                                self.emit_siem_stats(
+                                    siem_events.len() as u64,
+                                    siem_connected,
+                                    siem_events.len() as f32
+                                        / (poll_secs.max(1) as f32 / 60.0),
+                                    cat_map.into_iter().collect(),
+                                );
+                            }
 
                             // Record all events for platform sync, then optionally forward to external SIEM
                             let siem_guard = self.siem_forwarder.read().await;
@@ -2240,6 +2288,7 @@ impl AgentRuntime {
                         cached_pending_sync,
                         cached_policy_summary,
                     );
+                    self.emit_kpi_snapshot(compliance_score, kpi_incident_count, kpi_open_vulns, 0);
                 }
 
                 last_compliance_check_time = std::time::Instant::now();
@@ -2402,6 +2451,7 @@ impl AgentRuntime {
                         cached_pending_sync,
                         cached_policy_summary,
                     );
+                    self.emit_kpi_snapshot(compliance_score, kpi_incident_count, kpi_open_vulns, 0);
                 }
                 last_vuln_scan = std::time::Instant::now();
                 last_compliance_check_time = std::time::Instant::now();

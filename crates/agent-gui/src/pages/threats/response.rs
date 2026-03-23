@@ -259,6 +259,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     ui.add_space(theme::SPACE_MD);
 
     // ── Response Action Log ─────────────────────────────────────────
+    let mut unblock_ip: Option<String> = None;
+
     widgets::card(ui, |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new(format!(
@@ -304,6 +306,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     ResponseStatus::Failed => (icons::CIRCLE_XMARK, theme::ERROR),
                 };
 
+                // Capture target for unblock button (closures cannot mutate outer command)
+                let is_block_ip_success = entry.action_type == ResponseActionType::BlockIp
+                    && entry.status == ResponseStatus::Success;
+                let entry_target = entry.target.clone();
+
                 ui.horizontal(|ui: &mut egui::Ui| {
                     // Status icon with color bar
                     ui.label(egui::RichText::new(icon).size(theme::ICON_SM).color(color));
@@ -329,10 +336,23 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         }
                     });
 
-                    // Timestamp + status + operator
+                    // Timestamp + status + operator + unblock button
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
+                            // Unblock button for completed BlockIp actions
+                            if is_block_ip_success {
+                                if widgets::ghost_button(
+                                    ui,
+                                    format!("{}  D\u{00e9}bloquer", icons::UNLOCK),
+                                )
+                                .clicked()
+                                {
+                                    unblock_ip = Some(entry_target.clone());
+                                }
+                                ui.add_space(theme::SPACE_SM);
+                            }
+
                             ui.label(
                                 egui::RichText::new(
                                     entry.timestamp.format("%d/%m/%Y %H:%M").to_string(),
@@ -368,6 +388,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             }
         }
     });
+
+    // Apply unblock command after the card closure
+    if let Some(ip) = unblock_ip {
+        command = Some(GuiCommand::UnblockIp { ip });
+    }
 
     command
 }

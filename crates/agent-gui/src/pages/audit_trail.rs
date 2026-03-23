@@ -17,21 +17,22 @@ pub struct AuditTrailPage;
 
 impl AuditTrailPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
-        let command = None;
+        let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
             &["Pilotage", "Journal d'audit"],
             "Journal d'Audit",
-            Some("TRAÇABILITÉ COMPLÈTE DES ÉVÉNEMENTS DE SÉCURITÉ ET DU SYSTÈME"),
+            Some("TRAÇABILIT\u{00c9} COMPL\u{00c8}TE DES \u{00c9}V\u{00c9}NEMENTS DE S\u{00c9}CURIT\u{00c9} ET DU SYST\u{00c8}ME"),
             Some(
-                "Consultez l'historique détaillé des actions de l'agent, des détections de menaces et des changements de configuration.",
+                "Consultez l'historique d\u{00e9}taill\u{00e9} des actions de l'agent, des d\u{00e9}tections de menaces et des changements de configuration.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
 
         // Action bar with Export
+        let mut export_clicked = false;
         ui.horizontal(|ui: &mut egui::Ui| {
             if widgets::button::secondary_button(
                 ui,
@@ -40,23 +41,27 @@ impl AuditTrailPage {
             )
             .clicked()
             {
+                export_clicked = true;
                 let success = Self::export_audit_trail_csv(state);
                 let time = ui.input(|i| i.time);
                 if success {
                     state.toasts.push(
                         crate::widgets::toast::Toast::success(
-                            "Journal d'audit exporté avec succès",
+                            "Journal d'audit export\u{00e9} avec succ\u{00e8}s",
                         )
                         .with_time(time),
                     );
                 } else {
                     state.toasts.push(
-                        crate::widgets::toast::Toast::error("Échec de l'export du journal d'audit")
+                        crate::widgets::toast::Toast::error("\u{00c9}chec de l'export du journal d'audit")
                             .with_time(time),
                     );
                 }
             }
         });
+        if export_clicked {
+            command = Some(GuiCommand::ExportCsvAuditTrail);
+        }
         ui.add_space(theme::SPACE_MD);
 
         // Filters (AAA Grade)
