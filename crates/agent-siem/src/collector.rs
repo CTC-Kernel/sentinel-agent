@@ -149,71 +149,47 @@ impl Default for LogCollectorConfig {
 /// Processes that generate noise unrelated to security.
 /// Their log entries are dropped before severity filtering.
 const IGNORED_PROCESSES: &[&str] = &[
-    "imagent",
-    "sharingd",
-    "contactsd",
-    "IMDPersistenceAgent",
-    "callservicesd",
-    "Photos",
-    "photolibraryd",
-    "photoanalysisd",
-    "mediaanalysisd",
-    "mediaaccessibilityd",
-    "rapportd",
-    "AMPDevicesAgent",
-    "AMPLibraryAgent",
-    "amsaccountsd",
-    "amsengagementd",
-    "suggestd",
-    "parsecd",
-    "knowledge-agent",
-    "intelligenceplatformd",
-    "coreduetd",
-    "bilomd",
-    "bird",               // iCloud daemon
-    "cloudd",
-    "nsurlsessiond",
-    "mDNSResponder",
-    "apsd",               // Apple Push Service
-    "remindd",
-    "CalendarAgent",
-    "AddressBookSourceSync",
-    "weatherd",
-    "ScreenTimeAgent",
-    "UsageTrackingAgent",
-    "studentd",
-    "translationd",
-    "tipsd",
-    "Spotlight",
-    "mdworker",
-    "mdworker_shared",
-    "mds_stores",
-    "com.apple.geod",
-    "geod",
-    "locationd",          // location services (not security)
-    "itunescloudd",
-    "commerce",
-    "storedownloadd",
-    "appstoreagent",
-    "nbagent",
-    "gamecontrollerd",
-    "accessoryupdaterd",
-    "WiFiAgent",          // Wi-Fi status (not security events)
-    "WirelessRadioManagerd",
-    "bluetoothd",
-    "timed",
-    "com.apple.preferences",
-    "NowPlayingTouchUI",
-    "ControlCenter",
-    "Dock",
-    "Finder",
-    "WindowManager",
-    "SystemUIServer",
-    "NotificationCenter",
-    "TCC",                // Transparency Consent (noisy, not actionable)
+    // Messaging & contacts
+    "imagent", "sharingd", "contactsd", "IMDPersistenceAgent", "callservicesd",
+    "identityservicesd", "FaceTime", "Messages",
+    // Photos & media
+    "Photos", "photolibraryd", "photoanalysisd", "mediaanalysisd",
+    "mediaaccessibilityd", "AMPDevicesAgent", "AMPLibraryAgent",
+    "NowPlayingTouchUI", "coremediapipelined",
+    // Cloud & sync
+    "bird", "cloudd", "nsurlsessiond", "itunescloudd", "CloudKeychainProxy",
+    "amsaccountsd", "amsengagementd", "commerce", "storedownloadd", "appstoreagent",
+    // Intelligence & suggestions
+    "suggestd", "parsecd", "knowledge-agent", "intelligenceplatformd",
+    "coreduetd", "bilomd", "saboragentd",
+    // Networking (non-security)
+    "mDNSResponder", "airportd", "WiFiAgent", "WirelessRadioManagerd",
+    "symptomsd", "networkserviceproxy", "configd",
+    // Bluetooth & continuity
+    "bluetoothd", "ContinuityCaptureAgent", "rapportd", "nearby",
+    "sharingaudiod", "seld",
+    // Push & calendar
+    "apsd", "remindd", "CalendarAgent", "AddressBookSourceSync", "dataaccessd",
+    // System UI & window management
+    "WindowServer", "WindowManager", "SystemUIServer", "ControlCenter",
+    "NotificationCenter", "Dock", "Finder", "Spotlight", "mdworker",
+    "mdworker_shared", "mds_stores",
+    // Location & maps
+    "com.apple.geod", "geod", "locationd",
+    // Misc Apple daemons
+    "weatherd", "ScreenTimeAgent", "UsageTrackingAgent", "studentd",
+    "translationd", "tipsd", "timed", "nbagent", "gamecontrollerd",
+    "accessoryupdaterd", "com.apple.preferences",
+    // WebKit (non-security errors)
+    "com.apple.WebKit.Networking", "com.apple.WebKit.WebContent",
+    // TCC (noisy consent framework, not actionable)
+    "TCC", "tccd",
+    // Mobile/hardware gesture libs (SentinelAgent own process noise)
+    "libMobileGestalt",
 ];
 
 /// Subsystem prefixes whose log entries are not security-relevant.
+/// Also used for partial matching on log message content.
 const IGNORED_SUBSYSTEMS: &[&str] = &[
     "com.apple.contacts",
     "com.apple.photos",
@@ -235,7 +211,34 @@ const IGNORED_SUBSYSTEMS: &[&str] = &[
     "com.apple.geod",
     "com.apple.bluetooth",
     "com.apple.wifi",
+    "com.apple.WiFiManager",
     "com.apple.sharing",
+    "com.apple.symptomsd",
+    "com.apple.rapport",
+    "com.apple.SkyLight",
+    "com.apple.coreanimation",
+    "com.apple.CMContinuityCapture",
+    "com.apple.runningboard",
+    "com.apple.accounts",
+    "com.apple.WebKit",
+    "com.apple.CFNetwork",
+];
+
+/// Message patterns that are always noise regardless of process or subsystem.
+const IGNORED_MESSAGE_PATTERNS: &[&str] = &[
+    "kCBMsgArg",                    // CoreBluetooth low-level messages
+    "nearby scan mode",             // BLE scanning status
+    "RPRemoteDisplayDevice",        // AirPlay / Sidecar device updates
+    "LQM-WiFi",                     // Wi-Fi link quality metrics
+    "LQM:",                         // Wi-Fi link quality
+    "L2 Metrics on en",             // L2 network metrics
+    "BLE device found",             // BLE scan results
+    "BLE device changed",           // BLE state updates
+    "failed to act on a ping",      // WindowServer ping timeout (UI)
+    "Failed to find key <private>", // MobileGestalt private key lookup
+    "copySyscfgDictionary",         // MobileGestalt syscfg
+    "APTicket",                     // MobileGestalt ticket lookup
+    "advbuf:",                      // BLE advertising buffer
 ];
 
 /// System log collector.
@@ -321,20 +324,29 @@ impl LogCollector {
     /// Check if a log entry is from a non-security process or subsystem.
     /// Returns `true` if the entry should be **dropped** (not security-relevant).
     fn is_noise(&self, entry: &RawLogEntry) -> bool {
-        // Check process name against ignore list
+        // Check process name against ignore list (case-insensitive, also partial match)
         if let Some(ref proc) = entry.process {
             let proc_lower = proc.to_lowercase();
             if IGNORED_PROCESSES
                 .iter()
-                .any(|p| proc_lower == p.to_lowercase())
+                .any(|p| {
+                    let p_lower = p.to_lowercase();
+                    proc_lower == p_lower || proc_lower.contains(&p_lower)
+                })
             {
                 return true;
             }
         }
 
-        // Check message for ignored subsystem prefixes (macOS unified log format)
         let msg = &entry.message;
+
+        // Check message for ignored subsystem prefixes (macOS unified log format)
         if IGNORED_SUBSYSTEMS.iter().any(|sub| msg.contains(sub)) {
+            return true;
+        }
+
+        // Check message for known noise patterns
+        if IGNORED_MESSAGE_PATTERNS.iter().any(|pat| msg.contains(pat)) {
             return true;
         }
 
