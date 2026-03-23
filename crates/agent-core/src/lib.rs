@@ -451,6 +451,11 @@ impl RuntimeHandle {
     pub fn shutdown_signal(&self) -> ShutdownSignal {
         self.state.shutdown.clone()
     }
+
+    /// Signal LLM loaded/unloaded from the handle (e.g., from the command processor).
+    pub fn set_llm_loaded(&self, loaded: bool) {
+        self.state.llm_loaded.store(loaded, std::sync::atomic::Ordering::Release);
+    }
 }
 
 impl AgentRuntime {
@@ -653,6 +658,7 @@ impl AgentRuntime {
     /// Signal that the LLM model is loaded/unloaded, adjusting memory limits.
     pub fn set_llm_loaded(&self, loaded: bool) {
         self.resource_monitor.set_llm_loaded(loaded);
+        self.state.llm_loaded.store(loaded, Ordering::Release);
         if loaded {
             info!("LLM model loaded — resource memory limit raised to {}MB",
                 self.resource_monitor.effective_memory_limit() / (1024 * 1024));
@@ -817,6 +823,10 @@ impl AgentRuntime {
                 }
             }
         }
+
+        // Load persisted GRC data (playbooks, detection rules, assets, alert rules) into GUI
+        #[cfg(feature = "gui")]
+        self.sync_assets_to_gui().await;
 
         // Track last operation times
         let mut last_heartbeat = std::time::Instant::now();
@@ -1033,6 +1043,8 @@ impl AgentRuntime {
             // Check for shutdown signal
             if self.state.shutdown.load(Ordering::Acquire) {
                 info!("Shutdown requested, stopping main loop");
+                #[cfg(feature = "gui")]
+                self.emit_gui_event(AgentEvent::ShuttingDown);
                 break;
             }
 
@@ -2727,6 +2739,11 @@ impl AgentRuntime {
 
             // Periodically collect resource usage and push to GUI/Check limits
             let usage = self.resource_monitor.get_usage();
+
+            // Sync LLM loaded flag from runtime state to resource monitor
+            self.resource_monitor.set_llm_loaded(
+                self.state.llm_loaded.load(Ordering::Acquire),
+            );
 
             if is_active {
                 self.resource_monitor

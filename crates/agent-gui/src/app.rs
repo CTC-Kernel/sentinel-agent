@@ -591,6 +591,19 @@ impl eframe::App for SentinelApp {
         self.update_tray_info();
         self.process_tray_actions(ctx);
 
+        // Drain pending asset saves (from bulk import or discovery drawer).
+        // Each asset is sent as a SaveAsset command so it is persisted to SQLite.
+        while let Some(asset) = self.state.assets.pending_asset_saves.pop() {
+            self.send_command(GuiCommand::SaveAsset {
+                asset: Box::new(asset),
+            });
+        }
+
+        // Process page navigation requests from child pages
+        if let Some(target_page) = self.state.pending_navigation.take() {
+            self.page = target_page;
+        }
+
         // Auto-lock admin mode after 5 minutes of inactivity.
         if self.state.security.admin_unlocked
             && let Some(last_unlock) = self.state.security.last_unlock

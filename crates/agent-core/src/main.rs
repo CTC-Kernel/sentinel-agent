@@ -2316,10 +2316,12 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             #[cfg(feature = "llm")]
                             {
                                 let svc = llm_service.clone();
+                                let llm_handle = handle_for_commands.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc {
                                         if let Err(e) = svc.reload().await {
                                             warn!("Failed to reload LLM model: {}", e);
+                                            llm_handle.set_llm_loaded(false);
                                             let _ = tx.send(AgentEvent::LlmStatusUpdate {
                                                 model_name: "N/A".to_string(),
                                                 status: format!("reload_error: {}", e),
@@ -2328,6 +2330,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             });
                                             return;
                                         }
+                                        llm_handle.set_llm_loaded(true);
                                         match svc.get_status().await {
                                             agent_core::llm_service::LLMServiceStatus::Ready {
                                                 model_name,

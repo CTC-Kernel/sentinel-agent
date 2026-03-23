@@ -48,8 +48,8 @@ impl Default for GuiPreferences {
             siem_format: "CEF".to_string(),
             siem_transport: "Syslog".to_string(),
             siem_destination: String::new(),
-            log_collector_enabled: false,
-            log_collector_sources: vec!["system".to_string(), "auth".to_string()],
+            log_collector_enabled: true,
+            log_collector_sources: vec!["system".to_string(), "auth".to_string(), "application".to_string(), "firewall".to_string()],
             log_collector_poll_secs: 60,
             discovery_enabled: false,
             architecture_url: String::new(),
@@ -540,6 +540,11 @@ pub struct AssetsState {
     pub detail_open: bool,
     /// Whether the inline asset creation form is open.
     pub asset_editing: bool,
+    /// Assets waiting to be persisted via `SaveAsset` commands.
+    ///
+    /// Pages push new assets here; the app update loop drains them and sends
+    /// one `SaveAsset` command per entry so they are written to SQLite.
+    pub pending_asset_saves: Vec<crate::dto::ManagedAsset>,
 }
 
 // ---------------------------------------------------------------------------
@@ -655,10 +660,12 @@ impl Default for SettingsState {
             siem_format: "CEF".to_string(),
             siem_transport: "Syslog".to_string(),
             siem_destination: String::new(),
-            log_collector_enabled: false,
+            log_collector_enabled: true,
             log_collector_sources: vec![
                 "system".to_string(),
                 "auth".to_string(),
+                "application".to_string(),
+                "firewall".to_string(),
             ],
             log_collector_poll_secs: 60,
         }
@@ -738,6 +745,9 @@ pub struct AppState {
     pub selected_audit_entry: Option<usize>,
     pub audit_detail_open: bool,
     pub reduced_motion: bool,
+    /// Page navigation request (consumed by app.rs each frame).
+    #[cfg(feature = "render")]
+    pub pending_navigation: Option<crate::app::Page>,
 }
 
 impl Default for AppState {
@@ -785,6 +795,8 @@ impl Default for AppState {
             selected_audit_entry: None,
             audit_detail_open: false,
             reduced_motion: false,
+            #[cfg(feature = "render")]
+            pending_navigation: None,
         }
     }
 }

@@ -608,6 +608,10 @@ impl CompliancePage {
                     "Rem\u{00e9}dier",
                     icons::SHIELD_CHECK,
                 ));
+                actions.push(widgets::DetailAction::primary(
+                    "Corriger dans les param\u{00e8}tres",
+                    icons::SETTINGS,
+                ));
             }
 
             let ai_analyzing = state.compliance.ai_analyzing;
@@ -713,6 +717,11 @@ impl CompliancePage {
                         command = Some(GuiCommand::Remediate {
                             check_id: check_id_for_prompt,
                         });
+                    }
+                    4 if is_failed => {
+                        // Navigate to Settings page to fix the issue
+                        state.compliance.detail_open = false;
+                        state.pending_navigation = Some(crate::app::Page::Settings);
                     }
                     _ => {}
                 }

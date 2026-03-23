@@ -599,6 +599,10 @@ impl AssetsPage {
     }
 
     /// Import discovered devices as managed assets (skip already-imported IPs).
+    ///
+    /// Each new asset is added to `state.assets.assets` for immediate GUI
+    /// display **and** to `state.assets.pending_asset_saves` so that the app
+    /// update loop persists them to SQLite via `SaveAsset` commands.
     fn import_from_discovery(state: &mut AppState) {
         let existing_ips: std::collections::HashSet<String> =
             state.assets.assets.iter().map(|a| a.ip.clone()).collect();
@@ -612,14 +616,17 @@ impl AssetsPage {
             if existing_ips.contains(&device.ip) {
                 continue;
             }
-            state.assets.assets.push(ManagedAsset {
+
+            let criticality = Self::infer_criticality(device);
+
+            let asset = ManagedAsset {
                 id: uuid::Uuid::new_v4(),
                 ip: device.ip.clone(),
                 hostname: device.hostname.clone(),
                 mac: device.mac.clone(),
                 vendor: device.vendor.clone(),
                 device_type: device.device_type.clone(),
-                criticality: AssetCriticality::Medium,
+                criticality,
                 lifecycle: AssetLifecycle::Discovered,
                 tags: Vec::new(),
                 risk_score: 0.0,
@@ -628,8 +635,43 @@ impl AssetsPage {
                 software: Vec::new(),
                 first_seen: device.first_seen,
                 last_seen: device.last_seen,
-            });
+            };
+
+            state.assets.assets.push(asset.clone());
+            state.assets.pending_asset_saves.push(asset);
         }
+    }
+
+    /// Infer asset criticality from discovered device characteristics.
+    ///
+    /// - Gateway devices → `Critical`
+    /// - Devices with sensitive ports (22, 80, 443, 445, 3389) → `High`
+    /// - Devices with any open port → `Medium`
+    /// - Everything else → `Low`
+    fn infer_criticality(device: &crate::dto::GuiDiscoveredDevice) -> AssetCriticality {
+        Self::infer_criticality_from_device(device.is_gateway, &device.open_ports)
+    }
+
+    /// Public helper so other pages (e.g. discovery detail drawer) can compute
+    /// criticality without needing a full `GuiDiscoveredDevice` reference.
+    pub fn infer_criticality_from_device(
+        is_gateway: bool,
+        open_ports: &[u16],
+    ) -> AssetCriticality {
+        if is_gateway {
+            return AssetCriticality::Critical;
+        }
+
+        const SENSITIVE_PORTS: &[u16] = &[22, 80, 443, 445, 3389];
+        if open_ports.iter().any(|p| SENSITIVE_PORTS.contains(p)) {
+            return AssetCriticality::High;
+        }
+
+        if !open_ports.is_empty() {
+            return AssetCriticality::Medium;
+        }
+
+        AssetCriticality::Low
     }
 
     fn criticality_display(crit: &AssetCriticality) -> (&'static str, egui::Color32) {

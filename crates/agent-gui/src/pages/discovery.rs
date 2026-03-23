@@ -512,14 +512,25 @@ impl DiscoveryPage {
         let subnet = device.subnet.clone();
         let is_gateway = device.is_gateway;
         let open_ports = device.open_ports.clone();
+        let first_seen_ts = device.first_seen;
+        let last_seen_ts = device.last_seen;
         let first_seen = device.first_seen.format("%d/%m/%Y %H:%M").to_string();
         let last_seen = device.last_seen.format("%d/%m/%Y %H:%M").to_string();
         let (type_label, type_color) = device_type_badge(&device_type);
 
-        let actions = [
+        // Check whether this device is already imported as a managed asset.
+        let already_imported = state.assets.assets.iter().any(|a| a.ip == ip);
+
+        let mut actions = vec![
+            widgets::DetailAction::primary("Ajouter aux actifs", icons::PLUS),
             widgets::DetailAction::primary("Scanner les ports", icons::SEARCH),
             widgets::DetailAction::danger("Bloquer", icons::LOCK),
         ];
+
+        // Grey-out the import button when already imported.
+        if already_imported {
+            actions[0] = widgets::DetailAction::secondary("Déjà importé", icons::CHECK);
+        }
 
         let action = widgets::DetailDrawer::new("discovery_detail", "Appareil", icons::NETWORK)
             .accent(type_color)
@@ -573,7 +584,43 @@ impl DiscoveryPage {
 
         if let Some(action_idx) = action {
             let time = ui.ctx().input(|i| i.time);
-            if action_idx == 0 {
+            if action_idx == 0 && !already_imported {
+                // "Ajouter aux actifs" — create a ManagedAsset from the
+                // discovered device and queue it for persistence.
+                let criticality =
+                    crate::pages::AssetsPage::infer_criticality_from_device(
+                        is_gateway,
+                        &open_ports,
+                    );
+
+                let asset = crate::dto::ManagedAsset {
+                    id: uuid::Uuid::new_v4(),
+                    ip: ip.clone(),
+                    hostname: hostname.clone(),
+                    mac: mac.clone(),
+                    vendor: vendor.clone(),
+                    device_type: device_type.clone(),
+                    criticality,
+                    lifecycle: crate::dto::AssetLifecycle::Discovered,
+                    tags: Vec::new(),
+                    risk_score: 0.0,
+                    vulnerability_count: 0,
+                    open_ports: open_ports.clone(),
+                    software: Vec::new(),
+                    first_seen: first_seen_ts,
+                    last_seen: last_seen_ts,
+                };
+
+                state.assets.assets.push(asset.clone());
+                state.assets.pending_asset_saves.push(asset);
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success(
+                        "Device ajout\u{00e9} aux actifs g\u{00e9}r\u{00e9}s",
+                    )
+                    .with_time(time),
+                );
+                state.discovery.detail_open = false;
+            } else if action_idx == 1 {
                 let safe_ip = ip.replace('\'', "'\\''");
                 let nmap_cmd = format!("nmap -sV '{}'", safe_ip);
                 ui.ctx().copy_text(nmap_cmd);
@@ -583,7 +630,7 @@ impl DiscoveryPage {
                     )
                     .with_time(time),
                 );
-            } else if action_idx == 1 {
+            } else if action_idx == 2 {
                 state.discovery.detail_open = false;
             }
         }
