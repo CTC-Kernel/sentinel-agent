@@ -372,23 +372,40 @@ impl KeyManager {
             }
         }
 
-        // Write the key
-        fs::write(path, key).map_err(|e| {
+        // Write atomically: create temp file with 0600 from the start, then rename.
+        // This avoids a TOCTOU race where the file is briefly world-readable.
+        use std::os::unix::fs::OpenOptionsExt;
+        use std::io::Write;
+
+        let tmp_path = path.with_extension("key.tmp");
+        {
+            let mut file = fs::OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .mode(0o600)
+                .open(&tmp_path)
+                .map_err(|e| {
+                    StorageError::KeyManagement(format!(
+                        "Failed to create temp key file {}: {}",
+                        tmp_path.display(), e
+                    ))
+                })?;
+            file.write_all(key).map_err(|e| {
+                StorageError::KeyManagement(format!(
+                    "Failed to write temp key file {}: {}",
+                    tmp_path.display(), e
+                ))
+            })?;
+        }
+        fs::rename(&tmp_path, path).map_err(|e| {
             StorageError::KeyManagement(format!(
-                "Failed to write key file {}: {}",
-                path.display(),
-                e
+                "Failed to rename key file {} -> {}: {}",
+                tmp_path.display(), path.display(), e
             ))
         })?;
 
-        // Set restrictive permissions (0600 = owner read/write only)
-        use std::os::unix::fs::PermissionsExt;
-        let permissions = fs::Permissions::from_mode(0o600);
-        fs::set_permissions(path, permissions).map_err(|e| {
-            StorageError::KeyManagement(format!("Failed to set key file permissions: {}", e))
-        })?;
-
-        info!("Stored encryption key to: {} (mode 0600)", path.display());
+        info!("Stored encryption key to: {} (mode 0600, atomic)", path.display());
         Ok(())
     }
 

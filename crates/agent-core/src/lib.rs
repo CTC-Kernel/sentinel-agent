@@ -1599,11 +1599,12 @@ impl AgentRuntime {
                                             .and_then(|v| v.as_str())
                                             .unwrap_or("unknown")
                                             .to_string();
-                                        let pid = incident
+                                        let pid: u32 = incident
                                             .evidence
                                             .get("pid")
                                             .and_then(|v| v.as_u64())
-                                            .unwrap_or(0) as u32;
+                                            .and_then(|v| v.try_into().ok())
+                                            .unwrap_or(0);
                                         let command_line = incident
                                             .evidence
                                             .get("path")

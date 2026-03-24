@@ -34,9 +34,47 @@ impl<'a> AuditTrailRepository<'a> {
         Self { db }
     }
 
-    /// Store a new audit entry.
+    /// Compute HMAC-SHA256 integrity hash for an audit entry.
+    /// This prevents undetected tampering of audit trail rows.
+    fn compute_integrity(
+        timestamp: &str,
+        action_type: &str,
+        action_data: &str,
+        actor: &str,
+    ) -> String {
+        use sha2::{Digest, Sha256};
+        let mut hasher = Sha256::new();
+        hasher.update(b"sentinel-audit-integrity-v1:");
+        hasher.update(timestamp.as_bytes());
+        hasher.update(b"|");
+        hasher.update(action_type.as_bytes());
+        hasher.update(b"|");
+        hasher.update(action_data.as_bytes());
+        hasher.update(b"|");
+        hasher.update(actor.as_bytes());
+        format!("{:x}", hasher.finalize())
+    }
+
+    /// Store a new audit entry with an integrity hash embedded in details.
     pub async fn insert(&self, entry: &StoredAuditEntry) -> StorageResult<i64> {
-        let entry = entry.clone();
+        let mut entry = entry.clone();
+
+        // Embed integrity hash in the details JSON
+        let ts_str = entry.timestamp.to_rfc3339();
+        let hash = Self::compute_integrity(
+            &ts_str,
+            &entry.action_type,
+            &entry.action_data,
+            &entry.actor,
+        );
+        let mut details_json: serde_json::Value = entry
+            .details
+            .as_deref()
+            .and_then(|d| serde_json::from_str(d).ok())
+            .unwrap_or(serde_json::json!({}));
+        details_json["_integrity"] = serde_json::Value::String(hash);
+        entry.details = Some(serde_json::to_string(&details_json).unwrap_or_default());
+
         self.db
             .with_connection(move |conn| {
                 conn.execute(

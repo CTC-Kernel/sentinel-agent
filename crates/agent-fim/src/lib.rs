@@ -45,6 +45,9 @@ pub struct FimEngine {
 
     /// Shutdown flag.
     shutdown: Arc<std::sync::atomic::AtomicBool>,
+
+    /// Watcher task handle for monitoring termination.
+    watcher_handle: RwLock<Option<tokio::task::JoinHandle<()>>>,
 }
 
 impl FimEngine {
@@ -57,6 +60,7 @@ impl FimEngine {
             baseline_mgr,
             alert_tx,
             shutdown: Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            watcher_handle: RwLock::new(None),
         }
     }
 
@@ -96,12 +100,15 @@ impl FimEngine {
 
         drop(policy); // Release the read lock
 
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             if let Err(e) = watcher::watch_files(watcher_policy, baseline, alert_tx, shutdown).await
             {
                 warn!("FIM watcher stopped with error: {}", e);
             }
         });
+
+        // Store the handle so we can detect if the watcher panics or stops
+        *self.watcher_handle.write().await = Some(handle);
 
         info!("FIM engine started");
         Ok(())
