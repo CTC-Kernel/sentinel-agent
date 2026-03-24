@@ -63,7 +63,10 @@ impl std::fmt::Debug for EnrollmentRequest {
 }
 
 /// Enrollment response from the SaaS.
-#[derive(Debug, Clone, Deserialize)]
+///
+/// `Debug` is manually implemented to redact sensitive fields
+/// (`client_certificate`, `client_private_key`, `hmac_secret`) from log output.
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct EnrollmentResponse {
     /// Unique agent identifier assigned by the SaaS.
@@ -99,6 +102,22 @@ pub struct EnrollmentResponse {
     /// Accepts both 'config' (from Cloud Function) and 'initial_config'.
     #[serde(default, alias = "config")]
     pub initial_config: Option<InitialConfig>,
+}
+
+impl std::fmt::Debug for EnrollmentResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EnrollmentResponse")
+            .field("agent_id", &self.agent_id)
+            .field("organization_id", &self.organization_id)
+            .field("client_certificate", &"[REDACTED]")
+            .field("client_private_key", &"[REDACTED]")
+            .field("certificate_expires_at", &self.certificate_expires_at)
+            .field("server_certificate", &self.server_certificate.as_ref().map(|_| "[REDACTED]"))
+            .field("server_fingerprints", &self.server_fingerprints)
+            .field("hmac_secret", &self.hmac_secret.as_ref().map(|_| "[REDACTED]"))
+            .field("initial_config", &self.initial_config)
+            .finish()
+    }
 }
 
 /// Result of enrollment request, handling both success and already_enrolled cases.
@@ -344,6 +363,14 @@ pub struct HeartbeatRequest {
     /// Number of LLM inferences performed since last restart.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub llm_inference_count: Option<u64>,
+
+    /// Agent-local playbooks (synced inline with heartbeat).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub playbooks: Vec<PlaybookPayload>,
+
+    /// Agent-local detection rules (synced inline with heartbeat).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub detection_rules: Vec<DetectionRulePayload>,
 }
 
 /// Running process information.

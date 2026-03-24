@@ -1049,12 +1049,15 @@ impl NotificationsPage {
                 }
                 state.unread_notification_count = state.unread_notification_count.saturating_sub(1);
                 *command = Some(GuiCommand::MarkNotificationRead {
-                    notification_id: notif_id,
+                    notification_id: notif_id.clone(),
                 });
             } else if (read && idx == 0) || (!read && idx == 1) {
                 state.notifications.remove(selected);
                 state.notification_detail_open = false;
                 state.selected_notification = None;
+                *command = Some(GuiCommand::DeleteNotification {
+                    notification_id: notif_id,
+                });
             }
         }
     }

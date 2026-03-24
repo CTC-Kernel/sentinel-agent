@@ -221,6 +221,16 @@ impl CartographyPage {
             theme::bg_deep(),
         );
 
+        // Focus ring for keyboard navigation (WCAG 2.4.7)
+        if response.has_focus() {
+            painter.rect_stroke(
+                rect,
+                egui::CornerRadius::same(theme::CARD_ROUNDING),
+                theme::focus_ring(),
+                egui::epaint::StrokeKind::Inside,
+            );
+        }
+
         // Background grid simulation (Subtle institutional lines)
         let grid_color = theme::border().linear_multiply(theme::OPACITY_SUBTLE);
         for i in 1..GRID_DIVISIONS {

@@ -219,6 +219,9 @@ impl SentinelApp {
             sources: self.state.settings.log_collector_sources.clone(),
             poll_interval_secs: self.state.settings.log_collector_poll_secs,
         });
+        if self.state.discovery.enabled {
+            self.send_command(GuiCommand::StartDiscovery);
+        }
     }
 
     /// Configure the eframe `NativeOptions`.

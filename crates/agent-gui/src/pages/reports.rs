@@ -753,26 +753,29 @@ impl ReportsPage {
 ///
 /// `accent_color` is injected as the accent for `h1`, `.score`, and borders
 /// (e.g. `"#0071e3"` for executive/compliance, `"#e30000"` for incident).
+///
+/// Colors are aligned with the GUI theme system for consistency and WCAG AAA
+/// contrast compliance in both light and dark modes.
 fn report_css(accent_color: &str) -> String {
     format!(
-        r#"body {{ font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #1d1d1f; background: #fff; }}
+        r#"body {{ font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #000; background: #f3f4fa; }}
 h1 {{ color: {accent}; border-bottom: 2px solid {accent}; padding-bottom: 12px; }}
-h2 {{ color: #333; margin-top: 24px; }}
+h2 {{ color: #000; margin-top: 24px; }}
 .score {{ font-size: 48px; font-weight: bold; color: {accent}; }}
 .stat {{ display: inline-block; margin-right: 32px; text-align: center; }}
 .stat-value {{ font-size: 28px; font-weight: bold; }}
-.stat-label {{ font-size: 12px; color: #86868b; text-transform: uppercase; }}
+.stat-label {{ font-size: 12px; color: #48484d; text-transform: uppercase; }}
 table {{ width: 100%; border-collapse: collapse; margin-top: 16px; }}
-th, td {{ padding: 8px 12px; text-align: left; border-bottom: 1px solid #e5e5e5; }}
-th {{ color: #86868b; font-size: 11px; text-transform: uppercase; }}
-.footer {{ margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #86868b; }}
+th, td {{ padding: 8px 12px; text-align: left; border-bottom: 1px solid #c0c2d0; }}
+th {{ color: #48484d; font-size: 11px; text-transform: uppercase; }}
+.footer {{ margin-top: 40px; padding-top: 16px; border-top: 1px solid #c0c2d0; font-size: 11px; color: #58585c; }}
 @media (prefers-color-scheme: dark) {{
-  body {{ background: #1d1d1f; color: #f5f5f7; }}
-  h2 {{ color: #e5e5e7; }}
-  th, td {{ border-bottom-color: #38383a; }}
-  th {{ color: #98989d; }}
-  .stat-label {{ color: #98989d; }}
-  .footer {{ border-top-color: #38383a; color: #98989d; }}
+  body {{ background: #0c0d12; color: #fff; }}
+  h2 {{ color: #afafb4; }}
+  th, td {{ border-bottom-color: #3a3b44; }}
+  th {{ color: #9b9ba0; }}
+  .stat-label {{ color: #9b9ba0; }}
+  .footer {{ border-top-color: #3a3b44; color: #9b9ba0; }}
 }}"#,
         accent = accent_color
     )

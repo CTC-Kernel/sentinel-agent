@@ -960,7 +960,9 @@ impl AppState {
                 self.fim.monitored_count = monitored_count;
                 self.fim.changes_today = changes_today;
             }
-            AgentEvent::ShuttingDown => {}
+            AgentEvent::ShuttingDown => {
+                self.summary.status = crate::dto::GuiAgentStatus::Disconnected;
+            }
             AgentEvent::UpdateStatusChanged { status } => {
                 self.settings.update_status = status;
             }
@@ -1187,11 +1189,14 @@ impl AppState {
                 self.ai.download.error = None;
             }
             AgentEvent::LlmDownloadFailed { model_name, error } => {
-                self.ai.download.phase = crate::dto::DownloadPhase::Failed;
-                self.ai.download.model_name = model_name;
-                self.ai.download.speed_bps = 0;
-                self.ai.download.error = Some(error);
-                self.ai.model_status.status = "error".to_string();
+                // Don't override user-initiated cancel (already set to Idle by GUI)
+                if self.ai.download.phase != crate::dto::DownloadPhase::Idle {
+                    self.ai.download.phase = crate::dto::DownloadPhase::Failed;
+                    self.ai.download.model_name = model_name;
+                    self.ai.download.speed_bps = 0;
+                    self.ai.download.error = Some(error);
+                    self.ai.model_status.status = "error".to_string();
+                }
             }
             AgentEvent::LlmRiskAnalysis {
                 risk_id,

@@ -28,6 +28,7 @@ use agent_common::process::silent_command;
 use agent_storage::Database;
 use tracing::{debug, info, warn};
 use uuid::Uuid;
+use zeroize::Zeroize;
 
 /// Enrollment manager for agent registration.
 pub struct EnrollmentManager<'a> {
@@ -117,7 +118,7 @@ impl<'a> EnrollmentManager<'a> {
             hostname, os, os_version, machine_id
         );
 
-        let request = EnrollmentRequest {
+        let mut request = EnrollmentRequest {
             enrollment_token: token.to_string(),
             hostname,
             os,
@@ -130,11 +131,19 @@ impl<'a> EnrollmentManager<'a> {
 
         // Call enrollment endpoint
         tracing::debug!("Sending enrollment request to /v1/agents/enroll");
-        let result: crate::types::EnrollmentResult = client
+        let call_result: SyncResult<crate::types::EnrollmentResult> = client
             .post_json_with_token("/v1/agents/enroll", &request, token)
-            .await?;
+            .await;
 
-        tracing::debug!("Received enrollment result: {:?}", result);
+        // Zero the enrollment token from the request to minimize time in memory
+        request.enrollment_token.zeroize();
+        if let Some(ref mut pw) = request.admin_password {
+            pw.zeroize();
+        }
+
+        let result = call_result?;
+
+        tracing::debug!("Enrollment result received (credentials redacted)");
 
         let response = match result {
             crate::types::EnrollmentResult::Success(r) => r,

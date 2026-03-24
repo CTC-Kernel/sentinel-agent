@@ -360,13 +360,13 @@ impl LLMPanel {
                             ui.label(
                                 egui::RichText::new(icons::ROBOT)
                                     .size(theme::ICON_SM)
-                                    .color(theme::SUCCESS),
+                                    .color(theme::readable_color(theme::SUCCESS)),
                             );
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new("IA")
                                     .font(theme::font_label())
-                                    .color(theme::SUCCESS)
+                                    .color(theme::readable_color(theme::SUCCESS))
                                     .strong(),
                             );
                         });
@@ -677,13 +677,13 @@ impl LLMPanel {
                             ui.label(
                                 egui::RichText::new(icons::CIRCLE_XMARK)
                                     .size(theme::ICON_SM)
-                                    .color(theme::ERROR),
+                                    .color(theme::readable_color(theme::ERROR)),
                             );
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new(error_detail)
                                     .font(theme::font_small())
-                                    .color(theme::ERROR),
+                                    .color(theme::readable_color(theme::ERROR)),
                             );
                         });
                     });
@@ -758,7 +758,7 @@ impl LLMPanel {
                 ui.label(
                     egui::RichText::new(icons::MICROCHIP)
                         .size(theme::ICON_MD)
-                        .color(theme::ACCENT),
+                        .color(theme::readable_color(theme::ACCENT)),
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.vertical(|ui: &mut egui::Ui| {
@@ -987,13 +987,13 @@ impl LLMPanel {
                             ui.label(
                                 egui::RichText::new(icons::CIRCLE_XMARK)
                                     .size(theme::ICON_SM)
-                                    .color(theme::ERROR),
+                                    .color(theme::readable_color(theme::ERROR)),
                             );
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new(error)
                                     .font(theme::font_small())
-                                    .color(theme::ERROR),
+                                    .color(theme::readable_color(theme::ERROR)),
                             );
                         });
                     });
@@ -1159,7 +1159,7 @@ impl LLMPanel {
                     let cancel_btn = egui::Button::new(
                         egui::RichText::new(format!("{} Annuler", icons::CIRCLE_XMARK))
                             .font(theme::font_body())
-                            .color(theme::ERROR),
+                            .color(theme::readable_color(theme::ERROR)),
                     )
                     .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
                     .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
@@ -1363,7 +1363,7 @@ impl LLMPanel {
                     ui.add_space(theme::SPACE_MD);
 
                     let risk_label = Self::risk_label(ai_score);
-                    let risk_color = theme::score_color(ai_score);
+                    let risk_color = theme::readable_color(theme::score_color(ai_score));
 
                     ui.label(
                         egui::RichText::new("SCORE DE S\u{00c9}CURIT\u{00c9} IA")
@@ -1423,7 +1423,7 @@ impl LLMPanel {
                     ];
 
                     for (label, score, weight) in components {
-                        let color = theme::score_color(*score);
+                        let color = theme::readable_color(theme::score_color(*score));
                         ui.horizontal(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(format!("{} ({})", label, weight))

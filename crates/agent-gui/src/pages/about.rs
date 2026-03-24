@@ -31,10 +31,10 @@ impl AboutPage {
         widgets::page_header_nav(
             ui,
             &["Configuration", "\u{00c0} propos"],
-            "About",
-            Some("PRODUCT INFORMATION AND TECHNICAL SUPPORT"),
+            "\u{00c0} propos",
+            Some("INFORMATIONS PRODUIT ET SUPPORT TECHNIQUE"),
             Some(
-                "Sentinel Agent version info and credits. When contacting support, please mention the build number and unique installation ID.",
+                "Informations de version et cr\u{00e9}dits de Sentinel Agent. Lors d\u{2019}un contact avec le support, veuillez mentionner le num\u{00e9}ro de build et l\u{2019}identifiant unique d\u{2019}installation.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -95,7 +95,7 @@ impl AboutPage {
         // Legal
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("LEGAL NOTICES")
+                egui::RichText::new("MENTIONS L\u{00c9}GALES")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(theme::TRACKING_NORMAL)
@@ -104,7 +104,7 @@ impl AboutPage {
             ui.add_space(theme::SPACE_SM);
             ui.label(
                 egui::RichText::new(
-                    "\u{00a9} 2024\u{2013}2026 Cyber Threat Consulting. All rights reserved.",
+                    "\u{00a9} 2024\u{2013}2026 Cyber Threat Consulting. Tous droits r\u{00e9}serv\u{00e9}s.",
                 )
                 .font(theme::font_small())
                 .color(theme::text_secondary()),
@@ -112,8 +112,8 @@ impl AboutPage {
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new(
-                    "This software is the exclusive property of Cyber Threat Consulting. \
-                     Unauthorized reproduction or distribution is strictly prohibited.",
+                    "Ce logiciel est la propri\u{00e9}t\u{00e9} exclusive de Cyber Threat Consulting. \
+                     Toute reproduction ou distribution non autoris\u{00e9}e est strictement interdite.",
                 )
                 .font(theme::font_small())
                 .color(theme::text_tertiary()),
@@ -127,7 +127,7 @@ impl AboutPage {
     fn system_card(ui: &mut Ui) {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("SYSTEM")
+                egui::RichText::new("SYST\u{00c8}ME")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(theme::TRACKING_NORMAL)
@@ -137,11 +137,11 @@ impl AboutPage {
 
             Self::info_row(
                 ui,
-                "OS",
+                "Syst\u{00e8}me",
                 &format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
                 icons::ARROW_RIGHT,
             );
-            Self::info_row(ui, "Engine", "Rust v1.85+", icons::ARROW_RIGHT);
+            Self::info_row(ui, "Moteur", "Rust v1.85+", icons::ARROW_RIGHT);
             Self::info_row(ui, "Version", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
         });
     }
@@ -149,7 +149,7 @@ impl AboutPage {
     fn resources_card(ui: &mut Ui) {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("RESOURCES")
+                egui::RichText::new("RESSOURCES")
                     .font(theme::font_small())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(theme::TRACKING_NORMAL)
@@ -159,14 +159,14 @@ impl AboutPage {
 
             Self::link_row(
                 ui,
-                "Official Website",
+                "Site officiel",
                 branding::WEBSITE,
                 icons::ARROW_RIGHT,
             );
             Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
             Self::link_row(
                 ui,
-                "Support",
+                "Assistance",
                 &format!("mailto:{}", branding::EMAIL),
                 icons::ARROW_RIGHT,
             );
@@ -220,7 +220,7 @@ impl AboutPage {
                 |ui: &mut egui::Ui| {
                     if ui
                         .link(
-                            egui::RichText::new("OPEN")
+                            egui::RichText::new("OUVRIR")
                                 .font(theme::font_small())
                                 .color(theme::accent_text())
                                 .strong(),

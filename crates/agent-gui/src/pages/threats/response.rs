@@ -6,7 +6,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{PendingConfirmation, ResponseActionType, ResponseLogEntry, ResponseStatus};
+use crate::dto::{PendingConfirmation, ResponseActionType, ResponseStatus};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -43,7 +43,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     state.threats.confirm_action = Some(PendingConfirmation {
                         action_type: ResponseActionType::KillProcess,
                         target: p.process_name.clone(),
-                        detail: format!("PID inconnu \u{2014} Confiance: {}%", p.confidence),
+                        detail: format!("PID {} \u{2014} Confiance: {}%", p.pid, p.confidence),
                     });
                 }
             }
@@ -104,6 +104,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             ResponseActionType::KillProcess => "Terminer le processus ?",
             ResponseActionType::QuarantineFile => "Quarantaine du fichier ?",
             ResponseActionType::BlockIp => "Bloquer l'adresse IP ?",
+            ResponseActionType::UnblockIp => "D\u{00e9}bloquer l'adresse IP ?",
             ResponseActionType::RestoreFile => "Restaurer le fichier ?",
         };
         let message = format!(
@@ -114,6 +115,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             ResponseActionType::KillProcess => "Terminer",
             ResponseActionType::QuarantineFile => "Quarantaine",
             ResponseActionType::BlockIp => "Bloquer",
+            ResponseActionType::UnblockIp => "D\u{00e9}bloquer",
             ResponseActionType::RestoreFile => "Restaurer",
         };
 
@@ -130,9 +132,16 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let time = ui.input(|i| i.time);
                 command = match &pending.action_type {
                     ResponseActionType::KillProcess => {
+                        let pid = state
+                            .threats
+                            .suspicious_processes
+                            .iter()
+                            .find(|p| p.process_name == pending.target)
+                            .map(|p| p.pid)
+                            .unwrap_or(0);
                         Some(GuiCommand::KillProcess {
                             process_name: pending.target.clone(),
-                            pid: 0, // PID would come from actual process data
+                            pid,
                         })
                     }
                     ResponseActionType::QuarantineFile => Some(GuiCommand::QuarantineFile {
@@ -144,25 +153,17 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             duration_secs: 3600, // 1 hour default
                         })
                     }
+                    ResponseActionType::UnblockIp => Some(GuiCommand::UnblockIp {
+                        ip: pending.target.clone(),
+                    }),
                     ResponseActionType::RestoreFile => Some(GuiCommand::RestoreQuarantinedFile {
                         quarantine_id: pending.target.clone(),
                     }),
                 };
 
-                // Add to response log
-                let log_entry = ResponseLogEntry {
-                    id: uuid::Uuid::new_v4(),
-                    action_type: pending.action_type.clone(),
-                    target: pending.target.clone(),
-                    status: ResponseStatus::Pending,
-                    timestamp: chrono::Utc::now(),
-                    operator: "Analyste".to_string(),
-                    details: Some(pending.detail.clone()),
-                };
-                state.threats.response_log.push_front(log_entry);
-                if state.threats.response_log.len() > 500 {
-                    state.threats.response_log.pop_back();
-                }
+                // Response log entry is created by state.rs when
+                // ResponseActionResult arrives, so we do not push here
+                // to avoid duplicates.
 
                 state.toasts.push(
                     crate::widgets::toast::Toast::info(format!(

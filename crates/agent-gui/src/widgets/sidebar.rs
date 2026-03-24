@@ -235,8 +235,8 @@ impl Sidebar {
 
                         let sys_items: &[(Page, &str, &str)] = &[
                             (Page::Network, icons::NETWORK, "R\u{00e9}seau"),
-                            (Page::Discovery, icons::DISCOVERY, "D\u{00e9}couverte"),
-                            (Page::Assets, icons::BOXES_STACKED, "Actifs"),
+                            (Page::Discovery, icons::DISCOVERY, "Shadow IT"),
+                            (Page::Assets, icons::BOXES_STACKED, "Inventaire"),
                             (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
                             (Page::Sync, icons::SYNC, "Synchronisation"),
                             (Page::Terminal, icons::TERMINAL, "Terminal"),

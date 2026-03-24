@@ -109,15 +109,16 @@ impl<'a> RiskRepository<'a> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoredPlaybook {
     pub id: String,
-    pub title: String,
+    pub name: String,
     pub description: String,
-    pub category: String,
+    pub trigger_type: String,
+    pub severity: String,
     pub steps: String,      // JSON of actions
-    pub conditions: String, // JSON of conditions
-    pub status: String,
+    pub enabled: bool,
     pub created_at: String,
     pub updated_at: String,
     pub synced: bool,
+    pub conditions: String, // JSON of conditions
 }
 
 pub struct PlaybookRepository<'a> {
@@ -130,26 +131,28 @@ impl<'a> PlaybookRepository<'a> {
     }
 
     pub async fn upsert(&self, entity: &StoredPlaybook) -> StorageResult<()> {
+        let enabled_int = if entity.enabled { 1 } else { 0 };
         let synced_int = if entity.synced { 1 } else { 0 };
         self.db
             .with_connection(|conn| {
                 conn.execute(
                     r#"
                 INSERT OR REPLACE INTO playbooks
-                (id, title, description, category, steps, conditions, status, created_at, updated_at, synced)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+                (id, name, description, trigger_type, severity, steps, enabled, created_at, updated_at, synced, conditions)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
                 "#,
                     rusqlite::params![
                         entity.id,
-                        entity.title,
+                        entity.name,
                         entity.description,
-                        entity.category,
+                        entity.trigger_type,
+                        entity.severity,
                         entity.steps,
-                        entity.conditions,
-                        entity.status,
+                        enabled_int,
                         entity.created_at,
                         entity.updated_at,
-                        synced_int
+                        synced_int,
+                        entity.conditions
                     ],
                 )
                 .map_err(|e| StorageError::Query(format!("Failed to upsert playbook: {}", e)))?;
@@ -168,15 +171,16 @@ impl<'a> PlaybookRepository<'a> {
                     .query_map([], |row| {
                         Ok(StoredPlaybook {
                             id: row.get(0)?,
-                            title: row.get(1)?,
+                            name: row.get(1)?,
                             description: row.get(2)?,
-                            category: row.get(3)?,
+                            trigger_type: row.get(3)?,
+                            severity: row.get::<_, String>(4).unwrap_or_else(|_| "medium".to_string()),
                             steps: row.get(5)?,
-                            conditions: row.get::<_, String>(10).unwrap_or_else(|_| "[]".to_string()),
-                            status: if row.get::<_, i32>(6).unwrap_or(1) != 0 { "active".to_string() } else { "inactive".to_string() },
+                            enabled: row.get::<_, i32>(6).unwrap_or(1) != 0,
                             created_at: row.get(7)?,
                             updated_at: row.get(8)?,
                             synced: row.get::<_, i32>(9)? != 0,
+                            conditions: row.get::<_, String>(10).unwrap_or_else(|_| "[]".to_string()),
                         })
                     })
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
@@ -210,14 +214,20 @@ impl<'a> PlaybookRepository<'a> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoredManagedAsset {
     pub id: String,
-    pub name: String,
-    pub asset_type: String,
+    pub ip: String,
+    pub hostname: Option<String>,
+    pub mac: Option<String>,
+    pub vendor: Option<String>,
+    pub device_type: String,
     pub criticality: String,
-    pub owner: String,
-    pub location: String,
-    pub status: String,
-    pub created_at: String,
-    pub updated_at: String,
+    pub lifecycle: String,
+    pub tags: String,              // JSON array
+    pub risk_score: f64,
+    pub vulnerability_count: i32,
+    pub open_ports: String,        // JSON array
+    pub software: String,          // JSON array
+    pub first_seen: String,
+    pub last_seen: String,
     pub synced: bool,
 }
 
@@ -236,13 +246,14 @@ impl<'a> ManagedAssetRepository<'a> {
             conn.execute(
                 r#"
                 INSERT OR REPLACE INTO managed_assets
-                (id, name, asset_type, criticality, owner, location, status, created_at, updated_at, synced)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+                (id, ip, hostname, mac, vendor, device_type, criticality, lifecycle, tags, risk_score, vulnerability_count, open_ports, software, first_seen, last_seen, synced)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
                 "#,
                 rusqlite::params![
-                    entity.id, entity.name, entity.asset_type, entity.criticality,
-                    entity.owner, entity.location, entity.status, entity.created_at,
-                    entity.updated_at, synced_int
+                    entity.id, entity.ip, entity.hostname, entity.mac, entity.vendor,
+                    entity.device_type, entity.criticality, entity.lifecycle, entity.tags,
+                    entity.risk_score, entity.vulnerability_count, entity.open_ports,
+                    entity.software, entity.first_seen, entity.last_seen, synced_int
                 ],
             ).map_err(|e| StorageError::Query(format!("Failed to upsert managed asset: {}", e)))?;
             Ok(())
@@ -253,21 +264,27 @@ impl<'a> ManagedAssetRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let mut stmt = conn
-                    .prepare("SELECT * FROM managed_assets")
+                    .prepare("SELECT id, ip, hostname, mac, vendor, device_type, criticality, lifecycle, tags, risk_score, vulnerability_count, open_ports, software, first_seen, last_seen, synced FROM managed_assets")
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
                 let rows = stmt
                     .query_map([], |row| {
                         Ok(StoredManagedAsset {
                             id: row.get(0)?,
-                            name: row.get(1)?,
-                            asset_type: row.get(2)?,
-                            criticality: row.get(3)?,
-                            owner: row.get(4)?,
-                            location: row.get(5)?,
-                            status: row.get(6)?,
-                            created_at: row.get(7)?,
-                            updated_at: row.get(8)?,
-                            synced: row.get::<_, i32>(9)? != 0,
+                            ip: row.get(1)?,
+                            hostname: row.get(2)?,
+                            mac: row.get(3)?,
+                            vendor: row.get(4)?,
+                            device_type: row.get(5)?,
+                            criticality: row.get(6)?,
+                            lifecycle: row.get(7)?,
+                            tags: row.get(8)?,
+                            risk_score: row.get(9)?,
+                            vulnerability_count: row.get(10)?,
+                            open_ports: row.get(11)?,
+                            software: row.get(12)?,
+                            first_seen: row.get(13)?,
+                            last_seen: row.get(14)?,
+                            synced: row.get::<_, i32>(15)? != 0,
                         })
                     })
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
@@ -298,11 +315,13 @@ impl<'a> ManagedAssetRepository<'a> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoredKpiSnapshot {
-    pub id: String,
-    pub kpi_type: String,
-    pub value: f64,
-    pub measured_at: String,
-    pub tags: String, // JSON
+    pub id: i64,
+    pub timestamp: String,
+    pub compliance_score: f64,
+    pub incident_count: i32,
+    pub open_vulns: i32,
+    pub closed_vulns: i32,
+    pub remediation_sla_pct: f64,
     pub synced: bool,
 }
 
@@ -315,27 +334,28 @@ impl<'a> KpiSnapshotRepository<'a> {
         Self { db }
     }
 
-    pub async fn upsert(&self, entity: &StoredKpiSnapshot) -> StorageResult<()> {
+    pub async fn insert(&self, entity: &StoredKpiSnapshot) -> StorageResult<()> {
         let synced_int = if entity.synced { 1 } else { 0 };
         self.db
             .with_connection(|conn| {
                 conn.execute(
                     r#"
-                INSERT OR REPLACE INTO kpi_snapshots
-                (id, kpi_type, value, measured_at, tags, synced)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+                INSERT INTO kpi_snapshots
+                (timestamp, compliance_score, incident_count, open_vulns, closed_vulns, remediation_sla_pct, synced)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
                 "#,
                     rusqlite::params![
-                        entity.id,
-                        entity.kpi_type,
-                        entity.value,
-                        entity.measured_at,
-                        entity.tags,
+                        entity.timestamp,
+                        entity.compliance_score,
+                        entity.incident_count,
+                        entity.open_vulns,
+                        entity.closed_vulns,
+                        entity.remediation_sla_pct,
                         synced_int
                     ],
                 )
                 .map_err(|e| {
-                    StorageError::Query(format!("Failed to upsert kpi snapshot: {}", e))
+                    StorageError::Query(format!("Failed to insert kpi snapshot: {}", e))
                 })?;
                 Ok(())
             })
@@ -346,17 +366,19 @@ impl<'a> KpiSnapshotRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let mut stmt = conn
-                    .prepare("SELECT * FROM kpi_snapshots")
+                    .prepare("SELECT id, timestamp, compliance_score, incident_count, open_vulns, closed_vulns, remediation_sla_pct, synced FROM kpi_snapshots")
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
                 let rows = stmt
                     .query_map([], |row| {
                         Ok(StoredKpiSnapshot {
                             id: row.get(0)?,
-                            kpi_type: row.get(1)?,
-                            value: row.get(2)?,
-                            measured_at: row.get(3)?,
-                            tags: row.get(4)?,
-                            synced: row.get::<_, i32>(5)? != 0,
+                            timestamp: row.get(1)?,
+                            compliance_score: row.get(2)?,
+                            incident_count: row.get(3)?,
+                            open_vulns: row.get(4)?,
+                            closed_vulns: row.get(5)?,
+                            remediation_sla_pct: row.get(6)?,
+                            synced: row.get::<_, i32>(7)? != 0,
                         })
                     })
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
@@ -369,11 +391,10 @@ impl<'a> KpiSnapshotRepository<'a> {
             .await
     }
 
-    pub async fn delete(&self, id: &str) -> StorageResult<()> {
-        let id_cloned = id.to_string();
+    pub async fn delete(&self, id: i64) -> StorageResult<()> {
         self.db
             .with_connection(move |conn| {
-                conn.execute("DELETE FROM kpi_snapshots WHERE id = ?", [id_cloned])
+                conn.execute("DELETE FROM kpi_snapshots WHERE id = ?", [id])
                     .map_err(|e| {
                         StorageError::Query(format!("Failed to delete kpi snapshot: {}", e))
                     })?;
@@ -391,13 +412,12 @@ impl<'a> KpiSnapshotRepository<'a> {
 pub struct StoredAlertRule {
     pub id: String,
     pub name: String,
-    pub description: String,
-    pub severity: String,
-    pub condition: String, // JSON
-    pub actions: String,   // JSON
+    pub rule_type: String,
+    pub severity_threshold: Option<String>,
+    pub detection_types: String, // JSON array
+    pub escalation_minutes: Option<i32>,
     pub enabled: bool,
     pub created_at: String,
-    pub updated_at: String,
     pub synced: bool,
 }
 
@@ -417,13 +437,13 @@ impl<'a> AlertRuleRepository<'a> {
             conn.execute(
                 r#"
                 INSERT OR REPLACE INTO alert_rules
-                (id, name, description, severity, condition, actions, enabled, created_at, updated_at, synced)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+                (id, name, rule_type, severity_threshold, detection_types, escalation_minutes, enabled, created_at, synced)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
                 "#,
                 rusqlite::params![
-                    entity.id, entity.name, entity.description, entity.severity,
-                    entity.condition, entity.actions, enabled_int, entity.created_at,
-                    entity.updated_at, synced_int
+                    entity.id, entity.name, entity.rule_type, entity.severity_threshold,
+                    entity.detection_types, entity.escalation_minutes, enabled_int,
+                    entity.created_at, synced_int
                 ],
             ).map_err(|e| StorageError::Query(format!("Failed to upsert alert rule: {}", e)))?;
             Ok(())
@@ -434,21 +454,20 @@ impl<'a> AlertRuleRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let mut stmt = conn
-                    .prepare("SELECT * FROM alert_rules")
+                    .prepare("SELECT id, name, rule_type, severity_threshold, detection_types, escalation_minutes, enabled, created_at, synced FROM alert_rules")
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
                 let rows = stmt
                     .query_map([], |row| {
                         Ok(StoredAlertRule {
                             id: row.get(0)?,
                             name: row.get(1)?,
-                            description: row.get(2)?,
-                            severity: row.get(3)?,
-                            condition: row.get(4)?,
-                            actions: row.get(5)?,
+                            rule_type: row.get(2)?,
+                            severity_threshold: row.get(3)?,
+                            detection_types: row.get(4)?,
+                            escalation_minutes: row.get(5)?,
                             enabled: row.get::<_, i32>(6)? != 0,
                             created_at: row.get(7)?,
-                            updated_at: row.get(8)?,
-                            synced: row.get::<_, i32>(9)? != 0,
+                            synced: row.get::<_, i32>(8)? != 0,
                         })
                     })
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?

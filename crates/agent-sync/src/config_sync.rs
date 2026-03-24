@@ -264,6 +264,8 @@ pub mod config_keys {
     pub const SIEM_CONFIG: &str = "siem_config";
     /// USB policy configuration key.
     pub const USB_POLICY: &str = "usb_policy";
+    /// Network threat intelligence configuration key.
+    pub const THREAT_INTEL: &str = "threat_intel";
 }
 
 #[cfg(test)]

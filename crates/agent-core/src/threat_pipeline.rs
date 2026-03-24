@@ -426,9 +426,9 @@ pub fn stored_playbook_to_single_dto(
         .unwrap_or_else(|_| chrono::Utc::now());
     agent_gui::dto::Playbook {
         id,
-        name: s.title.clone(),
+        name: s.name.clone(),
         description: s.description.clone(),
-        enabled: s.status == "active",
+        enabled: s.enabled,
         conditions,
         actions,
         created_at,
@@ -458,9 +458,9 @@ pub fn stored_playbooks_to_dto(
 
             Some(agent_gui::dto::Playbook {
                 id,
-                name: s.title.clone(),
+                name: s.name.clone(),
                 description: s.description.clone(),
-                enabled: s.status == "active",
+                enabled: s.enabled,
                 conditions,
                 actions,
                 created_at,

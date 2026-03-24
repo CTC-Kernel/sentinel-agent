@@ -98,7 +98,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                 egui::Align2::CENTER_CENTER,
                 security_state.icon(),
                 egui::FontId::proportional(icon_size),
-                base_color,
+                theme::readable_color(base_color),
             );
 
             ui.add_space(theme::SPACE_MD);

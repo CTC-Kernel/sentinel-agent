@@ -26,11 +26,11 @@ impl AssetsPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Gouvernance", "Actifs"],
-            "Gestion des Actifs",
-            Some("INVENTAIRE CMDB ET SUIVI DU CYCLE DE VIE DES \u{00c9}QUIPEMENTS"),
+            &["Shadow IT", "Inventaire"],
+            "Inventaire des \u{00c9}quipements",
+            Some("GESTION DU CYCLE DE VIE ET CONTR\u{00d4}LE DES \u{00c9}QUIPEMENTS AUTORIS\u{00c9}S"),
             Some(
-                "Centralisez l\u{2019}inventaire de vos actifs IT. Classez-les par criticit\u{00e9}, suivez leur cycle de vie et enrichissez-les depuis la d\u{00e9}couverte r\u{00e9}seau.",
+                "G\u{00e9}rez les \u{00e9}quipements autoris\u{00e9}s sur votre r\u{00e9}seau. Suivez leur cycle de vie de la d\u{00e9}tection \u{00e0} la mise hors service, contr\u{00f4}lez leur conformit\u{00e9}.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -111,12 +111,12 @@ impl AssetsPage {
             if state.security.admin_unlocked {
                 let label = if discoverable > 0 {
                     format!(
-                        "{}  IMPORTER DEPUIS D\u{00c9}COUVERTE ({})",
+                        "{}  AUTORISER DEPUIS LA D\u{00c9}TECTION ({})",
                         icons::DOWNLOAD,
                         discoverable
                     )
                 } else {
-                    format!("{}  IMPORTER DEPUIS D\u{00c9}COUVERTE", icons::DOWNLOAD)
+                    format!("{}  AUTORISER DEPUIS LA D\u{00c9}TECTION", icons::DOWNLOAD)
                 };
                 if widgets::primary_button(ui, label, discoverable > 0).clicked() {
                     Self::import_from_discovery(state);
@@ -130,7 +130,7 @@ impl AssetsPage {
             } else {
                 widgets::primary_button(
                     ui,
-                    format!("{}  IMPORTER DEPUIS D\u{00c9}COUVERTE", icons::LOCK),
+                    format!("{}  AUTORISER DEPUIS LA D\u{00c9}TECTION", icons::LOCK),
                     false,
                 );
             }
@@ -249,9 +249,9 @@ impl AssetsPage {
                     widgets::empty_state(
                         ui,
                         icons::BOXES_STACKED,
-                        "AUCUN ACTIF ENREGISTR\u{00c9}",
+                        "AUCUN \u{00c9}QUIPEMENT AUTORIS\u{00c9}",
                         Some(
-                            "Importez des actifs depuis la d\u{00e9}couverte r\u{00e9}seau ou ajoutez-les manuellement.",
+                            "Lancez une d\u{00e9}tection Shadow IT puis autorisez les \u{00e9}quipements d\u{00e9}couverts, ou ajoutez-les manuellement.",
                         ),
                     );
                 } else {
@@ -407,6 +407,10 @@ impl AssetsPage {
 
                         row.col(|ui: &mut egui::Ui| {
                             let score_pct = (asset.risk_score * 10.0).min(100.0);
+                            // Risk score: higher = worse, so invert for score_color
+                            // (score_color treats ≥85 as green/good).
+                            // A risk_score of 10 (max) → score_pct=100 → we want red.
+                            // score_color(100 - 100) = score_color(0) = ERROR ✓
                             ui.label(
                                 egui::RichText::new(format!("{:.1}", asset.risk_score))
                                     .font(theme::font_body())
@@ -570,9 +574,10 @@ impl AssetsPage {
         if let Some(action_idx) = drawer_action {
             match action_idx {
                 0 => {
-                    // Promote lifecycle: Discovered -> Qualified -> Monitored
+                    // Promote lifecycle: Unauthorized -> Discovered -> Qualified -> Monitored
                     if selected < state.assets.assets.len() {
                         let new_lifecycle = match state.assets.assets[selected].lifecycle {
+                            AssetLifecycle::Unauthorized => AssetLifecycle::Discovered,
                             AssetLifecycle::Discovered => AssetLifecycle::Qualified,
                             AssetLifecycle::Qualified => AssetLifecycle::Monitored,
                             other => other,
@@ -685,6 +690,7 @@ impl AssetsPage {
 
     fn lifecycle_display(lc: &AssetLifecycle) -> (&'static str, egui::Color32) {
         match lc {
+            AssetLifecycle::Unauthorized => ("NON AUTORIS\u{00c9}", theme::ERROR),
             AssetLifecycle::Discovered => ("D\u{00c9}COUVERT", theme::INFO),
             AssetLifecycle::Qualified => ("QUALIFI\u{00c9}", theme::ACCENT),
             AssetLifecycle::Monitored => ("SURVEILL\u{00c9}", theme::SUCCESS),

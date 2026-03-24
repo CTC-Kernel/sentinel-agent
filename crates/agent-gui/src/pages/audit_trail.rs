@@ -17,7 +17,7 @@ pub struct AuditTrailPage;
 
 impl AuditTrailPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
-        let mut command = None;
+        let command = None;
 
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
@@ -59,9 +59,8 @@ impl AuditTrailPage {
                 }
             }
         });
-        if export_clicked {
-            command = Some(GuiCommand::ExportCsvAuditTrail);
-        }
+        // Local CSV export is handled inline above — no GUI command needed.
+        let _ = export_clicked;
         ui.add_space(theme::SPACE_MD);
 
         // Filters (AAA Grade)

@@ -186,6 +186,33 @@ const IGNORED_PROCESSES: &[&str] = &[
     "TCC", "tccd",
     // Mobile/hardware gesture libs (SentinelAgent own process noise)
     "libMobileGestalt",
+    // RunningBoard (process lifecycle management, not security)
+    "runningboardd",
+    // LaunchServices, CoreServices
+    "lsd", "coreservicesd", "launchservicesd", "trustd",
+    // Diagnostics & analytics
+    "diagnosticd", "sysdiagnose", "spindump", "ReportCrash",
+    "osanalyticshelper", "analyticsd",
+    // Keychain UI (not security events, just UI prompts)
+    "SecurityAgent", "authd",
+    // Power management
+    "powerd", "thermald", "thermalmonitord",
+    // Disk & storage (non-security)
+    "diskarbitrationd", "diskmanagementd", "fseventsd", "revisiond",
+    // Audio
+    "coreaudiod", "audiomxd",
+    // Display & GPU
+    "MTLCompilerService", "gpumemd", "backboardd",
+    // Input
+    "hidd",
+    // Print
+    "cupsd", "printd",
+    // Misc Apple daemons (noisy, non-security)
+    "cfprefsd", "containermanagerd", "UserEventAgent", "logd",
+    "endpointsecurityd", // Endpoint Security subsystem (internal, not actionable)
+    "sandboxd",          // sandbox denials are noisy and not actionable from GUI
+    "kernelmanagementd",
+    "sysextd",
 ];
 
 /// Subsystem prefixes whose log entries are not security-relevant.
@@ -222,6 +249,18 @@ const IGNORED_SUBSYSTEMS: &[&str] = &[
     "com.apple.accounts",
     "com.apple.WebKit",
     "com.apple.CFNetwork",
+    "com.apple.runningboard",
+    "com.apple.launchservices",
+    "com.apple.coreservices",
+    "com.apple.diagnosticd",
+    "com.apple.thermalmonitor",
+    "com.apple.powermanagement",
+    "com.apple.diskarbitration",
+    "com.apple.audio",
+    "com.apple.coreaudio",
+    "com.apple.containermanager",
+    "com.apple.sandbox",
+    "com.apple.endpointsecurity",
 ];
 
 /// Message patterns that are always noise regardless of process or subsystem.
@@ -239,6 +278,13 @@ const IGNORED_MESSAGE_PATTERNS: &[&str] = &[
     "copySyscfgDictionary",         // MobileGestalt syscfg
     "APTicket",                     // MobileGestalt ticket lookup
     "advbuf:",                      // BLE advertising buffer
+    "invalidateAssertion",          // RunningBoard process lifecycle
+    "acquireAssertion",             // RunningBoard process lifecycle
+    "Assertion",                    // RunningBoard assertion management
+    "RunningBoard",                 // RunningBoard subsystem
+    "jetsam",                       // Memory pressure (not security)
+    "memorystatus",                 // Memory pressure
+    "thermal",                      // Thermal throttling
 ];
 
 /// System log collector.
@@ -400,6 +446,10 @@ impl LogCollector {
             classify_severity(&entry.message),
         );
 
+        // Enrich: produce a human-readable name and description
+        let (readable_name, readable_desc) =
+            humanize_event(&entry.message, &event_name, &entry.process, &entry.source);
+
         // Prefer structured user field, fall back to regex extraction
         let user = entry
             .user
@@ -420,8 +470,8 @@ impl LogCollector {
             timestamp: entry.timestamp.unwrap_or_else(Utc::now),
             severity,
             category,
-            name: event_name,
-            description: entry.message.clone(),
+            name: readable_name,
+            description: readable_desc,
             source_host: entry
                 .hostname
                 .unwrap_or_else(|| self.hostname.clone()),
@@ -515,30 +565,41 @@ impl LogCollector {
     ) -> Result<Vec<RawLogEntry>, String> {
         let since_str = since.format("%Y-%m-%d %H:%M:%S").to_string();
 
-        // Try journalctl first
-        let unit = match source {
-            LogSource::System => Some("--priority=0..4"), // emerg..warning
-            LogSource::Auth => None,                      // use log file
-            LogSource::Firewall => None,                  // use log file
-            LogSource::Application => None,
+        // Build journalctl arguments based on log source
+        let journalctl_args: Vec<&str> = match source {
+            LogSource::System => vec!["--priority=0..4"], // emerg..warning
+            LogSource::Auth => vec![
+                "--identifier=sshd",
+                "--identifier=sudo",
+                "--identifier=su",
+                "--identifier=login",
+            ],
+            LogSource::Firewall => vec![
+                "--identifier=kernel",
+                "-g",
+                "iptables|nftables|firewall",
+            ],
+            LogSource::Application => vec!["--priority=0..3"], // emerg..err
         };
 
-        if let Some(priority) = unit {
-            let output = agent_common::process::silent_async_command("journalctl")
-                .args([
-                    "--since",
-                    &since_str,
-                    "--no-pager",
-                    "--output=short-iso",
-                    priority,
-                ])
-                .output()
-                .await
-                .map_err(|e| format!("Failed to run journalctl: {}", e))?;
+        // Try journalctl first for all source types
+        {
+            let mut cmd = agent_common::process::silent_async_command("journalctl");
+            cmd.args(["--since", &since_str, "--no-pager", "--output=short-iso"]);
+            cmd.args(&journalctl_args);
 
-            if output.status.success() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                return Ok(parse_syslog_lines(&stdout, source));
+            match cmd.output().await {
+                Ok(output) if output.status.success() => {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    let entries = parse_syslog_lines(&stdout, source);
+                    if !entries.is_empty() {
+                        return Ok(entries);
+                    }
+                    // If journalctl succeeded but returned no entries, fall through to log files
+                }
+                _ => {
+                    // journalctl not available or failed, fall through to log files
+                }
             }
         }
 
@@ -671,6 +732,200 @@ impl LogCollector {
     }
 }
 
+/// Produce a human-readable event name and description from raw log data.
+///
+/// Returns `(name, description)` where both are user-friendly strings.
+fn humanize_event(
+    raw_message: &str,
+    _fallback_name: &str,
+    process: &Option<String>,
+    source: &LogSource,
+) -> (String, String) {
+    let msg = raw_message.to_lowercase();
+    let proc_name = process.as_deref().unwrap_or("");
+
+    // --- Authentication events ---
+    if msg.contains("authentication failed") || msg.contains("login failed")
+        || msg.contains("invalid password") || msg.contains("failed password")
+    {
+        let user = extract_user(raw_message).unwrap_or_default();
+        return (
+            "Échec d'authentification".into(),
+            if user.is_empty() {
+                "Tentative de connexion échouée détectée.".into()
+            } else {
+                format!("Tentative de connexion échouée pour l'utilisateur « {} ».", user)
+            },
+        );
+    }
+    if msg.contains("authentication success") || msg.contains("session opened")
+        || msg.contains("logged in") || msg.contains("accepted publickey")
+        || msg.contains("accepted password")
+    {
+        let user = extract_user(raw_message).unwrap_or_default();
+        return (
+            "Connexion réussie".into(),
+            if user.is_empty() {
+                "Nouvelle session utilisateur ouverte.".into()
+            } else {
+                format!("Session ouverte pour l'utilisateur « {} ».", user)
+            },
+        );
+    }
+    if msg.contains("session closed") || msg.contains("logged out") || msg.contains("logoff") {
+        return (
+            "Déconnexion".into(),
+            "Session utilisateur fermée.".into(),
+        );
+    }
+
+    // --- Privilege escalation ---
+    if msg.contains("sudo") && msg.contains("command=") {
+        let user = extract_user(raw_message).unwrap_or_else(|| "inconnu".into());
+        return (
+            "Commande sudo exécutée".into(),
+            format!("L'utilisateur « {} » a exécuté une commande avec des privilèges élevés.", user),
+        );
+    }
+    if msg.contains("su:") || msg.contains("privilege escalation")
+        || msg.contains("became root")
+    {
+        return (
+            "Élévation de privilèges".into(),
+            "Un utilisateur a changé de compte avec des droits supérieurs.".into(),
+        );
+    }
+
+    // --- Firewall ---
+    if msg.contains("firewall") && (msg.contains("deny") || msg.contains("drop") || msg.contains("block")) {
+        return (
+            "Connexion bloquée par le pare-feu".into(),
+            "Le pare-feu a bloqué une tentative de connexion entrante ou sortante.".into(),
+        );
+    }
+    if msg.contains("stealth mode") {
+        return (
+            "Mode furtif du pare-feu actif".into(),
+            "Le pare-feu en mode furtif a ignoré une requête réseau.".into(),
+        );
+    }
+    if msg.contains("iptables") || msg.contains("nftables") || msg.contains("pf:") {
+        return (
+            "Événement pare-feu".into(),
+            "Règle de filtrage réseau déclenchée.".into(),
+        );
+    }
+
+    // --- Network intrusion ---
+    if msg.contains("brute") || msg.contains("repeated login failures") {
+        return (
+            "Tentative de force brute".into(),
+            "Plusieurs échecs de connexion détectés — possible attaque par force brute.".into(),
+        );
+    }
+    if msg.contains("intrusion") || msg.contains("attack detected") {
+        return (
+            "Intrusion détectée".into(),
+            "Le système a identifié une tentative d'intrusion.".into(),
+        );
+    }
+    if msg.contains("port scan") || msg.contains("scanning") {
+        return (
+            "Scan de ports détecté".into(),
+            "Activité de scan réseau détectée depuis une source externe.".into(),
+        );
+    }
+
+    // --- SSH ---
+    if proc_name == "sshd" || msg.contains("sshd") {
+        if msg.contains("invalid user") || msg.contains("no matching key") {
+            return (
+                "Accès SSH refusé".into(),
+                "Tentative de connexion SSH avec un utilisateur ou une clé invalide.".into(),
+            );
+        }
+        return (
+            "Événement SSH".into(),
+            "Activité sur le service SSH.".into(),
+        );
+    }
+
+    // --- Malware / integrity ---
+    if msg.contains("malware") || msg.contains("virus") || msg.contains("trojan") {
+        return (
+            "Menace malware détectée".into(),
+            "Un logiciel malveillant a été identifié par le système.".into(),
+        );
+    }
+    if msg.contains("integrity") && (msg.contains("fail") || msg.contains("violation")) {
+        return (
+            "Violation d'intégrité".into(),
+            "Un fichier système a été modifié de manière inattendue.".into(),
+        );
+    }
+    if msg.contains("tamper") {
+        return (
+            "Tentative de falsification".into(),
+            "Modification non autorisée détectée sur un composant protégé.".into(),
+        );
+    }
+
+    // --- Permission / access denied ---
+    if msg.contains("denied") || msg.contains("forbidden") || msg.contains("unauthorized") {
+        return (
+            "Accès refusé".into(),
+            "Une opération a été bloquée par les contrôles d'accès.".into(),
+        );
+    }
+    if msg.contains("permission") && msg.contains("violation") {
+        return (
+            "Violation de permission".into(),
+            "Une application a tenté d'accéder à une ressource non autorisée.".into(),
+        );
+    }
+
+    // --- Process / OOM ---
+    if msg.contains("killed") || msg.contains("oom") || msg.contains("out of memory") {
+        return (
+            "Processus terminé (mémoire)".into(),
+            "Un processus a été arrêté en raison d'un dépassement mémoire.".into(),
+        );
+    }
+    if msg.contains("segfault") || msg.contains("segmentation fault") {
+        return (
+            "Erreur de segmentation".into(),
+            "Un processus a planté — possible signe d'exploit ou de bug critique.".into(),
+        );
+    }
+
+    // --- Audit ---
+    if msg.contains("audit") {
+        return (
+            "Événement d'audit".into(),
+            "Opération enregistrée dans le journal d'audit système.".into(),
+        );
+    }
+
+    // --- Generic fallback by source ---
+    let name = match source {
+        LogSource::Auth => "Événement d'authentification",
+        LogSource::Firewall => "Événement réseau",
+        LogSource::System => "Événement système",
+        LogSource::Application => "Événement application",
+    };
+
+    // Truncate raw message for description (max 120 chars, clean cut)
+    let desc = if raw_message.len() > 120 {
+        let truncated = &raw_message[..120];
+        let cut = truncated.rfind(' ').unwrap_or(120);
+        format!("{}…", &raw_message[..cut])
+    } else {
+        raw_message.to_string()
+    };
+
+    (name.into(), desc)
+}
+
 /// Classify severity from log message keywords.
 fn classify_severity(message: &str) -> u8 {
     let lower = message.to_lowercase();
@@ -720,21 +975,64 @@ fn extract_user(message: &str) -> Option<String> {
 }
 
 /// Parse macOS unified log output lines.
+///
+/// The `log show --style compact` format is:
+/// `YYYY-MM-DD HH:MM:SS.ffffff+ZZZZ 0xHEXTID Type Process[PID]: Message`
+///
+/// We extract the timestamp, process name, and PID from each line.
 #[cfg(target_os = "macos")]
 fn parse_macos_log(output: &str, source: LogSource) -> Vec<RawLogEntry> {
     output
         .lines()
         .filter(|line| !line.is_empty() && !line.starts_with("Timestamp"))
-        .map(|line| RawLogEntry {
-            message: line.to_string(),
-            source,
-            timestamp: None, // Could parse from line prefix
-            hostname: None,
-            process: None,
-            pid: None,
-            event_id: None,
-            user: None,
-            level: None,
+        .map(|line| {
+            // Try to parse: "YYYY-MM-DD HH:MM:SS.ffffff+ZZZZ 0xHEX Type Process[PID]: Message"
+            // The timestamp occupies the first 31 characters (e.g. "2026-03-24 10:15:30.123456+0200")
+            let mut timestamp = None;
+            let mut process = None;
+            let mut pid = None;
+
+            // Split into whitespace-delimited tokens
+            let parts: Vec<&str> = line.splitn(5, ' ').collect();
+            // parts[0] = date, parts[1] = time+tz, parts[2] = thread_id, parts[3] = type, parts[4] = "Process[PID]: Message"
+
+            if parts.len() >= 5 {
+                // Parse timestamp from "YYYY-MM-DD HH:MM:SS.ffffff+ZZZZ"
+                let ts_str = format!("{} {}", parts[0], parts[1]);
+                // Try parsing with chrono - the format has microseconds and timezone offset
+                if let Ok(dt) = chrono::DateTime::parse_from_str(&ts_str, "%Y-%m-%d %H:%M:%S%.f%z")
+                {
+                    timestamp = Some(dt.with_timezone(&Utc));
+                }
+
+                // Parse "Process[PID]: Message" from parts[4]
+                let remainder = parts[4];
+                if let Some(bracket_start) = remainder.find('[') {
+                    process = Some(remainder[..bracket_start].to_string());
+                    if let Some(bracket_end) = remainder[bracket_start..].find(']') {
+                        let pid_str = &remainder[bracket_start + 1..bracket_start + bracket_end];
+                        pid = pid_str.parse::<u32>().ok();
+                    }
+                } else if let Some(colon_pos) = remainder.find(':') {
+                    // Some lines may have "Process: Message" without a PID
+                    let proc_candidate = remainder[..colon_pos].trim();
+                    if !proc_candidate.is_empty() && !proc_candidate.contains(' ') {
+                        process = Some(proc_candidate.to_string());
+                    }
+                }
+            }
+
+            RawLogEntry {
+                message: line.to_string(),
+                source,
+                timestamp,
+                hostname: None,
+                process,
+                pid,
+                event_id: None,
+                user: None,
+                level: None,
+            }
         })
         .collect()
 }

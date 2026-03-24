@@ -115,10 +115,27 @@ impl FimEngine {
     }
 
     /// Update the FIM configuration.
+    ///
+    /// This stops the current watcher and restarts it with the new policy,
+    /// ensuring new watched paths are applied immediately.
     pub async fn update_config(&self, policy: FimPolicy) -> Result<(), FimError> {
-        let mut current = self.policy.write().await;
-        *current = policy;
-        info!("FIM configuration updated");
+        // Stop the current watcher
+        self.stop();
+
+        // Update the policy
+        {
+            let mut current = self.policy.write().await;
+            *current = policy;
+        }
+
+        // Reset the shutdown flag so start() can launch a new watcher
+        self.shutdown
+            .store(false, std::sync::atomic::Ordering::Release);
+
+        // Restart with the new config
+        self.start().await?;
+
+        info!("FIM configuration updated and watcher restarted");
         Ok(())
     }
 

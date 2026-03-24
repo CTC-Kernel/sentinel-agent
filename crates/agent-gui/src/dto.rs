@@ -602,6 +602,8 @@ pub struct GuiFimAlert {
 pub struct GuiSuspiciousProcess {
     /// Process name.
     pub process_name: String,
+    /// Process ID (0 if unknown).
+    pub pid: u32,
     /// Full command line.
     pub command_line: String,
     /// Why this process was flagged.
@@ -833,6 +835,7 @@ pub enum ResponseActionType {
     KillProcess,
     QuarantineFile,
     BlockIp,
+    UnblockIp,
     RestoreFile,
 }
 
@@ -842,6 +845,7 @@ impl ResponseActionType {
             ResponseActionType::KillProcess => "Terminer le processus",
             ResponseActionType::QuarantineFile => "Quarantaine fichier",
             ResponseActionType::BlockIp => "Bloquer IP",
+            ResponseActionType::UnblockIp => "Débloquer IP",
             ResponseActionType::RestoreFile => "Restaurer fichier",
         }
     }
@@ -1340,6 +1344,7 @@ impl AssetCriticality {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AssetLifecycle {
+    Unauthorized,
     #[default]
     Discovered,
     Qualified,
@@ -1350,6 +1355,7 @@ pub enum AssetLifecycle {
 impl std::fmt::Display for AssetLifecycle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Unauthorized => write!(f, "unauthorized"),
             Self::Discovered => write!(f, "discovered"),
             Self::Qualified => write!(f, "qualified"),
             Self::Monitored => write!(f, "monitored"),
@@ -1361,6 +1367,7 @@ impl std::fmt::Display for AssetLifecycle {
 impl AssetLifecycle {
     pub fn as_str(&self) -> &'static str {
         match self {
+            Self::Unauthorized => "Unauthorized",
             Self::Discovered => "Discovered",
             Self::Qualified => "Qualified",
             Self::Monitored => "Monitored",
@@ -1370,6 +1377,7 @@ impl AssetLifecycle {
 
     pub fn label_fr(&self) -> &'static str {
         match self {
+            Self::Unauthorized => "Non autoris\u{00e9}",
             Self::Discovered => "D\u{00e9}couvert",
             Self::Qualified => "Qualifi\u{00e9}",
             Self::Monitored => "Surveill\u{00e9}",
@@ -1379,6 +1387,7 @@ impl AssetLifecycle {
 
     pub fn all() -> &'static [Self] {
         &[
+            Self::Unauthorized,
             Self::Discovered,
             Self::Qualified,
             Self::Monitored,

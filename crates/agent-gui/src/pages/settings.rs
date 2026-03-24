@@ -14,14 +14,55 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 
+/// Application-level salt prepended to passwords before SHA-256 hashing.
+/// This prevents rainbow-table attacks against stored hashes.
+const PASSWORD_SALT: &str = "sentinel-grc-v2-admin-salt-2026";
+
+/// Prefix used to distinguish salted hashes from legacy unsalted hashes.
+const SALTED_HASH_PREFIX: &str = "salted:";
+
+/// Compute the salted SHA-256 hash of a password.
+#[allow(dead_code)] // Utility for computing salted hashes from other modules
+pub(crate) fn compute_salted_hash(password: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(PASSWORD_SALT.as_bytes());
+    hasher.update(password.as_bytes());
+    format!("{}{:x}", SALTED_HASH_PREFIX, hasher.finalize())
+}
+
 /// Verify an admin password attempt against a stored SHA-256 hash.
 /// Uses constant-time comparison to prevent timing side-channel attacks.
+///
+/// Supports both legacy (unsalted, 64 hex chars) and new (salted, prefixed
+/// with "salted:") hash formats. On first run (empty hash), the default
+/// password "admin" is accepted but a warning is logged.
 fn verify_admin_password(attempt: &str, expected_hash: &str) -> bool {
     // If no admin password has been configured yet, accept "admin" as default
     // to allow initial access. The user should change it in settings.
     if expected_hash.is_empty() {
+        tracing::warn!(
+            "Default admin password in use -- set a custom password in settings immediately"
+        );
         return attempt == "admin";
     }
+
+    // New salted hash format: "salted:<hex>"
+    if let Some(salted_hex) = expected_hash.strip_prefix(SALTED_HASH_PREFIX) {
+        let mut hasher = Sha256::new();
+        hasher.update(PASSWORD_SALT.as_bytes());
+        hasher.update(attempt.as_bytes());
+        let computed = format!("{:x}", hasher.finalize());
+        return computed.len() == salted_hex.len()
+            && computed
+                .as_bytes()
+                .iter()
+                .zip(salted_hex.as_bytes())
+                .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+                == 0;
+    }
+
+    // Legacy unsalted hash (64 hex chars) -- still accepted for backward
+    // compatibility. The caller should prompt the user to re-set the password.
     let mut hasher = Sha256::new();
     hasher.update(attempt.as_bytes());
     let computed = format!("{:x}", hasher.finalize());
@@ -354,7 +395,15 @@ impl SettingsPage {
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
+                let prev_discovery = state.discovery.enabled;
                 widgets::toggle_switch(ui, &mut state.discovery.enabled);
+                if state.discovery.enabled != prev_discovery {
+                    if state.discovery.enabled {
+                        command = Some(GuiCommand::StartDiscovery);
+                    } else {
+                        command = Some(GuiCommand::StopDiscovery);
+                    }
+                }
             });
             ui.add_space(theme::SPACE_XS);
             ui.label(
@@ -739,6 +788,20 @@ impl SettingsPage {
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
+
+            // Show prominent warning when default password is still active
+            if state.settings.admin_password_sha256.is_empty() {
+                ui.label(
+                    egui::RichText::new(format!(
+                        "{}  ATTENTION : mot de passe par défaut actif. Configurez un mot de passe administrateur personnalisé.",
+                        icons::WARNING
+                    ))
+                    .font(theme::font_body())
+                    .color(theme::readable_color(theme::WARNING))
+                    .strong(),
+                );
+                ui.add_space(theme::SPACE_SM);
+            }
 
             if !state.security.admin_unlocked {
                 // Locked State

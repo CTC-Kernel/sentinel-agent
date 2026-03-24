@@ -11,7 +11,10 @@
 
 use crate::authenticated_client::AuthenticatedClient;
 use crate::error::{SyncError, SyncResult};
-use crate::types::{AgentCommand, HeartbeatRequest, HeartbeatResponse, SelfCheckResult};
+use crate::types::{
+    AgentCommand, DetectionRulePayload, HeartbeatRequest, HeartbeatResponse, PlaybookPayload,
+    SelfCheckResult,
+};
 use agent_common::constants::{
     AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS, MAX_SYNC_RETRIES, RETRY_BACKOFF_BASE_MS,
     RETRY_BACKOFF_MAX_MS,
@@ -49,6 +52,10 @@ pub struct HeartbeatService {
     self_check_result: RwLock<Option<SelfCheckResult>>,
     /// System info for metrics collection.
     sys: RwLock<System>,
+    /// Playbooks to include in next heartbeat (loaded from local DB).
+    playbooks: RwLock<Vec<PlaybookPayload>>,
+    /// Detection rules to include in next heartbeat (loaded from local DB).
+    detection_rules: RwLock<Vec<DetectionRulePayload>>,
 }
 
 impl HeartbeatService {
@@ -67,6 +74,8 @@ impl HeartbeatService {
             pending_sync_count: AtomicU32::new(0),
             self_check_result: RwLock::new(None),
             sys: RwLock::new(sys),
+            playbooks: RwLock::new(Vec::new()),
+            detection_rules: RwLock::new(Vec::new()),
         }
     }
 
@@ -112,6 +121,16 @@ impl HeartbeatService {
     /// Update the pending sync count.
     pub fn set_pending_sync_count(&self, count: u32) {
         self.pending_sync_count.store(count, Ordering::SeqCst);
+    }
+
+    /// Set playbooks to include in the next heartbeat.
+    pub async fn set_playbooks(&self, playbooks: Vec<PlaybookPayload>) {
+        *self.playbooks.write().await = playbooks;
+    }
+
+    /// Set detection rules to include in the next heartbeat.
+    pub async fn set_detection_rules(&self, rules: Vec<DetectionRulePayload>) {
+        *self.detection_rules.write().await = rules;
     }
 
     /// Set the self-check result to send on next heartbeat.
@@ -312,6 +331,8 @@ impl HeartbeatService {
             connections,
             llm_status: None,
             llm_inference_count: None,
+            playbooks: self.playbooks.read().await.clone(),
+            detection_rules: self.detection_rules.read().await.clone(),
         }
     }
 

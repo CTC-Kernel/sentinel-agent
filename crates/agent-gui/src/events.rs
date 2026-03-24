@@ -389,6 +389,11 @@ pub enum GuiCommand {
     CheckUpdate,
     /// Mark all notifications as read.
     MarkAllNotificationsRead,
+    /// Delete a notification.
+    DeleteNotification {
+        /// Notification ID.
+        notification_id: String,
+    },
     /// Export audit trail to CSV.
     ExportCsvAuditTrail,
     /// Kill a suspicious process.

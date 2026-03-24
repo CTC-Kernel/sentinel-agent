@@ -405,7 +405,7 @@ impl EnrollmentWizard {
                     ui.label(
                         egui::RichText::new("Le mot de passe doit contenir au moins 8 caractères.")
                             .font(theme::font_small())
-                            .color(theme::ERROR),
+                            .color(theme::readable_color(theme::ERROR)),
                     );
                 }
 
@@ -499,7 +499,7 @@ impl EnrollmentWizard {
                     ui.label(
                         egui::RichText::new("Enrôlement réussi !")
                             .font(theme::font_title())
-                            .color(theme::SUCCESS)
+                            .color(theme::readable_color(theme::SUCCESS))
                             .strong(),
                     );
                 } else {
@@ -510,7 +510,7 @@ impl EnrollmentWizard {
                     ui.label(
                         egui::RichText::new("Échec de l'enrôlement")
                             .font(theme::font_title())
-                            .color(theme::ERROR)
+                            .color(theme::readable_color(theme::ERROR))
                             .strong(),
                     );
                 }

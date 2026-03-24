@@ -283,6 +283,16 @@ impl Pagination {
                     theme::font_body(),
                     color,
                 );
+
+                // Focus ring (WCAG 2.4.7)
+                if prev_response.has_focus() {
+                    ui.painter().rect_stroke(
+                        prev_rect,
+                        CornerRadius::same(theme::ROUNDING_MD),
+                        theme::focus_ring(),
+                        egui::StrokeKind::Outside,
+                    );
+                }
             }
 
             if prev_response.clicked() && prev_enabled {
@@ -340,6 +350,16 @@ impl Pagination {
                     theme::font_body(),
                     color,
                 );
+
+                // Focus ring (WCAG 2.4.7)
+                if next_response.has_focus() {
+                    ui.painter().rect_stroke(
+                        next_rect,
+                        CornerRadius::same(theme::ROUNDING_MD),
+                        theme::focus_ring(),
+                        egui::StrokeKind::Outside,
+                    );
+                }
             }
 
             if next_response.clicked() && next_enabled {

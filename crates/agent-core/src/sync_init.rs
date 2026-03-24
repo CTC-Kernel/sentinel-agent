@@ -51,8 +51,10 @@ impl AgentRuntime {
             "Initialized sync services (config, rules, results, audit, commands, grc-orchestrator)"
         );
 
-        // Download central detection rules from the platform
+        // Download central detection rules, playbooks, and alert rules from the platform
         self.sync_central_detection_rules().await;
+        self.sync_central_playbooks().await;
+        self.sync_central_alert_rules().await;
 
         // Seed built-in check rules so the FK constraint is satisfied
         self.seed_builtin_check_rules().await;
@@ -191,6 +193,18 @@ impl AgentRuntime {
                                 }
                             }
                         }
+
+                        // Apply network threat intelligence changes
+                        if let Ok(Some(threat_intel)) = config_sync
+                            .get_config::<agent_network::ThreatIntelligence>(
+                                agent_sync::config_keys::THREAT_INTEL,
+                            )
+                            .await
+                        {
+                            let mut network_manager = self.network_manager.write().await;
+                            network_manager.update_threat_intel(threat_intel);
+                            info!("Network threat intelligence updated from platform.");
+                        }
                     } else {
                         debug!("Config sync: no changes");
                     }
@@ -238,6 +252,88 @@ impl AgentRuntime {
                 info!("Downloaded {} central detection rules from platform", count);
             }
             Err(e) => warn!("Failed to fetch central detection rules: {}", e),
+        }
+    }
+
+    /// Download central playbooks from the platform and store them locally.
+    pub(crate) async fn sync_central_playbooks(&self) {
+        let (db, client) = match (&self.db, &self.authenticated_client) {
+            (Some(db), Some(client)) => (db, client),
+            _ => return,
+        };
+
+        match client.fetch_playbooks().await {
+            Ok(playbooks) => {
+                if playbooks.is_empty() {
+                    debug!("No central playbooks to download");
+                    return;
+                }
+                let repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
+                let mut count = 0u32;
+                let now = chrono::Utc::now().to_rfc3339();
+                for p in &playbooks {
+                    let stored = agent_storage::repositories::grc::StoredPlaybook {
+                        id: p.id.clone(),
+                        name: p.name.clone(),
+                        description: p.description.clone(),
+                        trigger_type: "general".to_string(),
+                        severity: "medium".to_string(),
+                        steps: serde_json::to_string(&p.actions).unwrap_or_default(),
+                        enabled: p.enabled,
+                        created_at: p.created_at.to_rfc3339(),
+                        updated_at: now.clone(),
+                        synced: true,
+                        conditions: serde_json::to_string(&p.conditions)
+                            .unwrap_or_else(|_| "[]".to_string()),
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert central playbook {}: {}", p.id, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                info!("Downloaded {} central playbooks from platform", count);
+            }
+            Err(e) => warn!("Failed to fetch central playbooks: {}", e),
+        }
+    }
+
+    /// Download central alert rules from the platform and store them locally.
+    pub(crate) async fn sync_central_alert_rules(&self) {
+        let (db, client) = match (&self.db, &self.authenticated_client) {
+            (Some(db), Some(client)) => (db, client),
+            _ => return,
+        };
+
+        match client.fetch_alert_rules().await {
+            Ok(rules) => {
+                if rules.is_empty() {
+                    debug!("No central alert rules to download");
+                    return;
+                }
+                let repo = agent_storage::repositories::grc::AlertRuleRepository::new(db);
+                let mut count = 0u32;
+                for r in &rules {
+                    let stored = agent_storage::repositories::grc::StoredAlertRule {
+                        id: r.id.clone(),
+                        name: r.name.clone(),
+                        rule_type: r.rule_type.clone(),
+                        severity_threshold: r.severity_threshold.clone(),
+                        detection_types: serde_json::to_string(&r.detection_types).unwrap_or_default(),
+                        escalation_minutes: r.escalation_minutes.map(|v| v as i32),
+                        enabled: r.enabled,
+                        created_at: r.created_at.to_rfc3339(),
+                        synced: true,
+                    };
+                    if let Err(e) = repo.upsert(&stored).await {
+                        warn!("Failed to upsert central alert rule {}: {}", r.id, e);
+                    } else {
+                        count += 1;
+                    }
+                }
+                info!("Downloaded {} central alert rules from platform", count);
+            }
+            Err(e) => warn!("Failed to fetch central alert rules: {}", e),
         }
     }
 

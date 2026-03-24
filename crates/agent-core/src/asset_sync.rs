@@ -28,18 +28,14 @@ impl AgentRuntime {
             }
         };
 
-        if stored.is_empty() {
-            return;
-        }
-
-        let gui_assets: Vec<agent_gui::dto::ManagedAsset> = stored
+        let mut gui_assets: Vec<agent_gui::dto::ManagedAsset> = stored
             .iter()
             .filter_map(|s| {
                 let id = uuid::Uuid::parse_str(&s.id).ok()?;
-                let first_seen = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                let first_seen = chrono::DateTime::parse_from_rfc3339(&s.first_seen)
                     .map(|dt| dt.with_timezone(&chrono::Utc))
                     .unwrap_or_else(|_| chrono::Utc::now());
-                let last_seen = chrono::DateTime::parse_from_rfc3339(&s.updated_at)
+                let last_seen = chrono::DateTime::parse_from_rfc3339(&s.last_seen)
                     .map(|dt| dt.with_timezone(&chrono::Utc))
                     .unwrap_or_else(|_| chrono::Utc::now());
 
@@ -49,7 +45,8 @@ impl AgentRuntime {
                     "low" | "Low" => agent_gui::dto::AssetCriticality::Low,
                     _ => agent_gui::dto::AssetCriticality::Medium,
                 };
-                let lifecycle = match s.status.as_str() {
+                let lifecycle = match s.lifecycle.as_str() {
+                    "unauthorized" | "Unauthorized" => agent_gui::dto::AssetLifecycle::Unauthorized,
                     "qualified" | "Qualified" => agent_gui::dto::AssetLifecycle::Qualified,
                     "monitored" | "Monitored" => agent_gui::dto::AssetLifecycle::Monitored,
                     "decommissioned" | "Decommissioned" => {
@@ -60,27 +57,55 @@ impl AgentRuntime {
 
                 Some(agent_gui::dto::ManagedAsset {
                     id,
-                    ip: s.location.clone(),
-                    hostname: if s.name == s.location {
-                        None
-                    } else {
-                        Some(s.name.clone())
-                    },
-                    mac: None,
-                    vendor: None,
-                    device_type: s.asset_type.clone(),
+                    ip: s.ip.clone(),
+                    hostname: s.hostname.clone(),
+                    mac: s.mac.clone(),
+                    vendor: s.vendor.clone(),
+                    device_type: s.device_type.clone(),
                     criticality,
                     lifecycle,
-                    tags: Vec::new(),
-                    risk_score: 0.0,
-                    vulnerability_count: 0,
-                    open_ports: Vec::new(),
-                    software: Vec::new(),
+                    tags: serde_json::from_str(&s.tags).unwrap_or_default(),
+                    risk_score: s.risk_score as f32,
+                    vulnerability_count: s.vulnerability_count as u32,
+                    open_ports: serde_json::from_str(&s.open_ports).unwrap_or_default(),
+                    software: serde_json::from_str(&s.software).unwrap_or_default(),
                     first_seen,
                     last_seen,
                 })
             })
             .collect();
+
+        // Auto-register the host machine as the first asset if none exist yet.
+        // The agent runs on this machine — it IS the primary managed asset.
+        if gui_assets.is_empty() {
+            let host_asset = self.build_host_asset();
+            info!("No assets in SQLite — auto-registering host machine as first asset");
+
+            // Persist to SQLite so it survives restarts
+            let stored_host = agent_storage::repositories::grc::StoredManagedAsset {
+                id: host_asset.id.to_string(),
+                ip: host_asset.ip.clone(),
+                hostname: host_asset.hostname.clone(),
+                mac: host_asset.mac.clone(),
+                vendor: host_asset.vendor.clone(),
+                device_type: host_asset.device_type.clone(),
+                criticality: "high".to_string(),
+                lifecycle: "monitored".to_string(),
+                tags: serde_json::to_string(&host_asset.tags).unwrap_or_else(|_| "[]".to_string()),
+                risk_score: host_asset.risk_score as f64,
+                vulnerability_count: host_asset.vulnerability_count as i32,
+                open_ports: serde_json::to_string(&host_asset.open_ports).unwrap_or_else(|_| "[]".to_string()),
+                software: serde_json::to_string(&host_asset.software).unwrap_or_else(|_| "[]".to_string()),
+                first_seen: chrono::Utc::now().to_rfc3339(),
+                last_seen: chrono::Utc::now().to_rfc3339(),
+                synced: false,
+            };
+            if let Err(e) = repo.upsert(&stored_host).await {
+                warn!("Failed to persist host asset to SQLite: {}", e);
+            }
+
+            gui_assets.push(host_asset);
+        }
 
         if !gui_assets.is_empty() {
             info!("Loaded {} asset(s) from SQLite into GUI", gui_assets.len());
@@ -120,20 +145,20 @@ impl AgentRuntime {
                 .iter()
                 .filter_map(|s| {
                     let id = uuid::Uuid::parse_str(&s.id).ok()?;
-                    let severity_threshold = match s.severity.as_str() {
-                        "critical" | "Critical" => Some(agent_gui::dto::Severity::Critical),
-                        "high" | "High" => Some(agent_gui::dto::Severity::High),
-                        "low" | "Low" => Some(agent_gui::dto::Severity::Low),
-                        "info" | "Info" => Some(agent_gui::dto::Severity::Info),
-                        _ => Some(agent_gui::dto::Severity::Medium),
-                    };
-                    let rule_type = match s.description.as_str() {
+                    let severity_threshold = s.severity_threshold.as_deref().map(|sev| match sev {
+                        "critical" | "Critical" => agent_gui::dto::Severity::Critical,
+                        "high" | "High" => agent_gui::dto::Severity::High,
+                        "low" | "Low" => agent_gui::dto::Severity::Low,
+                        "info" | "Info" => agent_gui::dto::Severity::Info,
+                        _ => agent_gui::dto::Severity::Medium,
+                    });
+                    let rule_type = match s.rule_type.as_str() {
                         "TypeFilter" => agent_gui::dto::AlertRuleType::TypeFilter,
                         "EscalationDelay" => agent_gui::dto::AlertRuleType::EscalationDelay,
                         _ => agent_gui::dto::AlertRuleType::SeverityThreshold,
                     };
                     let detection_types: Vec<String> =
-                        serde_json::from_str(&s.condition).unwrap_or_default();
+                        serde_json::from_str(&s.detection_types).unwrap_or_default();
                     let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
                         .map(|dt| dt.with_timezone(&chrono::Utc))
                         .unwrap_or_else(|_| chrono::Utc::now());
@@ -144,7 +169,7 @@ impl AgentRuntime {
                         rule_type,
                         severity_threshold,
                         detection_types,
-                        escalation_minutes: None,
+                        escalation_minutes: s.escalation_minutes.map(|v| v as u32),
                         enabled: s.enabled,
                         created_at,
                     })
@@ -174,6 +199,50 @@ impl AgentRuntime {
                     gui_webhooks.len()
                 );
                 self.emit_alerting_loaded(gui_rules, gui_webhooks);
+            }
+        }
+
+        // Also load risks from SQLite so the Risks page is populated at startup
+        let risk_repo = agent_storage::repositories::grc::RiskRepository::new(db);
+        if let Ok(stored_risks) = risk_repo.get_all().await {
+            let gui_risks: Vec<agent_gui::dto::RiskEntry> = stored_risks
+                .iter()
+                .filter_map(|s| {
+                    let id = uuid::Uuid::parse_str(&s.id).ok()?;
+                    let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                        .map(|dt| dt.with_timezone(&chrono::Utc))
+                        .unwrap_or_else(|_| chrono::Utc::now());
+                    let updated_at = chrono::DateTime::parse_from_rfc3339(&s.updated_at)
+                        .map(|dt| dt.with_timezone(&chrono::Utc))
+                        .unwrap_or_else(|_| chrono::Utc::now());
+                    let status = match s.status.as_str() {
+                        "mitigating" => agent_gui::dto::RiskStatus::Mitigating,
+                        "accepted" => agent_gui::dto::RiskStatus::Accepted,
+                        "closed" => agent_gui::dto::RiskStatus::Closed,
+                        _ => agent_gui::dto::RiskStatus::Open,
+                    };
+                    Some(agent_gui::dto::RiskEntry {
+                        id,
+                        title: s.title.clone(),
+                        description: s.description.clone(),
+                        probability: s.probability.clamp(1, 5) as u8,
+                        impact: s.impact.clamp(1, 5) as u8,
+                        owner: s.owner.clone(),
+                        status,
+                        mitigation: s.mitigation.clone(),
+                        source: s.source.clone(),
+                        created_at,
+                        updated_at,
+                        sla_target_days: s.sla_target_days.map(|v| v as u32),
+                    })
+                })
+                .collect();
+
+            if !gui_risks.is_empty() {
+                info!("Loaded {} risk(s) from SQLite into GUI", gui_risks.len());
+                self.emit_gui_event(agent_gui::events::AgentEvent::RisksLoaded {
+                    risks: gui_risks,
+                });
             }
         }
 
@@ -262,10 +331,10 @@ impl AgentRuntime {
     #[cfg(feature = "gui")]
     fn stored_asset_to_dto(&self, s: &agent_storage::repositories::grc::StoredManagedAsset) -> agent_gui::dto::ManagedAsset {
         let id = uuid::Uuid::parse_str(&s.id).unwrap_or_else(|_| uuid::Uuid::new_v4());
-        let first_seen = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+        let first_seen = chrono::DateTime::parse_from_rfc3339(&s.first_seen)
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or_else(|_| chrono::Utc::now());
-        let last_seen = chrono::DateTime::parse_from_rfc3339(&s.updated_at)
+        let last_seen = chrono::DateTime::parse_from_rfc3339(&s.last_seen)
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or_else(|_| chrono::Utc::now());
         let criticality = match s.criticality.as_str() {
@@ -274,7 +343,8 @@ impl AgentRuntime {
             "low" | "Low" => agent_gui::dto::AssetCriticality::Low,
             _ => agent_gui::dto::AssetCriticality::Medium,
         };
-        let lifecycle = match s.status.as_str() {
+        let lifecycle = match s.lifecycle.as_str() {
+            "unauthorized" | "Unauthorized" => agent_gui::dto::AssetLifecycle::Unauthorized,
             "qualified" | "Qualified" => agent_gui::dto::AssetLifecycle::Qualified,
             "monitored" | "Monitored" => agent_gui::dto::AssetLifecycle::Monitored,
             "decommissioned" | "Decommissioned" => agent_gui::dto::AssetLifecycle::Decommissioned,
@@ -282,20 +352,77 @@ impl AgentRuntime {
         };
         agent_gui::dto::ManagedAsset {
             id,
-            ip: s.location.clone(),
-            hostname: if s.name == s.location { None } else { Some(s.name.clone()) },
-            mac: None,
-            vendor: None,
-            device_type: s.asset_type.clone(),
+            ip: s.ip.clone(),
+            hostname: s.hostname.clone(),
+            mac: s.mac.clone(),
+            vendor: s.vendor.clone(),
+            device_type: s.device_type.clone(),
             criticality,
             lifecycle,
-            tags: Vec::new(),
+            tags: serde_json::from_str(&s.tags).unwrap_or_default(),
+            risk_score: s.risk_score as f32,
+            vulnerability_count: s.vulnerability_count as u32,
+            open_ports: serde_json::from_str(&s.open_ports).unwrap_or_default(),
+            software: serde_json::from_str(&s.software).unwrap_or_default(),
+            first_seen,
+            last_seen,
+        }
+    }
+
+    /// Build a `ManagedAsset` representing the host machine where the agent runs.
+    #[cfg(feature = "gui")]
+    fn build_host_asset(&self) -> agent_gui::dto::ManagedAsset {
+        let hostname = hostname::get()
+            .map(|h| h.to_string_lossy().to_string())
+            .unwrap_or_else(|_| "unknown".to_string());
+
+        // Detect primary local IP address
+        let ip = Self::detect_local_ip().unwrap_or_else(|| "127.0.0.1".to_string());
+
+        // Detect OS type for device_type
+        let device_type = if cfg!(target_os = "macos") {
+            "macOS".to_string()
+        } else if cfg!(target_os = "windows") {
+            "Windows".to_string()
+        } else {
+            "Linux".to_string()
+        };
+
+        let sys = crate::resources::get_system_resources();
+        let ram_gb = sys.memory_total_bytes / (1024 * 1024 * 1024);
+        let disk_gb = sys.disk_total_bytes / (1024 * 1024 * 1024);
+
+        let now = chrono::Utc::now();
+        agent_gui::dto::ManagedAsset {
+            id: uuid::Uuid::new_v4(),
+            ip,
+            hostname: Some(hostname),
+            mac: None,
+            vendor: None,
+            device_type,
+            criticality: agent_gui::dto::AssetCriticality::High,
+            lifecycle: agent_gui::dto::AssetLifecycle::Monitored,
+            tags: vec![
+                "agent-hôte".to_string(),
+                format!("RAM {}Go", ram_gb),
+                format!("Disque {}Go", disk_gb),
+            ],
             risk_score: 0.0,
             vulnerability_count: 0,
             open_ports: Vec::new(),
             software: Vec::new(),
-            first_seen,
-            last_seen,
+            first_seen: now,
+            last_seen: now,
         }
+    }
+
+    /// Detect the primary local IP address (non-loopback).
+    fn detect_local_ip() -> Option<String> {
+        // Use a UDP socket trick to find the primary outbound interface IP.
+        // Connect to a public DNS (doesn't actually send data).
+        let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
+        socket.connect("8.8.8.8:53").ok()?;
+        let addr = socket.local_addr().ok()?;
+        Some(addr.ip().to_string())
     }
 }

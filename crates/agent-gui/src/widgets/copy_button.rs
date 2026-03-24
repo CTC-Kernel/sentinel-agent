@@ -20,7 +20,7 @@ pub fn copy_button(ui: &mut Ui, text_to_copy: &str, tooltip: Option<&str>) -> Re
     let recently_copied = copied_at.is_some_and(|t| now - t < 1.5);
 
     let (icon, color) = if recently_copied {
-        (icons::CHECK, theme::SUCCESS)
+        (icons::CHECK, theme::readable_color(theme::SUCCESS))
     } else {
         (icons::COPY, theme::text_secondary())
     };

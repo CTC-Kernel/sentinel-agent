@@ -670,7 +670,7 @@ impl CompliancePage {
                                     ui.label(
                                         egui::RichText::new("Analyse en cours...")
                                             .font(theme::font_small())
-                                            .color(theme::INFO),
+                                            .color(theme::readable_color(theme::INFO)),
                                     );
                                 });
                             } else if let Some(ref result) = ai_result {
@@ -1017,7 +1017,7 @@ impl CompliancePage {
                         } else {
                             0.0
                         };
-                        let score_color = theme::score_color(pct);
+                        let score_color = theme::readable_color(theme::score_color(pct));
                         ui.vertical_centered(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(fw.to_uppercase())

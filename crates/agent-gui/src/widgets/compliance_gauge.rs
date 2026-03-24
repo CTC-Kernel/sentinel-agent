@@ -72,13 +72,13 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 painter.circle_filled(last_point, stroke_width * 0.25, theme::text_on_accent());
             }
 
-            // Score text
+            // Score text (AAA readable)
             painter.text(
                 center + Vec2::new(0.0, -theme::SPACE_XS),
                 egui::Align2::CENTER_CENTER,
                 format!("{:.0}%", clamped),
                 theme::font_card_value(),
-                color,
+                theme::readable_color(color),
             );
             painter.text(
                 center + Vec2::new(0.0, theme::SPACE),

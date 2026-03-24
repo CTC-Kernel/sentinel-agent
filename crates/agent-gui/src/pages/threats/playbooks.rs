@@ -148,7 +148,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             ui.label(
                                 egui::RichText::new(tpl.icon)
                                     .size(theme::ICON_MD)
-                                    .color(theme::ACCENT),
+                                    .color(theme::readable_color(theme::ACCENT)),
                             );
                             ui.add_space(theme::SPACE_XS);
                             ui.label(

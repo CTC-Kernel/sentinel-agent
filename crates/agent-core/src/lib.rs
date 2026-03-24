@@ -775,9 +775,7 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         let mut cached_policy_summary: Option<GuiPolicySummary> = None;
 
-        // KPI tracking counters for GUI snapshots
-        #[cfg(feature = "gui")]
-        let mut kpi_incident_count: u32 = 0;
+        // KPI tracking counters — declared here, reset each iteration inside the loop.
         #[cfg(feature = "gui")]
         let mut kpi_open_vulns: u32 = 0;
 
@@ -1050,6 +1048,11 @@ impl AgentRuntime {
 
             let mut is_active = false;
             let is_paused = self.is_paused();
+
+            // Per-iteration KPI incident counter — reset each iteration so each
+            // snapshot reflects only the current cycle, not a cumulative total.
+            #[cfg(feature = "gui")]
+            let mut kpi_incident_count: u32 = 0;
 
             // Threat pipeline accumulators (populated during this iteration)
             #[cfg(feature = "gui")]
@@ -1596,6 +1599,11 @@ impl AgentRuntime {
                                             .and_then(|v| v.as_str())
                                             .unwrap_or("unknown")
                                             .to_string();
+                                        let pid = incident
+                                            .evidence
+                                            .get("pid")
+                                            .and_then(|v| v.as_u64())
+                                            .unwrap_or(0) as u32;
                                         let command_line = incident
                                             .evidence
                                             .get("path")
@@ -1605,6 +1613,7 @@ impl AgentRuntime {
                                         self.emit_gui_event(AgentEvent::SuspiciousProcess {
                                             process: GuiSuspiciousProcess {
                                                 process_name,
+                                                pid,
                                                 command_line,
                                                 reason: incident.description.clone(),
                                                 confidence: incident.confidence,
@@ -1944,7 +1953,9 @@ impl AgentRuntime {
                                             let event = engine.alert_to_event(alert, &host);
                                             siem.record_event(event.clone()).await;
                                             if siem.is_enabled() {
-                                                let _ = siem.send_event(&event).await;
+                                                if let Err(e) = siem.send_event(&event).await {
+                                                    warn!("Failed to forward correlation alert to external SIEM: {}", e);
+                                                }
                                             }
                                         }
                                     }
@@ -2832,6 +2843,8 @@ impl AgentRuntime {
                 connections: vec![],
                 llm_status: None,
                 llm_inference_count: None,
+                detection_rules: vec![],
+                playbooks: vec![],
             };
 
             if let Err(e) = client.send_heartbeat(request).await {
