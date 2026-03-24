@@ -238,6 +238,7 @@ impl Sidebar {
                             (Page::Discovery, icons::DISCOVERY, "Shadow IT"),
                             (Page::Assets, icons::BOXES_STACKED, "Inventaire"),
                             (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
+                            (Page::AuditTrail, icons::CLIPBOARD, "Journal d'audit"),
                             (Page::Sync, icons::SYNC, "Synchronisation"),
                             (Page::Terminal, icons::TERMINAL, "Terminal"),
                         ];

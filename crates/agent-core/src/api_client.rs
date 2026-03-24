@@ -1155,6 +1155,8 @@ mod tests {
             disk_io_kbps: 0,
             llm_status: Some("active".to_string()),
             llm_inference_count: Some(42),
+            detection_rules: vec![],
+            playbooks: vec![],
         };
 
         let json = serde_json::to_string(&request).unwrap();

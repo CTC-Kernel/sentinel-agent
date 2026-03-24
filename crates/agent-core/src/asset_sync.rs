@@ -417,6 +417,7 @@ impl AgentRuntime {
     }
 
     /// Detect the primary local IP address (non-loopback).
+    #[cfg(feature = "gui")]
     fn detect_local_ip() -> Option<String> {
         // Use a UDP socket trick to find the primary outbound interface IP.
         // Connect to a public DNS (doesn't actually send data).
