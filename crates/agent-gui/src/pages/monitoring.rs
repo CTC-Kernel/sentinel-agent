@@ -46,7 +46,6 @@ impl MonitoringPage {
         // Tab bar with action buttons
         ui.horizontal(|ui: &mut egui::Ui| {
             let tab_defs: &[(&str, &str)] = &[
-                (icons::CHART_LINE, "Ressources"),
                 (icons::DATABASE, "Journal SIEM"),
                 (icons::CHART_AREA, "Statistiques"),
             ];
@@ -78,114 +77,13 @@ impl MonitoringPage {
         ui.add_space(theme::SPACE_LG);
 
         match state.monitoring.active_tab {
-            0 => command = Self::resources_tab(ui, state),
-            1 => command = Self::siem_logs_tab(ui, state),
-            2 => Self::siem_stats_tab(ui, state),
+            0 => command = Self::siem_logs_tab(ui, state),
+            1 => Self::siem_stats_tab(ui, state),
             _ => {}
         }
 
         ui.add_space(theme::SPACE_XL);
         command
-    }
-
-    // ════════════════════════════════════════════════════════════════════════
-    // Resources Tab
-    // ════════════════════════════════════════════════════════════════════════
-
-    fn resources_tab(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
-        // ── Summary KPI cards ──────────────────────────────────────────────
-        let summary_grid = widgets::ResponsiveGrid::new(240.0, theme::SPACE_SM);
-        let items = vec![
-            (
-                "CHARGE CPU",
-                format!("{:.1}%", state.resources.cpu_percent),
-                Self::usage_color(state.resources.cpu_percent),
-                icons::BOLT,
-            ),
-            (
-                "MÉMOIRE VIVE",
-                if state.resources.memory_total_mb > 0 {
-                    format!(
-                        "{:.1} / {:.1} Go",
-                        state.resources.memory_used_mb as f64 / 1024.0,
-                        state.resources.memory_total_mb as f64 / 1024.0
-                    )
-                } else {
-                    format!("{:.1}%", state.resources.memory_percent)
-                },
-                Self::usage_color(state.resources.memory_percent),
-                icons::MEMORY,
-            ),
-            (
-                "DISQUE SYSTÈME",
-                format!("{:.1}%", state.resources.disk_percent),
-                Self::usage_color(state.resources.disk_percent),
-                icons::HARD_DRIVE,
-            ),
-            (
-                "UPTIME AGENT",
-                Self::format_uptime(state.resources.uptime_secs),
-                theme::accent_text(),
-                icons::CLOCK,
-            ),
-        ];
-
-        summary_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
-            Self::summary_card(ui, width, label, value, *color, icon);
-        });
-
-        ui.add_space(theme::SPACE_LG);
-
-        // ── Main charts (CPU + Memory) ─────────────────────────────────────
-        let cpu_data: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
-        let mem_data: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
-
-        let main_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
-        let main_items: Vec<(&str, &str, &[[f64; 2]], egui::Color32, bool)> = vec![
-            ("CPU", "%", &cpu_data, theme::SUCCESS, false),
-            ("MÉMOIRE", "%", &mem_data, theme::accent_text(), false),
-        ];
-
-        main_grid.show(
-            ui,
-            &main_items,
-            |ui, width, (title, unit, history, color, auto_y)| {
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.set_width(width);
-                    Self::premium_chart_card(ui, title, unit, history, *color, *auto_y);
-                });
-            },
-        );
-
-        ui.add_space(theme::SPACE_LG);
-
-        // ── I/O charts (Disk + Network) ────────────────────────────────────
-        let disk_data: Vec<[f64; 2]> = state.monitoring.disk_io_history.iter().copied().collect();
-        let net_data: Vec<[f64; 2]> = state
-            .monitoring
-            .network_io_history
-            .iter()
-            .copied()
-            .collect();
-
-        let io_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
-        let io_items: Vec<(&str, &str, &[[f64; 2]], egui::Color32, bool)> = vec![
-            ("FLUX DISQUE", "kB/s", &disk_data, theme::WARNING, true),
-            ("FLUX RÉSEAU", "kB/s", &net_data, theme::INFO, true),
-        ];
-
-        io_grid.show(
-            ui,
-            &io_items,
-            |ui, width, (title, unit, history, color, auto_y)| {
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.set_width(width);
-                    Self::premium_chart_card(ui, title, unit, history, *color, *auto_y);
-                });
-            },
-        );
-
-        None
     }
 
     // ════════════════════════════════════════════════════════════════════════

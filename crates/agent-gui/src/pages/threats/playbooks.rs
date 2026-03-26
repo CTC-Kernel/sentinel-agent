@@ -119,6 +119,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let mut command: Option<GuiCommand> = None;
 
     // ── Templates card ──────────────────────────────────────────────
+    let mut installed_template: Option<Playbook> = None;
     widgets::card(ui, |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new("TEMPLATES PR\u{00c9}-CONFIGUR\u{00c9}S")
@@ -181,7 +182,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         )
                         .clicked()
                         {
-                            state.threats.playbooks.push(Playbook {
+                            let playbook = Playbook {
                                 id: Uuid::new_v4(),
                                 name: tpl.name.to_string(),
                                 description: tpl.description.to_string(),
@@ -192,12 +193,19 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 last_triggered: None,
                                 trigger_count: 0,
                                 is_template: true,
-                            });
+                            };
+                            installed_template = Some(playbook.clone());
+                            state.threats.playbooks.push(playbook);
                         }
                     });
             });
         });
     });
+    if let Some(playbook) = installed_template {
+        command = Some(GuiCommand::SavePlaybook {
+            playbook: Box::new(playbook),
+        });
+    }
 
     ui.add_space(theme::SPACE_MD);
 
