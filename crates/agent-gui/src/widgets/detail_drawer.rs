@@ -406,7 +406,7 @@ pub fn detail_field(ui: &mut Ui, label: &str, value: &str) {
     ui.add_space(theme::SPACE_XS);
 }
 
-/// Render a key-value field with colored value.
+/// Render a key-value field with colored value (AAA-readable via `readable_color`).
 pub fn detail_field_colored(ui: &mut Ui, label: &str, value: &str, color: Color32) {
     ui.horizontal(|ui| {
         ui.label(
@@ -418,7 +418,7 @@ pub fn detail_field_colored(ui: &mut Ui, label: &str, value: &str, color: Color3
             ui.label(
                 egui::RichText::new(value)
                     .font(theme::font_body())
-                    .color(color)
+                    .color(theme::readable_color(color))
                     .strong(),
             );
         });

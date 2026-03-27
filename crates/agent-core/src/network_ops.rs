@@ -37,6 +37,12 @@ impl AgentRuntime {
     ) -> Result<Vec<NetworkSecurityAlert>, CommonError> {
         debug!("Running network security detection...");
 
+        // Feed connections to the beaconing detector before analysis
+        {
+            let mut network_manager = self.network_manager.write().await;
+            network_manager.record_connections_for_beaconing(&snapshot.connections);
+        }
+
         let network_manager = self.network_manager.read().await;
         let alerts = network_manager
             .detect_threats(&snapshot.connections)
@@ -105,8 +111,8 @@ impl AgentRuntime {
             .ok_or_else(|| CommonError::config("Agent not enrolled"))?;
 
         let payload = serde_json::json!({
-            "alert_type": format!("{:?}", alert.alert_type),
-            "severity": format!("{:?}", alert.severity),
+            "alert_type": format!("{}", alert.alert_type),
+            "severity": format!("{}", alert.severity),
             "title": alert.title,
             "description": alert.description,
             "connection": alert.connection,

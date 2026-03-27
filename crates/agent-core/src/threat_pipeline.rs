@@ -339,6 +339,39 @@ pub async fn run_threat_pipeline(
     }
 }
 
+/// Convert a single stored detection rule to GUI DTO.
+#[cfg(feature = "gui")]
+pub fn stored_rule_to_single_dto(
+    s: &agent_storage::repositories::grc::StoredDetectionRule,
+) -> agent_gui::dto::DetectionRule {
+    let id = uuid::Uuid::parse_str(&s.id).unwrap_or_else(|_| uuid::Uuid::new_v4());
+    let severity = match s.severity.to_lowercase().as_str() {
+        "critical" => agent_gui::dto::Severity::Critical,
+        "high" => agent_gui::dto::Severity::High,
+        "medium" => agent_gui::dto::Severity::Medium,
+        "low" => agent_gui::dto::Severity::Low,
+        "info" => agent_gui::dto::Severity::Info,
+        _ => agent_gui::dto::Severity::Medium,
+    };
+    let conditions: Vec<agent_gui::dto::DetectionCondition> =
+        serde_json::from_str(&s.conditions).unwrap_or_default();
+    let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+        .map(|dt| dt.with_timezone(&chrono::Utc))
+        .unwrap_or_else(|_| chrono::Utc::now());
+    agent_gui::dto::DetectionRule {
+        id,
+        name: s.name.clone(),
+        description: s.description.clone(),
+        severity,
+        conditions,
+        actions: Vec::new(),
+        enabled: s.enabled,
+        created_at,
+        last_match: None,
+        match_count: 0,
+    }
+}
+
 /// Convert stored detection rules from the database into GUI DTOs for pipeline evaluation.
 #[cfg(feature = "gui")]
 pub fn stored_rules_to_dto(
@@ -378,6 +411,33 @@ pub fn stored_rules_to_dto(
         .collect()
 }
 
+/// Convert a single stored playbook to GUI DTO.
+#[cfg(feature = "gui")]
+pub fn stored_playbook_to_single_dto(
+    s: &agent_storage::repositories::grc::StoredPlaybook,
+) -> agent_gui::dto::Playbook {
+    let id = uuid::Uuid::parse_str(&s.id).unwrap_or_else(|_| uuid::Uuid::new_v4());
+    let actions: Vec<agent_gui::dto::PlaybookAction> =
+        serde_json::from_str(&s.steps).unwrap_or_default();
+    let conditions: Vec<agent_gui::dto::PlaybookCondition> =
+        serde_json::from_str(&s.conditions).unwrap_or_default();
+    let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+        .map(|dt| dt.with_timezone(&chrono::Utc))
+        .unwrap_or_else(|_| chrono::Utc::now());
+    agent_gui::dto::Playbook {
+        id,
+        name: s.name.clone(),
+        description: s.description.clone(),
+        enabled: s.enabled,
+        conditions,
+        actions,
+        created_at,
+        last_triggered: None,
+        trigger_count: 0,
+        is_template: false,
+    }
+}
+
 /// Convert stored playbooks from the database into GUI DTOs for pipeline evaluation.
 #[cfg(feature = "gui")]
 pub fn stored_playbooks_to_dto(
@@ -393,12 +453,15 @@ pub fn stored_playbooks_to_dto(
                 .map(|dt| dt.with_timezone(&chrono::Utc))
                 .unwrap_or_else(|_| chrono::Utc::now());
 
+            let conditions: Vec<agent_gui::dto::PlaybookCondition> =
+                serde_json::from_str(&s.conditions).unwrap_or_default();
+
             Some(agent_gui::dto::Playbook {
                 id,
-                name: s.title.clone(),
+                name: s.name.clone(),
                 description: s.description.clone(),
-                enabled: s.status == "active",
-                conditions: Vec::new(), // Conditions stored separately
+                enabled: s.enabled,
+                conditions,
                 actions,
                 created_at,
                 last_triggered: None,

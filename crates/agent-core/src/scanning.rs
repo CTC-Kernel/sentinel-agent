@@ -52,9 +52,12 @@ impl AgentRuntime {
             .agent_id()
             .ok_or_else(|| CommonError::config("Agent not enrolled"))?;
 
+        // Only upload vulnerabilities with a CVE ID to the platform.
+        // Outdated-package-only findings (no CVE) stay local to the agent GUI.
         let vulnerabilities: Vec<serde_json::Value> = scan_result
             .vulnerabilities
             .iter()
+            .filter(|v| v.cve_id.is_some())
             .map(|v| {
                 serde_json::json!({
                     "package_name": v.package_name,
@@ -67,7 +70,7 @@ impl AgentRuntime {
                     "remediation": v.remediation,
                     "detected_at": v.detected_at.to_rfc3339(),
                     "source": v.source,
-                    "ai_confidence": v.ai_confidence,
+                    "ai_confidence": v.ai_confidence.map(|c| f64::from(c) / 100.0),
                     "is_false_positive": v.is_false_positive,
                     "ai_analysis": v.ai_analysis,
                 })
@@ -76,7 +79,7 @@ impl AgentRuntime {
 
         let payload = serde_json::json!({
             "vulnerabilities": vulnerabilities,
-            "scan_type": format!("{:?}", scan_result.scan_type).to_lowercase(),
+            "scan_type": format!("{}", scan_result.scan_type),
         });
 
         let url = format!("/v1/agents/{}/vulnerabilities", agent_id);

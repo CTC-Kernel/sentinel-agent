@@ -443,7 +443,7 @@ impl DashboardPage {
                 ];
 
                 for (label, score, weight) in components {
-                    let color = theme::score_color(*score);
+                    let color = theme::readable_color(theme::score_color(*score));
                     ui.horizontal(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(format!("{} ({})", label, weight))
@@ -1197,7 +1197,7 @@ impl DashboardPage {
                                 _ => {
                                     // SLA remediation (mini gauge)
                                     let (arrow, color) = Self::kpi_trend_arrow(sla_trend, true);
-                                    let sla_color = theme::score_color(current_sla);
+                                    let sla_color = theme::readable_color(theme::score_color(current_sla));
                                     egui::Frame::new()
                                         .fill(
                                             theme::bg_tertiary()

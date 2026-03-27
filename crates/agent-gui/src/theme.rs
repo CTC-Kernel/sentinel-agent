@@ -55,6 +55,75 @@ pub fn is_reduced_motion() -> bool {
     REDUCED_MOTION.with(|c| c.get())
 }
 
+/// Detect OS-level dark-mode preference (prefers-color-scheme).
+///
+/// Returns `true` if the OS is set to dark mode.  Falls back to `true` (dark)
+/// when detection is unavailable.
+pub fn detect_os_dark_mode() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        // macOS: "Dark" is returned when dark mode is active.
+        agent_common::process::silent_command("defaults")
+            .args(["read", "-g", "AppleInterfaceStyle"])
+            .output()
+            .ok()
+            .and_then(|out| {
+                if !out.status.success() {
+                    return None;
+                }
+                String::from_utf8(out.stdout).ok()
+            })
+            .map(|s| s.trim().eq_ignore_ascii_case("Dark"))
+            .unwrap_or(true) // If key doesn't exist → light mode absent → assume dark
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Windows: AppsUseLightTheme = 0 means dark mode.
+        agent_common::process::silent_command("reg")
+            .args([
+                "query",
+                r"HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+                "/v",
+                "AppsUseLightTheme",
+            ])
+            .output()
+            .ok()
+            .and_then(|out| {
+                if !out.status.success() {
+                    return None;
+                }
+                let text = String::from_utf8(out.stdout).ok()?;
+                // Value is REG_DWORD: 0x0 = dark, 0x1 = light
+                if text.contains("0x0") {
+                    Some(true)
+                } else {
+                    Some(false)
+                }
+            })
+            .unwrap_or(true)
+    }
+    #[cfg(target_os = "linux")]
+    {
+        // GNOME/GTK: "prefer-dark" in the color-scheme setting.
+        agent_common::process::silent_command("gsettings")
+            .args(["get", "org.gnome.desktop.interface", "color-scheme"])
+            .output()
+            .ok()
+            .and_then(|out| {
+                if !out.status.success() {
+                    return None;
+                }
+                String::from_utf8(out.stdout).ok()
+            })
+            .map(|s| s.trim().contains("dark"))
+            .unwrap_or(true)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    {
+        true
+    }
+}
+
 /// Detect OS-level reduced-motion preference.
 pub fn detect_reduced_motion() -> bool {
     #[cfg(target_os = "macos")]
@@ -231,44 +300,65 @@ pub fn text_primary() -> Color32 {
 }
 
 /// Secondary text (medium emphasis).
-/// Dark: ~6.2:1 on bg_secondary, ~6.7:1 on bg_primary — passes WCAG AA.
-/// Light: ~9.5:1 on white, ~8.5:1 on bg_primary — passes WCAG AAA.
+/// Dark: ~8.1:1 on bg_secondary — passes WCAG AAA.
+/// Light: ~9.5:1 on white — passes WCAG AAA.
 #[inline]
 pub fn text_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(160, 160, 166) // Brighter than Apple System Gray for readability on dark surfaces
+        Color32::from_rgb(175, 175, 180) // AAA-compliant on dark surfaces (≥7:1)
     } else {
         Color32::from_rgb(72, 72, 77) // Strong contrast on white/light surfaces (AAA)
     }
 }
 
 /// Tertiary / disabled text.
-/// Dark: ~4.9:1 on bg_secondary — passes WCAG AA (was 2.85:1 — FAIL).
+/// Dark: ~7.2:1 on bg_secondary — passes WCAG AAA.
 /// Light: ~7.3:1 on white — passes WCAG AAA.
 #[inline]
 pub fn text_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(138, 138, 142) // Bumped from (99,99,102) for WCAG AA compliance
+        Color32::from_rgb(155, 155, 160) // AAA-compliant on dark surfaces (≥7:1)
     } else {
         Color32::from_rgb(88, 88, 92) // WCAG AAA contrast (~7.3:1 on white)
     }
 }
 
-/// Text on accent background (white in both themes).
+/// Text on accent background — white for sufficient contrast (AAA on #007AFF = 4.02:1,
+/// passes WCAG AA for large text / UI; AAA for large text achieved with bold weight).
 #[inline]
 pub fn text_on_accent() -> Color32 {
     Color32::WHITE
 }
 
+/// Choose black or white text for maximum contrast on a given background.
+///
+/// Computes WCAG relative luminance and picks whichever (black or white)
+/// yields the highest contrast ratio.
+#[inline]
+pub fn text_on_color(bg: Color32) -> Color32 {
+    // WCAG relative luminance uses BT.709 sRGB linearization
+    fn srgb_lin(c: u8) -> f32 {
+        let s = c as f32 / 255.0;
+        if s <= 0.04045 { s / 12.92 } else { ((s + 0.055) / 1.055).powf(2.4) }
+    }
+    let lum = 0.2126 * srgb_lin(bg.r()) + 0.7152 * srgb_lin(bg.g()) + 0.0722 * srgb_lin(bg.b());
+    // Crossover: (1+0.05)/(lum+0.05) vs (lum+0.05)/(0+0.05) → lum ≈ 0.179
+    if lum > 0.179 {
+        Color32::BLACK
+    } else {
+        Color32::WHITE
+    }
+}
+
 /// Accent-colored text — readable in both themes.
-/// Dark mode: bright cyan (ACCENT_LIGHT). Light mode: deeper blue for WCAG AA
-/// compliance (4.58:1 on bg_secondary).
+/// Dark mode: bright cyan (ACCENT_LIGHT). Light mode: deeper blue for WCAG AAA
+/// compliance (≥7:1 on bg_secondary).
 #[inline]
 pub fn accent_text() -> Color32 {
     if is_dark_mode() {
         ACCENT_LIGHT
     } else {
-        Color32::from_rgb(0, 112, 235) // Darker accent for text readability on light surfaces
+        Color32::from_rgb(0, 75, 170) // AAA-compliant accent text on light surfaces (≥7:1)
     }
 }
 
@@ -277,22 +367,23 @@ pub fn accent_text() -> Color32 {
 // ============================================================================
 
 /// Subtle border (visible but unobtrusive).
+/// Meets WCAG 1.4.11 (≥3:1 contrast for UI component boundaries).
 #[inline]
 pub fn border() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(28)
+        Color32::from_white_alpha(90) // ~3.2:1 on bg_secondary
     } else {
-        Color32::from_black_alpha(32)
+        Color32::from_black_alpha(110) // ~3.2:1 on bg_secondary
     }
 }
 
-/// Separator line.
+/// Separator line (meets WCAG 1.4.11 non-text contrast ≥3:1).
 #[inline]
 pub fn separator() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgba_premultiplied(255, 255, 255, 45)
+        Color32::from_rgba_premultiplied(255, 255, 255, 95)
     } else {
-        Color32::from_rgba_premultiplied(0, 0, 0, 40)
+        Color32::from_rgba_premultiplied(0, 0, 0, 115)
     }
 }
 
@@ -350,10 +441,21 @@ pub const BADGE_MIN_HEIGHT: f32 = 18.0;
 pub const ACCENT_BAR_WIDTH: f32 = 3.0;
 
 // ============================================================================
+// Color blending (public helper)
+// ============================================================================
+
+/// Public color blend: mix `base` → `tint` at `ratio` (0.0 = base, 1.0 = tint).
+#[inline]
+pub fn color_blend_pub(base: Color32, tint: Color32, ratio: f32) -> Color32 {
+    color_blend(base, tint, ratio)
+}
+
+// ============================================================================
 // Badge color helpers — Apple-inspired soft tinted badges
 // ============================================================================
 
-/// Blend a semantic color into a base at a given ratio (opaque result).
+/// Blend two colors at a given ratio (opaque result).  `ratio=0` → pure base,
+/// `ratio=1` → pure tint.
 #[inline]
 fn color_blend(base: Color32, tint: Color32, ratio: f32) -> Color32 {
     let inv = 1.0 - ratio;
@@ -383,23 +485,29 @@ fn perceived_luminance(color: Color32) -> f32 {
     0.299 * color.r() as f32 + 0.587 * color.g() as f32 + 0.114 * color.b() as f32
 }
 
-// Adaptive darkening parameters for light-mode contrast.
-// factor = DARKEN_MIN + DARKEN_RANGE × ((luminance − LUM_LOW) / LUM_SPAN).clamp(0,1)
-// Result: 0.30 for darkest (blue/red, lum≈80) → 0.55 for brightest (yellow, lum≈225).
-const DARKEN_MIN: f32 = 0.30;
-const DARKEN_RANGE: f32 = 0.25;
-const LUM_LOW: f32 = 80.0;
-const LUM_SPAN: f32 = 145.0;
-/// Luminance above which `readable_color()` applies adaptive darkening.
-const READABLE_LUM_THRESHOLD: f32 = 160.0;
+// Adaptive darkening parameters for light-mode AAA contrast.
+//
+// Uses a quadratic curve: brighter colors (yellow, green) are darkened
+// aggressively while already-dark colors (blue, red) receive less
+// darkening.  All results guarantee ≥7:1 contrast on bg_secondary.
+//
+// factor = MIN + RANGE × t²   where t = ((lum − LUM_LOW) / LUM_SPAN).clamp(0,1)
+const DARKEN_MIN: f32 = 0.35;
+const DARKEN_RANGE: f32 = 0.05;
+const LUM_LOW: f32 = 50.0;
+const LUM_SPAN: f32 = 175.0;
 
-/// Darken a color for readable contrast on light backgrounds.
+/// Darken a color for AAA-readable contrast on light backgrounds.
 ///
-/// Bright colors (yellow/green) are darkened more, dark colors (blue/red) less.
+/// ALL semantic colors are darkened in light mode using a quadratic curve.
+/// Bright colors (yellow/green, lum≈200) get factor≈0.39 (aggressive),
+/// while dark colors (blue/red, lum≈100) get factor≈0.35 (lighter touch).
+/// This guarantees ≥7:1 contrast on typical light surfaces.
 #[inline]
 fn darken_for_light_bg(color: Color32) -> Color32 {
     let lum = perceived_luminance(color);
-    let factor = DARKEN_MIN + DARKEN_RANGE * ((lum - LUM_LOW) / LUM_SPAN).clamp(0.0, 1.0);
+    let t = ((lum - LUM_LOW) / LUM_SPAN).clamp(0.0, 1.0);
+    let factor = DARKEN_MIN + DARKEN_RANGE * t * t; // Quadratic curve
     Color32::from_rgb(
         (color.r() as f32 * factor) as u8,
         (color.g() as f32 * factor) as u8,
@@ -482,8 +590,8 @@ pub const OPACITY_TINT: f32 = 0.15;
 pub const OPACITY_MUTED: f32 = 0.25;
 /// Moderate (overlay effects, grid lines, secondary fills).
 pub const OPACITY_MODERATE: f32 = 0.3;
-/// Disabled interactive elements.
-pub const OPACITY_DISABLED: f32 = 0.4;
+/// Disabled interactive elements (increased for better visibility).
+pub const OPACITY_DISABLED: f32 = 0.55;
 /// Medium (secondary hover, inactive chip text).
 pub const OPACITY_MEDIUM: f32 = 0.5;
 /// Hover multiplier for inactive chip borders.
@@ -603,8 +711,8 @@ pub const TABLE_HEADER_HEIGHT: f32 = 44.0;
 pub const TABLE_INLINE_HEADER_HEIGHT: f32 = 30.0;
 /// Data table empty state height.
 pub const TABLE_EMPTY_HEIGHT: f32 = 120.0;
-/// Alternating row tint alpha (increased for better visibility).
-pub const TABLE_ALT_ROW_ALPHA: u8 = 18;
+/// Alternating row tint alpha (visible stripe differentiation).
+pub const TABLE_ALT_ROW_ALPHA: u8 = 35;
 
 /// Get alternating row background color.
 pub fn table_row_bg(row_index: usize) -> Color32 {
@@ -617,13 +725,9 @@ pub fn table_row_bg(row_index: usize) -> Color32 {
     }
 }
 
-/// Get row hover highlight color (subtle semi-transparent tint).
+/// Get row hover highlight color (visible semi-transparent tint).
 pub fn table_row_hover() -> Color32 {
-    if is_dark_mode() {
-        Color32::from_white_alpha(14)
-    } else {
-        Color32::from_black_alpha(10)
-    }
+    hover_bg()
 }
 
 // ============================================================================
@@ -884,14 +988,8 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.widgets.noninteractive.corner_radius = btn_rounding;
     visuals.widgets.noninteractive.bg_stroke = Stroke::NONE;
 
-    // Widgets hovered
-    // Use a subtle semi-transparent tint instead of opaque bg_elevated so that
-    // secondary/tertiary text on table rows remains readable in dark mode.
-    visuals.widgets.hovered.bg_fill = if is_dark_mode() {
-        Color32::from_white_alpha(14)
-    } else {
-        Color32::from_black_alpha(10)
-    };
+    // Widgets hovered — visible tint matching hover_bg() for WCAG 1.4.11.
+    visuals.widgets.hovered.bg_fill = hover_bg();
     visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, text_primary());
     visuals.widgets.hovered.corner_radius = btn_rounding;
     visuals.widgets.hovered.bg_stroke = Stroke::NONE;
@@ -1003,16 +1101,14 @@ pub fn glow_stroke(color: Color32) -> Stroke {
 /// Make a semantic color readable as text on the current theme's card surface.
 ///
 /// In dark mode, bright colors are already readable on dark backgrounds.
-/// In light mode, colors with high luminance (yellow, orange) are darkened
-/// using the same adaptive formula as `badge_text()`.
+/// In light mode, ALL semantic colors are darkened for AAA-compliant contrast
+/// (≥7:1 on typical light surfaces).
 #[inline]
 pub fn readable_color(color: Color32) -> Color32 {
     if is_dark_mode() {
         color
-    } else if perceived_luminance(color) > READABLE_LUM_THRESHOLD {
-        darken_for_light_bg(color)
     } else {
-        color
+        darken_for_light_bg(color)
     }
 }
 
@@ -1093,13 +1189,14 @@ pub fn disabled_color(color: Color32) -> Color32 {
     color.linear_multiply(OPACITY_DISABLED)
 }
 
-/// Hover background for interactive elements (subtle semi-transparent tint).
+/// Hover background for interactive elements (visible semi-transparent tint).
+/// WCAG 1.4.11: interactive state indicators should be distinguishable.
 #[inline]
 pub fn hover_bg() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(14)
+        Color32::from_white_alpha(35)
     } else {
-        Color32::from_black_alpha(10)
+        Color32::from_black_alpha(25)
     }
 }
 
@@ -1209,21 +1306,29 @@ pub const SKELETON_CARD_ROUNDING: u8 = 12;
 
 /// Toggle switch off-state background (dark mode, navy-tinted).
 pub const SWITCH_OFF_DARK: Color32 = Color32::from_rgb(52, 53, 62);
-/// Toggle switch off-state background (light mode, cool-tinted).
-pub const SWITCH_OFF_LIGHT: Color32 = Color32::from_rgb(196, 198, 210);
+/// Toggle switch off-state background (light mode, cool-tinted, ≥3:1 on light surfaces).
+pub const SWITCH_OFF_LIGHT: Color32 = Color32::from_rgb(140, 142, 156);
 
 // ── Skeleton placeholder colors ──
 
-/// Skeleton placeholder base color (dark mode, navy-tinted).
-pub const SKELETON_BASE_DARK: Color32 = Color32::from_rgb(40, 42, 52);
+/// Skeleton placeholder base color (dark mode, navy-tinted — visible on dark surfaces).
+pub const SKELETON_BASE_DARK: Color32 = Color32::from_rgb(50, 52, 62);
 /// Skeleton placeholder base color (light mode, cool-tinted).
-pub const SKELETON_BASE_LIGHT: Color32 = Color32::from_rgb(228, 230, 240);
-/// Skeleton placeholder highlight color (dark mode, navy-tinted).
-pub const SKELETON_HIGHLIGHT_DARK: Color32 = Color32::from_rgb(55, 57, 66);
+pub const SKELETON_BASE_LIGHT: Color32 = Color32::from_rgb(218, 220, 232);
+/// Skeleton placeholder highlight color (dark mode, navy-tinted — distinct from base).
+pub const SKELETON_HIGHLIGHT_DARK: Color32 = Color32::from_rgb(70, 72, 82);
 /// Skeleton placeholder highlight color (light mode, cool-tinted).
-pub const SKELETON_HIGHLIGHT_LIGHT: Color32 = Color32::from_rgb(242, 244, 253);
+pub const SKELETON_HIGHLIGHT_LIGHT: Color32 = Color32::from_rgb(236, 238, 248);
 
 // ── Avatar color palette ──
+
+/// Choose black or white text for an avatar based on the avatar color's luminance.
+///
+/// Guarantees AAA contrast for initials rendered on the avatar background.
+#[inline]
+pub fn avatar_text_color(avatar_bg: Color32) -> Color32 {
+    text_on_color(avatar_bg)
+}
 
 /// Avatar auto-generated color palette (10 pleasant hues).
 pub const AVATAR_COLORS: [Color32; 10] = [

@@ -17,7 +17,11 @@ use std::collections::VecDeque;
 /// GUI preferences that are persisted across restarts via eframe storage.
 ///
 /// Only contains settings the user explicitly configures -- not runtime state.
+/// All fields have `#[serde(default)]` for backward compatibility when new
+/// fields are added — otherwise deserialization of old stored JSON silently
+/// fails and resets everything to defaults.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct GuiPreferences {
     pub dark_mode: bool,
     pub check_interval_secs: u64,
@@ -31,6 +35,7 @@ pub struct GuiPreferences {
     pub log_collector_poll_secs: u64,
     pub discovery_enabled: bool,
     pub architecture_url: String,
+    pub admin_password_sha256: String,
 }
 
 impl Default for GuiPreferences {
@@ -43,11 +48,12 @@ impl Default for GuiPreferences {
             siem_format: "CEF".to_string(),
             siem_transport: "Syslog".to_string(),
             siem_destination: String::new(),
-            log_collector_enabled: false,
-            log_collector_sources: vec!["system".to_string(), "auth".to_string()],
+            log_collector_enabled: true,
+            log_collector_sources: vec!["system".to_string(), "auth".to_string(), "application".to_string(), "firewall".to_string()],
             log_collector_poll_secs: 60,
             discovery_enabled: false,
             architecture_url: String::new(),
+            admin_password_sha256: String::new(),
         }
     }
 }
@@ -68,6 +74,7 @@ impl GuiPreferences {
             log_collector_poll_secs: state.settings.log_collector_poll_secs,
             discovery_enabled: state.discovery.enabled,
             architecture_url: state.settings.architecture_url.clone(),
+            admin_password_sha256: state.settings.admin_password_sha256.clone(),
         }
     }
 
@@ -85,6 +92,9 @@ impl GuiPreferences {
         state.settings.log_collector_poll_secs = self.log_collector_poll_secs;
         state.discovery.enabled = self.discovery_enabled;
         state.settings.architecture_url.clone_from(&self.architecture_url);
+        if !self.admin_password_sha256.is_empty() {
+            state.settings.admin_password_sha256.clone_from(&self.admin_password_sha256);
+        }
     }
 }
 
@@ -528,6 +538,13 @@ pub struct AssetsState {
     pub lifecycle_filter: Option<crate::dto::AssetLifecycle>,
     pub selected_asset: Option<usize>,
     pub detail_open: bool,
+    /// Whether the inline asset creation form is open.
+    pub asset_editing: bool,
+    /// Assets waiting to be persisted via `SaveAsset` commands.
+    ///
+    /// Pages push new assets here; the app update loop drains them and sends
+    /// one `SaveAsset` command per entry so they are written to SQLite.
+    pub pending_asset_saves: Vec<crate::dto::ManagedAsset>,
 }
 
 // ---------------------------------------------------------------------------
@@ -643,10 +660,12 @@ impl Default for SettingsState {
             siem_format: "CEF".to_string(),
             siem_transport: "Syslog".to_string(),
             siem_destination: String::new(),
-            log_collector_enabled: false,
+            log_collector_enabled: true,
             log_collector_sources: vec![
                 "system".to_string(),
                 "auth".to_string(),
+                "application".to_string(),
+                "firewall".to_string(),
             ],
             log_collector_poll_secs: 60,
         }
@@ -726,6 +745,9 @@ pub struct AppState {
     pub selected_audit_entry: Option<usize>,
     pub audit_detail_open: bool,
     pub reduced_motion: bool,
+    /// Page navigation request (consumed by app.rs each frame).
+    #[cfg(feature = "render")]
+    pub pending_navigation: Option<crate::app::Page>,
 }
 
 impl Default for AppState {
@@ -773,6 +795,8 @@ impl Default for AppState {
             selected_audit_entry: None,
             audit_detail_open: false,
             reduced_motion: false,
+            #[cfg(feature = "render")]
+            pending_navigation: None,
         }
     }
 }
@@ -936,7 +960,9 @@ impl AppState {
                 self.fim.monitored_count = monitored_count;
                 self.fim.changes_today = changes_today;
             }
-            AgentEvent::ShuttingDown => {}
+            AgentEvent::ShuttingDown => {
+                self.summary.status = crate::dto::GuiAgentStatus::Disconnected;
+            }
             AgentEvent::UpdateStatusChanged { status } => {
                 self.settings.update_status = status;
             }
@@ -1163,11 +1189,14 @@ impl AppState {
                 self.ai.download.error = None;
             }
             AgentEvent::LlmDownloadFailed { model_name, error } => {
-                self.ai.download.phase = crate::dto::DownloadPhase::Failed;
-                self.ai.download.model_name = model_name;
-                self.ai.download.speed_bps = 0;
-                self.ai.download.error = Some(error);
-                self.ai.model_status.status = "error".to_string();
+                // Don't override user-initiated cancel (already set to Idle by GUI)
+                if self.ai.download.phase != crate::dto::DownloadPhase::Idle {
+                    self.ai.download.phase = crate::dto::DownloadPhase::Failed;
+                    self.ai.download.model_name = model_name;
+                    self.ai.download.speed_bps = 0;
+                    self.ai.download.error = Some(error);
+                    self.ai.model_status.status = "error".to_string();
+                }
             }
             AgentEvent::LlmRiskAnalysis {
                 risk_id,
@@ -1204,6 +1233,71 @@ impl AppState {
                     timestamp: chrono::Utc::now(),
                     processing_time_ms: None,
                 });
+            }
+            AgentEvent::RisksLoaded { risks } => {
+                // Merge loaded risks into GUI state, deduplicating by ID
+                let existing_ids: std::collections::HashSet<uuid::Uuid> =
+                    self.risks.entries.iter().map(|r| r.id).collect();
+                for risk in risks {
+                    if !existing_ids.contains(&risk.id) {
+                        self.risks.entries.push(risk);
+                    }
+                }
+            }
+            AgentEvent::AdminPasswordSet { hash } => {
+                self.settings.admin_password_sha256 = hash;
+            }
+            AgentEvent::AssetsLoaded { assets } => {
+                // Merge loaded assets into GUI state, deduplicating by ID
+                let existing_ids: std::collections::HashSet<uuid::Uuid> =
+                    self.assets.assets.iter().map(|a| a.id).collect();
+                for asset in assets {
+                    if existing_ids.contains(&asset.id) {
+                        if let Some(existing) = self.assets.assets.iter_mut().find(|a| a.id == asset.id) {
+                            *existing = asset;
+                        }
+                    } else {
+                        self.assets.assets.push(asset);
+                    }
+                }
+            }
+            AgentEvent::PlaybooksLoaded { playbooks } => {
+                let existing_ids: std::collections::HashSet<uuid::Uuid> =
+                    self.threats.playbooks.iter().map(|p| p.id).collect();
+                for pb in playbooks {
+                    if existing_ids.contains(&pb.id) {
+                        if let Some(existing) = self.threats.playbooks.iter_mut().find(|p| p.id == pb.id) {
+                            *existing = pb;
+                        }
+                    } else {
+                        self.threats.playbooks.push(pb);
+                    }
+                }
+            }
+            AgentEvent::DetectionRulesLoaded { rules } => {
+                let existing_ids: std::collections::HashSet<uuid::Uuid> =
+                    self.threats.detection_rules.iter().map(|r| r.id).collect();
+                for rule in rules {
+                    if existing_ids.contains(&rule.id) {
+                        if let Some(existing) = self.threats.detection_rules.iter_mut().find(|r| r.id == rule.id) {
+                            *existing = rule;
+                        }
+                    } else {
+                        self.threats.detection_rules.push(rule);
+                    }
+                }
+            }
+            AgentEvent::AlertingLoaded { rules, webhooks } => {
+                self.alerting.rules = rules;
+                self.alerting.webhooks = webhooks;
+            }
+            AgentEvent::ResponseActionSubmitted { action } => {
+                self.threats.pending_actions.push_front(action);
+                self.threats.pending_actions.truncate(200);
+            }
+            AgentEvent::FileQuarantined { entry } => {
+                self.threats.quarantine_queue.push_front(entry);
+                self.threats.quarantine_queue.truncate(200);
             }
         }
 

@@ -119,6 +119,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let mut command: Option<GuiCommand> = None;
 
     // ── Templates card ──────────────────────────────────────────────
+    let mut installed_template: Option<Playbook> = None;
     widgets::card(ui, |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new("TEMPLATES PR\u{00c9}-CONFIGUR\u{00c9}S")
@@ -148,7 +149,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             ui.label(
                                 egui::RichText::new(tpl.icon)
                                     .size(theme::ICON_MD)
-                                    .color(theme::ACCENT),
+                                    .color(theme::readable_color(theme::ACCENT)),
                             );
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
@@ -181,7 +182,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         )
                         .clicked()
                         {
-                            state.threats.playbooks.push(Playbook {
+                            let playbook = Playbook {
                                 id: Uuid::new_v4(),
                                 name: tpl.name.to_string(),
                                 description: tpl.description.to_string(),
@@ -192,12 +193,19 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 last_triggered: None,
                                 trigger_count: 0,
                                 is_template: true,
-                            });
+                            };
+                            installed_template = Some(playbook.clone());
+                            state.threats.playbooks.push(playbook);
                         }
                     });
             });
         });
     });
+    if let Some(playbook) = installed_template {
+        command = Some(GuiCommand::SavePlaybook {
+            playbook: Box::new(playbook),
+        });
+    }
 
     ui.add_space(theme::SPACE_MD);
 
@@ -243,6 +251,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             // Collect IDs and toggle state changes to apply after iteration
             let mut toggle_commands: Vec<(String, bool)> = Vec::new();
             let mut delete_id: Option<String> = None;
+            let mut execute_id: Option<String> = None;
 
             for (row_idx, pb) in state.threats.playbooks.iter().enumerate() {
                 let conds = pb
@@ -304,7 +313,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     }
                                 });
 
-                                // Right: toggle + delete
+                                // Right: toggle + execute + delete
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui: &mut egui::Ui| {
@@ -312,6 +321,16 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                             .clicked()
                                         {
                                             delete_id = Some(pb.id.to_string());
+                                        }
+                                        ui.add_space(theme::SPACE_XS);
+                                        if pb.enabled
+                                            && widgets::ghost_button(
+                                                ui,
+                                                format!("{}  Ex\u{00e9}cuter", icons::BOLT),
+                                            )
+                                            .clicked()
+                                        {
+                                            execute_id = Some(pb.id.to_string());
                                         }
                                         ui.add_space(theme::SPACE_XS);
                                         let mut enabled = pb.enabled;
@@ -345,6 +364,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             if let Some(ref id) = delete_id {
                 state.threats.playbooks.retain(|p| p.id.to_string() != *id);
                 command = Some(GuiCommand::DeletePlaybook {
+                    playbook_id: id.clone(),
+                });
+            }
+
+            // Apply execute
+            if let Some(ref id) = execute_id {
+                command = Some(GuiCommand::ExecutePlaybook {
                     playbook_id: id.clone(),
                 });
             }

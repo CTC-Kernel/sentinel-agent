@@ -15,6 +15,7 @@
 pub mod dto;
 pub mod events;
 pub mod os;
+pub mod os_settings;
 pub mod state;
 
 #[cfg(feature = "render")]
@@ -66,6 +67,11 @@ pub fn run_gui(
                     if let Ok(prefs) = serde_json::from_str::<state::GuiPreferences>(&json) {
                         app.apply_persisted_preferences(prefs);
                     }
+                } else {
+                    // First launch — detect OS dark mode preference
+                    let mut prefs = state::GuiPreferences::default();
+                    prefs.dark_mode = theme::detect_os_dark_mode();
+                    app.apply_persisted_preferences(prefs);
                 }
             }
             Ok(Box::new(app))
@@ -98,6 +104,11 @@ pub fn run_tray_popup(
                     if let Ok(prefs) = serde_json::from_str::<state::GuiPreferences>(&json) {
                         app.apply_persisted_preferences(prefs);
                     }
+                } else {
+                    // First launch — detect OS dark mode preference
+                    let mut prefs = state::GuiPreferences::default();
+                    prefs.dark_mode = theme::detect_os_dark_mode();
+                    app.apply_persisted_preferences(prefs);
                 }
             }
             Ok(Box::new(app))

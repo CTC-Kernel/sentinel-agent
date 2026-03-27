@@ -829,6 +829,22 @@ pub enum ThreatType {
     Unknown,
 }
 
+impl std::fmt::Display for ThreatType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Malware => write!(f, "malware"),
+            Self::Phishing => write!(f, "phishing"),
+            Self::DenialOfService => write!(f, "denial_of_service"),
+            Self::DataExfiltration => write!(f, "data_exfiltration"),
+            Self::PrivilegeEscalation => write!(f, "privilege_escalation"),
+            Self::LateralMovement => write!(f, "lateral_movement"),
+            Self::CommandAndControl => write!(f, "command_and_control"),
+            Self::Reconnaissance => write!(f, "reconnaissance"),
+            Self::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
 /// Attack vectors.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttackVector {

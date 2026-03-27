@@ -102,12 +102,12 @@ impl<'a, T> Dropdown<'a, T> {
                 egui::epaint::StrokeKind::Inside,
             );
 
-            // Focus ring for keyboard navigation
+            // Focus ring for keyboard navigation (WCAG 2.4.7 compliant)
             if response.has_focus() {
                 painter.rect_stroke(
                     rect.expand(theme::BORDER_THICK),
                     CornerRadius::same(theme::INPUT_ROUNDING),
-                    egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT.linear_multiply(0.6)),
+                    theme::focus_ring(),
                     egui::StrokeKind::Outside,
                 );
             }

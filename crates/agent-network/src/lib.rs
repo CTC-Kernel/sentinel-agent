@@ -126,6 +126,14 @@ impl NetworkManager {
         self.collector.collect_connections().await
     }
 
+    /// Record connections for beaconing analysis before running detection.
+    pub fn record_connections_for_beaconing(&mut self, connections: &[NetworkConnection]) {
+        let beaconing = self.detector.beaconing_detector_mut();
+        for conn in connections {
+            beaconing.record_connection(conn);
+        }
+    }
+
     /// Run security detection on connections.
     pub async fn detect_threats(
         &self,

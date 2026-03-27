@@ -93,16 +93,199 @@ impl Default for LogCollectorConfig {
             lookback_secs: 300,
             poll_interval_secs: 60,
             severity_filter: vec![
-                "error".to_string(),
-                "warning".to_string(),
+                // Authentication & access
+                "authentication".to_string(),
+                "login".to_string(),
+                "logon".to_string(),
+                "logoff".to_string(),
+                "sudo".to_string(),
+                "su:".to_string(),
+                "passwd".to_string(),
+                "credential".to_string(),
+                "denied".to_string(),
+                "unauthorized".to_string(),
+                "forbidden".to_string(),
+                "permission".to_string(),
+                "privilege".to_string(),
+                "escalation".to_string(),
+                // Threats & attacks
+                "fail".to_string(),
+                "failed".to_string(),
+                "invalid".to_string(),
+                "violation".to_string(),
+                "blocked".to_string(),
+                "reject".to_string(),
+                "attack".to_string(),
+                "exploit".to_string(),
+                "malware".to_string(),
+                "suspicious".to_string(),
+                "intrusion".to_string(),
+                "brute".to_string(),
+                "overflow".to_string(),
+                "injection".to_string(),
+                // Firewall & network
+                "firewall".to_string(),
+                "iptables".to_string(),
+                "drop".to_string(),
+                "stealth".to_string(),
+                // System integrity
                 "critical".to_string(),
                 "alert".to_string(),
-                "fail".to_string(),
-                "denied".to_string(),
+                "panic".to_string(),
+                "segfault".to_string(),
+                "killed".to_string(),
+                "oom".to_string(),
+                "tamper".to_string(),
+                "integrity".to_string(),
+                // Services
+                "sshd".to_string(),
+                "ftpd".to_string(),
+                "audit".to_string(),
             ],
         }
     }
 }
+
+/// Processes that generate noise unrelated to security.
+/// Their log entries are dropped before severity filtering.
+const IGNORED_PROCESSES: &[&str] = &[
+    // Messaging & contacts
+    "imagent", "sharingd", "contactsd", "IMDPersistenceAgent", "callservicesd",
+    "identityservicesd", "FaceTime", "Messages",
+    // Photos & media
+    "Photos", "photolibraryd", "photoanalysisd", "mediaanalysisd",
+    "mediaaccessibilityd", "AMPDevicesAgent", "AMPLibraryAgent",
+    "NowPlayingTouchUI", "coremediapipelined",
+    // Cloud & sync
+    "bird", "cloudd", "nsurlsessiond", "itunescloudd", "CloudKeychainProxy",
+    "amsaccountsd", "amsengagementd", "commerce", "storedownloadd", "appstoreagent",
+    // Intelligence & suggestions
+    "suggestd", "parsecd", "knowledge-agent", "intelligenceplatformd",
+    "coreduetd", "bilomd", "saboragentd",
+    // Networking (non-security)
+    "mDNSResponder", "airportd", "WiFiAgent", "WirelessRadioManagerd",
+    "symptomsd", "networkserviceproxy", "configd",
+    // Bluetooth & continuity
+    "bluetoothd", "ContinuityCaptureAgent", "rapportd", "nearby",
+    "sharingaudiod", "seld",
+    // Push & calendar
+    "apsd", "remindd", "CalendarAgent", "AddressBookSourceSync", "dataaccessd",
+    // System UI & window management
+    "WindowServer", "WindowManager", "SystemUIServer", "ControlCenter",
+    "NotificationCenter", "Dock", "Finder", "Spotlight", "mdworker",
+    "mdworker_shared", "mds_stores",
+    // Location & maps
+    "com.apple.geod", "geod", "locationd",
+    // Misc Apple daemons
+    "weatherd", "ScreenTimeAgent", "UsageTrackingAgent", "studentd",
+    "translationd", "tipsd", "timed", "nbagent", "gamecontrollerd",
+    "accessoryupdaterd", "com.apple.preferences",
+    // WebKit (non-security errors)
+    "com.apple.WebKit.Networking", "com.apple.WebKit.WebContent",
+    // TCC (noisy consent framework, not actionable)
+    "TCC", "tccd",
+    // Mobile/hardware gesture libs (SentinelAgent own process noise)
+    "libMobileGestalt",
+    // RunningBoard (process lifecycle management, not security)
+    "runningboardd",
+    // LaunchServices, CoreServices
+    "lsd", "coreservicesd", "launchservicesd", "trustd",
+    // Diagnostics & analytics
+    "diagnosticd", "sysdiagnose", "spindump", "ReportCrash",
+    "osanalyticshelper", "analyticsd",
+    // Keychain UI (not security events, just UI prompts)
+    "SecurityAgent", "authd",
+    // Power management
+    "powerd", "thermald", "thermalmonitord",
+    // Disk & storage (non-security)
+    "diskarbitrationd", "diskmanagementd", "fseventsd", "revisiond",
+    // Audio
+    "coreaudiod", "audiomxd",
+    // Display & GPU
+    "MTLCompilerService", "gpumemd", "backboardd",
+    // Input
+    "hidd",
+    // Print
+    "cupsd", "printd",
+    // Misc Apple daemons (noisy, non-security)
+    "cfprefsd", "containermanagerd", "UserEventAgent", "logd",
+    "endpointsecurityd", // Endpoint Security subsystem (internal, not actionable)
+    "sandboxd",          // sandbox denials are noisy and not actionable from GUI
+    "kernelmanagementd",
+    "sysextd",
+];
+
+/// Subsystem prefixes whose log entries are not security-relevant.
+/// Also used for partial matching on log message content.
+const IGNORED_SUBSYSTEMS: &[&str] = &[
+    "com.apple.contacts",
+    "com.apple.photos",
+    "com.apple.mediaplayer",
+    "com.apple.coredata",
+    "com.apple.spotlight",
+    "com.apple.xpc",
+    "com.apple.CloudKit",
+    "com.apple.icloud",
+    "com.apple.amp",
+    "com.apple.suggestions",
+    "com.apple.commerce",
+    "com.apple.remindd",
+    "com.apple.weather",
+    "com.apple.screentime",
+    "com.apple.translation",
+    "com.apple.gamecontroller",
+    "com.apple.locationd",
+    "com.apple.geod",
+    "com.apple.bluetooth",
+    "com.apple.wifi",
+    "com.apple.WiFiManager",
+    "com.apple.sharing",
+    "com.apple.symptomsd",
+    "com.apple.rapport",
+    "com.apple.SkyLight",
+    "com.apple.coreanimation",
+    "com.apple.CMContinuityCapture",
+    "com.apple.runningboard",
+    "com.apple.accounts",
+    "com.apple.WebKit",
+    "com.apple.CFNetwork",
+    "com.apple.runningboard",
+    "com.apple.launchservices",
+    "com.apple.coreservices",
+    "com.apple.diagnosticd",
+    "com.apple.thermalmonitor",
+    "com.apple.powermanagement",
+    "com.apple.diskarbitration",
+    "com.apple.audio",
+    "com.apple.coreaudio",
+    "com.apple.containermanager",
+    "com.apple.sandbox",
+    "com.apple.endpointsecurity",
+];
+
+/// Message patterns that are always noise regardless of process or subsystem.
+const IGNORED_MESSAGE_PATTERNS: &[&str] = &[
+    "kCBMsgArg",                    // CoreBluetooth low-level messages
+    "nearby scan mode",             // BLE scanning status
+    "RPRemoteDisplayDevice",        // AirPlay / Sidecar device updates
+    "LQM-WiFi",                     // Wi-Fi link quality metrics
+    "LQM:",                         // Wi-Fi link quality
+    "L2 Metrics on en",             // L2 network metrics
+    "BLE device found",             // BLE scan results
+    "BLE device changed",           // BLE state updates
+    "failed to act on a ping",      // WindowServer ping timeout (UI)
+    "Failed to find key <private>", // MobileGestalt private key lookup
+    "copySyscfgDictionary",         // MobileGestalt syscfg
+    "APTicket",                     // MobileGestalt ticket lookup
+    "advbuf:",                      // BLE advertising buffer
+    "invalidateAssertion",          // RunningBoard process lifecycle
+    "acquireAssertion",             // RunningBoard process lifecycle
+    "Assertion",                    // RunningBoard assertion management
+    "RunningBoard",                 // RunningBoard subsystem
+    "jetsam",                       // Memory pressure (not security)
+    "memorystatus",                 // Memory pressure
+    "thermal",                      // Thermal throttling
+];
 
 /// System log collector.
 pub struct LogCollector {
@@ -175,12 +358,45 @@ impl LogCollector {
             }
         }
 
-        // Convert to SIEM events
+        // Convert to SIEM events (drop noise first, then apply severity filter)
         raw_entries
             .into_iter()
+            .filter(|e| !self.is_noise(e))
             .filter(|e| self.matches_severity_filter(e))
             .map(|e| self.to_siem_event(e))
             .collect()
+    }
+
+    /// Check if a log entry is from a non-security process or subsystem.
+    /// Returns `true` if the entry should be **dropped** (not security-relevant).
+    fn is_noise(&self, entry: &RawLogEntry) -> bool {
+        // Check process name against ignore list (case-insensitive, also partial match)
+        if let Some(ref proc) = entry.process {
+            let proc_lower = proc.to_lowercase();
+            if IGNORED_PROCESSES
+                .iter()
+                .any(|p| {
+                    let p_lower = p.to_lowercase();
+                    proc_lower == p_lower || proc_lower.contains(&p_lower)
+                })
+            {
+                return true;
+            }
+        }
+
+        let msg = &entry.message;
+
+        // Check message for ignored subsystem prefixes (macOS unified log format)
+        if IGNORED_SUBSYSTEMS.iter().any(|sub| msg.contains(sub)) {
+            return true;
+        }
+
+        // Check message for known noise patterns
+        if IGNORED_MESSAGE_PATTERNS.iter().any(|pat| msg.contains(pat)) {
+            return true;
+        }
+
+        false
     }
 
     /// Check if a log entry matches the severity filter.
@@ -230,6 +446,10 @@ impl LogCollector {
             classify_severity(&entry.message),
         );
 
+        // Enrich: produce a human-readable name and description
+        let (readable_name, readable_desc) =
+            humanize_event(&entry.message, &event_name, &entry.process, &entry.source);
+
         // Prefer structured user field, fall back to regex extraction
         let user = entry
             .user
@@ -250,8 +470,8 @@ impl LogCollector {
             timestamp: entry.timestamp.unwrap_or_else(Utc::now),
             severity,
             category,
-            name: event_name,
-            description: entry.message.clone(),
+            name: readable_name,
+            description: readable_desc,
             source_host: entry
                 .hostname
                 .unwrap_or_else(|| self.hostname.clone()),
@@ -345,30 +565,41 @@ impl LogCollector {
     ) -> Result<Vec<RawLogEntry>, String> {
         let since_str = since.format("%Y-%m-%d %H:%M:%S").to_string();
 
-        // Try journalctl first
-        let unit = match source {
-            LogSource::System => Some("--priority=0..4"), // emerg..warning
-            LogSource::Auth => None,                      // use log file
-            LogSource::Firewall => None,                  // use log file
-            LogSource::Application => None,
+        // Build journalctl arguments based on log source
+        let journalctl_args: Vec<&str> = match source {
+            LogSource::System => vec!["--priority=0..4"], // emerg..warning
+            LogSource::Auth => vec![
+                "--identifier=sshd",
+                "--identifier=sudo",
+                "--identifier=su",
+                "--identifier=login",
+            ],
+            LogSource::Firewall => vec![
+                "--identifier=kernel",
+                "-g",
+                "iptables|nftables|firewall",
+            ],
+            LogSource::Application => vec!["--priority=0..3"], // emerg..err
         };
 
-        if let Some(priority) = unit {
-            let output = agent_common::process::silent_async_command("journalctl")
-                .args([
-                    "--since",
-                    &since_str,
-                    "--no-pager",
-                    "--output=short-iso",
-                    priority,
-                ])
-                .output()
-                .await
-                .map_err(|e| format!("Failed to run journalctl: {}", e))?;
+        // Try journalctl first for all source types
+        {
+            let mut cmd = agent_common::process::silent_async_command("journalctl");
+            cmd.args(["--since", &since_str, "--no-pager", "--output=short-iso"]);
+            cmd.args(&journalctl_args);
 
-            if output.status.success() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                return Ok(parse_syslog_lines(&stdout, source));
+            match cmd.output().await {
+                Ok(output) if output.status.success() => {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    let entries = parse_syslog_lines(&stdout, source);
+                    if !entries.is_empty() {
+                        return Ok(entries);
+                    }
+                    // If journalctl succeeded but returned no entries, fall through to log files
+                }
+                _ => {
+                    // journalctl not available or failed, fall through to log files
+                }
             }
         }
 
@@ -501,6 +732,200 @@ impl LogCollector {
     }
 }
 
+/// Produce a human-readable event name and description from raw log data.
+///
+/// Returns `(name, description)` where both are user-friendly strings.
+fn humanize_event(
+    raw_message: &str,
+    _fallback_name: &str,
+    process: &Option<String>,
+    source: &LogSource,
+) -> (String, String) {
+    let msg = raw_message.to_lowercase();
+    let proc_name = process.as_deref().unwrap_or("");
+
+    // --- Authentication events ---
+    if msg.contains("authentication failed") || msg.contains("login failed")
+        || msg.contains("invalid password") || msg.contains("failed password")
+    {
+        let user = extract_user(raw_message).unwrap_or_default();
+        return (
+            "Échec d'authentification".into(),
+            if user.is_empty() {
+                "Tentative de connexion échouée détectée.".into()
+            } else {
+                format!("Tentative de connexion échouée pour l'utilisateur « {} ».", user)
+            },
+        );
+    }
+    if msg.contains("authentication success") || msg.contains("session opened")
+        || msg.contains("logged in") || msg.contains("accepted publickey")
+        || msg.contains("accepted password")
+    {
+        let user = extract_user(raw_message).unwrap_or_default();
+        return (
+            "Connexion réussie".into(),
+            if user.is_empty() {
+                "Nouvelle session utilisateur ouverte.".into()
+            } else {
+                format!("Session ouverte pour l'utilisateur « {} ».", user)
+            },
+        );
+    }
+    if msg.contains("session closed") || msg.contains("logged out") || msg.contains("logoff") {
+        return (
+            "Déconnexion".into(),
+            "Session utilisateur fermée.".into(),
+        );
+    }
+
+    // --- Privilege escalation ---
+    if msg.contains("sudo") && msg.contains("command=") {
+        let user = extract_user(raw_message).unwrap_or_else(|| "inconnu".into());
+        return (
+            "Commande sudo exécutée".into(),
+            format!("L'utilisateur « {} » a exécuté une commande avec des privilèges élevés.", user),
+        );
+    }
+    if msg.contains("su:") || msg.contains("privilege escalation")
+        || msg.contains("became root")
+    {
+        return (
+            "Élévation de privilèges".into(),
+            "Un utilisateur a changé de compte avec des droits supérieurs.".into(),
+        );
+    }
+
+    // --- Firewall ---
+    if msg.contains("firewall") && (msg.contains("deny") || msg.contains("drop") || msg.contains("block")) {
+        return (
+            "Connexion bloquée par le pare-feu".into(),
+            "Le pare-feu a bloqué une tentative de connexion entrante ou sortante.".into(),
+        );
+    }
+    if msg.contains("stealth mode") {
+        return (
+            "Mode furtif du pare-feu actif".into(),
+            "Le pare-feu en mode furtif a ignoré une requête réseau.".into(),
+        );
+    }
+    if msg.contains("iptables") || msg.contains("nftables") || msg.contains("pf:") {
+        return (
+            "Événement pare-feu".into(),
+            "Règle de filtrage réseau déclenchée.".into(),
+        );
+    }
+
+    // --- Network intrusion ---
+    if msg.contains("brute") || msg.contains("repeated login failures") {
+        return (
+            "Tentative de force brute".into(),
+            "Plusieurs échecs de connexion détectés — possible attaque par force brute.".into(),
+        );
+    }
+    if msg.contains("intrusion") || msg.contains("attack detected") {
+        return (
+            "Intrusion détectée".into(),
+            "Le système a identifié une tentative d'intrusion.".into(),
+        );
+    }
+    if msg.contains("port scan") || msg.contains("scanning") {
+        return (
+            "Scan de ports détecté".into(),
+            "Activité de scan réseau détectée depuis une source externe.".into(),
+        );
+    }
+
+    // --- SSH ---
+    if proc_name == "sshd" || msg.contains("sshd") {
+        if msg.contains("invalid user") || msg.contains("no matching key") {
+            return (
+                "Accès SSH refusé".into(),
+                "Tentative de connexion SSH avec un utilisateur ou une clé invalide.".into(),
+            );
+        }
+        return (
+            "Événement SSH".into(),
+            "Activité sur le service SSH.".into(),
+        );
+    }
+
+    // --- Malware / integrity ---
+    if msg.contains("malware") || msg.contains("virus") || msg.contains("trojan") {
+        return (
+            "Menace malware détectée".into(),
+            "Un logiciel malveillant a été identifié par le système.".into(),
+        );
+    }
+    if msg.contains("integrity") && (msg.contains("fail") || msg.contains("violation")) {
+        return (
+            "Violation d'intégrité".into(),
+            "Un fichier système a été modifié de manière inattendue.".into(),
+        );
+    }
+    if msg.contains("tamper") {
+        return (
+            "Tentative de falsification".into(),
+            "Modification non autorisée détectée sur un composant protégé.".into(),
+        );
+    }
+
+    // --- Permission / access denied ---
+    if msg.contains("denied") || msg.contains("forbidden") || msg.contains("unauthorized") {
+        return (
+            "Accès refusé".into(),
+            "Une opération a été bloquée par les contrôles d'accès.".into(),
+        );
+    }
+    if msg.contains("permission") && msg.contains("violation") {
+        return (
+            "Violation de permission".into(),
+            "Une application a tenté d'accéder à une ressource non autorisée.".into(),
+        );
+    }
+
+    // --- Process / OOM ---
+    if msg.contains("killed") || msg.contains("oom") || msg.contains("out of memory") {
+        return (
+            "Processus terminé (mémoire)".into(),
+            "Un processus a été arrêté en raison d'un dépassement mémoire.".into(),
+        );
+    }
+    if msg.contains("segfault") || msg.contains("segmentation fault") {
+        return (
+            "Erreur de segmentation".into(),
+            "Un processus a planté — possible signe d'exploit ou de bug critique.".into(),
+        );
+    }
+
+    // --- Audit ---
+    if msg.contains("audit") {
+        return (
+            "Événement d'audit".into(),
+            "Opération enregistrée dans le journal d'audit système.".into(),
+        );
+    }
+
+    // --- Generic fallback by source ---
+    let name = match source {
+        LogSource::Auth => "Événement d'authentification",
+        LogSource::Firewall => "Événement réseau",
+        LogSource::System => "Événement système",
+        LogSource::Application => "Événement application",
+    };
+
+    // Truncate raw message for description (max 120 chars, clean cut)
+    let desc = if raw_message.len() > 120 {
+        let truncated = &raw_message[..120];
+        let cut = truncated.rfind(' ').unwrap_or(120);
+        format!("{}…", &raw_message[..cut])
+    } else {
+        raw_message.to_string()
+    };
+
+    (name.into(), desc)
+}
+
 /// Classify severity from log message keywords.
 fn classify_severity(message: &str) -> u8 {
     let lower = message.to_lowercase();
@@ -550,21 +975,64 @@ fn extract_user(message: &str) -> Option<String> {
 }
 
 /// Parse macOS unified log output lines.
+///
+/// The `log show --style compact` format is:
+/// `YYYY-MM-DD HH:MM:SS.ffffff+ZZZZ 0xHEXTID Type Process[PID]: Message`
+///
+/// We extract the timestamp, process name, and PID from each line.
 #[cfg(target_os = "macos")]
 fn parse_macos_log(output: &str, source: LogSource) -> Vec<RawLogEntry> {
     output
         .lines()
         .filter(|line| !line.is_empty() && !line.starts_with("Timestamp"))
-        .map(|line| RawLogEntry {
-            message: line.to_string(),
-            source,
-            timestamp: None, // Could parse from line prefix
-            hostname: None,
-            process: None,
-            pid: None,
-            event_id: None,
-            user: None,
-            level: None,
+        .map(|line| {
+            // Try to parse: "YYYY-MM-DD HH:MM:SS.ffffff+ZZZZ 0xHEX Type Process[PID]: Message"
+            // The timestamp occupies the first 31 characters (e.g. "2026-03-24 10:15:30.123456+0200")
+            let mut timestamp = None;
+            let mut process = None;
+            let mut pid = None;
+
+            // Split into whitespace-delimited tokens
+            let parts: Vec<&str> = line.splitn(5, ' ').collect();
+            // parts[0] = date, parts[1] = time+tz, parts[2] = thread_id, parts[3] = type, parts[4] = "Process[PID]: Message"
+
+            if parts.len() >= 5 {
+                // Parse timestamp from "YYYY-MM-DD HH:MM:SS.ffffff+ZZZZ"
+                let ts_str = format!("{} {}", parts[0], parts[1]);
+                // Try parsing with chrono - the format has microseconds and timezone offset
+                if let Ok(dt) = chrono::DateTime::parse_from_str(&ts_str, "%Y-%m-%d %H:%M:%S%.f%z")
+                {
+                    timestamp = Some(dt.with_timezone(&Utc));
+                }
+
+                // Parse "Process[PID]: Message" from parts[4]
+                let remainder = parts[4];
+                if let Some(bracket_start) = remainder.find('[') {
+                    process = Some(remainder[..bracket_start].to_string());
+                    if let Some(bracket_end) = remainder[bracket_start..].find(']') {
+                        let pid_str = &remainder[bracket_start + 1..bracket_start + bracket_end];
+                        pid = pid_str.parse::<u32>().ok();
+                    }
+                } else if let Some(colon_pos) = remainder.find(':') {
+                    // Some lines may have "Process: Message" without a PID
+                    let proc_candidate = remainder[..colon_pos].trim();
+                    if !proc_candidate.is_empty() && !proc_candidate.contains(' ') {
+                        process = Some(proc_candidate.to_string());
+                    }
+                }
+            }
+
+            RawLogEntry {
+                message: line.to_string(),
+                source,
+                timestamp,
+                hostname: None,
+                process,
+                pid,
+                event_id: None,
+                user: None,
+                level: None,
+            }
         })
         .collect()
 }
@@ -693,7 +1161,7 @@ mod tests {
     #[test]
     fn test_log_collector_config_default() {
         let config = LogCollectorConfig::default();
-        assert!(!config.enabled);
+        assert!(config.enabled);
         assert!(config.sources.contains(&LogSource::System));
         assert!(config.sources.contains(&LogSource::Auth));
         assert_eq!(config.poll_interval_secs, 60);

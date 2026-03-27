@@ -200,33 +200,34 @@ impl SentinelApp {
         prefs.apply_to(&mut self.state);
         self.last_dark_mode = self.state.settings.dark_mode;
 
-        // Re-send commands to agent-core so runtime matches restored prefs
+        // Re-send ALL commands to agent-core so runtime matches restored prefs.
+        // Send unconditionally (even when disabled) to ensure runtime state is consistent.
         self.send_command(GuiCommand::UpdateCheckInterval {
             interval_secs: self.state.settings.check_interval_secs,
         });
         self.send_command(GuiCommand::SetLogLevel {
             level: self.state.settings.log_level.index() as u8,
         });
-        if self.state.settings.siem_enabled {
-            self.send_command(GuiCommand::UpdateSiemConfig {
-                enabled: self.state.settings.siem_enabled,
-                format: self.state.settings.siem_format.clone(),
-                transport: self.state.settings.siem_transport.clone(),
-                destination: self.state.settings.siem_destination.clone(),
-            });
-        }
-        if self.state.settings.log_collector_enabled {
-            self.send_command(GuiCommand::UpdateLogCollectorConfig {
-                enabled: self.state.settings.log_collector_enabled,
-                sources: self.state.settings.log_collector_sources.clone(),
-                poll_interval_secs: self.state.settings.log_collector_poll_secs,
-            });
+        self.send_command(GuiCommand::UpdateSiemConfig {
+            enabled: self.state.settings.siem_enabled,
+            format: self.state.settings.siem_format.clone(),
+            transport: self.state.settings.siem_transport.clone(),
+            destination: self.state.settings.siem_destination.clone(),
+        });
+        self.send_command(GuiCommand::UpdateLogCollectorConfig {
+            enabled: self.state.settings.log_collector_enabled,
+            sources: self.state.settings.log_collector_sources.clone(),
+            poll_interval_secs: self.state.settings.log_collector_poll_secs,
+        });
+        if self.state.discovery.enabled {
+            self.send_command(GuiCommand::StartDiscovery);
         }
     }
 
     /// Configure the eframe `NativeOptions`.
     pub fn native_options() -> eframe::NativeOptions {
         eframe::NativeOptions {
+            persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel Agent")
                 .with_inner_size([theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT])
@@ -239,6 +240,7 @@ impl SentinelApp {
     /// Configure compact options for tray menu popup.
     pub fn tray_popup_options() -> eframe::NativeOptions {
         eframe::NativeOptions {
+            persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel - Vue Rapide")
                 .with_inner_size([theme::SPLASH_CONTENT_WIDTH, theme::TRAY_POPUP_MAX_HEIGHT])
@@ -249,6 +251,16 @@ impl SentinelApp {
                 .with_transparent(true),
             ..Default::default()
         }
+    }
+
+    /// Directory where eframe persists GUI preferences (dark mode, SIEM, etc.).
+    fn preferences_dir() -> std::path::PathBuf {
+        directories::ProjectDirs::from("com", "CyberThreatConsulting", "SentinelAgent")
+            .map(|dirs| dirs.data_local_dir().to_path_buf())
+            .unwrap_or_else(|| {
+                // Fallback to platform data dir
+                agent_common::config::AgentConfig::platform_data_dir().join("gui")
+            })
     }
 
     /// Decode embedded PNG app icon into egui IconData.
@@ -581,6 +593,19 @@ impl eframe::App for SentinelApp {
         self.process_events();
         self.update_tray_info();
         self.process_tray_actions(ctx);
+
+        // Drain pending asset saves (from bulk import or discovery drawer).
+        // Each asset is sent as a SaveAsset command so it is persisted to SQLite.
+        while let Some(asset) = self.state.assets.pending_asset_saves.pop() {
+            self.send_command(GuiCommand::SaveAsset {
+                asset: Box::new(asset),
+            });
+        }
+
+        // Process page navigation requests from child pages
+        if let Some(target_page) = self.state.pending_navigation.take() {
+            self.page = target_page;
+        }
 
         // Auto-lock admin mode after 5 minutes of inactivity.
         if self.state.security.admin_unlocked

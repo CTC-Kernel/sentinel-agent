@@ -208,6 +208,7 @@ impl std::fmt::Display for FimChangeType {
 pub enum UsbEventType {
     Connected,
     Disconnected,
+    Blocked,
 }
 
 impl UsbEventType {
@@ -215,6 +216,7 @@ impl UsbEventType {
         match self {
             UsbEventType::Connected => "connected",
             UsbEventType::Disconnected => "disconnected",
+            UsbEventType::Blocked => "blocked",
         }
     }
 
@@ -222,6 +224,7 @@ impl UsbEventType {
         match self {
             UsbEventType::Connected => "Connecté",
             UsbEventType::Disconnected => "Déconnecté",
+            UsbEventType::Blocked => "Bloqué",
         }
     }
 }
@@ -599,6 +602,8 @@ pub struct GuiFimAlert {
 pub struct GuiSuspiciousProcess {
     /// Process name.
     pub process_name: String,
+    /// Process ID (0 if unknown).
+    pub pid: u32,
     /// Full command line.
     pub command_line: String,
     /// Why this process was flagged.
@@ -830,6 +835,7 @@ pub enum ResponseActionType {
     KillProcess,
     QuarantineFile,
     BlockIp,
+    UnblockIp,
     RestoreFile,
 }
 
@@ -839,6 +845,7 @@ impl ResponseActionType {
             ResponseActionType::KillProcess => "Terminer le processus",
             ResponseActionType::QuarantineFile => "Quarantaine fichier",
             ResponseActionType::BlockIp => "Bloquer IP",
+            ResponseActionType::UnblockIp => "Débloquer IP",
             ResponseActionType::RestoreFile => "Restaurer fichier",
         }
     }
@@ -1095,6 +1102,17 @@ pub enum RiskStatus {
     Closed,
 }
 
+impl std::fmt::Display for RiskStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Open => write!(f, "open"),
+            Self::Mitigating => write!(f, "mitigating"),
+            Self::Accepted => write!(f, "accepted"),
+            Self::Closed => write!(f, "closed"),
+        }
+    }
+}
+
 impl RiskStatus {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -1278,6 +1296,17 @@ pub enum AssetCriticality {
     Low,
 }
 
+impl std::fmt::Display for AssetCriticality {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Critical => write!(f, "critical"),
+            Self::High => write!(f, "high"),
+            Self::Medium => write!(f, "medium"),
+            Self::Low => write!(f, "low"),
+        }
+    }
+}
+
 impl AssetCriticality {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -1315,6 +1344,7 @@ impl AssetCriticality {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AssetLifecycle {
+    Unauthorized,
     #[default]
     Discovered,
     Qualified,
@@ -1322,9 +1352,22 @@ pub enum AssetLifecycle {
     Decommissioned,
 }
 
+impl std::fmt::Display for AssetLifecycle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unauthorized => write!(f, "unauthorized"),
+            Self::Discovered => write!(f, "discovered"),
+            Self::Qualified => write!(f, "qualified"),
+            Self::Monitored => write!(f, "monitored"),
+            Self::Decommissioned => write!(f, "decommissioned"),
+        }
+    }
+}
+
 impl AssetLifecycle {
     pub fn as_str(&self) -> &'static str {
         match self {
+            Self::Unauthorized => "Unauthorized",
             Self::Discovered => "Discovered",
             Self::Qualified => "Qualified",
             Self::Monitored => "Monitored",
@@ -1334,6 +1377,7 @@ impl AssetLifecycle {
 
     pub fn label_fr(&self) -> &'static str {
         match self {
+            Self::Unauthorized => "Non autoris\u{00e9}",
             Self::Discovered => "D\u{00e9}couvert",
             Self::Qualified => "Qualifi\u{00e9}",
             Self::Monitored => "Surveill\u{00e9}",
@@ -1343,6 +1387,7 @@ impl AssetLifecycle {
 
     pub fn all() -> &'static [Self] {
         &[
+            Self::Unauthorized,
             Self::Discovered,
             Self::Qualified,
             Self::Monitored,

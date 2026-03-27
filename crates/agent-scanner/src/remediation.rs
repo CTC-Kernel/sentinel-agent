@@ -304,6 +304,16 @@ impl RemediationEngine {
                     description: "Check for available macOS updates".to_string(),
                     rollback_script: None,
                 },
+                RemediationAction {
+                    check_id: "patches_current".to_string(),
+                    platform: "windows".to_string(),
+                    script: r#"powershell -Command "Install-Module PSWindowsUpdate -Force -Scope CurrentUser -ErrorAction SilentlyContinue; Get-WindowsUpdate""#.to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Safe,
+                    description: "Check for available Windows updates".to_string(),
+                    rollback_script: None,
+                },
             ],
         );
 
@@ -329,21 +339,53 @@ impl RemediationEngine {
                 description: "Disable TLS 1.0 in Windows Schannel registry".to_string(),
                 rollback_script: Some(r#"Set-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Name Enabled -Value 1"#.to_string()),
             },
+            RemediationAction {
+                check_id: "obsolete_protocols".to_string(),
+                platform: "macos".to_string(),
+                script: "defaults write /Library/Preferences/com.apple.networkd tcp_connect_minimum_tls_version -int 2".to_string(),
+                requires_reboot: false,
+                requires_admin: true,
+                risk_level: RemediationRisk::Risky,
+                description: "Set minimum TLS version to 1.2 on macOS".to_string(),
+                rollback_script: Some("defaults delete /Library/Preferences/com.apple.networkd tcp_connect_minimum_tls_version".to_string()),
+            },
         ]);
 
         // Audit logging
         self.register(
             "audit_logging",
-            vec![RemediationAction {
-                check_id: "audit_logging".to_string(),
-                platform: "linux".to_string(),
-                script: "systemctl enable auditd && systemctl start auditd".to_string(),
-                requires_reboot: false,
-                requires_admin: true,
-                risk_level: RemediationRisk::Safe,
-                description: "Enable and start the Linux audit daemon".to_string(),
-                rollback_script: Some("systemctl stop auditd".to_string()),
-            }],
+            vec![
+                RemediationAction {
+                    check_id: "audit_logging".to_string(),
+                    platform: "linux".to_string(),
+                    script: "systemctl enable auditd && systemctl start auditd".to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Safe,
+                    description: "Enable and start the Linux audit daemon".to_string(),
+                    rollback_script: Some("systemctl stop auditd".to_string()),
+                },
+                RemediationAction {
+                    check_id: "audit_logging".to_string(),
+                    platform: "windows".to_string(),
+                    script: r#"auditpol /set /category:"System","Logon/Logoff","Object Access","Privilege Use","Policy Change","Account Management" /success:enable /failure:enable"#.to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Safe,
+                    description: "Enable Windows advanced audit policies".to_string(),
+                    rollback_script: Some(r#"auditpol /set /category:"System","Logon/Logoff","Object Access","Privilege Use","Policy Change","Account Management" /success:disable /failure:disable"#.to_string()),
+                },
+                RemediationAction {
+                    check_id: "audit_logging".to_string(),
+                    platform: "macos".to_string(),
+                    script: "launchctl load -w /System/Library/LaunchDaemons/com.apple.auditd.plist".to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Safe,
+                    description: "Enable macOS OpenBSM audit daemon".to_string(),
+                    rollback_script: Some("launchctl unload -w /System/Library/LaunchDaemons/com.apple.auditd.plist".to_string()),
+                },
+            ],
         );
 
         // Time sync
@@ -370,24 +412,56 @@ impl RemediationEngine {
                     description: "Enable network time synchronization on macOS".to_string(),
                     rollback_script: None,
                 },
+                RemediationAction {
+                    check_id: "time_sync".to_string(),
+                    platform: "windows".to_string(),
+                    script: r#"net start w32time & w32tm /config /manualpeerlist:"time.windows.com" /syncfromflags:manual /reliable:YES /update & w32tm /resync"#.to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Safe,
+                    description: "Enable and configure Windows Time service (W32Time)".to_string(),
+                    rollback_script: Some("net stop w32time".to_string()),
+                },
             ],
         );
 
         // Bluetooth disabled
         self.register(
             "bluetooth_disabled",
-            vec![RemediationAction {
-                check_id: "bluetooth_disabled".to_string(),
-                platform: "linux".to_string(),
-                script: "systemctl disable bluetooth && systemctl stop bluetooth".to_string(),
-                requires_reboot: false,
-                requires_admin: true,
-                risk_level: RemediationRisk::Moderate,
-                description: "Disable the Bluetooth service".to_string(),
-                rollback_script: Some(
-                    "systemctl enable bluetooth && systemctl start bluetooth".to_string(),
-                ),
-            }],
+            vec![
+                RemediationAction {
+                    check_id: "bluetooth_disabled".to_string(),
+                    platform: "linux".to_string(),
+                    script: "systemctl disable bluetooth && systemctl stop bluetooth".to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Moderate,
+                    description: "Disable the Bluetooth service".to_string(),
+                    rollback_script: Some(
+                        "systemctl enable bluetooth && systemctl start bluetooth".to_string(),
+                    ),
+                },
+                RemediationAction {
+                    check_id: "bluetooth_disabled".to_string(),
+                    platform: "windows".to_string(),
+                    script: r#"Stop-Service bthserv -Force; Set-Service bthserv -StartupType Disabled"#.to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Moderate,
+                    description: "Disable Windows Bluetooth Support Service".to_string(),
+                    rollback_script: Some(r#"Set-Service bthserv -StartupType Manual; Start-Service bthserv"#.to_string()),
+                },
+                RemediationAction {
+                    check_id: "bluetooth_disabled".to_string(),
+                    platform: "macos".to_string(),
+                    script: "defaults write /Library/Preferences/com.apple.Bluetooth ControllerPowerState -int 0 && killall -HUP blued".to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Moderate,
+                    description: "Disable Bluetooth on macOS".to_string(),
+                    rollback_script: Some("defaults write /Library/Preferences/com.apple.Bluetooth ControllerPowerState -int 1 && killall -HUP blued".to_string()),
+                },
+            ],
         );
 
         // Guest account
@@ -411,6 +485,16 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Safe,
                 description: "Disable macOS Guest account".to_string(),
                 rollback_script: Some("defaults write /Library/Preferences/com.apple.loginwindow GuestEnabled -bool true".to_string()),
+            },
+            RemediationAction {
+                check_id: "guest_account_disabled".to_string(),
+                platform: "linux".to_string(),
+                script: "passwd -l guest 2>/dev/null; usermod -s /usr/sbin/nologin guest 2>/dev/null || true".to_string(),
+                requires_reboot: false,
+                requires_admin: true,
+                risk_level: RemediationRisk::Safe,
+                description: "Lock and disable shell for Linux guest account".to_string(),
+                rollback_script: Some("passwd -u guest; usermod -s /bin/bash guest".to_string()),
             },
         ]);
     }

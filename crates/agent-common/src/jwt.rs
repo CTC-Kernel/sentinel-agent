@@ -15,17 +15,30 @@ use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 /// oversized or malicious tokens.
 const MAX_JWT_PAYLOAD_BYTES: usize = 16 * 1024;
 
-/// Extract organization ID from a JWT enrollment token.
+/// Extract organization ID from an enrollment token.
 ///
-/// This performs **claim extraction only** — the token's signature is validated
-/// server-side during enrollment. The extracted value is used as an optimistic
-/// hint for the `X-Organization-Id` header.
+/// Supports two token formats:
+/// 1. **Compound token**: `{orgId}:{hexToken}` — org ID is the prefix before `:`.
+/// 2. **JWT token**: `header.payload.signature` — org ID extracted from claims.
+///
+/// The extracted value is used as an optimistic hint for the
+/// `X-Organization-Id` header. Server validates the actual token.
 ///
 /// # Safety bounds
-/// - Rejects tokens with more than 3 segments
-/// - Limits decoded payload to [`MAX_JWT_PAYLOAD_BYTES`]
-/// - Validates `exp` claim if present (rejects expired tokens)
+/// - Rejects tokens with more than 3 segments (JWT)
+/// - Limits decoded payload to [`MAX_JWT_PAYLOAD_BYTES`] (JWT)
+/// - Validates `exp` claim if present (JWT, rejects expired tokens)
 pub fn parse_organization_id_from_token(token: &str) -> Option<String> {
+    // Format 1: compound token "orgId:hexToken"
+    if let Some(colon_idx) = token.find(':') {
+        let org_id = &token[..colon_idx];
+        // Validate: org_id must be non-empty and look like a UUID or identifier
+        if !org_id.is_empty() && org_id.len() <= 128 {
+            return Some(org_id.to_string());
+        }
+    }
+
+    // Format 2: JWT token "header.payload.signature"
     let parts: Vec<&str> = token.split('.').collect();
     if parts.len() != 3 {
         return None;
@@ -125,6 +138,25 @@ mod tests {
         assert_eq!(
             parse_organization_id_from_token(&token),
             Some("org_no_exp".to_string())
+        );
+    }
+
+    #[test]
+    fn test_compound_token_format() {
+        // orgId:hexToken format
+        let token = "550e8400-e29b-41d4-a716-446655440000:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
+        assert_eq!(
+            parse_organization_id_from_token(token),
+            Some("550e8400-e29b-41d4-a716-446655440000".to_string())
+        );
+    }
+
+    #[test]
+    fn test_compound_token_short_orgid() {
+        let token = "org123:deadbeef";
+        assert_eq!(
+            parse_organization_id_from_token(token),
+            Some("org123".to_string())
         );
     }
 

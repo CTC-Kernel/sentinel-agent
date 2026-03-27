@@ -93,10 +93,10 @@ pub enum IncidentSeverity {
 impl std::fmt::Display for IncidentSeverity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Critical => write!(f, "Critical"),
-            Self::High => write!(f, "High"),
-            Self::Medium => write!(f, "Medium"),
-            Self::Low => write!(f, "Low"),
+            Self::Critical => write!(f, "critical"),
+            Self::High => write!(f, "high"),
+            Self::Medium => write!(f, "medium"),
+            Self::Low => write!(f, "low"),
         }
     }
 }

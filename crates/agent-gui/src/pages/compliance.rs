@@ -608,6 +608,10 @@ impl CompliancePage {
                     "Rem\u{00e9}dier",
                     icons::SHIELD_CHECK,
                 ));
+                actions.push(widgets::DetailAction::primary(
+                    "Ouvrir les param\u{00e8}tres syst\u{00e8}me",
+                    icons::SETTINGS,
+                ));
             }
 
             let ai_analyzing = state.compliance.ai_analyzing;
@@ -666,7 +670,7 @@ impl CompliancePage {
                                     ui.label(
                                         egui::RichText::new("Analyse en cours...")
                                             .font(theme::font_small())
-                                            .color(theme::INFO),
+                                            .color(theme::readable_color(theme::INFO)),
                                     );
                                 });
                             } else if let Some(ref result) = ai_result {
@@ -713,6 +717,14 @@ impl CompliancePage {
                         command = Some(GuiCommand::Remediate {
                             check_id: check_id_for_prompt,
                         });
+                    }
+                    4 if is_failed => {
+                        // Open OS system settings for this specific check
+                        if !crate::os_settings::open_for_check(&check_id_for_prompt) {
+                            // Fallback: navigate to agent Settings page if no OS mapping
+                            state.pending_navigation = Some(crate::app::Page::Settings);
+                        }
+                        state.compliance.detail_open = false;
                     }
                     _ => {}
                 }
@@ -1005,7 +1017,7 @@ impl CompliancePage {
                         } else {
                             0.0
                         };
-                        let score_color = theme::score_color(pct);
+                        let score_color = theme::readable_color(theme::score_color(pct));
                         ui.vertical_centered(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(fw.to_uppercase())

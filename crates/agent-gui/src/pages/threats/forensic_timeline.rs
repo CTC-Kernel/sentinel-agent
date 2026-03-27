@@ -444,6 +444,7 @@ fn build_timeline(state: &AppState, cutoff: DateTime<Utc>) -> Vec<TimelineEvent>
         let severity = match u.event_type {
             UsbEventType::Connected => Severity::Medium,
             UsbEventType::Disconnected => Severity::Low,
+            UsbEventType::Blocked => Severity::High,
         };
         events.push(TimelineEvent {
             timestamp: u.timestamp,

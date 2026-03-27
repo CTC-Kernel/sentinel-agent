@@ -61,13 +61,15 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
         let fill_width = rect.width() * clamped;
         let fill_rect = Rect::from_min_size(rect.min, Vec2::new(fill_width, bar_height));
 
-        // Gradient effect: Split into top (lighter) and bottom (base)
+        // Gradient effect: Split into top (lighter highlight) and bottom (base)
         let top_half = Rect::from_min_size(fill_rect.min, Vec2::new(fill_width, bar_height / 2.0));
         let bot_half = Rect::from_min_size(
             fill_rect.left_center(),
             Vec2::new(fill_width, bar_height / 2.0),
         );
 
+        // Top half: lighten via color blend with white for a subtle highlight
+        let highlight = crate::theme::color_blend_pub(base_color, egui::Color32::WHITE, 0.25);
         painter.rect_filled(
             top_half,
             CornerRadius {
@@ -76,7 +78,7 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
                 sw: 0,
                 se: 0,
             },
-            base_color.linear_multiply(1.0 + theme::OPACITY_MODERATE),
+            highlight,
         );
         painter.rect_filled(
             bot_half,

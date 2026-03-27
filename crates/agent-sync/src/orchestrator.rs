@@ -215,34 +215,64 @@ impl SyncOrchestrator {
     ///
     /// Unlike `sync_full`, this does NOT re-do heartbeat/config/rules/results/audit
     /// since those are already handled by the main loop.
+    ///
+    /// A 500ms delay is inserted between each entity type drain to throttle HTTP
+    /// requests and avoid bursting ~350 requests in rapid succession.
     pub async fn drain_grc_queues(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
         let mut total = 0u32;
+        let throttle = std::time::Duration::from_millis(500);
+
+        // Enforce queue size limit before draining to prevent unbounded growth
+        {
+            use agent_storage::SyncQueueRepository;
+            let sync_queue = SyncQueueRepository::new(&self._db);
+            if let Err(e) = sync_queue.enforce_queue_limit().await {
+                warn!("Failed to enforce queue limit: {}", e);
+            }
+        }
 
         // Upload locally-created GRC entities from the sync queue
         match self.sync_playbooks(client).await {
             Ok(n) => total += n,
             Err(e) => warn!("Playbooks queue drain: {}", e),
         }
+        tokio::time::sleep(throttle).await;
+
         match self.sync_detection_rules(client).await {
             Ok(n) => total += n,
             Err(e) => warn!("Detection rules queue drain: {}", e),
         }
+        tokio::time::sleep(throttle).await;
+
         match self.sync_risks(client).await {
             Ok(n) => total += n,
             Err(e) => warn!("Risks queue drain: {}", e),
         }
+        tokio::time::sleep(throttle).await;
+
         match self.sync_assets(client).await {
             Ok(n) => total += n,
             Err(e) => warn!("Assets queue drain: {}", e),
         }
+        tokio::time::sleep(throttle).await;
+
         match self.sync_kpi(client).await {
             Ok(n) => total += n,
             Err(e) => warn!("KPI queue drain: {}", e),
         }
+        tokio::time::sleep(throttle).await;
+
         match self.sync_alerting(client).await {
             Ok(n) => total += n,
             Err(e) => warn!("Alert rules queue drain: {}", e),
         }
+        tokio::time::sleep(throttle).await;
+
+        match self.sync_webhooks(client).await {
+            Ok(n) => total += n,
+            Err(e) => warn!("Webhooks queue drain: {}", e),
+        }
+        tokio::time::sleep(throttle).await;
 
         // Download GRC entities from SaaS into local SQLite
         match self.download_grc_entities(client).await {
@@ -446,18 +476,16 @@ impl SyncOrchestrator {
                 for p in &playbooks {
                     let stored = StoredPlaybook {
                         id: p.id.clone(),
-                        title: p.name.clone(),
+                        name: p.name.clone(),
                         description: p.description.clone(),
-                        category: "general".to_string(),
+                        trigger_type: "general".to_string(),
+                        severity: "medium".to_string(),
                         steps: serde_json::to_string(&p.actions).unwrap_or_default(),
-                        status: if p.enabled {
-                            "active".to_string()
-                        } else {
-                            "inactive".to_string()
-                        },
+                        enabled: p.enabled,
                         created_at: p.created_at.to_rfc3339(),
                         updated_at: now.clone(),
                         synced: true,
+                        conditions: serde_json::to_string(&p.conditions).unwrap_or_else(|_| "[]".to_string()),
                     };
                     if let Err(e) = repo.upsert(&stored).await {
                         warn!("Failed to upsert playbook {}: {}", p.id, e);
@@ -477,14 +505,20 @@ impl SyncOrchestrator {
                 for a in &assets {
                     let stored = StoredManagedAsset {
                         id: a.id.clone(),
-                        name: a.hostname.clone().unwrap_or_else(|| a.ip.clone()),
-                        asset_type: a.device_type.clone(),
+                        ip: a.ip.clone(),
+                        hostname: a.hostname.clone(),
+                        mac: a.mac.clone(),
+                        vendor: a.vendor.clone(),
+                        device_type: a.device_type.clone(),
                         criticality: a.criticality.clone(),
-                        owner: "unknown".to_string(),
-                        location: a.ip.clone(),
-                        status: a.lifecycle.clone(),
-                        created_at: a.first_seen.to_rfc3339(),
-                        updated_at: a.last_seen.to_rfc3339(),
+                        lifecycle: a.lifecycle.clone(),
+                        tags: serde_json::to_string(&a.tags).unwrap_or_else(|_| "[]".to_string()),
+                        risk_score: a.risk_score,
+                        vulnerability_count: a.vulnerability_count as i32,
+                        open_ports: serde_json::to_string(&a.open_ports).unwrap_or_else(|_| "[]".to_string()),
+                        software: serde_json::to_string(&a.software).unwrap_or_else(|_| "[]".to_string()),
+                        first_seen: a.first_seen.to_rfc3339(),
+                        last_seen: a.last_seen.to_rfc3339(),
                         synced: true,
                     };
                     if let Err(e) = repo.upsert(&stored).await {
@@ -506,16 +540,12 @@ impl SyncOrchestrator {
                     let stored = StoredAlertRule {
                         id: r.id.clone(),
                         name: r.name.clone(),
-                        description: r.rule_type.clone(),
-                        severity: r
-                            .severity_threshold
-                            .clone()
-                            .unwrap_or_else(|| "medium".to_string()),
-                        condition: serde_json::to_string(&r.detection_types).unwrap_or_default(),
-                        actions: "[]".to_string(),
+                        rule_type: r.rule_type.clone(),
+                        severity_threshold: r.severity_threshold.clone(),
+                        detection_types: serde_json::to_string(&r.detection_types).unwrap_or_default(),
+                        escalation_minutes: r.escalation_minutes.map(|v| v as i32),
                         enabled: r.enabled,
                         created_at: r.created_at.to_rfc3339(),
-                        updated_at: now.clone(),
                         synced: true,
                     };
                     if let Err(e) = repo.upsert(&stored).await {
@@ -657,6 +687,12 @@ impl SyncOrchestrator {
         agent_storage::SyncEntityType::AlertRule,
         crate::types::AlertRulePayload,
         sync_alert_rules
+    );
+    impl_sync_queue!(
+        sync_webhooks,
+        agent_storage::SyncEntityType::Webhook,
+        crate::types::WebhookPayload,
+        sync_webhooks
     );
 
     /// Record a sync history entry.

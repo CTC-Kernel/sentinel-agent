@@ -87,9 +87,9 @@ pub fn form_field(
         if let Some(ref msg) = validation.message {
             ui.add_space(theme::BORDER_THICK);
             let (icon, color) = match validation.status {
-                InputValidation::Invalid => (crate::icons::CIRCLE_XMARK, theme::ERROR),
-                InputValidation::Warning => (crate::icons::WARNING, theme::WARNING),
-                InputValidation::Valid => (crate::icons::CIRCLE_CHECK, theme::SUCCESS),
+                InputValidation::Invalid => (crate::icons::CIRCLE_XMARK, theme::readable_color(theme::ERROR)),
+                InputValidation::Warning => (crate::icons::WARNING, theme::readable_color(theme::WARNING)),
+                InputValidation::Valid => (crate::icons::CIRCLE_CHECK, theme::readable_color(theme::SUCCESS)),
                 InputValidation::None => ("", theme::text_tertiary()),
             };
             ui.horizontal(|ui: &mut egui::Ui| {
@@ -212,12 +212,12 @@ pub fn text_input_with_options(
             egui::epaint::StrokeKind::Inside,
         );
 
-        // Focus ring when active (accent-tinted glow)
+        // Focus ring when active (WCAG 2.4.7 compliant)
         if response.has_focus() {
             painter.rect_stroke(
                 rect.expand(theme::BORDER_THICK),
                 egui::CornerRadius::same(theme::INPUT_ROUNDING),
-                egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT.linear_multiply(0.6)),
+                theme::focus_ring(),
                 egui::epaint::StrokeKind::Outside,
             );
         }

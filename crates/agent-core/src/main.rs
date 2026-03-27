@@ -955,6 +955,74 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
 
 /// Run the agent with the egui desktop GUI.
 ///
+/// Reload all alert rules and webhooks from SQLite and emit AlertingLoaded.
+#[cfg(feature = "gui")]
+async fn emit_alerting_loaded_from_db(
+    db: &agent_storage::Database,
+    tx: &std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) {
+    let alert_repo = agent_storage::repositories::grc::AlertRuleRepository::new(db);
+    let webhook_repo = agent_storage::repositories::grc::WebhookRepository::new(db);
+    let stored_rules = alert_repo.get_all().await.unwrap_or_default();
+    let stored_webhooks = webhook_repo.get_all().await.unwrap_or_default();
+
+    let gui_rules: Vec<agent_gui::dto::AlertRule> = stored_rules
+        .iter()
+        .filter_map(|s| {
+            let id = uuid::Uuid::parse_str(&s.id).ok()?;
+            let severity_threshold = s.severity_threshold.as_deref().map(|sev| match sev {
+                "critical" | "Critical" => agent_gui::dto::Severity::Critical,
+                "high" | "High" => agent_gui::dto::Severity::High,
+                "low" | "Low" => agent_gui::dto::Severity::Low,
+                "info" | "Info" => agent_gui::dto::Severity::Info,
+                _ => agent_gui::dto::Severity::Medium,
+            });
+            let rule_type = match s.rule_type.as_str() {
+                "TypeFilter" => agent_gui::dto::AlertRuleType::TypeFilter,
+                "EscalationDelay" => agent_gui::dto::AlertRuleType::EscalationDelay,
+                _ => agent_gui::dto::AlertRuleType::SeverityThreshold,
+            };
+            let detection_types: Vec<String> =
+                serde_json::from_str(&s.detection_types).unwrap_or_default();
+            let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(|_| chrono::Utc::now());
+
+            Some(agent_gui::dto::AlertRule {
+                id,
+                name: s.name.clone(),
+                rule_type,
+                severity_threshold,
+                detection_types,
+                escalation_minutes: s.escalation_minutes.map(|v| v as u32),
+                enabled: s.enabled,
+                created_at,
+            })
+        })
+        .collect();
+
+    let gui_webhooks: Vec<agent_gui::dto::WebhookConfig> = stored_webhooks
+        .iter()
+        .filter_map(|s| {
+            let id = uuid::Uuid::parse_str(&s.id).ok()?;
+            Some(agent_gui::dto::WebhookConfig {
+                id,
+                name: s.name.clone(),
+                url: s.url.clone(),
+                format: s.events.clone(),
+                enabled: s.enabled,
+                last_sent: None,
+                error: None,
+            })
+        })
+        .collect();
+
+    let _ = tx.send(agent_gui::events::AgentEvent::AlertingLoaded {
+        rules: gui_rules,
+        webhooks: gui_webhooks,
+    });
+}
+
 /// The GUI handles enrollment (if not yet enrolled), dashboard, and all
 /// pages.  The agent runtime is spawned in a background thread.
 #[cfg(feature = "gui")]
@@ -1014,6 +1082,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Some(EnrollmentCommand::SubmitEnrollment { token, admin_password }) => {
                             info!("GUI enrollment: received token");
                             config.enrollment_token = Some(token);
+
+                            // Hash admin password (salted) for GUI unlock before zeroizing
+                            if let Some(ref pw) = admin_password {
+                                use sha2::{Digest, Sha256};
+                                let mut hasher = Sha256::new();
+                                hasher.update(b"sentinel-grc-v2-admin-salt-2026");
+                                hasher.update(pw.as_bytes());
+                                let hash = format!("salted:{:x}", hasher.finalize());
+                                let _ = bg_event_tx.send(AgentEvent::AdminPasswordSet { hash });
+                            }
+
                             config.admin_password = admin_password.clone();
 
                             // Open DB and attempt enrollment
@@ -1205,6 +1284,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             memory_mb: mem,
                         });
                         info!("LLM service initialized for command processing");
+                        runtime.set_llm_loaded(true);
                         Some(arc_svc)
                     }
                     Err(e) => {
@@ -1303,9 +1383,46 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI marked all notifications as read");
                             // Notification read state is managed in GUI state
                         }
+                        Ok(GuiCommand::DeleteNotification { notification_id }) => {
+                            info!("[AUDIT] GUI deleted notification: {}", notification_id);
+                            // Sync deletion to platform
+                            if let Some(ref c) = sync_client {
+                                let c = std::sync::Arc::clone(c);
+                                let nid = notification_id.clone();
+                                tokio::spawn(async move {
+                                    if let Err(e) = c.delete_notification(&nid).await {
+                                        warn!("Failed to sync notification deletion: {}", e);
+                                    }
+                                });
+                            }
+                        }
                         Ok(GuiCommand::AcknowledgeFimAlert { alert_id }) => {
                             info!("[AUDIT] GUI acknowledged FIM alert: {}", alert_id);
-                            // FIM acknowledgment state is managed in GUI state
+                            // Report acknowledgment to the platform
+                            let client_clone = sync_client.clone();
+                            let aid = alert_id.clone();
+                            tokio::spawn(async move {
+                                if let Some(ref client) = client_clone {
+                                    match client.agent_id().await {
+                                        Ok(agent_id) => {
+                                            let body = serde_json::json!({ "acknowledged": true });
+                                            let result: Result<serde_json::Value, _> = client
+                                                .post_json(
+                                                    &format!(
+                                                        "/v1/agents/{}/fim-alerts/{}/acknowledge",
+                                                        agent_id, aid
+                                                    ),
+                                                    &body,
+                                                )
+                                                .await;
+                                            if let Err(e) = result {
+                                                warn!("Failed to acknowledge FIM alert on platform: {}", e);
+                                            }
+                                        }
+                                        Err(e) => warn!("Failed to get agent_id for FIM ack: {}", e),
+                                    }
+                                }
+                            });
                         }
                         Ok(GuiCommand::ExportCsvAuditTrail) => {
                             info!("[AUDIT] GUI requested audit trail CSV export");
@@ -1317,6 +1434,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let pname = process_name.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
+                                // Emit pending action before executing
+                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                    action: agent_gui::dto::ResponseAction {
+                                        id: action_id,
+                                        action_type: agent_gui::dto::ResponseActionType::KillProcess,
+                                        target: pname.clone(),
+                                        target_detail: format!("PID {}", pid),
+                                        status: agent_gui::dto::ResponseStatus::Pending,
+                                        created_at: chrono::Utc::now(),
+                                        completed_at: None,
+                                        error: None,
+                                    },
+                                });
                                 match agent_core::edr_actions::kill_process(&pname, pid).await {
                                     Ok(()) => {
                                         let _ = tx.send(AgentEvent::ResponseActionResult {
@@ -1342,9 +1472,35 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let file_path = path.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
+                                // Emit pending action before executing
+                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                    action: agent_gui::dto::ResponseAction {
+                                        id: action_id,
+                                        action_type: agent_gui::dto::ResponseActionType::QuarantineFile,
+                                        target: file_path.clone(),
+                                        target_detail: String::new(),
+                                        status: agent_gui::dto::ResponseStatus::Pending,
+                                        created_at: chrono::Utc::now(),
+                                        completed_at: None,
+                                        error: None,
+                                    },
+                                });
                                 match agent_core::edr_actions::quarantine_file(&file_path).await {
                                     Ok(quarantine_id) => {
                                         info!("File quarantined successfully: {}", quarantine_id);
+                                        // Emit quarantine entry
+                                        let _ = tx.send(AgentEvent::FileQuarantined {
+                                            entry: agent_gui::dto::QuarantinedFile {
+                                                id: uuid::Uuid::parse_str(&quarantine_id)
+                                                    .unwrap_or_else(|_| uuid::Uuid::new_v4()),
+                                                original_path: file_path.clone(),
+                                                sha256: String::new(),
+                                                size_bytes: 0,
+                                                quarantined_at: chrono::Utc::now(),
+                                                reason: "User-initiated quarantine".to_string(),
+                                                restored: false,
+                                            },
+                                        });
                                         let _ = tx.send(AgentEvent::ResponseActionResult {
                                             action_id,
                                             success: true,
@@ -1366,8 +1522,21 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI requested quarantine restore: {}", quarantine_id);
                             let tx = bg_event_tx.clone();
                             let qid = quarantine_id.clone();
+                            // Emit pending action before spawning async work
+                            let action_id = uuid::Uuid::new_v4();
+                            let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                action: agent_gui::dto::ResponseAction {
+                                    id: action_id,
+                                    action_type: agent_gui::dto::ResponseActionType::RestoreFile,
+                                    target: quarantine_id.clone(),
+                                    target_detail: String::new(),
+                                    status: agent_gui::dto::ResponseStatus::Pending,
+                                    created_at: chrono::Utc::now(),
+                                    completed_at: None,
+                                    error: None,
+                                },
+                            });
                             tokio::spawn(async move {
-                                let action_id = uuid::Uuid::new_v4();
                                 match agent_core::edr_actions::restore_quarantined_file(&qid).await {
                                     Ok(()) => {
                                         let _ = tx.send(AgentEvent::ResponseActionResult {
@@ -1393,6 +1562,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let ip_addr = ip.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
+                                // Emit pending action before executing
+                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                    action: agent_gui::dto::ResponseAction {
+                                        id: action_id,
+                                        action_type: agent_gui::dto::ResponseActionType::BlockIp,
+                                        target: ip_addr.clone(),
+                                        target_detail: format!("{}s", duration_secs),
+                                        status: agent_gui::dto::ResponseStatus::Pending,
+                                        created_at: chrono::Utc::now(),
+                                        completed_at: None,
+                                        error: None,
+                                    },
+                                });
                                 match agent_core::edr_actions::block_ip(&ip_addr, duration_secs).await {
                                     Ok(()) => {
                                         let _ = tx.send(AgentEvent::ResponseActionResult {
@@ -1418,6 +1600,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let ip_addr = ip.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
+                                // Emit pending action before executing
+                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                    action: agent_gui::dto::ResponseAction {
+                                        id: action_id,
+                                        action_type: agent_gui::dto::ResponseActionType::UnblockIp,
+                                        target: ip_addr.clone(),
+                                        target_detail: "unblock".to_string(),
+                                        status: agent_gui::dto::ResponseStatus::Pending,
+                                        created_at: chrono::Utc::now(),
+                                        completed_at: None,
+                                        error: None,
+                                    },
+                                });
                                 match agent_core::edr_actions::unblock_ip(&ip_addr).await {
                                     Ok(()) => {
                                         let _ = tx.send(AgentEvent::ResponseActionResult {
@@ -1544,9 +1739,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                 agent_gui::dto::Playbook {
                                                     id: uuid::Uuid::parse_str(&stored.id)
                                                         .unwrap_or_else(|_| uuid::Uuid::new_v4()),
-                                                    name: stored.title.clone(),
+                                                    name: stored.name.clone(),
                                                     description: stored.description.clone(),
-                                                    enabled: stored.status == "active",
+                                                    enabled: stored.enabled,
                                                     conditions: vec![],
                                                     actions,
                                                     created_at: chrono::DateTime::parse_from_rfc3339(&stored.created_at)
@@ -1678,6 +1873,29 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::TogglePlaybook { playbook_id, enabled }) => {
                             info!("[AUDIT] GUI toggled playbook {}: enabled={}", playbook_id, enabled);
+                            // Persist toggle to SQLite so it survives restarts
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let pid = playbook_id.clone();
+                                tokio::spawn(async move {
+                                    let repo = agent_storage::repositories::grc::PlaybookRepository::new(&db_clone);
+                                    match repo.get_all().await {
+                                        Ok(playbooks) => {
+                                            if let Some(mut pb) = playbooks.into_iter().find(|p| p.id == pid) {
+                                                pb.enabled = enabled;
+                                                pb.synced = false;
+                                                if let Err(e) = repo.upsert(&pb).await {
+                                                    warn!("Failed to persist playbook toggle: {}", e);
+                                                }
+                                            }
+                                        }
+                                        Err(e) => {
+                                            warn!("Failed to load playbooks for toggle: {}", e);
+                                        }
+                                    }
+                                });
+                            }
+                            // Remote sync
                             if let Some(ref c) = sync_client {
                                 let c = std::sync::Arc::clone(c);
                                 let pid = playbook_id.clone();
@@ -1700,14 +1918,16 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredPlaybook {
                                         id: pb_clone.id.to_string(),
-                                        title: pb_clone.name.clone(),
+                                        name: pb_clone.name.clone(),
                                         description: pb_clone.description.clone(),
-                                        category: "general".to_string(),
+                                        trigger_type: "general".to_string(),
+                                        severity: "medium".to_string(),
                                         steps: serde_json::to_string(&pb_clone.actions).unwrap_or_default(),
-                                        status: if pb_clone.enabled { "active".to_string() } else { "inactive".to_string() },
+                                        enabled: pb_clone.enabled,
                                         created_at: pb_clone.created_at.to_rfc3339(),
                                         updated_at: now,
                                         synced: false,
+                                        conditions: serde_json::to_string(&pb_clone.conditions).unwrap_or_else(|_| "[]".to_string()),
                                     };
                                     let repo = agent_storage::repositories::grc::PlaybookRepository::new(&db_clone);
                                     if let Err(e) = repo.upsert(&stored).await {
@@ -1792,10 +2012,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rid = rule_id.clone();
+                                let client_clone = sync_client.clone();
                                 tokio::spawn(async move {
                                     let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
                                     if let Err(e) = repo.delete(&rid).await {
                                         warn!("Failed to delete detection rule from SQLite: {}", e);
+                                    }
+                                    // Also delete on the platform
+                                    if let Some(ref client) = client_clone {
+                                        if let Err(e) = client.delete_detection_rule(&rid).await {
+                                            warn!("Failed to delete detection rule on platform: {}", e);
+                                        }
                                     }
                                 });
                             }
@@ -1815,6 +2042,32 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                 rule.synced = false;
                                                 if let Err(e) = repo.upsert(&rule).await {
                                                     warn!("Failed to persist detection rule toggle: {}", e);
+                                                }
+                                                // Queue for remote sync
+                                                let payload = agent_sync::types::DetectionRulePayload {
+                                                    id: rule.id.clone(),
+                                                    name: rule.name.clone(),
+                                                    description: rule.description.clone(),
+                                                    severity: rule.severity.clone(),
+                                                    conditions: serde_json::from_str(&rule.conditions).unwrap_or_default(),
+                                                    actions: serde_json::from_str(&rule.actions).unwrap_or_default(),
+                                                    enabled: rule.enabled,
+                                                    created_at: chrono::DateTime::parse_from_rfc3339(&rule.created_at)
+                                                        .map(|dt| dt.with_timezone(&chrono::Utc))
+                                                        .unwrap_or_else(|_| chrono::Utc::now()),
+                                                    last_match: rule.last_match.as_ref().and_then(|s| {
+                                                        chrono::DateTime::parse_from_rfc3339(s).ok().map(|dt| dt.with_timezone(&chrono::Utc))
+                                                    }),
+                                                    match_count: rule.match_count as u32,
+                                                };
+                                                if let Ok(json) = serde_json::to_string(&payload) {
+                                                    let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
+                                                    let entry = agent_storage::SyncQueueEntry::new(
+                                                        agent_storage::SyncEntityType::DetectionRule,
+                                                        rule.id.clone(),
+                                                        json,
+                                                    );
+                                                    let _ = repo2.enqueue(&entry).await;
                                                 }
                                             }
                                         }
@@ -1840,7 +2093,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         probability: risk_clone.probability as i32,
                                         impact: risk_clone.impact as i32,
                                         owner: risk_clone.owner.clone(),
-                                        status: format!("{:?}", risk_clone.status),
+                                        status: format!("{}", risk_clone.status),
                                         mitigation: risk_clone.mitigation.clone(),
                                         source: risk_clone.source.clone(),
                                         created_at: risk_clone.created_at.to_rfc3339(),
@@ -1870,10 +2123,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rid = risk_id.clone();
+                                let client_clone = sync_client.clone();
                                 tokio::spawn(async move {
                                     let repo = agent_storage::repositories::grc::RiskRepository::new(&db_clone);
                                     if let Err(e) = repo.delete(&rid).await {
                                         warn!("Failed to delete risk from SQLite: {}", e);
+                                    }
+                                    // Also delete on the platform
+                                    if let Some(ref client) = client_clone {
+                                        if let Err(e) = client.delete_risk(&rid).await {
+                                            warn!("Failed to delete risk on platform: {}", e);
+                                        }
                                     }
                                 });
                             }
@@ -1888,14 +2148,20 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 tokio::spawn(async move {
                                     let stored = agent_storage::repositories::grc::StoredManagedAsset {
                                         id: asset_clone.id.to_string(),
-                                        name: asset_clone.hostname.clone().unwrap_or_else(|| asset_clone.ip.clone()),
-                                        asset_type: asset_clone.device_type.clone(),
-                                        criticality: format!("{:?}", asset_clone.criticality),
-                                        owner: "unknown".to_string(),
-                                        location: asset_clone.ip.clone(),
-                                        status: format!("{:?}", asset_clone.lifecycle),
-                                        created_at: asset_clone.first_seen.to_rfc3339(),
-                                        updated_at: asset_clone.last_seen.to_rfc3339(),
+                                        ip: asset_clone.ip.clone(),
+                                        hostname: asset_clone.hostname.clone(),
+                                        mac: asset_clone.mac.clone(),
+                                        vendor: asset_clone.vendor.clone(),
+                                        device_type: asset_clone.device_type.clone(),
+                                        criticality: format!("{}", asset_clone.criticality),
+                                        lifecycle: format!("{}", asset_clone.lifecycle),
+                                        tags: serde_json::to_string(&asset_clone.tags).unwrap_or_else(|_| "[]".to_string()),
+                                        risk_score: asset_clone.risk_score as f64,
+                                        vulnerability_count: asset_clone.vulnerability_count as i32,
+                                        open_ports: serde_json::to_string(&asset_clone.open_ports).unwrap_or_else(|_| "[]".to_string()),
+                                        software: serde_json::to_string(&asset_clone.software).unwrap_or_else(|_| "[]".to_string()),
+                                        first_seen: asset_clone.first_seen.to_rfc3339(),
+                                        last_seen: asset_clone.last_seen.to_rfc3339(),
                                         synced: false,
                                     };
                                     let repo = agent_storage::repositories::grc::ManagedAssetRepository::new(&db_clone);
@@ -1916,6 +2182,60 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::UpdateAssetLifecycle { asset_id, lifecycle }) => {
                             info!("[AUDIT] GUI updated asset lifecycle {}: {:?}", asset_id, lifecycle);
+                            if let Some(ref db_arc) = db_for_commands {
+                                let db_clone = std::sync::Arc::clone(db_arc);
+                                let aid = asset_id.clone();
+                                let status = format!("{}", lifecycle);
+                                tokio::spawn(async move {
+                                    let repo = agent_storage::repositories::grc::ManagedAssetRepository::new(&db_clone);
+                                    match repo.get_all().await {
+                                        Ok(mut all) => {
+                                            if let Some(asset) = all.iter_mut().find(|a| a.id == aid) {
+                                                asset.lifecycle = status;
+                                                asset.last_seen = chrono::Utc::now().to_rfc3339();
+                                                asset.synced = false;
+                                                if let Err(e) = repo.upsert(asset).await {
+                                                    tracing::warn!("Failed to update asset lifecycle: {}", e);
+                                                }
+                                                // Queue for remote sync
+                                                let payload = agent_sync::types::AssetPayload {
+                                                    id: asset.id.clone(),
+                                                    ip: asset.ip.clone(),
+                                                    hostname: asset.hostname.clone(),
+                                                    mac: asset.mac.clone(),
+                                                    vendor: asset.vendor.clone(),
+                                                    device_type: asset.device_type.clone(),
+                                                    criticality: asset.criticality.clone(),
+                                                    lifecycle: asset.lifecycle.clone(),
+                                                    tags: serde_json::from_str(&asset.tags).unwrap_or_default(),
+                                                    risk_score: asset.risk_score,
+                                                    vulnerability_count: asset.vulnerability_count as u32,
+                                                    open_ports: serde_json::from_str(&asset.open_ports).unwrap_or_default(),
+                                                    software: serde_json::from_str(&asset.software).unwrap_or_default(),
+                                                    first_seen: chrono::DateTime::parse_from_rfc3339(&asset.first_seen)
+                                                        .map(|dt| dt.with_timezone(&chrono::Utc))
+                                                        .unwrap_or_else(|_| chrono::Utc::now()),
+                                                    last_seen: chrono::DateTime::parse_from_rfc3339(&asset.last_seen)
+                                                        .map(|dt| dt.with_timezone(&chrono::Utc))
+                                                        .unwrap_or_else(|_| chrono::Utc::now()),
+                                                };
+                                                if let Ok(json) = serde_json::to_string(&payload) {
+                                                    let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
+                                                    let entry = agent_storage::SyncQueueEntry::new(
+                                                        agent_storage::SyncEntityType::Asset,
+                                                        asset.id.clone(),
+                                                        json,
+                                                    );
+                                                    let _ = repo2.enqueue(&entry).await;
+                                                }
+                                            }
+                                        }
+                                        Err(e) => {
+                                            tracing::warn!("Failed to load assets for lifecycle update: {}", e);
+                                        }
+                                    }
+                                });
+                            }
                         }
                         Ok(GuiCommand::SaveAlertRule { rule }) => {
                             info!("[AUDIT] GUI saved alert rule: {}", rule.name);
@@ -1924,18 +2244,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rule_clone = rule.clone();
                                 let payload_clone = payload.clone();
+                                let tx = bg_event_tx.clone();
                                 tokio::spawn(async move {
-                                    let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredAlertRule {
                                         id: rule_clone.id.to_string(),
                                         name: rule_clone.name.clone(),
-                                        description: rule_clone.rule_type.as_str().to_string(),
-                                        severity: rule_clone.severity_threshold.map(|s| s.as_str().to_string()).unwrap_or_else(|| "medium".to_string()),
-                                        condition: serde_json::to_string(&rule_clone.detection_types).unwrap_or_default(),
-                                        actions: "[]".to_string(),
+                                        rule_type: rule_clone.rule_type.as_str().to_string(),
+                                        severity_threshold: rule_clone.severity_threshold.map(|s| s.as_str().to_string()),
+                                        detection_types: serde_json::to_string(&rule_clone.detection_types).unwrap_or_default(),
+                                        escalation_minutes: rule_clone.escalation_minutes.map(|v| v as i32),
                                         enabled: rule_clone.enabled,
                                         created_at: rule_clone.created_at.to_rfc3339(),
-                                        updated_at: now,
                                         synced: false,
                                     };
                                     let repo = agent_storage::repositories::grc::AlertRuleRepository::new(&db_clone);
@@ -1951,6 +2270,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         );
                                         let _ = repo2.enqueue(&entry).await;
                                     }
+                                    // Reload and emit AlertingLoaded
+                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
                                 });
                             }
                         }
@@ -1959,11 +2280,21 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rid = rule_id.clone();
+                                let tx = bg_event_tx.clone();
+                                let client_clone = sync_client.clone();
                                 tokio::spawn(async move {
                                     let repo = agent_storage::repositories::grc::AlertRuleRepository::new(&db_clone);
                                     if let Err(e) = repo.delete(&rid).await {
                                         warn!("Failed to delete alert rule from SQLite: {}", e);
                                     }
+                                    // Also delete on the platform
+                                    if let Some(ref client) = client_clone {
+                                        if let Err(e) = client.delete_alert_rule(&rid).await {
+                                            warn!("Failed to delete alert rule on platform: {}", e);
+                                        }
+                                    }
+                                    // Reload and emit AlertingLoaded
+                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
                                 });
                             }
                         }
@@ -1972,6 +2303,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let wh_clone = webhook.clone();
+                                let tx = bg_event_tx.clone();
                                 tokio::spawn(async move {
                                     let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredWebhook {
@@ -1999,6 +2331,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         );
                                         let _ = repo2.enqueue(&entry).await;
                                     }
+                                    // Reload and emit AlertingLoaded
+                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
                                 });
                             }
                         }
@@ -2007,16 +2341,83 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let wid = webhook_id.clone();
+                                let tx = bg_event_tx.clone();
+                                let client_clone = sync_client.clone();
                                 tokio::spawn(async move {
                                     let repo = agent_storage::repositories::grc::WebhookRepository::new(&db_clone);
                                     if let Err(e) = repo.delete(&wid).await {
                                         warn!("Failed to delete webhook from SQLite: {}", e);
                                     }
+                                    // Also delete on the platform
+                                    if let Some(ref client) = client_clone {
+                                        if let Err(e) = client.delete_webhook(&wid).await {
+                                            warn!("Failed to delete webhook on platform: {}", e);
+                                        }
+                                    }
+                                    // Reload and emit AlertingLoaded
+                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
                                 });
                             }
                         }
                         Ok(GuiCommand::TestWebhook { webhook_id }) => {
                             info!("[AUDIT] GUI requested webhook test: {}", webhook_id);
+                            let tx = bg_event_tx.clone();
+                            let db_clone = db_for_commands.clone();
+                            let wid = webhook_id.clone();
+                            tokio::spawn(async move {
+                                // Load webhook from SQLite
+                                let webhook_opt = if let Some(ref db_arc) = db_clone {
+                                    let repo = agent_storage::repositories::grc::WebhookRepository::new(db_arc);
+                                    match repo.get_all().await {
+                                        Ok(all) => all.into_iter().find(|w| w.id == wid),
+                                        Err(e) => {
+                                            warn!("Failed to load webhooks from SQLite: {}", e);
+                                            None
+                                        }
+                                    }
+                                } else {
+                                    None
+                                };
+
+                                let notification = if let Some(wh) = webhook_opt {
+                                    let payload = serde_json::json!({
+                                        "type": "test",
+                                        "message": "Sentinel webhook test",
+                                        "timestamp": chrono::Utc::now().to_rfc3339(),
+                                    });
+                                    let client = reqwest::Client::builder()
+                                        .timeout(std::time::Duration::from_secs(10))
+                                        .build()
+                                        .unwrap_or_default();
+                                    match client.post(&wh.url).json(&payload).send().await {
+                                        Ok(resp) if resp.status().is_success() => {
+                                            agent_gui::dto::GuiNotification::info(
+                                                "Test webhook r\u{00e9}ussi",
+                                                format!("Le webhook '{}' a r\u{00e9}pondu avec succ\u{00e8}s (HTTP {}).", wh.name, resp.status()),
+                                            )
+                                        }
+                                        Ok(resp) => {
+                                            agent_gui::dto::GuiNotification::error(
+                                                "Test webhook \u{00e9}chou\u{00e9}",
+                                                format!("Le webhook '{}' a r\u{00e9}pondu avec le code HTTP {}.", wh.name, resp.status()),
+                                            )
+                                        }
+                                        Err(e) => {
+                                            agent_gui::dto::GuiNotification::error(
+                                                "Test webhook \u{00e9}chou\u{00e9}",
+                                                format!("Impossible de contacter le webhook '{}': {}", wh.name, e),
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    agent_gui::dto::GuiNotification::error(
+                                        "Webhook introuvable",
+                                        format!("Aucun webhook avec l'identifiant '{}' n'a \u{00e9}t\u{00e9} trouv\u{00e9}.", wid),
+                                    )
+                                };
+
+                                let _ = tx.send(AgentEvent::Notification { notification });
+                            });
                         }
 
                         // ── LLM commands ──────────────────────────────────────
@@ -2156,10 +2557,12 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             #[cfg(feature = "llm")]
                             {
                                 let svc = llm_service.clone();
+                                let llm_handle = handle_for_commands.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc {
                                         if let Err(e) = svc.reload().await {
                                             warn!("Failed to reload LLM model: {}", e);
+                                            llm_handle.set_llm_loaded(false);
                                             let _ = tx.send(AgentEvent::LlmStatusUpdate {
                                                 model_name: "N/A".to_string(),
                                                 status: format!("reload_error: {}", e),
@@ -2168,6 +2571,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             });
                                             return;
                                         }
+                                        llm_handle.set_llm_loaded(true);
                                         match svc.get_status().await {
                                             agent_core::llm_service::LLMServiceStatus::Ready {
                                                 model_name,
@@ -2184,7 +2588,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             other => {
                                                 let _ = tx.send(AgentEvent::LlmStatusUpdate {
                                                     model_name: "N/A".to_string(),
-                                                    status: format!("{:?}", other),
+                                                    status: format!("{}", other),
                                                     inference_count: 0,
                                                     memory_mb: 0,
                                                 });
@@ -2423,7 +2827,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                 let _ = tx.send(AgentEvent::LlmAnalysisComplete {
                                                     target: target_id.clone(),
                                                     analysis,
-                                                    severity_override: Some(format!("{:?}", classification.threat_level)),
+                                                    severity_override: Some(format!("{}", classification.threat_level)),
                                                     is_false_positive: None,
                                                     confidence: Some(classification.confidence),
                                                 });

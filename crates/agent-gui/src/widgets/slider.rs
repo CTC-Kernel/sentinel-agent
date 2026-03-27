@@ -193,9 +193,9 @@ impl Slider {
                                 egui::pos2(tick_x, tick_y),
                                 theme::BORDER_THICK,
                                 if tick_t <= t {
-                                    accent.linear_multiply(theme::OPACITY_HOVER_SOFT)
+                                    accent // Filled tick: full accent color
                                 } else {
-                                    theme::text_tertiary()
+                                    theme::text_tertiary() // Unfilled tick: muted
                                 },
                             );
                         }

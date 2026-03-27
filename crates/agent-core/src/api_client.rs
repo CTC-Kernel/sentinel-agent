@@ -223,6 +223,56 @@ pub struct HeartbeatRequest {
     /// Number of LLM inferences performed since last restart.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub llm_inference_count: Option<u64>,
+    /// Agent-local playbooks (synced inline with heartbeat).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub playbooks: Vec<HeartbeatPlaybook>,
+    /// Agent-local detection rules (synced inline with heartbeat).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub detection_rules: Vec<HeartbeatDetectionRule>,
+}
+
+/// Lightweight playbook payload for heartbeat inline sync.
+#[derive(Debug, Serialize, Clone)]
+pub struct HeartbeatPlaybook {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub conditions: Vec<serde_json::Value>,
+    #[serde(default)]
+    pub actions: Vec<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_triggered: Option<String>,
+    #[serde(default)]
+    pub trigger_count: u32,
+}
+
+/// Lightweight detection rule payload for heartbeat inline sync.
+#[derive(Debug, Serialize, Clone)]
+pub struct HeartbeatDetectionRule {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub severity: String,
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub conditions: Vec<serde_json::Value>,
+    #[serde(default)]
+    pub actions: Vec<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_match: Option<String>,
+    #[serde(default)]
+    pub match_count: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -1105,6 +1155,8 @@ mod tests {
             disk_io_kbps: 0,
             llm_status: Some("active".to_string()),
             llm_inference_count: Some(42),
+            detection_rules: vec![],
+            playbooks: vec![],
         };
 
         let json = serde_json::to_string(&request).unwrap();

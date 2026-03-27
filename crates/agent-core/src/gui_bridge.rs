@@ -195,7 +195,7 @@ impl AgentRuntime {
                 let def = check.definition();
                 (
                     def.name.clone(),
-                    format!("{:?}", def.category).to_lowercase(),
+                    format!("{}", def.category),
                     self.check_severity_to_gui(&def.severity),
                     def.frameworks.clone(),
                 )
@@ -327,6 +327,133 @@ impl AgentRuntime {
             .collect();
 
         (interfaces, connections)
+    }
+
+    /// Convert collected SIEM events into GUI log entries and emit them.
+    pub(crate) fn emit_siem_log_batch(&self, events: Vec<agent_siem::SiemEvent>) {
+        use agent_gui::dto::{GuiSiemLogEntry, SiemLogSeverity, SiemLogSource};
+
+        if events.is_empty() {
+            return;
+        }
+
+        let entries: Vec<GuiSiemLogEntry> = events
+            .into_iter()
+            .map(|e| {
+                let source = match e.category {
+                    agent_siem::EventCategory::Authentication => SiemLogSource::Auth,
+                    agent_siem::EventCategory::Network
+                    | agent_siem::EventCategory::FileIntegrity => SiemLogSource::System,
+                    agent_siem::EventCategory::Compliance
+                    | agent_siem::EventCategory::Security
+                    | agent_siem::EventCategory::Configuration
+                    | agent_siem::EventCategory::Vulnerability => SiemLogSource::Application,
+                    agent_siem::EventCategory::System => SiemLogSource::System,
+                };
+
+                GuiSiemLogEntry {
+                    id: e.event_id.clone(),
+                    timestamp: e.timestamp,
+                    severity: SiemLogSeverity::from_numeric(e.severity),
+                    source,
+                    category: format!("{:?}", e.category),
+                    message: if e.description.is_empty() {
+                        e.name.clone()
+                    } else {
+                        e.description.clone()
+                    },
+                    hostname: Some(e.source_host.clone()),
+                    process: e.process_name.clone(),
+                    pid: e.process_id,
+                    user: e.user.clone(),
+                }
+            })
+            .collect();
+
+        self.emit_gui_event(AgentEvent::SiemLogBatch { entries });
+    }
+
+    /// Emit SIEM forwarder stats to the GUI.
+    pub(crate) fn emit_siem_stats(
+        &self,
+        events_collected: u64,
+        connected: bool,
+        events_per_minute: f32,
+        category_counts: Vec<(String, u32)>,
+    ) {
+        use agent_gui::dto::GuiSiemStats;
+
+        let stats = GuiSiemStats {
+            events_sent: events_collected,
+            events_dropped: 0,
+            events_buffered: 0,
+            connected,
+            last_sent_at: if connected { Some(chrono::Utc::now()) } else { None },
+            uptime_secs: 0,
+            events_per_minute,
+            category_counts,
+        };
+
+        self.emit_gui_event(AgentEvent::SiemStatsUpdate { stats });
+    }
+
+    /// Convert an `agent_scanner::SecurityIncident` to a `GuiSystemIncident` and emit it.
+    pub(crate) fn emit_system_incident(&self, incident: &agent_scanner::SecurityIncident) {
+        use agent_gui::dto::GuiSystemIncident;
+
+        let severity = match incident.severity {
+            agent_scanner::IncidentSeverity::Critical => GuiSeverity::Critical,
+            agent_scanner::IncidentSeverity::High => GuiSeverity::High,
+            agent_scanner::IncidentSeverity::Medium => GuiSeverity::Medium,
+            agent_scanner::IncidentSeverity::Low => GuiSeverity::Low,
+        };
+
+        self.emit_gui_event(AgentEvent::SystemIncident {
+            incident: GuiSystemIncident {
+                incident_type: format!("{}", incident.incident_type),
+                severity,
+                title: incident.title.clone(),
+                description: incident.description.clone(),
+                confidence: incident.confidence,
+                detected_at: incident.detected_at,
+                ai_confidence: None,
+                is_false_positive: None,
+                ai_analysis: None,
+            },
+        });
+    }
+
+    /// Build and emit a KPI snapshot from current state.
+    pub(crate) fn emit_kpi_snapshot(
+        &self,
+        compliance_score: Option<f64>,
+        incident_count: u32,
+        open_vulns: u32,
+        closed_vulns: u32,
+    ) {
+        use agent_gui::dto::KpiSnapshot;
+
+        let snapshot = KpiSnapshot {
+            timestamp: chrono::Utc::now(),
+            compliance_score: compliance_score.map(|s| s as f32).unwrap_or(0.0),
+            incident_count,
+            open_vulns,
+            closed_vulns,
+            remediation_sla_pct: 0.0,
+        };
+
+        self.emit_gui_event(AgentEvent::KpiSnapshot {
+            snapshot: Box::new(snapshot),
+        });
+    }
+
+    /// Emit loaded alert rules and webhooks to the GUI.
+    pub(crate) fn emit_alerting_loaded(
+        &self,
+        rules: Vec<agent_gui::dto::AlertRule>,
+        webhooks: Vec<agent_gui::dto::WebhookConfig>,
+    ) {
+        self.emit_gui_event(AgentEvent::AlertingLoaded { rules, webhooks });
     }
 
     /// Emit a GUI alert from a `NetworkSecurityAlert`.

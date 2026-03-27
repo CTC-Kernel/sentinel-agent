@@ -154,7 +154,7 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
 }
 
 fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
-    let color = event.event_type.color();
+    let color = theme::readable_color(event.event_type.color());
     let icon = event.event_type.icon();
 
     // Row background with subtle hover

@@ -220,9 +220,18 @@ impl Default for SecurityConfig {
             sanitize_input: true,
             max_input_length: 10000,
             blocked_patterns: vec![
+                // Credential leakage
                 r"(?i)password\s*[:=]\s*\S+".to_string(),
                 r"(?i)secret\s*[:=]\s*\S+".to_string(),
                 r"(?i)token\s*[:=]\s*\S+".to_string(),
+                // Prompt injection attempts
+                r"(?i)ignore\s+(all\s+)?previous\s+instructions".to_string(),
+                r"(?i)disregard\s+(the\s+)?(above|previous|system)\s+(prompt|instructions)".to_string(),
+                r"(?i)you\s+are\s+now\s+a".to_string(),
+                r"(?i)new\s+instruction[s]?\s*:".to_string(),
+                r"(?i)forget\s+(everything|all|your)\s+(above|previous)".to_string(),
+                r"(?i)system\s*:\s*you\s+are".to_string(),
+                r"(?i)\bdo\s+not\s+follow\s+(the\s+)?(system|original)\b".to_string(),
             ],
             audit_logging: true,
         }

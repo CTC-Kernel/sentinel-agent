@@ -14,7 +14,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 8;
+pub const CURRENT_SCHEMA_VERSION: i32 = 9;
 
 /// A database migration.
 struct Migration {
@@ -463,6 +463,21 @@ const MIGRATIONS: &[Migration] = &[
             ALTER TABLE software_inventory_v7 RENAME TO software_inventory;
         "#,
     },
+    Migration {
+        version: 9,
+        name: "playbooks_add_conditions",
+        up: r#"
+            ALTER TABLE playbooks ADD COLUMN conditions TEXT NOT NULL DEFAULT '[]';
+        "#,
+        down: r#"
+            -- SQLite does not support DROP COLUMN before 3.35.0; recreate without it
+            CREATE TABLE playbooks_v8 AS
+                SELECT id, name, description, trigger_type, severity, steps, enabled, created_at, updated_at, synced
+                FROM playbooks;
+            DROP TABLE playbooks;
+            ALTER TABLE playbooks_v8 RENAME TO playbooks;
+        "#,
+    },
 ];
 
 /// Initialize the schema_version table if it doesn't exist.
@@ -805,9 +820,12 @@ mod tests {
 
         // Run migrations
         run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 9);
+
+        // Rollback from v9 down to v0
+        rollback_migration(&mut conn, 9).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 8);
 
-        // Rollback from v8 down to v0
         rollback_migration(&mut conn, 8).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 7);
 
@@ -858,7 +876,7 @@ mod tests {
         run_migrations(&mut conn).unwrap();
 
         let migrations = get_applied_migrations(&conn).unwrap();
-        assert_eq!(migrations.len(), 8);
+        assert_eq!(migrations.len(), 9);
         assert_eq!(migrations[0].0, 1);
         assert_eq!(migrations[0].1, "initial_schema");
         assert_eq!(migrations[1].0, 2);

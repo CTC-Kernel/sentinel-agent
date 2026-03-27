@@ -278,6 +278,48 @@ pub enum AgentEvent {
         /// Suggested mitigation strategies.
         mitigation_suggestions: Vec<String>,
     },
+    /// Risks loaded or auto-generated from the backend.
+    RisksLoaded {
+        /// Risk entries to merge into GUI state.
+        risks: Vec<crate::dto::RiskEntry>,
+    },
+    /// Admin password hash set during enrollment.
+    AdminPasswordSet {
+        /// SHA-256 hash of the admin password.
+        hash: String,
+    },
+    /// Assets loaded from SQLite or platform sync.
+    AssetsLoaded {
+        /// Managed assets to merge into GUI state.
+        assets: Vec<crate::dto::ManagedAsset>,
+    },
+    /// Playbooks loaded from SQLite.
+    PlaybooksLoaded {
+        /// Playbook entries to merge into GUI state.
+        playbooks: Vec<crate::dto::Playbook>,
+    },
+    /// Detection rules loaded from SQLite.
+    DetectionRulesLoaded {
+        /// Detection rule entries to merge into GUI state.
+        rules: Vec<crate::dto::DetectionRule>,
+    },
+    /// Alert rules and webhooks loaded from backend.
+    AlertingLoaded {
+        /// Alert rule entries to merge into GUI state.
+        rules: Vec<crate::dto::AlertRule>,
+        /// Webhook configurations to merge into GUI state.
+        webhooks: Vec<crate::dto::WebhookConfig>,
+    },
+    /// A response action was submitted.
+    ResponseActionSubmitted {
+        /// The submitted response action.
+        action: crate::dto::ResponseAction,
+    },
+    /// A file was quarantined.
+    FileQuarantined {
+        /// The quarantined file entry.
+        entry: crate::dto::QuarantinedFile,
+    },
 }
 
 /// Commands sent from the GUI to the agent runtime.
@@ -347,6 +389,11 @@ pub enum GuiCommand {
     CheckUpdate,
     /// Mark all notifications as read.
     MarkAllNotificationsRead,
+    /// Delete a notification.
+    DeleteNotification {
+        /// Notification ID.
+        notification_id: String,
+    },
     /// Export audit trail to CSV.
     ExportCsvAuditTrail,
     /// Kill a suspicious process.

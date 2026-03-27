@@ -19,11 +19,11 @@ impl DiscoveryPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Sys & Network", "Découverte"],
-            "Reconnaissance Réseau",
-            Some("IDENTIFICATION ET CARTOGRAPHIE DES ACTIFS SUR LE PÉRIMÈTRE LOCAL"),
+            &["Shadow IT", "D\u{00e9}tection"],
+            "D\u{00e9}tection Shadow IT",
+            Some("IDENTIFICATION DES \u{00c9}QUIPEMENTS NON AUTORIS\u{00c9}S SUR LE P\u{00c9}RIM\u{00c8}TRE R\u{00c9}SEAU"),
             Some(
-                "Identifiez les nouveaux équipements sur votre segment réseau. Le scan ARP et ICMP permet de détecter les noms d'hôtes et les constructeurs pour enrichir votre inventaire d'actifs.",
+                "Scannez votre r\u{00e9}seau pour d\u{00e9}tecter les \u{00e9}quipements non r\u{00e9}f\u{00e9}renc\u{00e9}s dans l\u{2019}inventaire. Les appareils inconnus repr\u{00e9}sentent un risque de s\u{00e9}curit\u{00e9} (Shadow IT).",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -172,27 +172,63 @@ impl DiscoveryPage {
                     });
                 }
 
-                ui.with_layout(
-                    egui::Layout::right_to_left(egui::Align::Center),
-                    |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(format!("{}", state.discovery.devices.len()))
-                                .font(theme::font_stat())
-                                .color(theme::text_primary())
-                                .strong(),
-                        );
-                        ui.add_space(theme::SPACE_XS);
-                        ui.label(
-                            egui::RichText::new("ACTIFS DÉTECTÉS")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                .strong(),
-                        );
-                    },
-                );
             });
         });
+
+        ui.add_space(theme::SPACE_SM);
+
+        // Shadow IT KPI cards
+        {
+            let total = state.discovery.devices.len();
+            let asset_ips: std::collections::HashSet<&str> = state
+                .assets
+                .assets
+                .iter()
+                .map(|a| a.ip.as_str())
+                .collect();
+            let authorized = state
+                .discovery
+                .devices
+                .iter()
+                .filter(|d| asset_ips.contains(d.ip.as_str()))
+                .count();
+            let shadow = total.saturating_sub(authorized);
+
+            let card_grid = widgets::ResponsiveGrid::new(200.0, theme::SPACE_SM);
+            let items = vec![
+                (
+                    "D\u{00c9}TECT\u{00c9}S",
+                    total.to_string(),
+                    theme::text_primary(),
+                    icons::NETWORK,
+                ),
+                (
+                    "SHADOW IT",
+                    shadow.to_string(),
+                    if shadow > 0 {
+                        theme::ERROR
+                    } else {
+                        theme::text_tertiary()
+                    },
+                    icons::SEVERITY_CRITICAL,
+                ),
+                (
+                    "AUTORIS\u{00c9}S",
+                    authorized.to_string(),
+                    if authorized > 0 {
+                        theme::SUCCESS
+                    } else {
+                        theme::text_tertiary()
+                    },
+                    icons::CHECK,
+                ),
+            ];
+
+            card_grid.show(ui, &items, |ui, width, item| {
+                let (label, value, color, icon) = item;
+                Self::kpi_card(ui, width, label, value, *color, icon);
+            });
+        }
 
         ui.add_space(theme::SPACE_MD);
 
@@ -283,8 +319,8 @@ impl DiscoveryPage {
                     widgets::protected_state(
                         ui,
                         icons::NETWORK,
-                        "AUCUNE ENTITÉ DÉTECTÉE",
-                        "Veuillez initier un scan pour identifier les actifs présents sur votre segment réseau.",
+                        "AUCUN \u{00c9}QUIPEMENT D\u{00c9}TECT\u{00c9}",
+                        "Lancez un scan pour identifier les appareils non autoris\u{00e9}s sur votre r\u{00e9}seau (Shadow IT).",
                     );
                     ui.add_space(theme::SPACE_XL);
                 });
@@ -392,13 +428,21 @@ impl DiscoveryPage {
 
                             row.set_selected(state.discovery.selected_device == Some(dev_idx));
 
+                            let is_authorized = state.assets.assets.iter().any(|a| a.ip == device.ip);
                             row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&device.ip)
-                                        .font(theme::font_mono())
-                                        .color(theme::text_primary())
-                                        .strong(),
-                                );
+                                ui.horizontal(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&device.ip)
+                                            .font(theme::font_mono())
+                                            .color(theme::text_primary())
+                                            .strong(),
+                                    );
+                                    if is_authorized {
+                                        widgets::status_badge(ui, "AUTORIS\u{00c9}", theme::SUCCESS);
+                                    } else {
+                                        widgets::status_badge(ui, "SHADOW", theme::ERROR);
+                                    }
+                                });
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 let text = device.hostname.as_deref().unwrap_or("--");
@@ -492,15 +536,17 @@ impl DiscoveryPage {
 
         ui.add_space(theme::SPACE_XL);
 
-        Self::detail_drawer(ui, state);
+        if let Some(drawer_cmd) = Self::detail_drawer(ui, state) {
+            cmd = Some(drawer_cmd);
+        }
 
         cmd
     }
 
-    fn detail_drawer(ui: &mut Ui, state: &mut AppState) {
+    fn detail_drawer(ui: &mut Ui, state: &mut AppState) -> Option<crate::events::GuiCommand> {
         let selected = match state.discovery.selected_device {
             Some(idx) if idx < state.discovery.devices.len() => idx,
-            _ => return,
+            _ => return None,
         };
 
         let device = &state.discovery.devices[selected];
@@ -512,14 +558,25 @@ impl DiscoveryPage {
         let subnet = device.subnet.clone();
         let is_gateway = device.is_gateway;
         let open_ports = device.open_ports.clone();
+        let first_seen_ts = device.first_seen;
+        let last_seen_ts = device.last_seen;
         let first_seen = device.first_seen.format("%d/%m/%Y %H:%M").to_string();
         let last_seen = device.last_seen.format("%d/%m/%Y %H:%M").to_string();
         let (type_label, type_color) = device_type_badge(&device_type);
 
-        let actions = [
+        // Check whether this device is already imported as a managed asset.
+        let already_imported = state.assets.assets.iter().any(|a| a.ip == ip);
+
+        let mut actions = vec![
+            widgets::DetailAction::primary("Autoriser cet \u{00e9}quipement", icons::PLUS),
             widgets::DetailAction::primary("Scanner les ports", icons::SEARCH),
             widgets::DetailAction::danger("Bloquer", icons::LOCK),
         ];
+
+        // Grey-out the import button when already imported.
+        if already_imported {
+            actions[0] = widgets::DetailAction::secondary("\u{00c9}quipement autoris\u{00e9}", icons::CHECK);
+        }
 
         let action = widgets::DetailDrawer::new("discovery_detail", "Appareil", icons::NETWORK)
             .accent(type_color)
@@ -573,7 +630,43 @@ impl DiscoveryPage {
 
         if let Some(action_idx) = action {
             let time = ui.ctx().input(|i| i.time);
-            if action_idx == 0 {
+            if action_idx == 0 && !already_imported {
+                // "Ajouter aux actifs" — create a ManagedAsset from the
+                // discovered device and queue it for persistence.
+                let criticality =
+                    crate::pages::AssetsPage::infer_criticality_from_device(
+                        is_gateway,
+                        &open_ports,
+                    );
+
+                let asset = crate::dto::ManagedAsset {
+                    id: uuid::Uuid::new_v4(),
+                    ip: ip.clone(),
+                    hostname: hostname.clone(),
+                    mac: mac.clone(),
+                    vendor: vendor.clone(),
+                    device_type: device_type.clone(),
+                    criticality,
+                    lifecycle: crate::dto::AssetLifecycle::Discovered,
+                    tags: Vec::new(),
+                    risk_score: 0.0,
+                    vulnerability_count: 0,
+                    open_ports: open_ports.clone(),
+                    software: Vec::new(),
+                    first_seen: first_seen_ts,
+                    last_seen: last_seen_ts,
+                };
+
+                state.assets.assets.push(asset.clone());
+                state.assets.pending_asset_saves.push(asset);
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success(
+                        "Device ajout\u{00e9} aux actifs g\u{00e9}r\u{00e9}s",
+                    )
+                    .with_time(time),
+                );
+                state.discovery.detail_open = false;
+            } else if action_idx == 1 {
                 let safe_ip = ip.replace('\'', "'\\''");
                 let nmap_cmd = format!("nmap -sV '{}'", safe_ip);
                 ui.ctx().copy_text(nmap_cmd);
@@ -583,10 +676,63 @@ impl DiscoveryPage {
                     )
                     .with_time(time),
                 );
-            } else if action_idx == 1 {
+            } else if action_idx == 2 {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success("\u{00c9}quipement bloqu\u{00e9}")
+                        .with_time(time),
+                );
                 state.discovery.detail_open = false;
+                return Some(crate::events::GuiCommand::BlockIp {
+                    ip: ip.clone(),
+                    duration_secs: 0,
+                });
             }
         }
+        None
+    }
+
+    fn kpi_card(
+        ui: &mut Ui,
+        width: f32,
+        label: &str,
+        value: &str,
+        color: egui::Color32,
+        icon: &str,
+    ) {
+        let safe_color = theme::readable_color(color);
+        ui.vertical(|ui: &mut egui::Ui| {
+            ui.set_width(width);
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.vertical(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .font(theme::font_card_value())
+                                .color(safe_color)
+                                .strong(),
+                        );
+                        ui.label(
+                            egui::RichText::new(label)
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                                .strong(),
+                        );
+                    });
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icon)
+                                    .size(theme::ICON_XL)
+                                    .color(safe_color.linear_multiply(theme::OPACITY_DISABLED)),
+                            );
+                        },
+                    );
+                });
+            });
+        });
     }
 
     fn export_csv(state: &AppState, indices: &[usize]) -> bool {

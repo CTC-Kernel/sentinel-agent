@@ -36,10 +36,12 @@ pub mod tracing_layer;
 pub mod update_manager;
 
 // Domain modules (impl AgentRuntime split)
+mod asset_sync;
 mod compliance;
 pub mod edr_actions;
 mod enrollment;
 mod gui_bridge;
+mod risk_generation;
 mod heartbeat;
 mod network_ops;
 pub mod playbook_engine;
@@ -449,6 +451,11 @@ impl RuntimeHandle {
     pub fn shutdown_signal(&self) -> ShutdownSignal {
         self.state.shutdown.clone()
     }
+
+    /// Signal LLM loaded/unloaded from the handle (e.g., from the command processor).
+    pub fn set_llm_loaded(&self, loaded: bool) {
+        self.state.llm_loaded.store(loaded, std::sync::atomic::Ordering::Release);
+    }
 }
 
 impl AgentRuntime {
@@ -648,6 +655,19 @@ impl AgentRuntime {
         self.resource_monitor.get_usage()
     }
 
+    /// Signal that the LLM model is loaded/unloaded, adjusting memory limits.
+    pub fn set_llm_loaded(&self, loaded: bool) {
+        self.resource_monitor.set_llm_loaded(loaded);
+        self.state.llm_loaded.store(loaded, Ordering::Release);
+        if loaded {
+            info!("LLM model loaded — resource memory limit raised to {}MB",
+                self.resource_monitor.effective_memory_limit() / (1024 * 1024));
+        } else {
+            info!("LLM model unloaded — resource memory limit restored to {}MB",
+                self.resource_monitor.effective_memory_limit() / (1024 * 1024));
+        }
+    }
+
     /// Wait for shutdown signal.
     async fn wait_for_shutdown(&self) {
         while !self.is_shutdown_requested() {
@@ -755,6 +775,10 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         let mut cached_policy_summary: Option<GuiPolicySummary> = None;
 
+        // KPI tracking counters — declared here, reset each iteration inside the loop.
+        #[cfg(feature = "gui")]
+        let mut kpi_open_vulns: u32 = 0;
+
         // Emit initial GUI state
         #[cfg(feature = "gui")]
         {
@@ -797,6 +821,10 @@ impl AgentRuntime {
                 }
             }
         }
+
+        // Load persisted GRC data (playbooks, detection rules, assets, alert rules) into GUI
+        #[cfg(feature = "gui")]
+        self.sync_assets_to_gui().await;
 
         // Track last operation times
         let mut last_heartbeat = std::time::Instant::now();
@@ -924,7 +952,9 @@ impl AgentRuntime {
             *fim_guard = Some(engine);
         }
 
-        // Initialize SIEM forwarder with default config (disabled)
+        // Initialize SIEM forwarder (disabled by default).
+        // Events always reach the platform via record_event() + heartbeat sync.
+        // The external transport (syslog/HTTP) is only for third-party SIEM (Splunk, QRadar, etc.)
         {
             let config = agent_siem::SiemConfig::default();
 
@@ -1011,11 +1041,18 @@ impl AgentRuntime {
             // Check for shutdown signal
             if self.state.shutdown.load(Ordering::Acquire) {
                 info!("Shutdown requested, stopping main loop");
+                #[cfg(feature = "gui")]
+                self.emit_gui_event(AgentEvent::ShuttingDown);
                 break;
             }
 
             let mut is_active = false;
             let is_paused = self.is_paused();
+
+            // Per-iteration KPI incident counter — reset each iteration so each
+            // snapshot reflects only the current cycle, not a cumulative total.
+            #[cfg(feature = "gui")]
+            let mut kpi_incident_count: u32 = 0;
 
             // Threat pipeline accumulators (populated during this iteration)
             #[cfg(feature = "gui")]
@@ -1093,7 +1130,7 @@ impl AgentRuntime {
                             // Accumulate for threat pipeline
                             pipeline_fim_alerts.push((
                                 alert.path.to_string_lossy().to_string(),
-                                format!("{:?}", alert.change),
+                                format!("{}", alert.change),
                             ));
                         }
 
@@ -1112,11 +1149,9 @@ impl AgentRuntime {
                             }
                         }
 
-                        // Forward to SIEM
+                        // Forward to SIEM (always record for platform, optionally send to external)
                         let siem_guard = self.siem_forwarder.read().await;
-                        if let Some(siem) = siem_guard.as_ref()
-                            && siem.is_enabled()
-                        {
+                        if let Some(siem) = siem_guard.as_ref() {
                             let mut event = agent_siem::SiemEvent {
                                 timestamp: chrono::Utc::now(),
                                 severity: 5,
@@ -1150,8 +1185,14 @@ impl AgentRuntime {
                                 siem_enrichment::enrich_siem_event(&mut event).await;
                             }
 
-                            if let Err(e) = siem.send_event(&event).await {
-                                warn!("Failed to forward FIM event to SIEM: {}", e);
+                            // Always record for platform SIEM tab
+                            siem.record_event(event.clone()).await;
+
+                            // Optionally forward to external SIEM
+                            if siem.is_enabled() {
+                                if let Err(e) = siem.send_event(&event).await {
+                                    warn!("Failed to forward FIM event to external SIEM: {}", e);
+                                }
                             }
                         }
                     }
@@ -1173,6 +1214,64 @@ impl AgentRuntime {
                         monitored_count: u32::try_from(engine.baseline_count()).unwrap_or(u32::MAX),
                         changes_today: fim_changes_today,
                     });
+                }
+            }
+
+            // 1b. Sync GUI SIEM config changes to the actual forwarder
+            // Only enable external SIEM transport if a real destination is configured.
+            #[cfg(feature = "gui")]
+            {
+                let gui_enabled = self.state.siem_enabled.load(Ordering::Acquire);
+                let has_destination = self.state.siem_destination.lock()
+                    .map(|d| !d.is_empty())
+                    .unwrap_or(false);
+                // Don't activate external transport without a configured destination
+                let effective_enabled = gui_enabled && has_destination;
+                let mut siem_guard = self.siem_forwarder.write().await;
+                if let Some(ref mut siem) = *siem_guard {
+                    if siem.is_enabled() != effective_enabled {
+                        let mut new_config = siem.config().clone();
+                        new_config.enabled = effective_enabled;
+                        if let Ok(fmt) = self.state.siem_format.lock() {
+                            new_config.format = match fmt.as_str() {
+                                "CEF" => agent_siem::SiemFormat::Cef,
+                                "LEEF" => agent_siem::SiemFormat::Leef,
+                                _ => agent_siem::SiemFormat::Json,
+                            };
+                        }
+                        if has_destination {
+                            if let Ok(dest) = self.state.siem_destination.lock() {
+                                if let Ok(tr) = self.state.siem_transport.lock() {
+                                    match tr.as_str() {
+                                        "HTTP" => {
+                                            new_config.transport = agent_siem::SiemTransport::Http {
+                                                url: dest.clone(),
+                                                auth_token: None,
+                                                auth_header: None,
+                                                verify_tls: true,
+                                            };
+                                        }
+                                        _ => {
+                                            let parts: Vec<&str> = dest.splitn(2, ':').collect();
+                                            let host = parts.first().unwrap_or(&"localhost").to_string();
+                                            let port = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(514);
+                                            new_config.transport = agent_siem::SiemTransport::Syslog {
+                                                host,
+                                                port,
+                                                protocol: agent_siem::SyslogProtocol::Tcp,
+                                                tls: false,
+                                            };
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if let Err(e) = siem.update_config(new_config) {
+                            warn!("Failed to apply GUI SIEM config: {}", e);
+                        } else if effective_enabled {
+                            info!("SIEM forwarder config synced from GUI (enabled=true)");
+                        }
+                    }
                 }
             }
 
@@ -1238,6 +1337,10 @@ impl AgentRuntime {
                             }
                         }
 
+                        // Push assets from SQLite to GUI after GRC sync
+                        #[cfg(feature = "gui")]
+                        self.sync_assets_to_gui().await;
+
                         // Sync SIEM data to the platform
                         if let Some(ref client) = self.authenticated_client {
                             if let Some(ref siem) = *self.siem_forwarder.read().await {
@@ -1250,7 +1353,7 @@ impl AgentRuntime {
                                     .map(|e| agent_sync::SiemEventPayload {
                                         timestamp: e.timestamp,
                                         severity: e.severity,
-                                        category: format!("{:?}", e.category),
+                                        category: format!("{}", e.category),
                                         name: e.name.clone(),
                                         description: e.description.clone(),
                                         source_host: e.source_host.clone(),
@@ -1264,8 +1367,8 @@ impl AgentRuntime {
                                     events,
                                     stats: agent_sync::SiemStatsPayload {
                                         enabled: cfg.enabled,
-                                        format: format!("{:?}", cfg.format),
-                                        transport: format!("{:?}", cfg.transport),
+                                        format: format!("{}", cfg.format),
+                                        transport: format!("{}", cfg.transport),
                                         destination: cfg.destination_label(),
                                         events_sent: stats.events_sent,
                                         events_dropped: stats.events_dropped,
@@ -1444,6 +1547,7 @@ impl AgentRuntime {
                             self.emit_gui_event(AgentEvent::VulnerabilityFindings {
                                 findings: self.build_vulnerability_findings(&result),
                             });
+                            kpi_open_vulns = count as u32;
                             last_check_at = Some(chrono::Utc::now());
                         }
                     }
@@ -1480,6 +1584,10 @@ impl AgentRuntime {
                                     "error",
                                 );
                                 for incident in &result.incidents {
+                                    // Emit SystemIncident for every detected incident
+                                    self.emit_system_incident(incident);
+
+                                    // Also emit SuspiciousProcess for process-related incidents
                                     if incident.incident_type
                                         == agent_scanner::IncidentType::SuspiciousProcess
                                         || incident.incident_type
@@ -1491,6 +1599,12 @@ impl AgentRuntime {
                                             .and_then(|v| v.as_str())
                                             .unwrap_or("unknown")
                                             .to_string();
+                                        let pid: u32 = incident
+                                            .evidence
+                                            .get("pid")
+                                            .and_then(|v| v.as_u64())
+                                            .and_then(|v| v.try_into().ok())
+                                            .unwrap_or(0);
                                         let command_line = incident
                                             .evidence
                                             .get("path")
@@ -1500,6 +1614,7 @@ impl AgentRuntime {
                                         self.emit_gui_event(AgentEvent::SuspiciousProcess {
                                             process: GuiSuspiciousProcess {
                                                 process_name,
+                                                pid,
                                                 command_line,
                                                 reason: incident.description.clone(),
                                                 confidence: incident.confidence,
@@ -1517,6 +1632,7 @@ impl AgentRuntime {
                         // Accumulate incidents for threat pipeline
                         #[cfg(feature = "gui")]
                         {
+                            kpi_incident_count = kpi_incident_count.saturating_add(count as u32);
                             pipeline_incidents.extend(result.incidents.iter().cloned());
                         }
 
@@ -1570,6 +1686,7 @@ impl AgentRuntime {
                         agent_common::types::UsbEventType::Disconnected => {
                             GuiUsbEventType::Disconnected
                         }
+                        agent_common::types::UsbEventType::Blocked => GuiUsbEventType::Blocked,
                     };
                     self.emit_gui_event(AgentEvent::UsbEvent {
                         event: GuiUsbEvent {
@@ -1776,21 +1893,42 @@ impl AgentRuntime {
                                 siem_events.len()
                             );
 
-                            // Forward collected events to SIEM and record for platform
+                            // Push collected events to the desktop GUI
+                            #[cfg(feature = "gui")]
+                            {
+                                self.emit_siem_log_batch(siem_events.clone());
+
+                                // Build category counts for stats
+                                let mut cat_map: std::collections::HashMap<String, u32> =
+                                    std::collections::HashMap::new();
+                                for ev in &siem_events {
+                                    *cat_map.entry(format!("{:?}", ev.category)).or_insert(0) += 1;
+                                }
+                                let siem_connected = self
+                                    .state
+                                    .siem_enabled
+                                    .load(std::sync::atomic::Ordering::Acquire);
+                                self.emit_siem_stats(
+                                    siem_events.len() as u64,
+                                    siem_connected,
+                                    siem_events.len() as f32
+                                        / (poll_secs.max(1) as f32 / 60.0),
+                                    cat_map.into_iter().collect(),
+                                );
+                            }
+
+                            // Record all events for platform sync, then optionally forward to external SIEM
                             let siem_guard = self.siem_forwarder.read().await;
                             if let Some(siem) = siem_guard.as_ref() {
                                 for event in &siem_events {
+                                    // Always record for platform (SIEM tab in SaaS)
+                                    siem.record_event(event.clone()).await;
+
+                                    // Additionally forward to external SIEM if configured
                                     if siem.is_enabled() {
-                                        // External SIEM enabled: send + record
                                         if let Err(e) = siem.send_event(event).await {
-                                            warn!("Failed to forward log event to SIEM: {}", e);
-                                            // Still record for platform even if SIEM send fails
-                                            siem.record_event(event.clone()).await;
-                                            break;
+                                            warn!("Failed to forward log event to external SIEM: {}", e);
                                         }
-                                    } else {
-                                        // No external SIEM: just record for platform tab
-                                        siem.record_event(event.clone()).await;
                                     }
                                 }
                             }
@@ -1806,17 +1944,20 @@ impl AgentRuntime {
                                         alerts.len()
                                     );
 
-                                    // Forward correlation alerts to SIEM
+                                    // Forward correlation alerts to SIEM (record for platform + optional external)
                                     let siem_guard = self.siem_forwarder.read().await;
-                                    if let Some(siem) = siem_guard.as_ref()
-                                        && siem.is_enabled()
-                                    {
+                                    if let Some(siem) = siem_guard.as_ref() {
                                         let host = hostname::get()
                                             .map(|h| h.to_string_lossy().to_string())
                                             .unwrap_or_default();
                                         for alert in &alerts {
                                             let event = engine.alert_to_event(alert, &host);
-                                            let _ = siem.send_event(&event).await;
+                                            siem.record_event(event.clone()).await;
+                                            if siem.is_enabled() {
+                                                if let Err(e) = siem.send_event(&event).await {
+                                                    warn!("Failed to forward correlation alert to external SIEM: {}", e);
+                                                }
+                                            }
                                         }
                                     }
                                     drop(siem_guard);
@@ -1824,8 +1965,17 @@ impl AgentRuntime {
                                     // Upload correlation alerts as security incidents
                                     for alert in &alerts {
                                         if let Some(ref client) = self.authenticated_client {
+                                            let incident_type = match alert.rule_id.as_str() {
+                                                "brute_force" | "windows_logon_failure_burst" => "credential_theft",
+                                                "privilege_escalation" => "privilege_escalation",
+                                                "file_integrity_burst" | "windows_audit_log_cleared"
+                                                    | "windows_account_changes" => "unauthorized_change",
+                                                "windows_service_install_burst" => "malware",
+                                                "windows_firewall_changes" => "firewall_disabled",
+                                                "network_scan" | "critical_errors" | _ => "suspicious_process",
+                                            };
                                             let payload = serde_json::json!({
-                                                "incident_type": "correlation_alert",
+                                                "incident_type": incident_type,
                                                 "severity": if alert.severity >= 8 { "critical" }
                                                     else if alert.severity >= 6 { "high" }
                                                     else { "medium" },
@@ -1967,11 +2117,9 @@ impl AgentRuntime {
                     }
                 }
 
-                // Forward security incidents and network alerts to SIEM with AI enrichment
+                // Forward security incidents and network alerts to SIEM (record for platform + optional external)
                 let siem_guard = self.siem_forwarder.read().await;
-                if let Some(siem) = siem_guard.as_ref()
-                    && siem.is_enabled()
-                {
+                if let Some(siem) = siem_guard.as_ref() {
                     let host = hostname::get()
                         .map(|h| h.to_string_lossy().to_string())
                         .unwrap_or_default();
@@ -2004,7 +2152,7 @@ impl AgentRuntime {
                             process_id: None,
                             file_path: None,
                             custom_fields: serde_json::json!({
-                                "incident_type": format!("{:?}", inc.incident_type),
+                                "incident_type": format!("{}", inc.incident_type),
                                 "confidence": inc.confidence,
                             }),
                             event_id: uuid::Uuid::new_v4().to_string(),
@@ -2020,8 +2168,11 @@ impl AgentRuntime {
                         {
                             siem_enrichment::enrich_siem_event(&mut event).await;
                         }
-                        if let Err(e) = siem.send_event(&event).await {
-                            warn!("Failed to forward security incident to SIEM: {}", e);
+                        siem.record_event(event.clone()).await;
+                        if siem.is_enabled() {
+                            if let Err(e) = siem.send_event(&event).await {
+                                warn!("Failed to forward security incident to external SIEM: {}", e);
+                            }
                         }
                     }
 
@@ -2057,7 +2208,7 @@ impl AgentRuntime {
                             process_id: None,
                             file_path: None,
                             custom_fields: serde_json::json!({
-                                "alert_type": format!("{:?}", alert.alert_type),
+                                "alert_type": format!("{}", alert.alert_type),
                                 "confidence": alert.confidence,
                                 "iocs_matched": alert.iocs_matched,
                             }),
@@ -2074,8 +2225,11 @@ impl AgentRuntime {
                         {
                             siem_enrichment::enrich_siem_event(&mut event).await;
                         }
-                        if let Err(e) = siem.send_event(&event).await {
-                            warn!("Failed to forward network alert to SIEM: {}", e);
+                        siem.record_event(event.clone()).await;
+                        if siem.is_enabled() {
+                            if let Err(e) = siem.send_event(&event).await {
+                                warn!("Failed to forward network alert to external SIEM: {}", e);
+                            }
                         }
                     }
 
@@ -2112,6 +2266,9 @@ impl AgentRuntime {
 
                 self.store_check_results(&check_results).await;
                 self.upload_check_results().await;
+
+                // Auto-generate risks from failing checks and queue for platform sync
+                self.auto_generate_risks(&check_results).await;
 
                 #[cfg(feature = "gui")]
                 {
@@ -2155,6 +2312,7 @@ impl AgentRuntime {
                         cached_pending_sync,
                         cached_policy_summary,
                     );
+                    self.emit_kpi_snapshot(compliance_score, kpi_incident_count, kpi_open_vulns, 0);
                 }
 
                 last_compliance_check_time = std::time::Instant::now();
@@ -2317,6 +2475,7 @@ impl AgentRuntime {
                         cached_pending_sync,
                         cached_policy_summary,
                     );
+                    self.emit_kpi_snapshot(compliance_score, kpi_incident_count, kpi_open_vulns, 0);
                 }
                 last_vuln_scan = std::time::Instant::now();
                 last_compliance_check_time = std::time::Instant::now();
@@ -2478,7 +2637,7 @@ impl AgentRuntime {
                                         mac: d.mac.clone(),
                                         hostname: d.hostname.clone(),
                                         vendor: d.vendor.clone(),
-                                        device_type: format!("{:?}", d.device_type),
+                                        device_type: format!("{}", d.device_type),
                                         open_ports: d.open_ports.clone(),
                                         first_seen: d.first_seen,
                                         last_seen: d.last_seen,
@@ -2527,7 +2686,14 @@ impl AgentRuntime {
                                         let payload = agent_sync::DiscoveredAssetPayload {
                                             ip: d.ip.clone(),
                                             hostname: d.hostname.clone(),
-                                            device_type: Some(d.device_type.clone()),
+                                            mac_address: d.mac.clone(),
+                                            vendor: d.vendor.clone(),
+                                            device_type: Some(format!("{}", d.device_type)),
+                                            open_ports: d.open_ports.clone(),
+                                            is_gateway: Some(d.is_gateway),
+                                            subnet: Some(d.subnet.clone()),
+                                            first_seen: Some(d.first_seen),
+                                            last_seen: Some(d.last_seen),
                                             source: Some("network_discovery".to_string()),
                                         };
                                         match client.report_discovered_asset(payload).await {
@@ -2585,6 +2751,11 @@ impl AgentRuntime {
 
             // Periodically collect resource usage and push to GUI/Check limits
             let usage = self.resource_monitor.get_usage();
+
+            // Sync LLM loaded flag from runtime state to resource monitor
+            self.resource_monitor.set_llm_loaded(
+                self.state.llm_loaded.load(Ordering::Acquire),
+            );
 
             if is_active {
                 self.resource_monitor
@@ -2673,6 +2844,8 @@ impl AgentRuntime {
                 connections: vec![],
                 llm_status: None,
                 llm_inference_count: None,
+                detection_rules: vec![],
+                playbooks: vec![],
             };
 
             if let Err(e) = client.send_heartbeat(request).await {

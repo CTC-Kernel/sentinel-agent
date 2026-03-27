@@ -45,6 +45,9 @@ pub struct FimEngine {
 
     /// Shutdown flag.
     shutdown: Arc<std::sync::atomic::AtomicBool>,
+
+    /// Watcher task handle for monitoring termination.
+    watcher_handle: RwLock<Option<tokio::task::JoinHandle<()>>>,
 }
 
 impl FimEngine {
@@ -57,6 +60,7 @@ impl FimEngine {
             baseline_mgr,
             alert_tx,
             shutdown: Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            watcher_handle: RwLock::new(None),
         }
     }
 
@@ -96,12 +100,15 @@ impl FimEngine {
 
         drop(policy); // Release the read lock
 
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             if let Err(e) = watcher::watch_files(watcher_policy, baseline, alert_tx, shutdown).await
             {
                 warn!("FIM watcher stopped with error: {}", e);
             }
         });
+
+        // Store the handle so we can detect if the watcher panics or stops
+        *self.watcher_handle.write().await = Some(handle);
 
         info!("FIM engine started");
         Ok(())
@@ -115,10 +122,27 @@ impl FimEngine {
     }
 
     /// Update the FIM configuration.
+    ///
+    /// This stops the current watcher and restarts it with the new policy,
+    /// ensuring new watched paths are applied immediately.
     pub async fn update_config(&self, policy: FimPolicy) -> Result<(), FimError> {
-        let mut current = self.policy.write().await;
-        *current = policy;
-        info!("FIM configuration updated");
+        // Stop the current watcher
+        self.stop();
+
+        // Update the policy
+        {
+            let mut current = self.policy.write().await;
+            *current = policy;
+        }
+
+        // Reset the shutdown flag so start() can launch a new watcher
+        self.shutdown
+            .store(false, std::sync::atomic::Ordering::Release);
+
+        // Restart with the new config
+        self.start().await?;
+
+        info!("FIM configuration updated and watcher restarted");
         Ok(())
     }
 

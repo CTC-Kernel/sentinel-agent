@@ -155,9 +155,9 @@ pub fn sparkline_with_value(
                             .unwrap_or(last);
 
                         let (arrow, arrow_color) = if last > prev * 1.05 {
-                            ("▲", theme::ERROR)
+                            ("▲", theme::readable_color(theme::ERROR))
                         } else if last < prev * 0.95 {
-                            ("▼", theme::SUCCESS)
+                            ("▼", theme::readable_color(theme::SUCCESS))
                         } else {
                             ("→", theme::text_tertiary())
                         };

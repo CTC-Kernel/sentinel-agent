@@ -119,6 +119,52 @@ impl AgentRuntime {
             "llm_engine": { "status": llm_status }
         }));
 
+        // Load playbooks and detection rules from local DB for inline heartbeat sync
+        let (heartbeat_playbooks, heartbeat_detection_rules) = if let Some(ref db) = self.db {
+            let pb = match agent_storage::repositories::grc::PlaybookRepository::new(db).get_all().await {
+                Ok(items) => items.into_iter().map(|p| {
+                    crate::api_client::HeartbeatPlaybook {
+                        id: p.id.clone(),
+                        name: p.name.clone(),
+                        description: p.description.clone(),
+                        enabled: p.enabled,
+                        conditions: serde_json::from_str(&p.conditions).unwrap_or_default(),
+                        actions: serde_json::from_str(&p.steps).unwrap_or_default(),
+                        created_at: Some(p.created_at.clone()),
+                        last_triggered: None,
+                        trigger_count: 0,
+                    }
+                }).collect(),
+                Err(e) => {
+                    warn!("Failed to load playbooks for heartbeat: {}", e);
+                    Vec::new()
+                }
+            };
+            let dr = match agent_storage::repositories::grc::DetectionRuleRepository::new(db).get_all().await {
+                Ok(items) => items.into_iter().map(|r| {
+                    crate::api_client::HeartbeatDetectionRule {
+                        id: r.id.clone(),
+                        name: r.name.clone(),
+                        description: r.description.clone(),
+                        severity: r.severity.clone(),
+                        enabled: r.enabled,
+                        conditions: serde_json::from_str(&r.conditions).unwrap_or_default(),
+                        actions: serde_json::from_str(&r.actions).unwrap_or_default(),
+                        created_at: Some(r.created_at.clone()),
+                        last_match: r.last_match.clone(),
+                        match_count: r.match_count as u32,
+                    }
+                }).collect(),
+                Err(e) => {
+                    warn!("Failed to load detection rules for heartbeat: {}", e);
+                    Vec::new()
+                }
+            };
+            (pb, dr)
+        } else {
+            (Vec::new(), Vec::new())
+        };
+
         let request = HeartbeatRequest {
             timestamp: chrono::Utc::now().to_rfc3339(),
             agent_version: AGENT_VERSION.to_string(),
@@ -145,6 +191,8 @@ impl AgentRuntime {
             connections,
             llm_status: Some(llm_status.to_string()),
             llm_inference_count,
+            playbooks: heartbeat_playbooks,
+            detection_rules: heartbeat_detection_rules,
         };
 
         let response = client.send_heartbeat(request).await?;
@@ -479,8 +527,10 @@ impl AgentRuntime {
                     Err(e) => warn!("Rule sync failed: {}", e),
                 }
             }
-            // Also sync central detection rules
+            // Also sync central detection rules, playbooks, and alert rules
             self.sync_central_detection_rules().await;
+            self.sync_central_playbooks().await;
+            self.sync_central_alert_rules().await;
         }
 
         Ok(())

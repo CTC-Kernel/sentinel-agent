@@ -233,20 +233,23 @@ fn check_debugger_windows() -> bool {
     unsafe { windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent().as_bool() }
 }
 
-/// Check for debugger on macOS using sysctl.
+/// Check for debugger on macOS using `ps` stat flags.
+///
+/// Previous approach used `sysctl kern.proc.pid` which outputs binary data,
+/// not text containing "P_TRACED" — it always returned false.
 #[cfg(target_os = "macos")]
 fn check_debugger_macos() -> bool {
     use agent_common::process::silent_command;
 
-    // Check P_TRACED flag via sysctl
-    match silent_command("sysctl")
-        .args(["kern.proc.pid", &std::process::id().to_string()])
+    let pid = std::process::id().to_string();
+    match silent_command("ps")
+        .args(["-p", &pid, "-o", "stat="])
         .output()
     {
         Ok(output) => {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            // P_TRACED flag indicates debugging
-            stdout.contains("P_TRACED")
+            // 'T' in the stat column indicates traced/stopped (debugger attached)
+            stdout.trim().contains('T')
         }
         Err(_) => false,
     }

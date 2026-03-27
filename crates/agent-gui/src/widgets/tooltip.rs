@@ -162,10 +162,11 @@ pub fn tooltip(ui: &Ui, response: &egui::Response, text: &str) {
     Tooltip::new(text).show(ui, response);
 }
 
-/// Info icon with tooltip.
+/// Info icon with tooltip (meets MIN_TOUCH_TARGET for accessibility).
 pub fn info_tooltip(ui: &mut Ui, text: &str) {
+    let touch_size = theme::MIN_TOUCH_TARGET.max(theme::ICON_SM);
     let (rect, response) = ui.allocate_exact_size(
-        egui::vec2(theme::ICON_SM, theme::ICON_SM),
+        egui::vec2(touch_size, touch_size),
         egui::Sense::click().union(egui::Sense::hover()),
     );
 
@@ -199,9 +200,9 @@ pub fn info_tooltip(ui: &mut Ui, text: &str) {
         .show(ui, &response);
 }
 
-/// Help icon with tooltip (question mark style).
+/// Help icon with tooltip (question mark style, meets MIN_TOUCH_TARGET).
 pub fn help_tooltip(ui: &mut Ui, text: &str) {
-    let help_size = theme::ICON_SM + theme::BORDER_THICK;
+    let help_size = (theme::ICON_SM + theme::BORDER_THICK).max(theme::MIN_TOUCH_TARGET);
     let (rect, response) = ui.allocate_exact_size(
         egui::vec2(help_size, help_size),
         egui::Sense::click().union(egui::Sense::hover()),

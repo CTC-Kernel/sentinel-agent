@@ -536,6 +536,23 @@ impl AuthenticatedClient {
         .await
     }
 
+    /// Delete a notification on the SaaS.
+    pub async fn delete_notification(
+        &self,
+        notification_id: &str,
+    ) -> SyncResult<AcknowledgedResponse> {
+        let agent_id = self.agent_id().await?;
+        info!(
+            "Deleting notification {} for agent {}",
+            notification_id, agent_id
+        );
+        self.delete(&format!(
+            "/v1/agents/{}/notifications/{}",
+            agent_id, notification_id
+        ))
+        .await
+    }
+
     /// Delete a playbook on the SaaS.
     pub async fn delete_playbook(&self, playbook_id: &str) -> SyncResult<AcknowledgedResponse> {
         let agent_id = self.agent_id().await?;
@@ -543,6 +560,53 @@ impl AuthenticatedClient {
         self.delete(&format!(
             "/v1/agents/{}/playbooks/{}",
             agent_id, playbook_id
+        ))
+        .await
+    }
+
+    /// Delete a detection rule on the SaaS.
+    pub async fn delete_detection_rule(
+        &self,
+        rule_id: &str,
+    ) -> SyncResult<AcknowledgedResponse> {
+        let agent_id = self.agent_id().await?;
+        info!(
+            "Deleting detection rule {} for agent {}",
+            rule_id, agent_id
+        );
+        self.delete(&format!(
+            "/v1/agents/{}/detection-rules/{}",
+            agent_id, rule_id
+        ))
+        .await
+    }
+
+    /// Delete a risk entry on the SaaS.
+    pub async fn delete_risk(&self, risk_id: &str) -> SyncResult<AcknowledgedResponse> {
+        let agent_id = self.agent_id().await?;
+        info!("Deleting risk {} for agent {}", risk_id, agent_id);
+        self.delete(&format!("/v1/agents/{}/risks/{}", agent_id, risk_id))
+            .await
+    }
+
+    /// Delete an alert rule on the SaaS.
+    pub async fn delete_alert_rule(&self, rule_id: &str) -> SyncResult<AcknowledgedResponse> {
+        let agent_id = self.agent_id().await?;
+        info!("Deleting alert rule {} for agent {}", rule_id, agent_id);
+        self.delete(&format!(
+            "/v1/agents/{}/alert-rules/{}",
+            agent_id, rule_id
+        ))
+        .await
+    }
+
+    /// Delete a webhook on the SaaS.
+    pub async fn delete_webhook(&self, webhook_id: &str) -> SyncResult<AcknowledgedResponse> {
+        let agent_id = self.agent_id().await?;
+        info!("Deleting webhook {} for agent {}", webhook_id, agent_id);
+        self.delete(&format!(
+            "/v1/agents/{}/webhooks/{}",
+            agent_id, webhook_id
         ))
         .await
     }

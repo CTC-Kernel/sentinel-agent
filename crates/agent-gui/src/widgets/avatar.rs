@@ -164,7 +164,7 @@ impl<'a> Avatar<'a> {
         if ui.is_rect_visible(rect) {
             let painter = ui.painter();
             let bg_color = self.generate_color();
-            let text_color = theme::text_on_accent();
+            let text_color = theme::avatar_text_color(bg_color);
 
             // Draw background shape
             let rounding = match self.shape {
@@ -302,7 +302,7 @@ pub fn avatar_group(ui: &mut Ui, names: &[&str], max_shown: usize) -> egui::Resp
                 egui::Align2::CENTER_CENTER,
                 avatar.initials(),
                 AvatarSize::Small.font(),
-                theme::text_on_accent(),
+                theme::avatar_text_color(bg_color),
             );
 
             x += size - overlap;

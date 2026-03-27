@@ -116,14 +116,14 @@ pub enum EventCategory {
 impl std::fmt::Display for EventCategory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Compliance => write!(f, "Compliance"),
-            Self::Security => write!(f, "Security"),
-            Self::Network => write!(f, "Network"),
-            Self::FileIntegrity => write!(f, "FileIntegrity"),
-            Self::System => write!(f, "System"),
-            Self::Authentication => write!(f, "Authentication"),
-            Self::Configuration => write!(f, "Configuration"),
-            Self::Vulnerability => write!(f, "Vulnerability"),
+            Self::Compliance => write!(f, "compliance"),
+            Self::Security => write!(f, "security"),
+            Self::Network => write!(f, "network"),
+            Self::FileIntegrity => write!(f, "file_integrity"),
+            Self::System => write!(f, "system"),
+            Self::Authentication => write!(f, "authentication"),
+            Self::Configuration => write!(f, "configuration"),
+            Self::Vulnerability => write!(f, "vulnerability"),
         }
     }
 }
@@ -138,6 +138,16 @@ pub enum SiemFormat {
     Leef,
     /// Generic JSON (Splunk, ELK, Azure Sentinel).
     Json,
+}
+
+impl std::fmt::Display for SiemFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Cef => write!(f, "cef"),
+            Self::Leef => write!(f, "leef"),
+            Self::Json => write!(f, "json"),
+        }
+    }
 }
 
 /// Syslog protocol.
@@ -166,6 +176,15 @@ pub enum SiemTransport {
         auth_header: Option<String>,
         verify_tls: bool,
     },
+}
+
+impl std::fmt::Display for SiemTransport {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Syslog { host, port, .. } => write!(f, "syslog://{}:{}", host, port),
+            Self::Http { url, .. } => write!(f, "{}", url),
+        }
+    }
 }
 
 impl std::fmt::Debug for SiemTransport {
@@ -332,11 +351,18 @@ impl SiemForwarder {
         })
     }
 
-    /// Send a single event.
+    /// Send a single event to the external SIEM transport.
     pub async fn send_event(&self, event: &SiemEvent) -> SiemResult<()> {
         if !self.config.enabled {
             debug!("SIEM forwarding disabled, skipping event");
             return Ok(());
+        }
+
+        // Skip if destination is the unconfigured default (localhost:514)
+        if let SiemTransport::Syslog { ref host, port, .. } = self.config.transport {
+            if host == "localhost" && port == 514 {
+                return Ok(());
+            }
         }
 
         // Check severity filter
@@ -563,9 +589,9 @@ mod tests {
 
     #[test]
     fn test_event_category_display() {
-        assert_eq!(format!("{}", EventCategory::Compliance), "Compliance");
-        assert_eq!(format!("{}", EventCategory::Security), "Security");
-        assert_eq!(format!("{}", EventCategory::Network), "Network");
+        assert_eq!(format!("{}", EventCategory::Compliance), "compliance");
+        assert_eq!(format!("{}", EventCategory::Security), "security");
+        assert_eq!(format!("{}", EventCategory::Network), "network");
     }
 
     #[test]

@@ -382,7 +382,19 @@ impl NetworkPage {
                                 .with_time(time),
                             );
                         } else if action_idx == 1 {
+                            if let Some(ref remote_ip) = conn.remote_address {
+                                command = Some(GuiCommand::BlockIp {
+                                    ip: remote_ip.clone(),
+                                    duration_secs: 0,
+                                });
+                            }
                             state.network.detail_open = false;
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success(
+                                    "Connexion bloqu\u{00e9}e",
+                                )
+                                .with_time(time),
+                            );
                         }
                     }
                 } else {
@@ -529,6 +541,11 @@ impl NetworkPage {
                                 .with_time(time),
                         );
                     } else if action_idx == ack_idx {
+                        state.network.alerts.remove(sel);
+                        if state.network.alert_count > 0 {
+                            state.network.alert_count -= 1;
+                        }
+                        state.network.selected_alert = None;
                         state.network.detail_open = false;
                         state.toasts.push(
                             crate::widgets::toast::Toast::success("Alerte acquitt\u{00e9}e")
