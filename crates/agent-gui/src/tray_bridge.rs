@@ -403,7 +403,9 @@ pub fn open_about() {
         branding::EMAIL,
     );
 
-    let about_url = format!("{}?version={}&os={}", branding::WEBSITE, version, os_info);
+    // URL-encode the os_info (contains spaces like "windows x86_64")
+    let os_encoded = os_info.replace(' ', "%20");
+    let about_url = format!("{}?version={}&os={}", branding::WEBSITE, version, os_encoded);
     if open::that(&about_url).is_err() {
         let _ = open::that(branding::WEBSITE);
     }

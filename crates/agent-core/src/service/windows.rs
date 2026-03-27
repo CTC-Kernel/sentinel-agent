@@ -89,6 +89,26 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 
     info!("Sentinel GRC Agent service started");
 
+    // Acquire the global runtime mutex so the GUI knows not to start
+    // its own runtime.  The handle must stay alive for the service lifetime.
+    let _runtime_mutex = {
+        use windows::core::HSTRING;
+        use windows::Win32::System::Threading::CreateMutexW;
+        let name = HSTRING::from("Global\\SentinelAgentRuntime");
+        unsafe {
+            match CreateMutexW(None, true, &name) {
+                Ok(h) => {
+                    info!("Acquired Global\\SentinelAgentRuntime mutex");
+                    Some(h)
+                }
+                Err(e) => {
+                    warn!("Failed to create runtime mutex: {} — GUI may start a duplicate runtime", e);
+                    None
+                }
+            }
+        }
+    };
+
     // Perform environment self-check
     check_environment();
 

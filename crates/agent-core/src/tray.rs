@@ -455,18 +455,8 @@ impl AgentTray {
             }
 
             menu_ids::OPEN_DASHBOARD => {
-                info!("Opening full GUI dashboard");
-                // Launch the full GUI (exe with no args defaults to GUI mode)
-                if let Ok(exe) = std::env::current_exe() {
-                    if let Err(e) =
-                        agent_common::process::silent_command(exe.to_string_lossy().as_ref())
-                            .spawn()
-                    {
-                        warn!("Failed to spawn GUI: {}", e);
-                    }
-                } else {
-                    warn!("Failed to resolve current executable path");
-                }
+                info!("Opening web console dashboard");
+                open_url(&format!("{}/dashboard", branding::CONSOLE));
             }
 
             menu_ids::OPEN_WEBSITE => {
@@ -735,8 +725,9 @@ fn show_about_dialog() {
         branding::EMAIL
     );
 
-    // Open website with version info
-    let about_url = format!("{}?version={}&os={}", branding::WEBSITE, version, os_info);
+    // Open website with version info (URL-encode spaces in os_info)
+    let os_encoded = os_info.replace(' ', "%20");
+    let about_url = format!("{}?version={}&os={}", branding::WEBSITE, version, os_encoded);
     if let Err(e) = open::that(&about_url) {
         // Fallback to plain website
         debug!("About URL with params failed ({}), trying plain website", e);

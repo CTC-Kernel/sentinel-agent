@@ -390,12 +390,13 @@
                   Impersonate="no"
                   Return="ignore" />
 
-    <!-- Forcefully reset permissions in case of legacy locked folders from older failed installations.
-         Uses PowerShell -WindowStyle Hidden to avoid console flash. %ProgramData% is used
-         instead of [CommonAppDataFolder] because deferred CAs cannot resolve MSI properties. -->
+    <!-- Create Sentinel data directory (if missing) and reset permissions for both
+         fresh installs and upgrades from older versions with broken ACLs.
+         Uses SIDs instead of localized group names for cross-locale compatibility.
+         %ProgramData% is used because deferred CAs cannot resolve MSI properties. -->
     <CustomAction Id="ForceResetPermissions"
                   Directory="SystemFolder"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;if (Test-Path '%ProgramData%\Sentinel') { takeown /A /F '%ProgramData%\Sentinel' /R 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-545:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-544:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-18:(OI)(CI)(F)' /T /C /Q 2&gt;$null }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;$dir = '%ProgramData%\Sentinel'; New-Item -ItemType Directory -Path $dir -Force | Out-Null; foreach ($sub in 'data','logs','cache','backups','models') { New-Item -ItemType Directory -Path (Join-Path $dir $sub) -Force | Out-Null }; takeown /A /F $dir /R 2&gt;$null; icacls $dir /grant '*S-1-5-32-545:(OI)(CI)(M)' /T /C /Q 2&gt;$null; icacls $dir /grant '*S-1-5-32-544:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls $dir /grant '*S-1-5-18:(OI)(CI)(F)' /T /C /Q 2&gt;$null&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />

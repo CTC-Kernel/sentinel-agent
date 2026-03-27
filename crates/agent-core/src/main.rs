@@ -770,6 +770,14 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
     let runtime = AgentRuntime::new(config).with_database(db);
     let shutdown = runtime.shutdown_signal();
 
+    // Acquire the runtime mutex so other processes (GUI) know we own the runtime.
+    #[cfg(windows)]
+    let _runtime_mutex = try_acquire_runtime_mutex();
+    #[cfg(windows)]
+    if _runtime_mutex.is_some() {
+        info!("Acquired runtime mutex for foreground mode");
+    }
+
     // Set up Ctrl+C handler
     ctrlc_handler(shutdown.clone());
 
@@ -925,15 +933,10 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
                     ..
                 } = event
                 {
-                    info!("Tray icon left-clicked, opening dashboard");
-                    // Launch the full GUI
-                    if let Ok(exe) = std::env::current_exe() {
-                        if let Err(e) =
-                            agent_common::process::silent_command(exe.to_string_lossy().as_ref())
-                                .spawn()
-                        {
-                            warn!("Failed to spawn GUI: {}", e);
-                        }
+                    info!("Tray icon left-clicked, opening web console");
+                    // Open the web console dashboard instead of spawning a new process
+                    if let Err(e) = open::that(format!("{}/dashboard", tray::branding::CONSOLE)) {
+                        warn!("Failed to open web console: {}", e);
                     }
                 }
             }
@@ -1030,6 +1033,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
     use agent_gui::enrollment::EnrollmentCommand;
     use agent_gui::events::{AgentEvent, GuiCommand};
     use std::sync::mpsc;
+
+    // Single-instance guard: prevent multiple GUI windows in the same session.
+    #[cfg(windows)]
+    let _gui_mutex = match try_acquire_gui_mutex() {
+        Some(h) => Some(h),
+        None => {
+            // Another GUI is already running — bail out silently.
+            warn!("Another Sentinel Agent GUI is already running in this session");
+            return ExitCode::SUCCESS;
+        }
+    };
 
     // Initialize logging with the GUI terminal bridge.
     // This installs a custom tracing layer that captures all tracing events
@@ -2991,11 +3005,44 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             // running.  If it is, skip the full agent runtime to avoid
             // duplicate scans, heartbeats, and sync.  The service handles
             // all of that; the GUI just provides the user interface.
+            //
+            // Two-layer detection:
+            // 1. Try a named mutex (Global\SentinelAgentRuntime) — if the
+            //    service holds it, we know immediately.
+            // 2. Fall back to SCM query with retries (handles boot-time
+            //    race where the service is still in StartPending).
             #[cfg(windows)]
-            let service_is_running = matches!(
-                crate::service::get_service_state(),
-                Ok(crate::service::ServiceState::Running)
-            );
+            let service_is_running = {
+                // Layer 1: Named mutex — fast, non-racy check.
+                let mutex_held = is_runtime_mutex_held();
+
+                // Layer 2: SCM query with retries to handle StartPending.
+                let scm_running = if !mutex_held {
+                    let mut running = false;
+                    for attempt in 0..5 {
+                        match crate::service::get_service_state() {
+                            Ok(crate::service::ServiceState::Running) => {
+                                running = true;
+                                break;
+                            }
+                            Ok(crate::service::ServiceState::Starting) => {
+                                // Service is starting — wait and retry.
+                                info!(
+                                    "Service is starting (attempt {}/5), waiting...",
+                                    attempt + 1
+                                );
+                                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                            }
+                            _ => break, // Not installed or stopped — no point retrying.
+                        }
+                    }
+                    running
+                } else {
+                    true
+                };
+
+                mutex_held || scm_running
+            };
             #[cfg(not(windows))]
             let service_is_running = false;
 
@@ -3354,5 +3401,93 @@ fn is_windows_server() -> bool {
             stdout.contains("ProductType=2") || stdout.contains("ProductType=3")
         }
         Err(_) => false, // Can't determine — assume workstation
+    }
+}
+
+// ============================================================================
+// Single-instance protection via Windows named mutexes
+// ============================================================================
+
+/// Name of the global mutex that protects the agent runtime.
+/// Whichever process (service or GUI) acquires it first owns the runtime loop.
+#[cfg(target_os = "windows")]
+const RUNTIME_MUTEX_NAME: &str = "Global\\SentinelAgentRuntime";
+
+/// Name of the local mutex that prevents multiple GUI instances per session.
+#[cfg(target_os = "windows")]
+const GUI_MUTEX_NAME: &str = "Local\\SentinelAgentGUI";
+
+/// Check whether the runtime mutex is already held by another process
+/// (typically the Windows service). Returns `true` if another process owns it.
+#[cfg(target_os = "windows")]
+fn is_runtime_mutex_held() -> bool {
+    use windows::core::HSTRING;
+    use windows::Win32::Foundation::{CloseHandle, HANDLE, ERROR_ALREADY_EXISTS};
+    use windows::Win32::System::Threading::CreateMutexW;
+
+    let name = HSTRING::from(RUNTIME_MUTEX_NAME);
+    unsafe {
+        let handle: windows::core::Result<HANDLE> = CreateMutexW(None, false, &name);
+        match handle {
+            Ok(h) => {
+                let already = windows::Win32::Foundation::GetLastError() == ERROR_ALREADY_EXISTS;
+                // We opened a handle — close it immediately; we only wanted to probe.
+                let _ = CloseHandle(h);
+                already
+            }
+            Err(_) => {
+                // Could not open the mutex — treat as held (conservative).
+                true
+            }
+        }
+    }
+}
+
+/// Try to acquire the runtime mutex. Returns the handle on success (caller
+/// must keep it alive for the process lifetime). Returns `None` if another
+/// process already owns it.
+#[cfg(target_os = "windows")]
+fn try_acquire_runtime_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
+    use windows::core::HSTRING;
+    use windows::Win32::Foundation::ERROR_ALREADY_EXISTS;
+    use windows::Win32::System::Threading::CreateMutexW;
+
+    let name = HSTRING::from(RUNTIME_MUTEX_NAME);
+    unsafe {
+        match CreateMutexW(None, true, &name) {
+            Ok(h) => {
+                if windows::Win32::Foundation::GetLastError() == ERROR_ALREADY_EXISTS {
+                    let _ = windows::Win32::Foundation::CloseHandle(h);
+                    None // Another process already owns it.
+                } else {
+                    Some(h) // We now own the mutex.
+                }
+            }
+            Err(_) => None,
+        }
+    }
+}
+
+/// Try to acquire the GUI single-instance mutex. Returns `None` if another
+/// GUI is already running in this user session.
+#[cfg(target_os = "windows")]
+fn try_acquire_gui_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
+    use windows::core::HSTRING;
+    use windows::Win32::Foundation::ERROR_ALREADY_EXISTS;
+    use windows::Win32::System::Threading::CreateMutexW;
+
+    let name = HSTRING::from(GUI_MUTEX_NAME);
+    unsafe {
+        match CreateMutexW(None, true, &name) {
+            Ok(h) => {
+                if windows::Win32::Foundation::GetLastError() == ERROR_ALREADY_EXISTS {
+                    let _ = windows::Win32::Foundation::CloseHandle(h);
+                    None
+                } else {
+                    Some(h)
+                }
+            }
+            Err(_) => None,
+        }
     }
 }

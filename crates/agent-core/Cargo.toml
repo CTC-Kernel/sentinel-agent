@@ -78,7 +78,12 @@ zeroize = { workspace = true }
 futures-util.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-windows = { workspace = true, features = ["Win32_System_Console"] }
+windows = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_System_Console",
+    "Win32_System_Threading",
+    "Win32_UI_WindowsAndMessaging",
+] }
 windows-service = { workspace = true }
 
 [target.'cfg(windows)'.build-dependencies]
