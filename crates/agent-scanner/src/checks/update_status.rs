@@ -123,11 +123,15 @@ impl UpdateStatusCheck {
     async fn check_update_status(&self) -> ScannerResult<UpdateStatus> {
         let mut issues = Vec::new();
 
-        // Get Windows Update service status
-        let service_status = self.get_service_status().await;
-
-        // Get last update date and history
-        let (last_update, history) = self.get_update_history().await;
+        // Run all four Windows Update queries concurrently to stay within
+        // the 10-second NFR limit (each PowerShell invocation takes ~5-15s).
+        let (service_status, (last_update, history), pending, (reboot_required, reboot_since)) =
+            tokio::join!(
+                self.get_service_status(),
+                self.get_update_history(),
+                self.get_pending_updates(),
+                self.check_reboot_pending(),
+            );
 
         // Calculate days since last update
         let days_since = last_update.map(|d| {
@@ -145,9 +149,6 @@ impl UpdateStatusCheck {
         } else {
             issues.push("Could not determine last update date".to_string());
         }
-
-        // Get pending updates
-        let pending = self.get_pending_updates().await;
 
         let critical_count = pending
             .iter()
@@ -174,9 +175,7 @@ impl UpdateStatusCheck {
             ));
         }
 
-        // Check reboot status
-        let (reboot_required, reboot_since) = self.check_reboot_pending().await;
-
+        // Check reboot status (already fetched concurrently above)
         if reboot_required {
             issues.push("System reboot required to complete updates".to_string());
             if let Some(since) = reboot_since {

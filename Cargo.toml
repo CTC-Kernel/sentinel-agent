@@ -48,7 +48,7 @@ open = "5"
 tao = { version = "0.30", default-features = false, features = ["rwh_06"] }
 hostname = "0.4"
 rand = "0.9"
-eframe = "0.31"
+eframe = { version = "0.31", features = ["wgpu"] }
 egui = "0.31"
 egui_extras = { version = "0.31", features = ["image"] }
 egui_plot = "0.31"
@@ -69,6 +69,7 @@ nix = "0.29"
 
 windows = { version = "0.61", features = [
     "Win32_Foundation",
+    "Win32_Graphics_Gdi",
     "Win32_NetworkManagement_IpHelper",
     "Win32_Security",
     "Win32_Security_Cryptography",

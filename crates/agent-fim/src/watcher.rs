@@ -168,6 +168,19 @@ fn process_event(
             }
         };
 
+        // Skip NTFS internal paths (deleted file journal, recycle bin, etc.)
+        // These are transient system paths that generate spurious alerts on Windows.
+        #[cfg(target_os = "windows")]
+        {
+            let path_str = path.to_string_lossy();
+            if path_str.contains(r"\$Extend\")
+                || path_str.contains(r"\$Recycle.Bin\")
+                || path_str.contains(r"\System Volume Information\")
+            {
+                continue;
+            }
+        }
+
         // Skip ignored patterns (checked against the canonical path)
         if is_ignored_path(&path, ignore_patterns) {
             continue;

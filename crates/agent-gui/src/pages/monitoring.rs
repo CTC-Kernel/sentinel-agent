@@ -418,9 +418,13 @@ impl MonitoringPage {
                                             ),
                                         );
 
-                                        // Message (truncated)
+                                        // Message (truncated) — use char boundary to avoid UTF-8 panic
                                         let msg_display = if entry.message.len() > 120 {
-                                            format!("{}...", &entry.message[..120])
+                                            let mut end = 120;
+                                            while !entry.message.is_char_boundary(end) {
+                                                end -= 1;
+                                            }
+                                            format!("{}…", &entry.message[..end])
                                         } else {
                                             entry.message.clone()
                                         };

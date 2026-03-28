@@ -698,10 +698,18 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
     // to headless mode automatically.
     #[cfg(feature = "gui")]
     if !no_tray {
+        // On Windows Server without any display (e.g. Server Core, headless VM
+        // with no RDP session), skip the GUI entirely.  The wgpu renderer can
+        // software-render via WARP even without a GPU, but it still needs at
+        // least one display monitor to create a window.
         #[cfg(target_os = "windows")]
         if is_windows_server() {
-            info!("Windows Server detected — starting in headless mode (no GUI)");
-            no_tray = true;
+            if has_usable_display() {
+                info!("Windows Server with display detected — GUI will use software rendering (WARP) if no GPU is present");
+            } else {
+                info!("Windows Server without display detected — starting in headless mode (no GUI)");
+                no_tray = true;
+            }
         }
 
         if !no_tray {
@@ -3385,23 +3393,153 @@ fn show_fatal_error(message: &str) {
 
 /// Detect Windows Server editions (no desktop experience / no GPU).
 ///
-/// Checks the OS product type via the Win32 API. Returns `true` for
-/// Server, Domain Controller, and other non-workstation SKUs.
+/// Uses the Win32 `VerifyVersionInfoW` + `GetProductInfo` to check whether the
+/// OS is a Server or Domain Controller SKU.  Falls back to PowerShell and then
+/// `wmic` if the primary method fails.
 #[cfg(target_os = "windows")]
 fn is_windows_server() -> bool {
+    // Method 1: Win32 API — VerProductType via registry (most reliable, no process spawn)
+    if let Some(result) = is_windows_server_via_registry() {
+        return result;
+    }
+
+    // Method 2: PowerShell (works on all modern Windows Server)
+    if let Some(result) = is_windows_server_via_powershell() {
+        return result;
+    }
+
+    // Method 3: Legacy wmic fallback
+    if let Some(result) = is_windows_server_via_wmic() {
+        return result;
+    }
+
+    false // Can't determine — assume workstation
+}
+
+/// Check via registry key (fastest, no subprocess).
+#[cfg(target_os = "windows")]
+fn is_windows_server_via_registry() -> Option<bool> {
     use std::process::Command;
-    // `wmic os get ProductType` returns: 1=Workstation, 2=DomainController, 3=Server
-    match Command::new("wmic")
+    // NT CurrentVersion\InstallationType: "Server" | "Server Core" | "Client"
+    let output = Command::new("reg")
+        .args([
+            "query",
+            r"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion",
+            "/v",
+            "InstallationType",
+        ])
+        .output()
+        .ok()?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    if stdout.contains("Server") {
+        Some(true)
+    } else if stdout.contains("Client") {
+        Some(false)
+    } else {
+        None
+    }
+}
+
+/// Check via PowerShell (reliable on modern systems).
+#[cfg(target_os = "windows")]
+fn is_windows_server_via_powershell() -> Option<bool> {
+    use std::process::Command;
+    let output = agent_common::process::silent_command("powershell")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "(Get-CimInstance Win32_OperatingSystem).ProductType",
+        ])
+        .output()
+        .ok()?;
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    // ProductType: 1=Workstation, 2=DomainController, 3=Server
+    match stdout.as_str() {
+        "2" | "3" => Some(true),
+        "1" => Some(false),
+        _ => None,
+    }
+}
+
+/// Legacy fallback via wmic (deprecated but still present on older systems).
+#[cfg(target_os = "windows")]
+fn is_windows_server_via_wmic() -> Option<bool> {
+    use std::process::Command;
+    let output = Command::new("wmic")
         .args(["os", "get", "ProductType", "/value"])
         .output()
-    {
-        Ok(output) => {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            // ProductType=2 or ProductType=3 → server
-            stdout.contains("ProductType=2") || stdout.contains("ProductType=3")
-        }
-        Err(_) => false, // Can't determine — assume workstation
+        .ok()?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    if stdout.contains("ProductType=2") || stdout.contains("ProductType=3") {
+        Some(true)
+    } else if stdout.contains("ProductType=1") {
+        Some(false)
+    } else {
+        None
     }
+}
+
+// ============================================================================
+// Display / GPU availability check
+// ============================================================================
+
+/// Check whether the system has a usable display and GPU for the egui GUI.
+///
+/// On Windows Server Core or headless VMs without GPU drivers, OpenGL is
+/// unavailable.  egui_glow requires OpenGL 2.0+ and will call
+/// `process::exit()` if it fails — which bypasses `catch_unwind`.
+/// This check prevents launching the GUI in those environments.
+#[cfg(target_os = "windows")]
+fn has_usable_display() -> bool {
+    use windows::Win32::UI::WindowsAndMessaging::GetSystemMetrics;
+    use windows::Win32::UI::WindowsAndMessaging::SM_CXSCREEN;
+
+    // Quick test: if there are no display monitors, there is no point.
+    let screen_width = unsafe { GetSystemMetrics(SM_CXSCREEN) };
+    if screen_width == 0 {
+        info!("No display detected (SM_CXSCREEN = 0)");
+        return false;
+    }
+
+    // Check if a basic OpenGL context can be created by probing the
+    // display driver via EnumDisplayDevices.  If the primary device
+    // has no driver string, the system is running the Basic Display
+    // Adapter (no real GPU) which cannot provide OpenGL 2.0+.
+    let has_gpu = check_display_driver();
+    if !has_gpu {
+        info!("No GPU driver detected (Basic Display Adapter only)");
+        return false;
+    }
+
+    true
+}
+
+/// Check whether the primary display device has a real GPU driver.
+#[cfg(target_os = "windows")]
+fn check_display_driver() -> bool {
+    use windows::Win32::Graphics::Gdi::{EnumDisplayDevicesW, DISPLAY_DEVICEW};
+
+    unsafe {
+        let mut device = DISPLAY_DEVICEW {
+            cb: std::mem::size_of::<DISPLAY_DEVICEW>() as u32,
+            ..std::mem::zeroed()
+        };
+
+        // Enumerate the primary display device (index 0)
+        if EnumDisplayDevicesW(None, 0, &mut device, 0).as_bool() {
+            let name = String::from_utf16_lossy(&device.DeviceString);
+            let name = name.trim_end_matches('\0').trim();
+            // "Microsoft Basic Display Adapter" or empty → no real GPU
+            if name.is_empty()
+                || name.contains("Basic Display")
+                || name.contains("Remote Desktop")
+            {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 // ============================================================================

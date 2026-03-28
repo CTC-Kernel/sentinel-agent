@@ -366,105 +366,91 @@ impl GpoAuditor {
 
     #[cfg(target_os = "windows")]
     async fn get_windows_privileged_groups(&self) -> ScannerResult<Vec<PrivilegedGroupInfo>> {
-        let mut groups = Vec::new();
-
         // List of privileged groups to check
-        let privileged_groups = [
+        let privileged_groups: &[(&str, &str, &str)] = &[
             ("Administrators", "S-1-5-32-544", "Full system access"),
-            (
-                "Domain Admins",
-                "S-1-5-21-*-512",
-                "Domain-wide admin access",
-            ),
-            (
-                "Enterprise Admins",
-                "S-1-5-21-*-519",
-                "Forest-wide admin access",
-            ),
-            (
-                "Schema Admins",
-                "S-1-5-21-*-518",
-                "AD schema modification rights",
-            ),
-            (
-                "Account Operators",
-                "S-1-5-32-548",
-                "Account creation/modification",
-            ),
-            (
-                "Backup Operators",
-                "S-1-5-32-551",
-                "Backup/restore any file",
-            ),
-            (
-                "Server Operators",
-                "S-1-5-32-549",
-                "Server management rights",
-            ),
+            ("Domain Admins", "S-1-5-21-*-512", "Domain-wide admin access"),
+            ("Enterprise Admins", "S-1-5-21-*-519", "Forest-wide admin access"),
+            ("Schema Admins", "S-1-5-21-*-518", "AD schema modification rights"),
+            ("Account Operators", "S-1-5-32-548", "Account creation/modification"),
+            ("Backup Operators", "S-1-5-32-551", "Backup/restore any file"),
+            ("Server Operators", "S-1-5-32-549", "Server management rights"),
         ];
 
-        for (group_name, sid_pattern, description) in privileged_groups {
-            // Safety: group_name values are hardcoded above — no user input reaches format!().
-            debug_assert!(
-                !group_name.contains('$')
-                    && !group_name.contains('`')
-                    && !group_name.contains('"')
-                    && !group_name.contains('\'')
-                    && !group_name.contains(';')
-                    && !group_name.contains('|')
-                    && !group_name.contains('&'),
-                "group_name must not contain PowerShell metacharacters"
-            );
-            let output = silent_async_command("powershell")
-                .args([
-                    "-NoProfile",
-                    "-Command",
-                    &format!(
-                        r#"
-                        try {{
-                            $members = Get-LocalGroupMember -Group "{}" -ErrorAction SilentlyContinue |
-                                Select-Object -ExpandProperty Name
-                            $members -join ","
-                        }} catch {{
-                            ""
-                        }}
-                        "#,
-                        group_name
-                    ),
-                ])
-                .output()
-                .await;
-
-            if let Ok(output) = output
-                && output.status.success() {
-                    let members_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                    let members: Vec<String> = if members_str.is_empty() {
-                        Vec::new()
-                    } else {
-                        members_str
-                            .split(',')
-                            .map(|s| s.trim().to_string())
-                            .collect()
-                    };
-
-                    let risk_level = match group_name {
-                        "Administrators" | "Domain Admins" | "Enterprise Admins" => {
-                            DirectorySeverity::Critical
-                        }
-                        "Schema Admins" | "Account Operators" => DirectorySeverity::High,
-                        _ => DirectorySeverity::Medium,
-                    };
-
-                    groups.push(PrivilegedGroupInfo {
-                        name: group_name.to_string(),
-                        sid: Some(sid_pattern.to_string()),
-                        dn: None,
-                        member_count: members.len(),
-                        members,
-                        risk_level,
-                        description: description.to_string(),
-                    });
+        // Query all groups in a single PowerShell invocation to avoid
+        // spawning 7 separate processes (was causing 4-5s > 2s NFR limit).
+        // Output format: one line per group "GroupName|member1,member2,..."
+        let output = silent_async_command("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                r#"
+                $groups = @("Administrators","Domain Admins","Enterprise Admins","Schema Admins","Account Operators","Backup Operators","Server Operators")
+                foreach ($g in $groups) {
+                    try {
+                        $members = Get-LocalGroupMember -Group $g -ErrorAction SilentlyContinue |
+                            Select-Object -ExpandProperty Name
+                        $line = $g + "|" + ($members -join ",")
+                        Write-Output $line
+                    } catch {
+                        Write-Output ($g + "|")
+                    }
                 }
+                "#,
+            ])
+            .output()
+            .await;
+
+        let mut groups = Vec::new();
+
+        if let Ok(output) = output
+            && output.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            for line in stdout.lines() {
+                let line = line.trim();
+                if line.is_empty() {
+                    continue;
+                }
+                let Some((group_name, members_str)) = line.split_once('|') else {
+                    continue;
+                };
+
+                // Find the matching metadata
+                let Some((_, sid_pattern, description)) = privileged_groups
+                    .iter()
+                    .find(|(name, _, _)| name.eq_ignore_ascii_case(group_name))
+                else {
+                    continue;
+                };
+
+                let members: Vec<String> = if members_str.is_empty() {
+                    Vec::new()
+                } else {
+                    members_str
+                        .split(',')
+                        .map(|s| s.trim().to_string())
+                        .collect()
+                };
+
+                let risk_level = match *sid_pattern {
+                    "S-1-5-32-544" | "S-1-5-21-*-512" | "S-1-5-21-*-519" => {
+                        DirectorySeverity::Critical
+                    }
+                    "S-1-5-21-*-518" | "S-1-5-32-548" => DirectorySeverity::High,
+                    _ => DirectorySeverity::Medium,
+                };
+
+                groups.push(PrivilegedGroupInfo {
+                    name: group_name.to_string(),
+                    sid: Some(sid_pattern.to_string()),
+                    dn: None,
+                    member_count: members.len(),
+                    members,
+                    risk_level,
+                    description: description.to_string(),
+                });
+            }
         }
 
         Ok(groups)

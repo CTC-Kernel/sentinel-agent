@@ -132,6 +132,10 @@ impl Default for FimPolicy {
                 "*.tmp".to_string(),
                 "*.swp".to_string(),
                 ".git/**".to_string(),
+                // Windows: exclude transient user-profile caches under the config directory.
+                // These generate hundreds of events (D3DSCache, Office telemetry, Xbox, etc.)
+                // and are not security-relevant.
+                "systemprofile/AppData/**".to_string(),
             ],
             recursive: true,
             debounce_ms: 500,

@@ -225,8 +225,14 @@ impl SentinelApp {
     }
 
     /// Configure the eframe `NativeOptions`.
+    ///
+    /// Uses wgpu as the renderer which supports software rendering on systems
+    /// without a GPU (Windows Server, headless VMs, Remote Desktop).
+    /// wgpu automatically falls back to DirectX WARP (software rasterizer)
+    /// when no hardware GPU is available, unlike glow/OpenGL which crashes.
     pub fn native_options() -> eframe::NativeOptions {
         eframe::NativeOptions {
+            renderer: eframe::Renderer::Wgpu,
             persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel Agent")
@@ -240,6 +246,7 @@ impl SentinelApp {
     /// Configure compact options for tray menu popup.
     pub fn tray_popup_options() -> eframe::NativeOptions {
         eframe::NativeOptions {
+            renderer: eframe::Renderer::Wgpu,
             persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel - Vue Rapide")
@@ -247,7 +254,7 @@ impl SentinelApp {
                 .with_min_inner_size([theme::TRAY_POPUP_MIN_WIDTH, theme::SPLASH_CONTENT_HEIGHT])
                 .with_max_inner_size([theme::TRAY_POPUP_MAX_WIDTH, 800.0])
                 .with_icon(Self::load_app_icon())
-                .with_decorations(false) // No title bar for menu-like feel
+                .with_decorations(false)
                 .with_transparent(true),
             ..Default::default()
         }

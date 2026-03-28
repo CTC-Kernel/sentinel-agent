@@ -677,6 +677,10 @@ impl AgentRuntime {
 
     /// Run the agent main loop.
     pub async fn run(&self) -> Result<(), CommonError> {
+        // Reset startup timer so it measures from run() start, not from
+        // AgentRuntime construction (which may include a failed GUI attempt).
+        self.resource_monitor.reset_startup_time();
+
         info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
         info!("Server URL: https://cyber-threat-consulting.com [redacted]");
         info!(
@@ -936,7 +940,7 @@ impl AgentRuntime {
 
         // Initialize FIM engine
         {
-            let (fim_tx, fim_rx) = mpsc::channel(100);
+            let (fim_tx, fim_rx) = mpsc::channel(1000);
             let mut fim_rx_guard = self.fim_rx.lock().await;
             *fim_rx_guard = Some(fim_rx);
 
@@ -1063,6 +1067,9 @@ impl AgentRuntime {
             let mut pipeline_fim_alerts: Vec<(String, String)> = Vec::new();
 
             // 1. Process FIM alerts (always — security-critical even when paused)
+            //    Collect all pending alerts first, then batch-upload to avoid 429 rate limits.
+            let mut fim_batch_payloads: Vec<agent_sync::types::FimAlertPayload> = Vec::new();
+            let mut fim_siem_reports: Vec<api_client::SecurityIncidentReport> = Vec::new();
             {
                 let mut rx_guard = self.fim_rx.lock().await;
                 if let Some(rx) = rx_guard.as_mut() {
@@ -1134,22 +1141,12 @@ impl AgentRuntime {
                             ));
                         }
 
-                        // Send to SaaS as incident
-                        if let Some(client) = self.api_client.read().await.as_ref()
-                            && let Err(e) = client.report_incident(report.clone()).await
-                        {
-                            error!("Failed to report FIM incident to SaaS: {}", e);
-                        }
-
-                        // Also upload as structured FIM alert (populates FIM tab)
-                        if let Some(ref auth_client) = self.authenticated_client {
-                            let payload = agent_sync::types::FimAlertPayload::from(alert.clone());
-                            if let Err(e) = auth_client.upload_fim_alerts(vec![payload]).await {
-                                warn!("Failed to upload FIM alert to SaaS: {}", e);
-                            }
-                        }
+                        // Collect for batched uploads (avoid per-alert HTTP requests → 429)
+                        fim_batch_payloads.push(agent_sync::types::FimAlertPayload::from(alert.clone()));
 
                         // Forward to SIEM (always record for platform, optionally send to external)
+                        let siem_description = report.description.clone();
+                        fim_siem_reports.push(report);
                         let siem_guard = self.siem_forwarder.read().await;
                         if let Some(siem) = siem_guard.as_ref() {
                             let mut event = agent_siem::SiemEvent {
@@ -1157,7 +1154,7 @@ impl AgentRuntime {
                                 severity: 5,
                                 category: agent_siem::EventCategory::FileIntegrity,
                                 name: "File Integrity Change".to_string(),
-                                description: report.description,
+                                description: siem_description,
                                 source_host: hostname::get()
                                     .map(|h| h.to_string_lossy().to_string())
                                     .unwrap_or_default(),
@@ -1195,6 +1192,43 @@ impl AgentRuntime {
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            // Batch-upload collected FIM alerts and report summary incident
+            if !fim_batch_payloads.is_empty() {
+                let count = fim_batch_payloads.len();
+
+                // Upload structured FIM alerts (batched)
+                if let Some(ref auth_client) = self.authenticated_client {
+                    if let Err(e) = auth_client.upload_fim_alerts(fim_batch_payloads).await {
+                        warn!("Failed to upload {} FIM alert(s) to SaaS: {}", count, e);
+                    }
+                }
+
+                // Report a single summary incident instead of one per file change
+                if let Some(client) = self.api_client.read().await.as_ref() {
+                    let summary = if count == 1 {
+                        fim_siem_reports.into_iter().next().unwrap()
+                    } else {
+                        api_client::SecurityIncidentReport {
+                            incident_type: api_client::IncidentType::UnauthorizedChange,
+                            severity: api_client::Severity::Medium,
+                            title: format!("File Integrity Alert: {} files changed", count),
+                            description: format!(
+                                "{} file integrity changes detected in this cycle.",
+                                count
+                            ),
+                            evidence: serde_json::json!({
+                                "change_count": count,
+                            }),
+                            confidence: 100,
+                            detected_at: chrono::Utc::now().to_rfc3339(),
+                        }
+                    };
+                    if let Err(e) = client.report_incident(summary).await {
+                        error!("Failed to report FIM incident summary to SaaS: {}", e);
                     }
                 }
             }
@@ -1965,39 +1999,44 @@ impl AgentRuntime {
                                     // Upload correlation alerts as security incidents
                                     for alert in &alerts {
                                         if let Some(ref client) = self.authenticated_client {
-                                            let incident_type = match alert.rule_id.as_str() {
-                                                "brute_force" | "windows_logon_failure_burst" => "credential_theft",
-                                                "privilege_escalation" => "privilege_escalation",
-                                                "file_integrity_burst" | "windows_audit_log_cleared"
-                                                    | "windows_account_changes" => "unauthorized_change",
-                                                "windows_service_install_burst" => "malware",
-                                                "windows_firewall_changes" => "firewall_disabled",
-                                                "network_scan" | "critical_errors" | _ => "suspicious_process",
+                                            use agent_sync::types::{
+                                                IncidentType as SyncIncidentType,
+                                                Severity as SyncSeverity,
                                             };
-                                            let payload = serde_json::json!({
-                                                "incident_type": incident_type,
-                                                "severity": if alert.severity >= 8 { "critical" }
-                                                    else if alert.severity >= 6 { "high" }
-                                                    else { "medium" },
-                                                "title": alert.rule_name,
-                                                "description": format!(
+                                            let incident_type = match alert.rule_id.as_str() {
+                                                "brute_force" | "windows_logon_failure_burst" => SyncIncidentType::CredentialTheft,
+                                                "privilege_escalation" => SyncIncidentType::PrivilegeEscalation,
+                                                "file_integrity_burst" | "windows_audit_log_cleared"
+                                                    | "windows_account_changes" => SyncIncidentType::UnauthorizedChange,
+                                                "windows_service_install_burst" => SyncIncidentType::Malware,
+                                                "windows_firewall_changes" => SyncIncidentType::FirewallDisabled,
+                                                "network_scan" | "critical_errors" | _ => SyncIncidentType::SuspiciousProcess,
+                                            };
+                                            let severity = if alert.severity >= 8 {
+                                                SyncSeverity::Critical
+                                            } else if alert.severity >= 6 {
+                                                SyncSeverity::High
+                                            } else {
+                                                SyncSeverity::Medium
+                                            };
+                                            let report = agent_sync::types::SecurityIncidentReport {
+                                                incident_type,
+                                                severity,
+                                                title: alert.rule_name.clone(),
+                                                description: format!(
                                                     "{} ({} events in {}s)",
                                                     alert.description, alert.event_count,
                                                     (alert.last_event - alert.first_event).num_seconds()
                                                 ),
-                                                "evidence": {
+                                                evidence: serde_json::json!({
                                                     "rule_id": alert.rule_id,
                                                     "event_count": alert.event_count,
                                                     "sample_event_ids": alert.sample_event_ids,
-                                                },
-                                                "confidence": 80,
-                                                "detected_at": alert.generated_at.to_rfc3339(),
-                                            });
-                                            if let Err(e) = client.post_json::<_, serde_json::Value>(
-                                                &format!("/v1/agents/{}/incidents",
-                                                    self.config.agent_id.as_deref().unwrap_or("unknown")),
-                                                &payload
-                                            ).await {
+                                                }),
+                                                confidence: 80,
+                                                detected_at: alert.generated_at,
+                                            };
+                                            if let Err(e) = client.report_incident(report).await {
                                                 warn!("Failed to upload correlation alert: {}", e);
                                             }
                                         }

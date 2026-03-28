@@ -334,10 +334,12 @@
       BEFORE file removal and needs no property resolution.
     -->
 
-    <!-- Install signing certificate into TrustedPublisher + Root so future updates are trusted and SmartScreen is bypassed -->
+    <!-- Install signing certificate into TrustedPublisher + Root so future updates are trusted and SmartScreen is bypassed.
+         certutil is a console subsystem binary that flashes a window; Start-Process -NoNewWindow
+         prevents it from creating its own console (it reuses PowerShell's hidden one). -->
     <CustomAction Id="InstallCertificate"
                   Directory="ConfigDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;try { $cert = '[ConfigDir]sentinel-selfsigned.cer'; certutil -addstore 'TrustedPublisher' $cert; certutil -addstore 'Root' $cert } catch { Write-EventLog -LogName Application -Source 'SentinelGRCAgent' -EventId 1003 -EntryType Error -Message ('Certificate installation failed: ' + $_) }&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;try { $cert = '[ConfigDir]sentinel-selfsigned.cer'; Start-Process -FilePath 'certutil' -ArgumentList @('-addstore','TrustedPublisher',$cert) -NoNewWindow -Wait; Start-Process -FilePath 'certutil' -ArgumentList @('-addstore','Root',$cert) -NoNewWindow -Wait } catch { Write-EventLog -LogName Application -Source 'SentinelGRCAgent' -EventId 1003 -EntryType Error -Message ('Certificate installation failed: ' + $_) }&quot;"
                   Return="ignore" />
 
     <!-- Windows Defender exclusion -->
@@ -353,10 +355,11 @@
                   ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;New-Item -ItemType Directory -Path '[SentinelDataDir]' -Force | Out-Null; '{&quot;&quot;server_url&quot;&quot;:&quot;&quot;[SERVERURL]&quot;&quot;,&quot;&quot;enrollment_token&quot;&quot;:&quot;&quot;[ENROLLMENTTOKEN]&quot;&quot;,&quot;&quot;check_interval_secs&quot;&quot;:3600,&quot;&quot;heartbeat_interval_secs&quot;&quot;:60,&quot;&quot;log_level&quot;&quot;:&quot;&quot;info&quot;&quot;,&quot;&quot;tls_verify&quot;&quot;:true}' | Set-Content -Path '[SentinelDataDir]agent.json' -Encoding UTF8&quot;"
                   Return="ignore" />
 
-    <!-- Run enrollment after install -->
+    <!-- Run enrollment after install.
+         Wrapped in PowerShell -WindowStyle Hidden to prevent any console flash. -->
     <CustomAction Id="RunEnrollment"
                   Directory="BinDir"
-                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; enroll --token &quot;[ENROLLMENTTOKEN]&quot; --server &quot;[SERVERURL]&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;Start-Process -FilePath '[BinDir]sentinel-agent.exe' -ArgumentList @('enroll','--token','[ENROLLMENTTOKEN]','--server','[SERVERURL]') -NoNewWindow -Wait&quot;"
                   Return="ignore" />
 
     <!-- Launch GUI after install (asyncNoWait so the installer closes immediately). -->
@@ -393,10 +396,11 @@
     <!-- Create Sentinel data directory (if missing) and reset permissions for both
          fresh installs and upgrades from older versions with broken ACLs.
          Uses SIDs instead of localized group names for cross-locale compatibility.
-         %ProgramData% is used because deferred CAs cannot resolve MSI properties. -->
+         %ProgramData% is used because deferred CAs cannot resolve MSI properties.
+         takeown/icacls are console apps — Start-Process -NoNewWindow prevents window flash. -->
     <CustomAction Id="ForceResetPermissions"
                   Directory="SystemFolder"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;$dir = '%ProgramData%\Sentinel'; New-Item -ItemType Directory -Path $dir -Force | Out-Null; foreach ($sub in 'data','logs','cache','backups','models') { New-Item -ItemType Directory -Path (Join-Path $dir $sub) -Force | Out-Null }; takeown /A /F $dir /R 2&gt;$null; icacls $dir /grant '*S-1-5-32-545:(OI)(CI)(M)' /T /C /Q 2&gt;$null; icacls $dir /grant '*S-1-5-32-544:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls $dir /grant '*S-1-5-18:(OI)(CI)(F)' /T /C /Q 2&gt;$null&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;$dir = '%ProgramData%\Sentinel'; New-Item -ItemType Directory -Path $dir -Force | Out-Null; foreach ($sub in 'data','logs','cache','backups','models') { New-Item -ItemType Directory -Path (Join-Path $dir $sub) -Force | Out-Null }; Start-Process -FilePath 'takeown' -ArgumentList @('/A','/F',$dir,'/R') -NoNewWindow -Wait; Start-Process -FilePath 'icacls' -ArgumentList @($dir,'/grant','*S-1-5-32-545:(OI)(CI)(M)','/T','/C','/Q') -NoNewWindow -Wait; Start-Process -FilePath 'icacls' -ArgumentList @($dir,'/grant','*S-1-5-32-544:(OI)(CI)(F)','/T','/C','/Q') -NoNewWindow -Wait; Start-Process -FilePath 'icacls' -ArgumentList @($dir,'/grant','*S-1-5-18:(OI)(CI)(F)','/T','/C','/Q') -NoNewWindow -Wait&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />

@@ -86,7 +86,7 @@ impl ResourceUsage {
 #[derive(Debug)]
 pub struct ResourceMonitor {
     limits: ResourceLimits,
-    start_time: Instant,
+    start_time: Mutex<Instant>,
     sample_count: AtomicU64,
     /// Last time a warning was logged (for rate limiting).
     last_warning_time: AtomicU64,
@@ -116,7 +116,7 @@ impl ResourceMonitor {
     pub fn with_limits(limits: ResourceLimits) -> Self {
         Self {
             limits,
-            start_time: Instant::now(),
+            start_time: Mutex::new(Instant::now()),
             sample_count: AtomicU64::new(0),
             last_warning_time: AtomicU64::new(0),
             last_network_bytes: AtomicU64::new(0),
@@ -147,14 +147,14 @@ impl ResourceMonitor {
     pub fn get_usage(&self) -> ResourceUsage {
         let memory_bytes = get_process_memory();
         let cpu_percent = get_cpu_usage();
-        let uptime_ms = self.start_time.elapsed().as_millis() as u64;
+        let uptime_ms = self.start_time.lock().unwrap().elapsed().as_millis() as u64;
 
         self.sample_count.fetch_add(1, Ordering::Relaxed);
 
         // Network I/O collection using native OS APIs.
         // sysinfo::Networks on macOS returns stale counters — use getifaddrs() /
         // /proc/net/dev directly for reliable system-wide byte totals.
-        let current_time = self.start_time.elapsed().as_secs();
+        let current_time = self.start_time.lock().unwrap().elapsed().as_secs();
         let network_io_bytes = {
             let current_network = get_network_bytes_total();
             let last_net = self
@@ -536,9 +536,14 @@ impl ResourceMonitor {
         &self.networks
     }
 
+    /// Reset the startup timer (e.g. after GUI crash recovery to headless mode).
+    pub fn reset_startup_time(&self) {
+        *self.start_time.lock().unwrap() = Instant::now();
+    }
+
     /// Check if startup time is within limits.
     pub fn check_startup_time(&self) -> bool {
-        let elapsed = self.start_time.elapsed().as_millis() as u64;
+        let elapsed = self.start_time.lock().unwrap().elapsed().as_millis() as u64;
         if elapsed > self.limits.max_startup_ms {
             warn!(
                 "Startup time exceeded limit: {}ms > {}ms",
@@ -573,7 +578,7 @@ impl ResourceMonitor {
 
         if !within_limits {
             // Rate-limit warnings to once per 60 seconds
-            let now_secs = self.start_time.elapsed().as_secs();
+            let now_secs = self.start_time.lock().unwrap().elapsed().as_secs();
             let last_warning = self.last_warning_time.load(Ordering::Relaxed);
 
             if now_secs >= last_warning + 60 {
@@ -641,7 +646,7 @@ impl ResourceMonitor {
 
         if !within_limits {
             // Rate-limit warnings to once per 60 seconds
-            let now_secs = self.start_time.elapsed().as_secs();
+            let now_secs = self.start_time.lock().unwrap().elapsed().as_secs();
             let last_warning = self.last_warning_time.load(Ordering::Relaxed);
 
             if now_secs >= last_warning + 60 {
@@ -686,7 +691,7 @@ impl ResourceMonitor {
 
     /// Get uptime in milliseconds.
     pub fn uptime_ms(&self) -> u64 {
-        self.start_time.elapsed().as_millis() as u64
+        self.start_time.lock().unwrap().elapsed().as_millis() as u64
     }
 }
 
@@ -1742,9 +1747,27 @@ fn get_disk_bytes() -> u64 {
 
 #[cfg(windows)]
 fn get_system_cpu() -> f64 {
-    // Basic implementation using sysinfo is preferred if possible,
-    // but here we align with the system-specific pattern.
-    0.0 // sysinfo handles this well enough in ResourceMonitor
+    use std::sync::Mutex;
+
+    // sysinfo requires two calls to refresh_cpu_usage() with a delay between
+    // them to compute a delta.  We keep a persistent System instance so that
+    // successive calls to get_system_cpu() (every ~1 s from the runtime loop)
+    // naturally provide the required delta.
+    static SYS: Mutex<Option<sysinfo::System>> = Mutex::new(None);
+
+    let mut guard = match SYS.lock() {
+        Ok(g) => g,
+        Err(poisoned) => poisoned.into_inner(),
+    };
+
+    let sys = guard.get_or_insert_with(|| {
+        let mut s = sysinfo::System::new();
+        s.refresh_cpu_usage();
+        s
+    });
+
+    sys.refresh_cpu_usage();
+    sys.global_cpu_usage() as f64
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]

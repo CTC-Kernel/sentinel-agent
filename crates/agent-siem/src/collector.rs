@@ -916,8 +916,12 @@ fn humanize_event(
 
     // Truncate raw message for description (max 120 chars, clean cut)
     let desc = if raw_message.len() > 120 {
-        let truncated = &raw_message[..120];
-        let cut = truncated.rfind(' ').unwrap_or(120);
+        let mut end = 120;
+        while !raw_message.is_char_boundary(end) {
+            end -= 1;
+        }
+        let truncated = &raw_message[..end];
+        let cut = truncated.rfind(' ').unwrap_or(end);
         format!("{}…", &raw_message[..cut])
     } else {
         raw_message.to_string()
