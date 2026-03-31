@@ -64,10 +64,24 @@ Contrairement aux solutions classiques, notre moteur d'intelligence artificielle
 ### Intégrité Système (agent-fim)
 Le moteur de File Integrity Monitoring utilise des primitives cryptographiques fortes (**BLAKE3**, **SHA2**) pour garantir l'absence d'altération du noyau et des fichiers critiques.
 
+### Protection Anti-Tamper (Self-Protection)
+Le module `self_protection.rs` surveille en permanence :
+- **Intégrité binaire** : Vérification SHA-256 du binaire agent au démarrage.
+- **Intégrité config** : Détection de modification non autorisée du fichier de configuration.
+- **Détection debugger** : Alerte si un debugger est attaché au processus agent.
+- **Monitoring services** : Surveillance des changements d'état du service système.
+
+### Credentials & Enrollment
+- Les credentials agent sont stockés dans une sous-collection Firestore `credentials/main` (jamais dans le document principal).
+- Le token d'enrollment est un JWT signé contenant l'`organizationId` du tenant.
+- `SecureConfig` est un wrapper RAII qui zéroïse automatiquement les secrets en mémoire à la destruction (`ZeroizeOnDrop`).
+- `panic = "unwind"` (pas "abort") est requis dans Cargo.toml pour garantir l'exécution du Drop trait.
+
 ### Sécurité du Code & Données
-- **SQLCipher (AES-256 GCM)** : Base de données locale entièrement chiffrée.
-- **mTLS 1.3** : Authentification mutuelle obligatoire pour toute synchronisation.
+- **SQLCipher (AES-256 GCM)** : Base de données locale entièrement chiffrée. Clé dérivée au premier enrollment.
+- **mTLS 1.3** : Authentification mutuelle pour la synchronisation (note : no-op sur Firebase, documenté dans `client.rs` et `api.js`).
 - **Zero Unsafe** : Usage proscrit du mot-clé `unsafe` dans les modules critiques.
+- **EDR Anti-Draper** : L'agent ne peut pas exécuter d'action EDR contre lui-même (protection anti-suicide).
 
 ---
 

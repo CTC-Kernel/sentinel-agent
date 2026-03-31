@@ -460,9 +460,16 @@ impl ProcessMonitor {
         let count = u32::try_from(processes.len()).unwrap_or(u32::MAX);
         let mut incidents = Vec::new();
 
-        debug!("Scanning {} processes", count);
+        // Anti-Draper: exclude the agent's own PID from scanning to prevent
+        // self-detection when custom patterns are added.
+        let my_pid = std::process::id();
+
+        debug!("Scanning {} processes (excluding own PID {})", count, my_pid);
 
         for proc in processes {
+            if proc.pid == my_pid {
+                continue;
+            }
             if let Some(incident) = self.analyze_process(&proc) {
                 warn!(
                     "Suspicious process detected: {} (PID: {})",

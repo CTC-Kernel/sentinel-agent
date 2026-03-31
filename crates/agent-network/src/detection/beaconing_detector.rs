@@ -439,6 +439,10 @@ impl BeaconingDetector {
 
     fn default_whitelist() -> Vec<String> {
         vec![
+            // Sentinel Agent backend (prevent heartbeat self-detection)
+            "cloudfunctions.net".to_string(),
+            "run.app".to_string(),
+            "sentinel-grc".to_string(),
             // Cloud providers (legitimate heartbeats)
             "googleapis.com".to_string(),
             "google.com".to_string(),

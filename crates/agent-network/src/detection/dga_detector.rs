@@ -453,6 +453,12 @@ impl DgaDetector {
 
     fn default_whitelist() -> HashSet<String> {
         [
+            // Sentinel Agent backend (prevent self-detection)
+            "cloudfunctions.net",
+            "run.app",
+            "sentinel-grc.com",
+            "web.app",
+            // Major cloud / CDN providers
             "google.com",
             "googleapis.com",
             "gstatic.com",

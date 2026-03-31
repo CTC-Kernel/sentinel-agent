@@ -88,16 +88,28 @@ impl SecurityDetector {
         &self,
         connections: &[NetworkConnection],
     ) -> NetworkResult<Vec<NetworkSecurityAlert>> {
-        debug!("Analyzing {} connections for threats", connections.len());
+        // Anti-Draper: exclude the agent's own connections from analysis to
+        // prevent self-detection (heartbeat flagged as C2/beaconing, etc.).
+        let my_pid = std::process::id();
+        let filtered: Vec<_> = connections
+            .iter()
+            .filter(|c| c.pid != Some(my_pid))
+            .cloned()
+            .collect();
+        debug!(
+            "Analyzing {} connections for threats ({} excluded as own-process)",
+            filtered.len(),
+            connections.len() - filtered.len()
+        );
         let mut alerts = Vec::new();
 
         // Run all detectors
-        alerts.extend(self.c2_detector.detect(connections));
-        alerts.extend(self.miner_detector.detect(connections));
-        alerts.extend(self.exfil_detector.detect(connections));
-        alerts.extend(self.port_scanner.detect(connections));
-        alerts.extend(self.dga_detector.detect(connections));
-        alerts.extend(self.beaconing_detector.detect(connections));
+        alerts.extend(self.c2_detector.detect(&filtered));
+        alerts.extend(self.miner_detector.detect(&filtered));
+        alerts.extend(self.exfil_detector.detect(&filtered));
+        alerts.extend(self.port_scanner.detect(&filtered));
+        alerts.extend(self.dga_detector.detect(&filtered));
+        alerts.extend(self.beaconing_detector.detect(&filtered));
 
         // Sort by severity (highest first)
         alerts.sort_by(|a, b| b.severity.cmp(&a.severity));

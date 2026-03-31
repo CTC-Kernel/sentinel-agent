@@ -140,10 +140,17 @@ impl ProcessTreeAnalyzer {
 
         let mut events = Vec::new();
 
+        // Anti-Draper: exclude the agent's own PID from analysis to prevent
+        // self-detection (the agent spawns child commands like ps, lsof, etc.).
+        let my_pid = std::process::id();
+
         // Build process tree
         let nodes = self.build_tree();
 
         for node in &nodes {
+            if node.pid == my_pid {
+                continue;
+            }
             // Check for suspicious command patterns
             let cmd_lower = node.command_line.to_lowercase();
 

@@ -11,7 +11,7 @@ Merci de votre intérêt stratégique pour le **Sentinel GRC Agent**. Nous maint
 ## 🛠️ Environnement de Développement
 
 ### Prérequis Systèmes
-- **Rust Edition 2024** (v1.93.0+)
+- **Rust Edition 2024** (v1.85+)
 - **Composants** : `rustfmt`, `clippy`, `llvm-tools-preview`.
 - **Audit Tools** : `cargo-deny`, `cargo-audit`.
 
@@ -62,11 +62,31 @@ graph LR
     Core --> Scanner[agent-scanner]
     Core --> Net[agent-network]
     Core --> FIM[agent-fim]
+    Core --> LLM[agent_llm]
+    Core --> SIEM[agent-siem]
     Scanner --> Storage[agent-storage]
-    Scanner --> LLM[agent_llm]
     Sync[agent-sync] --> Storage
-    SIEM[agent-siem] --> Common[agent-common]
+    Persist[agent-persistence] --> Storage
+    Common[agent-common] --- Core
 ```
+
+### Modules clés dans agent-core/src/
+| Module | Responsabilité |
+| :--- | :--- |
+| `enrollment.rs` | Enrollment JWT + credentials management |
+| `heartbeat.rs` | Communication périodique avec la plateforme |
+| `edr_actions.rs` | Actions EDR (kill, quarantine, block) |
+| `playbook_engine.rs` | Évaluation de conditions et déclenchement de réponses |
+| `threat_pipeline.rs` | Pipeline détection → classification → réponse |
+| `asset_sync.rs` | Synchronisation assets vers la GUI |
+| `self_protection.rs` | Détection de tamper (binaire, config, debugger) |
+| `self_update.rs` | Mise à jour automatique avec reporting |
+| `remediation_ops.rs` | Exécution d'actions correctives (timeout 5 min) |
+
+### Précautions spécifiques
+- **Tests EDR** : Ne jamais tester `kill_process` ou `block_ip` sur une machine de production. Utiliser des mocks.
+- **Playbooks** : Les tests de playbooks doivent utiliser un `ThreatContext` synthétique.
+- **Self-Protection** : Le module empêche l'agent de s'auto-terminer (Anti-Draper). Les tests doivent respecter cette contrainte.
 
 ---
 

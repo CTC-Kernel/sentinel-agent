@@ -132,6 +132,10 @@ impl Default for FimPolicy {
                 "*.tmp".to_string(),
                 "*.swp".to_string(),
                 ".git/**".to_string(),
+                // Sentinel Agent own paths — prevent self-detection when the agent
+                // updates its config or database under watched directories.
+                "sentinel/**".to_string(),
+                "sentinel-grc/**".to_string(),
                 // Windows: exclude transient user-profile caches under the config directory.
                 // These generate hundreds of events (D3DSCache, Office telemetry, Xbox, etc.)
                 // and are not security-relevant.

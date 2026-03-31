@@ -14,7 +14,7 @@ Expert en souveraineté numérique et cyber-défense
 [![CI Status](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Rust 2024](https://img.shields.io/badge/rust-2024%20edition-orange.svg)
-![Version](https://img.shields.io/badge/version-2.0.169-green.svg)
+![Version](https://img.shields.io/badge/version-2.0.217-green.svg)
 
 ---
 
@@ -34,8 +34,10 @@ Sentinel GRC Agent est un agent d'endpoint souverain et ultra-performant, conçu
 
 ### 2. Sécurité Offensive & Détection (Detection)
 - **FIM (File Integrity Monitoring)** : Moteur de surveillance d'intégrité basé sur BLAKE3/SHA2 pour les fichiers système critiques.
-- **Détection de Menaces** : Surveillance continue des processus et détection d'anomalies comportementales.
+- **Détection de Menaces** : Pipeline autonome de détection → classification → réponse avec scoring IA (threat_pipeline).
 - **Analyse Réseau** : Cartographie OSI Couches 2/3, découverte passive (mDNS, SSDP, ARP) et détection de rogue devices.
+- **Actions EDR** : Réponse automatisée — `kill_process`, `quarantine_file`, `block_ip` avec protection anti-tamper.
+- **Moteur de Playbooks** : Évaluation de conditions, déclenchement de réponses automatiques avec scoring de confiance IA.
 
 ### 3. Intelligence Artificielle Locale (Local AI)
 - **Agent LLM** : Inférence locale via **MistralRS** (Mistral, Llama) pour l'analyse intelligente des logs et des événements de sécurité sans fuite de données vers le Cloud. (Accélération matérielle Apple Silicon/NVIDIA).
@@ -44,6 +46,19 @@ Sentinel GRC Agent est un agent d'endpoint souverain et ultra-performant, conçu
 - **Moteur SIEM** : Connecteurs natifs pour **Splunk, Microsoft Sentinel, ELK et Syslog**.
 - **Persistance & Recovery** : Gestion avancée du cycle de vie (backup chiffré, rotation de clés, migration de base de données).
 - **Interface Next-Gen** : Dashboard interactif 14 modules sur **egui** avec mode sombre dynamique.
+
+### 5. Gestion des Assets & CMDB
+- **Découverte d'assets** : Inventaire automatique des endpoints avec synchronisation vers la plateforme GRC.
+- **Managed Assets** : Cycle de vie complet (IP, hostname, MAC, vendor, device_type, criticality, lifecycle).
+- **Synchronisation CMDB** : Promotion automatique des assets découverts vers les Configuration Items de la plateforme.
+- **Réconciliation** : Validation et fusion des assets agent avec la CMDB existante.
+
+### 6. Enrollment & Cycle de Vie
+- **Enrollment automatique** : Authentification par token JWT contenant l'`organizationId` du tenant.
+- **Heartbeat** : Communication périodique avec la plateforme (statut, métriques, commandes serveur).
+- **Self-Update** : Mise à jour automatique de l'agent avec reporting de statut (pending → completed/failed).
+- **Self-Protection** : Détection de tamper — intégrité binaire (SHA-256), config, debugger, services.
+- **Remédiation** : Exécution d'actions correctives depuis la GUI avec timeout de 5 minutes.
 
 ---
 
@@ -54,7 +69,7 @@ L'agent est conçu comme un écosystème de crates Rust hautement spécialisées
 ```mermaid
 graph TD
     subgraph "Interface & UX"
-        GUI[agent-gui: Interface egui]
+        GUI[agent-gui: Interface egui 14 modules]
         Tray[System Tray / Notification]
     end
 
@@ -65,16 +80,27 @@ graph TD
         Net[agent-network: Découverte L2/L3]
     end
 
+    subgraph "Sécurité & Réponse"
+        EDR[EDR Actions: kill/quarantine/block]
+        Playbook[Playbook Engine: conditions & réponses]
+        Threat[Threat Pipeline: détection → classification → réponse]
+        SelfProt[Self-Protection: tamper detection]
+    end
+
     subgraph "Cœur & Orchestration"
         Core[agent-core: Orchestrateur Principal]
+        Enroll[Enrollment: JWT + organizationId]
+        HB[Heartbeat: statut & commandes serveur]
+        Update[Self-Update: mise à jour auto]
         Common[agent-common: Types & Utils]
     end
 
     subgraph "Persistence & Sync"
         Storage[(agent-storage: SQLCipher AES-256)]
-        Persist[agent-persistence: Backup & Migration]
+        Persist[agent-persistence: État GUI]
         Sync[agent-sync: Protocoles mTLS SaaS]
         SIEM[agent-siem: Export Splunk/Sentinel/ELK]
+        Assets[Asset Sync: CMDB → Plateforme]
     end
 
     Core --> GUI
@@ -82,12 +108,23 @@ graph TD
     Core --> Scanner
     Core --> FIM
     Core --> Net
+    Core --> EDR
+    Core --> Playbook
+    Core --> Threat
+    Core --> SelfProt
+    Core --> Enroll
+    Core --> HB
+    Core --> Update
     Core --> Persist
     Core --> SIEM
-    
+    Core --> Assets
+
+    Threat --> Playbook
+    Playbook --> EDR
     Persist --> Storage
     Sync --> Storage
     Scanner --> Storage
+    Assets --> Storage
     Common --- Core
 ```
 
@@ -96,7 +133,7 @@ graph TD
 ## 🚀 Mise en Œuvre Rapide
 
 ### Prérequis
-- **Rust Edition 2024** (v1.93.0+)
+- **Rust Edition 2024** (v1.85+)
 - **OS Supportés** : Windows 10+ (x64), macOS 12+ (Universal), Linux (Ubuntu, RHEL, Debian).
 - **Dépendances Optionnelles** : OpenSSL, SQLite3, libgtk3 (pour GUI)
 
@@ -153,6 +190,10 @@ sudo systemctl enable sentinel-agent
 | **agent-storage** | Persistance SQLCipher | ✅ Stable | rusqlite, sqlcipher |
 | **agent-sync** | Synchronisation mTLS | � Beta | agent-storage, tokio |
 | **agent-siem** | Connecteurs SIEM | 🚧 Beta | agent-core, serde |
+| **agent-persistence** | Persistance état GUI | ✅ Stable | agent-storage |
+| **agent-llm** | Inférence LLM locale | ✅ Stable | mistralrs |
+| **agent-fim** | File Integrity Monitoring | ✅ Stable | blake3, sha2 |
+| **agent-common** | Types & utilitaires partagés | ✅ Stable | serde, chrono |
 
 ---
 

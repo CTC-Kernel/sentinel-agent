@@ -127,9 +127,16 @@ impl NetworkManager {
     }
 
     /// Record connections for beaconing analysis before running detection.
+    ///
+    /// Anti-Draper: the agent's own connections are excluded so its periodic
+    /// heartbeat is not mistaken for C2 beaconing.
     pub fn record_connections_for_beaconing(&mut self, connections: &[NetworkConnection]) {
+        let my_pid = std::process::id();
         let beaconing = self.detector.beaconing_detector_mut();
         for conn in connections {
+            if conn.pid == Some(my_pid) {
+                continue;
+            }
             beaconing.record_connection(conn);
         }
     }

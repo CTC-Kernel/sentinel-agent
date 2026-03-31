@@ -33,6 +33,9 @@ pub fn build_policy(
             "*.tmp".to_string(),
             "*.swp".to_string(),
             ".git/**".to_string(),
+            // Sentinel Agent own paths — prevent self-detection
+            "sentinel/**".to_string(),
+            "sentinel-grc/**".to_string(),
         ],
     };
 
