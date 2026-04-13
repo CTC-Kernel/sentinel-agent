@@ -64,10 +64,17 @@ graph LR
     Core --> FIM[agent-fim]
     Core --> LLM[agent_llm]
     Core --> SIEM[agent-siem]
+    Core --> Sync[agent-sync]
     Scanner --> Storage[agent-storage]
-    Sync[agent-sync] --> Storage
+    Sync --> Storage
     Persist[agent-persistence] --> Storage
+    GUI --> Storage
+    GUI --> Sync
     Common[agent-common] --- Core
+    Common --- Scanner
+    Common --- Net
+    Common --- FIM
+    Common --- Storage
 ```
 
 ### Modules clés dans agent-core/src/

@@ -66,24 +66,50 @@ La plateforme peut répondre avec des **commandes** (scan immédiat, mise à jou
 
 ## 💻 Interface Graphique (Next-Gen GUI)
 
-Accédez à une visibilité complète via notre tableau de bord immersif composé de 14 modules spécialisés.
+Accédez à une visibilité complète via notre tableau de bord immersif composé de 19 modules spécialisés.
 
 | Module | Usage Stratégique |
 | :--- | :--- |
 | **Tableau de Bord** | Vue holistique du score de sécurité et du statut système. |
 | **Surveillance** | Télémétrie temps réel des ressources (CPU, RAM, Disque). |
+| **Conformité** | Statut de conformité par référentiel (NIS2, DORA, ISO 27001). |
+| **Logiciels** | Inventaire des logiciels installés et versions. |
+| **Vulnérabilités** | CVE détectées avec prioritisation et scoring. |
 | **Sécurité/FIM** | Historique des alertes d'intégrité et détection de menaces. |
-| **Réseau** | Cartographie de la topologie et découverte passive. |
-| **IA/LLM** | Interface de chat pour l'analyse assistée des événements. |
+| **Menaces** | Centre d'analyse multi-niveaux (événements, timeline, MITRE ATT&CK, playbooks). |
+| **Journal d'Audit** | Traçabilité complète des actions agent. |
+| **Réseau** | Cartographie de la topologie et connexions actives. |
+| **Découverte** | Découverte passive d'appareils réseau. |
+| **Cartographie** | Visualisation graphique de la cartographie réseau. |
 | **Assets/CMDB** | Inventaire des endpoints découverts et assets managés. |
-| **EDR** | Actions de réponse : kill process, quarantine, block IP. |
-| **Playbooks** | Règles de réponse automatique aux menaces détectées. |
-| **Remédiation** | Exécution et suivi des actions correctives. |
-| **Mises à jour** | Statut de self-update et historique des versions. |
+| **Risques** | Scoring et priorisation des risques. |
+| **Rapports** | Génération de rapports de conformité et sécurité. |
+| **Notifications** | Centre d'alertes et notifications. |
+| **Synchronisation** | Statut de synchronisation avec la plateforme. |
+| **Terminal** | Console de logs et diagnostics en temps réel. |
+| **IA/LLM** | Interface de chat pour l'analyse assistée des événements. |
+| **Paramètres** | Configuration de l'agent et préférences. |
 
 ---
 
 ## 🚀 Protocoles d'Installation
+
+### 🐧 Linux (Ubuntu, RHEL, Debian)
+1. Téléchargez le paquet correspondant à votre distribution (.deb ou .rpm) depuis les GitHub Releases.
+2. Installez le paquet :
+   ```bash
+   # Debian/Ubuntu
+   sudo dpkg -i sentinel-agent_2.0.219_amd64.deb
+
+   # RHEL/CentOS
+   sudo rpm -i sentinel-agent-2.0.219.x86_64.rpm
+   ```
+3. Configurez l'agent : `sudo nano /etc/sentinel/agent.json`
+4. Démarrez et activez le service :
+   ```bash
+   sudo systemctl start sentinel-agent
+   sudo systemctl enable sentinel-agent
+   ```
 
 ### 🍏 macOS (Silicon & Intel)
 1. Téléchargez l'image disque `SentinelAgent.dmg`.
@@ -103,6 +129,7 @@ L'agent est piloté par un fichier de configuration structuré (JSON).
 
 > [!IMPORTANT]
 > **Localisation du fichier** :
+> - **Linux** : `/etc/sentinel/agent.json`
 > - **macOS** : `~/Library/Application Support/SentinelGRC/agent.json`
 > - **Windows** : `C:\ProgramData\Sentinel\agent.json`
 
@@ -164,5 +191,5 @@ L'icône dans votre barre système (Tray) reflète l'état de santé en temps r�
 
 <p align="center">
   <em>Souveraineté. Sécurité. Excellence.</em><br>
-  <strong>Version 2.0.217 - Sentinel GRC Agent</strong>
+  <strong>Version 2.0.219 - Sentinel GRC Agent</strong>
 </p>

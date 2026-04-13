@@ -43,6 +43,9 @@ Toutes les donnees sont chiffrees au repos avec SQLCipher :
 | `ProofsRepository` | Preuves de conformite |
 | `AuditTrailRepository` | Journaux d'audit locaux |
 | `SyncQueueRepository` | File d'attente de synchronisation hors-ligne |
+| `DiscoveredDevicesRepository` | Inventaire des appareils reseau decouverts |
+| `GrcRepository` | Donnees specifiques GRC |
+| `ConfigRepository` | Stockage de la configuration |
 
 ## Utilisation
 
@@ -60,6 +63,15 @@ let db = Database::open(config, &key_manager)?;
 let repo = CheckResultsRepository::new(&db);
 let results = repo.get_pending_sync().await?;
 ```
+
+## Retention des donnees
+
+Le module `retention` applique automatiquement les politiques de conservation :
+
+- Resultats de controles : 12 mois par defaut (conformite NFR-C2)
+- Preuves : 12 mois avec hash d'integrite
+- Journaux d'audit : 12 mois
+- File de synchronisation : nettoyage apres upload reussi
 
 ## Migrations
 

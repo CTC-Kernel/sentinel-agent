@@ -27,7 +27,13 @@ Cette crate gere toutes les communications avec le serveur Sentinel GRC :
 | `rollout` | Support du deploiement canary |
 | `rules` | Synchronisation des regles avec cache ETag |
 | `security` | Signature des logs et verification des signatures |
-| `update` | Orchestration de la mise a jour automatique |
+| `update` / `updater` | Orchestration et execution de la mise a jour automatique |
+| `orchestrator` | Coordination globale de toutes les synchronisations |
+| `enrollment` | Flux d'enrollment JWT |
+| `heartbeat` | Communication periodique avec metriques |
+| `audit_sync` | Synchronisation du journal d'audit |
+| `command_results` | Retour d'execution des commandes serveur |
+| `client` | Client HTTP de base |
 
 ## Fonctionnalites de securite
 
