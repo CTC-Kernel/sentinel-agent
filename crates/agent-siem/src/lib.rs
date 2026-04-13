@@ -292,6 +292,10 @@ pub struct SiemStats {
 /// Maximum number of recent events kept for platform reporting.
 const RECENT_EVENTS_LIMIT: usize = 100;
 
+/// Maximum number of events allowed in the send buffer before applying backpressure.
+/// Prevents unbounded memory growth when SIEM endpoint is slow or unreachable.
+const MAX_BUFFER_SIZE: usize = 10_000;
+
 /// Main SIEM forwarder.
 pub struct SiemForwarder {
     config: SiemConfig,
@@ -422,12 +426,27 @@ impl SiemForwarder {
     }
 
     /// Queue an event for batch sending.
-    pub async fn queue_event(&self, event: SiemEvent) {
+    ///
+    /// Returns `false` if the event was dropped due to buffer backpressure.
+    pub async fn queue_event(&self, event: SiemEvent) -> bool {
         if !self.config.enabled {
-            return;
+            return true;
         }
 
         let mut buffer = self.buffer.write().await;
+
+        // Backpressure: reject events when buffer is full to prevent OOM
+        if buffer.len() >= MAX_BUFFER_SIZE {
+            drop(buffer);
+            let mut stats = self.stats.write().await;
+            stats.events_dropped = stats.events_dropped.saturating_add(1);
+            warn!(
+                "SIEM buffer full ({} events), dropping event — check SIEM endpoint connectivity",
+                MAX_BUFFER_SIZE
+            );
+            return false;
+        }
+
         buffer.push(event);
 
         if buffer.len() >= self.config.batch_size {
@@ -436,6 +455,8 @@ impl SiemForwarder {
                 warn!("Failed to flush event buffer: {}", e);
             }
         }
+
+        true
     }
 
     /// Flush buffered events.

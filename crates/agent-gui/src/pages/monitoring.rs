@@ -19,8 +19,11 @@ use crate::theme;
 use crate::widgets;
 
 // ── Constants ───────────────────────────────────────────────────────────────
+#[allow(dead_code)]
 const RESOURCE_CRITICAL_THRESHOLD: f64 = 90.0;
+#[allow(dead_code)]
 const RESOURCE_WARNING_THRESHOLD: f64 = 70.0;
+#[allow(dead_code)]
 const CHART_HEIGHT: f32 = 190.0;
 const SUMMARY_CARD_MIN_HEIGHT: f32 = theme::SUMMARY_CARD_MIN_HEIGHT;
 const LOGS_PER_PAGE: usize = 50;
@@ -595,9 +598,10 @@ impl MonitoringPage {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    // Premium Chart Card
+    // Premium Chart Card (reserved for future dashboard upgrade)
     // ════════════════════════════════════════════════════════════════════════
 
+    #[allow(dead_code)]
     fn premium_chart_card(
         ui: &mut Ui,
         title: &str,
@@ -1055,6 +1059,7 @@ impl MonitoringPage {
     // Shared helpers
     // ════════════════════════════════════════════════════════════════════════
 
+    #[allow(dead_code)]
     fn usage_color(percent: f64) -> egui::Color32 {
         if percent >= RESOURCE_CRITICAL_THRESHOLD {
             theme::ERROR
@@ -1186,6 +1191,7 @@ impl MonitoringPage {
         });
     }
 
+    #[allow(dead_code)]
     fn empty_chart_state(ui: &mut Ui, height: f32) {
         let (rect, _) = ui.allocate_exact_size(
             egui::vec2(ui.available_width(), height - 60.0),

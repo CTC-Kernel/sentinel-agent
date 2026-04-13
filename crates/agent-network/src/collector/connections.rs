@@ -307,8 +307,13 @@ impl ConnectionCollector {
                 result.map_err(|e| NetworkError::CommandFailed(format!("lsof failed: {}", e)))?
             }
             Err(_) => {
-                tracing::warn!("lsof timed out after 15s, returning empty connections");
-                return Ok(connections);
+                tracing::error!(
+                    "lsof timed out after 15s — network connection data unavailable. \
+                     Possible cause: hanging NFS mount or unresponsive file descriptor"
+                );
+                return Err(NetworkError::CommandFailed(
+                    "lsof timed out after 15s".to_string(),
+                ));
             }
         };
 
@@ -442,9 +447,45 @@ impl ConnectionCollector {
         }
     }
 
+    /// Build a PID → ProcessName lookup table with a single PowerShell call.
+    #[cfg(target_os = "windows")]
+    fn build_process_name_cache() -> std::collections::HashMap<u32, String> {
+        let mut cache = std::collections::HashMap::new();
+        let output = silent_command("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                r#"Get-Process -ErrorAction SilentlyContinue | Select-Object Id, ProcessName | ConvertTo-Json -Depth 1"#,
+            ])
+            .output();
+
+        if let Ok(output) = output {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if let Ok(procs) =
+                agent_common::process::parse_powershell_json_array(&stdout)
+            {
+                for proc in procs {
+                    if let (Some(id), Some(name)) = (
+                        proc["Id"].as_i64().and_then(|p| u32::try_from(p).ok()),
+                        proc["ProcessName"].as_str(),
+                    ) {
+                        if !name.is_empty() {
+                            cache.insert(id, name.to_string());
+                        }
+                    }
+                }
+            }
+        }
+        tracing::debug!("Built process name cache: {} entries", cache.len());
+        cache
+    }
+
     #[cfg(target_os = "windows")]
     async fn collect_windows(&self) -> NetworkResult<Vec<NetworkConnection>> {
         let mut connections = Vec::new();
+
+        // Build process name cache once (single PowerShell call instead of O(n))
+        let process_cache = Self::build_process_name_cache();
 
         // Get TCP connections
         let tcp_output = silent_command("powershell")
@@ -464,7 +505,7 @@ impl ConnectionCollector {
             });
 
         for conn in tcp_conns {
-            if let Some(nc) = self.parse_windows_tcp_connection(&conn) {
+            if let Some(nc) = self.parse_windows_tcp_connection(&conn, &process_cache) {
                 connections.push(nc);
             }
         }
@@ -487,7 +528,7 @@ impl ConnectionCollector {
             });
 
         for endpoint in udp_endpoints {
-            if let Some(nc) = self.parse_windows_udp_endpoint(&endpoint) {
+            if let Some(nc) = self.parse_windows_udp_endpoint(&endpoint, &process_cache) {
                 connections.push(nc);
             }
         }
@@ -500,7 +541,11 @@ impl ConnectionCollector {
     }
 
     #[cfg(target_os = "windows")]
-    fn parse_windows_tcp_connection(&self, conn: &serde_json::Value) -> Option<NetworkConnection> {
+    fn parse_windows_tcp_connection(
+        &self,
+        conn: &serde_json::Value,
+        process_cache: &std::collections::HashMap<u32, String>,
+    ) -> Option<NetworkConnection> {
         let local_address = conn["LocalAddress"].as_str()?.to_string();
         let local_port = conn["LocalPort"]
             .as_i64()
@@ -534,8 +579,8 @@ impl ConnectionCollector {
             ConnectionProtocol::Tcp
         };
 
-        // Get process name
-        let process_name = pid.and_then(|p| self.get_process_name_windows(p));
+        // Lookup process name from cache (O(1) instead of spawning PowerShell)
+        let process_name = pid.and_then(|p| process_cache.get(&p).cloned());
 
         // Filter out 0.0.0.0 remote
         let remote_address = remote_address.filter(|a| a != "0.0.0.0" && a != "::");
@@ -562,6 +607,7 @@ impl ConnectionCollector {
     fn parse_windows_udp_endpoint(
         &self,
         endpoint: &serde_json::Value,
+        process_cache: &std::collections::HashMap<u32, String>,
     ) -> Option<NetworkConnection> {
         let local_address = endpoint["LocalAddress"].as_str()?.to_string();
         let local_port = endpoint["LocalPort"]
@@ -577,7 +623,7 @@ impl ConnectionCollector {
             ConnectionProtocol::Udp
         };
 
-        let process_name = pid.and_then(|p| self.get_process_name_windows(p));
+        let process_name = pid.and_then(|p| process_cache.get(&p).cloned());
 
         Some(NetworkConnection {
             protocol,
@@ -592,23 +638,6 @@ impl ConnectionCollector {
         })
     }
 
-    #[cfg(target_os = "windows")]
-    fn get_process_name_windows(&self, pid: u32) -> Option<String> {
-        let output = silent_command("powershell")
-            .args([
-                "-NoProfile",
-                "-Command",
-                &format!(
-                    "(Get-Process -Id {} -ErrorAction SilentlyContinue).ProcessName",
-                    pid
-                ),
-            ])
-            .output()
-            .ok()?;
-
-        let name = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if name.is_empty() { None } else { Some(name) }
-    }
 }
 
 impl Default for ConnectionCollector {

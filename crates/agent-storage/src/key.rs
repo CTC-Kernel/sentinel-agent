@@ -325,15 +325,18 @@ impl KeyManager {
             )));
         }
 
-        // Additional safety: ensure cbData doesn't exceed what we'll copy
-        debug_assert!(
+        // Safety invariant: decrypted_len == KEY_LENGTH is enforced above.
+        // This assert fires in both debug AND release builds to prevent buffer overflow.
+        assert!(
             decrypted_len <= KEY_LENGTH,
-            "bounds check should have caught this"
+            "DPAPI decrypted key exceeds buffer: {} > {}",
+            decrypted_len,
+            KEY_LENGTH
         );
 
         let mut key = [0u8; KEY_LENGTH];
         unsafe {
-            std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);
+            std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), decrypted_len);
         }
 
         // Free the DPAPI-allocated memory
