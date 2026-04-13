@@ -235,12 +235,18 @@ impl AgentRuntime {
                         name: r.name.clone(),
                         description: r.description.clone(),
                         severity: r.severity.clone(),
-                        conditions: serde_json::to_string(&r.conditions).unwrap_or_default(),
-                        actions: serde_json::to_string(&r.actions).unwrap_or_default(),
+                        conditions: serde_json::to_string(&r.conditions).unwrap_or_else(|e| {
+                            warn!("Failed to serialize detection rule conditions for {}: {}", r.id, e);
+                            "[]".to_string()
+                        }),
+                        actions: serde_json::to_string(&r.actions).unwrap_or_else(|e| {
+                            warn!("Failed to serialize detection rule actions for {}: {}", r.id, e);
+                            "[]".to_string()
+                        }),
                         enabled: r.enabled,
                         created_at: r.created_at.to_rfc3339(),
                         last_match: r.last_match.map(|dt| dt.to_rfc3339()),
-                        match_count: r.match_count as i32,
+                        match_count: r.match_count.min(i32::MAX as u32) as i32,
                         synced: true,
                     };
                     if let Err(e) = repo.upsert(&stored).await {
@@ -278,13 +284,19 @@ impl AgentRuntime {
                         description: p.description.clone(),
                         trigger_type: "general".to_string(),
                         severity: "medium".to_string(),
-                        steps: serde_json::to_string(&p.actions).unwrap_or_default(),
+                        steps: serde_json::to_string(&p.actions).unwrap_or_else(|e| {
+                            warn!("Failed to serialize playbook actions for {}: {}", p.id, e);
+                            "[]".to_string()
+                        }),
                         enabled: p.enabled,
                         created_at: p.created_at.to_rfc3339(),
                         updated_at: now.clone(),
                         synced: true,
                         conditions: serde_json::to_string(&p.conditions)
-                            .unwrap_or_else(|_| "[]".to_string()),
+                            .unwrap_or_else(|e| {
+                                warn!("Failed to serialize playbook conditions for {}: {}", p.id, e);
+                                "[]".to_string()
+                            }),
                     };
                     if let Err(e) = repo.upsert(&stored).await {
                         warn!("Failed to upsert central playbook {}: {}", p.id, e);
@@ -319,8 +331,11 @@ impl AgentRuntime {
                         name: r.name.clone(),
                         rule_type: r.rule_type.clone(),
                         severity_threshold: r.severity_threshold.clone(),
-                        detection_types: serde_json::to_string(&r.detection_types).unwrap_or_default(),
-                        escalation_minutes: r.escalation_minutes.map(|v| v as i32),
+                        detection_types: serde_json::to_string(&r.detection_types).unwrap_or_else(|e| {
+                            warn!("Failed to serialize alert rule detection_types for {}: {}", r.id, e);
+                            "[]".to_string()
+                        }),
+                        escalation_minutes: r.escalation_minutes.map(|v| v.min(i32::MAX as u32) as i32),
                         enabled: r.enabled,
                         created_at: r.created_at.to_rfc3339(),
                         synced: true,

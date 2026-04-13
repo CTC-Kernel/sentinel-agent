@@ -3396,7 +3396,7 @@ fn show_fatal_error(message: &str) {
 /// Uses the Win32 `VerifyVersionInfoW` + `GetProductInfo` to check whether the
 /// OS is a Server or Domain Controller SKU.  Falls back to PowerShell and then
 /// `wmic` if the primary method fails.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_windows_server() -> bool {
     // Method 1: Win32 API — VerProductType via registry (most reliable, no process spawn)
     if let Some(result) = is_windows_server_via_registry() {
@@ -3417,7 +3417,7 @@ fn is_windows_server() -> bool {
 }
 
 /// Check via registry key (fastest, no subprocess).
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_windows_server_via_registry() -> Option<bool> {
     use std::process::Command;
     // NT CurrentVersion\InstallationType: "Server" | "Server Core" | "Client"
@@ -3441,9 +3441,8 @@ fn is_windows_server_via_registry() -> Option<bool> {
 }
 
 /// Check via PowerShell (reliable on modern systems).
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_windows_server_via_powershell() -> Option<bool> {
-    use std::process::Command;
     let output = agent_common::process::silent_command("powershell")
         .args([
             "-NoProfile",
@@ -3463,7 +3462,7 @@ fn is_windows_server_via_powershell() -> Option<bool> {
 }
 
 /// Legacy fallback via wmic (deprecated but still present on older systems).
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_windows_server_via_wmic() -> Option<bool> {
     use std::process::Command;
     let output = Command::new("wmic")
@@ -3490,7 +3489,7 @@ fn is_windows_server_via_wmic() -> Option<bool> {
 /// unavailable.  egui_glow requires OpenGL 2.0+ and will call
 /// `process::exit()` if it fails — which bypasses `catch_unwind`.
 /// This check prevents launching the GUI in those environments.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn has_usable_display() -> bool {
     use windows::Win32::UI::WindowsAndMessaging::GetSystemMetrics;
     use windows::Win32::UI::WindowsAndMessaging::SM_CXSCREEN;
@@ -3516,7 +3515,7 @@ fn has_usable_display() -> bool {
 }
 
 /// Check whether the primary display device has a real GPU driver.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn check_display_driver() -> bool {
     use windows::Win32::Graphics::Gdi::{EnumDisplayDevicesW, DISPLAY_DEVICEW};
 
@@ -3552,12 +3551,12 @@ fn check_display_driver() -> bool {
 const RUNTIME_MUTEX_NAME: &str = "Global\\SentinelAgentRuntime";
 
 /// Name of the local mutex that prevents multiple GUI instances per session.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 const GUI_MUTEX_NAME: &str = "Local\\SentinelAgentGUI";
 
 /// Check whether the runtime mutex is already held by another process
 /// (typically the Windows service). Returns `true` if another process owns it.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_runtime_mutex_held() -> bool {
     use windows::core::HSTRING;
     use windows::Win32::Foundation::{CloseHandle, HANDLE, ERROR_ALREADY_EXISTS};
@@ -3608,7 +3607,7 @@ fn try_acquire_runtime_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
 
 /// Try to acquire the GUI single-instance mutex. Returns `None` if another
 /// GUI is already running in this user session.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn try_acquire_gui_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
     use windows::core::HSTRING;
     use windows::Win32::Foundation::ERROR_ALREADY_EXISTS;

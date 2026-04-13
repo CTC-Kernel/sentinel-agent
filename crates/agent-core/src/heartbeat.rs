@@ -53,7 +53,7 @@ impl AgentRuntime {
             .map(|h| h.to_string_lossy().to_string())
             .unwrap_or_else(|_| "unknown".to_string());
 
-        let pending_sync_count = self.get_pending_sync_count().await as u32;
+        let pending_sync_count = self.get_pending_sync_count().await.max(0).min(u32::MAX as i64) as u32;
 
         let sys_res = crate::resources::get_system_resources();
         let processes = self.resource_monitor.get_processes();
@@ -64,7 +64,7 @@ impl AgentRuntime {
             let networks = match self.resource_monitor.get_networks().lock() {
                 Ok(guard) => guard,
                 Err(poisoned) => {
-                    warn!("Network monitor mutex was poisoned, recovering");
+                    error!("Network monitor mutex was poisoned (possible data corruption), recovering");
                     poisoned.into_inner()
                 }
             };
@@ -128,15 +128,21 @@ impl AgentRuntime {
                         name: p.name.clone(),
                         description: p.description.clone(),
                         enabled: p.enabled,
-                        conditions: serde_json::from_str(&p.conditions).unwrap_or_default(),
-                        actions: serde_json::from_str(&p.steps).unwrap_or_default(),
+                        conditions: serde_json::from_str(&p.conditions).unwrap_or_else(|e| {
+                            warn!("Failed to parse playbook conditions for {}: {}", p.id, e);
+                            Vec::new()
+                        }),
+                        actions: serde_json::from_str(&p.steps).unwrap_or_else(|e| {
+                            warn!("Failed to parse playbook steps for {}: {}", p.id, e);
+                            Vec::new()
+                        }),
                         created_at: Some(p.created_at.clone()),
                         last_triggered: None,
                         trigger_count: 0,
                     }
                 }).collect(),
                 Err(e) => {
-                    warn!("Failed to load playbooks for heartbeat: {}", e);
+                    error!("Failed to load playbooks from database for heartbeat: {}", e);
                     Vec::new()
                 }
             };
@@ -148,15 +154,21 @@ impl AgentRuntime {
                         description: r.description.clone(),
                         severity: r.severity.clone(),
                         enabled: r.enabled,
-                        conditions: serde_json::from_str(&r.conditions).unwrap_or_default(),
-                        actions: serde_json::from_str(&r.actions).unwrap_or_default(),
+                        conditions: serde_json::from_str(&r.conditions).unwrap_or_else(|e| {
+                            warn!("Failed to parse detection rule conditions for {}: {}", r.id, e);
+                            Vec::new()
+                        }),
+                        actions: serde_json::from_str(&r.actions).unwrap_or_else(|e| {
+                            warn!("Failed to parse detection rule actions for {}: {}", r.id, e);
+                            Vec::new()
+                        }),
                         created_at: Some(r.created_at.clone()),
                         last_match: r.last_match.clone(),
-                        match_count: r.match_count as u32,
+                        match_count: r.match_count.max(0).min(u32::MAX as i32) as u32,
                     }
                 }).collect(),
                 Err(e) => {
-                    warn!("Failed to load detection rules for heartbeat: {}", e);
+                    error!("Failed to load detection rules from database for heartbeat: {}", e);
                     Vec::new()
                 }
             };

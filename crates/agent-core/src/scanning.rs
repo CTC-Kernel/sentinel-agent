@@ -5,7 +5,7 @@
 
 use agent_common::error::CommonError;
 use agent_scanner::{ScanType, SecurityScanResult, VulnerabilityScanResult};
-use tracing::{debug, info, warn};
+use tracing::{debug, error, info, warn};
 
 use super::AgentRuntime;
 
@@ -32,7 +32,7 @@ impl AgentRuntime {
         if !result.vulnerabilities.is_empty()
             && let Err(e) = self.upload_vulnerabilities(&result).await
         {
-            warn!("Failed to upload vulnerability findings: {}", e);
+            error!("Failed to upload vulnerability findings: {}", e);
         }
 
         Ok(result)
@@ -160,7 +160,7 @@ impl AgentRuntime {
 
             for incident in &result.incidents {
                 if let Err(e) = self.upload_incident(incident).await {
-                    warn!("Failed to upload incident: {}", e);
+                    error!("Failed to upload security incident: {}", e);
                 }
             }
         } else {

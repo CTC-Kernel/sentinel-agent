@@ -202,7 +202,7 @@ impl ResourceMonitor {
         let usage = ResourceUsage {
             cpu_percent,
             memory_bytes,
-            disk_kbps: disk_kbps.try_into().unwrap_or(u32::MAX),
+            disk_kbps: disk_kbps.try_into().unwrap_or(0),
             network_io_bytes,
             uptime_ms,
         };

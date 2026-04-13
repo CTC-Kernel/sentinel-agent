@@ -596,12 +596,12 @@ impl SyncOrchestrator {
                         name: r.name.clone(),
                         description: r.description.clone(),
                         severity: r.severity.clone(),
-                        conditions: serde_json::to_string(&r.conditions).unwrap_or_default(),
-                        actions: serde_json::to_string(&r.actions).unwrap_or_default(),
+                        conditions: serde_json::to_string(&r.conditions).unwrap_or_else(|_| "[]".to_string()),
+                        actions: serde_json::to_string(&r.actions).unwrap_or_else(|_| "[]".to_string()),
                         enabled: r.enabled,
                         created_at: r.created_at.to_rfc3339(),
                         last_match: r.last_match.map(|dt| dt.to_rfc3339()),
-                        match_count: r.match_count as i32,
+                        match_count: r.match_count.min(i32::MAX as u32) as i32,
                         synced: true,
                     };
                     if let Err(e) = repo.upsert(&stored).await {
