@@ -727,7 +727,12 @@ fn show_about_dialog() {
 
     // Open website with version info (URL-encode spaces in os_info)
     let os_encoded = os_info.replace(' ', "%20");
-    let about_url = format!("{}?version={}&os={}", branding::WEBSITE, version, os_encoded);
+    let about_url = format!(
+        "{}?version={}&os={}",
+        branding::WEBSITE,
+        version,
+        os_encoded
+    );
     if let Err(e) = open::that(&about_url) {
         // Fallback to plain website
         debug!("About URL with params failed ({}), trying plain website", e);

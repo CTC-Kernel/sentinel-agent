@@ -47,6 +47,9 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 open = "5"
 tao = { version = "0.30", default-features = false, features = ["rwh_06"] }
 hostname = "0.4"
+rustls = { version = "0.23", features = ["ring"] }
+tokio-rustls = "0.26"
+rustls-platform-verifier = "0.6"
 rand = "0.9"
 eframe = { version = "0.31", features = ["wgpu"] }
 egui = "0.31"

@@ -114,7 +114,7 @@ impl ExfilDetector {
                     v4.is_loopback()            // 127.0.0.0/8
                         || v4.is_private()       // 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
                         || v4.is_link_local()    // 169.254.0.0/16
-                        || v4.is_unspecified()   // 0.0.0.0
+                        || v4.is_unspecified() // 0.0.0.0
                 }
                 std::net::IpAddr::V6(v6) => {
                     v6.is_loopback()             // ::1
@@ -146,7 +146,9 @@ impl ExfilDetector {
         ip.starts_with("10.")
             || ip.starts_with("192.168.")
             || ip.starts_with("172.") && {
-                ip.split('.').nth(1).and_then(|s| s.parse::<u8>().ok())
+                ip.split('.')
+                    .nth(1)
+                    .and_then(|s| s.parse::<u8>().ok())
                     .is_some_and(|second| (16..=31).contains(&second))
             }
             || ip == "127.0.0.1"

@@ -28,7 +28,9 @@ impl AssetsPage {
             ui,
             &["Shadow IT", "Inventaire"],
             "Inventaire des \u{00c9}quipements",
-            Some("GESTION DU CYCLE DE VIE ET CONTR\u{00d4}LE DES \u{00c9}QUIPEMENTS AUTORIS\u{00c9}S"),
+            Some(
+                "GESTION DU CYCLE DE VIE ET CONTR\u{00d4}LE DES \u{00c9}QUIPEMENTS AUTORIS\u{00c9}S",
+            ),
             Some(
                 "G\u{00e9}rez les \u{00e9}quipements autoris\u{00e9}s sur votre r\u{00e9}seau. Suivez leur cycle de vie de la d\u{00e9}tection \u{00e0} la mise hors service, contr\u{00f4}lez leur conformit\u{00e9}.",
             ),
@@ -659,10 +661,7 @@ impl AssetsPage {
 
     /// Public helper so other pages (e.g. discovery detail drawer) can compute
     /// criticality without needing a full `GuiDiscoveredDevice` reference.
-    pub fn infer_criticality_from_device(
-        is_gateway: bool,
-        open_ports: &[u16],
-    ) -> AssetCriticality {
+    pub fn infer_criticality_from_device(is_gateway: bool, open_ports: &[u16]) -> AssetCriticality {
         if is_gateway {
             return AssetCriticality::Critical;
         }
@@ -820,8 +819,10 @@ impl AssetsPage {
                             .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_SM);
-                    let crit_labels: Vec<&str> =
-                        AssetCriticality::all().iter().map(|c| c.label_fr()).collect();
+                    let crit_labels: Vec<&str> = AssetCriticality::all()
+                        .iter()
+                        .map(|c| c.label_fr())
+                        .collect();
                     widgets::dropdown(ui, "asset_crit", &crit_labels, &mut f.criticality_idx);
                 });
                 ui.add_space(theme::SPACE_MD);

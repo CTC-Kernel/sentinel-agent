@@ -20,6 +20,9 @@ hostname.workspace = true
 url.workspace = true
 reqwest.workspace = true
 regex.workspace = true
+rustls.workspace = true
+tokio-rustls.workspace = true
+rustls-platform-verifier.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

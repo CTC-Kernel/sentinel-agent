@@ -119,19 +119,20 @@ impl Ipv6ConfigCheck {
         // Parse the registry value (hex)
         for line in raw_output.lines() {
             if line.contains("DisabledComponents")
-                && let Some(hex_val) = line.split_whitespace().last() {
-                    let hex_str = hex_val.trim_start_matches("0x");
-                    if let Ok(value) = u32::from_str_radix(hex_str, 16) {
-                        status.disabled_components = Some(value);
-                        // 0xFF = fully disabled
-                        status.ipv6_fully_disabled = Some(value == 0xFF);
-                        // Bit 0 disables all IPv6 tunnel interfaces
-                        // Bit 4 disables IPv6 over all non-tunnel interfaces
-                        // 0x20 disables router advertisements
-                        status.ra_disabled = (value & 0x20) != 0 || value == 0xFF;
-                        status.hardened = value == 0xFF || (value & 0x20) != 0;
-                    }
+                && let Some(hex_val) = line.split_whitespace().last()
+            {
+                let hex_str = hex_val.trim_start_matches("0x");
+                if let Ok(value) = u32::from_str_radix(hex_str, 16) {
+                    status.disabled_components = Some(value);
+                    // 0xFF = fully disabled
+                    status.ipv6_fully_disabled = Some(value == 0xFF);
+                    // Bit 0 disables all IPv6 tunnel interfaces
+                    // Bit 4 disables IPv6 over all non-tunnel interfaces
+                    // 0x20 disables router advertisements
+                    status.ra_disabled = (value & 0x20) != 0 || value == 0xFF;
+                    status.hardened = value == 0xFF || (value & 0x20) != 0;
                 }
+            }
         }
 
         if !status.hardened {

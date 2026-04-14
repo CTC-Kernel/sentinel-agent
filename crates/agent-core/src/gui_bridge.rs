@@ -388,7 +388,11 @@ impl AgentRuntime {
             events_dropped: 0,
             events_buffered: 0,
             connected,
-            last_sent_at: if connected { Some(chrono::Utc::now()) } else { None },
+            last_sent_at: if connected {
+                Some(chrono::Utc::now())
+            } else {
+                None
+            },
             uptime_secs: 0,
             events_per_minute,
             category_counts,

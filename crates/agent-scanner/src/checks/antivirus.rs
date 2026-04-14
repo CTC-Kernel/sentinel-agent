@@ -135,8 +135,10 @@ impl AntivirusCheck {
     fn parse_defender_output(&self, output: &str) -> ScannerResult<AntivirusStatus> {
         let json: serde_json::Value = serde_json::from_str(output).unwrap_or(serde_json::json!({}));
 
-        let enabled = agent_common::process::ps_json_as_bool(&json["AntivirusEnabled"]).unwrap_or(false);
-        let rtp = agent_common::process::ps_json_as_bool(&json["RealTimeProtectionEnabled"]).unwrap_or(false);
+        let enabled =
+            agent_common::process::ps_json_as_bool(&json["AntivirusEnabled"]).unwrap_or(false);
+        let rtp = agent_common::process::ps_json_as_bool(&json["RealTimeProtectionEnabled"])
+            .unwrap_or(false);
         let sig_version = json["AntivirusSignatureVersion"]
             .as_str()
             .map(|s| s.to_string());

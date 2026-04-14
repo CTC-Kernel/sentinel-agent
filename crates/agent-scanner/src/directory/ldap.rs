@@ -196,15 +196,17 @@ impl LdapAuditor {
             .await;
 
         if let Ok(output) = output
-            && output.status.success() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                if let Ok(info) = serde_json::from_str::<serde_json::Value>(&stdout)
-                    && let Some(domain) = info.get("DomainName").and_then(|v| v.as_str()) {
-                        config
-                            .naming_contexts
-                            .push(format!("DC={}", domain.replace('.', ",DC=")));
-                    }
+            && output.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if let Ok(info) = serde_json::from_str::<serde_json::Value>(&stdout)
+                && let Some(domain) = info.get("DomainName").and_then(|v| v.as_str())
+            {
+                config
+                    .naming_contexts
+                    .push(format!("DC={}", domain.replace('.', ",DC=")));
             }
+        }
 
         // Check LDAPS connectivity
         self.probe_with_openssl(uri, config).await?;

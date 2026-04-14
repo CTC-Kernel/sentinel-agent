@@ -584,7 +584,11 @@ impl std::fmt::Display for LLMServiceStatus {
         match self {
             Self::NotAvailable => write!(f, "not_available"),
             Self::NotConfigured => write!(f, "not_configured"),
-            Self::Downloading { model_name, progress_percent, .. } => {
+            Self::Downloading {
+                model_name,
+                progress_percent,
+                ..
+            } => {
                 write!(f, "downloading ({} {}%)", model_name, progress_percent)
             }
             Self::Ready { model_name, .. } => write!(f, "ready ({})", model_name),

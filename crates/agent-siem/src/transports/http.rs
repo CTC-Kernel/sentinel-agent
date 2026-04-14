@@ -98,7 +98,10 @@ impl HttpTransport {
         for attempt in 0..=MAX_RETRIES {
             if attempt > 0 {
                 let delay = BASE_RETRY_DELAY_MS * 2u64.pow(attempt - 1);
-                debug!("Retry attempt {}/{} after {}ms", attempt, MAX_RETRIES, delay);
+                debug!(
+                    "Retry attempt {}/{} after {}ms",
+                    attempt, MAX_RETRIES, delay
+                );
                 tokio::time::sleep(Duration::from_millis(delay)).await;
             }
 

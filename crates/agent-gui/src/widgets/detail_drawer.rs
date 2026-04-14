@@ -522,13 +522,19 @@ pub fn detail_progress(ui: &mut Ui, label: &str, fraction: f32, color: Color32) 
     let width = ui.available_width();
     let (rect, _) = ui.allocate_exact_size(egui::vec2(width, bar_height), egui::Sense::hover());
     if ui.is_rect_visible(rect) {
-        ui.painter()
-            .rect_filled(rect, CornerRadius::same(theme::PROGRESS_BAR_ROUNDING), theme::bg_tertiary());
+        ui.painter().rect_filled(
+            rect,
+            CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
+            theme::bg_tertiary(),
+        );
         let fill_w = rect.width() * fraction.clamp(0.0, 1.0);
         if fill_w > 0.0 {
             let fill_rect = egui::Rect::from_min_size(rect.min, egui::vec2(fill_w, bar_height));
-            ui.painter()
-                .rect_filled(fill_rect, CornerRadius::same(theme::PROGRESS_BAR_ROUNDING), color);
+            ui.painter().rect_filled(
+                fill_rect,
+                CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
+                color,
+            );
         }
     }
     ui.add_space(theme::SPACE_SM);

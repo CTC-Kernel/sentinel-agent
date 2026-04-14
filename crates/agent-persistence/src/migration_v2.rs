@@ -233,7 +233,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 8);
+        assert_eq!(version, 9);
 
         // Verify tables exist
         let tables: Vec<String> = conn
@@ -263,7 +263,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 8);
+        assert_eq!(version, 9);
     }
 
     #[test]
@@ -273,7 +273,8 @@ mod tests {
         run_v2_migrations(&mut conn).unwrap();
         rollback_v2_migration(&mut conn).unwrap();
 
-        // Check max version (should still be 3 since we don't delete the v2 entry)
+        // After rollback the v2 entry (version=2) is removed, but storage
+        // migrations v1..v9 remain, so MAX stays at 9.
         let max_version: i32 = conn
             .query_row(
                 "SELECT COALESCE(MAX(version), 0) FROM schema_version",
@@ -281,7 +282,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(max_version, 8);
+        assert_eq!(max_version, 9);
 
         // Verify v2 tables are gone
         let tables: Vec<String> = conn

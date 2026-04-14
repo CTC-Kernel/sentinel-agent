@@ -5,7 +5,7 @@
 //!
 //! This module provides LLM integration for the scanner.
 //! When the `llm` feature is enabled, it uses `agent_llm` crate.
-//! When disabled or `llm_simple`, it acts as a stub.
+//! When disabled, it acts as a stub.
 
 use agent_common::types::{CheckResult, CheckStatus};
 use anyhow::Result;

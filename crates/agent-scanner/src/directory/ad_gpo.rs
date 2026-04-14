@@ -236,58 +236,57 @@ impl GpoAuditor {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
             if let Ok(policy) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                let mut settings = GpoSecuritySettings::default();
-
-                settings.password_policy = PasswordPolicy {
-                    min_length: policy
-                        .get("MinPasswordLength")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
-                    max_age_days: policy
-                        .get("MaxPasswordAge")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(42),
-                    min_age_days: policy
-                        .get("MinPasswordAge")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
-                    history_count: policy
-                        .get("PasswordHistoryCount")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
-                    complexity_enabled: policy
-                        .get("ComplexityEnabled")
-                        .and_then(|v| v.as_bool())
-                        .unwrap_or(false),
-                    reversible_encryption: policy
-                        .get("ReversibleEncryptionEnabled")
-                        .and_then(|v| v.as_bool())
-                        .unwrap_or(false),
+                let settings = GpoSecuritySettings {
+                    password_policy: PasswordPolicy {
+                        min_length: policy
+                            .get("MinPasswordLength")
+                            .and_then(|v| v.as_i64())
+                            .and_then(|v| u32::try_from(v).ok())
+                            .unwrap_or(0),
+                        max_age_days: policy
+                            .get("MaxPasswordAge")
+                            .and_then(|v| v.as_i64())
+                            .and_then(|v| u32::try_from(v).ok())
+                            .unwrap_or(42),
+                        min_age_days: policy
+                            .get("MinPasswordAge")
+                            .and_then(|v| v.as_i64())
+                            .and_then(|v| u32::try_from(v).ok())
+                            .unwrap_or(0),
+                        history_count: policy
+                            .get("PasswordHistoryCount")
+                            .and_then(|v| v.as_i64())
+                            .and_then(|v| u32::try_from(v).ok())
+                            .unwrap_or(0),
+                        complexity_enabled: policy
+                            .get("ComplexityEnabled")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false),
+                        reversible_encryption: policy
+                            .get("ReversibleEncryptionEnabled")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false),
+                    },
+                    lockout_policy: AccountLockoutPolicy {
+                        threshold: policy
+                            .get("LockoutThreshold")
+                            .and_then(|v| v.as_i64())
+                            .and_then(|v| u32::try_from(v).ok())
+                            .unwrap_or(0),
+                        duration_minutes: policy
+                            .get("LockoutDuration")
+                            .and_then(|v| v.as_f64())
+                            .map(|v| v.clamp(0.0, u32::MAX as f64) as u32)
+                            .unwrap_or(0),
+                        observation_window_minutes: policy
+                            .get("LockoutObservationWindow")
+                            .and_then(|v| v.as_f64())
+                            .map(|v| v.clamp(0.0, u32::MAX as f64) as u32)
+                            .unwrap_or(0),
+                    },
+                    audit_policy: self.get_audit_policy().await?,
+                    ..Default::default()
                 };
-
-                settings.lockout_policy = AccountLockoutPolicy {
-                    threshold: policy
-                        .get("LockoutThreshold")
-                        .and_then(|v| v.as_i64())
-                        .and_then(|v| u32::try_from(v).ok())
-                        .unwrap_or(0),
-                    duration_minutes: policy
-                        .get("LockoutDuration")
-                        .and_then(|v| v.as_f64())
-                        .map(|v| v.clamp(0.0, u32::MAX as f64) as u32)
-                        .unwrap_or(0),
-                    observation_window_minutes: policy
-                        .get("LockoutObservationWindow")
-                        .and_then(|v| v.as_f64())
-                        .map(|v| v.clamp(0.0, u32::MAX as f64) as u32)
-                        .unwrap_or(0),
-                };
-
-                settings.audit_policy = self.get_audit_policy().await?;
                 return Ok(settings);
             }
         }
@@ -369,12 +368,36 @@ impl GpoAuditor {
         // List of privileged groups to check
         let privileged_groups: &[(&str, &str, &str)] = &[
             ("Administrators", "S-1-5-32-544", "Full system access"),
-            ("Domain Admins", "S-1-5-21-*-512", "Domain-wide admin access"),
-            ("Enterprise Admins", "S-1-5-21-*-519", "Forest-wide admin access"),
-            ("Schema Admins", "S-1-5-21-*-518", "AD schema modification rights"),
-            ("Account Operators", "S-1-5-32-548", "Account creation/modification"),
-            ("Backup Operators", "S-1-5-32-551", "Backup/restore any file"),
-            ("Server Operators", "S-1-5-32-549", "Server management rights"),
+            (
+                "Domain Admins",
+                "S-1-5-21-*-512",
+                "Domain-wide admin access",
+            ),
+            (
+                "Enterprise Admins",
+                "S-1-5-21-*-519",
+                "Forest-wide admin access",
+            ),
+            (
+                "Schema Admins",
+                "S-1-5-21-*-518",
+                "AD schema modification rights",
+            ),
+            (
+                "Account Operators",
+                "S-1-5-32-548",
+                "Account creation/modification",
+            ),
+            (
+                "Backup Operators",
+                "S-1-5-32-551",
+                "Backup/restore any file",
+            ),
+            (
+                "Server Operators",
+                "S-1-5-32-549",
+                "Server management rights",
+            ),
         ];
 
         // Query all groups in a single PowerShell invocation to avoid

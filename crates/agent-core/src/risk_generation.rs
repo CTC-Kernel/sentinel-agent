@@ -65,16 +65,12 @@ impl AgentRuntime {
             }
 
             let risk_id = uuid::Uuid::new_v4();
-            let description = exec
-                .result
-                .message
-                .clone()
-                .unwrap_or_else(|| {
-                    format!(
-                        "Le contrôle {} a échoué lors du scan de conformité",
-                        def.name
-                    )
-                });
+            let description = exec.result.message.clone().unwrap_or_else(|| {
+                format!(
+                    "Le contrôle {} a échoué lors du scan de conformité",
+                    def.name
+                )
+            });
 
             let stored = agent_storage::repositories::grc::StoredRisk {
                 id: risk_id.to_string(),
@@ -171,14 +167,12 @@ impl AgentRuntime {
                         .iter()
                         .filter_map(|s| {
                             let id = uuid::Uuid::parse_str(&s.id).ok()?;
-                            let created_at =
-                                chrono::DateTime::parse_from_rfc3339(&s.created_at)
-                                    .map(|dt| dt.with_timezone(&chrono::Utc))
-                                    .unwrap_or_else(|_| chrono::Utc::now());
-                            let updated_at =
-                                chrono::DateTime::parse_from_rfc3339(&s.updated_at)
-                                    .map(|dt| dt.with_timezone(&chrono::Utc))
-                                    .unwrap_or_else(|_| chrono::Utc::now());
+                            let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                                .map(|dt| dt.with_timezone(&chrono::Utc))
+                                .unwrap_or_else(|_| chrono::Utc::now());
+                            let updated_at = chrono::DateTime::parse_from_rfc3339(&s.updated_at)
+                                .map(|dt| dt.with_timezone(&chrono::Utc))
+                                .unwrap_or_else(|_| chrono::Utc::now());
                             let status = match s.status.as_str() {
                                 "mitigating" => agent_gui::dto::RiskStatus::Mitigating,
                                 "accepted" => agent_gui::dto::RiskStatus::Accepted,

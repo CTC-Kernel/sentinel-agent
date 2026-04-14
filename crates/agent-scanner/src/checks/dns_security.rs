@@ -188,9 +188,10 @@ impl DnsSecurityCheck {
         for line in dns_result.lines() {
             if (line.contains("DNS Servers") || line.contains("Statically Configured"))
                 && let Some(server) = line.split_whitespace().last()
-                    && (server.contains('.') || server.contains(':')) {
-                        status.dns_servers.push(server.to_string());
-                    }
+                && (server.contains('.') || server.contains(':'))
+            {
+                status.dns_servers.push(server.to_string());
+            }
         }
 
         // Check if using secure providers

@@ -464,10 +464,7 @@ impl MDMSoftwareScanner {
 
         let mut properties = HashMap::new();
         if !source.is_empty() {
-            properties.insert(
-                "source".to_string(),
-                serde_json::Value::String(source),
-            );
+            properties.insert("source".to_string(), serde_json::Value::String(source));
         }
 
         MDMSoftwareInventory {
@@ -502,9 +499,7 @@ impl MDMSoftwareScanner {
     /// Detect the installation method from the package source.
     fn detect_installation_method(source: &str) -> InstallationMethod {
         match source {
-            "brew" | "brew-cask" | "apt" | "dpkg" | "winget" => {
-                InstallationMethod::PackageManager
-            }
+            "brew" | "brew-cask" | "apt" | "dpkg" | "winget" => InstallationMethod::PackageManager,
             "macos-app-bundle" => InstallationMethod::Other("app-bundle".to_string()),
             "windows-registry" => InstallationMethod::EXE,
             "msstore" => InstallationMethod::AppStore,
@@ -641,9 +636,10 @@ impl MDMSoftwareScanner {
             // ── Windows enrichment ──
             #[cfg(target_os = "windows")]
             if matches!(source.as_str(), "windows-registry" | "winget")
-                && let Some(update) = winget_updates.get(&software.name) {
-                    software.available_updates = vec![update.clone()];
-                }
+                && let Some(update) = winget_updates.get(&software.name)
+            {
+                software.available_updates = vec![update.clone()];
+            }
 
             // Calculate hashes per-item (I/O-bound, offloaded to blocking thread)
             software.metadata.hashes = self.calculate_hashes(software).await;
@@ -1190,7 +1186,11 @@ impl MDMSoftwareScanner {
         let mut updates = HashMap::new();
 
         let output = match agent_common::process::silent_command("winget")
-            .args(["upgrade", "--accept-source-agreements", "--disable-interactivity"])
+            .args([
+                "upgrade",
+                "--accept-source-agreements",
+                "--disable-interactivity",
+            ])
             .output()
         {
             Ok(o) if o.status.success() => o,
@@ -1305,10 +1305,7 @@ mod tests {
             mdm_software.metadata.properties.get("source"),
             Some(&serde_json::Value::String("brew-cask".to_string()))
         );
-        assert_eq!(
-            mdm_software.management_source,
-            ManagementSource::Automated
-        );
+        assert_eq!(mdm_software.management_source, ManagementSource::Automated);
     }
 
     #[test]

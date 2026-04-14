@@ -169,7 +169,8 @@ impl FirewallCheck {
         let mut any_active = false;
 
         for item in &json_data {
-            let is_active = agent_common::process::ps_json_as_bool(&item["IsActive"]).unwrap_or(false);
+            let is_active =
+                agent_common::process::ps_json_as_bool(&item["IsActive"]).unwrap_or(false);
             let enabled = agent_common::process::ps_json_as_bool(&item["Enabled"]).unwrap_or(false);
             if is_active {
                 any_active = true;
@@ -210,7 +211,8 @@ impl FirewallCheck {
             .iter()
             .map(|p| {
                 let name = p["Name"].as_str().unwrap_or("Unknown").to_string();
-                let enabled = agent_common::process::ps_json_as_bool(&p["Enabled"]).unwrap_or(false);
+                let enabled =
+                    agent_common::process::ps_json_as_bool(&p["Enabled"]).unwrap_or(false);
                 let inbound = p["DefaultInboundAction"]
                     .as_u64()
                     .map(|a| match a {

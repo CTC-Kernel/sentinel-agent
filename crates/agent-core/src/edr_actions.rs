@@ -92,9 +92,9 @@ pub async fn quarantine_file(path: &str) -> Result<String, CommonError> {
     }
 
     // SECURITY: Canonicalize path to resolve symlinks and prevent path traversal
-    let source = source.canonicalize().map_err(|e| {
-        CommonError::internal(format!("Failed to resolve path '{}': {}", path, e))
-    })?;
+    let source = source
+        .canonicalize()
+        .map_err(|e| CommonError::internal(format!("Failed to resolve path '{}': {}", path, e)))?;
 
     // Create quarantine directory under the local data directory
     let quarantine_dir = directories::BaseDirs::new()
@@ -179,7 +179,12 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
     let canonical_parent = restore_path.parent().and_then(|p| p.canonicalize().ok());
     if let Some(ref parent) = canonical_parent {
         let parent_str = parent.to_string_lossy();
-        if parent_str == "/" || parent_str == "/bin" || parent_str == "/sbin" || parent_str == "/usr/bin" || parent_str == "/usr/sbin" {
+        if parent_str == "/"
+            || parent_str == "/bin"
+            || parent_str == "/sbin"
+            || parent_str == "/usr/bin"
+            || parent_str == "/usr/sbin"
+        {
             return Err(CommonError::internal(format!(
                 "Refusing to restore file to system-critical directory: {}",
                 original_path
@@ -238,15 +243,16 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
         // Parse the server URL host and compare at IP level
         if let Ok(url) = url::Url::parse(&config.server_url)
             && let Some(host) = url.host_str()
-                && (host == ip || host == parsed_ip.to_string()) {
-                    warn!(
-                        "Anti-Draper triggered: Attempted to block backend API server ({})",
-                        ip
-                    );
-                    return Err(CommonError::internal(
-                        "Anti-Draper protection: Cannot block the backend API server",
-                    ));
-                }
+            && (host == ip || host == parsed_ip.to_string())
+        {
+            warn!(
+                "Anti-Draper triggered: Attempted to block backend API server ({})",
+                ip
+            );
+            return Err(CommonError::internal(
+                "Anti-Draper protection: Cannot block the backend API server",
+            ));
+        }
     }
 
     #[cfg(target_os = "macos")]
@@ -392,7 +398,10 @@ mod tests {
         // A path with ".." that points to a non-existent file should fail
         // because canonicalize requires the path to actually exist.
         let result = quarantine_file("/tmp/../../../nonexistent_sentinel_test_file").await;
-        assert!(result.is_err(), "Path traversal with non-existent file must be rejected");
+        assert!(
+            result.is_err(),
+            "Path traversal with non-existent file must be rejected"
+        );
 
         // A path with ".." that technically resolves to an existing dir
         // (e.g., /tmp/../tmp) would be canonicalized to /tmp, but since
@@ -412,9 +421,15 @@ mod tests {
         // find the real file.  The function should succeed (the file exists).
         let result = quarantine_file(traversal_path.to_str().unwrap()).await;
         // It succeeds because canonicalize resolves the ".." to the real path.
-        assert!(result.is_ok(), "Canonicalized traversal path should succeed for existing file");
+        assert!(
+            result.is_ok(),
+            "Canonicalized traversal path should succeed for existing file"
+        );
         // The original file should have been moved away.
-        assert!(!real_file.exists(), "Original file should be quarantined (moved)");
+        assert!(
+            !real_file.exists(),
+            "Original file should be quarantined (moved)"
+        );
     }
 
     // ── quarantine: symlink handling ────────────────────────────────────
@@ -437,9 +452,15 @@ mod tests {
         // quarantine_file canonicalizes the path, so the symlink is
         // resolved to the real file.  The *real* file ends up in quarantine.
         let result = quarantine_file(symlink_path.to_str().unwrap()).await;
-        assert!(result.is_ok(), "Quarantine via symlink should succeed after canonicalization");
+        assert!(
+            result.is_ok(),
+            "Quarantine via symlink should succeed after canonicalization"
+        );
         // The real file should have been moved to quarantine.
-        assert!(!real_file.exists(), "Real file behind symlink should be moved to quarantine");
+        assert!(
+            !real_file.exists(),
+            "Real file behind symlink should be moved to quarantine"
+        );
     }
 
     // ── restore: system-critical paths ──────────────────────────────────
@@ -483,9 +504,12 @@ mod tests {
             "quarantined_at": chrono::Utc::now().to_rfc3339(),
             "file_name": "evil",
         });
-        tokio::fs::write(&meta_path, serde_json::to_string_pretty(&patched_metadata).unwrap())
-            .await
-            .unwrap();
+        tokio::fs::write(
+            &meta_path,
+            serde_json::to_string_pretty(&patched_metadata).unwrap(),
+        )
+        .await
+        .unwrap();
 
         // Step 3: Try to restore -- should be rejected because /bin is system-critical.
         let result = restore_quarantined_file(&quarantine_id).await;
@@ -587,15 +611,24 @@ mod tests {
 
         // Shell metacharacters in quarantine ID
         let result = restore_quarantined_file("test;rm -rf /").await;
-        assert!(result.is_err(), "Quarantine ID with shell metacharacters must be rejected");
+        assert!(
+            result.is_err(),
+            "Quarantine ID with shell metacharacters must be rejected"
+        );
 
         // Null bytes
         let result = restore_quarantined_file("test\0file").await;
-        assert!(result.is_err(), "Quarantine ID with null bytes must be rejected");
+        assert!(
+            result.is_err(),
+            "Quarantine ID with null bytes must be rejected"
+        );
 
         // Slash characters
         let result = restore_quarantined_file("test/file").await;
-        assert!(result.is_err(), "Quarantine ID with slashes must be rejected");
+        assert!(
+            result.is_err(),
+            "Quarantine ID with slashes must be rejected"
+        );
 
         // Valid UUID format should pass the ID validation (but fail later
         // because the quarantined file doesn't actually exist).

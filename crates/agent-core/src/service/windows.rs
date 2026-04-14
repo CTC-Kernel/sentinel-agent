@@ -92,8 +92,8 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     // Acquire the global runtime mutex so the GUI knows not to start
     // its own runtime.  The handle must stay alive for the service lifetime.
     let _runtime_mutex = {
-        use windows::core::HSTRING;
         use windows::Win32::System::Threading::CreateMutexW;
+        use windows::core::HSTRING;
         let name = HSTRING::from("Global\\SentinelAgentRuntime");
         unsafe {
             match CreateMutexW(None, true, &name) {
@@ -102,7 +102,10 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
                     Some(h)
                 }
                 Err(e) => {
-                    warn!("Failed to create runtime mutex: {} — GUI may start a duplicate runtime", e);
+                    warn!(
+                        "Failed to create runtime mutex: {} — GUI may start a duplicate runtime",
+                        e
+                    );
                     None
                 }
             }
@@ -153,12 +156,13 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 
             let bak_path = default_config.path.with_extension("bak");
             if default_config.path.exists()
-                && let Err(e) = std::fs::rename(&default_config.path, &bak_path) {
-                    warn!(
-                        "Failed to back up current database before restore (may already be in use): {}",
-                        e
-                    );
-                }
+                && let Err(e) = std::fs::rename(&default_config.path, &bak_path)
+            {
+                warn!(
+                    "Failed to back up current database before restore (may already be in use): {}",
+                    e
+                );
+            }
 
             match std::fs::rename(&restore_path, &default_config.path) {
                 Ok(_) => info!("Database restore applied successfully"),
@@ -197,7 +201,10 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
             let is_enrolled = match enrollment_manager.is_enrolled().await {
                 Ok(enrolled) => enrolled,
                 Err(e) => {
-                    warn!("Failed to check enrollment status (database may be corrupted): {}", e);
+                    warn!(
+                        "Failed to check enrollment status (database may be corrupted): {}",
+                        e
+                    );
                     false
                 }
             };
@@ -338,7 +345,8 @@ pub fn run_as_service() -> ServiceResult<()> {
 pub fn install_service(executable_path: &str) -> ServiceResult<()> {
     if !is_elevated() {
         return Err(ServiceError::PermissionDenied(
-            "Administrator privileges required to install service. Run as Administrator.".to_string(),
+            "Administrator privileges required to install service. Run as Administrator."
+                .to_string(),
         ));
     }
 
@@ -402,7 +410,8 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
 pub fn uninstall_service() -> ServiceResult<()> {
     if !is_elevated() {
         return Err(ServiceError::PermissionDenied(
-            "Administrator privileges required to uninstall service. Run as Administrator.".to_string(),
+            "Administrator privileges required to uninstall service. Run as Administrator."
+                .to_string(),
         ));
     }
 

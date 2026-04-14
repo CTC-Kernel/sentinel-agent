@@ -157,12 +157,7 @@ impl AboutPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            Self::link_row(
-                ui,
-                "Site officiel",
-                branding::WEBSITE,
-                icons::ARROW_RIGHT,
-            );
+            Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
             Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
             Self::link_row(
                 ui,

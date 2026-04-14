@@ -210,10 +210,7 @@ impl std::fmt::Debug for SiemTransport {
             } => f
                 .debug_struct("Http")
                 .field("url", url)
-                .field(
-                    "auth_token",
-                    &auth_token.as_ref().map(|_| "[REDACTED]"),
-                )
+                .field("auth_token", &auth_token.as_ref().map(|_| "[REDACTED]"))
                 .field("auth_header", auth_header)
                 .field("verify_tls", verify_tls)
                 .finish(),
@@ -363,10 +360,11 @@ impl SiemForwarder {
         }
 
         // Skip if destination is the unconfigured default (localhost:514)
-        if let SiemTransport::Syslog { ref host, port, .. } = self.config.transport {
-            if host == "localhost" && port == 514 {
-                return Ok(());
-            }
+        if let SiemTransport::Syslog { ref host, port, .. } = self.config.transport
+            && host == "localhost"
+            && port == 514
+        {
+            return Ok(());
         }
 
         // Check severity filter

@@ -219,13 +219,14 @@ impl DnsCollector {
         if let Ok(output) = output {
             let stdout = String::from_utf8_lossy(&output.stdout);
             if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout)
-                && let Some(suffix_list) = json["SuffixSearchList"].as_array() {
-                    for suffix in suffix_list {
-                        if let Some(s) = suffix.as_str() {
-                            config.search_domains.push(s.to_string());
-                        }
+                && let Some(suffix_list) = json["SuffixSearchList"].as_array()
+            {
+                for suffix in suffix_list {
+                    if let Some(s) = suffix.as_str() {
+                        config.search_domains.push(s.to_string());
                     }
                 }
+            }
         }
 
         // Get primary DNS suffix

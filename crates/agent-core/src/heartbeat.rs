@@ -53,7 +53,11 @@ impl AgentRuntime {
             .map(|h| h.to_string_lossy().to_string())
             .unwrap_or_else(|_| "unknown".to_string());
 
-        let pending_sync_count = self.get_pending_sync_count().await.max(0).min(u32::MAX as i64) as u32;
+        let pending_sync_count = self
+            .get_pending_sync_count()
+            .await
+            .max(0)
+            .min(u32::MAX as i64) as u32;
 
         let sys_res = crate::resources::get_system_resources();
         let processes = self.resource_monitor.get_processes();
@@ -64,7 +68,9 @@ impl AgentRuntime {
             let networks = match self.resource_monitor.get_networks().lock() {
                 Ok(guard) => guard,
                 Err(poisoned) => {
-                    error!("Network monitor mutex was poisoned (possible data corruption), recovering");
+                    error!(
+                        "Network monitor mutex was poisoned (possible data corruption), recovering"
+                    );
                     poisoned.into_inner()
                 }
             };
@@ -121,9 +127,13 @@ impl AgentRuntime {
 
         // Load playbooks and detection rules from local DB for inline heartbeat sync
         let (heartbeat_playbooks, heartbeat_detection_rules) = if let Some(ref db) = self.db {
-            let pb = match agent_storage::repositories::grc::PlaybookRepository::new(db).get_all().await {
-                Ok(items) => items.into_iter().map(|p| {
-                    crate::api_client::HeartbeatPlaybook {
+            let pb = match agent_storage::repositories::grc::PlaybookRepository::new(db)
+                .get_all()
+                .await
+            {
+                Ok(items) => items
+                    .into_iter()
+                    .map(|p| crate::api_client::HeartbeatPlaybook {
                         id: p.id.clone(),
                         name: p.name.clone(),
                         description: p.description.clone(),
@@ -139,23 +149,33 @@ impl AgentRuntime {
                         created_at: Some(p.created_at.clone()),
                         last_triggered: None,
                         trigger_count: 0,
-                    }
-                }).collect(),
+                    })
+                    .collect(),
                 Err(e) => {
-                    error!("Failed to load playbooks from database for heartbeat: {}", e);
+                    error!(
+                        "Failed to load playbooks from database for heartbeat: {}",
+                        e
+                    );
                     Vec::new()
                 }
             };
-            let dr = match agent_storage::repositories::grc::DetectionRuleRepository::new(db).get_all().await {
-                Ok(items) => items.into_iter().map(|r| {
-                    crate::api_client::HeartbeatDetectionRule {
+            let dr = match agent_storage::repositories::grc::DetectionRuleRepository::new(db)
+                .get_all()
+                .await
+            {
+                Ok(items) => items
+                    .into_iter()
+                    .map(|r| crate::api_client::HeartbeatDetectionRule {
                         id: r.id.clone(),
                         name: r.name.clone(),
                         description: r.description.clone(),
                         severity: r.severity.clone(),
                         enabled: r.enabled,
                         conditions: serde_json::from_str(&r.conditions).unwrap_or_else(|e| {
-                            warn!("Failed to parse detection rule conditions for {}: {}", r.id, e);
+                            warn!(
+                                "Failed to parse detection rule conditions for {}: {}",
+                                r.id, e
+                            );
                             Vec::new()
                         }),
                         actions: serde_json::from_str(&r.actions).unwrap_or_else(|e| {
@@ -165,10 +185,13 @@ impl AgentRuntime {
                         created_at: Some(r.created_at.clone()),
                         last_match: r.last_match.clone(),
                         match_count: r.match_count.max(0).min(u32::MAX as i32) as u32,
-                    }
-                }).collect(),
+                    })
+                    .collect(),
                 Err(e) => {
-                    error!("Failed to load detection rules from database for heartbeat: {}", e);
+                    error!(
+                        "Failed to load detection rules from database for heartbeat: {}",
+                        e
+                    );
                     Vec::new()
                 }
             };
@@ -419,8 +442,10 @@ impl AgentRuntime {
                                         let result = if action == "rollback" {
                                             self.remediation_engine.rollback(rem_action)
                                         } else {
-                                            let engine = std::sync::Arc::clone(&self.remediation_engine);
-                                            run_remediation_blocking(engine, (*rem_action).clone()).await
+                                            let engine =
+                                                std::sync::Arc::clone(&self.remediation_engine);
+                                            run_remediation_blocking(engine, (*rem_action).clone())
+                                                .await
                                         };
 
                                         match result {

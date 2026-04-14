@@ -461,17 +461,14 @@ impl ConnectionCollector {
 
         if let Ok(output) = output {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            if let Ok(procs) =
-                agent_common::process::parse_powershell_json_array(&stdout)
-            {
+            if let Ok(procs) = agent_common::process::parse_powershell_json_array(&stdout) {
                 for proc in procs {
                     if let (Some(id), Some(name)) = (
                         proc["Id"].as_i64().and_then(|p| u32::try_from(p).ok()),
                         proc["ProcessName"].as_str(),
-                    ) {
-                        if !name.is_empty() {
-                            cache.insert(id, name.to_string());
-                        }
+                    ) && !name.is_empty()
+                    {
+                        cache.insert(id, name.to_string());
                     }
                 }
             }
@@ -637,7 +634,6 @@ impl ConnectionCollector {
             process_path: None,
         })
     }
-
 }
 
 impl Default for ConnectionCollector {

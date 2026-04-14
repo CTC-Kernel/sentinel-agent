@@ -523,17 +523,18 @@ impl WindowsHardeningCheck {
         let mut results = std::collections::HashMap::new();
 
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout)
-            && let Some(obj) = json.as_object() {
-                for (key, value) in obj {
-                    let val_str = match value {
-                        serde_json::Value::Number(n) => n.to_string(),
-                        serde_json::Value::String(s) => s.clone(),
-                        serde_json::Value::Bool(b) => (if *b { 1 } else { 0 }).to_string(),
-                        _ => value.to_string(),
-                    };
-                    results.insert(key.clone(), val_str);
-                }
+            && let Some(obj) = json.as_object()
+        {
+            for (key, value) in obj {
+                let val_str = match value {
+                    serde_json::Value::Number(n) => n.to_string(),
+                    serde_json::Value::String(s) => s.clone(),
+                    serde_json::Value::Bool(b) => (if *b { 1 } else { 0 }).to_string(),
+                    _ => value.to_string(),
+                };
+                results.insert(key.clone(), val_str);
             }
+        }
 
         Ok(results)
     }

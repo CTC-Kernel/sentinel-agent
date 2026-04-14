@@ -10,6 +10,12 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+*Aucun changement non publié.*
+
+---
+
+## 📦 [2.0.219] - 2026-04-13
+
 ### 🔧 Modifié
 - Centralisation des constantes de configuration Firebase dans `agent-common`.
 - Implémentation de l'utilitaire `silent_command()` pour la suppression des terminaux fantômes sous Windows.
@@ -19,10 +25,6 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - Migration des secrets de certificats vers un stockage cryptographique d'environnement.
 - Nettoyage profond de l'historique Git des données sensibles.
 - Transition stratégique vers la licence **MIT**.
-
----
-
-## 📦 [2.0.219] - 2026-04-13
 
 ### 🛡️ Audit de Sécurité (~20 corrections sur 10 fichiers)
 

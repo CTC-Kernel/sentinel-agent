@@ -14,7 +14,6 @@ tray = ["dep:tray-icon", "dep:muda", "dep:image", "dep:open", "dep:tao"]
 gui = ["dep:agent-gui", "dep:agent-persistence", "llm", "agent-gui/llm", "dep:eframe", "dep:egui", "dep:egui_extras", "dep:egui_plot"]
 # LLM features (can also be enabled standalone without GUI)
 llm = ["dep:agent_llm", "agent-scanner/llm"]
-llm_simple = []
 
 [dependencies]
 serde = { workspace = true }

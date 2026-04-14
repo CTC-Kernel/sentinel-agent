@@ -1624,11 +1624,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                     );
                     let text_rect = egui::Align2::LEFT_BOTTOM.anchor_size(label_pos, galley.size());
                     let bg_rect = text_rect.expand(3.0);
-                    painter.rect_filled(
-                        bg_rect,
-                        theme::ROUNDING_SM,
-                        theme::bg_elevated(),
-                    );
+                    painter.rect_filled(bg_rect, theme::ROUNDING_SM, theme::bg_elevated());
                     painter.galley(text_rect.min, galley, theme::text_primary());
                 }
             }

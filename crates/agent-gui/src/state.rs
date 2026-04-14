@@ -49,7 +49,12 @@ impl Default for GuiPreferences {
             siem_transport: "Syslog".to_string(),
             siem_destination: String::new(),
             log_collector_enabled: true,
-            log_collector_sources: vec!["system".to_string(), "auth".to_string(), "application".to_string(), "firewall".to_string()],
+            log_collector_sources: vec![
+                "system".to_string(),
+                "auth".to_string(),
+                "application".to_string(),
+                "firewall".to_string(),
+            ],
             log_collector_poll_secs: 60,
             discovery_enabled: false,
             architecture_url: String::new(),
@@ -85,15 +90,27 @@ impl GuiPreferences {
         state.settings.log_level = crate::dto::LogLevel::from_index(self.log_level as usize);
         state.settings.siem_enabled = self.siem_enabled;
         state.settings.siem_format.clone_from(&self.siem_format);
-        state.settings.siem_transport.clone_from(&self.siem_transport);
-        state.settings.siem_destination.clone_from(&self.siem_destination);
+        state
+            .settings
+            .siem_transport
+            .clone_from(&self.siem_transport);
+        state
+            .settings
+            .siem_destination
+            .clone_from(&self.siem_destination);
         state.settings.log_collector_enabled = self.log_collector_enabled;
         state.settings.log_collector_sources = self.log_collector_sources.clone();
         state.settings.log_collector_poll_secs = self.log_collector_poll_secs;
         state.discovery.enabled = self.discovery_enabled;
-        state.settings.architecture_url.clone_from(&self.architecture_url);
+        state
+            .settings
+            .architecture_url
+            .clone_from(&self.architecture_url);
         if !self.admin_password_sha256.is_empty() {
-            state.settings.admin_password_sha256.clone_from(&self.admin_password_sha256);
+            state
+                .settings
+                .admin_password_sha256
+                .clone_from(&self.admin_password_sha256);
         }
     }
 }
@@ -1253,7 +1270,9 @@ impl AppState {
                     self.assets.assets.iter().map(|a| a.id).collect();
                 for asset in assets {
                     if existing_ids.contains(&asset.id) {
-                        if let Some(existing) = self.assets.assets.iter_mut().find(|a| a.id == asset.id) {
+                        if let Some(existing) =
+                            self.assets.assets.iter_mut().find(|a| a.id == asset.id)
+                        {
                             *existing = asset;
                         }
                     } else {
@@ -1266,7 +1285,9 @@ impl AppState {
                     self.threats.playbooks.iter().map(|p| p.id).collect();
                 for pb in playbooks {
                     if existing_ids.contains(&pb.id) {
-                        if let Some(existing) = self.threats.playbooks.iter_mut().find(|p| p.id == pb.id) {
+                        if let Some(existing) =
+                            self.threats.playbooks.iter_mut().find(|p| p.id == pb.id)
+                        {
                             *existing = pb;
                         }
                     } else {
@@ -1279,7 +1300,12 @@ impl AppState {
                     self.threats.detection_rules.iter().map(|r| r.id).collect();
                 for rule in rules {
                     if existing_ids.contains(&rule.id) {
-                        if let Some(existing) = self.threats.detection_rules.iter_mut().find(|r| r.id == rule.id) {
+                        if let Some(existing) = self
+                            .threats
+                            .detection_rules
+                            .iter_mut()
+                            .find(|r| r.id == rule.id)
+                        {
                             *existing = rule;
                         }
                     } else {

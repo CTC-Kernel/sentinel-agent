@@ -71,8 +71,7 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
     // Build filter: suppress noisy arboard clipboard errors (benign on headless/service sessions)
     let filter_str = std::env::var("RUST_LOG").unwrap_or_else(|_| log_level.to_string());
     let filter_str = format!("{},arboard=off,eframe=warn", filter_str);
-    let filter =
-        EnvFilter::try_new(&filter_str).unwrap_or_else(|_| EnvFilter::new(log_level));
+    let filter = EnvFilter::try_new(&filter_str).unwrap_or_else(|_| EnvFilter::new(log_level));
     let (filter_layer, reload_handle) = tracing_subscriber::reload::Layer::new(filter);
 
     // Initial log directory and file appender

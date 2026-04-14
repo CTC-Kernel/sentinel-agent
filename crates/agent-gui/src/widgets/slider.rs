@@ -244,9 +244,7 @@ impl Slider {
                 if response.has_focus() {
                     painter.rect_stroke(
                         track_rect.expand(theme::SPACE_XS),
-                        CornerRadius::same(
-                            (track_height / 2.0 + theme::SPACE_XS).min(255.0) as u8,
-                        ),
+                        CornerRadius::same((track_height / 2.0 + theme::SPACE_XS).min(255.0) as u8),
                         theme::focus_ring(),
                         egui::epaint::StrokeKind::Outside,
                     );

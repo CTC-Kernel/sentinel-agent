@@ -40,9 +40,6 @@ use crate::types::{
     KpiSyncRequest,
     // Log upload
     LogEntryPayload,
-    // SIEM sync
-    SiemSyncRequest,
-    SiemSyncResponse,
     LogUploadRequest,
     LogUploadResponse,
     // Network sync
@@ -60,6 +57,9 @@ use crate::types::{
     RiskSyncRequest,
     RiskSyncResponse,
     SecurityIncidentReport,
+    // SIEM sync
+    SiemSyncRequest,
+    SiemSyncResponse,
     // Software sync
     SoftwarePayload,
     SoftwareSyncRequest,
@@ -565,15 +565,9 @@ impl AuthenticatedClient {
     }
 
     /// Delete a detection rule on the SaaS.
-    pub async fn delete_detection_rule(
-        &self,
-        rule_id: &str,
-    ) -> SyncResult<AcknowledgedResponse> {
+    pub async fn delete_detection_rule(&self, rule_id: &str) -> SyncResult<AcknowledgedResponse> {
         let agent_id = self.agent_id().await?;
-        info!(
-            "Deleting detection rule {} for agent {}",
-            rule_id, agent_id
-        );
+        info!("Deleting detection rule {} for agent {}", rule_id, agent_id);
         self.delete(&format!(
             "/v1/agents/{}/detection-rules/{}",
             agent_id, rule_id
@@ -593,22 +587,16 @@ impl AuthenticatedClient {
     pub async fn delete_alert_rule(&self, rule_id: &str) -> SyncResult<AcknowledgedResponse> {
         let agent_id = self.agent_id().await?;
         info!("Deleting alert rule {} for agent {}", rule_id, agent_id);
-        self.delete(&format!(
-            "/v1/agents/{}/alert-rules/{}",
-            agent_id, rule_id
-        ))
-        .await
+        self.delete(&format!("/v1/agents/{}/alert-rules/{}", agent_id, rule_id))
+            .await
     }
 
     /// Delete a webhook on the SaaS.
     pub async fn delete_webhook(&self, webhook_id: &str) -> SyncResult<AcknowledgedResponse> {
         let agent_id = self.agent_id().await?;
         info!("Deleting webhook {} for agent {}", webhook_id, agent_id);
-        self.delete(&format!(
-            "/v1/agents/{}/webhooks/{}",
-            agent_id, webhook_id
-        ))
-        .await
+        self.delete(&format!("/v1/agents/{}/webhooks/{}", agent_id, webhook_id))
+            .await
     }
 
     /// Sync playbook execution logs to the SaaS.
@@ -874,10 +862,7 @@ impl AuthenticatedClient {
     ///
     /// Sends recent SIEM events and current forwarder stats for the platform
     /// SIEM tab to display.
-    pub async fn sync_siem_data(
-        &self,
-        request: SiemSyncRequest,
-    ) -> SyncResult<SiemSyncResponse> {
+    pub async fn sync_siem_data(&self, request: SiemSyncRequest) -> SyncResult<SiemSyncResponse> {
         let agent_id = self.agent_id().await?;
         debug!(
             "Syncing SIEM data for agent {}: {} events, connected={}",
@@ -885,11 +870,8 @@ impl AuthenticatedClient {
             request.events.len(),
             request.stats.is_connected
         );
-        self.post_json(
-            &format!("/v1/agents/{}/siem", agent_id),
-            &request,
-        )
-        .await
+        self.post_json(&format!("/v1/agents/{}/siem", agent_id), &request)
+            .await
     }
 
     /// Upload log entries to the SaaS.

@@ -489,7 +489,10 @@ impl CompliancePage {
                 // Paginated flat list (50 items per page)
                 const PAGE_SIZE: usize = 50;
                 let total_pages = filtered.len().div_ceil(PAGE_SIZE);
-                let page = state.compliance.current_page.min(total_pages.saturating_sub(1));
+                let page = state
+                    .compliance
+                    .current_page
+                    .min(total_pages.saturating_sub(1));
                 let start = page * PAGE_SIZE;
                 let end = (start + PAGE_SIZE).min(filtered.len());
                 let page_indices: Vec<usize> = filtered[start..end].to_vec();
@@ -506,8 +509,9 @@ impl CompliancePage {
                             egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
                             |ui: &mut egui::Ui| {
                                 ui.horizontal(|ui: &mut egui::Ui| {
-                                    let prev_resp = widgets::ghost_button(ui, icons::CHEVRON_LEFT.to_string())
-                                        .on_hover_text("Page précédente");
+                                    let prev_resp =
+                                        widgets::ghost_button(ui, icons::CHEVRON_LEFT.to_string())
+                                            .on_hover_text("Page précédente");
                                     if prev_resp.clicked() && page > 0 {
                                         state.compliance.current_page = page - 1;
                                     }
@@ -520,8 +524,9 @@ impl CompliancePage {
                                         .font(theme::font_body())
                                         .color(theme::text_secondary()),
                                     );
-                                    let next_resp = widgets::ghost_button(ui, icons::CHEVRON_RIGHT.to_string())
-                                        .on_hover_text("Page suivante");
+                                    let next_resp =
+                                        widgets::ghost_button(ui, icons::CHEVRON_RIGHT.to_string())
+                                            .on_hover_text("Page suivante");
                                     if next_resp.clicked() && page + 1 < total_pages {
                                         state.compliance.current_page = page + 1;
                                     }

@@ -112,9 +112,15 @@ impl std::fmt::Debug for EnrollmentResponse {
             .field("client_certificate", &"[REDACTED]")
             .field("client_private_key", &"[REDACTED]")
             .field("certificate_expires_at", &self.certificate_expires_at)
-            .field("server_certificate", &self.server_certificate.as_ref().map(|_| "[REDACTED]"))
+            .field(
+                "server_certificate",
+                &self.server_certificate.as_ref().map(|_| "[REDACTED]"),
+            )
             .field("server_fingerprints", &self.server_fingerprints)
-            .field("hmac_secret", &self.hmac_secret.as_ref().map(|_| "[REDACTED]"))
+            .field(
+                "hmac_secret",
+                &self.hmac_secret.as_ref().map(|_| "[REDACTED]"),
+            )
             .field("initial_config", &self.initial_config)
             .finish()
     }
@@ -1642,8 +1648,14 @@ mod tests {
         let result: EnrollmentResult = serde_json::from_str(json).unwrap();
         match result {
             EnrollmentResult::Success(resp) => {
-                assert_eq!(resp.agent_id.to_string(), "d51b0ea4-dac4-333a-7ddc-a9ba73b95670");
-                assert_eq!(resp.organization_id.to_string(), "b7822f05-eab1-0332-1e6e-9a68617085f7");
+                assert_eq!(
+                    resp.agent_id.to_string(),
+                    "d51b0ea4-dac4-333a-7ddc-a9ba73b95670"
+                );
+                assert_eq!(
+                    resp.organization_id.to_string(),
+                    "b7822f05-eab1-0332-1e6e-9a68617085f7"
+                );
                 assert_eq!(resp.client_private_key, "LS0tLS1CRUdJTi");
             }
             EnrollmentResult::AlreadyEnrolled { .. } => {

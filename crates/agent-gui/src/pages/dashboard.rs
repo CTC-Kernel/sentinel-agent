@@ -1197,7 +1197,8 @@ impl DashboardPage {
                                 _ => {
                                     // SLA remediation (mini gauge)
                                     let (arrow, color) = Self::kpi_trend_arrow(sla_trend, true);
-                                    let sla_color = theme::readable_color(theme::score_color(current_sla));
+                                    let sla_color =
+                                        theme::readable_color(theme::score_color(current_sla));
                                     egui::Frame::new()
                                         .fill(
                                             theme::bg_tertiary()

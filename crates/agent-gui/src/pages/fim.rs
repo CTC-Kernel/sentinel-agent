@@ -58,12 +58,7 @@ impl FimPage {
                     theme::ERROR,
                     icons::WARNING,
                 ),
-                (
-                    "NON ACQUITTÉES",
-                    unacked,
-                    theme::ACCENT,
-                    icons::CLOCK,
-                ),
+                ("NON ACQUITTÉES", unacked, theme::ACCENT, icons::CLOCK),
             ];
 
             let grid = widgets::ResponsiveGrid::new(200.0, theme::SPACE_SM);
@@ -233,9 +228,9 @@ impl FimPage {
                     .resizable(true)
                     .sense(egui::Sense::click())
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(90.0).range(60.0..=140.0))   // TYPE
-                    .column(Column::remainder())                         // CHEMIN
-                    .column(Column::initial(110.0).range(70.0..=160.0))  // DATE
+                    .column(Column::initial(90.0).range(60.0..=140.0)) // TYPE
+                    .column(Column::remainder()) // CHEMIN
+                    .column(Column::initial(110.0).range(70.0..=160.0)) // DATE
                     .column(Column::initial(110.0).range(70.0..=160.0)); // STATUT
 
                 let mut clicked_row: Option<usize> = None;
@@ -364,8 +359,7 @@ impl FimPage {
 
                                 let row_resp = row.response();
                                 if row_resp.hovered() {
-                                    ctx_for_cursor
-                                        .set_cursor_icon(egui::CursorIcon::PointingHand);
+                                    ctx_for_cursor.set_cursor_icon(egui::CursorIcon::PointingHand);
                                 }
                                 if row_resp.clicked() {
                                     clicked_row = Some(idx);

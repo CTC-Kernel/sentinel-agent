@@ -24,7 +24,9 @@ impl AuditTrailPage {
             ui,
             &["Pilotage", "Journal d'audit"],
             "Journal d'Audit",
-            Some("TRAÇABILIT\u{00c9} COMPL\u{00c8}TE DES \u{00c9}V\u{00c9}NEMENTS DE S\u{00c9}CURIT\u{00c9} ET DU SYST\u{00c8}ME"),
+            Some(
+                "TRAÇABILIT\u{00c9} COMPL\u{00c8}TE DES \u{00c9}V\u{00c9}NEMENTS DE S\u{00c9}CURIT\u{00c9} ET DU SYST\u{00c8}ME",
+            ),
             Some(
                 "Consultez l'historique d\u{00e9}taill\u{00e9} des actions de l'agent, des d\u{00e9}tections de menaces et des changements de configuration.",
             ),
@@ -53,8 +55,10 @@ impl AuditTrailPage {
                     );
                 } else {
                     state.toasts.push(
-                        crate::widgets::toast::Toast::error("\u{00c9}chec de l'export du journal d'audit")
-                            .with_time(time),
+                        crate::widgets::toast::Toast::error(
+                            "\u{00c9}chec de l'export du journal d'audit",
+                        )
+                        .with_time(time),
                     );
                 }
             }

@@ -125,13 +125,12 @@ impl UpdateStatusCheck {
 
         // Run all four Windows Update queries concurrently to stay within
         // the 10-second NFR limit (each PowerShell invocation takes ~5-15s).
-        let (service_status, (last_update, history), pending, (reboot_required, reboot_since)) =
-            tokio::join!(
-                self.get_service_status(),
-                self.get_update_history(),
-                self.get_pending_updates(),
-                self.check_reboot_pending(),
-            );
+        let (service_status, (last_update, history), pending, (reboot_required, reboot_since)) = tokio::join!(
+            self.get_service_status(),
+            self.get_update_history(),
+            self.get_pending_updates(),
+            self.check_reboot_pending(),
+        );
 
         // Calculate days since last update
         let days_since = last_update.map(|d| {
@@ -204,9 +203,10 @@ impl UpdateStatusCheck {
             score -= 20.0;
         }
         if let Some(days) = days_since
-            && days > MAX_DAYS_SINCE_UPDATE {
-                score -= (days - MAX_DAYS_SINCE_UPDATE).min(30) as f32;
-            }
+            && days > MAX_DAYS_SINCE_UPDATE
+        {
+            score -= (days - MAX_DAYS_SINCE_UPDATE).min(30) as f32;
+        }
         if reboot_required {
             score -= 10.0;
         }
@@ -271,28 +271,29 @@ impl UpdateStatusCheck {
             .output();
 
         if let Ok(out) = output
-            && out.status.success() {
-                let stdout = String::from_utf8_lossy(&out.stdout);
-                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                    status.service_running = json
-                        .get("Running")
-                        .and_then(|v| v.as_bool())
-                        .unwrap_or(false);
-                    status.start_type = json
-                        .get("StartType")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("Unknown")
-                        .to_string();
-                    status.auto_update_enabled = json
-                        .get("AutoUpdate")
-                        .and_then(|v| v.as_bool())
-                        .unwrap_or(false);
-                    status.wsus_server = json
-                        .get("WsusServer")
-                        .and_then(|v| v.as_str())
-                        .map(|s| s.to_string());
-                }
+            && out.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                status.service_running = json
+                    .get("Running")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
+                status.start_type = json
+                    .get("StartType")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Unknown")
+                    .to_string();
+                status.auto_update_enabled = json
+                    .get("AutoUpdate")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
+                status.wsus_server = json
+                    .get("WsusServer")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
             }
+        }
 
         status
     }
@@ -331,43 +332,45 @@ impl UpdateStatusCheck {
         let mut last_update: Option<DateTime<Utc>> = None;
 
         if let Ok(out) = output
-            && out.status.success() {
-                let stdout = String::from_utf8_lossy(&out.stdout);
-                if let Ok(items) = serde_json::from_str::<Vec<serde_json::Value>>(&stdout) {
-                    for item in items {
-                        if let Some(date_str) = item.get("Date").and_then(|v| v.as_str())
-                            && let Ok(date) = DateTime::parse_from_rfc3339(date_str) {
-                                let date_utc = date.with_timezone(&Utc);
-                                if last_update.is_none()
-                                    || last_update.map(|d| d < date_utc).unwrap_or(false)
-                                {
-                                    let result = item
-                                        .get("Result")
-                                        .and_then(|v| v.as_str())
-                                        .unwrap_or("Unknown");
-                                    if result.contains("Succeeded") {
-                                        last_update = Some(date_utc);
-                                    }
-                                }
-
-                                entries.push(UpdateHistoryEntry {
-                                    title: item
-                                        .get("Title")
-                                        .and_then(|v| v.as_str())
-                                        .unwrap_or("Unknown")
-                                        .to_string(),
-                                    kb_article: None,
-                                    installed_on: date_utc,
-                                    result: item
-                                        .get("Result")
-                                        .and_then(|v| v.as_str())
-                                        .unwrap_or("Unknown")
-                                        .to_string(),
-                                });
+            && out.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            if let Ok(items) = serde_json::from_str::<Vec<serde_json::Value>>(&stdout) {
+                for item in items {
+                    if let Some(date_str) = item.get("Date").and_then(|v| v.as_str())
+                        && let Ok(date) = DateTime::parse_from_rfc3339(date_str)
+                    {
+                        let date_utc = date.with_timezone(&Utc);
+                        if last_update.is_none()
+                            || last_update.map(|d| d < date_utc).unwrap_or(false)
+                        {
+                            let result = item
+                                .get("Result")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("Unknown");
+                            if result.contains("Succeeded") {
+                                last_update = Some(date_utc);
                             }
+                        }
+
+                        entries.push(UpdateHistoryEntry {
+                            title: item
+                                .get("Title")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("Unknown")
+                                .to_string(),
+                            kb_article: None,
+                            installed_on: date_utc,
+                            result: item
+                                .get("Result")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("Unknown")
+                                .to_string(),
+                        });
                     }
                 }
             }
+        }
 
         (last_update, entries)
     }
@@ -402,34 +405,12 @@ impl UpdateStatusCheck {
         let mut updates = Vec::new();
 
         if let Ok(out) = output
-            && out.status.success() {
-                let stdout = String::from_utf8_lossy(&out.stdout);
-                // Handle both single object and array
-                if let Ok(items) = serde_json::from_str::<Vec<serde_json::Value>>(&stdout) {
-                    for item in items {
-                        updates.push(PendingUpdate {
-                            title: item
-                                .get("Title")
-                                .and_then(|v| v.as_str())
-                                .unwrap_or("Unknown")
-                                .to_string(),
-                            kb_article: None,
-                            severity: item
-                                .get("Severity")
-                                .and_then(|v| v.as_str())
-                                .unwrap_or("Moderate")
-                                .to_string(),
-                            category: item
-                                .get("Category")
-                                .and_then(|v| v.as_str())
-                                .unwrap_or("Updates")
-                                .to_string(),
-                            size_mb: item.get("SizeMB").and_then(|v| v.as_f64()),
-                            published_date: None,
-                        });
-                    }
-                } else if let Ok(item) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                    // Single update
+            && out.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            // Handle both single object and array
+            if let Ok(items) = serde_json::from_str::<Vec<serde_json::Value>>(&stdout) {
+                for item in items {
                     updates.push(PendingUpdate {
                         title: item
                             .get("Title")
@@ -451,7 +432,30 @@ impl UpdateStatusCheck {
                         published_date: None,
                     });
                 }
+            } else if let Ok(item) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                // Single update
+                updates.push(PendingUpdate {
+                    title: item
+                        .get("Title")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("Unknown")
+                        .to_string(),
+                    kb_article: None,
+                    severity: item
+                        .get("Severity")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("Moderate")
+                        .to_string(),
+                    category: item
+                        .get("Category")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("Updates")
+                        .to_string(),
+                    size_mb: item.get("SizeMB").and_then(|v| v.as_f64()),
+                    published_date: None,
+                });
             }
+        }
 
         updates
     }
@@ -490,16 +494,17 @@ impl UpdateStatusCheck {
             .output();
 
         if let Ok(out) = output
-            && out.status.success() {
-                let stdout = String::from_utf8_lossy(&out.stdout);
-                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                    let reboot = json
-                        .get("RebootRequired")
-                        .and_then(|v| v.as_bool())
-                        .unwrap_or(false);
-                    return (reboot, None);
-                }
+            && out.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                let reboot = json
+                    .get("RebootRequired")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
+                return (reboot, None);
             }
+        }
 
         (false, None)
     }

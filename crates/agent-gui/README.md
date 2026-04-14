@@ -64,7 +64,6 @@ Cette crate fournit un tableau de bord interactif complet construit avec **egui/
 |---------|-------------|
 | `render` (defaut) | Active le rendu egui/eframe avec toutes les pages et widgets |
 | `llm` | Integration complete du panneau LLM |
-| `llm_simple` | Integration LLM simplifiee |
 
 Sans le flag `render`, seuls les DTOs et types d'evenements sont disponibles.
 

@@ -178,8 +178,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui: &mut egui::Ui| {
-                                        let del_resp = widgets::ghost_button(ui, icons::TRASH.to_string())
-                                            .on_hover_text("Supprimer");
+                                        let del_resp =
+                                            widgets::ghost_button(ui, icons::TRASH.to_string())
+                                                .on_hover_text("Supprimer");
                                         if del_resp.clicked() {
                                             delete_id = Some(rule.id.to_string());
                                         }

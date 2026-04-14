@@ -107,9 +107,10 @@ fn main() -> ExitCode {
 
         // Prevent infinite growth by keeping it under 5MB
         if let Ok(metadata) = fs::metadata(log_file)
-            && metadata.len() > 5 * 1024 * 1024 {
-                let _ = fs::rename(log_file, format!("{}.old", log_file));
-            }
+            && metadata.len() > 5 * 1024 * 1024
+        {
+            let _ = fs::rename(log_file, format!("{}.old", log_file));
+        }
 
         if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(log_file) {
             let _ = writeln!(
@@ -150,9 +151,10 @@ fn main() -> ExitCode {
 
             // Prevent infinite growth
             if let Ok(metadata) = fs::metadata(panic_log)
-                && metadata.len() > 5 * 1024 * 1024 {
-                    let _ = fs::rename(panic_log, format!("{}.old", panic_log));
-                }
+                && metadata.len() > 5 * 1024 * 1024
+            {
+                let _ = fs::rename(panic_log, format!("{}.old", panic_log));
+            }
 
             if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(panic_log) {
                 let _ = writeln!(
@@ -705,9 +707,13 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
         #[cfg(target_os = "windows")]
         if is_windows_server() {
             if has_usable_display() {
-                info!("Windows Server with display detected — GUI will use software rendering (WARP) if no GPU is present");
+                info!(
+                    "Windows Server with display detected — GUI will use software rendering (WARP) if no GPU is present"
+                );
             } else {
-                info!("Windows Server without display detected — starting in headless mode (no GUI)");
+                info!(
+                    "Windows Server without display detected — starting in headless mode (no GUI)"
+                );
                 no_tray = true;
             }
         }
@@ -721,7 +727,9 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
                     warn!("GUI exited with error. Falling back to headless mode.");
                 }
                 Err(_) => {
-                    warn!("GUI panicked during startup (likely no display/GPU). Falling back to headless mode.");
+                    warn!(
+                        "GUI panicked during startup (likely no display/GPU). Falling back to headless mode."
+                    );
                 }
             }
             // Fall through to headless mode below
@@ -907,13 +915,11 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     }));
 
     let tray_q = tray_events.clone();
-    tray_icon::TrayIconEvent::set_event_handler(Some(
-        move |event: tray_icon::TrayIconEvent| {
-            if let Ok(mut q) = tray_q.lock() {
-                q.push_back(event);
-            }
-        },
-    ));
+    tray_icon::TrayIconEvent::set_event_handler(Some(move |event: tray_icon::TrayIconEvent| {
+        if let Ok(mut q) = tray_q.lock() {
+            q.push_back(event);
+        }
+    }));
 
     info!("Sentinel GRC Agent is running. Use tray icon to pause, resume, or quit.");
 
@@ -959,8 +965,9 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
 
         // Use WaitUntil with 200ms interval for responsive event processing
         // This keeps CPU near 0% while still responding promptly to clicks
-        *control_flow =
-            ControlFlow::WaitUntil(std::time::Instant::now() + std::time::Duration::from_millis(200));
+        *control_flow = ControlFlow::WaitUntil(
+            std::time::Instant::now() + std::time::Duration::from_millis(200),
+        );
     })
 }
 
@@ -3517,7 +3524,7 @@ fn has_usable_display() -> bool {
 /// Check whether the primary display device has a real GPU driver.
 #[cfg(all(target_os = "windows", feature = "gui"))]
 fn check_display_driver() -> bool {
-    use windows::Win32::Graphics::Gdi::{EnumDisplayDevicesW, DISPLAY_DEVICEW};
+    use windows::Win32::Graphics::Gdi::{DISPLAY_DEVICEW, EnumDisplayDevicesW};
 
     unsafe {
         let mut device = DISPLAY_DEVICEW {
@@ -3530,9 +3537,7 @@ fn check_display_driver() -> bool {
             let name = String::from_utf16_lossy(&device.DeviceString);
             let name = name.trim_end_matches('\0').trim();
             // "Microsoft Basic Display Adapter" or empty → no real GPU
-            if name.is_empty()
-                || name.contains("Basic Display")
-                || name.contains("Remote Desktop")
+            if name.is_empty() || name.contains("Basic Display") || name.contains("Remote Desktop")
             {
                 return false;
             }
@@ -3558,9 +3563,9 @@ const GUI_MUTEX_NAME: &str = "Local\\SentinelAgentGUI";
 /// (typically the Windows service). Returns `true` if another process owns it.
 #[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_runtime_mutex_held() -> bool {
-    use windows::core::HSTRING;
-    use windows::Win32::Foundation::{CloseHandle, HANDLE, ERROR_ALREADY_EXISTS};
+    use windows::Win32::Foundation::{CloseHandle, ERROR_ALREADY_EXISTS, HANDLE};
     use windows::Win32::System::Threading::CreateMutexW;
+    use windows::core::HSTRING;
 
     let name = HSTRING::from(RUNTIME_MUTEX_NAME);
     unsafe {
@@ -3585,9 +3590,9 @@ fn is_runtime_mutex_held() -> bool {
 /// process already owns it.
 #[cfg(target_os = "windows")]
 fn try_acquire_runtime_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
-    use windows::core::HSTRING;
     use windows::Win32::Foundation::ERROR_ALREADY_EXISTS;
     use windows::Win32::System::Threading::CreateMutexW;
+    use windows::core::HSTRING;
 
     let name = HSTRING::from(RUNTIME_MUTEX_NAME);
     unsafe {
@@ -3609,9 +3614,9 @@ fn try_acquire_runtime_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
 /// GUI is already running in this user session.
 #[cfg(all(target_os = "windows", feature = "gui"))]
 fn try_acquire_gui_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
-    use windows::core::HSTRING;
     use windows::Win32::Foundation::ERROR_ALREADY_EXISTS;
     use windows::Win32::System::Threading::CreateMutexW;
+    use windows::core::HSTRING;
 
     let name = HSTRING::from(GUI_MUTEX_NAME);
     unsafe {

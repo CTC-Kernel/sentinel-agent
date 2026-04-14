@@ -226,7 +226,8 @@ impl Default for SecurityConfig {
                 r"(?i)token\s*[:=]\s*\S+".to_string(),
                 // Prompt injection attempts
                 r"(?i)ignore\s+(all\s+)?previous\s+instructions".to_string(),
-                r"(?i)disregard\s+(the\s+)?(above|previous|system)\s+(prompt|instructions)".to_string(),
+                r"(?i)disregard\s+(the\s+)?(above|previous|system)\s+(prompt|instructions)"
+                    .to_string(),
                 r"(?i)you\s+are\s+now\s+a".to_string(),
                 r"(?i)new\s+instruction[s]?\s*:".to_string(),
                 r"(?i)forget\s+(everything|all|your)\s+(above|previous)".to_string(),

@@ -12,6 +12,7 @@ use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpStream, UdpSocket};
 use tokio::sync::RwLock;
+use tokio_rustls::client::TlsStream;
 use tracing::debug;
 
 /// Syslog transport.
@@ -21,6 +22,7 @@ pub struct SyslogTransport {
     protocol: SyslogProtocol,
     tls: bool,
     tcp_connection: Arc<RwLock<Option<TcpStream>>>,
+    tls_connection: Arc<RwLock<Option<TlsStream<TcpStream>>>>,
     udp_socket: Arc<RwLock<Option<UdpSocket>>>,
     facility: u8,
     hostname: String,
@@ -30,22 +32,13 @@ pub struct SyslogTransport {
 impl SyslogTransport {
     /// Create a new syslog transport.
     ///
-    /// If `tls` is `true`, the first `send()` call will return an error because
-    /// native TLS syslog is not yet implemented. Use a TLS-terminating proxy
-    /// (e.g., stunnel, HAProxy) in front of a plain TCP syslog target instead.
+    /// When `tls` is `true`, the transport connects via TCP and wraps the
+    /// connection in a TLS layer using the platform's trusted certificate
+    /// store (via `rustls-platform-verifier`).
     pub fn new(host: String, port: u16, protocol: SyslogProtocol, tls: bool) -> Self {
         let hostname = hostname::get()
             .map(|h| h.to_string_lossy().to_string())
             .unwrap_or_else(|_| "unknown".to_string());
-
-        if tls {
-            tracing::warn!(
-                "Syslog TLS requested but not yet implemented — connection to {}:{} will fail. \
-                 Use a TLS-terminating proxy (stunnel/HAProxy) with plain TCP instead.",
-                host,
-                port
-            );
-        }
 
         Self {
             host,
@@ -53,6 +46,7 @@ impl SyslogTransport {
             protocol,
             tls,
             tcp_connection: Arc::new(RwLock::new(None)),
+            tls_connection: Arc::new(RwLock::new(None)),
             udp_socket: Arc::new(RwLock::new(None)),
             facility: 16, // local0
             hostname,
@@ -95,19 +89,12 @@ impl SyslogTransport {
         }
 
         let addr = format!("{}:{}", self.host, self.port);
-        debug!("Connecting to syslog server: {}", addr);
-
-        if self.tls {
-            // TLS syslog requires additional TLS dependencies — reject instead of silently downgrading
-            return Err(SiemError::ConfigError(
-                "TLS syslog is not yet implemented. Use plain TCP syslog or configure a TLS-terminating proxy.".to_string(),
-            ));
-        }
+        debug!("Connecting to syslog server via TCP: {}", addr);
 
         match TcpStream::connect(&addr).await {
             Ok(stream) => {
                 *conn = Some(stream);
-                debug!("Connected to syslog server");
+                debug!("Connected to syslog server (TCP)");
                 Ok(())
             }
             Err(e) => Err(SiemError::ConnectionError(format!(
@@ -115,6 +102,58 @@ impl SyslogTransport {
                 addr, e
             ))),
         }
+    }
+
+    /// Ensure TLS connection is established over TCP.
+    async fn ensure_tls_connection(&self) -> SiemResult<()> {
+        let mut conn = self.tls_connection.write().await;
+
+        if conn.is_some() {
+            return Ok(());
+        }
+
+        let addr = format!("{}:{}", self.host, self.port);
+        debug!("Connecting to syslog server via TLS: {}", addr);
+
+        // Connect TCP first
+        let tcp_stream = TcpStream::connect(&addr).await.map_err(|e| {
+            SiemError::ConnectionError(format!(
+                "Failed to connect to syslog server {}: {}",
+                addr, e
+            ))
+        })?;
+
+        // Build TLS config using platform certificate verifier
+        let provider = Arc::new(rustls::crypto::ring::default_provider());
+        let verifier = rustls_platform_verifier::Verifier::new(Arc::clone(&provider))
+            .map_err(|e| SiemError::ConfigError(format!("Failed to create TLS verifier: {}", e)))?;
+        let tls_config = rustls::ClientConfig::builder_with_provider(provider)
+            .with_safe_default_protocol_versions()
+            .map_err(|e| SiemError::ConfigError(format!("TLS protocol config error: {}", e)))?
+            .dangerous()
+            .with_custom_certificate_verifier(Arc::new(verifier))
+            .with_no_client_auth();
+
+        let connector = tokio_rustls::TlsConnector::from(Arc::new(tls_config));
+
+        let server_name =
+            rustls::pki_types::ServerName::try_from(self.host.clone()).map_err(|e| {
+                SiemError::ConfigError(format!("Invalid TLS server name '{}': {}", self.host, e))
+            })?;
+
+        let tls_stream = connector
+            .connect(server_name, tcp_stream)
+            .await
+            .map_err(|e| {
+                SiemError::ConnectionError(format!(
+                    "TLS handshake failed with syslog server {}: {}",
+                    addr, e
+                ))
+            })?;
+
+        debug!("Connected to syslog server (TLS)");
+        *conn = Some(tls_stream);
+        Ok(())
     }
 
     /// Ensure UDP socket is bound.
@@ -161,6 +200,31 @@ impl SyslogTransport {
         }
     }
 
+    /// Send via TLS over TCP.
+    async fn send_tls(&self, message: &str) -> SiemResult<usize> {
+        self.ensure_tls_connection().await?;
+
+        let mut conn = self.tls_connection.write().await;
+        let stream = conn.as_mut().ok_or_else(|| {
+            SiemError::ConnectionError("TLS connection not established".to_string())
+        })?;
+
+        let data = format!("{}\n", message);
+        let bytes = data.as_bytes();
+
+        match stream.write_all(bytes).await {
+            Ok(()) => Ok(bytes.len()),
+            Err(e) => {
+                // Clear connection so it reconnects next time
+                *conn = None;
+                Err(SiemError::SendError(format!(
+                    "Failed to send via TLS: {}",
+                    e
+                )))
+            }
+        }
+    }
+
     /// Send via UDP.
     async fn send_udp(&self, message: &str) -> SiemResult<usize> {
         self.ensure_udp_socket().await?;
@@ -186,6 +250,10 @@ impl SiemTransportTrait for SyslogTransport {
         // Build syslog message (severity 6 = informational)
         let message = self.build_syslog_message(6, data);
 
+        if self.tls {
+            return self.send_tls(&message).await;
+        }
+
         match self.protocol {
             SyslogProtocol::Tcp => self.send_tcp(&message).await,
             SyslogProtocol::Udp => self.send_udp(&message).await,
@@ -193,6 +261,10 @@ impl SiemTransportTrait for SyslogTransport {
     }
 
     async fn is_connected(&self) -> bool {
+        if self.tls {
+            return self.tls_connection.read().await.is_some();
+        }
+
         match self.protocol {
             SyslogProtocol::Tcp => self.tcp_connection.read().await.is_some(),
             SyslogProtocol::Udp => true, // UDP is connectionless
@@ -241,5 +313,45 @@ mod tests {
         let message = transport.build_syslog_message(6, "Test");
         // user (1) * 8 + info (6) = 14
         assert!(message.starts_with("<14>"));
+    }
+
+    #[test]
+    fn test_tls_transport_creation() {
+        let transport = SyslogTransport::new(
+            "siem.company.com".to_string(),
+            6514,
+            SyslogProtocol::Tcp,
+            true,
+        );
+
+        assert_eq!(transport.host, "siem.company.com");
+        assert_eq!(transport.port, 6514);
+        assert!(transport.tls);
+    }
+
+    #[tokio::test]
+    async fn test_tls_not_connected_initially() {
+        let transport = SyslogTransport::new(
+            "siem.company.com".to_string(),
+            6514,
+            SyslogProtocol::Tcp,
+            true,
+        );
+
+        // Should not be connected before first send attempt
+        assert!(!transport.is_connected().await);
+    }
+
+    #[tokio::test]
+    async fn test_tls_connection_failure_returns_error() {
+        let transport = SyslogTransport::new(
+            "nonexistent.invalid".to_string(),
+            6514,
+            SyslogProtocol::Tcp,
+            true,
+        );
+
+        let result = transport.send("test event").await;
+        assert!(result.is_err());
     }
 }

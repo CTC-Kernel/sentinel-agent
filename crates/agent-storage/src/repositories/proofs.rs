@@ -453,10 +453,7 @@ impl<'a> ProofsRepository<'a> {
                 // Try alternative formats before falling back
                 chrono::NaiveDateTime::parse_from_str(&created_at_str, "%Y-%m-%dT%H:%M:%SZ")
                     .or_else(|_| {
-                        chrono::NaiveDateTime::parse_from_str(
-                            &created_at_str,
-                            "%Y-%m-%d %H:%M:%S",
-                        )
+                        chrono::NaiveDateTime::parse_from_str(&created_at_str, "%Y-%m-%d %H:%M:%S")
                     })
                     .map(|dt| dt.and_utc())
                     .unwrap_or_else(|e| {

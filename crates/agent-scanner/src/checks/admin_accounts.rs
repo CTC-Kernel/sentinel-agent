@@ -173,7 +173,10 @@ impl AdminAccountsCheck {
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // Built-in admin status
-            if let Some(enabled) = json.get("BuiltinAdminEnabled").and_then(|v| agent_common::process::ps_json_as_bool(v)) {
+            if let Some(enabled) = json
+                .get("BuiltinAdminEnabled")
+                .and_then(agent_common::process::ps_json_as_bool)
+            {
                 status.builtin_admin_enabled = Some(enabled);
             }
 
@@ -197,27 +200,28 @@ impl AdminAccountsCheck {
 
             // Fallback parsing from net localgroup output
             if status.admin_count == 0
-                && let Some(output) = json.get("NetOutput").and_then(|v| v.as_str()) {
-                    let mut in_members = false;
-                    for line in output.lines() {
-                        let line = line.trim();
-                        if line.contains("---") {
-                            in_members = true;
-                            continue;
-                        }
-                        if in_members && !line.is_empty() && !line.starts_with("The command") {
-                            status.admin_accounts.push(line.to_string());
-                            status.admin_count += 1;
+                && let Some(output) = json.get("NetOutput").and_then(|v| v.as_str())
+            {
+                let mut in_members = false;
+                for line in output.lines() {
+                    let line = line.trim();
+                    if line.contains("---") {
+                        in_members = true;
+                        continue;
+                    }
+                    if in_members && !line.is_empty() && !line.starts_with("The command") {
+                        status.admin_accounts.push(line.to_string());
+                        status.admin_count += 1;
 
-                            let is_standard = standard_admins
-                                .iter()
-                                .any(|s| line.to_uppercase().contains(&s.to_uppercase()));
-                            if !is_standard {
-                                status.non_standard_admins.push(line.to_string());
-                            }
+                        let is_standard = standard_admins
+                            .iter()
+                            .any(|s| line.to_uppercase().contains(&s.to_uppercase()));
+                        if !is_standard {
+                            status.non_standard_admins.push(line.to_string());
                         }
                     }
                 }
+            }
         }
 
         // Validate compliance

@@ -434,8 +434,7 @@ impl InterfaceCollector {
                 // PowerShell returns a single object when there's one result, array for multiple
                 serde_json::from_str::<Vec<serde_json::Value>>(trimmed)
                     .or_else(|_| {
-                        serde_json::from_str::<serde_json::Value>(trimmed)
-                            .map(|v| vec![v])
+                        serde_json::from_str::<serde_json::Value>(trimmed).map(|v| vec![v])
                     })
                     .unwrap_or_else(|e| {
                         tracing::warn!("Failed to parse IP addresses JSON: {}", e);
