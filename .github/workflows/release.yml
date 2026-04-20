@@ -921,9 +921,9 @@ jobs:
           # 1. Apply CORS configuration
           gcloud storage buckets update gs://$BUCKET_NAME --cors-file=.github/workflows/cors-config.json
 
-          # 2. Grant public read access to the releases folder
-          echo "Setting public read access on release objects"
-          gsutil -m acl set -R public-read "$BUCKET" || true
+          # 2. Grant public read access to the releases folder via IAM (UBLA compatible)
+          echo "Setting public read access on release objects via IAM"
+          gcloud storage objects add-iam-policy-binding "$BUCKET/**" --member="allUsers" --role="roles/storage.objectViewer" --quiet > /dev/null || true
 
           # 4. Set Cache-Control for 'latest' aliases to ensure they are not cached too long by CDN
           echo "Setting Cache-Control for latest aliases"
@@ -931,9 +931,9 @@ jobs:
           gcloud storage objects update "$BUCKET/release-info.json" --cache-control="public, max-age=300" 2>/dev/null || true
 
           # 5. Verify permissions are set correctly
-          echo "Verifying public access on latest files"
-          gsutil acl get "$BUCKET/macos/SentinelAgent-latest.pkg" 2>/dev/null || echo "Could not verify macOS pkg ACL"
-          gsutil acl get "$BUCKET/windows/SentinelAgentSetup-latest.msi" 2>/dev/null || echo "Could not verify Windows MSI ACL"
+          echo "Verifying public access readiness"
+          gcloud storage objects get-iam-policy "$BUCKET/macos/SentinelAgent-latest.pkg" --format="json" 2>/dev/null | grep -q "allUsers" || echo "Note: public IAM binding not explicitly verified on macOS pkg"
+          gcloud storage objects get-iam-policy "$BUCKET/windows/SentinelAgentSetup-latest.msi" --format="json" 2>/dev/null | grep -q "allUsers" || echo "Note: public IAM binding not explicitly verified on Windows MSI"
 
           echo "✅ Release upload and configuration completed successfully"
           gcloud storage objects update "$BUCKET/**/*.txt" --content-type="text/plain" 2>/dev/null || true
@@ -944,10 +944,10 @@ jobs:
         run: |
           BUCKET="gs://${{ secrets.FIREBASE_STORAGE_BUCKET }}/releases/agent"
           echo "=== Firebase Storage contents ==="
-          gsutil ls -l "$BUCKET/macos/" 2>/dev/null || echo "(no macos files)"
-          gsutil ls -l "$BUCKET/windows/" 2>/dev/null || echo "(no windows files)"
-          gsutil ls -l "$BUCKET/linux_deb/" 2>/dev/null || echo "(no linux_deb files)"
-          gsutil ls -l "$BUCKET/linux_rpm/" 2>/dev/null || echo "(no linux_rpm files)"
+          gcloud storage ls -l "$BUCKET/macos/" 2>/dev/null || echo "(no macos files)"
+          gcloud storage ls -l "$BUCKET/windows/" 2>/dev/null || echo "(no windows files)"
+          gcloud storage ls -l "$BUCKET/linux_deb/" 2>/dev/null || echo "(no linux_deb files)"
+          gcloud storage ls -l "$BUCKET/linux_rpm/" 2>/dev/null || echo "(no linux_rpm files)"
 
       - name: Verify public access
         run: |

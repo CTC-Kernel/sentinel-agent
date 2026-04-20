@@ -26,17 +26,12 @@ else
   echo "Warning: CORS file not found at ${CORS_FILE}, skipping"
 fi
 
-# ── 2. Public read ACL on release objects ────────────────────────────
+# ── 2. Public read access (IAM) ──────────────────────────────────────
 echo ""
-echo "--- Setting public-read ACL on release objects ---"
-gsutil -m acl set -R public-read "$BUCKET" || true
-
-# ── 3. IAM policy binding (fallback) ────────────────────────────────
-echo ""
-echo "--- Setting IAM policy binding ---"
+echo "--- Setting public-read IAM policy binding (UBLA compatible) ---"
 gcloud storage objects add-iam-policy-binding "${BUCKET}/**" \
   --member="allUsers" \
-  --role="roles/storage.objectViewer" 2>/dev/null || true
+  --role="roles/storage.objectViewer" --quiet
 
 # ── 4. Content types ────────────────────────────────────────────────
 echo ""
