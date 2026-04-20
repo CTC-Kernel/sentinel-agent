@@ -1283,6 +1283,8 @@ impl AgentRuntime {
                                                 auth_token: None,
                                                 auth_header: None,
                                                 verify_tls: true,
+                                                client_cert: None,
+                                                client_key: None,
                                             };
                                         }
                                         _ => {
@@ -1294,6 +1296,8 @@ impl AgentRuntime {
                                                 port,
                                                 protocol: agent_siem::SyslogProtocol::Tcp,
                                                 tls: false,
+                                                client_cert: None,
+                                                client_key: None,
                                             };
                                         }
                                     }

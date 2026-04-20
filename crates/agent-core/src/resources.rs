@@ -45,8 +45,8 @@ impl Default for ResourceLimits {
             max_cpu_active: 35.0, // 35% during active scans (increased for I/O heavy checks)
             max_memory_bytes: 512 * 1024 * 1024, // 512 MB (egui+OpenGL ~200MB + scan buffers ~150MB)
             llm_memory_allowance_bytes: 6 * 1024 * 1024 * 1024, // 6 GB for GGUF model (Q4_K_M ~4-5GB + KV cache)
-            max_disk_kbps: 10000, // 10 MB/s
-            max_startup_ms: 15000, // 15 seconds
+            max_disk_kbps: 10000,                               // 10 MB/s
+            max_startup_ms: 15000,                              // 15 seconds
         }
     }
 }
@@ -202,7 +202,7 @@ impl ResourceMonitor {
         let usage = ResourceUsage {
             cpu_percent,
             memory_bytes,
-            disk_kbps: disk_kbps.try_into().unwrap_or(u32::MAX),
+            disk_kbps: disk_kbps.try_into().unwrap_or(0),
             network_io_bytes,
             uptime_ms,
         };
@@ -341,15 +341,14 @@ impl ResourceMonitor {
                     }
                 };
 
-                if !timed_out
-                    && let Ok(output) = child.wait_with_output() {
-                        let stdout = String::from_utf8_lossy(&output.stdout);
-                        for line in stdout.lines() {
-                            if let Some(conn) = self.parse_netstat_line(line) {
-                                connections.push(conn);
-                            }
+                if !timed_out && let Ok(output) = child.wait_with_output() {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    for line in stdout.lines() {
+                        if let Some(conn) = self.parse_netstat_line(line) {
+                            connections.push(conn);
                         }
                     }
+                }
             }
         }
 
@@ -1058,9 +1057,10 @@ fn get_network_bytes_total() -> u64 {
 
     // Use cached value if less than 1 second old (network stats don't change fast)
     if let Some((cached_bytes, cached_time)) = *guard
-        && now.duration_since(cached_time).as_secs() < 1 {
-            return cached_bytes;
-        }
+        && now.duration_since(cached_time).as_secs() < 1
+    {
+        return cached_bytes;
+    }
 
     // Windows: use sysinfo Networks as fallback (the native approach requires
     // GetIfTable2 from iphlpapi which is more complex to declare via FFI).
@@ -1698,8 +1698,10 @@ fn get_system_memory() -> (u64, u64) {
     use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
 
     unsafe {
-        let mut ms = MEMORYSTATUSEX::default();
-        ms.dwLength = std::mem::size_of::<MEMORYSTATUSEX>() as u32;
+        let mut ms = MEMORYSTATUSEX {
+            dwLength: std::mem::size_of::<MEMORYSTATUSEX>() as u32,
+            ..Default::default()
+        };
         if GlobalMemoryStatusEx(&mut ms).is_ok() {
             return (ms.ullTotalPhys, ms.ullTotalPhys - ms.ullAvailPhys);
         }

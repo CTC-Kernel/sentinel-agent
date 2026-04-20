@@ -1012,7 +1012,11 @@ impl LLMPanel {
                     let painter = ui.painter();
 
                     // Background track
-                    painter.rect_filled(rect, egui::CornerRadius::same(theme::ROUNDING_MD), theme::bg_elevated());
+                    painter.rect_filled(
+                        rect,
+                        egui::CornerRadius::same(theme::ROUNDING_MD),
+                        theme::bg_elevated(),
+                    );
 
                     // Fill
                     let fill_width = rect.width() * progress;
@@ -1028,7 +1032,11 @@ impl LLMPanel {
                             theme::ACCENT
                         };
 
-                        painter.rect_filled(fill_rect, egui::CornerRadius::same(theme::ROUNDING_MD), fill_color);
+                        painter.rect_filled(
+                            fill_rect,
+                            egui::CornerRadius::same(theme::ROUNDING_MD),
+                            fill_color,
+                        );
                     }
                 }
 

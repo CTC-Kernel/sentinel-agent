@@ -55,7 +55,10 @@ impl SelfProtection {
         let binary_path = match std::env::current_exe() {
             Ok(p) => p,
             Err(e) => {
-                warn!("Failed to resolve current executable path: {}. Binary integrity checks will fail.", e);
+                warn!(
+                    "Failed to resolve current executable path: {}. Binary integrity checks will fail.",
+                    e
+                );
                 PathBuf::new()
             }
         };
@@ -120,7 +123,15 @@ impl SelfProtection {
     /// Verify config file integrity.
     pub fn verify_config(&self) -> bool {
         let Some(ref expected) = self.startup_config_hash else {
-            return true; // No baseline hash → skip config verification
+            // No baseline hash — config didn't exist at startup.
+            // If it still doesn't exist, that's fine. If it appeared, that's unusual but not tampering.
+            // If it *did* exist but we failed to hash it, warn about reduced protection.
+            if self.config_path.exists() {
+                warn!(
+                    "Config file exists but no baseline hash was recorded at startup — integrity check skipped"
+                );
+            }
+            return true;
         };
 
         match compute_file_hash(&self.config_path) {

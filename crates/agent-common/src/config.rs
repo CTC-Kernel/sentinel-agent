@@ -920,9 +920,11 @@ mod tests {
 
     #[test]
     fn test_secure_config_zeroizes_on_drop() {
-        let mut config = AgentConfig::default();
-        config.admin_password = Some("secret123".to_string());
-        config.client_key = Some("key456".to_string());
+        let config = AgentConfig {
+            admin_password: Some("secret123".to_string()),
+            client_key: Some("key456".to_string()),
+            ..Default::default()
+        };
 
         let ptr_password: *const String;
         let ptr_key: *const String;

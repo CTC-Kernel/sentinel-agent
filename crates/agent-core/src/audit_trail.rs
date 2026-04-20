@@ -37,6 +37,12 @@ pub enum AuditAction {
     UpdateChecked {
         version_found: Option<String>,
     },
+    AIInteraction {
+        prompt_preview: String,
+    },
+    VoiceActivity {
+        activity: String,
+    },
 }
 
 /// A recorded audit log entry.
@@ -91,6 +97,8 @@ impl LocalAuditTrail {
             AuditAction::AgentStarted => "agent_started",
             AuditAction::AgentShutdown => "agent_shutdown",
             AuditAction::UpdateChecked { .. } => "update_checked",
+            AuditAction::AIInteraction { .. } => "ai_interaction",
+            AuditAction::VoiceActivity { .. } => "voice_activity",
         };
 
         let stored_entry = StoredAuditEntry {

@@ -313,11 +313,10 @@ impl ProcessMonitor {
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        let raw = agent_common::process::parse_powershell_json_array(&stdout)
-            .unwrap_or_else(|e| {
-                tracing::warn!("Failed to parse process list JSON: {}", e);
-                vec![]
-            });
+        let raw = agent_common::process::parse_powershell_json_array(&stdout).unwrap_or_else(|e| {
+            tracing::warn!("Failed to parse process list JSON: {}", e);
+            vec![]
+        });
         let processes: Vec<WinProcess> = raw
             .into_iter()
             .filter_map(|v| serde_json::from_value(v).ok())
@@ -464,7 +463,10 @@ impl ProcessMonitor {
         // self-detection when custom patterns are added.
         let my_pid = std::process::id();
 
-        debug!("Scanning {} processes (excluding own PID {})", count, my_pid);
+        debug!(
+            "Scanning {} processes (excluding own PID {})",
+            count, my_pid
+        );
 
         for proc in processes {
             if proc.pid == my_pid {

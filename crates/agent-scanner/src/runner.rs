@@ -208,7 +208,10 @@ impl CheckRunner {
                 return Ok(self.create_error_result(&check_id, start, e.to_string()));
             }
             Err(_) => {
-                error!("Check {} timed out after {}ms", check_id, self.config.check_timeout_ms);
+                error!(
+                    "Check {} timed out after {}ms",
+                    check_id, self.config.check_timeout_ms
+                );
                 return Ok(self.create_timeout_result(&check_id, start));
             }
         };

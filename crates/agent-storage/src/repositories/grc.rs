@@ -113,7 +113,7 @@ pub struct StoredPlaybook {
     pub description: String,
     pub trigger_type: String,
     pub severity: String,
-    pub steps: String,      // JSON of actions
+    pub steps: String, // JSON of actions
     pub enabled: bool,
     pub created_at: String,
     pub updated_at: String,
@@ -221,11 +221,11 @@ pub struct StoredManagedAsset {
     pub device_type: String,
     pub criticality: String,
     pub lifecycle: String,
-    pub tags: String,              // JSON array
+    pub tags: String, // JSON array
     pub risk_score: f64,
     pub vulnerability_count: i32,
-    pub open_ports: String,        // JSON array
-    pub software: String,          // JSON array
+    pub open_ports: String, // JSON array
+    pub software: String,   // JSON array
     pub first_seen: String,
     pub last_seen: String,
     pub synced: bool,

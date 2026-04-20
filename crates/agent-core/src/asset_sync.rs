@@ -94,8 +94,10 @@ impl AgentRuntime {
                 tags: serde_json::to_string(&host_asset.tags).unwrap_or_else(|_| "[]".to_string()),
                 risk_score: host_asset.risk_score as f64,
                 vulnerability_count: host_asset.vulnerability_count as i32,
-                open_ports: serde_json::to_string(&host_asset.open_ports).unwrap_or_else(|_| "[]".to_string()),
-                software: serde_json::to_string(&host_asset.software).unwrap_or_else(|_| "[]".to_string()),
+                open_ports: serde_json::to_string(&host_asset.open_ports)
+                    .unwrap_or_else(|_| "[]".to_string()),
+                software: serde_json::to_string(&host_asset.software)
+                    .unwrap_or_else(|_| "[]".to_string()),
                 first_seen: chrono::Utc::now().to_rfc3339(),
                 last_seen: chrono::Utc::now().to_rfc3339(),
                 synced: false,
@@ -109,9 +111,7 @@ impl AgentRuntime {
 
         if !gui_assets.is_empty() {
             info!("Loaded {} asset(s) from SQLite into GUI", gui_assets.len());
-            self.emit_gui_event(agent_gui::events::AgentEvent::AssetsLoaded {
-                assets: gui_assets,
-            });
+            self.emit_gui_event(agent_gui::events::AgentEvent::AssetsLoaded { assets: gui_assets });
         }
 
         // Also load playbooks from SQLite
@@ -119,7 +119,10 @@ impl AgentRuntime {
         if let Ok(stored_pbs) = pb_repo.get_all().await {
             let playbooks = crate::threat_pipeline::stored_playbooks_to_dto(&stored_pbs);
             if !playbooks.is_empty() {
-                info!("Loaded {} playbook(s) from SQLite into GUI", playbooks.len());
+                info!(
+                    "Loaded {} playbook(s) from SQLite into GUI",
+                    playbooks.len()
+                );
                 self.emit_gui_event(agent_gui::events::AgentEvent::PlaybooksLoaded { playbooks });
             }
         }
@@ -129,7 +132,10 @@ impl AgentRuntime {
         if let Ok(stored_rules) = rule_repo.get_all().await {
             let rules = crate::threat_pipeline::stored_rules_to_dto(&stored_rules);
             if !rules.is_empty() {
-                info!("Loaded {} detection rule(s) from SQLite into GUI", rules.len());
+                info!(
+                    "Loaded {} detection rule(s) from SQLite into GUI",
+                    rules.len()
+                );
                 self.emit_gui_event(agent_gui::events::AgentEvent::DetectionRulesLoaded { rules });
             }
         }
@@ -276,7 +282,10 @@ impl AgentRuntime {
                 }
             }
             if count > 0 {
-                info!("Re-enqueued {} unsynced playbook(s) for platform upload", count);
+                info!(
+                    "Re-enqueued {} unsynced playbook(s) for platform upload",
+                    count
+                );
             }
         }
 
@@ -299,7 +308,10 @@ impl AgentRuntime {
                 }
             }
             if count > 0 {
-                info!("Re-enqueued {} unsynced detection rule(s) for platform upload", count);
+                info!(
+                    "Re-enqueued {} unsynced detection rule(s) for platform upload",
+                    count
+                );
             }
         }
 
@@ -321,7 +333,10 @@ impl AgentRuntime {
                 }
             }
             if count > 0 {
-                info!("Re-enqueued {} unsynced asset(s) for platform upload", count);
+                info!(
+                    "Re-enqueued {} unsynced asset(s) for platform upload",
+                    count
+                );
             }
         }
 
@@ -329,7 +344,10 @@ impl AgentRuntime {
     }
 
     #[cfg(feature = "gui")]
-    fn stored_asset_to_dto(&self, s: &agent_storage::repositories::grc::StoredManagedAsset) -> agent_gui::dto::ManagedAsset {
+    fn stored_asset_to_dto(
+        &self,
+        s: &agent_storage::repositories::grc::StoredManagedAsset,
+    ) -> agent_gui::dto::ManagedAsset {
         let id = uuid::Uuid::parse_str(&s.id).unwrap_or_else(|_| uuid::Uuid::new_v4());
         let first_seen = chrono::DateTime::parse_from_rfc3339(&s.first_seen)
             .map(|dt| dt.with_timezone(&chrono::Utc))

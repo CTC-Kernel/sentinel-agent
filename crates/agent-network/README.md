@@ -29,7 +29,10 @@ Detection des menaces de securite :
 - `c2_detector` : Communication de type Command & Control
 - `miner_detector` : Trafic de minage de crypto-monnaie
 - `exfil_detector` : Schemas d'exfiltration de donnees
+- `beaconing_detector` : Beaconing sortant suspect (intervalles reguliers)
+- `dga_detector` : Detection d'algorithmes de generation de domaines (DGA)
 - `port_scanner` : Activite suspecte sur les ports
+- `rules` : Definitions des regles de detection
 
 ### Decouverte
 

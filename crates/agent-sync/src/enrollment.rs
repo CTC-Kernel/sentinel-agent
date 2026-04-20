@@ -305,9 +305,10 @@ fn get_machine_id() -> Option<String> {
             // Parse the registry output to extract MachineGuid
             for line in stdout.lines() {
                 if line.contains("MachineGuid")
-                    && let Some(guid) = line.split_whitespace().last() {
-                        return Some(guid.to_string());
-                    }
+                    && let Some(guid) = line.split_whitespace().last()
+                {
+                    return Some(guid.to_string());
+                }
             }
             None
         })

@@ -104,8 +104,14 @@ impl GuestAccountCheck {
 
         // Parse JSON result
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(raw_output.trim()) {
-            let exists = json.get("exists").and_then(|v| v.as_bool()).unwrap_or(false);
-            let enabled = json.get("enabled").and_then(|v| v.as_bool()).unwrap_or(false);
+            let exists = json
+                .get("exists")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let enabled = json
+                .get("enabled")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
 
             return Ok(GuestAccountStatus {
                 guest_disabled: !enabled,
@@ -117,22 +123,18 @@ impl GuestAccountCheck {
         }
 
         // Fallback: use net user with less reliable parsing
-        let fallback = silent_command("net")
-            .args(["user", "Guest"])
-            .output();
+        let fallback = silent_command("net").args(["user", "Guest"]).output();
 
         match fallback {
             Ok(fb_output) if fb_output.status.success() => {
                 let fb_raw = String::from_utf8_lossy(&fb_output.stdout).to_string();
                 // Look for "Yes" or "No" after the last colon on the "Account active" line
                 // This is fragile but serves as a fallback
-                let account_active = fb_raw
-                    .lines()
-                    .any(|line| {
-                        let lower = line.to_lowercase();
-                        (lower.contains("account active") || lower.contains("compte actif"))
-                            && (lower.ends_with("yes") || lower.ends_with("oui"))
-                    });
+                let account_active = fb_raw.lines().any(|line| {
+                    let lower = line.to_lowercase();
+                    (lower.contains("account active") || lower.contains("compte actif"))
+                        && (lower.ends_with("yes") || lower.ends_with("oui"))
+                });
 
                 Ok(GuestAccountStatus {
                     guest_disabled: !account_active,

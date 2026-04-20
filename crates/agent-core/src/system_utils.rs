@@ -77,7 +77,20 @@ pub fn get_machine_id() -> String {
                 content
                     .lines()
                     .find(|line| line.contains("IOPlatformUUID"))
-                    .and_then(|line| line.split('"').nth(3).map(|s| s.to_string()))
+                    .and_then(|line| {
+                        // Robustly extract the UUID value between the last pair of quotes.
+                        // ioreg format: `"IOPlatformUUID" = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"`
+                        let trimmed = line.trim().trim_end_matches('"');
+                        let start = trimmed.rfind('"').map(|i| i + 1)?;
+                        let uuid = &trimmed[start..];
+                        // Validate UUID format (8-4-4-4-12 hex)
+                        if uuid.len() >= 36 && uuid.chars().filter(|c| *c == '-').count() == 4 {
+                            Some(uuid.to_string())
+                        } else {
+                            tracing::warn!("IOPlatformUUID has unexpected format: {}", uuid);
+                            None
+                        }
+                    })
             })
             .unwrap_or_else(generate_fallback_machine_id)
     }

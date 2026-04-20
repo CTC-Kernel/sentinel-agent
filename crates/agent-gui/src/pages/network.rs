@@ -390,10 +390,8 @@ impl NetworkPage {
                             }
                             state.network.detail_open = false;
                             state.toasts.push(
-                                crate::widgets::toast::Toast::success(
-                                    "Connexion bloqu\u{00e9}e",
-                                )
-                                .with_time(time),
+                                crate::widgets::toast::Toast::success("Connexion bloqu\u{00e9}e")
+                                    .with_time(time),
                             );
                         }
                     }
@@ -639,9 +637,9 @@ impl NetworkPage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(90.0).range(60.0..=160.0))  // Name
-                    .column(Column::initial(90.0).range(60.0..=140.0))  // Type
-                    .column(Column::initial(70.0).range(50.0..=120.0))  // Status
+                    .column(Column::initial(90.0).range(60.0..=160.0)) // Name
+                    .column(Column::initial(90.0).range(60.0..=140.0)) // Type
+                    .column(Column::initial(70.0).range(50.0..=120.0)) // Status
                     .column(Column::initial(120.0).range(80.0..=200.0)) // IPv4
                     .column(Column::remainder()); // MAC
 

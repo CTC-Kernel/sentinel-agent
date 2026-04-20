@@ -125,7 +125,10 @@ impl KeyManager {
             // The HWID is used as the HMAC key and the stored key as the message,
             // producing a non-invertible derivation bound to this machine.
             let mut mac = Hmac::<Sha256>::new_from_slice(&hwid).map_err(|e| {
-                StorageError::KeyManagement(format!("Failed to initialize HMAC for key derivation: {}", e))
+                StorageError::KeyManagement(format!(
+                    "Failed to initialize HMAC for key derivation: {}",
+                    e
+                ))
             })?;
             mac.update(&self.key);
             let result = mac.finalize().into_bytes();
@@ -325,15 +328,18 @@ impl KeyManager {
             )));
         }
 
-        // Additional safety: ensure cbData doesn't exceed what we'll copy
-        debug_assert!(
+        // Safety invariant: decrypted_len == KEY_LENGTH is enforced above.
+        // This assert fires in both debug AND release builds to prevent buffer overflow.
+        assert!(
             decrypted_len <= KEY_LENGTH,
-            "bounds check should have caught this"
+            "DPAPI decrypted key exceeds buffer: {} > {}",
+            decrypted_len,
+            KEY_LENGTH
         );
 
         let mut key = [0u8; KEY_LENGTH];
         unsafe {
-            std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);
+            std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), decrypted_len);
         }
 
         // Free the DPAPI-allocated memory
@@ -374,8 +380,8 @@ impl KeyManager {
 
         // Write atomically: create temp file with 0600 from the start, then rename.
         // This avoids a TOCTOU race where the file is briefly world-readable.
-        use std::os::unix::fs::OpenOptionsExt;
         use std::io::Write;
+        use std::os::unix::fs::OpenOptionsExt;
 
         let tmp_path = path.with_extension("key.tmp");
         {
@@ -388,24 +394,31 @@ impl KeyManager {
                 .map_err(|e| {
                     StorageError::KeyManagement(format!(
                         "Failed to create temp key file {}: {}",
-                        tmp_path.display(), e
+                        tmp_path.display(),
+                        e
                     ))
                 })?;
             file.write_all(key).map_err(|e| {
                 StorageError::KeyManagement(format!(
                     "Failed to write temp key file {}: {}",
-                    tmp_path.display(), e
+                    tmp_path.display(),
+                    e
                 ))
             })?;
         }
         fs::rename(&tmp_path, path).map_err(|e| {
             StorageError::KeyManagement(format!(
                 "Failed to rename key file {} -> {}: {}",
-                tmp_path.display(), path.display(), e
+                tmp_path.display(),
+                path.display(),
+                e
             ))
         })?;
 
-        info!("Stored encryption key to: {} (mode 0600, atomic)", path.display());
+        info!(
+            "Stored encryption key to: {} (mode 0600, atomic)",
+            path.display()
+        );
         Ok(())
     }
 
@@ -416,15 +429,16 @@ impl KeyManager {
 
         // Ensure parent directory exists
         if let Some(parent) = path.parent()
-            && !parent.exists() {
-                fs::create_dir_all(parent).map_err(|e| {
-                    StorageError::KeyManagement(format!(
-                        "Failed to create key directory {}: {}",
-                        parent.display(),
-                        e
-                    ))
-                })?;
-            }
+            && !parent.exists()
+        {
+            fs::create_dir_all(parent).map_err(|e| {
+                StorageError::KeyManagement(format!(
+                    "Failed to create key directory {}: {}",
+                    parent.display(),
+                    e
+                ))
+            })?;
+        }
 
         // Encrypt the key using DPAPI
         let data_in = CRYPT_INTEGER_BLOB {

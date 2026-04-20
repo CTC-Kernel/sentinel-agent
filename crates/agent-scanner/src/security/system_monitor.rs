@@ -132,28 +132,29 @@ impl SystemMonitor {
             .output();
 
         if let Ok(result) = output
-            && result.status.success() {
-                let stdout = String::from_utf8_lossy(&result.stdout);
-                let profiles = agent_common::process::parse_powershell_json_array(&stdout)
-                    .unwrap_or_else(|e| {
-                        tracing::warn!("Failed to parse firewall profile JSON: {}", e);
-                        vec![]
-                    });
+            && result.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&result.stdout);
+            let profiles = agent_common::process::parse_powershell_json_array(&stdout)
+                .unwrap_or_else(|e| {
+                    tracing::warn!("Failed to parse firewall profile JSON: {}", e);
+                    vec![]
+                });
 
-                let disabled: Vec<&serde_json::Value> =
-                    profiles.iter().filter(|p| {
-                        !agent_common::process::ps_json_as_bool(&p["Enabled"]).unwrap_or(false)
-                    }).collect();
+            let disabled: Vec<&serde_json::Value> = profiles
+                .iter()
+                .filter(|p| !agent_common::process::ps_json_as_bool(&p["Enabled"]).unwrap_or(false))
+                .collect();
 
-                if !disabled.is_empty() {
-                    let disabled_names: Vec<&str> =
-                        disabled.iter().filter_map(|p| p["Name"].as_str()).collect();
-                    return Some(SecurityIncident::firewall_disabled(serde_json::json!({
-                        "firewall": "windows_firewall",
-                        "disabled_profiles": disabled_names,
-                    })));
-                }
+            if !disabled.is_empty() {
+                let disabled_names: Vec<&str> =
+                    disabled.iter().filter_map(|p| p["Name"].as_str()).collect();
+                return Some(SecurityIncident::firewall_disabled(serde_json::json!({
+                    "firewall": "windows_firewall",
+                    "disabled_profiles": disabled_names,
+                })));
             }
+        }
 
         None
     }
@@ -186,32 +187,33 @@ impl SystemMonitor {
             .output();
 
         if let Ok(result) = output
-            && result.status.success() {
-                #[derive(serde::Deserialize)]
-                #[serde(rename_all = "PascalCase")]
-                struct DefenderStatus {
-                    real_time_enabled: Option<bool>,
-                    antivirus_enabled: Option<bool>,
-                    antispyware_enabled: Option<bool>,
-                    behavior_monitor_enabled: Option<bool>,
-                }
-
-                let stdout = String::from_utf8_lossy(&result.stdout);
-                if let Ok(status) = serde_json::from_str::<DefenderStatus>(&stdout)
-                    && (status.real_time_enabled == Some(false)
-                        || status.antivirus_enabled == Some(false))
-                    {
-                        return Some(SecurityIncident::antivirus_disabled(
-                            "Windows Defender",
-                            serde_json::json!({
-                                "real_time_enabled": status.real_time_enabled,
-                                "antivirus_enabled": status.antivirus_enabled,
-                                "antispyware_enabled": status.antispyware_enabled,
-                                "behavior_monitor_enabled": status.behavior_monitor_enabled,
-                            }),
-                        ));
-                    }
+            && result.status.success()
+        {
+            #[derive(serde::Deserialize)]
+            #[serde(rename_all = "PascalCase")]
+            struct DefenderStatus {
+                real_time_enabled: Option<bool>,
+                antivirus_enabled: Option<bool>,
+                antispyware_enabled: Option<bool>,
+                behavior_monitor_enabled: Option<bool>,
             }
+
+            let stdout = String::from_utf8_lossy(&result.stdout);
+            if let Ok(status) = serde_json::from_str::<DefenderStatus>(&stdout)
+                && (status.real_time_enabled == Some(false)
+                    || status.antivirus_enabled == Some(false))
+            {
+                return Some(SecurityIncident::antivirus_disabled(
+                    "Windows Defender",
+                    serde_json::json!({
+                        "real_time_enabled": status.real_time_enabled,
+                        "antivirus_enabled": status.antivirus_enabled,
+                        "antispyware_enabled": status.antispyware_enabled,
+                        "behavior_monitor_enabled": status.behavior_monitor_enabled,
+                    }),
+                ));
+            }
+        }
 
         None
     }
@@ -431,32 +433,33 @@ impl SystemMonitor {
             .output();
 
         if let Ok(result) = output
-            && result.status.success() {
-                let stdout = String::from_utf8_lossy(&result.stdout);
-                let admins: Vec<String> = stdout.lines().map(|s| s.trim().to_string()).collect();
+            && result.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&result.stdout);
+            let admins: Vec<String> = stdout.lines().map(|s| s.trim().to_string()).collect();
 
-                if !self.known_admins.is_empty() {
-                    let new_admins: Vec<&String> = admins
-                        .iter()
-                        .filter(|a| !self.known_admins.contains(a))
-                        .collect();
+            if !self.known_admins.is_empty() {
+                let new_admins: Vec<&String> = admins
+                    .iter()
+                    .filter(|a| !self.known_admins.contains(a))
+                    .collect();
 
-                    if !new_admins.is_empty() {
-                        return Some(SecurityIncident::system_change(
-                            "New administrator account",
-                            &format!(
-                                "New user(s) with administrator privileges detected: {:?}",
-                                new_admins
-                            ),
-                            IncidentSeverity::High,
-                            serde_json::json!({
-                                "new_admins": new_admins,
-                                "known_admins": self.known_admins,
-                            }),
-                        ));
-                    }
+                if !new_admins.is_empty() {
+                    return Some(SecurityIncident::system_change(
+                        "New administrator account",
+                        &format!(
+                            "New user(s) with administrator privileges detected: {:?}",
+                            new_admins
+                        ),
+                        IncidentSeverity::High,
+                        serde_json::json!({
+                            "new_admins": new_admins,
+                            "known_admins": self.known_admins,
+                        }),
+                    ));
                 }
             }
+        }
 
         None
     }

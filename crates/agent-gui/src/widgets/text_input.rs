@@ -87,9 +87,17 @@ pub fn form_field(
         if let Some(ref msg) = validation.message {
             ui.add_space(theme::BORDER_THICK);
             let (icon, color) = match validation.status {
-                InputValidation::Invalid => (crate::icons::CIRCLE_XMARK, theme::readable_color(theme::ERROR)),
-                InputValidation::Warning => (crate::icons::WARNING, theme::readable_color(theme::WARNING)),
-                InputValidation::Valid => (crate::icons::CIRCLE_CHECK, theme::readable_color(theme::SUCCESS)),
+                InputValidation::Invalid => (
+                    crate::icons::CIRCLE_XMARK,
+                    theme::readable_color(theme::ERROR),
+                ),
+                InputValidation::Warning => {
+                    (crate::icons::WARNING, theme::readable_color(theme::WARNING))
+                }
+                InputValidation::Valid => (
+                    crate::icons::CIRCLE_CHECK,
+                    theme::readable_color(theme::SUCCESS),
+                ),
                 InputValidation::None => ("", theme::text_tertiary()),
             };
             ui.horizontal(|ui: &mut egui::Ui| {

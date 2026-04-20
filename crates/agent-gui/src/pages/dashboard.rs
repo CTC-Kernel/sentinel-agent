@@ -715,18 +715,22 @@ impl DashboardPage {
             let total = state.policy.total_policies;
             let passing = state.policy.passing;
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(format!("{}/{}", passing, total))
-                        .font(theme::font_card_value())
-                        .color(if passing == total {
-                            theme::SUCCESS
-                        } else {
-                            theme::text_primary()
-                        })
-                        .strong(),
-                );
-            });
+            if total == 0 && state.summary.last_check_at.is_none() {
+                widgets::skeleton_text(ui, 100.0);
+            } else {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(format!("{}/{}", passing, total))
+                            .font(theme::font_card_value())
+                            .color(if passing == total {
+                                theme::SUCCESS
+                            } else {
+                                theme::text_primary()
+                            })
+                            .strong(),
+                    );
+                });
+            }
 
             ui.add_space(theme::SPACE_XS);
 
@@ -807,6 +811,16 @@ impl DashboardPage {
                     );
                     ui.add_space(theme::SPACE_SM);
                     Self::mini_stat(ui, &format!("{}", total), "total", theme::text_secondary());
+                });
+            } else if state.summary.last_check_at.is_none() {
+                ui.vertical(|ui| {
+                    widgets::skeleton_text(ui, 80.0);
+                    ui.add_space(theme::SPACE_XS);
+                    ui.horizontal(|ui| {
+                        widgets::skeleton(ui, 40.0, 20.0);
+                        ui.add_space(theme::SPACE_SM);
+                        widgets::skeleton(ui, 40.0, 20.0);
+                    });
                 });
             } else {
                 ui.vertical_centered(|ui: &mut egui::Ui| {
@@ -1006,42 +1020,50 @@ impl DashboardPage {
             ui.add_space(theme::SPACE_SM);
 
             let total = state.software.packages.len();
-            let up_to_date = state
-                .software
-                .packages
-                .iter()
-                .filter(|p| p.up_to_date)
-                .count();
-            let coverage = if total > 0 {
-                (up_to_date as f32 / total as f32) * 100.0
+            let mut up_to_date = 0;
+
+            if total == 0 && state.summary.last_check_at.is_none() {
+                widgets::skeleton_text(ui, 120.0);
+                ui.add_space(theme::SPACE_XS);
+                widgets::skeleton(ui, ui.available_width(), 4.0);
             } else {
-                100.0
-            };
+                up_to_date = state
+                    .software
+                    .packages
+                    .iter()
+                    .filter(|p| p.up_to_date)
+                    .count();
+                let coverage = if total > 0 {
+                    (up_to_date as f32 / total as f32) * 100.0
+                } else {
+                    100.0
+                };
 
-            let color = if coverage >= SOFTWARE_COVERAGE_GOOD {
-                theme::SUCCESS
-            } else if coverage >= SOFTWARE_COVERAGE_WARN {
-                theme::WARNING
-            } else {
-                theme::ERROR
-            };
+                let color = if coverage >= SOFTWARE_COVERAGE_GOOD {
+                    theme::SUCCESS
+                } else if coverage >= SOFTWARE_COVERAGE_WARN {
+                    theme::WARNING
+                } else {
+                    theme::ERROR
+                };
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(format!("{:.0}%", coverage))
-                        .font(theme::font_card_value())
-                        .color(color)
-                        .strong(),
-                );
-                ui.label(
-                    egui::RichText::new("\u{00e0} jour")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary()),
-                );
-            });
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(format!("{:.0}%", coverage))
+                            .font(theme::font_card_value())
+                            .color(color)
+                            .strong(),
+                    );
+                    ui.label(
+                        egui::RichText::new("\u{00e0} jour")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                });
 
-            ui.add_space(theme::SPACE_XS);
-            Self::mini_progress_bar(ui, coverage / 100.0, color);
+                ui.add_space(theme::SPACE_XS);
+                Self::mini_progress_bar(ui, coverage / 100.0, color);
+            }
 
             ui.add_space(theme::SPACE_XS);
             let outdated = total - up_to_date;
@@ -1243,7 +1265,8 @@ impl DashboardPage {
                                 _ => {
                                     // SLA remediation (mini gauge)
                                     let (arrow, color) = Self::kpi_trend_arrow(sla_trend, true);
-                                    let sla_color = theme::readable_color(theme::score_color(current_sla));
+                                    let sla_color =
+                                        theme::readable_color(theme::score_color(current_sla));
                                     egui::Frame::new()
                                         .fill(
                                             theme::bg_tertiary()

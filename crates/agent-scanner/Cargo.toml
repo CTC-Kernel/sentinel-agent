@@ -32,7 +32,6 @@ futures-util = { workspace = true, optional = true }
 
 [features]
 default = []
-llm_simple = ["dep:anyhow"]
 llm = ["dep:agent_llm", "dep:anyhow"]
 osv = ["dep:reqwest", "dep:futures-util"]
 

@@ -1077,7 +1077,7 @@ impl ApiClient {
             .ok_or_else(|| CommonError::validation("Agent ID not set"))?;
 
         let url = format!("{}/v1/agents/{}/incidents", self.base_url, agent_id);
-        info!("Reporting incident to {}", url);
+        info!("Reporting incident to {}", self.safe_log_url(&url));
 
         let builder = self.authenticate(self.client.post(&url).json(&report));
 

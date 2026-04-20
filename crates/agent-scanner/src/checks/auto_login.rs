@@ -119,15 +119,16 @@ impl AutoLoginCheck {
                     "DefaultUserName",
                 ])
                 .output()
-            {
-                let user_str = String::from_utf8_lossy(&user_output.stdout).to_string();
-                for line in user_str.lines() {
-                    if line.contains("DefaultUserName")
-                        && let Some(value) = line.split_whitespace().last() {
-                            auto_login_user = Some(value.to_string());
-                        }
+        {
+            let user_str = String::from_utf8_lossy(&user_output.stdout).to_string();
+            for line in user_str.lines() {
+                if line.contains("DefaultUserName")
+                    && let Some(value) = line.split_whitespace().last()
+                {
+                    auto_login_user = Some(value.to_string());
                 }
             }
+        }
 
         Ok(AutoLoginStatus {
             auto_login_disabled: !auto_login_enabled,

@@ -339,7 +339,11 @@ pub fn text_on_color(bg: Color32) -> Color32 {
     // WCAG relative luminance uses BT.709 sRGB linearization
     fn srgb_lin(c: u8) -> f32 {
         let s = c as f32 / 255.0;
-        if s <= 0.04045 { s / 12.92 } else { ((s + 0.055) / 1.055).powf(2.4) }
+        if s <= 0.04045 {
+            s / 12.92
+        } else {
+            ((s + 0.055) / 1.055).powf(2.4)
+        }
     }
     let lum = 0.2126 * srgb_lin(bg.r()) + 0.7152 * srgb_lin(bg.g()) + 0.0722 * srgb_lin(bg.b());
     // Crossover: (1+0.05)/(lum+0.05) vs (lum+0.05)/(0+0.05) → lum ≈ 0.179
@@ -962,9 +966,9 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     style.spacing.scroll = egui::style::ScrollStyle {
         bar_width: 6.0,
         handle_min_length: 20.0,
-        bar_inner_margin: 4.0,  // Gap between content edge and scrollbar track
-        bar_outer_margin: 2.0,  // Gap between scrollbar track and window edge
-        floating: true,         // Overlay scrollbar (doesn't consume layout space)
+        bar_inner_margin: 4.0, // Gap between content edge and scrollbar track
+        bar_outer_margin: 2.0, // Gap between scrollbar track and window edge
+        floating: true,        // Overlay scrollbar (doesn't consume layout space)
         ..style.spacing.scroll
     };
 

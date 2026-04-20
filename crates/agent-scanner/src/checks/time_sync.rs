@@ -119,20 +119,22 @@ impl TimeSyncCheck {
         for line in raw_output.lines() {
             let line_lower = line.to_lowercase();
             if (line_lower.contains("leap indicator:") || line_lower.contains("leap indicator :"))
-                && let Some(value) = line.split(':').next_back() {
-                    let leap = value.trim().to_string();
-                    // "0(no warning)" means synchronized
-                    status.synchronized =
-                        leap.contains("0") || leap.to_lowercase().contains("no warning");
-                    status.leap_status = Some(leap);
-                }
+                && let Some(value) = line.split(':').next_back()
+            {
+                let leap = value.trim().to_string();
+                // "0(no warning)" means synchronized
+                status.synchronized =
+                    leap.contains("0") || leap.to_lowercase().contains("no warning");
+                status.leap_status = Some(leap);
+            }
             if (line_lower.contains("source:") || line_lower.contains("source :"))
-                && let Some(value) = line.split(':').next_back() {
-                    let source = value.trim().to_string();
-                    if !source.is_empty() && source != "Local CMOS Clock" {
-                        status.ntp_source = Some(source);
-                    }
+                && let Some(value) = line.split(':').next_back()
+            {
+                let source = value.trim().to_string();
+                if !source.is_empty() && source != "Local CMOS Clock" {
+                    status.ntp_source = Some(source);
                 }
+            }
         }
 
         if !status.synchronized {

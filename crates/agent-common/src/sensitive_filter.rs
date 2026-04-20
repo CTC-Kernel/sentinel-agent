@@ -13,24 +13,31 @@ use std::sync::LazyLock;
 static TOKEN_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
     vec![
         // JWT tokens (Bearer)
-        Regex::new(r"(?i)bearer\s+[a-zA-Z0-9\-._~+/]+=*").expect("BUG: invalid hardcoded regex pattern"),
+        Regex::new(r"(?i)bearer\s+[a-zA-Z0-9\-._~+/]+=*")
+            .expect("BUG: invalid hardcoded regex pattern"),
         // API keys in headers - simplified pattern
-        Regex::new(r"(?i)api[_-]?key\s*[:=]\s*[a-zA-Z0-9\-._~+/]+=*").expect("BUG: invalid hardcoded regex pattern"),
+        Regex::new(r"(?i)api[_-]?key\s*[:=]\s*[a-zA-Z0-9\-._~+/]+=*")
+            .expect("BUG: invalid hardcoded regex pattern"),
         // Authorization headers
-        Regex::new(r"(?i)authorization\s*[:=]\s*[a-zA-Z0-9\-._~+/]+=*").expect("BUG: invalid hardcoded regex pattern"),
+        Regex::new(r"(?i)authorization\s*[:=]\s*[a-zA-Z0-9\-._~+/]+=*")
+            .expect("BUG: invalid hardcoded regex pattern"),
         // Enrollment tokens (xxxxx-xxxxx-xxxxx format)
-        Regex::new(r"\b[a-zA-Z0-9]{5}(?:-[a-zA-Z0-9]{5}){2,}\b").expect("BUG: invalid hardcoded regex pattern"),
+        Regex::new(r"\b[a-zA-Z0-9]{5}(?:-[a-zA-Z0-9]{5}){2,}\b")
+            .expect("BUG: invalid hardcoded regex pattern"),
         // Generic secret patterns
-        Regex::new(r"(?i)(secret|password|passphrase|private[_-]?key)\s*[:=]\s*[^\s]{8,}").expect("BUG: invalid hardcoded regex pattern"),
+        Regex::new(r"(?i)(secret|password|passphrase|private[_-]?key)\s*[:=]\s*[^\s]{8,}")
+            .expect("BUG: invalid hardcoded regex pattern"),
         // Certificate content
-        Regex::new(r"(?i)-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----").expect("BUG: invalid hardcoded regex pattern"),
+        Regex::new(r"(?i)-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----")
+            .expect("BUG: invalid hardcoded regex pattern"),
         // Base64 encoded secrets (long strings, requires key-like prefix to avoid false positives)
         Regex::new(
             r"(?i)(?:key|token|secret|password|credential|auth)\s*[:=]\s*[A-Za-z0-9+/]{40,}={0,2}",
         )
         .expect("BUG: invalid hardcoded regex pattern"),
         // Stripe API keys (secret, publishable, restricted)
-        Regex::new(r"(sk|pk|rk)_(live|test)_[a-zA-Z0-9]{10,}").expect("BUG: invalid hardcoded regex pattern"),
+        Regex::new(r"(sk|pk|rk)_(live|test)_[a-zA-Z0-9]{10,}")
+            .expect("BUG: invalid hardcoded regex pattern"),
         // GCP/Firebase API keys
         Regex::new(r"AIzaSy[a-zA-Z0-9_\-]{33}").expect("BUG: invalid hardcoded regex pattern"),
         // AWS access key IDs
@@ -40,9 +47,11 @@ static TOKEN_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
         // GitHub Actions tokens
         Regex::new(r"ghs_[a-zA-Z0-9]{36,}").expect("BUG: invalid hardcoded regex pattern"),
         // Connection strings with embedded credentials
-        Regex::new(r"(?i)(?:postgres|mysql|mongodb|redis|amqp)://[^:]+:[^@]+@").expect("BUG: invalid hardcoded regex pattern"),
+        Regex::new(r"(?i)(?:postgres|mysql|mongodb|redis|amqp)://[^:]+:[^@]+@")
+            .expect("BUG: invalid hardcoded regex pattern"),
         // SSH private keys
-        Regex::new(r"-----BEGIN OPENSSH PRIVATE KEY-----").expect("BUG: invalid hardcoded regex pattern"),
+        Regex::new(r"-----BEGIN OPENSSH PRIVATE KEY-----")
+            .expect("BUG: invalid hardcoded regex pattern"),
     ]
 });
 

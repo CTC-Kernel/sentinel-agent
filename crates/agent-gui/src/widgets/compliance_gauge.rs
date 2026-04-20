@@ -21,11 +21,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
     let stroke_width = theme::GAUGE_STROKE;
 
     // Subtle background fill for depth
-    painter.circle_filled(
-        center,
-        radius + stroke_width * 0.5,
-        theme::bg_deep(),
-    );
+    painter.circle_filled(center, radius + stroke_width * 0.5, theme::bg_deep());
 
     // Background track
     painter.circle_stroke(center, radius, egui::Stroke::new(stroke_width, track_color));

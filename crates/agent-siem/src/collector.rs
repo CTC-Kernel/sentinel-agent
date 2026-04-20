@@ -89,7 +89,12 @@ impl Default for LogCollectorConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            sources: vec![LogSource::System, LogSource::Auth, LogSource::Application, LogSource::Firewall],
+            sources: vec![
+                LogSource::System,
+                LogSource::Auth,
+                LogSource::Application,
+                LogSource::Firewall,
+            ],
             lookback_secs: 300,
             poll_interval_secs: 60,
             severity_filter: vec![
@@ -150,65 +155,143 @@ impl Default for LogCollectorConfig {
 /// Their log entries are dropped before severity filtering.
 const IGNORED_PROCESSES: &[&str] = &[
     // Messaging & contacts
-    "imagent", "sharingd", "contactsd", "IMDPersistenceAgent", "callservicesd",
-    "identityservicesd", "FaceTime", "Messages",
+    "imagent",
+    "sharingd",
+    "contactsd",
+    "IMDPersistenceAgent",
+    "callservicesd",
+    "identityservicesd",
+    "FaceTime",
+    "Messages",
     // Photos & media
-    "Photos", "photolibraryd", "photoanalysisd", "mediaanalysisd",
-    "mediaaccessibilityd", "AMPDevicesAgent", "AMPLibraryAgent",
-    "NowPlayingTouchUI", "coremediapipelined",
+    "Photos",
+    "photolibraryd",
+    "photoanalysisd",
+    "mediaanalysisd",
+    "mediaaccessibilityd",
+    "AMPDevicesAgent",
+    "AMPLibraryAgent",
+    "NowPlayingTouchUI",
+    "coremediapipelined",
     // Cloud & sync
-    "bird", "cloudd", "nsurlsessiond", "itunescloudd", "CloudKeychainProxy",
-    "amsaccountsd", "amsengagementd", "commerce", "storedownloadd", "appstoreagent",
+    "bird",
+    "cloudd",
+    "nsurlsessiond",
+    "itunescloudd",
+    "CloudKeychainProxy",
+    "amsaccountsd",
+    "amsengagementd",
+    "commerce",
+    "storedownloadd",
+    "appstoreagent",
     // Intelligence & suggestions
-    "suggestd", "parsecd", "knowledge-agent", "intelligenceplatformd",
-    "coreduetd", "bilomd", "saboragentd",
+    "suggestd",
+    "parsecd",
+    "knowledge-agent",
+    "intelligenceplatformd",
+    "coreduetd",
+    "bilomd",
+    "saboragentd",
     // Networking (non-security)
-    "mDNSResponder", "airportd", "WiFiAgent", "WirelessRadioManagerd",
-    "symptomsd", "networkserviceproxy", "configd",
+    "mDNSResponder",
+    "airportd",
+    "WiFiAgent",
+    "WirelessRadioManagerd",
+    "symptomsd",
+    "networkserviceproxy",
+    "configd",
     // Bluetooth & continuity
-    "bluetoothd", "ContinuityCaptureAgent", "rapportd", "nearby",
-    "sharingaudiod", "seld",
+    "bluetoothd",
+    "ContinuityCaptureAgent",
+    "rapportd",
+    "nearby",
+    "sharingaudiod",
+    "seld",
     // Push & calendar
-    "apsd", "remindd", "CalendarAgent", "AddressBookSourceSync", "dataaccessd",
+    "apsd",
+    "remindd",
+    "CalendarAgent",
+    "AddressBookSourceSync",
+    "dataaccessd",
     // System UI & window management
-    "WindowServer", "WindowManager", "SystemUIServer", "ControlCenter",
-    "NotificationCenter", "Dock", "Finder", "Spotlight", "mdworker",
-    "mdworker_shared", "mds_stores",
+    "WindowServer",
+    "WindowManager",
+    "SystemUIServer",
+    "ControlCenter",
+    "NotificationCenter",
+    "Dock",
+    "Finder",
+    "Spotlight",
+    "mdworker",
+    "mdworker_shared",
+    "mds_stores",
     // Location & maps
-    "com.apple.geod", "geod", "locationd",
+    "com.apple.geod",
+    "geod",
+    "locationd",
     // Misc Apple daemons
-    "weatherd", "ScreenTimeAgent", "UsageTrackingAgent", "studentd",
-    "translationd", "tipsd", "timed", "nbagent", "gamecontrollerd",
-    "accessoryupdaterd", "com.apple.preferences",
+    "weatherd",
+    "ScreenTimeAgent",
+    "UsageTrackingAgent",
+    "studentd",
+    "translationd",
+    "tipsd",
+    "timed",
+    "nbagent",
+    "gamecontrollerd",
+    "accessoryupdaterd",
+    "com.apple.preferences",
     // WebKit (non-security errors)
-    "com.apple.WebKit.Networking", "com.apple.WebKit.WebContent",
+    "com.apple.WebKit.Networking",
+    "com.apple.WebKit.WebContent",
     // TCC (noisy consent framework, not actionable)
-    "TCC", "tccd",
+    "TCC",
+    "tccd",
     // Mobile/hardware gesture libs (SentinelAgent own process noise)
     "libMobileGestalt",
     // RunningBoard (process lifecycle management, not security)
     "runningboardd",
     // LaunchServices, CoreServices
-    "lsd", "coreservicesd", "launchservicesd", "trustd",
+    "lsd",
+    "coreservicesd",
+    "launchservicesd",
+    "trustd",
     // Diagnostics & analytics
-    "diagnosticd", "sysdiagnose", "spindump", "ReportCrash",
-    "osanalyticshelper", "analyticsd",
+    "diagnosticd",
+    "sysdiagnose",
+    "spindump",
+    "ReportCrash",
+    "osanalyticshelper",
+    "analyticsd",
     // Keychain UI (not security events, just UI prompts)
-    "SecurityAgent", "authd",
+    "SecurityAgent",
+    "authd",
     // Power management
-    "powerd", "thermald", "thermalmonitord",
+    "powerd",
+    "thermald",
+    "thermalmonitord",
     // Disk & storage (non-security)
-    "diskarbitrationd", "diskmanagementd", "fseventsd", "revisiond",
+    "diskarbitrationd",
+    "diskmanagementd",
+    "fseventsd",
+    "revisiond",
     // Audio
-    "coreaudiod", "audiomxd",
+    "coreaudiod",
+    "audiomxd",
     // Display & GPU
-    "MTLCompilerService", "gpumemd", "backboardd",
+    "MTLCompilerService",
+    "gpumemd",
+    "backboardd",
     // Input
     "hidd",
     // Print
-    "cupsd", "printd",
+    "cupsd",
+    "printd",
     // Misc Apple daemons (noisy, non-security)
-    "cfprefsd", "containermanagerd", "UserEventAgent", "logd",
+    "cfprefsd",
+    "containermanagerd",
+    "UserEventAgent",
+    "logd",
     "endpointsecurityd", // Endpoint Security subsystem (internal, not actionable)
     "sandboxd",          // sandbox denials are noisy and not actionable from GUI
     "kernelmanagementd",
@@ -328,11 +411,7 @@ impl LogCollector {
         for source in &self.config.sources {
             match self.collect_source(*source, &since).await {
                 Ok(entries) => {
-                    debug!(
-                        "Collected {} entries from {} logs",
-                        entries.len(),
-                        source
-                    );
+                    debug!("Collected {} entries from {} logs", entries.len(), source);
                     raw_entries.extend(entries);
                 }
                 Err(e) => {
@@ -373,13 +452,10 @@ impl LogCollector {
         // Check process name against ignore list (case-insensitive, also partial match)
         if let Some(ref proc) = entry.process {
             let proc_lower = proc.to_lowercase();
-            if IGNORED_PROCESSES
-                .iter()
-                .any(|p| {
-                    let p_lower = p.to_lowercase();
-                    proc_lower == p_lower || proc_lower.contains(&p_lower)
-                })
-            {
+            if IGNORED_PROCESSES.iter().any(|p| {
+                let p_lower = p.to_lowercase();
+                proc_lower == p_lower || proc_lower.contains(&p_lower)
+            }) {
                 return true;
             }
         }
@@ -410,10 +486,10 @@ impl LogCollector {
 
         // Windows events with known security Event IDs always pass
         #[cfg(target_os = "windows")]
-        if let Some(eid) = entry.event_id {
-            if classify_windows_event(eid).is_some_and(|(_, sev)| sev >= 5) {
-                return true;
-            }
+        if let Some(eid) = entry.event_id
+            && classify_windows_event(eid).is_some_and(|(_, sev)| sev >= 5)
+        {
+            return true;
         }
 
         let msg_lower = entry.message.to_lowercase();
@@ -438,7 +514,10 @@ impl LogCollector {
             .event_id
             .and_then(|id| classify_windows_event(id).map(|(name, sev)| (name.to_string(), sev)))
             .unwrap_or_else(|| {
-                (format!("{}_log_event", entry.source), classify_severity(&entry.message))
+                (
+                    format!("{}_log_event", entry.source),
+                    classify_severity(&entry.message),
+                )
             });
         #[cfg(not(target_os = "windows"))]
         let (event_name, severity) = (
@@ -451,9 +530,7 @@ impl LogCollector {
             humanize_event(&entry.message, &event_name, &entry.process, &entry.source);
 
         // Prefer structured user field, fall back to regex extraction
-        let user = entry
-            .user
-            .or_else(|| extract_user(&entry.message));
+        let user = entry.user.or_else(|| extract_user(&entry.message));
 
         let mut custom_fields = serde_json::json!({
             "log_source": entry.source.to_string(),
@@ -472,9 +549,7 @@ impl LogCollector {
             category,
             name: readable_name,
             description: readable_desc,
-            source_host: entry
-                .hostname
-                .unwrap_or_else(|| self.hostname.clone()),
+            source_host: entry.hostname.unwrap_or_else(|| self.hostname.clone()),
             source_ip: None,
             destination_ip: None,
             destination_port: None,
@@ -574,11 +649,7 @@ impl LogCollector {
                 "--identifier=su",
                 "--identifier=login",
             ],
-            LogSource::Firewall => vec![
-                "--identifier=kernel",
-                "-g",
-                "iptables|nftables|firewall",
-            ],
+            LogSource::Firewall => vec!["--identifier=kernel", "-g", "iptables|nftables|firewall"],
             LogSource::Application => vec!["--priority=0..3"], // emerg..err
         };
 
@@ -633,7 +704,9 @@ impl LogCollector {
         let channel = match source {
             LogSource::System => "System",
             LogSource::Auth => "Security",
-            LogSource::Firewall => "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall",
+            LogSource::Firewall => {
+                "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall"
+            }
             LogSource::Application => "Application",
         };
 
@@ -673,8 +746,8 @@ impl LogCollector {
             .map_err(|e| format!("Failed to run Get-WinEvent: {}", e))?;
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        let events = agent_common::process::parse_powershell_json_array(&stdout)
-            .unwrap_or_else(|e| {
+        let events =
+            agent_common::process::parse_powershell_json_array(&stdout).unwrap_or_else(|e| {
                 if !stdout.trim().is_empty() {
                     warn!("Failed to parse Windows Event Log JSON: {}", e);
                 }
@@ -692,13 +765,11 @@ impl LogCollector {
                 let user = evt["User"].as_str().map(|s| s.to_string());
 
                 // Parse ISO 8601 timestamp from PowerShell
-                let timestamp = evt["TimeCreated"]
-                    .as_str()
-                    .and_then(|s| {
-                        chrono::DateTime::parse_from_rfc3339(s)
-                            .ok()
-                            .map(|dt| dt.with_timezone(&Utc))
-                    });
+                let timestamp = evt["TimeCreated"].as_str().and_then(|s| {
+                    chrono::DateTime::parse_from_rfc3339(s)
+                        .ok()
+                        .map(|dt| dt.with_timezone(&Utc))
+                });
 
                 // Build enriched message with event ID prefix
                 let enriched_message = format!(
@@ -745,8 +816,10 @@ fn humanize_event(
     let proc_name = process.as_deref().unwrap_or("");
 
     // --- Authentication events ---
-    if msg.contains("authentication failed") || msg.contains("login failed")
-        || msg.contains("invalid password") || msg.contains("failed password")
+    if msg.contains("authentication failed")
+        || msg.contains("login failed")
+        || msg.contains("invalid password")
+        || msg.contains("failed password")
     {
         let user = extract_user(raw_message).unwrap_or_default();
         return (
@@ -754,12 +827,17 @@ fn humanize_event(
             if user.is_empty() {
                 "Tentative de connexion échouée détectée.".into()
             } else {
-                format!("Tentative de connexion échouée pour l'utilisateur « {} ».", user)
+                format!(
+                    "Tentative de connexion échouée pour l'utilisateur « {} ».",
+                    user
+                )
             },
         );
     }
-    if msg.contains("authentication success") || msg.contains("session opened")
-        || msg.contains("logged in") || msg.contains("accepted publickey")
+    if msg.contains("authentication success")
+        || msg.contains("session opened")
+        || msg.contains("logged in")
+        || msg.contains("accepted publickey")
         || msg.contains("accepted password")
     {
         let user = extract_user(raw_message).unwrap_or_default();
@@ -773,10 +851,7 @@ fn humanize_event(
         );
     }
     if msg.contains("session closed") || msg.contains("logged out") || msg.contains("logoff") {
-        return (
-            "Déconnexion".into(),
-            "Session utilisateur fermée.".into(),
-        );
+        return ("Déconnexion".into(), "Session utilisateur fermée.".into());
     }
 
     // --- Privilege escalation ---
@@ -784,12 +859,13 @@ fn humanize_event(
         let user = extract_user(raw_message).unwrap_or_else(|| "inconnu".into());
         return (
             "Commande sudo exécutée".into(),
-            format!("L'utilisateur « {} » a exécuté une commande avec des privilèges élevés.", user),
+            format!(
+                "L'utilisateur « {} » a exécuté une commande avec des privilèges élevés.",
+                user
+            ),
         );
     }
-    if msg.contains("su:") || msg.contains("privilege escalation")
-        || msg.contains("became root")
-    {
+    if msg.contains("su:") || msg.contains("privilege escalation") || msg.contains("became root") {
         return (
             "Élévation de privilèges".into(),
             "Un utilisateur a changé de compte avec des droits supérieurs.".into(),
@@ -797,7 +873,9 @@ fn humanize_event(
     }
 
     // --- Firewall ---
-    if msg.contains("firewall") && (msg.contains("deny") || msg.contains("drop") || msg.contains("block")) {
+    if msg.contains("firewall")
+        && (msg.contains("deny") || msg.contains("drop") || msg.contains("block"))
+    {
         return (
             "Connexion bloquée par le pare-feu".into(),
             "Le pare-feu a bloqué une tentative de connexion entrante ou sortante.".into(),
@@ -933,10 +1011,7 @@ fn humanize_event(
 /// Classify severity from log message keywords.
 fn classify_severity(message: &str) -> u8 {
     let lower = message.to_lowercase();
-    if lower.contains("critical")
-        || lower.contains("emergency")
-        || lower.contains("panic")
-    {
+    if lower.contains("critical") || lower.contains("emergency") || lower.contains("panic") {
         9
     } else if lower.contains("error") || lower.contains("fail") {
         7
@@ -1190,10 +1265,7 @@ mod tests {
             extract_user("authentication for user john from 192.168.1.1"),
             Some("john".to_string())
         );
-        assert_eq!(
-            extract_user("no user info here"),
-            None
-        );
+        assert_eq!(extract_user("no user info here"), None);
     }
 
     #[test]

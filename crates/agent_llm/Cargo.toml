@@ -22,6 +22,7 @@ sha2.workspace = true
 async-trait.workspace = true
 mistralrs = { version = "0.7.0" }
 tokio = { workspace = true, features = ["sync", "rt", "macros"] }
+reqwest.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 mistralrs = { version = "0.7.0", features = ["accelerate"] }

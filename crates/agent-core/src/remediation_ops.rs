@@ -51,7 +51,10 @@ impl AgentRuntime {
                 None => {
                     self.emit_notification(
                         "Remédiation Expirée",
-                        &format!("La remédiation pour \'{}\' a échoué ou a dépassé le délai.", check_id),
+                        &format!(
+                            "La remédiation pour \'{}\' a échoué ou a dépassé le délai.",
+                            check_id
+                        ),
                         "error",
                     );
                     return false;

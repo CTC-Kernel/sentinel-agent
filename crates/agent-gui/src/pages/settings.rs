@@ -277,10 +277,8 @@ impl SettingsPage {
 
                 // Icon with accent background circle
                 let icon_size = theme::ICON_XL + theme::SPACE_SM;
-                let (icon_rect, _) = ui.allocate_exact_size(
-                    egui::vec2(icon_size, icon_size),
-                    egui::Sense::hover(),
-                );
+                let (icon_rect, _) =
+                    ui.allocate_exact_size(egui::vec2(icon_size, icon_size), egui::Sense::hover());
                 ui.painter().circle_filled(
                     icon_rect.center(),
                     icon_size / 2.0,
@@ -809,12 +807,19 @@ impl SettingsPage {
                     ui.label(
                         egui::RichText::new(format!("{}  MODE VERROUILLÉ", icons::LOCK))
                             .font(theme::font_body())
-                            .color(theme::text_secondary())
+                            .color(theme::text_secondary()),
                     );
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if widgets::button::secondary_button(ui, "DÉVERROUILLER (ADMIN)", true).clicked() {
-                             ui.memory_mut(|mem| mem.data.insert_temp(unlock_modal_id, (true, String::new(), None::<String>)));
+                        if widgets::button::secondary_button(ui, "DÉVERROUILLER (ADMIN)", true)
+                            .clicked()
+                        {
+                            ui.memory_mut(|mem| {
+                                mem.data.insert_temp(
+                                    unlock_modal_id,
+                                    (true, String::new(), None::<String>),
+                                )
+                            });
                         }
                     });
                 });
@@ -1031,11 +1036,7 @@ impl SettingsPage {
                     "syslog.example.com:514"
                 };
                 let prev_dest = state.settings.siem_destination.clone();
-                widgets::text_input(
-                    ui,
-                    &mut state.settings.siem_destination,
-                    hint,
-                );
+                widgets::text_input(ui, &mut state.settings.siem_destination, hint);
                 if state.settings.siem_destination != prev_dest {
                     command = Some(GuiCommand::UpdateSiemConfig {
                         enabled: state.settings.siem_enabled,
@@ -1131,18 +1132,16 @@ impl SettingsPage {
                             .log_collector_sources
                             .contains(&key.to_string());
                         let text = format!("{}  {}", icon, label);
-                        let color = if active { theme::SUCCESS } else { theme::text_tertiary() };
+                        let color = if active {
+                            theme::SUCCESS
+                        } else {
+                            theme::text_tertiary()
+                        };
                         if widgets::chip_button(ui, &text, active, color).clicked() {
                             if active {
-                                state
-                                    .settings
-                                    .log_collector_sources
-                                    .retain(|s| s != *key);
+                                state.settings.log_collector_sources.retain(|s| s != *key);
                             } else {
-                                state
-                                    .settings
-                                    .log_collector_sources
-                                    .push(key.to_string());
+                                state.settings.log_collector_sources.push(key.to_string());
                             }
                             changed = true;
                         }

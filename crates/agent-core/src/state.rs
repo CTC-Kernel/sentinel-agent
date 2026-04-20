@@ -39,6 +39,8 @@ pub struct RuntimeState {
     pub log_collector_poll_secs: Arc<AtomicU64>,
     /// Whether the LLM model is currently loaded (relaxes resource limits).
     pub llm_loaded: Arc<AtomicBool>,
+    /// Last vulnerability scan results (cached for AI analysis context).
+    pub last_vuln_findings: Arc<tokio::sync::RwLock<Option<agent_scanner::VulnerabilityScanResult>>>,
 }
 
 /// A request to remediate or preview a check.
@@ -82,6 +84,7 @@ impl RuntimeState {
                 ]),
                 log_collector_poll_secs: Arc::new(AtomicU64::new(60)),
                 llm_loaded: Arc::new(AtomicBool::new(false)),
+                last_vuln_findings: Arc::new(tokio::sync::RwLock::new(None)),
             },
             rx,
         )

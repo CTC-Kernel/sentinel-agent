@@ -21,7 +21,9 @@ impl DiscoveryPage {
             ui,
             &["Shadow IT", "D\u{00e9}tection"],
             "D\u{00e9}tection Shadow IT",
-            Some("IDENTIFICATION DES \u{00c9}QUIPEMENTS NON AUTORIS\u{00c9}S SUR LE P\u{00c9}RIM\u{00c8}TRE R\u{00c9}SEAU"),
+            Some(
+                "IDENTIFICATION DES \u{00c9}QUIPEMENTS NON AUTORIS\u{00c9}S SUR LE P\u{00c9}RIM\u{00c8}TRE R\u{00c9}SEAU",
+            ),
             Some(
                 "Scannez votre r\u{00e9}seau pour d\u{00e9}tecter les \u{00e9}quipements non r\u{00e9}f\u{00e9}renc\u{00e9}s dans l\u{2019}inventaire. Les appareils inconnus repr\u{00e9}sentent un risque de s\u{00e9}curit\u{00e9} (Shadow IT).",
             ),
@@ -171,7 +173,6 @@ impl DiscoveryPage {
                         });
                     });
                 }
-
             });
         });
 
@@ -180,12 +181,8 @@ impl DiscoveryPage {
         // Shadow IT KPI cards
         {
             let total = state.discovery.devices.len();
-            let asset_ips: std::collections::HashSet<&str> = state
-                .assets
-                .assets
-                .iter()
-                .map(|a| a.ip.as_str())
-                .collect();
+            let asset_ips: std::collections::HashSet<&str> =
+                state.assets.assets.iter().map(|a| a.ip.as_str()).collect();
             let authorized = state
                 .discovery
                 .devices
@@ -428,7 +425,8 @@ impl DiscoveryPage {
 
                             row.set_selected(state.discovery.selected_device == Some(dev_idx));
 
-                            let is_authorized = state.assets.assets.iter().any(|a| a.ip == device.ip);
+                            let is_authorized =
+                                state.assets.assets.iter().any(|a| a.ip == device.ip);
                             row.col(|ui: &mut egui::Ui| {
                                 ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.label(
@@ -438,7 +436,11 @@ impl DiscoveryPage {
                                             .strong(),
                                     );
                                     if is_authorized {
-                                        widgets::status_badge(ui, "AUTORIS\u{00c9}", theme::SUCCESS);
+                                        widgets::status_badge(
+                                            ui,
+                                            "AUTORIS\u{00c9}",
+                                            theme::SUCCESS,
+                                        );
                                     } else {
                                         widgets::status_badge(ui, "SHADOW", theme::ERROR);
                                     }
@@ -575,7 +577,8 @@ impl DiscoveryPage {
 
         // Grey-out the import button when already imported.
         if already_imported {
-            actions[0] = widgets::DetailAction::secondary("\u{00c9}quipement autoris\u{00e9}", icons::CHECK);
+            actions[0] =
+                widgets::DetailAction::secondary("\u{00c9}quipement autoris\u{00e9}", icons::CHECK);
         }
 
         let action = widgets::DetailDrawer::new("discovery_detail", "Appareil", icons::NETWORK)
@@ -633,11 +636,10 @@ impl DiscoveryPage {
             if action_idx == 0 && !already_imported {
                 // "Ajouter aux actifs" — create a ManagedAsset from the
                 // discovered device and queue it for persistence.
-                let criticality =
-                    crate::pages::AssetsPage::infer_criticality_from_device(
-                        is_gateway,
-                        &open_ports,
-                    );
+                let criticality = crate::pages::AssetsPage::infer_criticality_from_device(
+                    is_gateway,
+                    &open_ports,
+                );
 
                 let asset = crate::dto::ManagedAsset {
                     id: uuid::Uuid::new_v4(),

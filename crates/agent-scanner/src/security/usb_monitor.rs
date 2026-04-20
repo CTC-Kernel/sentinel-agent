@@ -359,13 +359,15 @@ fn parse_windows_instance_id(instance_id: &str) -> (u16, u16) {
     for part in instance_id.split('&') {
         let part_upper = part.to_uppercase();
         if (part_upper.starts_with("VID_") || part_upper.contains("\\VID_"))
-            && let Some(hex) = part_upper.split("VID_").nth(1) {
-                vid = u16::from_str_radix(&hex[..4.min(hex.len())], 16).unwrap_or(0);
-            }
+            && let Some(hex) = part_upper.split("VID_").nth(1)
+        {
+            vid = u16::from_str_radix(&hex[..4.min(hex.len())], 16).unwrap_or(0);
+        }
         if part_upper.starts_with("PID_")
-            && let Some(hex) = part_upper.split("PID_").nth(1) {
-                pid = u16::from_str_radix(&hex[..4.min(hex.len())], 16).unwrap_or(0);
-            }
+            && let Some(hex) = part_upper.split("PID_").nth(1)
+        {
+            pid = u16::from_str_radix(&hex[..4.min(hex.len())], 16).unwrap_or(0);
+        }
     }
 
     (vid, pid)

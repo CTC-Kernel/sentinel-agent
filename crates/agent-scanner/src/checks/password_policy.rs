@@ -151,7 +151,8 @@ impl PasswordPolicyCheck {
             status.history_count = json["HistoryCount"].as_u64().map(|v| v as u32);
             status.max_age_days = json["MaxAge"].as_u64().map(|v| v as u32);
             status.min_age_days = json["MinAge"].as_u64().map(|v| v as u32);
-            status.complexity_required = agent_common::process::ps_json_as_bool(&json["Complexity"]);
+            status.complexity_required =
+                agent_common::process::ps_json_as_bool(&json["Complexity"]);
             status.lockout_threshold = json["LockoutThreshold"].as_u64().map(|v| v as u32);
             status.lockout_duration_minutes = json["LockoutDuration"].as_u64().map(|v| v as u32);
         }

@@ -485,7 +485,8 @@ impl SyncOrchestrator {
                         created_at: p.created_at.to_rfc3339(),
                         updated_at: now.clone(),
                         synced: true,
-                        conditions: serde_json::to_string(&p.conditions).unwrap_or_else(|_| "[]".to_string()),
+                        conditions: serde_json::to_string(&p.conditions)
+                            .unwrap_or_else(|_| "[]".to_string()),
                     };
                     if let Err(e) = repo.upsert(&stored).await {
                         warn!("Failed to upsert playbook {}: {}", p.id, e);
@@ -515,8 +516,10 @@ impl SyncOrchestrator {
                         tags: serde_json::to_string(&a.tags).unwrap_or_else(|_| "[]".to_string()),
                         risk_score: a.risk_score,
                         vulnerability_count: a.vulnerability_count as i32,
-                        open_ports: serde_json::to_string(&a.open_ports).unwrap_or_else(|_| "[]".to_string()),
-                        software: serde_json::to_string(&a.software).unwrap_or_else(|_| "[]".to_string()),
+                        open_ports: serde_json::to_string(&a.open_ports)
+                            .unwrap_or_else(|_| "[]".to_string()),
+                        software: serde_json::to_string(&a.software)
+                            .unwrap_or_else(|_| "[]".to_string()),
                         first_seen: a.first_seen.to_rfc3339(),
                         last_seen: a.last_seen.to_rfc3339(),
                         synced: true,
@@ -542,7 +545,8 @@ impl SyncOrchestrator {
                         name: r.name.clone(),
                         rule_type: r.rule_type.clone(),
                         severity_threshold: r.severity_threshold.clone(),
-                        detection_types: serde_json::to_string(&r.detection_types).unwrap_or_default(),
+                        detection_types: serde_json::to_string(&r.detection_types)
+                            .unwrap_or_default(),
                         escalation_minutes: r.escalation_minutes.map(|v| v as i32),
                         enabled: r.enabled,
                         created_at: r.created_at.to_rfc3339(),
@@ -596,12 +600,14 @@ impl SyncOrchestrator {
                         name: r.name.clone(),
                         description: r.description.clone(),
                         severity: r.severity.clone(),
-                        conditions: serde_json::to_string(&r.conditions).unwrap_or_default(),
-                        actions: serde_json::to_string(&r.actions).unwrap_or_default(),
+                        conditions: serde_json::to_string(&r.conditions)
+                            .unwrap_or_else(|_| "[]".to_string()),
+                        actions: serde_json::to_string(&r.actions)
+                            .unwrap_or_else(|_| "[]".to_string()),
                         enabled: r.enabled,
                         created_at: r.created_at.to_rfc3339(),
                         last_match: r.last_match.map(|dt| dt.to_rfc3339()),
-                        match_count: r.match_count as i32,
+                        match_count: r.match_count.min(i32::MAX as u32) as i32,
                         synced: true,
                     };
                     if let Err(e) = repo.upsert(&stored).await {

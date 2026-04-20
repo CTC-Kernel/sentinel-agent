@@ -124,16 +124,18 @@ pub fn cleanup_data(options: &CleanupOptions) -> CleanupResult {
     }
 
     // Try to remove installation directory if empty
-    if let Err(e) = remove_directory_if_empty(paths::INSTALL_DIR) {
-        if !e.contains("not empty") {
+    match remove_directory_if_empty(paths::INSTALL_DIR) {
+        Ok(()) => {
+            result.removed_dirs.push(paths::INSTALL_DIR.to_string());
+        }
+        Err(DirectoryRemoveError::NotEmpty) => {
+            result.preserved_dirs.push(paths::INSTALL_DIR.to_string());
+        }
+        Err(DirectoryRemoveError::Other(e)) => {
             result
                 .errors
                 .push(format!("Failed to remove install dir: {}", e));
-        } else {
-            result.preserved_dirs.push(paths::INSTALL_DIR.to_string());
         }
-    } else {
-        result.removed_dirs.push(paths::INSTALL_DIR.to_string());
     }
 
     result
@@ -151,8 +153,16 @@ fn remove_directory(path: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// Error type for directory removal, avoids locale-dependent string matching.
+enum DirectoryRemoveError {
+    /// Directory is not empty.
+    NotEmpty,
+    /// Other filesystem error.
+    Other(String),
+}
+
 /// Remove a directory only if it's empty.
-fn remove_directory_if_empty(path: &str) -> Result<(), String> {
+fn remove_directory_if_empty(path: &str) -> Result<(), DirectoryRemoveError> {
     let path = Path::new(path);
     if !path.exists() {
         return Ok(());
@@ -160,15 +170,15 @@ fn remove_directory_if_empty(path: &str) -> Result<(), String> {
 
     // Check if directory is empty
     let is_empty = fs::read_dir(path)
-        .map_err(|e| e.to_string())?
+        .map_err(|e| DirectoryRemoveError::Other(e.to_string()))?
         .next()
         .is_none();
 
     if !is_empty {
-        return Err("directory not empty".to_string());
+        return Err(DirectoryRemoveError::NotEmpty);
     }
 
-    fs::remove_dir(path).map_err(|e| e.to_string())?;
+    fs::remove_dir(path).map_err(|e| DirectoryRemoveError::Other(e.to_string()))?;
     info!("Removed empty directory: {}", path.display());
     Ok(())
 }

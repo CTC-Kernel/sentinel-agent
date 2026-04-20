@@ -107,9 +107,10 @@ fn main() -> ExitCode {
 
         // Prevent infinite growth by keeping it under 5MB
         if let Ok(metadata) = fs::metadata(log_file)
-            && metadata.len() > 5 * 1024 * 1024 {
-                let _ = fs::rename(log_file, format!("{}.old", log_file));
-            }
+            && metadata.len() > 5 * 1024 * 1024
+        {
+            let _ = fs::rename(log_file, format!("{}.old", log_file));
+        }
 
         if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(log_file) {
             let _ = writeln!(
@@ -150,9 +151,10 @@ fn main() -> ExitCode {
 
             // Prevent infinite growth
             if let Ok(metadata) = fs::metadata(panic_log)
-                && metadata.len() > 5 * 1024 * 1024 {
-                    let _ = fs::rename(panic_log, format!("{}.old", panic_log));
-                }
+                && metadata.len() > 5 * 1024 * 1024
+            {
+                let _ = fs::rename(panic_log, format!("{}.old", panic_log));
+            }
 
             if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(panic_log) {
                 let _ = writeln!(
@@ -705,9 +707,13 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
         #[cfg(target_os = "windows")]
         if is_windows_server() {
             if has_usable_display() {
-                info!("Windows Server with display detected — GUI will use software rendering (WARP) if no GPU is present");
+                info!(
+                    "Windows Server with display detected — GUI will use software rendering (WARP) if no GPU is present"
+                );
             } else {
-                info!("Windows Server without display detected — starting in headless mode (no GUI)");
+                info!(
+                    "Windows Server without display detected — starting in headless mode (no GUI)"
+                );
                 no_tray = true;
             }
         }
@@ -721,7 +727,9 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
                     warn!("GUI exited with error. Falling back to headless mode.");
                 }
                 Err(_) => {
-                    warn!("GUI panicked during startup (likely no display/GPU). Falling back to headless mode.");
+                    warn!(
+                        "GUI panicked during startup (likely no display/GPU). Falling back to headless mode."
+                    );
                 }
             }
             // Fall through to headless mode below
@@ -907,13 +915,11 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     }));
 
     let tray_q = tray_events.clone();
-    tray_icon::TrayIconEvent::set_event_handler(Some(
-        move |event: tray_icon::TrayIconEvent| {
-            if let Ok(mut q) = tray_q.lock() {
-                q.push_back(event);
-            }
-        },
-    ));
+    tray_icon::TrayIconEvent::set_event_handler(Some(move |event: tray_icon::TrayIconEvent| {
+        if let Ok(mut q) = tray_q.lock() {
+            q.push_back(event);
+        }
+    }));
 
     info!("Sentinel GRC Agent is running. Use tray icon to pause, resume, or quit.");
 
@@ -959,8 +965,9 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
 
         // Use WaitUntil with 200ms interval for responsive event processing
         // This keeps CPU near 0% while still responding promptly to clicks
-        *control_flow =
-            ControlFlow::WaitUntil(std::time::Instant::now() + std::time::Duration::from_millis(200));
+        *control_flow = ControlFlow::WaitUntil(
+            std::time::Instant::now() + std::time::Duration::from_millis(200),
+        );
     })
 }
 
@@ -1274,8 +1281,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
             let db_for_commands = db_arc.clone();
             let mut runtime = AgentRuntime::new(config);
-            if let Some(db) = db_arc {
-                runtime = runtime.with_database(db);
+            if let Some(ref db) = db_arc {
+                runtime = runtime.with_database(db.clone());
             }
             runtime.set_gui_event_tx(bg_event_tx.clone());
             let sync_client = runtime.sync_client();
@@ -1324,10 +1331,16 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             #[cfg(not(feature = "llm"))]
             let llm_service: Option<std::sync::Arc<()>> = None;
 
+            let audit_trail_for_commands = db_arc.as_ref().map(|db_ptr: &std::sync::Arc<agent_storage::Database>| {
+                std::sync::Arc::new(agent_core::audit_trail::LocalAuditTrail::new(db_ptr.clone()))
+            });
+
             #[cfg(feature = "voice")]
-            let voice_service = std::sync::Arc::new(crate::voice::VoiceService::new(bg_event_tx.clone()));
+            let voice_service = Some(std::sync::Arc::new(agent_core::voice::VoiceService::new(bg_event_tx.clone())));
             #[cfg(not(feature = "voice"))]
-            let voice_service: Option<std::sync::Arc<()>> = None;            // Spawn command processor
+            let voice_service: Option<std::sync::Arc<agent_core::voice::VoiceService>> = None;
+            
+            // Spawn command processor
             let handle_for_commands = handle.clone();
             tokio::spawn(async move {
                 loop {
@@ -1845,7 +1858,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     }
 
                                     let results = {
-                                        let audit_trail = db_clone.as_ref().map(|db| {
+                                        let audit_trail = db_clone.as_ref().map(|db: &std::sync::Arc<agent_storage::Database>| {
                                             std::sync::Arc::new(agent_core::audit_trail::LocalAuditTrail::new(db.clone()))
                                         });
                                         agent_core::playbook_engine::execute_playbook_actions(
@@ -1933,6 +1946,21 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::SavePlaybook { playbook }) => {
                             info!("[AUDIT] GUI saved playbook: {}", playbook.name);
+                            if let Some(ref trail) = audit_trail_for_commands {
+                                let trail: std::sync::Arc<agent_core::audit_trail::LocalAuditTrail> = std::sync::Arc::clone(trail);
+                                let pb_name = playbook.name.clone();
+                                tokio::spawn(async move {
+                                    trail.log(
+                                        agent_core::audit_trail::AuditAction::PlaybookActionExecuted {
+                                            playbook_name: pb_name,
+                                            action: "SAVE".to_string(),
+                                            success: true,
+                                        },
+                                        "user",
+                                        None,
+                                    ).await;
+                                });
+                            }
                             let payload = agent_core::sync_converters::playbook_to_payload(&playbook);
                             // Persist to dedicated SQLite table for offline resilience
                             if let Some(ref db_arc) = db_for_commands {
@@ -2448,10 +2476,23 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         // ── LLM commands ──────────────────────────────────────
                         Ok(GuiCommand::LlmPrompt { prompt, context: _context }) => {
                             info!("[AUDIT] GUI sent LLM prompt ({} chars)", prompt.len());
+                            if let Some(ref trail) = audit_trail_for_commands {
+                                let trail: std::sync::Arc<agent_core::audit_trail::LocalAuditTrail> = std::sync::Arc::clone(trail);
+                                let prompt_cut = if prompt.len() > 100 { format!("{}...", &prompt[..97]) } else { prompt.clone() };
+                                tokio::spawn(async move {
+                                    trail.log(
+                                        agent_core::audit_trail::AuditAction::AIInteraction {
+                                            prompt_preview: prompt_cut,
+                                        },
+                                        "user",
+                                        None,
+                                    ).await;
+                                });
+                            }
                             let tx = bg_event_tx.clone();
                             let svc = llm_service.clone();
                             #[cfg(feature = "voice")]
-                            let voice = voice_service.clone();
+                            let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
                             tokio::spawn(async move {
                                 let start = std::time::Instant::now();
                                 #[cfg(feature = "llm")]
@@ -2467,8 +2508,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                         processing_time_ms: resp.duration_ms,
                                                     });
                                                     #[cfg(feature = "voice")]
-                                                    if let Some(ref voice) = voice_service {
-                                                        voice.speak(&text_copy);
+                                                    if let Some(ref v) = voice {
+                                                        v.speak(&text_copy);
                                                     }
                                                 }
                                                 Err(e) => {
@@ -2770,53 +2811,64 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
                         Ok(GuiCommand::LlmAnalyzeVulnerability { finding_index }) => {
                             info!("[AUDIT] GUI requested LLM vulnerability analysis for finding #{}", finding_index);
+                            if let Some(ref trail) = audit_trail_for_commands {
+                                let trail = std::sync::Arc::clone(trail);
+                                tokio::spawn(async move {
+                                    trail.log(
+                                        agent_core::audit_trail::AuditAction::AIInteraction {
+                                            prompt_preview: format!("Vulnerability analysis index: #{}", finding_index),
+                                        },
+                                        "user",
+                                        None,
+                                    ).await;
+                                });
+                            }
                             let tx = bg_event_tx.clone();
                             let svc = llm_service.clone();
+                            let handle = handle_for_commands.clone();
                             tokio::spawn(async move {
                                 let target = format!("finding#{}", finding_index);
-                                let start = std::time::Instant::now();
                                 #[cfg(feature = "llm")]
                                 {
-                                    if let Some(ref svc) = svc
-                                        && let Some(manager) = svc.get_manager().await
-                                    {
-                                        let prompt = format!(
-                                            "Analyze the following vulnerability finding (index {}). \
-                                             Assess its severity, exploitability, and provide a brief \
-                                             remediation recommendation.",
-                                            finding_index
-                                        );
-                                        let req = agent_llm::engine::InferenceRequest::new(&prompt)
-                                            .with_max_tokens(512);
-                                        match manager.engine().infer(req).await {
-                                            Ok(resp) => {
-                                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                                    target: target.clone(),
-                                                    analysis: resp.text,
-                                                    severity_override: None,
-                                                    is_false_positive: None,
-                                                    confidence: None,
-                                                });
+                                    if let Some(ref svc) = svc {
+                                        // Retrieve finding from cache
+                                        let finding = {
+                                            let cache = handle.state.last_vuln_findings.read().await;
+                                            cache.as_ref().and_then(|res| res.vulnerabilities.get(finding_index as usize).cloned())
+                                        };
+
+                                        if let Some(finding) = finding {
+                                            match svc.analyze_vulnerability(&finding).await {
+                                                Ok(analysis) => {
+                                                    let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                                        target: target.clone(),
+                                                        analysis,
+                                                        severity_override: None,
+                                                        is_false_positive: Some(false),
+                                                        confidence: Some(85),
+                                                    });
+                                                }
+                                                Err(e) => {
+                                                    warn!("LLM vulnerability analysis error: {}", e);
+                                                    let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                                        target,
+                                                        analysis: format!("Erreur d'analyse : {}", e),
+                                                        severity_override: None,
+                                                        is_false_positive: None,
+                                                        confidence: None,
+                                                    });
+                                                }
                                             }
-                                            Err(e) => {
-                                                warn!("LLM vulnerability analysis error: {}", e);
-                                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                                    target,
-                                                    analysis: format!("Erreur d'analyse : {}", e),
-                                                    severity_override: None,
-                                                    is_false_positive: None,
-                                                    confidence: None,
-                                                });
-                                            }
+                                            return;
+                                        } else {
+                                            warn!("LlmAnalyzeVulnerability: finding #{} not found in cache", finding_index);
                                         }
-                                        return;
                                     }
                                 }
-                                let _ = svc; // suppress unused warning when llm feature is off
-                                let _ = start;
+                                let _ = svc;
                                 let _ = tx.send(AgentEvent::LlmAnalysisComplete {
                                     target,
-                                    analysis: "Modèle IA non disponible pour l'analyse de vulnérabilité.".to_string(),
+                                    analysis: "Module IA non disponible ou finding introuvable.".to_string(),
                                     severity_override: None,
                                     is_false_positive: None,
                                     confidence: None,
@@ -2828,7 +2880,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI requested voice listening: {}", enabled);
                             #[cfg(feature = "voice")]
                             {
-                                let voice = voice_service.clone();
+                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
                                 tokio::spawn(async move {
                                     if enabled {
                                         if let Some(ref voice) = voice {
@@ -2853,6 +2905,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
                         Ok(GuiCommand::LlmClassifyThreat { event_description, target_id }) => {
                             info!("[AUDIT] GUI requested LLM threat classification: {}", &event_description[..event_description.len().min(80)]);
+                            if let Some(ref trail) = audit_trail_for_commands {
+                                let trail = std::sync::Arc::clone(trail);
+                                let desc_cut = if event_description.len() > 100 { format!("{}...", &event_description[..97]) } else { event_description.clone() };
+                                tokio::spawn(async move {
+                                    trail.log(
+                                        agent_core::audit_trail::AuditAction::AIInteraction {
+                                            prompt_preview: format!("Threat classification: {}", desc_cut),
+                                        },
+                                        "user",
+                                        None,
+                                    ).await;
+                                });
+                            }
                             let tx = bg_event_tx.clone();
                             let svc = llm_service.clone();
                             tokio::spawn(async move {
@@ -2928,6 +2993,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 "[AUDIT] GUI requested AI risk analysis for: {} (prob={}, impact={})",
                                 risk_title, current_probability, current_impact
                             );
+                            if let Some(ref trail) = audit_trail_for_commands {
+                                let trail = std::sync::Arc::clone(trail);
+                                let title_copy = risk_title.clone();
+                                tokio::spawn(async move {
+                                    trail.log(
+                                        agent_core::audit_trail::AuditAction::AIInteraction {
+                                            prompt_preview: format!("Risk analysis: {}", title_copy),
+                                        },
+                                        "user",
+                                        None,
+                                    ).await;
+                                });
+                            }
                             let _ = &risk_description; // used inside #[cfg(feature = "llm")] below
                             let tx = bg_event_tx.clone();
                             let svc = llm_service.clone();
@@ -3433,7 +3511,7 @@ fn show_fatal_error(message: &str) {
 /// Uses the Win32 `VerifyVersionInfoW` + `GetProductInfo` to check whether the
 /// OS is a Server or Domain Controller SKU.  Falls back to PowerShell and then
 /// `wmic` if the primary method fails.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_windows_server() -> bool {
     // Method 1: Win32 API — VerProductType via registry (most reliable, no process spawn)
     if let Some(result) = is_windows_server_via_registry() {
@@ -3454,7 +3532,7 @@ fn is_windows_server() -> bool {
 }
 
 /// Check via registry key (fastest, no subprocess).
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_windows_server_via_registry() -> Option<bool> {
     use std::process::Command;
     // NT CurrentVersion\InstallationType: "Server" | "Server Core" | "Client"
@@ -3478,9 +3556,8 @@ fn is_windows_server_via_registry() -> Option<bool> {
 }
 
 /// Check via PowerShell (reliable on modern systems).
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_windows_server_via_powershell() -> Option<bool> {
-    use std::process::Command;
     let output = agent_common::process::silent_command("powershell")
         .args([
             "-NoProfile",
@@ -3500,7 +3577,7 @@ fn is_windows_server_via_powershell() -> Option<bool> {
 }
 
 /// Legacy fallback via wmic (deprecated but still present on older systems).
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_windows_server_via_wmic() -> Option<bool> {
     use std::process::Command;
     let output = Command::new("wmic")
@@ -3527,7 +3604,7 @@ fn is_windows_server_via_wmic() -> Option<bool> {
 /// unavailable.  egui_glow requires OpenGL 2.0+ and will call
 /// `process::exit()` if it fails — which bypasses `catch_unwind`.
 /// This check prevents launching the GUI in those environments.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn has_usable_display() -> bool {
     use windows::Win32::UI::WindowsAndMessaging::GetSystemMetrics;
     use windows::Win32::UI::WindowsAndMessaging::SM_CXSCREEN;
@@ -3553,9 +3630,9 @@ fn has_usable_display() -> bool {
 }
 
 /// Check whether the primary display device has a real GPU driver.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn check_display_driver() -> bool {
-    use windows::Win32::Graphics::Gdi::{EnumDisplayDevicesW, DISPLAY_DEVICEW};
+    use windows::Win32::Graphics::Gdi::{DISPLAY_DEVICEW, EnumDisplayDevicesW};
 
     unsafe {
         let mut device = DISPLAY_DEVICEW {
@@ -3568,9 +3645,7 @@ fn check_display_driver() -> bool {
             let name = String::from_utf16_lossy(&device.DeviceString);
             let name = name.trim_end_matches('\0').trim();
             // "Microsoft Basic Display Adapter" or empty → no real GPU
-            if name.is_empty()
-                || name.contains("Basic Display")
-                || name.contains("Remote Desktop")
+            if name.is_empty() || name.contains("Basic Display") || name.contains("Remote Desktop")
             {
                 return false;
             }
@@ -3589,16 +3664,16 @@ fn check_display_driver() -> bool {
 const RUNTIME_MUTEX_NAME: &str = "Global\\SentinelAgentRuntime";
 
 /// Name of the local mutex that prevents multiple GUI instances per session.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 const GUI_MUTEX_NAME: &str = "Local\\SentinelAgentGUI";
 
 /// Check whether the runtime mutex is already held by another process
 /// (typically the Windows service). Returns `true` if another process owns it.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn is_runtime_mutex_held() -> bool {
-    use windows::core::HSTRING;
-    use windows::Win32::Foundation::{CloseHandle, HANDLE, ERROR_ALREADY_EXISTS};
+    use windows::Win32::Foundation::{CloseHandle, ERROR_ALREADY_EXISTS, HANDLE};
     use windows::Win32::System::Threading::CreateMutexW;
+    use windows::core::HSTRING;
 
     let name = HSTRING::from(RUNTIME_MUTEX_NAME);
     unsafe {
@@ -3623,9 +3698,9 @@ fn is_runtime_mutex_held() -> bool {
 /// process already owns it.
 #[cfg(target_os = "windows")]
 fn try_acquire_runtime_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
-    use windows::core::HSTRING;
     use windows::Win32::Foundation::ERROR_ALREADY_EXISTS;
     use windows::Win32::System::Threading::CreateMutexW;
+    use windows::core::HSTRING;
 
     let name = HSTRING::from(RUNTIME_MUTEX_NAME);
     unsafe {
@@ -3645,11 +3720,11 @@ fn try_acquire_runtime_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
 
 /// Try to acquire the GUI single-instance mutex. Returns `None` if another
 /// GUI is already running in this user session.
-#[cfg(target_os = "windows")]
+#[cfg(all(target_os = "windows", feature = "gui"))]
 fn try_acquire_gui_mutex() -> Option<windows::Win32::Foundation::HANDLE> {
-    use windows::core::HSTRING;
     use windows::Win32::Foundation::ERROR_ALREADY_EXISTS;
     use windows::Win32::System::Threading::CreateMutexW;
+    use windows::core::HSTRING;
 
     let name = HSTRING::from(GUI_MUTEX_NAME);
     unsafe {

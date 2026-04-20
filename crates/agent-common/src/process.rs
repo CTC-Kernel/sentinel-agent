@@ -22,9 +22,7 @@ pub fn parse_powershell_json_array(stdout: &str) -> Result<Vec<serde_json::Value
         return Ok(vec![]);
     }
     serde_json::from_str::<Vec<serde_json::Value>>(trimmed)
-        .or_else(|_| {
-            serde_json::from_str::<serde_json::Value>(trimmed).map(|v| vec![v])
-        })
+        .or_else(|_| serde_json::from_str::<serde_json::Value>(trimmed).map(|v| vec![v]))
         .map_err(|e| e.to_string())
 }
 

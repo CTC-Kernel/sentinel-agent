@@ -168,6 +168,10 @@ pub enum SiemTransport {
         port: u16,
         protocol: SyslogProtocol,
         tls: bool,
+        /// Optional client certificate for mTLS (PEM format).
+        client_cert: Option<String>,
+        /// Optional client private key for mTLS (PEM format).
+        client_key: Option<String>,
     },
     /// HTTP transport (Splunk HEC, Azure Sentinel).
     Http {
@@ -175,6 +179,10 @@ pub enum SiemTransport {
         auth_token: Option<String>,
         auth_header: Option<String>,
         verify_tls: bool,
+        /// Optional client certificate for mTLS (PEM format).
+        client_cert: Option<String>,
+        /// Optional client private key for mTLS (PEM format).
+        client_key: Option<String>,
     },
 }
 
@@ -195,27 +203,30 @@ impl std::fmt::Debug for SiemTransport {
                 port,
                 protocol,
                 tls,
+                client_cert,
+                client_key: _,
             } => f
                 .debug_struct("Syslog")
                 .field("host", host)
                 .field("port", port)
                 .field("protocol", protocol)
                 .field("tls", tls)
+                .field("client_cert", &client_cert.as_ref().map(|_| "[PRESENT]"))
                 .finish(),
             SiemTransport::Http {
                 url,
                 auth_token,
                 auth_header,
                 verify_tls,
+                client_cert,
+                client_key: _,
             } => f
                 .debug_struct("Http")
                 .field("url", url)
-                .field(
-                    "auth_token",
-                    &auth_token.as_ref().map(|_| "[REDACTED]"),
-                )
+                .field("auth_token", &auth_token.as_ref().map(|_| "[REDACTED]"))
                 .field("auth_header", auth_header)
                 .field("verify_tls", verify_tls)
+                .field("client_cert", &client_cert.as_ref().map(|_| "[PRESENT]"))
                 .finish(),
         }
     }
@@ -234,6 +245,8 @@ pub struct SiemConfig {
     pub batch_size: usize,
     /// Flush interval in seconds.
     pub flush_interval_secs: u64,
+    /// Enable compression (Gzip/Brotli) for bulk uploads.
+    pub use_compression: bool,
     /// Minimum severity to forward (0-10).
     pub min_severity: u8,
     /// Event categories to include (empty = all).
@@ -252,9 +265,12 @@ impl Default for SiemConfig {
                 port: 514,
                 protocol: SyslogProtocol::Tcp,
                 tls: false,
+                client_cert: None,
+                client_key: None,
             },
             batch_size: 100,
             flush_interval_secs: 30,
+            use_compression: true,
             min_severity: 0,
             include_categories: Vec::new(),
             custom_fields: serde_json::Value::Null,
@@ -292,6 +308,10 @@ pub struct SiemStats {
 /// Maximum number of recent events kept for platform reporting.
 const RECENT_EVENTS_LIMIT: usize = 100;
 
+/// Maximum number of events allowed in the send buffer before applying backpressure.
+/// Prevents unbounded memory growth when SIEM endpoint is slow or unreachable.
+const MAX_BUFFER_SIZE: usize = 10_000;
+
 /// Main SIEM forwarder.
 pub struct SiemForwarder {
     config: SiemConfig,
@@ -318,17 +338,31 @@ impl SiemForwarder {
                 port,
                 protocol,
                 tls,
-            } => Box::new(SyslogTransport::new(host.clone(), *port, *protocol, *tls)),
+                client_cert,
+                client_key,
+            } => Box::new(SyslogTransport::new(
+                host.clone(),
+                *port,
+                *protocol,
+                *tls,
+                client_cert.clone(),
+                client_key.clone(),
+            )),
             SiemTransport::Http {
                 url,
                 auth_token,
                 auth_header,
                 verify_tls,
+                client_cert,
+                client_key,
             } => Box::new(HttpTransport::new(
                 url.clone(),
                 auth_token.clone(),
                 auth_header.clone(),
                 *verify_tls,
+                client_cert.clone(),
+                client_key.clone(),
+                config.use_compression,
             )),
         };
 
@@ -360,9 +394,11 @@ impl SiemForwarder {
 
         // Skip if destination is the unconfigured default (localhost:514)
         if let SiemTransport::Syslog { ref host, port, .. } = self.config.transport
-            && host == "localhost" && port == 514 {
-                return Ok(());
-            }
+            && host == "localhost"
+            && port == 514
+        {
+            return Ok(());
+        }
 
         // Check severity filter
         if event.severity < self.config.min_severity {
@@ -421,12 +457,27 @@ impl SiemForwarder {
     }
 
     /// Queue an event for batch sending.
-    pub async fn queue_event(&self, event: SiemEvent) {
+    ///
+    /// Returns `false` if the event was dropped due to buffer backpressure.
+    pub async fn queue_event(&self, event: SiemEvent) -> bool {
         if !self.config.enabled {
-            return;
+            return true;
         }
 
         let mut buffer = self.buffer.write().await;
+
+        // Backpressure: reject events when buffer is full to prevent OOM
+        if buffer.len() >= MAX_BUFFER_SIZE {
+            drop(buffer);
+            let mut stats = self.stats.write().await;
+            stats.events_dropped = stats.events_dropped.saturating_add(1);
+            warn!(
+                "SIEM buffer full ({} events), dropping event — check SIEM endpoint connectivity",
+                MAX_BUFFER_SIZE
+            );
+            return false;
+        }
+
         buffer.push(event);
 
         if buffer.len() >= self.config.batch_size {
@@ -435,6 +486,8 @@ impl SiemForwarder {
                 warn!("Failed to flush event buffer: {}", e);
             }
         }
+
+        true
     }
 
     /// Flush buffered events.
@@ -541,17 +594,31 @@ impl SiemForwarder {
                 port,
                 protocol,
                 tls,
-            } => Box::new(SyslogTransport::new(host.clone(), *port, *protocol, *tls)),
+                client_cert,
+                client_key,
+            } => Box::new(SyslogTransport::new(
+                host.clone(),
+                *port,
+                *protocol,
+                *tls,
+                client_cert.clone(),
+                client_key.clone(),
+            )),
             SiemTransport::Http {
                 url,
                 auth_token,
                 auth_header,
                 verify_tls,
+                client_cert,
+                client_key,
             } => Box::new(HttpTransport::new(
                 url.clone(),
                 auth_token.clone(),
                 auth_header.clone(),
                 *verify_tls,
+                client_cert.clone(),
+                client_key.clone(),
+                config.use_compression,
             )),
         };
 

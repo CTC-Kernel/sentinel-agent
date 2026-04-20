@@ -313,6 +313,7 @@ const SECURITY_EVENT_JSON_SCHEMA: &str = r#"{
 /// LLM analyzer for security and compliance results.
 pub struct LLMAnalyzer {
     engine: Arc<dyn ModelEngine>,
+    plugins: Arc<crate::plugins::PluginRegistry>,
     config: LLMConfig,
 }
 
@@ -321,42 +322,85 @@ impl LLMAnalyzer {
     pub fn new(engine: Arc<dyn ModelEngine>, config: &LLMConfig) -> Self {
         Self {
             engine,
+            plugins: Arc::new(crate::plugins::PluginRegistry::new()),
             config: config.clone(),
         }
+    }
+
+    /// Set the plugin registry for the analyzer.
+    pub fn with_plugins(mut self, plugins: Arc<crate::plugins::PluginRegistry>) -> Self {
+        self.plugins = plugins;
+        self
     }
 
     /// Analyze scan results and provide insights.
     pub async fn analyze(&self, context: AnalysisContext) -> Result<AnalysisResult> {
         info!(
-            "Starting LLM analysis for {} scan results",
+            "Starting intelligent LLM analysis for {} results",
             context.scan_results.len()
         );
         let start_time = std::time::Instant::now();
 
-        // Prepare the analysis prompt
-        let (system_prompt, prompt) = self.build_analysis_prompt(&context)?;
-
-        // Create inference request
-        let mut request = InferenceRequest::new(prompt)
-            .with_max_tokens(self.config.inference.max_tokens)
-            .with_temperature(self.config.inference.temperature)
-            .with_top_p(self.config.inference.top_p);
-        if let Some(sys) = system_prompt {
-            request = request.with_system_prompt(sys);
+        // 1. Prepare Initial Prompt with Plugins context
+        let (mut system_prompt, user_prompt) = self.build_analysis_prompt(&context)?;
+        
+        // Enhance system prompt with tool calling instructions if plugins are available
+        if !self.plugins.list().is_empty() {
+            let mut sys = system_prompt.unwrap_or_default();
+            sys.push_str("\n\nYou have access to the following tools. To use a tool, respond with: TOOL_CALL: {\"name\": \"tool_name\", \"input\": {...}}\n");
+            for plugin in self.plugins.list() {
+                sys.push_str(&format!("- {}: {}\n  Schema: {}\n", plugin.name(), plugin.description(), plugin.input_schema()));
+            }
+            sys.push_str("\nIf you use a tool, I will provide the result and you should continue your analysis.\n");
+            system_prompt = Some(sys);
         }
 
-        // Perform inference
-        let response = self.engine.infer(request).await?;
+        let mut current_user_prompt = user_prompt;
+        let mut iteration = 0;
+        const MAX_ITERATIONS: u8 = 3;
 
-        // Parse the response
-        let result =
-            self.parse_analysis_response(&response.text, &context, start_time.elapsed())?;
+        while iteration < MAX_ITERATIONS {
+            iteration += 1;
+            
+            let mut request = InferenceRequest::new(current_user_prompt.clone())
+                .with_max_tokens(self.config.inference.max_tokens)
+                .with_temperature(self.config.inference.temperature);
+            
+            if let Some(ref sys) = system_prompt {
+                request = request.with_system_prompt(sys.clone());
+            }
 
-        info!(
-            "Analysis completed in {}ms",
-            result.metadata.processing_time_ms
-        );
-        Ok(result)
+            let response = self.engine.infer(request).await?;
+            let text = response.text.trim();
+
+            if text.starts_with("TOOL_CALL:") {
+                let json_part = text.trim_start_matches("TOOL_CALL:").trim();
+                if let Ok(call) = serde_json::from_str::<serde_json::Value>(json_part) {
+                    let tool_name = call["name"].as_str().unwrap_or_default();
+                    if let Some(plugin) = self.plugins.get(tool_name) {
+                        info!("LLM calling tool: {}", tool_name);
+                        match plugin.execute(call["input"].clone()).await {
+                            Ok(tool_result) => {
+                                current_user_prompt.push_str(&format!("\n\nTOOL_RESULT ({}): {}\n\nPlease continue your analysis and provide the final JSON report.", tool_name, tool_result));
+                                continue;
+                            }
+                            Err(e) => {
+                                warn!("Tool execution failed: {}", e);
+                                current_user_prompt.push_str(&format!("\n\nTOOL_ERROR ({}): {}\n\nPlease continue your analysis without this tool result.", tool_name, e));
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // If not a tool call or max iterations reached, parse as final result
+            let result = self.parse_analysis_response(text, &context, start_time.elapsed())?;
+            info!("Analysis completed in {} iterations", iteration);
+            return Ok(result);
+        }
+
+        Err(anyhow::anyhow!("Analysis failed to converge after {} iterations", MAX_ITERATIONS))
     }
 
     /// Analyze a single security event.

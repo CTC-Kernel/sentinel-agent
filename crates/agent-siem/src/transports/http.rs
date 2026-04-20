@@ -42,12 +42,33 @@ impl HttpTransport {
         auth_token: Option<String>,
         auth_header: Option<String>,
         verify_tls: bool,
+        client_cert: Option<String>,
+        client_key: Option<String>,
+        use_compression: bool,
     ) -> Self {
         #[allow(unused_mut)]
         let mut builder = reqwest::Client::builder()
-            .min_tls_version(reqwest::tls::Version::TLS_1_2)
+            .min_tls_version(reqwest::tls::Version::TLS_1_3) // Hardened: Prefer TLS 1.3
             .timeout(Duration::from_secs(30))
             .connect_timeout(Duration::from_secs(10));
+
+        // Compression optimization
+        if use_compression {
+            builder = builder.gzip(true).brotli(true).deflate(true);
+        }
+
+        // mTLS support
+        if let (Some(cert_pem), Some(key_pem)) = (client_cert, client_key) {
+            match reqwest::Identity::from_pem(format!("{}\n{}", cert_pem, key_pem).as_bytes()) {
+                Ok(identity) => {
+                    builder = builder.identity(identity);
+                    debug!("mTLS identity loaded for SIEM transport");
+                }
+                Err(e) => {
+                    warn!("Failed to load mTLS identity: {}", e);
+                }
+            }
+        }
 
         // SECURITY: Disabling TLS verification is only allowed in debug builds
         #[cfg(debug_assertions)]
@@ -74,7 +95,7 @@ impl HttpTransport {
 
     /// Create an HTTP transport configured for Splunk HEC.
     pub fn for_splunk(url: String, hec_token: String) -> Self {
-        Self::new(url, Some(hec_token), Some("Splunk".to_string()), true)
+        Self::new(url, Some(hec_token), Some("Splunk".to_string()), true, None, None, true)
     }
 
     /// Create an HTTP transport configured for Azure Sentinel.
@@ -83,12 +104,12 @@ impl HttpTransport {
             "https://{}.ods.opinsights.azure.com/api/logs?api-version=2016-04-01",
             workspace_id
         );
-        Self::new(url, Some(shared_key), Some("SharedKey".to_string()), true)
+        Self::new(url, Some(shared_key), Some("SharedKey".to_string()), true, None, None, true)
     }
 
     /// Create an HTTP transport configured for Elastic.
     pub fn for_elastic(url: String, api_key: Option<String>) -> Self {
-        Self::new(url, api_key, Some("ApiKey".to_string()), true)
+        Self::new(url, api_key, Some("ApiKey".to_string()), true, None, None, true)
     }
 
     /// Send data with retry logic and exponential backoff.
@@ -98,7 +119,10 @@ impl HttpTransport {
         for attempt in 0..=MAX_RETRIES {
             if attempt > 0 {
                 let delay = BASE_RETRY_DELAY_MS * 2u64.pow(attempt - 1);
-                debug!("Retry attempt {}/{} after {}ms", attempt, MAX_RETRIES, delay);
+                debug!(
+                    "Retry attempt {}/{} after {}ms",
+                    attempt, MAX_RETRIES, delay
+                );
                 tokio::time::sleep(Duration::from_millis(delay)).await;
             }
 

@@ -103,12 +103,12 @@ pub use types::{
     CertificateRenewalResponse, DetectionConditionPayload, DetectionMatchPayload,
     DetectionMatchSyncRequest, DetectionRulePayload, DetectionRuleSyncRequest,
     DiscoveredAssetPayload, EnrollmentRequest, EnrollmentResponse, GenericSyncResponse,
-    SiemEventPayload, SiemStatsPayload, SiemSyncRequest, SiemSyncResponse,
     HeartbeatRequest, HeartbeatResponse, IncidentReportResponse, IncidentType, InitialConfig,
     KpiSnapshotPayload, KpiSyncRequest, PlaybookActionPayload, PlaybookConditionPayload,
     PlaybookLogPayload, PlaybookLogSyncRequest, PlaybookPayload, PlaybookSyncRequest,
     PlaybookSyncResponse, PlaybookToggleRequest, RiskPayload, RiskSyncRequest, RiskSyncResponse,
-    SecurityIncidentReport, SelfCheckResult, Severity, StoredCredentials, VulnerabilityFinding,
+    SecurityIncidentReport, SelfCheckResult, Severity, SiemEventPayload, SiemStatsPayload,
+    SiemSyncRequest, SiemSyncResponse, StoredCredentials, VulnerabilityFinding,
     VulnerabilityUploadRequest, VulnerabilityUploadResponse, WebhookPayload, WebhookSyncRequest,
 };
 pub use update::{

@@ -137,18 +137,15 @@ impl RisksPage {
                         });
                     }
                     state.push_toast(
-                        crate::widgets::toast::Toast::info(
-                            format!("{} risques auto-générés", added),
-                        ),
+                        crate::widgets::toast::Toast::info(format!(
+                            "{} risques auto-générés",
+                            added
+                        )),
                         ui.ctx(),
                     );
                 }
             } else {
-                widgets::primary_button(
-                    ui,
-                    format!("{}  AUTO-POPULER", icons::LOCK),
-                    false,
-                );
+                widgets::primary_button(ui, format!("{}  AUTO-POPULER", icons::LOCK), false);
             }
 
             ui.add_space(theme::SPACE_SM);
@@ -379,7 +376,10 @@ impl RisksPage {
                         painter.rect_stroke(
                             cell_rect,
                             egui::CornerRadius::same(theme::ROUNDING_SM),
-                            egui::Stroke::new(theme::BORDER_THIN, color.linear_multiply(theme::OPACITY_MEDIUM)),
+                            egui::Stroke::new(
+                                theme::BORDER_THIN,
+                                color.linear_multiply(theme::OPACITY_MEDIUM),
+                            ),
                             egui::StrokeKind::Inside,
                         );
 

@@ -69,8 +69,10 @@ pub fn run_gui(
                     }
                 } else {
                     // First launch — detect OS dark mode preference
-                    let mut prefs = state::GuiPreferences::default();
-                    prefs.dark_mode = theme::detect_os_dark_mode();
+                    let prefs = state::GuiPreferences {
+                        dark_mode: theme::detect_os_dark_mode(),
+                        ..Default::default()
+                    };
                     app.apply_persisted_preferences(prefs);
                 }
             }
@@ -106,8 +108,10 @@ pub fn run_tray_popup(
                     }
                 } else {
                     // First launch — detect OS dark mode preference
-                    let mut prefs = state::GuiPreferences::default();
-                    prefs.dark_mode = theme::detect_os_dark_mode();
+                    let prefs = state::GuiPreferences {
+                        dark_mode: theme::detect_os_dark_mode(),
+                        ..Default::default()
+                    };
                     app.apply_persisted_preferences(prefs);
                 }
             }

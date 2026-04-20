@@ -111,10 +111,7 @@ pub async fn watch_files(
                     // PathNotFound errors are common for protected OS directories
                     // (e.g., C:\Windows\System32\config) — demote to debug.
                     if matches!(e.kind, notify::ErrorKind::PathNotFound) {
-                        debug!(
-                            "FIM: skipping inaccessible path {:?}: {}",
-                            e.paths, e
-                        );
+                        debug!("FIM: skipping inaccessible path {:?}: {}", e.paths, e);
                     } else {
                         warn!("FIM watch error: {}", e);
                     }

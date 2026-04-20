@@ -184,8 +184,7 @@ impl<'a> KeyRotationManager<'a> {
                     // Zeroize the key hex from the stack buffer
                     zeroize::Zeroize::zeroize(&mut pragma_buf);
 
-                    result
-                        .map_err(|e| StorageError::Encryption(format!("Rekey failed: {}", e)))?;
+                    result.map_err(|e| StorageError::Encryption(format!("Rekey failed: {}", e)))?;
 
                     // Checkpoint WAL after rekeying to clear any old key pages
                     if let Err(e) = conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);") {

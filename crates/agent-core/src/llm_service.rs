@@ -477,6 +477,47 @@ impl LLMService {
         None
     }
 
+    /// Analyze a vulnerability finding using the LLM.
+    #[cfg(feature = "llm")]
+    pub async fn analyze_vulnerability(&self, finding: &agent_scanner::VulnerabilityFinding) -> Result<String> {
+        let manager = self.get_manager().await.ok_or_else(|| {
+            anyhow::anyhow!("LLM manager not available")
+        })?;
+
+        let severity = format!("{:?}", finding.severity).to_uppercase();
+        let prompt = format!(
+            "### SYSTEM: You are Sentinel-Core AI, a cybersecurity expert. \
+            Analyze the following vulnerability and provide a concise assessment (exploitability, impact) \
+            and a specific remediation step. Keep it under 100 words.\n\n\
+            ### FINDING:\n\
+            - **Package**: {}\n\
+            - **Installed Version**: {}\n\
+            - **CVE**: {}\n\
+            - **Severity**: {}\n\
+            - **Description**: {}\n\n\
+            ### ANALYSIS:",
+            finding.package_name,
+            finding.installed_version,
+            finding.cve_id.as_deref().unwrap_or("N/A"),
+            severity,
+            finding.description
+        );
+
+        let req = agent_llm::engine::InferenceRequest::new(&prompt)
+            .with_max_tokens(512)
+            .with_temperature(0.2);
+
+        let resp = manager.engine().infer(req).await?;
+        Ok(resp.text.trim().to_string())
+    }
+
+    /// Fallback for analyze_vulnerability when LLM is not compiled.
+    #[cfg(not(feature = "llm"))]
+    pub async fn analyze_vulnerability(&self, _finding: &agent_scanner::VulnerabilityFinding) -> Result<String> {
+        Err(anyhow::anyhow!("AI analysis requires the 'llm' feature."))
+    }
+
+
     /// Reload LLM configuration.
     #[cfg(feature = "llm")]
     pub async fn reload(&self) -> Result<()> {
@@ -584,7 +625,11 @@ impl std::fmt::Display for LLMServiceStatus {
         match self {
             Self::NotAvailable => write!(f, "not_available"),
             Self::NotConfigured => write!(f, "not_configured"),
-            Self::Downloading { model_name, progress_percent, .. } => {
+            Self::Downloading {
+                model_name,
+                progress_percent,
+                ..
+            } => {
                 write!(f, "downloading ({} {}%)", model_name, progress_percent)
             }
             Self::Ready { model_name, .. } => write!(f, "ready ({})", model_name),

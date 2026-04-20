@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use tokio::sync::mpsc;
+use std::sync::mpsc;
 #[cfg(feature = "gui")]
 use tracing::{error, info, warn};
 
@@ -71,7 +71,7 @@ impl VoiceService {
         let engine_lock = self.tts_engine.clone();
 
         std::thread::spawn(move || {
-            let _ = tx.blocking_send(AgentEvent::VoiceStatus { speaking: true });
+            let _ = tx.send(AgentEvent::VoiceStatus { speaking: true });
             
             let mut synth_duration = std::time::Duration::from_millis(2000);
 
@@ -93,7 +93,7 @@ impl VoiceService {
             std::thread::sleep(synth_duration);
             
             // Notify UI that speaking ended => Hologram Idle
-            let _ = tx.blocking_send(AgentEvent::VoiceStatus { speaking: false });
+            let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
         });
     }
 }

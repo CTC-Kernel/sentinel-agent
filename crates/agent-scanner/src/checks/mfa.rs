@@ -159,20 +159,32 @@ impl MfaCheck {
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // Domain join status
-            status.domain_joined = json.get("DomainJoined").and_then(|v| agent_common::process::ps_json_as_bool(v));
+            status.domain_joined = json
+                .get("DomainJoined")
+                .and_then(agent_common::process::ps_json_as_bool);
 
             // Azure AD join status
-            status.azure_ad_joined = json.get("AzureAdJoined").and_then(|v| agent_common::process::ps_json_as_bool(v));
+            status.azure_ad_joined = json
+                .get("AzureAdJoined")
+                .and_then(agent_common::process::ps_json_as_bool);
 
             // Windows Hello
-            if json.get("NgcConfigured").and_then(|v| agent_common::process::ps_json_as_bool(v)) == Some(true) {
+            if json
+                .get("NgcConfigured")
+                .and_then(agent_common::process::ps_json_as_bool)
+                == Some(true)
+            {
                 status.mfa_configured = true;
                 status.available_methods.push("Windows Hello".to_string());
                 status.mfa_provider = Some("Windows Hello".to_string());
             }
 
             // Smart Card
-            if json.get("SmartCardReader").and_then(|v| agent_common::process::ps_json_as_bool(v)) == Some(true) {
+            if json
+                .get("SmartCardReader")
+                .and_then(agent_common::process::ps_json_as_bool)
+                == Some(true)
+            {
                 status.mfa_configured = true;
                 status.available_methods.push("Smart Card".to_string());
                 if status.mfa_provider.is_none() {

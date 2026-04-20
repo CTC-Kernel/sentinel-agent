@@ -62,7 +62,7 @@ pub mod score;
 pub mod security;
 pub mod vulnerability;
 
-#[cfg(any(feature = "llm_simple", feature = "llm"))]
+#[cfg(feature = "llm")]
 pub mod llm_integration;
 
 // Re-export commonly used types
@@ -100,7 +100,7 @@ pub use directory::{
 
 pub mod remediation;
 
-#[cfg(any(feature = "llm_simple", feature = "llm"))]
+#[cfg(feature = "llm")]
 pub use llm_integration::{
     IntelligentCheckRunner, IntelligentScanResult, LLMIntegration, ScanMetadata,
 };

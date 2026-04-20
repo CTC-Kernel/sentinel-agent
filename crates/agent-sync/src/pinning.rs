@@ -112,7 +112,9 @@ impl CertificatePinning {
     /// * `Err(SyncError::CertificateValidation)` if no match found
     pub async fn verify(&self, fingerprint: &str) -> SyncResult<()> {
         if !*self.enabled.read().await {
-            warn!("Certificate pinning disabled — no pins configured. TLS server identity not verified.");
+            warn!(
+                "Certificate pinning disabled — no pins configured. TLS server identity not verified."
+            );
             return Ok(());
         }
 

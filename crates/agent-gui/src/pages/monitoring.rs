@@ -19,8 +19,11 @@ use crate::theme;
 use crate::widgets;
 
 // ── Constants ───────────────────────────────────────────────────────────────
+#[allow(dead_code)]
 const RESOURCE_CRITICAL_THRESHOLD: f64 = 90.0;
+#[allow(dead_code)]
 const RESOURCE_WARNING_THRESHOLD: f64 = 70.0;
+#[allow(dead_code)]
 const CHART_HEIGHT: f32 = 190.0;
 const SUMMARY_CARD_MIN_HEIGHT: f32 = theme::SUMMARY_CARD_MIN_HEIGHT;
 const LOGS_PER_PAGE: usize = 50;
@@ -140,7 +143,8 @@ impl MonitoringPage {
                     ui.label(
                         RichText::new(format!(
                             "{}  {:.1} evt/min",
-                            icons::BOLT, state.siem.stats.events_per_minute
+                            icons::BOLT,
+                            state.siem.stats.events_per_minute
                         ))
                         .font(theme::font_label())
                         .color(theme::text_secondary()),
@@ -172,7 +176,10 @@ impl MonitoringPage {
             ui.add_sized(
                 [search_width, theme::MIN_TOUCH_TARGET],
                 egui::TextEdit::singleline(&mut state.siem.search)
-                    .hint_text(format!("{}  Rechercher dans les journaux...", icons::SEARCH))
+                    .hint_text(format!(
+                        "{}  Rechercher dans les journaux...",
+                        icons::SEARCH
+                    ))
                     .font(theme::font_body()),
             );
 
@@ -236,11 +243,7 @@ impl MonitoringPage {
                 || !state.siem.search.is_empty()
             {
                 ui.add_space(theme::SPACE_XS);
-                if widgets::ghost_button(
-                    ui,
-                    format!("{}  Réinitialiser", icons::XMARK),
-                )
-                .clicked()
+                if widgets::ghost_button(ui, format!("{}  Réinitialiser", icons::XMARK)).clicked()
                 {
                     state.siem.source_filter = None;
                     state.siem.severity_filter = None;
@@ -260,13 +263,15 @@ impl MonitoringPage {
             .iter()
             .filter(|e| {
                 if let Some(src) = state.siem.source_filter
-                    && e.source != src {
-                        return false;
-                    }
+                    && e.source != src
+                {
+                    return false;
+                }
                 if let Some(sev) = state.siem.severity_filter
-                    && e.severity < sev {
-                        return false;
-                    }
+                    && e.severity < sev
+                {
+                    return false;
+                }
                 if !search_lower.is_empty() {
                     let msg_lower = e.message.to_lowercase();
                     let cat_lower = e.category.to_lowercase();
@@ -319,7 +324,8 @@ impl MonitoringPage {
                 let time_w = 70.0_f32;
                 let sev_w = 42.0_f32;
                 let src_w = 90.0_f32;
-                let msg_w = (available_w - time_w - sev_w - src_w - theme::SPACE_SM * 4.0).max(150.0);
+                let msg_w =
+                    (available_w - time_w - sev_w - src_w - theme::SPACE_SM * 4.0).max(150.0);
 
                 // Header row
                 ui.horizontal(|ui: &mut egui::Ui| {
@@ -465,8 +471,7 @@ impl MonitoringPage {
                         pag_state.current_page = state.siem.logs_page + 1; // 1-indexed
                         pag_state.total_pages = total_pages;
                         if widgets::pagination_compact(ui, &mut pag_state) {
-                            state.siem.logs_page =
-                                pag_state.current_page.saturating_sub(1); // back to 0-indexed
+                            state.siem.logs_page = pag_state.current_page.saturating_sub(1); // back to 0-indexed
                         }
                     },
                 );
@@ -527,9 +532,13 @@ impl MonitoringPage {
             ),
         ];
 
-        stats_grid.show(ui, &stats_items, |ui, width, (label, value, color, icon)| {
-            Self::summary_card(ui, width, label, value, *color, icon);
-        });
+        stats_grid.show(
+            ui,
+            &stats_items,
+            |ui, width, (label, value, color, icon)| {
+                Self::summary_card(ui, width, label, value, *color, icon);
+            },
+        );
 
         ui.add_space(theme::SPACE_LG);
 
@@ -626,9 +635,10 @@ impl MonitoringPage {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    // Premium Chart Card
+    // Premium Chart Card (reserved for future dashboard upgrade)
     // ════════════════════════════════════════════════════════════════════════
 
+    #[allow(dead_code)]
     fn premium_chart_card(
         ui: &mut Ui,
         title: &str,
@@ -660,11 +670,7 @@ impl MonitoringPage {
                                 theme::readable_color(theme::SUCCESS)
                                     .linear_multiply(0.5 + pulse * 0.5)
                             };
-                            ui.label(
-                                RichText::new("●")
-                                    .size(theme::ICON_MICRO)
-                                    .color(dot_color),
-                            );
+                            ui.label(RichText::new("●").size(theme::ICON_MICRO).color(dot_color));
                             if !theme::is_reduced_motion() {
                                 ui.ctx().request_repaint();
                             }
@@ -749,8 +755,14 @@ impl MonitoringPage {
                 if is_pct {
                     // Warning threshold (70%)
                     let warn_pts = vec![
-                        [history_pts.first().map(|p| p[0]).unwrap_or(0.0), RESOURCE_WARNING_THRESHOLD],
-                        [history_pts.last().map(|p| p[0]).unwrap_or(1.0), RESOURCE_WARNING_THRESHOLD],
+                        [
+                            history_pts.first().map(|p| p[0]).unwrap_or(0.0),
+                            RESOURCE_WARNING_THRESHOLD,
+                        ],
+                        [
+                            history_pts.last().map(|p| p[0]).unwrap_or(1.0),
+                            RESOURCE_WARNING_THRESHOLD,
+                        ],
                     ];
                     plot_ui.line(
                         Line::new(PlotPoints::new(warn_pts))
@@ -761,8 +773,14 @@ impl MonitoringPage {
 
                     // Critical threshold (90%)
                     let crit_pts = vec![
-                        [history_pts.first().map(|p| p[0]).unwrap_or(0.0), RESOURCE_CRITICAL_THRESHOLD],
-                        [history_pts.last().map(|p| p[0]).unwrap_or(1.0), RESOURCE_CRITICAL_THRESHOLD],
+                        [
+                            history_pts.first().map(|p| p[0]).unwrap_or(0.0),
+                            RESOURCE_CRITICAL_THRESHOLD,
+                        ],
+                        [
+                            history_pts.last().map(|p| p[0]).unwrap_or(1.0),
+                            RESOURCE_CRITICAL_THRESHOLD,
+                        ],
                     ];
                     plot_ui.line(
                         Line::new(PlotPoints::new(crit_pts))
@@ -815,17 +833,18 @@ impl MonitoringPage {
             // ── Statistics bar ──────────────────────────────────────────────
             ui.horizontal(|ui: &mut egui::Ui| {
                 let stat_style = |label: &str, value: f64| -> (String, egui::Color32) {
-                    (
-                        format!("{}  {:.1}", label, value),
-                        theme::text_tertiary(),
-                    )
+                    (format!("{}  {:.1}", label, value), theme::text_tertiary())
                 };
 
                 let (min_text, min_color) = stat_style("MIN", min_val);
                 let (avg_text, avg_color) = stat_style("MOY", avg_val);
                 let (max_text, max_color) = stat_style("MAX", max_val);
 
-                for (text, color) in [(min_text, min_color), (avg_text, avg_color), (max_text, max_color)] {
+                for (text, color) in [
+                    (min_text, min_color),
+                    (avg_text, avg_color),
+                    (max_text, max_color),
+                ] {
                     ui.label(
                         RichText::new(text)
                             .font(theme::font_label())
@@ -977,10 +996,8 @@ impl MonitoringPage {
 
                         // Progress bar
                         let bar_width = (ui.available_width() - 60.0).max(50.0);
-                        let (bar_rect, _) = ui.allocate_exact_size(
-                            egui::vec2(bar_width, 14.0),
-                            egui::Sense::hover(),
-                        );
+                        let (bar_rect, _) = ui
+                            .allocate_exact_size(egui::vec2(bar_width, 14.0), egui::Sense::hover());
 
                         if ui.is_rect_visible(bar_rect) {
                             let painter = ui.painter_at(bar_rect);
@@ -995,11 +1012,7 @@ impl MonitoringPage {
                                 bar_rect.min,
                                 egui::vec2(bar_rect.width() * pct, bar_rect.height()),
                             );
-                            painter.rect_filled(
-                                fill_rect,
-                                egui::CornerRadius::same(3),
-                                bar_color,
-                            );
+                            painter.rect_filled(fill_rect, egui::CornerRadius::same(3), bar_color);
                         }
 
                         // Count
@@ -1086,6 +1099,7 @@ impl MonitoringPage {
     // Shared helpers
     // ════════════════════════════════════════════════════════════════════════
 
+    #[allow(dead_code)]
     fn usage_color(percent: f64) -> egui::Color32 {
         if percent >= RESOURCE_CRITICAL_THRESHOLD {
             theme::ERROR
@@ -1217,6 +1231,7 @@ impl MonitoringPage {
         });
     }
 
+    #[allow(dead_code)]
     fn empty_chart_state(ui: &mut Ui, height: f32) {
         let (rect, _) = ui.allocate_exact_size(
             egui::vec2(ui.available_width(), height - 60.0),

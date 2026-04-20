@@ -268,7 +268,11 @@ impl RemoteAccessCheck {
             }
 
             // SSH configuration
-            if json.get("SshEnabled").and_then(|v| agent_common::process::ps_json_as_bool(v)) == Some(true) {
+            if json
+                .get("SshEnabled")
+                .and_then(agent_common::process::ps_json_as_bool)
+                == Some(true)
+            {
                 status.remote_access_enabled = true;
                 status.ssh_config = Some(SshConfig {
                     enabled: true,
@@ -281,7 +285,11 @@ impl RemoteAccessCheck {
             }
 
             // WinRM
-            if json.get("WinRMRunning").and_then(|v| agent_common::process::ps_json_as_bool(v)) == Some(true) {
+            if json
+                .get("WinRMRunning")
+                .and_then(agent_common::process::ps_json_as_bool)
+                == Some(true)
+            {
                 status.remote_management_enabled = Some(true);
                 status.remote_access_enabled = true;
             }

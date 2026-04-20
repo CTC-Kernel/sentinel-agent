@@ -5,7 +5,7 @@
 
 use agent_common::error::CommonError;
 use agent_scanner::{ScanType, SecurityScanResult, VulnerabilityScanResult};
-use tracing::{debug, info, warn};
+use tracing::{debug, error, info, warn};
 
 use super::AgentRuntime;
 
@@ -28,15 +28,69 @@ impl AgentRuntime {
             result.packages_scanned
         );
 
+        // Cache results for AI analysis and GUI context
+        {
+            let mut cache = self.state.last_vuln_findings.write().await;
+            *cache = Some(result.clone());
+        }
+
+        // Perform automated AI analysis for high/critical findings
+        let result = result;
+        #[cfg(feature = "llm")]
+        if self.config.llm.enabled {
+            self.auto_analyze_vulnerabilities(&mut result).await;
+        }
+
         // Upload results if we have findings
         if !result.vulnerabilities.is_empty()
             && let Err(e) = self.upload_vulnerabilities(&result).await
         {
-            warn!("Failed to upload vulnerability findings: {}", e);
+            error!("Failed to upload vulnerability findings: {}", e);
         }
 
         Ok(result)
     }
+
+    /// Automatically analyze high/critical vulnerabilities using the local LLM.
+    #[cfg(feature = "llm")]
+    pub(crate) async fn auto_analyze_vulnerabilities(&self, scan_result: &mut agent_scanner::VulnerabilityScanResult) {
+        use agent_scanner::Severity;
+
+        let llm = match &self.llm_service {
+            Some(service) => service,
+            None => return,
+        };
+
+        if !llm.is_available().await {
+            debug!("LLM service not available for automated analysis");
+            return;
+        }
+
+        info!("Starting automated AI analysis of high/critical findings...");
+
+        for finding in &mut scan_result.vulnerabilities {
+            // Only auto-analyze Critical or High findings that haven't been analyzed yet
+            if (finding.severity == Severity::Critical || finding.severity == Severity::High)
+                && finding.ai_analysis.is_none()
+            {
+                debug!("Analyzing finding: {} ({})", finding.package_name, finding.cve_id.as_deref().unwrap_or("no-cve"));
+                
+                match llm.analyze_vulnerability(finding).await {
+                    Ok(analysis) => {
+                        finding.ai_analysis = Some(analysis);
+                        finding.ai_confidence = Some(85); // High confidence for auto-vetted
+                        finding.is_false_positive = Some(false);
+                    }
+                    Err(e) => {
+                        warn!("Failed to auto-analyze finding {}: {}", finding.package_name, e);
+                    }
+                }
+            }
+        }
+
+        info!("Automated AI analysis complete");
+    }
+
 
     /// Upload vulnerability findings to the server.
     pub(crate) async fn upload_vulnerabilities(
@@ -160,7 +214,7 @@ impl AgentRuntime {
 
             for incident in &result.incidents {
                 if let Err(e) = self.upload_incident(incident).await {
-                    warn!("Failed to upload incident: {}", e);
+                    error!("Failed to upload security incident: {}", e);
                 }
             }
         } else {

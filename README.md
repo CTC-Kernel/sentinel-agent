@@ -14,7 +14,7 @@ Expert en souveraineté numérique et cyber-défense
 [![CI Status](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Rust 2024](https://img.shields.io/badge/rust-2024%20edition-orange.svg)
-![Version](https://img.shields.io/badge/version-2.0.217-green.svg)
+![Version](https://img.shields.io/badge/version-2.0.219-green.svg)
 
 ---
 
@@ -45,7 +45,7 @@ Sentinel GRC Agent est un agent d'endpoint souverain et ultra-performant, conçu
 ### 4. Intégration & Résilience (Ecosystem)
 - **Moteur SIEM** : Connecteurs natifs pour **Splunk, Microsoft Sentinel, ELK et Syslog**.
 - **Persistance & Recovery** : Gestion avancée du cycle de vie (backup chiffré, rotation de clés, migration de base de données).
-- **Interface Next-Gen** : Dashboard interactif 14 modules sur **egui** avec mode sombre dynamique.
+- **Interface Next-Gen** : Dashboard interactif 19 modules sur **egui** avec mode sombre dynamique.
 
 ### 5. Gestion des Assets & CMDB
 - **Découverte d'assets** : Inventaire automatique des endpoints avec synchronisation vers la plateforme GRC.
@@ -69,7 +69,7 @@ L'agent est conçu comme un écosystème de crates Rust hautement spécialisées
 ```mermaid
 graph TD
     subgraph "Interface & UX"
-        GUI[agent-gui: Interface egui 14 modules]
+        GUI[agent-gui: Interface egui 19 modules]
         Tray[System Tray / Notification]
     end
 
@@ -188,12 +188,38 @@ sudo systemctl enable sentinel-agent
 | **agent-scanner** | Scan CVE & conformité | ✅ Stable | agent-common |
 | **agent-network** | Découverte réseau L2/L3 | ✅ Stable | agent-common |
 | **agent-storage** | Persistance SQLCipher | ✅ Stable | rusqlite, sqlcipher |
-| **agent-sync** | Synchronisation mTLS | � Beta | agent-storage, tokio |
+| **agent-sync** | Synchronisation mTLS | 🚧 Beta | agent-storage, tokio |
 | **agent-siem** | Connecteurs SIEM | 🚧 Beta | agent-core, serde |
 | **agent-persistence** | Persistance état GUI | ✅ Stable | agent-storage |
 | **agent-llm** | Inférence LLM locale | ✅ Stable | mistralrs |
 | **agent-fim** | File Integrity Monitoring | ✅ Stable | blake3, sha2 |
 | **agent-common** | Types & utilitaires partagés | ✅ Stable | serde, chrono |
+
+---
+
+## 📖 Documentation des Crates
+
+Chaque crate dispose de sa propre documentation detaillee :
+
+| Crate | Documentation | Description |
+|-------|---------------|-------------|
+| [agent-common](crates/agent-common/README.md) | Types & utilitaires | Fondation partagee : types, config, erreurs, frameworks |
+| [agent-core](crates/agent-core/README.md) | Orchestrateur | Runtime principal, service, lifecycle, EDR, playbooks |
+| [agent-scanner](crates/agent-scanner/README.md) | Conformite | 21 controles, scan CVE, generation de preuves |
+| [agent-network](crates/agent-network/README.md) | Reseau | Decouverte L2/L3, detection de menaces, cartographie |
+| [agent-fim](crates/agent-fim/README.md) | FIM | Surveillance d'integrite BLAKE3/SHA2 |
+| [agent-storage](crates/agent-storage/README.md) | Stockage | SQLCipher AES-256, repositories, migrations |
+| [agent-sync](crates/agent-sync/README.md) | Synchronisation | mTLS, heartbeat, mode hors-ligne 7 jours |
+| [agent-gui](crates/agent-gui/README.md) | Interface | Dashboard 19 pages, 40+ widgets, egui |
+| [agent-siem](crates/agent-siem/README.md) | SIEM | Splunk, Sentinel, ELK, Syslog (CEF/LEEF/JSON) |
+| [agent-persistence](crates/agent-persistence/README.md) | Persistence | Backup, recovery, rotation cles, migration |
+| [agent_llm](crates/agent_llm/README.md) | IA locale | Inference MistralRS, analyse securite, remediation |
+
+Documentation supplementaire :
+- [Guide Utilisateur](docs/USER_GUIDE.md) : Installation, configuration et utilisation quotidienne
+- [Configuration](config/README.md) : Reference des fichiers de configuration
+- [Contribution](CONTRIBUTING.md) : Standards de qualite et processus de contribution
+- [Securite](SECURITY.md) : Politique de securite et divulgation responsable
 
 ---
 
