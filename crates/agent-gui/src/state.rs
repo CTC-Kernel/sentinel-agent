@@ -492,6 +492,8 @@ pub struct AiState {
     pub is_listening: bool,
     /// Whether the voice interface is currently speaking.
     pub is_speaking: bool,
+    /// Set to true when a voice transcription has arrived and should be auto-submitted as a prompt.
+    pub pending_voice_send: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -1084,9 +1086,10 @@ impl AppState {
             }
             AgentEvent::VoiceTranscription { text } => {
                 self.ai.input_text = text.clone();
-                // Optionally push to chat history if immediately triggering prompt, but
-                // dashboard handles prompt triggering if input_text is filled.
+                // Auto-trigger the prompt so the user doesn't need to click "Send"
+                self.ai.pending_voice_send = true;
             }
+
             AgentEvent::VoiceStatus { speaking } => {
                 self.ai.is_speaking = speaking;
                 if speaking {

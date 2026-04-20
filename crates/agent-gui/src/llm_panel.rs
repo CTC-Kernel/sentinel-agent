@@ -218,7 +218,13 @@ impl LLMPanel {
                 let can_send = !state.ai.is_processing && !state.ai.input_text.trim().is_empty();
                 let send_clicked = ui.add_enabled(can_send, send_btn).clicked();
 
-                if (enter_pressed || send_clicked) && can_send {
+                // Auto-send when a voice transcription has arrived
+                let voice_auto_send = state.ai.pending_voice_send && can_send;
+                if voice_auto_send {
+                    state.ai.pending_voice_send = false;
+                }
+
+                if (enter_pressed || send_clicked || voice_auto_send) && can_send {
                     let prompt = state.ai.input_text.trim().to_string();
                     state.ai.chat_history.push(crate::dto::LlmChatMessage {
                         role: ChatRole::User,

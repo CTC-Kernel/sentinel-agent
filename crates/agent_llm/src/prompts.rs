@@ -191,10 +191,10 @@ pub enum ThreatLevel {
 impl std::fmt::Display for ThreatLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ThreatLevel::Low => write!(f, "low"),
-            ThreatLevel::Medium => write!(f, "medium"),
-            ThreatLevel::High => write!(f, "high"),
-            ThreatLevel::Critical => write!(f, "critical"),
+            ThreatLevel::Low => write!(f, "Low"),
+            ThreatLevel::Medium => write!(f, "Medium"),
+            ThreatLevel::High => write!(f, "High"),
+            ThreatLevel::Critical => write!(f, "Critical"),
         }
     }
 }
