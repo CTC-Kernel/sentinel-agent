@@ -339,6 +339,11 @@ pub enum AgentEvent {
         /// The quarantined file entry.
         entry: crate::dto::QuarantinedFile,
     },
+    /// Toggle visibility of the standalone Jarvis widget.
+    ToggleJarvisWidget {
+        /// Whether the widget should be visible.
+        visible: bool,
+    },
 }
 
 /// Commands sent from the GUI to the agent runtime.
@@ -545,6 +550,20 @@ pub enum GuiCommand {
     SetVoiceListening {
         /// Whether the agent should actively listen and transcribe mic input.
         enabled: bool,
+    },
+    /// Toggle voice recognition on/off (convenience wrapper around SetVoiceListening).
+    LlmToggleVoice,
+    /// Select a specific LLM model (by registry key, e.g. "llama-4-8b").
+    /// The runtime will update llm.json and reload the model.
+    LlmSelectModel {
+        /// Registry model key (e.g. "llama-4-8b", "gemma-3-4b").
+        model_key: String,
+        /// Human-readable model name.
+        model_name: String,
+        /// HuggingFace download URL for the GGUF file.
+        download_url: Option<String>,
+        /// Expected GGUF filename on disk.
+        gguf_filename: Option<String>,
     },
     /// Update the SIEM forwarder configuration.
     UpdateSiemConfig {

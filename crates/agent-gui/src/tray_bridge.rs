@@ -16,7 +16,7 @@
 //! and drained by the poll thread, which then forwards them to eframe.
 
 use agent_common::constants::AGENT_VERSION;
-use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
+use muda::{CheckMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex, OnceLock};
 use tracing::{debug, info, warn};
@@ -52,6 +52,7 @@ pub enum TrayAction {
     OpenGuide,
     OpenConsole,
     About,
+    ToggleJarvis,
     Quit,
 }
 
@@ -71,6 +72,7 @@ mod ids {
     pub const OPEN_GUIDE: &str = "tray_open_guide";
     pub const OPEN_CONSOLE: &str = "tray_open_console";
     pub const ABOUT: &str = "tray_about";
+    pub const JARVIS_TOGGLE: &str = "tray_jarvis_toggle";
     pub const QUIT: &str = "tray_quit";
 }
 
@@ -120,6 +122,7 @@ pub struct TrayBridge {
     resources_item: MenuItem,
     pause_item: MenuItem,
     resume_item: MenuItem,
+    jarvis_item: CheckMenuItem,
 }
 
 impl TrayBridge {
@@ -174,6 +177,8 @@ impl TrayBridge {
             .map_err(&m)?;
         help_submenu.append(&about_item).map_err(&m)?;
 
+        let jarvis_item = CheckMenuItem::with_id(ids::JARVIS_TOGGLE, "🤖  Assistant Jarvis (IA)", true, false, None);
+
         let quit_item = MenuItem::with_id(ids::QUIT, "⏻  Quitter", true, None);
 
         // === Build Menu ===
@@ -206,6 +211,10 @@ impl TrayBridge {
         menu.append(&help_submenu).map_err(&m)?;
         menu.append(&PredefinedMenuItem::separator()).map_err(&m)?;
 
+        // Jarvis Assistant
+        menu.append(&jarvis_item).map_err(&m)?;
+        menu.append(&PredefinedMenuItem::separator()).map_err(&m)?;
+
         // Quit
         menu.append(&quit_item).map_err(&m)?;
 
@@ -236,6 +245,7 @@ impl TrayBridge {
             resources_item,
             pause_item,
             resume_item,
+            jarvis_item,
         })
     }
 
@@ -259,6 +269,11 @@ impl TrayBridge {
         } else {
             self.status_item.set_text("✓ Actif");
         }
+    }
+
+    /// Update the Jarvis toggle checkbox in the tray.
+    pub fn set_jarvis_checked(&self, checked: bool) {
+        self.jarvis_item.set_checked(checked);
     }
 
     /// Drain pending tray and menu events and return actions.
@@ -329,6 +344,10 @@ impl TrayBridge {
                     ids::ABOUT => {
                         info!("Tray: about requested");
                         actions.push(TrayAction::About);
+                    }
+                    ids::JARVIS_TOGGLE => {
+                        debug!("Tray: jarvis toggle requested");
+                        actions.push(TrayAction::ToggleJarvis);
                     }
                     ids::QUIT => {
                         info!("Tray: quit requested");

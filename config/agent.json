@@ -1,5 +1,5 @@
 {
-  "server_url": "https://europe-west4-sentinel-grc-a8701.cloudfunctions.net/agentApi",
+  "server_url": "https://app.cyber-threat-consulting.com",
   "enrollment_token": "",
   "check_interval_secs": 3600,
   "heartbeat_interval_secs": 60,

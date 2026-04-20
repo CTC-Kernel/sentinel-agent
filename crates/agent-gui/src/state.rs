@@ -771,6 +771,8 @@ pub struct AppState {
     pub pending_navigation: Option<crate::app::Page>,
     /// Whether the voice recognition (Jarvis) is currently active/listening.
     pub voice_active: bool,
+    /// Whether the standalone Jarvis widget (viewport) is currently visible.
+    pub jarvis_visible: bool,
 }
 
 impl Default for AppState {
@@ -821,6 +823,7 @@ impl Default for AppState {
             #[cfg(feature = "render")]
             pending_navigation: None,
             voice_active: false,
+            jarvis_visible: false,
         }
     }
 }
@@ -1349,6 +1352,9 @@ impl AppState {
             AgentEvent::FileQuarantined { entry } => {
                 self.threats.quarantine_queue.push_front(entry);
                 self.threats.quarantine_queue.truncate(200);
+            }
+            AgentEvent::ToggleJarvisWidget { visible } => {
+                self.jarvis_visible = visible;
             }
         }
 

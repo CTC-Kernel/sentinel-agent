@@ -50,6 +50,8 @@ pub enum RemediationRequest {
     Execute { check_id: String },
     /// Generate and emit a preview for a check.
     Preview { check_id: String },
+    /// Execute an AI-generated remediation action.
+    ApplyAi { action: agent_common::types::RemediationAction },
 }
 
 impl RuntimeState {

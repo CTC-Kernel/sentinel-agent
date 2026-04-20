@@ -178,6 +178,8 @@ impl AgentRuntime {
                 ai_confidence: v.ai_confidence,
                 is_false_positive: v.is_false_positive,
                 ai_analysis: v.ai_analysis.clone(),
+                ai_remediation_script: v.ai_remediation_script.clone(),
+                ai_remediation_explanation: v.ai_remediation_explanation.clone(),
             })
             .collect()
     }

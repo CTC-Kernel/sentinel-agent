@@ -607,11 +607,8 @@ impl LLMPanel {
     fn show_model_status_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
 
-        // Extract values to avoid borrow conflicts
-        let download_phase = state.ai.download.phase;
-        let model_status_str = state.ai.model_status.status.clone();
-
         // ── Download in progress / paused / failed ──────────────────────
+        let download_phase = state.ai.download.phase;
         let show_download_ui = matches!(
             download_phase,
             crate::dto::DownloadPhase::Downloading
@@ -624,7 +621,6 @@ impl LLMPanel {
                 return Some(cmd);
             }
             ui.add_space(theme::SPACE_LG);
-            // If downloading, don't show the rest of the model status
             if matches!(
                 download_phase,
                 crate::dto::DownloadPhase::Downloading | crate::dto::DownloadPhase::Paused
@@ -633,278 +629,315 @@ impl LLMPanel {
             }
         }
 
-        let status = &state.ai.model_status;
+        // ── Active model status hero card ────────────────────────────────
+        let model_status_str = state.ai.model_status.status.clone();
+        let model_name_str = state.ai.model_status.model_name.clone();
+        let is_ready = state.ai.model_status.is_ready;
 
-        // Empty / unloaded / not_configured / error state
-        let show_setup_ui = model_status_str.is_empty()
-            || model_status_str == "unloaded"
-            || model_status_str == "not_configured"
-            || model_status_str.starts_with("error:");
-
-        if show_setup_ui {
-            // Choose the right message depending on status
-            let (title, detail) = if model_status_str == "not_configured" {
-                (
-                    "MODÈLE NON CONFIGURÉ",
-                    "Le fichier de configuration LLM est introuvable. Téléchargez un modèle GGUF pour activer l'intelligence artificielle locale.",
-                )
-            } else if model_status_str.starts_with("error:") {
-                (
-                    "ERREUR DU MODÈLE",
-                    "Le modèle LLM n'a pas pu être chargé. Vous pouvez réessayer ou télécharger un nouveau modèle.",
-                )
-            } else {
-                (
-                    "MODÈLE NON CHARGÉ",
-                    "Le modèle LLM n'est pas chargé en mémoire. Cliquez sur le bouton ci-dessous pour le charger.",
-                )
-            };
-
-            widgets::empty_state(ui, icons::MICROCHIP, title, Some(detail));
-
-            // Show error detail if present
-            if model_status_str.starts_with("error:") {
-                ui.add_space(theme::SPACE_SM);
-                let error_detail = model_status_str
-                    .strip_prefix("error: ")
-                    .unwrap_or(&model_status_str);
-                egui::Frame::new()
-                    .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
-                    .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                    .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
-                    .show(ui, |ui: &mut egui::Ui| {
-                        ui.horizontal(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(icons::CIRCLE_XMARK)
-                                    .size(theme::ICON_SM)
-                                    .color(theme::readable_color(theme::ERROR)),
-                            );
-                            ui.add_space(theme::SPACE_XS);
-                            ui.label(
-                                egui::RichText::new(error_detail)
-                                    .font(theme::font_small())
-                                    .color(theme::readable_color(theme::ERROR)),
-                            );
-                        });
-                    });
-            }
-
-            ui.add_space(theme::SPACE_LG);
-
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.add_space((ui.available_width() - 400.0).max(0.0) / 2.0);
-
-                // Only show "load" button if model might exist (not if not_configured)
-                if model_status_str != "not_configured" {
-                    let reload_btn = egui::Button::new(
-                        egui::RichText::new(format!("{} Charger le modèle", icons::PLAY))
-                            .font(theme::font_body())
-                            .color(theme::text_on_accent()),
-                    )
-                    .fill(theme::ACCENT)
-                    .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
-
-                    if ui.add(reload_btn).clicked() {
-                        command = Some(GuiCommand::LlmReloadModel);
-                    }
-
-                    ui.add_space(theme::SPACE_MD);
-                }
-
-                let download_btn = egui::Button::new(
-                    egui::RichText::new(format!("{} Télécharger le modèle", icons::DOWNLOAD))
-                        .font(theme::font_body())
-                        .color(if model_status_str == "not_configured" {
-                            theme::text_on_accent()
-                        } else {
-                            theme::accent_text()
-                        }),
-                )
-                .fill(if model_status_str == "not_configured" {
-                    theme::ACCENT
-                } else {
-                    theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE)
-                })
-                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                .stroke(egui::Stroke::new(
-                    theme::BORDER_THIN,
-                    theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
-                ));
-
-                if ui.add(download_btn).clicked() {
-                    state.ai.download.phase = crate::dto::DownloadPhase::Downloading;
-                    state.ai.download.progress_percent = 0;
-                    state.ai.download.downloaded_bytes = 0;
-                    command = Some(GuiCommand::LlmStartDownload);
-                }
-            });
-
-            return command;
-        }
-
-        // ── Model Info Card ──────────────────────────────────────────────
         widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new("INFORMATIONS DU MOD\u{00c8}LE")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
-            );
-            ui.add_space(theme::SPACE_MD);
-
-            // Model name
             ui.horizontal(|ui: &mut egui::Ui| {
+                // Status indicator dot
+                let (dot_color, status_text) = if is_ready {
+                    (theme::SUCCESS, "ACTIF")
+                } else if model_status_str.starts_with("error") {
+                    (theme::ERROR, "ERREUR")
+                } else if model_status_str == "loading" {
+                    (theme::WARNING, "CHARGEMENT")
+                } else {
+                    (theme::text_tertiary(), "NON CHARGÉ")
+                };
+
+                let t = ui.input(|i| i.time);
+                let pulse = if is_ready { (t * 3.0).sin().abs() as f32 * 0.3 + 0.7 } else { 1.0 };
                 ui.label(
-                    egui::RichText::new(icons::MICROCHIP)
-                        .size(theme::ICON_MD)
-                        .color(theme::readable_color(theme::ACCENT)),
+                    egui::RichText::new("●")
+                        .size(theme::ICON_SM)
+                        .color(dot_color.linear_multiply(pulse)),
                 );
                 ui.add_space(theme::SPACE_SM);
+
                 ui.vertical(|ui: &mut egui::Ui| {
                     ui.label(
-                        egui::RichText::new("NOM DU MOD\u{00c8}LE")
+                        egui::RichText::new("MODÈLE ACTIF")
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .extra_letter_spacing(theme::TRACKING_NORMAL)
                             .strong(),
                     );
                     ui.label(
-                        egui::RichText::new(if status.model_name.is_empty() {
-                            "--"
+                        egui::RichText::new(if model_name_str.is_empty() {
+                            "Aucun modèle chargé".to_string()
                         } else {
-                            &status.model_name
+                            model_name_str.clone()
                         })
                         .font(theme::font_heading())
                         .color(theme::text_primary())
                         .strong(),
                     );
                 });
+
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
+                    widgets::status_badge(ui, status_text, dot_color);
+                });
             });
 
-            ui.add_space(theme::SPACE_LG);
+            if is_ready {
+                ui.add_space(theme::SPACE_MD);
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    let icon_color = theme::text_tertiary();
+                    ui.label(egui::RichText::new(icons::BOLT).size(theme::ICON_XS).color(icon_color));
+                    ui.label(
+                        egui::RichText::new(format!("{} inférences", state.ai.model_status.inference_count))
+                            .font(theme::font_small())
+                            .color(theme::text_secondary()),
+                    );
+                    ui.add_space(theme::SPACE_MD);
+                    ui.label(egui::RichText::new(icons::MEMORY).size(theme::ICON_XS).color(icon_color));
+                    ui.label(
+                        egui::RichText::new(if state.ai.model_status.memory_mb > 0 {
+                            format!("{} Mo alloués", state.ai.model_status.memory_mb)
+                        } else {
+                            "--".to_string()
+                        })
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
+                    );
 
-            // Status badge
-            let (status_label, status_color) = match status.status.as_str() {
-                "ready" => ("PR\u{00ca}T", theme::SUCCESS),
-                "loading" => ("CHARGEMENT", theme::WARNING),
-                "error" => ("ERREUR", theme::ERROR),
-                _ => (&*status.status.to_uppercase(), theme::text_tertiary()),
-            };
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
+                        let reload_btn = egui::Button::new(
+                            egui::RichText::new(format!("{} Recharger", icons::REFRESH))
+                                .font(theme::font_small())
+                                .color(theme::accent_text()),
+                        )
+                        .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
+                        .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                        .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("STATUT")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_SM);
-                widgets::status_badge(ui, status_label, status_color);
-            });
-        });
-
-        ui.add_space(theme::SPACE_MD);
-
-        // ── Metrics Grid ─────────────────────────────────────────────────
-        let metrics = vec![
-            (
-                "INF\u{00c9}RENCES",
-                status.inference_count.to_string(),
-                if status.inference_count > 0 {
-                    theme::ACCENT
-                } else {
-                    theme::text_tertiary()
-                },
-                icons::BOLT,
-            ),
-            (
-                "M\u{00c9}MOIRE ALLOU\u{00c9}E",
-                if status.memory_mb > 0 {
-                    format!("{} Mo", status.memory_mb)
-                } else {
-                    "--".to_string()
-                },
-                if status.memory_mb > 0 {
-                    theme::INFO
-                } else {
-                    theme::text_tertiary()
-                },
-                icons::MEMORY,
-            ),
-            (
-                "\u{00c9}TAT",
-                if status.is_ready {
-                    "Actif".to_string()
-                } else {
-                    "Inactif".to_string()
-                },
-                if status.is_ready {
-                    theme::SUCCESS
-                } else {
-                    theme::WARNING
-                },
-                icons::SERVER,
-            ),
-        ];
-
-        let grid = widgets::ResponsiveGrid::new(180.0, theme::SPACE_SM);
-        grid.show(ui, &metrics, |ui, width, (label, value, color, icon)| {
-            Self::summary_card(ui, width, label, value, *color, icon);
+                        if ui.add(reload_btn).clicked() {
+                            command = Some(GuiCommand::LlmReloadModel);
+                        }
+                    });
+                });
+            } else if !model_status_str.is_empty() && !is_ready {
+                // Reload / load button for non-ready state
+                ui.add_space(theme::SPACE_MD);
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    if model_status_str != "not_configured" {
+                        let load_btn = egui::Button::new(
+                            egui::RichText::new(format!("{} Charger le modèle", icons::PLAY))
+                                .font(theme::font_body())
+                                .color(theme::text_on_accent()),
+                        )
+                        .fill(theme::ACCENT)
+                        .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+                        if ui.add(load_btn).clicked() {
+                            command = Some(GuiCommand::LlmReloadModel);
+                        }
+                    }
+                });
+            }
         });
 
         ui.add_space(theme::SPACE_LG);
 
-        // ── Reload Button ────────────────────────────────────────────────
+        // ── Model Catalogue ──────────────────────────────────────────────
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new("ACTIONS")
+                    egui::RichText::new("CATALOGUE DES MODÈLES")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("Sélectionnez un modèle à télécharger ou activer")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
+                });
             });
+
             ui.add_space(theme::SPACE_MD);
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                let reload_btn = egui::Button::new(
-                    egui::RichText::new(format!("{} Recharger le mod\u{00e8}le", icons::REFRESH))
-                        .font(theme::font_body())
-                        .color(theme::text_on_accent()),
-                )
-                .fill(theme::ACCENT)
-                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+            // Model catalogue (static — mirrors ModelRegistry)
+            let catalogue: &[(&str, &str, &str, f32, u32, &str, Option<&str>)] = &[
+                (
+                    "llama-4-8b",
+                    "Llama 4 8B Instruct",
+                    "Modèle polyvalent — analyse, remédiation, classification. Contexte 128k.",
+                    5.2,
+                    8,
+                    "RECOMMANDÉ",
+                    Some("https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"),
+                ),
+                (
+                    "qwen3-coder-7b",
+                    "Qwen3-Coder 7B",
+                    "Spécialisé analyse de code et audit de sécurité. Contexte 32k.",
+                    4.7,
+                    6,
+                    "CODE & AUDIT",
+                    Some("https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf"),
+                ),
+                (
+                    "deepseek-r1-8b",
+                    "DeepSeek-R1 Distill 8B",
+                    "Raisonnement avancé pour les scénarios de sécurité complexes. Contexte 65k.",
+                    5.8,
+                    8,
+                    "RAISONNEMENT",
+                    Some("https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf"),
+                ),
+                (
+                    "gemma-3-4b",
+                    "Gemma 3 4B",
+                    "Modèle léger pour classification et résumé. Idéal pour les machines avec peu de RAM.",
+                    2.8,
+                    4,
+                    "LÉGER",
+                    Some("https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf"),
+                ),
+            ];
 
-                if ui.add(reload_btn).clicked() {
-                    command = Some(GuiCommand::LlmReloadModel);
-                }
+            let badge_colors: &[egui::Color32] = &[
+                theme::ACCENT,
+                theme::INFO,
+                theme::WARNING,
+                theme::SUCCESS,
+            ];
 
-                ui.add_space(theme::SPACE_MD);
+            egui::ScrollArea::vertical()
+                .id_salt("model_catalogue_scroll")
+                .max_height(480.0)
+                .show(ui, |ui| {
+                    for (i, (key, name, desc, size_gb, vram_min, badge, dl_url)) in catalogue.iter().enumerate() {
+                        let is_active = model_name_str.to_lowercase().contains(key)
+                            || model_name_str.to_lowercase().contains(&key.replace('-', " "));
+                        let badge_color = badge_colors[i % badge_colors.len()];
 
-                let status_btn = egui::Button::new(
-                    egui::RichText::new(format!("{} Actualiser le statut", icons::REFRESH))
-                        .font(theme::font_body())
-                        .color(theme::accent_text()),
-                )
-                .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
-                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                .stroke(egui::Stroke::new(
-                    theme::BORDER_THIN,
-                    theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
-                ));
+                        let border_color = if is_active {
+                            theme::ACCENT
+                        } else {
+                            theme::border()
+                        };
+                        let bg_color = if is_active {
+                            theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE)
+                        } else {
+                            theme::bg_elevated()
+                        };
 
-                if ui.add(status_btn).clicked() {
-                    command = Some(GuiCommand::LlmGetStatus);
-                }
-            });
+                        egui::Frame::new()
+                            .fill(bg_color)
+                            .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+                            .stroke(egui::Stroke::new(
+                                if is_active { theme::BORDER_THIN * 2.0 } else { theme::BORDER_HAIRLINE },
+                                border_color,
+                            ))
+                            .show(ui, |ui: &mut egui::Ui| {
+                                ui.horizontal(|ui: &mut egui::Ui| {
+                                    // Model icon
+                                    ui.label(
+                                        egui::RichText::new(icons::MICROCHIP)
+                                            .size(theme::ICON_MD)
+                                            .color(if is_active { theme::ACCENT } else { theme::text_tertiary() }),
+                                    );
+                                    ui.add_space(theme::SPACE_SM);
+
+                                    ui.vertical(|ui: &mut egui::Ui| {
+                                        // Name + badge
+                                        ui.horizontal(|ui: &mut egui::Ui| {
+                                            ui.label(
+                                                egui::RichText::new(*name)
+                                                    .font(theme::font_body())
+                                                    .color(theme::text_primary())
+                                                    .strong(),
+                                            );
+                                            ui.add_space(theme::SPACE_XS);
+                                            widgets::status_badge(ui, badge, badge_color);
+                                            if is_active {
+                                                ui.add_space(theme::SPACE_XS);
+                                                widgets::status_badge(ui, "ACTIF", theme::SUCCESS);
+                                            }
+                                        });
+
+                                        ui.add_space(2.0);
+                                        ui.label(
+                                            egui::RichText::new(*desc)
+                                                .font(theme::font_small())
+                                                .color(theme::text_secondary()),
+                                        );
+
+                                        ui.add_space(theme::SPACE_SM);
+                                        ui.horizontal(|ui: &mut egui::Ui| {
+                                            let meta_color = theme::text_tertiary();
+                                            ui.label(egui::RichText::new(icons::DATABASE).size(theme::ICON_XS).color(meta_color));
+                                            ui.label(egui::RichText::new(format!("{:.1} Go", size_gb)).font(theme::font_min()).color(meta_color));
+                                            ui.add_space(theme::SPACE_SM);
+                                            ui.label(egui::RichText::new(icons::MEMORY).size(theme::ICON_XS).color(meta_color));
+                                            ui.label(egui::RichText::new(format!("{}+ Go VRAM", vram_min)).font(theme::font_min()).color(meta_color));
+                                        });
+                                    });
+
+                                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
+                                        if is_active {
+                                            // Already active — show reload button
+                                            let btn = egui::Button::new(
+                                                egui::RichText::new(format!("{} Recharger", icons::REFRESH))
+                                                    .font(theme::font_small())
+                                                    .color(theme::accent_text()),
+                                            )
+                                            .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
+                                            .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                                            .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
+                                            if ui.add(btn).clicked() {
+                                                command = Some(GuiCommand::LlmReloadModel);
+                                            }
+                                        } else {
+                                            // Select / download button
+                                            let btn_label = if dl_url.is_some() {
+                                                format!("{} Sélectionner", icons::DOWNLOAD)
+                                            } else {
+                                                format!("{} Activer", icons::PLAY)
+                                            };
+                                            let btn = egui::Button::new(
+                                                egui::RichText::new(&btn_label)
+                                                    .font(theme::font_small())
+                                                    .color(theme::text_on_accent()),
+                                            )
+                                            .fill(theme::ACCENT)
+                                            .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+
+                                            if ui.add(btn).clicked() {
+                                                // Initiate download + selection
+                                                state.ai.download.phase = crate::dto::DownloadPhase::Downloading;
+                                                state.ai.download.progress_percent = 0;
+                                                state.ai.download.downloaded_bytes = 0;
+                                                state.ai.download.model_name = name.to_string();
+                                                command = Some(GuiCommand::LlmSelectModel {
+                                                    model_key: key.to_string(),
+                                                    model_name: name.to_string(),
+                                                    download_url: dl_url.map(|s| s.to_string()),
+                                                    gguf_filename: Some(format!("{}.Q4_K_M.gguf", key)),
+                                                });
+                                            }
+                                        }
+                                    });
+                                });
+                            });
+
+                        ui.add_space(theme::SPACE_SM);
+                    }
+                });
         });
 
         command
     }
 
+
+    // ====================================================================
     // ====================================================================
     // Download progress UI
     // ====================================================================

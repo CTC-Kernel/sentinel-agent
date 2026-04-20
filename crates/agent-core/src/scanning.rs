@@ -40,7 +40,7 @@ impl AgentRuntime {
         }
 
         // Perform automated AI analysis for high/critical findings
-        let result = result;
+        let mut result = result;
         #[cfg(feature = "llm")]
         if self.config.llm.enabled {
             self.auto_analyze_vulnerabilities(&mut result).await;

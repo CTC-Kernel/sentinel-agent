@@ -146,7 +146,7 @@ impl AgentRuntime {
         if let Some(audit) = &self.audit_trail {
             audit
                 .log(
-                    crate::audit_trail::AuditAction::AIInteraction(format!("Apply AI Fix for {}", check_id)),
+                    crate::audit_trail::AuditAction::AIInteraction { prompt_preview: format!("Apply AI Fix for {}", check_id) },
                     "user",
                     Some(format!(
                         "Status: {:?}, Output: {}",

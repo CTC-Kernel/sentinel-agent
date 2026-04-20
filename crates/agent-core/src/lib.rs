@@ -271,6 +271,9 @@ pub struct AgentRuntime {
     /// LLM service for AI-powered analysis (feature-gated).
     #[cfg(feature = "llm")]
     llm_service: Option<Arc<llm_service::LLMService>>,
+    /// Voice service for auditory feedback and speech interface.
+    #[cfg(feature = "voice")]
+    voice_service: Option<Arc<voice::VoiceService>>,
     /// Consecutive authentication failure count for re-enrollment tracking.
     auth_failure_count: std::sync::atomic::AtomicU32,
     /// Timestamp of the last re-enrollment attempt (epoch seconds).
@@ -451,6 +454,17 @@ impl RuntimeHandle {
         }
     }
 
+    /// Trigger an AI-generated remediation.
+    pub fn apply_ai_remediation(&self, action: agent_common::types::RemediationAction) {
+        if let Err(e) = self
+            .state
+            .remediation_tx
+            .try_send(state::RemediationRequest::ApplyAi { action })
+        {
+            warn!("Failed to send AI remediation request: {}", e);
+        }
+    }
+
     /// Get a clone of the shutdown signal.
     pub fn shutdown_signal(&self) -> ShutdownSignal {
         self.state.shutdown.clone()
@@ -579,6 +593,8 @@ impl AgentRuntime {
             organization_name: RwLock::new(None),
             #[cfg(feature = "llm")]
             llm_service: None,
+            #[cfg(feature = "voice")]
+            voice_service: None,
             auth_failure_count: std::sync::atomic::AtomicU32::new(0),
             last_re_enrollment_attempt: std::sync::atomic::AtomicU64::new(0),
         }
@@ -604,6 +620,13 @@ impl AgentRuntime {
     #[cfg(feature = "llm")]
     pub fn with_llm_service(mut self, service: Arc<llm_service::LLMService>) -> Self {
         self.llm_service = Some(service);
+        self
+    }
+
+    /// Set the voice service for holographic feedback.
+    #[cfg(feature = "voice")]
+    pub fn with_voice_service(mut self, service: Arc<voice::VoiceService>) -> Self {
+        self.voice_service = Some(service);
         self
     }
 
@@ -2826,6 +2849,9 @@ impl AgentRuntime {
                             }
                             state::RemediationRequest::Preview { check_id } => {
                                 self.remediate_preview(&check_id);
+                            }
+                            state::RemediationRequest::ApplyAi { action } => {
+                                self.apply_ai_remediation(action).await;
                             }
                         }
                         #[cfg(not(feature = "gui"))]

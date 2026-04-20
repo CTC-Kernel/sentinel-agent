@@ -117,6 +117,25 @@ pub struct AgentConfig {
     /// Zeroized from memory on drop to prevent credential leakage.
     #[serde(skip)]
     pub admin_password: Option<String>,
+
+    /// LLM configuration settings.
+    #[serde(default)]
+    pub llm: LLMSettings,
+}
+
+/// LLM configuration settings for the agent.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct LLMSettings {
+    /// Whether to enable AI features (scanning analysis, remediation suggestion).
+    pub enabled: bool,
+
+    /// LLM model name.
+    #[serde(default = "default_llm_model")]
+    pub model: String,
+}
+
+fn default_llm_model() -> String {
+    "mistral-7b-v0.3".to_string()
 }
 
 impl AgentConfig {
@@ -276,6 +295,7 @@ impl Default for AgentConfig {
             client_key: None,
             active_frameworks: None,
             admin_password: None,
+            llm: LLMSettings::default(),
         }
     }
 }

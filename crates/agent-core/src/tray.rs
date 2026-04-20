@@ -17,7 +17,7 @@
 
 use crate::ShutdownSignal;
 use agent_common::constants::AGENT_VERSION;
-use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
+use muda::{CheckMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc;
@@ -71,6 +71,7 @@ mod menu_ids {
     pub const OPEN_WEBSITE: &str = "open_website";
     pub const OPEN_GUIDE: &str = "open_guide";
     pub const ABOUT: &str = "about";
+    pub const JARVIS_TOGGLE: &str = "jarvis_toggle";
     pub const QUIT: &str = "quit";
 }
 
@@ -149,6 +150,8 @@ pub enum TrayCommand {
     OpenGuide,
     /// Show about dialog.
     About,
+    /// Toggle the standalone Jarvis widget.
+    ToggleJarvisWidget(bool),
     /// Shutdown the agent.
     Shutdown,
 }
@@ -185,6 +188,7 @@ struct TrayMenuItems {
     pause_item: MenuItem,
     resume_item: MenuItem,
     check_now_item: MenuItem,
+    jarvis_toggle_item: CheckMenuItem,
 }
 
 impl AgentTray {
@@ -235,26 +239,18 @@ impl AgentTray {
 
         // === Help Section ===
         let help_submenu = Submenu::new("❓  Aide", true);
-        let open_guide_item =
-            MenuItem::with_id(menu_ids::OPEN_GUIDE, "📖  Guide utilisateur", true, None);
-        let open_website_item =
-            MenuItem::with_id(menu_ids::OPEN_WEBSITE, "🌐  Console", true, None);
-        let about_item = MenuItem::with_id(menu_ids::ABOUT, "ℹ️  À propos", true, None);
+        let _open_guide_item = MenuItem::with_id(menu_ids::OPEN_GUIDE, "📖 Guide utilisateur", true, None);
+        let _open_website_item =
+            MenuItem::with_id(menu_ids::OPEN_WEBSITE, "🌐 Console d'administration", true, None);
+        let _about_item = MenuItem::with_id(menu_ids::ABOUT, "ℹ️  À propos", true, None);
 
         help_submenu
-            .append(&open_guide_item)
-            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        help_submenu
-            .append(&open_website_item)
-            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        help_submenu
-            .append(&PredefinedMenuItem::separator())
-            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        help_submenu
-            .append(&about_item)
+            .append(&_about_item)
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
 
-        let quit_item = MenuItem::with_id(menu_ids::QUIT, "⏻  Quitter", true, None);
+        let jarvis_toggle_item = CheckMenuItem::with_id(menu_ids::JARVIS_TOGGLE, "🤖 Assistant Jarvis", true, false, None);
+
+        let quit_item = MenuItem::with_id(menu_ids::QUIT, "⏻ Quitter l'agent", true, None);
 
         // === Build Menu ===
         let menu = Menu::new();
@@ -291,6 +287,12 @@ impl AgentTray {
 
         // Help section
         menu.append(&help_submenu)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&PredefinedMenuItem::separator())
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+
+        // Jarvis Assistant
+        menu.append(&jarvis_toggle_item)
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
         menu.append(&PredefinedMenuItem::separator())
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
@@ -335,6 +337,7 @@ impl AgentTray {
             pause_item,
             resume_item,
             check_now_item,
+            jarvis_toggle_item,
         };
 
         let tray = Self {
@@ -480,6 +483,18 @@ impl AgentTray {
                     error!("Failed to send Shutdown command: {}", e);
                 }
                 self.shutdown.store(true, Ordering::SeqCst);
+            }
+
+            menu_ids::JARVIS_TOGGLE => {
+                let current_checked = self.menu_items.jarvis_toggle_item.is_checked();
+                let new_state = !current_checked;
+                info!("User toggled Jarvis widget: {}", new_state);
+                self.menu_items.jarvis_toggle_item.set_checked(new_state);
+
+                // Send command to agent
+                if let Err(e) = self.command_tx.send(TrayCommand::ToggleJarvisWidget(new_state)) {
+                    error!("Failed to send ToggleJarvisWidget command: {}", e);
+                }
             }
 
             _ => {

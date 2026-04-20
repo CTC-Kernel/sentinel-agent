@@ -2850,6 +2850,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                         severity_override: None,
                                                         is_false_positive: Some(false),
                                                         confidence: Some(85),
+                                                        ai_remediation_script: None,
+                                                        ai_remediation_explanation: None,
                                                     });
                                                 }
                                                 Err(e) => {
@@ -2860,6 +2862,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                         severity_override: None,
                                                         is_false_positive: None,
                                                         confidence: None,
+                                                        ai_remediation_script: None,
+                                                        ai_remediation_explanation: None,
                                                     });
                                                 }
                                             }
@@ -2876,6 +2880,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     severity_override: None,
                                     is_false_positive: None,
                                     confidence: None,
+                                    ai_remediation_script: None,
+                                    ai_remediation_explanation: None,
                                 });
                             });
                         }
@@ -2907,7 +2913,119 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             }
                         }
 
+                        Ok(GuiCommand::LlmToggleVoice) => {
+                            // Toggle voice: uses SetVoiceListening path — GUI manages the toggle state.
+                            info!("[AUDIT] GUI toggled voice recognition");
+                            #[cfg(feature = "voice")]
+                            {
+                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
+                                tokio::spawn(async move {
+                                    if let Some(ref voice) = voice {
+                                        voice.start_listening().await;
+                                    }
+                                });
+                            }
+                        }
+
+                        Ok(GuiCommand::LlmSelectModel { model_key, model_name, download_url, gguf_filename }) => {
+                            info!("[AUDIT] GUI requested model switch to '{}'", model_key);
+                            let tx = bg_event_tx.clone();
+                            let svc = llm_service.clone();
+                            let model_key_clone = model_key.clone();
+                            let model_name_clone = model_name.clone();
+                            tokio::spawn(async move {
+                                // Determine the config path
+                                let config_path = agent_common::config::AgentConfig::platform_data_dir()
+                                    .join("config")
+                                    .join("llm.json");
+
+                                // Load or create base config
+                                let mut llm_cfg = if config_path.exists() {
+                                    agent_llm::LLMConfig::from_file(&config_path).unwrap_or_default()
+                                } else {
+                                    agent_llm::LLMConfig::default()
+                                };
+
+                                // Update model fields
+                                llm_cfg.model.name = model_key_clone.clone();
+                                if let Some(ref fname) = gguf_filename {
+                                    llm_cfg.model.path = agent_common::config::AgentConfig::platform_data_dir()
+                                        .join("models")
+                                        .join(fname);
+                                }
+                                if let Some(ref url) = download_url {
+                                    llm_cfg.model.download_url = Some(url.clone());
+                                }
+
+                                // Save updated config
+                                if let Some(parent) = config_path.parent() {
+                                    let _ = std::fs::create_dir_all(parent);
+                                }
+                                if let Err(e) = llm_cfg.save_to_file(&config_path) {
+                                    warn!("Failed to save updated LLM config: {}", e);
+                                    let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                                        model_name: model_name_clone,
+                                        error: format!("Erreur de configuration: {}", e),
+                                    });
+                                    return;
+                                }
+
+                                info!("LLM config updated for model '{}', starting download/reload", model_key_clone);
+
+                                // If model file doesn't exist → trigger download
+                                if !llm_cfg.model.path.exists() {
+                                    if let Some(ref llm_svc) = svc {
+                                        let tx2 = tx.clone();
+                                        let name_c = model_name_clone.clone();
+                                        let name_c2 = model_name_clone.clone();
+                                        let progress_tx = tx.clone();
+                                        let progress_name = model_name_clone.clone();
+                                        let progress_cb: agent_core::llm_service::DownloadProgressFn = Box::new(move |pct, dl, total, speed| {
+                                            let _ = progress_tx.send(AgentEvent::LlmDownloadProgress {
+                                                model_name: progress_name.clone(),
+                                                progress_percent: pct,
+                                                downloaded_bytes: dl,
+                                                total_bytes: total,
+                                                speed_bps: speed,
+                                            });
+                                        });
+                                        match llm_svc.download_model_with_progress(&llm_cfg, Some(progress_cb)).await {
+                                            Ok(()) => {
+                                                let _ = tx2.send(AgentEvent::LlmDownloadComplete {
+                                                    model_name: name_c,
+                                                    total_bytes: llm_cfg.model.path.metadata().map(|m| m.len()).unwrap_or(0),
+                                                });
+                                                // Auto-reload after download
+                                                if let Err(e) = llm_svc.reload().await {
+                                                    warn!("Auto-reload after download failed: {}", e);
+                                                }
+                                            }
+                                            Err(e) => {
+                                                warn!("Download failed for '{}': {}", name_c2, e);
+                                                let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                                                    model_name: name_c2,
+                                                    error: e.to_string(),
+                                                });
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // Model already exists locally → just reload
+                                    if let Some(ref llm_svc) = svc {
+                                        if let Err(e) = llm_svc.reload().await {
+                                            warn!("Reload after model switch failed: {}", e);
+                                        }
+                                    }
+                                    let _ = tx.send(AgentEvent::LlmDownloadComplete {
+                                        model_name: model_name_clone,
+                                        total_bytes: 0,
+                                    });
+                                }
+                            });
+                        }
+
                         Ok(GuiCommand::LlmClassifyThreat { event_description, target_id }) => {
+
                             info!("[AUDIT] GUI requested LLM threat classification: {}", &event_description[..event_description.len().min(80)]);
                             if let Some(ref trail) = audit_trail_for_commands {
                                 let trail = std::sync::Arc::clone(trail);
@@ -2958,6 +3076,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                     severity_override: Some(format!("{}", classification.threat_level)),
                                                     is_false_positive: None,
                                                     confidence: Some(classification.confidence),
+                                                    ai_remediation_script: None,
+                                                    ai_remediation_explanation: None,
                                                 });
                                             }
                                             Err(e) => {
@@ -2968,6 +3088,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                     severity_override: None,
                                                     is_false_positive: None,
                                                     confidence: None,
+                                                    ai_remediation_script: None,
+                                                    ai_remediation_explanation: None,
                                                 });
                                             }
                                         }
@@ -2982,6 +3104,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     severity_override: None,
                                     is_false_positive: None,
                                     confidence: None,
+                                    ai_remediation_script: None,
+                                    ai_remediation_explanation: None,
                                 });
                             });
                         }

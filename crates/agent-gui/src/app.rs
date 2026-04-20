@@ -6,6 +6,7 @@
 //! Manages the eframe window, routing, state, and event channels between
 //! the GUI and the agent runtime.
 
+use std::sync::{Arc, Mutex};
 use std::sync::mpsc;
 
 // ---------------------------------------------------------------------------
@@ -82,18 +83,18 @@ pub struct SentinelApp {
     last_dark_mode: bool,
 
     // Channels to/from agent runtime.
-    event_rx: mpsc::Receiver<AgentEvent>,
+    event_rx: Arc<Mutex<mpsc::Receiver<AgentEvent>>>,
     command_tx: mpsc::Sender<GuiCommand>,
 
     // Enrollment channel (sent back to runtime).
     enrollment_tx: mpsc::Sender<EnrollmentCommand>,
 
     // Async task results channel (internal UI tasks).
-    async_results_rx: mpsc::Receiver<AsyncTaskResult>,
+    async_results_rx: Arc<Mutex<mpsc::Receiver<AsyncTaskResult>>>,
 
     // Tray actions channel
     tray_action_tx: mpsc::Sender<crate::tray_bridge::TrayAction>,
-    tray_action_rx: mpsc::Receiver<crate::tray_bridge::TrayAction>,
+    tray_action_rx: Arc<Mutex<mpsc::Receiver<crate::tray_bridge::TrayAction>>>,
 
     // Tray bridge (optional -- only on desktop).
     tray: Option<TrayBridge>,
@@ -174,12 +175,12 @@ impl SentinelApp {
             enrollment_wizard: EnrollmentWizard::default(),
             theme_applied: false,
             last_dark_mode: true,
-            event_rx,
+            event_rx: Arc::new(Mutex::new(event_rx)),
             command_tx,
             enrollment_tx,
-            async_results_rx: async_rx,
+            async_results_rx: Arc::new(Mutex::new(async_rx)),
             tray_action_tx,
-            tray_action_rx,
+            tray_action_rx: Arc::new(Mutex::new(tray_action_rx)),
             tray,
             visible: true,
             quit_requested: false,
@@ -291,7 +292,8 @@ impl SentinelApp {
     // ------------------------------------------------------------------
 
     fn process_events(&mut self) {
-        while let Ok(event) = self.event_rx.try_recv() {
+        let mut rx = self.event_rx.lock().unwrap();
+        while let Ok(event) = rx.try_recv() {
             // Special handling for enrollment result in app shell
             if let crate::events::AgentEvent::EnrollmentResult {
                 success,
@@ -308,7 +310,9 @@ impl SentinelApp {
 
     /// Handle tray menu actions.
     fn process_tray_actions(&mut self, ctx: &egui::Context) {
-        while let Ok(action) = self.tray_action_rx.try_recv() {
+        let rx = self.tray_action_rx.clone();
+        let mut rx_lock = rx.lock().unwrap();
+        while let Ok(action) = rx_lock.try_recv() {
             match action {
                 TrayAction::ShowWindow => {
                     self.show_tray_satellite = false;
@@ -367,6 +371,9 @@ impl SentinelApp {
                 TrayAction::About => {
                     crate::tray_bridge::open_about();
                 }
+                TrayAction::ToggleJarvis => {
+                    self.state.jarvis_visible = !self.state.jarvis_visible;
+                }
                 TrayAction::Quit => {
                     self.quit_requested = true;
                     self.send_command(GuiCommand::Shutdown);
@@ -383,6 +390,7 @@ impl SentinelApp {
                 self.state.resources.cpu_percent,
                 self.state.resources.memory_used_mb,
             );
+            tray.set_jarvis_checked(self.state.jarvis_visible);
         }
     }
 
@@ -598,6 +606,24 @@ impl eframe::App for SentinelApp {
 
         // Process incoming events.
         self.process_events();
+
+        // Jarvis Widget Viewport (standalone window)
+        if self.state.jarvis_visible {
+            let viewport_id = egui::ViewportId::from_hash_of("jarvis_widget");
+            let builder = egui::ViewportBuilder::default()
+                .with_title("Jarvis AI Assistant")
+                .with_inner_size([400.0, 600.0])
+                .with_decorations(false)
+                .with_transparent(true)
+                .with_always_on_top();
+
+            ctx.show_viewport_immediate(viewport_id, builder, |ctx, _class| {
+                self.show_jarvis_widget(ctx);
+            });
+        }
+
+
+
         self.update_tray_info();
         self.process_tray_actions(ctx);
 
@@ -624,7 +650,9 @@ impl eframe::App for SentinelApp {
         }
 
         // Process async task results from background threads
-        while let Ok(result) = self.async_results_rx.try_recv() {
+        {
+            let mut rx = self.async_results_rx.lock().unwrap();
+            while let Ok(result) = rx.try_recv() {
             match result {
                 AsyncTaskResult::CsvExport(success, message) => {
                     let time = ctx.input(|i| i.time);
@@ -654,6 +682,7 @@ impl eframe::App for SentinelApp {
                 AsyncTaskResult::NativeApps(apps) => {
                     self.state.software.native_apps = apps;
                 }
+            }
             }
         }
 
@@ -1104,5 +1133,79 @@ impl SentinelApp {
                     },
                 );
             });
+    }
+
+    /// Render the standalone premium Jarvis AI widget.
+    fn show_jarvis_widget(&mut self, ctx: &egui::Context) {
+        // Apply themes specifically for the viewport
+        theme::apply_theme(ctx, self.state.settings.dark_mode);
+
+        egui::CentralPanel::default()
+            .frame(
+                egui::Frame::none()
+                    .fill(theme::bg_primary().linear_multiply(0.85))
+                    .rounding(theme::ROUNDING_LG)
+                    .outer_margin(1.0)
+                    .stroke(egui::Stroke::new(1.0, theme::ACCENT.linear_multiply(0.5))),
+            )
+            .show(ctx, |ui| {
+                ui.vertical(|ui| {
+                    // Header / Drag area
+                    ui.add_space(theme::SPACE_MD);
+                    ui.horizontal(|ui| {
+                        ui.add_space(theme::SPACE_MD);
+                        
+                        // Voice Pulse Animation
+                        let color = if self.state.voice_active {
+                            let t = ui.input(|i| i.time);
+                            let pulse = (t * 5.0).sin().abs() as f32 * 0.5 + 0.5;
+                            theme::ERROR.linear_multiply(pulse)
+                        } else {
+                            theme::ACCENT
+                        };
+
+                        ui.label(egui::RichText::new(icons::MICROPHONE).color(color).font(theme::font_title()));
+                        ui.add_space(theme::SPACE_XS);
+                        ui.label(egui::RichText::new("JARVIS").font(theme::font_title()).strong());
+
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(theme::SPACE_MD);
+                            
+                            // Close button
+                            if ui.button(icons::XMARK).clicked() {
+                                self.state.jarvis_visible = false;
+                            }
+                            
+                            ui.add_space(theme::SPACE_SM);
+                            
+                            // Voice Toggle button
+                            let voice_btn = egui::Button::new(
+                                egui::RichText::new(if self.state.voice_active { icons::MICROPHONE_SLASH } else { icons::MICROPHONE })
+                                    .color(if self.state.voice_active { theme::ERROR } else { theme::text_primary() })
+                            ).frame(false);
+                            
+                            if ui.add(voice_btn).on_hover_text("Basculer la reconnaissance vocale").clicked() {
+                                self.send_command(GuiCommand::LlmToggleVoice);
+                            }
+                        });
+                    });
+
+                    ui.add_space(theme::SPACE_SM);
+                    ui.separator();
+
+                    // LLM Panel Content
+                    egui::ScrollArea::vertical()
+                        .auto_shrink([false; 2])
+                        .show(ui, |ui| {
+                            if let Some(cmd) = self.llm_panel.show(ui, &mut self.state) {
+                                self.send_command(cmd);
+                            }
+                        });
+
+                });
+            });
+
+        // Request repaint to ensure smooth animations
+        ctx.request_repaint();
     }
 }

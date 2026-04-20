@@ -205,6 +205,8 @@ impl AgentRuntime {
                     severity_override: None,
                     is_false_positive: None,
                     confidence: Some(85),
+                    ai_remediation_script: None,
+                    ai_remediation_explanation: None,
                 });
             }
         }
