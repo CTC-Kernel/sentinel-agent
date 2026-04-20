@@ -193,16 +193,10 @@ impl<'a> DetailDrawer<'a> {
                     ),
                 );
 
-                // Shadow on the left edge (theme-aware)
-                let shadow_base = theme::overlay_color();
-                for i in 0..10 {
-                    let alpha = (10 - i) as f32 * 3.0 / 255.0;
-                    let x = drawer_x - 20.0 + i as f32 * theme::SPACE_MICRO;
-                    ui.painter().line_segment(
-                        [egui::pos2(x, screen.min.y), egui::pos2(x, screen.max.y)],
-                        egui::Stroke::new(theme::BORDER_THIN, shadow_base.linear_multiply(alpha)),
-                    );
-                }
+                // Smooth high-fidelity shadow on the left edge (AAA Grade)
+                let mut shadow = theme::shadow_2xl();
+                shadow.offset = [-16, 0]; // Negative X offset to project shadow leftwards
+                ui.painter().add(shadow.as_shape(drawer_rect, CornerRadius::ZERO));
 
                 // Constrain the area UI to drawer bounds
                 ui.set_clip_rect(drawer_rect);
