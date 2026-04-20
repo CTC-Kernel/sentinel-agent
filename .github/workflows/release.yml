@@ -493,6 +493,7 @@ jobs:
       - name: Sign MSI with SignPath (Direct API Fallback)
         if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
         id: signpath
+        continue-on-error: true
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
           $msiPath = "target\release\SentinelAgentSetup-$version.msi"
@@ -504,28 +505,34 @@ jobs:
           Install-Module -Name SignPath -Force -Scope CurrentUser -Repository PSGallery
 
           Write-Host "Submitting signing request to SignPath..."
-          # We use direct parameters to bypass the specialized 'Trusted Build' login flow of the official Action
           $orgId = "${{ vars.SIGNPATH_ORGANIZATION_ID }}".Trim()
           $projectSlug = "${{ vars.SIGNPATH_PROJECT_SLUG }}".Trim()
           $policySlug = "${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}".Trim()
           $artifactSlug = "${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}".Trim()
 
-          Submit-SigningRequest `
-            -InputArtifactPath $msiPath `
-            -ApiToken "${{ secrets.SIGNPATH_API_TOKEN }}" `
-            -OrganizationId $orgId `
-            -ProjectSlug $projectSlug `
-            -SigningPolicySlug $policySlug `
-            -ArtifactConfigurationSlug $artifactSlug `
-            -OutputArtifactPath $outputPath `
-            -WaitForCompletion
-            
+          try {
+            Submit-SigningRequest `
+              -InputArtifactPath $msiPath `
+              -ApiToken "${{ secrets.SIGNPATH_API_TOKEN }}" `
+              -OrganizationId $orgId `
+              -ProjectSlug $projectSlug `
+              -SigningPolicySlug $policySlug `
+              -ArtifactConfigurationSlug $artifactSlug `
+              -OutputArtifactPath $outputPath `
+              -WaitForCompletion -ErrorAction Stop
+          } catch {
+            Write-Host "::warning::SignPath signing failed: $($_.Exception.Message)"
+            Write-Host "::warning::Falling back to self-signed certificate"
+            "outcome=failure" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            exit 0
+          }
+
           if (Test-Path $outputPath) {
             Write-Host "MSI signed successfully"
             "outcome=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           } else {
-            Write-Error "Signing failed: Output file not produced"
-            exit 1
+            Write-Host "::warning::SignPath did not produce signed MSI — falling back to self-signed"
+            "outcome=failure" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           }
         shell: pwsh
 
@@ -548,8 +555,13 @@ jobs:
           echo "::warning::SignPath not configured - Using free self-signed signing."
           echo "::warning::To enable SignPath, configure SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG (vars) and SIGNPATH_API_TOKEN (secret)."
 
+      - name: Warn if SignPath failed (quota/network/etc)
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && steps.signpath.outputs.outcome != 'success' }}
+        run: |
+          echo "::warning::SignPath signing failed (quota exceeded, network error, or other). Falling back to self-signed certificate."
+
       - name: Generate free self-signed certificate (fallback)
-        if: ${{ vars.SIGNPATH_ORGANIZATION_ID == '' }}
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID == '' || steps.signpath.outputs.outcome != 'success' }}
         run: |
           $cert = New-SelfSignedCertificate `
             -Type CodeSigningCert `
@@ -571,7 +583,7 @@ jobs:
         shell: pwsh
 
       - name: Sign MSI with free certificate
-        if: ${{ vars.SIGNPATH_ORGANIZATION_ID == '' }}
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID == '' || steps.signpath.outputs.outcome != 'success' }}
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
           $password = "Sentinel2024!Free"
