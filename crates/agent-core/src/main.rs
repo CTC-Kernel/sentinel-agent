@@ -1338,7 +1338,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             #[cfg(feature = "voice")]
             let voice_service = Some(std::sync::Arc::new(agent_core::voice::VoiceService::new(bg_event_tx.clone())));
             #[cfg(not(feature = "voice"))]
-            let voice_service: Option<std::sync::Arc<agent_core::voice::VoiceService>> = None;
+            let _voice_service: Option<std::sync::Arc<agent_core::voice::VoiceService>> = None;
 
 
             // Spawn command processor
@@ -2503,14 +2503,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             let req = agent_llm::engine::InferenceRequest::new(&prompt);
                                             match manager.engine().infer(req).await {
                                                 Ok(resp) => {
-                                                    let text_copy = resp.text.clone();
                                                     let _ = tx.send(AgentEvent::LlmChatResponse {
                                                         message: resp.text,
                                                         processing_time_ms: resp.duration_ms,
                                                     });
                                                     #[cfg(feature = "voice")]
                                                     if let Some(ref v) = voice {
-                                                        v.speak(&text_copy);
+                                                        v.speak(&resp.text);
                                                     }
                                                 }
                                                 Err(e) => {
