@@ -1338,7 +1338,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             #[cfg(feature = "voice")]
             let voice_service = Some(std::sync::Arc::new(agent_core::voice::VoiceService::new(bg_event_tx.clone())));
             #[cfg(not(feature = "voice"))]
-            let voice_service: Option<()> = None;
+            let voice_service: Option<std::sync::Arc<agent_core::voice::VoiceService>> = None;
 
 
             // Spawn command processor

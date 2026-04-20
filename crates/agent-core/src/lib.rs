@@ -39,6 +39,21 @@ pub mod voice;
 #[cfg(feature = "voice")]
 pub mod sounds;
 
+/// Stub module so that `agent_core::voice::VoiceService` is always a valid type,
+/// regardless of whether the `voice` feature is enabled.
+#[cfg(not(feature = "voice"))]
+pub mod voice {
+    /// No-op VoiceService used when the `voice` feature is disabled.
+    pub struct VoiceService;
+    impl VoiceService {
+        pub fn new(_tx: std::sync::mpsc::Sender<agent_gui::events::AgentEvent>) -> Self {
+            Self
+        }
+        pub async fn start_listening(&self) {}
+        pub fn speak(&self, _text: &str) {}
+    }
+}
+
 // Domain modules (impl AgentRuntime split)
 mod asset_sync;
 mod compliance;
