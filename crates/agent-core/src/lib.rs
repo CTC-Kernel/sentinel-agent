@@ -44,11 +44,9 @@ pub mod sounds;
 #[cfg(not(feature = "voice"))]
 pub mod voice {
     /// No-op VoiceService used when the `voice` feature is disabled.
+    /// This type is never instantiated (voice_service = None) but must exist for type resolution.
     pub struct VoiceService;
     impl VoiceService {
-        pub fn new(_tx: std::sync::mpsc::Sender<agent_gui::events::AgentEvent>) -> Self {
-            Self
-        }
         pub async fn start_listening(&self) {}
         pub fn speak(&self, _text: &str) {}
     }
