@@ -669,7 +669,8 @@ pub fn create_engine(
         super::config::ModelType::Llama4
         | super::config::ModelType::Qwen3Coder
         | super::config::ModelType::DeepSeekR1
-        | super::config::ModelType::Gemma3 => Arc::new(MistralEngine::new(
+        | super::config::ModelType::Gemma3
+        | super::config::ModelType::Mistral7B => Arc::new(MistralEngine::new(
             config.clone(),
             inference_config.clone(),
             security_config.clone(),

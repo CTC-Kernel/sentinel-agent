@@ -553,7 +553,7 @@ pub fn detail_ai_proposal(ui: &mut Ui, explanation: &str, commands: &[String]) {
                 .extra_letter_spacing(theme::TRACKING_NORMAL)
                 .strong(),
         );
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::CENTER), |ui| {
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             crate::widgets::status_badge(ui, "IA SUGGESTION", theme::ACCENT);
         });
     });

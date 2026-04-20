@@ -347,7 +347,7 @@ mod tests {
     #[test]
     fn test_default_config() {
         let config = LLMConfig::default();
-        assert_eq!(config.model.name, "qwen3-coder-7b");
+        assert_eq!(config.model.name, "mistral-7b-v0.3");
         assert_eq!(config.inference.temperature, 0.7);
         assert!(config.cache.enabled);
     }

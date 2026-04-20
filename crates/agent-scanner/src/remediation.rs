@@ -227,6 +227,7 @@ impl RemediationEngine {
                     description: "Enable the UFW firewall with default deny incoming policy"
                         .to_string(),
                     rollback_script: Some("ufw disable".to_string()),
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "firewall_active".to_string(),
@@ -239,6 +240,7 @@ impl RemediationEngine {
                     rollback_script: Some(
                         "netsh advfirewall set allprofiles state off".to_string(),
                     ),
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "firewall_active".to_string(),
@@ -253,6 +255,7 @@ impl RemediationEngine {
                         "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate off"
                             .to_string(),
                     ),
+                    ..Default::default()
                 },
             ],
         );
@@ -268,6 +271,7 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Safe,
                 description: "Set screen lock timeout to 5 minutes on GNOME".to_string(),
                 rollback_script: None,
+                ..Default::default()
             },
             RemediationAction {
                 check_id: "screen_lock".to_string(),
@@ -278,6 +282,7 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Safe,
                 description: "Set Windows inactivity timeout to 5 minutes".to_string(),
                 rollback_script: None,
+                ..Default::default()
             },
             RemediationAction {
                 check_id: "screen_lock".to_string(),
@@ -288,6 +293,7 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Safe,
                 description: "Set macOS screen lock to 5 minutes with password".to_string(),
                 rollback_script: None,
+                ..Default::default()
             },
         ]);
 
@@ -304,6 +310,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Safe,
                     description: "Check for available system updates".to_string(),
                     rollback_script: None,
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "patches_current".to_string(),
@@ -314,6 +321,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Safe,
                     description: "Check for available macOS updates".to_string(),
                     rollback_script: None,
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "patches_current".to_string(),
@@ -324,6 +332,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Safe,
                     description: "Check for available Windows updates".to_string(),
                     rollback_script: None,
+                    ..Default::default()
                 },
             ],
         );
@@ -339,6 +348,7 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Risky,
                 description: "Disable TLS 1.0 and 1.1 in nginx configuration".to_string(),
                 rollback_script: None,
+                ..Default::default()
             },
             RemediationAction {
                 check_id: "obsolete_protocols".to_string(),
@@ -349,6 +359,7 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Risky,
                 description: "Disable TLS 1.0 in Windows Schannel registry".to_string(),
                 rollback_script: Some(r#"Set-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Name Enabled -Value 1"#.to_string()),
+                ..Default::default()
             },
             RemediationAction {
                 check_id: "obsolete_protocols".to_string(),
@@ -359,6 +370,7 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Risky,
                 description: "Set minimum TLS version to 1.2 on macOS".to_string(),
                 rollback_script: Some("defaults delete /Library/Preferences/com.apple.networkd tcp_connect_minimum_tls_version".to_string()),
+                ..Default::default()
             },
         ]);
 
@@ -375,6 +387,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Safe,
                     description: "Enable and start the Linux audit daemon".to_string(),
                     rollback_script: Some("systemctl stop auditd".to_string()),
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "audit_logging".to_string(),
@@ -385,6 +398,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Safe,
                     description: "Enable Windows advanced audit policies".to_string(),
                     rollback_script: Some(r#"auditpol /set /category:"System","Logon/Logoff","Object Access","Privilege Use","Policy Change","Account Management" /success:disable /failure:disable"#.to_string()),
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "audit_logging".to_string(),
@@ -395,6 +409,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Safe,
                     description: "Enable macOS OpenBSM audit daemon".to_string(),
                     rollback_script: Some("launchctl unload -w /System/Library/LaunchDaemons/com.apple.auditd.plist".to_string()),
+                    ..Default::default()
                 },
             ],
         );
@@ -412,6 +427,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Safe,
                     description: "Enable NTP time synchronization".to_string(),
                     rollback_script: Some("timedatectl set-ntp false".to_string()),
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "time_sync".to_string(),
@@ -422,6 +438,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Safe,
                     description: "Enable network time synchronization on macOS".to_string(),
                     rollback_script: None,
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "time_sync".to_string(),
@@ -432,6 +449,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Safe,
                     description: "Enable and configure Windows Time service (W32Time)".to_string(),
                     rollback_script: Some("net stop w32time".to_string()),
+                    ..Default::default()
                 },
             ],
         );
@@ -451,6 +469,7 @@ impl RemediationEngine {
                     rollback_script: Some(
                         "systemctl enable bluetooth && systemctl start bluetooth".to_string(),
                     ),
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "bluetooth_disabled".to_string(),
@@ -461,6 +480,7 @@ impl RemediationEngine {
                     risk_level: RemediationRisk::Moderate,
                     description: "Disable Windows Bluetooth Support Service".to_string(),
                     rollback_script: Some(r#"Set-Service bthserv -StartupType Manual; Start-Service bthserv"#.to_string()),
+                    ..Default::default()
                 },
                 RemediationAction {
                     check_id: "bluetooth_disabled".to_string(),
@@ -470,7 +490,8 @@ impl RemediationEngine {
                     requires_admin: true,
                     risk_level: RemediationRisk::Moderate,
                     description: "Disable Bluetooth on macOS".to_string(),
-                    rollback_script: Some("defaults write /Library/Preferences/com.apple.Bluetooth ControllerPowerState -int 1 && killall -HUP blued".to_string()),
+                    rollback_script: Some("defaults write /Library/Preferences/com.apple.Bluetooth ControllerPowerState -int 0 && killall -HUP blued".to_string()),
+                    ..Default::default()
                 },
             ],
         );
@@ -486,6 +507,7 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Safe,
                 description: "Disable the Windows Guest account".to_string(),
                 rollback_script: Some("net user Guest /active:yes".to_string()),
+                ..Default::default()
             },
             RemediationAction {
                 check_id: "guest_account_disabled".to_string(),
@@ -496,6 +518,7 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Safe,
                 description: "Disable macOS Guest account".to_string(),
                 rollback_script: Some("defaults write /Library/Preferences/com.apple.loginwindow GuestEnabled -bool true".to_string()),
+                ..Default::default()
             },
             RemediationAction {
                 check_id: "guest_account_disabled".to_string(),
@@ -506,6 +529,7 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Safe,
                 description: "Lock and disable shell for Linux guest account".to_string(),
                 rollback_script: Some("passwd -u guest; usermod -s /bin/bash guest".to_string()),
+                ..Default::default()
             },
         ]);
     }

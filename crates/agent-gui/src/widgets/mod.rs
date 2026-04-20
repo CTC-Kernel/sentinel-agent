@@ -77,7 +77,7 @@ pub use tray_radar::TrayRadar;
 // Premium dashboard exports
 pub use activity_feed::{ActivityEvent, ActivityEventType, activity_feed};
 pub use detail_drawer::{
-    ActionStyle, DetailAction, DetailDrawer, detail_field, detail_field_badge,
+    ActionStyle, DetailAction, DetailDrawer, detail_ai_proposal, detail_field, detail_field_badge,
     detail_field_colored, detail_mono, detail_progress, detail_section, detail_text,
 };
 pub use org_banner::org_banner;
