@@ -15,6 +15,7 @@ gui = ["dep:agent-gui", "dep:agent-persistence", "llm", "agent-gui/llm", "dep:ef
 # LLM features (can also be enabled standalone without GUI)
 llm = ["dep:agent_llm", "agent-scanner/llm"]
 llm_simple = []
+voice = ["dep:cpal", "dep:whisper-rs", "dep:rubato", "dep:tts"]
 
 [dependencies]
 serde = { workspace = true }
@@ -76,6 +77,12 @@ memmap2.workspace = true
 regex.workspace = true
 zeroize = { workspace = true }
 futures-util.workspace = true
+
+# Voice Engine
+cpal = { workspace = true, optional = true }
+whisper-rs = { workspace = true, optional = true }
+rubato = { workspace = true, optional = true }
+tts = { workspace = true, optional = true }
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = [

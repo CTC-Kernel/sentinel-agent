@@ -68,21 +68,33 @@ fn render_card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
     }
 
     // Premium hover effect: elevated shadow + subtle accent border glow
-    if ui.rect_contains_pointer(rect) {
+    let is_hovered = ui.rect_contains_pointer(rect);
+    let hover_t = ui
+        .ctx()
+        .animate_bool_with_time(ui.id().with("card_hover").with(rect.min.x as i32).with(rect.min.y as i32), is_hovered, theme::ANIM_FAST);
+
+    if hover_t > 0.0 {
         let hover_shadow = if is_dark {
             theme::shadow_lg()
         } else {
             theme::shadow_md()
         };
-        ui.painter()
-            .add(hover_shadow.as_shape(rect, CornerRadius::same(theme::CARD_ROUNDING)));
-        // Animated border glow (subtle color multiplication)
+        
+        let mut animated_shadow = hover_shadow;
+        animated_shadow.blur = (hover_shadow.blur as f32 * hover_t) as u8;
+        animated_shadow.spread = (hover_shadow.spread as f32 * hover_t) as u8;
+        animated_shadow.color = animated_shadow.color.linear_multiply(hover_t);
+        
+        // Add animated shadow shape
+        ui.painter().add(animated_shadow.as_shape(rect, CornerRadius::same(theme::CARD_ROUNDING)));
+        
+        // Animated border glow (subtle color multiplication) lerped via hover_t
         ui.painter().rect_stroke(
             rect,
             CornerRadius::same(theme::CARD_ROUNDING),
             egui::Stroke::new(
                 theme::BORDER_MEDIUM,
-                theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+                theme::ACCENT.linear_multiply(theme::OPACITY_TINT * hover_t),
             ),
             egui::epaint::StrokeKind::Outside,
         );

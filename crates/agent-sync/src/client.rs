@@ -716,14 +716,13 @@ impl HttpClient {
         debug!("Response status: {}", status);
 
         if status.is_success() {
-            if let Some(len) = response.content_length() {
-                if len > 10 * 1024 * 1024 {
+            if let Some(len) = response.content_length()
+                && len > 10 * 1024 * 1024 {
                     return Err(SyncError::Config(format!(
                         "Response too large: {} bytes",
                         len
                     )));
                 }
-            }
             let body_text = response.text().await.map_err(SyncError::Http)?;
             debug!(
                 "Response body: {}",

@@ -29,7 +29,8 @@ use std::sync::Arc;
 
 /// Re-export FimPolicy as FimConfig for compatibility
 pub type FimConfig = FimPolicy;
-use tokio::sync::{RwLock, mpsc};
+use tokio::sync::mpsc;
+use std::sync::RwLock;
 use tracing::{info, warn};
 
 /// FIM engine that coordinates watching, baselining, and alerting.
@@ -71,7 +72,9 @@ impl FimEngine {
 
     /// Start the FIM engine: create baseline then begin watching.
     pub async fn start(&self) -> Result<(), FimError> {
-        let policy = self.policy.read().await;
+        let policy = {
+            self.policy.read().unwrap().clone()
+        };
 
         // Create initial baseline for all watched paths
         info!(
@@ -98,8 +101,6 @@ impl FimEngine {
         let alert_tx = self.alert_tx.clone();
         let shutdown = self.shutdown.clone();
 
-        drop(policy); // Release the read lock
-
         let handle = tokio::spawn(async move {
             if let Err(e) = watcher::watch_files(watcher_policy, baseline, alert_tx, shutdown).await
             {
@@ -108,7 +109,9 @@ impl FimEngine {
         });
 
         // Store the handle so we can detect if the watcher panics or stops
-        *self.watcher_handle.write().await = Some(handle);
+        if let Ok(mut handle_guard) = self.watcher_handle.write() {
+            *handle_guard = Some(handle);
+        }
 
         info!("FIM engine started");
         Ok(())
@@ -131,8 +134,9 @@ impl FimEngine {
 
         // Update the policy
         {
-            let mut current = self.policy.write().await;
-            *current = policy;
+            if let Ok(mut current) = self.policy.write() {
+                *current = policy;
+            }
         }
 
         // Reset the shutdown flag so start() can launch a new watcher

@@ -34,6 +34,8 @@ pub mod sync_converters;
 pub mod system_utils;
 pub mod tracing_layer;
 pub mod update_manager;
+#[cfg(feature = "voice")]
+pub mod voice;
 
 // Domain modules (impl AgentRuntime split)
 mod asset_sync;
@@ -1186,11 +1188,10 @@ impl AgentRuntime {
                             siem.record_event(event.clone()).await;
 
                             // Optionally forward to external SIEM
-                            if siem.is_enabled() {
-                                if let Err(e) = siem.send_event(&event).await {
+                            if siem.is_enabled()
+                                && let Err(e) = siem.send_event(&event).await {
                                     warn!("Failed to forward FIM event to external SIEM: {}", e);
                                 }
-                            }
                         }
                     }
                 }
@@ -1201,11 +1202,10 @@ impl AgentRuntime {
                 let count = fim_batch_payloads.len();
 
                 // Upload structured FIM alerts (batched)
-                if let Some(ref auth_client) = self.authenticated_client {
-                    if let Err(e) = auth_client.upload_fim_alerts(fim_batch_payloads).await {
+                if let Some(ref auth_client) = self.authenticated_client
+                    && let Err(e) = auth_client.upload_fim_alerts(fim_batch_payloads).await {
                         warn!("Failed to upload {} FIM alert(s) to SaaS: {}", count, e);
                     }
-                }
 
                 // Report a single summary incident instead of one per file change
                 if let Some(client) = self.api_client.read().await.as_ref() {
@@ -1376,8 +1376,8 @@ impl AgentRuntime {
                         self.sync_assets_to_gui().await;
 
                         // Sync SIEM data to the platform
-                        if let Some(ref client) = self.authenticated_client {
-                            if let Some(ref siem) = *self.siem_forwarder.read().await {
+                        if let Some(ref client) = self.authenticated_client
+                            && let Some(ref siem) = *self.siem_forwarder.read().await {
                                 let stats = siem.stats().await;
                                 let recent = siem.take_recent_events().await;
                                 let cfg = siem.config();
@@ -1417,7 +1417,6 @@ impl AgentRuntime {
                                     warn!("Failed to sync SIEM data to platform: {}", e);
                                 }
                             }
-                        }
                     }
                     Err(e) => {
                         warn!("Heartbeat failed: {}", e);
@@ -1959,11 +1958,10 @@ impl AgentRuntime {
                                     siem.record_event(event.clone()).await;
 
                                     // Additionally forward to external SIEM if configured
-                                    if siem.is_enabled() {
-                                        if let Err(e) = siem.send_event(event).await {
+                                    if siem.is_enabled()
+                                        && let Err(e) = siem.send_event(event).await {
                                             warn!("Failed to forward log event to external SIEM: {}", e);
                                         }
-                                    }
                                 }
                             }
                             drop(siem_guard);
@@ -1987,11 +1985,10 @@ impl AgentRuntime {
                                         for alert in &alerts {
                                             let event = engine.alert_to_event(alert, &host);
                                             siem.record_event(event.clone()).await;
-                                            if siem.is_enabled() {
-                                                if let Err(e) = siem.send_event(&event).await {
+                                            if siem.is_enabled()
+                                                && let Err(e) = siem.send_event(&event).await {
                                                     warn!("Failed to forward correlation alert to external SIEM: {}", e);
                                                 }
-                                            }
                                         }
                                     }
                                     drop(siem_guard);

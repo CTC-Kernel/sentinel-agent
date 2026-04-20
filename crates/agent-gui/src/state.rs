@@ -471,6 +471,10 @@ pub struct AiState {
     pub download: crate::dto::LlmDownloadState,
     /// Cached count of recommendations (updated when recommendations tab is shown).
     pub recommendations_count: usize,
+    /// Whether the voice interface is actively listening.
+    pub is_listening: bool,
+    /// Whether the voice interface is currently speaking.
+    pub is_speaking: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -1053,6 +1057,17 @@ impl AppState {
                 self.kpi.snapshots.push_back(*snapshot);
                 if self.kpi.snapshots.len() > 365 {
                     self.kpi.snapshots.pop_front();
+                }
+            }
+            AgentEvent::VoiceTranscription { text } => {
+                self.ai.input_text = text.clone();
+                // Optionally push to chat history if immediately triggering prompt, but
+                // dashboard handles prompt triggering if input_text is filled.
+            }
+            AgentEvent::VoiceStatus { speaking } => {
+                self.ai.is_speaking = speaking;
+                if speaking {
+                    self.ai.is_listening = false;
                 }
             }
             AgentEvent::LlmChatResponse {

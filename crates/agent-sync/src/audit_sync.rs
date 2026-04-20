@@ -38,16 +38,35 @@ impl AuditSyncService {
         }
 
         let ids: Vec<i64> = stored_entries.iter().filter_map(|e| e.id).collect();
-        let api_entries: Vec<AuditTrailEntry> = stored_entries
-            .iter()
-            .map(|e| AuditTrailEntry {
-                action: e.action_type.clone(),
-                actor: e.actor.clone(),
-                details: e.details.clone(),
-                timestamp: e.timestamp,
-                metadata: serde_json::from_str(&e.action_data).unwrap_or_default(),
-            })
-            .collect();
+        
+        let mut api_entries: Vec<AuditTrailEntry> = Vec::with_capacity(stored_entries.len());
+        for e in stored_entries.iter() {
+            // VERIFY STRICT INTEGRITY (PHASE 2)
+            if !agent_storage::AuditTrailRepository::verify_integrity(e) {
+                error!("CRITICAL: Audit Trail entry ID {:?} failed cryptographic integrity check. TAMPERING DETECTED.", e.id);
+                // Tag as tampered directly in details
+                let mut tampered_metadata: serde_json::Value = serde_json::from_str(&e.action_data).unwrap_or_else(|_| serde_json::json!({}));
+                if let serde_json::Value::Object(ref mut map) = tampered_metadata {
+                    map.insert("TAMPERED_HASH".to_string(), serde_json::Value::Bool(true));
+                }
+                
+                api_entries.push(AuditTrailEntry {
+                    action: format!("TAMPERED_{}", e.action_type),
+                    actor: e.actor.clone(),
+                    details: e.details.clone(),
+                    timestamp: e.timestamp,
+                    metadata: tampered_metadata,
+                });
+            } else {
+                api_entries.push(AuditTrailEntry {
+                    action: e.action_type.clone(),
+                    actor: e.actor.clone(),
+                    details: e.details.clone(),
+                    timestamp: e.timestamp,
+                    metadata: serde_json::from_str(&e.action_data).unwrap_or_default(),
+                });
+            }
+        }
 
         debug!("Syncing {} audit entries to SaaS", api_entries.len());
 

@@ -278,6 +278,16 @@ pub enum AgentEvent {
         /// Suggested mitigation strategies.
         mitigation_suggestions: Vec<String>,
     },
+    /// Text transcribed from the active voice input (Microphone).
+    VoiceTranscription {
+        /// The parsed text question.
+        text: String,
+    },
+    /// Voice synthesis state change.
+    VoiceStatus {
+        /// True if the system is currently outputting synthesized text.
+        speaking: bool,
+    },
     /// Risks loaded or auto-generated from the backend.
     RisksLoaded {
         /// Risk entries to merge into GUI state.
@@ -516,6 +526,11 @@ pub enum GuiCommand {
         current_probability: u8,
         /// Current impact (1-5).
         current_impact: u8,
+    },
+    /// Enable or disable the Voice Interaction capability (STT).
+    SetVoiceListening {
+        /// Whether the agent should actively listen and transcribe mic input.
+        enabled: bool,
     },
     /// Update the SIEM forwarder configuration.
     UpdateSiemConfig {

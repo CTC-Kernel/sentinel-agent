@@ -126,12 +126,13 @@ impl DashboardPage {
                             }
                         }
                         _ => {
-                            if Self::ai_posture_score_card(ui, state) {
-                                action = Some(DashboardAction::NavigateTo(Page::AI));
+                            if let Some(act) = Self::ai_posture_score_card(ui, state) {
+                                action = Some(act);
                             }
                         }
                     }
                 });
+
             });
         });
 
@@ -386,17 +387,19 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     // AI POSTURE SCORE CARD (clickable → AI page)
     // ──────────────────────────────────────────────────────────────────────
-    fn ai_posture_score_card(ui: &mut Ui, state: &AppState) -> bool {
+    fn ai_posture_score_card(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
         let ai_score = LLMPanel::compute_ai_score(state);
         let risk_label = LLMPanel::risk_label(ai_score);
         let risk_color = theme::score_color(ai_score);
 
-        widgets::clickable_card(ui, "ai_score_card", |ui: &mut egui::Ui| {
+        let mut nav_action = None;
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.set_min_width(ui.available_width());
             ui.set_min_height(AI_SCORE_CARD_MIN_HEIGHT);
             ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new("SCORE DE S\u{00c9}CURIT\u{00c9} IA")
+                    egui::RichText::new("ASSISTANT S\u{00c9}CURIT\u{00c9} IA")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .extra_letter_spacing(theme::TRACKING_NORMAL)
@@ -404,8 +407,22 @@ impl DashboardPage {
                 );
                 ui.add_space(theme::SPACE_SM);
 
-                // Gauge
-                widgets::compliance_gauge(ui, Some(ai_score), AI_GAUGE_RADIUS);
+                let mut voice_state = crate::widgets::sentinel_ai_core::VoiceState::Idle;
+                if state.ai.is_listening {
+                    voice_state = crate::widgets::sentinel_ai_core::VoiceState::Listening;
+                } else if state.ai.is_speaking {
+                    voice_state = crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.8); // simulated volume
+                }
+
+                // Sentinel AI Core (Jarvis-style) - Make it clickable
+                let core_response = widgets::SentinelAICore::new(ai_score)
+                    .processing(state.ai.is_processing)
+                    .voice(voice_state)
+                    .show(ui, AI_GAUGE_RADIUS);
+                
+                if core_response.clicked() {
+                    nav_action = Some(DashboardAction::NavigateTo(Page::AI));
+                }
 
                 ui.add_space(theme::SPACE_SM);
 
@@ -416,56 +433,85 @@ impl DashboardPage {
 
                 ui.add_space(theme::SPACE_MD);
 
-                // 4-component breakdown
-                let compliance_pct = state.summary.compliance_score.unwrap_or(50.0);
-                let threat_count =
-                    state.threats.suspicious_processes.len() + state.threats.system_incidents.len();
-                let vuln_count = state.vulnerability_findings.len();
-                let alert_count = state.network.alerts.len();
+                // Inline Chat Input
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    let mut mic_icon = icons::MICROPHONE;
+                    let mut mic_color = theme::text_secondary();
+                    if state.ai.is_listening {
+                        mic_icon = icons::MICROPHONE;
+                        mic_color = theme::ACCENT;
+                    }
 
-                let components: &[(&str, f32, &str)] = &[
-                    ("Conformit\u{00e9}", compliance_pct, "40%"),
-                    (
-                        "Menaces",
-                        100.0 - (threat_count as f32 * 10.0).min(100.0),
-                        "20%",
-                    ),
-                    (
-                        "Vuln\u{00e9}rabilit\u{00e9}s",
-                        100.0 - (vuln_count as f32 * 5.0).min(100.0),
-                        "25%",
-                    ),
-                    (
-                        "R\u{00e9}seau",
-                        100.0 - (alert_count as f32 * 15.0).min(100.0),
-                        "15%",
-                    ),
-                ];
+                    if ui.add(
+                        egui::Button::new(
+                            egui::RichText::new(mic_icon)
+                                .size(theme::ICON_SM)
+                                .color(mic_color),
+                        )
+                        .fill(egui::Color32::TRANSPARENT)
+                        .frame(false),
+                    )
+                    .on_hover_text("Activer/D\u{00e9}sactiver le microphone (Voice Chat)")
+                    .clicked()
+                    {
+                        state.ai.is_listening = !state.ai.is_listening;
+                        // Turn off speaking if we start listening
+                        if state.ai.is_listening {
+                            state.ai.is_speaking = false;
+                        }
+                        nav_action = Some(DashboardAction::Command(GuiCommand::SetVoiceListening {
+                            enabled: state.ai.is_listening,
+                        }));
+                    }
 
-                for (label, score, weight) in components {
-                    let color = theme::readable_color(theme::score_color(*score));
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(format!("{} ({})", label, weight))
-                                .font(theme::font_small())
-                                .color(theme::text_secondary()),
-                        );
-                        ui.with_layout(
-                            egui::Layout::right_to_left(egui::Align::Center),
-                            |ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(format!("{:.0}%", score))
-                                        .font(theme::font_small())
-                                        .color(color)
-                                        .strong(),
-                                );
-                            },
-                        );
-                    });
-                }
+                    let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
+                        .hint_text("Demander \u{00e0} Jarvis...")
+                        .font(theme::font_body())
+                        .desired_width(ui.available_width() - 32.0);
+
+                    let response = ui.add_enabled(!state.ai.is_processing, text_edit);
+
+                    // Send on Enter
+                    let enter_pressed = response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+
+                    let send_btn = egui::Button::new(
+                        egui::RichText::new(icons::PAPER_PLANE)
+                            .size(theme::ICON_SM)
+                            .color(if state.ai.is_processing { theme::text_tertiary() } else { theme::accent_text() }),
+                    )
+                    .fill(egui::Color32::TRANSPARENT)
+                    .frame(false);
+
+                    let can_send = !state.ai.is_processing && !state.ai.input_text.trim().is_empty();
+                    let send_clicked = ui.add_enabled(can_send, send_btn).clicked();
+
+                    if (enter_pressed || send_clicked) && can_send {
+                        let prompt = state.ai.input_text.trim().to_string();
+                        state.ai.chat_history.push(crate::dto::LlmChatMessage {
+                            role: crate::dto::ChatRole::User,
+                            content: prompt.clone(),
+                            timestamp: chrono::Utc::now(),
+                            processing_time_ms: None,
+                        });
+                        state.ai.input_text.clear();
+                        state.ai.is_processing = true;
+                        state.ai.active_tab = crate::dto::LlmTab::Assistant;
+                        
+                        // Force transition
+                        #[cfg(feature = "render")]
+                        {
+                            state.pending_navigation = Some(Page::AI);
+                        }
+                        nav_action = Some(DashboardAction::Command(GuiCommand::LlmPrompt {
+                            prompt,
+                            context: None,
+                        }));
+                    }
+                });
             });
-        })
-        .clicked()
+        });
+
+        nav_action
     }
 
     // ──────────────────────────────────────────────────────────────────────

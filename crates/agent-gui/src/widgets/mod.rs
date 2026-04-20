@@ -19,6 +19,7 @@ mod security_hero;
 pub mod sidebar;
 mod status_badge;
 mod toggle_switch;
+pub mod sentinel_ai_core;
 pub mod tray_radar;
 
 // UX feedback & input widgets
@@ -70,6 +71,7 @@ pub use security_hero::security_hero;
 pub use sidebar::Sidebar;
 pub use status_badge::status_badge;
 pub use toggle_switch::toggle_switch;
+pub use sentinel_ai_core::SentinelAICore;
 pub use tray_radar::TrayRadar;
 
 // Premium dashboard exports

@@ -209,7 +209,7 @@ impl ResourceMonitor {
 
         // Log resource usage every 30 samples (~30s) at debug level
         let sample = self.sample_count.load(Ordering::Relaxed);
-        if sample > 0 && sample % 30 == 0 {
+        if sample > 0 && sample.is_multiple_of(30) {
             debug!(
                 "Resource Usage: CPU={:.1}%, RAM={}MB, DiskIO={}KB/s, NetIO={}B/s",
                 usage.cpu_percent,

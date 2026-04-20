@@ -359,11 +359,10 @@ impl SiemForwarder {
         }
 
         // Skip if destination is the unconfigured default (localhost:514)
-        if let SiemTransport::Syslog { ref host, port, .. } = self.config.transport {
-            if host == "localhost" && port == 514 {
+        if let SiemTransport::Syslog { ref host, port, .. } = self.config.transport
+            && host == "localhost" && port == 514 {
                 return Ok(());
             }
-        }
 
         // Check severity filter
         if event.severity < self.config.min_severity {

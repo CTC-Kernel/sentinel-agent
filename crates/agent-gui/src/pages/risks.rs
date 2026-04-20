@@ -138,7 +138,7 @@ impl RisksPage {
                     }
                     state.push_toast(
                         crate::widgets::toast::Toast::info(
-                            &format!("{} risques auto-générés", added),
+                            format!("{} risques auto-générés", added),
                         ),
                         ui.ctx(),
                     );

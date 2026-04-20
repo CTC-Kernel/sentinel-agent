@@ -259,16 +259,14 @@ impl MonitoringPage {
             .log_entries
             .iter()
             .filter(|e| {
-                if let Some(src) = state.siem.source_filter {
-                    if e.source != src {
+                if let Some(src) = state.siem.source_filter
+                    && e.source != src {
                         return false;
                     }
-                }
-                if let Some(sev) = state.siem.severity_filter {
-                    if e.severity < sev {
+                if let Some(sev) = state.siem.severity_filter
+                    && e.severity < sev {
                         return false;
                     }
-                }
                 if !search_lower.is_empty() {
                     let msg_lower = e.message.to_lowercase();
                     let cat_lower = e.category.to_lowercase();
@@ -547,6 +545,39 @@ impl MonitoringPage {
                     1 => Self::category_distribution_card(ui, stats),
                     _ => {}
                 }
+            });
+        });
+
+        ui.add_space(theme::SPACE_LG);
+
+        // ── Hardware Resources ─────────────────────────────────────────────
+        let cpu_data: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
+        let mem_data: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
+        let cpu_current = cpu_data.last().copied().unwrap_or([0.0, 0.0])[1];
+        let mem_current = mem_data.last().copied().unwrap_or([0.0, 0.0])[1];
+
+        ui.horizontal(|ui| {
+            ui.vertical(|ui| {
+                ui.set_width((ui.available_width() - theme::SPACE_MD) / 2.0);
+                Self::premium_chart_card(
+                    ui,
+                    "PROCESSEUR (CPU)",
+                    "%",
+                    &cpu_data,
+                    Self::usage_color(cpu_current),
+                    false, // Percentage based (0-100)
+                );
+            });
+            ui.add_space(theme::SPACE_MD);
+            ui.vertical(|ui| {
+                Self::premium_chart_card(
+                    ui,
+                    "MÉMOIRE (RAM)",
+                    "%",
+                    &mem_data,
+                    Self::usage_color(mem_current),
+                    false, // Percentage based
+                );
             });
         });
 

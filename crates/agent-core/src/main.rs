@@ -1324,7 +1324,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             #[cfg(not(feature = "llm"))]
             let llm_service: Option<std::sync::Arc<()>> = None;
 
-            // Spawn command processor
+            #[cfg(feature = "voice")]
+            let voice_service = std::sync::Arc::new(crate::voice::VoiceService::new(bg_event_tx.clone()));
+            #[cfg(not(feature = "voice"))]
+            let voice_service: Option<std::sync::Arc<()>> = None;            // Spawn command processor
             let handle_for_commands = handle.clone();
             tokio::spawn(async move {
                 loop {
@@ -2447,6 +2450,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI sent LLM prompt ({} chars)", prompt.len());
                             let tx = bg_event_tx.clone();
                             let svc = llm_service.clone();
+                            #[cfg(feature = "voice")]
+                            let voice = voice_service.clone();
                             tokio::spawn(async move {
                                 let start = std::time::Instant::now();
                                 #[cfg(feature = "llm")]
@@ -2456,10 +2461,15 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             let req = agent_llm::engine::InferenceRequest::new(&prompt);
                                             match manager.engine().infer(req).await {
                                                 Ok(resp) => {
+                                                    let text_copy = resp.text.clone();
                                                     let _ = tx.send(AgentEvent::LlmChatResponse {
                                                         message: resp.text,
                                                         processing_time_ms: resp.duration_ms,
                                                     });
+                                                    #[cfg(feature = "voice")]
+                                                    if let Some(ref voice) = voice_service {
+                                                        voice.speak(&text_copy);
+                                                    }
                                                 }
                                                 Err(e) => {
                                                     warn!("LLM inference error: {}", e);
@@ -2812,6 +2822,33 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     confidence: None,
                                 });
                             });
+                        }
+                        
+                        Ok(GuiCommand::SetVoiceListening { enabled }) => {
+                            info!("[AUDIT] GUI requested voice listening: {}", enabled);
+                            #[cfg(feature = "voice")]
+                            {
+                                let voice = voice_service.clone();
+                                tokio::spawn(async move {
+                                    if enabled {
+                                        if let Some(ref voice) = voice {
+                                            voice.start_listening().await;
+                                        }
+                                    }
+                                });
+                            }
+                            #[cfg(not(feature = "voice"))]
+                            {
+                                let tx = bg_event_tx.clone();
+                                tokio::spawn(async move {
+                                    if enabled {
+                                        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                                        let _ = tx.send(AgentEvent::VoiceTranscription { 
+                                            text: "Moteur vocal désactivé à la compilation.".to_string() 
+                                        });
+                                    }
+                                });
+                            }
                         }
 
                         Ok(GuiCommand::LlmClassifyThreat { event_description, target_id }) => {

@@ -36,7 +36,7 @@ impl<'a> AuditTrailRepository<'a> {
 
     /// Compute HMAC-SHA256 integrity hash for an audit entry.
     /// This prevents undetected tampering of audit trail rows.
-    fn compute_integrity(
+    pub fn compute_integrity(
         timestamp: &str,
         action_type: &str,
         action_data: &str,
@@ -96,6 +96,26 @@ impl<'a> AuditTrailRepository<'a> {
                 Ok(conn.last_insert_rowid())
             })
             .await
+    }
+
+    /// Verify the cryptographic integrity of a StoredAuditEntry before sync.
+    /// Returns true if the embedded hash matches the computed hash.
+    pub fn verify_integrity(entry: &StoredAuditEntry) -> bool {
+        let ts_str = entry.timestamp.to_rfc3339();
+        let computed = Self::compute_integrity(
+            &ts_str,
+            &entry.action_type,
+            &entry.action_data,
+            &entry.actor,
+        );
+        let embedded = entry
+            .details
+            .as_deref()
+            .and_then(|d| serde_json::from_str::<serde_json::Value>(d).ok())
+            .and_then(|v| v.get("_integrity").and_then(|i| i.as_str().map(|s| s.to_string())))
+            .unwrap_or_default();
+        
+        computed == embedded
     }
 
     /// Get unsynced audit entries.
