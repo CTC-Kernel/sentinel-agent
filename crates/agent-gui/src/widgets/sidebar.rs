@@ -32,6 +32,7 @@ impl Sidebar {
         sync_state: &SidebarSyncState,
         organization: Option<&str>,
         ai_ready: bool,
+        voice_active: bool,
     ) -> Option<Page> {
         let mut selected: Option<Page> = None;
 
@@ -251,8 +252,8 @@ impl Sidebar {
 
                         // AI model status indicator
                         ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "IA");
-                        if Self::ai_status_item(ui, current == &Page::AI, ai_ready) {
+                        Self::section_label(ui, "IA & JARVIS");
+                        if Self::ai_status_item(ui, current == &Page::AI, ai_ready, voice_active) {
                             selected = Some(Page::AI);
                         }
 
@@ -489,11 +490,13 @@ impl Sidebar {
     ///
     /// Shows a brain icon + "IA" label with a colored status dot and short
     /// text ("Actif" / "Inactif"). Clicking navigates to the AI page.
-    fn ai_status_item(ui: &mut Ui, is_current: bool, ai_ready: bool) -> bool {
-        let (status_label, dot_color) = if ai_ready {
-            ("Actif", theme::SUCCESS)
+    fn ai_status_item(ui: &mut Ui, is_current: bool, ai_ready: bool, voice_active: bool) -> bool {
+        let (status_label, dot_color) = if voice_active {
+            ("Jarvis Écoute", theme::ACCENT)
+        } else if ai_ready {
+            ("IA Prête", theme::SUCCESS)
         } else {
-            ("Inactif", theme::text_tertiary())
+            ("IA Inactive", theme::text_tertiary())
         };
 
         let text_color = if is_current {
@@ -586,7 +589,18 @@ impl Sidebar {
             let text_left = text_right - status_text_w;
             let dot_cx = text_left - gap - dot_radius;
 
-            // Draw dot
+            // Draw dot (with Pulse if listening)
+            if voice_active && !theme::is_reduced_motion() {
+                let pulse_t = ui.input(|i| i.time);
+                let pulse_alpha = ((pulse_t * 5.0).sin() * 0.5 + 0.5) as f32;
+                ui.painter().circle_filled(
+                    egui::pos2(dot_cx, icon_center_y),
+                    dot_radius * (1.0 + pulse_alpha * 0.5),
+                    dot_color.linear_multiply(pulse_alpha * 0.3),
+                );
+                ui.ctx().request_repaint();
+            }
+
             ui.painter()
                 .circle_filled(egui::pos2(dot_cx, icon_center_y), dot_radius, dot_color);
 

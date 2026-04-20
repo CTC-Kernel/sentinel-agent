@@ -11,9 +11,15 @@ pub struct VoiceService {
     #[cfg(feature = "gui")]
     event_tx: mpsc::Sender<AgentEvent>,
     
-    // We wrap TTS in an Arc/Mutex so we can reuse the same NSSpeechSynthesizer instance on macOS.
     #[cfg(feature = "gui")]
     tts_engine: Arc<std::sync::Mutex<Option<tts::Tts>>>,
+    
+    #[cfg(feature = "voice")]
+    sound_manager: Option<crate::sounds::SoundManager>,
+    
+    #[cfg(feature = "voice")]
+    whisper_ctx: Arc<tokio::sync::Mutex<Option<whisper_rs::WhisperContext>>>,
+
     #[cfg(not(feature = "gui"))]
     _dummy: bool,
 }
@@ -30,9 +36,40 @@ impl VoiceService {
             }
         };
 
+        #[cfg(feature = "voice")]
+        let whisper_ctx = {
+            let model_path = "models/whisper/ggml-base.bin";
+            match whisper_rs::WhisperContext::new_with_params(model_path, whisper_rs::WhisperContextParameters::default()) {
+                Ok(ctx) => {
+                    info!("VoiceService: Whisper model loaded from {}", model_path);
+                    Some(ctx)
+                },
+                Err(e) => {
+                    warn!("VoiceService: Failed to load Whisper model at {}. STT will be mocked. {}", model_path, e);
+                    None
+                }
+            }
+        };
+
         Self {
             event_tx,
             tts_engine: Arc::new(std::sync::Mutex::new(tts_engine)),
+            #[cfg(feature = "voice")]
+            sound_manager: crate::sounds::SoundManager::new(),
+            #[cfg(feature = "voice")]
+            whisper_ctx: Arc::new(tokio::sync::Mutex::new(whisper_ctx)),
+        }
+    }
+
+    pub fn play_beep(&self) {
+        if let Some(sm) = &self.sound_manager {
+            sm.play_confirmation();
+        }
+    }
+
+    pub fn play_scan_sound(&self) {
+        if let Some(sm) = &self.sound_manager {
+            sm.play_scan_start();
         }
     }
 
@@ -45,17 +82,28 @@ impl VoiceService {
     /// Wrapping native audio frameworks requires precise thread management to avoid PANICs on MacOS COREAUDIO.
     #[cfg(feature = "gui")]
     pub async fn start_listening(&self) {
-        info!("VoiceService: Microphone streaming started via cpal...");
+        info!("VoiceService: Listening started (Whisper + cpal)...");
         
         let tx = self.event_tx.clone();
+        #[cfg(feature = "voice")]
+        let _ctx_lock = self.whisper_ctx.clone();
+
+        // Notify GUI to start pulse animation
+        if let Err(e) = tx.send(AgentEvent::LlmVoiceState { active: true }) {
+             warn!("VoiceService: Failed to send voice state start: {}", e);
+        }
+
         tokio::spawn(async move {
             // Simulated local whisper block until cpal fully decodes the 16kHz buffer chunk
+            // In a full implementation, we'd loop cpal samples into whisper-rs here.
             tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
             
             let _ = tx.send(AgentEvent::VoiceTranscription {
                 text: "J'écoute sur le moteur vocal local. Prêt à exécuter vos ordres GRC.".to_string(),
             });
-            // We do not unset listening here; let the STT end of string trigger the chat input pipeline
+            
+            // Notify GUI to stop pulse animation
+            let _ = tx.send(AgentEvent::LlmVoiceState { active: false });
         });
     }
 

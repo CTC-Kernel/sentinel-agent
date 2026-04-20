@@ -15,6 +15,11 @@ impl AgentRuntime {
         &self,
     ) -> Result<VulnerabilityScanResult, CommonError> {
         info!("Starting vulnerability scan...");
+        
+        #[cfg(feature = "voice")]
+        if let Some(voice) = &self.voice_service {
+            voice.play_scan_sound();
+        }
 
         let result = self
             .vulnerability_scanner

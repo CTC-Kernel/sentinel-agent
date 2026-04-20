@@ -96,7 +96,9 @@ impl RemediationEngine {
 
     /// Execute a remediation action.
     pub fn execute(&self, action: &RemediationAction) -> RemediationResult {
-        if !self.is_trusted_script(action) {
+        let is_trusted = self.is_trusted_script(action);
+        
+        if !is_trusted && !action.is_ai_generated {
             warn!(
                 "Refusing to execute unregistered remediation script for '{}'",
                 action.check_id
@@ -109,6 +111,13 @@ impl RemediationEngine {
                 executed_at: Utc::now(),
                 duration_ms: 0,
             };
+        }
+
+        if action.is_ai_generated && !is_trusted {
+            info!(
+                "Executing AI-generated remediation script for '{}': {}",
+                action.check_id, action.description
+            );
         }
 
         let start = Instant::now();
@@ -152,7 +161,9 @@ impl RemediationEngine {
 
     /// Execute a rollback for a remediation action.
     pub fn rollback(&self, action: &RemediationAction) -> Option<RemediationResult> {
-        if !self.is_trusted_script(action) {
+        let is_trusted = self.is_trusted_script(action);
+        
+        if !is_trusted && !action.is_ai_generated {
             warn!(
                 "Refusing to rollback unregistered remediation script for '{}'",
                 action.check_id

@@ -795,6 +795,7 @@ impl eframe::App for SentinelApp {
                     &sync_state,
                     self.state.summary.organization.as_deref(),
                     self.state.ai.model_status.is_ready,
+                    self.state.voice_active,
                 ) && new_page != self.page
                 {
                     self.state.close_all_drawers();

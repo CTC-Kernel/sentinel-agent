@@ -82,13 +82,17 @@ impl AgentRuntime {
                 agent_common::types::remediation::RemediationStatus::Success
             );
 
-            // Notify GUI
-            if success {
-                self.emit_notification(
-                    "Remédiation Réussie",
-                    &format!("Le contrôle \'{}\' a été corrigé avec succès.", check_id),
-                    "success",
-                );
+        if success {
+            #[cfg(feature = "voice")]
+            if let Some(voice) = &self.voice_service {
+                voice.play_beep();
+            }
+
+            self.emit_notification(
+                "Remédiation Réussie",
+                &format!("Le contrôle \'{}\' a été corrigé avec succès.", check_id),
+                "success",
+            );
             } else {
                 self.emit_notification(
                     "Échec de Remédiation",
@@ -108,17 +112,78 @@ impl AgentRuntime {
 
             success
         } else {
-            warn!("No remediation action found for check '{}'", check_id);
-            self.emit_notification(
-                "Remédiation Indisponible",
-                &format!(
-                    "Aucun script de remédiation automatisé n'est configuré pour \'{}\'.",
-                    check_id
-                ),
-                "warning",
-            );
+            // ...
             false
         }
+    }
+
+    /// Execute an AI-generated remediation action.
+    /// This requires the action to have is_ai_generated set to true.
+    pub async fn apply_ai_remediation(&self, action: agent_common::types::RemediationAction) -> bool {
+        if !action.is_ai_generated {
+            warn!("apply_ai_remediation called with non-AI action for '{}'", action.check_id);
+            return false;
+        }
+
+        info!("Applying AI-generated remediation for '{}'", action.check_id);
+
+        let engine = Arc::clone(&self.remediation_engine);
+        let check_id = action.check_id.clone();
+        
+        let result = match run_remediation(engine, action).await {
+            Some(r) => r,
+            None => {
+                self.emit_notification(
+                    "Remédiation IA Expirée",
+                    &format!("La remédiation IA pour '{}' a échoué.", check_id),
+                    "error",
+                );
+                return false;
+            }
+        };
+
+        // Audit the AI action
+        if let Some(audit) = &self.audit_trail {
+            audit
+                .log(
+                    crate::audit_trail::AuditAction::AIInteraction(format!("Apply AI Fix for {}", check_id)),
+                    "user",
+                    Some(format!(
+                        "Status: {:?}, Output: {}",
+                        result.status, result.output
+                    )),
+                )
+                .await;
+        }
+
+        let success = matches!(
+            result.status,
+            agent_common::types::remediation::RemediationStatus::Success
+        );
+
+        if success {
+            #[cfg(feature = "voice")]
+            if let Some(voice) = &self.voice_service {
+                voice.play_beep();
+            }
+
+            self.emit_notification(
+                "Correctif IA Appliqué",
+                &format!("Le correctif suggéré pour '{}' a été appliqué.", check_id),
+                "success",
+            );
+        } else {
+            self.emit_notification(
+                "Échec du Correctif IA",
+                &format!("L'application du correctif IA pour '{}' a échoué.", check_id),
+                "error",
+            );
+        }
+
+        // Force reload
+        self.state.force_check.store(true, std::sync::atomic::Ordering::Release);
+        
+        success
     }
 
     /// Preview remediation for a specific check.

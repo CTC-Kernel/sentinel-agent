@@ -769,6 +769,8 @@ pub struct AppState {
     /// Page navigation request (consumed by app.rs each frame).
     #[cfg(feature = "render")]
     pub pending_navigation: Option<crate::app::Page>,
+    /// Whether the voice recognition (Jarvis) is currently active/listening.
+    pub voice_active: bool,
 }
 
 impl Default for AppState {
@@ -818,6 +820,7 @@ impl Default for AppState {
             reduced_motion: false,
             #[cfg(feature = "render")]
             pending_navigation: None,
+            voice_active: false,
         }
     }
 }
@@ -1111,6 +1114,8 @@ impl AppState {
                 severity_override: _,
                 is_false_positive,
                 confidence,
+                ai_remediation_script,
+                ai_remediation_explanation,
             } => {
                 // Add analysis result as a system message in chat
                 let summary = if let Some(fp) = is_false_positive {
@@ -1146,6 +1151,8 @@ impl AppState {
                         self.vulnerability_findings[idx].ai_analysis = Some(analysis);
                         self.vulnerability_findings[idx].ai_confidence = confidence;
                         self.vulnerability_findings[idx].is_false_positive = is_false_positive;
+                        self.vulnerability_findings[idx].ai_remediation_script = ai_remediation_script;
+                        self.vulnerability_findings[idx].ai_remediation_explanation = ai_remediation_explanation;
                     }
                 } else if let Some(idx_str) = target.strip_prefix("process#") {
                     // Suspicious process
@@ -1229,6 +1236,9 @@ impl AppState {
                     self.ai.download.error = Some(error);
                     self.ai.model_status.status = "error".to_string();
                 }
+            }
+            AgentEvent::LlmVoiceState { active } => {
+                self.voice_active = active;
             }
             AgentEvent::LlmRiskAnalysis {
                 risk_id,

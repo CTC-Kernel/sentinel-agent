@@ -41,14 +41,14 @@ pub struct ModelConfig {
 impl Default for ModelConfig {
     fn default() -> Self {
         Self {
-            name: "qwen3-coder-7b".to_string(),
-            path: PathBuf::from("models/qwen3-coder-7b.Q4_K_M.gguf"),
-            model_type: ModelType::Qwen3Coder,
-            capabilities: ModelCapabilities::CODE_ANALYSIS | ModelCapabilities::SECURITY_ANALYSIS,
-            max_context_size: 4096,
+            name: "mistral-7b-v0.3".to_string(),
+            path: PathBuf::from("models/mistral-7b-v0.3.Q4_K_M.gguf"),
+            model_type: ModelType::Mistral7B,
+            capabilities: ModelCapabilities::ALL,
+            max_context_size: 8192,
             gpu_layers: 0, // Auto-detect
             threads: std::thread::available_parallelism().map_or(1, |n| n.get()) as u32,
-            download_url: None,
+            download_url: Some("https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.3-GGUF/resolve/main/mistral-7b-instruct-v0.3.Q4_K_M.gguf".to_string()),
         }
     }
 }
@@ -64,6 +64,8 @@ pub enum ModelType {
     DeepSeekR1,
     /// Gemma 3 series
     Gemma3,
+    /// Mistral 7B series
+    Mistral7B,
     /// Custom model
     Custom(String),
 }

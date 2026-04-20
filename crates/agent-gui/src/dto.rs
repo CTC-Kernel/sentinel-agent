@@ -512,6 +512,10 @@ pub struct GuiVulnerabilityFinding {
     /// AI-generated analysis text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ai_analysis: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_remediation_script: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ai_remediation_explanation: Option<String>,
 }
 
 /// Discovered network device for display in the Discovery and Cartography pages.

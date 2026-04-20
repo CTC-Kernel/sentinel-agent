@@ -539,3 +539,70 @@ pub fn detail_progress(ui: &mut Ui, label: &str, fraction: f32, color: Color32) 
     }
     ui.add_space(theme::SPACE_SM);
 }
+
+/// Render a premium AI-generated remediation proposal section.
+pub fn detail_ai_proposal(ui: &mut Ui, explanation: &str, commands: &[String]) {
+    ui.add_space(theme::SPACE_MD);
+    
+    // Header with "AI Advisor" badge
+    ui.horizontal(|ui| {
+        ui.label(
+            egui::RichText::new("CONSEILLER IA SENTINEL")
+                .font(theme::font_label())
+                .color(theme::ACCENT)
+                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                .strong(),
+        );
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::CENTER), |ui| {
+            crate::widgets::status_badge(ui, "IA SUGGESTION", theme::ACCENT);
+        });
+    });
+    ui.add_space(theme::SPACE_SM);
+
+    // Explanation Box
+    egui::Frame::new()
+        .fill(theme::ACCENT.linear_multiply(0.05))
+        .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
+        .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::ACCENT.linear_multiply(0.2)))
+        .show(ui, |ui| {
+            ui.add(
+                egui::Label::new(
+                    egui::RichText::new(explanation)
+                        .font(theme::font_body())
+                        .color(theme::text_primary()),
+                )
+                .wrap_mode(egui::TextWrapMode::Wrap),
+            );
+        });
+    
+    ui.add_space(theme::SPACE_SM);
+
+    // Code Box for commands
+    if !commands.is_empty() {
+        ui.label(
+            egui::RichText::new("SCRIPT DE RÉPARATION PROPOSÉ")
+                .font(theme::font_small())
+                .color(theme::text_tertiary())
+                .strong(),
+        );
+        ui.add_space(theme::SPACE_XS);
+
+        egui::Frame::new()
+            .fill(theme::bg_deep())
+            .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
+            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+            .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
+            .show(ui, |ui| {
+                for cmd in commands {
+                    ui.label(
+                        egui::RichText::new(format!("$ {}", cmd))
+                            .font(theme::font_mono())
+                            .color(theme::ACCENT_LIGHT),
+                    );
+                }
+            });
+    }
+
+    ui.add_space(theme::SPACE_MD);
+}

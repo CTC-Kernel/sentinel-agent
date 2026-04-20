@@ -1401,6 +1401,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI user previewed remediation for check: {}", check_id);
                             handle_for_commands.remediate_preview(check_id);
                         }
+                        Ok(GuiCommand::ApplyAiRemediation { action }) => {
+                            info!("[AUDIT] GUI user applying AI remediation for check: {}", action.check_id);
+                            handle_for_commands.apply_ai_remediation(action);
+                        }
                         Ok(GuiCommand::RunSync) => {
                             info!("[AUDIT] GUI user requested sync");
                             handle_for_commands.trigger_sync();

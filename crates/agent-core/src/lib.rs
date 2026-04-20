@@ -36,6 +36,8 @@ pub mod tracing_layer;
 pub mod update_manager;
 #[cfg(feature = "voice")]
 pub mod voice;
+#[cfg(feature = "voice")]
+pub mod sounds;
 
 // Domain modules (impl AgentRuntime split)
 mod asset_sync;

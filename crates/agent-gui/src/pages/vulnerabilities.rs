@@ -402,6 +402,15 @@ impl VulnerabilitiesPage {
                 "Exporter",
                 icons::DOWNLOAD,
             ));
+            
+            // "Appliquer le correctif IA" button — only if AI script is available
+            let has_ai_fix = finding.ai_remediation_script.is_some();
+            if has_ai_fix {
+                actions.insert(0, widgets::DetailAction::primary(
+                    "Appliquer correctif IA",
+                    icons::WAND_SPARKLES,
+                ));
+            }
 
             let cve_display = &finding.cve_id;
             let source_display = if !finding.source.is_empty() {
@@ -489,6 +498,11 @@ impl VulnerabilitiesPage {
                                 );
                             }
 
+                            // AI Remediation Proposal section
+                            if let (Some(explanation), Some(script)) = (&finding.ai_remediation_explanation, &finding.ai_remediation_script) {
+                                widgets::detail_ai_proposal(ui, explanation, script);
+                            }
+
                             // AI Analysis section
                             if let Some(ref analysis) = finding.ai_analysis {
                                 widgets::detail_section(ui, "ANALYSE IA");
@@ -567,6 +581,26 @@ impl VulnerabilitiesPage {
                         )
                         .with_time(time),
                     );
+                } else if has_ai_fix && action_idx == 0 {
+                    // Apply AI Fix action
+                    if let Some(script) = &finding.ai_remediation_script {
+                        let action = agent_common::types::RemediationAction {
+                            id: uuid::Uuid::new_v4(),
+                            check_id: finding.cve_id.clone(),
+                            description: finding.description.clone(),
+                            script: script.join("\n"),
+                            rollback_script: None,
+                            status: agent_common::types::RemediationStatus::Pending,
+                            is_ai_generated: true,
+                        };
+                        command = Some(GuiCommand::ApplyAiRemediation { action });
+                        
+                        let time = ui.input(|i| i.time);
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::info("Application du correctif IA...")
+                                .with_time(time),
+                        );
+                    }
                 } else if ai_action_idx == Some(action_idx) {
                     command = Some(GuiCommand::LlmAnalyzeVulnerability {
                         finding_index: sel_idx,
