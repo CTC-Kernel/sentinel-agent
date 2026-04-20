@@ -123,8 +123,8 @@ impl VoiceService {
             
             let mut synth_duration = std::time::Duration::from_millis(2000);
 
-            if let Ok(mut engine_opt) = engine_lock.lock() {
-                if let Some(engine) = engine_opt.as_mut() {
+            if let Ok(mut engine_opt) = engine_lock.lock()
+                && let Some(engine) = engine_opt.as_mut() {
                     // Try to natively speak
                     if let Err(e) = engine.speak(&rt_text, false) {
                         warn!("VoiceService: TTS engine speak failed: {}", e);
@@ -133,7 +133,6 @@ impl VoiceService {
                         let char_count = rt_text.len() as u64;
                         synth_duration = std::time::Duration::from_millis(150 * char_count.max(10));
                     }
-                }
             }
             
             // Wait for TTS to finish reading naturally.

@@ -292,7 +292,7 @@ impl SentinelApp {
     // ------------------------------------------------------------------
 
     fn process_events(&mut self) {
-        let mut rx = self.event_rx.lock().unwrap();
+        let rx = self.event_rx.lock().unwrap();
         while let Ok(event) = rx.try_recv() {
             // Special handling for enrollment result in app shell
             if let crate::events::AgentEvent::EnrollmentResult {
@@ -311,7 +311,7 @@ impl SentinelApp {
     /// Handle tray menu actions.
     fn process_tray_actions(&mut self, ctx: &egui::Context) {
         let rx = self.tray_action_rx.clone();
-        let mut rx_lock = rx.lock().unwrap();
+        let rx_lock = rx.lock().unwrap();
         while let Ok(action) = rx_lock.try_recv() {
             match action {
                 TrayAction::ShowWindow => {
@@ -651,7 +651,7 @@ impl eframe::App for SentinelApp {
 
         // Process async task results from background threads
         {
-            let mut rx = self.async_results_rx.lock().unwrap();
+            let rx = self.async_results_rx.lock().unwrap();
             while let Ok(result) = rx.try_recv() {
             match result {
                 AsyncTaskResult::CsvExport(success, message) => {
@@ -1142,9 +1142,9 @@ impl SentinelApp {
 
         egui::CentralPanel::default()
             .frame(
-                egui::Frame::none()
+                egui::Frame::NONE
                     .fill(theme::bg_primary().linear_multiply(0.85))
-                    .rounding(theme::ROUNDING_LG)
+                    .corner_radius(theme::ROUNDING_LG)
                     .outer_margin(1.0)
                     .stroke(egui::Stroke::new(1.0, theme::ACCENT.linear_multiply(0.5))),
             )

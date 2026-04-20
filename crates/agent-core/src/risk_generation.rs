@@ -161,8 +161,8 @@ impl AgentRuntime {
         {
             static INITIAL_LOAD: std::sync::atomic::AtomicBool =
                 std::sync::atomic::AtomicBool::new(false);
-            if !INITIAL_LOAD.swap(true, std::sync::atomic::Ordering::SeqCst) {
-                if let Ok(all_stored) = risk_repo.get_all().await {
+            if !INITIAL_LOAD.swap(true, std::sync::atomic::Ordering::SeqCst)
+                && let Ok(all_stored) = risk_repo.get_all().await {
                     let gui_risks: Vec<agent_gui::dto::RiskEntry> = all_stored
                         .iter()
                         .filter_map(|s| {
@@ -201,7 +201,6 @@ impl AgentRuntime {
                         self.emit_gui_event(agent_gui::events::AgentEvent::RisksLoaded {
                             risks: gui_risks,
                         });
-                    }
                 }
             }
         }

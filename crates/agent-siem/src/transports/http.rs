@@ -224,6 +224,9 @@ mod tests {
             Some("token123".to_string()),
             Some("Bearer".to_string()),
             true,
+            None,
+            None,
+            false,
         );
 
         assert_eq!(transport.url, "https://siem.example.com/api/events");

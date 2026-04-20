@@ -24,6 +24,7 @@ pub struct Sidebar;
 
 impl Sidebar {
     /// Render the sidebar. Returns the newly selected page, if any.
+    #[allow(clippy::too_many_arguments)]
     pub fn show(
         ui: &mut Ui,
         current: &Page,

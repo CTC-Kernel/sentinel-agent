@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use std::sync::Arc;
-use tracing::{error, info};
+use tracing::error;
 
 /// Iron Man style frequency-based beep synthesizer for Sentinel.
 pub struct SoundManager {
@@ -60,7 +59,7 @@ impl SoundManager {
         std::thread::spawn(move || {
             for (freq, duration) in tones {
                 let mut sample_clock = 0f32;
-                let num_samples = (duration * sample_rate) as usize;
+                let _num_samples = (duration * sample_rate) as usize;
                 
                 let stream = device.build_output_stream(
                     &config,

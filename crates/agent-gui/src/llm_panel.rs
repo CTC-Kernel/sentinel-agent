@@ -768,6 +768,7 @@ impl LLMPanel {
             ui.add_space(theme::SPACE_MD);
 
             // Model catalogue (static — mirrors ModelRegistry)
+            #[allow(clippy::type_complexity)]
             let catalogue: &[(&str, &str, &str, f32, u32, &str, Option<&str>)] = &[
                 (
                     "llama-4-8b",

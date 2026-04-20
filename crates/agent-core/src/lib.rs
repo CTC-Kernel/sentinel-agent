@@ -1300,8 +1300,8 @@ impl AgentRuntime {
                 // Don't activate external transport without a configured destination
                 let effective_enabled = gui_enabled && has_destination;
                 let mut siem_guard = self.siem_forwarder.write().await;
-                if let Some(ref mut siem) = *siem_guard {
-                    if siem.is_enabled() != effective_enabled {
+                if let Some(ref mut siem) = *siem_guard
+                    && siem.is_enabled() != effective_enabled {
                         let mut new_config = siem.config().clone();
                         new_config.enabled = effective_enabled;
                         if let Ok(fmt) = self.state.siem_format.lock() {
@@ -1311,34 +1311,32 @@ impl AgentRuntime {
                                 _ => agent_siem::SiemFormat::Json,
                             };
                         }
-                        if has_destination {
-                            if let Ok(dest) = self.state.siem_destination.lock() {
-                                if let Ok(tr) = self.state.siem_transport.lock() {
-                                    match tr.as_str() {
-                                        "HTTP" => {
-                                            new_config.transport = agent_siem::SiemTransport::Http {
-                                                url: dest.clone(),
-                                                auth_token: None,
-                                                auth_header: None,
-                                                verify_tls: true,
-                                                client_cert: None,
-                                                client_key: None,
-                                            };
-                                        }
-                                        _ => {
-                                            let parts: Vec<&str> = dest.splitn(2, ':').collect();
-                                            let host = parts.first().unwrap_or(&"localhost").to_string();
-                                            let port = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(514);
-                                            new_config.transport = agent_siem::SiemTransport::Syslog {
-                                                host,
-                                                port,
-                                                protocol: agent_siem::SyslogProtocol::Tcp,
-                                                tls: false,
-                                                client_cert: None,
-                                                client_key: None,
-                                            };
-                                        }
-                                    }
+                        if has_destination
+                            && let Ok(dest) = self.state.siem_destination.lock()
+                            && let Ok(tr) = self.state.siem_transport.lock() {
+                            match tr.as_str() {
+                                "HTTP" => {
+                                    new_config.transport = agent_siem::SiemTransport::Http {
+                                        url: dest.clone(),
+                                        auth_token: None,
+                                        auth_header: None,
+                                        verify_tls: true,
+                                        client_cert: None,
+                                        client_key: None,
+                                    };
+                                }
+                                _ => {
+                                    let parts: Vec<&str> = dest.splitn(2, ':').collect();
+                                    let host = parts.first().unwrap_or(&"localhost").to_string();
+                                    let port = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(514);
+                                    new_config.transport = agent_siem::SiemTransport::Syslog {
+                                        host,
+                                        port,
+                                        protocol: agent_siem::SyslogProtocol::Tcp,
+                                        tls: false,
+                                        client_cert: None,
+                                        client_key: None,
+                                    };
                                 }
                             }
                         }
@@ -1347,7 +1345,6 @@ impl AgentRuntime {
                         } else if effective_enabled {
                             info!("SIEM forwarder config synced from GUI (enabled=true)");
                         }
-                    }
                 }
             }
 
@@ -2049,7 +2046,8 @@ impl AgentRuntime {
                                                     | "windows_account_changes" => SyncIncidentType::UnauthorizedChange,
                                                 "windows_service_install_burst" => SyncIncidentType::Malware,
                                                 "windows_firewall_changes" => SyncIncidentType::FirewallDisabled,
-                                                "network_scan" | "critical_errors" | _ => SyncIncidentType::SuspiciousProcess,
+                                                "network_scan" | "critical_errors" => SyncIncidentType::SuspiciousProcess,
+                                                _ => SyncIncidentType::SuspiciousProcess,
                                             };
                                             let severity = if alert.severity >= 8 {
                                                 SyncSeverity::Critical
@@ -2247,11 +2245,10 @@ impl AgentRuntime {
                             siem_enrichment::enrich_siem_event(&mut event).await;
                         }
                         siem.record_event(event.clone()).await;
-                        if siem.is_enabled() {
-                            if let Err(e) = siem.send_event(&event).await {
+                        if siem.is_enabled()
+                            && let Err(e) = siem.send_event(&event).await {
                                 warn!("Failed to forward security incident to external SIEM: {}", e);
                             }
-                        }
                     }
 
                     // Network alerts → SIEM
@@ -2304,11 +2301,10 @@ impl AgentRuntime {
                             siem_enrichment::enrich_siem_event(&mut event).await;
                         }
                         siem.record_event(event.clone()).await;
-                        if siem.is_enabled() {
-                            if let Err(e) = siem.send_event(&event).await {
+                        if siem.is_enabled()
+                            && let Err(e) = siem.send_event(&event).await {
                                 warn!("Failed to forward network alert to external SIEM: {}", e);
                             }
-                        }
                     }
 
                     if !pipeline_incidents.is_empty() || !pipeline_network_alerts.is_empty() {
@@ -2766,7 +2762,7 @@ impl AgentRuntime {
                                             hostname: d.hostname.clone(),
                                             mac_address: d.mac.clone(),
                                             vendor: d.vendor.clone(),
-                                            device_type: Some(format!("{}", d.device_type)),
+                                            device_type: Some(d.device_type.to_string()),
                                             open_ports: d.open_ports.clone(),
                                             is_gateway: Some(d.is_gateway),
                                             subnet: Some(d.subnet.clone()),

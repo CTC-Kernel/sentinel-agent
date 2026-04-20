@@ -656,6 +656,7 @@ mod tests {
             active_frameworks: None,
             admin_password: None,
             heartbeat_interval_secs: 60,
+            llm: LLMSettings::default(),
         };
 
         let json = serde_json::to_string(&config).unwrap();

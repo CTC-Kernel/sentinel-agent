@@ -2077,10 +2077,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         warn!("Failed to delete detection rule from SQLite: {}", e);
                                     }
                                     // Also delete on the platform
-                                    if let Some(ref client) = client_clone {
-                                        if let Err(e) = client.delete_detection_rule(&rid).await {
+                                    if let Some(ref client) = client_clone
+                                        && let Err(e) = client.delete_detection_rule(&rid).await {
                                             warn!("Failed to delete detection rule on platform: {}", e);
-                                        }
                                     }
                                 });
                             }
@@ -2188,10 +2187,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         warn!("Failed to delete risk from SQLite: {}", e);
                                     }
                                     // Also delete on the platform
-                                    if let Some(ref client) = client_clone {
-                                        if let Err(e) = client.delete_risk(&rid).await {
+                                    if let Some(ref client) = client_clone
+                                        && let Err(e) = client.delete_risk(&rid).await {
                                             warn!("Failed to delete risk on platform: {}", e);
-                                        }
                                     }
                                 });
                             }
@@ -2346,10 +2344,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         warn!("Failed to delete alert rule from SQLite: {}", e);
                                     }
                                     // Also delete on the platform
-                                    if let Some(ref client) = client_clone {
-                                        if let Err(e) = client.delete_alert_rule(&rid).await {
+                                    if let Some(ref client) = client_clone
+                                        && let Err(e) = client.delete_alert_rule(&rid).await {
                                             warn!("Failed to delete alert rule on platform: {}", e);
-                                        }
                                     }
                                     // Reload and emit AlertingLoaded
                                     emit_alerting_loaded_from_db(&db_clone, &tx).await;
@@ -2407,10 +2404,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         warn!("Failed to delete webhook from SQLite: {}", e);
                                     }
                                     // Also delete on the platform
-                                    if let Some(ref client) = client_clone {
-                                        if let Err(e) = client.delete_webhook(&wid).await {
+                                    if let Some(ref client) = client_clone
+                                        && let Err(e) = client.delete_webhook(&wid).await {
                                             warn!("Failed to delete webhook on platform: {}", e);
-                                        }
                                     }
                                     // Reload and emit AlertingLoaded
                                     emit_alerting_loaded_from_db(&db_clone, &tx).await;
@@ -2839,7 +2835,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         // Retrieve finding from cache
                                         let finding = {
                                             let cache = handle.state.last_vuln_findings.read().await;
-                                            cache.as_ref().and_then(|res| res.vulnerabilities.get(finding_index as usize).cloned())
+                                            cache.as_ref().and_then(|res| res.vulnerabilities.get(finding_index).cloned())
                                         };
 
                                         if let Some(finding) = finding {
@@ -2893,10 +2889,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             {
                                 let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
                                 tokio::spawn(async move {
-                                    if enabled {
-                                        if let Some(ref voice) = voice {
+                                    if enabled
+                                        && let Some(ref voice) = voice {
                                             voice.start_listening().await;
-                                        }
                                     }
                                 });
                             }
@@ -3012,10 +3007,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     }
                                 } else {
                                     // Model already exists locally → just reload
-                                    if let Some(ref llm_svc) = svc {
-                                        if let Err(e) = llm_svc.reload().await {
+                                    if let Some(ref llm_svc) = svc
+                                        && let Err(e) = llm_svc.reload().await {
                                             warn!("Reload after model switch failed: {}", e);
-                                        }
                                     }
                                     let _ = tx.send(AgentEvent::LlmDownloadComplete {
                                         model_name: model_name_clone,
