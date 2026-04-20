@@ -1193,15 +1193,13 @@ pub fn disabled_color(color: Color32) -> Color32 {
     color.linear_multiply(OPACITY_DISABLED)
 }
 
-/// Hover background for interactive elements (visible semi-transparent tint).
+/// Hover background for interactive elements (accent-tinted semi-transparent).
+/// Sits in the same color family as `selected_bg()` (ACCENT × 0.15/0.12) but
+/// clearly weaker, so hover → selected reads as a natural intensity ramp.
 /// WCAG 1.4.11: interactive state indicators should be distinguishable.
 #[inline]
 pub fn hover_bg() -> Color32 {
-    if is_dark_mode() {
-        Color32::from_white_alpha(35)
-    } else {
-        Color32::from_black_alpha(25)
-    }
+    ACCENT.linear_multiply(if is_dark_mode() { 0.09 } else { 0.07 })
 }
 
 /// Active/pressed background for interactive elements (accent-tinted).
