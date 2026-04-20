@@ -2503,13 +2503,14 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             let req = agent_llm::engine::InferenceRequest::new(&prompt);
                                             match manager.engine().infer(req).await {
                                                 Ok(resp) => {
+                                                    let text = resp.text.clone();
                                                     let _ = tx.send(AgentEvent::LlmChatResponse {
-                                                        message: resp.text,
+                                                        message: text.clone(),
                                                         processing_time_ms: resp.duration_ms,
                                                     });
                                                     #[cfg(feature = "voice")]
                                                     if let Some(ref v) = voice {
-                                                        v.speak(&resp.text);
+                                                        v.speak(&text);
                                                     }
                                                 }
                                                 Err(e) => {
