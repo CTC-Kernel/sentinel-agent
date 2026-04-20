@@ -21,6 +21,7 @@ mod status_badge;
 mod toggle_switch;
 pub mod sentinel_ai_core;
 pub mod tray_radar;
+pub mod voice;
 
 // UX feedback & input widgets
 pub mod loading_state;
@@ -108,6 +109,7 @@ pub use button::{
     fab_button, ghost_button, icon_button, icon_button_with_color, primary_button,
     primary_button_loading, secondary_button, secondary_button_loading,
 };
+pub use voice::voice_toggle_button;
 
 // Navigation & selection exports
 pub use dropdown::{Dropdown, dropdown, dropdown_width};

@@ -1183,13 +1183,8 @@ impl SentinelApp {
                             
                             ui.add_space(theme::SPACE_SM);
                             
-                            // Native Voice Toggle button
-                            let voice_btn = egui::Button::new(
-                                egui::RichText::new(if self.state.ai.is_listening { icons::MICROPHONE_SLASH } else { icons::MICROPHONE })
-                                    .color(if self.state.ai.is_listening { theme::ERROR } else { theme::text_primary() })
-                            ).frame(false);
-                            
-                            if ui.add(voice_btn).on_hover_text("Basculer la reconnaissance vocale").clicked() {
+                            // PREMIUM Voice Toggle
+                            if widgets::voice_toggle_button(ui, self.state.ai.is_listening).clicked() {
                                 self.state.ai.is_listening = !self.state.ai.is_listening;
                                 self.send_command(GuiCommand::SetVoiceListening {
                                     enabled: self.state.ai.is_listening,

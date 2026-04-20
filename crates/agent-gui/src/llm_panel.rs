@@ -195,11 +195,17 @@ impl LLMPanel {
         // ── Input Area ───────────────────────────────────────────────────
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(icons::COMMENT)
-                        .size(theme::ICON_SM)
-                        .color(theme::text_tertiary()),
-                );
+                // PREMIUM Voice Toggle
+                if widgets::voice_toggle_button(ui, state.ai.is_listening).clicked() {
+                    state.ai.is_listening = !state.ai.is_listening;
+                    if state.ai.is_listening {
+                        state.ai.is_speaking = false;
+                    }
+                    command = Some(GuiCommand::SetVoiceListening {
+                        enabled: state.ai.is_listening,
+                    });
+                }
+                
                 ui.add_space(theme::SPACE_XS);
 
                 let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)

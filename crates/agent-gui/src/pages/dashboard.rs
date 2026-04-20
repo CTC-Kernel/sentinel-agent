@@ -435,25 +435,8 @@ impl DashboardPage {
 
                 // Inline Chat Input
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    let mut mic_icon = icons::MICROPHONE;
-                    let mut mic_color = theme::text_secondary();
-                    if state.ai.is_listening {
-                        mic_icon = icons::MICROPHONE;
-                        mic_color = theme::ACCENT;
-                    }
-
-                    if ui.add(
-                        egui::Button::new(
-                            egui::RichText::new(mic_icon)
-                                .size(theme::ICON_SM)
-                                .color(mic_color),
-                        )
-                        .fill(egui::Color32::TRANSPARENT)
-                        .frame(false),
-                    )
-                    .on_hover_text("Activer/D\u{00e9}sactiver le microphone (Voice Chat)")
-                    .clicked()
-                    {
+                    // PREMIUM Voice Toggle
+                    if widgets::voice_toggle_button(ui, state.ai.is_listening).clicked() {
                         state.ai.is_listening = !state.ai.is_listening;
                         // Turn off speaking if we start listening
                         if state.ai.is_listening {
