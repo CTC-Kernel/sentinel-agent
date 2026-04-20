@@ -1150,23 +1150,28 @@ impl SentinelApp {
             )
             .show(ctx, |ui| {
                 ui.vertical(|ui| {
-                    // Header / Drag area
+                    // --- Header: Premium Jarvis Branding ---
                     ui.add_space(theme::SPACE_MD);
                     ui.horizontal(|ui| {
                         ui.add_space(theme::SPACE_MD);
                         
-                        // Voice Pulse Animation
-                        let color = if self.state.voice_active {
-                            let t = ui.input(|i| i.time);
-                            let pulse = (t * 5.0).sin().abs() as f32 * 0.5 + 0.5;
-                            theme::ERROR.linear_multiply(pulse)
-                        } else {
+                        // Voice Status Icon (Simple)
+                        let voice_icon_color = if self.state.ai.is_listening {
                             theme::ACCENT
+                        } else {
+                            theme::text_tertiary()
                         };
-
-                        ui.label(egui::RichText::new(icons::MICROPHONE).color(color).font(theme::font_title()));
+                        ui.label(
+                            egui::RichText::new(icons::MICROPHONE)
+                                .color(voice_icon_color)
+                                .font(theme::font_title()),
+                        );
                         ui.add_space(theme::SPACE_XS);
-                        ui.label(egui::RichText::new("JARVIS").font(theme::font_title()).strong());
+                        ui.label(
+                            egui::RichText::new("ASSISTANT JARVIS")
+                                .font(theme::font_title())
+                                .strong(),
+                        );
 
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.add_space(theme::SPACE_MD);
@@ -1178,30 +1183,110 @@ impl SentinelApp {
                             
                             ui.add_space(theme::SPACE_SM);
                             
-                            // Voice Toggle button
+                            // Native Voice Toggle button
                             let voice_btn = egui::Button::new(
-                                egui::RichText::new(if self.state.voice_active { icons::MICROPHONE_SLASH } else { icons::MICROPHONE })
-                                    .color(if self.state.voice_active { theme::ERROR } else { theme::text_primary() })
+                                egui::RichText::new(if self.state.ai.is_listening { icons::MICROPHONE_SLASH } else { icons::MICROPHONE })
+                                    .color(if self.state.ai.is_listening { theme::ERROR } else { theme::text_primary() })
                             ).frame(false);
                             
                             if ui.add(voice_btn).on_hover_text("Basculer la reconnaissance vocale").clicked() {
-                                self.send_command(GuiCommand::LlmToggleVoice);
+                                self.state.ai.is_listening = !self.state.ai.is_listening;
+                                self.send_command(GuiCommand::SetVoiceListening {
+                                    enabled: self.state.ai.is_listening,
+                                });
                             }
                         });
                     });
 
                     ui.add_space(theme::SPACE_SM);
                     ui.separator();
+                    ui.add_space(theme::SPACE_MD);
 
-                    // LLM Panel Content
+                    // --- Central Visualization: Sentinel AI Core ---
+                    let ai_score = crate::llm_panel::LLMPanel::compute_ai_score(&self.state);
+                    
+                    ui.vertical_centered(|ui| {
+                        let mut voice_state = crate::widgets::sentinel_ai_core::VoiceState::Idle;
+                        if self.state.ai.is_listening {
+                            voice_state = crate::widgets::sentinel_ai_core::VoiceState::Listening;
+                        } else if self.state.ai.is_speaking {
+                            voice_state = crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.8);
+                        }
+
+                        let core = widgets::SentinelAICore::new(ai_score)
+                            .processing(self.state.ai.is_processing)
+                            .voice(voice_state);
+                        
+                        core.show(ui, 60.0);
+                        
+                        ui.add_space(theme::SPACE_SM);
+                        let risk_label = crate::llm_panel::LLMPanel::risk_label(ai_score);
+                        let risk_color = theme::score_color(ai_score);
+                        widgets::status_badge(ui, risk_label, risk_color);
+                    });
+
+                    ui.add_space(theme::SPACE_LG);
+
+                    // --- Chat History Area (Simplified) ---
                     egui::ScrollArea::vertical()
+                        .stick_to_bottom(true)
                         .auto_shrink([false; 2])
                         .show(ui, |ui| {
-                            if let Some(cmd) = self.llm_panel.show(ui, &mut self.state) {
-                                self.send_command(cmd);
-                            }
+                            ui.horizontal(|ui| {
+                                ui.add_space(theme::SPACE_MD);
+                                ui.vertical(|ui| {
+                                    for msg in &self.state.ai.chat_history {
+                                        crate::llm_panel::LLMPanel::render_chat_message(ui, msg);
+                                        ui.add_space(theme::SPACE_SM);
+                                    }
+
+                                    if self.state.ai.is_processing {
+                                        crate::llm_panel::LLMPanel::render_processing_indicator(ui);
+                                        ui.add_space(theme::SPACE_SM);
+                                    }
+                                });
+                                ui.add_space(theme::SPACE_MD);
+                            });
                         });
 
+                    ui.add_space(theme::SPACE_SM);
+
+                    // --- Footer: Compact Chat Input ---
+                    widgets::card(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            let text_edit = egui::TextEdit::singleline(&mut self.state.ai.input_text)
+                                .hint_text("Demander à Jarvis...")
+                                .font(theme::font_body())
+                                .desired_width(ui.available_width() - 40.0);
+
+                            let response = ui.add_enabled(!self.state.ai.is_processing, text_edit);
+
+                            let enter_pressed = response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                            
+                            let can_send = !self.state.ai.is_processing && !self.state.ai.input_text.trim().is_empty();
+                            
+                            if ui.add_enabled(
+                                can_send,
+                                egui::Button::new(egui::RichText::new(icons::PAPER_PLANE).color(theme::accent_text())).frame(false)
+                            ).clicked() || (enter_pressed && can_send) {
+                                let prompt = self.state.ai.input_text.trim().to_string();
+                                self.state.ai.chat_history.push(crate::dto::LlmChatMessage {
+                                    role: crate::dto::ChatRole::User,
+                                    content: prompt.clone(),
+                                    timestamp: chrono::Utc::now(),
+                                    processing_time_ms: None,
+                                });
+                                self.state.ai.input_text.clear();
+                                self.state.ai.is_processing = true;
+                                
+                                self.send_command(GuiCommand::LlmPrompt {
+                                    prompt,
+                                    context: None,
+                                });
+                            }
+                        });
+                    });
+                    ui.add_space(theme::SPACE_MD);
                 });
             });
 

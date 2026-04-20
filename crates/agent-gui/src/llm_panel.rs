@@ -131,16 +131,23 @@ impl LLMPanel {
                 .show(ui, |ui| {
                     ui.add_space(theme::SPACE_SM);
 
-                    for msg in &state.ai.chat_history {
-                        Self::render_chat_message(ui, msg);
-                        ui.add_space(theme::SPACE_SM);
-                    }
+                    // Add lateral padding to the chat content to avoid bubbles touching the edges
+                    ui.horizontal(|ui| {
+                        ui.add_space(theme::SPACE_MD);
+                        ui.vertical(|ui| {
+                            for msg in &state.ai.chat_history {
+                                Self::render_chat_message(ui, msg);
+                                ui.add_space(theme::SPACE_SM);
+                            }
 
-                    // Processing indicator
-                    if state.ai.is_processing {
-                        Self::render_processing_indicator(ui);
-                        ui.add_space(theme::SPACE_SM);
-                    }
+                            // Processing indicator
+                            if state.ai.is_processing {
+                                Self::render_processing_indicator(ui);
+                                ui.add_space(theme::SPACE_SM);
+                            }
+                        });
+                        ui.add_space(theme::SPACE_MD);
+                    });
                 });
 
             ui.add_space(theme::SPACE_MD);
@@ -246,7 +253,7 @@ impl LLMPanel {
     }
 
     /// Render a single chat message bubble.
-    fn render_chat_message(ui: &mut egui::Ui, msg: &crate::dto::LlmChatMessage) {
+    pub fn render_chat_message(ui: &mut egui::Ui, msg: &crate::dto::LlmChatMessage) {
         let is_user = msg.role == ChatRole::User;
         let is_system = msg.role == ChatRole::System;
 
@@ -257,137 +264,136 @@ impl LLMPanel {
         };
 
         ui.with_layout(layout, |ui: &mut egui::Ui| {
-            // Constrain bubble width
-            let max_width = (ui.available_width() * 0.75).min(600.0);
-            ui.set_max_width(max_width);
+            // Constrain bubble width more strictly to avoid right-side overflow
+            // We use the available width minus a safe margin for the gutters
+            let max_bubble_width = (ui.available_width() * 0.85).min(700.0);
+            
+            ui.allocate_ui_with_layout(
+                egui::Vec2::new(max_bubble_width, 0.0),
+                layout,
+                |ui| {
+                    let (bg_color, text_color, role_icon, role_color) = if is_user {
+                        (
+                            theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+                            theme::text_primary(),
+                            icons::USER,
+                            theme::ACCENT,
+                        )
+                    } else if is_system {
+                        (
+                            theme::WARNING.linear_multiply(theme::OPACITY_SUBTLE),
+                            theme::text_primary(),
+                            icons::BOLT,
+                            theme::WARNING,
+                        )
+                    } else {
+                        (
+                            theme::bg_elevated(),
+                            theme::text_primary(),
+                            icons::ROBOT,
+                            theme::SUCCESS,
+                        )
+                    };
 
-            let (bg_color, text_color, role_icon, role_color) = if is_user {
-                (
-                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
-                    theme::text_primary(),
-                    icons::USER,
-                    theme::ACCENT,
-                )
-            } else if is_system {
-                (
-                    theme::WARNING.linear_multiply(theme::OPACITY_SUBTLE),
-                    theme::text_primary(),
-                    icons::BOLT,
-                    theme::WARNING,
-                )
-            } else {
-                (
-                    theme::bg_elevated(),
-                    theme::text_primary(),
-                    icons::ROBOT,
-                    theme::SUCCESS,
-                )
-            };
+                    egui::Frame::new()
+                        .fill(bg_color)
+                        .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
+                        .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+                        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
+                        .show(ui, |ui: &mut egui::Ui| {
+                            ui.vertical(|ui| {
+                                // Role badge & Time
+                                ui.horizontal(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(role_icon)
+                                            .size(theme::ICON_SM)
+                                            .color(role_color),
+                                    );
+                                    ui.add_space(theme::SPACE_XS);
+                                    ui.label(
+                                        egui::RichText::new(msg.role.label_fr())
+                                            .font(theme::font_label())
+                                            .color(role_color)
+                                            .strong(),
+                                    );
 
-            egui::Frame::new()
-                .fill(bg_color)
-                .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
-                .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-                .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
-                .show(ui, |ui: &mut egui::Ui| {
-                    // Role badge
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(role_icon)
-                                .size(theme::ICON_SM)
-                                .color(role_color),
-                        );
-                        ui.add_space(theme::SPACE_XS);
-                        ui.label(
-                            egui::RichText::new(msg.role.label_fr())
-                                .font(theme::font_label())
-                                .color(role_color)
-                                .strong(),
-                        );
+                                    ui.with_layout(
+                                        egui::Layout::right_to_left(egui::Align::Center),
+                                        |ui: &mut egui::Ui| {
+                                            // Timestamp
+                                            let time_str = msg.timestamp.format("%H:%M").to_string();
+                                            ui.label(
+                                                egui::RichText::new(time_str)
+                                                    .font(theme::font_min())
+                                                    .color(theme::text_tertiary()),
+                                            );
+                                        },
+                                    );
+                                });
 
-                        ui.with_layout(
-                            egui::Layout::right_to_left(egui::Align::Center),
-                            |ui: &mut egui::Ui| {
-                                // Timestamp
-                                let time_str = msg.timestamp.format("%H:%M").to_string();
+                                ui.add_space(theme::SPACE_XS);
+
+                                // Content with explicit wrapping
                                 ui.label(
-                                    egui::RichText::new(time_str)
-                                        .font(theme::font_min())
-                                        .color(theme::text_tertiary()),
+                                    egui::RichText::new(&msg.content)
+                                        .font(theme::font_body())
+                                        .color(text_color),
                                 );
-                            },
-                        );
-                    });
-
-                    ui.add_space(theme::SPACE_XS);
-
-                    // Content
-                    ui.label(
-                        egui::RichText::new(&msg.content)
-                            .font(theme::font_body())
-                            .color(text_color),
-                    );
-
-                    // Processing time (assistant only)
-                    if let Some(ms) = msg.processing_time_ms {
-                        ui.add_space(theme::SPACE_XS);
-                        ui.horizontal(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(icons::CLOCK)
-                                    .size(theme::ICON_XS)
-                                    .color(theme::text_tertiary()),
-                            );
-                            ui.label(
-                                egui::RichText::new(format!("{}ms", ms))
-                                    .font(theme::font_min())
-                                    .color(theme::text_tertiary()),
-                            );
+                            });
                         });
-                    }
-                });
+                },
+            );
         });
     }
 
     /// Render a processing/loading indicator while the LLM is working.
-    fn render_processing_indicator(ui: &mut egui::Ui) {
+    pub fn render_processing_indicator(ui: &mut egui::Ui) {
         ui.with_layout(
             egui::Layout::left_to_right(egui::Align::TOP),
             |ui: &mut egui::Ui| {
-                let max_width = (ui.available_width() * 0.75).min(600.0);
-                ui.set_max_width(max_width);
-
-                egui::Frame::new()
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
-                    .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-                    .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
-                    .show(ui, |ui: &mut egui::Ui| {
-                        ui.horizontal(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(icons::ROBOT)
-                                    .size(theme::ICON_SM)
-                                    .color(theme::readable_color(theme::SUCCESS)),
-                            );
-                            ui.add_space(theme::SPACE_XS);
-                            ui.label(
-                                egui::RichText::new("IA")
-                                    .font(theme::font_label())
-                                    .color(theme::readable_color(theme::SUCCESS))
-                                    .strong(),
-                            );
-                        });
-                        ui.add_space(theme::SPACE_XS);
-                        ui.horizontal(|ui: &mut egui::Ui| {
-                            ui.spinner();
-                            ui.add_space(theme::SPACE_SM);
-                            ui.label(
-                                egui::RichText::new("Analyse en cours...")
-                                    .font(theme::font_body())
-                                    .color(theme::text_secondary())
-                                    .italics(),
-                            );
-                        });
-                    });
+                // Same max width constraint as chat bubbles for consistency
+                let max_bubble_width = (ui.available_width() * 0.85).min(700.0);
+                
+                ui.allocate_ui_with_layout(
+                    egui::Vec2::new(max_bubble_width, 0.0),
+                    egui::Layout::left_to_right(egui::Align::TOP),
+                    |ui| {
+                        egui::Frame::new()
+                            .fill(theme::bg_elevated())
+                            .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
+                            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+                            .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
+                            .show(ui, |ui: &mut egui::Ui| {
+                                ui.vertical(|ui| {
+                                    ui.horizontal(|ui: &mut egui::Ui| {
+                                        ui.label(
+                                            egui::RichText::new(icons::ROBOT)
+                                                .size(theme::ICON_SM)
+                                                .color(theme::SUCCESS),
+                                        );
+                                        ui.add_space(theme::SPACE_XS);
+                                        ui.label(
+                                            egui::RichText::new("IA")
+                                                .font(theme::font_label())
+                                                .color(theme::SUCCESS)
+                                                .strong(),
+                                        );
+                                    });
+                                    ui.add_space(theme::SPACE_XS);
+                                    ui.horizontal(|ui: &mut egui::Ui| {
+                                        ui.spinner();
+                                        ui.add_space(theme::SPACE_SM);
+                                        ui.label(
+                                            egui::RichText::new("Analyse en cours...")
+                                                .font(theme::font_body())
+                                                .color(theme::text_secondary())
+                                                .italics(),
+                                        );
+                                    });
+                                });
+                            });
+                    },
+                );
             },
         );
     }
