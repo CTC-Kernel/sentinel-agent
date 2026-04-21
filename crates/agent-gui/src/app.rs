@@ -1203,7 +1203,7 @@ impl SentinelApp {
                     ui.vertical_centered(|ui| {
                         let mut voice_state = crate::widgets::sentinel_ai_core::VoiceState::Idle;
                         if self.state.ai.is_listening {
-                            voice_state = crate::widgets::sentinel_ai_core::VoiceState::Listening;
+                            voice_state = crate::widgets::sentinel_ai_core::VoiceState::Listening(self.state.ai.mic_level);
                         } else if self.state.ai.is_speaking {
                             voice_state = crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.8);
                         }
@@ -1211,10 +1211,43 @@ impl SentinelApp {
                         let core = widgets::SentinelAICore::new(ai_score)
                             .processing(self.state.ai.is_processing)
                             .voice(voice_state);
-                        
+
                         core.show(ui, 60.0);
-                        
+
                         ui.add_space(theme::SPACE_SM);
+
+                        // Microphone level indicator — only while listening, so the
+                        // user gets live feedback that their voice is being captured.
+                        if self.state.ai.is_listening {
+                            let bar_width = 160.0;
+                            let bar_height = 6.0;
+                            let (rect, _) = ui.allocate_exact_size(
+                                egui::vec2(bar_width, bar_height),
+                                egui::Sense::hover(),
+                            );
+                            let painter = ui.painter();
+                            painter.rect_filled(
+                                rect,
+                                egui::CornerRadius::same(3),
+                                theme::bg_tertiary(),
+                            );
+                            let level = self.state.ai.mic_level.clamp(0.0, 1.0);
+                            let filled_width = bar_width * level;
+                            if filled_width > 0.5 {
+                                let filled_rect = egui::Rect::from_min_size(
+                                    rect.min,
+                                    egui::vec2(filled_width, bar_height),
+                                );
+                                painter.rect_filled(
+                                    filled_rect,
+                                    egui::CornerRadius::same(3),
+                                    theme::ACCENT_LIGHT,
+                                );
+                            }
+                            ui.ctx().request_repaint();
+                            ui.add_space(theme::SPACE_XS);
+                        }
+
                         let risk_label = crate::llm_panel::LLMPanel::risk_label(ai_score);
                         let risk_color = theme::score_color(ai_score);
                         widgets::status_badge(ui, risk_label, risk_color);
@@ -1257,13 +1290,23 @@ impl SentinelApp {
                             let response = ui.add_enabled(!self.state.ai.is_processing, text_edit);
 
                             let enter_pressed = response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-                            
+
                             let can_send = !self.state.ai.is_processing && !self.state.ai.input_text.trim().is_empty();
-                            
-                            if ui.add_enabled(
+
+                            // Auto-send once Whisper has transcribed the user's speech —
+                            // without this the Jarvis widget's input field would fill up
+                            // but the prompt would never reach the LLM.
+                            let voice_auto_send = self.state.ai.pending_voice_send && can_send;
+                            if voice_auto_send {
+                                self.state.ai.pending_voice_send = false;
+                            }
+
+                            let send_clicked = ui.add_enabled(
                                 can_send,
                                 egui::Button::new(egui::RichText::new(icons::PAPER_PLANE).color(theme::accent_text())).frame(false)
-                            ).clicked() || (enter_pressed && can_send) {
+                            ).clicked();
+
+                            if (send_clicked || enter_pressed || voice_auto_send) && can_send {
                                 let prompt = self.state.ai.input_text.trim().to_string();
                                 self.state.ai.chat_history.push(crate::dto::LlmChatMessage {
                                     role: crate::dto::ChatRole::User,

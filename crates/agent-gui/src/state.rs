@@ -494,6 +494,9 @@ pub struct AiState {
     pub is_speaking: bool,
     /// Set to true when a voice transcription has arrived and should be auto-submitted as a prompt.
     pub pending_voice_send: bool,
+    /// Normalized microphone level in [0.0, 1.0], updated at ~10 Hz while listening.
+    /// Drives the Jarvis core visualization so the user can see their voice being captured.
+    pub mic_level: f32,
 }
 
 // ---------------------------------------------------------------------------
@@ -1245,6 +1248,16 @@ impl AppState {
             }
             AgentEvent::LlmVoiceState { active } => {
                 self.voice_active = active;
+                // Keep the Jarvis widget's listening flag in sync with the voice
+                // backend lifecycle so the indicator falls back to idle when the
+                // capture loop finishes (e.g. silence timeout).
+                self.ai.is_listening = active;
+                if !active {
+                    self.ai.mic_level = 0.0;
+                }
+            }
+            AgentEvent::AudioLevel { rms } => {
+                self.ai.mic_level = rms.clamp(0.0, 1.0);
             }
             AgentEvent::LlmRiskAnalysis {
                 risk_id,

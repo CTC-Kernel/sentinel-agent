@@ -12,7 +12,9 @@ use std::f32::consts::TAU;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum VoiceState {
     Idle,
-    Listening,
+    /// Listening on the microphone. The inner value is the normalized RMS level
+    /// (0.0 = silence, 1.0 = clipping) used to animate the indicator.
+    Listening(f32),
     Speaking(f32), // volume level for waveform
 }
 
@@ -105,9 +107,10 @@ impl SentinelAICore {
         let mut base_color = theme::ACCENT;
         
         match self.voice_state {
-            VoiceState::Listening => {
-                // Shift colour to a more "attentive" light blue/cyan
-                base_color = theme::ACCENT_LIGHT;
+            VoiceState::Listening(level) => {
+                // Shift colour to a more "attentive" light blue/cyan,
+                // brightening proportionally to the microphone level.
+                base_color = theme::ACCENT_LIGHT.linear_multiply(1.0 + level * 0.5);
             }
             VoiceState::Speaking(vol) => {
                 // Shift colour based on volume
@@ -115,26 +118,36 @@ impl SentinelAICore {
             }
             _ => {}
         }
-        
+
         // Pulsing background wash
         let pulse = match self.voice_state {
-            VoiceState::Listening => (t * 1.5).sin() * 0.2 + 0.3,
+            VoiceState::Listening(level) => (t * 1.5).sin() * 0.15 + 0.25 + level * 0.4,
             VoiceState::Speaking(vol) => 0.2 + vol * 0.4,
             _ => (t * 0.8).sin() * 0.1 + 0.15,
         };
         painter.circle_filled(center, radius * 1.3, base_color.linear_multiply(pulse * 0.5));
-        
+
         // Circular wave ripples
-        let passes = if let VoiceState::Speaking(vol) = self.voice_state { 3 + (vol * 3.0) as usize } else { 2 };
-        let speed_factor = if self.voice_state == VoiceState::Listening { 1.5 } else { 0.5 };
-        
+        let passes = match self.voice_state {
+            VoiceState::Speaking(vol) => 3 + (vol * 3.0) as usize,
+            VoiceState::Listening(level) => 2 + (level * 4.0) as usize,
+            _ => 2,
+        };
+        let speed_factor = match self.voice_state {
+            VoiceState::Listening(level) => 1.2 + level * 1.5,
+            _ => 0.5,
+        };
+
         for i in 0..passes {
             let wave_t = (t * speed_factor + i as f32 * (1.0 / passes as f32)) % 1.0;
             let mut wave_r = radius * (1.0 + wave_t * 0.5);
-            
+
             if let VoiceState::Speaking(vol) = self.voice_state {
                 // Wave expansion relative to volume
                 wave_r += vol * radius * 0.3 * (1.0 - wave_t);
+            } else if let VoiceState::Listening(level) = self.voice_state {
+                // Push the ripple outward as the microphone picks up energy.
+                wave_r += level * radius * 0.4 * (1.0 - wave_t);
             }
             
             let alpha = (1.0 - wave_t) * 0.1;

@@ -257,6 +257,11 @@ pub enum AgentEvent {
         /// Whether the voice system is active/listening.
         active: bool,
     },
+    /// Microphone audio level (RMS) sampled during voice capture.
+    AudioLevel {
+        /// Normalized RMS amplitude in [0.0, 1.0]. Sampled at ~10 Hz.
+        rms: f32,
+    },
     /// LLM model download failed.
     LlmDownloadFailed {
         /// Name of the model.

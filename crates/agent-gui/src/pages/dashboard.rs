@@ -409,7 +409,7 @@ impl DashboardPage {
 
                 let mut voice_state = crate::widgets::sentinel_ai_core::VoiceState::Idle;
                 if state.ai.is_listening {
-                    voice_state = crate::widgets::sentinel_ai_core::VoiceState::Listening;
+                    voice_state = crate::widgets::sentinel_ai_core::VoiceState::Listening(state.ai.mic_level);
                 } else if state.ai.is_speaking {
                     voice_state = crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.8); // simulated volume
                 }

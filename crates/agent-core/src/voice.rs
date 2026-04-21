@@ -119,11 +119,12 @@ impl VoiceService {
             let whisper_ctx = self.whisper_ctx.clone();
             let is_listening = self.is_listening.clone();
             let tx_task = tx.clone();
+            let tx_level = tx.clone();
 
             // Whisper inference and cpal stream lifetime are both blocking — isolate
             // from the Tokio runtime so we never stall async workers.
             tokio::task::spawn_blocking(move || {
-                let outcome = record_and_transcribe(&whisper_ctx);
+                let outcome = record_and_transcribe(&whisper_ctx, &tx_level);
 
                 match outcome {
                     Ok(Some(text)) => {
@@ -142,6 +143,8 @@ impl VoiceService {
                 }
 
                 is_listening.store(false, Ordering::SeqCst);
+                // Reset the mic level gauge so the UI indicator falls back to zero.
+                let _ = tx_task.send(AgentEvent::AudioLevel { rms: 0.0 });
                 let _ = tx_task.send(AgentEvent::LlmVoiceState { active: false });
             });
         }
@@ -206,9 +209,10 @@ fn resolve_whisper_model_path() -> std::path::PathBuf {
 }
 
 /// Capture mic audio until a natural end-of-speech is detected, then run Whisper.
-#[cfg(feature = "voice")]
+#[cfg(all(feature = "voice", feature = "gui"))]
 fn record_and_transcribe(
     whisper_ctx: &Arc<tokio::sync::Mutex<Option<whisper_rs::WhisperContext>>>,
+    tx_level: &mpsc::Sender<AgentEvent>,
 ) -> Result<Option<String>, String> {
     use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
     use cpal::SampleFormat;
@@ -292,6 +296,8 @@ fn record_and_transcribe(
         std::collections::VecDeque::with_capacity(preroll_frames + 1);
     let mut captured: Vec<f32> = Vec::with_capacity(max_total_samples);
     let mut cursor = 0usize;
+    // Throttle the audio-level event to ~10 Hz (every 5 frames at 20 ms).
+    let mut level_frame_counter: usize = 0;
 
     loop {
         std::thread::sleep(Duration::from_millis(frame_ms as u64 / 2));
@@ -307,6 +313,14 @@ fn record_and_transcribe(
         cursor += frame_len;
 
         let rms = rms_of(&frame);
+
+        level_frame_counter += 1;
+        if level_frame_counter >= 5 {
+            level_frame_counter = 0;
+            // Soft-clip to [0, 1] — speech typically sits in [0.01, 0.3].
+            let normalized = (rms * 4.0).min(1.0);
+            let _ = tx_level.send(AgentEvent::AudioLevel { rms: normalized });
+        }
 
         if calibrated < calibration_total {
             // Track the loudest calibration frame as noise floor so breathing/fan are accepted.
