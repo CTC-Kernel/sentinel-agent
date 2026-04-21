@@ -1088,9 +1088,21 @@ impl AppState {
                 }
             }
             AgentEvent::VoiceTranscription { text } => {
-                self.ai.input_text = text.clone();
-                // Auto-trigger the prompt so the user doesn't need to click "Send"
-                self.ai.pending_voice_send = true;
+                // The voice backend surfaces engine failures through the same event
+                // as a real transcription. Don't feed those strings back into the LLM
+                // — route them to the chat history as a system notice instead.
+                if text.starts_with("(Erreur") || text.starts_with("(Moteur vocal") {
+                    self.ai.chat_history.push(crate::dto::LlmChatMessage {
+                        role: crate::dto::ChatRole::System,
+                        content: text,
+                        timestamp: chrono::Utc::now(),
+                        processing_time_ms: None,
+                    });
+                } else {
+                    self.ai.input_text = text;
+                    // Auto-trigger the prompt so the user doesn't need to click "Send"
+                    self.ai.pending_voice_send = true;
+                }
             }
 
             AgentEvent::VoiceStatus { speaking } => {
@@ -1257,7 +1269,16 @@ impl AppState {
                 }
             }
             AgentEvent::AudioLevel { rms } => {
-                self.ai.mic_level = rms.clamp(0.0, 1.0);
+                // Asymmetric EMA: follow rising edges almost instantly so speech onsets
+                // are visible, but decay slowly so the VU bar doesn't flicker between
+                // syllables.
+                let target = rms.clamp(0.0, 1.0);
+                let prev = self.ai.mic_level;
+                self.ai.mic_level = if target >= prev {
+                    prev + (target - prev) * 0.6
+                } else {
+                    prev + (target - prev) * 0.2
+                };
             }
             AgentEvent::LlmRiskAnalysis {
                 risk_id,

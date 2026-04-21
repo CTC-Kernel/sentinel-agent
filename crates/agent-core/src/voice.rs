@@ -1,6 +1,7 @@
 use std::sync::Arc;
 #[cfg(feature = "voice")]
 use std::sync::atomic::{AtomicBool, Ordering};
+#[cfg(feature = "gui")]
 use std::sync::mpsc;
 #[cfg(feature = "gui")]
 use tracing::{error, info, warn};
@@ -19,11 +20,16 @@ pub struct VoiceService {
     #[cfg(feature = "voice")]
     sound_manager: Option<crate::sounds::SoundManager>,
 
-    #[cfg(feature = "voice")]
+    #[cfg(all(feature = "voice", feature = "gui"))]
     whisper_ctx: Arc<tokio::sync::Mutex<Option<whisper_rs::WhisperContext>>>,
 
-    #[cfg(feature = "voice")]
+    #[cfg(all(feature = "voice", feature = "gui"))]
     is_listening: Arc<AtomicBool>,
+
+    /// Set to true when the UI requests an early stop. The VAD loop polls it every
+    /// frame so users can toggle the mic off without waiting for silence timeout.
+    #[cfg(feature = "voice")]
+    cancel_requested: Arc<AtomicBool>,
 
     #[cfg(not(feature = "gui"))]
     _dummy: bool,
@@ -72,7 +78,17 @@ impl VoiceService {
             whisper_ctx: Arc::new(tokio::sync::Mutex::new(whisper_ctx)),
             #[cfg(feature = "voice")]
             is_listening: Arc::new(AtomicBool::new(false)),
+            #[cfg(feature = "voice")]
+            cancel_requested: Arc::new(AtomicBool::new(false)),
         }
+    }
+
+    /// Request an early end of the current capture. The running VAD loop will
+    /// exit at its next poll and the usual end-of-listening events will fire.
+    /// Safe to call when no capture is active (no-op).
+    #[cfg(feature = "voice")]
+    pub fn stop_listening(&self) {
+        self.cancel_requested.store(true, Ordering::SeqCst);
     }
 
     #[cfg(feature = "voice")]
@@ -91,7 +107,13 @@ impl VoiceService {
 
     #[cfg(not(feature = "gui"))]
     pub fn new() -> Self {
-        Self { _dummy: false }
+        Self {
+            _dummy: false,
+            #[cfg(feature = "voice")]
+            sound_manager: crate::sounds::SoundManager::new(),
+            #[cfg(feature = "voice")]
+            cancel_requested: Arc::new(AtomicBool::new(false)),
+        }
     }
 
     /// Capture microphone audio via `cpal`, detect speech with an energy-based VAD,
@@ -118,13 +140,16 @@ impl VoiceService {
 
             let whisper_ctx = self.whisper_ctx.clone();
             let is_listening = self.is_listening.clone();
+            let cancel = self.cancel_requested.clone();
+            // Clear any stale cancellation from a previous session.
+            cancel.store(false, Ordering::SeqCst);
             let tx_task = tx.clone();
             let tx_level = tx.clone();
 
             // Whisper inference and cpal stream lifetime are both blocking — isolate
             // from the Tokio runtime so we never stall async workers.
             tokio::task::spawn_blocking(move || {
-                let outcome = record_and_transcribe(&whisper_ctx, &tx_level);
+                let outcome = record_and_transcribe(&whisper_ctx, &tx_level, &cancel);
 
                 match outcome {
                     Ok(Some(text)) => {
@@ -196,7 +221,7 @@ impl VoiceService {
 
 /// Resolve the Whisper model path, preferring the platform data dir and falling
 /// back to the historic `models/whisper/ggml-base.bin` relative path.
-#[cfg(feature = "voice")]
+#[cfg(all(feature = "voice", feature = "gui"))]
 fn resolve_whisper_model_path() -> std::path::PathBuf {
     let platform = agent_common::config::AgentConfig::platform_data_dir()
         .join("models")
@@ -213,6 +238,7 @@ fn resolve_whisper_model_path() -> std::path::PathBuf {
 fn record_and_transcribe(
     whisper_ctx: &Arc<tokio::sync::Mutex<Option<whisper_rs::WhisperContext>>>,
     tx_level: &mpsc::Sender<AgentEvent>,
+    cancel: &Arc<AtomicBool>,
 ) -> Result<Option<String>, String> {
     use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
     use cpal::SampleFormat;
@@ -301,6 +327,12 @@ fn record_and_transcribe(
 
     loop {
         std::thread::sleep(Duration::from_millis(frame_ms as u64 / 2));
+
+        // Honor a user-initiated cancel (mic toggle off) between frames.
+        if cancel.load(Ordering::SeqCst) {
+            info!("VoiceService: capture cancelled by UI");
+            break;
+        }
 
         // Pull one frame from the shared buffer.
         let frame: Vec<f32> = {
@@ -447,7 +479,7 @@ fn record_and_transcribe(
     Ok(Some(text))
 }
 
-#[cfg(feature = "voice")]
+#[cfg(all(feature = "voice", feature = "gui"))]
 fn push_mono<T: Copy>(
     shared: &Arc<std::sync::Mutex<Vec<f32>>>,
     data: &[T],
@@ -469,7 +501,7 @@ fn push_mono<T: Copy>(
     }
 }
 
-#[cfg(feature = "voice")]
+#[cfg(all(feature = "voice", feature = "gui"))]
 fn rms_of(frame: &[f32]) -> f32 {
     if frame.is_empty() {
         return 0.0;
@@ -480,7 +512,7 @@ fn rms_of(frame: &[f32]) -> f32 {
 
 /// Downmix + resample to 16 kHz mono f32. Box-average for integer ratios (48 k, 32 k, 16 k),
 /// linear interpolation otherwise (44.1 k, etc.). Good enough for Whisper.
-#[cfg(feature = "voice")]
+#[cfg(all(feature = "voice", feature = "gui"))]
 fn resample_to_16k(samples: &[f32], from_sr: u32) -> Vec<f32> {
     let to_sr = 16_000u32;
     if from_sr == to_sr {
@@ -510,7 +542,7 @@ fn resample_to_16k(samples: &[f32], from_sr: u32) -> Vec<f32> {
 }
 
 /// Whisper tends to invent stock French captions when fed near-silence. Filter those.
-#[cfg(feature = "voice")]
+#[cfg(all(feature = "voice", feature = "gui"))]
 fn is_whisper_hallucination(text: &str) -> bool {
     let low = text.to_lowercase();
     const NEEDLES: &[&str] = &[

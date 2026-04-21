@@ -2889,9 +2889,14 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             {
                                 let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
                                 tokio::spawn(async move {
-                                    if enabled
-                                        && let Some(ref voice) = voice {
+                                    if let Some(ref voice) = voice {
+                                        if enabled {
                                             voice.start_listening().await;
+                                        } else {
+                                            // Abort any in-flight capture so toggling the mic
+                                            // button off stops Whisper immediately.
+                                            voice.stop_listening();
+                                        }
                                     }
                                 });
                             }
