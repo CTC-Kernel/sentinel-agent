@@ -202,8 +202,6 @@ impl Sidebar {
                         let main_items: &[(Page, &str, &str)] = &[
                             (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
                             (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
-                            (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
-                            (Page::Software, icons::SOFTWARE, "Logiciels"),
                             (
                                 Page::Vulnerabilities,
                                 icons::VULNERABILITIES,
@@ -215,8 +213,6 @@ impl Sidebar {
                                 "Int\u{00e9}grit\u{00e9} fichiers",
                             ),
                             (Page::Threats, icons::SKULL, "Menaces"),
-                            (Page::Reports, icons::FILE_EXPORT, "Rapports"),
-                            (Page::Risks, icons::SCALE_BALANCED, "Risques"),
                             (Page::Notifications, icons::BELL, "Notifications"),
                         ];
 
@@ -228,6 +224,24 @@ impl Sidebar {
                                 None
                             };
                             if Self::nav_item_with_badge(ui, icon, label, current == page, badge) {
+                                selected = Some(page.clone());
+                            }
+                        }
+
+                        // Dedicated GRC section to reinforce the compliance
+                        // positioning: conformity, reporting, risk, software.
+                        ui.add_space(theme::SPACE);
+                        Self::section_label(ui, "GRC & CONFORMIT\u{00c9}");
+
+                        let grc_items: &[(Page, &str, &str)] = &[
+                            (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
+                            (Page::Risks, icons::SCALE_BALANCED, "Risques"),
+                            (Page::Reports, icons::FILE_EXPORT, "Rapports"),
+                            (Page::Software, icons::SOFTWARE, "Logiciels & MDM"),
+                        ];
+
+                        for (page, icon, label) in grc_items {
+                            if Self::nav_item(ui, icon, label, current == page) {
                                 selected = Some(page.clone());
                             }
                         }

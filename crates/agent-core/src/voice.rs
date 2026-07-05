@@ -526,7 +526,7 @@ fn resample_to_16k(samples: &[f32], from_sr: u32) -> Vec<f32> {
         return samples.to_vec();
     }
 
-    if from_sr > to_sr && from_sr % to_sr == 0 {
+    if from_sr > to_sr && from_sr.is_multiple_of(to_sr) {
         let factor = (from_sr / to_sr) as usize;
         return samples
             .chunks(factor)

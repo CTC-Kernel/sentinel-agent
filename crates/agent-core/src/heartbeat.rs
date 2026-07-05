@@ -633,6 +633,27 @@ impl AgentRuntime {
             ),
         };
 
+        // Surface the deployment outcome in the GUI so operators see MDM
+        // activity live in the notifications feed.
+        #[cfg(feature = "gui")]
+        {
+            let title = format!(
+                "MDM · {}",
+                match action {
+                    "install" => "Installation",
+                    "uninstall" => "Désinstallation",
+                    "update" => "Mise à jour logicielle",
+                    other => other,
+                }
+            );
+            let notification = if result.success {
+                agent_gui::dto::GuiNotification::info(title, result.message.clone())
+            } else {
+                agent_gui::dto::GuiNotification::error(title, result.message.clone())
+            };
+            self.emit_gui_event(agent_gui::events::AgentEvent::Notification { notification });
+        }
+
         if result.success {
             // A successful compliance-relevant install may change posture; nudge
             // a re-scan so the console reflects the new state promptly.
