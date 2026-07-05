@@ -50,6 +50,7 @@ url.workspace = true
 tempfile.workspace = true
 sha2.workspace = true
 hex.workspace = true
+ring.workspace = true
 clap = { workspace = true }
 signal-hook.workspace = true
 sysinfo.workspace = true

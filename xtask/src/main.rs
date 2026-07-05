@@ -35,6 +35,28 @@ enum Cmd {
     Ci,
     /// Clean build artifacts
     Clean,
+    /// Generate an ed25519 keypair for signing update packages.
+    ///
+    /// Prints the hex-encoded public key (embed at build time via
+    /// SENTINEL_UPDATE_PUBKEY) and writes the PKCS#8 private key to --out
+    /// (store it as a CI secret; never commit it).
+    Keygen {
+        /// Path to write the PKCS#8 private key (hex).
+        #[arg(long, default_value = "sentinel-update-key.hex")]
+        out: String,
+    },
+    /// Sign a release package, producing `<file>.sig` (hex ed25519).
+    ///
+    /// The signature format matches exactly what the agent verifies in
+    /// update_manager.rs: a hex-encoded 64-byte ed25519 signature over the
+    /// raw package bytes.
+    Sign {
+        /// Path to the package file to sign.
+        file: String,
+        /// Path to the PKCS#8 private key (hex), or set SENTINEL_UPDATE_KEY.
+        #[arg(long)]
+        key: Option<String>,
+    },
 }
 
 fn main() -> Result<()> {
@@ -44,6 +66,8 @@ fn main() -> Result<()> {
         Cmd::Version => cmd_version(),
         Cmd::Ci => cmd_ci(),
         Cmd::Clean => cmd_clean(),
+        Cmd::Keygen { out } => cmd_keygen(&out),
+        Cmd::Sign { file, key } => cmd_sign(&file, key.as_deref()),
     }
 }
 
@@ -237,5 +261,57 @@ fn cmd_clean() -> Result<()> {
         }
     }
     println!("Clean complete.");
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// update package signing (ed25519)
+// ---------------------------------------------------------------------------
+
+/// Generate an ed25519 keypair. Public key -> stdout (hex), private key -> file.
+fn cmd_keygen(out: &str) -> Result<()> {
+    use ring::signature::KeyPair;
+
+    let rng = ring::rand::SystemRandom::new();
+    let pkcs8 = ring::signature::Ed25519KeyPair::generate_pkcs8(&rng)
+        .map_err(|_| anyhow::anyhow!("failed to generate keypair"))?;
+    let key_pair = ring::signature::Ed25519KeyPair::from_pkcs8(pkcs8.as_ref())
+        .map_err(|_| anyhow::anyhow!("failed to parse generated keypair"))?;
+
+    let public_hex = hex::encode(key_pair.public_key().as_ref());
+    let private_hex = hex::encode(pkcs8.as_ref());
+
+    std::fs::write(out, &private_hex)
+        .with_context(|| format!("failed to write private key to {out}"))?;
+
+    println!("Public key (embed at build via SENTINEL_UPDATE_PUBKEY):");
+    println!("  {public_hex}");
+    println!();
+    println!("Private key (PKCS#8, hex) written to: {out}");
+    println!("  Store it as a CI secret (SENTINEL_UPDATE_KEY). Never commit it.");
+    Ok(())
+}
+
+/// Sign `file` with the PKCS#8 private key, writing `<file>.sig` (hex ed25519).
+fn cmd_sign(file: &str, key: Option<&str>) -> Result<()> {
+    let private_hex = match key {
+        Some(path) => std::fs::read_to_string(path)
+            .with_context(|| format!("failed to read key file {path}"))?,
+        None => std::env::var("SENTINEL_UPDATE_KEY")
+            .context("no --key given and SENTINEL_UPDATE_KEY is not set")?,
+    };
+    let pkcs8 = hex::decode(private_hex.trim()).context("private key is not valid hex")?;
+    let key_pair = ring::signature::Ed25519KeyPair::from_pkcs8(&pkcs8)
+        .map_err(|_| anyhow::anyhow!("invalid PKCS#8 ed25519 private key"))?;
+
+    let package = std::fs::read(file).with_context(|| format!("failed to read {file}"))?;
+    let signature = key_pair.sign(&package);
+
+    let sig_path = format!("{file}.sig");
+    std::fs::write(&sig_path, hex::encode(signature.as_ref()))
+        .with_context(|| format!("failed to write signature to {sig_path}"))?;
+
+    println!("Signed {file}");
+    println!("  -> {sig_path}");
     Ok(())
 }
