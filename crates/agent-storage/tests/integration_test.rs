@@ -79,13 +79,13 @@ async fn test_schema_version_after_open_equals_current() {
     );
 }
 
-/// `CURRENT_SCHEMA_VERSION` must equal 8 (the last migration declared).
+/// `CURRENT_SCHEMA_VERSION` must equal 9 (the last migration declared).
 /// This test fails loudly if a migration is added without updating constants.
 #[test]
-fn test_current_schema_version_constant_is_eight() {
+fn test_current_schema_version_constant_is_nine() {
     assert_eq!(
-        CURRENT_SCHEMA_VERSION, 8,
-        "CURRENT_SCHEMA_VERSION should be 8; update this test if a migration is added"
+        CURRENT_SCHEMA_VERSION, 9,
+        "CURRENT_SCHEMA_VERSION should be 9; update this test if a migration is added"
     );
 }
 
@@ -111,7 +111,7 @@ fn test_migrations_idempotent_on_unencrypted_conn() {
     assert_eq!(v, CURRENT_SCHEMA_VERSION);
 }
 
-/// All 8 migrations must be recorded in schema_version after a fresh run.
+/// All 9 migrations must be recorded in schema_version after a fresh run.
 #[test]
 fn test_all_migrations_recorded() {
     let dir = TempDir::new().unwrap();
@@ -124,8 +124,8 @@ fn test_all_migrations_recorded() {
 
     assert_eq!(
         applied.len(),
-        8,
-        "Expected 8 applied migrations, got {}",
+        9,
+        "Expected 9 applied migrations, got {}",
         applied.len()
     );
 
@@ -138,6 +138,7 @@ fn test_all_migrations_recorded() {
         "grc_entities",
         "software_inventory_hostname",
         "software_inventory_rename_name",
+        "playbooks_add_conditions",
     ];
 
     for (i, name) in expected_names.iter().enumerate() {
