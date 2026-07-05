@@ -40,6 +40,7 @@ impl AgentRuntime {
         }
 
         // Perform automated AI analysis for high/critical findings
+        #[cfg(feature = "llm")]
         let mut result = result;
         #[cfg(feature = "llm")]
         if self.config.llm.enabled {

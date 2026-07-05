@@ -35,6 +35,19 @@ pub struct VoiceService {
     _dummy: bool,
 }
 
+#[cfg(not(feature = "gui"))]
+impl Default for VoiceService {
+    fn default() -> Self {
+        Self {
+            _dummy: false,
+            #[cfg(feature = "voice")]
+            sound_manager: crate::sounds::SoundManager::new(),
+            #[cfg(feature = "voice")]
+            cancel_requested: Arc::new(AtomicBool::new(false)),
+        }
+    }
+}
+
 impl VoiceService {
     #[cfg(feature = "gui")]
     pub fn new(event_tx: mpsc::Sender<AgentEvent>) -> Self {
@@ -107,13 +120,7 @@ impl VoiceService {
 
     #[cfg(not(feature = "gui"))]
     pub fn new() -> Self {
-        Self {
-            _dummy: false,
-            #[cfg(feature = "voice")]
-            sound_manager: crate::sounds::SoundManager::new(),
-            #[cfg(feature = "voice")]
-            cancel_requested: Arc::new(AtomicBool::new(false)),
-        }
+        Self::default()
     }
 
     /// Capture microphone audio via `cpal`, detect speech with an energy-based VAD,
