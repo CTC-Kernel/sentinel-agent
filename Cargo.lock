@@ -203,6 +203,7 @@ dependencies = [
  "rayon",
  "regex",
  "reqwest 0.13.2",
+ "ring",
  "rubato 0.14.1",
  "rusqlite",
  "semver",
@@ -11203,6 +11204,8 @@ version = "2.0.237"
 dependencies = [
  "anyhow",
  "clap",
+ "hex",
+ "ring",
 ]
 
 [[package]]
