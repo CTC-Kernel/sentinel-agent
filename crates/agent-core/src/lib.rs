@@ -60,6 +60,7 @@ mod enrollment;
 mod gui_bridge;
 mod risk_generation;
 mod heartbeat;
+pub mod mdm;
 mod network_ops;
 pub mod playbook_engine;
 mod remediation_ops;

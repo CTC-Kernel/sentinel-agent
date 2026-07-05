@@ -333,6 +333,9 @@ const ALLOWED_COMMANDS: &[&str] = &[
     "diagnostics",
     "update",
     "remediate",
+    // MDM software deployment commands.
+    "install",
+    "uninstall",
 ];
 
 /// Command from the server.
