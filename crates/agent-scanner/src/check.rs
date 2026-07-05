@@ -185,8 +185,21 @@ impl CheckRegistry {
                         return true;
                     }
 
-                    // Check if any of the check's frameworks are in the active list
-                    def.frameworks.iter().any(|fw| active.contains(fw))
+                    // Match on canonical framework ids so that config/server names
+                    // ("CIS", "ISO 27001", "GDPR") resolve to the same identifiers
+                    // the checks are tagged with ("CIS_V8", "ISO_27001", "RGPD").
+                    // Unrecognized names fall back to a case-insensitive compare so
+                    // a novel framework is never silently dropped.
+                    use agent_common::frameworks::normalize_framework_id;
+                    let normalize = |s: &str| -> String {
+                        normalize_framework_id(s)
+                            .map(str::to_string)
+                            .unwrap_or_else(|| s.trim().to_ascii_uppercase())
+                    };
+                    let active_norm: Vec<String> = active.iter().map(|s| normalize(s)).collect();
+                    def.frameworks
+                        .iter()
+                        .any(|fw| active_norm.contains(&normalize(fw)))
                 } else {
                     true
                 }

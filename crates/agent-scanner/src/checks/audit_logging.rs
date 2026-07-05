@@ -64,6 +64,7 @@ impl AuditLoggingCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("ANSSI_HYGIENE")
             .framework("SOC2")
             .platforms(vec![
                 "windows".to_string(),
