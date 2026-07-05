@@ -10,6 +10,9 @@
 #[cfg(all(feature = "gui", feature = "llm"))]
 use tracing::debug;
 use tracing::info;
+// `warn` is only used by the gui-gated evaluate_playbook path.
+#[cfg(feature = "gui")]
+use tracing::warn;
 
 /// Playbook condition evaluation result.
 #[derive(Debug)]
@@ -121,6 +124,22 @@ pub async fn evaluate_playbook(
     // Evaluate each condition
     for condition in &playbook.conditions {
         let condition_value = condition.value.to_lowercase();
+
+        // Guard against blank match patterns. Substring matching with an empty
+        // value (`haystack.contains("")`) is always true, so a playbook with a
+        // blank condition would match *every* process / file / alert and emit a
+        // destructive action (kill, quarantine, block) for each. Skip such a
+        // condition rather than let a misconfigured rule fan out mass actions.
+        // CvssScore is numeric and unaffected by this.
+        if condition_value.trim().is_empty()
+            && !matches!(condition.condition_type, PlaybookConditionType::CvssScore)
+        {
+            warn!(
+                "Skipping playbook '{}' condition with empty value (type {:?}) to avoid matching all entities",
+                playbook.name, condition.condition_type
+            );
+            continue;
+        }
 
         match condition.condition_type {
             PlaybookConditionType::ProcessNameMatch => {
@@ -370,4 +389,92 @@ pub async fn execute_playbook_actions(
     }
 
     results
+}
+
+#[cfg(all(test, feature = "gui"))]
+mod tests {
+    use super::*;
+    use agent_gui::dto::{Playbook, PlaybookCondition, PlaybookConditionType};
+
+    fn make_playbook(conditions: Vec<PlaybookCondition>) -> Playbook {
+        Playbook {
+            id: uuid::Uuid::new_v4(),
+            name: "test".to_string(),
+            description: String::new(),
+            enabled: true,
+            conditions,
+            actions: vec![],
+            created_at: chrono::Utc::now(),
+            last_triggered: None,
+            trigger_count: 0,
+            is_template: false,
+        }
+    }
+
+    fn proc(name: &str, pid: u32) -> ProcessInfo {
+        ProcessInfo {
+            name: name.to_string(),
+            pid,
+            command_line: String::new(),
+        }
+    }
+
+    async fn eval(pb: &Playbook, ctx: &ThreatContext) -> PlaybookEvaluation {
+        evaluate_playbook(
+            pb,
+            ctx,
+            #[cfg(feature = "llm")]
+            None,
+        )
+        .await
+    }
+
+    #[tokio::test]
+    async fn empty_condition_value_does_not_match_all_processes() {
+        let pb = make_playbook(vec![PlaybookCondition {
+            condition_type: PlaybookConditionType::ProcessNameMatch,
+            operator: "any".to_string(),
+            value: "   ".to_string(),
+        }]);
+        let ctx = ThreatContext {
+            suspicious_processes: vec![proc("evil", 1234), proc("chrome", 5678)],
+            ..Default::default()
+        };
+        let result = eval(&pb, &ctx).await;
+        assert!(!result.triggered, "blank condition must not trigger");
+        assert!(
+            result.actions.is_empty(),
+            "blank condition must not fan out kill actions, got {:?}",
+            result.actions
+        );
+    }
+
+    #[tokio::test]
+    async fn matching_process_name_kills_only_the_match() {
+        let pb = make_playbook(vec![PlaybookCondition {
+            condition_type: PlaybookConditionType::ProcessNameMatch,
+            operator: "any".to_string(),
+            value: "evil".to_string(),
+        }]);
+        let ctx = ThreatContext {
+            suspicious_processes: vec![proc("evil_miner", 1234), proc("chrome", 5678)],
+            ..Default::default()
+        };
+        let result = eval(&pb, &ctx).await;
+        assert!(result.triggered);
+        assert!(
+            result
+                .actions
+                .iter()
+                .any(|a| matches!(a, ResolvedAction::KillProcess { pid: 1234, .. })),
+            "matching process must be killed"
+        );
+        assert!(
+            !result
+                .actions
+                .iter()
+                .any(|a| matches!(a, ResolvedAction::KillProcess { pid: 5678, .. })),
+            "non-matching process must be spared"
+        );
+    }
 }
