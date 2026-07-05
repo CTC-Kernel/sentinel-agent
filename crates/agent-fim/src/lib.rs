@@ -29,8 +29,8 @@ use std::sync::Arc;
 
 /// Re-export FimPolicy as FimConfig for compatibility
 pub type FimConfig = FimPolicy;
-use tokio::sync::mpsc;
 use std::sync::RwLock;
+use tokio::sync::mpsc;
 use tracing::{info, warn};
 
 /// FIM engine that coordinates watching, baselining, and alerting.
@@ -72,9 +72,7 @@ impl FimEngine {
 
     /// Start the FIM engine: create baseline then begin watching.
     pub async fn start(&self) -> Result<(), FimError> {
-        let policy = {
-            self.policy.read().unwrap().clone()
-        };
+        let policy = { self.policy.read().unwrap().clone() };
 
         // Create initial baseline for all watched paths
         info!(

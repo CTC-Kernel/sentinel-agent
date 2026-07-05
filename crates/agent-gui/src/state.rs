@@ -1172,8 +1172,10 @@ impl AppState {
                         self.vulnerability_findings[idx].ai_analysis = Some(analysis);
                         self.vulnerability_findings[idx].ai_confidence = confidence;
                         self.vulnerability_findings[idx].is_false_positive = is_false_positive;
-                        self.vulnerability_findings[idx].ai_remediation_script = ai_remediation_script;
-                        self.vulnerability_findings[idx].ai_remediation_explanation = ai_remediation_explanation;
+                        self.vulnerability_findings[idx].ai_remediation_script =
+                            ai_remediation_script;
+                        self.vulnerability_findings[idx].ai_remediation_explanation =
+                            ai_remediation_explanation;
                     }
                 } else if let Some(idx_str) = target.strip_prefix("process#") {
                     // Suspicious process

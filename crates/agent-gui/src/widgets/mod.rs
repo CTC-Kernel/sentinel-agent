@@ -16,10 +16,10 @@ mod protected_state;
 mod resource_bar;
 mod search_filter_bar;
 mod security_hero;
+pub mod sentinel_ai_core;
 pub mod sidebar;
 mod status_badge;
 mod toggle_switch;
-pub mod sentinel_ai_core;
 pub mod tray_radar;
 pub mod voice;
 
@@ -69,10 +69,10 @@ pub use protected_state::protected_state;
 pub use resource_bar::resource_bar;
 pub use search_filter_bar::SearchFilterBar;
 pub use security_hero::security_hero;
+pub use sentinel_ai_core::SentinelAICore;
 pub use sidebar::Sidebar;
 pub use status_badge::status_badge;
 pub use toggle_switch::toggle_switch;
-pub use sentinel_ai_core::SentinelAICore;
 pub use tray_radar::TrayRadar;
 
 // Premium dashboard exports

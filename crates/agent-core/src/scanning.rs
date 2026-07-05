@@ -15,7 +15,7 @@ impl AgentRuntime {
         &self,
     ) -> Result<VulnerabilityScanResult, CommonError> {
         info!("Starting vulnerability scan...");
-        
+
         #[cfg(feature = "voice")]
         if let Some(voice) = &self.voice_service {
             voice.play_scan_sound();
@@ -59,7 +59,10 @@ impl AgentRuntime {
 
     /// Automatically analyze high/critical vulnerabilities using the local LLM.
     #[cfg(feature = "llm")]
-    pub(crate) async fn auto_analyze_vulnerabilities(&self, scan_result: &mut agent_scanner::VulnerabilityScanResult) {
+    pub(crate) async fn auto_analyze_vulnerabilities(
+        &self,
+        scan_result: &mut agent_scanner::VulnerabilityScanResult,
+    ) {
         use agent_scanner::Severity;
 
         let llm = match &self.llm_service {
@@ -79,8 +82,12 @@ impl AgentRuntime {
             if (finding.severity == Severity::Critical || finding.severity == Severity::High)
                 && finding.ai_analysis.is_none()
             {
-                debug!("Analyzing finding: {} ({})", finding.package_name, finding.cve_id.as_deref().unwrap_or("no-cve"));
-                
+                debug!(
+                    "Analyzing finding: {} ({})",
+                    finding.package_name,
+                    finding.cve_id.as_deref().unwrap_or("no-cve")
+                );
+
                 match llm.analyze_vulnerability(finding).await {
                     Ok(analysis) => {
                         finding.ai_analysis = Some(analysis);
@@ -88,7 +95,10 @@ impl AgentRuntime {
                         finding.is_false_positive = Some(false);
                     }
                     Err(e) => {
-                        warn!("Failed to auto-analyze finding {}: {}", finding.package_name, e);
+                        warn!(
+                            "Failed to auto-analyze finding {}: {}",
+                            finding.package_name, e
+                        );
                     }
                 }
             }
@@ -96,7 +106,6 @@ impl AgentRuntime {
 
         info!("Automated AI analysis complete");
     }
-
 
     /// Upload vulnerability findings to the server.
     pub(crate) async fn upload_vulnerabilities(

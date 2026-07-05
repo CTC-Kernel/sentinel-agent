@@ -6,8 +6,8 @@
 //! Manages the eframe window, routing, state, and event channels between
 //! the GUI and the agent runtime.
 
-use std::sync::{Arc, Mutex};
 use std::sync::mpsc;
+use std::sync::{Arc, Mutex};
 
 // ---------------------------------------------------------------------------
 // macOS: toggle Dock icon visibility when hiding/showing the window.
@@ -622,8 +622,6 @@ impl eframe::App for SentinelApp {
             });
         }
 
-
-
         self.update_tray_info();
         self.process_tray_actions(ctx);
 
@@ -653,36 +651,36 @@ impl eframe::App for SentinelApp {
         {
             let rx = self.async_results_rx.lock().unwrap();
             while let Ok(result) = rx.try_recv() {
-            match result {
-                AsyncTaskResult::CsvExport(success, message) => {
-                    let time = ctx.input(|i| i.time);
-                    if success {
-                        self.state
-                            .toasts
-                            .push(crate::widgets::toast::Toast::success(message).with_time(time));
-                    } else {
-                        self.state
-                            .toasts
-                            .push(crate::widgets::toast::Toast::error(message).with_time(time));
+                match result {
+                    AsyncTaskResult::CsvExport(success, message) => {
+                        let time = ctx.input(|i| i.time);
+                        if success {
+                            self.state.toasts.push(
+                                crate::widgets::toast::Toast::success(message).with_time(time),
+                            );
+                        } else {
+                            self.state
+                                .toasts
+                                .push(crate::widgets::toast::Toast::error(message).with_time(time));
+                        }
+                    }
+                    AsyncTaskResult::HtmlExport(success, message) => {
+                        let time = ctx.input(|i| i.time);
+                        if success {
+                            self.state.toasts.push(
+                                crate::widgets::toast::Toast::success(message).with_time(time),
+                            );
+                        } else {
+                            self.state
+                                .toasts
+                                .push(crate::widgets::toast::Toast::error(message).with_time(time));
+                        }
+                    }
+                    #[cfg(any(target_os = "macos", target_os = "windows"))]
+                    AsyncTaskResult::NativeApps(apps) => {
+                        self.state.software.native_apps = apps;
                     }
                 }
-                AsyncTaskResult::HtmlExport(success, message) => {
-                    let time = ctx.input(|i| i.time);
-                    if success {
-                        self.state
-                            .toasts
-                            .push(crate::widgets::toast::Toast::success(message).with_time(time));
-                    } else {
-                        self.state
-                            .toasts
-                            .push(crate::widgets::toast::Toast::error(message).with_time(time));
-                    }
-                }
-                #[cfg(any(target_os = "macos", target_os = "windows"))]
-                AsyncTaskResult::NativeApps(apps) => {
-                    self.state.software.native_apps = apps;
-                }
-            }
             }
         }
 
@@ -1154,7 +1152,7 @@ impl SentinelApp {
                     ui.add_space(theme::SPACE_MD);
                     ui.horizontal(|ui| {
                         ui.add_space(theme::SPACE_MD);
-                        
+
                         // Voice Status Icon (Simple)
                         let voice_icon_color = if self.state.ai.is_listening {
                             theme::ACCENT
@@ -1175,16 +1173,18 @@ impl SentinelApp {
 
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.add_space(theme::SPACE_MD);
-                            
+
                             // Close button
                             if ui.button(icons::XMARK).clicked() {
                                 self.state.jarvis_visible = false;
                             }
-                            
+
                             ui.add_space(theme::SPACE_SM);
-                            
+
                             // PREMIUM Voice Toggle
-                            if widgets::voice_toggle_button(ui, self.state.ai.is_listening).clicked() {
+                            if widgets::voice_toggle_button(ui, self.state.ai.is_listening)
+                                .clicked()
+                            {
                                 self.state.ai.is_listening = !self.state.ai.is_listening;
                                 self.send_command(GuiCommand::SetVoiceListening {
                                     enabled: self.state.ai.is_listening,
@@ -1199,13 +1199,16 @@ impl SentinelApp {
 
                     // --- Central Visualization: Sentinel AI Core ---
                     let ai_score = crate::llm_panel::LLMPanel::compute_ai_score(&self.state);
-                    
+
                     ui.vertical_centered(|ui| {
                         let mut voice_state = crate::widgets::sentinel_ai_core::VoiceState::Idle;
                         if self.state.ai.is_listening {
-                            voice_state = crate::widgets::sentinel_ai_core::VoiceState::Listening(self.state.ai.mic_level);
+                            voice_state = crate::widgets::sentinel_ai_core::VoiceState::Listening(
+                                self.state.ai.mic_level,
+                            );
                         } else if self.state.ai.is_speaking {
-                            voice_state = crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.8);
+                            voice_state =
+                                crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.8);
                         }
 
                         let core = widgets::SentinelAICore::new(ai_score)
@@ -1282,16 +1285,19 @@ impl SentinelApp {
                     // --- Footer: Compact Chat Input ---
                     widgets::card(ui, |ui| {
                         ui.horizontal(|ui| {
-                            let text_edit = egui::TextEdit::singleline(&mut self.state.ai.input_text)
-                                .hint_text("Demander à Jarvis...")
-                                .font(theme::font_body())
-                                .desired_width(ui.available_width() - 40.0);
+                            let text_edit =
+                                egui::TextEdit::singleline(&mut self.state.ai.input_text)
+                                    .hint_text("Demander à Jarvis...")
+                                    .font(theme::font_body())
+                                    .desired_width(ui.available_width() - 40.0);
 
                             let response = ui.add_enabled(!self.state.ai.is_processing, text_edit);
 
-                            let enter_pressed = response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                            let enter_pressed = response.lost_focus()
+                                && ui.input(|i| i.key_pressed(egui::Key::Enter));
 
-                            let can_send = !self.state.ai.is_processing && !self.state.ai.input_text.trim().is_empty();
+                            let can_send = !self.state.ai.is_processing
+                                && !self.state.ai.input_text.trim().is_empty();
 
                             // Auto-send once Whisper has transcribed the user's speech —
                             // without this the Jarvis widget's input field would fill up
@@ -1301,10 +1307,16 @@ impl SentinelApp {
                                 self.state.ai.pending_voice_send = false;
                             }
 
-                            let send_clicked = ui.add_enabled(
-                                can_send,
-                                egui::Button::new(egui::RichText::new(icons::PAPER_PLANE).color(theme::accent_text())).frame(false)
-                            ).clicked();
+                            let send_clicked = ui
+                                .add_enabled(
+                                    can_send,
+                                    egui::Button::new(
+                                        egui::RichText::new(icons::PAPER_PLANE)
+                                            .color(theme::accent_text()),
+                                    )
+                                    .frame(false),
+                                )
+                                .clicked();
 
                             if (send_clicked || enter_pressed || voice_auto_send) && can_send {
                                 let prompt = self.state.ai.input_text.trim().to_string();
@@ -1316,7 +1328,7 @@ impl SentinelApp {
                                 });
                                 self.state.ai.input_text.clear();
                                 self.state.ai.is_processing = true;
-                                
+
                                 self.send_command(GuiCommand::LlmPrompt {
                                     prompt,
                                     context: None,

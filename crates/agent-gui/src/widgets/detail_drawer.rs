@@ -196,7 +196,8 @@ impl<'a> DetailDrawer<'a> {
                 // Smooth high-fidelity shadow on the left edge (AAA Grade)
                 let mut shadow = theme::shadow_2xl();
                 shadow.offset = [-16, 0]; // Negative X offset to project shadow leftwards
-                ui.painter().add(shadow.as_shape(drawer_rect, CornerRadius::ZERO));
+                ui.painter()
+                    .add(shadow.as_shape(drawer_rect, CornerRadius::ZERO));
 
                 // Constrain the area UI to drawer bounds
                 ui.set_clip_rect(drawer_rect);
@@ -537,7 +538,7 @@ pub fn detail_progress(ui: &mut Ui, label: &str, fraction: f32, color: Color32) 
 /// Render a premium AI-generated remediation proposal section.
 pub fn detail_ai_proposal(ui: &mut Ui, explanation: &str, commands: &[String]) {
     ui.add_space(theme::SPACE_MD);
-    
+
     // Header with "AI Advisor" badge
     ui.horizontal(|ui| {
         ui.label(
@@ -558,7 +559,10 @@ pub fn detail_ai_proposal(ui: &mut Ui, explanation: &str, commands: &[String]) {
         .fill(theme::ACCENT.linear_multiply(0.05))
         .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
         .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::ACCENT.linear_multiply(0.2)))
+        .stroke(egui::Stroke::new(
+            theme::BORDER_HAIRLINE,
+            theme::ACCENT.linear_multiply(0.2),
+        ))
         .show(ui, |ui| {
             ui.add(
                 egui::Label::new(
@@ -569,7 +573,7 @@ pub fn detail_ai_proposal(ui: &mut Ui, explanation: &str, commands: &[String]) {
                 .wrap_mode(egui::TextWrapMode::Wrap),
             );
         });
-    
+
     ui.add_space(theme::SPACE_SM);
 
     // Code Box for commands

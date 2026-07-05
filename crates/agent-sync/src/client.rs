@@ -716,7 +716,6 @@ impl HttpClient {
         debug!("Response status: {}", status);
 
         if status.is_success() {
-
             if let Some(len) = response.content_length()
                 && len > 10 * 1024 * 1024
             {

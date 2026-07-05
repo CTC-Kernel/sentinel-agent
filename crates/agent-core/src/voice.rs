@@ -55,7 +55,10 @@ impl VoiceService {
         let tts_engine = match tts::Tts::default() {
             Ok(engine) => Some(engine),
             Err(e) => {
-                error!("VoiceService: Failed to bind native OS TTS. Audio output will be mocked. {}", e);
+                error!(
+                    "VoiceService: Failed to bind native OS TTS. Audio output will be mocked. {}",
+                    e
+                );
                 None
             }
         };
@@ -68,7 +71,10 @@ impl VoiceService {
                 whisper_rs::WhisperContextParameters::default(),
             ) {
                 Ok(ctx) => {
-                    info!("VoiceService: Whisper model loaded from {}", model_path.display());
+                    info!(
+                        "VoiceService: Whisper model loaded from {}",
+                        model_path.display()
+                    );
                     Some(ctx)
                 }
                 Err(e) => {
@@ -247,8 +253,8 @@ fn record_and_transcribe(
     tx_level: &mpsc::Sender<AgentEvent>,
     cancel: &Arc<AtomicBool>,
 ) -> Result<Option<String>, String> {
-    use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
     use cpal::SampleFormat;
+    use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
     use std::sync::Mutex;
     use std::time::Duration;
 
@@ -298,7 +304,9 @@ fn record_and_transcribe(
             .build_input_stream(
                 &config,
                 move |data: &[u16], _: &cpal::InputCallbackInfo| {
-                    push_mono(&buf_cb, data, channels, |s| (s as f32 - 32_768.0) / 32_768.0);
+                    push_mono(&buf_cb, data, channels, |s| {
+                        (s as f32 - 32_768.0) / 32_768.0
+                    });
                 },
                 err_fn,
                 None,

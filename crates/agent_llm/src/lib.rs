@@ -19,7 +19,6 @@ pub mod utils;
 use plugins::vuln_plugin::OsvPlugin;
 
 // Re-export main components
-pub use plugins::{AIPlugin, PluginRegistry};
 pub use analyzer::{AnalysisContext, AnalysisResult, LLMAnalyzer, ScanResult, SecurityAnalysis};
 pub use config::LLMConfig;
 pub use engine::{
@@ -27,6 +26,7 @@ pub use engine::{
     create_engine,
 };
 pub use models::{ModelInfo, ModelRegistry};
+pub use plugins::{AIPlugin, PluginRegistry};
 pub use remediation::{
     ActionType, RemediationAction, RemediationAdvisor, RemediationPlan, RemediationRequest,
     SecurityIssue, SystemContext,
@@ -125,11 +125,11 @@ pub async fn create_llm_manager(config: LLMConfig) -> Result<LLMManager> {
     let analyzer = LLMAnalyzer::new(engine.clone(), &config);
     let classifier = SecurityClassifier::new(engine.clone(), &config);
     let advisor = RemediationAdvisor::new(engine.clone(), &config);
-    
+
     let mut plugin_registry = PluginRegistry::new();
     plugin_registry.register(Arc::new(OsvPlugin));
     let plugins = Arc::new(plugin_registry);
-    
+
     let analyzer = Arc::new(analyzer.with_plugins(plugins.clone()));
 
     Ok(LLMManager {

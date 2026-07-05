@@ -205,7 +205,7 @@ impl LLMPanel {
                         enabled: state.ai.is_listening,
                     });
                 }
-                
+
                 ui.add_space(theme::SPACE_XS);
 
                 let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
@@ -273,82 +273,78 @@ impl LLMPanel {
             // Constrain bubble width more strictly to avoid right-side overflow
             // We use the available width minus a safe margin for the gutters
             let max_bubble_width = (ui.available_width() * 0.85).min(700.0);
-            
-            ui.allocate_ui_with_layout(
-                egui::Vec2::new(max_bubble_width, 0.0),
-                layout,
-                |ui| {
-                    let (bg_color, text_color, role_icon, role_color) = if is_user {
-                        (
-                            theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
-                            theme::text_primary(),
-                            icons::USER,
-                            theme::ACCENT,
-                        )
-                    } else if is_system {
-                        (
-                            theme::WARNING.linear_multiply(theme::OPACITY_SUBTLE),
-                            theme::text_primary(),
-                            icons::BOLT,
-                            theme::WARNING,
-                        )
-                    } else {
-                        (
-                            theme::bg_elevated(),
-                            theme::text_primary(),
-                            icons::ROBOT,
-                            theme::SUCCESS,
-                        )
-                    };
 
-                    egui::Frame::new()
-                        .fill(bg_color)
-                        .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
-                        .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-                        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
-                        .show(ui, |ui: &mut egui::Ui| {
-                            ui.vertical(|ui| {
-                                // Role badge & Time
-                                ui.horizontal(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(role_icon)
-                                            .size(theme::ICON_SM)
-                                            .color(role_color),
-                                    );
-                                    ui.add_space(theme::SPACE_XS);
-                                    ui.label(
-                                        egui::RichText::new(msg.role.label_fr())
-                                            .font(theme::font_label())
-                                            .color(role_color)
-                                            .strong(),
-                                    );
+            ui.allocate_ui_with_layout(egui::Vec2::new(max_bubble_width, 0.0), layout, |ui| {
+                let (bg_color, text_color, role_icon, role_color) = if is_user {
+                    (
+                        theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+                        theme::text_primary(),
+                        icons::USER,
+                        theme::ACCENT,
+                    )
+                } else if is_system {
+                    (
+                        theme::WARNING.linear_multiply(theme::OPACITY_SUBTLE),
+                        theme::text_primary(),
+                        icons::BOLT,
+                        theme::WARNING,
+                    )
+                } else {
+                    (
+                        theme::bg_elevated(),
+                        theme::text_primary(),
+                        icons::ROBOT,
+                        theme::SUCCESS,
+                    )
+                };
 
-                                    ui.with_layout(
-                                        egui::Layout::right_to_left(egui::Align::Center),
-                                        |ui: &mut egui::Ui| {
-                                            // Timestamp
-                                            let time_str = msg.timestamp.format("%H:%M").to_string();
-                                            ui.label(
-                                                egui::RichText::new(time_str)
-                                                    .font(theme::font_min())
-                                                    .color(theme::text_tertiary()),
-                                            );
-                                        },
-                                    );
-                                });
-
-                                ui.add_space(theme::SPACE_XS);
-
-                                // Content with explicit wrapping
+                egui::Frame::new()
+                    .fill(bg_color)
+                    .corner_radius(egui::CornerRadius::same(theme::SPACE_MD as u8))
+                    .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
+                    .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
+                    .show(ui, |ui: &mut egui::Ui| {
+                        ui.vertical(|ui| {
+                            // Role badge & Time
+                            ui.horizontal(|ui: &mut egui::Ui| {
                                 ui.label(
-                                    egui::RichText::new(&msg.content)
-                                        .font(theme::font_body())
-                                        .color(text_color),
+                                    egui::RichText::new(role_icon)
+                                        .size(theme::ICON_SM)
+                                        .color(role_color),
+                                );
+                                ui.add_space(theme::SPACE_XS);
+                                ui.label(
+                                    egui::RichText::new(msg.role.label_fr())
+                                        .font(theme::font_label())
+                                        .color(role_color)
+                                        .strong(),
+                                );
+
+                                ui.with_layout(
+                                    egui::Layout::right_to_left(egui::Align::Center),
+                                    |ui: &mut egui::Ui| {
+                                        // Timestamp
+                                        let time_str = msg.timestamp.format("%H:%M").to_string();
+                                        ui.label(
+                                            egui::RichText::new(time_str)
+                                                .font(theme::font_min())
+                                                .color(theme::text_tertiary()),
+                                        );
+                                    },
                                 );
                             });
+
+                            ui.add_space(theme::SPACE_XS);
+
+                            // Content with explicit wrapping
+                            ui.label(
+                                egui::RichText::new(&msg.content)
+                                    .font(theme::font_body())
+                                    .color(text_color),
+                            );
                         });
-                },
-            );
+                    });
+            });
         });
     }
 
@@ -359,7 +355,7 @@ impl LLMPanel {
             |ui: &mut egui::Ui| {
                 // Same max width constraint as chat bubbles for consistency
                 let max_bubble_width = (ui.available_width() * 0.85).min(700.0);
-                
+
                 ui.allocate_ui_with_layout(
                     egui::Vec2::new(max_bubble_width, 0.0),
                     egui::Layout::left_to_right(egui::Align::TOP),
@@ -666,7 +662,11 @@ impl LLMPanel {
                 };
 
                 let t = ui.input(|i| i.time);
-                let pulse = if is_ready { (t * 3.0).sin().abs() as f32 * 0.3 + 0.7 } else { 1.0 };
+                let pulse = if is_ready {
+                    (t * 3.0).sin().abs() as f32 * 0.3 + 0.7
+                } else {
+                    1.0
+                };
                 ui.label(
                     egui::RichText::new("●")
                         .size(theme::ICON_SM)
@@ -694,23 +694,37 @@ impl LLMPanel {
                     );
                 });
 
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                    widgets::status_badge(ui, status_text, dot_color);
-                });
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        widgets::status_badge(ui, status_text, dot_color);
+                    },
+                );
             });
 
             if is_ready {
                 ui.add_space(theme::SPACE_MD);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     let icon_color = theme::text_tertiary();
-                    ui.label(egui::RichText::new(icons::BOLT).size(theme::ICON_XS).color(icon_color));
                     ui.label(
-                        egui::RichText::new(format!("{} inférences", state.ai.model_status.inference_count))
-                            .font(theme::font_small())
-                            .color(theme::text_secondary()),
+                        egui::RichText::new(icons::BOLT)
+                            .size(theme::ICON_XS)
+                            .color(icon_color),
+                    );
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "{} inférences",
+                            state.ai.model_status.inference_count
+                        ))
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_MD);
-                    ui.label(egui::RichText::new(icons::MEMORY).size(theme::ICON_XS).color(icon_color));
+                    ui.label(
+                        egui::RichText::new(icons::MEMORY)
+                            .size(theme::ICON_XS)
+                            .color(icon_color),
+                    );
                     ui.label(
                         egui::RichText::new(if state.ai.model_status.memory_mb > 0 {
                             format!("{} Mo alloués", state.ai.model_status.memory_mb)
@@ -721,20 +735,26 @@ impl LLMPanel {
                         .color(theme::text_secondary()),
                     );
 
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                        let reload_btn = egui::Button::new(
-                            egui::RichText::new(format!("{} Recharger", icons::REFRESH))
-                                .font(theme::font_small())
-                                .color(theme::accent_text()),
-                        )
-                        .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
-                        .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                        .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            let reload_btn = egui::Button::new(
+                                egui::RichText::new(format!("{} Recharger", icons::REFRESH))
+                                    .font(theme::font_small())
+                                    .color(theme::accent_text()),
+                            )
+                            .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
+                            .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
+                            .stroke(egui::Stroke::new(
+                                theme::BORDER_THIN,
+                                theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
+                            ));
 
-                        if ui.add(reload_btn).clicked() {
-                            command = Some(GuiCommand::LlmReloadModel);
-                        }
-                    });
+                            if ui.add(reload_btn).clicked() {
+                                command = Some(GuiCommand::LlmReloadModel);
+                            }
+                        },
+                    );
                 });
             } else if !model_status_str.is_empty() && !is_ready {
                 // Reload / load button for non-ready state
@@ -768,13 +788,16 @@ impl LLMPanel {
                         .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Sélectionnez un modèle à télécharger ou activer")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary()),
-                    );
-                });
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new("Sélectionnez un modèle à télécharger ou activer")
+                                .font(theme::font_small())
+                                .color(theme::text_tertiary()),
+                        );
+                    },
+                );
             });
 
             ui.add_space(theme::SPACE_MD);
@@ -789,7 +812,9 @@ impl LLMPanel {
                     5.2,
                     8,
                     "RECOMMANDÉ",
-                    Some("https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"),
+                    Some(
+                        "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",
+                    ),
                 ),
                 (
                     "qwen3-coder-7b",
@@ -798,7 +823,9 @@ impl LLMPanel {
                     4.7,
                     6,
                     "CODE & AUDIT",
-                    Some("https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf"),
+                    Some(
+                        "https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf",
+                    ),
                 ),
                 (
                     "deepseek-r1-8b",
@@ -807,7 +834,9 @@ impl LLMPanel {
                     5.8,
                     8,
                     "RAISONNEMENT",
-                    Some("https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf"),
+                    Some(
+                        "https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf",
+                    ),
                 ),
                 (
                     "gemma-3-4b",
@@ -816,24 +845,26 @@ impl LLMPanel {
                     2.8,
                     4,
                     "LÉGER",
-                    Some("https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf"),
+                    Some(
+                        "https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf",
+                    ),
                 ),
             ];
 
-            let badge_colors: &[egui::Color32] = &[
-                theme::ACCENT,
-                theme::INFO,
-                theme::WARNING,
-                theme::SUCCESS,
-            ];
+            let badge_colors: &[egui::Color32] =
+                &[theme::ACCENT, theme::INFO, theme::WARNING, theme::SUCCESS];
 
             egui::ScrollArea::vertical()
                 .id_salt("model_catalogue_scroll")
                 .max_height(480.0)
                 .show(ui, |ui| {
-                    for (i, (key, name, desc, size_gb, vram_min, badge, dl_url)) in catalogue.iter().enumerate() {
+                    for (i, (key, name, desc, size_gb, vram_min, badge, dl_url)) in
+                        catalogue.iter().enumerate()
+                    {
                         let is_active = model_name_str.to_lowercase().contains(key)
-                            || model_name_str.to_lowercase().contains(&key.replace('-', " "));
+                            || model_name_str
+                                .to_lowercase()
+                                .contains(&key.replace('-', " "));
                         let badge_color = badge_colors[i % badge_colors.len()];
 
                         let border_color = if is_active {
@@ -852,7 +883,11 @@ impl LLMPanel {
                             .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
                             .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
                             .stroke(egui::Stroke::new(
-                                if is_active { theme::BORDER_THIN * 2.0 } else { theme::BORDER_HAIRLINE },
+                                if is_active {
+                                    theme::BORDER_THIN * 2.0
+                                } else {
+                                    theme::BORDER_HAIRLINE
+                                },
                                 border_color,
                             ))
                             .show(ui, |ui: &mut egui::Ui| {
@@ -861,7 +896,11 @@ impl LLMPanel {
                                     ui.label(
                                         egui::RichText::new(icons::MICROCHIP)
                                             .size(theme::ICON_MD)
-                                            .color(if is_active { theme::ACCENT } else { theme::text_tertiary() }),
+                                            .color(if is_active {
+                                                theme::ACCENT
+                                            } else {
+                                                theme::text_tertiary()
+                                            }),
                                     );
                                     ui.add_space(theme::SPACE_SM);
 
@@ -892,58 +931,98 @@ impl LLMPanel {
                                         ui.add_space(theme::SPACE_SM);
                                         ui.horizontal(|ui: &mut egui::Ui| {
                                             let meta_color = theme::text_tertiary();
-                                            ui.label(egui::RichText::new(icons::DATABASE).size(theme::ICON_XS).color(meta_color));
-                                            ui.label(egui::RichText::new(format!("{:.1} Go", size_gb)).font(theme::font_min()).color(meta_color));
+                                            ui.label(
+                                                egui::RichText::new(icons::DATABASE)
+                                                    .size(theme::ICON_XS)
+                                                    .color(meta_color),
+                                            );
+                                            ui.label(
+                                                egui::RichText::new(format!("{:.1} Go", size_gb))
+                                                    .font(theme::font_min())
+                                                    .color(meta_color),
+                                            );
                                             ui.add_space(theme::SPACE_SM);
-                                            ui.label(egui::RichText::new(icons::MEMORY).size(theme::ICON_XS).color(meta_color));
-                                            ui.label(egui::RichText::new(format!("{}+ Go VRAM", vram_min)).font(theme::font_min()).color(meta_color));
+                                            ui.label(
+                                                egui::RichText::new(icons::MEMORY)
+                                                    .size(theme::ICON_XS)
+                                                    .color(meta_color),
+                                            );
+                                            ui.label(
+                                                egui::RichText::new(format!(
+                                                    "{}+ Go VRAM",
+                                                    vram_min
+                                                ))
+                                                .font(theme::font_min())
+                                                .color(meta_color),
+                                            );
                                         });
                                     });
 
-                                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                                        if is_active {
-                                            // Already active — show reload button
-                                            let btn = egui::Button::new(
-                                                egui::RichText::new(format!("{} Recharger", icons::REFRESH))
+                                    ui.with_layout(
+                                        egui::Layout::right_to_left(egui::Align::Center),
+                                        |ui: &mut egui::Ui| {
+                                            if is_active {
+                                                // Already active — show reload button
+                                                let btn = egui::Button::new(
+                                                    egui::RichText::new(format!(
+                                                        "{} Recharger",
+                                                        icons::REFRESH
+                                                    ))
                                                     .font(theme::font_small())
                                                     .color(theme::accent_text()),
-                                            )
-                                            .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
-                                            .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                                            .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
-                                            if ui.add(btn).clicked() {
-                                                command = Some(GuiCommand::LlmReloadModel);
-                                            }
-                                        } else {
-                                            // Select / download button
-                                            let btn_label = if dl_url.is_some() {
-                                                format!("{} Sélectionner", icons::DOWNLOAD)
+                                                )
+                                                .fill(
+                                                    theme::ACCENT
+                                                        .linear_multiply(theme::OPACITY_SUBTLE),
+                                                )
+                                                .corner_radius(egui::CornerRadius::same(
+                                                    theme::SPACE_SM as u8,
+                                                ))
+                                                .stroke(egui::Stroke::new(
+                                                    theme::BORDER_THIN,
+                                                    theme::ACCENT
+                                                        .linear_multiply(theme::OPACITY_MUTED),
+                                                ));
+                                                if ui.add(btn).clicked() {
+                                                    command = Some(GuiCommand::LlmReloadModel);
+                                                }
                                             } else {
-                                                format!("{} Activer", icons::PLAY)
-                                            };
-                                            let btn = egui::Button::new(
-                                                egui::RichText::new(&btn_label)
-                                                    .font(theme::font_small())
-                                                    .color(theme::text_on_accent()),
-                                            )
-                                            .fill(theme::ACCENT)
-                                            .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
+                                                // Select / download button
+                                                let btn_label = if dl_url.is_some() {
+                                                    format!("{} Sélectionner", icons::DOWNLOAD)
+                                                } else {
+                                                    format!("{} Activer", icons::PLAY)
+                                                };
+                                                let btn = egui::Button::new(
+                                                    egui::RichText::new(&btn_label)
+                                                        .font(theme::font_small())
+                                                        .color(theme::text_on_accent()),
+                                                )
+                                                .fill(theme::ACCENT)
+                                                .corner_radius(egui::CornerRadius::same(
+                                                    theme::SPACE_SM as u8,
+                                                ));
 
-                                            if ui.add(btn).clicked() {
-                                                // Initiate download + selection
-                                                state.ai.download.phase = crate::dto::DownloadPhase::Downloading;
-                                                state.ai.download.progress_percent = 0;
-                                                state.ai.download.downloaded_bytes = 0;
-                                                state.ai.download.model_name = name.to_string();
-                                                command = Some(GuiCommand::LlmSelectModel {
-                                                    model_key: key.to_string(),
-                                                    model_name: name.to_string(),
-                                                    download_url: dl_url.map(|s| s.to_string()),
-                                                    gguf_filename: Some(format!("{}.Q4_K_M.gguf", key)),
-                                                });
+                                                if ui.add(btn).clicked() {
+                                                    // Initiate download + selection
+                                                    state.ai.download.phase =
+                                                        crate::dto::DownloadPhase::Downloading;
+                                                    state.ai.download.progress_percent = 0;
+                                                    state.ai.download.downloaded_bytes = 0;
+                                                    state.ai.download.model_name = name.to_string();
+                                                    command = Some(GuiCommand::LlmSelectModel {
+                                                        model_key: key.to_string(),
+                                                        model_name: name.to_string(),
+                                                        download_url: dl_url.map(|s| s.to_string()),
+                                                        gguf_filename: Some(format!(
+                                                            "{}.Q4_K_M.gguf",
+                                                            key
+                                                        )),
+                                                    });
+                                                }
                                             }
-                                        }
-                                    });
+                                        },
+                                    );
                                 });
                             });
 
@@ -954,7 +1033,6 @@ impl LLMPanel {
 
         command
     }
-
 
     // ====================================================================
     // ====================================================================

@@ -177,7 +177,13 @@ impl TrayBridge {
             .map_err(&m)?;
         help_submenu.append(&about_item).map_err(&m)?;
 
-        let jarvis_item = CheckMenuItem::with_id(ids::JARVIS_TOGGLE, "🤖  Assistant Jarvis (IA)", true, false, None);
+        let jarvis_item = CheckMenuItem::with_id(
+            ids::JARVIS_TOGGLE,
+            "🤖  Assistant Jarvis (IA)",
+            true,
+            false,
+            None,
+        );
 
         let quit_item = MenuItem::with_id(ids::QUIT, "⏻  Quitter", true, None);
 

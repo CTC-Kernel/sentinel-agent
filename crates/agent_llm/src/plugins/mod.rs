@@ -19,13 +19,13 @@ use std::sync::Arc;
 pub trait AIPlugin: Send + Sync {
     /// Unique name of the plugin.
     fn name(&self) -> &'static str;
-    
+
     /// Description of what the plugin does and its input schema.
     fn description(&self) -> &'static str;
-    
+
     /// Input schema (JSON) for the plugin.
     fn input_schema(&self) -> Value;
-    
+
     /// Execute the plugin with provided input.
     async fn execute(&self, input: Value) -> Result<Value>;
 }

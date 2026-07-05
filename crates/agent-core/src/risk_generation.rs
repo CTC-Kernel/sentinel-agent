@@ -162,45 +162,46 @@ impl AgentRuntime {
             static INITIAL_LOAD: std::sync::atomic::AtomicBool =
                 std::sync::atomic::AtomicBool::new(false);
             if !INITIAL_LOAD.swap(true, std::sync::atomic::Ordering::SeqCst)
-                && let Ok(all_stored) = risk_repo.get_all().await {
-                    let gui_risks: Vec<agent_gui::dto::RiskEntry> = all_stored
-                        .iter()
-                        .filter_map(|s| {
-                            let id = uuid::Uuid::parse_str(&s.id).ok()?;
-                            let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
-                                .map(|dt| dt.with_timezone(&chrono::Utc))
-                                .unwrap_or_else(|_| chrono::Utc::now());
-                            let updated_at = chrono::DateTime::parse_from_rfc3339(&s.updated_at)
-                                .map(|dt| dt.with_timezone(&chrono::Utc))
-                                .unwrap_or_else(|_| chrono::Utc::now());
-                            let status = match s.status.as_str() {
-                                "mitigating" => agent_gui::dto::RiskStatus::Mitigating,
-                                "accepted" => agent_gui::dto::RiskStatus::Accepted,
-                                "closed" => agent_gui::dto::RiskStatus::Closed,
-                                _ => agent_gui::dto::RiskStatus::Open,
-                            };
-                            Some(agent_gui::dto::RiskEntry {
-                                id,
-                                title: s.title.clone(),
-                                description: s.description.clone(),
-                                probability: s.probability.clamp(1, 5) as u8,
-                                impact: s.impact.clamp(1, 5) as u8,
-                                owner: s.owner.clone(),
-                                status,
-                                mitigation: s.mitigation.clone(),
-                                source: s.source.clone(),
-                                created_at,
-                                updated_at,
-                                sla_target_days: s.sla_target_days.map(|v| v as u32),
-                            })
+                && let Ok(all_stored) = risk_repo.get_all().await
+            {
+                let gui_risks: Vec<agent_gui::dto::RiskEntry> = all_stored
+                    .iter()
+                    .filter_map(|s| {
+                        let id = uuid::Uuid::parse_str(&s.id).ok()?;
+                        let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                            .map(|dt| dt.with_timezone(&chrono::Utc))
+                            .unwrap_or_else(|_| chrono::Utc::now());
+                        let updated_at = chrono::DateTime::parse_from_rfc3339(&s.updated_at)
+                            .map(|dt| dt.with_timezone(&chrono::Utc))
+                            .unwrap_or_else(|_| chrono::Utc::now());
+                        let status = match s.status.as_str() {
+                            "mitigating" => agent_gui::dto::RiskStatus::Mitigating,
+                            "accepted" => agent_gui::dto::RiskStatus::Accepted,
+                            "closed" => agent_gui::dto::RiskStatus::Closed,
+                            _ => agent_gui::dto::RiskStatus::Open,
+                        };
+                        Some(agent_gui::dto::RiskEntry {
+                            id,
+                            title: s.title.clone(),
+                            description: s.description.clone(),
+                            probability: s.probability.clamp(1, 5) as u8,
+                            impact: s.impact.clamp(1, 5) as u8,
+                            owner: s.owner.clone(),
+                            status,
+                            mitigation: s.mitigation.clone(),
+                            source: s.source.clone(),
+                            created_at,
+                            updated_at,
+                            sla_target_days: s.sla_target_days.map(|v| v as u32),
                         })
-                        .collect();
+                    })
+                    .collect();
 
-                    if !gui_risks.is_empty() {
-                        info!("Loaded {} risk(s) from SQLite into GUI", gui_risks.len());
-                        self.emit_gui_event(agent_gui::events::AgentEvent::RisksLoaded {
-                            risks: gui_risks,
-                        });
+                if !gui_risks.is_empty() {
+                    info!("Loaded {} risk(s) from SQLite into GUI", gui_risks.len());
+                    self.emit_gui_event(agent_gui::events::AgentEvent::RisksLoaded {
+                        risks: gui_risks,
+                    });
                 }
             }
         }

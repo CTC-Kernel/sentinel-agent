@@ -139,7 +139,7 @@ impl SyslogTransport {
         let verifier = rustls_platform_verifier::Verifier::new(Arc::clone(&provider))
             .map_err(|e| SiemError::ConfigError(format!("Failed to create TLS verifier: {}", e)))?;
         let verifier = Arc::new(verifier);
-        
+
         let mut tls_config = rustls::ClientConfig::builder_with_provider(provider.clone())
             .with_protocol_versions(&[&rustls::version::TLS13, &rustls::version::TLS12])
             .map_err(|e| SiemError::ConfigError(format!("TLS protocol config error: {}", e)))?
@@ -153,12 +153,16 @@ impl SyslogTransport {
             let mut cert_reader = std::io::BufReader::new(cert_pem.as_bytes());
             let cert_chain = rustls_pemfile::certs(&mut cert_reader)
                 .collect::<Result<Vec<_>, _>>()
-                .map_err(|e| SiemError::ConfigError(format!("Failed to parse client cert: {}", e)))?;
-            
+                .map_err(|e| {
+                    SiemError::ConfigError(format!("Failed to parse client cert: {}", e))
+                })?;
+
             let mut key_reader = std::io::BufReader::new(key_pem.as_bytes());
             let key = rustls_pemfile::private_key(&mut key_reader)
                 .map_err(|e| SiemError::ConfigError(format!("Failed to parse client key: {}", e)))?
-                .ok_or_else(|| SiemError::ConfigError("No private key found in client_key".into()))?;
+                .ok_or_else(|| {
+                    SiemError::ConfigError("No private key found in client_key".into())
+                })?;
 
             tls_config = rustls::ClientConfig::builder_with_provider(Arc::clone(&provider))
                 .with_protocol_versions(&[&rustls::version::TLS13, &rustls::version::TLS12])
@@ -167,7 +171,7 @@ impl SyslogTransport {
                 .with_custom_certificate_verifier(verifier)
                 .with_client_auth_cert(cert_chain, key)
                 .map_err(|e| SiemError::ConfigError(format!("Failed to set mTLS cert: {}", e)))?;
-            
+
             debug!("mTLS enabled for Syslog transport");
         }
 
@@ -319,8 +323,14 @@ mod tests {
 
     #[test]
     fn test_syslog_message_format() {
-        let transport =
-            SyslogTransport::new("localhost".to_string(), 514, SyslogProtocol::Tcp, false, None, None);
+        let transport = SyslogTransport::new(
+            "localhost".to_string(),
+            514,
+            SyslogProtocol::Tcp,
+            false,
+            None,
+            None,
+        );
 
         let message = transport.build_syslog_message(6, "Test message");
 
@@ -334,8 +344,14 @@ mod tests {
     fn test_syslog_priority_calculation() {
         // Priority = Facility * 8 + Severity
         // local0 (16) * 8 + informational (6) = 134
-        let transport =
-            SyslogTransport::new("localhost".to_string(), 514, SyslogProtocol::Tcp, false, None, None);
+        let transport = SyslogTransport::new(
+            "localhost".to_string(),
+            514,
+            SyslogProtocol::Tcp,
+            false,
+            None,
+            None,
+        );
 
         let message = transport.build_syslog_message(6, "Test");
         assert!(message.starts_with("<134>"));
@@ -343,9 +359,15 @@ mod tests {
 
     #[test]
     fn test_facility_setting() {
-        let transport =
-            SyslogTransport::new("localhost".to_string(), 514, SyslogProtocol::Tcp, false, None, None)
-                .with_facility(1); // user-level
+        let transport = SyslogTransport::new(
+            "localhost".to_string(),
+            514,
+            SyslogProtocol::Tcp,
+            false,
+            None,
+            None,
+        )
+        .with_facility(1); // user-level
 
         let message = transport.build_syslog_message(6, "Test");
         // user (1) * 8 + info (6) = 14

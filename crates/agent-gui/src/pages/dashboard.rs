@@ -132,7 +132,6 @@ impl DashboardPage {
                         }
                     }
                 });
-
             });
         });
 
@@ -409,7 +408,8 @@ impl DashboardPage {
 
                 let mut voice_state = crate::widgets::sentinel_ai_core::VoiceState::Idle;
                 if state.ai.is_listening {
-                    voice_state = crate::widgets::sentinel_ai_core::VoiceState::Listening(state.ai.mic_level);
+                    voice_state =
+                        crate::widgets::sentinel_ai_core::VoiceState::Listening(state.ai.mic_level);
                 } else if state.ai.is_speaking {
                     voice_state = crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.8); // simulated volume
                 }
@@ -419,7 +419,7 @@ impl DashboardPage {
                     .processing(state.ai.is_processing)
                     .voice(voice_state)
                     .show(ui, AI_GAUGE_RADIUS);
-                
+
                 if core_response.clicked() {
                     nav_action = Some(DashboardAction::NavigateTo(Page::AI));
                 }
@@ -442,9 +442,10 @@ impl DashboardPage {
                         if state.ai.is_listening {
                             state.ai.is_speaking = false;
                         }
-                        nav_action = Some(DashboardAction::Command(GuiCommand::SetVoiceListening {
-                            enabled: state.ai.is_listening,
-                        }));
+                        nav_action =
+                            Some(DashboardAction::Command(GuiCommand::SetVoiceListening {
+                                enabled: state.ai.is_listening,
+                            }));
                     }
 
                     let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
@@ -455,17 +456,23 @@ impl DashboardPage {
                     let response = ui.add_enabled(!state.ai.is_processing, text_edit);
 
                     // Send on Enter
-                    let enter_pressed = response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                    let enter_pressed =
+                        response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
 
                     let send_btn = egui::Button::new(
                         egui::RichText::new(icons::PAPER_PLANE)
                             .size(theme::ICON_SM)
-                            .color(if state.ai.is_processing { theme::text_tertiary() } else { theme::accent_text() }),
+                            .color(if state.ai.is_processing {
+                                theme::text_tertiary()
+                            } else {
+                                theme::accent_text()
+                            }),
                     )
                     .fill(egui::Color32::TRANSPARENT)
                     .frame(false);
 
-                    let can_send = !state.ai.is_processing && !state.ai.input_text.trim().is_empty();
+                    let can_send =
+                        !state.ai.is_processing && !state.ai.input_text.trim().is_empty();
                     let send_clicked = ui.add_enabled(can_send, send_btn).clicked();
 
                     if (enter_pressed || send_clicked) && can_send {
@@ -479,7 +486,7 @@ impl DashboardPage {
                         state.ai.input_text.clear();
                         state.ai.is_processing = true;
                         state.ai.active_tab = crate::dto::LlmTab::Assistant;
-                        
+
                         // Force transition
                         #[cfg(feature = "render")]
                         {

@@ -239,16 +239,27 @@ impl AgentTray {
 
         // === Help Section ===
         let help_submenu = Submenu::new("❓  Aide", true);
-        let _open_guide_item = MenuItem::with_id(menu_ids::OPEN_GUIDE, "📖 Guide utilisateur", true, None);
-        let _open_website_item =
-            MenuItem::with_id(menu_ids::OPEN_WEBSITE, "🌐 Console d'administration", true, None);
+        let _open_guide_item =
+            MenuItem::with_id(menu_ids::OPEN_GUIDE, "📖 Guide utilisateur", true, None);
+        let _open_website_item = MenuItem::with_id(
+            menu_ids::OPEN_WEBSITE,
+            "🌐 Console d'administration",
+            true,
+            None,
+        );
         let _about_item = MenuItem::with_id(menu_ids::ABOUT, "ℹ️  À propos", true, None);
 
         help_submenu
             .append(&_about_item)
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
 
-        let jarvis_toggle_item = CheckMenuItem::with_id(menu_ids::JARVIS_TOGGLE, "🤖 Assistant Jarvis", true, false, None);
+        let jarvis_toggle_item = CheckMenuItem::with_id(
+            menu_ids::JARVIS_TOGGLE,
+            "🤖 Assistant Jarvis",
+            true,
+            false,
+            None,
+        );
 
         let quit_item = MenuItem::with_id(menu_ids::QUIT, "⏻ Quitter l'agent", true, None);
 
@@ -492,7 +503,10 @@ impl AgentTray {
                 self.menu_items.jarvis_toggle_item.set_checked(new_state);
 
                 // Send command to agent
-                if let Err(e) = self.command_tx.send(TrayCommand::ToggleJarvisWidget(new_state)) {
+                if let Err(e) = self
+                    .command_tx
+                    .send(TrayCommand::ToggleJarvisWidget(new_state))
+                {
                     error!("Failed to send ToggleJarvisWidget command: {}", e);
                 }
             }
