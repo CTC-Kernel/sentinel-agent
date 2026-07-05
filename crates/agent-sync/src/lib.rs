@@ -53,12 +53,9 @@ pub mod offline;
 pub mod orchestrator;
 pub mod pinning;
 pub mod result_upload;
-pub mod rollout;
 pub mod rules;
 pub mod security;
 pub mod types;
-pub mod update;
-pub mod updater;
 
 pub use audit_sync::AuditSyncService;
 pub use authenticated_client::AuthenticatedClient;
@@ -88,10 +85,6 @@ pub use pinning::{CertificatePinning, PinningResult};
 pub use result_upload::{
     CheckResultPayload, ResultUploadRequest, ResultUploadResponse, ResultUploader, UploadResult,
 };
-pub use rollout::{
-    BlockedVersion, EmergencyRollbackCommand, ManualUpdateCommand, PolicyConfig, RolloutAssignment,
-    RolloutService, RolloutStatus,
-};
 pub use rules::{ApiCheckRule, CacheMetadata, RuleSyncResult, RuleSyncService, RulesResponse};
 pub use security::{
     LogSigner, RevocationAction, RevocationService, RevocationStatus, SignatureType,
@@ -111,9 +104,3 @@ pub use types::{
     SiemSyncRequest, SiemSyncResponse, StoredCredentials, VulnerabilityFinding,
     VulnerabilityUploadRequest, VulnerabilityUploadResponse, WebhookPayload, WebhookSyncRequest,
 };
-pub use update::{
-    AvailableUpdate, DEFAULT_UPDATE_CHECK_INTERVAL_SECS, RolloutGroup, UpdateCheckRequest,
-    UpdateCheckResponse, UpdateCheckResult, UpdatePolicy, UpdateService, UpdateState,
-    is_newer_version,
-};
-pub use updater::{HealthCheckResult, UpdateManager, UpdateMetadata, UpdateResult};

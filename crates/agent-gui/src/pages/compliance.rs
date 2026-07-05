@@ -19,14 +19,29 @@ impl CompliancePage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
+        // Build a subtitle from the actually-active frameworks so the header
+        // reflects the real scope instead of a hardcoded ISO reference.
+        let active_label = state
+            .summary
+            .active_frameworks
+            .as_ref()
+            .filter(|f| !f.is_empty())
+            .map(|f| {
+                f.iter()
+                    .take(4)
+                    .map(|fw| agent_common::frameworks::framework_display_name(fw))
+                    .collect::<Vec<_>>()
+                    .join(" · ")
+            })
+            .unwrap_or_else(|| "CIS · NIST CSF · ISO 27001 · ANSSI · NIS 2 · DORA".to_string());
         let _ = widgets::page_header_nav(
             ui,
             &["Pilotage", "Conformité"],
             "Conformité Réglementaire",
-            Some("ANALYSE DES ÉCARTS ET MATRICE DE CONTRÔLES ISO 27001 / 27005"),
-            Some(
-                "Évaluez votre posture de sécurité par rapport aux référentiels ISO 27001/27005. Chaque contrôle indique son statut et propose des actions de remédiation directes.",
-            ),
+            Some("ANALYSE DES ÉCARTS ET MATRICE DE CONTRÔLES MULTI-RÉFÉRENTIELS"),
+            Some(&format!(
+                "Évaluez votre posture de sécurité par rapport à vos référentiels actifs ({active_label}). Chaque contrôle indique son statut et propose des actions de remédiation directes.",
+            )),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -95,7 +110,11 @@ impl CompliancePage {
                 ui.add_space(theme::SPACE_XS);
                 let fw_count = frameworks.len();
                 for fw in frameworks.iter().take(3) {
-                    widgets::status_badge(ui, &fw.to_uppercase(), theme::INFO);
+                    widgets::status_badge(
+                        ui,
+                        agent_common::frameworks::framework_display_name(fw),
+                        theme::INFO,
+                    );
                     ui.add_space(theme::SPACE_XS);
                 }
                 if fw_count > 3 {
@@ -178,7 +197,11 @@ impl CompliancePage {
                                     .strong(),
                             );
                             for fw in frameworks.iter().take(4) {
-                                widgets::status_badge(ui, fw, theme::ACCENT);
+                                widgets::status_badge(
+                                    ui,
+                                    agent_common::frameworks::framework_display_name(fw),
+                                    theme::ACCENT,
+                                );
                             }
                         });
                     }
@@ -204,10 +227,22 @@ impl CompliancePage {
                 ui.add_space(theme::SPACE_MD);
 
                 for fw in frameworks {
+                    // Match on canonical framework ids so config names ("CIS",
+                    // "ISO 27001") align with check tags ("CIS_V8", "ISO_27001").
+                    let fw_canon = agent_common::frameworks::normalize_framework_id(fw)
+                        .map(str::to_string)
+                        .unwrap_or_else(|| fw.trim().to_ascii_uppercase());
                     let fw_checks: Vec<&crate::dto::GuiCheckResult> = state
                         .checks
                         .iter()
-                        .filter(|c| c.frameworks.iter().any(|f| f == fw))
+                        .filter(|c| {
+                            c.frameworks.iter().any(|f| {
+                                agent_common::frameworks::normalize_framework_id(f)
+                                    .map(str::to_string)
+                                    .unwrap_or_else(|| f.trim().to_ascii_uppercase())
+                                    == fw_canon
+                            })
+                        })
                         .collect();
 
                     if fw_checks.is_empty() {
@@ -240,11 +275,13 @@ impl CompliancePage {
 
                     ui.horizontal(|ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new(fw.to_uppercase())
-                                .font(theme::font_label())
-                                .color(theme::text_primary())
-                                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                .strong(),
+                            egui::RichText::new(
+                                agent_common::frameworks::framework_display_name(fw),
+                            )
+                            .font(theme::font_label())
+                            .color(theme::text_primary())
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
+                            .strong(),
                         );
                         ui.with_layout(
                             egui::Layout::right_to_left(egui::Align::Center),

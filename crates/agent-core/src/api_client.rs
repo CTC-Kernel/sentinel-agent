@@ -327,10 +327,15 @@ pub struct HeartbeatResponse {
 const ALLOWED_COMMANDS: &[&str] = &[
     "force_sync",
     "run_checks",
+    // "scan" is the MDM console's name for a compliance scan (alias of run_checks)
+    "scan",
     "revoke",
     "diagnostics",
     "update",
     "remediate",
+    // MDM software deployment commands.
+    "install",
+    "uninstall",
 ];
 
 /// Command from the server.
@@ -1245,6 +1250,11 @@ mod tests {
             AgentCommand {
                 id: "5".to_string(),
                 command_type: "update".to_string(),
+                payload: serde_json::Value::Null,
+            },
+            AgentCommand {
+                id: "6".to_string(),
+                command_type: "scan".to_string(),
                 payload: serde_json::Value::Null,
             },
         ];

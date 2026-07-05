@@ -123,6 +123,7 @@ out.txt
 
 # Sentinel agent local data (dev artifacts)
 data/
+*.db
 *.db-shm
 *.db-wal
 

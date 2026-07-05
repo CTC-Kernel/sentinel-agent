@@ -110,6 +110,7 @@ impl DnsSecurityCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("ANSSI_HYGIENE")
             .platforms(vec![
                 "windows".to_string(),
                 "linux".to_string(),

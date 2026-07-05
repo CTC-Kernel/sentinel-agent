@@ -60,6 +60,7 @@ mod enrollment;
 mod gui_bridge;
 mod risk_generation;
 mod heartbeat;
+pub mod mdm;
 mod network_ops;
 pub mod playbook_engine;
 mod remediation_ops;
@@ -120,6 +121,54 @@ use agent_gui::dto::{
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
+
+/// Register every built-in compliance check into `registry`.
+///
+/// This is the single source of truth for which checks ship with the agent, so
+/// the runtime and the framework-coherence tests observe an identical set
+/// (21 base + 5 directory + 4 hardening + 4 advanced = 34 total).
+pub fn register_builtin_checks(registry: &mut CheckRegistry) {
+    registry.register(Arc::new(DiskEncryptionCheck::new()));
+    registry.register(Arc::new(FirewallCheck::new()));
+    registry.register(Arc::new(AntivirusCheck::new()));
+    registry.register(Arc::new(MfaCheck::new()));
+    registry.register(Arc::new(PasswordPolicyCheck::new()));
+    registry.register(Arc::new(SystemUpdatesCheck::new()));
+    registry.register(Arc::new(SessionLockCheck::new()));
+    registry.register(Arc::new(RemoteAccessCheck::new()));
+    registry.register(Arc::new(BackupCheck::new()));
+    registry.register(Arc::new(AdminAccountsCheck::new()));
+    registry.register(Arc::new(ObsoleteProtocolsCheck::new()));
+    registry.register(Arc::new(AuditLoggingCheck::new()));
+    registry.register(Arc::new(AutoLoginCheck::new()));
+    registry.register(Arc::new(BluetoothCheck::new()));
+    registry.register(Arc::new(BrowserSecurityCheck::new()));
+    registry.register(Arc::new(GuestAccountCheck::new()));
+    registry.register(Arc::new(Ipv6ConfigCheck::new()));
+    registry.register(Arc::new(KernelHardeningCheck::new()));
+    registry.register(Arc::new(LogRotationCheck::new()));
+    registry.register(Arc::new(TimeSyncCheck::new()));
+    registry.register(Arc::new(UsbStorageCheck::new()));
+
+    // Directory policy checks (GPO, LDAP, privileged access)
+    registry.register(Arc::new(GpoPasswordPolicyCheck::new()));
+    registry.register(Arc::new(GpoLockoutPolicyCheck::new()));
+    registry.register(Arc::new(GpoAuditPolicyCheck::new()));
+    registry.register(Arc::new(PrivilegedGroupsCheck::new()));
+    registry.register(Arc::new(LdapSecurityCheck::new()));
+
+    // System hardening checks (Windows/Linux kernel, updates)
+    registry.register(Arc::new(WindowsHardeningCheck::new()));
+    registry.register(Arc::new(SecureBootCheck::new()));
+    registry.register(Arc::new(LinuxHardeningCheck::new()));
+    registry.register(Arc::new(UpdateStatusCheck::new()));
+
+    // Advanced security checks (DNS, SSH, containers, certificates)
+    registry.register(Arc::new(DnsSecurityCheck::new()));
+    registry.register(Arc::new(SshHardeningCheck::new()));
+    registry.register(Arc::new(ContainerSecurityCheck::new()));
+    registry.register(Arc::new(CertificateValidationCheck::new()));
+}
 
 #[cfg(not(feature = "gui"))]
 pub struct AgentSummary {
@@ -514,46 +563,7 @@ impl AgentRuntime {
 
         // Register all compliance checks (21 base + 5 directory + 4 hardening + 4 advanced = 34 total)
         let mut registry = CheckRegistry::new();
-        registry.register(Arc::new(DiskEncryptionCheck::new()));
-        registry.register(Arc::new(FirewallCheck::new()));
-        registry.register(Arc::new(AntivirusCheck::new()));
-        registry.register(Arc::new(MfaCheck::new()));
-        registry.register(Arc::new(PasswordPolicyCheck::new()));
-        registry.register(Arc::new(SystemUpdatesCheck::new()));
-        registry.register(Arc::new(SessionLockCheck::new()));
-        registry.register(Arc::new(RemoteAccessCheck::new()));
-        registry.register(Arc::new(BackupCheck::new()));
-        registry.register(Arc::new(AdminAccountsCheck::new()));
-        registry.register(Arc::new(ObsoleteProtocolsCheck::new()));
-        registry.register(Arc::new(AuditLoggingCheck::new()));
-        registry.register(Arc::new(AutoLoginCheck::new()));
-        registry.register(Arc::new(BluetoothCheck::new()));
-        registry.register(Arc::new(BrowserSecurityCheck::new()));
-        registry.register(Arc::new(GuestAccountCheck::new()));
-        registry.register(Arc::new(Ipv6ConfigCheck::new()));
-        registry.register(Arc::new(KernelHardeningCheck::new()));
-        registry.register(Arc::new(LogRotationCheck::new()));
-        registry.register(Arc::new(TimeSyncCheck::new()));
-        registry.register(Arc::new(UsbStorageCheck::new()));
-
-        // Directory policy checks (GPO, LDAP, privileged access)
-        registry.register(Arc::new(GpoPasswordPolicyCheck::new()));
-        registry.register(Arc::new(GpoLockoutPolicyCheck::new()));
-        registry.register(Arc::new(GpoAuditPolicyCheck::new()));
-        registry.register(Arc::new(PrivilegedGroupsCheck::new()));
-        registry.register(Arc::new(LdapSecurityCheck::new()));
-
-        // System hardening checks (Windows/Linux kernel, updates)
-        registry.register(Arc::new(WindowsHardeningCheck::new()));
-        registry.register(Arc::new(SecureBootCheck::new()));
-        registry.register(Arc::new(LinuxHardeningCheck::new()));
-        registry.register(Arc::new(UpdateStatusCheck::new()));
-
-        // Advanced security checks (DNS, SSH, containers, certificates)
-        registry.register(Arc::new(DnsSecurityCheck::new()));
-        registry.register(Arc::new(SshHardeningCheck::new()));
-        registry.register(Arc::new(ContainerSecurityCheck::new()));
-        registry.register(Arc::new(CertificateValidationCheck::new()));
+        register_builtin_checks(&mut registry);
 
         let check_registry = Arc::new(registry);
 

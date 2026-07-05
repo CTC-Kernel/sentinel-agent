@@ -15,6 +15,86 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// Canonical framework identifiers referenced across the agent.
+///
+/// Every framework a check may tag, and every framework the server may activate,
+/// must resolve to one of these ids via [`normalize_framework_id`]. Keeping a
+/// single canonical vocabulary is what makes the technical-to-regulatory link
+/// coherent: check tags, the scoring registry, and server-supplied active-
+/// framework lists all speak the same identifiers.
+pub const CANONICAL_FRAMEWORKS: &[&str] = &[
+    "CIS_V8",
+    "NIST_CSF",
+    "ISO_27001",
+    "PCI_DSS",
+    "ANSSI_HYGIENE",
+    "NIS2",
+    "DORA",
+    "SOC2",
+    "RGPD",
+];
+
+/// Normalize a user- or server-supplied framework name to its canonical id.
+///
+/// Accepts the many spellings that appear in configs, consoles and standards
+/// text (e.g. `CIS`, `cis controls v8`, `ISO 27001`, `ISO/IEC 27001:2022`,
+/// `GDPR`, `PCI-DSS`, `NIS 2`, `SOC 2`) and maps them to the single canonical
+/// identifier used internally. Returns `None` for an unrecognized framework so
+/// callers can surface the drift rather than silently ignore it.
+pub fn normalize_framework_id(raw: &str) -> Option<&'static str> {
+    // Uppercase, then collapse any run of separators to a single '_'.
+    let upper = raw.trim().to_ascii_uppercase();
+    let mut key = String::with_capacity(upper.len());
+    let mut prev_sep = false;
+    for ch in upper.chars() {
+        if ch.is_ascii_alphanumeric() {
+            key.push(ch);
+            prev_sep = false;
+        } else if !prev_sep {
+            key.push('_');
+            prev_sep = true;
+        }
+    }
+    let key = key.trim_matches('_');
+
+    match key {
+        "CIS" | "CIS_V8" | "CIS_CONTROLS" | "CIS_CONTROLS_V8" | "CISV8" | "CIS_8" => Some("CIS_V8"),
+        "NIST" | "NIST_CSF" | "CSF" | "NISTCSF" | "NIST_CSF_2_0" | "NIST_CSF_2" | "NIST_800_53" => {
+            Some("NIST_CSF")
+        }
+        "ISO" | "ISO27001" | "ISO_27001" | "ISO_27001_2022" | "ISO_IEC_27001"
+        | "ISO_IEC_27001_2022" | "ISO27001_2022" => Some("ISO_27001"),
+        "PCI" | "PCIDSS" | "PCI_DSS" | "PCI_DSS_V4" | "PCI_DSS_V4_0" => Some("PCI_DSS"),
+        "ANSSI" | "ANSSI_HYGIENE" | "ANSSI_HYGIENE_INFORMATIQUE" | "ANSSI_GUIDE_HYGIENE" => {
+            Some("ANSSI_HYGIENE")
+        }
+        "NIS2" | "NIS_2" | "NISII" | "NIS_DIRECTIVE_2" => Some("NIS2"),
+        "DORA" | "DIGITAL_OPERATIONAL_RESILIENCE_ACT" => Some("DORA"),
+        "SOC2" | "SOC_2" | "SOC_2_TYPE_II" | "SOC_2_TYPE_2" => Some("SOC2"),
+        "RGPD" | "GDPR" => Some("RGPD"),
+        _ => None,
+    }
+}
+
+/// Human-readable display label for a framework id (canonical or raw).
+///
+/// Used by the UI and reports so operators see "ISO 27001:2022" rather than the
+/// internal `ISO_27001` token. Unknown ids fall back to their uppercase form.
+pub fn framework_display_name(id: &str) -> &str {
+    match normalize_framework_id(id) {
+        Some("CIS_V8") => "CIS Controls v8",
+        Some("NIST_CSF") => "NIST CSF 2.0",
+        Some("ISO_27001") => "ISO/IEC 27001:2022",
+        Some("PCI_DSS") => "PCI DSS v4.0",
+        Some("ANSSI_HYGIENE") => "ANSSI — Guide d'hygiène",
+        Some("NIS2") => "NIS 2",
+        Some("DORA") => "DORA",
+        Some("SOC2") => "SOC 2",
+        Some("RGPD") => "RGPD / GDPR",
+        _ => id,
+    }
+}
+
 // Embedded framework TOML data (compiled into the binary).
 const ANSSI_TOML: &str = include_str!("data/anssi.toml");
 const CIS_V8_TOML: &str = include_str!("data/cis_v8.toml");
@@ -208,6 +288,14 @@ impl FrameworkRegistry {
     /// Get all registered frameworks.
     pub fn frameworks(&self) -> Vec<&FrameworkInfo> {
         self.frameworks.values().collect()
+    }
+
+    /// Every check id that has at least one control mapping.
+    ///
+    /// Used by coherence tests to verify that scoring mappings only reference
+    /// checks that actually ship with the agent.
+    pub fn all_mapped_check_ids(&self) -> Vec<String> {
+        self.mappings.keys().cloned().collect()
     }
 
     /// Calculate compliance score for a framework based on check results.

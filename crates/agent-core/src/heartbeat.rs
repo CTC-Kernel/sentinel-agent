@@ -329,7 +329,7 @@ impl AgentRuntime {
                                 .report_success(&cmd.id, Some("Sync triggered".to_string()))
                                 .await
                         }
-                        "run_checks" => {
+                        "run_checks" | "scan" => {
                             self.state.force_check.store(true, Ordering::Release);
                             service
                                 .report_success(
@@ -397,10 +397,31 @@ impl AgentRuntime {
                                 .await
                         }
                         "update" => {
-                            info!("Server command: update ({})", cmd.id);
-                            self.state.force_update.store(true, Ordering::Release);
-                            service
-                                .report_success(&cmd.id, Some("Update triggered".to_string()))
+                            // The "update" command type is overloaded: the rollout
+                            // service sends an agent self-update (payload has
+                            // version/channel), while the MDM console sends a
+                            // software update (payload has softwareId). Disambiguate
+                            // on softwareId.
+                            if cmd.payload.get("softwareId").is_some() {
+                                info!("Server command: MDM software update ({})", cmd.id);
+                                self.run_mdm_command(&cmd.id, "update", &cmd.payload, service)
+                                    .await
+                            } else {
+                                info!("Server command: agent self-update ({})", cmd.id);
+                                self.state.force_update.store(true, Ordering::Release);
+                                service
+                                    .report_success(&cmd.id, Some("Update triggered".to_string()))
+                                    .await
+                            }
+                        }
+                        "install" => {
+                            info!("Server command: MDM install ({})", cmd.id);
+                            self.run_mdm_command(&cmd.id, "install", &cmd.payload, service)
+                                .await
+                        }
+                        "uninstall" => {
+                            info!("Server command: MDM uninstall ({})", cmd.id);
+                            self.run_mdm_command(&cmd.id, "uninstall", &cmd.payload, service)
                                 .await
                         }
                         "remediate" => {
@@ -571,5 +592,78 @@ impl AgentRuntime {
         }
 
         Ok(())
+    }
+
+    /// Execute an MDM software-deployment command and report the structured
+    /// result back to the server.
+    ///
+    /// `action` is one of `install`, `update`, `uninstall`. The result JSON is
+    /// carried in the command output so the server can update software
+    /// inventory, deployment and policy state.
+    async fn run_mdm_command(
+        &self,
+        cmd_id: &str,
+        action: &str,
+        payload: &serde_json::Value,
+        service: &agent_sync::CommandResultsService,
+    ) -> agent_sync::SyncResult<()> {
+        let result = match action {
+            "install" | "update" => {
+                let api_guard = self.api_client.read().await;
+                match api_guard.as_ref() {
+                    Some(client) if action == "install" => {
+                        crate::mdm::execute_install(client, payload).await
+                    }
+                    Some(client) => crate::mdm::execute_update(client, payload).await,
+                    None => crate::mdm::MdmCommandResult::failure(
+                        action,
+                        payload
+                            .get("softwareId")
+                            .and_then(|v| v.as_str())
+                            .map(str::to_string),
+                        "agent is not enrolled; cannot download software packages",
+                    ),
+                }
+            }
+            "uninstall" => crate::mdm::execute_uninstall(payload).await,
+            other => crate::mdm::MdmCommandResult::failure(
+                other,
+                None,
+                format!("unsupported MDM action: {other}"),
+            ),
+        };
+
+        // Surface the deployment outcome in the GUI so operators see MDM
+        // activity live in the notifications feed.
+        #[cfg(feature = "gui")]
+        {
+            let title = format!(
+                "MDM · {}",
+                match action {
+                    "install" => "Installation",
+                    "uninstall" => "Désinstallation",
+                    "update" => "Mise à jour logicielle",
+                    other => other,
+                }
+            );
+            let notification = if result.success {
+                agent_gui::dto::GuiNotification::info(title, result.message.clone())
+            } else {
+                agent_gui::dto::GuiNotification::error(title, result.message.clone())
+            };
+            self.emit_gui_event(agent_gui::events::AgentEvent::Notification { notification });
+        }
+
+        if result.success {
+            // A successful compliance-relevant install may change posture; nudge
+            // a re-scan so the console reflects the new state promptly.
+            self.state.force_check.store(true, Ordering::Release);
+            service
+                .report_success(cmd_id, Some(result.to_output()))
+                .await
+        } else {
+            warn!("MDM {} failed: {}", action, result.message);
+            service.report_failure(cmd_id, result.to_output()).await
+        }
     }
 }
