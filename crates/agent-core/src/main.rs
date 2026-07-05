@@ -53,9 +53,13 @@ struct Cli {
 enum Commands {
     /// Enroll the agent with an enrollment token
     Enroll {
-        /// The enrollment token from the Sentinel GRC dashboard
-        #[arg(short, long)]
-        token: String,
+        /// The enrollment token from the Sentinel GRC dashboard.
+        ///
+        /// Passing the token on the command line exposes it to other local
+        /// users via the process list; prefer the SENTINEL_ENROLLMENT_TOKEN
+        /// environment variable or the interactive prompt (omit this flag).
+        #[arg(short, long, env = "SENTINEL_ENROLLMENT_TOKEN", hide_env_values = true)]
+        token: Option<String>,
         /// Server URL (overrides config file)
         #[arg(short, long)]
         server: Option<String>,
@@ -200,7 +204,19 @@ fn main() -> ExitCode {
 
     // Handle subcommands
     match cli.command {
-        Some(Commands::Enroll { token, server }) => handle_enroll(&token, server.as_deref()),
+        Some(Commands::Enroll { token, server }) => {
+            let token = match token.or_else(prompt_enrollment_token) {
+                Some(t) => t,
+                None => {
+                    error!(
+                        "No enrollment token provided. Pass --token, set \
+                         SENTINEL_ENROLLMENT_TOKEN, or enter it at the prompt."
+                    );
+                    return ExitCode::FAILURE;
+                }
+            };
+            handle_enroll(&token, server.as_deref())
+        }
         Some(Commands::Install) => handle_install(),
         Some(Commands::Uninstall { purge, keep_logs }) => handle_uninstall(purge, keep_logs),
         Some(Commands::Start) => handle_start(),
@@ -209,6 +225,27 @@ fn main() -> ExitCode {
         Some(Commands::Run { no_tray }) => handle_run(cli.config, no_tray, &cli.log_level),
         None => handle_run(cli.config, false, &cli.log_level),
     }
+}
+
+/// Interactively prompt for the enrollment token on stdin.
+///
+/// Used when neither `--token` nor `SENTINEL_ENROLLMENT_TOKEN` is provided,
+/// so the token never appears in the process list or shell history. Returns
+/// `None` on empty input or when stdin is not a terminal (e.g. scripted runs).
+fn prompt_enrollment_token() -> Option<String> {
+    use std::io::{BufRead, IsTerminal, Write};
+
+    if !std::io::stdin().is_terminal() {
+        return None;
+    }
+
+    eprint!("Enrollment token: ");
+    let _ = std::io::stderr().flush();
+
+    let mut line = String::new();
+    std::io::stdin().lock().read_line(&mut line).ok()?;
+    let token = line.trim().to_string();
+    if token.is_empty() { None } else { Some(token) }
 }
 
 /// Enroll the agent with a token.
@@ -2882,7 +2919,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 });
                             });
                         }
-                        
+
                         Ok(GuiCommand::SetVoiceListening { enabled }) => {
                             info!("[AUDIT] GUI requested voice listening: {}", enabled);
                             #[cfg(feature = "voice")]
@@ -2906,8 +2943,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 tokio::spawn(async move {
                                     if enabled {
                                         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                                        let _ = tx.send(AgentEvent::VoiceTranscription { 
-                                            text: "Moteur vocal désactivé à la compilation.".to_string() 
+                                        let _ = tx.send(AgentEvent::VoiceTranscription {
+                                            text: "Moteur vocal désactivé à la compilation.".to_string()
                                         });
                                     }
                                 });

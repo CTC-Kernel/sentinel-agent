@@ -479,10 +479,14 @@ impl LLMService {
 
     /// Analyze a vulnerability finding using the LLM.
     #[cfg(feature = "llm")]
-    pub async fn analyze_vulnerability(&self, finding: &agent_scanner::VulnerabilityFinding) -> Result<String> {
-        let manager = self.get_manager().await.ok_or_else(|| {
-            anyhow::anyhow!("LLM manager not available")
-        })?;
+    pub async fn analyze_vulnerability(
+        &self,
+        finding: &agent_scanner::VulnerabilityFinding,
+    ) -> Result<String> {
+        let manager = self
+            .get_manager()
+            .await
+            .ok_or_else(|| anyhow::anyhow!("LLM manager not available"))?;
 
         let severity = format!("{:?}", finding.severity).to_uppercase();
         let prompt = format!(
@@ -513,10 +517,12 @@ impl LLMService {
 
     /// Fallback for analyze_vulnerability when LLM is not compiled.
     #[cfg(not(feature = "llm"))]
-    pub async fn analyze_vulnerability(&self, _finding: &agent_scanner::VulnerabilityFinding) -> Result<String> {
+    pub async fn analyze_vulnerability(
+        &self,
+        _finding: &agent_scanner::VulnerabilityFinding,
+    ) -> Result<String> {
         Err(anyhow::anyhow!("AI analysis requires the 'llm' feature."))
     }
-
 
     /// Reload LLM configuration.
     #[cfg(feature = "llm")]

@@ -50,7 +50,7 @@ impl SentinelAICore {
     pub fn show(&self, ui: &mut Ui, radius: f32) -> egui::Response {
         let size = Vec2::splat(radius * 2.2); // Extra space for aura
         let (rect, response) = ui.allocate_exact_size(size, egui::Sense::click());
-        
+
         if ui.is_rect_visible(rect) {
             let painter = ui.painter();
             let mut center = rect.center();
@@ -58,21 +58,24 @@ impl SentinelAICore {
 
             // Parallax effect on hover
             let mut parallax_offset = Vec2::ZERO;
-            if !reduced
-                && let Some(mouse_pos) = ui.input(|i| i.pointer.hover_pos()) {
-                    let dist = center.distance(mouse_pos);
-                    // If mouse is near the core, shift slightly towards mouse
-                    if dist < radius * 3.0 {
-                        let pull = (1.0 - (dist / (radius * 3.0))).max(0.0).powi(2);
-                        parallax_offset = (mouse_pos - center) * 0.1 * pull;
-                    }
+            if !reduced && let Some(mouse_pos) = ui.input(|i| i.pointer.hover_pos()) {
+                let dist = center.distance(mouse_pos);
+                // If mouse is near the core, shift slightly towards mouse
+                if dist < radius * 3.0 {
+                    let pull = (1.0 - (dist / (radius * 3.0))).max(0.0).powi(2);
+                    parallax_offset = (mouse_pos - center) * 0.1 * pull;
                 }
+            }
 
             // Apply parallax
             center += parallax_offset;
-            
+
             // Time-based animation variables
-            let time = if reduced { 0.0 } else { ui.input(|i| i.time) as f32 };
+            let time = if reduced {
+                0.0
+            } else {
+                ui.input(|i| i.time) as f32
+            };
             let speed_mult = if self.is_processing { 2.5 } else { 1.0 };
             let t = time * speed_mult;
 
@@ -105,7 +108,7 @@ impl SentinelAICore {
     fn draw_aura(&self, painter: &Painter, center: Pos2, radius: f32, t: f32) {
         use crate::theme;
         let mut base_color = theme::ACCENT;
-        
+
         match self.voice_state {
             VoiceState::Listening(level) => {
                 // Shift colour to a more "attentive" light blue/cyan,
@@ -125,7 +128,11 @@ impl SentinelAICore {
             VoiceState::Speaking(vol) => 0.2 + vol * 0.4,
             _ => (t * 0.8).sin() * 0.1 + 0.15,
         };
-        painter.circle_filled(center, radius * 1.3, base_color.linear_multiply(pulse * 0.5));
+        painter.circle_filled(
+            center,
+            radius * 1.3,
+            base_color.linear_multiply(pulse * 0.5),
+        );
 
         // Circular wave ripples
         let passes = match self.voice_state {
@@ -149,12 +156,12 @@ impl SentinelAICore {
                 // Push the ripple outward as the microphone picks up energy.
                 wave_r += level * radius * 0.4 * (1.0 - wave_t);
             }
-            
+
             let alpha = (1.0 - wave_t) * 0.1;
             painter.circle_stroke(
-                center, 
-                wave_r, 
-                Stroke::new(theme::BORDER_THIN, base_color.linear_multiply(alpha))
+                center,
+                wave_r,
+                Stroke::new(theme::BORDER_THIN, base_color.linear_multiply(alpha)),
             );
         }
     }
@@ -169,17 +176,40 @@ impl SentinelAICore {
         let outer_angle = t * 0.2;
         let seg_count = 32;
         for i in 0..seg_count {
-            if i % 2 == 0 { continue; } // Gaps
+            if i % 2 == 0 {
+                continue;
+            } // Gaps
             let start = outer_angle + (i as f32 / seg_count as f32) * TAU;
             let end = start + (0.5 / seg_count as f32) * TAU;
-            self.draw_arc(painter, center, outer_r, start, end, Stroke::new(theme::BORDER_THIN, color_primary.linear_multiply(0.4)));
+            self.draw_arc(
+                painter,
+                center,
+                outer_r,
+                start,
+                end,
+                Stroke::new(theme::BORDER_THIN, color_primary.linear_multiply(0.4)),
+            );
         }
 
         // --- Middle Ring (2 segments, CCW) ---
         let mid_r = radius * 0.85;
         let mid_angle = -t * 0.5;
-        self.draw_arc(painter, center, mid_r, mid_angle, mid_angle + 1.2, Stroke::new(theme::BORDER_MEDIUM, color_secondary));
-        self.draw_arc(painter, center, mid_r, mid_angle + TAU/2.0, mid_angle + TAU/2.0 + 1.2, Stroke::new(theme::BORDER_MEDIUM, color_secondary));
+        self.draw_arc(
+            painter,
+            center,
+            mid_r,
+            mid_angle,
+            mid_angle + 1.2,
+            Stroke::new(theme::BORDER_MEDIUM, color_secondary),
+        );
+        self.draw_arc(
+            painter,
+            center,
+            mid_r,
+            mid_angle + TAU / 2.0,
+            mid_angle + TAU / 2.0 + 1.2,
+            Stroke::new(theme::BORDER_MEDIUM, color_secondary),
+        );
 
         // --- Inner Ring (4 segments, fast CW) ---
         let inner_r = radius * 0.65;
@@ -187,7 +217,14 @@ impl SentinelAICore {
         for i in 0..4 {
             let start = inner_angle + (i as f32 / 4.0) * TAU;
             let end = start + 0.5;
-            self.draw_arc(painter, center, inner_r, start, end, Stroke::new(theme::BORDER_THICK, color_primary));
+            self.draw_arc(
+                painter,
+                center,
+                inner_r,
+                start,
+                end,
+                Stroke::new(theme::BORDER_THICK, color_primary),
+            );
         }
     }
 
@@ -195,17 +232,17 @@ impl SentinelAICore {
         use crate::theme;
         let score_color = theme::score_color(self.score);
         let core_r = radius * 0.4;
-        
+
         // Breathing core
         let pulse = (t * 2.0).sin() * 0.1 + 0.9;
         let active_r = core_r * pulse;
 
         // Inner glow
         painter.circle_filled(center, active_r, score_color.linear_multiply(0.3));
-        
+
         // Solid center
         painter.circle_filled(center, active_r * 0.5, score_color);
-        
+
         // White core highlight
         painter.circle_filled(center, active_r * 0.2, Color32::WHITE.linear_multiply(0.8));
     }
@@ -217,20 +254,25 @@ impl SentinelAICore {
             let orbit_r = radius * (0.5 + (i as f32 * 0.15));
             let orbit_speed = 0.3 + (i as f32 * 0.2);
             let angle = t * orbit_speed + (i as f32 * 1.5);
-            
+
             // Add a slight extra parallax sensitivity to the orbitals for depth
-            let pos = center + Vec2::new(angle.cos() * orbit_r, angle.sin() * orbit_r) + parallax * (i as f32 * 0.3);
-            
+            let pos = center
+                + Vec2::new(angle.cos() * orbit_r, angle.sin() * orbit_r)
+                + parallax * (i as f32 * 0.3);
+
             // Orbital dot
             painter.circle_filled(pos, 2.0, theme::ACCENT_LIGHT);
-            
+
             // Sub-glow
             painter.circle_filled(pos, 4.0, theme::ACCENT_LIGHT.linear_multiply(0.2));
-            
+
             // Connector line (subtle)
             painter.line_segment(
-                [center, pos], 
-                Stroke::new(theme::BORDER_HAIRLINE, theme::ACCENT_LIGHT.linear_multiply(0.05))
+                [center, pos],
+                Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    theme::ACCENT_LIGHT.linear_multiply(0.05),
+                ),
             );
         }
     }
@@ -238,17 +280,49 @@ impl SentinelAICore {
     fn draw_hud(&self, painter: &Painter, center: Pos2, radius: f32) {
         use crate::theme;
         let color = theme::ACCENT.linear_multiply(0.3);
-        
+
         // Crosshair lines
         let len = radius * 1.2;
-        painter.line_segment([center - Vec2::new(len, 0.0), center - Vec2::new(radius * 1.1, 0.0)], Stroke::new(theme::BORDER_THIN, color));
-        painter.line_segment([center + Vec2::new(len, 0.0), center + Vec2::new(radius * 1.1, 0.0)], Stroke::new(theme::BORDER_THIN, color));
-        painter.line_segment([center - Vec2::new(0.0, len), center - Vec2::new(0.0, radius * 1.1)], Stroke::new(theme::BORDER_THIN, color));
-        painter.line_segment([center + Vec2::new(0.0, len), center + Vec2::new(0.0, radius * 1.1)], Stroke::new(theme::BORDER_THIN, color));
+        painter.line_segment(
+            [
+                center - Vec2::new(len, 0.0),
+                center - Vec2::new(radius * 1.1, 0.0),
+            ],
+            Stroke::new(theme::BORDER_THIN, color),
+        );
+        painter.line_segment(
+            [
+                center + Vec2::new(len, 0.0),
+                center + Vec2::new(radius * 1.1, 0.0),
+            ],
+            Stroke::new(theme::BORDER_THIN, color),
+        );
+        painter.line_segment(
+            [
+                center - Vec2::new(0.0, len),
+                center - Vec2::new(0.0, radius * 1.1),
+            ],
+            Stroke::new(theme::BORDER_THIN, color),
+        );
+        painter.line_segment(
+            [
+                center + Vec2::new(0.0, len),
+                center + Vec2::new(0.0, radius * 1.1),
+            ],
+            Stroke::new(theme::BORDER_THIN, color),
+        );
     }
 
     /// Helper to draw a circular arc.
-    fn draw_arc(&self, painter: &Painter, center: Pos2, radius: f32, start_angle: f32, end_angle: f32, stroke: Stroke) {
+    fn draw_arc(
+        &self,
+        painter: &Painter,
+        center: Pos2,
+        radius: f32,
+        start_angle: f32,
+        end_angle: f32,
+        stroke: Stroke,
+    ) {
         let points: Vec<Pos2> = (0..=10)
             .map(|i| {
                 let t = i as f32 / 10.0;

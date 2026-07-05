@@ -275,9 +275,9 @@ impl CompliancePage {
 
                     ui.horizontal(|ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new(
-                                agent_common::frameworks::framework_display_name(fw),
-                            )
+                            egui::RichText::new(agent_common::frameworks::framework_display_name(
+                                fw,
+                            ))
                             .font(theme::font_label())
                             .color(theme::text_primary())
                             .extra_letter_spacing(theme::TRACKING_NORMAL)

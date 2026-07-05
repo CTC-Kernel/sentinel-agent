@@ -343,13 +343,18 @@ impl LLMAnalyzer {
 
         // 1. Prepare Initial Prompt with Plugins context
         let (mut system_prompt, user_prompt) = self.build_analysis_prompt(&context)?;
-        
+
         // Enhance system prompt with tool calling instructions if plugins are available
         if !self.plugins.list().is_empty() {
             let mut sys = system_prompt.unwrap_or_default();
             sys.push_str("\n\nYou have access to the following tools. To use a tool, respond with: TOOL_CALL: {\"name\": \"tool_name\", \"input\": {...}}\n");
             for plugin in self.plugins.list() {
-                sys.push_str(&format!("- {}: {}\n  Schema: {}\n", plugin.name(), plugin.description(), plugin.input_schema()));
+                sys.push_str(&format!(
+                    "- {}: {}\n  Schema: {}\n",
+                    plugin.name(),
+                    plugin.description(),
+                    plugin.input_schema()
+                ));
             }
             sys.push_str("\nIf you use a tool, I will provide the result and you should continue your analysis.\n");
             system_prompt = Some(sys);
@@ -361,11 +366,11 @@ impl LLMAnalyzer {
 
         while iteration < MAX_ITERATIONS {
             iteration += 1;
-            
+
             let mut request = InferenceRequest::new(current_user_prompt.clone())
                 .with_max_tokens(self.config.inference.max_tokens)
                 .with_temperature(self.config.inference.temperature);
-            
+
             if let Some(ref sys) = system_prompt {
                 request = request.with_system_prompt(sys.clone());
             }
@@ -400,7 +405,10 @@ impl LLMAnalyzer {
             return Ok(result);
         }
 
-        Err(anyhow::anyhow!("Analysis failed to converge after {} iterations", MAX_ITERATIONS))
+        Err(anyhow::anyhow!(
+            "Analysis failed to converge after {} iterations",
+            MAX_ITERATIONS
+        ))
     }
 
     /// Analyze a single security event.

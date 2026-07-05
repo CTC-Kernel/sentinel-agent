@@ -33,7 +33,11 @@ fn every_check_framework_tag_is_canonical() {
         let def = check.definition();
         for fw in &def.frameworks {
             if normalize_framework_id(fw).is_none() {
-                offenders.push(format!("check '{}' tags unknown framework '{}'", check.id(), fw));
+                offenders.push(format!(
+                    "check '{}' tags unknown framework '{}'",
+                    check.id(),
+                    fw
+                ));
             }
         }
     }

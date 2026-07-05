@@ -2,6 +2,70 @@
 // SPDX-License-Identifier: MIT
 
 //! Logging initialization and runtime level management.
+//!
+//! All log sinks (console, rolling file, GUI terminal) are wrapped so that
+//! secrets — enrollment tokens, API keys, connection strings, private keys —
+//! are redacted before they ever reach disk or screen (see
+//! [`agent_common::sensitive_filter`]).
+
+use std::io::Write;
+
+/// An [`std::io::Write`] wrapper that redacts sensitive data line by line.
+///
+/// Bytes are buffered until a newline, then each complete line is passed
+/// through [`agent_common::filter_sensitive_data`] before being written to
+/// the inner sink. Incomplete trailing data is filtered and flushed on
+/// [`flush`](Write::flush) or drop, so nothing is lost on shutdown.
+struct RedactingWriter<W: Write> {
+    inner: W,
+    buf: Vec<u8>,
+}
+
+impl<W: Write> RedactingWriter<W> {
+    fn new(inner: W) -> Self {
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
+    }
+
+    fn write_filtered(&mut self, bytes: &[u8]) -> std::io::Result<()> {
+        match std::str::from_utf8(bytes) {
+            Ok(s) => {
+                let filtered = agent_common::filter_sensitive_data(s);
+                self.inner.write_all(filtered.as_bytes())
+            }
+            // Non-UTF-8 output cannot be pattern-matched; pass through rather
+            // than corrupt or drop it.
+            Err(_) => self.inner.write_all(bytes),
+        }
+    }
+}
+
+impl<W: Write> Write for RedactingWriter<W> {
+    fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
+        self.buf.extend_from_slice(data);
+        while let Some(pos) = self.buf.iter().position(|&b| b == b'\n') {
+            let line: Vec<u8> = self.buf.drain(..=pos).collect();
+            self.write_filtered(&line)?;
+        }
+        Ok(data.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        if !self.buf.is_empty() {
+            let rest = std::mem::take(&mut self.buf);
+            self.write_filtered(&rest)?;
+        }
+        self.inner.flush()
+    }
+}
+
+impl<W: Write> Drop for RedactingWriter<W> {
+    fn drop(&mut self) {
+        let _ = self.flush();
+    }
+}
 
 /// Type-erased reload callback for the tracing filter.
 ///
@@ -42,8 +106,12 @@ pub fn init_logging(log_level: &str) {
     std::mem::forget(_guard);
 
     tracing_subscriber::registry()
-        .with(fmt::layer())
-        .with(fmt::layer().with_writer(non_blocking).with_ansi(false))
+        .with(fmt::layer().with_writer(|| RedactingWriter::new(std::io::stdout())))
+        .with(
+            fmt::layer()
+                .with_writer(move || RedactingWriter::new(non_blocking.clone()))
+                .with_ansi(false),
+        )
         .with(filter_layer)
         .try_init()
         .ok();
@@ -82,8 +150,12 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
     std::mem::forget(_guard);
 
     tracing_subscriber::registry()
-        .with(fmt::layer())
-        .with(fmt::layer().with_writer(non_blocking).with_ansi(false))
+        .with(fmt::layer().with_writer(|| RedactingWriter::new(std::io::stdout())))
+        .with(
+            fmt::layer()
+                .with_writer(move || RedactingWriter::new(non_blocking.clone()))
+                .with_ansi(false),
+        )
         .with(gui_layer)
         .with(filter_layer)
         .try_init()
@@ -109,6 +181,7 @@ fn get_log_dir() -> std::path::PathBuf {
     // Try to create and use the system-wide log directory.
     // If that fails (e.g. running as non-root), fall back to a user-local directory.
     if std::fs::create_dir_all(&primary).is_ok() && is_writable(&primary) {
+        restrict_dir_permissions(&primary);
         return primary;
     }
 
@@ -116,12 +189,32 @@ fn get_log_dir() -> std::path::PathBuf {
     if let Some(dirs) = directories::ProjectDirs::from("com", "sentinel-grc", "Sentinel") {
         let fallback = dirs.data_local_dir().join("logs");
         if std::fs::create_dir_all(&fallback).is_ok() {
+            restrict_dir_permissions(&fallback);
             return fallback;
         }
     }
 
     // Last resort: temp directory
     std::env::temp_dir().join("sentinel-logs")
+}
+
+/// Restrict the log directory to the owning user (0700), matching the
+/// posture of the key store and database directories. Agent logs describe
+/// scan findings and system configuration and must not be world-readable.
+fn restrict_dir_permissions(dir: &std::path::Path) {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if let Err(e) = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700)) {
+            eprintln!("Warning: failed to restrict log dir permissions: {}", e);
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        // On Windows, C:\ProgramData ACLs already restrict write access to
+        // administrators; inherited ACLs are acceptable for log files.
+        let _ = dir;
+    }
 }
 
 /// Check if a directory is writable by attempting to create a temporary file.
@@ -132,5 +225,61 @@ fn is_writable(dir: &std::path::Path) -> bool {
         true
     } else {
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn redact(chunks: &[&[u8]]) -> String {
+        let mut out = Vec::new();
+        {
+            let mut w = RedactingWriter::new(&mut out);
+            for chunk in chunks {
+                w.write_all(chunk).unwrap();
+            }
+            w.flush().unwrap();
+        }
+        String::from_utf8(out).unwrap()
+    }
+
+    #[test]
+    fn redacts_secrets_in_log_lines() {
+        let line = b"INFO agent: enrolling with api_key=Sup3rS3cretT0ken now\n";
+        let out = redact(&[line]);
+        assert!(out.contains("***REDACTED***"), "got: {out}");
+        assert!(!out.contains("Sup3rS3cretT0ken"), "got: {out}");
+    }
+
+    #[test]
+    fn passes_clean_lines_through_unchanged() {
+        let line = "INFO agent: heartbeat sent (latency 12ms)\n";
+        assert_eq!(redact(&[line.as_bytes()]), line);
+    }
+
+    #[test]
+    fn handles_lines_split_across_writes() {
+        let out = redact(&[b"WARN sync: authorization: ", b"abcdef123456 rejected\n"]);
+        assert!(out.contains("***REDACTED***"), "got: {out}");
+        assert!(!out.contains("abcdef123456"), "got: {out}");
+    }
+
+    #[test]
+    fn flushes_trailing_data_without_newline() {
+        let out = redact(&[b"partial line without newline"]);
+        assert_eq!(out, "partial line without newline");
+    }
+
+    #[test]
+    fn passes_non_utf8_bytes_through() {
+        let bytes: &[u8] = &[0xff, 0xfe, b'\n'];
+        let mut out = Vec::new();
+        {
+            let mut w = RedactingWriter::new(&mut out);
+            w.write_all(bytes).unwrap();
+            w.flush().unwrap();
+        }
+        assert_eq!(out, bytes);
     }
 }

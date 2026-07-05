@@ -22,8 +22,15 @@ const REMEDIATION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(
 async fn run_remediation(
     engine: Arc<agent_scanner::RemediationEngine>,
     action: agent_common::types::RemediationAction,
+    user_approved: bool,
 ) -> Option<agent_common::types::RemediationResult> {
-    let handle = tokio::task::spawn_blocking(move || engine.execute(&action));
+    let handle = tokio::task::spawn_blocking(move || {
+        if user_approved {
+            engine.execute_user_approved(&action)
+        } else {
+            engine.execute(&action)
+        }
+    });
     match tokio::time::timeout(REMEDIATION_TIMEOUT, handle).await {
         Ok(Ok(r)) => Some(r),
         Ok(Err(e)) => {
@@ -46,7 +53,7 @@ impl AgentRuntime {
         let actions = self.remediation_engine.get_platform_remediation(check_id);
         if let Some(action) = actions.first() {
             let engine = Arc::clone(&self.remediation_engine);
-            let result = match run_remediation(engine, (*action).clone()).await {
+            let result = match run_remediation(engine, (*action).clone(), false).await {
                 Some(r) => r,
                 None => {
                     self.emit_notification(
@@ -82,17 +89,17 @@ impl AgentRuntime {
                 agent_common::types::remediation::RemediationStatus::Success
             );
 
-        if success {
-            #[cfg(feature = "voice")]
-            if let Some(voice) = &self.voice_service {
-                voice.play_beep();
-            }
+            if success {
+                #[cfg(feature = "voice")]
+                if let Some(voice) = &self.voice_service {
+                    voice.play_beep();
+                }
 
-            self.emit_notification(
-                "Remédiation Réussie",
-                &format!("Le contrôle \'{}\' a été corrigé avec succès.", check_id),
-                "success",
-            );
+                self.emit_notification(
+                    "Remédiation Réussie",
+                    &format!("Le contrôle \'{}\' a été corrigé avec succès.", check_id),
+                    "success",
+                );
             } else {
                 self.emit_notification(
                     "Échec de Remédiation",
@@ -119,18 +126,29 @@ impl AgentRuntime {
 
     /// Execute an AI-generated remediation action.
     /// This requires the action to have is_ai_generated set to true.
-    pub async fn apply_ai_remediation(&self, action: agent_common::types::RemediationAction) -> bool {
+    pub async fn apply_ai_remediation(
+        &self,
+        action: agent_common::types::RemediationAction,
+    ) -> bool {
         if !action.is_ai_generated {
-            warn!("apply_ai_remediation called with non-AI action for '{}'", action.check_id);
+            warn!(
+                "apply_ai_remediation called with non-AI action for '{}'",
+                action.check_id
+            );
             return false;
         }
 
-        info!("Applying AI-generated remediation for '{}'", action.check_id);
+        info!(
+            "Applying AI-generated remediation for '{}'",
+            action.check_id
+        );
 
         let engine = Arc::clone(&self.remediation_engine);
         let check_id = action.check_id.clone();
-        
-        let result = match run_remediation(engine, action).await {
+
+        // `true`: the user reviewed and confirmed this script in the GUI
+        // before ApplyAiRemediation was sent (see pages/vulnerabilities.rs).
+        let result = match run_remediation(engine, action, true).await {
             Some(r) => r,
             None => {
                 self.emit_notification(
@@ -146,7 +164,9 @@ impl AgentRuntime {
         if let Some(audit) = &self.audit_trail {
             audit
                 .log(
-                    crate::audit_trail::AuditAction::AIInteraction { prompt_preview: format!("Apply AI Fix for {}", check_id) },
+                    crate::audit_trail::AuditAction::AIInteraction {
+                        prompt_preview: format!("Apply AI Fix for {}", check_id),
+                    },
                     "user",
                     Some(format!(
                         "Status: {:?}, Output: {}",
@@ -175,14 +195,19 @@ impl AgentRuntime {
         } else {
             self.emit_notification(
                 "Échec du Correctif IA",
-                &format!("L'application du correctif IA pour '{}' a échoué.", check_id),
+                &format!(
+                    "L'application du correctif IA pour '{}' a échoué.",
+                    check_id
+                ),
                 "error",
             );
         }
 
         // Force reload
-        self.state.force_check.store(true, std::sync::atomic::Ordering::Release);
-        
+        self.state
+            .force_check
+            .store(true, std::sync::atomic::Ordering::Release);
+
         success
     }
 

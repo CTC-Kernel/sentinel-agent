@@ -15,7 +15,7 @@ impl SoundManager {
         let host = cpal::default_host();
         let device = host.default_output_device()?;
         let config = device.default_output_config().ok()?;
-        
+
         Some(Self {
             device,
             config: config.into(),
@@ -25,7 +25,7 @@ impl SoundManager {
     /// Play a sequence of tones (Iron Man style confirmation).
     pub fn play_confirmation(&self) {
         let tones = vec![
-            (880.0, 0.1), // A5
+            (880.0, 0.1),   // A5
             (1760.0, 0.05), // A6
         ];
         self.play_tones(tones);
@@ -33,20 +33,13 @@ impl SoundManager {
 
     /// Play a "Scan Started" sound (rising frequency).
     pub fn play_scan_start(&self) {
-        let tones = vec![
-            (440.0, 0.1),
-            (554.37, 0.1),
-            (659.25, 0.1),
-        ];
+        let tones = vec![(440.0, 0.1), (554.37, 0.1), (659.25, 0.1)];
         self.play_tones(tones);
     }
 
     /// Play an error sound (falling frequency).
     pub fn play_error(&self) {
-        let tones = vec![
-            (220.0, 0.2),
-            (110.0, 0.3),
-        ];
+        let tones = vec![(220.0, 0.2), (110.0, 0.3)];
         self.play_tones(tones);
     }
 
@@ -60,21 +53,25 @@ impl SoundManager {
             for (freq, duration) in tones {
                 let mut sample_clock = 0f32;
                 let _num_samples = (duration * sample_rate) as usize;
-                
-                let stream = device.build_output_stream(
-                    &config,
-                    move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
-                        for frame in data.chunks_mut(channels) {
-                            let value = (sample_clock * freq * 2.0 * std::f32::consts::PI / sample_rate).sin();
-                            for sample in frame.iter_mut() {
-                                *sample = value * 0.2; // Volume 20%
+
+                let stream = device
+                    .build_output_stream(
+                        &config,
+                        move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+                            for frame in data.chunks_mut(channels) {
+                                let value = (sample_clock * freq * 2.0 * std::f32::consts::PI
+                                    / sample_rate)
+                                    .sin();
+                                for sample in frame.iter_mut() {
+                                    *sample = value * 0.2; // Volume 20%
+                                }
+                                sample_clock += 1.0;
                             }
-                            sample_clock += 1.0;
-                        }
-                    },
-                    |err| error!("SoundManager: Stream error: {}", err),
-                    None,
-                ).ok();
+                        },
+                        |err| error!("SoundManager: Stream error: {}", err),
+                        None,
+                    )
+                    .ok();
 
                 if let Some(s) = stream {
                     let _ = s.play();

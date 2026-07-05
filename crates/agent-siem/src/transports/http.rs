@@ -95,7 +95,15 @@ impl HttpTransport {
 
     /// Create an HTTP transport configured for Splunk HEC.
     pub fn for_splunk(url: String, hec_token: String) -> Self {
-        Self::new(url, Some(hec_token), Some("Splunk".to_string()), true, None, None, true)
+        Self::new(
+            url,
+            Some(hec_token),
+            Some("Splunk".to_string()),
+            true,
+            None,
+            None,
+            true,
+        )
     }
 
     /// Create an HTTP transport configured for Azure Sentinel.
@@ -104,12 +112,28 @@ impl HttpTransport {
             "https://{}.ods.opinsights.azure.com/api/logs?api-version=2016-04-01",
             workspace_id
         );
-        Self::new(url, Some(shared_key), Some("SharedKey".to_string()), true, None, None, true)
+        Self::new(
+            url,
+            Some(shared_key),
+            Some("SharedKey".to_string()),
+            true,
+            None,
+            None,
+            true,
+        )
     }
 
     /// Create an HTTP transport configured for Elastic.
     pub fn for_elastic(url: String, api_key: Option<String>) -> Self {
-        Self::new(url, api_key, Some("ApiKey".to_string()), true, None, None, true)
+        Self::new(
+            url,
+            api_key,
+            Some("ApiKey".to_string()),
+            true,
+            None,
+            None,
+            true,
+        )
     }
 
     /// Send data with retry logic and exponential backoff.

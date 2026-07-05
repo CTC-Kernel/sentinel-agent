@@ -40,7 +40,8 @@ pub struct RuntimeState {
     /// Whether the LLM model is currently loaded (relaxes resource limits).
     pub llm_loaded: Arc<AtomicBool>,
     /// Last vulnerability scan results (cached for AI analysis context).
-    pub last_vuln_findings: Arc<tokio::sync::RwLock<Option<agent_scanner::VulnerabilityScanResult>>>,
+    pub last_vuln_findings:
+        Arc<tokio::sync::RwLock<Option<agent_scanner::VulnerabilityScanResult>>>,
 }
 
 /// A request to remediate or preview a check.
@@ -51,7 +52,9 @@ pub enum RemediationRequest {
     /// Generate and emit a preview for a check.
     Preview { check_id: String },
     /// Execute an AI-generated remediation action.
-    ApplyAi { action: agent_common::types::RemediationAction },
+    ApplyAi {
+        action: agent_common::types::RemediationAction,
+    },
 }
 
 impl RuntimeState {

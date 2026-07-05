@@ -402,14 +402,14 @@ impl VulnerabilitiesPage {
                 "Exporter",
                 icons::DOWNLOAD,
             ));
-            
+
             // "Appliquer le correctif IA" button — only if AI script is available
             let has_ai_fix = finding.ai_remediation_script.is_some();
             if has_ai_fix {
-                actions.insert(0, widgets::DetailAction::primary(
-                    "Appliquer correctif IA",
-                    icons::WAND_SPARKLES,
-                ));
+                actions.insert(
+                    0,
+                    widgets::DetailAction::primary("Appliquer correctif IA", icons::WAND_SPARKLES),
+                );
             }
 
             let cve_display = &finding.cve_id;
@@ -499,7 +499,10 @@ impl VulnerabilitiesPage {
                             }
 
                             // AI Remediation Proposal section
-                            if let (Some(explanation), Some(script)) = (&finding.ai_remediation_explanation, &finding.ai_remediation_script) {
+                            if let (Some(explanation), Some(script)) = (
+                                &finding.ai_remediation_explanation,
+                                &finding.ai_remediation_script,
+                            ) {
                                 widgets::detail_ai_proposal(ui, explanation, script);
                             }
 
@@ -588,7 +591,14 @@ impl VulnerabilitiesPage {
                             id: uuid::Uuid::new_v4(),
                             check_id: finding.cve_id.clone(),
                             description: finding.description.clone(),
-                            platform: if cfg!(target_os = "macos") { "macos" } else if cfg!(target_os = "windows") { "windows" } else { "linux" }.to_string(),
+                            platform: if cfg!(target_os = "macos") {
+                                "macos"
+                            } else if cfg!(target_os = "windows") {
+                                "windows"
+                            } else {
+                                "linux"
+                            }
+                            .to_string(),
                             script: script.join("\n"),
                             requires_reboot: false,
                             requires_admin: true,
@@ -598,7 +608,7 @@ impl VulnerabilitiesPage {
                             is_ai_generated: true,
                         };
                         command = Some(GuiCommand::ApplyAiRemediation { action });
-                        
+
                         let time = ui.input(|i| i.time);
                         state.toasts.push(
                             crate::widgets::toast::Toast::info("Application du correctif IA...")

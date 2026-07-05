@@ -147,7 +147,11 @@ fn validate_arg(label: &str, value: &str) -> Result<()> {
 
 /// Validate a SHA-256 checksum string (64 lowercase/upper hex chars).
 fn validate_checksum(checksum: &str) -> Result<String> {
-    let c = checksum.split_whitespace().next().unwrap_or("").to_lowercase();
+    let c = checksum
+        .split_whitespace()
+        .next()
+        .unwrap_or("")
+        .to_lowercase();
     if c.len() != 64 || !c.chars().all(|ch| ch.is_ascii_hexdigit()) {
         return Err(CommonError::validation(
             "install package checksum must be a 64-char SHA-256 hex string",
@@ -181,7 +185,9 @@ fn parse_install_request(payload: &Value) -> Result<InstallRequest> {
         .and_then(|v| v.as_str())
         .and_then(DeploymentMethod::parse)
         .ok_or_else(|| {
-            CommonError::validation("unsupported or missing deploymentMethod (allowed: msi, exe, pkg, deb, rpm)")
+            CommonError::validation(
+                "unsupported or missing deploymentMethod (allowed: msi, exe, pkg, deb, rpm)",
+            )
         })?;
 
     let source = cfg
@@ -209,14 +215,15 @@ fn parse_install_request(payload: &Value) -> Result<InstallRequest> {
     let checksum = source
         .get("checksum")
         .and_then(|v| v.as_str())
-        .ok_or_else(|| {
-            CommonError::validation("install package requires a SHA-256 checksum")
-        })?;
+        .ok_or_else(|| CommonError::validation("install package requires a SHA-256 checksum"))?;
     let checksum = validate_checksum(checksum)?;
 
     // Optional install arguments, each validated to be metacharacter-free.
     let mut install_args = Vec::new();
-    if let Some(args) = cfg.pointer("/parameters/installArgs").and_then(|v| v.as_array()) {
+    if let Some(args) = cfg
+        .pointer("/parameters/installArgs")
+        .and_then(|v| v.as_array())
+    {
         for (i, a) in args.iter().enumerate() {
             let s = a
                 .as_str()
@@ -266,7 +273,9 @@ fn verify_checksum(path: &Path, expected: &str) -> Result<()> {
             == 0;
     if !ct_equal {
         error!("MDM package checksum mismatch: expected {expected}, got {actual}");
-        return Err(CommonError::validation("package checksum verification failed"));
+        return Err(CommonError::validation(
+            "package checksum verification failed",
+        ));
     }
     Ok(())
 }
@@ -319,11 +328,7 @@ fn build_install_command(
 }
 
 /// Run a validated install/update request. Downloads, verifies, and installs.
-async fn run_install(
-    api: &ApiClient,
-    req: InstallRequest,
-    command_type: &str,
-) -> MdmCommandResult {
+async fn run_install(api: &ApiClient, req: InstallRequest, command_type: &str) -> MdmCommandResult {
     if !crate::service::is_admin() {
         return MdmCommandResult::failure(
             command_type,
@@ -398,7 +403,10 @@ async fn run_install(
         Ok(out) => {
             let stderr = String::from_utf8_lossy(&out.stderr);
             let code = out.status.code().unwrap_or(-1);
-            warn!("MDM {} installer failed (code {}): {}", command_type, code, stderr);
+            warn!(
+                "MDM {} installer failed (code {}): {}",
+                command_type, code, stderr
+            );
             MdmCommandResult::failure(
                 command_type,
                 req.software_id,

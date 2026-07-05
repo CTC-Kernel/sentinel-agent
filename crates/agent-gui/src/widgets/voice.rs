@@ -3,12 +3,12 @@
 
 //! Premium voice interaction widgets.
 
-use egui::{Response, Sense, Stroke, Ui};
-use crate::theme;
 use crate::icons;
+use crate::theme;
+use egui::{Response, Sense, Stroke, Ui};
 
 /// A premium, animated voice toggle button.
-/// 
+///
 /// Displays a microphone icon in a circular backdrop.
 /// When listening, it features a glowing cyan pulse animation.
 pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
@@ -18,16 +18,17 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
         let is_clicked = response.is_pointer_button_down_on();
-        
+
         let t = ui.input(|i| i.time);
-        
+
         // --- 1. Background Aura (Pulse) ---
         if is_listening && !theme::is_reduced_motion() {
             let pulse = (t * 4.0).sin().abs() as f32; // Pulse factor 0.0 -> 1.0
             let aura_radius = (size / 2.0) + (pulse * 6.0);
             let aura_color = theme::ACCENT.linear_multiply(0.2 * (1.0 - pulse));
-            
-            ui.painter().circle_filled(rect.center(), aura_radius, aura_color);
+
+            ui.painter()
+                .circle_filled(rect.center(), aura_radius, aura_color);
         }
 
         // --- 2. Main Backdrop ---
@@ -47,7 +48,11 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
             theme::separator()
         };
 
-        let border_width = if is_listening { theme::BORDER_THICK } else { theme::BORDER_THIN };
+        let border_width = if is_listening {
+            theme::BORDER_THICK
+        } else {
+            theme::BORDER_THIN
+        };
 
         ui.painter().circle(
             rect.center(),
@@ -67,7 +72,11 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
         }
 
         // --- 4. Icon ---
-        let icon = if is_listening { icons::MICROPHONE } else { icons::MICROPHONE_SLASH };
+        let icon = if is_listening {
+            icons::MICROPHONE
+        } else {
+            icons::MICROPHONE_SLASH
+        };
         let icon_color = if is_listening {
             theme::ACCENT
         } else if is_hovered {
@@ -76,7 +85,11 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
             theme::text_secondary()
         };
 
-        let icon_size = if is_clicked { theme::ICON_SM } else { theme::ICON_MD };
+        let icon_size = if is_clicked {
+            theme::ICON_SM
+        } else {
+            theme::ICON_MD
+        };
 
         ui.painter().text(
             rect.center(),
@@ -92,9 +105,11 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
         }
     }
 
-    response.on_hover_text(if is_listening { 
-        "Voice Assistant: ACTIF (cliquer pour désactiver)" 
-    } else { 
-        "Voice Assistant: INACTIF (cliquer pour activer)" 
-    }).on_hover_cursor(egui::CursorIcon::PointingHand)
+    response
+        .on_hover_text(if is_listening {
+            "Voice Assistant: ACTIF (cliquer pour désactiver)"
+        } else {
+            "Voice Assistant: INACTIF (cliquer pour activer)"
+        })
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
 }

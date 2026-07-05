@@ -243,7 +243,9 @@ where
             timestamp: chrono::Utc::now(),
             level,
             target,
-            message: visitor.message,
+            // Redact secrets before the message reaches the GUI terminal,
+            // mirroring what RedactingWriter does for console/file sinks.
+            message: agent_common::filter_sensitive_data(&visitor.message),
         };
 
         // Non-blocking send — intentionally fire-and-forget.

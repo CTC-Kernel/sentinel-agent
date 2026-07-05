@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 use super::AIPlugin;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use async_trait::async_trait;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::time::Duration;
 
 /// Plugin for querying Open Source Vulnerabilities (OSV).
@@ -34,9 +34,15 @@ impl AIPlugin for OsvPlugin {
     }
 
     async fn execute(&self, input: Value) -> Result<Value> {
-        let package = input["package"].as_str().ok_or_else(|| anyhow!("Missing package"))?;
-        let version = input["version"].as_str().ok_or_else(|| anyhow!("Missing version"))?;
-        let ecosystem = input["ecosystem"].as_str().ok_or_else(|| anyhow!("Missing ecosystem"))?;
+        let package = input["package"]
+            .as_str()
+            .ok_or_else(|| anyhow!("Missing package"))?;
+        let version = input["version"]
+            .as_str()
+            .ok_or_else(|| anyhow!("Missing version"))?;
+        let ecosystem = input["ecosystem"]
+            .as_str()
+            .ok_or_else(|| anyhow!("Missing ecosystem"))?;
 
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(10))

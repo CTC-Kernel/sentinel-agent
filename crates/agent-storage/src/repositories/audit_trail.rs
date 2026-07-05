@@ -112,9 +112,12 @@ impl<'a> AuditTrailRepository<'a> {
             .details
             .as_deref()
             .and_then(|d| serde_json::from_str::<serde_json::Value>(d).ok())
-            .and_then(|v| v.get("_integrity").and_then(|i| i.as_str().map(|s| s.to_string())))
+            .and_then(|v| {
+                v.get("_integrity")
+                    .and_then(|i| i.as_str().map(|s| s.to_string()))
+            })
             .unwrap_or_default();
-        
+
         computed == embedded
     }
 

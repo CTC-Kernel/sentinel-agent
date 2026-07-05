@@ -28,6 +28,8 @@ pub mod resources;
 pub mod self_protection;
 pub mod service;
 pub mod siem_enrichment;
+#[cfg(feature = "voice")]
+pub mod sounds;
 pub mod state;
 #[cfg(feature = "gui")]
 pub mod sync_converters;
@@ -36,8 +38,6 @@ pub mod tracing_layer;
 pub mod update_manager;
 #[cfg(feature = "voice")]
 pub mod voice;
-#[cfg(feature = "voice")]
-pub mod sounds;
 
 /// Stub module so that `agent_core::voice::VoiceService` is always a valid type,
 /// regardless of whether the `voice` feature is enabled.
@@ -58,12 +58,12 @@ mod compliance;
 pub mod edr_actions;
 mod enrollment;
 mod gui_bridge;
-mod risk_generation;
 mod heartbeat;
 pub mod mdm;
 mod network_ops;
 pub mod playbook_engine;
 mod remediation_ops;
+mod risk_generation;
 mod scanning;
 mod self_update;
 mod sync_init;
@@ -243,7 +243,6 @@ pub struct AgentEvent {
 
 /// Default vulnerability scan interval (6 hours).
 const DEFAULT_VULN_SCAN_INTERVAL_SECS: u64 = 6 * 60 * 60;
-
 
 /// Default security scan interval (5 minutes).
 const DEFAULT_SECURITY_SCAN_INTERVAL_SECS: u64 = 5 * 60;
@@ -460,7 +459,9 @@ impl RuntimeHandle {
             "SIEM config updated via handle: enabled={}, format={}, transport={}, dest={}",
             enabled, format, transport, destination
         );
-        self.state.siem_enabled.store(enabled, std::sync::atomic::Ordering::Release);
+        self.state
+            .siem_enabled
+            .store(enabled, std::sync::atomic::Ordering::Release);
         if let Ok(mut fmt) = self.state.siem_format.lock() {
             *fmt = format;
         }
@@ -534,7 +535,9 @@ impl RuntimeHandle {
 
     /// Signal LLM loaded/unloaded from the handle (e.g., from the command processor).
     pub fn set_llm_loaded(&self, loaded: bool) {
-        self.state.llm_loaded.store(loaded, std::sync::atomic::Ordering::Release);
+        self.state
+            .llm_loaded
+            .store(loaded, std::sync::atomic::Ordering::Release);
     }
 }
 
@@ -710,11 +713,15 @@ impl AgentRuntime {
         self.resource_monitor.set_llm_loaded(loaded);
         self.state.llm_loaded.store(loaded, Ordering::Release);
         if loaded {
-            info!("LLM model loaded — resource memory limit raised to {}MB",
-                self.resource_monitor.effective_memory_limit() / (1024 * 1024));
+            info!(
+                "LLM model loaded — resource memory limit raised to {}MB",
+                self.resource_monitor.effective_memory_limit() / (1024 * 1024)
+            );
         } else {
-            info!("LLM model unloaded — resource memory limit restored to {}MB",
-                self.resource_monitor.effective_memory_limit() / (1024 * 1024));
+            info!(
+                "LLM model unloaded — resource memory limit restored to {}MB",
+                self.resource_monitor.effective_memory_limit() / (1024 * 1024)
+            );
         }
     }
 
@@ -790,7 +797,10 @@ impl AgentRuntime {
                     Err(e) => {
                         // Non-auth error (network, timeout, etc.) — proceed anyway,
                         // sync services will retry later.
-                        warn!("Enrollment health check failed (non-auth: {}), proceeding", e);
+                        warn!(
+                            "Enrollment health check failed (non-auth: {}), proceeding",
+                            e
+                        );
                         true
                     }
                 };
@@ -1192,7 +1202,8 @@ impl AgentRuntime {
                         }
 
                         // Collect for batched uploads (avoid per-alert HTTP requests → 429)
-                        fim_batch_payloads.push(agent_sync::types::FimAlertPayload::from(alert.clone()));
+                        fim_batch_payloads
+                            .push(agent_sync::types::FimAlertPayload::from(alert.clone()));
 
                         // Forward to SIEM (always record for platform, optionally send to external)
                         let siem_description = report.description.clone();
@@ -1237,9 +1248,10 @@ impl AgentRuntime {
 
                             // Optionally forward to external SIEM
                             if siem.is_enabled()
-                                && let Err(e) = siem.send_event(&event).await {
-                                    warn!("Failed to forward FIM event to external SIEM: {}", e);
-                                }
+                                && let Err(e) = siem.send_event(&event).await
+                            {
+                                warn!("Failed to forward FIM event to external SIEM: {}", e);
+                            }
                         }
                     }
                 }
@@ -1251,9 +1263,10 @@ impl AgentRuntime {
 
                 // Upload structured FIM alerts (batched)
                 if let Some(ref auth_client) = self.authenticated_client
-                    && let Err(e) = auth_client.upload_fim_alerts(fim_batch_payloads).await {
-                        warn!("Failed to upload {} FIM alert(s) to SaaS: {}", count, e);
-                    }
+                    && let Err(e) = auth_client.upload_fim_alerts(fim_batch_payloads).await
+                {
+                    warn!("Failed to upload {} FIM alert(s) to SaaS: {}", count, e);
+                }
 
                 // Report a single summary incident instead of one per file change
                 if let Some(client) = self.api_client.read().await.as_ref() {
@@ -1304,57 +1317,62 @@ impl AgentRuntime {
             #[cfg(feature = "gui")]
             {
                 let gui_enabled = self.state.siem_enabled.load(Ordering::Acquire);
-                let has_destination = self.state.siem_destination.lock()
+                let has_destination = self
+                    .state
+                    .siem_destination
+                    .lock()
                     .map(|d| !d.is_empty())
                     .unwrap_or(false);
                 // Don't activate external transport without a configured destination
                 let effective_enabled = gui_enabled && has_destination;
                 let mut siem_guard = self.siem_forwarder.write().await;
                 if let Some(ref mut siem) = *siem_guard
-                    && siem.is_enabled() != effective_enabled {
-                        let mut new_config = siem.config().clone();
-                        new_config.enabled = effective_enabled;
-                        if let Ok(fmt) = self.state.siem_format.lock() {
-                            new_config.format = match fmt.as_str() {
-                                "CEF" => agent_siem::SiemFormat::Cef,
-                                "LEEF" => agent_siem::SiemFormat::Leef,
-                                _ => agent_siem::SiemFormat::Json,
-                            };
-                        }
-                        if has_destination
-                            && let Ok(dest) = self.state.siem_destination.lock()
-                            && let Ok(tr) = self.state.siem_transport.lock() {
-                            match tr.as_str() {
-                                "HTTP" => {
-                                    new_config.transport = agent_siem::SiemTransport::Http {
-                                        url: dest.clone(),
-                                        auth_token: None,
-                                        auth_header: None,
-                                        verify_tls: true,
-                                        client_cert: None,
-                                        client_key: None,
-                                    };
-                                }
-                                _ => {
-                                    let parts: Vec<&str> = dest.splitn(2, ':').collect();
-                                    let host = parts.first().unwrap_or(&"localhost").to_string();
-                                    let port = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(514);
-                                    new_config.transport = agent_siem::SiemTransport::Syslog {
-                                        host,
-                                        port,
-                                        protocol: agent_siem::SyslogProtocol::Tcp,
-                                        tls: false,
-                                        client_cert: None,
-                                        client_key: None,
-                                    };
-                                }
+                    && siem.is_enabled() != effective_enabled
+                {
+                    let mut new_config = siem.config().clone();
+                    new_config.enabled = effective_enabled;
+                    if let Ok(fmt) = self.state.siem_format.lock() {
+                        new_config.format = match fmt.as_str() {
+                            "CEF" => agent_siem::SiemFormat::Cef,
+                            "LEEF" => agent_siem::SiemFormat::Leef,
+                            _ => agent_siem::SiemFormat::Json,
+                        };
+                    }
+                    if has_destination
+                        && let Ok(dest) = self.state.siem_destination.lock()
+                        && let Ok(tr) = self.state.siem_transport.lock()
+                    {
+                        match tr.as_str() {
+                            "HTTP" => {
+                                new_config.transport = agent_siem::SiemTransport::Http {
+                                    url: dest.clone(),
+                                    auth_token: None,
+                                    auth_header: None,
+                                    verify_tls: true,
+                                    client_cert: None,
+                                    client_key: None,
+                                };
+                            }
+                            _ => {
+                                let parts: Vec<&str> = dest.splitn(2, ':').collect();
+                                let host = parts.first().unwrap_or(&"localhost").to_string();
+                                let port = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(514);
+                                new_config.transport = agent_siem::SiemTransport::Syslog {
+                                    host,
+                                    port,
+                                    protocol: agent_siem::SyslogProtocol::Tcp,
+                                    tls: false,
+                                    client_cert: None,
+                                    client_key: None,
+                                };
                             }
                         }
-                        if let Err(e) = siem.update_config(new_config) {
-                            warn!("Failed to apply GUI SIEM config: {}", e);
-                        } else if effective_enabled {
-                            info!("SIEM forwarder config synced from GUI (enabled=true)");
-                        }
+                    }
+                    if let Err(e) = siem.update_config(new_config) {
+                        warn!("Failed to apply GUI SIEM config: {}", e);
+                    } else if effective_enabled {
+                        info!("SIEM forwarder config synced from GUI (enabled=true)");
+                    }
                 }
             }
 
@@ -1426,56 +1444,55 @@ impl AgentRuntime {
 
                         // Sync SIEM data to the platform
                         if let Some(ref client) = self.authenticated_client
-                            && let Some(ref siem) = *self.siem_forwarder.read().await {
-                                let stats = siem.stats().await;
-                                let recent = siem.take_recent_events().await;
-                                let cfg = siem.config();
+                            && let Some(ref siem) = *self.siem_forwarder.read().await
+                        {
+                            let stats = siem.stats().await;
+                            let recent = siem.take_recent_events().await;
+                            let cfg = siem.config();
 
-                                let events: Vec<agent_sync::SiemEventPayload> = recent
-                                    .iter()
-                                    .map(|e| agent_sync::SiemEventPayload {
-                                        timestamp: e.timestamp,
-                                        severity: e.severity,
-                                        category: format!("{}", e.category),
-                                        name: e.name.clone(),
-                                        description: e.description.clone(),
-                                        source_host: e.source_host.clone(),
-                                        source_ip: e.source_ip.clone(),
-                                        destination_ip: e.destination_ip.clone(),
-                                        event_id: e.event_id.clone(),
-                                    })
-                                    .collect();
+                            let events: Vec<agent_sync::SiemEventPayload> = recent
+                                .iter()
+                                .map(|e| agent_sync::SiemEventPayload {
+                                    timestamp: e.timestamp,
+                                    severity: e.severity,
+                                    category: format!("{}", e.category),
+                                    name: e.name.clone(),
+                                    description: e.description.clone(),
+                                    source_host: e.source_host.clone(),
+                                    source_ip: e.source_ip.clone(),
+                                    destination_ip: e.destination_ip.clone(),
+                                    event_id: e.event_id.clone(),
+                                })
+                                .collect();
 
-                                let request = agent_sync::SiemSyncRequest {
-                                    events,
-                                    stats: agent_sync::SiemStatsPayload {
-                                        enabled: cfg.enabled,
-                                        format: format!("{}", cfg.format),
-                                        transport: format!("{}", cfg.transport),
-                                        destination: cfg.destination_label(),
-                                        events_sent: stats.events_sent,
-                                        events_dropped: stats.events_dropped,
-                                        bytes_sent: stats.bytes_sent,
-                                        is_connected: stats.is_connected,
-                                        last_error: stats.last_error.clone(),
-                                        reported_at: chrono::Utc::now(),
-                                    },
-                                };
+                            let request = agent_sync::SiemSyncRequest {
+                                events,
+                                stats: agent_sync::SiemStatsPayload {
+                                    enabled: cfg.enabled,
+                                    format: format!("{}", cfg.format),
+                                    transport: format!("{}", cfg.transport),
+                                    destination: cfg.destination_label(),
+                                    events_sent: stats.events_sent,
+                                    events_dropped: stats.events_dropped,
+                                    bytes_sent: stats.bytes_sent,
+                                    is_connected: stats.is_connected,
+                                    last_error: stats.last_error.clone(),
+                                    reported_at: chrono::Utc::now(),
+                                },
+                            };
 
-                                if let Err(e) = client.sync_siem_data(request).await {
-                                    warn!("Failed to sync SIEM data to platform: {}", e);
-                                }
+                            if let Err(e) = client.sync_siem_data(request).await {
+                                warn!("Failed to sync SIEM data to platform: {}", e);
                             }
+                        }
                     }
                     Err(e) => {
                         warn!("Heartbeat failed: {}", e);
                         #[cfg(feature = "gui")]
                         self.emit_notification("Heartbeat échoué", &format!("{}", e), "warning");
                         if e.is_auth_error() {
-                            let failures = self
-                                .auth_failure_count
-                                .fetch_add(1, Ordering::AcqRel)
-                                + 1;
+                            let failures =
+                                self.auth_failure_count.fetch_add(1, Ordering::AcqRel) + 1;
                             warn!(
                                 "Authentication error (failure #{}/{})",
                                 failures,
@@ -1483,15 +1500,15 @@ impl AgentRuntime {
                             );
 
                             // Attempt re-enrollment with exponential backoff
-                            if (Self::AUTH_FAILURE_THRESHOLD..=Self::MAX_RE_ENROLLMENT_ATTEMPTS).contains(&failures)
+                            if (Self::AUTH_FAILURE_THRESHOLD..=Self::MAX_RE_ENROLLMENT_ATTEMPTS)
+                                .contains(&failures)
                             {
                                 let now_secs = std::time::SystemTime::now()
                                     .duration_since(std::time::UNIX_EPOCH)
                                     .unwrap_or_default()
                                     .as_secs();
-                                let last_attempt = self
-                                    .last_re_enrollment_attempt
-                                    .load(Ordering::Acquire);
+                                let last_attempt =
+                                    self.last_re_enrollment_attempt.load(Ordering::Acquire);
 
                                 // Exponential backoff: 30s, 120s, 600s based on attempt number
                                 let attempt_index = failures - Self::AUTH_FAILURE_THRESHOLD;
@@ -1510,9 +1527,10 @@ impl AgentRuntime {
                                     );
                                     match self.attempt_re_enrollment().await {
                                         Ok(true) => {
-                                            info!("Re-enrollment succeeded, resetting auth failure counter");
-                                            self.auth_failure_count
-                                                .store(0, Ordering::Relaxed);
+                                            info!(
+                                                "Re-enrollment succeeded, resetting auth failure counter"
+                                            );
+                                            self.auth_failure_count.store(0, Ordering::Relaxed);
                                             #[cfg(feature = "gui")]
                                             self.emit_notification(
                                                 "Ré-enregistrement réussi",
@@ -1543,9 +1561,8 @@ impl AgentRuntime {
                                 } else {
                                     debug!(
                                         "Re-enrollment cooldown active ({}s remaining)",
-                                        cooldown_secs.saturating_sub(
-                                            now_secs.saturating_sub(last_attempt)
-                                        )
+                                        cooldown_secs
+                                            .saturating_sub(now_secs.saturating_sub(last_attempt))
                                     );
                                 }
                             } else if failures > Self::MAX_RE_ENROLLMENT_ATTEMPTS {
@@ -1993,8 +2010,7 @@ impl AgentRuntime {
                                 self.emit_siem_stats(
                                     siem_events.len() as u64,
                                     siem_connected,
-                                    siem_events.len() as f32
-                                        / (poll_secs.max(1) as f32 / 60.0),
+                                    siem_events.len() as f32 / (poll_secs.max(1) as f32 / 60.0),
                                     cat_map.into_iter().collect(),
                                 );
                             }
@@ -2008,9 +2024,13 @@ impl AgentRuntime {
 
                                     // Additionally forward to external SIEM if configured
                                     if siem.is_enabled()
-                                        && let Err(e) = siem.send_event(event).await {
-                                            warn!("Failed to forward log event to external SIEM: {}", e);
-                                        }
+                                        && let Err(e) = siem.send_event(event).await
+                                    {
+                                        warn!(
+                                            "Failed to forward log event to external SIEM: {}",
+                                            e
+                                        );
+                                    }
                                 }
                             }
                             drop(siem_guard);
@@ -2020,10 +2040,7 @@ impl AgentRuntime {
                             if let Some(ref engine) = *corr_guard {
                                 let alerts = engine.process_events(&siem_events).await;
                                 if !alerts.is_empty() {
-                                    warn!(
-                                        "Correlation engine triggered {} alert(s)",
-                                        alerts.len()
-                                    );
+                                    warn!("Correlation engine triggered {} alert(s)", alerts.len());
 
                                     // Forward correlation alerts to SIEM (record for platform + optional external)
                                     let siem_guard = self.siem_forwarder.read().await;
@@ -2035,9 +2052,13 @@ impl AgentRuntime {
                                             let event = engine.alert_to_event(alert, &host);
                                             siem.record_event(event.clone()).await;
                                             if siem.is_enabled()
-                                                && let Err(e) = siem.send_event(&event).await {
-                                                    warn!("Failed to forward correlation alert to external SIEM: {}", e);
-                                                }
+                                                && let Err(e) = siem.send_event(&event).await
+                                            {
+                                                warn!(
+                                                    "Failed to forward correlation alert to external SIEM: {}",
+                                                    e
+                                                );
+                                            }
                                         }
                                     }
                                     drop(siem_guard);
@@ -2050,13 +2071,26 @@ impl AgentRuntime {
                                                 Severity as SyncSeverity,
                                             };
                                             let incident_type = match alert.rule_id.as_str() {
-                                                "brute_force" | "windows_logon_failure_burst" => SyncIncidentType::CredentialTheft,
-                                                "privilege_escalation" => SyncIncidentType::PrivilegeEscalation,
-                                                "file_integrity_burst" | "windows_audit_log_cleared"
-                                                    | "windows_account_changes" => SyncIncidentType::UnauthorizedChange,
-                                                "windows_service_install_burst" => SyncIncidentType::Malware,
-                                                "windows_firewall_changes" => SyncIncidentType::FirewallDisabled,
-                                                "network_scan" | "critical_errors" => SyncIncidentType::SuspiciousProcess,
+                                                "brute_force" | "windows_logon_failure_burst" => {
+                                                    SyncIncidentType::CredentialTheft
+                                                }
+                                                "privilege_escalation" => {
+                                                    SyncIncidentType::PrivilegeEscalation
+                                                }
+                                                "file_integrity_burst"
+                                                | "windows_audit_log_cleared"
+                                                | "windows_account_changes" => {
+                                                    SyncIncidentType::UnauthorizedChange
+                                                }
+                                                "windows_service_install_burst" => {
+                                                    SyncIncidentType::Malware
+                                                }
+                                                "windows_firewall_changes" => {
+                                                    SyncIncidentType::FirewallDisabled
+                                                }
+                                                "network_scan" | "critical_errors" => {
+                                                    SyncIncidentType::SuspiciousProcess
+                                                }
                                                 _ => SyncIncidentType::SuspiciousProcess,
                                             };
                                             let severity = if alert.severity >= 8 {
@@ -2066,23 +2100,26 @@ impl AgentRuntime {
                                             } else {
                                                 SyncSeverity::Medium
                                             };
-                                            let report = agent_sync::types::SecurityIncidentReport {
-                                                incident_type,
-                                                severity,
-                                                title: alert.rule_name.clone(),
-                                                description: format!(
-                                                    "{} ({} events in {}s)",
-                                                    alert.description, alert.event_count,
-                                                    (alert.last_event - alert.first_event).num_seconds()
-                                                ),
-                                                evidence: serde_json::json!({
-                                                    "rule_id": alert.rule_id,
-                                                    "event_count": alert.event_count,
-                                                    "sample_event_ids": alert.sample_event_ids,
-                                                }),
-                                                confidence: 80,
-                                                detected_at: alert.generated_at,
-                                            };
+                                            let report =
+                                                agent_sync::types::SecurityIncidentReport {
+                                                    incident_type,
+                                                    severity,
+                                                    title: alert.rule_name.clone(),
+                                                    description: format!(
+                                                        "{} ({} events in {}s)",
+                                                        alert.description,
+                                                        alert.event_count,
+                                                        (alert.last_event - alert.first_event)
+                                                            .num_seconds()
+                                                    ),
+                                                    evidence: serde_json::json!({
+                                                        "rule_id": alert.rule_id,
+                                                        "event_count": alert.event_count,
+                                                        "sample_event_ids": alert.sample_event_ids,
+                                                    }),
+                                                    confidence: 80,
+                                                    detected_at: alert.generated_at,
+                                                };
                                             if let Err(e) = client.report_incident(report).await {
                                                 warn!("Failed to upload correlation alert: {}", e);
                                             }
@@ -2256,9 +2293,13 @@ impl AgentRuntime {
                         }
                         siem.record_event(event.clone()).await;
                         if siem.is_enabled()
-                            && let Err(e) = siem.send_event(&event).await {
-                                warn!("Failed to forward security incident to external SIEM: {}", e);
-                            }
+                            && let Err(e) = siem.send_event(&event).await
+                        {
+                            warn!(
+                                "Failed to forward security incident to external SIEM: {}",
+                                e
+                            );
+                        }
                     }
 
                     // Network alerts → SIEM
@@ -2312,9 +2353,10 @@ impl AgentRuntime {
                         }
                         siem.record_event(event.clone()).await;
                         if siem.is_enabled()
-                            && let Err(e) = siem.send_event(&event).await {
-                                warn!("Failed to forward network alert to external SIEM: {}", e);
-                            }
+                            && let Err(e) = siem.send_event(&event).await
+                        {
+                            warn!("Failed to forward network alert to external SIEM: {}", e);
+                        }
                     }
 
                     if !pipeline_incidents.is_empty() || !pipeline_network_alerts.is_empty() {
@@ -2419,9 +2461,9 @@ impl AgentRuntime {
                                         info!("Re-enrollment after certificate expiry succeeded");
                                         self.auth_failure_count.store(0, Ordering::Release);
                                     }
-                                    Ok(false) => warn!(
-                                        "Cannot re-enroll: no enrollment token configured"
-                                    ),
+                                    Ok(false) => {
+                                        warn!("Cannot re-enroll: no enrollment token configured")
+                                    }
                                     Err(re_err) => error!(
                                         "Re-enrollment after certificate expiry failed: {}",
                                         re_err
@@ -2837,9 +2879,8 @@ impl AgentRuntime {
             let usage = self.resource_monitor.get_usage();
 
             // Sync LLM loaded flag from runtime state to resource monitor
-            self.resource_monitor.set_llm_loaded(
-                self.state.llm_loaded.load(Ordering::Acquire),
-            );
+            self.resource_monitor
+                .set_llm_loaded(self.state.llm_loaded.load(Ordering::Acquire));
 
             if is_active {
                 self.resource_monitor

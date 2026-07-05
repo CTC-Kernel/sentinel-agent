@@ -35,6 +35,19 @@ Avant de pouvoir communiquer avec la plateforme Sentinel GRC, l'agent doit s'enr
 3. Cliquez sur **Générer un token** — un JWT est créé contenant votre `organizationId`.
 4. Copiez le token et configurez-le dans `agent.json` (champ `enrollment_token`).
 
+Vous pouvez aussi enrôler via la ligne de commande. Par ordre de préférence :
+
+```bash
+# Recommandé : saisie interactive (le token ne touche ni l'historique shell ni la liste des processus)
+sentinel-agent enroll
+
+# Alternative pour scripts/MDM : variable d'environnement
+SENTINEL_ENROLLMENT_TOKEN="<token>" sentinel-agent enroll
+
+# Déconseillé : le token est visible par tous les utilisateurs locaux via `ps`
+sentinel-agent enroll --token "<token>"
+```
+
 ### Processus d'enrollment
 1. Au premier démarrage, l'agent détecte qu'il n'est pas encore enrôlé.
 2. Il envoie une `EnrollmentRequest` à la plateforme avec le token JWT.
