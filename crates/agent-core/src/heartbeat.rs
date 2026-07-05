@@ -329,7 +329,7 @@ impl AgentRuntime {
                                 .report_success(&cmd.id, Some("Sync triggered".to_string()))
                                 .await
                         }
-                        "run_checks" => {
+                        "run_checks" | "scan" => {
                             self.state.force_check.store(true, Ordering::Release);
                             service
                                 .report_success(
