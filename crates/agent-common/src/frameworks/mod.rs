@@ -76,6 +76,25 @@ pub fn normalize_framework_id(raw: &str) -> Option<&'static str> {
     }
 }
 
+/// Human-readable display label for a framework id (canonical or raw).
+///
+/// Used by the UI and reports so operators see "ISO 27001:2022" rather than the
+/// internal `ISO_27001` token. Unknown ids fall back to their uppercase form.
+pub fn framework_display_name(id: &str) -> &str {
+    match normalize_framework_id(id) {
+        Some("CIS_V8") => "CIS Controls v8",
+        Some("NIST_CSF") => "NIST CSF 2.0",
+        Some("ISO_27001") => "ISO/IEC 27001:2022",
+        Some("PCI_DSS") => "PCI DSS v4.0",
+        Some("ANSSI_HYGIENE") => "ANSSI — Guide d'hygiène",
+        Some("NIS2") => "NIS 2",
+        Some("DORA") => "DORA",
+        Some("SOC2") => "SOC 2",
+        Some("RGPD") => "RGPD / GDPR",
+        _ => id,
+    }
+}
+
 // Embedded framework TOML data (compiled into the binary).
 const ANSSI_TOML: &str = include_str!("data/anssi.toml");
 const CIS_V8_TOML: &str = include_str!("data/cis_v8.toml");
