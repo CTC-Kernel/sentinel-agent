@@ -63,13 +63,21 @@ const MASK_REPLACEMENT: &str = "***REDACTED***";
 /// This function scans the input for various patterns that might indicate
 /// sensitive information and replaces them with a placeholder.
 pub fn filter_sensitive_data(input: &str) -> String {
-    let mut filtered = input.to_string();
+    let mut filtered = std::borrow::Cow::Borrowed(input);
 
     for pattern in TOKEN_PATTERNS.iter() {
-        filtered = pattern.replace_all(&filtered, MASK_REPLACEMENT).to_string();
+        // is_match first: the common case is a clean string, and this avoids
+        // one String allocation per pattern on the logging hot path.
+        if pattern.is_match(&filtered) {
+            filtered = std::borrow::Cow::Owned(
+                pattern
+                    .replace_all(&filtered, MASK_REPLACEMENT)
+                    .into_owned(),
+            );
+        }
     }
 
-    filtered
+    filtered.into_owned()
 }
 
 /// Check if a string contains sensitive data patterns.
