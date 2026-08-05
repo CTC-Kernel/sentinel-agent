@@ -21,7 +21,7 @@ impl NetworkPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Sys & Network", "Réseau"],
+            &["Détection & réponse", "Réseau"],
             "Réseau",
             Some("CARTOGRAPHIE DES INTERFACES ET CONNEXIONS ACTIVES"),
             Some(
@@ -55,9 +55,9 @@ impl NetworkPage {
                     format!(
                         "{}  {}",
                         if is_scanning {
-                            "SCAN EN COURS"
+                            "Analyse en cours"
                         } else {
-                            "LANCER UN SCAN"
+                            "Lancer l'analyse"
                         },
                         icons::PLAY
                     ),
@@ -81,9 +81,9 @@ impl NetworkPage {
                 format!(
                     "{}  {}",
                     if is_scanning {
-                        "SCAN EN COURS"
+                        "Analyse en cours"
                     } else {
-                        "LANCER LE SCAN"
+                        "Lancer l'analyse"
                     },
                     icons::PLAY
                 ),
@@ -820,6 +820,13 @@ impl NetworkPage {
                 .map(|(i, _)| i)
                 .collect();
 
+            const CONN_PER_PAGE: usize = 50;
+            let (nc_start, nc_len, _) = widgets::page_window(
+                filtered.len(),
+                CONN_PER_PAGE,
+                &mut state.network.connections_page,
+            );
+
             widgets::SearchFilterBar::new(&mut state.network.search, "Rechercher...")
                 .result_count(filtered.len())
                 .show(ui);
@@ -911,8 +918,8 @@ impl NetworkPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let Some(&real_idx) = filtered.get(row.index()) else {
+                        body.rows(theme::TABLE_ROW_HEIGHT, nc_len, |mut row| {
+                            let Some(&real_idx) = filtered.get(nc_start + row.index()) else {
                                 return;
                             };
                             let Some(conn) = state.network.connections.get(real_idx) else {
@@ -987,6 +994,13 @@ impl NetworkPage {
                     state.network.selected_alert = None;
                     state.network.detail_open = true;
                 }
+
+                widgets::paginate_controls(
+                    ui,
+                    filtered.len(),
+                    CONN_PER_PAGE,
+                    &mut state.network.connections_page,
+                );
             }
         });
     }

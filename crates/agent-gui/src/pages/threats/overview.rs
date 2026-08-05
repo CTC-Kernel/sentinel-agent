@@ -426,9 +426,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 format!(
                     "{}  {}",
                     if is_scanning {
-                        "SCAN EN COURS"
+                        "Analyse en cours"
                     } else {
-                        "LANCER LE SCAN"
+                        "Lancer l'analyse"
                     },
                     icons::PLAY
                 ),

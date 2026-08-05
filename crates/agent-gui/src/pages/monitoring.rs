@@ -37,7 +37,7 @@ impl MonitoringPage {
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
-            &["Pilotage", "Surveillance"],
+            &["Vue d'ensemble", "Surveillance"],
             "Surveillance & SIEM",
             Some("CENTRE DE SURVEILLANCE TEMPS RÉEL ET INTÉGRATION SIEM"),
             Some(

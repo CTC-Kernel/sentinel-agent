@@ -152,8 +152,8 @@ pub use data_table::{
     simple_table,
 };
 pub use pagination::{
-    Pagination, PaginationState, PaginationStyle, pagination, pagination_compact,
-    pagination_minimal,
+    Pagination, PaginationState, PaginationStyle, page_window, paginate_controls, pagination,
+    pagination_compact, pagination_minimal,
 };
 
 // Copy-to-clipboard exports

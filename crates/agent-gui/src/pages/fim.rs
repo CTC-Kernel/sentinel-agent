@@ -21,7 +21,7 @@ impl FimPage {
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
-            &["Sys & Network", "FIM"],
+            &["Détection & réponse", "FIM"],
             "Surveillance d'Intégrité",
             Some("D\u{00c9}TECTION DES MODIFICATIONS DE FICHIERS SYST\u{00c8}MES CRITIQUES"),
             Some(

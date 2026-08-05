@@ -195,28 +195,24 @@ impl Sidebar {
                         );
                         ui.add_space(theme::SPACE_SM);
 
-                        // Group: Principal
-                        ui.add_space(theme::SPACE_SM);
-                        Self::section_label(ui, "PILOTAGE");
+                        // Navigation grouped by the operator's mental model:
+                        // overview first, then the detection/response domain, GRC,
+                        // asset posture, and finally system tooling. Section labels
+                        // are all French for a single, consistent voice.
 
-                        let main_items: &[(Page, &str, &str)] = &[
+                        // ── Vue d'ensemble ──────────────────────────────────
+                        // Notifications lives here (cross-cutting) until a global
+                        // top bar exists to host it; the loop stays badge-aware.
+                        ui.add_space(theme::SPACE_SM);
+                        Self::section_label(ui, "VUE D'ENSEMBLE");
+
+                        let overview_items: &[(Page, &str, &str)] = &[
                             (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
                             (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
-                            (
-                                Page::Vulnerabilities,
-                                icons::VULNERABILITIES,
-                                "Vuln\u{00e9}rabilit\u{00e9}s",
-                            ),
-                            (
-                                Page::FileIntegrity,
-                                icons::FILE_SHIELD,
-                                "Int\u{00e9}grit\u{00e9} fichiers",
-                            ),
-                            (Page::Threats, icons::SKULL, "Menaces"),
                             (Page::Notifications, icons::BELL, "Notifications"),
                         ];
 
-                        for (page, icon, label) in main_items {
+                        for (page, icon, label) in overview_items {
                             let badge = if *page == Page::Notifications && unread_notifications > 0
                             {
                                 Some(unread_notifications)
@@ -228,16 +224,39 @@ impl Sidebar {
                             }
                         }
 
-                        // Dedicated GRC section to reinforce the compliance
-                        // positioning: conformity, reporting, risk, software.
+                        // ── Détection & Réponse (le domaine SOC) ─────────────
                         ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "GRC & CONFORMIT\u{00c9}");
+                        Self::section_label(ui, "D\u{00c9}TECTION & R\u{00c9}PONSE");
+
+                        let detection_items: &[(Page, &str, &str)] = &[
+                            (Page::Threats, icons::SKULL, "Menaces"),
+                            (
+                                Page::Vulnerabilities,
+                                icons::VULNERABILITIES,
+                                "Vuln\u{00e9}rabilit\u{00e9}s",
+                            ),
+                            (
+                                Page::FileIntegrity,
+                                icons::FILE_SHIELD,
+                                "Int\u{00e9}grit\u{00e9} des fichiers",
+                            ),
+                            (Page::Network, icons::NETWORK, "R\u{00e9}seau"),
+                        ];
+
+                        for (page, icon, label) in detection_items {
+                            if Self::nav_item(ui, icon, label, current == page) {
+                                selected = Some(page.clone());
+                            }
+                        }
+
+                        // ── Conformité & Risques (GRC) ───────────────────────
+                        ui.add_space(theme::SPACE);
+                        Self::section_label(ui, "CONFORMIT\u{00c9} & RISQUES");
 
                         let grc_items: &[(Page, &str, &str)] = &[
                             (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
                             (Page::Risks, icons::SCALE_BALANCED, "Risques"),
                             (Page::Reports, icons::FILE_EXPORT, "Rapports"),
-                            (Page::Software, icons::SOFTWARE, "Logiciels & MDM"),
                         ];
 
                         for (page, icon, label) in grc_items {
@@ -246,28 +265,42 @@ impl Sidebar {
                             }
                         }
 
+                        // ── Actifs & Inventaire ──────────────────────────────
                         ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "SYS & NETWORK");
+                        Self::section_label(ui, "ACTIFS & INVENTAIRE");
 
-                        let sys_items: &[(Page, &str, &str)] = &[
-                            (Page::Network, icons::NETWORK, "R\u{00e9}seau"),
-                            (Page::Discovery, icons::DISCOVERY, "Shadow IT"),
+                        let asset_items: &[(Page, &str, &str)] = &[
                             (Page::Assets, icons::BOXES_STACKED, "Inventaire"),
+                            (Page::Software, icons::SOFTWARE, "Logiciels & MDM"),
+                            (Page::Discovery, icons::DISCOVERY, "Shadow IT"),
                             (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
-                            (Page::AuditTrail, icons::CLIPBOARD, "Journal d'audit"),
-                            (Page::Sync, icons::SYNC, "Synchronisation"),
-                            (Page::Terminal, icons::TERMINAL, "Terminal"),
                         ];
 
-                        for (page, icon, label) in sys_items {
+                        for (page, icon, label) in asset_items {
                             if Self::nav_item(ui, icon, label, current == page) {
                                 selected = Some(page.clone());
                             }
                         }
 
-                        // AI model status indicator
+                        // ── Système (outillage) ──────────────────────────────
                         ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "IA & JARVIS");
+                        Self::section_label(ui, "SYST\u{00c8}ME");
+
+                        let system_items: &[(Page, &str, &str)] = &[
+                            (Page::AuditTrail, icons::CLIPBOARD, "Journal d'audit"),
+                            (Page::Sync, icons::SYNC, "Synchronisation"),
+                            (Page::Terminal, icons::TERMINAL, "Terminal"),
+                        ];
+
+                        for (page, icon, label) in system_items {
+                            if Self::nav_item(ui, icon, label, current == page) {
+                                selected = Some(page.clone());
+                            }
+                        }
+
+                        // ── Assistant (statut du modèle IA) ──────────────────
+                        ui.add_space(theme::SPACE);
+                        Self::section_label(ui, "ASSISTANT");
                         if Self::ai_status_item(ui, current == &Page::AI, ai_ready, voice_active) {
                             selected = Some(Page::AI);
                         }

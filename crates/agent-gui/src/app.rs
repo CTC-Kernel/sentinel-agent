@@ -60,6 +60,165 @@ pub enum Page {
     About,
 }
 
+/// Single source of truth mapping every page to its command-palette identity:
+/// `(page, nav id, icon, label, category)`. Categories follow the product's
+/// domain grouping so palette results read like the navigation. Used both to
+/// build the palette and to resolve a selected `nav:<id>` back to a `Page`.
+fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static str); 20] {
+    use Page::*;
+    [
+        (
+            Dashboard,
+            "dashboard",
+            icons::DASHBOARD,
+            "Tableau de bord",
+            "Vue d'ensemble",
+        ),
+        (
+            Monitoring,
+            "monitoring",
+            icons::CHART_LINE,
+            "Surveillance",
+            "Vue d'ensemble",
+        ),
+        (
+            Notifications,
+            "notifications",
+            icons::BELL,
+            "Notifications",
+            "Vue d'ensemble",
+        ),
+        (
+            Threats,
+            "threats",
+            icons::SKULL,
+            "Menaces",
+            "Détection & Réponse",
+        ),
+        (
+            Vulnerabilities,
+            "vulnerabilities",
+            icons::VULNERABILITIES,
+            "Vulnérabilités",
+            "Détection & Réponse",
+        ),
+        (
+            FileIntegrity,
+            "file_integrity",
+            icons::FILE_SHIELD,
+            "Intégrité des fichiers",
+            "Détection & Réponse",
+        ),
+        (
+            Network,
+            "network",
+            icons::NETWORK,
+            "Réseau",
+            "Détection & Réponse",
+        ),
+        (
+            Compliance,
+            "compliance",
+            icons::COMPLIANCE,
+            "Conformité",
+            "Conformité & Risques",
+        ),
+        (
+            Risks,
+            "risks",
+            icons::SCALE_BALANCED,
+            "Risques",
+            "Conformité & Risques",
+        ),
+        (
+            Reports,
+            "reports",
+            icons::FILE_EXPORT,
+            "Rapports",
+            "Conformité & Risques",
+        ),
+        (
+            Assets,
+            "assets",
+            icons::BOXES_STACKED,
+            "Inventaire",
+            "Actifs & Inventaire",
+        ),
+        (
+            Software,
+            "software",
+            icons::SOFTWARE,
+            "Logiciels & MDM",
+            "Actifs & Inventaire",
+        ),
+        (
+            Discovery,
+            "discovery",
+            icons::DISCOVERY,
+            "Shadow IT",
+            "Actifs & Inventaire",
+        ),
+        (
+            Cartography,
+            "cartography",
+            icons::CARTOGRAPHY,
+            "Cartographie",
+            "Actifs & Inventaire",
+        ),
+        (
+            AuditTrail,
+            "audit_trail",
+            icons::CLIPBOARD,
+            "Journal d'audit",
+            "Système",
+        ),
+        (Sync, "sync", icons::SYNC, "Synchronisation", "Système"),
+        (Terminal, "terminal", icons::TERMINAL, "Terminal", "Système"),
+        (
+            Settings,
+            "settings",
+            icons::SETTINGS,
+            "Paramètres",
+            "Système",
+        ),
+        (About, "about", icons::ABOUT, "À propos", "Système"),
+        (AI, "ai", icons::BRAIN, "Assistant IA", "Assistant"),
+    ]
+}
+
+/// Build the full command list shown in the palette: one entry per page plus
+/// the global actions that already have keyboard shortcuts.
+fn build_palette_commands() -> Vec<widgets::CommandItem> {
+    let mut commands: Vec<widgets::CommandItem> = page_catalog()
+        .into_iter()
+        .map(|(_, nav_id, icon, label, category)| {
+            widgets::CommandItem::new(format!("nav:{nav_id}"), label)
+                .icon(icon)
+                .category(category)
+        })
+        .collect();
+
+    commands.push(
+        widgets::CommandItem::new("action:run_check", "Lancer l'analyse")
+            .icon(icons::PLAY)
+            .shortcut("⌘R")
+            .category("Actions"),
+    );
+    commands.push(
+        widgets::CommandItem::new("action:force_sync", "Synchroniser maintenant")
+            .icon(icons::SYNC)
+            .shortcut("⌘⇧S")
+            .category("Actions"),
+    );
+    commands.push(
+        widgets::CommandItem::new("action:toggle_theme", "Basculer le thème clair / sombre")
+            .icon(icons::SETTINGS)
+            .category("Actions"),
+    );
+
+    commands
+}
+
 // ============================================================================
 // App state
 // ============================================================================
@@ -117,6 +276,9 @@ pub struct SentinelApp {
 
     /// Theme switch transition (0.0 = switching, 1.0 = complete).
     theme_transition: f32,
+
+    /// Command palette (⌘K / Ctrl+K) — global search over pages and actions.
+    command_palette: widgets::CommandPaletteState,
 }
 
 impl SentinelApp {
@@ -189,6 +351,7 @@ impl SentinelApp {
             show_tray_satellite: is_tray_popup,
             page_transition: 1.0,
             theme_transition: 1.0,
+            command_palette: widgets::CommandPaletteState::new(),
         }
     }
 
@@ -798,6 +961,15 @@ impl eframe::App for SentinelApp {
             self.send_command(GuiCommand::ForceSync);
         }
 
+        // Cmd+K / Ctrl+K = toggle the command palette (global search).
+        if widgets::check_palette_shortcut(ctx) {
+            self.command_palette.toggle();
+        }
+
+        // Global top bar (full width, above the sidebar): persistent location,
+        // search, primary action, sync, notifications, assistant, theme.
+        self.show_top_bar(ctx);
+
         // Sidebar
         egui::SidePanel::left("sidebar")
             .exact_width(theme::SIDEBAR_WIDTH)
@@ -1032,12 +1204,284 @@ impl eframe::App for SentinelApp {
                 });
         }
 
+        // Command palette (⌘K) — rendered last so it overlays everything.
+        if self.command_palette.open {
+            let commands = build_palette_commands();
+            let selected = widgets::CommandPalette::new(&commands)
+                .placeholder("Rechercher une page ou une action…")
+                .max_results(commands.len())
+                .show(ctx, &mut self.command_palette);
+            if let Some(id) = selected {
+                self.handle_palette_command(&id);
+            }
+        }
+
         // Request periodic repaint for event processing.
         ctx.request_repaint_after(std::time::Duration::from_millis(100));
     }
 }
 
 impl SentinelApp {
+    /// Persistent global top bar.
+    ///
+    /// Full-width strip above the sidebar carrying the chrome that was
+    /// previously absent or scattered: current location, global search (⌘K),
+    /// the primary "Lancer l'analyse" action, sync status, notifications,
+    /// the assistant, org context and the theme toggle. Additive — page bodies
+    /// keep their own headers for now.
+    fn show_top_bar(&mut self, ctx: &egui::Context) {
+        const TOPBAR_H: f32 = 52.0;
+
+        // Snapshot everything the bar displays so the closure never borrows
+        // `self` — actions are recorded into locals and applied afterwards.
+        let (cur_icon, cur_label) = page_catalog()
+            .into_iter()
+            .find(|(p, ..)| *p == self.page)
+            .map(|(_, _, icon, label, _)| (icon, label))
+            .unwrap_or((icons::DASHBOARD, "Sentinel"));
+        let org = self.state.summary.organization.clone();
+        let unread = self.state.unread_notification_count;
+        let syncing = self.state.sync.in_progress;
+        let dark = self.state.settings.dark_mode;
+
+        let mut goto: Option<Page> = None;
+        let mut open_palette = false;
+        let mut run = false;
+        let mut force_sync = false;
+        let mut toggle_theme = false;
+
+        egui::TopBottomPanel::top("global_top_bar")
+            .exact_height(TOPBAR_H)
+            .frame(
+                egui::Frame::new()
+                    .fill(theme::bg_secondary())
+                    .inner_margin(egui::Margin::symmetric(theme::SPACE_LG as i8, 0)),
+            )
+            .show(ctx, |ui: &mut egui::Ui| {
+                // Bottom hairline separating the bar from the content below.
+                let r = ui.max_rect();
+                ui.painter().hline(
+                    r.x_range(),
+                    r.bottom() - 0.5,
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()),
+                );
+
+                ui.horizontal_centered(|ui: &mut egui::Ui| {
+                    // ── Left: current location ──────────────────────────
+                    ui.label(
+                        egui::RichText::new(cur_icon)
+                            .font(theme::font_heading())
+                            .color(theme::accent_text()),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    ui.label(
+                        egui::RichText::new(cur_label)
+                            .font(theme::font_heading())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+
+                    // ── Right cluster (laid out right-to-left) ──────────
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            // Theme toggle
+                            let tglyph = if dark { icons::SUN } else { icons::MOON };
+                            if ui
+                                .add(
+                                    egui::Button::new(
+                                        egui::RichText::new(tglyph)
+                                            .font(theme::font_heading())
+                                            .color(theme::text_secondary()),
+                                    )
+                                    .frame(false),
+                                )
+                                .on_hover_text("Basculer le thème clair / sombre")
+                                .clicked()
+                            {
+                                toggle_theme = true;
+                            }
+
+                            ui.add_space(theme::SPACE_MD);
+
+                            // Assistant IA
+                            if ui
+                                .add(
+                                    egui::Button::new(
+                                        egui::RichText::new(icons::BRAIN)
+                                            .font(theme::font_heading())
+                                            .color(theme::text_secondary()),
+                                    )
+                                    .frame(false),
+                                )
+                                .on_hover_text("Assistant IA")
+                                .clicked()
+                            {
+                                goto = Some(Page::AI);
+                            }
+
+                            ui.add_space(theme::SPACE_MD);
+
+                            // Notifications (with unread dot)
+                            let bell = ui
+                                .add(
+                                    egui::Button::new(
+                                        egui::RichText::new(icons::BELL)
+                                            .font(theme::font_heading())
+                                            .color(theme::text_secondary()),
+                                    )
+                                    .frame(false),
+                                )
+                                .on_hover_text("Notifications");
+                            if bell.clicked() {
+                                goto = Some(Page::Notifications);
+                            }
+                            if unread > 0 {
+                                ui.painter().circle_filled(
+                                    bell.rect.right_top() + egui::vec2(-1.0, 5.0),
+                                    theme::STATUS_DOT_SIZE / 2.0,
+                                    theme::ERROR,
+                                );
+                            }
+
+                            ui.add_space(theme::SPACE);
+
+                            // Sync status / trigger
+                            let sync_label = if syncing {
+                                "Synchronisation…"
+                            } else {
+                                "Synchroniser"
+                            };
+                            if ui
+                                .add(
+                                    egui::Button::new(
+                                        egui::RichText::new(format!(
+                                            "{}  {}",
+                                            icons::SYNC,
+                                            sync_label
+                                        ))
+                                        .font(theme::font_body())
+                                        .color(theme::text_secondary()),
+                                    )
+                                    .frame(false),
+                                )
+                                .clicked()
+                            {
+                                force_sync = true;
+                            }
+
+                            ui.add_space(theme::SPACE_MD);
+
+                            // Global search trigger (opens the ⌘K palette)
+                            if ui
+                                .add(
+                                    egui::Button::new(
+                                        egui::RichText::new(format!(
+                                            "{}   Rechercher…   ⌘K",
+                                            icons::SEARCH
+                                        ))
+                                        .font(theme::font_body())
+                                        .color(theme::text_tertiary()),
+                                    )
+                                    .fill(theme::bg_tertiary()),
+                                )
+                                .clicked()
+                            {
+                                open_palette = true;
+                            }
+
+                            ui.add_space(theme::SPACE_MD);
+
+                            // Primary action
+                            if ui
+                                .add(
+                                    egui::Button::new(
+                                        egui::RichText::new(format!(
+                                            "{}  Lancer l'analyse",
+                                            icons::PLAY
+                                        ))
+                                        .font(theme::font_body())
+                                        .color(theme::badge_text(theme::ACCENT))
+                                        .strong(),
+                                    )
+                                    .fill(theme::ACCENT),
+                                )
+                                .clicked()
+                            {
+                                run = true;
+                            }
+
+                            // Org context (appears at the far left of this cluster)
+                            if let Some(org) = &org {
+                                ui.add_space(theme::SPACE_LG);
+                                ui.label(
+                                    egui::RichText::new(org)
+                                        .font(theme::font_body())
+                                        .color(theme::text_secondary()),
+                                );
+                                ui.add_space(theme::SPACE_XS);
+                                ui.label(
+                                    egui::RichText::new(icons::BUILDING)
+                                        .font(theme::font_body())
+                                        .color(theme::text_tertiary()),
+                                );
+                            }
+                        },
+                    );
+                });
+            });
+
+        // Apply the recorded action, if any.
+        if let Some(p) = goto
+            && p != self.page
+        {
+            self.state.close_all_drawers();
+            self.page = p;
+            self.page_transition = 0.0;
+        }
+        if open_palette {
+            self.command_palette.open();
+        }
+        if run {
+            self.send_command(GuiCommand::RunCheck);
+        }
+        if force_sync {
+            self.send_command(GuiCommand::ForceSync);
+        }
+        if toggle_theme {
+            self.state.settings.dark_mode = !self.state.settings.dark_mode;
+        }
+    }
+
+    /// Dispatch a command selected from the command palette.
+    ///
+    /// Ids are either `nav:<page>` (navigate) or `action:<name>` (side effect).
+    fn handle_palette_command(&mut self, id: &str) {
+        if let Some(nav_id) = id.strip_prefix("nav:") {
+            if let Some((page, ..)) = page_catalog()
+                .into_iter()
+                .find(|(_, cat_id, ..)| *cat_id == nav_id)
+                && page != self.page
+            {
+                self.state.close_all_drawers();
+                self.page = page;
+                self.page_transition = 0.0;
+            }
+            return;
+        }
+
+        match id {
+            "action:run_check" => self.send_command(GuiCommand::RunCheck),
+            "action:force_sync" => self.send_command(GuiCommand::ForceSync),
+            // Flipping the flag makes the next frame re-apply the theme
+            // (see the `dark_mode != last_dark_mode` branch in `update`).
+            "action:toggle_theme" => {
+                self.state.settings.dark_mode = !self.state.settings.dark_mode;
+            }
+            _ => {}
+        }
+    }
+
     /// Render the splash screen.
     fn show_splash(&self, ctx: &egui::Context, elapsed: f32) {
         // Respect reduced-motion: skip fade animations, show static splash.

@@ -36,7 +36,7 @@ impl CompliancePage {
             .unwrap_or_else(|| "CIS · NIST CSF · ISO 27001 · ANSSI · NIS 2 · DORA".to_string());
         let _ = widgets::page_header_nav(
             ui,
-            &["Pilotage", "Conformité"],
+            &["Conformité & risques", "Conformité"],
             "Conformité Réglementaire",
             Some("ANALYSE DES ÉCARTS ET MATRICE DE CONTRÔLES MULTI-RÉFÉRENTIELS"),
             Some(&format!(
@@ -56,9 +56,9 @@ impl CompliancePage {
                     format!(
                         "{}  {}",
                         if is_scanning {
-                            "SCAN EN COURS"
+                            "Analyse en cours"
                         } else {
-                            "LANCER L'AUDIT"
+                            "Lancer l'analyse"
                         },
                         icons::PLAY
                     ),
@@ -73,7 +73,7 @@ impl CompliancePage {
                 // Disabled button for non-admin users
                 widgets::button::primary_button_loading(
                     ui,
-                    format!("{}  {}", "LANCER L'AUDIT", icons::LOCK),
+                    format!("{}  {}", "Lancer l'analyse", icons::LOCK),
                     false,
                     false,
                 );

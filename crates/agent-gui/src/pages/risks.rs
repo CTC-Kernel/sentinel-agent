@@ -23,7 +23,7 @@ impl RisksPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Gouvernance", "Risques"],
+            &["Conformité & risques", "Risques"],
             "Registre des Risques",
             Some("MATRICE DE RISQUES ET SUIVI DES MESURES D\u{2019}ATT\u{00c9}NUATION"),
             Some(
@@ -469,6 +469,10 @@ impl RisksPage {
     ) {
         let mut clicked_idx: Option<usize> = None;
 
+        const RISKS_PER_PAGE: usize = 50;
+        let (r_start, r_len, _) =
+            widgets::page_window(indices.len(), RISKS_PER_PAGE, &mut state.risks.page);
+
         ui.push_id("risks_table", |ui: &mut egui::Ui| {
             let ctx = ui.ctx().clone();
             let table = TableBuilder::new(ui)
@@ -507,8 +511,8 @@ impl RisksPage {
                     }
                 })
                 .body(|body| {
-                    body.rows(theme::TABLE_ROW_HEIGHT, indices.len(), |mut row| {
-                        let row_idx = row.index();
+                    body.rows(theme::TABLE_ROW_HEIGHT, r_len, |mut row| {
+                        let row_idx = r_start + row.index();
                         let Some(&real_idx) = indices.get(row_idx) else {
                             return;
                         };
@@ -596,6 +600,8 @@ impl RisksPage {
             state.risks.detail_open = true;
             state.risks.editing = false;
         }
+
+        widgets::paginate_controls(ui, indices.len(), RISKS_PER_PAGE, &mut state.risks.page);
     }
 
     fn detail_drawer(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {

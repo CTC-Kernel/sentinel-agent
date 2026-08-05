@@ -22,7 +22,7 @@ impl VulnerabilitiesPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Pilotage", "Vulnérabilités"],
+            &["Détection & réponse", "Vulnérabilités"],
             "Vulnérabilités",
             Some("ANALYSE DYNAMIQUE DES FAILLES ET EXPOSITION AUX CVE"),
             Some(
@@ -39,9 +39,9 @@ impl VulnerabilitiesPage {
                 format!(
                     "{}  {}",
                     if is_scanning {
-                        "SCAN EN COURS"
+                        "Analyse en cours"
                     } else {
-                        "LANCER LE SCAN"
+                        "Lancer l'analyse"
                     },
                     icons::PLAY
                 ),
@@ -669,6 +669,14 @@ impl VulnerabilitiesPage {
             .map(|(i, _)| i)
             .collect();
 
+        // Pagination window over the filtered results.
+        const VULNS_PER_PAGE: usize = 25;
+        let (page_start, page_len, _) = widgets::page_window(
+            filtered.len(),
+            VULNS_PER_PAGE,
+            &mut state.vulnerability.page,
+        );
+
         if state.vulnerability_findings.is_empty() {
             let is_loading = state.summary.status == crate::dto::GuiAgentStatus::Starting
                 || state.summary.status == crate::dto::GuiAgentStatus::Syncing
@@ -792,8 +800,8 @@ impl VulnerabilitiesPage {
                     });
                 })
                 .body(|body| {
-                    body.rows(theme::TABLE_DATA_ROW_HEIGHT, filtered.len(), |mut row| {
-                        let Some(&real_idx) = filtered.get(row.index()) else {
+                    body.rows(theme::TABLE_DATA_ROW_HEIGHT, page_len, |mut row| {
+                        let Some(&real_idx) = filtered.get(page_start + row.index()) else {
                             return;
                         };
                         let Some(finding) = state.vulnerability_findings.get(real_idx) else {
@@ -928,6 +936,13 @@ impl VulnerabilitiesPage {
                 state.vulnerability.selected_vuln = Some(idx);
                 state.vulnerability.detail_open = true;
             }
+
+            widgets::paginate_controls(
+                ui,
+                filtered.len(),
+                VULNS_PER_PAGE,
+                &mut state.vulnerability.page,
+            );
         }
     }
 

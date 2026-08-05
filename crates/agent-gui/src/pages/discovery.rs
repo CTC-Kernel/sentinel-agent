@@ -19,7 +19,7 @@ impl DiscoveryPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Shadow IT", "D\u{00e9}tection"],
+            &["Actifs & inventaire", "D\u{00e9}tection"],
             "D\u{00e9}tection Shadow IT",
             Some(
                 "IDENTIFICATION DES \u{00c9}QUIPEMENTS NON AUTORIS\u{00c9}S SUR LE P\u{00c9}RIM\u{00c8}TRE R\u{00c9}SEAU",
@@ -38,7 +38,7 @@ impl DiscoveryPage {
                 let btn_response = if is_scanning {
                     widgets::primary_button(
                         ui,
-                        format!("{}  INTERROMPRE LE SCAN", icons::TRASH),
+                        format!("{}  Interrompre l'analyse", icons::TRASH),
                         state.security.admin_unlocked,
                     )
                 } else if state.security.admin_unlocked {
@@ -313,11 +313,11 @@ impl DiscoveryPage {
             widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.add_space(theme::SPACE_XL);
-                    widgets::protected_state(
+                    widgets::empty_state(
                         ui,
                         icons::NETWORK,
                         "AUCUN \u{00c9}QUIPEMENT D\u{00c9}TECT\u{00c9}",
-                        "Lancez un scan pour identifier les appareils non autoris\u{00e9}s sur votre r\u{00e9}seau (Shadow IT).",
+                        Some("Lancez un scan pour identifier les appareils non autoris\u{00e9}s sur votre r\u{00e9}seau (Shadow IT)."),
                     );
                     ui.add_space(theme::SPACE_XL);
                 });

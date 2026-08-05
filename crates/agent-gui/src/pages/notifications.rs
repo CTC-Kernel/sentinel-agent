@@ -21,7 +21,7 @@ impl NotificationsPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Pilotage", "Notifications"],
+            &["Vue d'ensemble", "Notifications"],
             "Notifications",
             Some("Alertes, avertissements et informations de l'agent"),
             Some(

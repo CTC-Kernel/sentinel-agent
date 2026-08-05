@@ -26,7 +26,7 @@ impl AssetsPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Shadow IT", "Inventaire"],
+            &["Actifs & inventaire", "Inventaire"],
             "Inventaire des \u{00c9}quipements",
             Some(
                 "GESTION DU CYCLE DE VIE ET CONTR\u{00d4}LE DES \u{00c9}QUIPEMENTS AUTORIS\u{00c9}S",
@@ -320,6 +320,10 @@ impl AssetsPage {
     fn render_asset_table(ui: &mut Ui, state: &mut AppState, indices: &[usize]) {
         let mut clicked_idx: Option<usize> = None;
 
+        const ASSETS_PER_PAGE: usize = 50;
+        let (a_start, a_len, _) =
+            widgets::page_window(indices.len(), ASSETS_PER_PAGE, &mut state.assets.page);
+
         ui.push_id("assets_table", |ui: &mut egui::Ui| {
             let ctx = ui.ctx().clone();
             let table = TableBuilder::new(ui)
@@ -359,8 +363,8 @@ impl AssetsPage {
                 })
                 .body(|body| {
                     let now = chrono::Utc::now();
-                    body.rows(theme::TABLE_ROW_HEIGHT, indices.len(), |mut row| {
-                        let row_idx = row.index();
+                    body.rows(theme::TABLE_ROW_HEIGHT, a_len, |mut row| {
+                        let row_idx = a_start + row.index();
                         let Some(&real_idx) = indices.get(row_idx) else {
                             return;
                         };
@@ -457,6 +461,8 @@ impl AssetsPage {
             state.assets.selected_asset = Some(idx);
             state.assets.detail_open = true;
         }
+
+        widgets::paginate_controls(ui, indices.len(), ASSETS_PER_PAGE, &mut state.assets.page);
     }
 
     fn detail_drawer(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {

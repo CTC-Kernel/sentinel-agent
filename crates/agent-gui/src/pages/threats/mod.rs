@@ -31,7 +31,7 @@ impl ThreatsPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Sys & Network", "EDR"],
+            &["Détection & réponse", "EDR"],
             "D\u{00e9}tection & R\u{00e9}ponse",
             Some(
                 "MODULE EDR \u{2014} D\u{00c9}TECTION, INVESTIGATION ET R\u{00c9}PONSE AUX MENACES",

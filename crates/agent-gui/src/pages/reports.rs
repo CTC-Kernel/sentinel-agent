@@ -26,7 +26,7 @@ impl ReportsPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Pilotage", "Rapports"],
+            &["Conformité & risques", "Rapports"],
             "Centre de Rapports",
             Some(
                 "G\u{00c9}N\u{00c9}RATION ET EXPORT DE RAPPORTS CONFORMIT\u{00c9} / AUDIT / INCIDENTS",

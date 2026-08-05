@@ -22,7 +22,7 @@ impl AuditTrailPage {
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
-            &["Pilotage", "Journal d'audit"],
+            &["Système", "Journal d'audit"],
             "Journal d'Audit",
             Some(
                 "TRAÇABILIT\u{00c9} COMPL\u{00c8}TE DES \u{00c9}V\u{00c9}NEMENTS DE S\u{00c9}CURIT\u{00c9} ET DU SYST\u{00c8}ME",
@@ -262,17 +262,16 @@ impl AuditTrailPage {
             .collect();
 
         if filtered_logs.is_empty() {
-            ui.vertical_centered(|ui| {
-                ui.add_space(theme::SPACE_XL);
-                ui.label(
-                    egui::RichText::new("AUCUN ÉVÉNEMENT TROUVÉ")
-                        .color(theme::text_tertiary())
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_XL);
-            });
+            widgets::empty_state(ui, icons::CLIPBOARD, "AUCUN ÉVÉNEMENT TROUVÉ", None);
             return;
         }
+
+        const AUDIT_PER_PAGE: usize = 50;
+        let (at_start, at_len, _) = widgets::page_window(
+            filtered_logs.len(),
+            AUDIT_PER_PAGE,
+            &mut state.audit_trail_page,
+        );
 
         TableBuilder::new(ui)
             .striped(false)
@@ -293,8 +292,8 @@ impl AuditTrailPage {
                 });
             })
             .body(|body| {
-                body.rows(row_height, filtered_logs.len(), |mut row| {
-                    let idx = row.index();
+                body.rows(row_height, at_len, |mut row| {
+                    let idx = at_start + row.index();
                     let Some(log) = filtered_logs.get(idx) else {
                         return;
                     };
@@ -335,5 +334,12 @@ impl AuditTrailPage {
                     }
                 });
             });
+
+        widgets::paginate_controls(
+            ui,
+            filtered_logs.len(),
+            AUDIT_PER_PAGE,
+            &mut state.audit_trail_page,
+        );
     }
 }
