@@ -767,7 +767,7 @@ impl MonitoringPage {
                     plot_ui.line(
                         Line::new(PlotPoints::new(warn_pts))
                             .color(theme::WARNING.linear_multiply(0.2))
-                            .width(0.5)
+                            .width(0.5_f32)
                             .style(egui_plot::LineStyle::dashed_dense()),
                     );
 
@@ -785,7 +785,7 @@ impl MonitoringPage {
                     plot_ui.line(
                         Line::new(PlotPoints::new(crit_pts))
                             .color(theme::ERROR.linear_multiply(0.2))
-                            .width(0.5)
+                            .width(0.5_f32)
                             .style(egui_plot::LineStyle::dashed_dense()),
                     );
                 }
@@ -794,14 +794,14 @@ impl MonitoringPage {
                 plot_ui.line(
                     Line::new(PlotPoints::new(history_pts.clone()))
                         .color(line_color.linear_multiply(theme::OPACITY_SUBTLE))
-                        .fill(0.0),
+                        .fill(0.0_f32),
                 );
 
                 // Main data line
                 plot_ui.line(
                     Line::new(PlotPoints::new(history_pts))
                         .color(line_color)
-                        .width(1.8),
+                        .width(1.8_f32),
                 );
 
                 // Current value point with glow
@@ -816,14 +816,14 @@ impl MonitoringPage {
                     plot_ui.points(
                         egui_plot::Points::new(PlotPoints::new(vec![latest]))
                             .color(line_color.linear_multiply(0.15 + pulse * 0.15))
-                            .radius(6.0),
+                            .radius(6.0_f32),
                     );
 
                     // Core point
                     plot_ui.points(
                         egui_plot::Points::new(PlotPoints::new(vec![latest]))
                             .color(line_color)
-                            .radius(2.5),
+                            .radius(2.5_f32),
                     );
                 }
             });

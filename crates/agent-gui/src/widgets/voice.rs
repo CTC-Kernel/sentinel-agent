@@ -67,7 +67,7 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
             ui.painter().circle_stroke(
                 rect.center(),
                 (size / 2.0) + 1.0,
-                Stroke::new(2.0, glow_color),
+                Stroke::new(2.0_f32, glow_color),
             );
         }
 

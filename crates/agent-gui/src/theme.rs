@@ -988,30 +988,30 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
 
     // Widgets idle
     visuals.widgets.noninteractive.bg_fill = bg_secondary();
-    visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, text_secondary());
+    visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0_f32, text_secondary());
     visuals.widgets.noninteractive.corner_radius = btn_rounding;
     visuals.widgets.noninteractive.bg_stroke = Stroke::NONE;
 
     // Widgets hovered — visible tint matching hover_bg() for WCAG 1.4.11.
     visuals.widgets.hovered.bg_fill = hover_bg();
-    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, text_primary());
+    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0_f32, text_primary());
     visuals.widgets.hovered.corner_radius = btn_rounding;
     visuals.widgets.hovered.bg_stroke = Stroke::NONE;
 
     // Widgets active
     visuals.widgets.active.bg_fill = ACCENT;
-    visuals.widgets.active.fg_stroke = Stroke::new(1.0, text_on_accent());
+    visuals.widgets.active.fg_stroke = Stroke::new(1.0_f32, text_on_accent());
     visuals.widgets.active.corner_radius = btn_rounding;
 
     // Widgets inactive (buttons)
     visuals.widgets.inactive.bg_fill = bg_elevated();
-    visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, text_primary());
+    visuals.widgets.inactive.fg_stroke = Stroke::new(1.0_f32, text_primary());
     visuals.widgets.inactive.corner_radius = btn_rounding;
     visuals.widgets.inactive.bg_stroke = Stroke::NONE; // Remove border for cleaner look
 
     // Selection / Focus (accessibility: visible focus ring)
     visuals.selection.bg_fill = ACCENT.linear_multiply(0.2);
-    visuals.selection.stroke = Stroke::new(2.0, ACCENT); // 2px for WCAG-compliant focus visibility
+    visuals.selection.stroke = Stroke::new(2.0_f32, ACCENT); // 2px for WCAG-compliant focus visibility
 
     // Window
     visuals.window_corner_radius = CornerRadius::same(CARD_ROUNDING);
@@ -1180,12 +1180,12 @@ pub fn log_level_color(level: &crate::dto::LogLevel) -> Color32 {
 
 /// Focus ring stroke for interactive elements (WCAG 2.4.7 compliant).
 pub fn focus_ring() -> egui::Stroke {
-    egui::Stroke::new(2.0, ACCENT)
+    egui::Stroke::new(2.0_f32, ACCENT)
 }
 
 /// Focus ring for dark backgrounds.
 pub fn focus_ring_light() -> egui::Stroke {
-    egui::Stroke::new(2.0, ACCENT_LIGHT)
+    egui::Stroke::new(2.0_f32, ACCENT_LIGHT)
 }
 
 /// Get a disabled version of a color.

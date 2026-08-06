@@ -90,7 +90,7 @@ pub fn sparkline(
             plot_ui.line(
                 Line::new(PlotPoints::new(data_vec.clone()))
                     .color(config.color.linear_multiply(theme::OPACITY_SUBTLE))
-                    .fill(0.0),
+                    .fill(0.0_f32),
             );
         }
 
@@ -98,14 +98,14 @@ pub fn sparkline(
         plot_ui.line(
             Line::new(PlotPoints::new(data_vec.clone()))
                 .color(config.color.linear_multiply(theme::OPACITY_MUTED))
-                .width(3.0),
+                .width(3.0_f32),
         );
 
         // Main line — last use, no clone needed
         plot_ui.line(
             Line::new(PlotPoints::new(data_vec))
                 .color(config.color)
-                .width(1.5),
+                .width(1.5_f32),
         );
 
         // Endpoint indicator
@@ -113,12 +113,12 @@ pub fn sparkline(
             plot_ui.points(
                 egui_plot::Points::new(PlotPoints::new(vec![latest]))
                     .color(config.color.linear_multiply(theme::OPACITY_MODERATE))
-                    .radius(5.0),
+                    .radius(5.0_f32),
             );
             plot_ui.points(
                 egui_plot::Points::new(PlotPoints::new(vec![latest]))
                     .color(config.color)
-                    .radius(2.5),
+                    .radius(2.5_f32),
             );
         }
     });
