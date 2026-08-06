@@ -375,6 +375,6 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
     }
 
     // Sort by timestamp descending
-    results.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    results.sort_by_key(|b| std::cmp::Reverse(b.timestamp));
     results
 }
