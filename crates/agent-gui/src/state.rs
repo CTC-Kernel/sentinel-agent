@@ -265,6 +265,8 @@ pub struct FimState {
     pub filter: Option<String>,
     pub selected_alert: Option<usize>,
     pub detail_open: bool,
+    /// Current page (0-indexed) of the paginated alerts table.
+    pub page: usize,
 }
 
 impl Default for FimState {
@@ -277,6 +279,7 @@ impl Default for FimState {
             filter: None,
             selected_alert: None,
             detail_open: false,
+            page: 0,
         }
     }
 }
@@ -775,6 +778,8 @@ pub struct AppState {
     pub notifications_active_tab: usize,
     pub selected_notification: Option<usize>,
     pub notification_detail_open: bool,
+    /// Current page (0-indexed) of the paginated notification feed.
+    pub notifications_page: usize,
     pub previous_compliance_score: Option<f32>,
     pub audit_trail_search: String,
     pub audit_trail_filter: Option<String>,
@@ -831,6 +836,7 @@ impl Default for AppState {
             notifications_active_tab: 0,
             selected_notification: None,
             notification_detail_open: false,
+            notifications_page: 0,
             previous_compliance_score: None,
             audit_trail_search: String::new(),
             audit_trail_filter: None,
