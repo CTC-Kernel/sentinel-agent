@@ -315,7 +315,7 @@ impl AgentTray {
         // Create tray icon
         let icon = create_icon(AgentTrayStatus::Active)?;
 
-        let mut builder = TrayIconBuilder::new()
+        let builder = TrayIconBuilder::new()
             .with_menu(Box::new(menu))
             .with_tooltip(AgentTrayStatus::Active.tooltip())
             .with_icon(icon);
