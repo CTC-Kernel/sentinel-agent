@@ -164,12 +164,10 @@ impl ResourceMonitor {
 
             if last_net > 0 && current_network >= last_net && last_time > 0 {
                 let time_delta = current_time - last_time;
-                if time_delta > 0 {
-                    // Calculate bytes per second
-                    (current_network - last_net) / time_delta
-                } else {
-                    0
-                }
+                // Calculate bytes per second
+                (current_network - last_net)
+                    .checked_div(time_delta)
+                    .unwrap_or(0)
             } else {
                 0
             }
@@ -188,12 +186,10 @@ impl ResourceMonitor {
 
             if last_disk > 0 && current_disk >= last_disk && last_disk_time > 0 {
                 let time_delta = current_time.saturating_sub(last_disk_time);
-                if time_delta > 0 {
-                    // Calculate KB per second
-                    ((current_disk - last_disk) / 1024) / time_delta
-                } else {
-                    0
-                }
+                // Calculate KB per second
+                ((current_disk - last_disk) / 1024)
+                    .checked_div(time_delta)
+                    .unwrap_or(0)
             } else {
                 0
             }

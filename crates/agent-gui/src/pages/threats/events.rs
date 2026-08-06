@@ -90,7 +90,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     }
 
     // Sort by timestamp descending (newest first)
-    threats.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    threats.sort_by_key(|b| std::cmp::Reverse(b.timestamp));
 
     let total = threats.len();
 

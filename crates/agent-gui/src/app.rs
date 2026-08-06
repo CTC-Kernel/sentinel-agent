@@ -1588,7 +1588,10 @@ impl SentinelApp {
                     .fill(theme::bg_primary().linear_multiply(0.85))
                     .corner_radius(theme::ROUNDING_LG)
                     .outer_margin(1.0)
-                    .stroke(egui::Stroke::new(1.0, theme::ACCENT.linear_multiply(0.5))),
+                    .stroke(egui::Stroke::new(
+                        1.0_f32,
+                        theme::ACCENT.linear_multiply(0.5),
+                    )),
             )
             .show(ctx, |ui| {
                 ui.vertical(|ui| {

@@ -823,16 +823,15 @@ impl RisksPage {
                         // Edit
                         state.risks.editing = true;
                     }
-                    1 => {
+                    1
                         // Delete
-                        if selected < state.risks.entries.len() {
+                        if selected < state.risks.entries.len() => {
                             let id = state.risks.entries[selected].id.to_string();
                             state.risks.entries.remove(selected);
                             state.risks.selected_risk = None;
                             state.risks.detail_open = false;
                             *command = Some(GuiCommand::DeleteRisk { risk_id: id });
                         }
-                    }
                     _ => {}
                 }
             }

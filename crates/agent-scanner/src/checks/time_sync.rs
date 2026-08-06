@@ -180,19 +180,20 @@ impl TimeSyncCheck {
 
                 for line in result.lines() {
                     let line_lower = line.to_lowercase();
-                    if line_lower.contains("leap status") {
-                        if let Some(value) = line.split(':').last() {
-                            let leap = value.trim().to_string();
-                            status.synchronized = leap.to_lowercase().contains("normal");
-                            status.leap_status = Some(leap);
-                        }
+                    if line_lower.contains("leap status")
+                        && let Some(value) = line.split(':').next_back()
+                    {
+                        let leap = value.trim().to_string();
+                        status.synchronized = leap.to_lowercase().contains("normal");
+                        status.leap_status = Some(leap);
                     }
-                    if line_lower.contains("reference") && !line_lower.contains("reference time") {
-                        if let Some(value) = line.split(':').last() {
-                            let source = value.trim().to_string();
-                            if !source.is_empty() {
-                                status.ntp_source = Some(source);
-                            }
+                    if line_lower.contains("reference")
+                        && !line_lower.contains("reference time")
+                        && let Some(value) = line.split(':').next_back()
+                    {
+                        let source = value.trim().to_string();
+                        if !source.is_empty() {
+                            status.ntp_source = Some(source);
                         }
                     }
                 }
@@ -218,21 +219,20 @@ impl TimeSyncCheck {
                 for line in result.lines() {
                     let line_lower = line.to_lowercase();
                     // Different systemd versions use different labels
-                    if line_lower.contains("ntp synchronized:")
-                        || line_lower.contains("system clock synchronized:")
+                    if (line_lower.contains("ntp synchronized:")
+                        || line_lower.contains("system clock synchronized:"))
+                        && let Some(value) = line.split(':').next_back()
                     {
-                        if let Some(value) = line.split(':').last() {
-                            let sync_val = value.trim().to_lowercase();
-                            status.synchronized = sync_val == "yes";
-                            status.service_running = true;
-                        }
+                        let sync_val = value.trim().to_lowercase();
+                        status.synchronized = sync_val == "yes";
+                        status.service_running = true;
                     }
-                    if line_lower.contains("ntp service:") || line_lower.contains("ntp enabled:") {
-                        if let Some(value) = line.split(':').last() {
-                            let ntp_val = value.trim().to_lowercase();
-                            if ntp_val != "active" && ntp_val != "yes" && ntp_val != "enabled" {
-                                status.service_running = false;
-                            }
+                    if (line_lower.contains("ntp service:") || line_lower.contains("ntp enabled:"))
+                        && let Some(value) = line.split(':').next_back()
+                    {
+                        let ntp_val = value.trim().to_lowercase();
+                        if ntp_val != "active" && ntp_val != "yes" && ntp_val != "enabled" {
+                            status.service_running = false;
                         }
                     }
                 }

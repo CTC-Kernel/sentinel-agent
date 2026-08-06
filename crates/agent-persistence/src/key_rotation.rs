@@ -71,12 +71,27 @@ impl KeyRotationSchedule {
 /// Manages database key rotation.
 pub struct KeyRotationManager<'a> {
     db_path: &'a Path,
+    /// Optional override for the pre-rotation backup directory. When `None`,
+    /// the backup manager uses its system default location.
+    backup_dir: Option<&'a Path>,
 }
 
 impl<'a> KeyRotationManager<'a> {
     /// Create a new key rotation manager.
     pub fn new(db_path: &'a Path) -> Self {
-        Self { db_path }
+        Self {
+            db_path,
+            backup_dir: None,
+        }
+    }
+
+    /// Create a key rotation manager that writes its mandatory pre-rotation
+    /// backup to `backup_dir` instead of the system default location.
+    pub fn with_backup_dir(db_path: &'a Path, backup_dir: &'a Path) -> Self {
+        Self {
+            db_path,
+            backup_dir: Some(backup_dir),
+        }
     }
 
     /// Rotate the database encryption key.
@@ -94,7 +109,11 @@ impl<'a> KeyRotationManager<'a> {
         info!("Starting database key rotation");
 
         // Step 1: Create a mandatory backup before rotation - failure is fatal
-        let backup_manager = BackupManager::new(self.db_path).map_err(|e| {
+        let backup_manager = match self.backup_dir {
+            Some(dir) => BackupManager::with_backup_dir(self.db_path, dir),
+            None => BackupManager::new(self.db_path),
+        }
+        .map_err(|e| {
             PersistenceError::KeyRotation(format!(
                 "Cannot initialize backup manager before key rotation: {}",
                 e
@@ -326,7 +345,7 @@ mod tests {
 
         // Rotate to new key
         let new_key_manager = KeyManager::new_with_key(b"new_key_for_rotation_testing_32!");
-        let manager = KeyRotationManager::new(&db_path);
+        let manager = KeyRotationManager::with_backup_dir(&db_path, temp_dir.path());
 
         let result = manager
             .rotate_key(&old_key_manager, &new_key_manager)
@@ -384,7 +403,7 @@ mod tests {
 
         // 2. Rotate to new key
         let new_key_manager = KeyManager::new_with_key(b"new_key_that_is_32_bytes_long!!!");
-        let manager = KeyRotationManager::new(&db_path);
+        let manager = KeyRotationManager::with_backup_dir(&db_path, temp_dir.path());
 
         // This will temporarily open the DB with the old key, rekey it, and verify with the new key.
         let result = manager

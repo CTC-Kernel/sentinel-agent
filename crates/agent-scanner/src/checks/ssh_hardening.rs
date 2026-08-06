@@ -434,19 +434,19 @@ impl SshHardeningCheck {
 
         // Check sshd_config.d for drop-in configs
         let config_d = "/etc/ssh/sshd_config.d";
-        if std::path::Path::new(config_d).exists() {
-            if let Ok(entries) = std::fs::read_dir(config_d) {
-                for entry in entries.filter_map(|e| e.ok()) {
-                    if entry.path().extension().map_or(false, |e| e == "conf") {
-                        if let Ok(content) = std::fs::read_to_string(entry.path()) {
-                            status.raw_output.push_str(&format!(
-                                "=== {} ===\n{}\n",
-                                entry.path().display(),
-                                content
-                            ));
-                            self.parse_sshd_config(&content, &mut status);
-                        }
-                    }
+        if std::path::Path::new(config_d).exists()
+            && let Ok(entries) = std::fs::read_dir(config_d)
+        {
+            for entry in entries.filter_map(|e| e.ok()) {
+                if entry.path().extension().is_some_and(|e| e == "conf")
+                    && let Ok(content) = std::fs::read_to_string(entry.path())
+                {
+                    status.raw_output.push_str(&format!(
+                        "=== {} ===\n{}\n",
+                        entry.path().display(),
+                        content
+                    ));
+                    self.parse_sshd_config(&content, &mut status);
                 }
             }
         }

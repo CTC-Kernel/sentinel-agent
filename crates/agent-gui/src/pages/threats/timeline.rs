@@ -101,7 +101,7 @@ pub(super) fn event_timeline(ui: &mut Ui, threats: &[ThreatEvent]) {
             painter.vline(
                 marker_x,
                 rect.y_range(),
-                egui::Stroke::new(2.0, theme::ACCENT.linear_multiply(marker_alpha)),
+                egui::Stroke::new(2.0_f32, theme::ACCENT.linear_multiply(marker_alpha)),
             );
         }
 

@@ -114,12 +114,10 @@ fn filter_sensitive_json_value(value: &mut serde_json::Value) {
                 filter_sensitive_json_value(item);
             }
         }
-        serde_json::Value::String(s) => {
-            if contains_sensitive_data(s) {
-                *value = serde_json::Value::String(MASK_REPLACEMENT.to_string());
-            }
+        serde_json::Value::String(s) if contains_sensitive_data(s) => {
+            *value = serde_json::Value::String(MASK_REPLACEMENT.to_string());
         }
-        _ => {} // Other types are not sensitive
+        _ => {} // Other types are not sensitive (or non-sensitive strings)
     }
 }
 

@@ -23,4 +23,11 @@ ignore = [
 
     # glib unsound - we don't use VariantStrIter
     "RUSTSEC-2024-0429",
+
+    # quick-xml 0.30 - DoS advisories, pulled transitively via
+    # eframe 0.31 -> accesskit -> atspi -> zbus_xml (Linux a11y bridge only,
+    # not on our parsing paths). Resolved by upgrading eframe to 0.33+, which
+    # is a separate tracked migration (breaking egui API changes).
+    "RUSTSEC-2026-0194", # quick-xml quadratic duplicate-attribute check
+    "RUSTSEC-2026-0195", # quick-xml unbounded namespace allocation
 ]

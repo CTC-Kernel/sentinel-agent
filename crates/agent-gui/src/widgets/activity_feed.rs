@@ -282,7 +282,7 @@ fn build_events_from_state(state: &AppState) -> Vec<ActivityEvent> {
     }
 
     // Sort by timestamp (most recent first)
-    events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    events.sort_by_key(|b| std::cmp::Reverse(b.timestamp));
 
     events
 }

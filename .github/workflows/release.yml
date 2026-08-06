@@ -815,6 +815,10 @@ jobs:
     needs: [version, build-macos, build-windows, build-deb, build-rpm, sbom, attestation]
     env:
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
+      # `secrets` cannot be referenced from a step `if:`, so we surface a
+      # boolean here (job-level `env` may read `secrets`) and gate the signing
+      # steps on it. The key itself is only injected at the signing step.
+      HAS_UPDATE_KEY: ${{ secrets.SENTINEL_UPDATE_KEY != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -957,11 +961,11 @@ jobs:
       # docs/UPDATE_SIGNING.md). Entirely inert until SENTINEL_UPDATE_KEY is
       # configured as a repository secret, so it never affects unsigned channels.
       - name: Set up Rust for signing
-        if: ${{ secrets.SENTINEL_UPDATE_KEY != '' }}
+        if: ${{ env.HAS_UPDATE_KEY == 'true' }}
         uses: dtolnay/rust-toolchain@stable
 
       - name: Sign and upload latest packages
-        if: ${{ secrets.SENTINEL_UPDATE_KEY != '' }}
+        if: ${{ env.HAS_UPDATE_KEY == 'true' }}
         shell: bash
         env:
           SENTINEL_UPDATE_KEY: ${{ secrets.SENTINEL_UPDATE_KEY }}

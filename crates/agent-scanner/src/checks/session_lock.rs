@@ -288,10 +288,9 @@ impl SessionLockCheck {
                 .split_whitespace()
                 .last()
                 .and_then(|s| s.parse::<u32>().ok())
+                && seconds > 0
             {
-                if seconds > 0 {
-                    status.timeout_minutes = Some(seconds.div_ceil(60));
-                }
+                status.timeout_minutes = Some(seconds.div_ceil(60));
             }
         }
 
@@ -332,10 +331,13 @@ impl SessionLockCheck {
                 .push_str(&format!("KDE config:\n{}\n", content));
 
             for line in content.lines() {
-                if line.starts_with("idleTime=") {
-                    if let Some(ms) = line.split('=').last().and_then(|s| s.parse::<u32>().ok()) {
-                        status.timeout_minutes = Some(ms.div_ceil(60000)); // milliseconds to minutes
-                    }
+                if line.starts_with("idleTime=")
+                    && let Some(ms) = line
+                        .split('=')
+                        .next_back()
+                        .and_then(|s| s.parse::<u32>().ok())
+                {
+                    status.timeout_minutes = Some(ms.div_ceil(60000)); // milliseconds to minutes
                 }
                 if line.contains("LockScreen=true") {
                     status.lock_enabled = true;
@@ -354,10 +356,13 @@ impl SessionLockCheck {
                 .push_str(&format!("KDE screenlocker config:\n{}\n", content));
 
             for line in content.lines() {
-                if line.starts_with("Timeout=") {
-                    if let Some(mins) = line.split('=').last().and_then(|s| s.parse::<u32>().ok()) {
-                        status.timeout_minutes = Some(mins);
-                    }
+                if line.starts_with("Timeout=")
+                    && let Some(mins) = line
+                        .split('=')
+                        .next_back()
+                        .and_then(|s| s.parse::<u32>().ok())
+                {
+                    status.timeout_minutes = Some(mins);
                 }
                 if line.contains("Autolock=true") {
                     status.lock_enabled = true;

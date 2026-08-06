@@ -200,10 +200,10 @@ impl ProcessMonitor {
                 let path = entry.path();
                 if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
                     // Check if directory name is a PID
-                    if let Ok(pid) = name.parse::<u32>() {
-                        if let Ok(proc_info) = self.read_proc_info(&path, pid) {
-                            processes.push(proc_info);
-                        }
+                    if let Ok(pid) = name.parse::<u32>()
+                        && let Ok(proc_info) = self.read_proc_info(&path, pid)
+                    {
+                        processes.push(proc_info);
                     }
                 }
             }
