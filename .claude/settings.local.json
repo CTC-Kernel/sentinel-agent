@@ -9,7 +9,10 @@
       "Bash(cd \"/c/dev/Cyber Threat COnsulting/sentinel-agent\" && grep -A50 '^name = \"reqwest\"' Cargo.lock | head -60)",
       "Bash(cd \"/c/dev/Cyber Threat COnsulting/sentinel-agent\" && grep -A80 '^name = \"reqwest\"' Cargo.lock | tail -40)",
       "Bash(cd \"/c/dev/Cyber Threat COnsulting/sentinel-agent\" && cargo tree -p agent-core -i openssl-sys 2>&1 | head -20)",
-      "Bash(cd \"/c/dev/Cyber Threat COnsulting/sentinel-agent\" && echo $OPENSSL_DIR ; echo $OPENSSL_LIB_DIR)"
+      "Bash(cd \"/c/dev/Cyber Threat COnsulting/sentinel-agent\" && echo $OPENSSL_DIR ; echo $OPENSSL_LIB_DIR)",
+      "Bash(cargo clippy *)",
+      "Bash(git check-ignore *)",
+      "Bash(echo \"exit=$?\")"
     ]
   }
 }

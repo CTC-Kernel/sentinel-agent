@@ -30,6 +30,79 @@ fn validate_installer_path(path_str: &str) -> Result<()> {
     Ok(())
 }
 
+/// Ed25519 public key trusted to sign update packages, embedded at build time.
+///
+/// Set the `SENTINEL_UPDATE_PUBKEY` environment variable when building release
+/// artifacts to a hex-encoded 32-byte ed25519 public key. When present, update
+/// packages MUST carry a valid detached signature (`<package>.sig`) verifiable
+/// against this key, or the update is refused — this closes the gap where a
+/// compromised release server could serve a malicious package with a matching
+/// SHA-256.
+///
+/// When the variable is unset (e.g. local/dev builds, or releases not yet
+/// signed), signature verification is skipped and the update falls back to
+/// SHA-256 integrity only, preserving the previous behavior. Enforcement is
+/// therefore opt-in per build and never bricks an unsigned release channel.
+const UPDATE_PUBLIC_KEY_HEX: Option<&str> = option_env!("SENTINEL_UPDATE_PUBKEY");
+
+/// Parse and validate the embedded update public key.
+///
+/// Returns `Ok(None)` when no key is embedded (verification disabled), or an
+/// error if a key is embedded but malformed (fail closed — a build that opts
+/// into signing must not silently degrade to unverified updates).
+fn embedded_update_public_key() -> Result<Option<Vec<u8>>> {
+    let Some(hex_key) = UPDATE_PUBLIC_KEY_HEX else {
+        return Ok(None);
+    };
+    let hex_key = hex_key.trim();
+    if hex_key.is_empty() {
+        return Ok(None);
+    }
+    let bytes = hex::decode(hex_key).map_err(|e| {
+        CommonError::validation(format!(
+            "Embedded update public key is not valid hex: {}",
+            e
+        ))
+    })?;
+    if bytes.len() != 32 {
+        return Err(CommonError::validation(format!(
+            "Embedded update public key must be 32 bytes (ed25519), got {}",
+            bytes.len()
+        )));
+    }
+    Ok(Some(bytes))
+}
+
+/// Verify a detached ed25519 signature over `package_bytes`.
+///
+/// `signature_text` is the content of the `.sig` file: a hex-encoded 64-byte
+/// ed25519 signature (optionally followed by whitespace/filename, mirroring the
+/// checksum file format).
+fn verify_ed25519_signature(
+    public_key: &[u8],
+    package_bytes: &[u8],
+    signature_text: &str,
+) -> Result<()> {
+    let sig_hex = signature_text
+        .split_whitespace()
+        .next()
+        .unwrap_or("")
+        .trim();
+    let signature = hex::decode(sig_hex)
+        .map_err(|e| CommonError::validation(format!("Signature is not valid hex: {}", e)))?;
+    if signature.len() != 64 {
+        return Err(CommonError::validation(format!(
+            "Signature must be 64 bytes (ed25519), got {}",
+            signature.len()
+        )));
+    }
+
+    let key = ring::signature::UnparsedPublicKey::new(&ring::signature::ED25519, public_key);
+    key.verify(package_bytes, &signature)
+        .map_err(|_| CommonError::validation("Update package signature verification failed"))?;
+    Ok(())
+}
+
 /// Orchestrates the agent self-update process.
 pub struct UpdateManager {
     api_client: Arc<ApiClient>,
@@ -121,7 +194,12 @@ impl UpdateManager {
         info!("Verifying package checksum...");
         self.verify_checksum(&download_path, &expected_checksum)?;
 
-        // 5. Trigger installer
+        // 5. Verify the package signature (mandatory only when this build
+        // embeds a trusted public key; otherwise SHA-256 integrity only).
+        self.verify_signature(&download_path, folder, package_name)
+            .await?;
+
+        // 6. Trigger installer
         info!("Triggering system installer...");
         self.trigger_installer(&download_path)?;
 
@@ -178,6 +256,57 @@ impl UpdateManager {
                 "Self-update not supported on this platform",
             ))
         }
+    }
+
+    /// Verify the detached ed25519 signature of the downloaded package.
+    ///
+    /// If this build embeds a trusted public key (`SENTINEL_UPDATE_PUBKEY`),
+    /// the `<package>.sig` file is fetched and verified over the package bytes;
+    /// any failure (missing signature, bad signature, network error) aborts the
+    /// update. If no key is embedded, verification is skipped with a warning so
+    /// unsigned release channels keep working (SHA-256 integrity still applies).
+    async fn verify_signature(
+        &self,
+        path: &std::path::Path,
+        folder: &str,
+        package_name: &str,
+    ) -> Result<()> {
+        let public_key = match embedded_update_public_key()? {
+            Some(key) => key,
+            None => {
+                warn!(
+                    "Update signature verification is disabled (no SENTINEL_UPDATE_PUBKEY \
+                     embedded at build time); relying on SHA-256 integrity only"
+                );
+                return Ok(());
+            }
+        };
+
+        let signature_url = format!(
+            "{}/{}/{}.sig",
+            agent_common::constants::RELEASES_BASE_URL,
+            folder,
+            package_name
+        );
+        info!("Verifying package signature...");
+        debug!("Fetching signature from {}", signature_url);
+        let signature_text = self
+            .api_client
+            .fetch_text(&signature_url)
+            .await
+            .map_err(|e| {
+                CommonError::validation(format!(
+                    "This build requires signed updates but the signature could not be fetched: {}",
+                    e
+                ))
+            })?;
+
+        let package_bytes = std::fs::read(path)
+            .map_err(|e| CommonError::io(format!("Failed to read package for signing: {}", e)))?;
+
+        verify_ed25519_signature(&public_key, &package_bytes, &signature_text)?;
+        info!("Package signature verified successfully");
+        Ok(())
     }
 
     fn verify_checksum(&self, path: &std::path::Path, expected: &str) -> Result<()> {
@@ -410,6 +539,84 @@ mod tests {
     }
 
     // ── installer path: edge cases ──────────────────────────────────────
+
+    // ── update signature verification ───────────────────────────────────
+
+    /// Generate an ed25519 keypair and return (public_key_bytes, signing_key).
+    fn test_keypair() -> (Vec<u8>, ring::signature::Ed25519KeyPair) {
+        use ring::signature::KeyPair;
+        let rng = ring::rand::SystemRandom::new();
+        let pkcs8 = ring::signature::Ed25519KeyPair::generate_pkcs8(&rng).unwrap();
+        let key_pair = ring::signature::Ed25519KeyPair::from_pkcs8(pkcs8.as_ref()).unwrap();
+        let public = key_pair.public_key().as_ref().to_vec();
+        (public, key_pair)
+    }
+
+    #[test]
+    fn test_signature_accepts_valid_signature() {
+        let (public, key_pair) = test_keypair();
+        let package = b"pretend installer package bytes";
+        let sig = key_pair.sign(package);
+        let sig_text = hex::encode(sig.as_ref());
+
+        assert!(verify_ed25519_signature(&public, package, &sig_text).is_ok());
+    }
+
+    #[test]
+    fn test_signature_accepts_hash_style_sig_file() {
+        // The .sig file may carry "<hex> <filename>" like the checksum file.
+        let (public, key_pair) = test_keypair();
+        let package = b"installer";
+        let sig = key_pair.sign(package);
+        let sig_text = format!("{}  SentinelAgent-latest.pkg\n", hex::encode(sig.as_ref()));
+
+        assert!(verify_ed25519_signature(&public, package, &sig_text).is_ok());
+    }
+
+    #[test]
+    fn test_signature_rejects_tampered_package() {
+        let (public, key_pair) = test_keypair();
+        let sig = key_pair.sign(b"original package");
+        let sig_text = hex::encode(sig.as_ref());
+
+        // Verify against different bytes -> must fail.
+        let result = verify_ed25519_signature(&public, b"tampered package", &sig_text);
+        assert!(result.is_err());
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("signature verification failed"),
+        );
+    }
+
+    #[test]
+    fn test_signature_rejects_wrong_key() {
+        let (_public_a, key_pair_a) = test_keypair();
+        let (public_b, _key_pair_b) = test_keypair();
+        let package = b"installer";
+        let sig = key_pair_a.sign(package);
+        let sig_text = hex::encode(sig.as_ref());
+
+        // Signed by A, verified against B's key -> must fail.
+        assert!(verify_ed25519_signature(&public_b, package, &sig_text).is_err());
+    }
+
+    #[test]
+    fn test_signature_rejects_malformed_signature() {
+        let (public, _key_pair) = test_keypair();
+        // Not hex.
+        assert!(verify_ed25519_signature(&public, b"pkg", "not-a-hex-signature").is_err());
+        // Hex but wrong length.
+        assert!(verify_ed25519_signature(&public, b"pkg", "abcd").is_err());
+    }
+
+    #[test]
+    fn test_embedded_key_none_when_unset() {
+        // In the test build SENTINEL_UPDATE_PUBKEY is not set, so verification
+        // is disabled (fall back to SHA-256 only).
+        assert!(matches!(embedded_update_public_key(), Ok(None)));
+    }
 
     #[test]
     fn test_installer_path_rejects_combined_injection() {

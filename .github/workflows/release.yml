@@ -952,6 +952,51 @@ jobs:
 
           echo "✅ Enhanced release upload complete"
 
+      # Sign the `latest` packages so agents built with SENTINEL_UPDATE_PUBKEY
+      # will accept the update (see crates/agent-core/src/update_manager.rs and
+      # docs/UPDATE_SIGNING.md). Entirely inert until SENTINEL_UPDATE_KEY is
+      # configured as a repository secret, so it never affects unsigned channels.
+      - name: Set up Rust for signing
+        if: ${{ secrets.SENTINEL_UPDATE_KEY != '' }}
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Sign and upload latest packages
+        if: ${{ secrets.SENTINEL_UPDATE_KEY != '' }}
+        shell: bash
+        env:
+          SENTINEL_UPDATE_KEY: ${{ secrets.SENTINEL_UPDATE_KEY }}
+        run: |
+          set -euo pipefail
+          BUCKET="gs://${{ secrets.FIREBASE_STORAGE_BUCKET }}/releases/agent"
+
+          # Sign a single latest package (if present) and upload <file>.sig.
+          sign_and_upload() {
+            local folder="$1"      # artifacts subdir
+            local latest_name="$2" # latest file name
+            local dest="$3"        # bucket subfolder
+            local file="artifacts/$folder/$latest_name"
+            if [ -f "$file" ]; then
+              echo "Signing $file"
+              cargo run -q -p xtask -- sign "$file"
+              gcloud storage cp "$file.sig" "$BUCKET/$dest/"
+            else
+              echo "::warning::Signed updates enabled but $file is missing; skipping"
+            fi
+          }
+
+          sign_and_upload "sentinel-agent-macos" "SentinelAgent-latest.pkg" "macos"
+          sign_and_upload "sentinel-agent-windows" "SentinelAgentSetup-latest.msi" "windows"
+          sign_and_upload "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb" "linux_deb"
+          sign_and_upload "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm" "linux_rpm"
+
+          # Keep .sig aliases fresh like the other latest files.
+          gcloud storage objects update "$BUCKET/**/*.sig" \
+            --cache-control="public, max-age=3600, no-cache" 2>/dev/null || true
+          gcloud storage objects add-iam-policy-binding "$BUCKET/**/*.sig" \
+            --member="allUsers" --role="roles/storage.objectViewer" --quiet > /dev/null 2>&1 || true
+
+          echo "✅ Update packages signed and signatures uploaded"
+
       - name: Verify uploads
         run: |
           BUCKET="gs://${{ secrets.FIREBASE_STORAGE_BUCKET }}/releases/agent"

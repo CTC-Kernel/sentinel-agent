@@ -8,3 +8,5 @@ publish = false
 [dependencies]
 clap.workspace = true
 anyhow.workspace = true
+ring.workspace = true
+hex.workspace = true
