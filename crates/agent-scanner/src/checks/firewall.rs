@@ -269,17 +269,17 @@ impl FirewallCheck {
         debug!("Checking Linux firewall status");
 
         // Try ufw first (user-friendly)
-        if let Ok(status) = self.check_ufw().await {
-            if status.enabled || status.firewall_type == "ufw" {
-                return Ok(status);
-            }
+        if let Ok(status) = self.check_ufw().await
+            && (status.enabled || status.firewall_type == "ufw")
+        {
+            return Ok(status);
         }
 
         // Try nftables
-        if let Ok(status) = self.check_nftables().await {
-            if status.enabled {
-                return Ok(status);
-            }
+        if let Ok(status) = self.check_nftables().await
+            && status.enabled
+        {
+            return Ok(status);
         }
 
         // Fall back to iptables

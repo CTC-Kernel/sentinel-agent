@@ -271,13 +271,13 @@ impl DnsSecurityCheck {
             // Parse DNS servers
             for line in result.lines() {
                 let line_lower = line.to_lowercase();
-                if line_lower.contains("dns servers:") || line_lower.contains("current dns server:")
+                if (line_lower.contains("dns servers:")
+                    || line_lower.contains("current dns server:"))
+                    && let Some(server_part) = line.split(':').next_back()
                 {
-                    if let Some(server_part) = line.split(':').last() {
-                        for server in server_part.split_whitespace() {
-                            if server.contains('.') || server.contains(':') {
-                                status.dns_servers.push(server.to_string());
-                            }
+                    for server in server_part.split_whitespace() {
+                        if server.contains('.') || server.contains(':') {
+                            status.dns_servers.push(server.to_string());
                         }
                     }
                 }
@@ -307,12 +307,11 @@ impl DnsSecurityCheck {
             }
 
             for line in content.lines() {
-                if line.starts_with("nameserver") {
-                    if let Some(server) = line.split_whitespace().nth(1) {
-                        if !status.dns_servers.contains(&server.to_string()) {
-                            status.dns_servers.push(server.to_string());
-                        }
-                    }
+                if line.starts_with("nameserver")
+                    && let Some(server) = line.split_whitespace().nth(1)
+                    && !status.dns_servers.contains(&server.to_string())
+                {
+                    status.dns_servers.push(server.to_string());
                 }
             }
         }

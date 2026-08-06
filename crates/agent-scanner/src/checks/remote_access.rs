@@ -349,9 +349,7 @@ impl RemoteAccessCheck {
 
             // Parse sshd_config
             if let Ok(content) = std::fs::read_to_string("/etc/ssh/sshd_config") {
-                status
-                    .raw_output
-                    .push_str(&format!("=== /etc/ssh/sshd_config ===\n"));
+                status.raw_output.push_str("=== /etc/ssh/sshd_config ===\n");
 
                 for line in content.lines() {
                     let line = line.trim();

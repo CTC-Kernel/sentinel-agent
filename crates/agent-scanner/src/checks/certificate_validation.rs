@@ -358,11 +358,11 @@ impl CertificateValidationCheck {
                         ])
                         .output();
 
-                    if let Ok(cert_out) = cert_output {
-                        if cert_out.status.success() {
-                            let cert_info = String::from_utf8_lossy(&cert_out.stdout);
-                            self.parse_openssl_cert(&cert_info, &mut status);
-                        }
+                    if let Ok(cert_out) = cert_output
+                        && cert_out.status.success()
+                    {
+                        let cert_info = String::from_utf8_lossy(&cert_out.stdout);
+                        self.parse_openssl_cert(&cert_info, &mut status);
                     }
                 }
             }

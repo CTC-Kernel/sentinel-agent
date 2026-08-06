@@ -117,9 +117,9 @@ impl LinuxHardeningCheck {
 
         // Add security module to score
         let mut security_bonus = 0.0;
-        if security_module.selinux_enabled && security_module.selinux_mode == "Enforcing" {
-            security_bonus = 10.0;
-        } else if security_module.apparmor_enabled && security_module.apparmor_enforcing {
+        if (security_module.selinux_enabled && security_module.selinux_mode == "Enforcing")
+            || (security_module.apparmor_enabled && security_module.apparmor_enforcing)
+        {
             security_bonus = 10.0;
         } else {
             critical_issues
@@ -412,7 +412,7 @@ impl LinuxHardeningCheck {
         let compliant = current_value
             .as_ref()
             .map(|v: &String| {
-                if v == &check.expected {
+                if v == check.expected {
                     return true;
                 }
                 // Only use >= comparison when expected > 0 (higher-is-better settings).

@@ -291,24 +291,23 @@ impl SystemUpdatesCheck {
 
         // Get last update time
         if let Ok(metadata) = std::fs::metadata("/var/lib/apt/periodic/update-stamp") {
-            if let Ok(modified) = metadata.modified() {
-                if let Ok(duration) = modified.elapsed() {
-                    let days = duration.as_secs() / agent_common::constants::SECS_PER_DAY;
-                    status.days_since_check = Some(days as i64);
-                }
+            if let Ok(modified) = metadata.modified()
+                && let Ok(duration) = modified.elapsed()
+            {
+                let days = duration.as_secs() / agent_common::constants::SECS_PER_DAY;
+                status.days_since_check = Some(days as i64);
             }
-        } else if let Ok(metadata) = std::fs::metadata("/var/cache/apt/pkgcache.bin") {
-            if let Ok(modified) = metadata.modified() {
-                status.last_check_date = modified
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .ok()
-                    .map(|d| DateTime::from_timestamp(d.as_secs() as i64, 0))
-                    .flatten();
+        } else if let Ok(metadata) = std::fs::metadata("/var/cache/apt/pkgcache.bin")
+            && let Ok(modified) = metadata.modified()
+        {
+            status.last_check_date = modified
+                .duration_since(std::time::UNIX_EPOCH)
+                .ok()
+                .and_then(|d| DateTime::from_timestamp(d.as_secs() as i64, 0));
 
-                if let Ok(duration) = modified.elapsed() {
-                    let days = duration.as_secs() / agent_common::constants::SECS_PER_DAY;
-                    status.days_since_check = Some(days as i64);
-                }
+            if let Ok(duration) = modified.elapsed() {
+                let days = duration.as_secs() / agent_common::constants::SECS_PER_DAY;
+                status.days_since_check = Some(days as i64);
             }
         }
 

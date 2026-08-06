@@ -270,7 +270,7 @@ impl AdminAccountsCheck {
         if let Ok(group) = std::fs::read_to_string("/etc/group") {
             status
                 .raw_output
-                .push_str(&format!("=== /etc/group (filtered) ===\n"));
+                .push_str("=== /etc/group (filtered) ===\n");
 
             for line in group.lines() {
                 if line.starts_with("wheel:") || line.starts_with("sudo:") {
@@ -351,10 +351,12 @@ impl AdminAccountsCheck {
             for entry in entries.flatten() {
                 let path = entry.path();
                 // Skip hidden files and files ending in ~ (backups)
-                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                    if !name.starts_with('.') && !name.ends_with('~') && path.is_file() {
-                        sudoers_paths.push(path.to_string_lossy().to_string());
-                    }
+                if let Some(name) = path.file_name().and_then(|n| n.to_str())
+                    && !name.starts_with('.')
+                    && !name.ends_with('~')
+                    && path.is_file()
+                {
+                    sudoers_paths.push(path.to_string_lossy().to_string());
                 }
             }
         }
@@ -395,10 +397,9 @@ impl AdminAccountsCheck {
                             && !username.starts_with("Host_Alias")
                             && !username.starts_with("Cmnd_Alias")
                             && !username.starts_with("Defaults")
+                            && !status.sudo_users.contains(&username.to_string())
                         {
-                            if !status.sudo_users.contains(&username.to_string()) {
-                                status.sudo_users.push(username.to_string());
-                            }
+                            status.sudo_users.push(username.to_string());
                         }
                     }
 

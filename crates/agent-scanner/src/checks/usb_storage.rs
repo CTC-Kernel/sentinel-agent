@@ -186,9 +186,7 @@ impl UsbStorageCheck {
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run lsmod: {}", e)))?;
 
         let lsmod_result = String::from_utf8_lossy(&lsmod_output.stdout).to_string();
-        status
-            .raw_output
-            .push_str(&format!("=== lsmod (usb_storage) ===\n"));
+        status.raw_output.push_str("=== lsmod (usb_storage) ===\n");
 
         let module_loaded = lsmod_result
             .lines()
@@ -208,33 +206,34 @@ impl UsbStorageCheck {
         let modprobe_d = std::path::Path::new("/etc/modprobe.d/");
         let mut blacklisted = false;
 
-        if modprobe_d.exists() && modprobe_d.is_dir() {
-            if let Ok(entries) = std::fs::read_dir(modprobe_d) {
-                for entry in entries.flatten() {
-                    if entry.path().is_file() {
-                        if let Ok(content) = std::fs::read_to_string(entry.path()) {
-                            for line in content.lines() {
-                                let line_trimmed = line.trim();
-                                if line_trimmed.starts_with('#') {
-                                    continue;
-                                }
-                                if (line_trimmed.contains("blacklist")
-                                    && line_trimmed.contains("usb-storage"))
-                                    || (line_trimmed.contains("blacklist")
-                                        && line_trimmed.contains("usb_storage"))
-                                    || (line_trimmed.contains("install usb-storage /bin/true"))
-                                    || (line_trimmed.contains("install usb_storage /bin/true"))
-                                    || (line_trimmed.contains("install usb-storage /bin/false"))
-                                    || (line_trimmed.contains("install usb_storage /bin/false"))
-                                {
-                                    blacklisted = true;
-                                    status.raw_output.push_str(&format!(
-                                        "Found blacklist in {}: {}\n",
-                                        entry.path().display(),
-                                        line_trimmed
-                                    ));
-                                }
-                            }
+        if modprobe_d.exists()
+            && modprobe_d.is_dir()
+            && let Ok(entries) = std::fs::read_dir(modprobe_d)
+        {
+            for entry in entries.flatten() {
+                if entry.path().is_file()
+                    && let Ok(content) = std::fs::read_to_string(entry.path())
+                {
+                    for line in content.lines() {
+                        let line_trimmed = line.trim();
+                        if line_trimmed.starts_with('#') {
+                            continue;
+                        }
+                        if (line_trimmed.contains("blacklist")
+                            && line_trimmed.contains("usb-storage"))
+                            || (line_trimmed.contains("blacklist")
+                                && line_trimmed.contains("usb_storage"))
+                            || (line_trimmed.contains("install usb-storage /bin/true"))
+                            || (line_trimmed.contains("install usb_storage /bin/true"))
+                            || (line_trimmed.contains("install usb-storage /bin/false"))
+                            || (line_trimmed.contains("install usb_storage /bin/false"))
+                        {
+                            blacklisted = true;
+                            status.raw_output.push_str(&format!(
+                                "Found blacklist in {}: {}\n",
+                                entry.path().display(),
+                                line_trimmed
+                            ));
                         }
                     }
                 }

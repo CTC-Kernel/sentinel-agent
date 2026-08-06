@@ -594,33 +594,29 @@ impl UpdateStatusCheck {
                         last_update = fs::metadata("/var/log/yum.log")
                             .ok()
                             .and_then(|m| m.modified().ok())
-                            .map(|t| DateTime::<Utc>::from(t));
+                            .map(DateTime::<Utc>::from);
                         break;
                     }
                 }
             }
             // Also check dnf history (newer Fedora/RHEL)
-            if last_update.is_none() {
-                if let Ok(output) = silent_command("dnf")
+            if last_update.is_none()
+                && let Ok(output) = silent_command("dnf")
                     .args(["history", "list", "--setopt=tsflags=", "-q"])
                     .output()
-                {
-                    if output.status.success() {
-                        let result = String::from_utf8_lossy(&output.stdout);
-                        // dnf history output has date in column format
-                        if let Some(line) = result.lines().nth(1) {
-                            // Try to extract date from history output
-                            let parts: Vec<&str> = line.split('|').collect();
-                            if parts.len() >= 3 {
-                                let date_str = parts[2].trim();
-                                if let Ok(date) = chrono::NaiveDateTime::parse_from_str(
-                                    date_str,
-                                    "%Y-%m-%d %H:%M",
-                                ) {
-                                    last_update =
-                                        Some(DateTime::from_naive_utc_and_offset(date, Utc));
-                                }
-                            }
+                && output.status.success()
+            {
+                let result = String::from_utf8_lossy(&output.stdout);
+                // dnf history output has date in column format
+                if let Some(line) = result.lines().nth(1) {
+                    // Try to extract date from history output
+                    let parts: Vec<&str> = line.split('|').collect();
+                    if parts.len() >= 3 {
+                        let date_str = parts[2].trim();
+                        if let Ok(date) =
+                            chrono::NaiveDateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M")
+                        {
+                            last_update = Some(DateTime::from_naive_utc_and_offset(date, Utc));
                         }
                     }
                 }
@@ -659,20 +655,18 @@ impl UpdateStatusCheck {
             })
         {
             count
-        } else if let Some(count) = silent_command("sh")
-            .args(["-c", "checkupdates 2>/dev/null | wc -l || echo 0"])
-            .output()
-            .ok()
-            .and_then(|o| {
-                String::from_utf8_lossy(&o.stdout)
-                    .trim()
-                    .parse::<usize>()
-                    .ok()
-            })
-        {
-            count
         } else {
-            0
+            silent_command("sh")
+                .args(["-c", "checkupdates 2>/dev/null | wc -l || echo 0"])
+                .output()
+                .ok()
+                .and_then(|o| {
+                    String::from_utf8_lossy(&o.stdout)
+                        .trim()
+                        .parse::<usize>()
+                        .ok()
+                })
+                .unwrap_or_default()
         };
 
         if pending_count > MAX_TOTAL_PENDING {
@@ -680,10 +674,10 @@ impl UpdateStatusCheck {
         }
 
         let days_since = last_update.map(|d| (Utc::now() - d).num_days());
-        if let Some(days) = days_since {
-            if days > MAX_DAYS_SINCE_UPDATE {
-                issues.push(format!("Last update was {} days ago", days));
-            }
+        if let Some(days) = days_since
+            && days > MAX_DAYS_SINCE_UPDATE
+        {
+            issues.push(format!("Last update was {} days ago", days));
         }
 
         let score = if issues.is_empty() { 100.0 } else { 60.0 };
