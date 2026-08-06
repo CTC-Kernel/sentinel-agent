@@ -21,7 +21,7 @@ impl FimPage {
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
-            &["Sys & Network", "FIM"],
+            &["Détection & réponse", "FIM"],
             "Surveillance d'Intégrité",
             Some("D\u{00c9}TECTION DES MODIFICATIONS DE FICHIERS SYST\u{00c8}MES CRITIQUES"),
             Some(
@@ -220,6 +220,10 @@ impl FimPage {
                 let admin_unlocked = state.security.admin_unlocked;
                 let mut ack_command = None;
 
+                const FIM_PER_PAGE: usize = 50;
+                let (fim_start, fim_len, _) =
+                    widgets::page_window(state.fim.alerts.len(), FIM_PER_PAGE, &mut state.fim.page);
+
                 use egui_extras::{Column, TableBuilder};
 
                 let ctx_for_cursor = ui.ctx().clone();
@@ -275,97 +279,92 @@ impl FimPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(
-                            theme::TABLE_ROW_HEIGHT,
-                            state.fim.alerts.len(),
-                            |mut row| {
-                                let idx = row.index();
-                                let Some(alert) = state.fim.alerts.get(idx) else {
-                                    return;
-                                };
+                        body.rows(theme::TABLE_ROW_HEIGHT, fim_len, |mut row| {
+                            let idx = fim_start + row.index();
+                            let Some(alert) = state.fim.alerts.get(idx) else {
+                                return;
+                            };
 
-                                row.col(|ui: &mut egui::Ui| {
-                                    let (label, color) =
-                                        Self::change_type_display(&alert.change_type);
-                                    widgets::status_badge(ui, label, color);
-                                });
+                            row.col(|ui: &mut egui::Ui| {
+                                let (label, color) = Self::change_type_display(&alert.change_type);
+                                widgets::status_badge(ui, label, color);
+                            });
 
-                                row.col(|ui: &mut egui::Ui| {
-                                    ui.vertical(|ui: &mut egui::Ui| {
-                                        ui.label(
-                                            egui::RichText::new(&alert.path)
-                                                .font(theme::font_mono())
-                                                .color(theme::text_primary()),
-                                        );
-                                        let hash_text = match (&alert.old_hash, &alert.new_hash) {
-                                            (Some(old), Some(new)) => {
-                                                Some(format!("HASH : {} \u{2192} {}", old, new))
-                                            }
-                                            (Some(old), None) => Some(format!("HASH : {}", old)),
-                                            (None, Some(new)) => Some(format!("HASH : {}", new)),
-                                            (None, None) => None,
-                                        };
-                                        if let Some(ref text) = hash_text {
-                                            ui.label(
-                                                egui::RichText::new(text)
-                                                    .font(theme::font_mono_sm())
-                                                    .color(theme::text_tertiary()),
-                                            );
-                                        }
-                                    });
-                                });
-
-                                row.col(|ui: &mut egui::Ui| {
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.vertical(|ui: &mut egui::Ui| {
                                     ui.label(
-                                        egui::RichText::new(
-                                            alert.timestamp.format("%d/%m %H:%M:%S").to_string(),
-                                        )
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::text_tertiary()),
+                                        egui::RichText::new(&alert.path)
+                                            .font(theme::font_mono())
+                                            .color(theme::text_primary()),
                                     );
-                                });
-
-                                row.col(|ui: &mut egui::Ui| {
-                                    if alert_acked[idx] {
-                                        ui.label(
-                                            egui::RichText::new(format!(
-                                                "{}  ACQUITT\u{00c9}",
-                                                icons::CIRCLE_CHECK
-                                            ))
-                                            .font(theme::font_label())
-                                            .color(theme::text_tertiary())
-                                            .strong(),
-                                        );
-                                    } else if admin_unlocked {
-                                        if widgets::chip_button(
-                                            ui,
-                                            &format!("{}  ACQUITTER", icons::CHECK),
-                                            false,
-                                            theme::ACCENT,
-                                        )
-                                        .clicked()
-                                        {
-                                            ack_command = Some(idx);
+                                    let hash_text = match (&alert.old_hash, &alert.new_hash) {
+                                        (Some(old), Some(new)) => {
+                                            Some(format!("HASH : {} \u{2192} {}", old, new))
                                         }
-                                    } else {
-                                        widgets::chip_button(
-                                            ui,
-                                            &format!("{}  ACQUITTER", icons::LOCK),
-                                            false,
-                                            theme::text_tertiary(),
+                                        (Some(old), None) => Some(format!("HASH : {}", old)),
+                                        (None, Some(new)) => Some(format!("HASH : {}", new)),
+                                        (None, None) => None,
+                                    };
+                                    if let Some(ref text) = hash_text {
+                                        ui.label(
+                                            egui::RichText::new(text)
+                                                .font(theme::font_mono_sm())
+                                                .color(theme::text_tertiary()),
                                         );
                                     }
                                 });
+                            });
 
-                                let row_resp = row.response();
-                                if row_resp.hovered() {
-                                    ctx_for_cursor.set_cursor_icon(egui::CursorIcon::PointingHand);
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.label(
+                                    egui::RichText::new(
+                                        alert.timestamp.format("%d/%m %H:%M:%S").to_string(),
+                                    )
+                                    .font(theme::font_mono_sm())
+                                    .color(theme::text_tertiary()),
+                                );
+                            });
+
+                            row.col(|ui: &mut egui::Ui| {
+                                if alert_acked[idx] {
+                                    ui.label(
+                                        egui::RichText::new(format!(
+                                            "{}  ACQUITT\u{00c9}",
+                                            icons::CIRCLE_CHECK
+                                        ))
+                                        .font(theme::font_label())
+                                        .color(theme::text_tertiary())
+                                        .strong(),
+                                    );
+                                } else if admin_unlocked {
+                                    if widgets::chip_button(
+                                        ui,
+                                        &format!("{}  ACQUITTER", icons::CHECK),
+                                        false,
+                                        theme::ACCENT,
+                                    )
+                                    .clicked()
+                                    {
+                                        ack_command = Some(idx);
+                                    }
+                                } else {
+                                    widgets::chip_button(
+                                        ui,
+                                        &format!("{}  ACQUITTER", icons::LOCK),
+                                        false,
+                                        theme::text_tertiary(),
+                                    );
                                 }
-                                if row_resp.clicked() {
-                                    clicked_row = Some(idx);
-                                }
-                            },
-                        );
+                            });
+
+                            let row_resp = row.response();
+                            if row_resp.hovered() {
+                                ctx_for_cursor.set_cursor_icon(egui::CursorIcon::PointingHand);
+                            }
+                            if row_resp.clicked() {
+                                clicked_row = Some(idx);
+                            }
+                        });
                     });
 
                 if let Some(idx) = clicked_row {
@@ -385,6 +384,13 @@ impl FimPage {
                     }
                     command = Some(GuiCommand::AcknowledgeFimAlert { alert_id });
                 }
+
+                widgets::paginate_controls(
+                    ui,
+                    state.fim.alerts.len(),
+                    FIM_PER_PAGE,
+                    &mut state.fim.page,
+                );
             });
         }
 

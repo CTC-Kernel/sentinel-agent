@@ -48,7 +48,7 @@ impl TerminalPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Pilotage", "Terminal"],
+            &["Système", "Terminal"],
             "Terminal Analytique",
             Some("FLUX EN TEMPS RÉEL DES ÉVÉNEMENTS ET DE L'ACTIVITÉ DE L'AGENT"),
             Some(

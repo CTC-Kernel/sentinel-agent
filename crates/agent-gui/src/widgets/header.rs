@@ -30,30 +30,31 @@ pub fn page_header_nav(
     clicked
 }
 
-/// Draw a page header with title, optional subtitle and contextual help.
+/// Draw a page sub-header: optional subtitle, contextual help and an accent
+/// line.
+///
+/// The `title` is intentionally **not** rendered here. The global top bar
+/// already shows the current page name, so a body-level H1 would duplicate it.
+/// The parameter is retained so each page keeps declaring its title in one
+/// place (it also names the last breadcrumb segment via [`page_header_nav`]).
 pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: Option<&str>) {
+    let _ = title; // Surfaced by the global top bar, not repeated in the body.
     ui.vertical(|ui: &mut egui::Ui| {
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new(title)
-                    .font(theme::font_comex())
-                    .color(theme::text_primary())
-                    .strong(),
-            );
+        if subtitle.is_some() || help_text.is_some() {
+            ui.horizontal(|ui: &mut egui::Ui| {
+                if let Some(sub) = subtitle {
+                    ui.label(
+                        egui::RichText::new(sub)
+                            .font(theme::font_body())
+                            .color(theme::text_secondary()),
+                    );
+                }
 
-            if let Some(help) = help_text {
-                ui.add_space(theme::SPACE_SM);
-                super::help_button(ui, help);
-            }
-        });
-
-        if let Some(sub) = subtitle {
-            ui.add_space(theme::SPACE_XS);
-            ui.label(
-                egui::RichText::new(sub)
-                    .font(theme::font_body())
-                    .color(theme::text_secondary()),
-            );
+                if let Some(help) = help_text {
+                    ui.add_space(theme::SPACE_SM);
+                    super::help_button(ui, help);
+                }
+            });
         }
 
         // Premium accent line with gradient effect

@@ -23,7 +23,7 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
-            &["Pilotage", "Logiciels"],
+            &["Actifs & inventaire", "Logiciels"],
             "Inventaire Logiciel",
             Some("CATALOGUE DES APPLICATIONS ET COMPOSANTS SYSTÈME INSTALLÉS SUR L'HÔTE"),
             Some(
@@ -40,9 +40,9 @@ impl SoftwarePage {
                 format!(
                     "{}  {}",
                     if is_scanning {
-                        "SCAN EN COURS"
+                        "Analyse en cours"
                     } else {
-                        "ACTUALISER L'INVENTAIRE"
+                        "Actualiser l'inventaire"
                     },
                     icons::PLAY
                 ),
@@ -324,6 +324,13 @@ impl SoftwarePage {
 
         let result_count = filtered.len();
 
+        const SW_PER_PAGE: usize = 50;
+        let (pkg_start, pkg_len, _) = widgets::page_window(
+            filtered.len(),
+            SW_PER_PAGE,
+            &mut state.software.packages_page,
+        );
+
         // Summary cards (AAA Grade)
         let total = state.software.packages.len() as u32;
         let up_to_date = state
@@ -560,8 +567,8 @@ impl SoftwarePage {
                         });
                     })
                     .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let real_idx = filtered[row.index()];
+                        body.rows(theme::TABLE_ROW_HEIGHT, pkg_len, |mut row| {
+                            let real_idx = filtered[pkg_start + row.index()];
                             let pkg = &state.software.packages[real_idx];
                             row.col(|ui: &mut egui::Ui| {
                                 let response = ui
@@ -659,6 +666,13 @@ impl SoftwarePage {
                     state.software.selected_package = Some(idx);
                     state.software.detail_open = true;
                 }
+
+                widgets::paginate_controls(
+                    ui,
+                    filtered.len(),
+                    SW_PER_PAGE,
+                    &mut state.software.packages_page,
+                );
             }
         });
     }
@@ -690,6 +704,10 @@ impl SoftwarePage {
 
         let result_count = filtered.len();
         let total = state.software.native_apps.len() as u32;
+
+        const SW_PER_PAGE: usize = 50;
+        let (app_start, app_len, _) =
+            widgets::page_window(filtered.len(), SW_PER_PAGE, &mut state.software.native_page);
 
         let (os_label, audit_scope) = if cfg!(target_os = "macos") {
             ("macOS", "/Applications")
@@ -854,8 +872,8 @@ impl SoftwarePage {
                         header.col(|_ui: &mut egui::Ui| {}); // Actions (remainder)
                     })
                     .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let real_idx = filtered[row.index()];
+                        body.rows(theme::TABLE_ROW_HEIGHT, app_len, |mut row| {
+                            let real_idx = filtered[app_start + row.index()];
                             let app = &state.software.native_apps[real_idx];
                             row.col(|ui: &mut egui::Ui| {
                                 let response = ui
@@ -920,6 +938,13 @@ impl SoftwarePage {
                     state.software.selected_package = Some(idx);
                     state.software.detail_open = true;
                 }
+
+                widgets::paginate_controls(
+                    ui,
+                    filtered.len(),
+                    SW_PER_PAGE,
+                    &mut state.software.native_page,
+                );
             }
         });
     }

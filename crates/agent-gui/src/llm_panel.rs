@@ -60,8 +60,8 @@ impl LLMPanel {
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
-            &["Pilotage", "Intelligence IA"],
-            "Intelligence Artificielle",
+            &["Assistant", "Assistant IA"],
+            "Assistant IA",
             Some("MODULE D'ANALYSE IA ET RECOMMANDATIONS AUTOMATIQUES"),
             Some(
                 "Synth\u{00e8}se automatique des donn\u{00e9}es de conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s, menaces et alertes r\u{00e9}seau en recommandations prioris\u{00e9}es par niveau de criticit\u{00e9}.",

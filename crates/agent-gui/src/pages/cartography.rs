@@ -52,11 +52,13 @@ impl CartographyPage {
 
         if state.discovery.devices.is_empty() {
             ui.add_space(theme::SPACE_LG);
-            widgets::protected_state(
+            widgets::empty_state(
                 ui,
-                icons::WARNING,
+                icons::CARTOGRAPHY,
                 "AUCUN ACTIF DÉCOUVERT",
-                "Veuillez lancer une découverte réseau pour cartographier votre infrastructure.",
+                Some(
+                    "Veuillez lancer une découverte réseau pour cartographier votre infrastructure.",
+                ),
             );
             return None;
         }
@@ -64,7 +66,7 @@ impl CartographyPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Sys & Network", "Cartographie"],
+            &["Actifs & inventaire", "Cartographie"],
             "Cartographie Réseau",
             Some("VISUALISATION TOPOLOGIQUE ET ANALYSE DES RELATIONS INTER-ACTIFS"),
             Some(
@@ -162,9 +164,9 @@ impl CartographyPage {
                                 format!(
                                     "{}  {}",
                                     if is_scanning {
-                                        "SCAN EN COURS"
+                                        "Analyse en cours"
                                     } else {
-                                        "LANCER LE SCAN"
+                                        "Lancer l'analyse"
                                     },
                                     icons::PLAY
                                 ),

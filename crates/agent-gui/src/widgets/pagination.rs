@@ -541,3 +541,51 @@ pub fn pagination_compact(ui: &mut Ui, state: &mut PaginationState) -> bool {
         .style(PaginationStyle::Compact)
         .show(ui, state)
 }
+
+/// Compute the visible window for a paginated list.
+///
+/// Clamps `*page` (0-indexed) into range for the current item count, then
+/// returns `(start, len, total_pages)` where `start` is the index of the first
+/// visible item and `len` the number of items on this page. Callers iterate
+/// `start..start + len` over their filtered collection, keeping row indices in
+/// terms of the *full* list so selection and detail lookups stay valid across
+/// pages.
+pub fn page_window(
+    total_items: usize,
+    items_per_page: usize,
+    page: &mut usize,
+) -> (usize, usize, usize) {
+    let per = items_per_page.max(1);
+    let total_pages = total_items.div_ceil(per).max(1);
+    if *page >= total_pages {
+        *page = total_pages - 1;
+    }
+    let start = *page * per;
+    let len = (start + per).min(total_items) - start;
+    (start, len, total_pages)
+}
+
+/// Render a centered compact pagination control for a list, if it spans more
+/// than one page. Mutates `*page` (0-indexed) in place. Pair with
+/// [`page_window`], which does the slicing.
+pub fn paginate_controls(ui: &mut Ui, total_items: usize, items_per_page: usize, page: &mut usize) {
+    let per = items_per_page.max(1);
+    let total_pages = total_items.div_ceil(per).max(1);
+    if total_pages <= 1 {
+        return;
+    }
+    ui.add_space(theme::SPACE_SM);
+    ui.horizontal(|ui: &mut Ui| {
+        ui.with_layout(
+            egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
+            |ui: &mut Ui| {
+                let mut pag = PaginationState::new(total_items, per);
+                pag.current_page = *page + 1;
+                pag.total_pages = total_pages;
+                if pagination_compact(ui, &mut pag) {
+                    *page = pag.current_page.saturating_sub(1);
+                }
+            },
+        );
+    });
+}

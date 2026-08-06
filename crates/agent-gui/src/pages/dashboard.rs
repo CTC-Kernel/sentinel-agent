@@ -63,7 +63,7 @@ impl DashboardPage {
         ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
-            &["Pilotage", "Tableau de bord"],
+            &["Vue d'ensemble", "Tableau de bord"],
             "Tableau de bord",
             Some("CENTRE DE PILOTAGE GRC"),
             Some(
@@ -255,9 +255,9 @@ impl DashboardPage {
                     "{}  {}",
                     icons::PLAY,
                     if is_scanning {
-                        "SCAN EN COURS..."
+                        "Analyse en cours..."
                     } else {
-                        "SCAN"
+                        "Analyser"
                     }
                 ),
                 !is_scanning,

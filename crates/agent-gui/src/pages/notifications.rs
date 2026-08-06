@@ -21,7 +21,7 @@ impl NotificationsPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Pilotage", "Notifications"],
+            &["Vue d'ensemble", "Notifications"],
             "Notifications",
             Some("Alertes, avertissements et informations de l'agent"),
             Some(
@@ -137,7 +137,20 @@ impl NotificationsPage {
                 );
             });
         } else {
-            for (idx, notif) in state.notifications.iter().enumerate() {
+            const NOTIF_PER_PAGE: usize = 20;
+            let (nf_start, nf_len, _) = widgets::page_window(
+                state.notifications.len(),
+                NOTIF_PER_PAGE,
+                &mut state.notifications_page,
+            );
+            for (offset, notif) in state
+                .notifications
+                .iter()
+                .skip(nf_start)
+                .take(nf_len)
+                .enumerate()
+            {
+                let idx = nf_start + offset;
                 let border_color = theme::severity_color(&notif.severity);
                 let bg = if notif.read {
                     theme::bg_secondary()
@@ -219,6 +232,13 @@ impl NotificationsPage {
 
                 ui.add_space(theme::SPACE_SM);
             }
+
+            widgets::paginate_controls(
+                ui,
+                state.notifications.len(),
+                NOTIF_PER_PAGE,
+                &mut state.notifications_page,
+            );
         }
 
         ui.add_space(theme::SPACE_XL);

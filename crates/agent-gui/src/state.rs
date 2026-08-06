@@ -265,6 +265,8 @@ pub struct FimState {
     pub filter: Option<String>,
     pub selected_alert: Option<usize>,
     pub detail_open: bool,
+    /// Current page (0-indexed) of the paginated alerts table.
+    pub page: usize,
 }
 
 impl Default for FimState {
@@ -277,6 +279,7 @@ impl Default for FimState {
             filter: None,
             selected_alert: None,
             detail_open: false,
+            page: 0,
         }
     }
 }
@@ -535,6 +538,8 @@ impl Default for ReportsState {
 /// Risk management page state.
 #[derive(Default)]
 pub struct RisksState {
+    /// Current page (0-indexed) of the paginated risk table.
+    pub page: usize,
     pub entries: Vec<crate::dto::RiskEntry>,
     pub search: String,
     pub status_filter: Option<crate::dto::RiskStatus>,
@@ -566,6 +571,8 @@ pub struct AssetsState {
     pub detail_open: bool,
     /// Whether the inline asset creation form is open.
     pub asset_editing: bool,
+    /// Current page (0-indexed) of the paginated asset table.
+    pub page: usize,
     /// Assets waiting to be persisted via `SaveAsset` commands.
     ///
     /// Pages push new assets here; the app update loop drains them and sends
@@ -619,6 +626,8 @@ pub struct VulnerabilityFilter {
     pub severity_filter: Option<crate::dto::Severity>,
     pub selected_vuln: Option<usize>,
     pub detail_open: bool,
+    /// Current page (0-indexed) of the paginated findings table.
+    pub page: usize,
 }
 
 // ---------------------------------------------------------------------------
@@ -634,6 +643,10 @@ pub struct SoftwareState {
     pub search: String,
     pub selected_package: Option<usize>,
     pub detail_open: bool,
+    /// Current page (0-indexed) of the packages table.
+    pub packages_page: usize,
+    /// Current page (0-indexed) of the native-apps table.
+    pub native_page: usize,
 }
 
 // ---------------------------------------------------------------------------
@@ -765,10 +778,14 @@ pub struct AppState {
     pub notifications_active_tab: usize,
     pub selected_notification: Option<usize>,
     pub notification_detail_open: bool,
+    /// Current page (0-indexed) of the paginated notification feed.
+    pub notifications_page: usize,
     pub previous_compliance_score: Option<f32>,
     pub audit_trail_search: String,
     pub audit_trail_filter: Option<String>,
     pub selected_audit_entry: Option<usize>,
+    /// Current page (0-indexed) of the paginated audit log.
+    pub audit_trail_page: usize,
     pub audit_detail_open: bool,
     pub reduced_motion: bool,
     /// Page navigation request (consumed by app.rs each frame).
@@ -819,10 +836,12 @@ impl Default for AppState {
             notifications_active_tab: 0,
             selected_notification: None,
             notification_detail_open: false,
+            notifications_page: 0,
             previous_compliance_score: None,
             audit_trail_search: String::new(),
             audit_trail_filter: None,
             selected_audit_entry: None,
+            audit_trail_page: 0,
             audit_detail_open: false,
             reduced_motion: false,
             #[cfg(feature = "render")]
