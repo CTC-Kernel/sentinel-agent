@@ -172,6 +172,29 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
     bridge
 }
 
+/// Every directory the agent may write logs to, without creating any of them.
+///
+/// [`get_log_dir`] picks one location and creates it as a side effect, which
+/// makes it unsuitable for read-only callers such as the EDR quarantine guard.
+/// This returns all candidates instead: protecting a directory the agent is not
+/// currently using is harmless, missing the one it *is* using is not.
+pub(crate) fn log_dir_candidates() -> Vec<std::path::PathBuf> {
+    let mut candidates = Vec::new();
+
+    #[cfg(windows)]
+    candidates.push(std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs"));
+    #[cfg(not(windows))]
+    candidates.push(std::path::PathBuf::from("/var/log/sentinel"));
+
+    if let Some(dirs) = directories::ProjectDirs::from("com", "sentinel-grc", "Sentinel") {
+        candidates.push(dirs.data_local_dir().join("logs"));
+    }
+
+    candidates.push(std::env::temp_dir().join("sentinel-logs"));
+
+    candidates
+}
+
 fn get_log_dir() -> std::path::PathBuf {
     #[cfg(windows)]
     let primary = std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs");

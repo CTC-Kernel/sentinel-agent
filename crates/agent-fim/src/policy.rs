@@ -26,18 +26,18 @@ pub fn build_policy(
         }
     };
 
-    let ignore_patterns = match custom_ignore_patterns {
-        Some(patterns) if !patterns.is_empty() => patterns.to_vec(),
-        _ => vec![
-            "*.log".to_string(),
-            "*.tmp".to_string(),
-            "*.swp".to_string(),
-            ".git/**".to_string(),
-            // Sentinel Agent own paths — prevent self-detection
-            "sentinel/**".to_string(),
-            "sentinel-grc/**".to_string(),
-        ],
-    };
+    // Custom patterns extend the defaults rather than replacing them. Replacing
+    // meant that configuring a single extra pattern silently dropped the
+    // agent's own self-exclusions along with it.
+    let defaults = FimPolicy::default();
+    let mut ignore_patterns = defaults.ignore_patterns;
+    if let Some(patterns) = custom_ignore_patterns {
+        for pattern in patterns {
+            if !ignore_patterns.contains(pattern) {
+                ignore_patterns.push(pattern.clone());
+            }
+        }
+    }
 
     FimPolicy {
         watched_paths,
@@ -45,6 +45,7 @@ pub fn build_policy(
         recursive: true,
         debounce_ms: 500,
     }
+    .with_self_exclusions()
 }
 
 /// Validate that watched paths exist and are accessible.

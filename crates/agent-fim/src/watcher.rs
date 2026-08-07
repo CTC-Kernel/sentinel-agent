@@ -259,17 +259,16 @@ fn process_event(
 fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
     let path_str = path.to_string_lossy();
 
-    // On Windows, use case-insensitive matching and normalize separators
-    #[cfg(target_os = "windows")]
+    // Case-insensitive on every platform, and separators normalized.
+    //
+    // This used to be Windows-only, which broke the agent's own self-exclusion
+    // on macOS: the data directory is `SentinelGRC` (capitalized), so the
+    // lowercase `sentinel/**` pattern never matched and the agent would watch
+    // its own config and database if either fell under a watched path.
     let path_norm = path_str.to_lowercase().replace('\\', "/");
-    #[cfg(not(target_os = "windows"))]
-    let path_norm = path_str;
 
     for pattern in patterns {
-        #[cfg(target_os = "windows")]
         let pattern_norm = pattern.to_lowercase().replace('\\', "/");
-        #[cfg(not(target_os = "windows"))]
-        let pattern_norm = pattern.clone();
 
         if let Some(suffix) = pattern_norm.strip_prefix('*') {
             if path_norm.ends_with(suffix) {
@@ -300,5 +299,37 @@ mod tests {
         ));
         assert!(is_ignored_path(&PathBuf::from("/tmp/file.tmp"), &patterns));
         assert!(!is_ignored_path(&PathBuf::from("/etc/passwd"), &patterns));
+    }
+
+    /// The agent's macOS data directory is `SentinelGRC`, capitalized. Matching
+    /// used to be case-sensitive off Windows, so the lowercase self-exclusion
+    /// patterns never matched it and the agent would have watched its own
+    /// config and database.
+    #[test]
+    fn self_exclusion_matches_capitalized_macos_paths() {
+        let patterns = agent_common::types::fim::SELF_EXCLUSION_PATTERNS
+            .iter()
+            .map(|p| (*p).to_string())
+            .collect::<Vec<_>>();
+
+        for path in [
+            "/Users/x/Library/Application Support/SentinelGRC/agent.db",
+            "/Users/x/Library/Application Support/SentinelGRC/agent.json",
+            "/Applications/SentinelAgent.app/Contents/MacOS/sentinel-agent",
+            "/var/lib/sentinel-grc/agent.db",
+        ] {
+            assert!(
+                is_ignored_path(&PathBuf::from(path), &patterns),
+                "agent-owned path must be ignored: {}",
+                path
+            );
+        }
+
+        // The exclusion must stay narrow enough to keep watching real targets.
+        assert!(!is_ignored_path(&PathBuf::from("/etc/passwd"), &patterns));
+        assert!(!is_ignored_path(
+            &PathBuf::from("/usr/bin/sudo"),
+            &patterns
+        ));
     }
 }

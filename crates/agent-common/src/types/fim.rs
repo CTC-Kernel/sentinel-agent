@@ -123,6 +123,41 @@ fn default_debounce_ms() -> u64 {
     500
 }
 
+/// Ignore patterns that protect the agent from watching its own files.
+///
+/// Kept separate from the other defaults because these are an invariant, not a
+/// preference: [`FimPolicy::with_self_exclusions`] re-applies them to every
+/// policy, including ones pushed by the platform. Without that, a server config
+/// omitting `ignore_patterns` (the field defaults to empty) combined with a
+/// watched path covering the agent's data directory produces a self-sustaining
+/// loop -- FIM alerts on `agent.db` writes, which are themselves written to
+/// `agent.db`.
+///
+/// Both casings of the macOS data directory (`SentinelGRC`) and the
+/// lowercase Unix form are listed: pattern matching is case-sensitive on
+/// non-Windows platforms.
+pub const SELF_EXCLUSION_PATTERNS: &[&str] = &[
+    "sentinel/**",
+    "sentinel-grc/**",
+    "Sentinel/**",
+    "SentinelGRC/**",
+    "SentinelAgent.app/**",
+];
+
+impl FimPolicy {
+    /// Return this policy with the agent's self-exclusion patterns guaranteed
+    /// present, preserving any caller- or server-supplied patterns.
+    #[must_use]
+    pub fn with_self_exclusions(mut self) -> Self {
+        for pattern in SELF_EXCLUSION_PATTERNS {
+            if !self.ignore_patterns.iter().any(|p| p == pattern) {
+                self.ignore_patterns.push((*pattern).to_string());
+            }
+        }
+        self
+    }
+}
+
 impl Default for FimPolicy {
     fn default() -> Self {
         Self {
@@ -132,10 +167,6 @@ impl Default for FimPolicy {
                 "*.tmp".to_string(),
                 "*.swp".to_string(),
                 ".git/**".to_string(),
-                // Sentinel Agent own paths — prevent self-detection when the agent
-                // updates its config or database under watched directories.
-                "sentinel/**".to_string(),
-                "sentinel-grc/**".to_string(),
                 // Windows: exclude transient user-profile caches under the config directory.
                 // These generate hundreds of events (D3DSCache, Office telemetry, Xbox, etc.)
                 // and are not security-relevant.
@@ -144,6 +175,7 @@ impl Default for FimPolicy {
             recursive: true,
             debounce_ms: 500,
         }
+        .with_self_exclusions()
     }
 }
 
@@ -191,6 +223,67 @@ impl FimPolicy {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `ignore_patterns` is `#[serde(default)]`, so a server payload that omits
+    /// the field deserializes to an empty vec. Re-applying the self-exclusions
+    /// is what stops that from silently putting the agent's own database and
+    /// config under watch.
+    #[test]
+    fn self_exclusions_survive_a_server_config_that_omits_them() {
+        let from_server: FimPolicy =
+            serde_json::from_str(r#"{"watched_paths":["/Library/Application Support"]}"#)
+                .expect("deserialize server policy");
+        assert!(
+            from_server.ignore_patterns.is_empty(),
+            "precondition: an omitted field yields no patterns"
+        );
+
+        let hardened = from_server.with_self_exclusions();
+        for pattern in SELF_EXCLUSION_PATTERNS {
+            assert!(
+                hardened.ignore_patterns.iter().any(|p| p == pattern),
+                "self-exclusion '{}' must be re-applied",
+                pattern
+            );
+        }
+    }
+
+    #[test]
+    fn self_exclusions_preserve_server_supplied_patterns_and_do_not_duplicate() {
+        let policy = FimPolicy {
+            watched_paths: vec![],
+            ignore_patterns: vec!["custom/**".to_string(), "sentinel/**".to_string()],
+            recursive: true,
+            debounce_ms: 500,
+        }
+        .with_self_exclusions();
+
+        assert!(
+            policy.ignore_patterns.iter().any(|p| p == "custom/**"),
+            "caller patterns must be preserved"
+        );
+        assert_eq!(
+            policy
+                .ignore_patterns
+                .iter()
+                .filter(|p| *p == "sentinel/**")
+                .count(),
+            1,
+            "an already-present pattern must not be duplicated"
+        );
+    }
+
+    #[test]
+    fn default_policy_carries_self_exclusions() {
+        let policy = FimPolicy::default();
+        for pattern in SELF_EXCLUSION_PATTERNS {
+            assert!(
+                policy.ignore_patterns.iter().any(|p| p == pattern),
+                "default policy is missing '{}'",
+                pattern
+            );
+        }
+    }
 
     #[test]
     fn test_fim_change_type_label() {

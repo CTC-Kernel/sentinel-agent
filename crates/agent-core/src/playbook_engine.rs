@@ -9,10 +9,7 @@
 
 #[cfg(all(feature = "gui", feature = "llm"))]
 use tracing::debug;
-use tracing::info;
-// `warn` is only used by the gui-gated evaluate_playbook path.
-#[cfg(feature = "gui")]
-use tracing::warn;
+use tracing::{info, warn};
 
 /// Playbook condition evaluation result.
 #[derive(Debug)]
@@ -109,6 +106,10 @@ pub async fn evaluate_playbook(
     let mut matched_conditions = Vec::new();
     let mut actions = Vec::new();
     let mut base_confidence: f32 = 0.0;
+    // Number of *conditions* that matched, as opposed to the number of matched
+    // entities recorded in `matched_conditions` (one condition can match many
+    // processes). The "all" operator must count conditions, not entities.
+    let mut conditions_matched = 0usize;
 
     if !playbook.enabled {
         return PlaybookEvaluation {
@@ -140,6 +141,8 @@ pub async fn evaluate_playbook(
             );
             continue;
         }
+
+        let matches_before = matched_conditions.len();
 
         match condition.condition_type {
             PlaybookConditionType::ProcessNameMatch => {
@@ -215,9 +218,11 @@ pub async fn evaluate_playbook(
                 }
             }
         }
-    }
 
-    let triggered = !matched_conditions.is_empty();
+        if matched_conditions.len() > matches_before {
+            conditions_matched += 1;
+        }
+    }
 
     // Use the first condition's operator to determine AND/OR logic.
     // Default to "any" (OR) if no operator is set.
@@ -227,10 +232,8 @@ pub async fn evaluate_playbook(
         .map(|c| c.operator.as_str())
         .unwrap_or("any");
 
-    let actually_triggered = match operator {
-        "all" | "and" | "AND" => matched_conditions.len() >= playbook.conditions.len(),
-        _ => triggered, // "any" / "or" -- at least one match
-    };
+    let actually_triggered =
+        playbook_triggers(operator, conditions_matched, playbook.conditions.len());
 
     // Add notification action for any triggered playbook
     if actually_triggered {
@@ -294,6 +297,82 @@ pub async fn evaluate_playbook(
     }
 }
 
+/// Decide whether a playbook fires, given how many of its conditions matched.
+///
+/// `conditions_matched` counts distinct *conditions*, not matched entities: one
+/// `ProcessNameMatch` condition can match many processes. Conflating the two is
+/// what made a two-condition "all" playbook fire on a single condition that
+/// happened to hit two processes, quietly turning a narrow rule into a
+/// disjunctive one.
+fn playbook_triggers(operator: &str, conditions_matched: usize, total_conditions: usize) -> bool {
+    match operator {
+        "all" | "and" | "AND" => total_conditions > 0 && conditions_matched >= total_conditions,
+        // "any" / "or" -- at least one condition matched.
+        _ => conditions_matched > 0,
+    }
+}
+
+/// Maximum destructive actions a single playbook run may execute.
+///
+/// Conditions match by substring against live scan results, so one
+/// over-broad pattern can fan out to every process or file on the host. This
+/// caps the blast radius of a misconfigured or malicious playbook; the actions
+/// beyond the cap are refused and logged rather than silently dropped.
+const MAX_DESTRUCTIVE_ACTIONS_PER_RUN: usize = 10;
+
+/// Whether an action changes host state irreversibly enough to be worth capping.
+fn is_destructive(action: &ResolvedAction) -> bool {
+    matches!(
+        action,
+        ResolvedAction::KillProcess { .. }
+            | ResolvedAction::QuarantineFile { .. }
+            | ResolvedAction::BlockIp { .. }
+    )
+}
+
+/// Reject action targets that are structurally invalid before they reach the
+/// EDR layer.
+///
+/// `edr_actions` enforces the self-protection invariants (own PID, own files,
+/// backend IP) and remains the authoritative chokepoint. This is the
+/// playbook-specific layer: playbooks are authored on the platform and stored
+/// locally verbatim, and the manual-trigger path in `main.rs` passes their
+/// parameters through without evaluating any condition, so targets arriving
+/// here are attacker-influenceable strings rather than scanner-derived values.
+fn validate_target(action: &ResolvedAction) -> Result<(), String> {
+    match action {
+        ResolvedAction::KillProcess { pid, name } => {
+            if *pid == 0 || *pid == 1 {
+                return Err(format!(
+                    "refusing reserved PID {} (target '{}')",
+                    pid, name
+                ));
+            }
+            Ok(())
+        }
+        ResolvedAction::QuarantineFile { path } => {
+            if path.trim().is_empty() {
+                return Err("refusing empty quarantine path".to_string());
+            }
+            if !std::path::Path::new(path).is_absolute() {
+                return Err(format!(
+                    "refusing relative quarantine path '{}': target is ambiguous \
+                     and depends on the agent's working directory",
+                    path
+                ));
+            }
+            Ok(())
+        }
+        ResolvedAction::BlockIp { ip, .. } => {
+            if ip.parse::<std::net::IpAddr>().is_err() {
+                return Err(format!("refusing malformed IP '{}'", ip));
+            }
+            Ok(())
+        }
+        _ => Ok(()),
+    }
+}
+
 /// Execute playbook actions and collect results.
 pub async fn execute_playbook_actions(
     playbook_name: &str,
@@ -301,8 +380,41 @@ pub async fn execute_playbook_actions(
     audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
 ) -> Vec<ActionResult> {
     let mut results = Vec::new();
+    let mut destructive_executed = 0usize;
 
     for action in actions {
+        if let Err(reason) = validate_target(action) {
+            warn!(
+                "Playbook '{}': rejected action -- {}",
+                playbook_name, reason
+            );
+            results.push(ActionResult {
+                action: format!("{:?}", action),
+                success: false,
+                error: Some(format!("Rejected by target validation: {}", reason)),
+            });
+            continue;
+        }
+
+        if is_destructive(action) {
+            destructive_executed += 1;
+            if destructive_executed > MAX_DESTRUCTIVE_ACTIONS_PER_RUN {
+                warn!(
+                    "Playbook '{}': destructive action cap ({}) reached, refusing remaining actions",
+                    playbook_name, MAX_DESTRUCTIVE_ACTIONS_PER_RUN
+                );
+                results.push(ActionResult {
+                    action: format!("{:?}", action),
+                    success: false,
+                    error: Some(format!(
+                        "Refused: playbook exceeded the {} destructive-action limit for a single run",
+                        MAX_DESTRUCTIVE_ACTIONS_PER_RUN
+                    )),
+                });
+                continue;
+            }
+        }
+
         let result = match action {
             ResolvedAction::KillProcess { name, pid } => {
                 match crate::edr_actions::kill_process(name, *pid).await {
@@ -391,6 +503,167 @@ pub async fn execute_playbook_actions(
     results
 }
 
+#[cfg(test)]
+mod guard_tests {
+    use super::*;
+
+    /// The regression this guards: `conditions_matched` counts conditions, not
+    /// matched entities. Passing 2 here stands for "one condition matched two
+    /// processes" -- which must NOT satisfy a two-condition AND.
+    #[test]
+    fn all_operator_requires_every_condition_to_match() {
+        for op in ["all", "and", "AND"] {
+            assert!(
+                !playbook_triggers(op, 1, 2),
+                "'{}' must not fire with 1 of 2 conditions matched",
+                op
+            );
+            assert!(
+                playbook_triggers(op, 2, 2),
+                "'{}' must fire when both conditions matched",
+                op
+            );
+            // An empty condition list must never fire: 0 >= 0 would otherwise
+            // make a playbook with no conditions trigger unconditionally.
+            assert!(
+                !playbook_triggers(op, 0, 0),
+                "'{}' must not fire with no conditions defined",
+                op
+            );
+        }
+    }
+
+    #[test]
+    fn any_operator_fires_on_a_single_match() {
+        for op in ["any", "or", "", "unrecognized"] {
+            assert!(playbook_triggers(op, 1, 3), "'{}' should fire on one", op);
+            assert!(!playbook_triggers(op, 0, 3), "'{}' needs a match", op);
+        }
+    }
+
+    #[test]
+    fn rejects_reserved_pids() {
+        for pid in [0u32, 1u32] {
+            let action = ResolvedAction::KillProcess {
+                name: "x".to_string(),
+                pid,
+            };
+            assert!(
+                validate_target(&action).is_err(),
+                "PID {} must be rejected",
+                pid
+            );
+        }
+        assert!(
+            validate_target(&ResolvedAction::KillProcess {
+                name: "x".to_string(),
+                pid: 4242,
+            })
+            .is_ok(),
+            "an ordinary PID must still be allowed"
+        );
+    }
+
+    #[test]
+    fn rejects_ambiguous_and_malformed_targets() {
+        assert!(
+            validate_target(&ResolvedAction::QuarantineFile {
+                path: "relative/path.bin".to_string(),
+            })
+            .is_err(),
+            "relative quarantine paths depend on the working directory"
+        );
+        assert!(
+            validate_target(&ResolvedAction::QuarantineFile {
+                path: "   ".to_string(),
+            })
+            .is_err(),
+            "blank quarantine path must be rejected"
+        );
+        assert!(
+            validate_target(&ResolvedAction::BlockIp {
+                ip: "not-an-ip".to_string(),
+                duration_secs: 60,
+            })
+            .is_err(),
+            "malformed IP must be rejected"
+        );
+        assert!(
+            validate_target(&ResolvedAction::BlockIp {
+                ip: "203.0.113.7".to_string(),
+                duration_secs: 60,
+            })
+            .is_ok(),
+            "a well-formed IP must still be allowed"
+        );
+    }
+
+    #[test]
+    fn non_destructive_actions_are_not_capped() {
+        assert!(!is_destructive(&ResolvedAction::Notify {
+            message: "x".to_string(),
+        }));
+        assert!(is_destructive(&ResolvedAction::QuarantineFile {
+            path: "/tmp/x".to_string(),
+        }));
+    }
+
+    /// Targets are absolute but non-existent, so every action fails harmlessly
+    /// inside `quarantine_file` -- what is under test is the cap, not the EDR
+    /// layer.
+    #[tokio::test]
+    async fn destructive_actions_are_capped_per_run() {
+        let over_cap = MAX_DESTRUCTIVE_ACTIONS_PER_RUN + 3;
+        let actions: Vec<ResolvedAction> = (0..over_cap)
+            .map(|i| ResolvedAction::QuarantineFile {
+                path: format!("/nonexistent-sentinel-cap-test-{}", i),
+            })
+            .collect();
+
+        let results = execute_playbook_actions("cap-test", &actions, None).await;
+        assert_eq!(results.len(), over_cap, "every action must be reported");
+
+        let capped = results
+            .iter()
+            .filter(|r| {
+                r.error
+                    .as_deref()
+                    .is_some_and(|e| e.contains("destructive-action limit"))
+            })
+            .count();
+        assert_eq!(
+            capped,
+            over_cap - MAX_DESTRUCTIVE_ACTIONS_PER_RUN,
+            "actions beyond the cap must be refused, and refusals must be reported rather than dropped"
+        );
+    }
+
+    #[tokio::test]
+    async fn invalid_targets_never_reach_the_edr_layer() {
+        let actions = vec![
+            ResolvedAction::KillProcess {
+                name: "everything".to_string(),
+                pid: 0,
+            },
+            ResolvedAction::BlockIp {
+                ip: "bogus".to_string(),
+                duration_secs: 0,
+            },
+        ];
+
+        let results = execute_playbook_actions("invalid-test", &actions, None).await;
+        assert_eq!(results.len(), 2);
+        assert!(
+            results.iter().all(|r| !r.success
+                && r.error
+                    .as_deref()
+                    .is_some_and(|e| e.contains("target validation"))),
+            "both actions must be rejected by validation, got {:?}",
+            results
+        );
+    }
+}
+
 #[cfg(all(test, feature = "gui"))]
 mod tests {
     use super::*;
@@ -446,6 +719,68 @@ mod tests {
             result.actions.is_empty(),
             "blank condition must not fan out kill actions, got {:?}",
             result.actions
+        );
+    }
+
+    /// A two-condition "all" playbook must not fire when only one condition
+    /// matched, however many entities that one condition hit. The previous
+    /// implementation compared matched *entities* against condition count, so
+    /// two matching processes satisfied a two-condition AND on their own --
+    /// silently turning a deliberately narrow rule into a disjunctive one.
+    #[tokio::test]
+    async fn all_operator_counts_conditions_not_matched_entities() {
+        let pb = make_playbook(vec![
+            PlaybookCondition {
+                condition_type: PlaybookConditionType::ProcessNameMatch,
+                operator: "all".to_string(),
+                value: "evil".to_string(),
+            },
+            PlaybookCondition {
+                condition_type: PlaybookConditionType::NetworkAlertType,
+                operator: "all".to_string(),
+                value: "never-matches-anything".to_string(),
+            },
+        ]);
+        // Two processes match the first condition; nothing matches the second.
+        let ctx = ThreatContext {
+            suspicious_processes: vec![proc("evil_one", 111), proc("evil_two", 222)],
+            ..Default::default()
+        };
+
+        let result = eval(&pb, &ctx).await;
+        assert!(
+            !result.triggered,
+            "an AND playbook with one unmatched condition must not trigger"
+        );
+    }
+
+    #[tokio::test]
+    async fn all_operator_still_triggers_when_every_condition_matches() {
+        let pb = make_playbook(vec![
+            PlaybookCondition {
+                condition_type: PlaybookConditionType::ProcessNameMatch,
+                operator: "all".to_string(),
+                value: "evil".to_string(),
+            },
+            PlaybookCondition {
+                condition_type: PlaybookConditionType::FimChange,
+                operator: "all".to_string(),
+                value: "/etc/passwd".to_string(),
+            },
+        ]);
+        let ctx = ThreatContext {
+            suspicious_processes: vec![proc("evil_one", 111)],
+            fim_alerts: vec![FimAlertInfo {
+                path: "/etc/passwd".to_string(),
+                change_type: "modified".to_string(),
+            }],
+            ..Default::default()
+        };
+
+        let result = eval(&pb, &ctx).await;
+        assert!(
+            result.triggered,
+            "an AND playbook with all conditions matched must still trigger"
         );
     }
 
