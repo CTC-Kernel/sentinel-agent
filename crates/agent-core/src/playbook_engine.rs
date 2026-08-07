@@ -343,10 +343,7 @@ fn validate_target(action: &ResolvedAction) -> Result<(), String> {
     match action {
         ResolvedAction::KillProcess { pid, name } => {
             if *pid == 0 || *pid == 1 {
-                return Err(format!(
-                    "refusing reserved PID {} (target '{}')",
-                    pid, name
-                ));
+                return Err(format!("refusing reserved PID {} (target '{}')", pid, name));
             }
             Ok(())
         }

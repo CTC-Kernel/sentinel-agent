@@ -327,9 +327,6 @@ mod tests {
 
         // The exclusion must stay narrow enough to keep watching real targets.
         assert!(!is_ignored_path(&PathBuf::from("/etc/passwd"), &patterns));
-        assert!(!is_ignored_path(
-            &PathBuf::from("/usr/bin/sudo"),
-            &patterns
-        ));
+        assert!(!is_ignored_path(&PathBuf::from("/usr/bin/sudo"), &patterns));
     }
 }

@@ -690,7 +690,10 @@ mod tests {
     fn test_is_protected_target_is_component_wise() {
         let protected = vec![PathBuf::from("/usr/bin")];
 
-        assert!(is_protected_target(Path::new("/usr/bin/sentinel"), &protected));
+        assert!(is_protected_target(
+            Path::new("/usr/bin/sentinel"),
+            &protected
+        ));
         assert!(is_protected_target(Path::new("/usr/bin"), &protected));
         // A sibling directory sharing a textual prefix must NOT match. This is
         // why the guard uses Path::starts_with rather than string contains.
