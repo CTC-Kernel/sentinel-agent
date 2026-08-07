@@ -295,24 +295,24 @@ impl AntivirusCheck {
         debug!("Checking antivirus status on Linux");
 
         // Check for ClamAV
-        if let Ok(status) = self.check_clamav().await {
-            if status.enabled {
-                return Ok(status);
-            }
+        if let Ok(status) = self.check_clamav().await
+            && status.enabled
+        {
+            return Ok(status);
         }
 
         // Check for Sophos
-        if let Ok(status) = self.check_sophos().await {
-            if status.enabled {
-                return Ok(status);
-            }
+        if let Ok(status) = self.check_sophos().await
+            && status.enabled
+        {
+            return Ok(status);
         }
 
         // Check for ESET
-        if let Ok(status) = self.check_eset().await {
-            if status.enabled {
-                return Ok(status);
-            }
+        if let Ok(status) = self.check_eset().await
+            && status.enabled
+        {
+            return Ok(status);
         }
 
         // No AV found

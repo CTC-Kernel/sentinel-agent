@@ -365,7 +365,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 });
             }
 
-            list.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+            list.sort_by_key(|b| std::cmp::Reverse(b.timestamp));
 
             ui.memory_mut(|mem| {
                 mem.data.insert_temp(cache_id, fingerprint);

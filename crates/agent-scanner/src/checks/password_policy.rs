@@ -235,10 +235,10 @@ impl PasswordPolicyCheck {
                     if let Some(val) = Self::parse_config_value(line) {
                         status.min_length = Some(val);
                     }
-                } else if line.starts_with("remember") {
-                    if let Some(val) = Self::parse_config_value(line) {
-                        status.history_count = Some(val);
-                    }
+                } else if line.starts_with("remember")
+                    && let Some(val) = Self::parse_config_value(line)
+                {
+                    status.history_count = Some(val);
                 }
 
                 // Check for complexity requirements
@@ -292,12 +292,11 @@ impl PasswordPolicyCheck {
                         status.complexity_required = Some(true);
 
                         // Parse inline minlen
-                        if let Some((_, rest)) = line.split_once("minlen=") {
-                            if let Some(val) = rest.split_whitespace().next() {
-                                if let Ok(v) = val.parse() {
-                                    status.min_length = Some(v);
-                                }
-                            }
+                        if let Some((_, rest)) = line.split_once("minlen=")
+                            && let Some(val) = rest.split_whitespace().next()
+                            && let Ok(v) = val.parse()
+                        {
+                            status.min_length = Some(v);
                         }
                     } else if line.contains("pam_cracklib.so") {
                         if !status
@@ -307,25 +306,22 @@ impl PasswordPolicyCheck {
                             status.complexity_modules.push("pam_cracklib".to_string());
                         }
                         status.complexity_required = Some(true);
-                    } else if line.contains("pam_unix.so") && line.contains("remember=") {
-                        if let Some((_, rest)) = line.split_once("remember=") {
-                            if let Some(val) = rest.split_whitespace().next() {
-                                if let Ok(v) = val.parse() {
-                                    status.history_count = Some(v);
-                                }
-                            }
-                        }
+                    } else if line.contains("pam_unix.so")
+                        && line.contains("remember=")
+                        && let Some((_, rest)) = line.split_once("remember=")
+                        && let Some(val) = rest.split_whitespace().next()
+                        && let Ok(v) = val.parse()
+                    {
+                        status.history_count = Some(v);
                     }
 
                     // Check for faillock/pam_tally2
-                    if line.contains("pam_faillock.so") || line.contains("pam_tally2.so") {
-                        if let Some((_, rest)) = line.split_once("deny=") {
-                            if let Some(val) = rest.split_whitespace().next() {
-                                if let Ok(v) = val.parse() {
-                                    status.lockout_threshold = Some(v);
-                                }
-                            }
-                        }
+                    if (line.contains("pam_faillock.so") || line.contains("pam_tally2.so"))
+                        && let Some((_, rest)) = line.split_once("deny=")
+                        && let Some(val) = rest.split_whitespace().next()
+                        && let Ok(v) = val.parse()
+                    {
+                        status.lockout_threshold = Some(v);
                     }
                 }
             }

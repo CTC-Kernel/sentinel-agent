@@ -224,7 +224,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         ui.label(
                             egui::RichText::new(format!(
                                 "SHA-256: {} \u{2014} {} \u{2014} {}",
-                                &file.sha256.chars().take(16).collect::<String>(),
+                                file.sha256.chars().take(16).collect::<String>(),
                                 file.reason,
                                 file.quarantined_at.format("%d/%m/%Y %H:%M"),
                             ))

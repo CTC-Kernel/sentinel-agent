@@ -138,17 +138,17 @@ impl BluetoothCheck {
 
         // Fallback: check /sys/class/bluetooth for any Bluetooth adapters powered on
         let bt_path = std::path::Path::new("/sys/class/bluetooth");
-        if bt_path.exists() {
-            if let Ok(entries) = std::fs::read_dir(bt_path) {
-                let has_adapter = entries.filter_map(|e| e.ok()).any(|_| true);
-                if has_adapter {
-                    return Ok(BluetoothStatus {
-                        bluetooth_disabled: false,
-                        service_state: "adapter_present".to_string(),
-                        service_type: "bluetooth (sysfs)".to_string(),
-                        raw_output: "Bluetooth adapter found in /sys/class/bluetooth".to_string(),
-                    });
-                }
+        if bt_path.exists()
+            && let Ok(entries) = std::fs::read_dir(bt_path)
+        {
+            let has_adapter = entries.filter_map(|e| e.ok()).any(|_| true);
+            if has_adapter {
+                return Ok(BluetoothStatus {
+                    bluetooth_disabled: false,
+                    service_state: "adapter_present".to_string(),
+                    service_type: "bluetooth (sysfs)".to_string(),
+                    raw_output: "Bluetooth adapter found in /sys/class/bluetooth".to_string(),
+                });
             }
         }
 

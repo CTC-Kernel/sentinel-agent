@@ -112,7 +112,7 @@ impl SecurityDetector {
         alerts.extend(self.beaconing_detector.detect(&filtered));
 
         // Sort by severity (highest first)
-        alerts.sort_by(|a, b| b.severity.cmp(&a.severity));
+        alerts.sort_by_key(|a| std::cmp::Reverse(a.severity));
 
         if !alerts.is_empty() {
             info!(

@@ -54,6 +54,20 @@ ignore = [
     "RUSTSEC-2025-0057", # fxhash unmaintained
     # number_prefix is unmaintained, transitive dep of mistralrs-core -> hf-hub -> indicatif
     "RUSTSEC-2025-0119", # number_prefix unmaintained
+    # rustls-pemfile unmaintained, transitive (rustls ecosystem)
+    "RUSTSEC-2025-0134", # rustls-pemfile unmaintained
+    # ttf-parser unmaintained, transitive via the egui/eframe text stack
+    "RUSTSEC-2026-0192", # ttf-parser unmaintained
+    # core2 unmaintained and all versions yanked; pinned transitively via
+    # image -> ravif -> rav1e, no maintained alternative available.
+    "RUSTSEC-2026-0105", # core2 unmaintained
+    { crate = "core2", reason = "all versions yanked; transitive via image->ravif->rav1e, no alternative" },
+    # quick-xml 0.30 DoS advisories, pulled transitively via eframe 0.31's
+    # Linux accessibility bridge (accesskit -> atspi -> zbus_xml), not on our
+    # parsing paths. Resolved by upgrading eframe to 0.33+ (separate tracked
+    # migration with breaking egui API changes).
+    "RUSTSEC-2026-0194", # quick-xml quadratic duplicate-attribute check
+    "RUSTSEC-2026-0195", # quick-xml unbounded namespace allocation
 ]
 
 # ============================================================================
