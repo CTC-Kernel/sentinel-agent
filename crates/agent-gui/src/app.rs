@@ -1401,7 +1401,7 @@ impl SentinelApp {
                                             icons::PLAY
                                         ))
                                         .font(theme::font_body())
-                                        .color(theme::badge_text(theme::ACCENT))
+                                        .color(theme::text_on_accent())
                                         .strong(),
                                     )
                                     .fill(theme::ACCENT),

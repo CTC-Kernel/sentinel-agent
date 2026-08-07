@@ -756,6 +756,10 @@ impl AgentRuntime {
         // Check startup time is within limits
         self.resource_monitor.check_startup_time();
 
+        // Honor timed IP unblocks whose in-memory timers died with the previous
+        // process: expired blocks are lifted now, the rest are rescheduled.
+        crate::edr_actions::reconcile_pending_blocks().await;
+
         // Initialize API client
         self.init_api_client().await?;
 

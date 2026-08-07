@@ -302,9 +302,20 @@ impl SettingsPage {
                                 .color(theme::text_primary())
                                 .strong(),
                         );
-                        ui.add_space(theme::SPACE_SM);
-                        widgets::toggle_switch(ui, &mut state.settings.dark_mode);
                     });
+                    ui.add_space(theme::SPACE_SM);
+                    // Explicit "display mode" selector: Clair / Sombre as visible,
+                    // labelled choices (previously a single binary toggle switch,
+                    // which read as "no modes available" to users).
+                    let modes = [
+                        format!("{}  Clair", icons::SUN),
+                        format!("{}  Sombre", icons::MOON),
+                    ];
+                    let mode_refs = [modes[0].as_str(), modes[1].as_str()];
+                    let current = if state.settings.dark_mode { 1 } else { 0 };
+                    if let Some(sel) = widgets::button_group(ui, &mode_refs, current) {
+                        state.settings.dark_mode = sel == 1;
+                    }
                     ui.add_space(theme::SPACE_XS);
                     ui.label(
                         egui::RichText::new(mode_desc)

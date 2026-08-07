@@ -218,19 +218,25 @@ fn get_permissions(metadata: &fs::Metadata) -> u32 {
 }
 
 /// Check if a path matches any ignore pattern.
+///
+/// Matching is case-insensitive with normalized separators, mirroring
+/// `watcher::is_ignored_path`. The baseline and the watcher must agree: if the
+/// baseline hashed a file the watcher ignores (or vice versa), the agent would
+/// alert on its own excluded paths.
 fn is_ignored(path: &Path, patterns: &[String]) -> bool {
-    let path_str = path.to_string_lossy();
+    let path_norm = path.to_string_lossy().to_lowercase().replace('\\', "/");
     for pattern in patterns {
+        let pattern_norm = pattern.to_lowercase().replace('\\', "/");
         // Simple glob matching for common patterns
-        if let Some(suffix) = pattern.strip_prefix('*') {
-            if path_str.ends_with(suffix) {
+        if let Some(suffix) = pattern_norm.strip_prefix('*') {
+            if path_norm.ends_with(suffix) {
                 return true;
             }
-        } else if let Some(prefix) = pattern.strip_suffix("/**") {
-            if path_str.contains(prefix) {
+        } else if let Some(prefix) = pattern_norm.strip_suffix("/**") {
+            if path_norm.contains(prefix) {
                 return true;
             }
-        } else if path_str.contains(pattern.as_str()) {
+        } else if path_norm.contains(&pattern_norm) {
             return true;
         }
     }

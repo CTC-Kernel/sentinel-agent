@@ -130,6 +130,13 @@ impl FimEngine {
         // Stop the current watcher
         self.stop();
 
+        // Re-apply the agent's self-exclusion patterns. Policies arriving from
+        // the platform replace the local one wholesale, and `ignore_patterns`
+        // deserializes to an empty vec when the field is absent -- so without
+        // this a server config could silently put the agent's own database and
+        // config under watch.
+        let policy = policy.with_self_exclusions();
+
         // Update the policy
         {
             if let Ok(mut current) = self.policy.write() {
@@ -154,8 +161,17 @@ impl FimEngine {
     }
 
     /// Re-scan and update baseline for a specific path.
+    ///
+    /// Applies the active policy's ignore patterns. Passing an empty pattern
+    /// list here would baseline the agent's own files even though the watcher
+    /// excludes them, so any later change to them would alert.
     pub fn refresh_baseline(&self, path: &std::path::Path) -> Result<usize, FimError> {
-        self.baseline_mgr.create_baseline(path, &[])
+        let patterns = self
+            .policy
+            .read()
+            .map(|p| p.ignore_patterns.clone())
+            .unwrap_or_default();
+        self.baseline_mgr.create_baseline(path, &patterns)
     }
 
     /// Get the number of alerts pending in the channel.
