@@ -7,11 +7,17 @@ use egui::Ui;
 
 use crate::theme;
 
-/// Draw a page header with breadcrumb navigation trail.
+/// Draw a page sub-header (subtitle + contextual help + accent line).
 ///
-/// `breadcrumbs` is a list of navigation labels, e.g. `&["Pilotage", "Conformité"]`.
-/// The last item is rendered as the current (non-clickable) page.
-/// Returns the clicked breadcrumb index if any ancestor was clicked.
+/// The breadcrumb trail is intentionally **not** rendered. The global top bar
+/// already shows the current page, and the sidebar shows its domain grouping,
+/// so an inert trail in the body was pure duplication — the intermediate
+/// segment is a domain (a sidebar section), not a routable page, so it could
+/// not be made meaningfully clickable anyway.
+///
+/// `breadcrumbs` and `title` are retained in the signature for call-site
+/// stability (each page still declares its location in one place). The function
+/// always returns `None`: nothing here is clickable.
 pub fn page_header_nav(
     ui: &mut Ui,
     breadcrumbs: &[&str],
@@ -19,15 +25,9 @@ pub fn page_header_nav(
     subtitle: Option<&str>,
     help_text: Option<&str>,
 ) -> Option<usize> {
-    let clicked = if breadcrumbs.len() > 1 {
-        let result = super::breadcrumb_with_home(ui, breadcrumbs);
-        ui.add_space(theme::SPACE_XS);
-        result
-    } else {
-        None
-    };
+    let _ = breadcrumbs;
     page_header(ui, title, subtitle, help_text);
-    clicked
+    None
 }
 
 /// Draw a page sub-header: optional subtitle, contextual help and an accent
@@ -36,7 +36,7 @@ pub fn page_header_nav(
 /// The `title` is intentionally **not** rendered here. The global top bar
 /// already shows the current page name, so a body-level H1 would duplicate it.
 /// The parameter is retained so each page keeps declaring its title in one
-/// place (it also names the last breadcrumb segment via [`page_header_nav`]).
+/// place at the call site.
 pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: Option<&str>) {
     let _ = title; // Surfaced by the global top bar, not repeated in the body.
     ui.vertical(|ui: &mut egui::Ui| {
