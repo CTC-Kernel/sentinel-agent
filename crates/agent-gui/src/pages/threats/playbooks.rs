@@ -244,7 +244,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             widgets::empty_state(
                 ui,
                 icons::CLIPBOARD_LIST,
-                "AUCUN PLAYBOOK",
+                "Aucun playbook",
                 Some("Installez un template ou cr\u{00e9}ez un playbook personnalis\u{00e9}."),
             );
         } else {
@@ -403,7 +403,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             widgets::empty_state(
                 ui,
                 icons::LIST,
-                "AUCUNE EX\u{00c9}CUTION",
+                "Aucune ex\u{00e9}cution",
                 Some("Les d\u{00e9}clenchements de playbooks seront enregistr\u{00e9}s ici."),
             );
         } else {

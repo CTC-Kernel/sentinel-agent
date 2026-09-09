@@ -33,9 +33,7 @@ impl ThreatsPage {
             ui,
             &["Détection & réponse", "EDR"],
             "D\u{00e9}tection & R\u{00e9}ponse",
-            Some(
-                "MODULE EDR \u{2014} D\u{00c9}TECTION, INVESTIGATION ET R\u{00c9}PONSE AUX MENACES",
-            ),
+            Some("D\u{00e9}tection, investigation et r\u{00e9}ponse aux menaces sur ce poste."),
             Some(
                 "Surveillez les menaces en temps r\u{00e9}el, investiguez les indicateurs de compromission et d\u{00e9}clenchez des actions de r\u{00e9}ponse.",
             ),
@@ -80,31 +78,31 @@ impl ThreatsPage {
             EdrTab::ForensicTimeline => 6,
         };
 
-        let mut event_tab = Tab::new("\u{00c9}V\u{00c9}NEMENTS").icon(icons::LIST);
+        let mut event_tab = Tab::new("\u{00c9}v\u{00e9}nements").icon(icons::LIST);
         if total_events > 0 {
             event_tab = event_tab.badge(total_events.min(999) as u32);
         }
-        let mut response_tab = Tab::new("R\u{00c9}PONSE").icon(icons::SHIELD);
+        let mut response_tab = Tab::new("R\u{00e9}ponse").icon(icons::SHIELD);
         if pending_response > 0 {
             response_tab = response_tab.badge(pending_response);
         }
-        let mut playbooks_tab = Tab::new("PLAYBOOKS").icon(icons::CLIPBOARD_LIST);
+        let mut playbooks_tab = Tab::new("Playbooks").icon(icons::CLIPBOARD_LIST);
         if active_playbooks > 0 {
             playbooks_tab = playbooks_tab.badge(active_playbooks);
         }
-        let mut rules_tab = Tab::new("R\u{00c8}GLES").icon(icons::CROSSHAIRS);
+        let mut rules_tab = Tab::new("R\u{00e8}gles").icon(icons::CROSSHAIRS);
         if active_rules > 0 {
             rules_tab = rules_tab.badge(active_rules);
         }
 
         let tabs = vec![
-            Tab::new("VUE D'ENSEMBLE").icon(icons::EYE),
+            Tab::new("Vue d'ensemble").icon(icons::EYE),
             event_tab,
-            Tab::new("INVESTIGATION").icon(icons::SEARCH),
+            Tab::new("Investigation").icon(icons::SEARCH),
             response_tab,
             playbooks_tab,
             rules_tab,
-            Tab::new("CHRONOLOGIE").icon(icons::CLOCK),
+            Tab::new("Chronologie").icon(icons::CLOCK),
         ];
 
         if let Some(new_idx) = TabBar::new(tabs, selected_idx).full_width().show(ui) {

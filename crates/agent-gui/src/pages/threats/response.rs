@@ -199,7 +199,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             widgets::empty_state(
                 ui,
                 icons::SHIELD_CHECK,
-                "AUCUN FICHIER EN QUARANTAINE",
+                "Aucun fichier en quarantaine",
                 Some("Les fichiers mis en quarantaine appara\u{00ee}tront ici."),
             );
         } else {
@@ -279,7 +279,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             widgets::empty_state(
                 ui,
                 icons::LIST,
-                "AUCUNE ACTION",
+                "Aucune action",
                 Some(
                     "Les actions de r\u{00e9}ponse ex\u{00e9}cut\u{00e9}es seront enregistr\u{00e9}es ici.",
                 ),

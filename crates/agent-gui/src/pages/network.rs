@@ -43,7 +43,7 @@ impl NetworkPage {
             widgets::protected_state(
                 ui,
                 icons::WARNING,
-                "AUCUNE DONNÉE RÉSEAU",
+                "Aucune donnée réseau",
                 "Lancez un scan pour cartographier les interfaces et connexions de cet endpoint.",
             );
 
@@ -626,7 +626,7 @@ impl NetworkPage {
                     widgets::empty_state(
                         ui,
                         icons::WIFI,
-                        "AUCUNE INTERFACE D\u{00c9}TECT\u{00c9}E",
+                        "Aucune interface d\u{00e9}tect\u{00e9}e",
                         None,
                     );
                 }
@@ -849,7 +849,7 @@ impl NetworkPage {
                         }
                     });
                 } else {
-                    widgets::empty_state(ui, icons::NETWORK, "AUCUNE CONNEXION ACTIVE", None);
+                    widgets::empty_state(ui, icons::NETWORK, "Aucune connexion active", None);
                 }
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -1065,7 +1065,7 @@ impl NetworkPage {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
-                        "RÉSEAU SÉCURISÉ",
+                        "Réseau sécurisé",
                         "Le trafic est analysé en temps réel. Aucun flux malveillant détecté.",
                     );
                 });

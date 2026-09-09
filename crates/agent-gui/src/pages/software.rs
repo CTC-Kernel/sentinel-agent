@@ -25,7 +25,7 @@ impl SoftwarePage {
             ui,
             &["Actifs & inventaire", "Logiciels"],
             "Inventaire Logiciel",
-            Some("CATALOGUE DES APPLICATIONS ET COMPOSANTS SYSTÈME INSTALLÉS SUR L'HÔTE"),
+            Some("Applications et composants système installés sur cet hôte."),
             Some(
                 "Consultez la liste exhaustive des paquets système et des applications installées. Le système vérifie automatiquement si vos logiciels sont à jour pour réduire la surface d'attaque.",
             ),
@@ -487,7 +487,7 @@ impl SoftwarePage {
                     widgets::empty_state(
                         ui,
                         icons::SOFTWARE,
-                        "AUCUNE OCCURRENCE TROUV\u{00c9}E",
+                        "Aucune occurrence trouv\u{00e9}e",
                         Some(
                             "Ajustez vos crit\u{00e8}res de recherche ou actualisez l'inventaire.",
                         ),
@@ -806,7 +806,7 @@ impl SoftwarePage {
                     widgets::empty_state(
                         ui,
                         icons::CUBE,
-                        "AUCUNE ENTIT\u{00c9} IDENTIFI\u{00c9}E",
+                        "Aucune entit\u{00e9} identifi\u{00e9}e",
                         Some(
                             "Veuillez patienter pendant la fin de la synchronisation de l'inventaire.",
                         ),

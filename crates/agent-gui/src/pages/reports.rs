@@ -29,7 +29,7 @@ impl ReportsPage {
             &["Conformité & risques", "Rapports"],
             "Centre de Rapports",
             Some(
-                "G\u{00c9}N\u{00c9}RATION ET EXPORT DE RAPPORTS CONFORMIT\u{00c9} / AUDIT / INCIDENTS",
+                "G\u{00e9}n\u{00e9}ration et export des rapports de conformit\u{00e9}, d\u{2019}audit et d\u{2019}incident.",
             ),
             Some(
                 "G\u{00e9}n\u{00e9}rez des rapports d\u{00e9}taill\u{00e9}s pour vos audits de conformit\u{00e9}, synth\u{00e8}ses ex\u{00e9}cutives et rapports d\u{2019}incidents. Chaque rapport peut \u{00ea}tre export\u{00e9} au format HTML.",
@@ -258,7 +258,7 @@ impl ReportsPage {
                 widgets::empty_state(
                     ui,
                     icons::FILE_EXPORT,
-                    "AUCUN RAPPORT DE CE TYPE",
+                    "Aucun rapport de ce type",
                     Some(
                         "Cliquez sur \u{00ab} G\u{00e9}n\u{00e9}rer le rapport \u{00bb} pour cr\u{00e9}er une nouvelle synth\u{00e8}se.",
                     ),
@@ -273,7 +273,7 @@ impl ReportsPage {
                 widgets::empty_state(
                     ui,
                     icons::FILE_EXPORT,
-                    "AUCUN RAPPORT G\u{00c9}N\u{00c9}R\u{00c9}",
+                    "Aucun rapport g\u{00e9}n\u{00e9}r\u{00e9}",
                     Some(
                         "G\u{00e9}n\u{00e9}rez un rapport depuis l\u{2019}un des onglets pour le retrouver ici.",
                     ),

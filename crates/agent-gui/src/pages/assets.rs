@@ -28,9 +28,7 @@ impl AssetsPage {
             ui,
             &["Actifs & inventaire", "Inventaire"],
             "Inventaire des \u{00c9}quipements",
-            Some(
-                "GESTION DU CYCLE DE VIE ET CONTR\u{00d4}LE DES \u{00c9}QUIPEMENTS AUTORIS\u{00c9}S",
-            ),
+            Some("Cycle de vie et contr\u{00f4}le des \u{00e9}quipements autoris\u{00e9}s."),
             Some(
                 "G\u{00e9}rez les \u{00e9}quipements autoris\u{00e9}s sur votre r\u{00e9}seau. Suivez leur cycle de vie de la d\u{00e9}tection \u{00e0} la mise hors service, contr\u{00f4}lez leur conformit\u{00e9}.",
             ),
@@ -179,10 +177,10 @@ impl AssetsPage {
             &mut state.assets.search,
             "Rechercher par nom, IP, type ou \u{00e9}tiquette...",
         )
-        .chip("CRITIQUE", crit_active, theme::ERROR)
-        .chip("\u{00c9}LEV\u{00c9}E", high_active, theme::SEVERITY_HIGH)
-        .chip("MOYENNE", med_active, theme::WARNING)
-        .chip("FAIBLE", low_active, theme::INFO)
+        .chip("Critique", crit_active, theme::ERROR)
+        .chip("\u{00c9}lev\u{00e9}e", high_active, theme::SEVERITY_HIGH)
+        .chip("Moyenne", med_active, theme::WARNING)
+        .chip("Faible", low_active, theme::INFO)
         .result_count(result_count)
         .show(ui);
 
@@ -251,7 +249,7 @@ impl AssetsPage {
                     widgets::empty_state(
                         ui,
                         icons::BOXES_STACKED,
-                        "AUCUN \u{00c9}QUIPEMENT AUTORIS\u{00c9}",
+                        "Aucun \u{00e9}quipement autoris\u{00e9}",
                         Some(
                             "Lancez une d\u{00e9}tection Shadow IT puis autorisez les \u{00e9}quipements d\u{00e9}couverts, ou ajoutez-les manuellement.",
                         ),
@@ -260,7 +258,7 @@ impl AssetsPage {
                     widgets::empty_state(
                         ui,
                         icons::BOXES_STACKED,
-                        "AUCUN R\u{00c9}SULTAT",
+                        "Aucun r\u{00e9}sultat",
                         Some("Modifiez vos crit\u{00e8}res de recherche ou de filtrage."),
                     );
                 }

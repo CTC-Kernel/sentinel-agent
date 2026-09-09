@@ -105,7 +105,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             widgets::empty_state(
                 ui,
                 icons::CROSSHAIRS,
-                "AUCUNE R\u{00c8}GLE",
+                "Aucune r\u{00e8}gle",
                 Some(
                     "Cr\u{00e9}ez une r\u{00e8}gle de d\u{00e9}tection personnalis\u{00e9}e pour surveiller des indicateurs sp\u{00e9}cifiques.",
                 ),

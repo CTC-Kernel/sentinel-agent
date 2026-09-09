@@ -386,12 +386,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             &mut state.threats.search,
             "RECHERCHER (PROCESSUS, RÉSEAU, USB, FIM, SYSTÈME, VULNÉRA.)...",
         )
-        .chip("PROCESSUS", proc_active, theme::ERROR)
-        .chip("RÉSEAU", net_active, theme::SEVERITY_HIGH)
+        .chip("Processus", proc_active, theme::ERROR)
+        .chip("Réseau", net_active, theme::SEVERITY_HIGH)
         .chip("USB", usb_active, theme::WARNING)
         .chip("FIM", fim_active, theme::INFO)
-        .chip("SYSTÈME", sys_active, theme::SEVERITY_HIGH)
-        .chip("VULNÉRA.", vuln_active, theme::ERROR)
+        .chip("Système", sys_active, theme::SEVERITY_HIGH)
+        .chip("Vulnéra.", vuln_active, theme::ERROR)
         .result_count(result_count)
         .show(ui);
 
@@ -496,7 +496,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 widgets::protected_state(
                     ui,
                     icons::SHIELD_CHECK,
-                    "AUCUNE MENACE IDENTIFIÉE",
+                    "Aucune menace identifiée",
                     "Le système ne présente aucun événement de sécurité suspect à ce jour.",
                 );
             } else {

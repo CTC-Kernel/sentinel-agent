@@ -25,7 +25,7 @@ impl AuditTrailPage {
             &["Système", "Journal d'audit"],
             "Journal d'Audit",
             Some(
-                "TRAÇABILIT\u{00c9} COMPL\u{00c8}TE DES \u{00c9}V\u{00c9}NEMENTS DE S\u{00c9}CURIT\u{00c9} ET DU SYST\u{00c8}ME",
+                "Traçabilit\u{00e9} compl\u{00e8}te des \u{00e9}v\u{00e9}nements de s\u{00e9}curit\u{00e9} et du syst\u{00e8}me.",
             ),
             Some(
                 "Consultez l'historique d\u{00e9}taill\u{00e9} des actions de l'agent, des d\u{00e9}tections de menaces et des changements de configuration.",
@@ -262,7 +262,7 @@ impl AuditTrailPage {
             .collect();
 
         if filtered_logs.is_empty() {
-            widgets::empty_state(ui, icons::CLIPBOARD, "AUCUN ÉVÉNEMENT TROUVÉ", None);
+            widgets::empty_state(ui, icons::CLIPBOARD, "Aucun événement trouvé", None);
             return;
         }
 

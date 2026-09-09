@@ -62,7 +62,7 @@ impl LLMPanel {
             ui,
             &["Assistant", "Assistant IA"],
             "Assistant IA",
-            Some("MODULE D'ANALYSE IA ET RECOMMANDATIONS AUTOMATIQUES"),
+            Some("Analyse locale et recommandations générées par le modèle embarqué."),
             Some(
                 "Synth\u{00e8}se automatique des donn\u{00e9}es de conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s, menaces et alertes r\u{00e9}seau en recommandations prioris\u{00e9}es par niveau de criticit\u{00e9}.",
             ),
@@ -76,15 +76,15 @@ impl LLMPanel {
         // Use cached count for badge to avoid building recommendations twice per frame
         let rec_count = state.ai.recommendations_count as u32;
 
-        let mut assistant_tab = Tab::new("ASSISTANT IA").icon(icons::ROBOT);
+        let mut assistant_tab = Tab::new("Assistant IA").icon(icons::ROBOT);
         if chat_count > 0 {
             assistant_tab = assistant_tab.badge(chat_count.min(99));
         }
-        let mut recs_tab = Tab::new("RECOMMANDATIONS").icon(icons::BRAIN);
+        let mut recs_tab = Tab::new("Recommandations").icon(icons::BRAIN);
         if rec_count > 0 {
             recs_tab = recs_tab.badge(rec_count.min(99));
         }
-        let model_tab = Tab::new("STATUT MOD\u{00c8}LE").icon(icons::MICROCHIP);
+        let model_tab = Tab::new("Statut mod\u{00e8}le").icon(icons::MICROCHIP);
 
         let tabs = vec![assistant_tab, recs_tab, model_tab];
 
@@ -115,7 +115,7 @@ impl LLMPanel {
             widgets::empty_state(
                 ui,
                 icons::ROBOT,
-                "ASSISTANT IA",
+                "Assistant IA",
                 Some(
                     "Posez une question de s\u{00e9}curit\u{00e9} ou utilisez les actions rapides ci-dessous pour d\u{00e9}marrer.",
                 ),
@@ -516,14 +516,14 @@ impl LLMPanel {
                     widgets::empty_state(
                         ui,
                         icons::SEARCH,
-                        "AUCUN R\u{00c9}SULTAT",
+                        "Aucun r\u{00e9}sultat",
                         Some("Modifiez vos crit\u{00e8}res de recherche ou de filtrage."),
                     );
                 } else {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
-                        "POSTURE DE S\u{00c9}CURIT\u{00c9} OPTIMALE",
+                        "Posture de s\u{00e9}curit\u{00e9} optimale",
                         "Aucune recommandation \u{00e0} signaler. Tous les contr\u{00f4}les sont conformes.",
                     );
                 }
@@ -1480,7 +1480,7 @@ impl LLMPanel {
         widgets::empty_state(
             ui,
             icons::BRAIN,
-            "ANALYSE EN ATTENTE",
+            "Analyse en attente",
             Some("Lancez un audit de conformit\u{00e9} pour activer l'analyse IA automatique."),
         );
     }

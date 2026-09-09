@@ -23,7 +23,7 @@ impl FimPage {
             ui,
             &["Détection & réponse", "FIM"],
             "Surveillance d'Intégrité",
-            Some("D\u{00c9}TECTION DES MODIFICATIONS DE FICHIERS SYST\u{00c8}MES CRITIQUES"),
+            Some("D\u{00e9}tection des modifications sur les fichiers syst\u{00e8}me critiques."),
             Some(
                 "Surveillance en temps réel des modifications de fichiers critiques. Chaque événement est horodaté et classé par type pour une analyse forensique complète.",
             ),
@@ -181,7 +181,7 @@ impl FimPage {
             widgets::empty_state(
                 ui,
                 icons::FILE_SHIELD,
-                "AUCUNE ALERTE FIM",
+                "Aucune alerte FIM",
                 Some(
                     "Aucune modification de fichier critique détectée. La surveillance est active et fonctionnelle.",
                 ),

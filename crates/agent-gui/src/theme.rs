@@ -1306,7 +1306,11 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     } else {
         Color32::from_black_alpha(TABLE_ALT_ROW_ALPHA)
     };
-    visuals.extreme_bg_color = bg_deep();
+    // egui paints every bare TextEdit with `extreme_bg_color`. Pointing it at
+    // bg_deep made unstyled search fields disappear into the canvas — a field
+    // belongs one step above the surface it sits on, not below it. The
+    // terminal asks for bg_deep explicitly where it wants the inset look.
+    visuals.extreme_bg_color = bg_tertiary();
     visuals.warn_fg_color = readable_color(WARNING);
     visuals.error_fg_color = readable_color(ERROR);
     visuals.striped = false; // Zebra striping is opt-in, per table.

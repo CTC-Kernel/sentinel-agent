@@ -541,7 +541,7 @@ impl DashboardPage {
                 widgets::protected_state(
                     ui,
                     icons::SHIELD_CHECK,
-                    "POSTURE S\u{00c9}CURIS\u{00c9}E",
+                    "Posture s\u{00e9}curis\u{00e9}e",
                     "Aucune recommandation. Contr\u{00f4}les conformes.",
                 );
             } else {

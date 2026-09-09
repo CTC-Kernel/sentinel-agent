@@ -104,7 +104,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         widgets::empty_state(
             ui,
             icons::SEARCH,
-            "AUCUNE RECHERCHE",
+            "Aucune recherche",
             Some(
                 "Entrez un indicateur de compromission (IP, hash, domaine, processus ou CVE) pour lancer une recherche multi-sources.",
             ),
@@ -136,7 +136,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             widgets::empty_state(
                 ui,
                 icons::SHIELD_CHECK,
-                "AUCUNE CORRESPONDANCE",
+                "Aucune correspondance",
                 Some(
                     "Aucun \u{00e9}v\u{00e9}nement ne correspond \u{00e0} cet indicateur dans les sources de d\u{00e9}tection.",
                 ),

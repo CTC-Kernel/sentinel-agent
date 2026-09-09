@@ -316,7 +316,7 @@ impl DiscoveryPage {
                     widgets::empty_state(
                         ui,
                         icons::NETWORK,
-                        "AUCUN \u{00c9}QUIPEMENT D\u{00c9}TECT\u{00c9}",
+                        "Aucun \u{00e9}quipement d\u{00e9}tect\u{00e9}",
                         Some("Lancez un scan pour identifier les appareils non autoris\u{00e9}s sur votre r\u{00e9}seau (Shadow IT)."),
                     );
                     ui.add_space(theme::SPACE_XL);

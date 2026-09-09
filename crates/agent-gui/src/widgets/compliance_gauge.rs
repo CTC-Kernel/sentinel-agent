@@ -20,8 +20,14 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
     let track_color = theme::bg_tertiary();
     let stroke_width = theme::GAUGE_STROKE;
 
-    // Subtle background fill for depth
-    painter.circle_filled(center, radius + stroke_width * 0.5, theme::bg_deep());
+    // The dial sits on a card, so its well is one step *below* that card —
+    // not at bg_deep, which is the terminal's near-black and turned an empty
+    // gauge into a hole punched through the panel.
+    painter.circle_filled(
+        center,
+        radius + stroke_width * 0.5,
+        theme::color_blend_pub(theme::bg_secondary(), theme::overlay_color(), 0.04),
+    );
 
     // Background track
     painter.circle_stroke(center, radius, egui::Stroke::new(stroke_width, track_color));

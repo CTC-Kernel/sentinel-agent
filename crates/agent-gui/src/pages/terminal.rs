@@ -50,7 +50,7 @@ impl TerminalPage {
             ui,
             &["Système", "Terminal"],
             "Terminal Analytique",
-            Some("FLUX EN TEMPS RÉEL DES ÉVÉNEMENTS ET DE L'ACTIVITÉ DE L'AGENT"),
+            Some("Flux temps réel des événements et de l'activité de l'agent."),
             Some(
                 "Suivez en temps réel l'activité technique de l'agent. Ce flux bas niveau est utile pour le diagnostic et la vérification du bon fonctionnement des modules de scan et de surveillance.",
             ),
@@ -294,7 +294,7 @@ impl TerminalPage {
                     crate::widgets::empty_state(
                         ui,
                         icons::TERMINAL,
-                        "AUCUN ÉVÉNEMENT DÉTECTÉ",
+                        "Aucun événement détecté",
                         Some("Les événements système apparaîtront ici."),
                     );
                     return;

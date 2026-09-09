@@ -25,7 +25,7 @@ impl RisksPage {
             ui,
             &["Conformité & risques", "Risques"],
             "Registre des Risques",
-            Some("MATRICE DE RISQUES ET SUIVI DES MESURES D\u{2019}ATT\u{00c9}NUATION"),
+            Some("Matrice des risques et suivi des mesures d\u{2019}att\u{00e9}nuation."),
             Some(
                 "\u{00c9}valuez et suivez vos risques de s\u{00e9}curit\u{00e9} selon une matrice probabilit\u{00e9}/impact. Identifiez les risques critiques, assignez des propri\u{00e9}taires et mesurez l\u{2019}avancement des plans d\u{2019}att\u{00e9}nuation.",
             ),
@@ -208,10 +208,10 @@ impl RisksPage {
             &mut state.risks.search,
             "Rechercher un risque par titre, propri\u{00e9}taire ou source...",
         )
-        .chip("OUVERT", open_active, theme::WARNING)
-        .chip("ATT\u{00c9}NUATION", mit_active, theme::INFO)
-        .chip("ACCEPT\u{00c9}", acc_active, theme::text_tertiary())
-        .chip("CL\u{00d4}TUR\u{00c9}", closed_active, theme::SUCCESS)
+        .chip("Ouvert", open_active, theme::WARNING)
+        .chip("Att\u{00e9}nuation", mit_active, theme::INFO)
+        .chip("Accept\u{00e9}", acc_active, theme::text_tertiary())
+        .chip("Cl\u{00f4}tur\u{00e9}", closed_active, theme::SUCCESS)
         .result_count(result_count)
         .show(ui);
 
@@ -270,7 +270,7 @@ impl RisksPage {
                         widgets::empty_state(
                             ui,
                             icons::SCALE_BALANCED,
-                            "AUCUN RISQUE ENREGISTR\u{00c9}",
+                            "Aucun risque enregistr\u{00e9}",
                             Some(
                                 "Utilisez \u{00ab} Auto-populer \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement.",
                             ),
@@ -280,7 +280,7 @@ impl RisksPage {
                     widgets::empty_state(
                         ui,
                         icons::SCALE_BALANCED,
-                        "AUCUN R\u{00c9}SULTAT",
+                        "Aucun r\u{00e9}sultat",
                         Some("Modifiez vos crit\u{00e8}res de recherche ou de filtrage."),
                     );
                 }

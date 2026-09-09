@@ -55,7 +55,7 @@ impl CartographyPage {
             widgets::empty_state(
                 ui,
                 icons::CARTOGRAPHY,
-                "AUCUN ACTIF DÉCOUVERT",
+                "Aucun actif découvert",
                 Some(
                     "Veuillez lancer une découverte réseau pour cartographier votre infrastructure.",
                 ),

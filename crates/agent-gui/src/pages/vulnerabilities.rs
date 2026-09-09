@@ -326,10 +326,10 @@ impl VulnerabilitiesPage {
             &mut state.vulnerability.search,
             "RECHERCHER (CVE, LOGICIEL, DESCRIPTION)...",
         )
-        .chip("CRITIQUE", crit_active, theme::ERROR)
-        .chip("ÉLEVÉE", high_active, theme::SEVERITY_HIGH)
-        .chip("MOYENNE", med_active, theme::SEVERITY_MEDIUM)
-        .chip("FAIBLE", low_active, theme::INFO)
+        .chip("Critique", crit_active, theme::ERROR)
+        .chip("Élevée", high_active, theme::SEVERITY_HIGH)
+        .chip("Moyenne", med_active, theme::SEVERITY_MEDIUM)
+        .chip("Faible", low_active, theme::INFO)
         .show(ui);
 
         if let Some(idx) = toggled {
@@ -703,7 +703,7 @@ impl VulnerabilitiesPage {
                 widgets::protected_state(
                     ui,
                     icons::SHIELD_CHECK,
-                    "AUCUNE VULN\u{00c9}RABILIT\u{00c9} D\u{00c9}TECT\u{00c9}E",
+                    "Aucune vuln\u{00e9}rabilit\u{00e9} d\u{00e9}tect\u{00e9}e",
                     "Le syst\u{00e8}me est \u{00e0} jour et ne pr\u{00e9}sente aucune faille connue \u{00e0} ce jour.",
                 );
             }
@@ -711,7 +711,7 @@ impl VulnerabilitiesPage {
             widgets::empty_state(
                 ui,
                 icons::VULNERABILITIES,
-                "AUCUN R\u{00c9}SULTAT",
+                "Aucun r\u{00e9}sultat",
                 Some(
                     "Ajustez vos filtres de recherche pour voir les vuln\u{00e9}rabilit\u{00e9}s.",
                 ),

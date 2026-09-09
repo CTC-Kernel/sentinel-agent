@@ -381,9 +381,9 @@ impl CompliancePage {
             &mut state.compliance.search,
             "Rechercher un contrôle, un identifiant ou une catégorie...",
         )
-        .chip("CONFORME", pass_active, theme::SUCCESS)
-        .chip("DÉFAILLANT", fail_active, theme::ERROR)
-        .chip("ERREUR", err_active, theme::WARNING)
+        .chip("Conforme", pass_active, theme::SUCCESS)
+        .chip("Défaillant", fail_active, theme::ERROR)
+        .chip("Erreur", err_active, theme::WARNING)
         .result_count(result_count)
         .show(ui);
 
@@ -416,9 +416,9 @@ impl CompliancePage {
             );
             ui.add_space(theme::SPACE_XS);
             for (val, label) in [
-                (ComplianceGroupBy::None, "LISTE PLATE"),
-                (ComplianceGroupBy::Category, "PAR CATÉGORIE"),
-                (ComplianceGroupBy::Framework, "PAR RÉFÉRENTIEL"),
+                (ComplianceGroupBy::None, "Liste plate"),
+                (ComplianceGroupBy::Category, "Par catégorie"),
+                (ComplianceGroupBy::Framework, "Par référentiel"),
             ] {
                 let active = state.compliance.group_by == val;
 
@@ -454,8 +454,8 @@ impl CompliancePage {
             );
             ui.add_space(theme::SPACE_XS);
             for (mode, label) in [
-                (ComplianceViewMode::List, "LISTE"),
-                (ComplianceViewMode::Matrix, "MATRICE"),
+                (ComplianceViewMode::List, "Liste"),
+                (ComplianceViewMode::Matrix, "Matrice"),
             ] {
                 let active = state.compliance.view_mode == mode;
                 if widgets::chip_button(ui, label, active, theme::ACCENT).clicked() {
@@ -497,14 +497,14 @@ impl CompliancePage {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
-                        "OBJECTIF DE CONFORMIT\u{00c9} ATTEINT",
+                        "Objectif de conformit\u{00e9} atteint",
                         "Tous les contr\u{00f4}les audit\u{00e9}s sont conformes aux r\u{00e9}f\u{00e9}rentiels actifs.",
                     );
                 } else if state.checks.is_empty() {
                     widgets::empty_state(
                         ui,
                         icons::COMPLIANCE,
-                        "AUCUNE BASE DE CONTR\u{00d4}LES",
+                        "Aucune base de contr\u{00f4}les",
                         Some(
                             "En attente de synchronisation des politiques avec le serveur central...",
                         ),
@@ -513,7 +513,7 @@ impl CompliancePage {
                     widgets::empty_state(
                         ui,
                         icons::COMPLIANCE,
-                        "AUCUN R\u{00c9}SULTAT CORRESPONDANT",
+                        "Aucun r\u{00e9}sultat correspondant",
                         Some("Modifiez vos crit\u{00e8}res de recherche ou de filtrage."),
                     );
                 }
@@ -999,7 +999,7 @@ impl CompliancePage {
             widgets::empty_state(
                 ui,
                 icons::COMPLIANCE,
-                "AUCUN R\u{00c9}F\u{00c9}RENTIEL",
+                "Aucun r\u{00e9}f\u{00e9}rentiel",
                 Some(
                     "Les contr\u{00f4}les s\u{00e9}lectionn\u{00e9}s ne sont associ\u{00e9}s \u{00e0} aucun r\u{00e9}f\u{00e9}rentiel.",
                 ),

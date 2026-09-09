@@ -33,11 +33,11 @@ impl NotificationsPage {
         // Tab bar
         let unread = state.notifications.iter().filter(|n| !n.read).count();
         let tabs = vec![
-            widgets::Tab::new("NOTIFICATIONS")
+            widgets::Tab::new("Notifications")
                 .icon(icons::BELL)
                 .badge(unread as u32),
-            widgets::Tab::new("R\u{00c8}GLES D'ALERTE").icon(icons::SHIELD_CHECK),
-            widgets::Tab::new("WEBHOOKS").icon(icons::GLOBE),
+            widgets::Tab::new("R\u{00e8}gles d'alerte").icon(icons::SHIELD_CHECK),
+            widgets::Tab::new("Webhooks").icon(icons::GLOBE),
         ];
         if let Some(new_tab) = widgets::TabBar::new(tabs, state.notifications_active_tab).show(ui) {
             state.notifications_active_tab = new_tab;
