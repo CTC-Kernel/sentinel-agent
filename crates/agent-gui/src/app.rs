@@ -219,6 +219,21 @@ fn build_palette_commands() -> Vec<widgets::CommandItem> {
     commands
 }
 
+/// Lay a page body out as a centred column of `measure` px, inset by `side`.
+///
+/// Used instead of `Frame::inner_margin` because egui margins are `i8`: on a
+/// wide display the gutter needed to centre 1560px of content overflows them.
+fn content_column(ui: &mut egui::Ui, side: f32, measure: f32, body: impl FnOnce(&mut egui::Ui)) {
+    ui.horizontal_top(|ui: &mut egui::Ui| {
+        ui.add_space(side);
+        ui.vertical(|ui: &mut egui::Ui| {
+            ui.set_max_width(measure);
+            ui.set_min_width(measure);
+            body(ui);
+        });
+    });
+}
+
 // ============================================================================
 // App state
 // ============================================================================
@@ -945,12 +960,8 @@ impl eframe::App for SentinelApp {
             } else {
                 None
             }
-        }) && new_page != self.page
-        {
-            // Close any open detail drawers from the old page
-            self.state.close_all_drawers();
-            self.page = new_page;
-            self.page_transition = 0.0;
+        }) {
+            self.navigate_to(new_page);
         }
 
         // Cmd+R = Run check, Cmd+Shift+S = Force sync
@@ -970,38 +981,52 @@ impl eframe::App for SentinelApp {
         // search, primary action, sync, notifications, assistant, theme.
         self.show_top_bar(ctx);
 
-        // Sidebar
-        egui::SidePanel::left("sidebar")
-            .exact_width(theme::SIDEBAR_WIDTH)
-            .frame(
-                egui::Frame::new()
-                    .fill(theme::bg_sidebar())
-                    .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border())),
+        let mut navigate: Option<Page> = None;
+
+        // Sidebar. Width animates so collapsing reads as one motion rather
+        // than a jump cut; the gradient is painted by the widget across the
+        // full panel, including behind the scroll area.
+        let target_width = widgets::Sidebar::width(self.state.settings.sidebar_collapsed);
+        let sidebar_width = if self.state.reduced_motion {
+            target_width
+        } else {
+            ctx.animate_value_with_time(
+                egui::Id::new("sidebar_width"),
+                target_width,
+                theme::ANIM_NORMAL,
             )
+        };
+        egui::SidePanel::left("sidebar")
+            .exact_width(sidebar_width)
+            .frame(egui::Frame::new().inner_margin(egui::Margin::ZERO))
             .show(ctx, |ui: &mut egui::Ui| {
-                let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
+                widgets::Sidebar::paint_background(ui, ui.max_rect());
                 let sync_state = widgets::sidebar::SidebarSyncState {
                     syncing: self.state.sync.in_progress,
                     pending_count: self.state.summary.pending_sync_count,
                     last_sync_at: self.state.summary.last_sync_at,
                     error: self.state.sync.error.clone(),
                 };
-                if let Some(new_page) = widgets::Sidebar::show(
-                    ui,
-                    &self.page,
-                    scanning,
-                    self.state.unread_notification_count,
-                    &sync_state,
-                    self.state.summary.organization.as_deref(),
-                    self.state.ai.model_status.is_ready,
-                    self.state.voice_active,
-                ) && new_page != self.page
-                {
-                    self.state.close_all_drawers();
-                    self.page = new_page;
-                    self.page_transition = 0.0;
+                let sidebar_ctx = widgets::SidebarContext {
+                    current: &self.page,
+                    scanning: self.state.summary.status == crate::dto::GuiAgentStatus::Scanning,
+                    unread_notifications: self.state.unread_notification_count,
+                    sync: &sync_state,
+                    organization: self.state.summary.organization.as_deref(),
+                    ai_ready: self.state.ai.model_status.is_ready,
+                    voice_active: self.state.voice_active,
+                    // Mid-animation the rail is already narrow enough that
+                    // labels would be clipped, so switch shape at the midpoint.
+                    collapsed: sidebar_width
+                        < (theme::SIDEBAR_WIDTH + theme::SIDEBAR_RAIL_WIDTH) / 2.0,
+                };
+                if let Some(new_page) = widgets::Sidebar::show(ui, &sidebar_ctx) {
+                    navigate = Some(new_page);
                 }
             });
+        if let Some(page) = navigate.take() {
+            self.navigate_to(page);
+        }
 
         // Advance page transition animation
         if self.page_transition < 1.0 {
@@ -1019,8 +1044,8 @@ impl eframe::App for SentinelApp {
                 egui::Frame::new()
                     .fill(theme::bg_primary())
                     .inner_margin(egui::Margin {
-                        left: theme::SPACE_LG as i8,
-                        right: 0, // No right margin: scrollbar flush with window edge
+                        left: 0,
+                        right: 0, // Scrollbar stays flush with the window edge.
                         top: theme::SPACE_LG as i8,
                         bottom: theme::SPACE_LG as i8,
                     }),
@@ -1041,154 +1066,138 @@ impl eframe::App for SentinelApp {
                 egui::ScrollArea::vertical()
                     .auto_shrink(egui::Vec2b::new(false, false))
                     .show(ui, |ui: &mut egui::Ui| {
-                        egui::Frame::new()
-                            .inner_margin(egui::Margin {
-                                left: 0,
-                                right: theme::SPACE as i8, // 16px gap between content and scrollbar
-                                top: 0,
-                                bottom: 0,
-                            })
-                            .show(ui, |ui: &mut egui::Ui| match self.page {
-                                Page::Dashboard => {
-                                    if let Some(action) =
-                                        pages::DashboardPage::show(ui, &mut self.state)
-                                    {
-                                        match action {
-                                            pages::DashboardAction::Command(cmd) => {
-                                                self.send_command(cmd);
-                                            }
-                                            pages::DashboardAction::NavigateTo(page) => {
-                                                self.state.close_all_drawers();
-                                                self.page = page;
-                                                self.page_transition = 0.0;
-                                            }
+                        // Bounded measure: past CONTENT_MAX_WIDTH the content
+                        // centres instead of stretching, because a 3000px-wide
+                        // table row is unreadable however premium it looks.
+                        // Done with layout rather than Frame margins — egui
+                        // margins are i8, so a wide display would overflow them.
+                        let gutter = theme::SPACE_LG;
+                        let full = ui.available_width();
+                        let measure = (full - gutter * 2.0).min(theme::CONTENT_MAX_WIDTH);
+                        let side = ((full - measure) / 2.0).max(gutter);
+                        content_column(ui, side, measure, |ui: &mut egui::Ui| match self.page {
+                            Page::Dashboard => {
+                                if let Some(action) =
+                                    pages::DashboardPage::show(ui, &mut self.state)
+                                {
+                                    match action {
+                                        pages::DashboardAction::Command(cmd) => {
+                                            self.send_command(cmd);
+                                        }
+                                        pages::DashboardAction::NavigateTo(page) => {
+                                            self.navigate_to(page);
                                         }
                                     }
                                 }
-                                Page::Monitoring => {
-                                    if let Some(cmd) =
-                                        pages::MonitoringPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Monitoring => {
+                                if let Some(cmd) = pages::MonitoringPage::show(ui, &mut self.state)
+                                {
+                                    self.send_command(cmd);
                                 }
-                                Page::Compliance => {
-                                    if let Some(cmd) =
-                                        pages::CompliancePage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Compliance => {
+                                if let Some(cmd) = pages::CompliancePage::show(ui, &mut self.state)
+                                {
+                                    self.send_command(cmd);
                                 }
-                                Page::Software => {
-                                    if let Some(cmd) =
-                                        pages::SoftwarePage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Software => {
+                                if let Some(cmd) = pages::SoftwarePage::show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::Vulnerabilities => {
-                                    if let Some(cmd) =
-                                        pages::VulnerabilitiesPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Vulnerabilities => {
+                                if let Some(cmd) =
+                                    pages::VulnerabilitiesPage::show(ui, &mut self.state)
+                                {
+                                    self.send_command(cmd);
                                 }
-                                Page::FileIntegrity => {
-                                    if let Some(cmd) = pages::FimPage::show(ui, &mut self.state) {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::FileIntegrity => {
+                                if let Some(cmd) = pages::FimPage::show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::Threats => {
-                                    if let Some(cmd) = pages::ThreatsPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Threats => {
+                                if let Some(cmd) = pages::ThreatsPage::show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::AuditTrail => {
-                                    if let Some(cmd) =
-                                        pages::AuditTrailPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::AuditTrail => {
+                                if let Some(cmd) = pages::AuditTrailPage::show(ui, &mut self.state)
+                                {
+                                    self.send_command(cmd);
                                 }
-                                Page::Network => {
-                                    if let Some(cmd) = pages::NetworkPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Network => {
+                                if let Some(cmd) = pages::NetworkPage::show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::Sync => {
-                                    if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Sync => {
+                                if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::Terminal => {
-                                    if let Some(cmd) =
-                                        pages::TerminalPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Terminal => {
+                                if let Some(cmd) = pages::TerminalPage::show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::Discovery => {
-                                    if let Some(cmd) =
-                                        pages::DiscoveryPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Discovery => {
+                                if let Some(cmd) = pages::DiscoveryPage::show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::Cartography => {
-                                    if let Some(cmd) =
-                                        pages::CartographyPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Cartography => {
+                                if let Some(cmd) = pages::CartographyPage::show(ui, &mut self.state)
+                                {
+                                    self.send_command(cmd);
                                 }
-                                Page::Notifications => {
-                                    if let Some(cmd) =
-                                        pages::NotificationsPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Notifications => {
+                                if let Some(cmd) =
+                                    pages::NotificationsPage::show(ui, &mut self.state)
+                                {
+                                    self.send_command(cmd);
                                 }
-                                Page::Settings => {
-                                    if let Some(cmd) =
-                                        pages::SettingsPage::show(ui, &mut self.state)
-                                    {
-                                        if matches!(cmd, GuiCommand::Shutdown) {
-                                            self.quit_requested = true;
-                                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                                        }
-                                        self.send_command(cmd);
+                            }
+                            Page::Settings => {
+                                if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
+                                    if matches!(cmd, GuiCommand::Shutdown) {
+                                        self.quit_requested = true;
+                                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                                     }
+                                    self.send_command(cmd);
                                 }
-                                Page::About => {
-                                    if let Some(cmd) = pages::AboutPage::show(ui) {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::About => {
+                                if let Some(cmd) = pages::AboutPage::show(ui) {
+                                    self.send_command(cmd);
                                 }
-                                Page::Reports => {
-                                    if let Some(cmd) = pages::ReportsPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Reports => {
+                                if let Some(cmd) = pages::ReportsPage::show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::Risks => {
-                                    if let Some(cmd) = pages::RisksPage::show(ui, &mut self.state) {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Risks => {
+                                if let Some(cmd) = pages::RisksPage::show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::Assets => {
-                                    if let Some(cmd) = pages::AssetsPage::show(ui, &mut self.state)
-                                    {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::Assets => {
+                                if let Some(cmd) = pages::AssetsPage::show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                                Page::AI => {
-                                    if let Some(cmd) = self.llm_panel.show(ui, &mut self.state) {
-                                        self.send_command(cmd);
-                                    }
+                            }
+                            Page::AI => {
+                                if let Some(cmd) = self.llm_panel.show(ui, &mut self.state) {
+                                    self.send_command(cmd);
                                 }
-                            });
+                            }
+                        });
                     });
             });
 
@@ -1224,233 +1233,58 @@ impl eframe::App for SentinelApp {
 impl SentinelApp {
     /// Persistent global top bar.
     ///
-    /// Full-width strip above the sidebar carrying the chrome that was
-    /// previously absent or scattered: current location, global search (⌘K),
-    /// the primary "Lancer l'analyse" action, sync status, notifications,
-    /// the assistant, org context and the theme toggle. Additive — page bodies
-    /// keep their own headers for now.
+    /// Carries the chrome that must be reachable from every page: brand and
+    /// sidebar toggle, current location, global search, agent health,
+    /// workspace context and the primary action. Page bodies keep their own
+    /// sub-headers for page-specific controls.
     fn show_top_bar(&mut self, ctx: &egui::Context) {
-        const TOPBAR_H: f32 = 52.0;
-
-        // Snapshot everything the bar displays so the closure never borrows
-        // `self` — actions are recorded into locals and applied afterwards.
-        let (cur_icon, cur_label) = page_catalog()
+        let (icon, label, section) = page_catalog()
             .into_iter()
             .find(|(p, ..)| *p == self.page)
-            .map(|(_, _, icon, label, _)| (icon, label))
-            .unwrap_or((icons::DASHBOARD, "Sentinel"));
-        let org = self.state.summary.organization.clone();
-        let unread = self.state.unread_notification_count;
-        let syncing = self.state.sync.in_progress;
-        let dark = self.state.settings.dark_mode;
+            .map(|(_, _, icon, label, section)| (icon, label, Some(section)))
+            .unwrap_or((icons::DASHBOARD, "Sentinel", None));
 
-        let mut goto: Option<Page> = None;
-        let mut open_palette = false;
-        let mut run = false;
-        let mut force_sync = false;
-        let mut toggle_theme = false;
+        let action = widgets::top_bar(
+            ctx,
+            &widgets::TopBarContext {
+                page_icon: icon,
+                page_label: label,
+                page_section: section,
+                organization: self.state.summary.organization.as_deref(),
+                unread: self.state.unread_notification_count,
+                syncing: self.state.sync.in_progress,
+                scanning: self.state.summary.status == crate::dto::GuiAgentStatus::Scanning,
+                dark_mode: self.state.settings.dark_mode,
+                sidebar_collapsed: self.state.settings.sidebar_collapsed,
+                sidebar_width: widgets::Sidebar::width(self.state.settings.sidebar_collapsed),
+            },
+        );
 
-        egui::TopBottomPanel::top("global_top_bar")
-            .exact_height(TOPBAR_H)
-            .frame(
-                egui::Frame::new()
-                    .fill(theme::bg_secondary())
-                    .inner_margin(egui::Margin::symmetric(theme::SPACE_LG as i8, 0)),
-            )
-            .show(ctx, |ui: &mut egui::Ui| {
-                // Bottom hairline separating the bar from the content below.
-                let r = ui.max_rect();
-                ui.painter().hline(
-                    r.x_range(),
-                    r.bottom() - 0.5,
-                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()),
-                );
-
-                ui.horizontal_centered(|ui: &mut egui::Ui| {
-                    // ── Left: current location ──────────────────────────
-                    ui.label(
-                        egui::RichText::new(cur_icon)
-                            .font(theme::font_heading())
-                            .color(theme::accent_text()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new(cur_label)
-                            .font(theme::font_heading())
-                            .color(theme::text_primary())
-                            .strong(),
-                    );
-
-                    // ── Right cluster (laid out right-to-left) ──────────
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            // Theme toggle
-                            let tglyph = if dark { icons::SUN } else { icons::MOON };
-                            if ui
-                                .add(
-                                    egui::Button::new(
-                                        egui::RichText::new(tglyph)
-                                            .font(theme::font_heading())
-                                            .color(theme::text_secondary()),
-                                    )
-                                    .frame(false),
-                                )
-                                .on_hover_text("Basculer le thème clair / sombre")
-                                .clicked()
-                            {
-                                toggle_theme = true;
-                            }
-
-                            ui.add_space(theme::SPACE_MD);
-
-                            // Assistant IA
-                            if ui
-                                .add(
-                                    egui::Button::new(
-                                        egui::RichText::new(icons::BRAIN)
-                                            .font(theme::font_heading())
-                                            .color(theme::text_secondary()),
-                                    )
-                                    .frame(false),
-                                )
-                                .on_hover_text("Assistant IA")
-                                .clicked()
-                            {
-                                goto = Some(Page::AI);
-                            }
-
-                            ui.add_space(theme::SPACE_MD);
-
-                            // Notifications (with unread dot)
-                            let bell = ui
-                                .add(
-                                    egui::Button::new(
-                                        egui::RichText::new(icons::BELL)
-                                            .font(theme::font_heading())
-                                            .color(theme::text_secondary()),
-                                    )
-                                    .frame(false),
-                                )
-                                .on_hover_text("Notifications");
-                            if bell.clicked() {
-                                goto = Some(Page::Notifications);
-                            }
-                            if unread > 0 {
-                                ui.painter().circle_filled(
-                                    bell.rect.right_top() + egui::vec2(-1.0, 5.0),
-                                    theme::STATUS_DOT_SIZE / 2.0,
-                                    theme::ERROR,
-                                );
-                            }
-
-                            ui.add_space(theme::SPACE);
-
-                            // Sync status / trigger
-                            let sync_label = if syncing {
-                                "Synchronisation…"
-                            } else {
-                                "Synchroniser"
-                            };
-                            if ui
-                                .add(
-                                    egui::Button::new(
-                                        egui::RichText::new(format!(
-                                            "{}  {}",
-                                            icons::SYNC,
-                                            sync_label
-                                        ))
-                                        .font(theme::font_body())
-                                        .color(theme::text_secondary()),
-                                    )
-                                    .frame(false),
-                                )
-                                .clicked()
-                            {
-                                force_sync = true;
-                            }
-
-                            ui.add_space(theme::SPACE_MD);
-
-                            // Global search trigger (opens the ⌘K palette)
-                            if ui
-                                .add(
-                                    egui::Button::new(
-                                        egui::RichText::new(format!(
-                                            "{}   Rechercher…   ⌘K",
-                                            icons::SEARCH
-                                        ))
-                                        .font(theme::font_body())
-                                        .color(theme::text_tertiary()),
-                                    )
-                                    .fill(theme::bg_tertiary()),
-                                )
-                                .clicked()
-                            {
-                                open_palette = true;
-                            }
-
-                            ui.add_space(theme::SPACE_MD);
-
-                            // Primary action
-                            if ui
-                                .add(
-                                    egui::Button::new(
-                                        egui::RichText::new(format!(
-                                            "{}  Lancer l'analyse",
-                                            icons::PLAY
-                                        ))
-                                        .font(theme::font_body())
-                                        .color(theme::text_on_accent())
-                                        .strong(),
-                                    )
-                                    .fill(theme::ACCENT),
-                                )
-                                .clicked()
-                            {
-                                run = true;
-                            }
-
-                            // Org context (appears at the far left of this cluster)
-                            if let Some(org) = &org {
-                                ui.add_space(theme::SPACE_LG);
-                                ui.label(
-                                    egui::RichText::new(org)
-                                        .font(theme::font_body())
-                                        .color(theme::text_secondary()),
-                                );
-                                ui.add_space(theme::SPACE_XS);
-                                ui.label(
-                                    egui::RichText::new(icons::BUILDING)
-                                        .font(theme::font_body())
-                                        .color(theme::text_tertiary()),
-                                );
-                            }
-                        },
-                    );
-                });
-            });
-
-        // Apply the recorded action, if any.
-        if let Some(p) = goto
-            && p != self.page
-        {
-            self.state.close_all_drawers();
-            self.page = p;
-            self.page_transition = 0.0;
+        match action {
+            Some(widgets::TopBarAction::ToggleSidebar) => {
+                self.state.settings.sidebar_collapsed = !self.state.settings.sidebar_collapsed;
+            }
+            Some(widgets::TopBarAction::OpenPalette) => self.command_palette.open(),
+            Some(widgets::TopBarAction::RunCheck) => self.send_command(GuiCommand::RunCheck),
+            Some(widgets::TopBarAction::ForceSync) => self.send_command(GuiCommand::ForceSync),
+            Some(widgets::TopBarAction::ToggleTheme) => {
+                self.state.settings.dark_mode = !self.state.settings.dark_mode;
+            }
+            Some(widgets::TopBarAction::OpenNotifications) => self.navigate_to(Page::Notifications),
+            Some(widgets::TopBarAction::OpenAssistant) => self.navigate_to(Page::AI),
+            None => {}
         }
-        if open_palette {
-            self.command_palette.open();
+    }
+
+    /// Route to `page`, closing any drawer the previous page had open and
+    /// restarting the enter transition.
+    fn navigate_to(&mut self, page: Page) {
+        if page == self.page {
+            return;
         }
-        if run {
-            self.send_command(GuiCommand::RunCheck);
-        }
-        if force_sync {
-            self.send_command(GuiCommand::ForceSync);
-        }
-        if toggle_theme {
-            self.state.settings.dark_mode = !self.state.settings.dark_mode;
-        }
+        self.state.close_all_drawers();
+        self.page = page;
+        self.page_transition = 0.0;
     }
 
     /// Dispatch a command selected from the command palette.

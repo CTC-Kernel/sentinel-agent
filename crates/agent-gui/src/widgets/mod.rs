@@ -20,6 +20,7 @@ pub mod sentinel_ai_core;
 pub mod sidebar;
 mod status_badge;
 mod toggle_switch;
+pub mod topbar;
 pub mod tray_radar;
 pub mod voice;
 
@@ -56,12 +57,12 @@ pub mod detail_drawer;
 mod org_banner;
 mod sparkline;
 
-pub use card::{card, clickable_card, danger_card};
+pub use card::{Card, CardVariant, card, clickable_card, danger_card, flat_card};
 pub use compliance_gauge::compliance_gauge;
 pub use empty_state::{
     empty_state, empty_state_compact, empty_state_with_action, no_results_state, pending_state,
 };
-pub use header::{page_header, page_header_nav};
+pub use header::{eyebrow, page_header, page_header_nav, section_header};
 pub use help_info::help_button;
 pub use layout::ResponsiveGrid;
 pub use premium_badge::{BadgeSize, ComplianceBadge, PremiumBadge, StatusBadge, StatusLevel};
@@ -70,9 +71,10 @@ pub use resource_bar::resource_bar;
 pub use search_filter_bar::SearchFilterBar;
 pub use security_hero::security_hero;
 pub use sentinel_ai_core::SentinelAICore;
-pub use sidebar::Sidebar;
+pub use sidebar::{Sidebar, SidebarContext};
 pub use status_badge::status_badge;
 pub use toggle_switch::toggle_switch;
+pub use topbar::{TopBarAction, TopBarContext, top_bar};
 pub use tray_radar::TrayRadar;
 
 // Premium dashboard exports

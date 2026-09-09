@@ -1404,10 +1404,34 @@ impl Elevation {
     }
 }
 
-/// Paint both shadow layers behind `rect`.
+/// Both shadow layers as shapes, ready to be placed behind a surface.
 ///
-/// Call before drawing the surface itself; `intensity` (0.0…1.0) lets hover
-/// and drag states animate the lift.
+/// Returned rather than painted because a shadow drawn *after* its surface
+/// lands on top of it: callers reserve slots with `Shape::Noop` before
+/// drawing, then fill them here. `intensity` (0.0…1.0) animates the lift.
+pub fn elevation_shapes(
+    rect: egui::Rect,
+    radius: CornerRadius,
+    level: Elevation,
+    intensity: f32,
+) -> [egui::Shape; 2] {
+    let t = intensity.clamp(0.0, 1.0);
+    if t <= 0.0 {
+        return [egui::Shape::Noop, egui::Shape::Noop];
+    }
+    let mut shapes = [egui::Shape::Noop, egui::Shape::Noop];
+    for (slot, mut shadow) in shapes.iter_mut().zip([level.ambient(), level.key()]) {
+        shadow.blur = (shadow.blur as f32 * t) as u8;
+        shadow.color = shadow.color.linear_multiply(t);
+        *slot = egui::Shape::Rect(shadow.as_shape(rect, radius));
+    }
+    shapes
+}
+
+/// Paint both shadow layers at the current end of the paint list.
+///
+/// Only correct when the surface has not been drawn yet — for anything drawn
+/// through `egui::Frame`, reserve slots and use `elevation_shapes` instead.
 pub fn paint_elevation(
     painter: &egui::Painter,
     rect: egui::Rect,
@@ -1415,14 +1439,10 @@ pub fn paint_elevation(
     level: Elevation,
     intensity: f32,
 ) {
-    let t = intensity.clamp(0.0, 1.0);
-    if t <= 0.0 {
-        return;
-    }
-    for mut shadow in [level.ambient(), level.key()] {
-        shadow.blur = (shadow.blur as f32 * t) as u8;
-        shadow.color = shadow.color.linear_multiply(t);
-        painter.add(shadow.as_shape(rect, radius));
+    for shape in elevation_shapes(rect, radius, level, intensity) {
+        if !matches!(shape, egui::Shape::Noop) {
+            painter.add(shape);
+        }
     }
 }
 
