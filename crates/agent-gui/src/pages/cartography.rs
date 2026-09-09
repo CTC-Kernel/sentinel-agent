@@ -117,7 +117,7 @@ impl CartographyPage {
                     // Open 3D view button
                     if widgets::primary_button(
                         ui,
-                        format!("{}  VUE 3D", icons::EXTERNAL_LINK),
+                        format!("{}  Vue 3D", icons::EXTERNAL_LINK),
                         true,
                     )
                     .clicked()

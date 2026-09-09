@@ -44,14 +44,14 @@ impl DiscoveryPage {
                 } else if state.security.admin_unlocked {
                     widgets::primary_button(
                         ui,
-                        format!("{}  LANCER LA DÉCOUVERTE", icons::PLAY),
+                        format!("{}  Lancer la découverte", icons::PLAY),
                         true,
                     )
                 } else {
                     // Disabled button for non-admin users
                     widgets::primary_button(
                         ui,
-                        format!("{}  LANCER LA DÉCOUVERTE", icons::LOCK),
+                        format!("{}  Lancer la découverte", icons::LOCK),
                         false,
                     )
                 };
@@ -273,7 +273,7 @@ impl DiscoveryPage {
 
         widgets::SearchFilterBar::new(
             &mut state.discovery.search,
-            "Filtrer par adresse IP, nom d'hôte ou constructeur...",
+            "Filtrer par adresse IP, nom d'hôte ou constructeur…",
         )
         .result_count(result_count)
         .show(ui);
@@ -517,7 +517,7 @@ impl DiscoveryPage {
                             row.col(|ui: &mut egui::Ui| {
                                 if widgets::chip_button(
                                     ui,
-                                    &format!("{}  COPIER IP", icons::COPY),
+                                    &format!("{}  Copier IP", icons::COPY),
                                     false,
                                     theme::ACCENT,
                                 )

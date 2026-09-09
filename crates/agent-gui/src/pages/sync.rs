@@ -46,7 +46,7 @@ impl SyncPage {
                         if state.sync.in_progress {
                             widgets::status_badge(
                                 ui,
-                                &format!("{} SYNCHRONISATION...", icons::SYNC),
+                                &format!("{} SYNCHRONISATION…", icons::SYNC),
                                 theme::INFO,
                             );
                         } else if state.summary.pending_sync_count > 0 {
@@ -102,7 +102,7 @@ impl SyncPage {
                         // Force sync button
                         if widgets::primary_button_loading(
                             ui,
-                            format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC),
+                            format!("{}  Synchroniser maintenant", icons::SYNC),
                             !state.sync.in_progress,
                             state.sync.in_progress,
                         )

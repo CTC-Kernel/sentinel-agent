@@ -261,7 +261,7 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                         .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_SM);
-                widgets::text_input(ui, &mut f.name, "Nom de la r\u{00e8}gle...");
+                widgets::text_input(ui, &mut f.name, "Nom de la r\u{00e8}gle…");
             });
             ui.add_space(theme::SPACE_XS);
 
@@ -273,7 +273,7 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                         .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_SM);
-                widgets::text_input(ui, &mut f.description, "Description...");
+                widgets::text_input(ui, &mut f.description, "Description…");
             });
             ui.add_space(theme::SPACE_XS);
 
@@ -316,7 +316,7 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                             cond.condition_type = *ct;
                         }
                         ui.add_space(theme::SPACE_XS);
-                        widgets::text_input(ui, &mut cond.value, "Valeur...");
+                        widgets::text_input(ui, &mut cond.value, "Valeur…");
                         ui.add_space(theme::SPACE_XS);
                         let del_resp = widgets::ghost_button(ui, icons::TRASH.to_string())
                             .on_hover_text("Supprimer");

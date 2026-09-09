@@ -484,7 +484,7 @@ impl NotificationsPage {
                             .font(theme::font_label())
                             .color(theme::text_secondary()),
                     );
-                    widgets::text_input(ui, &mut name, "Nom de la r\u{00e8}gle...");
+                    widgets::text_input(ui, &mut name, "Nom de la r\u{00e8}gle…");
                 });
                 ui.add_space(theme::SPACE_SM);
 
@@ -751,7 +751,7 @@ impl NotificationsPage {
                                         let display_url = if wh.url.chars().count() > 40 {
                                             let truncated: String =
                                                 wh.url.chars().take(37).collect();
-                                            format!("{}...", truncated)
+                                            format!("{}…", truncated)
                                         } else {
                                             wh.url.clone()
                                         };
@@ -903,7 +903,7 @@ impl NotificationsPage {
                             .font(theme::font_label())
                             .color(theme::text_secondary()),
                     );
-                    widgets::text_input(ui, &mut name, "Nom du webhook...");
+                    widgets::text_input(ui, &mut name, "Nom du webhook…");
                 });
                 ui.add_space(theme::SPACE_SM);
 
@@ -913,7 +913,7 @@ impl NotificationsPage {
                             .font(theme::font_label())
                             .color(theme::text_secondary()),
                     );
-                    widgets::text_input(ui, &mut url, "https://hooks.example.com/...");
+                    widgets::text_input(ui, &mut url, "https://hooks.example.com/…");
                 });
                 ui.add_space(theme::SPACE_SM);
 

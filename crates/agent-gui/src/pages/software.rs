@@ -425,7 +425,7 @@ impl SoftwarePage {
 
         widgets::SearchFilterBar::new(
             &mut state.software.search,
-            "Rechercher un paquet, une version ou un éditeur...",
+            "Rechercher un paquet, une version ou un éditeur…",
         )
         .result_count(result_count)
         .show(ui);
@@ -625,7 +625,7 @@ impl SoftwarePage {
                             row.col(|ui: &mut egui::Ui| {
                                 if widgets::ghost_button(
                                     ui,
-                                    format!("{}  D\u{00c9}TAILS", icons::EYE),
+                                    format!("{}  D\u{00e9}tails", icons::EYE),
                                 )
                                 .clicked()
                                 {
@@ -745,7 +745,7 @@ impl SoftwarePage {
 
         widgets::SearchFilterBar::new(
             &mut state.software.search,
-            "Rechercher une application, un bundle ou un éditeur...",
+            "Rechercher une application, un bundle ou un éditeur…",
         )
         .result_count(result_count)
         .show(ui);
@@ -909,7 +909,7 @@ impl SoftwarePage {
                                 let pub_text = if app.publisher.chars().count() > 64 {
                                     let truncated: String =
                                         app.publisher.chars().take(61).collect();
-                                    format!("{}...", truncated)
+                                    format!("{}…", truncated)
                                 } else {
                                     app.publisher.clone()
                                 };
@@ -924,7 +924,7 @@ impl SoftwarePage {
                             row.col(|ui: &mut egui::Ui| {
                                 if widgets::ghost_button(
                                     ui,
-                                    format!("{}  D\u{00c9}TAILS", icons::EYE),
+                                    format!("{}  D\u{00e9}tails", icons::EYE),
                                 )
                                 .clicked()
                                 {

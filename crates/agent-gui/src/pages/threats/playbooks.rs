@@ -556,7 +556,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                         .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_SM);
-                widgets::text_input(ui, &mut f.name, "Nom du playbook...");
+                widgets::text_input(ui, &mut f.name, "Nom du playbook…");
             });
             ui.add_space(theme::SPACE_XS);
 
@@ -568,7 +568,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                         .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_SM);
-                widgets::text_input(ui, &mut f.description, "Description...");
+                widgets::text_input(ui, &mut f.description, "Description…");
             });
             ui.add_space(theme::SPACE_SM);
 
@@ -598,7 +598,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                             cond.condition_type = *ct;
                         }
                         ui.add_space(theme::SPACE_XS);
-                        widgets::text_input(ui, &mut cond.value, "Valeur...");
+                        widgets::text_input(ui, &mut cond.value, "Valeur…");
                         ui.add_space(theme::SPACE_XS);
                         if widgets::ghost_button(ui, icons::TRASH.to_string()).clicked() {
                             remove_cond_idx = Some(i);

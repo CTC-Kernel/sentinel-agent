@@ -241,7 +241,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let is_truncated = evt.detail.chars().count() > 60;
                 let detail_display = if is_truncated {
                     let truncated: String = evt.detail.chars().take(57).collect();
-                    format!("{}...", truncated)
+                    format!("{}…", truncated)
                 } else {
                     evt.detail.clone()
                 };

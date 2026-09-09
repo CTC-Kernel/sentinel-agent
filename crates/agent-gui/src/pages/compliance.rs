@@ -379,7 +379,7 @@ impl CompliancePage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.compliance.search,
-            "Rechercher un contrôle, un identifiant ou une catégorie...",
+            "Rechercher un contrôle, un identifiant ou une catégorie…",
         )
         .chip("Conforme", pass_active, theme::SUCCESS)
         .chip("Défaillant", fail_active, theme::ERROR)
@@ -433,7 +433,7 @@ impl CompliancePage {
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         Self::export_csv(state, &filtered);
                         state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
                             ui.ctx(),
                         );
                     }
@@ -506,7 +506,7 @@ impl CompliancePage {
                         icons::COMPLIANCE,
                         "Aucune base de contr\u{00f4}les",
                         Some(
-                            "En attente de synchronisation des politiques avec le serveur central...",
+                            "En attente de synchronisation des politiques avec le serveur central…",
                         ),
                     );
                 } else {
@@ -693,7 +693,7 @@ impl CompliancePage {
                             let json_str = serde_json::to_string_pretty(details).unwrap_or_default();
                             let display_str = if json_str.chars().count() > 500 {
                                 let truncated: String = json_str.chars().take(497).collect();
-                                format!("{}...", truncated)
+                                format!("{}…", truncated)
                             } else {
                                 json_str
                             };
@@ -710,7 +710,7 @@ impl CompliancePage {
                                 ui.horizontal(|ui| {
                                     ui.spinner();
                                     ui.label(
-                                        egui::RichText::new("Analyse en cours...")
+                                        egui::RichText::new("Analyse en cours…")
                                             .font(theme::font_small())
                                             .color(theme::readable_color(theme::INFO)),
                                     );
@@ -733,7 +733,7 @@ impl CompliancePage {
                     1 => {
                         Self::export_csv(state, &[sel_idx]);
                         state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
                             ui.ctx(),
                         );
                     }

@@ -215,7 +215,7 @@ impl AboutPage {
                 |ui: &mut egui::Ui| {
                     if ui
                         .link(
-                            egui::RichText::new("OUVRIR")
+                            egui::RichText::new("Ouvrir")
                                 .font(theme::font_small())
                                 .color(theme::accent_text())
                                 .strong(),

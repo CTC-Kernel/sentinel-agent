@@ -591,7 +591,7 @@ impl NetworkPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                        if widgets::ghost_button(ui, format!("{}  Export CSV", icons::DOWNLOAD))
                             .clicked()
                             && Self::export_interfaces_csv(state)
                         {
@@ -762,7 +762,7 @@ impl NetworkPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                        if widgets::ghost_button(ui, format!("{}  Export CSV", icons::DOWNLOAD))
                             .clicked()
                             && Self::export_connections_csv(state)
                         {
@@ -827,7 +827,7 @@ impl NetworkPage {
                 &mut state.network.connections_page,
             );
 
-            widgets::SearchFilterBar::new(&mut state.network.search, "Rechercher...")
+            widgets::SearchFilterBar::new(&mut state.network.search, "Rechercher…")
                 .result_count(filtered.len())
                 .show(ui);
 

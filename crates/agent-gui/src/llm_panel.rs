@@ -209,7 +209,7 @@ impl LLMPanel {
                 ui.add_space(theme::SPACE_XS);
 
                 let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
-                    .hint_text("Posez une question de s\u{00e9}curit\u{00e9}...")
+                    .hint_text("Posez une question de s\u{00e9}curit\u{00e9}…")
                     .font(theme::font_body())
                     .desired_width(ui.available_width() - 80.0)
                     .text_color(theme::text_primary());
@@ -386,7 +386,7 @@ impl LLMPanel {
                                         ui.spinner();
                                         ui.add_space(theme::SPACE_SM);
                                         ui.label(
-                                            egui::RichText::new("Analyse en cours...")
+                                            egui::RichText::new("Analyse en cours…")
                                                 .font(theme::font_body())
                                                 .color(theme::text_secondary())
                                                 .italics(),
@@ -460,7 +460,7 @@ impl LLMPanel {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.ai.search,
-            "Rechercher une recommandation, une cat\u{00e9}gorie...",
+            "Rechercher une recommandation, une cat\u{00e9}gorie…",
         )
         .chip("CONFORMIT\u{00c9}", compliance_active, theme::ACCENT)
         .chip("VULN\u{00c9}RABILIT\u{00c9}S", vuln_active, theme::ERROR)

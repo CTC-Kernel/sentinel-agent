@@ -121,7 +121,7 @@ impl RisksPage {
             if state.security.admin_unlocked {
                 if widgets::primary_button(
                     ui,
-                    format!("{}  AUTO-POPULER", icons::WAND_SPARKLES),
+                    format!("{}  Auto-populer", icons::WAND_SPARKLES),
                     true,
                 )
                 .clicked()
@@ -145,14 +145,14 @@ impl RisksPage {
                     );
                 }
             } else {
-                widgets::primary_button(ui, format!("{}  AUTO-POPULER", icons::LOCK), false);
+                widgets::primary_button(ui, format!("{}  Auto-populer", icons::LOCK), false);
             }
 
             ui.add_space(theme::SPACE_SM);
 
             if widgets::secondary_button(
                 ui,
-                format!("{}  NOUVEAU RISQUE", icons::PLUS),
+                format!("{}  Nouveau risque", icons::PLUS),
                 state.security.admin_unlocked,
             )
             .clicked()
@@ -185,7 +185,7 @@ impl RisksPage {
                         let filtered = Self::filtered_indices(state);
                         Self::export_csv(state, &filtered);
                         state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
                             ui.ctx(),
                         );
                     }
@@ -206,7 +206,7 @@ impl RisksPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.risks.search,
-            "Rechercher un risque par titre, propri\u{00e9}taire ou source...",
+            "Rechercher un risque par titre, propri\u{00e9}taire ou source…",
         )
         .chip("Ouvert", open_active, theme::WARNING)
         .chip("Att\u{00e9}nuation", mit_active, theme::INFO)
@@ -702,7 +702,7 @@ impl RisksPage {
                                 ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.spinner();
                                     ui.label(
-                                        egui::RichText::new("  Analyse en cours...")
+                                        egui::RichText::new("  Analyse en cours…")
                                             .font(theme::font_small())
                                             .color(theme::text_secondary()),
                                     );

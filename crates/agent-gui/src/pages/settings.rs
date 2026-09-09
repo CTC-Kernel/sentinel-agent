@@ -471,7 +471,7 @@ impl SettingsPage {
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.add(
                             egui::TextEdit::singleline(&mut state.settings.architecture_url)
-                                .hint_text("https://...")
+                                .hint_text("https://…")
                                 .desired_width(input_width - theme::SPACE_LG)
                                 .char_limit(2048)
                                 .frame(false)
@@ -639,7 +639,7 @@ impl SettingsPage {
 
                 if widgets::primary_button(
                     ui,
-                    format!("{}  VOIR SUR LE PORTAIL WEB", icons::EXTERNAL_LINK),
+                    format!("{}  Voir sur le portail web", icons::EXTERNAL_LINK),
                     true,
                 )
                 .clicked()
@@ -841,7 +841,7 @@ impl SettingsPage {
                     );
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if widgets::button::secondary_button(ui, "DÉVERROUILLER (ADMIN)", true)
+                        if widgets::button::secondary_button(ui, "Déverrouiller (admin)", true)
                             .clicked()
                         {
                             ui.memory_mut(|mem| {
@@ -886,7 +886,7 @@ impl SettingsPage {
 
                         if widgets::destructive_button(
                             ui,
-                            format!("{}  CONFIRMER L'ARRÊT", icons::POWER_OFF),
+                            format!("{}  Confirmer l'arrêt", icons::POWER_OFF),
                             true,
                         )
                         .clicked()
@@ -899,7 +899,7 @@ impl SettingsPage {
                     // Normal state
                     if widgets::destructive_button(
                         ui,
-                        format!("{}  QUITTER L'AGENT SENTINEL", icons::POWER_OFF),
+                        format!("{}  Quitter l'agent sentinel", icons::POWER_OFF),
                         true,
                     )
                     .clicked()

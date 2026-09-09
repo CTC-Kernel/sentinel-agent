@@ -136,7 +136,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         .replace("http://", "");
                     let server_short = if server_display.chars().count() > 30 {
                         let truncated: String = server_display.chars().take(27).collect();
-                        format!("{}...", truncated)
+                        format!("{}…", truncated)
                     } else {
                         server_display
                     };

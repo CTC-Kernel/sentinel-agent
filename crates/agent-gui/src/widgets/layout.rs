@@ -58,7 +58,14 @@ impl ResponsiveGrid {
     where
         F: FnMut(&mut Ui, f32, &T),
     {
-        let (cols, item_width) = self.calculate(ui);
+        let (mut cols, mut item_width) = self.calculate(ui);
+        // Never leave empty columns: two cards on a wide display should share
+        // the row, not sit at minimum width beside 600px of nothing.
+        if !items.is_empty() && cols > items.len() {
+            cols = items.len();
+            let total = (ui.available_width() - 12.0).max(0.0);
+            item_width = (total - self.gap * (cols - 1) as f32) / cols as f32;
+        }
 
         ui.vertical_centered_justified(|ui: &mut egui::Ui| {
             ui.spacing_mut().item_spacing.y = self.gap;

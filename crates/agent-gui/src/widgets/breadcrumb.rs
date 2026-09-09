@@ -177,7 +177,7 @@ impl<'a> Breadcrumb<'a> {
                         ui.painter().text(
                             rect.center(),
                             egui::Align2::CENTER_CENTER,
-                            "...",
+                            "…",
                             theme::font_body(),
                             theme::text_tertiary(),
                         );

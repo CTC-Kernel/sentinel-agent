@@ -70,11 +70,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // Search input
             let hint = match state.threats.ioc_type {
-                IocSearchType::Ip => "192.168.1.100, 10.0.0.1...",
-                IocSearchType::Domain => "example.com, malware.xyz...",
-                IocSearchType::Hash => "SHA-256 hash...",
-                IocSearchType::Process => "powershell, curl, nc...",
-                IocSearchType::Cve => "CVE-2024-12345...",
+                IocSearchType::Ip => "192.168.1.100, 10.0.0.1…",
+                IocSearchType::Domain => "example.com, malware.xyz…",
+                IocSearchType::Hash => "SHA-256 hash…",
+                IocSearchType::Process => "powershell, curl, nc…",
+                IocSearchType::Cve => "CVE-2024-12345…",
             };
             let input_width = (ui.available_width() - 120.0).max(200.0);
             ui.add_sized(

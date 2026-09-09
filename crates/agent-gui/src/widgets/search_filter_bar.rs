@@ -11,7 +11,7 @@ use crate::theme;
 ///
 /// Usage (builder pattern):
 /// ```ignore
-/// let toggled = SearchFilterBar::new(&mut my_search, "Rechercher...")
+/// let toggled = SearchFilterBar::new(&mut my_search, "Rechercher…")
 ///     .chip("CONFORME", is_active, theme::SUCCESS)
 ///     .chip("NON-CONFORME", other_active, theme::ERROR)
 ///     .result_count(42)

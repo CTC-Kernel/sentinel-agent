@@ -255,7 +255,7 @@ impl DashboardPage {
                     "{}  {}",
                     icons::PLAY,
                     if is_scanning {
-                        "Analyse en cours..."
+                        "Analyse en cours…"
                     } else {
                         "Analyser"
                     }
@@ -449,7 +449,7 @@ impl DashboardPage {
                     }
 
                     let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
-                        .hint_text("Demander \u{00e0} Jarvis...")
+                        .hint_text("Demander \u{00e0} Jarvis…")
                         .font(theme::font_body())
                         .desired_width(ui.available_width() - 32.0);
 

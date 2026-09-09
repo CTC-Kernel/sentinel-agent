@@ -50,7 +50,7 @@ impl Default for EnrollmentWizard {
             token_input: String::new(),
             qr_input: String::new(),
             use_qr: false,
-            progress_message: "Connexion au serveur...".to_string(),
+            progress_message: "Connexion au serveur…".to_string(),
             show_token: false,
             admin_password: String::new(),
             show_password: false,
@@ -272,7 +272,7 @@ impl EnrollmentWizard {
                     let te = egui::TextEdit::multiline(&mut self.qr_input)
                         .desired_rows(4)
                         .desired_width(f32::INFINITY)
-                        .hint_text("Coller le contenu du QR code...");
+                        .hint_text("Coller le contenu du QR code…");
                     ui.add(te);
                 } else {
                     ui.label(
@@ -292,7 +292,7 @@ impl EnrollmentWizard {
                                 .desired_width(ui.available_width() - 40.0)
                                 .font(egui::TextStyle::Monospace)
                                 .password(!self.show_token)
-                                .hint_text("Token d'enrôlement..."),
+                                .hint_text("Token d'enrôlement…"),
                         );
 
                         let vis_icon = if self.show_token {
@@ -335,7 +335,7 @@ impl EnrollmentWizard {
                             let qr = self.qr_input.trim().to_string();
                             self.step = EnrollmentStep::InProgress;
                             self.is_enrolling = true;
-                            self.progress_message = "Traitement du code QR...".to_string();
+                            self.progress_message = "Traitement du code QR…".to_string();
                             command = Some(EnrollmentCommand::SubmitQr(qr));
                         } else {
                             // Token goes to admin setup step
@@ -435,7 +435,7 @@ impl EnrollmentWizard {
 
                         self.step = EnrollmentStep::InProgress;
                         self.is_enrolling = true;
-                        self.progress_message = "Connexion au serveur...".to_string();
+                        self.progress_message = "Connexion au serveur…".to_string();
                         command = Some(EnrollmentCommand::SubmitEnrollment {
                             token,
                             admin_password: password,
@@ -462,7 +462,7 @@ impl EnrollmentWizard {
                 );
                 ui.add_space(theme::SPACE);
                 ui.label(
-                    egui::RichText::new("Veuillez patienter...")
+                    egui::RichText::new("Veuillez patienter…")
                         .font(theme::font_small())
                         .color(theme::text_secondary()),
                 );

@@ -133,7 +133,7 @@ impl ReportsPage {
         ui.horizontal(|ui: &mut egui::Ui| {
             let btn_label = if is_generating {
                 format!(
-                    "{}  G\u{00c9}N\u{00c9}RATION EN COURS...",
+                    "{}  G\u{00c9}N\u{00c9}RATION EN COURS…",
                     icons::CIRCLE_NOTCH
                 )
             } else {
@@ -246,7 +246,7 @@ impl ReportsPage {
                 ui.add_space(theme::SPACE_SM);
 
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  EXPORTER HTML", icons::DOWNLOAD))
+                    if widgets::ghost_button(ui, format!("{}  Exporter HTML", icons::DOWNLOAD))
                         .clicked()
                     {
                         Self::export_html(state, report);

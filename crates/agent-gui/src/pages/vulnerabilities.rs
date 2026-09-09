@@ -324,7 +324,7 @@ impl VulnerabilitiesPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.vulnerability.search,
-            "RECHERCHER (CVE, LOGICIEL, DESCRIPTION)...",
+            "Rechercher une CVE, un logiciel ou une description…",
         )
         .chip("Critique", crit_active, theme::ERROR)
         .chip("Élevée", high_active, theme::SEVERITY_HIGH)
@@ -611,7 +611,7 @@ impl VulnerabilitiesPage {
 
                         let time = ui.input(|i| i.time);
                         state.toasts.push(
-                            crate::widgets::toast::Toast::info("Application du correctif IA...")
+                            crate::widgets::toast::Toast::info("Application du correctif IA…")
                                 .with_time(time),
                         );
                     }
@@ -880,7 +880,7 @@ impl VulnerabilitiesPage {
 
                         // Actions column
                         row.col(|ui: &mut egui::Ui| {
-                            if widgets::ghost_button(ui, format!("{}  D\u{00c9}TAILS", icons::EYE))
+                            if widgets::ghost_button(ui, format!("{}  D\u{00e9}tails", icons::EYE))
                                 .clicked()
                             {
                                 clicked_idx = Some(real_idx);

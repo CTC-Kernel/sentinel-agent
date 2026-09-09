@@ -176,10 +176,7 @@ impl MonitoringPage {
             ui.add_sized(
                 [search_width, theme::MIN_TOUCH_TARGET],
                 egui::TextEdit::singleline(&mut state.siem.search)
-                    .hint_text(format!(
-                        "{}  Rechercher dans les journaux...",
-                        icons::SEARCH
-                    ))
+                    .hint_text(format!("{}  Rechercher dans les journaux…", icons::SEARCH))
                     .font(theme::font_body()),
             );
 
@@ -882,7 +879,7 @@ impl MonitoringPage {
             let (status_text, status_color) = if stats.connected {
                 ("Connecté au SIEM distant", theme::SUCCESS)
             } else if state.settings.siem_enabled {
-                ("En attente de connexion...", theme::WARNING)
+                ("En attente de connexion…", theme::WARNING)
             } else {
                 ("Transfert SIEM désactivé", theme::text_tertiary())
             };
@@ -1254,7 +1251,7 @@ impl MonitoringPage {
             painter.text(
                 rect.center(),
                 egui::Align2::CENTER_CENTER,
-                "En attente de données...",
+                "En attente de données…",
                 theme::font_min(),
                 theme::text_tertiary(),
             );

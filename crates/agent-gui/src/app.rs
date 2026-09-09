@@ -1572,7 +1572,7 @@ impl SentinelApp {
                         ui.horizontal(|ui| {
                             let text_edit =
                                 egui::TextEdit::singleline(&mut self.state.ai.input_text)
-                                    .hint_text("Demander à Jarvis...")
+                                    .hint_text("Demander à Jarvis…")
                                     .font(theme::font_body())
                                     .desired_width(ui.available_width() - 40.0);
 

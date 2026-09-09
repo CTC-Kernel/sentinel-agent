@@ -38,7 +38,7 @@ impl AuditTrailPage {
         ui.horizontal(|ui: &mut egui::Ui| {
             if widgets::button::secondary_button(
                 ui,
-                format!("{}  EXPORTER CSV", crate::icons::DOWNLOAD),
+                format!("{}  Exporter CSV", crate::icons::DOWNLOAD),
                 true,
             )
             .clicked()
@@ -91,7 +91,7 @@ impl AuditTrailPage {
             .count();
         let toggled = widgets::SearchFilterBar::new(
             &mut state.audit_trail_search,
-            "RECHERCHER UN ÉVÉNEMENT...",
+            "Rechercher un événement…",
         )
         .chip(
             "INFO",

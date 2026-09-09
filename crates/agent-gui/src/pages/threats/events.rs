@@ -30,7 +30,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         ui.add_sized(
             egui::vec2(search_width, theme::MIN_TOUCH_TARGET),
             egui::TextEdit::singleline(&mut state.threats.search)
-                .hint_text("Rechercher un \u{00e9}v\u{00e9}nement...")
+                .hint_text("Rechercher un \u{00e9}v\u{00e9}nement…")
                 .font(theme::font_body()),
         );
 

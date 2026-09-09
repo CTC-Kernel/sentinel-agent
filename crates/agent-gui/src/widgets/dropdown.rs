@@ -29,7 +29,7 @@ impl<'a, T> Dropdown<'a, T> {
             options,
             selected,
             display_fn: Box::new(|item| item.to_string()),
-            placeholder: "Sélectionner...".to_string(),
+            placeholder: "Sélectionner…".to_string(),
             width: None,
             searchable: false,
         }
@@ -226,7 +226,7 @@ impl<'a, T> Dropdown<'a, T> {
                                 );
                                 let response = ui.add(
                                     egui::TextEdit::singleline(&mut search_text)
-                                        .hint_text("Rechercher...")
+                                        .hint_text("Rechercher…")
                                         .frame(false)
                                         .desired_width(width - theme::INPUT_HEIGHT),
                                 );

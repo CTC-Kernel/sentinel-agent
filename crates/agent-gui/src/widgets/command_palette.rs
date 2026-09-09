@@ -105,7 +105,7 @@ impl<'a> CommandPalette<'a> {
     pub fn new(commands: &'a [CommandItem]) -> Self {
         Self {
             commands,
-            placeholder: "Rechercher une commande...".to_string(),
+            placeholder: "Rechercher une commande…".to_string(),
             max_results: 10,
         }
     }

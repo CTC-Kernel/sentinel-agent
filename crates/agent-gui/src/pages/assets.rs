@@ -130,7 +130,7 @@ impl AssetsPage {
             } else {
                 widgets::primary_button(
                     ui,
-                    format!("{}  AUTORISER DEPUIS LA D\u{00c9}TECTION", icons::LOCK),
+                    format!("{}  Autoriser depuis la d\u{00e9}tection", icons::LOCK),
                     false,
                 );
             }
@@ -154,7 +154,7 @@ impl AssetsPage {
                         let filtered = Self::filtered_indices(state);
                         Self::export_csv(state, &filtered);
                         state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
                             ui.ctx(),
                         );
                     }
@@ -175,7 +175,7 @@ impl AssetsPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.assets.search,
-            "Rechercher par nom, IP, type ou \u{00e9}tiquette...",
+            "Rechercher par nom, IP, type ou \u{00e9}tiquette…",
         )
         .chip("Critique", crit_active, theme::ERROR)
         .chip("\u{00c9}lev\u{00e9}e", high_active, theme::SEVERITY_HIGH)
@@ -600,7 +600,7 @@ impl AssetsPage {
                     // Export single asset
                     Self::export_csv(state, &[selected]);
                     state.push_toast(
-                        crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                        crate::widgets::toast::Toast::info("Export CSV en cours…"),
                         ui.ctx(),
                     );
                 }
@@ -787,7 +787,7 @@ impl AssetsPage {
                             .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_SM);
-                    widgets::text_input(ui, &mut f.hostname, "Nom d'h\u{00f4}te...");
+                    widgets::text_input(ui, &mut f.hostname, "Nom d'h\u{00f4}te…");
                 });
                 ui.add_space(theme::SPACE_XS);
 
@@ -799,7 +799,7 @@ impl AssetsPage {
                             .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_SM);
-                    widgets::text_input(ui, &mut f.ip, "192.168.1.1...");
+                    widgets::text_input(ui, &mut f.ip, "192.168.1.1…");
                 });
                 ui.add_space(theme::SPACE_XS);
 
@@ -811,7 +811,7 @@ impl AssetsPage {
                             .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_SM);
-                    widgets::text_input(ui, &mut f.device_type, "serveur, poste, routeur...");
+                    widgets::text_input(ui, &mut f.device_type, "serveur, poste, routeur…");
                 });
                 ui.add_space(theme::SPACE_XS);
 

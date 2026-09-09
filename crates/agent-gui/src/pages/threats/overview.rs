@@ -384,7 +384,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.threats.search,
-            "RECHERCHER (PROCESSUS, RÉSEAU, USB, FIM, SYSTÈME, VULNÉRA.)...",
+            "Rechercher un processus, une alerte réseau, USB, FIM…",
         )
         .chip("Processus", proc_active, theme::ERROR)
         .chip("Réseau", net_active, theme::SEVERITY_HIGH)
@@ -1212,7 +1212,7 @@ fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
                         // Truncate long command lines to prevent overflow
                         let display_cmd: String = if cmd.chars().count() > 80 {
                             let truncated: String = cmd.chars().take(77).collect();
-                            format!("{}...", truncated)
+                            format!("{}…", truncated)
                         } else {
                             cmd.clone()
                         };

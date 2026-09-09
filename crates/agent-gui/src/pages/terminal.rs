@@ -228,7 +228,7 @@ impl TerminalPage {
                         theme::SPACE_XS as i8,
                     ))
                     .font(theme::font_mono_sm())
-                    .hint_text("rechercher...");
+                    .hint_text("rechercher…");
                 ui.add(search_edit);
             });
         });
