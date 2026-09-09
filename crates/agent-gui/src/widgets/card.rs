@@ -81,6 +81,7 @@ impl Card {
     /// Render the card, returning the rect it occupied.
     pub fn show(self, ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) -> egui::Rect {
         let radius = CornerRadius::same(theme::CARD_ROUNDING);
+        let horizontal_parent = ui.layout().main_dir().is_horizontal();
 
         // Reserve the shadow slots before the surface is drawn: the card's
         // geometry is only known afterwards, and a shadow appended later
@@ -117,7 +118,18 @@ impl Card {
                 // from. Without this, a card placed inside a horizontal row
                 // inherits that direction and lays its own children out
                 // side by side — which is not what "card" means anywhere.
-                ui.with_layout(egui::Layout::top_down(egui::Align::Min), add_contents);
+                ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui: &mut Ui| {
+                    // In a vertical stack a card spans its column, the way a
+                    // panel is expected to; call sites had to remember
+                    // `set_width` and mostly did not, leaving pages with
+                    // cards sized to their longest line. Inside a horizontal
+                    // row the available width is the rest of the row, so the
+                    // card is left to size itself to its content.
+                    if !horizontal_parent {
+                        ui.set_width(ui.available_width());
+                    }
+                    add_contents(ui);
+                });
             });
 
         let rect = inner.response.rect;

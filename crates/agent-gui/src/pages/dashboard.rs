@@ -65,9 +65,9 @@ impl DashboardPage {
             ui,
             &["Vue d'ensemble", "Tableau de bord"],
             "Tableau de bord",
-            Some("CENTRE DE PILOTAGE GRC"),
+            Some("Posture de sécurité et de conformité de ce poste, en temps réel."),
             Some(
-                "Vue d'ensemble de votre posture de s\u{00e9}curit\u{00e9}. Pilotez conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s et menaces en temps r\u{00e9}el.",
+                "Les indicateurs sont recalcul\u{00e9}s \u{00e0} chaque analyse. Utilisez « Analyser » pour \u{00e9}valuer imm\u{00e9}diatement conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s et menaces.",
             ),
         );
 
@@ -277,9 +277,9 @@ impl DashboardPage {
                     "{}  {}",
                     icons::SYNC,
                     if is_syncing {
-                        "SYNC..."
+                        "Synchronisation…"
                     } else {
-                        "SYNCHRONISER"
+                        "Synchroniser"
                     }
                 ),
                 !is_syncing,
@@ -294,7 +294,7 @@ impl DashboardPage {
 
             if widgets::button::secondary_button_loading(
                 ui,
-                format!("{}  EXPORTER", icons::DOWNLOAD),
+                format!("{}  Exporter", icons::DOWNLOAD),
                 true,
                 false,
             )

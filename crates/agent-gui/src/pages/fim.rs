@@ -339,7 +339,7 @@ impl FimPage {
                                 } else if admin_unlocked {
                                     if widgets::chip_button(
                                         ui,
-                                        &format!("{}  ACQUITTER", icons::CHECK),
+                                        &format!("{}  Acquitter", icons::CHECK),
                                         false,
                                         theme::ACCENT,
                                     )
@@ -350,7 +350,7 @@ impl FimPage {
                                 } else {
                                     widgets::chip_button(
                                         ui,
-                                        &format!("{}  ACQUITTER", icons::LOCK),
+                                        &format!("{}  Acquitter", icons::LOCK),
                                         false,
                                         theme::text_tertiary(),
                                     );

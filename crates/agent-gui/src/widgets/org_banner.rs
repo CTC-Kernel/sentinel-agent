@@ -269,7 +269,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                     // Open console button
                     if widgets::button::secondary_button(
                         ui,
-                        format!("{}  CONSOLE", icons::EXTERNAL_LINK),
+                        format!("{}  Console", icons::EXTERNAL_LINK),
                         true,
                     )
                     .clicked()
@@ -295,7 +295,11 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         format!(
                             "{}  {}",
                             icons::SYNC,
-                            if is_syncing { "SYNC..." } else { "SYNC" }
+                            if is_syncing {
+                                "Synchronisation…"
+                            } else {
+                                "Synchroniser"
+                            }
                         ),
                         !is_syncing,
                         is_syncing,

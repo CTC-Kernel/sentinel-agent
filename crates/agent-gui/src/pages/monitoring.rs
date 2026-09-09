@@ -39,7 +39,7 @@ impl MonitoringPage {
             ui,
             &["Vue d'ensemble", "Surveillance"],
             "Surveillance & SIEM",
-            Some("CENTRE DE SURVEILLANCE TEMPS RÉEL ET INTÉGRATION SIEM"),
+            Some("Surveillance temps réel et intégration SIEM."),
             Some(
                 "Monitoring des ressources système, collecte et analyse des journaux de sécurité, statistiques d'événements SIEM.",
             ),

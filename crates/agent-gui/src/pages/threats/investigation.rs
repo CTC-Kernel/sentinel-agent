@@ -86,7 +86,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             ui.add_space(theme::SPACE_SM);
 
-            if widgets::button::primary_button(ui, format!("{}  RECHERCHER", icons::SEARCH), true)
+            if widgets::button::primary_button(ui, format!("{}  Rechercher", icons::SEARCH), true)
                 .clicked()
                 || (ui.input(|i| i.key_pressed(egui::Key::Enter))
                     && !state.threats.ioc_search.is_empty())

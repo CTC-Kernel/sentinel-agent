@@ -1344,12 +1344,15 @@ impl SentinelApp {
                     |ui: &mut egui::Ui| {
                         ui.vertical_centered(|ui: &mut egui::Ui| {
                             // Logo image
+                            // Tint white, not text_primary: tinting with the
+                            // light theme's near-black text colour multiplied
+                            // the mark to black instead of fading it.
                             let logo = egui::Image::from_bytes(
                                 "bytes://ia_logo",
                                 include_bytes!("../assets/IA.png"),
                             )
                             .max_width(theme::ENROLLMENT_LOGO_WIDTH)
-                            .tint(theme::text_primary().linear_multiply(alpha));
+                            .tint(egui::Color32::WHITE.linear_multiply(alpha));
                             ui.add(logo);
 
                             ui.add_space(theme::SPACE_LG);
@@ -1358,8 +1361,8 @@ impl SentinelApp {
                             ui.label(
                                 egui::RichText::new("SENTINEL")
                                     .font(theme::font_splash())
-                                    .color(theme::accent_text().linear_multiply(alpha))
-                                    .strong(),
+                                    .color(theme::text_primary().linear_multiply(alpha))
+                                    .extra_letter_spacing(theme::TRACKING_WIDE * 4.0),
                             );
 
                             ui.add_space(theme::SPACE_XS);
@@ -1367,8 +1370,9 @@ impl SentinelApp {
                             // GRC AGENT
                             ui.label(
                                 egui::RichText::new("GRC AGENT")
-                                    .font(theme::font_heading())
-                                    .color(theme::text_tertiary().linear_multiply(alpha)),
+                                    .font(theme::font_label())
+                                    .color(theme::accent_text().linear_multiply(alpha))
+                                    .extra_letter_spacing(theme::TRACKING_WIDE * 3.0),
                             );
 
                             ui.add_space(theme::SPACE_XL);
@@ -1384,7 +1388,7 @@ impl SentinelApp {
                             painter.rect_filled(
                                 bar_rect,
                                 egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
-                                theme::border(),
+                                theme::bg_tertiary(),
                             );
                             let fill_rect = egui::Rect::from_min_size(
                                 bar_rect.min,
@@ -1401,9 +1405,9 @@ impl SentinelApp {
                             // CYBER THREAT CONSULTING
                             ui.label(
                                 egui::RichText::new("CYBER THREAT CONSULTING")
-                                    .font(theme::font_small())
+                                    .font(theme::font_micro())
                                     .color(theme::text_tertiary().linear_multiply(alpha))
-                                    .strong(),
+                                    .extra_letter_spacing(theme::TRACKING_WIDE * 2.0),
                             );
                         });
                     },

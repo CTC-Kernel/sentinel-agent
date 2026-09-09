@@ -38,7 +38,7 @@ impl CompliancePage {
             ui,
             &["Conformité & risques", "Conformité"],
             "Conformité Réglementaire",
-            Some("ANALYSE DES ÉCARTS ET MATRICE DE CONTRÔLES MULTI-RÉFÉRENTIELS"),
+            Some("Écarts et matrice de contrôles, tous référentiels confondus."),
             Some(&format!(
                 "Évaluez votre posture de sécurité par rapport à vos référentiels actifs ({active_label}). Chaque contrôle indique son statut et propose des actions de remédiation directes.",
             )),

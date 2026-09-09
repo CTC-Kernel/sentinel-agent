@@ -144,6 +144,20 @@ impl EnrollmentWizard {
 
                     let _image_response = ui.add(image);
 
+                    ui.add_space(theme::SPACE_MD);
+                    ui.label(
+                        egui::RichText::new("SENTINEL")
+                            .font(theme::font_h2())
+                            .color(theme::text_primary())
+                            .extra_letter_spacing(theme::TRACKING_WIDE * 3.0),
+                    );
+                    ui.label(
+                        egui::RichText::new("GRC AGENT")
+                            .font(theme::font_micro())
+                            .color(theme::accent_text())
+                            .extra_letter_spacing(theme::TRACKING_WIDE * 2.0),
+                    );
+
                     ui.add_space(theme::SPACE_LG);
 
                     // Step indicator
@@ -236,7 +250,7 @@ impl EnrollmentWizard {
             ui.vertical_centered(|ui| {
                 ui.label(
                     egui::RichText::new("Authentification")
-                        .font(theme::font_heading())
+                        .font(theme::font_h2())
                         .color(theme::text_primary())
                         .strong(),
                 );
@@ -296,28 +310,11 @@ impl EnrollmentWizard {
 
                 // Buttons
                 ui.horizontal(|ui| {
-                    let cancel_btn = egui::Button::new(
-                        egui::RichText::new("Annuler")
-                            .font(theme::font_body())
-                            .color(theme::text_secondary()),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                    if ui.add(cancel_btn).clicked() {
+                    if widgets::secondary_button(ui, "Annuler", true).clicked() {
                         command = Some(EnrollmentCommand::Cancel);
                     }
 
                     ui.add_space(theme::SPACE);
-
-                    let next_btn = egui::Button::new(
-                        egui::RichText::new("Suivant")
-                            .font(theme::font_body())
-                            .color(theme::text_on_accent()),
-                    )
-                    .fill(theme::ACCENT)
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-                    .min_size(egui::Vec2::new(120.0, 36.0));
 
                     let is_valid = if self.use_qr {
                         !self.qr_input.trim().is_empty()
@@ -325,9 +322,13 @@ impl EnrollmentWizard {
                         !self.token_input.trim().is_empty()
                     };
 
-                    if ui
-                        .add_enabled(is_valid && !self.is_enrolling, next_btn)
-                        .clicked()
+                    if widgets::primary_button_loading(
+                        ui,
+                        "Suivant",
+                        is_valid && !self.is_enrolling,
+                        self.is_enrolling,
+                    )
+                    .clicked()
                     {
                         if self.use_qr {
                             // QR goes directly to enrollment (no admin setup for QR)
@@ -356,7 +357,7 @@ impl EnrollmentWizard {
             ui.vertical_centered(|ui| {
                 ui.label(
                     egui::RichText::new("Configuration Admin")
-                        .font(theme::font_heading())
+                        .font(theme::font_h2())
                         .color(theme::text_primary())
                         .strong(),
                 );
@@ -413,15 +414,7 @@ impl EnrollmentWizard {
 
                 // Actions
                 ui.horizontal(|ui| {
-                    let back_btn = egui::Button::new(
-                        egui::RichText::new("Retour")
-                            .font(theme::font_body())
-                            .color(theme::text_secondary()),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                    if ui.add(back_btn).clicked() {
+                    if widgets::secondary_button(ui, "Retour", true).clicked() {
                         self.step = EnrollmentStep::TokenEntry;
                     }
 
@@ -429,18 +422,13 @@ impl EnrollmentWizard {
 
                     let is_valid = self.admin_password.trim().len() >= 8;
 
-                    let enroll_btn = egui::Button::new(
-                        egui::RichText::new("Enrôler")
-                            .font(theme::font_body())
-                            .color(theme::text_on_accent()),
+                    if widgets::primary_button_loading(
+                        ui,
+                        "Enrôler",
+                        is_valid && !self.is_enrolling,
+                        self.is_enrolling,
                     )
-                    .fill(theme::ACCENT)
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-                    .min_size(egui::Vec2::new(120.0, 36.0));
-
-                    if ui
-                        .add_enabled(is_valid && !self.is_enrolling, enroll_btn)
-                        .clicked()
+                    .clicked()
                     {
                         let token = self.token_input.trim().to_string();
                         let password = Some(self.admin_password.trim().to_string());

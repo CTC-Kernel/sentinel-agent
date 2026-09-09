@@ -24,7 +24,7 @@ impl VulnerabilitiesPage {
             ui,
             &["Détection & réponse", "Vulnérabilités"],
             "Vulnérabilités",
-            Some("ANALYSE DYNAMIQUE DES FAILLES ET EXPOSITION AUX CVE"),
+            Some("Failles détectées et exposition aux CVE connues."),
             Some(
                 "Identifiez les failles de sécurité connues (CVE) affectant vos logiciels. Le score critique (V3) priorise les vulnérabilités les plus dangereuses nécessitant une mise à jour immédiate.",
             ),

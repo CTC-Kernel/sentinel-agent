@@ -6,12 +6,16 @@
 //!
 //! `cargo run -p agent-gui --all-features --example preview`
 
-use agent_gui::app::Page;
-use agent_gui::{icons, theme, widgets};
+use agent_gui::app::{AppState, Page};
+use agent_gui::{icons, pages, theme, widgets};
 use eframe::egui;
 
 struct Preview {
     page: Page,
+    /// Render a real page against a default AppState instead of the gallery.
+    state: Option<Box<AppState>>,
+    /// Page name requested through PREVIEW_PAGE.
+    requested: String,
     dark: bool,
     collapsed: bool,
     started: bool,
@@ -24,6 +28,10 @@ impl Default for Preview {
     fn default() -> Self {
         Self {
             page: Page::Dashboard,
+            state: std::env::var("PREVIEW_PAGE")
+                .is_ok()
+                .then(|| Box::new(AppState::default())),
+            requested: std::env::var("PREVIEW_PAGE").unwrap_or_default(),
             dark: std::env::var("PREVIEW_LIGHT").is_err(),
             collapsed: std::env::var("PREVIEW_RAIL").is_ok(),
             started: false,
@@ -102,7 +110,10 @@ impl eframe::App for Preview {
                 egui::Margin::symmetric(theme::SPACE_LG as i8, theme::SPACE_LG as i8),
             ))
             .show(ctx, |ui| {
-                egui::ScrollArea::vertical().show(ui, gallery);
+                egui::ScrollArea::vertical().show(ui, |ui| match self.state.as_mut() {
+                    Some(state) => real_page(ui, &self.requested, state),
+                    None => gallery(ui),
+                });
             });
 
         self.frame_count += 1;
@@ -112,6 +123,40 @@ impl eframe::App for Preview {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
         ctx.request_repaint();
+    }
+}
+
+/// Render one of the product's real pages against a default state, so the
+/// design system can be checked against live layouts rather than a mock.
+fn real_page(ui: &mut egui::Ui, page: &str, state: &mut AppState) {
+    match page {
+        "compliance" => {
+            pages::CompliancePage::show(ui, state);
+        }
+        "vulnerabilities" => {
+            pages::VulnerabilitiesPage::show(ui, state);
+        }
+        "threats" => {
+            pages::ThreatsPage::show(ui, state);
+        }
+        "settings" => {
+            pages::SettingsPage::show(ui, state);
+        }
+        "assets" => {
+            pages::AssetsPage::show(ui, state);
+        }
+        "network" => {
+            pages::NetworkPage::show(ui, state);
+        }
+        "monitoring" => {
+            pages::MonitoringPage::show(ui, state);
+        }
+        "about" => {
+            pages::AboutPage::show(ui);
+        }
+        _ => {
+            pages::DashboardPage::show(ui, state);
+        }
     }
 }
 

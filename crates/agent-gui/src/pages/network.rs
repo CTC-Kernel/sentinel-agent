@@ -23,7 +23,7 @@ impl NetworkPage {
             ui,
             &["Détection & réponse", "Réseau"],
             "Réseau",
-            Some("CARTOGRAPHIE DES INTERFACES ET CONNEXIONS ACTIVES"),
+            Some("Cartographie des interfaces et des connexions actives."),
             Some(
                 "Analysez l'état des interfaces réseau et la liste des connexions actives. Les alertes DNS ou les flux vers des IPs suspectes sont mis en évidence pour faciliter l'investigation.",
             ),
