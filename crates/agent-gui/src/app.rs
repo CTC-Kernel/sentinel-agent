@@ -201,13 +201,13 @@ fn build_palette_commands() -> Vec<widgets::CommandItem> {
     commands.push(
         widgets::CommandItem::new("action:run_check", "Lancer l'analyse")
             .icon(icons::PLAY)
-            .shortcut("⌘R")
+            .shortcut(widgets::topbar::shortcut_label(false, "R"))
             .category("Actions"),
     );
     commands.push(
         widgets::CommandItem::new("action:force_sync", "Synchroniser maintenant")
             .icon(icons::SYNC)
-            .shortcut("⌘⇧S")
+            .shortcut(widgets::topbar::shortcut_label(true, "S"))
             .category("Actions"),
     );
     commands.push(
@@ -756,6 +756,13 @@ impl eframe::App for SentinelApp {
             self.theme_applied = true;
             self.last_dark_mode = self.state.settings.dark_mode;
 
+            // Wake the UI when the runtime speaks, instead of polling both
+            // channels ten times a second forever. An endpoint agent that
+            // repaints at 10 Hz while nothing happens is a fan-noise
+            // generator on every laptop it protects.
+            Self::wake_on_message(ctx, &self.event_rx);
+            Self::wake_on_message(ctx, &self.async_results_rx);
+
             // Keep a dedicated listener thread to wake up eframe instantly on tray events.
             let ctx_clone = ctx.clone();
             let action_tx = self.tray_action_tx.clone();
@@ -1238,8 +1245,10 @@ impl eframe::App for SentinelApp {
             }
         }
 
-        // Request periodic repaint for event processing.
-        ctx.request_repaint_after(std::time::Duration::from_millis(100));
+        // Channels wake the UI on their own (see `wake_on_message`). This is
+        // the safety net for the few things that are time-based rather than
+        // event-based: the admin auto-lock, relative timestamps, uptime.
+        ctx.request_repaint_after(std::time::Duration::from_secs(1));
     }
 }
 
@@ -1287,6 +1296,29 @@ impl SentinelApp {
             Some(widgets::TopBarAction::OpenAssistant) => self.navigate_to(Page::AI),
             None => {}
         }
+    }
+
+    /// Replace the receiver behind `slot` with one fed by a forwarding
+    /// thread that wakes `ctx` after every message.
+    ///
+    /// The slot keeps its type, so the frame loop drains it exactly as
+    /// before; the only difference is that a message now arrives with a
+    /// repaint request attached instead of waiting for the next poll.
+    fn wake_on_message<T: Send + 'static>(
+        ctx: &egui::Context,
+        slot: &Arc<Mutex<mpsc::Receiver<T>>>,
+    ) {
+        let (tx, rx) = mpsc::channel();
+        let upstream = std::mem::replace(&mut *slot.lock().unwrap(), rx);
+        let ctx = ctx.clone();
+        std::thread::spawn(move || {
+            for msg in upstream {
+                if tx.send(msg).is_err() {
+                    break;
+                }
+                ctx.request_repaint();
+            }
+        });
     }
 
     /// Route to `page`, closing any drawer the previous page had open and
@@ -1640,5 +1672,51 @@ impl SentinelApp {
 
         // Request repaint to ensure smooth animations
         ctx.request_repaint();
+    }
+}
+
+#[cfg(test)]
+mod wake_on_message_tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[test]
+    fn forwards_the_message_and_requests_a_frame() {
+        let ctx = egui::Context::default();
+        let (tx, rx) = mpsc::channel::<u32>();
+        let slot = Arc::new(Mutex::new(rx));
+        SentinelApp::wake_on_message(&ctx, &slot);
+
+        tx.send(7)
+            .expect("forwarder thread owns the upstream receiver");
+        let got = slot
+            .lock()
+            .unwrap()
+            .recv_timeout(Duration::from_secs(2))
+            .expect("message forwarded into the slot");
+        assert_eq!(got, 7);
+        // The forwarder sends first and requests the frame second — the
+        // order that can never lose a wake — so the flag may land a moment
+        // after the message does. Without it the UI would sit on the event
+        // until the 1 s safety tick.
+        let deadline = std::time::Instant::now() + Duration::from_secs(2);
+        while !ctx.has_requested_repaint() {
+            assert!(
+                std::time::Instant::now() < deadline,
+                "forwarder never requested a repaint"
+            );
+            std::thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    #[test]
+    fn stops_quietly_when_the_ui_side_is_dropped() {
+        let ctx = egui::Context::default();
+        let (tx, rx) = mpsc::channel::<u32>();
+        let slot = Arc::new(Mutex::new(rx));
+        SentinelApp::wake_on_message(&ctx, &slot);
+        drop(slot);
+        // The forwarder's send fails and it exits; the producer must not panic.
+        assert!(tx.send(1).is_ok());
     }
 }

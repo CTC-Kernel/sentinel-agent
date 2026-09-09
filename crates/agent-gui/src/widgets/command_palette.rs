@@ -338,11 +338,14 @@ impl<'a> CommandPalette<'a> {
 
                                             // Background
                                             if is_selected || is_hovered {
+                                                // Opaque washes: the accent at
+                                                // "15% alpha" rendered as a solid
+                                                // blue band once egui composited
+                                                // it in linear space.
                                                 let bg = if is_selected {
-                                                    theme::ACCENT
-                                                        .linear_multiply(theme::OPACITY_TINT)
+                                                    theme::selected_bg()
                                                 } else {
-                                                    theme::hover_bg()
+                                                    theme::hover_bg_neutral()
                                                 };
 
                                                 let inner_rect = item_rect
@@ -366,9 +369,9 @@ impl<'a> CommandPalette<'a> {
                                                     ),
                                                     egui::Align2::LEFT_CENTER,
                                                     icon,
-                                                    theme::font_body(),
+                                                    theme::font_icon(theme::ICON_SM),
                                                     if is_selected {
-                                                        theme::ACCENT
+                                                        theme::accent_text()
                                                     } else {
                                                         theme::text_secondary()
                                                     },
@@ -390,12 +393,12 @@ impl<'a> CommandPalette<'a> {
                                                 ),
                                                 egui::Align2::LEFT_CENTER,
                                                 &cmd.label,
-                                                theme::font_body(),
                                                 if is_selected {
-                                                    theme::ACCENT
+                                                    theme::font_body_medium()
                                                 } else {
-                                                    theme::text_primary()
+                                                    theme::font_body()
                                                 },
+                                                theme::text_primary(),
                                             );
 
                                             // Description

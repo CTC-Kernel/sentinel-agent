@@ -190,22 +190,12 @@ impl Modal {
             .show(ui, |ui| {
                 ui.set_width(self.width);
 
-                // Header with icon and title
+                // Header with icon and title. The old top bar was allocated
+                // at `self.width` while the frame grew wider than that, so it
+                // stopped short of the right edge; the medallion already says
+                // which kind of dialog this is.
                 ui.vertical(|ui| {
-                    // Top colored bar
-                    let header_rect = ui
-                        .allocate_space(egui::vec2(self.width, theme::MODAL_HEADER_BAR))
-                        .1;
-                    ui.painter().rect_filled(
-                        header_rect,
-                        CornerRadius {
-                            nw: theme::CARD_ROUNDING,
-                            ne: theme::CARD_ROUNDING,
-                            ..Default::default()
-                        },
-                        color,
-                    );
-
+                    ui.set_max_width(self.width);
                     ui.add_space(theme::SPACE_LG);
 
                     // Icon and close button row
@@ -221,14 +211,14 @@ impl Modal {
                         ui.painter().circle_filled(
                             icon_rect.center(),
                             icon_size / 2.0,
-                            color.linear_multiply(theme::OPACITY_TINT),
+                            theme::tinted_surface(color),
                         );
                         ui.painter().text(
                             icon_rect.center(),
                             egui::Align2::CENTER_CENTER,
                             icon,
                             theme::font_icon(theme::ICON_LG),
-                            color,
+                            theme::readable_color(color),
                         );
 
                         ui.add_space(theme::SPACE_MD);
@@ -238,9 +228,8 @@ impl Modal {
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new(&self.title)
-                                    .font(theme::font_heading())
-                                    .color(theme::text_primary())
-                                    .strong(),
+                                    .font(theme::font_h3())
+                                    .color(theme::text_primary()),
                             );
                         });
 
@@ -259,17 +248,22 @@ impl Modal {
 
                     // Message body
                     if let Some(ref msg) = self.message {
+                        // Bound the label explicitly: a wrapping label takes
+                        // whatever width it is offered, and the trailing
+                        // spacer then pushed the frame past `self.width`.
                         ui.horizontal(|ui| {
                             ui.add_space(theme::SPACE_LG);
-                            ui.add(
-                                egui::Label::new(
-                                    egui::RichText::new(msg)
-                                        .font(theme::font_body())
-                                        .color(theme::text_secondary()),
-                                )
-                                .wrap_mode(egui::TextWrapMode::Wrap),
-                            );
-                            ui.add_space(theme::SPACE_LG);
+                            ui.vertical(|ui| {
+                                ui.set_max_width(self.width - theme::SPACE_LG * 2.0);
+                                ui.add(
+                                    egui::Label::new(
+                                        egui::RichText::new(msg)
+                                            .font(theme::font_body())
+                                            .color(theme::text_secondary()),
+                                    )
+                                    .wrap_mode(egui::TextWrapMode::Wrap),
+                                );
+                            });
                         });
                     }
 

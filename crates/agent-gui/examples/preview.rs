@@ -22,6 +22,10 @@ struct Preview {
     /// Screenshot after N frames, then quit (set via PREVIEW_SHOT).
     shot_after: Option<u32>,
     frame_count: u32,
+    /// Command palette state, opened by PREVIEW_PAGE=palette.
+    palette: widgets::CommandPaletteState,
+    /// Toasts shown by PREVIEW_PAGE=overlays.
+    toasts: Vec<widgets::Toast>,
 }
 
 impl Default for Preview {
@@ -40,6 +44,8 @@ impl Default for Preview {
                 .ok()
                 .and_then(|v| v.parse().ok()),
             frame_count: 0,
+            palette: widgets::CommandPaletteState::new(),
+            toasts: Vec::new(),
         }
     }
 }
@@ -118,6 +124,8 @@ impl eframe::App for Preview {
                 });
             });
 
+        self.overlays(ctx);
+
         self.frame_count += 1;
         if let Some(n) = self.shot_after
             && self.frame_count >= n
@@ -126,6 +134,94 @@ impl eframe::App for Preview {
         }
         ctx.request_repaint();
     }
+}
+
+impl Preview {
+    /// Overlay surfaces the real shell layers over the content: toasts, a
+    /// modal, and the command palette. Selected by PREVIEW_PAGE.
+    fn overlays(&mut self, ctx: &egui::Context) {
+        match self.requested.as_str() {
+            "overlays" => {
+                if self.toasts.is_empty() {
+                    let t = ctx.input(|i| i.time);
+                    self.toasts = vec![
+                        widgets::Toast::success("Analyse terminée : 21 contrôles évalués")
+                            .with_time(t)
+                            .persistent(),
+                        widgets::Toast::warning("3 éléments en attente de synchronisation")
+                            .with_time(t)
+                            .persistent(),
+                        widgets::Toast::error("Échec de l'export CSV : permission refusée")
+                            .with_time(t)
+                            .persistent(),
+                        widgets::Toast::info("Nouvelle version disponible : 4.1.0")
+                            .with_time(t)
+                            .persistent(),
+                    ];
+                }
+                egui::Area::new(egui::Id::new("toast_overlay"))
+                    .fixed_pos(egui::pos2(0.0, 0.0))
+                    .order(egui::Order::Foreground)
+                    .show(ctx, |ui| {
+                        ui.set_min_size(ctx.screen_rect().size());
+                        self.toasts = widgets::render_toasts(ui, &self.toasts);
+                    });
+
+                if self.frame_count == 2 {
+                    widgets::Modal::open(ctx, "preview_modal");
+                }
+                widgets::Modal::new("preview_modal", "Mettre le poste en quarantaine ?")
+                    .message(
+                        "Le poste sera isolé du réseau et toutes les connexions sortantes \
+                         seront bloquées. Cette action est journalisée et réversible depuis \
+                         la console.",
+                    )
+                    .style(widgets::ModalStyle::Danger)
+                    .confirm_text("Mettre en quarantaine")
+                    .cancel_text(Some("Annuler".to_string()))
+                    .show(ctx);
+            }
+            "palette" => {
+                if self.frame_count == 2 {
+                    self.palette.open();
+                    self.palette.query = "vul".to_string();
+                }
+                let commands = palette_commands();
+                widgets::CommandPalette::new(&commands)
+                    .placeholder("Rechercher une page ou une action…")
+                    .max_results(commands.len())
+                    .show(ctx, &mut self.palette);
+            }
+            _ => {}
+        }
+    }
+}
+
+/// The same catalogue the shell feeds its palette, so the preview shows the
+/// real thing rather than a stand-in.
+fn palette_commands() -> Vec<widgets::CommandItem> {
+    vec![
+        widgets::CommandItem::new("nav:dashboard", "Tableau de bord")
+            .icon(icons::DASHBOARD)
+            .category("Vue d'ensemble"),
+        widgets::CommandItem::new("nav:vulnerabilities", "Vulnérabilités")
+            .icon(icons::VULNERABILITIES)
+            .category("Détection & réponse"),
+        widgets::CommandItem::new("nav:threats", "Menaces")
+            .icon(icons::SKULL)
+            .category("Détection & réponse"),
+        widgets::CommandItem::new("nav:compliance", "Conformité")
+            .icon(icons::COMPLIANCE)
+            .category("Conformité & risques"),
+        widgets::CommandItem::new("action:run_check", "Lancer l'analyse")
+            .icon(icons::PLAY)
+            .shortcut("⌘R")
+            .category("Actions"),
+        widgets::CommandItem::new("action:force_sync", "Synchroniser maintenant")
+            .icon(icons::SYNC)
+            .shortcut("⌘⇧S")
+            .category("Actions"),
+    ]
 }
 
 /// Route name to the page it selects, so the sidebar highlights what is on
@@ -141,6 +237,16 @@ fn page_from(name: &str) -> Page {
         "monitoring" => Page::Monitoring,
         "about" => Page::About,
         "ai" => Page::AI,
+        "notifications" => Page::Notifications,
+        "reports" => Page::Reports,
+        "risks" => Page::Risks,
+        "discovery" => Page::Discovery,
+        "cartography" => Page::Cartography,
+        "terminal" => Page::Terminal,
+        "audit" => Page::AuditTrail,
+        "fim" => Page::FileIntegrity,
+        "software" => Page::Software,
+        "sync" => Page::Sync,
         _ => Page::Dashboard,
     }
 }
@@ -162,6 +268,20 @@ fn location(page: &str) -> (&'static str, &'static str, &'static str) {
         "monitoring" => (icons::CHART_LINE, "Surveillance", "Vue d'ensemble"),
         "about" => (icons::ABOUT, "À propos", "Système"),
         "ai" => (icons::BRAIN, "Assistant IA", "Assistant"),
+        "notifications" => (icons::BELL, "Notifications", "Vue d'ensemble"),
+        "reports" => (icons::FILE_EXPORT, "Rapports", "Conformité & risques"),
+        "risks" => (icons::SCALE_BALANCED, "Risques", "Conformité & risques"),
+        "discovery" => (icons::DISCOVERY, "Shadow IT", "Actifs & inventaire"),
+        "cartography" => (icons::CARTOGRAPHY, "Cartographie", "Actifs & inventaire"),
+        "terminal" => (icons::TERMINAL, "Terminal", "Système"),
+        "audit" => (icons::CLIPBOARD, "Journal d'audit", "Système"),
+        "fim" => (
+            icons::FILE_SHIELD,
+            "Intégrité des fichiers",
+            "Détection & réponse",
+        ),
+        "software" => (icons::SOFTWARE, "Logiciels & MDM", "Actifs & inventaire"),
+        "sync" => (icons::SYNC, "Synchronisation", "Système"),
         _ => (icons::DASHBOARD, "Tableau de bord", "Vue d'ensemble"),
     }
 }
@@ -197,10 +317,142 @@ fn real_page(ui: &mut egui::Ui, page: &str, state: &mut AppState) {
         "ai" => {
             agent_gui::llm_panel::LLMPanel.show(ui, state);
         }
+        "notifications" => {
+            pages::NotificationsPage::show(ui, state);
+        }
+        "reports" => {
+            pages::ReportsPage::show(ui, state);
+        }
+        "risks" => {
+            pages::RisksPage::show(ui, state);
+        }
+        "discovery" => {
+            pages::DiscoveryPage::show(ui, state);
+        }
+        "cartography" => {
+            pages::CartographyPage::show(ui, state);
+        }
+        "terminal" => {
+            pages::TerminalPage::show(ui, state);
+        }
+        "audit" => {
+            pages::AuditTrailPage::show(ui, state);
+        }
+        "fim" => {
+            pages::FimPage::show(ui, state);
+        }
+        "software" => {
+            pages::SoftwarePage::show(ui, state);
+        }
+        "sync" => {
+            pages::SyncPage::show(ui, state);
+        }
+        "overlays" => feedback_gallery(ui),
         _ => {
             pages::DashboardPage::show(ui, state);
         }
     }
+}
+
+/// Every feedback and input primitive on one page: the surfaces a user meets
+/// when something is loading, missing, wrong, or asking for a decision.
+fn feedback_gallery(ui: &mut egui::Ui) {
+    widgets::page_header(
+        ui,
+        "Retours et saisie",
+        Some("Alertes, progression, chargement, états vides et contrôles de formulaire."),
+        None,
+    );
+
+    widgets::section_header(ui, "Alertes", None);
+    for (level, title, msg) in [
+        (
+            widgets::alert::AlertLevel::Info,
+            "Mise à jour disponible",
+            "La version 4.1.0 corrige 3 vulnérabilités de l'agent.",
+        ),
+        (
+            widgets::alert::AlertLevel::Success,
+            "Synchronisation réussie",
+            "151 actifs poussés vers la plateforme il y a 2 min.",
+        ),
+        (
+            widgets::alert::AlertLevel::Warning,
+            "Certificat proche de l'expiration",
+            "Le certificat mTLS expire dans 6 jours.",
+        ),
+        (
+            widgets::alert::AlertLevel::Error,
+            "Perte de contact avec la plateforme",
+            "Dernier heartbeat accepté il y a 47 min.",
+        ),
+    ] {
+        widgets::alert::Alert::new(msg)
+            .level(level)
+            .title(title)
+            .dismissible()
+            .action("Détails", false)
+            .show(ui);
+        ui.add_space(theme::SPACE_SM);
+    }
+
+    widgets::section_header(ui, "Progression", None);
+    widgets::card(ui, |ui| {
+        widgets::progress_bar_with_label(ui, 0.62, "Analyse des paquets — 94 / 151");
+        ui.add_space(theme::SPACE_MD);
+        widgets::progress_bar_indeterminate(ui);
+        ui.add_space(theme::SPACE_MD);
+        ui.horizontal(|ui| {
+            widgets::circular_progress(ui, 0.87, 56.0);
+            ui.add_space(theme::SPACE_LG);
+            widgets::step_indicator(ui, &["Jeton", "Administrateur", "Enrôlement", "Terminé"], 2);
+        });
+    });
+
+    widgets::section_header(ui, "Chargement", None);
+    widgets::card(ui, |ui| {
+        widgets::loading_skeleton(ui, 3);
+    });
+
+    widgets::section_header(ui, "Formulaire", None);
+    widgets::card(ui, |ui| {
+        let mut on = true;
+        let mut off = false;
+        let mut checked = true;
+        let mut unchecked = false;
+        let mut sel = 1usize;
+        ui.horizontal(|ui| {
+            widgets::toggle_switch(ui, &mut on);
+            ui.add_space(theme::SPACE_SM);
+            widgets::toggle_switch(ui, &mut off);
+            ui.add_space(theme::SPACE_LG);
+            widgets::checkbox::checkbox(ui, "Chiffrement du disque", &mut checked);
+            ui.add_space(theme::SPACE_MD);
+            widgets::checkbox::checkbox(ui, "Pare-feu actif", &mut unchecked);
+            ui.add_space(theme::SPACE_LG);
+            widgets::dropdown(ui, "fmt", &["CEF", "LEEF", "JSON"], &mut sel);
+        });
+    });
+
+    widgets::section_header(ui, "États vides et erreurs", None);
+    ui.columns(3, |cols| {
+        widgets::card(&mut cols[0], |ui| {
+            widgets::empty_state(
+                ui,
+                icons::FOLDER_OPEN,
+                "Aucun rapport généré",
+                Some("Les rapports apparaîtront ici après la première analyse."),
+            );
+        });
+        widgets::card(&mut cols[1], |ui| widgets::no_results_state(ui, "CVE-2099"));
+        widgets::card(&mut cols[2], |ui| {
+            widgets::error_state(ui, "Impossible de lire la base locale.");
+        });
+    });
+    widgets::card(ui, |ui| {
+        widgets::pending_state(ui, "Chargement du modèle local…")
+    });
+    ui.add_space(theme::SPACE_XL);
 }
 
 fn gallery(ui: &mut egui::Ui) {

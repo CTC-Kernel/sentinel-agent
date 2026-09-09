@@ -75,9 +75,34 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - Les grilles responsives plafonnent leur nombre de colonnes au nombre
   d'éléments, au lieu de laisser des colonnes vides.
 
+#### Surfaces superposées
+- Modale : suppression de la barre colorée supérieure qui s'arrêtait avant le
+  bord droit (allouée à la largeur nominale alors que le cadre débordait) ;
+  largeur du message bornée explicitement ; médaillon et titre sur les jetons.
+- Palette de commandes : ligne sélectionnée en lavis opaque au lieu d'un accent
+  translucide qui rendait en bleu plein ; raccourcis épelés selon la plateforme
+  (`⌘R` sur macOS, `Ctrl R` ailleurs).
+- Toasts : contour neutre — la barre latérale et l'icône portent déjà le niveau,
+  quatre toasts empilés à contour coloré faisaient un feu tricolore.
+- Alertes : le bouton de fermeture (32 px) débordait de 8 px de la colonne et
+  élargissait tout ce qui suivait.
+
+#### Clavier
+- Les raccourcis de page (`⌘1`…`⌘8`) apparaissent dans les info-bulles de la
+  barre latérale ; un raccourci qu'on ne peut pas découvrir n'existe pas.
+
+#### Consommation au repos
+- L'interface se rafraîchissait dix fois par seconde en permanence pour
+  scruter les canaux d'événements. Des threads relais réveillent désormais le
+  contexte à l'arrivée d'un message ; le filet de sécurité passe à 1 s. Un agent
+  d'endpoint qui repeint à 10 Hz sans raison chauffe le portable qu'il protège.
+  Comportement couvert par deux tests.
+
 #### Outillage
 - `cargo run -p agent-gui --all-features --example preview` : banc de rendu du
   chrome, de la galerie de composants et des pages réelles, sans runtime agent.
+  `PREVIEW_PAGE=overlays` rend modale, toasts, alertes, progression, squelettes
+  et états vides ; `PREVIEW_PAGE=palette` ouvre la palette de commandes.
 
 ---
 

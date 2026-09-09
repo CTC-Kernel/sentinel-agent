@@ -303,7 +303,7 @@ fn search_field(ui: &mut Ui, rect: Rect) -> bool {
     let chip = kbd_hint(
         ui,
         pos2(rect.right() - theme::SPACE_SM, center_y),
-        palette_shortcut(),
+        &palette_shortcut(),
     );
     let text_left = rect.left() + theme::SPACE_MD + 20.0;
     let room = chip.left() - theme::SPACE_SM - text_left;
@@ -370,11 +370,21 @@ fn kbd_hint(ui: &Ui, right_center: egui::Pos2, label: &str) -> Rect {
 }
 
 /// The platform's palette shortcut, spelled the way that platform spells it.
-fn palette_shortcut() -> &'static str {
+fn palette_shortcut() -> String {
+    shortcut_label(false, "K")
+}
+
+/// Spell a Command/Ctrl shortcut the way the platform does: `⌘K` on macOS,
+/// `Ctrl K` elsewhere, with `⇧` / `Maj` when Shift is part of it.
+///
+/// One helper, used by the top bar, the sidebar tooltips and the command
+/// palette, so a Windows operator is never told to press a key that does
+/// not exist on their keyboard.
+pub fn shortcut_label(shift: bool, key: &str) -> String {
     if cfg!(target_os = "macos") {
-        "\u{2318}K"
+        format!("\u{2318}{}{key}", if shift { "\u{21e7}" } else { "" })
     } else {
-        "Ctrl K"
+        format!("Ctrl {}{key}", if shift { "Maj " } else { "" })
     }
 }
 

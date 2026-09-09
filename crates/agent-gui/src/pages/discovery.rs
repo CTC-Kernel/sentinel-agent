@@ -22,7 +22,7 @@ impl DiscoveryPage {
             &["Actifs & inventaire", "D\u{00e9}tection"],
             "D\u{00e9}tection Shadow IT",
             Some(
-                "IDENTIFICATION DES \u{00c9}QUIPEMENTS NON AUTORIS\u{00c9}S SUR LE P\u{00c9}RIM\u{00c8}TRE R\u{00c9}SEAU",
+                "\u{00c9}quipements non autoris\u{00e9}s d\u{00e9}tect\u{00e9}s sur le p\u{00e9}rim\u{00e8}tre r\u{00e9}seau.",
             ),
             Some(
                 "Scannez votre r\u{00e9}seau pour d\u{00e9}tecter les \u{00e9}quipements non r\u{00e9}f\u{00e9}renc\u{00e9}s dans l\u{2019}inventaire. Les appareils inconnus repr\u{00e9}sentent un risque de s\u{00e9}curit\u{00e9} (Shadow IT).",

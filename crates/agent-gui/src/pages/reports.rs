@@ -39,10 +39,10 @@ impl ReportsPage {
 
         // Tab bar
         let tab_labels = &[
-            "SYNTH\u{00c8}SE EX\u{00c9}CUTIVE",
-            "AUDIT CONFORMIT\u{00c9}",
-            "INCIDENTS",
-            "HISTORIQUE",
+            "Synth\u{00e8}se ex\u{00e9}cutive",
+            "Audit de conformit\u{00e9}",
+            "Incidents",
+            "Historique",
         ];
         widgets::tabs(ui, tab_labels, &mut state.reports.active_tab);
         ui.add_space(theme::SPACE_MD);
@@ -137,7 +137,7 @@ impl ReportsPage {
                     icons::CIRCLE_NOTCH
                 )
             } else {
-                format!("{}  G\u{00c9}N\u{00c9}RER LE RAPPORT", icons::PLAY)
+                format!("{}  G\u{00e9}n\u{00e9}rer le rapport", icons::PLAY)
             };
 
             if widgets::button::primary_button_loading(ui, btn_label, !is_generating, is_generating)

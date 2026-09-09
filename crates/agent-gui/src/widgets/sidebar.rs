@@ -110,6 +110,25 @@ fn nav_sections() -> [NavSection; 5] {
     ]
 }
 
+/// Keyboard shortcut for a page, matching the bindings in `app.rs`.
+///
+/// Surfaced in the row's tooltip: a shortcut nobody can discover is a
+/// shortcut nobody uses.
+fn shortcut_for(page: &Page) -> Option<String> {
+    let key = match page {
+        Page::Dashboard => "1",
+        Page::Compliance => "2",
+        Page::Vulnerabilities => "3",
+        Page::Software => "4",
+        Page::Network => "5",
+        Page::FileIntegrity => "6",
+        Page::Threats => "7",
+        Page::Settings => "8",
+        _ => return None,
+    };
+    Some(super::topbar::shortcut_label(false, key))
+}
+
 /// Rows pinned to the bottom, above the workspace footer.
 const FOOTER_ITEMS: &[(Page, &str, &str)] = &[
     (Page::Settings, icons::SETTINGS, "Param\u{00e8}tres"),
@@ -171,6 +190,7 @@ impl Sidebar {
                                 NavRow {
                                     icon,
                                     label,
+                                    shortcut: shortcut_for(page),
                                     is_current: ctx.current == page,
                                     badge,
                                     trailing: None,
@@ -192,6 +212,7 @@ impl Sidebar {
                         NavRow {
                             icon: icons::BRAIN,
                             label: "Assistant IA",
+                            shortcut: None,
                             is_current: ctx.current == &Page::AI,
                             badge: None,
                             trailing: Some(TrailingDot {
@@ -456,8 +477,14 @@ impl Sidebar {
 
         if hovered {
             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-            if row.collapsed {
-                response.clone().on_hover_text(row.label);
+            let hint = match (row.collapsed, &row.shortcut) {
+                (true, Some(sc)) => Some(format!("{}  \u{00b7}  {sc}", row.label)),
+                (true, None) => Some(row.label.to_owned()),
+                (false, Some(sc)) => Some(sc.clone()),
+                (false, None) => None,
+            };
+            if let Some(hint) = hint {
+                response.clone().on_hover_text(hint);
             }
         }
 
@@ -561,6 +588,7 @@ impl Sidebar {
                 NavRow {
                     icon,
                     label,
+                    shortcut: shortcut_for(page),
                     is_current: ctx.current == page,
                     badge: None,
                     trailing: None,
@@ -701,6 +729,8 @@ impl Sidebar {
 struct NavRow<'a> {
     icon: &'a str,
     label: &'a str,
+    /// Hover text: the shortcut when there is one, the label in rail mode.
+    shortcut: Option<String>,
     is_current: bool,
     badge: Option<u32>,
     trailing: Option<TrailingDot>,

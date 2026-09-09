@@ -71,7 +71,7 @@ impl SoftwarePage {
         ui.horizontal(|ui: &mut egui::Ui| {
             if Self::tab_button(
                 ui,
-                &format!("{} DÉPENDANCES ET PAQUETS", icons::SOFTWARE),
+                &format!("{} Dépendances et paquets", icons::SOFTWARE),
                 active == SoftwareTab::Packages,
             ) {
                 state.software.active_tab = SoftwareTab::Packages;
