@@ -480,28 +480,34 @@ impl<'a> TabBar<'a> {
                                 theme::text_secondary()
                             };
 
-                            // Background
+                            // Background. The shadow goes down first: appended
+                            // after the fill it lands on top of the tab and
+                            // darkens the very surface it should lift.
                             if bg != Color32::TRANSPARENT {
+                                let radius = CornerRadius::same(theme::BUTTON_ROUNDING - 2);
+                                if is_selected {
+                                    theme::paint_elevation(
+                                        ui.painter(),
+                                        rect,
+                                        radius,
+                                        theme::Elevation::Level1,
+                                        1.0,
+                                    );
+                                }
                                 ui.painter().rect(
                                     rect,
-                                    CornerRadius::same(theme::BUTTON_ROUNDING - 2),
+                                    radius,
                                     bg,
                                     if is_selected {
-                                        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border())
+                                        egui::Stroke::new(
+                                            theme::BORDER_HAIRLINE,
+                                            theme::border_subtle(),
+                                        )
                                     } else {
                                         egui::Stroke::NONE
                                     },
                                     egui::epaint::StrokeKind::Inside,
                                 );
-
-                                // Shadow for selected
-                                if is_selected {
-                                    let shadow = theme::shadow_sm();
-                                    ui.painter().add(shadow.as_shape(
-                                        rect,
-                                        CornerRadius::same(theme::BUTTON_ROUNDING - 2),
-                                    ));
-                                }
                             }
 
                             // Content

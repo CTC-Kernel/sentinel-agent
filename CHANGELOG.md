@@ -10,7 +10,74 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
-*Aucun changement non publié.*
+### 🎨 Refonte complète de l'interface (GUI / UI / UX)
+
+#### Fondations du design system
+- **Typographie embarquée** : Inter (interface, 4 graisses) et JetBrains Mono NL
+  (données techniques, 2 graisses), sous-ensemblées à 312 Ko au total — moins que
+  le seul fichier Font Awesome déjà présent. Chiffres tabulaires figés dans les
+  fontes : les cartes de métriques et les colonnes de tableaux ne « sautent »
+  plus quand les valeurs changent.
+- **Échelle typographique sémantique** (`font_display` → `font_micro`) : la taille
+  et la graisse voyagent ensemble, à la place des `FontId::proportional()` posés
+  au cas par cas.
+- **Palette recalibrée** : six surfaces régulièrement espacées par thème formant
+  une véritable échelle d'élévation ; chaque couleur sémantique dispose d'une
+  variante mode clair calibrée à la main. `border()` porte les contours de
+  contrôles (≥3:1), `border_subtle()` les filets décoratifs.
+- **Élévation à deux couches** (ombre ambiante + ombre de contact) avec liseré
+  supérieur éclairé.
+- **Contrat d'accessibilité vérifié par tests** : AAA pour les textes primaire et
+  secondaire, AA pour le tertiaire et toutes les couleurs sémantiques, 3:1 pour
+  les bordures de contrôles, lisibilité des badges et des avatars, monotonie de
+  l'échelle de surfaces. Deux affirmations des anciens commentaires ne tenaient
+  pas et ont été corrigées.
+
+#### Chrome applicatif
+- **Barre supérieure** reconstruite : marque, bascule de la navigation, fil
+  d'Ariane, recherche globale (raccourci propre à la plateforme), santé de
+  l'agent, contexte du workspace et action principale.
+- **Barre latérale** reconstruite : suppression du bloc de marque redondant qui
+  consommait ~190 px avant la première entrée, rail d'icônes repliable et
+  persistant, lignes plus denses, sections déclarées en données, pied de page
+  unifié (synchronisation, analyse, workspace).
+- **Largeur de contenu bornée** puis centrée au-delà, pour préserver une longueur
+  de ligne lisible sur écran large.
+
+#### Composants
+- Cartes : élévation correcte (l'ombre était peinte par-dessus le contenu),
+  empilement vertical garanti, variantes plate / danger / accentuée ; suppression
+  du miroitement d'angle dessiné à la main.
+- Tableaux : texte de cellule tronqué proprement (il débordait sur les colonnes
+  voisines), survol neutre et sélection accentuée distincts, filets discrets.
+- Champs de saisie : posés une marche au-dessus de leur surface au lieu du fond
+  du terminal, dans lequel ils devenaient invisibles.
+- Onglets, badges, curseurs, tiroirs de détail, modales, palette de commandes,
+  info-bulles : alignés sur les nouveaux jetons ; ordre de dessin des ombres
+  corrigé sur le tiroir et les onglets encadrés.
+- État « rien à signaler » redessiné : médaillon sobre à la place de douze
+  cercles empilés qui s'accumulaient en tache verte pulsant deux fois par seconde.
+- En-têtes de page : suppression du filet dégradé animé qui forçait un
+  rafraîchissement toutes les 100 ms sur chaque page.
+
+#### Langue et cohérence
+- Casse de phrase pour tout ce qui est cliquable ou lu (libellés d'action,
+  intitulés d'onglets, filtres, états vides, lignes d'introduction des pages) ;
+  les intitulés de section en petites capitales sont conservés.
+- Points de suspension typographiques dans les textes d'interface.
+
+#### Corrections
+- Correction d'un plantage au démarrage : le thème nommait des familles de
+  graisses dans la même frame que leur enregistrement, alors que `set_fonts`
+  ne prend effet qu'à la frame suivante.
+- L'écran de démarrage teintait son logo avec la couleur de texte, ce qui le
+  noircissait en thème clair au lieu de le faire apparaître en fondu.
+- Les grilles responsives plafonnent leur nombre de colonnes au nombre
+  d'éléments, au lieu de laisser des colonnes vides.
+
+#### Outillage
+- `cargo run -p agent-gui --all-features --example preview` : banc de rendu du
+  chrome, de la galerie de composants et des pages réelles, sans runtime agent.
 
 ---
 

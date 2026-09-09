@@ -180,24 +180,25 @@ impl<'a> DetailDrawer<'a> {
                     egui::vec2(drawer_width, screen.height()),
                 );
 
-                // Full-height glass background
+                // Shadow first, then the surface on top of it: appended after
+                // the fill, egui's blurred rect covers the whole drawer and
+                // darkens the content it is supposed to sit behind.
+                let mut shadow = theme::Elevation::Level5.ambient();
+                shadow.offset = [-16, 0]; // Project leftwards, onto the page.
+                ui.painter()
+                    .add(shadow.as_shape(drawer_rect, CornerRadius::ZERO));
+
                 ui.painter()
                     .rect_filled(drawer_rect, CornerRadius::ZERO, theme::bg_secondary());
 
-                // Left border with accent
+                // Leading edge, tinted with the drawer's semantic colour.
                 ui.painter().line_segment(
                     [drawer_rect.left_top(), drawer_rect.left_bottom()],
                     egui::Stroke::new(
                         theme::BORDER_MEDIUM,
-                        self.accent_color.linear_multiply(theme::OPACITY_MEDIUM),
+                        theme::readable_color(self.accent_color),
                     ),
                 );
-
-                // Smooth high-fidelity shadow on the left edge (AAA Grade)
-                let mut shadow = theme::shadow_2xl();
-                shadow.offset = [-16, 0]; // Negative X offset to project shadow leftwards
-                ui.painter()
-                    .add(shadow.as_shape(drawer_rect, CornerRadius::ZERO));
 
                 // Constrain the area UI to drawer bounds
                 ui.set_clip_rect(drawer_rect);
@@ -226,14 +227,14 @@ impl<'a> DetailDrawer<'a> {
                             ui.painter().circle_filled(
                                 icon_rect.center(),
                                 icon_size / 2.0,
-                                self.accent_color.linear_multiply(theme::OPACITY_TINT),
+                                theme::tinted_surface(self.accent_color),
                             );
                             ui.painter().text(
                                 icon_rect.center(),
                                 egui::Align2::CENTER_CENTER,
                                 self.icon,
                                 theme::font_icon(theme::ICON_MD),
-                                self.accent_color,
+                                theme::readable_color(self.accent_color),
                             );
 
                             ui.add_space(theme::SPACE_MD);
@@ -241,9 +242,8 @@ impl<'a> DetailDrawer<'a> {
                             ui.vertical(|ui| {
                                 ui.label(
                                     egui::RichText::new(self.title)
-                                        .font(theme::font_heading())
-                                        .color(theme::text_primary())
-                                        .strong(),
+                                        .font(theme::font_h3())
+                                        .color(theme::text_primary()),
                                 );
                                 if let Some(sub) = self.subtitle {
                                     ui.label(
@@ -270,13 +270,15 @@ impl<'a> DetailDrawer<'a> {
 
                         ui.add_space(theme::SPACE_SM);
 
-                        // Accent divider
-                        let divider_rect = ui.allocate_space(egui::vec2(content_width, 2.0)).1;
+                        // Hairline under the header, not an accent slab.
+                        let divider_rect = ui
+                            .allocate_space(egui::vec2(content_width, theme::BORDER_THIN))
+                            .1;
                         if ui.is_rect_visible(divider_rect) {
                             ui.painter().rect_filled(
                                 divider_rect,
-                                CornerRadius::same(theme::ROUNDING_XS),
-                                self.accent_color.linear_multiply(theme::OPACITY_MEDIUM),
+                                CornerRadius::ZERO,
+                                theme::border_subtle(),
                             );
                         }
 
@@ -299,7 +301,7 @@ impl<'a> DetailDrawer<'a> {
                             ui.painter().rect_filled(
                                 action_rect,
                                 CornerRadius::ZERO,
-                                theme::border(),
+                                theme::border_subtle(),
                             );
 
                             ui.add_space(theme::SPACE_MD);
@@ -451,7 +453,10 @@ pub fn detail_text(ui: &mut Ui, label: &str, text: &str) {
         .fill(theme::bg_deep())
         .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
         .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
+        .stroke(egui::Stroke::new(
+            theme::BORDER_HAIRLINE,
+            theme::border_subtle(),
+        ))
         .show(ui, |ui| {
             ui.add(
                 egui::Label::new(
@@ -480,7 +485,10 @@ pub fn detail_mono(ui: &mut Ui, label: &str, value: &str) {
         .fill(theme::bg_deep())
         .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
         .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
+        .stroke(egui::Stroke::new(
+            theme::BORDER_HAIRLINE,
+            theme::border_subtle(),
+        ))
         .show(ui, |ui| {
             ui.add(
                 egui::Label::new(
@@ -590,7 +598,10 @@ pub fn detail_ai_proposal(ui: &mut Ui, explanation: &str, commands: &[String]) {
             .fill(theme::bg_deep())
             .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
             .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-            .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
+            .stroke(egui::Stroke::new(
+                theme::BORDER_HAIRLINE,
+                theme::border_subtle(),
+            ))
             .show(ui, |ui| {
                 for cmd in commands {
                     ui.label(
