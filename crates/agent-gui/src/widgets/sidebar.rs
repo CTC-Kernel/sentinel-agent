@@ -209,6 +209,34 @@ impl Sidebar {
                     ui.add_space(theme::SPACE_MD);
                 });
 
+            // Fade the last few pixels of the scroll area into the surface,
+            // so a row cut off by the footer reads as "more below" rather
+            // than as a row overlapping the footer.
+            let fade = egui::Rect::from_min_max(
+                egui::pos2(full.left(), footer_top - theme::SPACE_LG),
+                egui::pos2(full.right(), footer_top),
+            );
+            if ui.is_rect_visible(fade) {
+                use egui::epaint::{Mesh, Vertex};
+                let (_, bottom) = theme::sidebar_gradient();
+                let mut mesh = Mesh::default();
+                for (pos, color) in [
+                    (fade.left_top(), egui::Color32::TRANSPARENT),
+                    (fade.right_top(), egui::Color32::TRANSPARENT),
+                    (fade.right_bottom(), bottom),
+                    (fade.left_bottom(), bottom),
+                ] {
+                    mesh.vertices.push(Vertex {
+                        pos,
+                        uv: Default::default(),
+                        color,
+                    });
+                }
+                mesh.add_triangle(0, 1, 2);
+                mesh.add_triangle(2, 3, 0);
+                ui.painter().add(mesh);
+            }
+
             // ── Pinned footer ────────────────────────────────────────
             let footer = egui::Rect::from_min_max(
                 egui::pos2(full.left(), footer_top),

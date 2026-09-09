@@ -360,7 +360,8 @@ fn main() -> eframe::Result<()> {
         "Sentinel GRC Agent — preview",
         eframe::NativeOptions {
             renderer: eframe::Renderer::Wgpu,
-            viewport: egui::ViewportBuilder::default().with_inner_size([1500.0, 1900.0]),
+            viewport: egui::ViewportBuilder::default()
+                .with_inner_size([theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT]),
             ..Default::default()
         },
         Box::new(|cc| {

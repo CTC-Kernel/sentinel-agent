@@ -234,6 +234,10 @@ fn content_column(ui: &mut egui::Ui, side: f32, measure: f32, body: impl FnOnce(
     });
 }
 
+/// Width the overlay scrollbar needs on the trailing edge, so right-aligned
+/// content is not clipped by it.
+const SCROLLBAR_GUTTER: f32 = 10.0;
+
 // ============================================================================
 // App state
 // ============================================================================
@@ -1081,8 +1085,9 @@ impl eframe::App for SentinelApp {
                         // margins are i8, so a wide display would overflow them.
                         let gutter = theme::SPACE_LG;
                         let full = ui.available_width();
-                        let measure = (full - gutter * 2.0).min(theme::CONTENT_MAX_WIDTH);
-                        let side = ((full - measure) / 2.0).max(gutter);
+                        let measure =
+                            (full - gutter * 2.0 - SCROLLBAR_GUTTER).min(theme::CONTENT_MAX_WIDTH);
+                        let side = ((full - measure - SCROLLBAR_GUTTER) / 2.0).max(gutter);
                         content_column(ui, side, measure, |ui: &mut egui::Ui| match self.page {
                             Page::Dashboard => {
                                 if let Some(action) =
