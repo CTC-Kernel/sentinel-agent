@@ -26,12 +26,13 @@ struct Preview {
 
 impl Default for Preview {
     fn default() -> Self {
+        let requested = std::env::var("PREVIEW_PAGE").unwrap_or_default();
         Self {
-            page: Page::Dashboard,
+            page: page_from(&requested),
             state: std::env::var("PREVIEW_PAGE")
                 .is_ok()
                 .then(|| Box::new(AppState::default())),
-            requested: std::env::var("PREVIEW_PAGE").unwrap_or_default(),
+            requested,
             dark: std::env::var("PREVIEW_LIGHT").is_err(),
             collapsed: std::env::var("PREVIEW_RAIL").is_ok(),
             started: false,
@@ -58,12 +59,13 @@ impl eframe::App for Preview {
             error: None,
         };
 
+        let (page_icon, page_label, page_section) = location(&self.requested);
         if let Some(action) = widgets::top_bar(
             ctx,
             &widgets::TopBarContext {
-                page_icon: icons::DASHBOARD,
-                page_label: "Tableau de bord",
-                page_section: Some("Vue d'ensemble"),
+                page_icon,
+                page_label,
+                page_section: Some(page_section),
                 organization: Some("Cyber Threat Consulting"),
                 unread: 7,
                 syncing: false,
@@ -123,6 +125,44 @@ impl eframe::App for Preview {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
         ctx.request_repaint();
+    }
+}
+
+/// Route name to the page it selects, so the sidebar highlights what is on
+/// screen instead of always pointing at the dashboard.
+fn page_from(name: &str) -> Page {
+    match name {
+        "compliance" => Page::Compliance,
+        "vulnerabilities" => Page::Vulnerabilities,
+        "threats" => Page::Threats,
+        "network" => Page::Network,
+        "settings" => Page::Settings,
+        "assets" => Page::Assets,
+        "monitoring" => Page::Monitoring,
+        "about" => Page::About,
+        "ai" => Page::AI,
+        _ => Page::Dashboard,
+    }
+}
+
+/// Icon, label and section for the page the harness is rendering, so the top
+/// bar tells the truth about what is on screen.
+fn location(page: &str) -> (&'static str, &'static str, &'static str) {
+    match page {
+        "compliance" => (icons::COMPLIANCE, "Conformité", "Conformité & risques"),
+        "vulnerabilities" => (
+            icons::VULNERABILITIES,
+            "Vulnérabilités",
+            "Détection & réponse",
+        ),
+        "threats" => (icons::SKULL, "Menaces", "Détection & réponse"),
+        "network" => (icons::NETWORK, "Réseau", "Détection & réponse"),
+        "settings" => (icons::SETTINGS, "Paramètres", "Système"),
+        "assets" => (icons::BOXES_STACKED, "Inventaire", "Actifs & inventaire"),
+        "monitoring" => (icons::CHART_LINE, "Surveillance", "Vue d'ensemble"),
+        "about" => (icons::ABOUT, "À propos", "Système"),
+        "ai" => (icons::BRAIN, "Assistant IA", "Assistant"),
+        _ => (icons::DASHBOARD, "Tableau de bord", "Vue d'ensemble"),
     }
 }
 
