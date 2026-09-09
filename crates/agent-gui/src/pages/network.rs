@@ -40,11 +40,14 @@ impl NetworkPage {
                 return command;
             }
 
-            widgets::protected_state(
+            // Nothing scanned yet is a neutral state, not an all-clear: a
+            // green shield here would claim a verdict the agent has not made.
+            widgets::hero_state(
                 ui,
-                icons::WARNING,
+                icons::NETWORK,
                 "Aucune donnée réseau",
                 "Lancez un scan pour cartographier les interfaces et connexions de cet endpoint.",
+                theme::INFO,
             );
 
             ui.add_space(theme::SPACE_MD);

@@ -66,7 +66,7 @@ pub use header::{eyebrow, page_header, page_header_nav, section_header};
 pub use help_info::help_button;
 pub use layout::ResponsiveGrid;
 pub use premium_badge::{BadgeSize, ComplianceBadge, PremiumBadge, StatusBadge, StatusLevel};
-pub use protected_state::protected_state;
+pub use protected_state::{hero_state, protected_state};
 pub use resource_bar::resource_bar;
 pub use search_filter_bar::SearchFilterBar;
 pub use security_hero::security_hero;
