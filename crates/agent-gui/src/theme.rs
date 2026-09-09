@@ -1585,32 +1585,65 @@ pub fn disabled_color(color: Color32) -> Color32 {
     color.linear_multiply(OPACITY_DISABLED)
 }
 
-/// Hover wash for interactive elements.
+/// A color at a given alpha.
 ///
-/// Hover → pressed → selected form a single intensity ramp in the accent
-/// family, so a row's state is legible from its tint alone (WCAG 1.4.11).
+/// Note that egui composites in linear space, so a translucent saturated
+/// hue lands much brighter than its alpha suggests. Use this for glows and
+/// overlays; for state washes prefer the opaque helpers below.
+#[inline]
+pub fn with_alpha(color: Color32, alpha: u8) -> Color32 {
+    Color32::from_rgba_unmultiplied(color.r(), color.g(), color.b(), alpha)
+}
+
+// ── Interaction washes ──────────────────────────────────────────────────
+//
+// These are *opaque* mixes rather than translucent fills. egui blends in
+// linear space, where a saturated blue at 16% alpha still reads as a solid
+// blue band across a table row — mixing in gamma space gives the quiet tint
+// the design actually calls for, and it is predictable at review time.
+//
+// Hover → selected → pressed form a single intensity ramp in the accent
+// family, so a row's state is legible from its tint alone (WCAG 1.4.11).
+
+/// Hover wash for interactive elements.
 #[inline]
 pub fn hover_bg() -> Color32 {
-    ACCENT.linear_multiply(if is_dark_mode() { 0.10 } else { 0.08 })
+    color_blend(
+        bg_secondary(),
+        ACCENT,
+        if is_dark_mode() { 0.10 } else { 0.07 },
+    )
 }
 
 /// Pressed wash for interactive elements.
 #[inline]
 pub fn active_bg() -> Color32 {
-    ACCENT.linear_multiply(if is_dark_mode() { 0.20 } else { 0.15 })
+    color_blend(
+        bg_secondary(),
+        ACCENT,
+        if is_dark_mode() { 0.26 } else { 0.18 },
+    )
 }
 
 /// Selected-row / active-nav wash.
 #[inline]
 pub fn selected_bg() -> Color32 {
-    ACCENT.linear_multiply(if is_dark_mode() { 0.16 } else { 0.12 })
+    color_blend(
+        bg_secondary(),
+        ACCENT,
+        if is_dark_mode() { 0.18 } else { 0.12 },
+    )
 }
 
 /// Neutral hover wash for surfaces that must not read as accented
 /// (table rows, list items inside an already-accented container).
 #[inline]
 pub fn hover_bg_neutral() -> Color32 {
-    overlay_color().linear_multiply(if is_dark_mode() { 0.055 } else { 0.04 })
+    color_blend(
+        bg_secondary(),
+        overlay_color(),
+        if is_dark_mode() { 0.07 } else { 0.05 },
+    )
 }
 
 /// Tinted wash of any semantic color, for banner and inline-alert surfaces.

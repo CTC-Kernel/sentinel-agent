@@ -113,7 +113,11 @@ impl Card {
                     // with it, whatever the caller puts inside.
                     ui.add_space(theme::SPACE_XS);
                 }
-                add_contents(ui);
+                // A card stacks its contents, whatever layout it was called
+                // from. Without this, a card placed inside a horizontal row
+                // inherits that direction and lays its own children out
+                // side by side — which is not what "card" means anywhere.
+                ui.with_layout(egui::Layout::top_down(egui::Align::Min), add_contents);
             });
 
         let rect = inner.response.rect;

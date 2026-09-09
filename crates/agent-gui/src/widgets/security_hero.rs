@@ -90,14 +90,14 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                 center + Vec2::new(1.0, 1.5),
                 egui::Align2::CENTER_CENTER,
                 security_state.icon(),
-                egui::FontId::proportional(icon_size),
+                theme::font_icon(icon_size),
                 theme::overlay_color().linear_multiply(theme::OPACITY_TINT),
             );
             painter.text(
                 center,
                 egui::Align2::CENTER_CENTER,
                 security_state.icon(),
-                egui::FontId::proportional(icon_size),
+                theme::font_icon(icon_size),
                 theme::readable_color(base_color),
             );
 

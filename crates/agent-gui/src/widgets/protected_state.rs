@@ -78,7 +78,7 @@ pub fn protected_state(ui: &mut Ui, icon: &str, title: &str, subtitle: &str) {
             center,
             egui::Align2::CENTER_CENTER,
             icon,
-            egui::FontId::proportional(icon_size),
+            theme::font_icon(icon_size),
             base_color,
         );
 

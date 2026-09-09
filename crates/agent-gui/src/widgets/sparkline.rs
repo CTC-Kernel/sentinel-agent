@@ -260,7 +260,7 @@ pub fn mini_gauge(ui: &mut Ui, value: f32, color: Color32, size: f32) {
         center,
         egui::Align2::CENTER_CENTER,
         format!("{:.0}", value),
-        egui::FontId::proportional(size * 0.2),
+        theme::font_icon(size * 0.2),
         theme::text_primary(),
     );
 }

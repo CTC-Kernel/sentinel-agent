@@ -246,8 +246,11 @@ impl<'a> CommandPalette<'a> {
                 egui::Frame::new()
                     .fill(theme::glass_card_bg())
                     .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
-                    .shadow(theme::shadow_2xl())
-                    .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
+                    .shadow(theme::Elevation::Level5.ambient())
+                    .stroke(egui::Stroke::new(
+                        theme::BORDER_HAIRLINE,
+                        theme::border_subtle(),
+                    ))
                     .inner_margin(egui::Margin::same(0))
                     .show(ui, |ui| {
                         ui.set_width(palette_width);
@@ -290,7 +293,7 @@ impl<'a> CommandPalette<'a> {
                                     ui.min_rect().max.y,
                                 ),
                             ],
-                            egui::Stroke::new(theme::BORDER_THIN, theme::border()),
+                            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
                         );
 
                         // Results
@@ -346,7 +349,7 @@ impl<'a> CommandPalette<'a> {
                                                     .shrink2(egui::vec2(theme::SPACE_SM, 2.0));
                                                 ui.painter().rect_filled(
                                                     inner_rect,
-                                                    CornerRadius::same(theme::SPACE_SM as u8),
+                                                    CornerRadius::same(theme::ROUNDING_MD),
                                                     bg,
                                                 );
                                             }
@@ -486,7 +489,7 @@ impl<'a> CommandPalette<'a> {
                                     ui.min_rect().max.y,
                                 ),
                             ],
-                            egui::Stroke::new(theme::BORDER_THIN, theme::border()),
+                            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
                         );
 
                         egui::Frame::new()

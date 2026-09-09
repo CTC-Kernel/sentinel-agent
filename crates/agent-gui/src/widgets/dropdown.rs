@@ -206,7 +206,7 @@ impl<'a, T> Dropdown<'a, T> {
                 egui::Frame::new()
                     .fill(theme::bg_secondary())
                     .corner_radius(CornerRadius::same(theme::INPUT_ROUNDING))
-                    .shadow(theme::shadow_lg())
+                    .shadow(theme::Elevation::Level3.ambient())
                     .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
                     .inner_margin(egui::Margin::same(theme::SPACE_XS as i8))
                     .show(ui, |ui| {

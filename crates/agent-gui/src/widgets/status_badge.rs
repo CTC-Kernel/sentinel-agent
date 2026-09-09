@@ -23,7 +23,7 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
 
     let galley = ui
         .painter()
-        .layout_no_wrap(text.to_string(), theme::font_small(), text_color);
+        .layout_no_wrap(text.to_string(), theme::font_label(), text_color);
 
     let text_size = galley.size();
     let desired_size = Vec2::new(

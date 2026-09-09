@@ -102,7 +102,7 @@ impl eframe::App for Preview {
                 egui::Margin::symmetric(theme::SPACE_LG as i8, theme::SPACE_LG as i8),
             ))
             .show(ctx, |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| gallery(ui));
+                egui::ScrollArea::vertical().show(ui, gallery);
             });
 
         self.frame_count += 1;
@@ -240,6 +240,70 @@ fn gallery(ui: &mut egui::Ui) {
             });
         });
     });
+    ui.add_space(theme::SPACE_LG);
+    widgets::section_header(ui, "Saisie et navigation", None);
+    widgets::card(ui, |ui| {
+        ui.horizontal(|ui| {
+            let mut tab = 1usize;
+            widgets::tabs(ui, &["Contrôles", "Écarts", "Historique"], &mut tab);
+        });
+        ui.add_space(theme::SPACE_MD);
+        let mut query = String::from("CVE-2024");
+        widgets::search_input(ui, &mut query, "Filtrer les vulnérabilités…");
+        ui.add_space(theme::SPACE_MD);
+        let mut host = String::from("srv-paris-01.ctc.local");
+        widgets::text_input_validated(ui, &mut host, "Nom d'hôte", widgets::InputValidation::Valid);
+    });
+
+    ui.add_space(theme::SPACE_LG);
+    widgets::section_header(ui, "Tableau", None);
+    widgets::card(ui, |ui| {
+        let columns = vec![
+            widgets::data_table::TableColumn::new("host", "Hôte")
+                .sortable()
+                .width(widgets::data_table::ColumnWidth::Fill),
+            widgets::data_table::TableColumn::new("cve", "Identifiant")
+                .sortable()
+                .width(widgets::data_table::ColumnWidth::Fixed(160.0)),
+            widgets::data_table::TableColumn::new("sev", "Sévérité")
+                .width(widgets::data_table::ColumnWidth::Fixed(110.0)),
+            widgets::data_table::TableColumn::new("seen", "Détecté")
+                .width(widgets::data_table::ColumnWidth::Fixed(140.0))
+                .align(widgets::data_table::ColumnAlign::Right),
+        ];
+        let table = widgets::data_table::DataTable::new("demo", columns).selectable();
+        let mut sort = widgets::data_table::TableSort::by(
+            "cve",
+            widgets::data_table::SortDirection::Descending,
+        );
+        table.show_header(ui, &mut sort);
+        for (i, row) in [
+            [
+                "srv-paris-01.ctc.local",
+                "CVE-2024-3094",
+                "Critique",
+                "il y a 2 min",
+            ],
+            [
+                "poste-dsi-114-tres-long-nom-de-machine.ctc.local",
+                "CVE-2024-21762",
+                "Élevé",
+                "il y a 18 min",
+            ],
+            [
+                "nas-archive-02.ctc.local",
+                "CVE-2023-44487",
+                "Moyen",
+                "hier",
+            ],
+        ]
+        .iter()
+        .enumerate()
+        {
+            table.show_row(ui, i, i == 1, row.as_ref());
+        }
+    });
+
     ui.add_space(theme::SPACE_XL);
 }
 
@@ -248,8 +312,7 @@ fn main() -> eframe::Result<()> {
         "Sentinel GRC Agent — preview",
         eframe::NativeOptions {
             renderer: eframe::Renderer::Wgpu,
-            viewport: egui::ViewportBuilder::default()
-                .with_inner_size([theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT]),
+            viewport: egui::ViewportBuilder::default().with_inner_size([1500.0, 1900.0]),
             ..Default::default()
         },
         Box::new(|cc| {

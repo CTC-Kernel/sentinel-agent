@@ -288,7 +288,7 @@ impl SettingsPage {
                     icon_rect.center(),
                     egui::Align2::CENTER_CENTER,
                     mode_icon,
-                    egui::FontId::proportional(theme::ICON_LG),
+                    theme::font_icon(theme::ICON_LG),
                     theme::accent_text(),
                 );
 

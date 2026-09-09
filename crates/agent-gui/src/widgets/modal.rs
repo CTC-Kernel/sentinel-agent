@@ -181,8 +181,11 @@ impl Modal {
         egui::Frame::new()
             .fill(theme::bg_secondary())
             .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
-            .shadow(theme::shadow_xl())
-            .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
+            .shadow(theme::Elevation::Level4.ambient())
+            .stroke(egui::Stroke::new(
+                theme::BORDER_HAIRLINE,
+                theme::border_subtle(),
+            ))
             .inner_margin(egui::Margin::same(0))
             .show(ui, |ui| {
                 ui.set_width(self.width);
@@ -224,7 +227,7 @@ impl Modal {
                             icon_rect.center(),
                             egui::Align2::CENTER_CENTER,
                             icon,
-                            egui::FontId::proportional(theme::ICON_LG),
+                            theme::font_icon(theme::ICON_LG),
                             color,
                         );
 

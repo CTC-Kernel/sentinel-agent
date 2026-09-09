@@ -128,7 +128,7 @@ impl<'a> TabBar<'a> {
                 egui::pos2(rect.min.x, rect.max.y),
                 egui::pos2(rect.max.x, rect.max.y),
             ],
-            egui::Stroke::new(theme::BORDER_THIN, theme::border()),
+            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
         );
 
         new_selection
@@ -141,7 +141,13 @@ impl<'a> TabBar<'a> {
         is_selected: bool,
         fixed_width: f32,
     ) -> bool {
-        let font = theme::font_body();
+        // The selected tab carries weight as well as colour, so the active
+        // section is legible without relying on hue alone (WCAG 1.4.1).
+        let font = if is_selected {
+            theme::font_body_strong()
+        } else {
+            theme::font_body()
+        };
         let mut content_width = 0.0;
 
         // Calculate content width
@@ -189,6 +195,15 @@ impl<'a> TabBar<'a> {
                 theme::text_secondary()
             };
 
+            // Hover wash, so a tab reads as a target before it is clicked.
+            if is_hovered && !is_selected {
+                painter.rect_filled(
+                    rect.shrink2(egui::vec2(theme::SPACE_XS, theme::SPACE_XS)),
+                    CornerRadius::same(theme::ROUNDING_SM),
+                    theme::hover_bg_neutral(),
+                );
+            }
+
             let mut x = rect.min.x + padding.x;
 
             // Icon
@@ -197,7 +212,7 @@ impl<'a> TabBar<'a> {
                     egui::pos2(x, rect.center().y),
                     egui::Align2::LEFT_CENTER,
                     icon,
-                    theme::font_body(),
+                    theme::font_icon(theme::ICON_SM),
                     text_color,
                 );
                 x += theme::TAB_ICON_WIDTH;
@@ -238,7 +253,7 @@ impl<'a> TabBar<'a> {
                     badge_rect.center(),
                     egui::Align2::CENTER_CENTER,
                     badge_text,
-                    theme::font_label(),
+                    theme::font_micro(),
                     theme::badge_text(theme::ERROR),
                 );
             }
@@ -263,7 +278,7 @@ impl<'a> TabBar<'a> {
                 painter.rect_filled(
                     underline_rect,
                     CornerRadius::same(theme::ROUNDING_XS),
-                    theme::ACCENT,
+                    theme::accent_text(),
                 );
             }
         }

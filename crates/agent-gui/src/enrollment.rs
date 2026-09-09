@@ -493,8 +493,7 @@ impl EnrollmentWizard {
 
                 if success {
                     ui.label(
-                        egui::RichText::new("\u{2705}")
-                            .font(egui::FontId::proportional(theme::ICON_2XL)),
+                        egui::RichText::new("\u{2705}").font(theme::font_icon(theme::ICON_2XL)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
@@ -505,8 +504,7 @@ impl EnrollmentWizard {
                     );
                 } else {
                     ui.label(
-                        egui::RichText::new("\u{274c}")
-                            .font(egui::FontId::proportional(theme::ICON_2XL)),
+                        egui::RichText::new("\u{274c}").font(theme::font_icon(theme::ICON_2XL)),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(

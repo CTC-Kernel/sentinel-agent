@@ -232,7 +232,7 @@ impl<'a> DetailDrawer<'a> {
                                 icon_rect.center(),
                                 egui::Align2::CENTER_CENTER,
                                 self.icon,
-                                egui::FontId::proportional(theme::ICON_MD),
+                                theme::font_icon(theme::ICON_MD),
                                 self.accent_color,
                             );
 

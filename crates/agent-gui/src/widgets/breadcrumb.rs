@@ -159,7 +159,7 @@ impl<'a> Breadcrumb<'a> {
                         if is_hovered {
                             ui.painter().rect_filled(
                                 rect,
-                                CornerRadius::same(theme::SPACE_XS as u8),
+                                CornerRadius::same(theme::ROUNDING_SM),
                                 theme::hover_bg(),
                             );
                         }
@@ -168,7 +168,7 @@ impl<'a> Breadcrumb<'a> {
                         if response.has_focus() {
                             ui.painter().rect_stroke(
                                 rect.expand(2.0),
-                                CornerRadius::same(theme::SPACE_XS as u8 + 2),
+                                CornerRadius::same(theme::ROUNDING_SM + 2),
                                 theme::focus_ring(),
                                 egui::epaint::StrokeKind::Outside,
                             );
@@ -233,7 +233,7 @@ impl<'a> Breadcrumb<'a> {
                     if is_hovered {
                         ui.painter().rect_filled(
                             rect,
-                            CornerRadius::same(theme::SPACE_XS as u8),
+                            CornerRadius::same(theme::ROUNDING_SM),
                             theme::hover_bg(),
                         );
                     }
@@ -262,7 +262,7 @@ impl<'a> Breadcrumb<'a> {
                     if response.has_focus() && item.clickable {
                         ui.painter().rect_stroke(
                             rect.expand(2.0),
-                            CornerRadius::same(theme::SPACE_XS as u8 + 2),
+                            CornerRadius::same(theme::ROUNDING_SM + 2),
                             theme::focus_ring(),
                             egui::epaint::StrokeKind::Outside,
                         );

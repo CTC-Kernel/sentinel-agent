@@ -95,7 +95,7 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
             rect.center(),
             egui::Align2::CENTER_CENTER,
             icon,
-            egui::FontId::proportional(icon_size),
+            theme::font_icon(icon_size),
             icon_color,
         );
 
