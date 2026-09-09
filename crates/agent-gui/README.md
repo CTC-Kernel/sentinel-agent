@@ -92,10 +92,21 @@ cargo run -p agent-gui --all-features --example preview
 ```
 
 Affiche le chrome applicatif et une galerie de composants sans runtime agent.
-Variables d'environnement : `PREVIEW_LIGHT=1` (theme clair), `PREVIEW_RAIL=1`
-(barre laterale repliee), `PREVIEW_PAGE=<nom>` (rendu d'une page reelle :
-`compliance`, `vulnerabilities`, `threats`, `settings`, `assets`, `network`,
-`monitoring`, `about`, `ai`).
+Variables d'environnement :
+
+| Variable | Effet |
+|----------|-------|
+| `PREVIEW_PAGE=<nom>` | Rend une page réelle (`dashboard`, `compliance`, `vulnerabilities`, `threats`, `network`, `monitoring`, `assets`, `software`, `risks`, `reports`, `notifications`, `fim`, `terminal`, `discovery`, `cartography`, `audit`, `sync`, `ai`, `settings`, `about`), ou une surface : `overlays`, `palette`, `splash`, `enrollment` |
+| `PREVIEW_DATA=1` | Peuple toutes les pages avec les fixtures déterministes de `examples/preview/fixtures.rs` |
+| `PREVIEW_DRAWER=<nom>` | Ouvre un tiroir de détail sur la page qui le porte : `vuln`, `threat`, `asset`, `package`, `connection`, `risk`, `fim`, `notification`, `log` (page `terminal`) |
+| `PREVIEW_STEP=<étape>` | Étape de l'assistant d'enrôlement : `welcome`, `token`, `admin`, `progress`, `done`, `failed` |
+| `PREVIEW_LIGHT=1` | Thème clair |
+| `PREVIEW_RAIL=1` | Barre latérale repliée en rail |
+| `PREVIEW_W`, `PREVIEW_H` | Taille de la fenêtre (le rail se replie seul sous 1 120 px) |
+| `PREVIEW_SHOT=<n>` | Ferme la fenêtre après `n` frames (captures automatisées) |
+
+Les pages sont disposées avec la colonne du shell (`app::page_column`), pour
+qu'une capture mesure ce que l'application montre.
 
 ## Feature flags
 

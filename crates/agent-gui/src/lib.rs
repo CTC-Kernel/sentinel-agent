@@ -14,6 +14,7 @@
 
 pub mod dto;
 pub mod events;
+pub mod format;
 pub mod os;
 pub mod os_settings;
 pub mod state;

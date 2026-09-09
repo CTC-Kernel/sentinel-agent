@@ -117,7 +117,7 @@ impl SyncPage {
             if let Some(ref err) = state.sync.error {
                 ui.add_space(theme::SPACE_MD);
                 egui::Frame::new()
-                    .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
+                    .fill(theme::tinted_surface(theme::ERROR))
                     .corner_radius(egui::CornerRadius::same(theme::ROUNDING_SM))
                     .inner_margin(egui::Margin::symmetric(
                         theme::SPACE_SM as i8,

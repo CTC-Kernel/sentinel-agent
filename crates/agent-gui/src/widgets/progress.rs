@@ -73,27 +73,10 @@ pub fn progress_bar_styled(
                 }
             };
 
+            // No sweeping highlight: a determinate bar is a measurement, and
+            // a glint travelling along it reads as activity that is not
+            // happening. Motion belongs to the indeterminate bar below.
             painter.rect_filled(fill_rect, rounding, fill_color);
-
-            // Animated shine effect (skipped when reduced motion)
-            if !theme::is_reduced_motion() {
-                let time = ui.input(|i| i.time) as f32;
-                let shine_pos = ((time * theme::ANIM_SKELETON_SPEED) % 1.0) * rect.width();
-                let shine_width = theme::SPACE_XL + theme::SPACE_SM;
-                let shine_rect = egui::Rect::from_min_size(
-                    egui::pos2(rect.min.x + shine_pos - shine_width / 2.0, rect.min.y),
-                    egui::vec2(shine_width, height),
-                )
-                .intersect(fill_rect);
-
-                if shine_rect.width() > 0.0 {
-                    painter.rect_filled(
-                        shine_rect,
-                        rounding,
-                        theme::overlay_color().linear_multiply(theme::OPACITY_SUBTLE),
-                    );
-                }
-            }
         }
     }
 
@@ -107,7 +90,7 @@ pub fn progress_bar_styled(
             );
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(
-                    egui::RichText::new(format!("{}%", (progress * 100.0) as u32))
+                    egui::RichText::new(format!("{}\u{202f}%", (progress * 100.0) as u32))
                         .font(theme::font_small())
                         .color(theme::text_secondary())
                         .strong(),
@@ -224,7 +207,7 @@ pub fn circular_progress_styled(
             painter.text(
                 center,
                 egui::Align2::CENTER_CENTER,
-                format!("{}%", (progress * 100.0) as u32),
+                format!("{}\u{202f}%", (progress * 100.0) as u32),
                 theme::font_heading(),
                 theme::text_primary(),
             );

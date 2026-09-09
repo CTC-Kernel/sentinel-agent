@@ -39,12 +39,12 @@ impl SoftwarePage {
                 ui,
                 format!(
                     "{}  {}",
+                    icons::PLAY,
                     if is_scanning {
                         "Analyse en cours"
                     } else {
                         "Actualiser l'inventaire"
-                    },
-                    icons::PLAY
+                    }
                 ),
                 !is_scanning,
                 is_scanning,
@@ -403,7 +403,7 @@ impl SoftwarePage {
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
                     egui::RichText::new(format!(
-                        "Couverture des mises \u{00e0} jour : {:.0}%",
+                        "Couverture des mises \u{00e0} jour : {:.0}\u{202f}%",
                         coverage_pct
                     ))
                     .font(theme::font_body())
@@ -423,38 +423,26 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_MD);
 
-        widgets::SearchFilterBar::new(
+        let (_, export) = widgets::SearchFilterBar::new(
             &mut state.software.search,
             "Rechercher un paquet, une version ou un éditeur…",
         )
         .result_count(result_count)
-        .show(ui);
-
-        ui.add_space(theme::SPACE_SM);
-
-        // Action Buttons (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let success = Self::export_packages_csv(state, &filtered);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV réussi")
-                                    .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
-                                    .with_time(time),
-                            );
-                        }
-                    }
-                },
-            );
-        });
+        .action(format!("{}  CSV", icons::DOWNLOAD))
+        .show_with_action(ui);
+        if export {
+            let success = Self::export_packages_csv(state, &filtered);
+            let time = ui.input(|i| i.time);
+            if success {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success("Export CSV réussi").with_time(time),
+                );
+            } else {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::error("Échec de l'export CSV").with_time(time),
+                );
+            }
+        }
 
         ui.add_space(theme::SPACE_SM);
 
@@ -743,38 +731,26 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_MD);
 
-        widgets::SearchFilterBar::new(
+        let (_, export) = widgets::SearchFilterBar::new(
             &mut state.software.search,
             "Rechercher une application, un bundle ou un éditeur…",
         )
         .result_count(result_count)
-        .show(ui);
-
-        ui.add_space(theme::SPACE_SM);
-
-        // Action Buttons (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let success = Self::export_apps_csv(state, &filtered);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV réussi")
-                                    .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
-                                    .with_time(time),
-                            );
-                        }
-                    }
-                },
-            );
-        });
+        .action(format!("{}  CSV", icons::DOWNLOAD))
+        .show_with_action(ui);
+        if export {
+            let success = Self::export_apps_csv(state, &filtered);
+            let time = ui.input(|i| i.time);
+            if success {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success("Export CSV réussi").with_time(time),
+                );
+            } else {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::error("Échec de l'export CSV").with_time(time),
+                );
+            }
+        }
 
         ui.add_space(theme::SPACE_SM);
 

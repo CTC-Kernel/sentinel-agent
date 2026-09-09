@@ -154,11 +154,14 @@ impl ComplianceBadge {
 
     pub fn ui(self, ui: &mut Ui) -> Response {
         let (color, text) = if self.score >= 85.0 {
-            (theme::SUCCESS, format!("Excellent {:.0}%", self.score))
+            (
+                theme::SUCCESS,
+                format!("Excellent {:.0}\u{202f}%", self.score),
+            )
         } else if self.score >= 60.0 {
-            (theme::WARNING, format!("Bon {:.0}%", self.score))
+            (theme::WARNING, format!("Bon {:.0}\u{202f}%", self.score))
         } else {
-            (theme::ERROR, format!("Critique {:.0}%", self.score))
+            (theme::ERROR, format!("Critique {:.0}\u{202f}%", self.score))
         };
 
         PremiumBadge::new(text)

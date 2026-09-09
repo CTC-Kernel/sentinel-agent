@@ -431,7 +431,7 @@ fn build_timeline(state: &AppState, cutoff: DateTime<Utc>) -> Vec<TimelineEvent>
             source: "process",
             severity,
             title: p.process_name.clone(),
-            detail: format!("{} \u{2014} Confiance: {}%", p.reason, p.confidence),
+            detail: format!("{} \u{2014} Confiance: {}\u{202f}%", p.reason, p.confidence),
             _source_index: i,
         });
     }

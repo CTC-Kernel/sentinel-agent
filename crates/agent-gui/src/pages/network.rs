@@ -57,12 +57,12 @@ impl NetworkPage {
                     ui,
                     format!(
                         "{}  {}",
+                        icons::PLAY,
                         if is_scanning {
                             "Analyse en cours"
                         } else {
                             "Lancer l'analyse"
-                        },
-                        icons::PLAY
+                        }
                     ),
                     !is_scanning,
                     is_scanning,
@@ -83,12 +83,12 @@ impl NetworkPage {
                 ui,
                 format!(
                     "{}  {}",
+                    icons::PLAY,
                     if is_scanning {
                         "Analyse en cours"
                     } else {
                         "Lancer l'analyse"
-                    },
-                    icons::PLAY
+                    }
                 ),
                 !is_scanning,
                 is_scanning,
@@ -472,7 +472,7 @@ impl NetworkPage {
                                 widgets::detail_field_colored(
                                     ui,
                                     "Confiance",
-                                    &format!("{}%", alert.confidence),
+                                    &format!("{}\u{202f}%", alert.confidence),
                                     theme::readable_color(conf_color),
                                 );
                                 widgets::detail_field(
@@ -495,7 +495,7 @@ impl NetworkPage {
                                         widgets::detail_field_badge(
                                             ui,
                                             "Confiance IA",
-                                            &format!("{}%", confidence),
+                                            &format!("{}\u{202f}%", confidence),
                                             c,
                                         );
                                     }
@@ -1139,7 +1139,13 @@ impl NetworkPage {
             "port_scan" => ("SCAN PORTS".to_string(), theme::WARNING),
             "suspicious_port" => ("PORT SUSPECT".to_string(), theme::WARNING),
             "dns_tunneling" => ("TUNNEL DNS".to_string(), theme::SEVERITY_HIGH),
-            other => (other.to_uppercase(), theme::INFO),
+            "tor_exit" => ("SORTIE TOR".to_string(), theme::SEVERITY_HIGH),
+            "rogue_dhcp" => ("DHCP PIRATE".to_string(), theme::SEVERITY_HIGH),
+            "arp_spoofing" | "arp_spoof" => ("USURPATION ARP".to_string(), theme::ERROR),
+            "new_device" => ("NOUVEL APPAREIL".to_string(), theme::INFO),
+            "unusual_traffic" => ("TRAFIC INHABITUEL".to_string(), theme::WARNING),
+            // Unknown keys still read as words, never as identifiers.
+            other => (other.replace('_', " ").to_uppercase(), theme::INFO),
         }
     }
 
@@ -1149,10 +1155,10 @@ impl NetworkPage {
         let frame_resp = egui::Frame::NONE
             .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
             .corner_radius(egui::CornerRadius::same(theme::SPACE_XS as u8))
-            .fill(type_color.linear_multiply(theme::OPACITY_SUBTLE))
+            .fill(theme::tinted_surface(type_color))
             .stroke(egui::Stroke::new(
                 theme::BORDER_HAIRLINE,
-                type_color.linear_multiply(theme::OPACITY_MUTED),
+                theme::color_blend_pub(theme::bg_secondary(), type_color, 0.45),
             ))
             .show(ui, |ui: &mut egui::Ui| {
                 ui.horizontal(|ui: &mut egui::Ui| {
@@ -1188,9 +1194,12 @@ impl NetworkPage {
                                 );
                             }
                             ui.label(
-                                egui::RichText::new(format!("Confiance: {}%", alert.confidence))
-                                    .font(theme::font_min())
-                                    .color(theme::text_tertiary()),
+                                egui::RichText::new(format!(
+                                    "Confiance: {}\u{202f}%",
+                                    alert.confidence
+                                ))
+                                .font(theme::font_min())
+                                .color(theme::text_tertiary()),
                             );
                             ui.label(
                                 egui::RichText::new(

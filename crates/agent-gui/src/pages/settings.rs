@@ -385,7 +385,7 @@ impl SettingsPage {
                         UpdateStatus::Idle => (format!("{}  Vérifier", icons::DOWNLOAD), false),
                         UpdateStatus::Available(v) => (format!("{}  Installer la v{}", icons::DOWNLOAD, v), false),
                         UpdateStatus::UpToDate => (format!("{}  À jour", icons::CHECK), false),
-                        UpdateStatus::Downloading(p) => (format!("{}  {}%", icons::DOWNLOAD, (p * 100.0) as u32), true),
+                        UpdateStatus::Downloading(p) => (format!("{}  {}\u{202f}%", icons::DOWNLOAD, (p * 100.0) as u32), true),
                         UpdateStatus::Verifying => (format!("{}  Vérification…", icons::DOWNLOAD), true),
                         UpdateStatus::Installing => (format!("{}  Installation…", icons::DOWNLOAD), true),
                         UpdateStatus::Completed => (format!("{}  Terminé", icons::CHECK), false),

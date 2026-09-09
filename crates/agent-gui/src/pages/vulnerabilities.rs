@@ -38,12 +38,12 @@ impl VulnerabilitiesPage {
                 ui,
                 format!(
                     "{}  {}",
+                    icons::PLAY,
                     if is_scanning {
                         "Analyse en cours"
                     } else {
                         "Lancer l'analyse"
-                    },
-                    icons::PLAY
+                    }
                 ),
                 !is_scanning,
                 is_scanning,
@@ -191,7 +191,7 @@ impl VulnerabilitiesPage {
                 };
                 ui.label(
                     egui::RichText::new(format!(
-                        "Correctifs disponibles : {}/{} ({:.0}%)",
+                        "Correctifs disponibles : {}/{} ({:.0}\u{202f}%)",
                         fix_available_count, total_findings, fix_pct
                     ))
                     .font(theme::font_body())
@@ -231,7 +231,7 @@ impl VulnerabilitiesPage {
                 };
                 ui.label(
                     egui::RichText::new(format!(
-                        "Couverture de rem\u{00e9}diation : {:.0}%",
+                        "Couverture de rem\u{00e9}diation : {:.0}\u{202f}%",
                         remediation_pct
                     ))
                     .font(theme::font_body())
@@ -281,10 +281,13 @@ impl VulnerabilitiesPage {
                 );
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
-                    egui::RichText::new(format!("Score CVSS moyen : {:.1}", avg_cvss))
-                        .font(theme::font_body())
-                        .color(theme::text_primary())
-                        .strong(),
+                    egui::RichText::new(format!(
+                        "Score CVSS moyen : {}",
+                        crate::format::decimal(avg_cvss, 1)
+                    ))
+                    .font(theme::font_body())
+                    .color(theme::text_primary())
+                    .strong(),
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
@@ -448,7 +451,7 @@ impl VulnerabilitiesPage {
                                 widgets::detail_field_colored(
                                     ui,
                                     "Score CVSS",
-                                    &format!("{:.1}", s),
+                                    &crate::format::decimal(s, 1),
                                     theme::readable_color(cvss_color),
                                 );
                             }
@@ -522,7 +525,7 @@ impl VulnerabilitiesPage {
                                     widgets::detail_field_badge(
                                         ui,
                                         "Confiance",
-                                        &format!("{}%", confidence),
+                                        &format!("{}\u{202f}%", confidence),
                                         conf_color,
                                     );
                                 }
@@ -851,7 +854,7 @@ impl VulnerabilitiesPage {
                         row.col(|ui: &mut egui::Ui| {
                             if let Some(s) = finding.cvss_score {
                                 ui.label(
-                                    egui::RichText::new(format!("{:.1}", s))
+                                    egui::RichText::new(crate::format::decimal(s, 1))
                                         .font(theme::font_body())
                                         .color(theme::readable_color(theme::score_color(
                                             100.0 - s * 10.0,

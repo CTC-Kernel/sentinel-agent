@@ -43,7 +43,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     state.threats.confirm_action = Some(PendingConfirmation {
                         action_type: ResponseActionType::KillProcess,
                         target: p.process_name.clone(),
-                        detail: format!("PID {} \u{2014} Confiance: {}%", p.pid, p.confidence),
+                        detail: format!(
+                            "PID {} \u{2014} Confiance: {}\u{202f}%",
+                            p.pid, p.confidence
+                        ),
                     });
                 }
             }

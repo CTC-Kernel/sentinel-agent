@@ -78,7 +78,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
             painter.text(
                 center + Vec2::new(0.0, -theme::SPACE_XS),
                 egui::Align2::CENTER_CENTER,
-                format!("{:.0}%", clamped),
+                crate::format::pct(clamped, 0),
                 theme::font_card_value(),
                 theme::readable_color(color),
             );

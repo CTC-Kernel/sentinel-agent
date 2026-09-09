@@ -31,7 +31,7 @@ impl DiscoveryPage {
         ui.add_space(theme::SPACE_LG);
 
         // Control bar (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        ui.scope(|ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 let is_scanning = state.discovery.in_progress;
 
@@ -165,10 +165,13 @@ impl DiscoveryPage {
                                     .strong(),
                             );
                             ui.label(
-                                egui::RichText::new(format!("{:.0}% COMPLET", progress * 100.0))
-                                    .font(theme::font_label())
-                                    .color(theme::accent_text())
-                                    .strong(),
+                                egui::RichText::new(format!(
+                                    "{:.0}\u{202f}% COMPLET",
+                                    progress * 100.0
+                                ))
+                                .font(theme::font_label())
+                                .color(theme::accent_text())
+                                .strong(),
                             );
                         });
                     });
@@ -495,10 +498,8 @@ impl DiscoveryPage {
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 let ago = now.signed_duration_since(device.last_seen);
-                                let text = if ago.num_hours() < 1 {
-                                    format!("il y a {}m", ago.num_minutes().max(1))
-                                } else if ago.num_hours() < 24 {
-                                    format!("il y a {}h", ago.num_hours())
+                                let text = if ago.num_hours() < 24 {
+                                    crate::format::ago(now, device.last_seen)
                                 } else {
                                     device.last_seen.format("%d/%m %H:%M").to_string()
                                 };

@@ -142,9 +142,9 @@ impl MonitoringPage {
                 if state.siem.stats.events_per_minute > 0.0 {
                     ui.label(
                         RichText::new(format!(
-                            "{}  {:.1} evt/min",
+                            "{}  {} evt/min",
                             icons::BOLT,
-                            state.siem.stats.events_per_minute
+                            crate::format::decimal(state.siem.stats.events_per_minute, 1)
                         ))
                         .font(theme::font_label())
                         .color(theme::text_secondary()),
@@ -333,10 +333,10 @@ impl MonitoringPage {
                             .strong()
                             .extra_letter_spacing(theme::TRACKING_TIGHT)
                     };
-                    ui.add_sized([time_w, 16.0], egui::Label::new(header_style("HEURE")));
+                    Self::log_cell(ui, time_w, |ui| ui.label(header_style("HEURE")));
                     ui.add_sized([sev_w, 16.0], egui::Label::new(header_style("SEV")));
-                    ui.add_sized([src_w, 16.0], egui::Label::new(header_style("SOURCE")));
-                    ui.add_sized([msg_w, 16.0], egui::Label::new(header_style("MESSAGE")));
+                    Self::log_cell(ui, src_w, |ui| ui.label(header_style("SOURCE")));
+                    Self::log_cell(ui, msg_w, |ui| ui.label(header_style("MESSAGE")));
                 });
 
                 widgets::divider_thin(ui);
@@ -378,14 +378,13 @@ impl MonitoringPage {
                                         // Time
                                         let time_str =
                                             entry.timestamp.format("%H:%M:%S").to_string();
-                                        ui.add_sized(
-                                            [time_w, 20.0],
-                                            egui::Label::new(
+                                        Self::log_cell(ui, time_w, |ui| {
+                                            ui.label(
                                                 RichText::new(&time_str)
                                                     .font(theme::font_mono_sm())
                                                     .color(theme::text_tertiary()),
-                                            ),
-                                        );
+                                            )
+                                        });
 
                                         // Severity badge
                                         let (sev_color, sev_label) =
@@ -410,14 +409,13 @@ impl MonitoringPage {
                                         });
 
                                         // Source
-                                        ui.add_sized(
-                                            [src_w, 20.0],
-                                            egui::Label::new(
+                                        Self::log_cell(ui, src_w, |ui| {
+                                            ui.label(
                                                 RichText::new(entry.source.label())
                                                     .font(theme::font_label())
                                                     .color(theme::text_secondary()),
-                                            ),
-                                        );
+                                            )
+                                        });
 
                                         // Message (truncated) — use char boundary to avoid UTF-8 panic
                                         let msg_display = if entry.message.len() > 120 {
@@ -429,15 +427,16 @@ impl MonitoringPage {
                                         } else {
                                             entry.message.clone()
                                         };
-                                        ui.add_sized(
-                                            [msg_w, 20.0],
-                                            egui::Label::new(
-                                                RichText::new(&msg_display)
-                                                    .font(theme::font_mono_sm())
-                                                    .color(theme::text_primary()),
+                                        Self::log_cell(ui, msg_w, |ui| {
+                                            ui.add(
+                                                egui::Label::new(
+                                                    RichText::new(&msg_display)
+                                                        .font(theme::font_mono_sm())
+                                                        .color(theme::text_primary()),
+                                                )
+                                                .truncate(),
                                             )
-                                            .truncate(),
-                                        );
+                                        });
                                     });
                                 });
 
@@ -523,7 +522,7 @@ impl MonitoringPage {
             ),
             (
                 "DÉBIT (evt/min)",
-                format!("{:.1}", stats.events_per_minute),
+                crate::format::decimal(stats.events_per_minute, 1),
                 theme::accent_text(),
                 icons::BOLT,
             ),
@@ -704,7 +703,7 @@ impl MonitoringPage {
             // ── Current value display ──────────────────────────────────────
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    RichText::new(format!("{:.1}", current))
+                    RichText::new(crate::format::decimal(current, 1))
                         .font(theme::font_card_value())
                         .color(line_color)
                         .strong(),
@@ -1130,14 +1129,32 @@ impl MonitoringPage {
         }
     }
 
+    /// Grouped up to six digits, then abbreviated in French: `1 284`, `1,3 M`.
     fn format_large_number(n: u64) -> String {
         if n >= 1_000_000 {
-            format!("{:.1}M", n as f64 / 1_000_000.0)
-        } else if n >= 1_000 {
-            format!("{:.1}K", n as f64 / 1_000.0)
+            format!(
+                "{}{}M",
+                crate::format::decimal(n as f64 / 1_000_000.0, 1),
+                crate::format::THIN_SPACE
+            )
         } else {
-            format!("{}", n)
+            crate::format::int(n)
         }
+    }
+
+    /// One text column of the event journal: fixed width, left-aligned, so a
+    /// long message starts where its header does instead of floating.
+    fn log_cell<R>(ui: &mut Ui, width: f32, add: impl FnOnce(&mut Ui) -> R) -> R {
+        ui.allocate_ui_with_layout(
+            egui::vec2(width, 20.0),
+            egui::Layout::left_to_right(egui::Align::Center),
+            |ui: &mut Ui| {
+                // The child ui reports its used width; claim the column's.
+                ui.set_min_width(width);
+                add(ui)
+            },
+        )
+        .inner
     }
 
     /// Premium summary card - clean Apple-style design

@@ -6,6 +6,8 @@
 //!
 //! `cargo run -p agent-gui --all-features --example preview`
 
+mod fixtures;
+
 use agent_gui::app::{AppState, Page};
 use agent_gui::{icons, pages, theme, widgets};
 use eframe::egui;
@@ -22,20 +24,32 @@ struct Preview {
     /// Screenshot after N frames, then quit (set via PREVIEW_SHOT).
     shot_after: Option<u32>,
     frame_count: u32,
+    /// PREVIEW_DRAWER, re-applied once the page has built its caches.
+    drawer: Option<String>,
     /// Command palette state, opened by PREVIEW_PAGE=palette.
     palette: widgets::CommandPaletteState,
     /// Toasts shown by PREVIEW_PAGE=overlays.
     toasts: Vec<widgets::Toast>,
+    /// Enrollment wizard, rendered by PREVIEW_PAGE=enrollment at PREVIEW_STEP.
+    wizard: agent_gui::enrollment::EnrollmentWizard,
 }
 
 impl Default for Preview {
     fn default() -> Self {
         let requested = std::env::var("PREVIEW_PAGE").unwrap_or_default();
+        let state = std::env::var("PREVIEW_PAGE").is_ok().then(|| {
+            let mut state = Box::new(AppState::default());
+            if std::env::var("PREVIEW_DATA").is_ok() {
+                fixtures::seed(&mut state);
+            }
+            if let Ok(drawer) = std::env::var("PREVIEW_DRAWER") {
+                fixtures::open_drawer(&mut state, &drawer);
+            }
+            state
+        });
         Self {
             page: page_from(&requested),
-            state: std::env::var("PREVIEW_PAGE")
-                .is_ok()
-                .then(|| Box::new(AppState::default())),
+            state,
             requested,
             dark: std::env::var("PREVIEW_LIGHT").is_err(),
             collapsed: std::env::var("PREVIEW_RAIL").is_ok(),
@@ -44,8 +58,32 @@ impl Default for Preview {
                 .ok()
                 .and_then(|v| v.parse().ok()),
             frame_count: 0,
+            drawer: std::env::var("PREVIEW_DRAWER").ok(),
             palette: widgets::CommandPaletteState::new(),
             toasts: Vec::new(),
+            wizard: {
+                use agent_gui::enrollment::{EnrollmentStep, EnrollmentWizard};
+                let step = match std::env::var("PREVIEW_STEP").as_deref() {
+                    Ok("token") => EnrollmentStep::TokenEntry,
+                    Ok("admin") => EnrollmentStep::AdminSetup,
+                    Ok("progress") => EnrollmentStep::InProgress,
+                    Ok("done") => EnrollmentStep::Complete {
+                        success: true,
+                        message: "Agent enrôlé auprès de Cyber Threat Consulting.".into(),
+                    },
+                    Ok("failed") => EnrollmentStep::Complete {
+                        success: false,
+                        message:
+                            "Jeton expiré. Demandez un nouveau QR code à votre administrateur."
+                                .into(),
+                    },
+                    _ => EnrollmentStep::Welcome,
+                };
+                EnrollmentWizard {
+                    step,
+                    ..Default::default()
+                }
+            },
         }
     }
 }
@@ -58,13 +96,54 @@ impl eframe::App for Preview {
             self.started = true;
         }
 
+        // First-run surfaces replace the whole shell, exactly as in the app.
+        match self.requested.as_str() {
+            "splash" => {
+                widgets::splash_screen(ctx, 1.2);
+                ctx.request_repaint();
+                return;
+            }
+            "enrollment" => {
+                egui::CentralPanel::default()
+                    .frame(
+                        egui::Frame::new()
+                            .fill(theme::bg_primary())
+                            .inner_margin(0.0),
+                    )
+                    .show(ctx, |ui| {
+                        let _ = self.wizard.show(ui);
+                    });
+                ctx.request_repaint();
+                return;
+            }
+            _ => {}
+        }
+
+        let (org, unread, pending, last_sync, scanning) = match self.state.as_deref() {
+            Some(st) => (
+                st.summary.organization.clone(),
+                st.unread_notification_count,
+                st.summary.pending_sync_count,
+                st.summary.last_sync_at,
+                st.summary.status == agent_gui::dto::GuiAgentStatus::Scanning,
+            ),
+            None => (
+                Some("Cyber Threat Consulting".to_string()),
+                7,
+                3,
+                Some(chrono::Utc::now() - chrono::Duration::minutes(4)),
+                false,
+            ),
+        };
         let sync = widgets::sidebar::SidebarSyncState {
             syncing: false,
-            pending_count: 3,
-            last_sync_at: Some(chrono::Utc::now() - chrono::Duration::minutes(4)),
+            pending_count: pending,
+            last_sync_at: last_sync,
             error: None,
         };
 
+        // Same rule as the shell: below the breakpoint the rail is forced.
+        let collapsed = self.collapsed || ctx.screen_rect().width() < theme::SIDEBAR_BREAKPOINT;
         let (page_icon, page_label, page_section) = location(&self.requested);
         if let Some(action) = widgets::top_bar(
             ctx,
@@ -72,13 +151,13 @@ impl eframe::App for Preview {
                 page_icon,
                 page_label,
                 page_section: Some(page_section),
-                organization: Some("Cyber Threat Consulting"),
-                unread: 7,
+                organization: org.as_deref(),
+                unread,
                 syncing: false,
-                scanning: false,
+                scanning,
                 dark_mode: self.dark,
-                sidebar_collapsed: self.collapsed,
-                sidebar_width: widgets::Sidebar::width(self.collapsed),
+                sidebar_collapsed: collapsed,
+                sidebar_width: widgets::Sidebar::width(collapsed),
             },
         ) {
             match action {
@@ -92,7 +171,7 @@ impl eframe::App for Preview {
         }
 
         egui::SidePanel::left("sidebar")
-            .exact_width(widgets::Sidebar::width(self.collapsed))
+            .exact_width(widgets::Sidebar::width(collapsed))
             .frame(egui::Frame::new().inner_margin(egui::Margin::ZERO))
             .show(ctx, |ui| {
                 widgets::Sidebar::paint_background(ui, ui.max_rect());
@@ -100,28 +179,42 @@ impl eframe::App for Preview {
                     ui,
                     &widgets::SidebarContext {
                         current: &self.page,
-                        scanning: false,
-                        unread_notifications: 7,
+                        scanning,
+                        unread_notifications: unread,
                         sync: &sync,
-                        organization: Some("Cyber Threat Consulting"),
+                        organization: org.as_deref(),
                         ai_ready: true,
                         voice_active: false,
-                        collapsed: self.collapsed,
+                        collapsed,
                     },
                 ) {
                     self.page = page;
                 }
             });
 
+        // Pages that cache their filtered list reset the selection on the
+        // first frame; re-open the requested drawer once that has settled.
+        if self.frame_count == 3
+            && let (Some(state), Some(drawer)) = (self.state.as_mut(), self.drawer.as_deref())
+        {
+            fixtures::open_drawer(state, drawer);
+        }
+
         egui::CentralPanel::default()
-            .frame(egui::Frame::new().fill(theme::bg_primary()).inner_margin(
-                egui::Margin::symmetric(theme::SPACE_LG as i8, theme::SPACE_LG as i8),
-            ))
+            .frame(
+                egui::Frame::new()
+                    .fill(theme::bg_primary())
+                    .inner_margin(egui::Margin::symmetric(0, theme::SPACE_LG as i8)),
+            )
             .show(ctx, |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| match self.state.as_mut() {
-                    Some(state) => real_page(ui, &self.requested, state),
-                    None => gallery(ui),
-                });
+                egui::ScrollArea::vertical()
+                    .auto_shrink(egui::Vec2b::new(false, false))
+                    .show(ui, |ui| {
+                        agent_gui::app::page_column(ui, |ui| match self.state.as_mut() {
+                            Some(state) => real_page(ui, &self.requested, state),
+                            None => gallery(ui),
+                        });
+                    });
             });
 
         self.overlays(ctx);
@@ -652,8 +745,16 @@ fn main() -> eframe::Result<()> {
         "Sentinel GRC Agent — preview",
         eframe::NativeOptions {
             renderer: eframe::Renderer::Wgpu,
-            viewport: egui::ViewportBuilder::default()
-                .with_inner_size([theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT]),
+            viewport: egui::ViewportBuilder::default().with_inner_size([
+                std::env::var("PREVIEW_W")
+                    .ok()
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(theme::WINDOW_WIDTH),
+                std::env::var("PREVIEW_H")
+                    .ok()
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(theme::WINDOW_HEIGHT),
+            ]),
             ..Default::default()
         },
         Box::new(|cc| {

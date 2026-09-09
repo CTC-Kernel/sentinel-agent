@@ -104,7 +104,7 @@ impl CartographyPage {
                     // Zoom indicators (AAA)
                     ui.label(
                         egui::RichText::new(format!(
-                            "ZOOM: {:.0}%",
+                            "ZOOM: {:.0}\u{202f}%",
                             state.cartography.zoom * 100.0
                         ))
                         .font(theme::font_label())
@@ -163,12 +163,12 @@ impl CartographyPage {
                                 ui,
                                 format!(
                                     "{}  {}",
+                                    icons::PLAY,
                                     if is_scanning {
                                         "Analyse en cours"
                                     } else {
                                         "Lancer l'analyse"
-                                    },
-                                    icons::PLAY
+                                    }
                                 ),
                                 !is_scanning,
                                 is_scanning,

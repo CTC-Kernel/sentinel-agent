@@ -132,6 +132,19 @@ pub fn sparkline_with_value(
     data: &[[f64; 2]],
     config: &SparklineConfig,
 ) {
+    sparkline_card_body(ui, label, value, data, config, 32.0);
+}
+
+/// [`sparkline_with_value`] with the chart at `chart_height`, for a card
+/// whose height is set by its neighbours rather than by the chart.
+pub fn sparkline_card_body(
+    ui: &mut Ui,
+    label: &str,
+    value: &str,
+    data: &[[f64; 2]],
+    config: &SparklineConfig,
+    chart_height: f32,
+) {
     ui.vertical(|ui: &mut egui::Ui| {
         // Header with label and value
         ui.horizontal(|ui: &mut egui::Ui| {
@@ -183,7 +196,13 @@ pub fn sparkline_with_value(
 
         // Sparkline chart
         let available_width = ui.available_width();
-        sparkline(ui, label, data, Vec2::new(available_width, 32.0), config);
+        sparkline(
+            ui,
+            label,
+            data,
+            Vec2::new(available_width, chart_height),
+            config,
+        );
 
         // Stats row (optional)
         if config.show_stats && !data.is_empty() {
@@ -194,13 +213,13 @@ pub fn sparkline_with_value(
 
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    RichText::new(format!("Moy: {:.0}%", avg))
+                    RichText::new(format!("Moy: {:.0}\u{202f}%", avg))
                         .font(theme::font_label())
                         .color(theme::text_tertiary()),
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
-                    RichText::new(format!("Max: {:.0}%", max))
+                    RichText::new(format!("Max: {:.0}\u{202f}%", max))
                         .font(theme::font_label())
                         .color(theme::text_tertiary()),
                 );

@@ -18,6 +18,7 @@ mod search_filter_bar;
 mod security_hero;
 pub mod sentinel_ai_core;
 pub mod sidebar;
+pub mod splash;
 mod status_badge;
 mod toggle_switch;
 pub mod topbar;
@@ -72,6 +73,7 @@ pub use search_filter_bar::SearchFilterBar;
 pub use security_hero::security_hero;
 pub use sentinel_ai_core::SentinelAICore;
 pub use sidebar::{Sidebar, SidebarContext};
+pub use splash::splash_screen;
 pub use status_badge::status_badge;
 pub use toggle_switch::toggle_switch;
 pub use topbar::{TopBarAction, TopBarContext, top_bar};
@@ -84,7 +86,9 @@ pub use detail_drawer::{
     detail_field_colored, detail_mono, detail_progress, detail_section, detail_text,
 };
 pub use org_banner::org_banner;
-pub use sparkline::{SparklineConfig, mini_gauge, sparkline, sparkline_with_value};
+pub use sparkline::{
+    SparklineConfig, mini_gauge, sparkline, sparkline_card_body, sparkline_with_value,
+};
 
 // UX feedback & input exports
 pub use loading_state::{error_state, loading_skeleton};

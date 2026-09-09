@@ -129,8 +129,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .collect::<Vec<_>>()
                     .join(", ");
                 let matches_str = format!(
-                    "{} correspondance(s){}",
-                    rule.match_count,
+                    "{}{}",
+                    crate::format::count(rule.match_count, "correspondance"),
                     rule.last_match
                         .map(|t| format!(" \u{2014} Derni\u{00e8}re : {}", t.format("%d/%m %H:%M")))
                         .unwrap_or_default()
@@ -384,8 +384,9 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                     let time = ui.input(|i| i.time);
                     state.toasts.push(
                         crate::widgets::toast::Toast::info(format!(
-                            "{} correspondance(s) trouv\u{00e9}e(s)",
-                            count
+                            "{} trouv\u{00e9}e{s}",
+                            crate::format::count(count, "correspondance"),
+                            s = crate::format::plural_suffix(count)
                         ))
                         .with_time(time),
                     );

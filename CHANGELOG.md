@@ -103,6 +103,69 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   chrome, de la galerie de composants et des pages réelles, sans runtime agent.
   `PREVIEW_PAGE=overlays` rend modale, toasts, alertes, progression, squelettes
   et états vides ; `PREVIEW_PAGE=palette` ouvre la palette de commandes.
+  `PREVIEW_DATA=1` peuple toutes les pages de données réalistes et
+  déterministes (`examples/preview/fixtures.rs`) ; `PREVIEW_DRAWER=vuln|threat|
+  asset|package|connection|risk|fim|notification|log` ouvre le tiroir de détail ;
+  `PREVIEW_LIGHT`, `PREVIEW_RAIL`, `PREVIEW_W`/`PREVIEW_H` pilotent thème,
+  rail et taille de fenêtre ; `PREVIEW_PAGE=splash|enrollment` et
+  `PREVIEW_STEP=welcome|token|admin|progress|done|failed` rendent le premier
+  lancement. Le banc dispose les pages avec la colonne du shell
+  (`app::page_column`), pour que la capture mesure ce que l'application montre.
+
+#### Vues peuplées — revue de 44 rendus
+- Notifications : les lignes non lues posaient un fond plein jaune, brun ou
+  bleu (accent translucide composité en linéaire). Elles reposent désormais sur
+  un lavis opaque de leur sévérité avec une barre d'accent sur le bord d'attaque,
+  colonne de badge à largeur fixe pour aligner les titres, survol visible.
+- Journal SIEM : cellules qui se rétractaient sur leur contenu, si bien que les
+  messages flottaient d'une ligne à l'autre ; colonnes texte alignées à gauche
+  et largeurs garanties.
+- Alertes réseau : types en français lisible (« SORTIE TOR », « DHCP PIRATE »)
+  à la place des clés brutes ; lavis opaque sur les lignes d'alerte.
+- Tableau de bord : les huit cartes d'indicateurs partagent une hauteur et les
+  graphes CPU / mémoire remplissent la leur ; jauge SLA corrigée (la fraction
+  était divisée deux fois, l'arc affichait 1 %) ; score et delta du héros
+  centrés sous le titre (« 87 % ▲ 4,3 ») ; la tendance des KPI se termine sur
+  le score de la carte de synthèse.
+- Grilles : dernière ligne équilibrée — 4 cartes à 3 colonnes donnent 2 + 2,
+  7 à 5 donnent 4 + 3 — au lieu d'un orphelin.
+- Barres de progression : suppression du reflet qui balayait les barres
+  déterminées ; une mesure qui scintille se lit comme une activité en cours.
+- Matrice des risques : cases vides en teinte discrète, cases occupées en
+  couleur pleine avec le compte en texte primaire ; libellé d'axe dégagé.
+- Séparateurs entre cartes supprimés (risques, intégrité des fichiers) ; journal
+  d'audit dimensionné par ses lignes plutôt qu'à la hauteur de la fenêtre ;
+  export CSV posé sur la ligne de recherche (logiciels) ou à droite (audit),
+  comme sur les autres pages ; le bouton de découverte Shadow IT n'est plus
+  seul dans une carte.
+- L'icône ▶ précède le libellé des boutons d'analyse sur toutes les pages ;
+  elle le suivait sur six d'entre elles.
+- Modale : voile bleu nuit en thème sombre, neutre en clair. Un flou
+  d'arrière-plan réel n'est pas à la portée du peintre immédiat d'egui sans
+  passe de rendu dédiée ; le voile et l'élévation à deux couches jouent ce rôle.
+
+#### Formatage français
+- Nouveau module `format` : milliers groupés par espace fine insécable
+  (« 1 284 »), virgule décimale (« 87,4 »), « % » précédé d'une espace fine,
+  unités d'octets (« 1,2 Mo »), durées compactes (« 3 j 05 h »), temps relatifs
+  (« il y a 5 min ») et pluriels accordés (« 3 échecs », « 1 résultat ») à la
+  place des « (s) ». Appliqué aux cartes, tableaux, tiroirs et rapports ; les
+  exports CSV gardent le format machine. Couvert par tests.
+
+#### Réactivité
+- Sous 1 120 px de large, la barre latérale se replie en rail d'icônes ; le
+  bouton de menu la déploie le temps d'une navigation sans toucher à la
+  préférence enregistrée.
+
+#### Premier lancement
+- Assistant d'enrôlement : colonne unique de 520 px centrée (la carte s'étirait
+  sur toute la largeur de la fenêtre et son stepper collait au bord gauche),
+  stepper numéroté avec coches, sélecteur Jeton / QR code en pilules, actions
+  alignées à droite comme dans toute boîte de dialogue, états de fin sur le
+  médaillon commun aux états vides ; vocabulaire unifié sur « jeton
+  d'enrôlement ».
+- Écran de démarrage extrait en widget (`widgets::splash_screen`) et rendu
+  dans le banc.
 
 ---
 

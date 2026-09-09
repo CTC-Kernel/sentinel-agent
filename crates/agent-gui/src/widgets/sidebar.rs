@@ -709,19 +709,7 @@ impl Sidebar {
 
     /// Format a relative time difference in French.
     fn relative_time_fr(now: DateTime<Utc>, then: DateTime<Utc>) -> String {
-        let secs = (now - then).num_seconds().max(0);
-        if secs < 120 {
-            "\u{00e0} l'instant".into()
-        } else if secs < 3600 {
-            format!("il y a {} min", secs / 60)
-        } else if secs < agent_common::constants::SECS_PER_DAY as i64 {
-            format!("il y a {} h", secs / 3600)
-        } else {
-            format!(
-                "il y a {} j",
-                secs / agent_common::constants::SECS_PER_DAY as i64
-            )
-        }
+        crate::format::ago(now, then)
     }
 }
 

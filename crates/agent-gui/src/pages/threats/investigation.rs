@@ -331,7 +331,7 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                         source: "PROCESSUS",
                         title: proc.process_name.clone(),
                         match_description: format!(
-                            "{} \u{2014} Confiance: {}%",
+                            "{} \u{2014} Confiance: {}\u{202f}%",
                             proc.reason, proc.confidence,
                         ),
                         severity,

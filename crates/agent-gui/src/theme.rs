@@ -480,6 +480,9 @@ pub const SPACE_3XL: f32 = 64.0;
 pub const SIDEBAR_WIDTH: f32 = 244.0;
 /// Sidebar width when collapsed to an icon rail.
 pub const SIDEBAR_RAIL_WIDTH: f32 = 64.0;
+/// Window width below which the sidebar collapses to the rail on its own.
+/// A 244px column on a 960px window leaves 690px for a data table.
+pub const SIDEBAR_BREAKPOINT: f32 = 1120.0;
 /// Global top bar height.
 pub const TOPBAR_HEIGHT: f32 = 56.0;
 /// Maximum content measure. Beyond this, tables and prose stop stretching and
@@ -1912,7 +1915,7 @@ pub fn enrollment_gradient() -> (Color32, Color32) {
 }
 
 /// Enrollment card/content max width.
-pub const ENROLLMENT_CARD_WIDTH: f32 = 480.0;
+pub const ENROLLMENT_CARD_WIDTH: f32 = 520.0;
 /// Enrollment input card max width.
 pub const ENROLLMENT_INPUT_WIDTH: f32 = 420.0;
 /// Enrollment hero icon font size.

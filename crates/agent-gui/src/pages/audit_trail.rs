@@ -35,33 +35,31 @@ impl AuditTrailPage {
 
         // Action bar with Export
         let mut export_clicked = false;
+        // A bare right-to-left layout would claim the page's whole height and
+        // centre the button in it; the horizontal row bounds it to one line.
         ui.horizontal(|ui: &mut egui::Ui| {
-            if widgets::button::secondary_button(
-                ui,
-                format!("{}  Exporter CSV", crate::icons::DOWNLOAD),
-                true,
-            )
-            .clicked()
-            {
-                export_clicked = true;
-                let success = Self::export_audit_trail_csv(state);
-                let time = ui.input(|i| i.time);
-                if success {
-                    state.toasts.push(
-                        crate::widgets::toast::Toast::success(
-                            "Journal d'audit export\u{00e9} avec succ\u{00e8}s",
-                        )
-                        .with_time(time),
-                    );
-                } else {
-                    state.toasts.push(
-                        crate::widgets::toast::Toast::error(
-                            "\u{00c9}chec de l'export du journal d'audit",
-                        )
-                        .with_time(time),
-                    );
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if widgets::ghost_button(ui, format!("{}  CSV", crate::icons::DOWNLOAD)).clicked() {
+                    export_clicked = true;
+                    let success = Self::export_audit_trail_csv(state);
+                    let time = ui.input(|i| i.time);
+                    if success {
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::success(
+                                "Journal d'audit export\u{00e9} avec succ\u{00e8}s",
+                            )
+                            .with_time(time),
+                        );
+                    } else {
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::error(
+                                "\u{00c9}chec de l'export du journal d'audit",
+                            )
+                            .with_time(time),
+                        );
+                    }
                 }
-            }
+            });
         });
         // Local CSV export is handled inline above — no GUI command needed.
         let _ = export_clicked;
@@ -132,7 +130,6 @@ impl AuditTrailPage {
 
         // Log Table
         widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.set_height(ui.available_height() - theme::SPACE_XL);
             Self::render_table(ui, state);
         });
 

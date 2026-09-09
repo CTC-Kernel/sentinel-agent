@@ -11,6 +11,7 @@
 //! 5. Complete (success/failure)
 
 use egui::Ui;
+use std::cmp::Ordering;
 
 use crate::icons;
 use crate::theme;
@@ -197,67 +198,69 @@ impl EnrollmentWizard {
         command
     }
 
+    /// The wizard's single column: one card, `ENROLLMENT_CARD_WIDTH` wide,
+    /// centred by the parent layout however wide the window is.
+    fn column(ui: &mut Ui, add: impl FnOnce(&mut Ui)) {
+        let width = theme::ENROLLMENT_CARD_WIDTH.min(ui.available_width());
+        ui.allocate_ui_with_layout(
+            egui::vec2(width, 0.0),
+            egui::Layout::top_down(egui::Align::Min),
+            |ui: &mut Ui| {
+                ui.set_width(width);
+                widgets::card(ui, add);
+            },
+        );
+    }
+
     fn show_welcome(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
-        let command = None;
-
-        ui.centered_and_justified(|ui| {
-            widgets::card(ui, |ui: &mut egui::Ui| {
-                ui.set_max_width(theme::ENROLLMENT_CARD_WIDTH);
-                ui.vertical_centered(|ui: &mut egui::Ui| {
-                    ui.add_space(theme::SPACE);
-
-                    ui.label(
-                        egui::RichText::new("Bienvenue dans Sentinel Agent")
-                            .font(theme::font_comex())
-                            .color(theme::accent_text())
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE);
-
-                    ui.label(
-                        egui::RichText::new(
-                            "Pour commencer, vous devez inscrire cet agent avec votre \
-                             plateforme Sentinel GRC.\n\n\
-                             Vous aurez besoin du jeton d'inscription fourni par votre \
-                             administrateur.",
-                        )
-                        .font(theme::font_body())
-                        .color(theme::text_secondary())
-                        .line_height(Some(theme::ICON_MD)),
-                    );
-
-                    ui.add_space(theme::SPACE_LG);
-
-                    if widgets::button::primary_button(ui, "Commencer l'inscription", true)
-                        .clicked()
-                    {
-                        self.step = EnrollmentStep::TokenEntry;
-                    }
-
-                    ui.add_space(theme::SPACE);
-                });
+        Self::column(ui, |ui: &mut egui::Ui| {
+            ui.vertical_centered(|ui: &mut egui::Ui| {
+                ui.add_space(theme::SPACE);
+                ui.label(
+                    egui::RichText::new("Bienvenue dans Sentinel Agent")
+                        .font(theme::font_h2())
+                        .color(theme::text_primary()),
+                );
+                ui.add_space(theme::SPACE_SM);
+                ui.label(
+                    egui::RichText::new(
+                        "Pour commencer, inscrivez cet agent aupr\u{00e8}s de votre plateforme \
+                         Sentinel GRC. Vous aurez besoin du jeton d'enr\u{00f4}lement fourni \
+                         par votre administrateur.",
+                    )
+                    .font(theme::font_body())
+                    .color(theme::text_secondary())
+                    .line_height(Some(theme::ICON_MD)),
+                );
+                ui.add_space(theme::SPACE_LG);
+                if widgets::button::primary_button(ui, "Commencer l'enr\u{00f4}lement", true)
+                    .clicked()
+                {
+                    self.step = EnrollmentStep::TokenEntry;
+                }
+                ui.add_space(theme::SPACE);
             });
         });
 
-        command
+        None
     }
 
     fn show_token_entry(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
         let mut command = None;
 
-        widgets::card(ui, |ui| {
-            ui.set_max_width(480.0);
+        Self::column(ui, |ui| {
             ui.vertical_centered(|ui| {
                 ui.label(
-                    egui::RichText::new("Authentification")
+                    egui::RichText::new("Jeton d'enr\u{00f4}lement")
                         .font(theme::font_h2())
-                        .color(theme::text_primary())
-                        .strong(),
+                        .color(theme::text_primary()),
                 );
                 ui.add_space(theme::SPACE);
 
-                // Simple checkbox toggle for Token / QR
-                ui.checkbox(&mut self.use_qr, "Utiliser un QR Code");
+                let mut mode = usize::from(self.use_qr);
+                if widgets::tabs_pills(ui, &["Jeton", "QR code"], &mut mode) {
+                    self.use_qr = mode == 1;
+                }
 
                 ui.add_space(theme::SPACE_SM);
 
@@ -277,7 +280,7 @@ impl EnrollmentWizard {
                 } else {
                     ui.label(
                         egui::RichText::new(
-                            "Saisissez le token d'enrôlement fourni par votre administrateur.\n\
+                            "Saisissez le jeton d'enrôlement fourni par votre administrateur.\n\
                              Vous le trouverez dans Sentinel GRC \u{2192} Paramètres \
                              \u{2192} Agents \u{2192} Enrôler un Agent.",
                         )
@@ -292,7 +295,7 @@ impl EnrollmentWizard {
                                 .desired_width(ui.available_width() - 40.0)
                                 .font(egui::TextStyle::Monospace)
                                 .password(!self.show_token)
-                                .hint_text("Token d'enrôlement…"),
+                                .hint_text("Jeton d'enrôlement…"),
                         );
 
                         let vis_icon = if self.show_token {
@@ -308,14 +311,8 @@ impl EnrollmentWizard {
 
                 ui.add_space(theme::SPACE);
 
-                // Buttons
-                ui.horizontal(|ui| {
-                    if widgets::secondary_button(ui, "Annuler", true).clicked() {
-                        command = Some(EnrollmentCommand::Cancel);
-                    }
-
-                    ui.add_space(theme::SPACE);
-
+                // Actions: primary on the trailing edge, as in every dialog.
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     let is_valid = if self.use_qr {
                         !self.qr_input.trim().is_empty()
                     } else {
@@ -342,6 +339,11 @@ impl EnrollmentWizard {
                             self.step = EnrollmentStep::AdminSetup;
                         }
                     }
+
+                    ui.add_space(theme::SPACE_SM);
+                    if widgets::secondary_button(ui, "Annuler", true).clicked() {
+                        command = Some(EnrollmentCommand::Cancel);
+                    }
                 });
             });
         });
@@ -352,14 +354,12 @@ impl EnrollmentWizard {
     fn show_admin_setup(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
         let mut command = None;
 
-        widgets::card(ui, |ui| {
-            ui.set_max_width(480.0);
+        Self::column(ui, |ui| {
             ui.vertical_centered(|ui| {
                 ui.label(
-                    egui::RichText::new("Configuration Admin")
+                    egui::RichText::new("Compte administrateur")
                         .font(theme::font_h2())
-                        .color(theme::text_primary())
-                        .strong(),
+                        .color(theme::text_primary()),
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
@@ -374,8 +374,8 @@ impl EnrollmentWizard {
 
                 // Password input (always required — no default password)
                 ui.label(
-                    egui::RichText::new("Mot de passe administrateur :")
-                        .font(theme::font_small())
+                    egui::RichText::new("Mot de passe administrateur")
+                        .font(theme::font_label())
                         .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_XS);
@@ -413,13 +413,7 @@ impl EnrollmentWizard {
                 ui.add_space(theme::SPACE_LG);
 
                 // Actions
-                ui.horizontal(|ui| {
-                    if widgets::secondary_button(ui, "Retour", true).clicked() {
-                        self.step = EnrollmentStep::TokenEntry;
-                    }
-
-                    ui.add_space(theme::SPACE);
-
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     let is_valid = self.admin_password.trim().len() >= 8;
 
                     if widgets::primary_button_loading(
@@ -441,6 +435,11 @@ impl EnrollmentWizard {
                             admin_password: password,
                         });
                     }
+
+                    ui.add_space(theme::SPACE_SM);
+                    if widgets::secondary_button(ui, "Retour", true).clicked() {
+                        self.step = EnrollmentStep::TokenEntry;
+                    }
                 });
             });
         });
@@ -449,8 +448,7 @@ impl EnrollmentWizard {
     }
 
     fn show_progress(ui: &mut Ui, message: &str) {
-        widgets::card(ui, |ui| {
-            ui.set_max_width(480.0);
+        Self::column(ui, |ui| {
             ui.vertical_centered(|ui| {
                 ui.add_space(theme::SPACE_LG);
                 ui.spinner();
@@ -474,71 +472,52 @@ impl EnrollmentWizard {
     fn show_complete(ui: &mut Ui, success: bool, message: &str) -> Option<EnrollmentCommand> {
         let mut command = None;
 
-        widgets::card(ui, |ui| {
-            ui.set_max_width(480.0);
-            ui.vertical_centered(|ui| {
-                ui.add_space(theme::SPACE_LG);
-
-                if success {
-                    ui.label(
-                        egui::RichText::new("\u{2705}").font(theme::font_icon(theme::ICON_2XL)),
-                    );
-                    ui.add_space(theme::SPACE);
-                    ui.label(
-                        egui::RichText::new("Enrôlement réussi !")
-                            .font(theme::font_title())
-                            .color(theme::readable_color(theme::SUCCESS))
-                            .strong(),
-                    );
-                } else {
-                    ui.label(
-                        egui::RichText::new("\u{274c}").font(theme::font_icon(theme::ICON_2XL)),
-                    );
-                    ui.add_space(theme::SPACE);
-                    ui.label(
-                        egui::RichText::new("Échec de l'enrôlement")
-                            .font(theme::font_title())
-                            .color(theme::readable_color(theme::ERROR))
-                            .strong(),
-                    );
-                }
-
-                ui.add_space(theme::SPACE_SM);
-                ui.label(
-                    egui::RichText::new(message)
-                        .font(theme::font_body())
-                        .color(theme::text_secondary()),
+        Self::column(ui, |ui| {
+            if success {
+                widgets::hero_state(
+                    ui,
+                    icons::SHIELD_CHECK,
+                    "Enr\u{00f4}lement r\u{00e9}ussi",
+                    message,
+                    theme::SUCCESS,
                 );
-
-                ui.add_space(theme::SPACE_LG);
-
-                let btn_text = if success { "Continuer" } else { "Réessayer" };
-                let btn = egui::Button::new(
-                    egui::RichText::new(btn_text)
-                        .font(theme::font_body())
-                        .color(theme::text_on_accent()),
-                )
-                .fill(if success {
-                    theme::ACCENT
+            } else {
+                widgets::hero_state(
+                    ui,
+                    icons::CIRCLE_XMARK,
+                    "\u{00c9}chec de l'enr\u{00f4}lement",
+                    message,
+                    theme::ERROR,
+                );
+            }
+            ui.vertical_centered(|ui| {
+                let label = if success {
+                    "Continuer"
                 } else {
-                    theme::WARNING
-                })
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-                .min_size(egui::Vec2::new(160.0, 40.0));
-
-                if ui.add(btn).clicked() {
+                    "R\u{00e9}essayer"
+                };
+                if widgets::button::primary_button(ui, label, true).clicked() {
                     command = Some(EnrollmentCommand::Finish);
                 }
-
-                ui.add_space(theme::SPACE_LG);
+                ui.add_space(theme::SPACE);
             });
         });
 
         command
     }
 
+    /// Numbered stepper: done steps carry a check, the current one is filled,
+    /// the rest wait in outline. Painted, so it centres as one block.
     fn step_indicator(ui: &mut Ui, current: &EnrollmentStep) {
-        let step_labels = ["Bienvenue", "Jeton", "Admin", "Inscription", "Terminé"];
+        const LABELS: [&str; 5] = [
+            "Bienvenue",
+            "Jeton",
+            "Admin",
+            "Enr\u{00f4}lement",
+            "Termin\u{00e9}",
+        ];
+        const STEP_W: f32 = 96.0;
+        const RADIUS: f32 = 11.0;
 
         let current_idx = match current {
             EnrollmentStep::Welcome => 0,
@@ -548,29 +527,81 @@ impl EnrollmentWizard {
             EnrollmentStep::Complete { .. } => 4,
         };
 
-        ui.horizontal(|ui| {
-            for (i, label) in step_labels.iter().enumerate() {
-                let color = if i <= current_idx {
-                    theme::ACCENT
-                } else {
-                    theme::text_tertiary()
-                };
+        let height = RADIUS * 2.0 + theme::SPACE_XS + theme::ICON_SM;
+        let (rect, _) = ui.allocate_exact_size(
+            egui::vec2(STEP_W * LABELS.len() as f32, height),
+            egui::Sense::hover(),
+        );
+        if !ui.is_rect_visible(rect) {
+            return;
+        }
+        let painter = ui.painter();
+        let cy = rect.top() + RADIUS;
+        let center_x = |i: usize| rect.left() + STEP_W * (i as f32 + 0.5);
 
-                ui.label(
-                    egui::RichText::new(format!("{}. {}", i + 1, label))
-                        .font(theme::font_small())
-                        .color(color),
+        for i in 0..LABELS.len() - 1 {
+            let done = i < current_idx;
+            painter.line_segment(
+                [
+                    egui::pos2(center_x(i) + RADIUS + theme::SPACE_XS, cy),
+                    egui::pos2(center_x(i + 1) - RADIUS - theme::SPACE_XS, cy),
+                ],
+                egui::Stroke::new(
+                    theme::BORDER_THIN,
+                    if done { theme::ACCENT } else { theme::border() },
+                ),
+            );
+        }
+
+        for (i, label) in LABELS.iter().enumerate() {
+            let center = egui::pos2(center_x(i), cy);
+            let (fill, ring, glyph, text) = match i.cmp(&current_idx) {
+                Ordering::Less => (
+                    theme::tinted_surface(theme::ACCENT),
+                    theme::ACCENT,
+                    theme::accent_text(),
+                    theme::text_secondary(),
+                ),
+                Ordering::Equal => (
+                    theme::ACCENT,
+                    theme::ACCENT,
+                    theme::text_on_accent(),
+                    theme::text_primary(),
+                ),
+                Ordering::Greater => (
+                    theme::bg_secondary(),
+                    theme::border(),
+                    theme::text_tertiary(),
+                    theme::text_tertiary(),
+                ),
+            };
+            painter.circle_filled(center, RADIUS, fill);
+            painter.circle_stroke(center, RADIUS, egui::Stroke::new(theme::BORDER_THIN, ring));
+            if i < current_idx {
+                painter.text(
+                    center,
+                    egui::Align2::CENTER_CENTER,
+                    icons::CHECK,
+                    theme::font_icon(theme::ICON_XS),
+                    glyph,
                 );
-
-                if i < step_labels.len() - 1 {
-                    ui.label(
-                        egui::RichText::new(" \u{2192} ")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary()),
-                    );
-                }
+            } else {
+                painter.text(
+                    center,
+                    egui::Align2::CENTER_CENTER,
+                    (i + 1).to_string(),
+                    theme::font_label(),
+                    glyph,
+                );
             }
-        });
+            painter.text(
+                egui::pos2(center.x, rect.top() + RADIUS * 2.0 + theme::SPACE_XS),
+                egui::Align2::CENTER_TOP,
+                *label,
+                theme::font_label(),
+                text,
+            );
+        }
     }
 
     /// Set the enrollment result. Called by the app when enrollment completes.

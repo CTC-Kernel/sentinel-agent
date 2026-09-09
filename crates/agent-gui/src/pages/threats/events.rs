@@ -187,7 +187,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             let confidence = threat
                 .confidence
-                .map(|c| format!("{}%", c))
+                .map(|c| format!("{}\u{202f}%", c))
                 .unwrap_or_else(|| "\u{2014}".to_string());
 
             let date = threat.timestamp.format("%d/%m/%Y %H:%M").to_string();
@@ -281,7 +281,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 widgets::detail_field_colored(
                                     ui,
                                     "Confiance",
-                                    &format!("{}%", conf),
+                                    &format!("{}\u{202f}%", conf),
                                     theme::readable_color(sev_color),
                                 );
                             }

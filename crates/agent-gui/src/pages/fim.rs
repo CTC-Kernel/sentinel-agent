@@ -42,7 +42,7 @@ impl FimPage {
             let items: Vec<(&str, String, egui::Color32, &str)> = vec![
                 (
                     "FICHIERS SURVEILLÉS",
-                    state.fim.monitored_count.to_string(),
+                    crate::format::int(state.fim.monitored_count),
                     theme::INFO,
                     icons::FILE_SHIELD,
                 ),
@@ -142,7 +142,7 @@ impl FimPage {
                         theme::ERROR
                     };
                     ui.label(
-                        egui::RichText::new(format!("{:.0}%", ack_pct))
+                        egui::RichText::new(crate::format::pct(ack_pct, 0))
                             .font(theme::font_body())
                             .color(pct_color)
                             .strong(),
@@ -172,9 +172,7 @@ impl FimPage {
             });
         }
 
-        ui.add_space(theme::SPACE_LG);
-        widgets::divider_thin(ui);
-        ui.add_space(theme::SPACE_LG);
+        ui.add_space(theme::SPACE_MD);
 
         // ── Alerts table (AAA Grade) ─────────────────────────────────────
         if state.fim.alerts.is_empty() {

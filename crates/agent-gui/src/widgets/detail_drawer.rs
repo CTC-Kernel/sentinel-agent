@@ -512,7 +512,7 @@ pub fn detail_progress(ui: &mut Ui, label: &str, fraction: f32, color: Color32) 
         );
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             ui.label(
-                egui::RichText::new(format!("{:.0}%", fraction * 100.0))
+                egui::RichText::new(format!("{:.0}\u{202f}%", fraction * 100.0))
                     .font(theme::font_body())
                     .color(color)
                     .strong(),
@@ -564,12 +564,12 @@ pub fn detail_ai_proposal(ui: &mut Ui, explanation: &str, commands: &[String]) {
 
     // Explanation Box
     egui::Frame::new()
-        .fill(theme::ACCENT.linear_multiply(0.05))
+        .fill(theme::tinted_surface(theme::ACCENT))
         .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
         .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
         .stroke(egui::Stroke::new(
             theme::BORDER_HAIRLINE,
-            theme::ACCENT.linear_multiply(0.2),
+            theme::color_blend_pub(theme::bg_secondary(), theme::ACCENT, 0.35),
         ))
         .show(ui, |ui| {
             ui.add(

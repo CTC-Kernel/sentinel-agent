@@ -238,6 +238,20 @@ fn content_column(ui: &mut egui::Ui, side: f32, measure: f32, body: impl FnOnce(
 /// content is not clipped by it.
 const SCROLLBAR_GUTTER: f32 = 10.0;
 
+/// Lay a page body out the way the shell does: a column bounded by
+/// `CONTENT_MAX_WIDTH`, inset by the page gutter and the scrollbar gutter.
+///
+/// Past the bound the content centres instead of stretching, because a
+/// 3000px-wide table row is unreadable however premium it looks. The preview
+/// harness calls this too, so a capture measures what the shell shows.
+pub fn page_column(ui: &mut egui::Ui, body: impl FnOnce(&mut egui::Ui)) {
+    let gutter = theme::SPACE_LG;
+    let full = ui.available_width();
+    let measure = (full - gutter * 2.0 - SCROLLBAR_GUTTER).min(theme::CONTENT_MAX_WIDTH);
+    let side = ((full - measure - SCROLLBAR_GUTTER) / 2.0).max(gutter);
+    content_column(ui, side, measure, body);
+}
+
 // ============================================================================
 // App state
 // ============================================================================
@@ -298,6 +312,13 @@ pub struct SentinelApp {
 
     /// Command palette (⌘K / Ctrl+K) — global search over pages and actions.
     command_palette: widgets::CommandPaletteState,
+
+    /// The window was below `SIDEBAR_BREAKPOINT` last frame.
+    narrow_layout: bool,
+    /// The operator re-opened the sidebar while the window was narrow.
+    /// Cleared whenever the breakpoint is crossed, so the saved preference
+    /// comes back the moment the window is wide again.
+    narrow_expanded: bool,
 }
 
 impl SentinelApp {
@@ -371,6 +392,8 @@ impl SentinelApp {
             page_transition: 1.0,
             theme_transition: 1.0,
             command_palette: widgets::CommandPaletteState::new(),
+            narrow_layout: false,
+            narrow_expanded: false,
         }
     }
 
@@ -1005,7 +1028,7 @@ impl eframe::App for SentinelApp {
         // Sidebar. Width animates so collapsing reads as one motion rather
         // than a jump cut; the gradient is painted by the widget across the
         // full panel, including behind the scroll area.
-        let target_width = widgets::Sidebar::width(self.state.settings.sidebar_collapsed);
+        let target_width = widgets::Sidebar::width(self.sidebar_collapsed_now(ctx));
         let sidebar_width = if self.state.reduced_motion {
             target_width
         } else {
@@ -1085,17 +1108,7 @@ impl eframe::App for SentinelApp {
                 egui::ScrollArea::vertical()
                     .auto_shrink(egui::Vec2b::new(false, false))
                     .show(ui, |ui: &mut egui::Ui| {
-                        // Bounded measure: past CONTENT_MAX_WIDTH the content
-                        // centres instead of stretching, because a 3000px-wide
-                        // table row is unreadable however premium it looks.
-                        // Done with layout rather than Frame margins — egui
-                        // margins are i8, so a wide display would overflow them.
-                        let gutter = theme::SPACE_LG;
-                        let full = ui.available_width();
-                        let measure =
-                            (full - gutter * 2.0 - SCROLLBAR_GUTTER).min(theme::CONTENT_MAX_WIDTH);
-                        let side = ((full - measure - SCROLLBAR_GUTTER) / 2.0).max(gutter);
-                        content_column(ui, side, measure, |ui: &mut egui::Ui| match self.page {
+                        page_column(ui, |ui: &mut egui::Ui| match self.page {
                             Page::Dashboard => {
                                 if let Some(action) =
                                     pages::DashboardPage::show(ui, &mut self.state)
@@ -1266,6 +1279,7 @@ impl SentinelApp {
             .map(|(_, _, icon, label, section)| (icon, label, Some(section)))
             .unwrap_or((icons::DASHBOARD, "Sentinel", None));
 
+        let collapsed = self.sidebar_collapsed_now(ctx);
         let action = widgets::top_bar(
             ctx,
             &widgets::TopBarContext {
@@ -1277,14 +1291,18 @@ impl SentinelApp {
                 syncing: self.state.sync.in_progress,
                 scanning: self.state.summary.status == crate::dto::GuiAgentStatus::Scanning,
                 dark_mode: self.state.settings.dark_mode,
-                sidebar_collapsed: self.state.settings.sidebar_collapsed,
-                sidebar_width: widgets::Sidebar::width(self.state.settings.sidebar_collapsed),
+                sidebar_collapsed: collapsed,
+                sidebar_width: widgets::Sidebar::width(collapsed),
             },
         );
 
         match action {
             Some(widgets::TopBarAction::ToggleSidebar) => {
-                self.state.settings.sidebar_collapsed = !self.state.settings.sidebar_collapsed;
+                if self.narrow_layout {
+                    self.narrow_expanded = !self.narrow_expanded;
+                } else {
+                    self.state.settings.sidebar_collapsed = !self.state.settings.sidebar_collapsed;
+                }
             }
             Some(widgets::TopBarAction::OpenPalette) => self.command_palette.open(),
             Some(widgets::TopBarAction::RunCheck) => self.send_command(GuiCommand::RunCheck),
@@ -1295,6 +1313,21 @@ impl SentinelApp {
             Some(widgets::TopBarAction::OpenNotifications) => self.navigate_to(Page::Notifications),
             Some(widgets::TopBarAction::OpenAssistant) => self.navigate_to(Page::AI),
             None => {}
+        }
+    }
+
+    /// Whether the sidebar is a rail this frame: the saved preference on a
+    /// wide window; below the breakpoint, collapsed unless re-opened.
+    fn sidebar_collapsed_now(&mut self, ctx: &egui::Context) -> bool {
+        let narrow = ctx.screen_rect().width() < theme::SIDEBAR_BREAKPOINT;
+        if narrow != self.narrow_layout {
+            self.narrow_layout = narrow;
+            self.narrow_expanded = false;
+        }
+        if narrow {
+            !self.narrow_expanded
+        } else {
+            self.state.settings.sidebar_collapsed
         }
     }
 
@@ -1363,101 +1396,7 @@ impl SentinelApp {
 
     /// Render the splash screen.
     fn show_splash(&self, ctx: &egui::Context, elapsed: f32) {
-        // Respect reduced-motion: skip fade animations, show static splash.
-        let (alpha, progress) = if theme::is_reduced_motion() {
-            (1.0_f32, (elapsed / theme::SPLASH_DURATION).min(1.0))
-        } else {
-            let a = if elapsed < theme::SPLASH_FADE_IN {
-                elapsed / theme::SPLASH_FADE_IN
-            } else if elapsed > theme::SPLASH_FADE_OUT_START {
-                1.0 - ((elapsed - theme::SPLASH_FADE_OUT_START) / theme::SPLASH_FADE_OUT_DURATION)
-                    .min(1.0)
-            } else {
-                1.0
-            };
-            (a, (elapsed / theme::SPLASH_DURATION).min(1.0))
-        };
-        egui::CentralPanel::default()
-            .frame(egui::Frame::new().fill(theme::bg_primary()))
-            .show(ctx, |ui: &mut egui::Ui| {
-                let size = ui.available_size();
-                ui.allocate_new_ui(
-                    egui::UiBuilder::new().max_rect(egui::Rect::from_center_size(
-                        egui::pos2(size.x / 2.0, size.y / 2.0),
-                        egui::vec2(theme::SPLASH_CONTENT_WIDTH, theme::SPLASH_CONTENT_HEIGHT),
-                    )),
-                    |ui: &mut egui::Ui| {
-                        ui.vertical_centered(|ui: &mut egui::Ui| {
-                            // Logo image
-                            // Tint white, not text_primary: tinting with the
-                            // light theme's near-black text colour multiplied
-                            // the mark to black instead of fading it.
-                            let logo = egui::Image::from_bytes(
-                                "bytes://ia_logo",
-                                include_bytes!("../assets/IA.png"),
-                            )
-                            .max_width(theme::ENROLLMENT_LOGO_WIDTH)
-                            .tint(egui::Color32::WHITE.linear_multiply(alpha));
-                            ui.add(logo);
-
-                            ui.add_space(theme::SPACE_LG);
-
-                            // SENTINEL
-                            ui.label(
-                                egui::RichText::new("SENTINEL")
-                                    .font(theme::font_splash())
-                                    .color(theme::text_primary().linear_multiply(alpha))
-                                    .extra_letter_spacing(theme::TRACKING_WIDE * 4.0),
-                            );
-
-                            ui.add_space(theme::SPACE_XS);
-
-                            // GRC AGENT
-                            ui.label(
-                                egui::RichText::new("GRC AGENT")
-                                    .font(theme::font_label())
-                                    .color(theme::accent_text().linear_multiply(alpha))
-                                    .extra_letter_spacing(theme::TRACKING_WIDE * 3.0),
-                            );
-
-                            ui.add_space(theme::SPACE_XL);
-
-                            // Progress bar (animated, or static under reduced motion)
-                            let bar_w = theme::SPLASH_PROGRESS_WIDTH;
-                            let bar_h = theme::PROGRESS_BAR_HEIGHT_THIN;
-                            let (bar_rect, _) = ui.allocate_exact_size(
-                                egui::vec2(bar_w, bar_h),
-                                egui::Sense::empty(),
-                            );
-                            let painter = ui.painter_at(bar_rect);
-                            painter.rect_filled(
-                                bar_rect,
-                                egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
-                                theme::bg_tertiary(),
-                            );
-                            let fill_rect = egui::Rect::from_min_size(
-                                bar_rect.min,
-                                egui::vec2(bar_w * progress, bar_h),
-                            );
-                            painter.rect_filled(
-                                fill_rect,
-                                egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
-                                theme::ACCENT.linear_multiply(alpha),
-                            );
-
-                            ui.add_space(theme::SPACE_LG);
-
-                            // CYBER THREAT CONSULTING
-                            ui.label(
-                                egui::RichText::new("CYBER THREAT CONSULTING")
-                                    .font(theme::font_micro())
-                                    .color(theme::text_tertiary().linear_multiply(alpha))
-                                    .extra_letter_spacing(theme::TRACKING_WIDE * 2.0),
-                            );
-                        });
-                    },
-                );
-            });
+        widgets::splash_screen(ctx, elapsed);
     }
 
     /// Render the standalone premium Jarvis AI widget.

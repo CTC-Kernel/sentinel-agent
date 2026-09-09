@@ -22,6 +22,7 @@ pub struct SearchFilterBar<'a> {
     placeholder: &'a str,
     chips: Vec<(&'a str, bool, egui::Color32)>,
     count: Option<usize>,
+    action: Option<String>,
 }
 
 impl<'a> SearchFilterBar<'a> {
@@ -31,6 +32,7 @@ impl<'a> SearchFilterBar<'a> {
             placeholder,
             chips: Vec::new(),
             count: None,
+            action: None,
         }
     }
 
@@ -46,9 +48,23 @@ impl<'a> SearchFilterBar<'a> {
         self
     }
 
+    /// A ghost action on the trailing edge, next to the result count: the
+    /// place for an export that applies to the filtered list, so it sits on
+    /// the row it acts on rather than on a row of its own.
+    pub fn action(mut self, label: impl Into<String>) -> Self {
+        self.action = Some(label.into());
+        self
+    }
+
     /// Render the bar. Returns `Some(index)` of a chip that was toggled, or `None`.
     pub fn show(self, ui: &mut Ui) -> Option<usize> {
+        self.show_with_action(ui).0
+    }
+
+    /// [`show`](Self::show), also reporting whether the trailing action was clicked.
+    pub fn show_with_action(self, ui: &mut Ui) -> (Option<usize>, bool) {
         let mut toggled: Option<usize> = None;
+        let mut action_clicked = false;
 
         ui.horizontal(|ui: &mut egui::Ui| {
             // Search field: framed and prefixed with a magnifier, matching the
@@ -135,21 +151,28 @@ impl<'a> SearchFilterBar<'a> {
                 }
             }
 
-            // Result count on right
-            if let Some(n) = self.count {
+            // Trailing edge: action, then the result count beside it
+            if self.count.is_some() || self.action.is_some() {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(format!("{} résultat(s)", n))
-                                .font(theme::font_small())
-                                .color(theme::text_tertiary()),
-                        );
+                        if let Some(label) = self.action.as_deref()
+                            && crate::widgets::ghost_button(ui, label).clicked()
+                        {
+                            action_clicked = true;
+                        }
+                        if let Some(n) = self.count {
+                            ui.label(
+                                egui::RichText::new(crate::format::count(n, "résultat"))
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary()),
+                            );
+                        }
                     },
                 );
             }
         });
 
-        toggled
+        (toggled, action_clicked)
     }
 }

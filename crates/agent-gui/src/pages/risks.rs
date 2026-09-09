@@ -35,8 +35,6 @@ impl RisksPage {
         // Risk matrix heatmap
         Self::draw_risk_matrix(ui, state);
         ui.add_space(theme::SPACE_MD);
-        widgets::divider_thin(ui);
-        ui.add_space(theme::SPACE_MD);
 
         // Summary cards
         let total = state.risks.entries.len();
@@ -230,9 +228,7 @@ impl RisksPage {
             }
         }
 
-        ui.add_space(theme::SPACE_SM);
-        widgets::divider_thin(ui);
-        ui.add_space(theme::SPACE_SM);
+        ui.add_space(theme::SPACE_MD);
 
         // Risk table
         widgets::card(ui, |ui: &mut egui::Ui| {
@@ -358,6 +354,19 @@ impl RisksPage {
                         let score = (prob_idx + 1).saturating_mul(impact_idx + 1);
                         let color = Self::matrix_cell_color(score as u8);
                         let count = *count;
+                        // Empty cells only hint at their band; a cell with
+                        // risks in it is the one that should be seen.
+                        let (fill, ring) = if count > 0 {
+                            (
+                                theme::color_blend_pub(theme::bg_secondary(), color, 0.6),
+                                color,
+                            )
+                        } else {
+                            (
+                                theme::color_blend_pub(theme::bg_secondary(), color, 0.18),
+                                theme::color_blend_pub(theme::bg_secondary(), color, 0.38),
+                            )
+                        };
 
                         let cell_rect = egui::Rect::from_min_size(
                             origin
@@ -371,15 +380,12 @@ impl RisksPage {
                         painter.rect_filled(
                             cell_rect,
                             egui::CornerRadius::same(theme::ROUNDING_SM),
-                            color.linear_multiply(theme::OPACITY_MUTED),
+                            fill,
                         );
                         painter.rect_stroke(
                             cell_rect,
                             egui::CornerRadius::same(theme::ROUNDING_SM),
-                            egui::Stroke::new(
-                                theme::BORDER_THIN,
-                                color.linear_multiply(theme::OPACITY_MEDIUM),
-                            ),
+                            egui::Stroke::new(theme::BORDER_THIN, ring),
                             egui::StrokeKind::Inside,
                         );
 
@@ -389,7 +395,7 @@ impl RisksPage {
                                 egui::Align2::CENTER_CENTER,
                                 count.to_string(),
                                 theme::font_body(),
-                                color,
+                                theme::text_primary(),
                             );
                         }
                     }
@@ -413,7 +419,7 @@ impl RisksPage {
                 painter.text(
                     egui::pos2(
                         origin.x + cell_size * 2.5,
-                        origin.y + cell_size * 5.0 + theme::SPACE_MD,
+                        origin.y + cell_size * 5.0 + theme::SPACE_MD + theme::SPACE_SM,
                     ),
                     egui::Align2::CENTER_TOP,
                     "Impact",

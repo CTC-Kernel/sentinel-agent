@@ -55,12 +55,12 @@ impl CompliancePage {
                     ui,
                     format!(
                         "{}  {}",
+                        icons::PLAY,
                         if is_scanning {
                             "Analyse en cours"
                         } else {
                             "Lancer l'analyse"
-                        },
-                        icons::PLAY
+                        }
                     ),
                     !is_scanning,
                     is_scanning,
@@ -288,7 +288,7 @@ impl CompliancePage {
                             |ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(format!(
-                                        "{:.0}% ({}/{})",
+                                        "{:.0}\u{202f}% ({}/{})",
                                         pct, pass_count, total_count
                                     ))
                                     .font(theme::font_body())
@@ -604,7 +604,10 @@ impl CompliancePage {
                         let score_color = theme::score_color(pct);
                         widgets::status_badge(
                             ui,
-                            &format!("{:.0}% CONFORMIT\u{00c9} ({}/{})", pct, pass_count, total),
+                            &format!(
+                                "{:.0}\u{202f}% CONFORMIT\u{00c9} ({}/{})",
+                                pct, pass_count, total
+                            ),
                             score_color,
                         );
                     });
@@ -931,7 +934,7 @@ impl CompliancePage {
                         row.col(|ui: &mut egui::Ui| {
                             if let Some(s) = check.score {
                                 ui.label(
-                                    egui::RichText::new(format!("{:.0}%", s))
+                                    egui::RichText::new(crate::format::pct(s, 0))
                                         .font(theme::font_body())
                                         .color(theme::readable_color(theme::score_color(s as f32)))
                                         .strong(),
@@ -1069,7 +1072,7 @@ impl CompliancePage {
                                     .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                             ui.label(
-                                egui::RichText::new(format!("{:.0}%", pct))
+                                egui::RichText::new(crate::format::pct(pct, 0))
                                     .font(theme::font_label())
                                     .color(score_color)
                                     .strong(),
@@ -1140,10 +1143,11 @@ impl CompliancePage {
             if fail_count > 0 {
                 ui.label(
                     egui::RichText::new(format!(
-                        "{} : {} contr\u{00f4}le(s) \u{00e9}chou\u{00e9}(s) sur {}",
+                        "{} : {} contr\u{00f4}le{s} \u{00e9}chou\u{00e9}{s} sur {}",
                         fw.to_uppercase(),
                         fail_count,
-                        fw_total[fi]
+                        fw_total[fi],
+                        s = crate::format::plural_suffix(fail_count)
                     ))
                     .font(theme::font_small())
                     .color(theme::readable_color(theme::ERROR)),

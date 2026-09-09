@@ -5,6 +5,9 @@
 
 use egui::Ui;
 
+/// Width reserved for the severity badge, so row titles line up.
+const NOTIF_BADGE_COLUMN: f32 = 84.0;
+
 use crate::app::AppState;
 use crate::dto::{AlertRule, AlertRuleType, Severity, WebhookConfig};
 use crate::events::GuiCommand;
@@ -73,9 +76,14 @@ impl NotificationsPage {
             let unread = state.notifications.iter().filter(|n| !n.read).count();
 
             ui.label(
-                egui::RichText::new(format!("{} notification(s), {} non lue(s)", total, unread))
-                    .font(theme::font_body())
-                    .color(theme::text_secondary()),
+                egui::RichText::new(format!(
+                    "{} \u{00b7} {} non lue{}",
+                    crate::format::count(total, "notification"),
+                    crate::format::int(unread),
+                    crate::format::plural_suffix(unread)
+                ))
+                .font(theme::font_body())
+                .color(theme::text_secondary()),
             );
 
             ui.with_layout(
@@ -151,52 +159,52 @@ impl NotificationsPage {
                 .enumerate()
             {
                 let idx = nf_start + offset;
-                let border_color = theme::severity_color(&notif.severity);
-                let bg = if notif.read {
-                    theme::bg_secondary()
+                let severity = theme::severity_color(&notif.severity);
+                // Unread rows sit on an opaque tint of their severity with a
+                // bar on the leading edge; read rows fall back to the plain
+                // surface, so the unread ones are the only thing that pops.
+                let (fill, stroke) = if notif.read {
+                    (
+                        theme::bg_secondary(),
+                        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+                    )
                 } else {
-                    border_color.linear_multiply(theme::OPACITY_SUBTLE)
+                    (
+                        theme::tinted_surface(severity),
+                        egui::Stroke::new(
+                            theme::BORDER_THIN,
+                            theme::color_blend_pub(theme::bg_secondary(), severity, 0.45),
+                        ),
+                    )
                 };
 
                 let resp = egui::Frame::new()
-                    .fill(bg)
+                    .fill(fill)
                     .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
                     .inner_margin(egui::Margin::same(theme::SPACE as i8))
-                    .stroke(egui::Stroke::new(
-                        if notif.read {
-                            theme::BORDER_HAIRLINE
-                        } else {
-                            theme::BORDER_THIN
-                        },
-                        border_color.linear_multiply(if notif.read {
-                            theme::OPACITY_MODERATE
-                        } else {
-                            1.0
-                        }),
-                    ))
+                    .stroke(stroke)
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.horizontal(|ui: &mut egui::Ui| {
-                            widgets::status_badge(ui, &notif.severity.to_uppercase(), border_color);
-
-                            ui.add_space(theme::SPACE_SM);
-
-                            if !notif.read {
-                                ui.painter().circle_filled(
-                                    ui.available_rect_before_wrap().min
-                                        + egui::vec2(0.0, theme::SPACE_SM),
-                                    theme::STATUS_DOT_SIZE / 2.0,
-                                    theme::ACCENT,
-                                );
-                                ui.add_space(theme::SPACE_MD);
-                            }
+                            // Fixed badge column, so titles align down the
+                            // list whatever the severity word's width.
+                            ui.allocate_ui_with_layout(
+                                egui::vec2(NOTIF_BADGE_COLUMN, theme::ICON_MD),
+                                egui::Layout::left_to_right(egui::Align::Center),
+                                |ui: &mut egui::Ui| {
+                                    ui.set_min_width(NOTIF_BADGE_COLUMN);
+                                    widgets::status_badge(
+                                        ui,
+                                        &notif.severity.to_uppercase(),
+                                        severity,
+                                    );
+                                },
+                            );
 
                             ui.vertical(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&notif.title)
-                                        .font(theme::font_body())
-                                        .color(theme::text_primary())
-                                        .strong(),
-                                );
+                                let title = egui::RichText::new(&notif.title)
+                                    .font(theme::font_body())
+                                    .color(theme::text_primary());
+                                ui.label(if notif.read { title } else { title.strong() });
                                 if !notif.body.is_empty() {
                                     ui.label(
                                         egui::RichText::new(&notif.body)
@@ -221,9 +229,29 @@ impl NotificationsPage {
                         });
                     });
 
+                let row_rect = resp.response.rect;
+                let rounding = egui::CornerRadius::same(theme::CARD_ROUNDING);
+                if !notif.read {
+                    // Paint the whole rounded row, clipped to a strip on the
+                    // leading edge: the bar inherits the corner radius exactly.
+                    let strip = egui::Rect::from_min_size(
+                        row_rect.left_top(),
+                        egui::vec2(theme::ACCENT_BAR_WIDTH, row_rect.height()),
+                    );
+                    ui.painter()
+                        .with_clip_rect(strip)
+                        .rect_filled(row_rect, rounding, severity);
+                }
+
                 let click_resp = resp.response.interact(egui::Sense::click());
                 if click_resp.hovered() {
                     ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                    ui.painter().rect_stroke(
+                        row_rect,
+                        rounding,
+                        egui::Stroke::new(theme::BORDER_THIN, theme::border()),
+                        egui::StrokeKind::Inside,
+                    );
                 }
                 if click_resp.clicked() {
                     state.selected_notification = Some(idx);

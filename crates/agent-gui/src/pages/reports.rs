@@ -101,7 +101,7 @@ impl ReportsPage {
                                     widgets::detail_field_colored(
                                         ui,
                                         "Score de conformit\u{00e9}",
-                                        &format!("{:.0}%", score),
+                                        &crate::format::pct(score, 0),
                                         theme::readable_color(theme::score_color(score)),
                                     );
                                 }
@@ -215,7 +215,7 @@ impl ReportsPage {
                                 .strong(),
                         );
                         ui.label(
-                            egui::RichText::new(format!("{:.0}%", score))
+                            egui::RichText::new(crate::format::pct(score, 0))
                                 .font(theme::font_card_value())
                                 .color(theme::readable_color(theme::score_color(score)))
                                 .strong(),
@@ -393,7 +393,7 @@ impl ReportsPage {
                             row.col(|ui: &mut egui::Ui| {
                                 if let Some(score) = report.compliance_score {
                                     ui.label(
-                                        egui::RichText::new(format!("{:.0}%", score))
+                                        egui::RichText::new(crate::format::pct(score, 0))
                                             .font(theme::font_body())
                                             .color(theme::readable_color(theme::score_color(score)))
                                             .strong(),
@@ -500,7 +500,7 @@ impl ReportsPage {
             .filter(|v| v.severity == Severity::High)
             .count();
 
-        let score_display = score.map_or("N/A".to_string(), |s| format!("{:.0}%", s));
+        let score_display = score.map_or("N/A".to_string(), |s| crate::format::pct(s, 0));
 
         let summary_text = format!(
             "Score de conformit\u{00e9} : {}. {} contr\u{00f4}les audit\u{00e9}s, {} d\u{00e9}faillants. {} vuln\u{00e9}rabilit\u{00e9}s d\u{00e9}tect\u{00e9}es. {} menaces actives.",
@@ -577,7 +577,7 @@ impl ReportsPage {
                 0.0
             };
             fw_rows.push_str(&format!(
-                "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{:.0}%</td></tr>",
+                "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{:.0}\u{202f}%</td></tr>",
                 html_escape(fw),
                 total,
                 pass,
@@ -592,7 +592,7 @@ impl ReportsPage {
             state.summary.compliance_score
         };
 
-        let score_display = overall_pct.map_or("N/A".to_string(), |s| format!("{:.0}%", s));
+        let score_display = overall_pct.map_or("N/A".to_string(), |s| crate::format::pct(s, 0));
 
         let summary_text = format!(
             "Audit de conformit\u{00e9} : {} contr\u{00f4}les analys\u{00e9}s sur {} r\u{00e9}f\u{00e9}rentiels. Taux de conformit\u{00e9} global : {}.",
@@ -641,7 +641,7 @@ impl ReportsPage {
         let mut process_rows = String::new();
         for proc in state.threats.suspicious_processes.iter().take(50) {
             process_rows.push_str(&format!(
-                "<tr><td>{}</td><td>{}</td><td>{}%</td><td>{}</td></tr>",
+                "<tr><td>{}</td><td>{}</td><td>{}\u{202f}%</td><td>{}</td></tr>",
                 html_escape(&proc.process_name),
                 html_escape(&proc.reason),
                 proc.confidence,

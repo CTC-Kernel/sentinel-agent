@@ -416,7 +416,7 @@ impl AssetsPage {
                             // A risk_score of 10 (max) → score_pct=100 → we want red.
                             // score_color(100 - 100) = score_color(0) = ERROR ✓
                             ui.label(
-                                egui::RichText::new(format!("{:.1}", asset.risk_score))
+                                egui::RichText::new(crate::format::decimal(asset.risk_score, 1))
                                     .font(theme::font_body())
                                     .color(theme::readable_color(theme::score_color(
                                         100.0 - score_pct,
@@ -427,10 +427,8 @@ impl AssetsPage {
 
                         row.col(|ui: &mut egui::Ui| {
                             let ago = now.signed_duration_since(asset.last_seen);
-                            let text = if ago.num_hours() < 1 {
-                                format!("il y a {}m", ago.num_minutes().max(1))
-                            } else if ago.num_hours() < 24 {
-                                format!("il y a {}h", ago.num_hours())
+                            let text = if ago.num_hours() < 24 {
+                                crate::format::ago(now, asset.last_seen)
                             } else {
                                 asset.last_seen.format("%d/%m %H:%M").to_string()
                             };
@@ -516,7 +514,7 @@ impl AssetsPage {
                 widgets::detail_field_colored(
                     ui,
                     "Score de risque",
-                    &format!("{:.1}", asset.risk_score),
+                    &crate::format::decimal(asset.risk_score, 1),
                     theme::readable_color(risk_color),
                 );
                 widgets::detail_field(

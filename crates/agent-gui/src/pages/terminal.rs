@@ -113,13 +113,10 @@ impl TerminalPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 // Uptime
                 let uptime_secs = state.resources.uptime_secs;
-                let hours = uptime_secs / 3600;
-                let mins = (uptime_secs % 3600) / 60;
-                let secs = uptime_secs % 60;
                 Self::stat_item(
                     ui,
                     "DURÉE D'ACTIVITÉ",
-                    &format!("{:02}h {:02}m {:02}s", hours, mins, secs),
+                    &crate::format::duration_short(uptime_secs),
                     theme::accent_text(),
                 );
 
@@ -129,7 +126,7 @@ impl TerminalPage {
                 Self::stat_item(
                     ui,
                     "ÉVÉNEMENTS GÉNÉRÉS",
-                    &state.terminal.event_count.to_string(),
+                    &crate::format::int(state.terminal.event_count),
                     theme::text_primary(),
                 );
 
