@@ -579,110 +579,118 @@ impl SentinelApp {
     }
 
     /// Render the premium satellite tray view.
+    /// Compact tray popup: one glance at the agent's posture, two ways out.
     fn show_tray_satellite_view(&mut self, ctx: &egui::Context) {
+        let restore_window = |ctx: &egui::Context| {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
+            ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
+                theme::WINDOW_WIDTH,
+                theme::WINDOW_HEIGHT,
+            )));
+        };
+
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()
                     .fill(theme::bg_primary())
-                    .inner_margin(0.0),
+                    .inner_margin(egui::Margin::same(theme::SPACE_MD as i8)),
             )
             .show(ctx, |ui: &mut egui::Ui| {
                 ui.vertical(|ui: &mut egui::Ui| {
-                    // Title Bar (Satellite style)
-                    widgets::card(ui, |ui: &mut egui::Ui| {
-                        ui.horizontal(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(icons::SHIELD).color(theme::accent_text()),
-                            );
-                            ui.add_space(theme::SPACE_XS);
-                            ui.label(
-                                egui::RichText::new("RAPPORT CYBER RAPIDE")
-                                    .font(theme::font_small())
-                                    .strong(),
-                            );
-                            ui.with_layout(
-                                egui::Layout::right_to_left(egui::Align::Center),
+                    // ── Header ──────────────────────────────────────
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(icons::SHIELD)
+                                .font(theme::font_icon(theme::ICON_SM))
+                                .color(theme::accent_text()),
+                        );
+                        ui.add_space(theme::SPACE_XS);
+                        ui.label(
+                            egui::RichText::new("Aperçu de la posture")
+                                .font(theme::font_body_strong())
+                                .color(theme::text_primary()),
+                        );
+                        ui.with_layout(
+                            egui::Layout::right_to_left(egui::Align::Center),
+                            |ui: &mut egui::Ui| {
+                                if widgets::icon_button(ui, icons::XMARK, Some("Fermer")).clicked()
+                                {
+                                    self.show_tray_satellite = false;
+                                    restore_window(ctx);
+                                }
+                                if widgets::icon_button(
+                                    ui,
+                                    icons::EXTERNAL_LINK,
+                                    Some("Ouvrir la fenêtre complète"),
+                                )
+                                .clicked()
+                                {
+                                    self.show_tray_satellite = false;
+                                    self.visible = true;
+                                    restore_window(ctx);
+                                }
+                            },
+                        );
+                    });
+
+                    ui.add_space(theme::SPACE_SM);
+
+                    // ── Radar ───────────────────────────────────────
+                    let (compliance, threats, vulns, resources, network) =
+                        self.state.radar_scores();
+                    widgets::TrayRadar::new(compliance, threats, vulns, resources, network)
+                        .show(ui, theme::TRAY_RADAR_SIZE);
+
+                    ui.add_space(theme::SPACE_MD);
+
+                    // ── Two headline numbers ────────────────────────
+                    let threat_count = self.state.threats.suspicious_processes.len();
+                    let stats: [(&str, String, egui::Color32); 2] = [
+                        (
+                            "Conformité",
+                            format!("{:.0}%", self.state.summary.compliance_score.unwrap_or(0.0)),
+                            theme::score_color(self.state.summary.compliance_score.unwrap_or(0.0)),
+                        ),
+                        (
+                            "Menaces",
+                            threat_count.to_string(),
+                            if threat_count > 0 {
+                                theme::ERROR
+                            } else {
+                                theme::SUCCESS
+                            },
+                        ),
+                    ];
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        for (label, value, color) in stats {
+                            widgets::Card::new().padding(theme::SPACE_MD).show(
+                                ui,
                                 |ui: &mut egui::Ui| {
-                                    if ui.button(icons::XMARK).clicked() {
-                                        self.show_tray_satellite = false;
-                                        ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(
-                                            true,
-                                        ));
-                                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
-                                            egui::vec2(theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT),
-                                        ));
-                                    }
-                                    if ui.button(icons::EXTERNAL_LINK).clicked() {
-                                        self.show_tray_satellite = false;
-                                        self.visible = true;
-                                        ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(
-                                            true,
-                                        ));
-                                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
-                                            egui::vec2(theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT),
-                                        ));
-                                    }
+                                    ui.set_width(theme::TRAY_SATELLITE_CARD_WIDTH);
+                                    ui.label(
+                                        egui::RichText::new(label.to_uppercase())
+                                            .font(theme::font_micro())
+                                            .color(theme::text_tertiary())
+                                            .extra_letter_spacing(theme::TRACKING_WIDE),
+                                    );
+                                    ui.add_space(theme::SPACE_XS);
+                                    ui.label(
+                                        egui::RichText::new(value)
+                                            .font(theme::font_stat())
+                                            .color(theme::readable_color(color)),
+                                    );
                                 },
                             );
-                        });
+                            ui.add_space(theme::SPACE_SM);
+                        }
                     });
 
                     ui.add_space(theme::SPACE_MD);
 
-                    // Radar Chart Section
-                    ui.vertical(|ui: &mut egui::Ui| {
-                        let (compliance, threats, vulns, resources, network) =
-                            self.state.radar_scores();
-
-                        let radar =
-                            widgets::TrayRadar::new(compliance, threats, vulns, resources, network);
-                        radar.show(ui, theme::TRAY_RADAR_SIZE);
-                    });
-
-                    ui.add_space(theme::SPACE_MD);
-
-                    // Quick Stats Cards
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        widgets::card(ui, |ui: &mut egui::Ui| {
-                            ui.set_width(theme::TRAY_SATELLITE_CARD_WIDTH);
-                            ui.vertical(|ui: &mut egui::Ui| {
-                                ui.label(egui::RichText::new("SCORE").font(theme::font_small()));
-                                ui.add_space(theme::SPACE_XS);
-                                ui.label(
-                                    egui::RichText::new(format!(
-                                        "{:.0}%",
-                                        self.state.summary.compliance_score.unwrap_or(0.0)
-                                    ))
-                                    .font(theme::font_title())
-                                    .color(theme::accent_text()),
-                                );
-                            });
-                        });
-                        ui.add_space(theme::SPACE_MD);
-                        widgets::card(ui, |ui: &mut egui::Ui| {
-                            ui.set_width(theme::TRAY_SATELLITE_CARD_WIDTH);
-                            ui.vertical(|ui: &mut egui::Ui| {
-                                ui.label(egui::RichText::new("MENACES").font(theme::font_small()));
-                                ui.add_space(theme::SPACE_XS);
-                                let count = self.state.threats.suspicious_processes.len();
-                                ui.label(
-                                    egui::RichText::new(count.to_string())
-                                        .font(theme::font_title())
-                                        .color(if count > 0 {
-                                            theme::ERROR
-                                        } else {
-                                            theme::SUCCESS
-                                        }),
-                                );
-                            });
-                        });
-                    });
-
-                    ui.add_space(theme::SPACE_LG);
-
-                    // Actions
                     ui.vertical_centered(|ui: &mut egui::Ui| {
-                        if ui.button("LANCER UNE ANALYSE COMPLÈTE").clicked() {
+                        if widgets::primary_button(ui, "Lancer une analyse complète", true)
+                            .clicked()
+                        {
                             self.send_command(GuiCommand::RunCheck);
                         }
                     });

@@ -154,6 +154,9 @@ fn real_page(ui: &mut egui::Ui, page: &str, state: &mut AppState) {
         "about" => {
             pages::AboutPage::show(ui);
         }
+        "ai" => {
+            agent_gui::llm_panel::LLMPanel.show(ui, state);
+        }
         _ => {
             pages::DashboardPage::show(ui, state);
         }

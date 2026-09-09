@@ -1721,8 +1721,8 @@ pub const STEP_CIRCLE_SIZE: f32 = 24.0;
 
 /// Tab bar row height.
 pub const TAB_HEIGHT: f32 = 38.0;
-/// Tab icon column width (icon + spacing).
-pub const TAB_ICON_WIDTH: f32 = 20.0;
+/// Tab icon column width (icon + the gap before its label).
+pub const TAB_ICON_WIDTH: f32 = 24.0;
 /// Tab badge pill width (underline style).
 pub const TAB_BADGE_WIDTH: f32 = 28.0;
 

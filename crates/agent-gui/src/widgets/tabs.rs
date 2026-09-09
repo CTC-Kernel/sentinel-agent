@@ -151,7 +151,7 @@ impl<'a> TabBar<'a> {
         let mut content_width = 0.0;
 
         // Calculate content width
-        if let Some(_icon) = tab.icon {
+        if tab.icon.is_some() {
             content_width += theme::TAB_ICON_WIDTH;
         }
         content_width += ui
@@ -204,7 +204,14 @@ impl<'a> TabBar<'a> {
                 );
             }
 
-            let mut x = rect.min.x + padding.x;
+            // In full-width mode the tab is much wider than its label, so the
+            // content is centred: left-aligned text under a full-width
+            // underline reads as a misaligned rule rather than a tab.
+            let mut x = if fixed_width > 0.0 {
+                rect.center().x - content_width / 2.0
+            } else {
+                rect.min.x + padding.x
+            };
 
             // Icon
             if let Some(icon) = tab.icon {

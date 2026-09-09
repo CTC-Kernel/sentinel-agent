@@ -164,14 +164,21 @@ impl LLMPanel {
             ];
 
             for &(icon, label, prompt) in quick_actions {
+                // Suggestion chips, not primary actions: they sit at body
+                // size on a tinted surface so a first-time user can read them,
+                // and defer to the field below rather than competing with it.
                 let btn = egui::Button::new(
-                    egui::RichText::new(format!("{} {}", icon, label))
-                        .font(theme::font_small())
+                    egui::RichText::new(format!("{}  {}", icon, label))
+                        .font(theme::font_body())
                         .color(theme::accent_text()),
                 )
-                .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
-                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
+                .fill(theme::tinted_surface(theme::ACCENT))
+                .corner_radius(egui::CornerRadius::same(theme::ROUNDING_LG))
+                .min_size(egui::vec2(0.0, theme::BUTTON_HEIGHT_SM))
+                .stroke(egui::Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    theme::with_alpha(theme::ACCENT, 90),
+                ));
 
                 if ui.add_enabled(!state.ai.is_processing, btn).clicked() {
                     // Add user message to history
