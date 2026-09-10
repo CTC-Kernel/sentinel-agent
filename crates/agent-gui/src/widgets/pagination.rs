@@ -147,7 +147,7 @@ impl Pagination {
     fn show_default(&self, ui: &mut Ui, state: &mut PaginationState) -> bool {
         let mut changed = false;
 
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             // Info text
             if self.show_info && state.total_items > 0 {
                 let start = state.start_index() + 1;
@@ -373,7 +373,23 @@ impl Pagination {
 
     fn nav_button(&self, ui: &mut Ui, icon: &str, double: bool, enabled: bool) -> bool {
         let size = theme::MIN_TOUCH_TARGET;
-        let (rect, response) = ui.allocate_exact_size(egui::vec2(size, size), Sense::click());
+        let (rect, response) = ui.allocate_exact_size(
+            egui::vec2(size, size),
+            if enabled {
+                Sense::click()
+            } else {
+                Sense::hover()
+            },
+        );
+        let label = match (icon == icons::CHEVRON_LEFT, double) {
+            (true, true) => "Première page",
+            (true, false) => "Page précédente",
+            (false, true) => "Dernière page",
+            (false, false) => "Page suivante",
+        };
+        response.widget_info(|| {
+            egui::WidgetInfo::labeled(egui::WidgetType::Button, enabled && ui.is_enabled(), label)
+        });
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && enabled;

@@ -84,7 +84,7 @@ pub const HARD_DRIVE: &str = "\u{f0a0}"; // fa-hard-drive
 pub const FILE: &str = "\u{f15b}"; // fa-file
 pub const WRENCH_FA: &str = "\u{f7d9}"; // fa-screwdriver-wrench (remediation)
 pub const SHIELD: &str = "\u{f132}"; // fa-shield
-pub const SHIELD_CHECK: &str = "\u{f305}"; // fa-shield-check (or similar)
+pub const SHIELD_CHECK: &str = SHIELD; // Free solid shield; f305 is a pen.
 
 // ── Premium dashboard ───────────────────────────────────────────────
 pub const BUILDING: &str = "\u{f1ad}"; // fa-building

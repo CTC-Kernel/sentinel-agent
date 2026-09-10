@@ -201,12 +201,12 @@ pub fn detect_reduced_motion() -> bool {
 // Brand / semantic colors (shared between themes)
 // ============================================================================
 
-/// Primary accent (Apple System Blue).
-pub const ACCENT: Color32 = Color32::from_rgb(0, 122, 255); // #007AFF
+/// Primary action blue, tuned for readable white labels.
+pub const ACCENT: Color32 = Color32::from_rgb(37, 83, 190); // #2553BE
 /// Secondary accent (lighter brand blue).
-pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(90, 200, 250); // #5AC8FA (Apple System Teal/Blue mix)
+pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(139, 180, 255); // #5AC8FA (Apple System Teal/Blue mix)
 /// Accent hover state.
-pub const ACCENT_HOVER: Color32 = Color32::from_rgb(0, 113, 237);
+pub const ACCENT_HOVER: Color32 = Color32::from_rgb(30, 68, 158);
 
 /// Success green (Refined Mint - more premium/professional).
 pub const SUCCESS: Color32 = Color32::from_rgb(52, 199, 89); // Apple System Green
@@ -229,9 +229,9 @@ pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 135, 0);
 #[inline]
 pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(12, 13, 18) // Deep navy undertone (Sequoia-inspired)
+        Color32::from_rgb(13, 17, 23) // Deep navy undertone (Sequoia-inspired)
     } else {
-        Color32::from_rgb(243, 244, 250) // Cool off-white with subtle blue tint
+        Color32::from_rgb(244, 246, 249) // Cool off-white with subtle blue tint
     }
 }
 
@@ -239,9 +239,9 @@ pub fn bg_primary() -> Color32 {
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(20, 21, 28) // Elevated navy surface
+        Color32::from_rgb(21, 27, 36) // Elevated navy surface
     } else {
-        Color32::from_rgb(253, 253, 255) // Near-white with warmth
+        Color32::from_rgb(255, 255, 255) // Near-white with warmth
     }
 }
 
@@ -249,7 +249,7 @@ pub fn bg_secondary() -> Color32 {
 #[inline]
 pub fn bg_elevated() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(48, 49, 56) // Softer elevated surface with navy tint
+        Color32::from_rgb(39, 48, 62) // Softer elevated surface with navy tint
     } else {
         Color32::from_rgb(236, 238, 247) // Distinct cool-tinted elevated surface
     }
@@ -259,7 +259,7 @@ pub fn bg_elevated() -> Color32 {
 #[inline]
 pub fn bg_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(28, 29, 36) // Tertiary with consistent navy undertone
+        Color32::from_rgb(29, 37, 49) // Tertiary with consistent navy undertone
     } else {
         Color32::from_rgb(230, 232, 241) // Cool-tinted tertiary surface
     }
@@ -323,8 +323,7 @@ pub fn text_tertiary() -> Color32 {
     }
 }
 
-/// Text on accent background — white for sufficient contrast (AAA on #007AFF = 4.02:1,
-/// passes WCAG AA for large text / UI; AAA for large text achieved with bold weight).
+/// White text on the deep blue primary action surface.
 #[inline]
 pub fn text_on_accent() -> Color32 {
     Color32::WHITE
@@ -381,6 +380,15 @@ pub fn border() -> Color32 {
     }
 }
 
+/// Decorative panel outlines; interactive controls retain stronger borders.
+pub fn surface_border() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_rgb(45, 55, 70)
+    } else {
+        Color32::from_rgb(221, 227, 235)
+    }
+}
+
 /// Separator line (meets WCAG 1.4.11 non-text contrast ≥3:1).
 #[inline]
 pub fn separator() -> Color32 {
@@ -422,10 +430,10 @@ pub const SPACE_LG: f32 = 24.0;
 pub const SPACE_XL: f32 = 32.0;
 
 /// Sidebar width.
-pub const SIDEBAR_WIDTH: f32 = 250.0;
+pub const SIDEBAR_WIDTH: f32 = 232.0;
 
 /// Card rounding radius.
-pub const CARD_ROUNDING: u8 = 16;
+pub const CARD_ROUNDING: u8 = 12;
 /// Button rounding radius.
 pub const BUTTON_ROUNDING: u8 = 8;
 /// Extra-small element rounding (accent bars, tiny indicators).
@@ -558,17 +566,17 @@ pub fn font_stat() -> FontId {
 
 /// Label font (11px - for labels and annotations, WCAG accessible minimum).
 pub fn font_label() -> FontId {
-    FontId::new(11.0, egui::FontFamily::Proportional)
+    FontId::new(12.0, egui::FontFamily::Proportional)
 }
 
 /// Minimum readable font (11px - minimum for accessibility).
 pub fn font_min() -> FontId {
-    FontId::new(11.0, egui::FontFamily::Proportional)
+    FontId::new(12.0, egui::FontFamily::Proportional)
 }
 
 /// Caption font (11px - WCAG AA minimum readable text).
 pub fn font_caption() -> FontId {
-    FontId::new(11.0, egui::FontFamily::Proportional)
+    FontId::new(12.0, egui::FontFamily::Proportional)
 }
 
 // ============================================================================
@@ -810,14 +818,14 @@ pub fn font_heading() -> FontId {
     FontId::new(17.0, egui::FontFamily::Proportional) // SF Pro Text Semibold equivalent
 }
 
-/// Body font (13px).
+/// Body font (14px).
 pub fn font_body() -> FontId {
-    FontId::new(13.0, egui::FontFamily::Proportional) // SF Pro Text Regular equivalent
+    FontId::new(14.0, egui::FontFamily::Proportional) // SF Pro Text Regular equivalent
 }
 
-/// Small / caption font (11px).
+/// Small / caption font (12px).
 pub fn font_small() -> FontId {
-    FontId::new(11.0, egui::FontFamily::Proportional) // SF Pro Text Medium equivalent
+    FontId::new(12.0, egui::FontFamily::Proportional) // SF Pro Text Medium equivalent
 }
 
 /// Monospace font (12px).
@@ -1222,7 +1230,7 @@ pub fn selected_bg() -> Color32 {
 pub const MIN_TOUCH_TARGET: f32 = 32.0;
 
 /// Standard button height.
-pub const BUTTON_HEIGHT: f32 = 36.0;
+pub const BUTTON_HEIGHT: f32 = 40.0;
 
 /// Large button height.
 pub const BUTTON_HEIGHT_LG: f32 = 44.0;
@@ -1363,7 +1371,7 @@ pub const TOOLTIP_OFFSET: f32 = 8.0;
 pub const TOOLTIP_SCREEN_MARGIN: f32 = 4.0;
 
 /// Sidebar navigation item height.
-pub const NAV_ITEM_HEIGHT: f32 = 42.0;
+pub const NAV_ITEM_HEIGHT: f32 = 38.0;
 /// Sidebar nav item horizontal inset.
 pub const NAV_ITEM_INSET_H: f32 = 8.0;
 /// Sidebar nav item vertical inset.
@@ -1422,7 +1430,7 @@ pub const CANVAS_MIN_HEIGHT: f32 = 500.0;
 pub const SUMMARY_CARD_MIN_HEIGHT: f32 = 72.0;
 
 /// Search filter bar input height.
-pub const SEARCH_INPUT_HEIGHT: f32 = 28.0;
+pub const SEARCH_INPUT_HEIGHT: f32 = 36.0;
 
 /// Input field corner radius.
 pub const INPUT_ROUNDING: u8 = 12;

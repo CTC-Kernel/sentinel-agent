@@ -58,7 +58,14 @@ impl ResponsiveGrid {
     where
         F: FnMut(&mut Ui, f32, &T),
     {
-        let (cols, item_width) = self.calculate(ui);
+        if items.is_empty() {
+            return;
+        }
+        let (capacity, _) = self.calculate(ui);
+        let cols = balanced_columns(capacity, items.len());
+        let item_width = ((ui.available_width() - 12.0).max(0.0) - self.gap * (cols - 1) as f32)
+            .max(0.0)
+            / cols as f32;
 
         ui.vertical_centered_justified(|ui: &mut egui::Ui| {
             ui.spacing_mut().item_spacing.y = self.gap;
@@ -72,5 +79,24 @@ impl ResponsiveGrid {
                 });
             }
         });
+    }
+}
+
+/// Balance rows without allocating columns for nonexistent items.
+fn balanced_columns(capacity: usize, count: usize) -> usize {
+    let capacity = capacity.max(1).min(count.max(1));
+    let rows = count.div_ceil(capacity).max(1);
+    count.div_ceil(rows).max(1)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn grids_fill_the_row_and_balance_wrapping() {
+        assert_eq!(balanced_columns(3, 2), 2);
+        assert_eq!(balanced_columns(5, 8), 4);
+        assert_eq!(balanced_columns(1, 8), 1);
+        assert_eq!(balanced_columns(4, 0), 1);
     }
 }

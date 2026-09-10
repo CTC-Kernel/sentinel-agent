@@ -72,7 +72,22 @@ fn draw_premium_button(
     desired_size.y = desired_size.y.max(theme::BUTTON_HEIGHT);
     desired_size.x = desired_size.x.max(theme::BUTTON_MIN_WIDTH);
 
-    let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
+    let (rect, response) = ui.allocate_exact_size(
+        desired_size,
+        if enabled && !loading {
+            Sense::click()
+        } else {
+            Sense::hover()
+        },
+    );
+
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(
+            egui::WidgetType::Button,
+            enabled && !loading && ui.is_enabled(),
+            text_galley.text(),
+        )
+    });
 
     if ui.is_rect_visible(rect) {
         // State interaction
@@ -289,7 +304,22 @@ fn draw_destructive_button(
     desired_size.y = desired_size.y.max(theme::BUTTON_HEIGHT);
     desired_size.x = desired_size.x.max(theme::BUTTON_MIN_WIDTH);
 
-    let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
+    let (rect, response) = ui.allocate_exact_size(
+        desired_size,
+        if enabled && !loading {
+            Sense::click()
+        } else {
+            Sense::hover()
+        },
+    );
+
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(
+            egui::WidgetType::Button,
+            enabled && !loading && ui.is_enabled(),
+            text_galley.text(),
+        )
+    });
 
     if ui.is_rect_visible(rect) {
         let is_hovered = enabled && !loading && response.hovered();
@@ -376,6 +406,14 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
     let desired_size = text_galley.size() + padding * 2.0;
 
     let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
+
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(
+            egui::WidgetType::Button,
+            ui.is_enabled(),
+            text_galley.text(),
+        )
+    });
 
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
@@ -756,4 +794,57 @@ pub fn fab_button(ui: &mut Ui, icon: &str) -> Response {
     }
 
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
+}
+
+#[cfg(test)]
+mod interaction_tests {
+    use super::*;
+
+    #[test]
+    fn unavailable_actions_do_not_accept_clicks_or_keyboard_focus() {
+        let ctx = egui::Context::default();
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                for response in [
+                    primary_button(ui, "Disabled", false),
+                    primary_button_loading(ui, "Loading", true, true),
+                    secondary_button(ui, "Disabled secondary", false),
+                    destructive_button(ui, "Disabled destructive", false),
+                    destructive_button_loading(ui, "Loading destructive", true, true),
+                ] {
+                    assert!(!response.sense.senses_click());
+                    assert!(!response.sense.is_focusable());
+                }
+                assert!(primary_button(ui, "Available", true).sense.senses_click());
+            });
+        });
+    }
+    #[test]
+    fn primary_action_activates_from_keyboard() {
+        let ctx = egui::Context::default();
+        let mut id = None;
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                id = Some(primary_button(ui, "Analyser", true).id);
+            });
+        });
+        ctx.memory_mut(|m| m.request_focus(id.unwrap()));
+        let input = egui::RawInput {
+            events: vec![egui::Event::Key {
+                key: egui::Key::Enter,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: egui::Modifiers::NONE,
+            }],
+            ..Default::default()
+        };
+        let mut clicked = false;
+        let _ = ctx.run(input, |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                clicked = primary_button(ui, "Analyser", true).clicked();
+            });
+        });
+        assert!(clicked);
+    }
 }

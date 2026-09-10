@@ -26,23 +26,7 @@ pub fn empty_state_with_action<F: FnOnce()>(
     ui.vertical_centered(|ui: &mut egui::Ui| {
         ui.add_space(theme::SPACE_XL);
 
-        // Icon with animated subtle breathing effect
-        let icon_alpha = if theme::is_reduced_motion() {
-            theme::OPACITY_DISABLED + theme::OPACITY_TINT
-        } else {
-            let time = ui.input(|i| i.time);
-            let pulse = ((time * theme::ANIM_PULSE_SPEED as f64).sin() * 0.5 + 0.5) as f32;
-            // Limit breathing animation to ~10fps
-            ui.ctx()
-                .request_repaint_after(std::time::Duration::from_millis(100));
-            theme::OPACITY_DISABLED + pulse * theme::OPACITY_TINT
-        };
-
-        ui.label(
-            RichText::new(icon)
-                .size(theme::EMPTY_STATE_ICON)
-                .color(theme::accent_text().linear_multiply(icon_alpha)),
-        );
+        ui.label(RichText::new(icon).size(36.0).color(theme::accent_text()));
 
         ui.add_space(theme::SPACE_MD);
 
@@ -50,7 +34,7 @@ pub fn empty_state_with_action<F: FnOnce()>(
         ui.label(
             RichText::new(title)
                 .font(theme::font_heading())
-                .color(theme::text_secondary())
+                .color(theme::text_primary())
                 .strong(),
         );
 
@@ -59,8 +43,8 @@ pub fn empty_state_with_action<F: FnOnce()>(
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 RichText::new(desc)
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary()),
+                    .font(theme::font_body())
+                    .color(theme::text_secondary()),
             );
         }
 
@@ -99,8 +83,8 @@ pub fn empty_state_compact(ui: &mut Ui, icon: &str, message: &str) {
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 RichText::new(message)
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary()),
+                    .font(theme::font_body())
+                    .color(theme::text_secondary()),
             );
         });
 
@@ -124,7 +108,7 @@ pub fn no_results_state(ui: &mut Ui, search_term: &str) {
         ui.label(
             RichText::new("Aucun résultat")
                 .font(theme::font_heading())
-                .color(theme::text_secondary())
+                .color(theme::text_primary())
                 .strong(),
         );
 

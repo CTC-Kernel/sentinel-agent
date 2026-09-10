@@ -1230,7 +1230,7 @@ impl SentinelApp {
     /// the assistant, org context and the theme toggle. Additive — page bodies
     /// keep their own headers for now.
     fn show_top_bar(&mut self, ctx: &egui::Context) {
-        const TOPBAR_H: f32 = 52.0;
+        const TOPBAR_H: f32 = 64.0;
 
         // Snapshot everything the bar displays so the closure never borrows
         // `self` — actions are recorded into locals and applied afterwards.
@@ -1243,6 +1243,13 @@ impl SentinelApp {
         let unread = self.state.unread_notification_count;
         let syncing = self.state.sync.in_progress;
         let dark = self.state.settings.dark_mode;
+        let dashboard = self.page == Page::Dashboard;
+        let compact = ctx.screen_rect().width() < 1100.0;
+        let shortcut = if cfg!(target_os = "macos") {
+            "⌘K"
+        } else {
+            "Ctrl+K"
+        };
 
         let mut goto: Option<Page> = None;
         let mut open_palette = false;
@@ -1263,7 +1270,7 @@ impl SentinelApp {
                 ui.painter().hline(
                     r.x_range(),
                     r.bottom() - 0.5,
-                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()),
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::surface_border()),
                 );
 
                 ui.horizontal_centered(|ui: &mut egui::Ui| {
@@ -1276,8 +1283,8 @@ impl SentinelApp {
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
                         egui::RichText::new(cur_label)
-                            .font(theme::font_heading())
-                            .color(theme::text_primary())
+                            .font(theme::font_body())
+                            .color(theme::text_secondary())
                             .strong(),
                     );
 
@@ -1347,7 +1354,9 @@ impl SentinelApp {
                             ui.add_space(theme::SPACE);
 
                             // Sync status / trigger
-                            let sync_label = if syncing {
+                            let sync_label = if compact {
+                                ""
+                            } else if syncing {
                                 "Synchronisation…"
                             } else {
                                 "Synchroniser"
@@ -1377,8 +1386,10 @@ impl SentinelApp {
                                 .add(
                                     egui::Button::new(
                                         egui::RichText::new(format!(
-                                            "{}   Rechercher…   ⌘K",
-                                            icons::SEARCH
+                                            "{}   {}   {}",
+                                            icons::SEARCH,
+                                            if compact { "" } else { "Rechercher…" },
+                                            shortcut
                                         ))
                                         .font(theme::font_body())
                                         .color(theme::text_tertiary()),
@@ -1392,27 +1403,36 @@ impl SentinelApp {
 
                             ui.add_space(theme::SPACE_MD);
 
-                            // Primary action
-                            if ui
-                                .add(
-                                    egui::Button::new(
-                                        egui::RichText::new(format!(
-                                            "{}  Lancer l'analyse",
-                                            icons::PLAY
-                                        ))
-                                        .font(theme::font_body())
-                                        .color(theme::text_on_accent())
-                                        .strong(),
+                            if !dashboard {
+                                // Primary action
+                                if ui
+                                    .add(
+                                        egui::Button::new(
+                                            egui::RichText::new(format!(
+                                                "{}  {}",
+                                                icons::PLAY,
+                                                if compact {
+                                                    "Analyser"
+                                                } else {
+                                                    "Lancer l’analyse"
+                                                }
+                                            ))
+                                            .font(theme::font_body())
+                                            .color(theme::text_on_accent())
+                                            .strong(),
+                                        )
+                                        .fill(theme::ACCENT),
                                     )
-                                    .fill(theme::ACCENT),
-                                )
-                                .clicked()
-                            {
-                                run = true;
+                                    .clicked()
+                                {
+                                    run = true;
+                                }
                             }
-
                             // Org context (appears at the far left of this cluster)
-                            if let Some(org) = &org {
+                            if let Some(org) = &org
+                                && !compact
+                                && !dashboard
+                            {
                                 ui.add_space(theme::SPACE_LG);
                                 ui.label(
                                     egui::RichText::new(org)

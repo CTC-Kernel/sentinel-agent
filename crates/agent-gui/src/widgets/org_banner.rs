@@ -17,6 +17,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
     let mut command: Option<GuiCommand> = None;
 
     widgets::card(ui, |ui: &mut egui::Ui| {
+        ui.set_min_width(ui.available_width());
         ui.horizontal(|ui: &mut egui::Ui| {
             // Left side: Organization info
             ui.vertical(|ui: &mut egui::Ui| {

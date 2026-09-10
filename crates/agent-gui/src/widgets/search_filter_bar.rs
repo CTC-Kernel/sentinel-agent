@@ -50,18 +50,29 @@ impl<'a> SearchFilterBar<'a> {
     pub fn show(self, ui: &mut Ui) -> Option<usize> {
         let mut toggled: Option<usize> = None;
 
-        ui.horizontal(|ui: &mut egui::Ui| {
+        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
             // Search input
-            let search_width = 220.0_f32.min(ui.available_width() * 0.35);
+            let search_width = 260.0_f32.min((ui.available_width() - 44.0).max(40.0));
             ui.add_sized(
                 Vec2::new(search_width, theme::SEARCH_INPUT_HEIGHT),
                 egui::TextEdit::singleline(self.search)
                     .hint_text(self.placeholder)
-                    .font(theme::font_small())
+                    .font(theme::font_body())
                     .text_color(theme::text_primary())
                     .desired_width(search_width),
             );
 
+            if !self.search.is_empty()
+                && ui
+                    .add(
+                        egui::Button::new("Effacer")
+                            .min_size(Vec2::new(0.0, theme::MIN_TOUCH_TARGET)),
+                    )
+                    .on_hover_text("Effacer la recherche")
+                    .clicked()
+            {
+                self.search.clear();
+            }
             ui.add_space(theme::SPACE_SM);
 
             // Chips — unified with badge design system
@@ -75,10 +86,14 @@ impl<'a> SearchFilterBar<'a> {
                 let border_color = theme::badge_border(*color);
 
                 let btn = egui::Button::new(
-                    egui::RichText::new(*label)
-                        .font(theme::font_small())
-                        .color(fg)
-                        .strong(),
+                    egui::RichText::new(if *active {
+                        format!("✓ {label}")
+                    } else {
+                        (*label).to_owned()
+                    })
+                    .font(theme::font_small())
+                    .color(fg)
+                    .strong(),
                 )
                 .fill(bg)
                 .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, border_color))
@@ -109,9 +124,13 @@ impl<'a> SearchFilterBar<'a> {
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new(format!("{} résultat(s)", n))
-                                .font(theme::font_small())
-                                .color(theme::text_tertiary()),
+                            egui::RichText::new(format!(
+                                "{} résultat{}",
+                                n,
+                                if n > 1 { "s" } else { "" }
+                            ))
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
                         );
                     },
                 );

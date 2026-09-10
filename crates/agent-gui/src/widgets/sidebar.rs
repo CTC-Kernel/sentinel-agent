@@ -4,12 +4,11 @@
 //! Navigation sidebar widget.
 
 use chrono::{DateTime, Utc};
-use egui::{CornerRadius, Margin, Ui, Vec2};
+use egui::{CornerRadius, Ui, Vec2};
 
 use crate::app::Page;
 use crate::icons;
 use crate::theme;
-use crate::theme::FontIdExt;
 
 /// Sync state passed to the sidebar for the status indicator.
 pub struct SidebarSyncState {
@@ -36,364 +35,157 @@ impl Sidebar {
         voice_active: bool,
     ) -> Option<Page> {
         let mut selected: Option<Page> = None;
+        let route_id = ui.id().with("sidebar_last_route");
+        let route = format!("{current:?}");
+        let route_changed = ui.data_mut(|data| {
+            let changed = data.get_temp::<String>(route_id).as_ref() != Some(&route);
+            data.insert_temp(route_id, route);
+            changed
+        });
 
-        egui::Frame {
-            fill: egui::Color32::TRANSPARENT, // We paint manually
-            inner_margin: Margin::same(0),
-            ..Default::default()
-        }
-        .show(ui, |ui: &mut egui::Ui| {
-            ui.set_min_width(theme::SIDEBAR_WIDTH);
-            ui.set_max_width(theme::SIDEBAR_WIDTH);
-
-            // Paint gradient background
-            let rect = ui.max_rect();
-            if ui.is_rect_visible(rect) {
-                use egui::epaint::{Mesh, Vertex};
-                let mut mesh = Mesh::default();
-
-                let (top_col, bot_col) = theme::sidebar_gradient();
-
-                // Tricky: we need correct indices for 2 triangles forming the rect
-                let idx = mesh.vertices.len() as u32;
-                mesh.vertices.push(Vertex {
-                    pos: rect.left_top(),
-                    uv: Default::default(),
-                    color: top_col,
-                });
-                mesh.vertices.push(Vertex {
-                    pos: rect.right_top(),
-                    uv: Default::default(),
-                    color: top_col,
-                });
-                mesh.vertices.push(Vertex {
-                    pos: rect.right_bottom(),
-                    uv: Default::default(),
-                    color: bot_col,
-                });
-                mesh.vertices.push(Vertex {
-                    pos: rect.left_bottom(),
-                    uv: Default::default(),
-                    color: bot_col,
-                });
-
-                mesh.add_triangle(idx, idx + 1, idx + 2);
-                mesh.add_triangle(idx + 2, idx + 3, idx);
-
-                ui.painter().add(mesh);
-            }
-
-            egui::ScrollArea::vertical()
-                .auto_shrink(egui::Vec2b::new(false, false))
-                .show(ui, |ui: &mut egui::Ui| {
-                    // Logo / brand section
-                    ui.add_space(theme::SPACE);
-                    ui.vertical_centered(|ui: &mut egui::Ui| {
-                        // IA.png logo - Perfectly centered with subtle drop shadow
-                        let logo = egui::Image::from_bytes(
-                            "bytes://ia_sidebar",
-                            include_bytes!("../../assets/IA.png"),
-                        )
-                        .max_width(64.0);
-
-                        let r = ui.add(logo);
-                        // Subtle inner shadow for the logo container
-                        ui.painter().circle_filled(
-                            r.rect.center(),
-                            32.0,
-                            theme::bg_sidebar().linear_multiply(theme::OPACITY_SUBTLE),
-                        );
-
-                        ui.add_space(theme::SPACE_MD);
-
-                        ui.vertical_centered(|ui| {
-                            ui.label(
-                                egui::RichText::new("SENTINEL")
-                                    .font(theme::font_title().size(22.0))
-                                    .color(theme::accent_text())
-                                    .extra_letter_spacing(theme::TRACKING_WIDE)
-                                    .strong(),
-                            );
-                            ui.label(
-                                egui::RichText::new("GRC AGENT")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-
-                        // Bell badge with unread count
-                        if unread_notifications > 0 {
-                            ui.add_space(theme::SPACE_SM);
-                            ui.horizontal(|ui: &mut egui::Ui| {
-                                ui.add_space(theme::SIDEBAR_WIDTH / 2.0 - 30.0);
-                                let bell_response = ui.label(
-                                    egui::RichText::new(icons::BELL)
-                                        .size(theme::ICON_SM)
-                                        .color(theme::readable_color(theme::WARNING)),
-                                );
-                                // Draw count badge
-                                let badge_text = if unread_notifications > 9 {
-                                    "9+".to_string()
-                                } else {
-                                    unread_notifications.to_string()
-                                };
-                                let badge_rect = egui::Rect::from_min_size(
-                                    bell_response.rect.right_top()
-                                        + egui::vec2(
-                                            -theme::BADGE_INDICATOR_OFFSET,
-                                            -theme::BADGE_INDICATOR_OFFSET,
-                                        ),
-                                    egui::vec2(theme::ICON_SM, theme::ICON_SM),
-                                );
-                                let rounding = CornerRadius::same(theme::BUTTON_ROUNDING);
-                                ui.painter().rect_filled(
-                                    badge_rect,
-                                    rounding,
-                                    theme::badge_bg(theme::ERROR),
-                                );
-                                ui.painter().rect_stroke(
-                                    badge_rect,
-                                    rounding,
-                                    egui::Stroke::new(
-                                        theme::BORDER_HAIRLINE,
-                                        theme::badge_border(theme::ERROR),
-                                    ),
-                                    egui::StrokeKind::Inside,
-                                );
-                                ui.painter().text(
-                                    badge_rect.center(),
-                                    egui::Align2::CENTER_CENTER,
-                                    &badge_text,
-                                    theme::font_label(),
-                                    theme::badge_text(theme::ERROR),
-                                );
-                            });
-                        }
-
-                        ui.add_space(theme::SPACE_LG);
-                    });
-
-                    ui.vertical(|ui: &mut egui::Ui| {
-                        ui.set_width(theme::SIDEBAR_WIDTH);
-
-                        // Sync status at the top
-                        Self::sync_indicator(ui, sync_state);
-                        ui.add_space(theme::SPACE_SM);
-                        // Themed divider (softer than egui default)
-                        let sep_rect = ui
-                            .allocate_space(egui::vec2(
-                                theme::SIDEBAR_WIDTH - theme::SPACE_LG * 2.0,
-                                theme::BORDER_HAIRLINE,
-                            ))
-                            .1;
-                        ui.painter().rect_filled(
-                            sep_rect,
-                            egui::CornerRadius::ZERO,
-                            theme::border(),
-                        );
-                        ui.add_space(theme::SPACE_SM);
-
-                        // Navigation grouped by the operator's mental model:
-                        // overview first, then the detection/response domain, GRC,
-                        // asset posture, and finally system tooling. Section labels
-                        // are all French for a single, consistent voice.
-
-                        // ── Vue d'ensemble ──────────────────────────────────
-                        // Notifications lives here (cross-cutting) until a global
-                        // top bar exists to host it; the loop stays badge-aware.
-                        ui.add_space(theme::SPACE_SM);
-                        Self::section_label(ui, "VUE D'ENSEMBLE");
-
-                        let overview_items: &[(Page, &str, &str)] = &[
-                            (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
-                            (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
-                            (Page::Notifications, icons::BELL, "Notifications"),
-                        ];
-
-                        for (page, icon, label) in overview_items {
-                            let badge = if *page == Page::Notifications && unread_notifications > 0
-                            {
-                                Some(unread_notifications)
-                            } else {
-                                None
-                            };
-                            if Self::nav_item_with_badge(ui, icon, label, current == page, badge) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        // ── Détection & Réponse (le domaine SOC) ─────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "D\u{00c9}TECTION & R\u{00c9}PONSE");
-
-                        let detection_items: &[(Page, &str, &str)] = &[
-                            (Page::Threats, icons::SKULL, "Menaces"),
-                            (
-                                Page::Vulnerabilities,
-                                icons::VULNERABILITIES,
-                                "Vuln\u{00e9}rabilit\u{00e9}s",
-                            ),
+        ui.set_width(theme::SIDEBAR_WIDTH);
+        ui.add_space(22.0);
+        ui.horizontal(|ui| {
+            ui.add_space(18.0);
+            let (rect, _) = ui.allocate_exact_size(egui::vec2(32.0, 36.0), egui::Sense::hover());
+            ui.painter().text(
+                rect.center(),
+                egui::Align2::CENTER_CENTER,
+                icons::SHIELD,
+                theme::font_icon(27.0),
+                theme::accent_text(),
+            );
+            ui.vertical(|ui| {
+                ui.label(
+                    egui::RichText::new("sentinel")
+                        .size(23.0)
+                        .strong()
+                        .color(theme::text_primary()),
+                );
+                ui.label(
+                    egui::RichText::new("SECURITY WORKSPACE")
+                        .size(9.0)
+                        .extra_letter_spacing(1.3)
+                        .color(theme::text_tertiary()),
+                );
+            });
+        });
+        ui.add_space(18.0);
+        Self::sync_indicator(ui, sync_state);
+        ui.add_space(16.0);
+        egui::ScrollArea::vertical()
+            .id_salt("navigation_sections")
+            .auto_shrink([false, false])
+            .show(ui, |ui| {
+                ui.spacing_mut().item_spacing.y = 2.0;
+                for (page, icon, label) in [
+                    (Page::Dashboard, icons::DASHBOARD, "Vue d’ensemble"),
+                    (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
+                    (Page::Threats, icons::SHIELD, "Menaces"),
+                    (
+                        Page::Vulnerabilities,
+                        icons::VULNERABILITIES,
+                        "Vulnérabilités",
+                    ),
+                    (Page::Compliance, icons::COMPLIANCE, "Conformité"),
+                    (Page::Notifications, icons::BELL, "Notifications"),
+                ] {
+                    let badge = if page == Page::Notifications && unread_notifications > 0 {
+                        Some(unread_notifications)
+                    } else {
+                        None
+                    };
+                    if Self::nav_item_with_badge(ui, icon, label, current == &page, badge) {
+                        selected = Some(page);
+                    }
+                }
+                ui.add_space(16.0);
+                for (label, items) in [
+                    (
+                        "INVESTIGATION",
+                        vec![
+                            (Page::Network, icons::NETWORK, "Réseau"),
                             (
                                 Page::FileIntegrity,
                                 icons::FILE_SHIELD,
-                                "Int\u{00e9}grit\u{00e9} des fichiers",
+                                "Intégrité des fichiers",
                             ),
-                            (Page::Network, icons::NETWORK, "R\u{00e9}seau"),
-                        ];
-
-                        for (page, icon, label) in detection_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        // ── Conformité & Risques (GRC) ───────────────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "CONFORMIT\u{00c9} & RISQUES");
-
-                        let grc_items: &[(Page, &str, &str)] = &[
-                            (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
+                            (Page::AuditTrail, icons::CLIPBOARD, "Journal d’audit"),
                             (Page::Risks, icons::SCALE_BALANCED, "Risques"),
-                            (Page::Reports, icons::FILE_EXPORT, "Rapports"),
-                        ];
-
-                        for (page, icon, label) in grc_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        // ── Actifs & Inventaire ──────────────────────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "ACTIFS & INVENTAIRE");
-
-                        let asset_items: &[(Page, &str, &str)] = &[
+                        ],
+                    ),
+                    (
+                        "ACTIFS & RAPPORTS",
+                        vec![
                             (Page::Assets, icons::BOXES_STACKED, "Inventaire"),
                             (Page::Software, icons::SOFTWARE, "Logiciels & MDM"),
                             (Page::Discovery, icons::DISCOVERY, "Shadow IT"),
                             (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
-                        ];
-
-                        for (page, icon, label) in asset_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        // ── Système (outillage) ──────────────────────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "SYST\u{00c8}ME");
-
-                        let system_items: &[(Page, &str, &str)] = &[
-                            (Page::AuditTrail, icons::CLIPBOARD, "Journal d'audit"),
+                            (Page::Reports, icons::FILE_EXPORT, "Rapports"),
+                        ],
+                    ),
+                    (
+                        "OUTILS SYSTÈME",
+                        vec![
                             (Page::Sync, icons::SYNC, "Synchronisation"),
                             (Page::Terminal, icons::TERMINAL, "Terminal"),
-                        ];
-
-                        for (page, icon, label) in system_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
+                            (Page::About, icons::ABOUT, "À propos"),
+                        ],
+                    ),
+                ] {
+                    ui.scope(|ui| {
+                        ui.spacing_mut().indent = 14.0;
+                        egui::CollapsingHeader::new(
+                            egui::RichText::new(label)
+                                .size(10.0)
+                                .extra_letter_spacing(1.0)
+                                .color(theme::text_secondary()),
+                        )
+                        .id_salt(label)
+                        .open(
+                            if route_changed && items.iter().any(|(page, _, _)| page == current) {
+                                Some(true)
+                            } else {
+                                None
+                            },
+                        )
+                        .default_open(items.iter().any(|(page, _, _)| page == current))
+                        .show(ui, |ui| {
+                            for (page, icon, label) in items {
+                                if Self::nav_item(ui, icon, label, current == &page) {
+                                    selected = Some(page);
+                                }
                             }
-                        }
-
-                        // ── Assistant (statut du modèle IA) ──────────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "ASSISTANT");
-                        if Self::ai_status_item(ui, current == &Page::AI, ai_ready, voice_active) {
-                            selected = Some(Page::AI);
-                        }
-
-                        // Flexible spacer: push bottom items down when space allows,
-                        // but never overlap -- ScrollArea handles overflow.
-                        let bottom_height = theme::NAV_ITEM_HEIGHT * 2.0
-                            + theme::SPACE_SM * 2.0
-                            + theme::SPACE_XL
-                            + 2.0;
-                        let remaining = ui.available_height() - bottom_height;
-                        if remaining > 0.0 {
-                            ui.add_space(remaining);
-                        } else {
-                            ui.add_space(theme::SPACE);
-                        }
-
-                        let bottom_items: &[(Page, &str, &str)] = &[
-                            (Page::Settings, icons::SETTINGS, "Param\u{00e8}tres"),
-                            (Page::About, icons::ABOUT, "\u{00c0} propos"),
-                        ];
-
-                        for (page, icon, label) in bottom_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        ui.add_space(theme::SPACE_XL);
-
-                        // Workspace context (AAA Grade)
-                        if let Some(org) = organization {
-                            // Themed divider
-                            let sep_rect = ui
-                                .allocate_space(egui::vec2(
-                                    theme::SIDEBAR_WIDTH - theme::SPACE_LG * 2.0,
-                                    theme::BORDER_HAIRLINE,
-                                ))
-                                .1;
-                            ui.painter().rect_filled(
-                                sep_rect,
-                                egui::CornerRadius::ZERO,
-                                theme::border(),
-                            );
-                            ui.add_space(theme::SPACE_SM);
-                            ui.horizontal(|ui: &mut egui::Ui| {
-                                ui.add_space(theme::SPACE_MD);
-                                ui.vertical(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(org.to_uppercase())
-                                            .font(theme::font_body())
-                                            .color(theme::accent_text())
-                                            .strong(),
-                                    );
-                                    ui.label(
-                                        egui::RichText::new("WORKSPACE ACTIF")
-                                            .font(theme::font_min())
-                                            .color(theme::text_tertiary())
-                                            .strong(),
-                                    );
-                                });
-                            });
-                        }
-
-                        ui.add_space(theme::SPACE_XL);
+                        });
                     });
-                }); // end ScrollArea
-        });
+                }
+                ui.add_space(18.0);
+                if Self::ai_status_item(ui, current == &Page::AI, ai_ready, voice_active) {
+                    selected = Some(Page::AI);
+                }
+                ui.add_space(12.0);
+                if Self::nav_item(
+                    ui,
+                    icons::SETTINGS,
+                    "Paramètres",
+                    current == &Page::Settings,
+                ) {
+                    selected = Some(Page::Settings);
+                }
+                if let Some(org) = organization {
+                    ui.add_space(18.0);
+                    ui.horizontal_wrapped(|ui| {
+                        ui.add_space(18.0);
+                        ui.label(
+                            egui::RichText::new(org)
+                                .font(theme::font_small())
+                                .color(theme::text_secondary()),
+                        );
+                    });
+                }
+            });
 
         selected
-    }
-
-    fn section_label(ui: &mut Ui, text: &str) {
-        ui.add_space(theme::SPACE_SM);
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.add_space(theme::SPACE_MD);
-            // Accent dot indicator
-            let (dot_rect, _) = ui.allocate_exact_size(Vec2::splat(4.0), egui::Sense::empty());
-            ui.painter().circle_filled(
-                dot_rect.center(),
-                2.0,
-                theme::accent_text().linear_multiply(theme::OPACITY_MODERATE),
-            );
-            ui.add_space(theme::SPACE_XS);
-            ui.label(
-                egui::RichText::new(text)
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_WIDE)
-                    .strong(),
-            );
-        });
-        ui.add_space(theme::SPACE_XS);
     }
 
     fn nav_item(ui: &mut Ui, icon: &str, label: &str, is_current: bool) -> bool {
@@ -420,9 +212,16 @@ impl Sidebar {
         };
 
         let (rect, response) = ui.allocate_exact_size(
-            Vec2::new(theme::SIDEBAR_WIDTH, theme::NAV_ITEM_HEIGHT),
+            Vec2::new(
+                ui.available_width().min(theme::SIDEBAR_WIDTH),
+                theme::NAV_ITEM_HEIGHT,
+            ),
             egui::Sense::click(),
         );
+
+        response.widget_info(|| {
+            egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), label)
+        });
 
         if ui.is_rect_visible(rect) {
             // Background tint on hover or active
@@ -560,7 +359,10 @@ impl Sidebar {
         };
 
         let (rect, response) = ui.allocate_exact_size(
-            Vec2::new(theme::SIDEBAR_WIDTH, theme::NAV_ITEM_HEIGHT),
+            Vec2::new(
+                ui.available_width().min(theme::SIDEBAR_WIDTH),
+                theme::NAV_ITEM_HEIGHT,
+            ),
             egui::Sense::click(),
         );
 

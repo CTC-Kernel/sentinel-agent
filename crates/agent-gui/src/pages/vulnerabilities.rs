@@ -170,6 +170,15 @@ impl VulnerabilitiesPage {
             ui.add_space(theme::SPACE_MD);
 
             let total_findings = state.vulnerability_findings.len();
+            if total_findings == 0 {
+                ui.set_min_width(ui.available_width());
+                ui.label(egui::RichText::new(if state.vulnerability_summary.is_some() {
+                    "Aucune vulnérabilité à évaluer. Les ratios de couverture ne s’appliquent pas."
+                } else {
+                    "Analyse en attente. La couverture sera calculée à partir des vulnérabilités détectées."
+                }).font(theme::font_body()).color(theme::text_secondary()));
+                return;
+            }
             let fix_available_count = state
                 .vulnerability_findings
                 .iter()
@@ -324,7 +333,7 @@ impl VulnerabilitiesPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.vulnerability.search,
-            "RECHERCHER (CVE, LOGICIEL, DESCRIPTION)...",
+            "Rechercher une CVE ou un logiciel…",
         )
         .chip("CRITIQUE", crit_active, theme::ERROR)
         .chip("ÉLEVÉE", high_active, theme::SEVERITY_HIGH)

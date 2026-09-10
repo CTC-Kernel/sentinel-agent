@@ -119,6 +119,7 @@ impl TableSort {
 
 /// Data table widget.
 pub struct DataTable<'a> {
+    id: egui::Id,
     columns: Vec<TableColumn<'a>>,
     row_height: f32,
     header_height: f32,
@@ -130,8 +131,9 @@ pub struct DataTable<'a> {
 
 impl<'a> DataTable<'a> {
     /// Create a new data table.
-    pub fn new(_id: impl std::hash::Hash, columns: Vec<TableColumn<'a>>) -> Self {
+    pub fn new(id: impl std::hash::Hash, columns: Vec<TableColumn<'a>>) -> Self {
         Self {
+            id: egui::Id::new(id),
             columns,
             row_height: theme::TABLE_DATA_ROW_HEIGHT,
             header_height: theme::TABLE_HEADER_HEIGHT,
@@ -267,134 +269,146 @@ impl<'a> DataTable<'a> {
         }
 
         // Draw header cells
-        ui.allocate_new_ui(egui::UiBuilder::new().max_rect(header_rect), |ui| {
-            ui.spacing_mut().item_spacing.x = 0.0;
-            ui.horizontal(|ui| {
-                for (i, col) in self.columns.iter().enumerate() {
-                    let width = widths[i];
-                    let is_sorted = sort.column.as_deref() == Some(col.key);
+        ui.allocate_new_ui(
+            egui::UiBuilder::new()
+                .id_salt(self.id)
+                .max_rect(header_rect),
+            |ui| {
+                ui.spacing_mut().item_spacing.x = 0.0;
+                ui.horizontal(|ui| {
+                    for (i, col) in self.columns.iter().enumerate() {
+                        let width = widths[i];
+                        let is_sorted = sort.column.as_deref() == Some(col.key);
 
-                    let sense = if col.sortable {
-                        Sense::click().union(Sense::hover())
-                    } else {
-                        Sense::hover()
-                    };
-
-                    let (cell_rect, response) =
-                        ui.allocate_exact_size(egui::vec2(width, self.header_height), sense);
-
-                    if ui.is_rect_visible(cell_rect) {
-                        let is_focused = response.has_focus() && col.sortable;
-                        let is_hovered = (response.hovered() || is_focused) && col.sortable;
-
-                        // Hover/focus effect
-                        if is_hovered {
-                            ui.painter().rect_filled(cell_rect, 0, theme::hover_bg());
-                        }
-
-                        // Focus ring for keyboard navigation
-                        if is_focused {
-                            ui.painter().rect_stroke(
-                                cell_rect.shrink(1.0),
-                                egui::CornerRadius::same(theme::ROUNDING_XS),
-                                theme::focus_ring(),
-                                egui::StrokeKind::Inside,
-                            );
-                        }
-
-                        // Label
-                        let text_color = if is_sorted {
-                            theme::accent_text()
+                        let sense = if col.sortable {
+                            Sense::click().union(Sense::hover())
                         } else {
-                            theme::text_secondary()
+                            Sense::hover()
                         };
 
-                        let align = match col.align {
-                            ColumnAlign::Left => egui::Align2::LEFT_CENTER,
-                            ColumnAlign::Center => egui::Align2::CENTER_CENTER,
-                            ColumnAlign::Right => egui::Align2::RIGHT_CENTER,
-                        };
+                        let (cell_rect, response) =
+                            ui.allocate_exact_size(egui::vec2(width, self.header_height), sense);
 
-                        let text_x = match col.align {
-                            ColumnAlign::Left => cell_rect.min.x + theme::SPACE_MD,
-                            ColumnAlign::Center => cell_rect.center().x,
-                            ColumnAlign::Right => cell_rect.max.x - theme::SPACE_MD,
-                        };
+                        if ui.is_rect_visible(cell_rect) {
+                            let is_focused = response.has_focus() && col.sortable;
+                            let is_hovered = (response.hovered() || is_focused) && col.sortable;
 
-                        ui.painter().text(
-                            egui::pos2(text_x, cell_rect.center().y),
-                            align,
-                            col.label,
-                            theme::font_small(),
-                            text_color,
-                        );
+                            // Hover/focus effect
+                            if is_hovered {
+                                ui.painter().rect_filled(cell_rect, 0, theme::hover_bg());
+                            }
 
-                        // Sort indicator
-                        if col.sortable {
-                            let sort_icon = if is_sorted {
-                                sort.direction.icon()
-                            } else if is_hovered {
-                                Some(icons::CHEVRON_UP)
+                            // Focus ring for keyboard navigation
+                            if is_focused {
+                                ui.painter().rect_stroke(
+                                    cell_rect.shrink(1.0),
+                                    egui::CornerRadius::same(theme::ROUNDING_XS),
+                                    theme::focus_ring(),
+                                    egui::StrokeKind::Inside,
+                                );
+                            }
+
+                            // Label
+                            let text_color = if is_sorted {
+                                theme::accent_text()
                             } else {
-                                None
+                                theme::text_secondary()
                             };
 
-                            if let Some(icon) = sort_icon {
-                                let icon_alpha = if is_sorted {
-                                    1.0
+                            let align = match col.align {
+                                ColumnAlign::Left => egui::Align2::LEFT_CENTER,
+                                ColumnAlign::Center => egui::Align2::CENTER_CENTER,
+                                ColumnAlign::Right => egui::Align2::RIGHT_CENTER,
+                            };
+
+                            let text_x = match col.align {
+                                ColumnAlign::Left => cell_rect.min.x + theme::SPACE_MD,
+                                ColumnAlign::Center => cell_rect.center().x,
+                                ColumnAlign::Right => cell_rect.max.x - theme::SPACE_MD,
+                            };
+
+                            ui.painter_at(cell_rect.shrink2(egui::vec2(theme::SPACE_SM, 0.0)))
+                                .text(
+                                    egui::pos2(text_x, cell_rect.center().y),
+                                    align,
+                                    col.label,
+                                    theme::font_small(),
+                                    text_color,
+                                );
+
+                            // Sort indicator
+                            if col.sortable {
+                                let sort_icon = if is_sorted {
+                                    sort.direction.icon()
+                                } else if is_hovered {
+                                    Some(icons::CHEVRON_UP)
                                 } else {
-                                    theme::OPACITY_PRESSED
+                                    None
                                 };
-                                ui.painter().text(
-                                    egui::pos2(
-                                        cell_rect.max.x - theme::ICON_MD,
-                                        cell_rect.center().y,
-                                    ),
-                                    egui::Align2::CENTER_CENTER,
-                                    icon,
-                                    theme::font_label(),
-                                    text_color.linear_multiply(icon_alpha),
+
+                                if let Some(icon) = sort_icon {
+                                    let icon_alpha = if is_sorted {
+                                        1.0
+                                    } else {
+                                        theme::OPACITY_PRESSED
+                                    };
+                                    ui.painter().text(
+                                        egui::pos2(
+                                            cell_rect.max.x - theme::ICON_MD,
+                                            cell_rect.center().y,
+                                        ),
+                                        egui::Align2::CENTER_CENTER,
+                                        icon,
+                                        theme::font_label(),
+                                        text_color.linear_multiply(icon_alpha),
+                                    );
+                                }
+                            }
+
+                            // Border
+                            if self.bordered && i < self.columns.len() - 1 {
+                                ui.painter().line_segment(
+                                    [
+                                        egui::pos2(
+                                            cell_rect.max.x,
+                                            cell_rect.min.y + theme::SPACE_SM,
+                                        ),
+                                        egui::pos2(
+                                            cell_rect.max.x,
+                                            cell_rect.max.y - theme::SPACE_SM,
+                                        ),
+                                    ],
+                                    egui::Stroke::new(theme::BORDER_THIN, theme::border()),
                                 );
                             }
                         }
 
-                        // Border
-                        if self.bordered && i < self.columns.len() - 1 {
-                            ui.painter().line_segment(
-                                [
-                                    egui::pos2(cell_rect.max.x, cell_rect.min.y + theme::SPACE_SM),
-                                    egui::pos2(cell_rect.max.x, cell_rect.max.y - theme::SPACE_SM),
-                                ],
-                                egui::Stroke::new(theme::BORDER_THIN, theme::border()),
-                            );
+                        if col.sortable && response.hovered() {
+                            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                         }
-                    }
 
-                    if col.sortable && response.hovered() {
-                        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                    }
-
-                    // Handle sort click or keyboard activation (Enter/Space)
-                    let keyboard_activate = response.has_focus()
-                        && col.sortable
-                        && ui.input(|i| {
-                            i.key_pressed(egui::Key::Enter) || i.key_pressed(egui::Key::Space)
-                        });
-                    if (response.clicked() || keyboard_activate) && col.sortable {
-                        if is_sorted {
-                            sort.direction = sort.direction.toggle();
-                            if sort.direction == SortDirection::None {
-                                sort.column = None;
+                        // Handle sort click or keyboard activation (Enter/Space)
+                        let keyboard_activate = response.has_focus()
+                            && col.sortable
+                            && ui.input(|i| {
+                                i.key_pressed(egui::Key::Enter) || i.key_pressed(egui::Key::Space)
+                            });
+                        if (response.clicked() || keyboard_activate) && col.sortable {
+                            if is_sorted {
+                                sort.direction = sort.direction.toggle();
+                                if sort.direction == SortDirection::None {
+                                    sort.column = None;
+                                }
+                            } else {
+                                sort.column = Some(col.key.to_string());
+                                sort.direction = SortDirection::Ascending;
                             }
-                        } else {
-                            sort.column = Some(col.key.to_string());
-                            sort.direction = SortDirection::Ascending;
+                            sort_changed = true;
                         }
-                        sort_changed = true;
                     }
-                }
-            });
-        });
+                });
+            },
+        );
 
         sort_changed
     }
@@ -460,13 +474,18 @@ impl<'a> DataTable<'a> {
                     ColumnAlign::Right => cell_rect.max.x - theme::SPACE_MD,
                 };
 
-                ui.painter().text(
-                    egui::pos2(text_x, cell_rect.center().y),
-                    align,
-                    text,
-                    theme::font_body(),
-                    text_color,
-                );
+                ui.painter_at(cell_rect.shrink2(egui::vec2(theme::SPACE_SM, 0.0)))
+                    .text(
+                        egui::pos2(text_x, cell_rect.center().y),
+                        align,
+                        text,
+                        theme::font_body(),
+                        text_color,
+                    );
+
+                if ui.rect_contains_pointer(cell_rect) {
+                    response.clone().on_hover_text(text);
+                }
 
                 // Border
                 if self.bordered && i < self.columns.len() - 1 {
@@ -488,7 +507,7 @@ impl<'a> DataTable<'a> {
                     egui::pos2(row_rect.min.x, row_rect.max.y),
                     egui::pos2(row_rect.max.x, row_rect.max.y),
                 ],
-                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::separator()),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::surface_border()),
             );
 
             // Focus ring for keyboard navigation (WCAG 2.4.7)
