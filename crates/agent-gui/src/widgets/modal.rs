@@ -39,6 +39,16 @@ pub struct Modal {
     width: f32,
 }
 
+fn open_frame_id() -> egui::Id {
+    egui::Id::new("modal_open_frame")
+}
+
+/// Whether any modal was shown this frame or the previous one.
+pub fn any_modal_open(ctx: &egui::Context) -> bool {
+    ctx.memory(|mem| mem.data.get_temp::<u64>(open_frame_id()))
+        .is_some_and(|frame| frame + 1 >= ctx.cumulative_pass_nr())
+}
+
 impl Modal {
     /// Create a new modal with the given ID and title.
     pub fn new(id: impl std::hash::Hash, title: impl Into<String>) -> Self {
@@ -116,6 +126,12 @@ impl Modal {
         if !is_open {
             return ModalResult::None;
         }
+        // Mark the frame, so list keyboard navigation stands down while a
+        // modal is up (pages render before overlays, hence the one-frame lag).
+        ctx.memory_mut(|mem| {
+            mem.data
+                .insert_temp(open_frame_id(), ctx.cumulative_pass_nr())
+        });
 
         let mut result = ModalResult::None;
 

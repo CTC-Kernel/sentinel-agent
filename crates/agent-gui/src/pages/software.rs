@@ -650,6 +650,40 @@ impl SoftwarePage {
                     state.software.detail_open = true;
                 }
 
+                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+                // and the page follows the selection.
+                let mut position = state
+                    .software
+                    .selected_package
+                    .and_then(|real| filtered.iter().position(|&r| r == real));
+                if widgets::navigate_list(
+                    ui.ctx(),
+                    &mut position,
+                    filtered.len(),
+                    &mut state.software.detail_open,
+                ) && let Some(pos) = position
+                {
+                    state.software.selected_package = Some(filtered[pos]);
+                    state.software.native_page = pos / SW_PER_PAGE;
+                }
+
+                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+                // and the page follows the selection.
+                let mut position = state
+                    .software
+                    .selected_package
+                    .and_then(|real| filtered.iter().position(|&r| r == real));
+                if widgets::navigate_list(
+                    ui.ctx(),
+                    &mut position,
+                    filtered.len(),
+                    &mut state.software.detail_open,
+                ) && let Some(pos) = position
+                {
+                    state.software.selected_package = Some(filtered[pos]);
+                    state.software.packages_page = pos / SW_PER_PAGE;
+                }
+
                 widgets::paginate_controls(
                     ui,
                     filtered.len(),

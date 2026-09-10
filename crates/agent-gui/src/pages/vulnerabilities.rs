@@ -940,6 +940,23 @@ impl VulnerabilitiesPage {
                 state.vulnerability.detail_open = true;
             }
 
+            // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+            // and the page follows the selection.
+            let mut position = state
+                .vulnerability
+                .selected_vuln
+                .and_then(|real| filtered.iter().position(|&r| r == real));
+            if widgets::navigate_list(
+                ui.ctx(),
+                &mut position,
+                filtered.len(),
+                &mut state.vulnerability.detail_open,
+            ) && let Some(pos) = position
+            {
+                state.vulnerability.selected_vuln = Some(filtered[pos]);
+                state.vulnerability.page = pos / VULNS_PER_PAGE;
+            }
+
             widgets::paginate_controls(
                 ui,
                 filtered.len(),

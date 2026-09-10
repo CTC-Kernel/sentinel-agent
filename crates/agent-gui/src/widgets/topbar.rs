@@ -109,19 +109,25 @@ pub fn top_bar(ctx: &egui::Context, cx: &TopBarContext<'_>) -> Option<TopBarActi
             );
 
             // Trailing cluster first: it claims the space it needs, and the
-            // location + search then share what is left.
-            let (trailing_left, trailing_action) = trailing_cluster(ui, content, cx);
+            // location + search then share what is left. It is told what the
+            // page title needs, so on a small window the workspace chip
+            // yields before the title does — "Men" is not a page name.
+            let min_search = ICON_BTN + theme::SPACE_LG + theme::SPACE_MD;
+            let title_w = location_width(ui, cx, false);
+            let (trailing_left, trailing_action) =
+                trailing_cluster(ui, content, cx, title_w + min_search);
             if trailing_action.is_some() {
                 action = trailing_action;
             }
 
             let available = Rect::from_min_max(content.min, pos2(trailing_left, content.bottom()));
-            let location_w = location_width(ui, cx);
+            let show_parent = location_width(ui, cx, true) + min_search <= available.width();
+            let location_w = location_width(ui, cx, show_parent);
             let location = Rect::from_min_size(
                 available.min,
                 vec2(location_w.min(available.width()), available.height()),
             );
-            location_segment(ui, location, cx);
+            location_segment(ui, location, cx, show_parent);
 
             let search_left = location.right() + theme::SPACE_LG;
             let search_room = available.right() - search_left - theme::SPACE_MD;
@@ -198,28 +204,31 @@ fn brand_segment(ui: &mut Ui, rect: Rect, cx: &TopBarContext<'_>) -> Option<TopB
 }
 
 /// Width the location breadcrumb wants, so the search field can be placed after it.
-fn location_width(ui: &Ui, cx: &TopBarContext<'_>) -> f32 {
+fn location_width(ui: &Ui, cx: &TopBarContext<'_>, with_parent: bool) -> f32 {
     let title = ui.painter().layout_no_wrap(
         cx.page_label.to_owned(),
         theme::font_h3(),
         theme::text_primary(),
     );
-    let parent = cx.page_section.map_or(0.0, |section| {
-        ui.painter()
-            .layout_no_wrap(
-                section.to_owned(),
-                theme::font_body(),
-                theme::text_tertiary(),
-            )
-            .size()
-            .x
-            + theme::SPACE_MD
-    });
+    let parent = cx
+        .page_section
+        .filter(|_| with_parent)
+        .map_or(0.0, |section| {
+            ui.painter()
+                .layout_no_wrap(
+                    section.to_owned(),
+                    theme::font_body(),
+                    theme::text_tertiary(),
+                )
+                .size()
+                .x
+                + theme::SPACE_MD
+        });
     theme::ICON_SM + theme::SPACE_SM + parent + title.size().x + theme::SPACE_SM
 }
 
 /// Current location: section › page.
-fn location_segment(ui: &mut Ui, rect: Rect, cx: &TopBarContext<'_>) {
+fn location_segment(ui: &mut Ui, rect: Rect, cx: &TopBarContext<'_>, with_parent: bool) {
     let painter = ui.painter().with_clip_rect(rect);
     let center_y = rect.center().y;
     let mut x = rect.left();
@@ -233,7 +242,7 @@ fn location_segment(ui: &mut Ui, rect: Rect, cx: &TopBarContext<'_>) {
     );
     x += theme::ICON_SM + theme::SPACE_SM;
 
-    if let Some(section) = cx.page_section {
+    if let Some(section) = cx.page_section.filter(|_| with_parent) {
         let galley = painter.layout_no_wrap(
             section.to_owned(),
             theme::font_body(),
@@ -393,6 +402,7 @@ fn trailing_cluster(
     ui: &mut Ui,
     content: Rect,
     cx: &TopBarContext<'_>,
+    reserve_left: f32,
 ) -> (f32, Option<TopBarAction>) {
     let mut action = None;
     let center_y = content.center().y;
@@ -509,7 +519,7 @@ fn trailing_cluster(
             pos2(x - w, center_y - CONTROL_H / 2.0 + 3.0),
             vec2(w, CONTROL_H - 6.0),
         );
-        if chip.left() > content.left() {
+        if chip.left() > content.left() + reserve_left {
             ui.painter().rect_filled(
                 chip,
                 CornerRadius::same(theme::ROUNDING_SM),

@@ -207,6 +207,38 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   Linux ; export CSV du terminal posé sur la ligne de filtres ; l'état vide
   des rapports porte le bouton « Générer le rapport » au lieu d'y renvoyer.
 
+#### Tiroirs de détail
+- Les actions sont épinglées au bas du tiroir, sur leur propre surface avec
+  filet et ombre : elles restent à portée quelle que soit la longueur du
+  détail, au lieu d'attendre en fin de défilement (sur une fenêtre de 700 px,
+  « Appliquer le correctif » n'était pas visible sans faire défiler).
+- Les blocs de prose (description, instructions, analyse) passent de `bg_deep`
+  — un puits de terminal autour d'une phrase — à un pas de l'échelle de
+  surfaces ; les valeurs mono (hash, IP) gardent leur puits.
+
+#### Petites fenêtres
+- Barre supérieure : à 800 px, le titre de page se tronquait en « Men » ou
+  « Vuln » pendant que la puce d'organisation gardait sa place. Le titre ne se
+  tronque plus : le parent du fil d'Ariane s'efface d'abord, puis la puce
+  d'organisation cède si le titre et l'icône de recherche en ont besoin.
+- Barres d'onglets : sept onglets sur 800 px se superposaient (largeur
+  répartie à parts égales) ; quand ils ne tiennent pas, la barre devient une
+  bande défilante à largeur naturelle.
+
+#### Mouvement
+- Le soulignement de l'onglet actif glisse d'un onglet à l'autre ; le
+  marqueur de la page active glisse le long de la barre latérale. Les deux
+  respectent la préférence de mouvement réduit. (Les cartes cliquables
+  s'élevaient déjà au survol et les boutons ont un état enfoncé.)
+
+#### Clavier
+- Sur les listes (vulnérabilités, inventaire, logiciels, connexions
+  réseau, risques), ↑ / ↓ déplacent la sélection dans l'ordre affiché et
+  changent de page avec elle, Entrée ouvre le tiroir, Échap le ferme.
+  Inactif tant qu'un champ de texte a le clavier, qu'un menu est ouvert ou
+  qu'une modale est affichée, pour que la recherche ne fasse jamais défiler
+  le tableau derrière elle.
+
 ---
 
 ## 📦 [2.0.219] - 2026-04-13

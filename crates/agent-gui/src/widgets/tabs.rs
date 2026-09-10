@@ -103,33 +103,84 @@ impl<'a> TabBar<'a> {
         }
     }
 
+    /// Width the tabs need at their natural size, spacing included.
+    fn natural_width(&self, ui: &Ui) -> f32 {
+        let spacing = ui.spacing().item_spacing.x * self.tabs.len().saturating_sub(1) as f32;
+        self.tabs
+            .iter()
+            .enumerate()
+            .map(|(i, tab)| self.underline_tab_width(ui, tab, i == self.selected))
+            .sum::<f32>()
+            + spacing
+    }
+
+    fn underline_tab_width(&self, ui: &Ui, tab: &Tab, is_selected: bool) -> f32 {
+        let font = if is_selected {
+            theme::font_body_strong()
+        } else {
+            theme::font_body()
+        };
+        let mut width = theme::SPACE * 2.0;
+        if tab.icon.is_some() {
+            width += theme::TAB_ICON_WIDTH;
+        }
+        width += ui
+            .painter()
+            .layout_no_wrap(tab.label.to_string(), font, theme::text_primary())
+            .size()
+            .x;
+        if tab.badge.is_some() {
+            width += theme::TAB_BADGE_WIDTH;
+        }
+        width
+    }
+
     fn show_underline(self, ui: &mut Ui) -> Option<usize> {
         let mut new_selection = None;
         let available_width = ui.available_width();
         let tab_count = self.tabs.len();
+        let fits = self.natural_width(ui) <= available_width;
+        let mut rects: Vec<egui::Rect> = Vec::with_capacity(tab_count);
 
-        ui.horizontal(|ui| {
-            // Remove inter-item spacing when full-width so tabs exactly fill
-            // the available width without overflowing (N tabs × width/N = width).
-            if self.full_width {
-                ui.spacing_mut().item_spacing.x = 0.0;
-            }
-
-            for (i, tab) in self.tabs.iter().enumerate() {
-                let is_selected = i == self.selected;
-                let tab_width = if self.full_width && tab_count > 0 {
-                    available_width / tab_count as f32
-                } else {
-                    0.0 // Auto-size
-                };
-
-                if self.render_underline_tab(ui, tab, is_selected, tab_width) {
-                    new_selection = Some(i);
+        let mut strip = |ui: &mut Ui| {
+            ui.horizontal(|ui| {
+                // Remove inter-item spacing when full-width so tabs exactly
+                // fill the available width (N tabs × width/N = width).
+                if self.full_width && fits {
+                    ui.spacing_mut().item_spacing.x = 0.0;
                 }
-            }
-        });
 
-        // Draw underline for the entire tab bar
+                for (i, tab) in self.tabs.iter().enumerate() {
+                    let is_selected = i == self.selected;
+                    let tab_width = if self.full_width && fits && tab_count > 0 {
+                        available_width / tab_count as f32
+                    } else {
+                        0.0 // Auto-size
+                    };
+
+                    let (clicked, rect) =
+                        self.render_underline_tab(ui, tab, is_selected, tab_width);
+                    rects.push(rect);
+                    if clicked {
+                        new_selection = Some(i);
+                    }
+                }
+            });
+        };
+
+        if fits {
+            strip(ui);
+        } else {
+            // Seven tabs on an 800-pixel window: at their natural width in a
+            // strip that scrolls, rather than squeezed until the labels
+            // overprint each other.
+            egui::ScrollArea::horizontal()
+                .id_salt(ui.id().with("tab_strip"))
+                .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
+                .show(ui, strip);
+        }
+
+        // Rule under the whole bar
         let rect = ui.min_rect();
         ui.painter().line_segment(
             [
@@ -138,6 +189,32 @@ impl<'a> TabBar<'a> {
             ],
             egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
         );
+
+        // Selected underline, painted once for the bar so it can slide from
+        // the previous tab to the new one instead of blinking across.
+        if let Some(target) = rects.get(self.selected) {
+            let inset = theme::SPACE_SM;
+            let (target_x, target_w) = (target.min.x + inset, target.width() - inset * 2.0);
+            let (x, w) = if theme::is_reduced_motion() {
+                (target_x, target_w)
+            } else {
+                let id = ui.id().with("tab_underline");
+                (
+                    ui.ctx()
+                        .animate_value_with_time(id.with("x"), target_x, theme::ANIM_NORMAL),
+                    ui.ctx()
+                        .animate_value_with_time(id.with("w"), target_w, theme::ANIM_NORMAL),
+                )
+            };
+            ui.painter().rect_filled(
+                egui::Rect::from_min_size(
+                    egui::pos2(x, target.max.y - theme::ACCENT_BAR_WIDTH),
+                    egui::vec2(w, theme::ACCENT_BAR_WIDTH),
+                ),
+                CornerRadius::same(theme::ROUNDING_XS),
+                theme::accent_text(),
+            );
+        }
 
         new_selection
     }
@@ -148,7 +225,7 @@ impl<'a> TabBar<'a> {
         tab: &Tab,
         is_selected: bool,
         fixed_width: f32,
-    ) -> bool {
+    ) -> (bool, egui::Rect) {
         // The selected tab carries weight as well as colour, so the active
         // section is legible without relying on hue alone (WCAG 1.4.1).
         let font = if is_selected {
@@ -282,23 +359,9 @@ impl<'a> TabBar<'a> {
                     egui::StrokeKind::Outside,
                 );
             }
-
-            // Selected underline (thicker, rounded, inset for premium feel)
-            if is_selected {
-                let inset = theme::SPACE_SM;
-                let underline_rect = egui::Rect::from_min_size(
-                    egui::pos2(rect.min.x + inset, rect.max.y - theme::ACCENT_BAR_WIDTH),
-                    egui::vec2(rect.width() - inset * 2.0, theme::ACCENT_BAR_WIDTH),
-                );
-                painter.rect_filled(
-                    underline_rect,
-                    CornerRadius::same(theme::ROUNDING_XS),
-                    theme::accent_text(),
-                );
-            }
         }
 
-        response.clicked() && !tab.disabled
+        (response.clicked() && !tab.disabled, rect)
     }
 
     fn show_pills(self, ui: &mut Ui) -> Option<usize> {

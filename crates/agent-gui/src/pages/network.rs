@@ -998,6 +998,23 @@ impl NetworkPage {
                     state.network.detail_open = true;
                 }
 
+                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+                // and the page follows the selection.
+                let mut position = state
+                    .network
+                    .selected_connection
+                    .and_then(|real| filtered.iter().position(|&r| r == real));
+                if widgets::navigate_list(
+                    ui.ctx(),
+                    &mut position,
+                    filtered.len(),
+                    &mut state.network.detail_open,
+                ) && let Some(pos) = position
+                {
+                    state.network.selected_connection = Some(filtered[pos]);
+                    state.network.connections_page = pos / CONN_PER_PAGE;
+                }
+
                 widgets::paginate_controls(
                     ui,
                     filtered.len(),

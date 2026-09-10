@@ -731,6 +731,23 @@ impl RisksPage {
             state.risks.editing = false;
         }
 
+        // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+        // and the page follows the selection.
+        let mut position = state
+            .risks
+            .selected_risk
+            .and_then(|real| indices.iter().position(|&r| r == real));
+        if widgets::navigate_list(
+            ui.ctx(),
+            &mut position,
+            indices.len(),
+            &mut state.risks.detail_open,
+        ) && let Some(pos) = position
+        {
+            state.risks.selected_risk = Some(indices[pos]);
+            state.risks.page = pos / RISKS_PER_PAGE;
+        }
+
         widgets::paginate_controls(ui, indices.len(), RISKS_PER_PAGE, &mut state.risks.page);
     }
 

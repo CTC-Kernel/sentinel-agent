@@ -205,156 +205,204 @@ impl<'a> DetailDrawer<'a> {
                 ui.set_min_size(egui::vec2(drawer_width, screen.height()));
                 ui.set_max_size(egui::vec2(drawer_width, screen.height()));
 
-                egui::ScrollArea::vertical()
-                    .id_salt(self.id.with("scroll"))
-                    .auto_shrink([false, false])
-                    .max_height(screen.height())
-                    .show(ui, |ui| {
-                        let content_width = drawer_width - theme::SPACE_LG * 2.0;
-                        ui.set_width(content_width);
+                // Footer height, from the buttons it will hold: they wrap onto
+                // as many rows as the drawer's width requires.
+                let content_width = drawer_width - theme::SPACE_LG * 2.0;
+                let footer_rows = if actions.is_empty() {
+                    0
+                } else {
+                    let mut rows = 1;
+                    let mut used = 0.0;
+                    for action in actions {
+                        let w = ui
+                            .painter()
+                            .layout_no_wrap(
+                                format!("{}  {}", action.icon, action.label),
+                                theme::font_body_strong(),
+                                theme::text_primary(),
+                            )
+                            .size()
+                            .x
+                            + theme::SPACE_LG * 2.0;
+                        if used > 0.0 && used + theme::SPACE_SM + w > content_width {
+                            rows += 1;
+                            used = w;
+                        } else {
+                            used += if used > 0.0 { theme::SPACE_SM } else { 0.0 } + w;
+                        }
+                    }
+                    rows
+                };
+                let footer_h = if footer_rows == 0 {
+                    0.0
+                } else {
+                    theme::SPACE_MD * 2.0
+                        + footer_rows as f32 * theme::BUTTON_HEIGHT
+                        + (footer_rows - 1) as f32 * theme::SPACE_SM
+                };
+
+                ui.vertical(|ui| {
+                    ui.set_width(drawer_width);
+                    ui.add_space(theme::SPACE_LG);
+
+                    // Header
+                    ui.horizontal(|ui| {
                         ui.add_space(theme::SPACE_LG);
 
-                        // Header
-                        ui.horizontal(|ui| {
-                            ui.add_space(theme::SPACE_LG);
-
-                            // Icon circle
-                            let icon_size = theme::ICON_XL + theme::SPACE_SM;
-                            let (icon_rect, _) = ui.allocate_exact_size(
-                                egui::vec2(icon_size, icon_size),
-                                egui::Sense::hover(),
-                            );
-                            ui.painter().circle_filled(
-                                icon_rect.center(),
-                                icon_size / 2.0,
-                                theme::tinted_surface(self.accent_color),
-                            );
-                            ui.painter().text(
-                                icon_rect.center(),
-                                egui::Align2::CENTER_CENTER,
-                                self.icon,
-                                theme::font_icon(theme::ICON_MD),
-                                theme::readable_color(self.accent_color),
-                            );
-
-                            ui.add_space(theme::SPACE_MD);
-
-                            ui.vertical(|ui| {
-                                ui.label(
-                                    egui::RichText::new(self.title)
-                                        .font(theme::font_h3())
-                                        .color(theme::text_primary()),
-                                );
-                                if let Some(sub) = self.subtitle {
-                                    ui.label(
-                                        egui::RichText::new(sub)
-                                            .font(theme::font_small())
-                                            .color(theme::text_tertiary()),
-                                    );
-                                }
-                            });
-
-                            // Close button
-                            ui.with_layout(
-                                egui::Layout::right_to_left(egui::Align::Center),
-                                |ui| {
-                                    ui.add_space(theme::SPACE_MD);
-                                    if button::icon_button(ui, icons::XMARK, Some("Fermer"))
-                                        .clicked()
-                                    {
-                                        should_close = true;
-                                    }
-                                },
-                            );
-                        });
-
-                        ui.add_space(theme::SPACE_SM);
-
-                        // Hairline under the header, not an accent slab.
-                        let divider_rect = ui
-                            .allocate_space(egui::vec2(content_width, theme::BORDER_THIN))
-                            .1;
-                        if ui.is_rect_visible(divider_rect) {
-                            ui.painter().rect_filled(
-                                divider_rect,
-                                CornerRadius::ZERO,
-                                theme::border_subtle(),
-                            );
-                        }
+                        // Icon circle
+                        let icon_size = theme::ICON_XL + theme::SPACE_SM;
+                        let (icon_rect, _) = ui.allocate_exact_size(
+                            egui::vec2(icon_size, icon_size),
+                            egui::Sense::hover(),
+                        );
+                        ui.painter().circle_filled(
+                            icon_rect.center(),
+                            icon_size / 2.0,
+                            theme::tinted_surface(self.accent_color),
+                        );
+                        ui.painter().text(
+                            icon_rect.center(),
+                            egui::Align2::CENTER_CENTER,
+                            self.icon,
+                            theme::font_icon(theme::ICON_MD),
+                            theme::readable_color(self.accent_color),
+                        );
 
                         ui.add_space(theme::SPACE_MD);
 
-                        // Page-specific content
-                        ui.horizontal(|ui| {
-                            ui.add_space(theme::SPACE_LG);
-                            ui.vertical(|ui| {
-                                ui.set_width(content_width - theme::SPACE_LG);
-                                content(ui);
-                            });
+                        ui.vertical(|ui| {
+                            ui.label(
+                                egui::RichText::new(self.title)
+                                    .font(theme::font_h3())
+                                    .color(theme::text_primary()),
+                            );
+                            if let Some(sub) = self.subtitle {
+                                ui.label(
+                                    egui::RichText::new(sub)
+                                        .font(theme::font_small())
+                                        .color(theme::text_tertiary()),
+                                );
+                            }
                         });
 
-                        // Actions
-                        if !actions.is_empty() {
+                        // Close button
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             ui.add_space(theme::SPACE_LG);
+                            if button::icon_button(ui, icons::XMARK, Some("Fermer")).clicked() {
+                                should_close = true;
+                            }
+                        });
+                    });
 
-                            let action_rect = ui.allocate_space(egui::vec2(content_width, 1.0)).1;
-                            ui.painter().rect_filled(
-                                action_rect,
-                                CornerRadius::ZERO,
-                                theme::border_subtle(),
-                            );
+                    ui.add_space(theme::SPACE_SM);
 
+                    // Hairline under the header, not an accent slab.
+                    let divider_rect = ui
+                        .allocate_space(egui::vec2(drawer_width, theme::BORDER_THIN))
+                        .1;
+                    if ui.is_rect_visible(divider_rect) {
+                        ui.painter().rect_filled(
+                            egui::Rect::from_min_size(
+                                divider_rect.min + egui::vec2(theme::SPACE_LG, 0.0),
+                                egui::vec2(content_width, theme::BORDER_THIN),
+                            ),
+                            CornerRadius::ZERO,
+                            theme::border_subtle(),
+                        );
+                    }
+
+                    // Body scrolls between the header and the pinned footer,
+                    // so the actions stay in reach however long the detail.
+                    let body_height =
+                        (drawer_rect.bottom() - ui.cursor().top() - footer_h).max(0.0);
+                    egui::ScrollArea::vertical()
+                        .id_salt(self.id.with("scroll"))
+                        .auto_shrink([false, false])
+                        .max_height(body_height)
+                        .show(ui, |ui| {
+                            ui.set_width(drawer_width);
                             ui.add_space(theme::SPACE_MD);
-
                             ui.horizontal(|ui| {
-                                ui.add_space(theme::SPACE_SM);
-                                ui.label(
-                                    egui::RichText::new("ACTIONS")
-                                        .font(theme::font_label())
-                                        .color(theme::text_secondary())
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                        .strong(),
-                                );
-                            });
-                            ui.add_space(theme::SPACE_SM);
-
-                            for (idx, action) in actions.iter().enumerate() {
-                                ui.horizontal(|ui| {
-                                    ui.add_space(theme::SPACE_SM);
-                                    let label = format!("{}  {}", action.icon, action.label);
-                                    let clicked = match action.style {
-                                        ActionStyle::Primary => button::primary_button_loading(
-                                            ui,
-                                            &label,
-                                            action.enabled,
-                                            action.loading,
-                                        )
-                                        .clicked(),
-                                        ActionStyle::Secondary => button::secondary_button_loading(
-                                            ui,
-                                            &label,
-                                            action.enabled,
-                                            action.loading,
-                                        )
-                                        .clicked(),
-                                        ActionStyle::Danger => button::destructive_button_loading(
-                                            ui,
-                                            &label,
-                                            action.enabled,
-                                            action.loading,
-                                        )
-                                        .clicked(),
-                                    };
-                                    if clicked {
-                                        clicked_action = Some(idx);
-                                    }
+                                ui.add_space(theme::SPACE_LG);
+                                ui.vertical(|ui| {
+                                    ui.set_width(content_width);
+                                    content(ui);
                                 });
-                                ui.add_space(theme::SPACE_XS);
+                            });
+                            ui.add_space(theme::SPACE_XL);
+                        });
+
+                    if footer_h > 0.0 {
+                        let footer_rect = egui::Rect::from_min_size(
+                            egui::pos2(drawer_rect.left(), drawer_rect.bottom() - footer_h),
+                            egui::vec2(drawer_width, footer_h),
+                        );
+                        // The footer sits over the scrolling body: its own
+                        // surface, a hairline, and a whisper of shadow above.
+                        let mut shadow = theme::Elevation::Level2.ambient();
+                        shadow.offset = [0, -4];
+                        ui.painter()
+                            .add(shadow.as_shape(footer_rect, CornerRadius::ZERO));
+                        ui.painter().rect_filled(
+                            footer_rect,
+                            CornerRadius::ZERO,
+                            theme::bg_secondary(),
+                        );
+                        ui.painter().hline(
+                            footer_rect.x_range(),
+                            footer_rect.top() + 0.5,
+                            egui::Stroke::new(theme::BORDER_THIN, theme::border_subtle()),
+                        );
+
+                        let inner =
+                            footer_rect.shrink2(egui::vec2(theme::SPACE_LG, theme::SPACE_MD));
+                        // One row high to start with, like `horizontal_wrapped`:
+                        // a wrapping row centres its items in the rect it is
+                        // given, so a two-row rect would push the second row
+                        // out of the footer.
+                        let first_row = egui::Rect::from_min_size(
+                            inner.min,
+                            egui::vec2(inner.width(), theme::BUTTON_HEIGHT),
+                        );
+                        let mut footer = ui.new_child(
+                            egui::UiBuilder::new().max_rect(first_row).layout(
+                                egui::Layout::left_to_right(egui::Align::Center)
+                                    .with_main_wrap(true),
+                            ),
+                        );
+                        footer.spacing_mut().item_spacing =
+                            egui::vec2(theme::SPACE_SM, theme::SPACE_SM);
+                        for (idx, action) in actions.iter().enumerate() {
+                            let label = format!("{}  {}", action.icon, action.label);
+                            let clicked = match action.style {
+                                ActionStyle::Primary => button::primary_button_loading(
+                                    &mut footer,
+                                    &label,
+                                    action.enabled,
+                                    action.loading,
+                                )
+                                .clicked(),
+                                ActionStyle::Secondary => button::secondary_button_loading(
+                                    &mut footer,
+                                    &label,
+                                    action.enabled,
+                                    action.loading,
+                                )
+                                .clicked(),
+                                ActionStyle::Danger => button::destructive_button_loading(
+                                    &mut footer,
+                                    &label,
+                                    action.enabled,
+                                    action.loading,
+                                )
+                                .clicked(),
+                            };
+                            if clicked {
+                                clicked_action = Some(idx);
                             }
                         }
-
-                        ui.add_space(theme::SPACE_XL);
-                    });
+                    }
+                });
             });
 
         if should_close {
@@ -449,8 +497,10 @@ pub fn detail_text(ui: &mut Ui, label: &str, text: &str) {
     );
     ui.add_space(theme::SPACE_XS);
 
+    // Prose sits one step up the surface ladder, not in a hole: bg_deep read
+    // as a terminal well around a sentence of French.
     egui::Frame::new()
-        .fill(theme::bg_deep())
+        .fill(theme::bg_tertiary())
         .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
         .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
         .stroke(egui::Stroke::new(

@@ -371,10 +371,22 @@ impl Sidebar {
                 painter.rect_filled(body, radius, fill);
             }
 
-            // Active marker: a short accent bar bled off the left edge.
+            // Active marker: a short accent bar bled off the left edge. Its
+            // position is animated, so a navigation reads as the marker
+            // moving to the new row rather than appearing there.
             if row.is_current {
+                let target_y = body.center().y;
+                let y = if theme::is_reduced_motion() {
+                    target_y
+                } else {
+                    ui.ctx().animate_value_with_time(
+                        egui::Id::new("sidebar_active_marker_y"),
+                        target_y,
+                        theme::ANIM_NORMAL,
+                    )
+                };
                 let bar = egui::Rect::from_min_size(
-                    egui::pos2(rect.left(), body.center().y - 8.0),
+                    egui::pos2(rect.left(), y - 8.0),
                     egui::vec2(theme::ACCENT_BAR_WIDTH, 16.0),
                 );
                 painter.rect_filled(
