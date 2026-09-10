@@ -119,7 +119,7 @@ pub fn sparkline(
 
     painter.add(egui::Shape::line(
         points.clone(),
-        Stroke::new(1.5, config.color),
+        Stroke::new(1.5_f32, config.color),
     ));
 
     if let Some(last) = points.last() {
