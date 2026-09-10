@@ -13,21 +13,57 @@
 //!
 //! # Environment Variables
 //!
-//! All configuration values can be overridden via environment variables with the `SENTINEL_` prefix.
-//! For nested configuration (like proxy), use underscores to separate levels:
+//! All top-level configuration values can be overridden via environment variables
+//! with the `SENTINEL_` prefix followed by the field name in upper snake case:
 //!
 //! - `SENTINEL_SERVER_URL` → `server_url`
+//! - `SENTINEL_ENROLLMENT_TOKEN` → `enrollment_token`
+//! - `SENTINEL_CA_CERT_PATH` → `ca_cert_path`
 //! - `SENTINEL_CHECK_INTERVAL_SECS` → `check_interval_secs`
+//!
+//! Nested fields are mapped explicitly (see [`NESTED_ENV_KEYS`]):
+//!
 //! - `SENTINEL_PROXY_URL` → `proxy.url`
 //! - `SENTINEL_PROXY_USERNAME` → `proxy.username`
+//! - `SENTINEL_PROXY_PASSWORD` → `proxy.password`
+//! - `SENTINEL_LLM_ENABLED` → `llm.enabled`
+//! - `SENTINEL_LLM_MODEL` → `llm.model`
+//!
+//! List fields (`fim_watched_paths`, `fim_ignore_patterns`, `active_frameworks`)
+//! accept comma-separated values.
 
 use crate::constants::{
     DEFAULT_CHECK_INTERVAL_SECS, DEFAULT_OFFLINE_MODE_DAYS, DEFAULT_SERVER_URL,
 };
-use config::{Config, ConfigError, Environment, File, FileFormat};
+use config::builder::DefaultState;
+use config::{Config, ConfigBuilder, ConfigError, Environment, File, FileFormat};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use url::Url;
+
+/// Environment variables that map to *nested* configuration keys.
+///
+/// The flat `SENTINEL_<FIELD>` convention cannot express nesting (the field
+/// names themselves contain underscores), so nested keys are listed here
+/// explicitly instead of relying on a separator heuristic.
+pub const NESTED_ENV_KEYS: &[(&str, &str)] = &[
+    ("SENTINEL_PROXY_URL", "proxy.url"),
+    ("SENTINEL_PROXY_USERNAME", "proxy.username"),
+    ("SENTINEL_PROXY_PASSWORD", "proxy.password"),
+    ("SENTINEL_LLM_ENABLED", "llm.enabled"),
+    ("SENTINEL_LLM_MODEL", "llm.model"),
+];
+
+/// Top-level list fields that accept comma-separated environment values.
+const LIST_ENV_FIELDS: &[&str] = &[
+    "fim_watched_paths",
+    "fim_ignore_patterns",
+    "active_frameworks",
+];
+
+/// Snapshot of environment variables (used to inject a fake environment in tests).
+type EnvMap = HashMap<String, String>;
 
 /// Main agent configuration.
 ///
@@ -347,13 +383,8 @@ impl AgentConfig {
             }
         }
 
-        // Add environment variable source with SENTINEL_ prefix
-        builder = builder.add_source(
-            Environment::with_prefix("SENTINEL")
-                .prefix_separator("_")
-                .separator("_")
-                .try_parsing(true),
-        );
+        // Add environment variable overrides (SENTINEL_* prefix)
+        builder = apply_env_overrides(builder, None).map_err(config_error_to_common)?;
 
         // Build and deserialize
         let settings = builder.build().map_err(config_error_to_common)?;
@@ -577,6 +608,127 @@ impl AgentConfig {
     }
 }
 
+impl AgentConfig {
+    /// Persist `server_url` into the platform configuration file.
+    ///
+    /// Used by `sentinel-agent enroll --server <URL>` so the service started
+    /// afterwards talks to the same platform the agent enrolled with (typically
+    /// an on-premise instance). Other keys already present in the file are
+    /// preserved; the file is rewritten in place so ownership and permissions
+    /// set by the installer are kept.
+    ///
+    /// Returns the path of the file that was written.
+    pub fn persist_server_url(server_url: &str) -> crate::error::Result<PathBuf> {
+        let path = Self::platform_config_path();
+        Self::persist_server_url_to(&path, server_url)?;
+        Ok(path)
+    }
+
+    /// Same as [`Self::persist_server_url`] but targets an explicit file path.
+    pub fn persist_server_url_to(path: &Path, server_url: &str) -> crate::error::Result<()> {
+        use crate::error::CommonError;
+
+        Url::parse(server_url).map_err(|e| {
+            CommonError::validation(format!("server_url is not a valid URL: {}", e))
+        })?;
+
+        let mut root = match std::fs::read_to_string(path) {
+            Ok(content) if !content.trim().is_empty() => {
+                serde_json::from_str::<serde_json::Value>(&content).map_err(|e| {
+                    CommonError::config(format!(
+                        "refusing to overwrite invalid JSON in {}: {}",
+                        path.display(),
+                        e
+                    ))
+                })?
+            }
+            Ok(_) => serde_json::Value::Object(Default::default()),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                serde_json::Value::Object(Default::default())
+            }
+            Err(e) => {
+                return Err(CommonError::config(format!(
+                    "failed to read {}: {}",
+                    path.display(),
+                    e
+                )));
+            }
+        };
+
+        let object = root.as_object_mut().ok_or_else(|| {
+            CommonError::config(format!("{} does not contain a JSON object", path.display()))
+        })?;
+        object.insert(
+            "server_url".to_string(),
+            serde_json::Value::String(server_url.trim_end_matches('/').to_string()),
+        );
+
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| {
+                CommonError::config(format!("failed to create {}: {}", parent.display(), e))
+            })?;
+        }
+
+        let content = serde_json::to_string_pretty(&root)
+            .map_err(|e| CommonError::config(format!("failed to serialize config: {}", e)))?;
+
+        let mut options = std::fs::OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            // Only applies when the file is created; existing mode is preserved.
+            options.mode(0o600);
+        }
+        let mut file = options.open(path).map_err(|e| {
+            CommonError::config(format!("failed to open {}: {}", path.display(), e))
+        })?;
+        use std::io::Write;
+        file.write_all(content.as_bytes())
+            .and_then(|_| file.write_all(b"\n"))
+            .map_err(|e| CommonError::config(format!("failed to write {}: {}", path.display(), e)))
+    }
+}
+
+/// Apply `SENTINEL_*` environment overrides to a configuration builder.
+///
+/// * Top-level fields use the flat form `SENTINEL_<FIELD>` (e.g.
+///   `SENTINEL_SERVER_URL`). A separator-based mapping would split those names
+///   into nested tables (`server.url`) and silently drop them, so no separator
+///   is used here.
+/// * Nested fields are mapped explicitly from [`NESTED_ENV_KEYS`].
+///
+/// `env` lets tests inject a fake environment; `None` reads the process
+/// environment.
+fn apply_env_overrides(
+    mut builder: ConfigBuilder<DefaultState>,
+    env: Option<&EnvMap>,
+) -> Result<ConfigBuilder<DefaultState>, ConfigError> {
+    let mut flat = Environment::with_prefix("SENTINEL")
+        .prefix_separator("_")
+        .try_parsing(true)
+        .list_separator(",");
+    for field in LIST_ENV_FIELDS {
+        flat = flat.with_list_parse_key(field);
+    }
+    if let Some(map) = env {
+        flat = flat.source(Some(map.clone()));
+    }
+    builder = builder.add_source(flat);
+
+    for (var, key) in NESTED_ENV_KEYS {
+        let value = match env {
+            Some(map) => map.get(*var).cloned(),
+            None => std::env::var(var).ok(),
+        };
+        if let Some(value) = value {
+            builder = builder.set_override(*key, value)?;
+        }
+    }
+
+    Ok(builder)
+}
+
 /// Convert config crate errors to CommonError
 fn config_error_to_common(err: ConfigError) -> crate::error::CommonError {
     match err {
@@ -615,7 +767,7 @@ fn config_error_to_common(err: ConfigError) -> crate::error::CommonError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use config::{Config, Environment};
+    use config::Config;
     use std::io::Write;
     use tempfile::NamedTempFile;
 
@@ -885,26 +1037,137 @@ mod tests {
         assert!(!config.server_url.is_empty());
     }
 
-    /// Test that environment variables are configured correctly in the config builder.
-    /// Note: Actual env var override tests require `--test-threads=1` due to global state.
-    /// Manual verification: SENTINEL_SERVER_URL=https://test.com cargo run -- status
-    #[test]
-    fn test_environment_source_configuration() {
-        // Verify the Environment source is built correctly by checking that
-        // the config builder can be created without errors
-        let builder = Config::builder().add_source(
-            Environment::with_prefix("SENTINEL")
-                .prefix_separator("_")
-                .separator("_")
-                .try_parsing(true),
-        );
+    fn env_map(pairs: &[(&str, &str)]) -> EnvMap {
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
+    }
 
-        // Should build successfully
-        let result = builder.build();
-        assert!(
-            result.is_ok(),
-            "Environment source configuration should be valid"
+    fn load_with_env(json: &str, env: &EnvMap) -> AgentConfig {
+        let mut builder = Config::builder();
+        if !json.is_empty() {
+            builder = builder.add_source(File::from_str(json, FileFormat::Json));
+        }
+        let builder = apply_env_overrides(builder, Some(env)).unwrap();
+        builder.build().unwrap().try_deserialize().unwrap()
+    }
+
+    /// `SENTINEL_SERVER_URL` must override `server_url` (on-premise deployments
+    /// rely on it). A separator-based mapping used to turn it into `server.url`
+    /// and silently ignore it.
+    #[test]
+    fn test_env_override_top_level_fields() {
+        let env = env_map(&[
+            ("SENTINEL_SERVER_URL", "https://grc.example.com/fn/agentApi"),
+            ("SENTINEL_ENROLLMENT_TOKEN", "org-1234:deadbeef"),
+            ("SENTINEL_CA_CERT_PATH", "/etc/sentinel/ca.pem"),
+            ("SENTINEL_CHECK_INTERVAL_SECS", "1800"),
+            ("SENTINEL_HEARTBEAT_INTERVAL_SECS", "30"),
+            ("SENTINEL_LOG_LEVEL", "debug"),
+            ("SENTINEL_TLS_VERIFY", "true"),
+        ]);
+        let config = load_with_env(r#"{ "server_url": "https://file.example.com" }"#, &env);
+        assert_eq!(config.server_url, "https://grc.example.com/fn/agentApi");
+        assert_eq!(
+            config.enrollment_token.as_deref(),
+            Some("org-1234:deadbeef")
         );
+        assert_eq!(config.ca_cert_path.as_deref(), Some("/etc/sentinel/ca.pem"));
+        assert_eq!(config.check_interval_secs, 1800);
+        assert_eq!(config.heartbeat_interval_secs, 30);
+        assert_eq!(config.log_level, "debug");
+        assert!(config.tls_verify);
+        assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn test_env_override_nested_fields() {
+        let env = env_map(&[
+            ("SENTINEL_PROXY_URL", "http://proxy.local:3128"),
+            ("SENTINEL_PROXY_USERNAME", "svc"),
+            ("SENTINEL_PROXY_PASSWORD", "s3cret"),
+            ("SENTINEL_LLM_ENABLED", "true"),
+            ("SENTINEL_LLM_MODEL", "custom-model"),
+        ]);
+        let config = load_with_env("", &env);
+        let proxy = config.proxy.as_ref().expect("proxy from env");
+        assert_eq!(proxy.url, "http://proxy.local:3128");
+        assert_eq!(proxy.username.as_deref(), Some("svc"));
+        assert_eq!(proxy.password.as_deref(), Some("s3cret"));
+        assert!(config.llm.enabled);
+        assert_eq!(config.llm.model, "custom-model");
+    }
+
+    #[test]
+    fn test_env_override_list_fields() {
+        let env = env_map(&[
+            ("SENTINEL_ACTIVE_FRAMEWORKS", "ISO27001,NIST-CSF"),
+            ("SENTINEL_FIM_WATCHED_PATHS", "/etc,/opt/app"),
+        ]);
+        let config = load_with_env("", &env);
+        assert_eq!(
+            config.active_frameworks,
+            Some(vec!["ISO27001".to_string(), "NIST-CSF".to_string()])
+        );
+        assert_eq!(
+            config.fim_watched_paths,
+            Some(vec!["/etc".to_string(), "/opt/app".to_string()])
+        );
+    }
+
+    #[test]
+    fn test_env_without_overrides_keeps_file_values() {
+        let env = env_map(&[("SENTINEL_DATA_DIR", "/var/lib/other")]);
+        let config = load_with_env(
+            r#"{ "server_url": "https://file.example.com", "check_interval_secs": 900 }"#,
+            &env,
+        );
+        assert_eq!(config.server_url, "https://file.example.com");
+        assert_eq!(config.check_interval_secs, 900);
+    }
+
+    #[test]
+    fn test_persist_server_url_creates_file_and_keeps_other_keys() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("agent.json");
+
+        // New file
+        AgentConfig::persist_server_url_to(&path, "https://grc.example.com/fn/agentApi/").unwrap();
+        let loaded = AgentConfig::load(Some(path.to_str().unwrap())).unwrap();
+        assert_eq!(loaded.server_url, "https://grc.example.com/fn/agentApi");
+
+        // Existing file with other keys: keep them, replace server_url
+        std::fs::write(
+            &path,
+            r#"{ "server_url": "https://old.example.com", "check_interval_secs": 1234, "usb_monitoring": false }"#,
+        )
+        .unwrap();
+        AgentConfig::persist_server_url_to(&path, "https://new.example.com").unwrap();
+        let value: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        assert_eq!(value["server_url"], "https://new.example.com");
+        assert_eq!(value["check_interval_secs"], 1234);
+        assert_eq!(value["usb_monitoring"], false);
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+            assert_eq!(mode, 0o600);
+        }
+    }
+
+    #[test]
+    fn test_persist_server_url_rejects_invalid_url_and_invalid_json() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("agent.json");
+        assert!(AgentConfig::persist_server_url_to(&path, "not a url").is_err());
+        assert!(!path.exists());
+
+        std::fs::write(&path, "{ broken").unwrap();
+        assert!(AgentConfig::persist_server_url_to(&path, "https://ok.example.com").is_err());
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "{ broken");
     }
 
     /// Test that nested proxy config can be deserialized from JSON.

@@ -381,6 +381,19 @@ fn handle_enroll(token: &str, server_url: Option<&str>) -> ExitCode {
                 "Enrollment successful! Agent ID: {}, Organization: {}",
                 credentials.agent_id, credentials.organization_id
             );
+            // Persist the server URL so the service started afterwards talks to
+            // the same platform (on-premise instances rely on this; otherwise the
+            // service would fall back to the compiled-in SaaS default).
+            if let Some(url) = server_url {
+                match AgentConfig::persist_server_url(url) {
+                    Ok(path) => info!("Server URL saved to {}", path.display()),
+                    Err(e) => warn!(
+                        "Enrolled, but the server URL could not be saved to the config file: {}. \
+                         Set \"server_url\" manually in agent.json before starting the service.",
+                        e
+                    ),
+                }
+            }
             info!("You can now start the agent with: sentinel-agent");
             ExitCode::SUCCESS
         }
