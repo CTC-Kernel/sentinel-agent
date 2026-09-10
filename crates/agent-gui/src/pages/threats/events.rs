@@ -75,6 +75,19 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let total = threats.len();
 
     // ── Pagination ──────────────────────────────────────────────────
+    // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+    let mut position = state.threats.selected_threat;
+    if widgets::navigate_list(
+        ui.ctx(),
+        &mut position,
+        total,
+        &mut state.threats.detail_open,
+    ) && let Some(pos) = position
+    {
+        state.threats.selected_threat = Some(pos);
+        state.threats.events_page = pos / ITEMS_PER_PAGE;
+    }
+
     let total_pages = total.div_ceil(ITEMS_PER_PAGE).max(1);
     if state.threats.events_page >= total_pages {
         state.threats.events_page = total_pages.saturating_sub(1);

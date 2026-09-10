@@ -263,6 +263,19 @@ impl AuditTrailPage {
             return;
         }
 
+        // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+        let mut position = state.selected_audit_entry;
+        if widgets::navigate_list(
+            ui.ctx(),
+            &mut position,
+            filtered_logs.len(),
+            &mut state.audit_detail_open,
+        ) && let Some(pos) = position
+        {
+            state.selected_audit_entry = Some(pos);
+            state.audit_trail_page = pos / AUDIT_PER_PAGE;
+        }
+
         const AUDIT_PER_PAGE: usize = 50;
         let (at_start, at_len, _) = widgets::page_window(
             filtered_logs.len(),

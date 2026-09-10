@@ -219,6 +219,91 @@ fn build_palette_commands() -> Vec<widgets::CommandItem> {
     commands
 }
 
+/// Palette entries for the data on screen — a CVE, an asset, a package, a
+/// process, a risk — each opening its page and its record. Capped per kind
+/// so the palette stays a search box, not an inventory dump.
+fn severity_fr(severity: crate::dto::Severity) -> &'static str {
+    match severity {
+        crate::dto::Severity::Critical => "Critique",
+        crate::dto::Severity::High => "\u{00c9}lev\u{00e9}e",
+        crate::dto::Severity::Medium => "Moyenne",
+        crate::dto::Severity::Low => "Faible",
+        crate::dto::Severity::Info => "Info",
+    }
+}
+
+pub fn entity_commands(state: &AppState) -> Vec<widgets::CommandItem> {
+    const PER_KIND: usize = 200;
+    let icon_of = |wanted: Page| {
+        page_catalog()
+            .into_iter()
+            .find(|(page, ..)| *page == wanted)
+            .map(|(_, _, icon, ..)| icon)
+            .unwrap_or(icons::SEARCH)
+    };
+    let mut items = Vec::new();
+    for (i, f) in state
+        .vulnerability_findings
+        .iter()
+        .take(PER_KIND)
+        .enumerate()
+    {
+        items.push(
+            widgets::CommandItem::new(format!("vuln:{i}"), f.cve_id.clone())
+                .description(format!(
+                    "{} {} \u{00b7} {}",
+                    f.affected_software,
+                    f.affected_version,
+                    severity_fr(f.severity)
+                ))
+                .icon(icon_of(Page::Vulnerabilities))
+                .category("Vuln\u{00e9}rabilit\u{00e9}s"),
+        );
+    }
+    for (i, a) in state.assets.assets.iter().take(PER_KIND).enumerate() {
+        items.push(
+            widgets::CommandItem::new(
+                format!("asset:{i}"),
+                a.hostname.clone().unwrap_or_else(|| a.ip.clone()),
+            )
+            .description(format!("{} \u{00b7} {}", a.ip, a.device_type))
+            .icon(icon_of(Page::Assets))
+            .category("Inventaire"),
+        );
+    }
+    for (i, p) in state.software.packages.iter().take(PER_KIND).enumerate() {
+        items.push(
+            widgets::CommandItem::new(format!("package:{i}"), p.name.clone())
+                .description(p.version.clone())
+                .icon(icon_of(Page::Software))
+                .category("Logiciels"),
+        );
+    }
+    for (i, p) in state
+        .threats
+        .suspicious_processes
+        .iter()
+        .take(PER_KIND)
+        .enumerate()
+    {
+        items.push(
+            widgets::CommandItem::new(format!("process:{i}"), p.process_name.clone())
+                .description(format!("PID {} \u{00b7} {}", p.pid, p.reason))
+                .icon(icon_of(Page::Threats))
+                .category("Menaces"),
+        );
+    }
+    for (i, r) in state.risks.entries.iter().take(PER_KIND).enumerate() {
+        items.push(
+            widgets::CommandItem::new(format!("risk:{i}"), r.title.clone())
+                .description(format!("Score {} \u{00b7} {}", r.score(), r.owner))
+                .icon(icon_of(Page::Risks))
+                .category("Risques"),
+        );
+    }
+    items
+}
+
 /// Lay a page body out as a centred column of `measure` px, inset by `side`.
 ///
 /// Used instead of `Frame::inner_margin` because egui margins are `i8`: on a
@@ -1251,9 +1336,10 @@ impl eframe::App for SentinelApp {
 
         // Command palette (⌘K) — rendered last so it overlays everything.
         if self.command_palette.open {
-            let commands = build_palette_commands();
+            let mut commands = build_palette_commands();
+            commands.extend(entity_commands(&self.state));
             let selected = widgets::CommandPalette::new(&commands)
-                .placeholder("Rechercher une page ou une action…")
+                .placeholder("Rechercher une page, une action, une CVE, un actif…")
                 .max_results(commands.len())
                 .show(ctx, &mut self.command_palette);
             if let Some(id) = selected {
@@ -1372,6 +1458,53 @@ impl SentinelApp {
     ///
     /// Ids are either `nav:<page>` (navigate) or `action:<name>` (side effect).
     fn handle_palette_command(&mut self, id: &str) {
+        // Data results: `kind:index` into the state the palette was built from.
+        if let Some((kind, idx)) = id
+            .split_once(':')
+            .and_then(|(kind, idx)| idx.parse::<usize>().ok().map(|idx| (kind, idx)))
+        {
+            match kind {
+                "vuln" => {
+                    self.navigate_to(Page::Vulnerabilities);
+                    self.state.vulnerability.selected_vuln = Some(idx);
+                    self.state.vulnerability.detail_open = true;
+                    return;
+                }
+                "asset" => {
+                    self.navigate_to(Page::Assets);
+                    self.state.assets.selected_asset = Some(idx);
+                    self.state.assets.detail_open = true;
+                    return;
+                }
+                "package" => {
+                    self.navigate_to(Page::Software);
+                    self.state.software.active_tab = crate::dto::SoftwareTab::Packages;
+                    self.state.software.selected_package = Some(idx);
+                    self.state.software.detail_open = true;
+                    return;
+                }
+                "process" => {
+                    // The threat lists are rebuilt and re-sorted per frame, so
+                    // the record is reached through the search rather than an
+                    // index that would not survive the next rebuild.
+                    if let Some(p) = self.state.threats.suspicious_processes.get(idx) {
+                        self.state.threats.search = p.process_name.clone();
+                    }
+                    self.navigate_to(Page::Threats);
+                    self.state.threats.active_tab = crate::dto::EdrTab::Events;
+                    self.state.threats.events_page = 0;
+                    return;
+                }
+                "risk" => {
+                    self.navigate_to(Page::Risks);
+                    self.state.risks.selected_risk = Some(idx);
+                    self.state.risks.detail_open = true;
+                    return;
+                }
+                _ => {}
+            }
+        }
+
         if let Some(nav_id) = id.strip_prefix("nav:") {
             if let Some((page, ..)) = page_catalog()
                 .into_iter()

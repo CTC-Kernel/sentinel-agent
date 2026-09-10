@@ -272,6 +272,18 @@ impl DiscoveryPage {
             .map(|(i, _)| i)
             .collect();
 
+        // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+        let mut position = state.discovery.selected_device;
+        if widgets::navigate_list(
+            ui.ctx(),
+            &mut position,
+            filtered.len(),
+            &mut state.discovery.detail_open,
+        ) && let Some(pos) = position
+        {
+            state.discovery.selected_device = Some(filtered[pos]);
+        }
+
         let result_count = filtered.len();
 
         widgets::SearchFilterBar::new(
@@ -513,6 +525,9 @@ impl DiscoveryPage {
                                             theme::text_secondary()
                                         }),
                                     ),
+                                )
+                                .on_hover_text(
+                                    device.last_seen.format("%d/%m/%Y %H:%M:%S").to_string(),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {

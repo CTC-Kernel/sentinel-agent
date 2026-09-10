@@ -570,6 +570,19 @@ fn paint_cell_text(
     let painter = ui.painter();
     let mut galley = painter.layout_no_wrap(text.to_owned(), font.clone(), color);
     if galley.size().x > inner.width() {
+        // The full text on hover, without registering a widget that would
+        // take the hover away from the row underneath.
+        if ui.rect_contains_pointer(inner) {
+            egui::show_tooltip_at_pointer(
+                ui.ctx(),
+                ui.layer_id(),
+                ui.id()
+                    .with(("cell_tip", cell.min.x as i32, cell.min.y as i32)),
+                |ui| {
+                    ui.label(text);
+                },
+            );
+        }
         // Truncate to what fits, leaving room for the ellipsis.
         let mut visible = text.to_owned();
         while !visible.is_empty() {

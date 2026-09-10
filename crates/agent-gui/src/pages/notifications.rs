@@ -261,6 +261,19 @@ impl NotificationsPage {
                 ui.add_space(theme::SPACE_SM);
             }
 
+            // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+            let mut position = state.selected_notification;
+            if widgets::navigate_list(
+                ui.ctx(),
+                &mut position,
+                state.notifications.len(),
+                &mut state.notification_detail_open,
+            ) && let Some(pos) = position
+            {
+                state.selected_notification = Some(pos);
+                state.notifications_page = pos / NOTIF_PER_PAGE;
+            }
+
             widgets::paginate_controls(
                 ui,
                 state.notifications.len(),

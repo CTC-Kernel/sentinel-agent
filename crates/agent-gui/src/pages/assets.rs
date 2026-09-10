@@ -440,7 +440,8 @@ impl AssetsPage {
                                 } else {
                                     theme::text_secondary()
                                 }),
-                            ));
+                            ))
+                            .on_hover_text(asset.last_seen.format("%d/%m/%Y %H:%M:%S").to_string());
                         });
 
                         if row.response().clicked() {

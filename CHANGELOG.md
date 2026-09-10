@@ -239,6 +239,31 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   qu'une modale est affichée, pour que la recherche ne fasse jamais défiler
   le tableau derrière elle.
 
+#### Palette de commandes
+- `⌘K` / `Ctrl K` cherche aussi dans les données : une CVE, un actif (nom
+  d'hôte ou IP), un paquet, un processus suspect, un risque. Le résultat
+  ouvre la page et le tiroir de l'enregistrement (le processus arrive par la
+  recherche de l'onglet Événements, dont la liste est reconstruite à chaque
+  image). Plafonné à 200 entrées par famille : une recherche, pas un
+  inventaire.
+
+#### Détails qui comptent
+- Les valeurs mono des tiroirs (hash, adresse IP, MAC, identifiant CVE) ont
+  un bouton de copie à côté du puits — une empreinte est faite pour être
+  collée ailleurs, pas sélectionnée à la souris.
+- Une cellule de tableau tronquée montre son texte complet au survol, sans
+  voler le survol à sa ligne.
+- Les dates relatives (« il y a 15 min ») affichent l'horodatage complet au
+  survol.
+- Navigation clavier étendue aux listes restantes : intégrité des fichiers,
+  journal d'audit, Shadow IT, événements et chronologie des menaces,
+  notifications.
+
+#### Thème clair
+- Revue des 20 pages et de 11 onglets secondaires en thème clair, données
+  peuplées : aucune régression relevée après les corrections des phases
+  précédentes.
+
 ---
 
 ## 📦 [2.0.219] - 2026-04-13

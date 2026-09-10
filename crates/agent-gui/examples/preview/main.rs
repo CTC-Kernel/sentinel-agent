@@ -283,11 +283,18 @@ impl Preview {
             "palette" => {
                 if self.frame_count == 2 {
                     self.palette.open();
-                    self.palette.query = "vul".to_string();
+                    self.palette.query = if self.state.is_some() {
+                        "cve-2024".to_string()
+                    } else {
+                        "vul".to_string()
+                    };
                 }
-                let commands = palette_commands();
+                let mut commands = palette_commands();
+                if let Some(state) = self.state.as_deref() {
+                    commands.extend(agent_gui::app::entity_commands(state));
+                }
                 widgets::CommandPalette::new(&commands)
-                    .placeholder("Rechercher une page ou une action…")
+                    .placeholder("Rechercher une page, une action, une CVE, un actif…")
                     .max_results(commands.len())
                     .show(ctx, &mut self.palette);
             }

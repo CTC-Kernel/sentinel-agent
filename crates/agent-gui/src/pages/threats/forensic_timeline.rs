@@ -172,6 +172,19 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     ui.add_space(theme::SPACE_SM);
 
     // ── Pagination ──────────────────────────────────────────────────
+    // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+    let mut position = state.threats.forensic_selected_event;
+    if widgets::navigate_list(
+        ui.ctx(),
+        &mut position,
+        total,
+        &mut state.threats.forensic_detail_open,
+    ) && let Some(pos) = position
+    {
+        state.threats.forensic_selected_event = Some(pos);
+        state.threats.forensic_page = pos / ITEMS_PER_PAGE;
+    }
+
     let total_pages = total.div_ceil(ITEMS_PER_PAGE).max(1);
     if state.threats.forensic_page >= total_pages {
         state.threats.forensic_page = total_pages.saturating_sub(1);

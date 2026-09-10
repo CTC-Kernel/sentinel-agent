@@ -370,6 +370,19 @@ impl FimPage {
                     state.fim.detail_open = true;
                 }
 
+                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+                let mut position = state.fim.selected_alert;
+                if widgets::navigate_list(
+                    ui.ctx(),
+                    &mut position,
+                    state.fim.alerts.len(),
+                    &mut state.fim.detail_open,
+                ) && let Some(pos) = position
+                {
+                    state.fim.selected_alert = Some(pos);
+                    state.fim.page = pos / FIM_PER_PAGE;
+                }
+
                 // Apply acknowledgment after the table
                 if let Some(idx) = ack_command {
                     let alert_id = alert_ids[idx].clone();
