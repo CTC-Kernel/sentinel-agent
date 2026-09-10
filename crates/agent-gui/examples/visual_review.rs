@@ -9,6 +9,8 @@ use std::sync::mpsc;
 struct Review {
     components: bool,
     light: bool,
+    details: bool,
+    detail_state: agent_gui::app::AppState,
     app: SentinelApp,
     output: String,
     requested: bool,
@@ -52,6 +54,15 @@ impl eframe::App for Review {
         if self.components {
             agent_gui::theme::apply_theme(ctx, !self.light);
             component_review(ctx);
+        } else if self.details {
+            agent_gui::theme::apply_theme(ctx, !self.light);
+            egui::CentralPanel::default().show(ctx, |ui| {
+                egui::ScrollArea::vertical()
+                    .vertical_scroll_offset(440.0)
+                    .show(ui, |ui| {
+                        let _ = agent_gui::pages::DashboardPage::show(ui, &mut self.detail_state);
+                    });
+            });
         } else {
             self.app.update(ctx, frame);
         }
@@ -181,6 +192,34 @@ fn main() -> Result<(), eframe::Error> {
             Ok(Box::new(Review {
                 components: args.iter().any(|arg| arg == "--components"),
                 light,
+                details: args.iter().any(|arg| arg == "--details"),
+                detail_state: {
+                    let mut state = agent_gui::app::AppState::default();
+                    if !empty {
+                        state.summary.organization = Some("ATELIER · DÉMONSTRATION".to_owned());
+                        state.policy = GuiPolicySummary {
+                            total_policies: 48,
+                            passing: 42,
+                            failing: 6,
+                            errors: 0,
+                            pending: 0,
+                        };
+                        state.summary.compliance_score = Some(87.5);
+                        state.resources.cpu_percent = 21.0;
+                        state.resources.memory_percent = 40.0;
+                        for i in 0..40 {
+                            state
+                                .monitoring
+                                .cpu_history
+                                .push_back([i as f64, 21.0 + (i as f64 * 0.3).sin() * 8.0]);
+                            state
+                                .monitoring
+                                .memory_history
+                                .push_back([i as f64, 40.0 + (i as f64 * 0.2).sin() * 3.0]);
+                        }
+                    }
+                    state
+                },
                 app,
                 output,
                 requested: false,

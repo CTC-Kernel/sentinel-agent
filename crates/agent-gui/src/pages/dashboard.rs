@@ -61,6 +61,68 @@ pub enum DashboardAction {
 
 pub struct DashboardPage;
 
+fn resource_value(value: f64, observed: bool) -> String {
+    if observed && value.is_finite() {
+        crate::format::pct(value, 1)
+    } else {
+        "—".to_owned()
+    }
+}
+
+fn check_status(state: &AppState) -> (String, egui::Color32) {
+    let policy = &state.policy;
+    if policy.failing > 0 {
+        (
+            crate::format::count(policy.failing, "échec"),
+            theme::WARNING,
+        )
+    } else if policy.errors > 0 {
+        (crate::format::count(policy.errors, "erreur"), theme::ERROR)
+    } else if state.summary.status == GuiAgentStatus::Scanning {
+        ("Analyse en cours".to_owned(), theme::INFO)
+    } else if policy.pending > 0 {
+        (
+            format!("{} en attente", crate::format::int(policy.pending)),
+            theme::INFO,
+        )
+    } else if policy.total_policies == 0 {
+        ("Évaluation en attente".to_owned(), theme::text_tertiary())
+    } else if policy.passing == policy.total_policies {
+        ("Tous conformes".to_owned(), theme::SUCCESS)
+    } else {
+        ("Résultats incomplets".to_owned(), theme::INFO)
+    }
+}
+
+#[cfg(test)]
+mod status_tests {
+    use super::*;
+
+    #[test]
+    fn zero_usage_is_only_displayed_after_a_measurement() {
+        assert_eq!(resource_value(0.0, false), "—");
+        assert_eq!(resource_value(f64::NAN, true), "—");
+        assert_eq!(resource_value(0.0, true), crate::format::pct(0.0, 1));
+    }
+
+    #[test]
+    fn conformity_requires_complete_successful_results() {
+        let mut state = AppState::default();
+        assert_eq!(check_status(&state).0, "Évaluation en attente");
+        state.policy.total_policies = 2;
+        state.policy.passing = 1;
+        assert_eq!(check_status(&state).0, "Résultats incomplets");
+        state.policy.pending = 1;
+        assert!(check_status(&state).0.contains("en attente"));
+        state.policy.pending = 0;
+        state.policy.errors = 1;
+        assert_eq!(check_status(&state).1, theme::ERROR);
+        state.policy.errors = 0;
+        state.policy.passing = 2;
+        assert_eq!(check_status(&state).0, "Tous conformes");
+    }
+}
+
 impl DashboardPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
         let mut action: Option<DashboardAction> = None;
@@ -564,11 +626,11 @@ impl DashboardPage {
             ui.add_space(theme::SPACE_SM);
 
             if recommendations.is_empty() {
-                widgets::protected_state(
+                widgets::empty_state(
                     ui,
-                    icons::SHIELD_CHECK,
-                    "Posture s\u{00e9}curis\u{00e9}e",
-                    "Aucune recommandation. Contr\u{00f4}les conformes.",
+                    icons::INFO,
+                    "Aucune recommandation",
+                    Some("Aucune action proposée à partir des résultats disponibles."),
                 );
             } else {
                 // Compact recommendation rows
@@ -676,7 +738,7 @@ impl DashboardPage {
             widgets::sparkline_card_body(
                 ui,
                 "CPU",
-                &crate::format::pct(state.resources.cpu_percent, 1),
+                &resource_value(state.resources.cpu_percent, !cpu_data.is_empty()),
                 &cpu_data,
                 &config,
                 INDICATOR_CHART_HEIGHT,
@@ -704,7 +766,7 @@ impl DashboardPage {
             widgets::sparkline_card_body(
                 ui,
                 "M\u{00c9}MOIRE",
-                &crate::format::pct(state.resources.memory_percent, 1),
+                &resource_value(state.resources.memory_percent, !mem_data.is_empty()),
                 &mem_data,
                 &config,
                 INDICATOR_CHART_HEIGHT,
@@ -733,18 +795,31 @@ impl DashboardPage {
             let total = state.policy.total_policies;
             let passing = state.policy.passing;
 
-            if total == 0 && state.summary.last_check_at.is_none() {
-                widgets::skeleton_text(ui, 100.0);
+            if total == 0 {
+                if state.summary.status == GuiAgentStatus::Scanning {
+                    widgets::skeleton_text(ui, 100.0);
+                } else {
+                    ui.label(
+                        egui::RichText::new("—")
+                            .font(theme::font_card_value())
+                            .color(theme::text_tertiary()),
+                    );
+                }
             } else {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(format!("{}/{}", passing, total))
                             .font(theme::font_card_value())
-                            .color(if passing == total {
-                                theme::SUCCESS
-                            } else {
-                                theme::text_primary()
-                            })
+                            .color(
+                                if passing == total
+                                    && state.policy.errors == 0
+                                    && state.policy.pending == 0
+                                {
+                                    theme::SUCCESS
+                                } else {
+                                    theme::text_primary()
+                                },
+                            )
                             .strong(),
                     );
                 });
@@ -761,19 +836,11 @@ impl DashboardPage {
 
             ui.add_space(theme::SPACE_XS);
 
-            let status_text = if state.policy.failing > 0 {
-                crate::format::count(state.policy.failing, "\u{00e9}chec")
-            } else {
-                "Tous conformes".to_string()
-            };
+            let (status_text, status_color) = check_status(state);
             ui.label(
                 egui::RichText::new(status_text)
                     .font(theme::font_label())
-                    .color(if state.policy.failing > 0 {
-                        theme::WARNING
-                    } else {
-                        theme::SUCCESS
-                    }),
+                    .color(theme::readable_color(status_color)),
             );
         })
         .clicked()
@@ -830,7 +897,7 @@ impl DashboardPage {
                     ui.add_space(theme::SPACE_SM);
                     Self::mini_stat(ui, &format!("{}", total), "total", theme::text_secondary());
                 });
-            } else if state.summary.last_check_at.is_none() {
+            } else if state.summary.status == GuiAgentStatus::Scanning {
                 ui.vertical(|ui| {
                     widgets::skeleton_text(ui, 80.0);
                     ui.add_space(theme::SPACE_XS);
@@ -881,7 +948,7 @@ impl DashboardPage {
             let total = proc_count + usb_count + net_alerts + fim_unacked;
 
             let (color, label) = if total == 0 {
-                (theme::SUCCESS, "Aucune menace")
+                (theme::text_secondary(), "Aucune alerte reçue")
             } else if total <= THREATS_WARNING_THRESHOLD {
                 (theme::WARNING, "Attention requise")
             } else {
@@ -1041,12 +1108,21 @@ impl DashboardPage {
             ui.add_space(theme::SPACE_SM);
 
             let total = state.software.packages.len();
-            let mut up_to_date = 0;
+            let up_to_date;
 
-            if total == 0 && state.summary.last_check_at.is_none() {
-                widgets::skeleton_text(ui, 120.0);
+            if total == 0 {
+                ui.label(
+                    egui::RichText::new("—")
+                        .font(theme::font_card_value())
+                        .color(theme::text_tertiary()),
+                );
                 ui.add_space(theme::SPACE_XS);
-                widgets::skeleton(ui, ui.available_width(), 4.0);
+                ui.label(
+                    egui::RichText::new("Inventaire non disponible")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                );
+                return;
             } else {
                 up_to_date = state
                     .software
@@ -1054,11 +1130,7 @@ impl DashboardPage {
                     .iter()
                     .filter(|p| p.up_to_date)
                     .count();
-                let coverage = if total > 0 {
-                    (up_to_date as f32 / total as f32) * 100.0
-                } else {
-                    100.0
-                };
+                let coverage = (up_to_date as f32 / total as f32) * 100.0;
 
                 let color = if coverage >= SOFTWARE_COVERAGE_GOOD {
                     theme::SUCCESS
@@ -1100,7 +1172,7 @@ impl DashboardPage {
                 );
             } else {
                 ui.label(
-                    egui::RichText::new("Tous les composants conformes")
+                    egui::RichText::new("Tous les logiciels à jour")
                         .font(theme::font_label())
                         .color(theme::readable_color(theme::SUCCESS)),
                 );

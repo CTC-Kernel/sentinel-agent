@@ -207,6 +207,9 @@ pub(crate) fn determine_security_state(state: &AppState) -> SecurityState {
         return SecurityState::Attention;
     }
 
+    if state.policy.failing > 0 || state.policy.errors > 0 {
+        return SecurityState::Attention;
+    }
     if score.is_none() {
         SecurityState::Pending
     } else {
@@ -220,10 +223,16 @@ fn get_security_summary(state: &AppState, status: SecurityState) -> String {
             "Le niveau de protection sera disponible après la première évaluation.".to_string()
         }
         SecurityState::Secure => {
-            "Aucune menace détectée. Configuration conforme aux standards.".to_string()
+            "Aucun signal critique dans les résultats disponibles.".to_string()
         }
         SecurityState::Attention => {
             let mut reasons = Vec::new();
+            if state.policy.failing > 0 {
+                reasons.push("Contrôles non conformes");
+            }
+            if state.policy.errors > 0 {
+                reasons.push("Contrôles en erreur");
+            }
             if state.summary.compliance_score.unwrap_or(100.0) < 85.0 {
                 reasons.push("Conformité imparfaite");
             }
@@ -287,6 +296,17 @@ mod tests {
                 assert_eq!(determine_security_state(&state), expected);
             }
         }
+    }
+
+    #[test]
+    fn failed_checks_remain_visible_with_a_high_score() {
+        let mut state = AppState::default();
+        state.summary.compliance_score = Some(95.0);
+        state.policy.failing = 1;
+        assert_eq!(determine_security_state(&state), SecurityState::Attention);
+        state.policy.failing = 0;
+        state.policy.errors = 1;
+        assert_eq!(determine_security_state(&state), SecurityState::Attention);
     }
 
     #[test]

@@ -48,6 +48,14 @@ Un score absent n’est pas présenté comme une protection confirmée. Les rati
 de remédiation ne sont pas affichés à 100 % lorsque la liste est vide. Les courbes
 utilisent les historiques reçus ; les valeurs inconnues apparaissent avec un tiret.
 Les nombres et pourcentages de ressources utilisent le format français partagé.
+Le CPU et la mémoire affichent un tiret avant leur première mesure ; un zéro
+réel reste affiché après réception. Les contrôles différencient les erreurs,
+les résultats incomplets et l’attente. Les mini-graphiques indiquent l’absence
+d’historique et permettent de lire un échantillon au survol.
+Un inventaire logiciel absent ne produit aucun pourcentage de couverture ;
+l’absence de recommandations ne constitue pas une confirmation de protection.
+L’option `--details` de l’outil de vérification rend directement la page du
+tableau de bord avec un défilement fixe, pour inspecter ses cartes de données.
 
 ## Vérification
 
