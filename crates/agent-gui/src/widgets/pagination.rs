@@ -256,118 +256,25 @@ impl Pagination {
 
     fn show_compact(&self, ui: &mut Ui, state: &mut PaginationState) -> bool {
         let mut changed = false;
-
         ui.horizontal(|ui| {
-            // Previous
-            let prev_enabled = state.has_prev();
-            let (prev_rect, prev_response) = ui.allocate_exact_size(
-                egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET),
-                Sense::click(),
-            );
-
-            if ui.is_rect_visible(prev_rect) {
-                let color = if prev_enabled {
-                    if prev_response.hovered() {
-                        theme::ACCENT
-                    } else {
-                        theme::text_secondary()
-                    }
-                } else {
-                    theme::text_tertiary()
-                };
-
-                ui.painter().text(
-                    prev_rect.center(),
-                    egui::Align2::CENTER_CENTER,
-                    icons::CHEVRON_LEFT,
-                    theme::font_body(),
-                    color,
-                );
-
-                // Focus ring (WCAG 2.4.7)
-                if prev_response.has_focus() {
-                    ui.painter().rect_stroke(
-                        prev_rect,
-                        CornerRadius::same(theme::ROUNDING_MD),
-                        theme::focus_ring(),
-                        egui::StrokeKind::Outside,
-                    );
-                }
-            }
-
-            if prev_response.clicked() && prev_enabled {
+            if self.nav_button(ui, icons::CHEVRON_LEFT, false, state.has_prev()) {
                 state.prev();
                 changed = true;
             }
-
-            // Page indicator (dots)
-            for p in 1..=state.total_pages.min(5) {
-                let is_current = p == state.current_page || (state.current_page > 5 && p == 5);
-                let size = if is_current {
-                    theme::PAGINATION_DOT_ACTIVE
-                } else {
-                    theme::PAGINATION_DOT_INACTIVE
-                };
-                let color = if is_current {
-                    theme::ACCENT
-                } else {
-                    theme::text_tertiary()
-                };
-
-                let (dot_rect, _) = ui.allocate_exact_size(
-                    egui::vec2(theme::PAGINATION_DOT_TOUCH, theme::PAGINATION_DOT_TOUCH),
-                    Sense::hover(),
-                );
-
-                if ui.is_rect_visible(dot_rect) {
-                    ui.painter()
-                        .circle_filled(dot_rect.center(), size / 2.0, color);
-                }
-            }
-
-            // Next
-            let next_enabled = state.has_next();
-            let (next_rect, next_response) = ui.allocate_exact_size(
-                egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET),
-                Sense::click(),
+            ui.label(
+                egui::RichText::new(format!(
+                    "Page {} sur {}",
+                    crate::format::int(state.current_page),
+                    crate::format::int(state.total_pages)
+                ))
+                .font(theme::font_body_sm())
+                .color(theme::text_secondary()),
             );
-
-            if ui.is_rect_visible(next_rect) {
-                let color = if next_enabled {
-                    if next_response.hovered() {
-                        theme::ACCENT
-                    } else {
-                        theme::text_secondary()
-                    }
-                } else {
-                    theme::text_tertiary()
-                };
-
-                ui.painter().text(
-                    next_rect.center(),
-                    egui::Align2::CENTER_CENTER,
-                    icons::CHEVRON_RIGHT,
-                    theme::font_body(),
-                    color,
-                );
-
-                // Focus ring (WCAG 2.4.7)
-                if next_response.has_focus() {
-                    ui.painter().rect_stroke(
-                        next_rect,
-                        CornerRadius::same(theme::ROUNDING_MD),
-                        theme::focus_ring(),
-                        egui::StrokeKind::Outside,
-                    );
-                }
-            }
-
-            if next_response.clicked() && next_enabled {
+            if self.nav_button(ui, icons::CHEVRON_RIGHT, false, state.has_next()) {
                 state.next();
                 changed = true;
             }
         });
-
         changed
     }
 

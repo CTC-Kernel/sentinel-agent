@@ -207,7 +207,7 @@ fn component_review(ctx: &egui::Context) {
         .frame(
             egui::Frame::new()
                 .fill(theme::bg_primary())
-                .inner_margin(32.0),
+                .inner_margin(24.0),
         )
         .show(ctx, |ui| {
             ui.label(
@@ -218,7 +218,7 @@ fn component_review(ctx: &egui::Context) {
             ui.add_space(12.0);
             ui.heading("Précision, contraste et simplicité");
             ui.label("Composants réels · données de démonstration");
-            ui.add_space(24.0);
+            ui.add_space(12.0);
             widgets::card(ui, |ui| {
                 ui.label(egui::RichText::new("Actions").font(theme::font_heading()));
                 ui.add_space(16.0);
@@ -241,10 +241,17 @@ fn component_review(ctx: &egui::Context) {
                     }
                 });
             });
-            ui.add_space(24.0);
+            ui.add_space(12.0);
             widgets::card(ui, |ui| {
                 ui.label(egui::RichText::new("Équipements surveillés").font(theme::font_heading()));
                 ui.add_space(16.0);
+                let mut query = String::new();
+                widgets::SearchFilterBar::new(&mut query, "Rechercher un équipement…")
+                    .chip("Tous", true, theme::INFO)
+                    .chip("À vérifier", false, theme::WARNING)
+                    .result_count(5)
+                    .show(ui);
+                ui.add_space(12.0);
                 let table = DataTable::new(
                     "review",
                     vec![
@@ -293,6 +300,10 @@ fn component_review(ctx: &egui::Context) {
                 {
                     table.show_row(ui, index, index == 1, row);
                 }
+                ui.add_space(12.0);
+                widgets::Pagination::new()
+                    .style(widgets::PaginationStyle::Compact)
+                    .show(ui, &mut widgets::PaginationState::new(5, 10));
             });
         });
 }

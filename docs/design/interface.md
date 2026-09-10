@@ -22,6 +22,11 @@ Les champs proposent un effacement rapide et signalent les filtres actifs par
 une coche.
 Les filtres passent à la ligne lorsque la largeur diminue et l’effacement
 rend le focus à la recherche. Leur sélection est exposée aux outils d’accessibilité.
+Le champ actif affiche un contour de focus ; Échap efface une recherche remplie
+sans quitter le champ. La pagination compacte donne le numéro de page et le
+nombre total, avec des commandes indisponibles exclues du parcours clavier.
+Les notifications suspendent leur expiration pendant le survol ou lorsque
+leur bouton de fermeture possède le focus.
 La palette recherche sans accents, actualise immédiatement ses résultats
 et suit la sélection au clavier. Les boutons partagés exposent leurs
 libellés aux outils d’accessibilité. Les actions indisponibles ne reçoivent ni
@@ -37,7 +42,7 @@ de ligne reste signalée par une barre latérale. Les colonnes automatiques occu
 la largeur disponible et se contractent sans dépasser le tableau.
 
 Les captures `previews/components-dark.png` et `previews/components-light.png`
-proviennent des composants réels, rendus avec `visual_review --components --compact`.
+proviennent des composants réels, rendus avec `visual_review --components`.
 
 Un score absent n’est pas présenté comme une protection confirmée. Les ratios
 de remédiation ne sont pas affichés à 100 % lorsque la liste est vide. Les courbes

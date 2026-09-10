@@ -25,6 +25,63 @@ pub struct SearchFilterBar<'a> {
     action: Option<String>,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn escape_clears_the_focused_search_without_leaving_it() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let mut search = String::from("serveur");
+        let mut frame = |events| {
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(640.0, 200.0),
+                    )),
+                    events,
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        SearchFilterBar::new(&mut search, "Rechercher un équipement").show(ui);
+                    });
+                },
+            );
+        };
+        frame(vec![]);
+        let position = egui::pos2(80.0, 22.0);
+        frame(vec![
+            egui::Event::PointerMoved(position),
+            egui::Event::PointerButton {
+                pos: position,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                modifiers: egui::Modifiers::NONE,
+            },
+        ]);
+        frame(vec![egui::Event::PointerButton {
+            pos: position,
+            button: egui::PointerButton::Primary,
+            pressed: false,
+            modifiers: egui::Modifiers::NONE,
+        }]);
+        let focused = ctx.memory(|memory| memory.focused());
+        assert!(focused.is_some());
+        frame(vec![egui::Event::Key {
+            key: egui::Key::Escape,
+            physical_key: None,
+            pressed: true,
+            repeat: false,
+            modifiers: egui::Modifiers::NONE,
+        }]);
+        assert!(search.is_empty());
+        assert_eq!(ctx.memory(|memory| memory.focused()), focused);
+    }
+}
+
 impl<'a> SearchFilterBar<'a> {
     pub fn new(search: &'a mut String, placeholder: &'a str) -> Self {
         Self {
@@ -94,6 +151,13 @@ impl<'a> SearchFilterBar<'a> {
                 egui::pos2(field.left() + theme::SPACE_LG + 2.0, field.top()),
                 egui::pos2(field.right() - 32.0, field.bottom()),
             );
+            let editor_id = ui.id().with("search_editor");
+            if ui.memory(|memory| memory.has_focus(editor_id))
+                && !self.search.is_empty()
+                && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
+            {
+                self.search.clear();
+            }
             let editor = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
                 // Clip the editor to the framed field so a long placeholder or
                 // value cannot spill past the rounded edge.
@@ -101,13 +165,42 @@ impl<'a> SearchFilterBar<'a> {
                 ui.add_sized(
                     text_rect.size(),
                     egui::TextEdit::singleline(self.search)
+                        .id(editor_id)
                         .hint_text(
                             egui::RichText::new(self.placeholder).color(theme::text_tertiary()),
                         )
                         .font(theme::font_body_sm())
+                        .vertical_align(egui::Align::Center)
                         .text_color(theme::text_primary())
                         .frame(false)
                         .desired_width(text_rect.width()),
+                )
+            });
+
+            if editor.inner.has_focus() {
+                ui.memory_mut(|memory| {
+                    memory.set_focus_lock_filter(
+                        editor_id,
+                        egui::EventFilter {
+                            horizontal_arrows: true,
+                            vertical_arrows: true,
+                            escape: !self.search.is_empty(),
+                            ..Default::default()
+                        },
+                    )
+                });
+                ui.painter().rect_stroke(
+                    field,
+                    radius,
+                    theme::focus_ring(),
+                    egui::StrokeKind::Inside,
+                );
+            }
+            editor.inner.widget_info(|| {
+                egui::WidgetInfo::labeled(
+                    egui::WidgetType::TextEdit,
+                    ui.is_enabled(),
+                    self.placeholder,
                 )
             });
 
@@ -118,7 +211,7 @@ impl<'a> SearchFilterBar<'a> {
                 );
                 let clear = ui
                     .put(clear_rect, egui::Button::new("×").frame(false))
-                    .on_hover_text("Effacer la recherche");
+                    .on_hover_text("Effacer la recherche · Échap");
                 clear.widget_info(|| {
                     egui::WidgetInfo::labeled(
                         egui::WidgetType::Button,
@@ -132,6 +225,8 @@ impl<'a> SearchFilterBar<'a> {
                 }
             }
 
+            // The inset editor must not move the next chip inside the field.
+            ui.advance_cursor_after_rect(field);
             ui.add_space(theme::SPACE_SM);
 
             // Chips — unified with badge design system
