@@ -17,7 +17,7 @@ pub enum ButtonSize {
     Large,
 }
 
-/// A premium primary button with gradient, shadow, and hover effects.
+/// A primary action with a high-contrast fill, elevation and animated hover.
 pub fn primary_button(ui: &mut Ui, text: impl Into<WidgetText>, enabled: bool) -> Response {
     draw_premium_button(ui, text, true, enabled, false)
 }
@@ -71,7 +71,7 @@ fn draw_premium_button(
 
     // Add space for loading spinner
     if loading {
-        desired_size.x += theme::ICON_MD; // Space for spinner
+        desired_size.x += theme::SPINNER_SIZE + theme::SPACE_SM;
     }
 
     // Enforce minimum premium height and width
@@ -99,14 +99,14 @@ fn draw_premium_button(
         // State interaction
         let is_hovered = enabled && !loading && response.hovered();
         let is_clicked = enabled && !loading && response.is_pointer_button_down_on();
+        let hover_t = animation::animate_hover(ui.ctx(), response.id.with("hover"), is_hovered);
 
         // ─── Colors ───
         let (bg_fill, bg_stroke, text_color) = if is_primary {
             // Smooth hover animation for primary button
-            let hover_t = animation::animate_hover(ui.ctx(), response.id.with("hover"), is_hovered);
 
             // Primary: Filled Accent
-            let fill = if !enabled {
+            let fill = if !enabled && !loading {
                 theme::ACCENT.linear_multiply(theme::OPACITY_DISABLED)
             } else if is_clicked {
                 theme::ACCENT_PRESSED
@@ -116,7 +116,7 @@ fn draw_premium_button(
             (
                 fill,
                 Stroke::NONE,
-                if enabled {
+                if enabled || loading {
                     theme::text_on_accent()
                 } else {
                     theme::text_on_accent().linear_multiply(theme::OPACITY_MEDIUM)
@@ -130,10 +130,8 @@ fn draw_premium_button(
                 Color32::TRANSPARENT
             } else if is_clicked {
                 theme::bg_elevated()
-            } else if is_hovered {
-                theme::hover_bg()
             } else {
-                theme::bg_tertiary()
+                animation::lerp_color(theme::bg_tertiary(), theme::hover_bg_neutral(), hover_t)
             };
 
             let stroke = if !enabled {
@@ -189,23 +187,13 @@ fn draw_premium_button(
             );
         }
 
-        // ─── Inner Bevel / Highlight (Primary Only) ───
-        // One lit edge, half the previous strength: enough to give the fill
-        // some volume, not enough to look embossed.
-        if is_primary && enabled && !loading {
-            let stroke_color = Color32::from_white_alpha(theme::SUBTLE_HIGHLIGHT_ALPHA / 2);
-            ui.painter().rect_stroke(
-                rect.shrink(theme::BORDER_THIN),
-                CornerRadius::same(theme::BUTTON_ROUNDING),
-                Stroke::new(theme::BORDER_THIN, stroke_color),
-                StrokeKind::Inside,
-            );
-        }
+        // The solid sapphire surface supplies contrast without a second,
+        // embossed border competing with the keyboard focus ring.
 
         // ─── Loading Spinner ───
         if loading {
             let spinner_rect = egui::Rect::from_center_size(
-                rect.center() - egui::vec2(text_galley.size().x / 2.0 + theme::SPACE_SM + 2.0, 0.0),
+                rect.center() - egui::vec2((text_galley.size().x + theme::SPACE_SM) / 2.0, 0.0),
                 egui::vec2(theme::SPINNER_SIZE, theme::SPINNER_SIZE),
             );
 
@@ -263,12 +251,11 @@ fn draw_premium_button(
 
         // ─── Text Paint ───
         let text_pos = if loading {
-            ui.layout()
-                .align_size_within_rect(
-                    text_galley.size(),
-                    rect.shrink2(egui::vec2(theme::ICON_MD, 0.0)),
+            rect.center()
+                + egui::vec2(
+                    (theme::SPINNER_SIZE + theme::SPACE_SM - text_galley.size().x) / 2.0,
+                    -text_galley.size().y / 2.0,
                 )
-                .min
         } else {
             ui.layout()
                 .align_size_within_rect(text_galley.size(), rect)

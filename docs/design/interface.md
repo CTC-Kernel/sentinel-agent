@@ -29,6 +29,16 @@ clic ni focus clavier.
 
 ## États et données
 
+Les boutons principaux utilisent un bleu saphir dont le texte atteint 7:1
+de contraste au repos, au survol et à l’appui. Les boutons secondaires et les
+lignes de tableau animent uniquement leurs transitions de survol, en respectant
+la réduction des mouvements. Le tri actif dispose d’un fond distinct ; la sélection
+de ligne reste signalée par une barre latérale. Les colonnes automatiques occupent
+la largeur disponible et se contractent sans dépasser le tableau.
+
+Les captures `previews/components-dark.png` et `previews/components-light.png`
+proviennent des composants réels, rendus avec `visual_review --components --compact`.
+
 Un score absent n’est pas présenté comme une protection confirmée. Les ratios
 de remédiation ne sont pas affichés à 100 % lorsque la liste est vide. Les courbes
 utilisent les historiques reçus ; les valeurs inconnues apparaissent avec un tiret.

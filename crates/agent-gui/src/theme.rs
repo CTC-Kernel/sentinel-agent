@@ -211,13 +211,13 @@ pub fn detect_reduced_motion() -> bool {
 //   • border()                        ≥ 3:1 (WCAG 1.4.11) on every surface
 
 /// Primary accent — Sentinel sovereign blue.
-pub const ACCENT: Color32 = Color32::from_rgb(38, 97, 239); // #2661EF
+pub const ACCENT: Color32 = Color32::from_rgb(36, 78, 190); // #244EBE
 /// Accent tuned for text and icons on dark surfaces.
 pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(107, 165, 255); // #6BA5FF
 /// Accent hover state (one step deeper than `ACCENT`).
-pub const ACCENT_HOVER: Color32 = Color32::from_rgb(31, 85, 219); // #1F55DB
+pub const ACCENT_HOVER: Color32 = Color32::from_rgb(30, 67, 168); // #1E43A8
 /// Accent pressed state.
-pub const ACCENT_PRESSED: Color32 = Color32::from_rgb(26, 74, 196); // #1A4AC4
+pub const ACCENT_PRESSED: Color32 = Color32::from_rgb(25, 56, 144); // #193890
 /// Accent tuned for text and icons on light surfaces.
 pub const ACCENT_DEEP: Color32 = Color32::from_rgb(29, 79, 216); // #1D4FD8
 
@@ -568,7 +568,7 @@ fn theme_variant(color: Color32) -> Color32 {
         return if color == ACCENT { ACCENT_LIGHT } else { color };
     }
     match (color.r(), color.g(), color.b()) {
-        (38, 97, 239) | (107, 165, 255) => ACCENT_ON_LIGHT, // ACCENT / ACCENT_LIGHT
+        (36, 78, 190) | (107, 165, 255) => ACCENT_ON_LIGHT, // ACCENT / ACCENT_LIGHT
         (43, 201, 138) => SUCCESS_ON_LIGHT,
         (245, 165, 36) => WARNING_ON_LIGHT,
         (255, 97, 99) => ERROR_ON_LIGHT,
@@ -2075,7 +2075,7 @@ mod contrast_tests {
     fn text_on_accent_is_readable() {
         for accent in [ACCENT, ACCENT_HOVER, ACCENT_PRESSED] {
             let ratio = contrast_ratio(text_on_accent(), accent);
-            assert!(ratio >= 4.5, "text on accent fill: {ratio:.2}:1");
+            assert!(ratio >= 7.0, "text on accent fill: {ratio:.2}:1");
         }
     }
 

@@ -7,6 +7,8 @@ use agent_gui::{SentinelApp, dto::*, events::AgentEvent, state::GuiPreferences};
 use std::sync::mpsc;
 
 struct Review {
+    components: bool,
+    light: bool,
     app: SentinelApp,
     output: String,
     requested: bool,
@@ -47,7 +49,12 @@ impl eframe::App for Review {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             return;
         }
-        self.app.update(ctx, frame);
+        if self.components {
+            agent_gui::theme::apply_theme(ctx, !self.light);
+            component_review(ctx);
+        } else {
+            self.app.update(ctx, frame);
+        }
         // The application expands its splash window after startup; apply the
         // review dimensions after that transition, before requesting the image.
         if !self.resized && self.start.elapsed().as_secs_f32() > 5.0 {
@@ -172,6 +179,8 @@ fn main() -> Result<(), eframe::Error> {
         Box::new(move |cc| {
             agent_gui::theme::configure_fonts(&cc.egui_ctx);
             Ok(Box::new(Review {
+                components: args.iter().any(|arg| arg == "--components"),
+                light,
                 app,
                 output,
                 requested: false,
@@ -189,4 +198,101 @@ fn main() -> Result<(), eframe::Error> {
             }))
         }),
     )
+}
+
+fn component_review(ctx: &egui::Context) {
+    use agent_gui::{theme, widgets};
+    use widgets::data_table::{ColumnWidth, DataTable, SortDirection, TableColumn, TableSort};
+    egui::CentralPanel::default()
+        .frame(
+            egui::Frame::new()
+                .fill(theme::bg_primary())
+                .inner_margin(32.0),
+        )
+        .show(ctx, |ui| {
+            ui.label(
+                egui::RichText::new("SENTINEL / DESIGN REVIEW")
+                    .font(theme::font_label())
+                    .color(theme::accent_text()),
+            );
+            ui.add_space(12.0);
+            ui.heading("Précision, contraste et simplicité");
+            ui.label("Composants réels · données de démonstration");
+            ui.add_space(24.0);
+            widgets::card(ui, |ui| {
+                ui.label(egui::RichText::new("Actions").font(theme::font_heading()));
+                ui.add_space(16.0);
+                ui.horizontal_wrapped(|ui| {
+                    let _ = widgets::primary_button(ui, "Lancer l’analyse", true);
+                    let _ = widgets::secondary_button(ui, "Exporter le rapport", true);
+                    let _ = widgets::secondary_button(ui, "Indisponible", false);
+                    let _ =
+                        widgets::button::primary_button_loading(ui, "Analyse en cours", true, true);
+                });
+                ui.add_space(16.0);
+                ui.horizontal_wrapped(|ui| {
+                    for (label, color) in [
+                        ("Conforme", theme::SUCCESS),
+                        ("À vérifier", theme::WARNING),
+                        ("Critique", theme::ERROR),
+                        ("En cours", theme::INFO),
+                    ] {
+                        widgets::status_badge(ui, label, color);
+                    }
+                });
+            });
+            ui.add_space(24.0);
+            widgets::card(ui, |ui| {
+                ui.label(egui::RichText::new("Équipements surveillés").font(theme::font_heading()));
+                ui.add_space(16.0);
+                let table = DataTable::new(
+                    "review",
+                    vec![
+                        TableColumn::new("host", "Équipement")
+                            .sortable()
+                            .width(ColumnWidth::Fill),
+                        TableColumn::new("team", "Équipe").width(ColumnWidth::Percent(22.0)),
+                        TableColumn::new("status", "État").width(ColumnWidth::Percent(22.0)),
+                        TableColumn::new("seen", "Dernière activité")
+                            .sortable()
+                            .width(ColumnWidth::Percent(22.0)),
+                    ],
+                )
+                .selectable();
+                let mut sort = TableSort::by("host", SortDirection::Ascending);
+                table.show_header(ui, &mut sort);
+                for (index, row) in [
+                    ["MacBook Pro · Camille", "Design", "Conforme", "À l’instant"],
+                    [
+                        "Serveur Paris · 01",
+                        "Infrastructure",
+                        "À vérifier",
+                        "Il y a 2 min",
+                    ],
+                    [
+                        "ThinkPad · Alexandre",
+                        "Finance",
+                        "Conforme",
+                        "Il y a 5 min",
+                    ],
+                    [
+                        "Passerelle Lyon",
+                        "Réseau",
+                        "Analyse en cours",
+                        "Il y a 8 min",
+                    ],
+                    [
+                        "Serveur sauvegarde",
+                        "Infrastructure",
+                        "Conforme",
+                        "Il y a 12 min",
+                    ],
+                ]
+                .iter()
+                .enumerate()
+                {
+                    table.show_row(ui, index, index == 1, row);
+                }
+            });
+        });
 }
