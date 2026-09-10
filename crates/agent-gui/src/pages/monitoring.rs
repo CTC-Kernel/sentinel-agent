@@ -829,7 +829,10 @@ impl MonitoringPage {
             // ── Statistics bar ──────────────────────────────────────────────
             ui.horizontal(|ui: &mut egui::Ui| {
                 let stat_style = |label: &str, value: f64| -> (String, egui::Color32) {
-                    (format!("{}  {:.1}", label, value), theme::text_tertiary())
+                    (
+                        format!("{}  {}", label, crate::format::decimal(value, 1)),
+                        theme::text_tertiary(),
+                    )
                 };
 
                 let (min_text, min_color) = stat_style("MIN", min_val);
@@ -1117,16 +1120,7 @@ impl MonitoringPage {
     }
 
     fn format_uptime(secs: u64) -> String {
-        let days = secs / agent_common::constants::SECS_PER_DAY;
-        let hours = (secs % agent_common::constants::SECS_PER_DAY) / 3600;
-        let minutes = (secs % 3600) / 60;
-        if days > 0 {
-            format!("{}j {}h {}m", days, hours, minutes)
-        } else if hours > 0 {
-            format!("{}h {}m", hours, minutes)
-        } else {
-            format!("{}m", minutes)
-        }
+        crate::format::duration_short(secs)
     }
 
     /// Grouped up to six digits, then abbreviated in French: `1 284`, `1,3 M`.

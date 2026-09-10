@@ -734,7 +734,10 @@ impl LLMPanel {
                     );
                     ui.label(
                         egui::RichText::new(if state.ai.model_status.memory_mb > 0 {
-                            format!("{} Mo alloués", state.ai.model_status.memory_mb)
+                            format!(
+                                "{} Mo alloués",
+                                crate::format::int(state.ai.model_status.memory_mb)
+                            )
                         } else {
                             "--".to_string()
                         })
@@ -944,9 +947,12 @@ impl LLMPanel {
                                                     .color(meta_color),
                                             );
                                             ui.label(
-                                                egui::RichText::new(format!("{:.1} Go", size_gb))
-                                                    .font(theme::font_min())
-                                                    .color(meta_color),
+                                                egui::RichText::new(format!(
+                                                    "{} Go",
+                                                    crate::format::decimal(*size_gb, 1)
+                                                ))
+                                                .font(theme::font_min())
+                                                .color(meta_color),
                                             );
                                             ui.add_space(theme::SPACE_SM);
                                             ui.label(
@@ -1183,7 +1189,7 @@ impl LLMPanel {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     // Percentage
                     ui.label(
-                        egui::RichText::new(format!("{}%", progress_percent))
+                        egui::RichText::new(format!("{}\u{202f}%", progress_percent))
                             .font(theme::font_stat())
                             .color(if is_paused {
                                 theme::WARNING
@@ -1468,7 +1474,7 @@ impl LLMPanel {
                 title: format!("R\u{00e9}soudre : {}", incident.title),
                 subtitle: incident.description.clone(),
                 detail: format!(
-                    "Type : {} \u{2014} Confiance : {}%",
+                    "Type : {} \u{2014} Confiance : {}\u{202f}%",
                     incident.incident_type, incident.confidence
                 ),
                 category: incident.incident_type.clone(),
@@ -1498,7 +1504,7 @@ impl LLMPanel {
                 // Left: Gauge
                 ui.vertical(|ui| {
                     ui.set_width(POSTURE_GAUGE_WIDTH);
-                    widgets::compliance_gauge(ui, Some(ai_score), 70.0);
+                    widgets::compliance_gauge_captioned(ui, Some(ai_score), 70.0, "SCORE IA");
                 });
 
                 ui.add_space(theme::SPACE_LG);
@@ -1521,7 +1527,7 @@ impl LLMPanel {
 
                     ui.horizontal(|ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new(format!("{:.0}%", ai_score))
+                            egui::RichText::new(format!("{:.0}\u{202f}%", ai_score))
                                 .font(theme::font_card_value())
                                 .color(risk_color)
                                 .strong(),
@@ -1579,7 +1585,7 @@ impl LLMPanel {
                                 egui::Layout::right_to_left(egui::Align::Center),
                                 |ui: &mut egui::Ui| {
                                     ui.label(
-                                        egui::RichText::new(format!("{:.0}%", score))
+                                        egui::RichText::new(format!("{:.0}\u{202f}%", score))
                                             .font(theme::font_small())
                                             .color(color)
                                             .strong(),
@@ -1602,7 +1608,7 @@ impl LLMPanel {
         let compliance_pct = state
             .summary
             .compliance_score
-            .map(|s| format!("{:.0}%", s))
+            .map(|s| format!("{:.0}\u{202f}%", s))
             .unwrap_or_else(|| "--".to_string());
 
         let items = vec![

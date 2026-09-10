@@ -1,10 +1,16 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Sparkline widget - clean mini time-series charts using egui_plot.
+//! Sparkline widget — mini time-series painted directly, no plot machinery.
+//!
+//! The previous version drew through `egui_plot` with a translucent fill.
+//! egui composites in linear space, so that fill rendered as a saturated
+//! slab under the line rather than a wash; a plot also brought axes, drag
+//! and zoom state for a 32-pixel chart. Painting the polyline and a mesh
+//! whose alpha fades to nothing at the baseline gives the soft area fill
+//! the design asks for, at a fraction of the cost.
 
-use egui::{Color32, RichText, Ui, Vec2};
-use egui_plot::{Line, Plot, PlotPoints};
+use egui::{Color32, Pos2, RichText, Stroke, Ui, Vec2};
 
 use crate::theme;
 
@@ -31,97 +37,95 @@ impl Default for SparklineConfig {
     }
 }
 
-/// Renders a clean sparkline chart using egui_plot.
+/// Peak alpha of the area fill, right under the line.
+const FILL_ALPHA: f32 = 88.0;
+/// Room kept inside the rect so the end dot and line width are not clipped.
+const INSET: f32 = 3.0;
+
+/// Renders a sparkline: a 1.5 px line over a gradient area, with a dot on
+/// the latest value. The y axis starts at zero, so a flat line at 60 % and
+/// one at 5 % do not look alike.
 pub fn sparkline(
     ui: &mut Ui,
-    id_salt: &str,
+    _id_salt: &str,
     data: &[[f64; 2]],
     size: Vec2,
     config: &SparklineConfig,
 ) {
-    if data.is_empty() {
-        // Empty state
-        let (rect, _) = ui.allocate_exact_size(size, egui::Sense::hover());
-        if ui.is_rect_visible(rect) {
-            let painter = ui.painter_at(rect);
-            painter.rect_filled(
-                rect,
-                theme::PROGRESS_BAR_ROUNDING,
-                theme::bg_tertiary().linear_multiply(theme::OPACITY_TINT),
-            );
+    let (rect, _) = ui.allocate_exact_size(size, egui::Sense::hover());
+    if !ui.is_rect_visible(rect) {
+        return;
+    }
+    let painter = ui.painter_at(rect);
 
-            // Subtle grid lines
-            let grid_color = theme::border().linear_multiply(theme::OPACITY_TINT);
-            for i in 1..3 {
-                let y = rect.min.y + (rect.height() * i as f32 / 3.0);
-                painter.line_segment(
-                    [
-                        egui::pos2(rect.min.x + 4.0, y),
-                        egui::pos2(rect.max.x - 4.0, y),
-                    ],
-                    egui::Stroke::new(theme::BORDER_HAIRLINE, grid_color),
-                );
-            }
+    if data.len() < 2 {
+        // Empty state: a faint surface with two guide lines, so the card
+        // keeps its shape while the history fills.
+        painter.rect_filled(rect, theme::PROGRESS_BAR_ROUNDING, theme::bg_tertiary());
+        for i in 1..3 {
+            let y = rect.min.y + (rect.height() * i as f32 / 3.0);
+            painter.line_segment(
+                [
+                    egui::pos2(rect.min.x + 4.0, y),
+                    egui::pos2(rect.max.x - 4.0, y),
+                ],
+                Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+            );
         }
         return;
     }
 
-    let id = ui.id().with(id_salt);
-
-    let plot = Plot::new(id)
-        .height(size.y)
-        .width(size.x)
-        .show_axes(egui::Vec2b::new(false, false))
-        .show_grid(false)
-        .allow_drag(false)
-        .allow_zoom(false)
-        .allow_scroll(false)
-        .allow_boxed_zoom(false)
-        .allow_double_click_reset(false)
-        .show_background(false)
-        .include_y(0.0)
-        .auto_bounds(egui::Vec2b::new(true, true));
-
-    let data_vec = data.to_vec();
-
-    plot.show(ui, |plot_ui| {
-        // Fill under the line
-        if config.fill {
-            plot_ui.line(
-                Line::new(PlotPoints::new(data_vec.clone()))
-                    .color(config.color.linear_multiply(theme::OPACITY_SUBTLE))
-                    .fill(0.0_f32),
-            );
-        }
-
-        // Soft glow layer (single, subtle)
-        plot_ui.line(
-            Line::new(PlotPoints::new(data_vec.clone()))
-                .color(config.color.linear_multiply(theme::OPACITY_MUTED))
-                .width(3.0_f32),
-        );
-
-        // Main line — last use, no clone needed
-        plot_ui.line(
-            Line::new(PlotPoints::new(data_vec))
-                .color(config.color)
-                .width(1.5_f32),
-        );
-
-        // Endpoint indicator
-        if let Some(&latest) = data.last() {
-            plot_ui.points(
-                egui_plot::Points::new(PlotPoints::new(vec![latest]))
-                    .color(config.color.linear_multiply(theme::OPACITY_MODERATE))
-                    .radius(5.0_f32),
-            );
-            plot_ui.points(
-                egui_plot::Points::new(PlotPoints::new(vec![latest]))
-                    .color(config.color)
-                    .radius(2.5_f32),
-            );
-        }
+    let (x0, x1) = data.iter().fold((f64::MAX, f64::MIN), |(lo, hi), p| {
+        (lo.min(p[0]), hi.max(p[0]))
     });
+    let y_min = data.iter().map(|p| p[1]).fold(0.0_f64, f64::min);
+    let y_max = data.iter().map(|p| p[1]).fold(0.0_f64, f64::max);
+    let x_span = (x1 - x0).max(f64::EPSILON);
+    // 8 % headroom so the peak never touches the top edge.
+    let y_span = ((y_max - y_min) * 1.08).max(f64::EPSILON);
+
+    let plot = rect.shrink(INSET);
+    let to_pos = |p: &[f64; 2]| -> Pos2 {
+        egui::pos2(
+            plot.left() + ((p[0] - x0) / x_span) as f32 * plot.width(),
+            plot.bottom() - ((p[1] - y_min) / y_span) as f32 * plot.height(),
+        )
+    };
+    let points: Vec<Pos2> = data.iter().map(to_pos).collect();
+    let baseline = plot.bottom() - ((0.0 - y_min) / y_span) as f32 * plot.height();
+
+    if config.fill {
+        // One quad per segment, alpha proportional to height so the wash
+        // reads as a vertical gradient from the line down to the baseline.
+        let mut mesh = egui::Mesh::default();
+        for p in &points {
+            let height = ((baseline - p.y) / plot.height().max(1.0)).clamp(0.0, 1.0);
+            mesh.colored_vertex(
+                *p,
+                theme::with_alpha(config.color, (FILL_ALPHA * height) as u8),
+            );
+            mesh.colored_vertex(
+                egui::pos2(p.x, baseline),
+                theme::with_alpha(config.color, 0),
+            );
+        }
+        for i in 0..points.len() - 1 {
+            let a = (2 * i) as u32;
+            mesh.add_triangle(a, a + 1, a + 2);
+            mesh.add_triangle(a + 1, a + 3, a + 2);
+        }
+        painter.add(egui::Shape::mesh(mesh));
+    }
+
+    painter.add(egui::Shape::line(
+        points.clone(),
+        Stroke::new(1.5, config.color),
+    ));
+
+    if let Some(last) = points.last() {
+        painter.circle_filled(*last, 4.5, theme::with_alpha(config.color, 70));
+        painter.circle_filled(*last, 2.5, config.color);
+    }
 }
 
 /// Renders a sparkline with value label and trend.

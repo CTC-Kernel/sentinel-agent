@@ -42,6 +42,12 @@ impl Default for Preview {
             if std::env::var("PREVIEW_DATA").is_ok() {
                 fixtures::seed(&mut state);
             }
+            if let Some(tab) = std::env::var("PREVIEW_TAB")
+                .ok()
+                .and_then(|v| v.parse().ok())
+            {
+                fixtures::select_tab(&mut state, &requested, tab);
+            }
             if let Ok(drawer) = std::env::var("PREVIEW_DRAWER") {
                 fixtures::open_drawer(&mut state, &drawer);
             }

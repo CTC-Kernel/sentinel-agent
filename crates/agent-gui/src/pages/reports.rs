@@ -143,32 +143,7 @@ impl ReportsPage {
             if widgets::button::primary_button_loading(ui, btn_label, !is_generating, is_generating)
                 .clicked()
             {
-                let framework = state
-                    .summary
-                    .active_frameworks
-                    .as_ref()
-                    .and_then(|fws| fws.first().cloned());
-
-                // push_front shifts all indices — invalidate selection BEFORE mutating
-                state.reports.selected_report = None;
-                state.reports.detail_open = false;
-                // Generate locally and store
-                let report = Self::generate_report(state, report_type, framework.as_deref());
-                state.reports.reports.push_front(report);
-                if state.reports.reports.len() > MAX_REPORT_HISTORY {
-                    state.reports.reports.pop_back();
-                }
-                state.push_toast(
-                    crate::widgets::toast::Toast::success(
-                        "Rapport g\u{00e9}n\u{00e9}r\u{00e9} avec succ\u{00e8}s",
-                    ),
-                    ui.ctx(),
-                );
-                // Also emit command for runtime awareness
-                *command = Some(GuiCommand::GenerateReport {
-                    report_type,
-                    framework,
-                });
+                Self::generate_now(ui, state, report_type, command);
             }
         });
 
@@ -255,16 +230,58 @@ impl ReportsPage {
             });
         } else {
             widgets::card(ui, |ui: &mut egui::Ui| {
-                widgets::empty_state(
+                // The empty state carries the action it describes, instead of
+                // sending the reader back up the page to find a button.
+                if widgets::empty_state_with_action(
                     ui,
                     icons::FILE_EXPORT,
                     "Aucun rapport de ce type",
                     Some(
-                        "Cliquez sur \u{00ab} G\u{00e9}n\u{00e9}rer le rapport \u{00bb} pour cr\u{00e9}er une nouvelle synth\u{00e8}se.",
+                        "La premi\u{00e8}re synth\u{00e8}se appara\u{00ee}tra ici, avec son score et ses exports.",
                     ),
-                );
+                    Some((
+                        format!("{}  G\u{00e9}n\u{00e9}rer le rapport", icons::PLAY).as_str(),
+                        || {},
+                    )),
+                ) {
+                    Self::generate_now(ui, state, report_type, command);
+                }
             });
         }
+    }
+
+    /// Generate a report of `report_type` now, store it, and tell the runtime.
+    fn generate_now(
+        ui: &Ui,
+        state: &mut AppState,
+        report_type: ReportType,
+        command: &mut Option<GuiCommand>,
+    ) {
+        let framework = state
+            .summary
+            .active_frameworks
+            .as_ref()
+            .and_then(|fws| fws.first().cloned());
+
+        // push_front shifts all indices — invalidate selection BEFORE mutating
+        state.reports.selected_report = None;
+        state.reports.detail_open = false;
+        let report = Self::generate_report(state, report_type, framework.as_deref());
+        state.reports.reports.push_front(report);
+        if state.reports.reports.len() > MAX_REPORT_HISTORY {
+            state.reports.reports.pop_back();
+        }
+        state.push_toast(
+            crate::widgets::toast::Toast::success(
+                "Rapport g\u{00e9}n\u{00e9}r\u{00e9} avec succ\u{00e8}s",
+            ),
+            ui.ctx(),
+        );
+        // Also emit command for runtime awareness
+        *command = Some(GuiCommand::GenerateReport {
+            report_type,
+            framework,
+        });
     }
 
     fn show_history_tab(ui: &mut Ui, state: &mut AppState, _command: &mut Option<GuiCommand>) {

@@ -257,8 +257,12 @@ impl EnrollmentWizard {
                 );
                 ui.add_space(theme::SPACE);
 
-                let mut mode = usize::from(self.use_qr);
-                if widgets::tabs_pills(ui, &["Jeton", "QR code"], &mut mode) {
+                if let Some(mode) =
+                    widgets::TabBar::from_labels(&["Jeton", "QR code"], usize::from(self.use_qr))
+                        .style(widgets::TabStyle::Pills)
+                        .centered()
+                        .show(ui)
+                {
                     self.use_qr = mode == 1;
                 }
 

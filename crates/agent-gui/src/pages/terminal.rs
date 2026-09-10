@@ -57,35 +57,6 @@ impl TerminalPage {
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Action bar (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let success = Self::export_logs_csv(state);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success(
-                                    "Export CSV du terminal réussi",
-                                )
-                                .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error(
-                                    "Échec de l'export CSV du terminal",
-                                )
-                                .with_time(time),
-                            );
-                        }
-                    }
-                },
-            );
-        });
-        ui.add_space(theme::SPACE_MD);
-
         // Stats bar
         Self::stats_bar(ui, state);
         ui.add_space(theme::SPACE_MD);
@@ -219,7 +190,7 @@ impl TerminalPage {
                 );
                 ui.add_space(theme::SPACE_XS);
                 let search_edit = egui::TextEdit::singleline(&mut state.terminal.search)
-                    .desired_width((ui.available_width() - 300.0).max(150.0))
+                    .desired_width((ui.available_width() - 120.0).max(150.0))
                     .margin(egui::Margin::symmetric(
                         theme::SPACE_SM as i8,
                         theme::SPACE_XS as i8,
@@ -227,6 +198,29 @@ impl TerminalPage {
                     .font(theme::font_mono_sm())
                     .hint_text("rechercher…");
                 ui.add(search_edit);
+
+                // Export lives on the row it applies to, as on every list page.
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked()
+                        {
+                            let success = Self::export_logs_csv(state);
+                            let time = ui.input(|i| i.time);
+                            state.toasts.push(if success {
+                                crate::widgets::toast::Toast::success(
+                                    "Export CSV du terminal réussi",
+                                )
+                                .with_time(time)
+                            } else {
+                                crate::widgets::toast::Toast::error(
+                                    "Échec de l'export CSV du terminal",
+                                )
+                                .with_time(time)
+                            });
+                        }
+                    },
+                );
             });
         });
     }

@@ -59,7 +59,7 @@ mod org_banner;
 mod sparkline;
 
 pub use card::{Card, CardVariant, card, clickable_card, danger_card, flat_card};
-pub use compliance_gauge::compliance_gauge;
+pub use compliance_gauge::{compliance_gauge, compliance_gauge_captioned};
 pub use empty_state::{
     empty_state, empty_state_compact, empty_state_with_action, no_results_state, pending_state,
 };

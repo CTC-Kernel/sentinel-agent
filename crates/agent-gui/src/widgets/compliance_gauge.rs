@@ -12,6 +12,12 @@ use crate::theme;
 ///
 /// `score` is expected in range 0..=100.
 pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
+    compliance_gauge_captioned(ui, score, radius, "CONFORMITÉ");
+}
+
+/// [`compliance_gauge`] with its own caption, for a score that is not a
+/// compliance score — the AI posture gauge said "CONFORMITÉ" under 57 %.
+pub fn compliance_gauge_captioned(ui: &mut Ui, score: Option<f32>, radius: f32, caption: &str) {
     let desired_size = Vec2::splat(radius * 2.0 + theme::SPACE);
     let (rect, _response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
     let center = rect.center();
@@ -85,7 +91,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
             painter.text(
                 center + Vec2::new(0.0, theme::SPACE),
                 egui::Align2::CENTER_CENTER,
-                "CONFORMITÉ",
+                caption,
                 theme::font_caption(),
                 theme::text_tertiary(),
             );

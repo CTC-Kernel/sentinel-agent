@@ -423,10 +423,11 @@ impl NotificationsPage {
                                         }
                                     });
                                     row.col(|ui: &mut egui::Ui| {
-                                        if widgets::button::destructive_button(
+                                        if widgets::button::icon_button_with_color(
                                             ui,
-                                            icons::TRASH.to_string(),
-                                            true,
+                                            icons::TRASH,
+                                            Some("Supprimer"),
+                                            theme::readable_color(theme::ERROR),
                                         )
                                         .clicked()
                                         {
@@ -833,10 +834,11 @@ impl NotificationsPage {
                                                     );
                                                 });
                                             }
-                                            if widgets::button::destructive_button(
+                                            if widgets::button::icon_button_with_color(
                                                 ui,
-                                                icons::TRASH.to_string(),
-                                                true,
+                                                icons::TRASH,
+                                                Some("Supprimer"),
+                                                theme::readable_color(theme::ERROR),
                                             )
                                             .clicked()
                                             {

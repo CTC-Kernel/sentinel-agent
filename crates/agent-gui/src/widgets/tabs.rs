@@ -55,6 +55,7 @@ pub struct TabBar<'a> {
     selected: usize,
     style: TabStyle,
     full_width: bool,
+    centered: bool,
 }
 
 impl<'a> TabBar<'a> {
@@ -65,6 +66,7 @@ impl<'a> TabBar<'a> {
             selected,
             style: TabStyle::Underline,
             full_width: false,
+            centered: false,
         }
     }
 
@@ -83,6 +85,12 @@ impl<'a> TabBar<'a> {
     /// Make tabs expand to fill available width.
     pub fn full_width(mut self) -> Self {
         self.full_width = true;
+        self
+    }
+
+    /// Centre the bar in the available width (pill style only).
+    pub fn centered(mut self) -> Self {
+        self.centered = true;
         self
     }
 
@@ -298,6 +306,30 @@ impl<'a> TabBar<'a> {
 
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = theme::SPACE_XS;
+
+            if self.centered {
+                // Measure first, so the row can start at the right offset.
+                let padding = egui::vec2(theme::SPACE_MD, theme::SPACE_XS + 2.0);
+                let total: f32 = self
+                    .tabs
+                    .iter()
+                    .map(|tab| {
+                        let mut text = String::new();
+                        if let Some(icon) = tab.icon {
+                            text.push_str(icon);
+                            text.push_str("  ");
+                        }
+                        text.push_str(tab.label);
+                        ui.painter()
+                            .layout_no_wrap(text, theme::font_body(), Color32::WHITE)
+                            .size()
+                            .x
+                            + padding.x * 2.0
+                    })
+                    .sum::<f32>()
+                    + theme::SPACE_XS * self.tabs.len().saturating_sub(1) as f32;
+                ui.add_space(((ui.available_width() - total) / 2.0).max(0.0));
+            }
 
             for (i, tab) in self.tabs.iter().enumerate() {
                 let is_selected = i == self.selected;

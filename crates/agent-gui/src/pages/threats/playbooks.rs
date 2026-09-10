@@ -14,6 +14,9 @@ use crate::dto::{
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
+
+/// Inner height of a template card: icon row, three lines of copy, button.
+const TEMPLATE_CARD_MIN_HEIGHT: f32 = 118.0;
 use crate::widgets;
 use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort};
 use crate::widgets::pagination::PaginationState;
@@ -145,6 +148,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .inner_margin(egui::Margin::same(theme::SPACE as i8))
                     .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
                     .show(ui, |ui: &mut egui::Ui| {
+                        // Same height whether the description wraps to two
+                        // lines or three, so the row of templates reads as one.
+                        ui.set_min_height(TEMPLATE_CARD_MIN_HEIGHT);
                         ui.horizontal(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(tpl.icon)

@@ -56,30 +56,25 @@ impl SoftwarePage {
         });
         ui.add_space(theme::SPACE_MD);
 
-        // Tab bar (AAA Grade) — Applications tab shown on macOS and Windows
-        let active = state.software.active_tab;
-        // On unsupported platforms, force back to Packages if Applications was somehow selected
+        // Tab bar — the Applications tab exists on macOS and Windows only,
+        // and a bar with one tab is a label pretending to be a control.
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-        let active = {
-            if active == SoftwareTab::Applications {
-                state.software.active_tab = SoftwareTab::Packages;
-                SoftwareTab::Packages
-            } else {
-                active
-            }
-        };
-        ui.horizontal(|ui: &mut egui::Ui| {
-            if Self::tab_button(
-                ui,
-                &format!("{} Dépendances et paquets", icons::SOFTWARE),
-                active == SoftwareTab::Packages,
-            ) {
-                state.software.active_tab = SoftwareTab::Packages;
-                state.software.selected_package = None;
-                state.software.detail_open = false;
-            }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
-            {
+        if state.software.active_tab == SoftwareTab::Applications {
+            state.software.active_tab = SoftwareTab::Packages;
+        }
+        let active = state.software.active_tab;
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        {
+            ui.horizontal(|ui: &mut egui::Ui| {
+                if Self::tab_button(
+                    ui,
+                    &format!("{} Dépendances et paquets", icons::SOFTWARE),
+                    active == SoftwareTab::Packages,
+                ) {
+                    state.software.active_tab = SoftwareTab::Packages;
+                    state.software.selected_package = None;
+                    state.software.detail_open = false;
+                }
                 ui.add_space(theme::SPACE_SM);
                 if Self::tab_button(
                     ui,
@@ -90,10 +85,10 @@ impl SoftwarePage {
                     state.software.selected_package = None;
                     state.software.detail_open = false;
                 }
-            }
-        });
+            });
 
-        ui.add_space(theme::SPACE_LG);
+            ui.add_space(theme::SPACE_LG);
+        }
 
         let search_id = ui.id().with("software_search_cache");
         let search_upper: String = ui
@@ -980,6 +975,7 @@ impl SoftwarePage {
 
     // -- Shared helpers (AAA Grade) --
 
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     fn tab_button(ui: &mut Ui, label: &str, active: bool) -> bool {
         widgets::chip_button(ui, label, active, theme::ACCENT).clicked()
     }

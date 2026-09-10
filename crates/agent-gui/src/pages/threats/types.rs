@@ -270,7 +270,7 @@ pub(super) fn kind_badge(kind: &str) -> (&'static str, Color32) {
         "usb" => ("USB", theme::WARNING),
         "fim" => ("FIM", theme::INFO),
         "system" => ("SYST\u{00c8}ME", theme::SEVERITY_HIGH),
-        "vulnerability" => ("VULN\u{00c9}RA.", theme::ERROR),
+        "vulnerability" => ("CVE", theme::ERROR),
         _ => ("AUTRE", theme::WARNING),
     }
 }

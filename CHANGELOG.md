@@ -167,6 +167,46 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - Écran de démarrage extrait en widget (`widgets::splash_screen`) et rendu
   dans le banc.
 
+#### Onglets secondaires — revue de 16 rendus supplémentaires
+- Le banc accepte `PREVIEW_TAB=<n>` et les fixtures couvrent désormais la
+  réponse (file d'actions, quarantaine, journal), les playbooks, les règles de
+  détection, les règles d'alerte, les webhooks et l'historique de l'assistant :
+  six onglets Menaces, deux onglets Notifications, les statistiques SIEM, les
+  quatre onglets Rapports, les trois onglets IA et la matrice de conformité
+  ont été rendus peuplés pour la première fois.
+- Zébrures de tableau : le blanc à 4 % composité en linéaire donnait une
+  dalle de gris moyen sur une ligne sur deux (événements, chronologie,
+  playbooks, règles). Remplacé par un pas opaque de l'échelle de surfaces.
+- Événements : colonnes « SÉVÉRI… », « PROCESS… », « 10/09/2026 … » tronquées
+  → largeurs à la mesure des mots ; recherche et menu déroulant remplacés par
+  la barre de recherche à puces du design system.
+- Règles d'alerte et webhooks : un bouton rouge plein par ligne pour supprimer
+  faisait un mur de danger ; icône discrète en couleur d'erreur, avec
+  info-bulle.
+- Cartes de modèles de playbook à hauteur commune ; jauge de l'assistant
+  légendée « SCORE IA » (elle disait « CONFORMITÉ » sous 57 %) ; tailles de
+  modèles et mémoire en français (« 5,2 Go », « 4 210 Mo »).
+
+#### Graphes
+- Sparklines repeintes directement : polyligne 1,5 px, aire en dégradé qui
+  s'éteint vers la ligne de base, point sur la dernière valeur, axe à zéro.
+  La version `egui_plot` posait un remplissage translucide qui, composité en
+  linéaire, formait une dalle bleue sous la courbe — et embarquait axes,
+  zoom et glisser pour 32 pixels de hauteur.
+- Cartes CPU / mémoire du tableau de bord : le graphe remplit la carte.
+
+#### Matrice des risques
+- La matrice occupait seule une carte pleine largeur. Elle est désormais
+  accompagnée de la légende des niveaux avec le nombre de risques ouverts par
+  bande, et des trois risques ouverts au score le plus élevé.
+
+#### Détails
+- Sélecteur Jeton / QR code centré dans l'assistant d'enrôlement
+  (`TabBar::centered`) ; badge de risque centré sur la carte IA du tableau de
+  bord ; la page Logiciels n'affiche plus une barre à un seul onglet sur
+  Linux ; export CSV du terminal posé sur la ligne de filtres ; l'état vide
+  des rapports porte le bouton « Générer le rapport » au lieu d'y renvoyer.
+
 ---
 
 ## 📦 [2.0.219] - 2026-04-13

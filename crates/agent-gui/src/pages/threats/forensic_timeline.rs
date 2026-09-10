@@ -38,7 +38,7 @@ const SOURCE_FILTERS: &[(&str, &str)] = &[
     ("fim", "FIM"),
     ("usb", "USB"),
     ("system", "SYST\u{00c8}ME"),
-    ("vulnerability", "VULN\u{00c9}RA."),
+    ("vulnerability", "CVE"),
 ];
 
 /// Severity filter chips.
@@ -186,14 +186,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             TableColumn {
                 key: "severity",
                 label: "S\u{00c9}V\u{00c9}RIT\u{00c9}",
-                width: ColumnWidth::Fixed(90.0),
+                width: ColumnWidth::Fixed(110.0),
                 sortable: false,
                 align: ColumnAlign::Center,
             },
             TableColumn {
                 key: "source",
                 label: "SOURCE",
-                width: ColumnWidth::Fixed(100.0),
+                width: ColumnWidth::Fixed(120.0),
                 sortable: false,
                 align: ColumnAlign::Center,
             },
@@ -214,7 +214,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             TableColumn {
                 key: "date",
                 label: "DATE",
-                width: ColumnWidth::Fixed(130.0),
+                width: ColumnWidth::Fixed(150.0),
                 sortable: false,
                 align: ColumnAlign::Right,
             },
@@ -567,7 +567,7 @@ fn source_label_fr(source: &str) -> &'static str {
         "fim" => "FIM",
         "usb" => "USB",
         "system" => "SYST\u{00c8}ME",
-        "vulnerability" => "VULN\u{00c9}RA.",
+        "vulnerability" => "CVE",
         _ => "AUTRE",
     }
 }

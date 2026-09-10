@@ -675,7 +675,10 @@ impl SentinelApp {
                     let stats: [(&str, String, egui::Color32); 2] = [
                         (
                             "Conformité",
-                            format!("{:.0}%", self.state.summary.compliance_score.unwrap_or(0.0)),
+                            format!(
+                                "{:.0}\u{202f}%",
+                                self.state.summary.compliance_score.unwrap_or(0.0)
+                            ),
                             theme::score_color(self.state.summary.compliance_score.unwrap_or(0.0)),
                         ),
                         (

@@ -431,8 +431,8 @@ impl DashboardPage {
 
                 ui.add_space(theme::SPACE_SM);
 
-                // Risk badge
-                ui.horizontal(|ui: &mut egui::Ui| {
+                // Risk badge, centred like the title and the core above it
+                ui.vertical_centered(|ui: &mut egui::Ui| {
                     widgets::status_badge(ui, risk_label, risk_color);
                 });
 

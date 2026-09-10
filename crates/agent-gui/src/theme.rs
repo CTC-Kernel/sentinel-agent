@@ -763,15 +763,17 @@ pub const TABLE_INLINE_HEADER_HEIGHT: f32 = 30.0;
 pub const TABLE_EMPTY_HEIGHT: f32 = 120.0;
 /// Alternating row tint alpha (visible stripe differentiation).
 pub const TABLE_ALT_ROW_ALPHA: u8 = 10;
+/// Blend of the overlay colour into the surface for alternate table rows.
+pub const TABLE_ALT_ROW_BLEND: f32 = 0.04;
 
 /// Get alternating row background color.
 pub fn table_row_bg(row_index: usize) -> Color32 {
     if row_index.is_multiple_of(2) {
         Color32::TRANSPARENT
-    } else if is_dark_mode() {
-        Color32::from_white_alpha(TABLE_ALT_ROW_ALPHA)
     } else {
-        Color32::from_black_alpha(TABLE_ALT_ROW_ALPHA)
+        // Opaque: white at 4 % alpha composited in linear space came out as a
+        // slab of mid-grey, which is what every striped table looked like.
+        color_blend(bg_secondary(), overlay_color(), TABLE_ALT_ROW_BLEND)
     }
 }
 

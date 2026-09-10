@@ -1539,6 +1539,349 @@ pub fn seed(state: &mut AppState) {
         ],
     };
 
+    // ── Threats: response queue, quarantine, playbooks, detection rules ─
+    state.threats.pending_actions.push_back(ResponseAction {
+        id: id(700),
+        action_type: ResponseActionType::BlockIp,
+        target: "185.220.101.4".into(),
+        target_detail: "N\u{0153}ud de sortie Tor \u{2014} curl.exe (PID 5120)".into(),
+        status: ResponseStatus::InProgress,
+        created_at: ago(3),
+        completed_at: None,
+        error: None,
+    });
+    state.threats.pending_actions.push_back(ResponseAction {
+        id: id(701),
+        action_type: ResponseActionType::KillProcess,
+        target: "powershell.exe".into(),
+        target_detail: "PID 4812 \u{2014} commande encod\u{00e9}e".into(),
+        status: ResponseStatus::Pending,
+        created_at: ago(9),
+        completed_at: None,
+        error: None,
+    });
+    state.threats.quarantine_queue.push_back(QuarantinedFile {
+        id: id(710),
+        original_path: "C:\\Users\\Public\\update_helper.exe".into(),
+        sha256: "3a5f00009f8a2b1c7d4e6f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c".into(),
+        size_bytes: 1_482_240,
+        quarantined_at: ago(47),
+        reason: "Signature Trojan.Agent (CVE-2024-3094)".into(),
+        restored: false,
+    });
+    state.threats.quarantine_queue.push_back(QuarantinedFile {
+        id: id(711),
+        original_path: "/tmp/.x/kinsing".into(),
+        sha256: "b7210000c4d7e10b9a8f7e6d5c4b3a2918f7e6d5c4b3a291807f6e5d4c3b2a19".into(),
+        size_bytes: 5_931_008,
+        quarantined_at: ago(60 * 26),
+        reason: "Mineur XMRig (heuristique)".into(),
+        restored: false,
+    });
+    let response_log: &[(ResponseActionType, &str, ResponseStatus, i64, Option<&str>)] = &[
+        (
+            ResponseActionType::QuarantineFile,
+            "update_helper.exe",
+            ResponseStatus::Success,
+            47,
+            Some("SHA-256 v\u{00e9}rifi\u{00e9}, fichier d\u{00e9}plac\u{00e9} en quarantaine"),
+        ),
+        (
+            ResponseActionType::BlockIp,
+            "45.142.212.61",
+            ResponseStatus::Success,
+            120,
+            Some("R\u{00e8}gle pare-feu SENTINEL-BLOCK-0042"),
+        ),
+        (
+            ResponseActionType::KillProcess,
+            "svchost.exe (PID 812)",
+            ResponseStatus::Failed,
+            60 * 5,
+            Some("Acc\u{00e8}s refus\u{00e9} : processus prot\u{00e9}g\u{00e9}"),
+        ),
+        (
+            ResponseActionType::UnblockIp,
+            "10.0.0.15",
+            ResponseStatus::Success,
+            60 * 48,
+            None,
+        ),
+    ];
+    for (i, (kind, target, status, min, details)) in response_log.iter().enumerate() {
+        state.threats.response_log.push_back(ResponseLogEntry {
+            id: id(720 + i as u128),
+            action_type: kind.clone(),
+            target: target.to_string(),
+            status: *status,
+            timestamp: ago(*min),
+            operator: "thibault.llopis".into(),
+            details: details.map(str::to_string),
+        });
+    }
+    state.threats.playbooks = vec![
+        Playbook {
+            id: id(730),
+            name: "Isolement d'un processus encod\u{00e9}".into(),
+            description: "Tue tout PowerShell lanc\u{00e9} avec -enc et pr\u{00e9}vient le SOC."
+                .into(),
+            enabled: true,
+            conditions: vec![PlaybookCondition {
+                condition_type: PlaybookConditionType::ProcessNameMatch,
+                operator: "contains".into(),
+                value: "powershell -enc".into(),
+            }],
+            actions: vec![
+                PlaybookAction {
+                    action_type: PlaybookActionType::KillProcess,
+                    parameters: String::new(),
+                },
+                PlaybookAction {
+                    action_type: PlaybookActionType::CreateNotification,
+                    parameters: "SOC".into(),
+                },
+            ],
+            created_at: days_ago(40),
+            last_triggered: Some(ago(27)),
+            trigger_count: 14,
+            is_template: false,
+        },
+        Playbook {
+            id: id(731),
+            name: "Blocage des sorties Tor".into(),
+            description: "Bloque la destination et remonte l'alerte au SIEM.".into(),
+            enabled: true,
+            conditions: vec![PlaybookCondition {
+                condition_type: PlaybookConditionType::NetworkAlertType,
+                operator: "equals".into(),
+                value: "tor_exit".into(),
+            }],
+            actions: vec![
+                PlaybookAction {
+                    action_type: PlaybookActionType::BlockIp,
+                    parameters: String::new(),
+                },
+                PlaybookAction {
+                    action_type: PlaybookActionType::SendSiemAlert,
+                    parameters: "high".into(),
+                },
+            ],
+            created_at: days_ago(12),
+            last_triggered: Some(ago(3)),
+            trigger_count: 3,
+            is_template: false,
+        },
+        Playbook {
+            id: id(732),
+            name: "Quarantaine sur CVE critique".into(),
+            description:
+                "Mod\u{00e8}le : met en quarantaine le binaire d'un paquet CVSS \u{2265} 9.".into(),
+            enabled: false,
+            conditions: vec![PlaybookCondition {
+                condition_type: PlaybookConditionType::CvssScore,
+                operator: ">=".into(),
+                value: "9.0".into(),
+            }],
+            actions: vec![PlaybookAction {
+                action_type: PlaybookActionType::QuarantineFile,
+                parameters: String::new(),
+            }],
+            created_at: days_ago(90),
+            last_triggered: None,
+            trigger_count: 0,
+            is_template: true,
+        },
+    ];
+    state.threats.playbook_log.push_back(PlaybookLogEntry {
+        id: id(740),
+        playbook_id: id(731),
+        playbook_name: "Blocage des sorties Tor".into(),
+        triggered_at: ago(3),
+        trigger_event: "curl.exe \u{2192} 185.220.101.4:9001".into(),
+        actions_executed: vec!["BlockIp".into()],
+        success: false,
+        error: Some("Pare-feu : r\u{00e8}gle refus\u{00e9}e (profil Public inactif)".into()),
+    });
+    state.threats.playbook_log.push_back(PlaybookLogEntry {
+        id: id(741),
+        playbook_id: id(730),
+        playbook_name: "Isolement d'un processus encod\u{00e9}".into(),
+        triggered_at: ago(27),
+        trigger_event: "powershell.exe -enc \u{2026} (PID 4812)".into(),
+        actions_executed: vec!["KillProcess".into(), "CreateNotification".into()],
+        success: true,
+        error: None,
+    });
+    let rules: &[(
+        &str,
+        &str,
+        Severity,
+        DetectionConditionType,
+        &str,
+        PlaybookActionType,
+        bool,
+        Option<i64>,
+        u32,
+    )] = &[
+        (
+            "Reverse shell netcat",
+            "nc avec -e, ou connexion sortante vers un port non standard",
+            Severity::Critical,
+            DetectionConditionType::ProcessNameContains,
+            "nc",
+            PlaybookActionType::KillProcess,
+            true,
+            Some(12),
+            2,
+        ),
+        (
+            "Modification de sudoers",
+            "Toute \u{00e9}criture sur /etc/sudoers hors fen\u{00ea}tre de maintenance",
+            Severity::High,
+            DetectionConditionType::FimPathMatch,
+            "/etc/sudoers",
+            PlaybookActionType::CreateNotification,
+            true,
+            Some(41),
+            1,
+        ),
+        (
+            "Ligne de commande encod\u{00e9}e",
+            "PowerShell ou cmd avec un argument -enc / -EncodedCommand",
+            Severity::High,
+            DetectionConditionType::CommandLineContains,
+            "-enc",
+            PlaybookActionType::KillProcess,
+            true,
+            Some(27),
+            14,
+        ),
+        (
+            "Remont\u{00e9}e des critiques",
+            "Copie au SIEM de tout \u{00e9}v\u{00e9}nement de s\u{00e9}v\u{00e9}rit\u{00e9} critique",
+            Severity::Medium,
+            DetectionConditionType::SeverityLevel,
+            "critical",
+            PlaybookActionType::SendSiemAlert,
+            false,
+            None,
+            0,
+        ),
+    ];
+    state.threats.detection_rules = rules
+        .iter()
+        .enumerate()
+        .map(
+            |(i, (name, desc, sev, cond, value, action, enabled, last, matches))| DetectionRule {
+                id: id(750 + i as u128),
+                name: name.to_string(),
+                description: desc.to_string(),
+                severity: *sev,
+                conditions: vec![DetectionCondition {
+                    condition_type: *cond,
+                    value: value.to_string(),
+                }],
+                actions: vec![*action],
+                enabled: *enabled,
+                created_at: days_ago(60 - i as i64 * 10),
+                last_match: last.map(ago),
+                match_count: *matches,
+            },
+        )
+        .collect();
+
+    // ── Alerting: rules and webhooks ──────────────────────────────────
+    state.alerting.rules = vec![
+        AlertRule {
+            id: id(760),
+            name: "S\u{00e9}v\u{00e9}rit\u{00e9} \u{00e9}lev\u{00e9}e et plus".into(),
+            rule_type: AlertRuleType::SeverityThreshold,
+            severity_threshold: Some(Severity::High),
+            detection_types: vec![],
+            escalation_minutes: None,
+            enabled: true,
+            created_at: days_ago(90),
+        },
+        AlertRule {
+            id: id(761),
+            name: "Processus et r\u{00e9}seau seulement".into(),
+            rule_type: AlertRuleType::TypeFilter,
+            severity_threshold: None,
+            detection_types: vec!["process".into(), "network".into()],
+            escalation_minutes: None,
+            enabled: true,
+            created_at: days_ago(30),
+        },
+        AlertRule {
+            id: id(762),
+            name: "Escalade apr\u{00e8}s 30 min sans acquittement".into(),
+            rule_type: AlertRuleType::EscalationDelay,
+            severity_threshold: None,
+            detection_types: vec![],
+            escalation_minutes: Some(30),
+            enabled: false,
+            created_at: days_ago(7),
+        },
+    ];
+    state.alerting.webhooks = vec![
+        WebhookConfig {
+            id: id(770),
+            name: "Slack #soc".into(),
+            url: "https://hooks.slack.com/services/T0AB12CD/B0EF34GH/xxxxxxxx".into(),
+            format: "slack".into(),
+            enabled: true,
+            last_sent: Some(ago(27)),
+            error: None,
+        },
+        WebhookConfig {
+            id: id(771),
+            name: "Splunk HEC".into(),
+            url: "https://splunk.ctc.local:8088/services/collector".into(),
+            format: "json".into(),
+            enabled: true,
+            last_sent: Some(ago(3)),
+            error: Some("HTTP 401 \u{2014} jeton HEC expir\u{00e9}".into()),
+        },
+        WebhookConfig {
+            id: id(772),
+            name: "Teams \u{2014} Direction".into(),
+            url: "https://ctc.webhook.office.com/webhookb2/…".into(),
+            format: "teams".into(),
+            enabled: false,
+            last_sent: None,
+            error: None,
+        },
+    ];
+
+    // ── Assistant IA ──────────────────────────────────────────────────
+    state.ai.chat_history = vec![
+        LlmChatMessage {
+            role: ChatRole::User,
+            content: "Quels sont les risques prioritaires sur ce poste ?".into(),
+            timestamp: ago(6),
+            processing_time_ms: None,
+        },
+        LlmChatMessage {
+            role: ChatRole::Assistant,
+            content: "Trois signaux dominent. 1) xz-utils 5.6.0 porte CVE-2024-3094, exploit\u{00e9}e \
+                      activement : mettre \u{00e0} jour vers 5.6.2 sans attendre le cycle mensuel. \
+                      2) Un PowerShell encod\u{00e9} (PID 4812) a \u{00e9}t\u{00e9} tu\u{00e9} il y a \
+                      27 min ; v\u{00e9}rifier la persistance (t\u{00e2}che planifi\u{00e9}e, cl\u{00e9} \
+                      Run). 3) curl.exe joint un n\u{0153}ud de sortie Tor : le blocage est en cours, \
+                      confirmer qu'aucune donn\u{00e9}e n'est sortie."
+                .into(),
+            timestamp: ago(5),
+            processing_time_ms: Some(1_840),
+        },
+    ];
+    state.ai.model_status = LlmModelStatus {
+        model_name: "sentinel-guard-7b-q4_k_m".into(),
+        status: "ready".into(),
+        inference_count: 128,
+        memory_mb: 4_210,
+        is_ready: true,
+    };
+
     // ── KPI trend (30 days) ───────────────────────────────────────────
     for d in (0..30).rev() {
         let progress = (30 - d) as f32 / 30.0;
@@ -1554,6 +1897,41 @@ pub fn seed(state: &mut AppState) {
     // The trend ends where the summary card is, or the two numbers argue.
     if let Some(last) = state.kpi.snapshots.back_mut() {
         last.compliance_score = 87.4;
+    }
+}
+
+/// Select the secondary tab `PREVIEW_TAB` names on `page`; 0 is the first.
+pub fn select_tab(state: &mut AppState, page: &str, tab: usize) {
+    match page {
+        "threats" => {
+            state.threats.active_tab = match tab {
+                1 => EdrTab::Events,
+                2 => EdrTab::Investigation,
+                3 => EdrTab::Response,
+                4 => EdrTab::Playbooks,
+                5 => EdrTab::DetectionRules,
+                6 => EdrTab::ForensicTimeline,
+                _ => EdrTab::Overview,
+            }
+        }
+        "notifications" => state.notifications_active_tab = tab,
+        "monitoring" => state.monitoring.active_tab = tab,
+        "reports" => state.reports.active_tab = tab,
+        "ai" => {
+            state.ai.active_tab = match tab {
+                1 => LlmTab::Recommendations,
+                2 => LlmTab::ModelStatus,
+                _ => LlmTab::Assistant,
+            }
+        }
+        "compliance" => {
+            state.compliance.view_mode = if tab == 1 {
+                ComplianceViewMode::Matrix
+            } else {
+                ComplianceViewMode::List
+            }
+        }
+        _ => {}
     }
 }
 

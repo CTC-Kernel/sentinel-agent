@@ -362,7 +362,7 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
             for vuln in &state.vulnerability_findings {
                 if vuln.cve_id.to_lowercase().contains(query) {
                     results.push(IocSearchResult {
-                        source: "VULN\u{00c9}RA.",
+                        source: "CVE",
                         title: format!("{} \u{2014} {}", vuln.cve_id, vuln.affected_software),
                         match_description: vuln.description.clone(),
                         severity: vuln.severity.as_str(),
