@@ -25,7 +25,7 @@ impl AuditTrailPage {
             &["Système", "Journal d'audit"],
             "Journal d'Audit",
             Some(
-                "TRAÇABILIT\u{00c9} COMPL\u{00c8}TE DES \u{00c9}V\u{00c9}NEMENTS DE S\u{00c9}CURIT\u{00c9} ET DU SYST\u{00c8}ME",
+                "Traçabilit\u{00e9} compl\u{00e8}te des \u{00e9}v\u{00e9}nements de s\u{00e9}curit\u{00e9} et du syst\u{00e8}me.",
             ),
             Some(
                 "Consultez l'historique d\u{00e9}taill\u{00e9} des actions de l'agent, des d\u{00e9}tections de menaces et des changements de configuration.",
@@ -35,33 +35,31 @@ impl AuditTrailPage {
 
         // Action bar with Export
         let mut export_clicked = false;
+        // A bare right-to-left layout would claim the page's whole height and
+        // centre the button in it; the horizontal row bounds it to one line.
         ui.horizontal(|ui: &mut egui::Ui| {
-            if widgets::button::secondary_button(
-                ui,
-                format!("{}  EXPORTER CSV", crate::icons::DOWNLOAD),
-                true,
-            )
-            .clicked()
-            {
-                export_clicked = true;
-                let success = Self::export_audit_trail_csv(state);
-                let time = ui.input(|i| i.time);
-                if success {
-                    state.toasts.push(
-                        crate::widgets::toast::Toast::success(
-                            "Journal d'audit export\u{00e9} avec succ\u{00e8}s",
-                        )
-                        .with_time(time),
-                    );
-                } else {
-                    state.toasts.push(
-                        crate::widgets::toast::Toast::error(
-                            "\u{00c9}chec de l'export du journal d'audit",
-                        )
-                        .with_time(time),
-                    );
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if widgets::ghost_button(ui, format!("{}  CSV", crate::icons::DOWNLOAD)).clicked() {
+                    export_clicked = true;
+                    let success = Self::export_audit_trail_csv(state);
+                    let time = ui.input(|i| i.time);
+                    if success {
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::success(
+                                "Journal d'audit export\u{00e9} avec succ\u{00e8}s",
+                            )
+                            .with_time(time),
+                        );
+                    } else {
+                        state.toasts.push(
+                            crate::widgets::toast::Toast::error(
+                                "\u{00c9}chec de l'export du journal d'audit",
+                            )
+                            .with_time(time),
+                        );
+                    }
                 }
-            }
+            });
         });
         // Local CSV export is handled inline above — no GUI command needed.
         let _ = export_clicked;
@@ -91,7 +89,7 @@ impl AuditTrailPage {
             .count();
         let toggled = widgets::SearchFilterBar::new(
             &mut state.audit_trail_search,
-            "RECHERCHER UN ÉVÉNEMENT...",
+            "Rechercher un événement…",
         )
         .chip(
             "INFO",
@@ -132,7 +130,6 @@ impl AuditTrailPage {
 
         // Log Table
         widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.set_height(ui.available_height() - theme::SPACE_XL);
             Self::render_table(ui, state);
         });
 
@@ -262,8 +259,21 @@ impl AuditTrailPage {
             .collect();
 
         if filtered_logs.is_empty() {
-            widgets::empty_state(ui, icons::CLIPBOARD, "AUCUN ÉVÉNEMENT TROUVÉ", None);
+            widgets::empty_state(ui, icons::CLIPBOARD, "Aucun événement trouvé", None);
             return;
+        }
+
+        // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+        let mut position = state.selected_audit_entry;
+        if widgets::navigate_list(
+            ui.ctx(),
+            &mut position,
+            filtered_logs.len(),
+            &mut state.audit_detail_open,
+        ) && let Some(pos) = position
+        {
+            state.selected_audit_entry = Some(pos);
+            state.audit_trail_page = pos / AUDIT_PER_PAGE;
         }
 
         const AUDIT_PER_PAGE: usize = 50;

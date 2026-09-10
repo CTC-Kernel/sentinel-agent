@@ -55,7 +55,7 @@ impl CartographyPage {
             widgets::empty_state(
                 ui,
                 icons::CARTOGRAPHY,
-                "AUCUN ACTIF DÉCOUVERT",
+                "Aucun actif découvert",
                 Some(
                     "Veuillez lancer une découverte réseau pour cartographier votre infrastructure.",
                 ),
@@ -68,7 +68,7 @@ impl CartographyPage {
             ui,
             &["Actifs & inventaire", "Cartographie"],
             "Cartographie Réseau",
-            Some("VISUALISATION TOPOLOGIQUE ET ANALYSE DES RELATIONS INTER-ACTIFS"),
+            Some("Visualisation topologique et relations entre actifs."),
             Some(
                 "Explorez les relations entre les actifs de votre réseau. Les noeuds représentent les machines et les liens indiquent les interactions détectées. Utilisez le zoom et le panoramique pour naviguer.",
             ),
@@ -93,7 +93,7 @@ impl CartographyPage {
                     ui.add_space(theme::SPACE_LG);
 
                     // Reset layout button
-                    if widgets::secondary_button(ui, "RÉINITIALISER", true).clicked() {
+                    if widgets::secondary_button(ui, "Réinitialiser", true).clicked() {
                         state.cartography.layout = None;
                         state.cartography.zoom = 1.0;
                         state.cartography.pan = Vec2::ZERO;
@@ -104,7 +104,7 @@ impl CartographyPage {
                     // Zoom indicators (AAA)
                     ui.label(
                         egui::RichText::new(format!(
-                            "ZOOM: {:.0}%",
+                            "ZOOM: {:.0}\u{202f}%",
                             state.cartography.zoom * 100.0
                         ))
                         .font(theme::font_label())
@@ -117,7 +117,7 @@ impl CartographyPage {
                     // Open 3D view button
                     if widgets::primary_button(
                         ui,
-                        format!("{}  VUE 3D", icons::EXTERNAL_LINK),
+                        format!("{}  Vue 3D", icons::EXTERNAL_LINK),
                         true,
                     )
                     .clicked()
@@ -163,12 +163,12 @@ impl CartographyPage {
                                 ui,
                                 format!(
                                     "{}  {}",
+                                    icons::PLAY,
                                     if is_scanning {
                                         "Analyse en cours"
                                     } else {
                                         "Lancer l'analyse"
-                                    },
-                                    icons::PLAY
+                                    }
                                 ),
                                 !is_scanning,
                                 is_scanning,

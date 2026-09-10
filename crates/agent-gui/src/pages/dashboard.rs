@@ -1,15 +1,61 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Decision-oriented security workspace. All values come from runtime state.
-use crate::app::{AppState, Page};
-use crate::dto::GuiAgentStatus;
-use crate::events::GuiCommand;
-use crate::{icons, theme, widgets};
-use egui::{Color32, RichText, Ui};
+//! Dashboard page -- premium AAA overview.
 
+use egui::Ui;
+
+use crate::app::{AppState, Page};
+use crate::dto::{GuiAgentStatus, KpiPeriod};
+use crate::events::GuiCommand;
+use crate::icons;
+use crate::llm_panel::{self, LLMPanel};
+use crate::theme;
+use crate::widgets;
+
+/// Threshold for threat count requiring attention (warning level).
+const THREATS_WARNING_THRESHOLD: usize = 3;
+/// Threshold for FIM changes per day considered safe (no warning).
+const FIM_SAFE_THRESHOLD: u32 = 5;
+/// Threshold for network alerts requiring attention (warning level).
+const NETWORK_ALERT_WARNING_THRESHOLD: u32 = 2;
+/// Software coverage percentage above which is considered good.
+const SOFTWARE_COVERAGE_GOOD: f32 = 90.0;
+/// Software coverage percentage above which is considered acceptable.
+const SOFTWARE_COVERAGE_WARN: f32 = 70.0;
+/// AI posture gauge radius in the hero card.
+const AI_GAUGE_RADIUS: f32 = 48.0;
+/// Maximum recommendations shown on dashboard.
+const DASHBOARD_MAX_RECOMMENDATIONS: usize = 3;
+/// Minimum card width for bottom grid (recommendations + feed).
+const BOTTOM_GRID_MIN_WIDTH: f32 = 340.0;
+/// Height of a compact recommendation row.
+const COMPACT_REC_ROW_HEIGHT: f32 = 36.0;
+/// Maximum items shown in the activity feed widget.
+const ACTIVITY_FEED_LIMIT: usize = 5;
+/// Sparkline height in the KPI trends section.
+const KPI_SPARKLINE_HEIGHT: f32 = 48.0;
+/// Mini gauge size in the KPI trends section.
+const KPI_GAUGE_SIZE: f32 = 56.0;
+/// Seconds per day for KPI period filtering.
+const SECS_PER_DAY: i64 = 86_400;
+/// Minimum inner height for indicator cards (ensures uniform row height).
+/// Inner height of the eight indicator cards. Fixed rather than derived so
+/// the grid reads as a grid: the tallest card (a value plus two sub-stats)
+/// sets it, and the sparkline cards grow their chart to match.
+const INDICATOR_CARD_MIN_HEIGHT: f32 = 136.0;
+/// Chart height that fills an indicator card under its header row.
+const INDICATOR_CHART_HEIGHT: f32 = INDICATOR_CARD_MIN_HEIGHT - 56.0;
+/// Minimum inner height for bottom-row cards (recommendations + feed).
+const BOTTOM_CARD_MIN_HEIGHT: f32 = 200.0;
+/// Minimum inner height for the AI posture score hero card.
+const AI_SCORE_CARD_MIN_HEIGHT: f32 = 220.0;
+
+/// Actions returned by the dashboard page.
 pub enum DashboardAction {
+    /// Forward a runtime command to the agent.
     Command(GuiCommand),
+    /// Navigate to a specific page.
     NavigateTo(Page),
 }
 
@@ -17,494 +63,1400 @@ pub struct DashboardPage;
 
 impl DashboardPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
-        let mut action = None;
-        ui.horizontal_wrapped(|ui| {
-            eyebrow(ui, "ESPACE DE SÉCURITÉ");
-            ui.label(RichText::new(" / ").color(theme::text_tertiary()));
-            ui.label(
-                RichText::new(
-                    state
-                        .summary
-                        .organization
-                        .as_deref()
-                        .unwrap_or("Poste local"),
-                )
-                .font(theme::font_small())
-                .color(theme::text_secondary()),
-            );
-            if !state.summary.hostname.is_empty() {
-                ui.label(
-                    RichText::new(format!("·  {}", state.summary.hostname))
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary()),
-                );
-            }
-        });
-        ui.add_space(10.0);
-        ui.label(
-            RichText::new("Votre centre de contrôle.")
-                .size(34.0)
-                .strong()
-                .color(theme::text_primary()),
-        );
-        ui.add_space(4.0);
-        ui.horizontal_wrapped(|ui| {
-            ui.label(
-                RichText::new("Comprendre l’exposition. Prioriser. Agir.")
-                    .size(15.0)
-                    .color(theme::text_secondary()),
-            );
-            if let Some(last) = state.summary.last_check_at {
-                ui.label(
-                    RichText::new(format!(
-                        "Dernière analyse · {}",
-                        last.with_timezone(&chrono::Local).format("%d %b, %H:%M")
-                    ))
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary()),
-                );
-            }
-        });
-        ui.add_space(theme::SPACE_LG);
-        Self::posture(ui, state, &mut action);
-        ui.add_space(theme::SPACE);
+        let mut action: Option<DashboardAction> = None;
 
-        let vulnerabilities = state.vulnerability_summary.as_ref();
-        let metrics = [
-            (
-                "Conformité",
-                state
-                    .summary
-                    .compliance_score
-                    .map(|v| format!("{v:.0}%"))
-                    .unwrap_or("—".into()),
-                format!(
-                    "{} contrôles évalués",
-                    state.policy.passing + state.policy.failing + state.policy.errors
-                ),
-                theme::accent_text(),
-                Page::Compliance,
-            ),
-            (
-                "Vulnérabilités prioritaires",
-                vulnerabilities
-                    .map(|v| (v.critical + v.high).to_string())
-                    .unwrap_or("—".into()),
-                "Critiques et élevées".into(),
-                theme::readable_color(theme::ERROR),
-                Page::Vulnerabilities,
-            ),
-            (
-                "Signaux à investiguer",
-                (state.threats.suspicious_processes.len() + state.threats.usb_events.len())
-                    .to_string(),
-                "Processus et événements USB".into(),
-                theme::readable_color(theme::WARNING),
-                Page::Threats,
-            ),
-            (
-                "Alertes réseau",
-                state.network.alert_count.to_string(),
-                format!("{} connexions actives", state.network.connection_count),
-                theme::accent_text(),
-                Page::Network,
-            ),
-        ];
-        widgets::ResponsiveGrid::new(210.0, 12.0).show(
+        ui.add_space(theme::SPACE_MD);
+        let _ = widgets::page_header_nav(
             ui,
-            &metrics,
-            |ui, width, (label, value, caption, color, page)| {
-                ui.push_id(label, |ui| {
-                    ui.vertical(|ui| {
-                        ui.set_width(width);
-                        if widgets::clickable_card(ui, label, |ui| {
-                            ui.set_min_width(ui.available_width());
-                            ui.set_min_height(76.0);
-                            ui.label(
-                                RichText::new(*label)
-                                    .font(theme::font_small())
-                                    .color(theme::text_secondary()),
-                            );
-                            ui.add_space(8.0);
-                            ui.label(RichText::new(value).size(30.0).strong().color(*color));
-                            ui.label(
-                                RichText::new(caption)
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary()),
-                            );
-                        })
-                        .clicked()
-                        {
-                            action = Some(DashboardAction::NavigateTo(page.clone()));
-                        }
-                    });
-                });
-            },
+            &["Vue d'ensemble", "Tableau de bord"],
+            "Tableau de bord",
+            Some("Posture de sécurité et de conformité de ce poste, en temps réel."),
+            Some(
+                "Les indicateurs sont recalcul\u{00e9}s \u{00e0} chaque analyse. Utilisez « Analyser » pour \u{00e9}valuer imm\u{00e9}diatement conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s et menaces.",
+            ),
         );
-        ui.add_space(theme::SPACE_LG);
-        let wide = ui.available_width() >= 850.0;
-        if wide {
-            ui.columns(2, |cols| {
-                Self::priorities(&mut cols[0], state, &mut action);
-                Self::operations(&mut cols[1], state, &mut action);
-            });
-        } else {
-            Self::priorities(ui, state, &mut action);
-            ui.add_space(theme::SPACE);
-            Self::operations(ui, state, &mut action);
+
+        ui.add_space(theme::SPACE_MD);
+
+        // ══════════════════════════════════════════════════════════════════
+        // ORGANIZATION BANNER (Premium)
+        // ══════════════════════════════════════════════════════════════════
+        if let Some(cmd) = widgets::org_banner(ui, state) {
+            action = Some(DashboardAction::Command(cmd));
         }
-        ui.add_space(theme::SPACE);
-        Self::assistant(ui, state, &mut action);
-        ui.add_space(theme::SPACE);
-        egui::CollapsingHeader::new("Tendances et activité récente")
-            .id_salt("dashboard_history")
-            .show(ui, |ui| {
-                ui.horizontal(|ui| {
-                    for period in [
-                        crate::dto::KpiPeriod::ThirtyDays,
-                        crate::dto::KpiPeriod::NinetyDays,
-                    ] {
-                        if ui
-                            .selectable_label(state.kpi.period == period, period.label_fr())
-                            .clicked()
-                        {
-                            state.kpi.period = period;
+
+        ui.add_space(theme::SPACE_SM);
+
+        // ══════════════════════════════════════════════════════════════════
+        // ACTION BAR (inline — Scan, Sync, Export + system status)
+        // ══════════════════════════════════════════════════════════════════
+        if let Some(cmd) = Self::action_bar(ui, state) {
+            action = Some(DashboardAction::Command(cmd));
+        }
+
+        ui.add_space(theme::SPACE_MD);
+
+        // ══════════════════════════════════════════════════════════════════
+        // SECURITY HERO + AI POSTURE SCORE (Side by side on large screens)
+        // ══════════════════════════════════════════════════════════════════
+        ui.push_id("hero_grid", |ui| {
+            let hero_grid = widgets::ResponsiveGrid::new(400.0, theme::SPACE);
+            let hero_items = vec![0, 1];
+
+            hero_grid.show(ui, &hero_items, |ui, width, &idx| {
+                // Staggered entry (hero first)
+                let alpha =
+                    ui.ctx()
+                        .animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL);
+
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_opacity(alpha);
+                    ui.set_width(width);
+                    match idx {
+                        0 => {
+                            // security_hero uses card() internally — overlay click sense
+                            let r = ui.scope(|ui| {
+                                widgets::security_hero(ui, state);
+                            });
+                            let click = ui.interact(
+                                r.response.rect,
+                                ui.id().with("hero_security_click"),
+                                egui::Sense::click(),
+                            );
+                            if click.hovered() {
+                                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                            }
+                            if click.clicked() {
+                                action = Some(DashboardAction::NavigateTo(Page::Compliance));
+                            }
+                        }
+                        _ => {
+                            if let Some(act) = Self::ai_posture_score_card(ui, state) {
+                                action = Some(act);
+                            }
                         }
                     }
                 });
-                let cutoff =
-                    chrono::Utc::now() - chrono::Duration::days(state.kpi.period.days() as i64);
-                let samples: Vec<_> = state
-                    .kpi
-                    .snapshots
-                    .iter()
-                    .filter(|s| s.timestamp >= cutoff)
-                    .collect();
-                if samples.len() < 2 {
-                    ui.label("L’historique apparaîtra après plusieurs collectes.");
-                } else {
-                    let points: Vec<_> = samples
-                        .iter()
-                        .map(|s| [s.timestamp.timestamp() as f64, s.compliance_score as f64])
-                        .collect();
-                    widgets::sparkline(
-                        ui,
-                        "compliance_history",
-                        &points,
-                        egui::vec2(ui.available_width(), 100.0),
-                        &widgets::SparklineConfig::default(),
-                    );
-                    if let Some(last) = samples.last() {
-                        ui.label(format!(
-                            "{} incidents · {} vulnérabilités ouvertes · {} résolues · SLA {:.0}%",
-                            last.incident_count,
-                            last.open_vulns,
-                            last.closed_vulns,
-                            last.remediation_sla_pct
-                        ));
-                    }
-                }
-                widgets::activity_feed(ui, state, 5);
             });
-        ui.add_space(theme::SPACE);
-        ui.horizontal_wrapped(|ui| {
-            ui.label(
-                RichText::new("EXPLORER")
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary()),
-            );
-            for (label, page) in [
-                ("Inventaire logiciel", Page::Software),
-                ("Intégrité des fichiers", Page::FileIntegrity),
-                ("Rapports", Page::Reports),
-            ] {
-                if widgets::ghost_button(ui, label).clicked() {
-                    action = Some(DashboardAction::NavigateTo(page));
-                }
-            }
-            if widgets::ghost_button(ui, "Exporter la synthèse").clicked() {
-                let toast = if Self::export_dashboard_csv(state) {
-                    widgets::toast::Toast::success("Synthèse exportée")
-                } else {
-                    widgets::toast::Toast::error("L’export a échoué")
-                };
-                state.toasts.push(toast);
-            }
         });
+
+        ui.add_space(theme::SPACE_MD);
+
+        // ══════════════════════════════════════════════════════════════════
+        // UNIFIED INDICATORS (8 cards: metrics + security in single grid)
+        // ══════════════════════════════════════════════════════════════════
+        ui.push_id("indicators_grid", |ui| {
+            let grid = widgets::ResponsiveGrid::new(200.0, theme::SPACE);
+            let items = vec![0, 1, 2, 3, 4, 5, 6, 7];
+
+            grid.show(ui, &items, |ui, width, &idx| {
+                // Staggered entry (delay based on index)
+                let delay = 0.1 + (idx as f32 * 0.05);
+                let alpha =
+                    (ui.ctx()
+                        .animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL)
+                        * (1.0 / delay))
+                        .min(1.0);
+
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_opacity(alpha);
+                    ui.set_width(width);
+                    let clicked = match idx {
+                        0 => Self::cpu_sparkline_card(ui, state),
+                        1 => Self::memory_sparkline_card(ui, state),
+                        2 => Self::checks_summary_card(ui, state),
+                        3 => Self::vulnerabilities_summary_card(ui, state),
+                        4 => Self::threats_indicator_card(ui, state),
+                        5 => Self::fim_indicator_card(ui, state),
+                        6 => Self::network_health_card(ui, state),
+                        _ => Self::software_coverage_card(ui, state),
+                    };
+                    if clicked {
+                        let page = match idx {
+                            0 | 1 => Page::Monitoring,
+                            2 => Page::Compliance,
+                            3 => Page::Vulnerabilities,
+                            4 => Page::Threats,
+                            5 => Page::FileIntegrity,
+                            6 => Page::Network,
+                            _ => Page::Software,
+                        };
+                        action = Some(DashboardAction::NavigateTo(page));
+                    }
+                });
+            });
+        });
+
+        ui.add_space(theme::SPACE_MD);
+
+        // ══════════════════════════════════════════════════════════════════
+        // KPI TRENDS & KEY INDICATORS
+        // ══════════════════════════════════════════════════════════════════
+        Self::kpi_trends_card(ui, state);
+
+        ui.add_space(theme::SPACE_MD);
+
+        // ══════════════════════════════════════════════════════════════════
+        // BOTTOM ROW: RECOMMENDATIONS + ACTIVITY FEED (Side by side)
+        // ══════════════════════════════════════════════════════════════════
+        ui.push_id("bottom_grid", |ui| {
+            let bottom_grid = widgets::ResponsiveGrid::new(BOTTOM_GRID_MIN_WIDTH, theme::SPACE);
+            let bottom_items = vec![0, 1];
+
+            bottom_grid.show(ui, &bottom_items, |ui, width, &idx| {
+                // Staggered entry (delay based on index)
+                let delay = 0.3 + (idx as f32 * 0.1);
+                let alpha =
+                    (ui.ctx()
+                        .animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL)
+                        * (1.0 / delay))
+                        .min(1.0);
+
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_opacity(alpha);
+                    ui.set_width(width);
+                    match idx {
+                        0 => {
+                            if let Some(nav) = Self::compact_recommendations_card(ui, state) {
+                                action = Some(nav);
+                            }
+                        }
+                        _ => {
+                            let clicked = widgets::clickable_card(
+                                ui,
+                                "activity_feed_click",
+                                |ui: &mut egui::Ui| {
+                                    ui.set_min_width(ui.available_width());
+                                    ui.set_min_height(BOTTOM_CARD_MIN_HEIGHT);
+                                    widgets::activity_feed(ui, state, ACTIVITY_FEED_LIMIT);
+                                },
+                            )
+                            .clicked();
+                            if clicked {
+                                action = Some(DashboardAction::NavigateTo(Page::AuditTrail));
+                            }
+                        }
+                    }
+                });
+            });
+        });
+
+        ui.add_space(theme::SPACE);
         action
     }
 
-    fn posture(ui: &mut Ui, state: &AppState, action: &mut Option<DashboardAction>) {
-        let urgent = state
-            .vulnerability_summary
-            .as_ref()
-            .map_or(0, |v| v.critical + v.high);
-        let signals = state.threats.suspicious_processes.len() + state.threats.usb_events.len();
-        let assessed = state.summary.compliance_score.is_some();
-        let needs_attention = urgent > 0
-            || signals > 0
-            || state.policy.failing > 0
-            || state
-                .summary
-                .compliance_score
-                .is_some_and(|score| score < 85.0);
-        let title = if urgent > 0 {
-            format!("{urgent} vulnérabilités prioritaires à examiner.")
-        } else if needs_attention {
-            "Votre posture nécessite un examen.".into()
-        } else if assessed {
-            "Votre état de sécurité est disponible.".into()
-        } else {
-            "Commencez par une première analyse.".into()
-        };
-        let subtitle = if needs_attention {
-            "Des points d’attention méritent votre examen. Retrouvez les prochaines actions ci-dessous."
-        } else if assessed {
-            "Consultez les contrôles et les signaux collectés pour suivre l’évolution de votre poste."
-        } else {
-            "Établissez votre état de référence pour révéler les vulnérabilités et les écarts de conformité."
-        };
-        egui::Frame::new()
-            .fill(if theme::is_dark_mode() {
-                Color32::from_rgb(21, 37, 57)
-            } else {
-                Color32::from_rgb(231, 239, 253)
-            })
-            .stroke(egui::Stroke::new(
-                1.0_f32,
-                if theme::is_dark_mode() {
-                    Color32::from_rgb(48, 75, 106)
-                } else {
-                    Color32::from_rgb(199, 214, 238)
-                },
-            ))
-            .corner_radius(16)
-            .inner_margin(22)
-            .show(ui, |ui| {
-                ui.set_min_width(ui.available_width());
-                ui.horizontal_wrapped(|ui| {
-                    widgets::status_badge(
-                        ui,
-                        if needs_attention {
-                            "À examiner"
-                        } else if assessed {
-                            "Analyse disponible"
-                        } else {
-                            "Évaluation en attente"
-                        },
-                        if needs_attention {
-                            theme::WARNING
-                        } else {
-                            theme::INFO
-                        },
-                    );
-                    ui.label(
-                        RichText::new(&title)
-                            .size(22.0)
-                            .strong()
-                            .color(theme::text_primary()),
-                    );
-                });
-                ui.add_space(6.0);
-                ui.label(
-                    RichText::new(subtitle)
-                        .font(theme::font_body())
-                        .color(theme::text_secondary()),
-                );
-                ui.add_space(12.0);
-                ui.horizontal_wrapped(|ui| {
-                    let scanning = state.summary.status == GuiAgentStatus::Scanning;
-                    if widgets::primary_button_loading(
-                        ui,
-                        if scanning {
-                            "Analyse en cours…"
-                        } else {
-                            "Analyser ce poste"
-                        },
-                        !scanning,
-                        scanning,
-                    )
-                    .clicked()
-                    {
-                        *action = Some(DashboardAction::Command(GuiCommand::RunCheck));
-                    }
-                    if widgets::ghost_button(ui, "Consulter les contrôles  →").clicked() {
-                        *action = Some(DashboardAction::NavigateTo(Page::Compliance));
-                    }
-                });
-            });
-    }
+    // ──────────────────────────────────────────────────────────────────────
+    // ACTION BAR (replaces Command Center — flat inline strip)
+    // ──────────────────────────────────────────────────────────────────────
+    fn action_bar(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let mut command: Option<GuiCommand> = None;
 
-    fn priorities(ui: &mut Ui, state: &AppState, action: &mut Option<DashboardAction>) {
-        widgets::card(ui, |ui| {
-            ui.set_min_width(ui.available_width());
-            ui.set_min_height(220.0);
-            section(ui, "01", "Prochaines actions");
-            ui.add_space(14.0);
-            let mut count = 0;
-            if let Some(v) = &state.vulnerability_summary {
-                if v.critical + v.high > 0 {
-                    action_row(
-                        ui,
-                        "01",
-                        &format!(
-                            "Examiner {} vulnérabilités prioritaires",
-                            v.critical + v.high
-                        ),
-                        "Identifier les correctifs disponibles",
-                        theme::ERROR,
-                        Page::Vulnerabilities,
-                        action,
-                    );
-                    count += 1;
-                }
-            }
-            if state.policy.failing > 0 {
-                action_row(
-                    ui,
-                    "02",
-                    &format!("Résoudre {} écarts de conformité", state.policy.failing),
-                    "Comprendre les contrôles en échec",
-                    theme::WARNING,
-                    Page::Compliance,
-                    action,
-                );
-                count += 1;
-            }
-            if !state.threats.suspicious_processes.is_empty()
-                || !state.threats.usb_events.is_empty()
-            {
-                action_row(
-                    ui,
-                    "03",
-                    "Investiguer les signaux de sécurité",
-                    "Examiner les événements et leur contexte",
-                    theme::WARNING,
-                    Page::Threats,
-                    action,
-                );
-                count += 1;
-            }
-            if count == 0 {
-                action_row(
-                    ui,
-                    "01",
-                    if state.summary.compliance_score.is_none() {
-                        "Établir votre état de référence"
+        ui.horizontal(|ui: &mut egui::Ui| {
+            // Left: Action buttons
+            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
+            if widgets::button::primary_button_loading(
+                ui,
+                format!(
+                    "{}  {}",
+                    icons::PLAY,
+                    if is_scanning {
+                        "Analyse en cours…"
                     } else {
-                        "Revoir les résultats de l’analyse"
-                    },
-                    "Ouvrir les contrôles de conformité",
-                    theme::INFO,
-                    Page::Compliance,
-                    action,
-                );
-                action_row(
-                    ui,
-                    "02",
-                    "Consulter l’activité du poste",
-                    "Accéder au journal des événements",
-                    theme::INFO,
-                    Page::AuditTrail,
-                    action,
-                );
+                        "Analyser"
+                    }
+                ),
+                !is_scanning,
+                is_scanning,
+            )
+            .clicked()
+            {
+                command = Some(GuiCommand::RunCheck);
             }
-        });
-    }
 
-    fn operations(ui: &mut Ui, state: &AppState, action: &mut Option<DashboardAction>) {
-        widgets::card(ui, |ui| {
-            ui.set_min_width(ui.available_width());
-            ui.set_min_height(220.0);
-            section(ui, "02", "Santé du poste");
-            ui.add_space(14.0);
-            let cpu: Vec<_> = state.monitoring.cpu_history.iter().copied().collect();
-            let memory: Vec<_> = state.monitoring.memory_history.iter().copied().collect();
-            ui.columns(2, |cols| {
-                for (idx, name, data, value) in [
-                    (0, "Processeur", &cpu, state.resources.cpu_percent),
-                    (1, "Mémoire", &memory, state.resources.memory_percent),
-                ] {
-                    let ui = &mut cols[idx];
-                    ui.label(
-                        RichText::new(name)
-                            .font(theme::font_small())
-                            .color(theme::text_secondary()),
+            ui.add_space(theme::SPACE_SM);
+
+            let is_syncing = state.summary.status == GuiAgentStatus::Syncing;
+            if widgets::button::secondary_button_loading(
+                ui,
+                format!(
+                    "{}  {}",
+                    icons::SYNC,
+                    if is_syncing {
+                        "Synchronisation…"
+                    } else {
+                        "Synchroniser"
+                    }
+                ),
+                !is_syncing,
+                is_syncing,
+            )
+            .clicked()
+            {
+                command = Some(GuiCommand::RunSync);
+            }
+
+            ui.add_space(theme::SPACE_SM);
+
+            if widgets::button::secondary_button_loading(
+                ui,
+                format!("{}  Exporter", icons::DOWNLOAD),
+                true,
+                false,
+            )
+            .clicked()
+            {
+                let success = Self::export_dashboard_csv(state);
+                let time = ui.input(|i| i.time);
+                if success {
+                    state.toasts.push(
+                        crate::widgets::toast::Toast::success(
+                            "Export CSV du tableau de bord r\u{00e9}ussi",
+                        )
+                        .with_time(time),
                     );
-                    ui.label(
-                        RichText::new(if data.is_empty() {
-                            "—".into()
-                        } else {
-                            format!("{value:.1}%")
-                        })
-                        .size(24.0)
-                        .color(theme::text_primary()),
-                    );
-                    widgets::sparkline(
-                        ui,
-                        name,
-                        data,
-                        egui::vec2(ui.available_width(), 54.0),
-                        &widgets::SparklineConfig {
-                            color: theme::accent_text(),
-                            fill: true,
-                            show_trend: false,
-                            show_stats: false,
-                        },
+                } else {
+                    state.toasts.push(
+                        crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
+                            .with_time(time),
                     );
                 }
-            });
-            ui.add_space(14.0);
-            let last_sync = state
-                .summary
-                .last_sync_at
-                .map(|t| t.with_timezone(&chrono::Local).format("%H:%M").to_string())
-                .unwrap_or("En attente".into());
-            ui.label(
-                RichText::new(format!("Dernière synchronisation  ·  {last_sync}"))
-                    .font(theme::font_small())
-                    .color(theme::text_secondary()),
-            );
-            ui.add_space(8.0);
-            if widgets::ghost_button(ui, "Ouvrir la surveillance  →").clicked() {
-                *action = Some(DashboardAction::NavigateTo(Page::Monitoring));
             }
+
+            // Right: Compact system status
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    // Uptime
+                    ui.label(
+                        egui::RichText::new(crate::format::duration_short(
+                            state.summary.uptime_secs,
+                        ))
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                    );
+                    ui.label(
+                        egui::RichText::new(icons::BOLT)
+                            .size(theme::ICON_XS)
+                            .color(theme::accent_text()),
+                    );
+
+                    ui.add_space(theme::SPACE_MD);
+
+                    // Last scan
+                    if let Some(last_check) = state.summary.last_check_at {
+                        let elapsed = chrono::Utc::now().signed_duration_since(last_check);
+                        let elapsed_text = if elapsed.num_minutes() < 1 {
+                            "\u{00e0} l'instant".to_string()
+                        } else if elapsed.num_minutes() < 60 {
+                            format!("{}{}min", elapsed.num_minutes(), crate::format::THIN_SPACE)
+                        } else {
+                            format!("{}{}h", elapsed.num_hours(), crate::format::THIN_SPACE)
+                        };
+                        ui.label(
+                            egui::RichText::new(elapsed_text)
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary()),
+                        );
+                        ui.label(
+                            egui::RichText::new(icons::CLOCK)
+                                .size(theme::ICON_XS)
+                                .color(theme::text_tertiary()),
+                        );
+
+                        ui.add_space(theme::SPACE_MD);
+                    }
+
+                    // Agent status badge
+                    let (status_text, status_color) = match state.summary.status {
+                        GuiAgentStatus::Connected => ("Op\u{00e9}rationnel", theme::SUCCESS),
+                        GuiAgentStatus::Scanning => ("Analyse", theme::INFO),
+                        GuiAgentStatus::Syncing => ("Sync", theme::INFO),
+                        GuiAgentStatus::Disconnected => {
+                            ("D\u{00e9}connect\u{00e9}", theme::WARNING)
+                        }
+                        GuiAgentStatus::Error => ("Erreur", theme::ERROR),
+                        _ => ("Attente", theme::text_tertiary()),
+                    };
+                    widgets::status_badge(ui, status_text, status_color);
+                },
+            );
         });
+
+        ui.add_space(theme::SPACE_XS);
+        widgets::divider_thin(ui);
+
+        command
     }
 
-    fn assistant(ui: &mut Ui, state: &AppState, action: &mut Option<DashboardAction>) {
-        widgets::card(ui, |ui| {
+    // ──────────────────────────────────────────────────────────────────────
+    // AI POSTURE SCORE CARD (clickable → AI page)
+    // ──────────────────────────────────────────────────────────────────────
+    fn ai_posture_score_card(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
+        let ai_score = LLMPanel::compute_ai_score(state);
+        let risk_label = LLMPanel::risk_label(ai_score);
+        let risk_color = theme::score_color(ai_score);
+
+        let mut nav_action = None;
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.set_min_width(ui.available_width());
-            ui.horizontal_wrapped(|ui| {
+            ui.set_min_height(AI_SCORE_CARD_MIN_HEIGHT);
+            ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.label(
-                    RichText::new(icons::BRAIN)
-                        .size(20.0)
+                    egui::RichText::new("ASSISTANT S\u{00c9}CURIT\u{00c9} IA")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_SM);
+
+                let mut voice_state = crate::widgets::sentinel_ai_core::VoiceState::Idle;
+                if state.ai.is_listening {
+                    voice_state =
+                        crate::widgets::sentinel_ai_core::VoiceState::Listening(state.ai.mic_level);
+                } else if state.ai.is_speaking {
+                    voice_state = crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.8); // simulated volume
+                }
+
+                // Sentinel AI Core (Jarvis-style) - Make it clickable
+                let core_response = widgets::SentinelAICore::new(ai_score)
+                    .processing(state.ai.is_processing)
+                    .voice(voice_state)
+                    .show(ui, AI_GAUGE_RADIUS);
+
+                if core_response.clicked() {
+                    nav_action = Some(DashboardAction::NavigateTo(Page::AI));
+                }
+
+                ui.add_space(theme::SPACE_SM);
+
+                // Risk badge, centred like the title and the core above it
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    widgets::status_badge(ui, risk_label, risk_color);
+                });
+
+                ui.add_space(theme::SPACE_MD);
+
+                // Inline Chat Input
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    // PREMIUM Voice Toggle
+                    if widgets::voice_toggle_button(ui, state.ai.is_listening).clicked() {
+                        state.ai.is_listening = !state.ai.is_listening;
+                        // Turn off speaking if we start listening
+                        if state.ai.is_listening {
+                            state.ai.is_speaking = false;
+                        }
+                        nav_action =
+                            Some(DashboardAction::Command(GuiCommand::SetVoiceListening {
+                                enabled: state.ai.is_listening,
+                            }));
+                    }
+
+                    let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
+                        .hint_text("Demander \u{00e0} Jarvis…")
+                        .font(theme::font_body())
+                        .desired_width(ui.available_width() - 32.0);
+
+                    let response = ui.add_enabled(!state.ai.is_processing, text_edit);
+
+                    // Send on Enter
+                    let enter_pressed =
+                        response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+
+                    let send_btn = egui::Button::new(
+                        egui::RichText::new(icons::PAPER_PLANE)
+                            .size(theme::ICON_SM)
+                            .color(if state.ai.is_processing {
+                                theme::text_tertiary()
+                            } else {
+                                theme::accent_text()
+                            }),
+                    )
+                    .fill(egui::Color32::TRANSPARENT)
+                    .frame(false);
+
+                    let can_send =
+                        !state.ai.is_processing && !state.ai.input_text.trim().is_empty();
+                    let send_clicked = ui.add_enabled(can_send, send_btn).clicked();
+
+                    if (enter_pressed || send_clicked) && can_send {
+                        let prompt = state.ai.input_text.trim().to_string();
+                        state.ai.chat_history.push(crate::dto::LlmChatMessage {
+                            role: crate::dto::ChatRole::User,
+                            content: prompt.clone(),
+                            timestamp: chrono::Utc::now(),
+                            processing_time_ms: None,
+                        });
+                        state.ai.input_text.clear();
+                        state.ai.is_processing = true;
+                        state.ai.active_tab = crate::dto::LlmTab::Assistant;
+
+                        // Force transition
+                        #[cfg(feature = "render")]
+                        {
+                            state.pending_navigation = Some(Page::AI);
+                        }
+                        nav_action = Some(DashboardAction::Command(GuiCommand::LlmPrompt {
+                            prompt,
+                            context: None,
+                        }));
+                    }
+                });
+            });
+        });
+
+        nav_action
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // COMPACT RECOMMENDATIONS CARD (bottom-left panel)
+    // ──────────────────────────────────────────────────────────────────────
+    fn compact_recommendations_card(ui: &mut Ui, state: &AppState) -> Option<DashboardAction> {
+        let recommendations = LLMPanel::build_recommendations(state);
+        let total = recommendations.len();
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+            ui.set_min_height(BOTTOM_CARD_MIN_HEIGHT);
+            // Section header
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(icons::BRAIN)
+                        .size(theme::ICON_XS)
                         .color(theme::accent_text()),
                 );
+                ui.add_space(theme::SPACE_XS);
                 ui.label(
-                    RichText::new("Un second regard sur votre sécurité.")
-                        .size(17.0)
-                        .strong()
-                        .color(theme::text_primary()),
+                    egui::RichText::new("RECOMMANDATIONS IA")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
                 );
-                widgets::status_badge(
+                if total > 0 {
+                    ui.add_space(theme::SPACE_XS);
+                    widgets::badge_count(ui, total as u32);
+                }
+            });
+
+            ui.add_space(theme::SPACE_SM);
+
+            if recommendations.is_empty() {
+                widgets::protected_state(
                     ui,
-                    if state.ai.model_status.is_ready {
-                        "Assistant disponible"
-                    } else {
-                        "Assistant à configurer"
-                    },
-                    theme::INFO,
+                    icons::SHIELD_CHECK,
+                    "Posture s\u{00e9}curis\u{00e9}e",
+                    "Aucune recommandation. Contr\u{00f4}les conformes.",
+                );
+            } else {
+                // Compact recommendation rows
+                for rec in recommendations.iter().take(DASHBOARD_MAX_RECOMMENDATIONS) {
+                    Self::compact_recommendation_row(ui, rec);
+                    ui.add_space(theme::SPACE_XS);
+                }
+
+                // "See all" button
+                ui.add_space(theme::SPACE_SM);
+                let btn_text = if total > DASHBOARD_MAX_RECOMMENDATIONS {
+                    format!(
+                        "{}  Voir les {} recommandations {}",
+                        icons::BRAIN,
+                        total,
+                        icons::ARROW_RIGHT
+                    )
+                } else {
+                    format!(
+                        "{}  Analyse compl\u{00e8}te {}",
+                        icons::BRAIN,
+                        icons::ARROW_RIGHT
+                    )
+                };
+                if widgets::ghost_button(ui, btn_text).clicked() {
+                    // Cannot return from inside card closure — use egui memory flag
+                    ui.memory_mut(|m| m.data.insert_temp(egui::Id::new("dashboard_nav_ai"), true));
+                }
+            }
+        });
+
+        // Check navigation flag outside the card closure
+        let navigate = ui.memory(|m| {
+            m.data
+                .get_temp::<bool>(egui::Id::new("dashboard_nav_ai"))
+                .unwrap_or(false)
+        });
+        if navigate {
+            ui.memory_mut(|m| m.data.insert_temp(egui::Id::new("dashboard_nav_ai"), false));
+            return Some(DashboardAction::NavigateTo(Page::AI));
+        }
+
+        None
+    }
+
+    /// Render a single compact recommendation row with accent bar.
+    fn compact_recommendation_row(ui: &mut Ui, rec: &llm_panel::Recommendation) {
+        let sev_color = theme::severity_color_typed(&rec.severity);
+
+        ui.horizontal(|ui: &mut egui::Ui| {
+            // Left accent bar
+            let (bar_rect, _) = ui.allocate_exact_size(
+                egui::vec2(theme::ACCENT_BAR_WIDTH, COMPACT_REC_ROW_HEIGHT),
+                egui::Sense::hover(),
+            );
+            if ui.is_rect_visible(bar_rect) {
+                ui.painter().rect_filled(
+                    bar_rect,
+                    egui::CornerRadius::same(theme::ROUNDING_XS),
+                    sev_color,
+                );
+            }
+
+            ui.add_space(theme::SPACE_SM);
+
+            // Content
+            ui.vertical(|ui: &mut egui::Ui| {
+                // Top line: severity badge + title
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    widgets::status_badge(ui, rec.severity.label(), sev_color);
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new(&rec.title)
+                            .font(theme::font_small())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                });
+                // Bottom line: subtitle
+                ui.label(
+                    egui::RichText::new(&rec.subtitle)
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
                 );
             });
-            ui.add_space(8.0);
-            ui.label(RichText::new("Comprenez un résultat, explorez un risque ou préparez votre remédiation avec l’assistant.").font(theme::font_body()).color(theme::text_secondary()));
-            ui.add_space(10.0);
-            if widgets::ghost_button(ui, "Ouvrir l’assistant  →").clicked() {
-                *action = Some(DashboardAction::NavigateTo(Page::AI));
+        });
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // CPU SPARKLINE CARD (clickable → Monitoring)
+    // ──────────────────────────────────────────────────────────────────────
+    fn cpu_sparkline_card(ui: &mut Ui, state: &AppState) -> bool {
+        widgets::clickable_card(ui, "cpu_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+            ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
+            let config = widgets::SparklineConfig {
+                color: theme::accent_text(),
+                fill: true,
+                show_trend: true,
+                show_stats: false,
+            };
+
+            // PERF: VecDeque->Vec copy every frame; cost is minimal (~300 * 16 = 4.8KB).
+            let cpu_data: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
+            widgets::sparkline_card_body(
+                ui,
+                "CPU",
+                &crate::format::pct(state.resources.cpu_percent, 1),
+                &cpu_data,
+                &config,
+                INDICATOR_CHART_HEIGHT,
+            );
+        })
+        .clicked()
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // MEMORY SPARKLINE CARD (clickable → Monitoring)
+    // ──────────────────────────────────────────────────────────────────────
+    fn memory_sparkline_card(ui: &mut Ui, state: &AppState) -> bool {
+        widgets::clickable_card(ui, "memory_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+            ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
+            let config = widgets::SparklineConfig {
+                color: theme::INFO,
+                fill: true,
+                show_trend: true,
+                show_stats: false,
+            };
+
+            // PERF: VecDeque->Vec copy every frame; cost is minimal (~300 * 16 = 4.8KB).
+            let mem_data: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
+            widgets::sparkline_card_body(
+                ui,
+                "M\u{00c9}MOIRE",
+                &crate::format::pct(state.resources.memory_percent, 1),
+                &mem_data,
+                &config,
+                INDICATOR_CHART_HEIGHT,
+            );
+        })
+        .clicked()
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // CHECKS SUMMARY CARD (clickable → Compliance)
+    // ──────────────────────────────────────────────────────────────────────
+    fn checks_summary_card(ui: &mut Ui, state: &AppState) -> bool {
+        widgets::clickable_card(ui, "checks_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+            ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
+            ui.label(
+                egui::RichText::new("CONTR\u{00d4}LES")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
+                    .strong(),
+            );
+
+            ui.add_space(theme::SPACE_SM);
+
+            let total = state.policy.total_policies;
+            let passing = state.policy.passing;
+
+            if total == 0 && state.summary.last_check_at.is_none() {
+                widgets::skeleton_text(ui, 100.0);
+            } else {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(format!("{}/{}", passing, total))
+                            .font(theme::font_card_value())
+                            .color(if passing == total {
+                                theme::SUCCESS
+                            } else {
+                                theme::text_primary()
+                            })
+                            .strong(),
+                    );
+                });
+            }
+
+            ui.add_space(theme::SPACE_XS);
+
+            let fraction = if total > 0 {
+                passing as f32 / total as f32
+            } else {
+                0.0
+            };
+            Self::mini_progress_bar(ui, fraction, theme::SUCCESS);
+
+            ui.add_space(theme::SPACE_XS);
+
+            let status_text = if state.policy.failing > 0 {
+                crate::format::count(state.policy.failing, "\u{00e9}chec")
+            } else {
+                "Tous conformes".to_string()
+            };
+            ui.label(
+                egui::RichText::new(status_text)
+                    .font(theme::font_label())
+                    .color(if state.policy.failing > 0 {
+                        theme::WARNING
+                    } else {
+                        theme::SUCCESS
+                    }),
+            );
+        })
+        .clicked()
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // VULNERABILITIES SUMMARY CARD (clickable → Vulnerabilities)
+    // ──────────────────────────────────────────────────────────────────────
+    fn vulnerabilities_summary_card(ui: &mut Ui, state: &AppState) -> bool {
+        widgets::clickable_card(ui, "vulns_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+            ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
+            ui.label(
+                egui::RichText::new("VULN\u{00c9}RABILIT\u{00c9}S")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
+                    .strong(),
+            );
+
+            ui.add_space(theme::SPACE_SM);
+
+            if let Some(ref vuln) = state.vulnerability_summary {
+                let total = vuln.critical + vuln.high + vuln.medium + vuln.low;
+                let critical_color = if vuln.critical > 0 {
+                    theme::ERROR
+                } else {
+                    theme::SUCCESS
+                };
+
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(format!("{}", vuln.critical))
+                            .font(theme::font_card_value())
+                            .color(critical_color)
+                            .strong(),
+                    );
+                    ui.label(
+                        egui::RichText::new("critiques")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                });
+
+                ui.add_space(theme::SPACE_XS);
+
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    Self::mini_stat(
+                        ui,
+                        &format!("{}", vuln.high),
+                        "\u{00e9}lev\u{00e9}es",
+                        theme::WARNING,
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    Self::mini_stat(ui, &format!("{}", total), "total", theme::text_secondary());
+                });
+            } else if state.summary.last_check_at.is_none() {
+                ui.vertical(|ui| {
+                    widgets::skeleton_text(ui, 80.0);
+                    ui.add_space(theme::SPACE_XS);
+                    ui.horizontal(|ui| {
+                        widgets::skeleton(ui, 40.0, 20.0);
+                        ui.add_space(theme::SPACE_SM);
+                        widgets::skeleton(ui, 40.0, 20.0);
+                    });
+                });
+            } else {
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(icons::SHIELD_CHECK)
+                            .size(theme::ICON_MD)
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.label(
+                        egui::RichText::new("Scan requis")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                });
+            }
+        })
+        .clicked()
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // THREATS INDICATOR CARD (clickable → Threats)
+    // ──────────────────────────────────────────────────────────────────────
+    fn threats_indicator_card(ui: &mut Ui, state: &AppState) -> bool {
+        widgets::clickable_card(ui, "threats_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+            ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
+            ui.label(
+                egui::RichText::new("MENACES")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            let proc_count = state.threats.suspicious_processes.len();
+            let usb_count = state.threats.usb_events.len();
+            let net_alerts = state.network.alerts.len();
+            let fim_unacked = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
+            let total = proc_count + usb_count + net_alerts + fim_unacked;
+
+            let (color, label) = if total == 0 {
+                (theme::SUCCESS, "Aucune menace")
+            } else if total <= THREATS_WARNING_THRESHOLD {
+                (theme::WARNING, "Attention requise")
+            } else {
+                (theme::ERROR, "Alerte critique")
+            };
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(format!("{}", total))
+                        .font(theme::font_card_value())
+                        .color(color)
+                        .strong(),
+                );
+                ui.label(
+                    egui::RichText::new("actives")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                );
+            });
+
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new(label)
+                    .font(theme::font_label())
+                    .color(color),
+            );
+        })
+        .clicked()
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // FIM INDICATOR CARD (clickable → FileIntegrity)
+    // ──────────────────────────────────────────────────────────────────────
+    fn fim_indicator_card(ui: &mut Ui, state: &AppState) -> bool {
+        widgets::clickable_card(ui, "fim_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+            ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
+            ui.label(
+                egui::RichText::new("INT\u{00c9}GRIT\u{00c9} FICHIERS")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            let changes = state.fim.changes_today;
+            let color = if changes == 0 {
+                theme::SUCCESS
+            } else if changes <= FIM_SAFE_THRESHOLD {
+                theme::WARNING
+            } else {
+                theme::ERROR
+            };
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(crate::format::int(state.fim.monitored_count))
+                        .font(theme::font_card_value())
+                        .color(theme::accent_text())
+                        .strong(),
+                );
+                ui.label(
+                    egui::RichText::new("surveill\u{00e9}s")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                );
+            });
+
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new(format!(
+                    "{} aujourd'hui",
+                    crate::format::count(changes, "modification")
+                ))
+                .font(theme::font_label())
+                .color(color),
+            );
+        })
+        .clicked()
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // NETWORK HEALTH CARD (clickable → Network)
+    // ──────────────────────────────────────────────────────────────────────
+    fn network_health_card(ui: &mut Ui, state: &AppState) -> bool {
+        widgets::clickable_card(ui, "network_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+            ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
+            ui.label(
+                egui::RichText::new("R\u{00c9}SEAU")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            let alerts = state.network.alert_count;
+            let color = if alerts == 0 {
+                theme::SUCCESS
+            } else if alerts <= NETWORK_ALERT_WARNING_THRESHOLD {
+                theme::WARNING
+            } else {
+                theme::ERROR
+            };
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(format!("{}", alerts))
+                        .font(theme::font_card_value())
+                        .color(color)
+                        .strong(),
+                );
+                ui.label(
+                    egui::RichText::new(if alerts == 1 { "alerte" } else { "alertes" })
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                );
+            });
+
+            ui.add_space(theme::SPACE_XS);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                Self::mini_stat(
+                    ui,
+                    &state.network.interface_count.to_string(),
+                    "interfaces",
+                    theme::text_secondary(),
+                );
+                ui.add_space(theme::SPACE_SM);
+                Self::mini_stat(
+                    ui,
+                    &state.network.connection_count.to_string(),
+                    "connexions",
+                    theme::text_secondary(),
+                );
+            });
+        })
+        .clicked()
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // SOFTWARE COVERAGE CARD (clickable → Software)
+    // ──────────────────────────────────────────────────────────────────────
+    fn software_coverage_card(ui: &mut Ui, state: &AppState) -> bool {
+        widgets::clickable_card(ui, "software_card", |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+            ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
+            ui.label(
+                egui::RichText::new("LOGICIELS")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_TIGHT)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            let total = state.software.packages.len();
+            let mut up_to_date = 0;
+
+            if total == 0 && state.summary.last_check_at.is_none() {
+                widgets::skeleton_text(ui, 120.0);
+                ui.add_space(theme::SPACE_XS);
+                widgets::skeleton(ui, ui.available_width(), 4.0);
+            } else {
+                up_to_date = state
+                    .software
+                    .packages
+                    .iter()
+                    .filter(|p| p.up_to_date)
+                    .count();
+                let coverage = if total > 0 {
+                    (up_to_date as f32 / total as f32) * 100.0
+                } else {
+                    100.0
+                };
+
+                let color = if coverage >= SOFTWARE_COVERAGE_GOOD {
+                    theme::SUCCESS
+                } else if coverage >= SOFTWARE_COVERAGE_WARN {
+                    theme::WARNING
+                } else {
+                    theme::ERROR
+                };
+
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(crate::format::pct(coverage, 0))
+                            .font(theme::font_card_value())
+                            .color(color)
+                            .strong(),
+                    );
+                    ui.label(
+                        egui::RichText::new("\u{00e0} jour")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                });
+
+                ui.add_space(theme::SPACE_XS);
+                Self::mini_progress_bar(ui, coverage / 100.0, color);
+            }
+
+            ui.add_space(theme::SPACE_XS);
+            let outdated = total - up_to_date;
+            if outdated > 0 {
+                ui.label(
+                    egui::RichText::new(format!(
+                        "{} mise{s} \u{00e0} jour requise{s}",
+                        crate::format::int(outdated),
+                        s = crate::format::plural_suffix(outdated)
+                    ))
+                    .font(theme::font_label())
+                    .color(theme::readable_color(theme::WARNING)),
+                );
+            } else {
+                ui.label(
+                    egui::RichText::new("Tous les composants conformes")
+                        .font(theme::font_label())
+                        .color(theme::readable_color(theme::SUCCESS)),
+                );
+            }
+        })
+        .clicked()
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // KPI TRENDS CARD
+    // ──────────────────────────────────────────────────────────────────────
+    fn kpi_trends_card(ui: &mut egui::Ui, state: &AppState) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.set_min_width(ui.available_width());
+
+            // Header + period selector
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(format!(
+                        "{}  TENDANCES & INDICATEURS CL\u{00c9}S",
+                        icons::CHART_AREA
+                    ))
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+                );
+
+                ui.add_space(theme::SPACE_MD);
+
+                // Period chips stored via egui memory (state.kpi.period is immutable here)
+                let period_id = ui.id().with("kpi_period_selection");
+                let current_period: KpiPeriod = ui.memory(|mem| {
+                    mem.data
+                        .get_temp::<u8>(period_id)
+                        .map(|v| {
+                            if v == 1 {
+                                KpiPeriod::NinetyDays
+                            } else {
+                                KpiPeriod::ThirtyDays
+                            }
+                        })
+                        .unwrap_or(state.kpi.period)
+                });
+
+                for period in [KpiPeriod::ThirtyDays, KpiPeriod::NinetyDays] {
+                    let active = current_period == period;
+                    if widgets::chip_button(ui, period.label_fr(), active, theme::ACCENT).clicked()
+                    {
+                        let val = match period {
+                            KpiPeriod::ThirtyDays => 0u8,
+                            KpiPeriod::NinetyDays => 1u8,
+                        };
+                        ui.memory_mut(|mem| mem.data.insert_temp(period_id, val));
+                    }
+                }
+            });
+
+            ui.add_space(theme::SPACE_MD);
+
+            // Filter snapshots by period
+            let period_id = ui.id().with("kpi_period_selection");
+            let selected_period: KpiPeriod = ui.memory(|mem| {
+                mem.data
+                    .get_temp::<u8>(period_id)
+                    .map(|v| {
+                        if v == 1 {
+                            KpiPeriod::NinetyDays
+                        } else {
+                            KpiPeriod::ThirtyDays
+                        }
+                    })
+                    .unwrap_or(state.kpi.period)
+            });
+
+            let cutoff = chrono::Utc::now()
+                - chrono::Duration::seconds(
+                    i64::from(selected_period.days()).saturating_mul(SECS_PER_DAY),
+                );
+
+            let filtered: Vec<&crate::dto::KpiSnapshot> = state
+                .kpi
+                .snapshots
+                .iter()
+                .filter(|s| s.timestamp >= cutoff)
+                .collect();
+
+            if filtered.is_empty() {
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    ui.add_space(theme::SPACE_MD);
+                    ui.label(
+                        egui::RichText::new(format!("{}  Donn\u{00e9}es insuffisantes", icons::INFO))
+                            .font(theme::font_body())
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.label(
+                        egui::RichText::new("Les indicateurs appara\u{00ee}tront apr\u{00e8}s plusieurs jours de collecte.")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.add_space(theme::SPACE_MD);
+                });
+            } else {
+                // Build sparkline data vectors
+                let compliance_vals: Vec<[f64; 2]> = filtered
+                    .iter()
+                    .enumerate()
+                    .map(|(i, s)| [i as f64, s.compliance_score as f64])
+                    .collect();
+                let incident_vals: Vec<[f64; 2]> = filtered
+                    .iter()
+                    .enumerate()
+                    .map(|(i, s)| [i as f64, s.incident_count as f64])
+                    .collect();
+                let vulns_vals: Vec<[f64; 2]> = filtered
+                    .iter()
+                    .enumerate()
+                    .map(|(i, s)| [i as f64, s.open_vulns as f64])
+                    .collect();
+
+                // Current values (last snapshot)
+                let Some(last) = filtered.last() else {
+                    return;
+                };
+                let current_compliance = crate::format::pct(last.compliance_score, 0);
+                let current_incidents = crate::format::int(last.incident_count);
+                let current_vulns = crate::format::int(last.open_vulns);
+                let current_sla = last.remediation_sla_pct;
+
+                // Compute trends (first half avg vs second half avg)
+                let mid = filtered.len() / 2;
+                let compliance_trend = Self::kpi_trend(&filtered, mid, |s| s.compliance_score);
+                let incident_trend = Self::kpi_trend(&filtered, mid, |s| s.incident_count as f32);
+                let vulns_trend = Self::kpi_trend(&filtered, mid, |s| s.open_vulns as f32);
+                let sla_trend = Self::kpi_trend(&filtered, mid, |s| s.remediation_sla_pct);
+
+                // Render 4 KPI cards in a responsive grid
+                ui.push_id("kpi_trends_grid", |ui: &mut egui::Ui| {
+                    let grid = widgets::ResponsiveGrid::new(180.0, theme::SPACE);
+                    let items = vec![0, 1, 2, 3];
+
+                    grid.show(ui, &items, |ui, width, &idx| {
+                        ui.vertical(|ui: &mut egui::Ui| {
+                            ui.set_width(width);
+                            match idx {
+                                0 => {
+                                    // Score conformite
+                                    let (arrow, color) =
+                                        Self::kpi_trend_arrow(compliance_trend, true);
+                                    Self::kpi_sparkline_cell(
+                                        ui,
+                                        "Score conformit\u{00e9}",
+                                        &current_compliance,
+                                        arrow,
+                                        color,
+                                        &compliance_vals,
+                                        theme::SUCCESS,
+                                    );
+                                }
+                                1 => {
+                                    // Incidents
+                                    let (arrow, color) =
+                                        Self::kpi_trend_arrow(incident_trend, false);
+                                    Self::kpi_sparkline_cell(
+                                        ui,
+                                        "Incidents",
+                                        &current_incidents,
+                                        arrow,
+                                        color,
+                                        &incident_vals,
+                                        theme::WARNING,
+                                    );
+                                }
+                                2 => {
+                                    // Vulnerabilites ouvertes
+                                    let (arrow, color) = Self::kpi_trend_arrow(vulns_trend, false);
+                                    Self::kpi_sparkline_cell(
+                                        ui,
+                                        "Vuln\u{00e9}rabilit\u{00e9}s ouvertes",
+                                        &current_vulns,
+                                        arrow,
+                                        color,
+                                        &vulns_vals,
+                                        theme::ERROR,
+                                    );
+                                }
+                                _ => {
+                                    // SLA remediation (mini gauge)
+                                    let (arrow, color) = Self::kpi_trend_arrow(sla_trend, true);
+                                    let sla_color =
+                                        theme::readable_color(theme::score_color(current_sla));
+                                    egui::Frame::new()
+                                        .fill(theme::bg_tertiary())
+                                        .corner_radius(egui::CornerRadius::same(
+                                            theme::CARD_ROUNDING,
+                                        ))
+                                        .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+                                        .show(ui, |ui: &mut egui::Ui| {
+                                            ui.label(
+                                                egui::RichText::new("SLA rem\u{00e9}diation")
+                                                    .font(theme::font_label())
+                                                    .color(theme::text_tertiary())
+                                                    .strong(),
+                                            );
+                                            ui.add_space(theme::SPACE_XS);
+                                            ui.horizontal(|ui: &mut egui::Ui| {
+                                                ui.label(
+                                                    egui::RichText::new(format!(
+                                                        "{:.0}\u{202f}%",
+                                                        current_sla
+                                                    ))
+                                                    .font(theme::font_card_value())
+                                                    .color(sla_color)
+                                                    .strong(),
+                                                );
+                                                ui.label(
+                                                    egui::RichText::new(arrow)
+                                                        .font(theme::font_body())
+                                                        .color(color),
+                                                );
+                                            });
+                                            ui.add_space(theme::SPACE_XS);
+                                            ui.vertical_centered(|ui: &mut egui::Ui| {
+                                                widgets::mini_gauge(
+                                                    ui,
+                                                    current_sla,
+                                                    sla_color,
+                                                    KPI_GAUGE_SIZE,
+                                                );
+                                            });
+                                        });
+                                }
+                            }
+                        });
+                    });
+                });
             }
         });
     }
+
+    /// Render a single KPI sparkline cell with label, value, trend arrow, and chart.
+    fn kpi_sparkline_cell(
+        ui: &mut egui::Ui,
+        label: &str,
+        value: &str,
+        trend_arrow: &str,
+        trend_color: egui::Color32,
+        data: &[[f64; 2]],
+        line_color: egui::Color32,
+    ) {
+        egui::Frame::new()
+            .fill(theme::bg_tertiary())
+            .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
+            .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+            .show(ui, |ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(label)
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_TIGHT)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_XS);
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(value)
+                            .font(theme::font_card_value())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                    ui.label(
+                        egui::RichText::new(trend_arrow)
+                            .font(theme::font_body())
+                            .color(trend_color),
+                    );
+                });
+                ui.add_space(theme::SPACE_XS);
+
+                let config = widgets::SparklineConfig {
+                    color: line_color,
+                    fill: true,
+                    show_trend: false,
+                    show_stats: false,
+                };
+                widgets::sparkline(
+                    ui,
+                    label,
+                    data,
+                    egui::Vec2::new(ui.available_width(), KPI_SPARKLINE_HEIGHT),
+                    &config,
+                );
+            });
+    }
+
+    /// Compute trend direction: average of second half minus average of first half.
+    /// Returns positive if increasing, negative if decreasing, zero if flat.
+    fn kpi_trend(
+        snapshots: &[&crate::dto::KpiSnapshot],
+        mid: usize,
+        extract: fn(&crate::dto::KpiSnapshot) -> f32,
+    ) -> f32 {
+        if snapshots.len() < 2 {
+            return 0.0;
+        }
+        let first_half = &snapshots[..mid.max(1)];
+        let second_half = &snapshots[mid.max(1)..];
+
+        let avg_first =
+            first_half.iter().map(|s| extract(s)).sum::<f32>() / first_half.len().max(1) as f32;
+        let avg_second =
+            second_half.iter().map(|s| extract(s)).sum::<f32>() / second_half.len().max(1) as f32;
+
+        avg_second - avg_first
+    }
+
+    /// Return (arrow_str, color) based on trend direction.
+    /// `up_is_good`: true for compliance/SLA (up=green), false for incidents/vulns (up=red).
+    fn kpi_trend_arrow(trend: f32, up_is_good: bool) -> (&'static str, egui::Color32) {
+        const TREND_THRESHOLD: f32 = 0.5;
+        if trend > TREND_THRESHOLD {
+            if up_is_good {
+                ("\u{2191}", theme::SUCCESS) // up arrow, green
+            } else {
+                ("\u{2191}", theme::ERROR) // up arrow, red
+            }
+        } else if trend < -TREND_THRESHOLD {
+            if up_is_good {
+                ("\u{2193}", theme::ERROR) // down arrow, red
+            } else {
+                ("\u{2193}", theme::SUCCESS) // down arrow, green
+            }
+        } else {
+            ("\u{2192}", theme::text_tertiary()) // right arrow, neutral
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // HELPERS
+    // ──────────────────────────────────────────────────────────────────────
+
+    fn mini_progress_bar(ui: &mut Ui, fraction: f32, color: egui::Color32) {
+        let height = 4.0;
+        let width = ui.available_width();
+        let (rect, _) =
+            ui.allocate_exact_size(egui::Vec2::new(width, height), egui::Sense::hover());
+
+        if ui.is_rect_visible(rect) {
+            let painter = ui.painter_at(rect);
+            let rounding = egui::CornerRadius::same(theme::ROUNDING_XS);
+
+            painter.rect_filled(rect, rounding, theme::bg_tertiary());
+
+            if fraction > 0.0 {
+                let fill_width = rect.width() * fraction.clamp(0.0, 1.0);
+                let fill_rect =
+                    egui::Rect::from_min_size(rect.min, egui::Vec2::new(fill_width, height));
+                painter.rect_filled(fill_rect, rounding, color);
+            }
+        }
+    }
+
+    fn mini_stat(ui: &mut Ui, value: &str, label: &str, color: egui::Color32) {
+        ui.vertical(|ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new(value)
+                    .font(theme::font_body())
+                    .color(color)
+                    .strong(),
+            );
+            ui.label(
+                egui::RichText::new(label)
+                    .font(theme::font_caption())
+                    .color(theme::text_tertiary()),
+            );
+        });
+    }
+
     fn export_dashboard_csv(state: &AppState) -> bool {
         let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
         let headers = &["metrique", "valeur", "unite", "horodatage"];
@@ -566,131 +1518,6 @@ impl DashboardPage {
             Err(e) => {
                 tracing::warn!("Export CSV failed: {}", e);
                 false
-            }
-        }
-    }
-}
-
-fn eyebrow(ui: &mut Ui, text: &str) {
-    ui.label(
-        RichText::new(text)
-            .size(11.0)
-            .extra_letter_spacing(1.4)
-            .strong()
-            .color(theme::accent_text()),
-    );
-}
-fn section(ui: &mut Ui, number: &str, title: &str) {
-    ui.horizontal(|ui| {
-        ui.label(
-            RichText::new(number)
-                .font(theme::font_mono())
-                .color(theme::accent_text()),
-        );
-        ui.add_space(8.0);
-        ui.label(
-            RichText::new(title)
-                .size(18.0)
-                .strong()
-                .color(theme::text_primary()),
-        );
-    });
-}
-fn action_row(
-    ui: &mut Ui,
-    number: &str,
-    title: &str,
-    caption: &str,
-    color: Color32,
-    page: Page,
-    action: &mut Option<DashboardAction>,
-) {
-    let response = egui::Frame::new()
-        .inner_margin(egui::Margin::symmetric(0, 10))
-        .show(ui, |ui| {
-            ui.set_min_width(ui.available_width());
-            ui.horizontal(|ui| {
-                ui.label(
-                    RichText::new(number)
-                        .font(theme::font_mono())
-                        .color(theme::readable_color(color)),
-                );
-                ui.add_space(8.0);
-                ui.vertical(|ui| {
-                    ui.label(
-                        RichText::new(title)
-                            .font(theme::font_body())
-                            .strong()
-                            .color(theme::text_primary()),
-                    );
-                    ui.label(
-                        RichText::new(caption)
-                            .font(theme::font_small())
-                            .color(theme::text_secondary()),
-                    );
-                });
-            });
-        })
-        .response;
-    let response = ui.interact(
-        response.rect,
-        ui.id().with(("priority", number)),
-        egui::Sense::click(),
-    );
-    response.widget_info(|| {
-        egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), title)
-    });
-    if response.hovered() || response.has_focus() {
-        ui.painter().rect_stroke(
-            response.rect,
-            6,
-            theme::focus_ring(),
-            egui::StrokeKind::Inside,
-        );
-    }
-    if response
-        .on_hover_cursor(egui::CursorIcon::PointingHand)
-        .clicked()
-    {
-        *action = Some(DashboardAction::NavigateTo(page));
-    }
-    let (rect, _) =
-        ui.allocate_exact_size(egui::vec2(ui.available_width(), 1.0), egui::Sense::hover());
-    ui.painter().hline(
-        rect.x_range(),
-        rect.top(),
-        egui::Stroke::new(1.0_f32, theme::surface_border()),
-    );
-}
-
-#[cfg(test)]
-mod layout_tests {
-    use super::*;
-
-    #[test]
-    fn overview_fits_compact_and_wide_content_areas() {
-        for width in [650.0, 900.0, 1200.0] {
-            let ctx = egui::Context::default();
-            let mut state = AppState::default();
-            for _ in 0..2 {
-                let input = egui::RawInput {
-                    screen_rect: Some(egui::Rect::from_min_size(
-                        egui::Pos2::ZERO,
-                        egui::vec2(width, 1600.0),
-                    )),
-                    ..Default::default()
-                };
-                let _ = ctx.run(input, |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
-                        let right = ui.max_rect().right();
-                        DashboardPage::show(ui, &mut state);
-                        assert!(
-                            ui.min_rect().right() <= right + 1.0,
-                            "content overflow at width {width}: {} > {right}",
-                            ui.min_rect().right()
-                        );
-                    });
-                });
             }
         }
     }

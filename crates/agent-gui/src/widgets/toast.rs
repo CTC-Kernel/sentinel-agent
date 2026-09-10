@@ -224,14 +224,16 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         ui.painter()
             .add(shadow.as_shape(toast_rect, toast_rounding));
 
-        // Frosted glass background with colored border accent
+        // Surface with a neutral hairline. The leading bar and the icon
+        // already carry the level; outlining the whole toast in that colour
+        // as well turned four stacked toasts into a traffic light.
         ui.painter().rect(
             toast_rect,
             toast_rounding,
             theme::glass_card_bg().linear_multiply(alpha),
             Stroke::new(
-                theme::BORDER_THIN,
-                color.linear_multiply(alpha * theme::OPACITY_MODERATE),
+                theme::BORDER_HAIRLINE,
+                theme::border_subtle().linear_multiply(alpha),
             ),
             StrokeKind::Inside,
         );

@@ -28,9 +28,7 @@ impl AssetsPage {
             ui,
             &["Actifs & inventaire", "Inventaire"],
             "Inventaire des \u{00c9}quipements",
-            Some(
-                "GESTION DU CYCLE DE VIE ET CONTR\u{00d4}LE DES \u{00c9}QUIPEMENTS AUTORIS\u{00c9}S",
-            ),
+            Some("Cycle de vie et contr\u{00f4}le des \u{00e9}quipements autoris\u{00e9}s."),
             Some(
                 "G\u{00e9}rez les \u{00e9}quipements autoris\u{00e9}s sur votre r\u{00e9}seau. Suivez leur cycle de vie de la d\u{00e9}tection \u{00e0} la mise hors service, contr\u{00f4}lez leur conformit\u{00e9}.",
             ),
@@ -132,7 +130,7 @@ impl AssetsPage {
             } else {
                 widgets::primary_button(
                     ui,
-                    format!("{}  AUTORISER DEPUIS LA D\u{00c9}TECTION", icons::LOCK),
+                    format!("{}  Autoriser depuis la d\u{00e9}tection", icons::LOCK),
                     false,
                 );
             }
@@ -156,7 +154,7 @@ impl AssetsPage {
                         let filtered = Self::filtered_indices(state);
                         Self::export_csv(state, &filtered);
                         state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
                             ui.ctx(),
                         );
                     }
@@ -177,12 +175,12 @@ impl AssetsPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.assets.search,
-            "Rechercher par nom, IP, type ou \u{00e9}tiquette...",
+            "Rechercher par nom, IP, type ou \u{00e9}tiquette…",
         )
-        .chip("CRITIQUE", crit_active, theme::ERROR)
-        .chip("\u{00c9}LEV\u{00c9}E", high_active, theme::SEVERITY_HIGH)
-        .chip("MOYENNE", med_active, theme::WARNING)
-        .chip("FAIBLE", low_active, theme::INFO)
+        .chip("Critique", crit_active, theme::ERROR)
+        .chip("\u{00c9}lev\u{00e9}e", high_active, theme::SEVERITY_HIGH)
+        .chip("Moyenne", med_active, theme::WARNING)
+        .chip("Faible", low_active, theme::INFO)
         .result_count(result_count)
         .show(ui);
 
@@ -251,7 +249,7 @@ impl AssetsPage {
                     widgets::empty_state(
                         ui,
                         icons::BOXES_STACKED,
-                        "AUCUN \u{00c9}QUIPEMENT AUTORIS\u{00c9}",
+                        "Aucun \u{00e9}quipement autoris\u{00e9}",
                         Some(
                             "Lancez une d\u{00e9}tection Shadow IT puis autorisez les \u{00e9}quipements d\u{00e9}couverts, ou ajoutez-les manuellement.",
                         ),
@@ -260,7 +258,7 @@ impl AssetsPage {
                     widgets::empty_state(
                         ui,
                         icons::BOXES_STACKED,
-                        "AUCUN R\u{00c9}SULTAT",
+                        "Aucun r\u{00e9}sultat",
                         Some("Modifiez vos crit\u{00e8}res de recherche ou de filtrage."),
                     );
                 }
@@ -418,7 +416,7 @@ impl AssetsPage {
                             // A risk_score of 10 (max) → score_pct=100 → we want red.
                             // score_color(100 - 100) = score_color(0) = ERROR ✓
                             ui.label(
-                                egui::RichText::new(format!("{:.1}", asset.risk_score))
+                                egui::RichText::new(crate::format::decimal(asset.risk_score, 1))
                                     .font(theme::font_body())
                                     .color(theme::readable_color(theme::score_color(
                                         100.0 - score_pct,
@@ -429,10 +427,8 @@ impl AssetsPage {
 
                         row.col(|ui: &mut egui::Ui| {
                             let ago = now.signed_duration_since(asset.last_seen);
-                            let text = if ago.num_hours() < 1 {
-                                format!("il y a {}m", ago.num_minutes().max(1))
-                            } else if ago.num_hours() < 24 {
-                                format!("il y a {}h", ago.num_hours())
+                            let text = if ago.num_hours() < 24 {
+                                crate::format::ago(now, asset.last_seen)
                             } else {
                                 asset.last_seen.format("%d/%m %H:%M").to_string()
                             };
@@ -444,7 +440,8 @@ impl AssetsPage {
                                 } else {
                                     theme::text_secondary()
                                 }),
-                            ));
+                            ))
+                            .on_hover_text(asset.last_seen.format("%d/%m/%Y %H:%M:%S").to_string());
                         });
 
                         if row.response().clicked() {
@@ -460,6 +457,23 @@ impl AssetsPage {
         if let Some(idx) = clicked_idx {
             state.assets.selected_asset = Some(idx);
             state.assets.detail_open = true;
+        }
+
+        // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+        // and the page follows the selection.
+        let mut position = state
+            .assets
+            .selected_asset
+            .and_then(|real| indices.iter().position(|&r| r == real));
+        if widgets::navigate_list(
+            ui.ctx(),
+            &mut position,
+            indices.len(),
+            &mut state.assets.detail_open,
+        ) && let Some(pos) = position
+        {
+            state.assets.selected_asset = Some(indices[pos]);
+            state.assets.page = pos / ASSETS_PER_PAGE;
         }
 
         widgets::paginate_controls(ui, indices.len(), ASSETS_PER_PAGE, &mut state.assets.page);
@@ -518,7 +532,7 @@ impl AssetsPage {
                 widgets::detail_field_colored(
                     ui,
                     "Score de risque",
-                    &format!("{:.1}", asset.risk_score),
+                    &crate::format::decimal(asset.risk_score, 1),
                     theme::readable_color(risk_color),
                 );
                 widgets::detail_field(
@@ -602,7 +616,7 @@ impl AssetsPage {
                     // Export single asset
                     Self::export_csv(state, &[selected]);
                     state.push_toast(
-                        crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                        crate::widgets::toast::Toast::info("Export CSV en cours…"),
                         ui.ctx(),
                     );
                 }
@@ -789,7 +803,7 @@ impl AssetsPage {
                             .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_SM);
-                    widgets::text_input(ui, &mut f.hostname, "Nom d'h\u{00f4}te...");
+                    widgets::text_input(ui, &mut f.hostname, "Nom d'h\u{00f4}te…");
                 });
                 ui.add_space(theme::SPACE_XS);
 
@@ -801,7 +815,7 @@ impl AssetsPage {
                             .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_SM);
-                    widgets::text_input(ui, &mut f.ip, "192.168.1.1...");
+                    widgets::text_input(ui, &mut f.ip, "192.168.1.1…");
                 });
                 ui.add_space(theme::SPACE_XS);
 
@@ -813,7 +827,7 @@ impl AssetsPage {
                             .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_SM);
-                    widgets::text_input(ui, &mut f.device_type, "serveur, poste, routeur...");
+                    widgets::text_input(ui, &mut f.device_type, "serveur, poste, routeur…");
                 });
                 ui.add_space(theme::SPACE_XS);
 

@@ -14,6 +14,7 @@
 
 pub mod dto;
 pub mod events;
+pub mod format;
 pub mod os;
 pub mod os_settings;
 pub mod state;
@@ -60,6 +61,10 @@ pub fn run_gui(
         "Sentinel Agent",
         options,
         Box::new(|cc| {
+            // Fonts must be registered before the first frame: `set_fonts`
+            // only lands on the next one, and the theme names weight families
+            // that have to exist by then.
+            theme::configure_fonts(&cc.egui_ctx);
             let mut app = sentinel_app;
             // Restore persisted GUI preferences (dark mode, SIEM config, etc.)
             if let Some(storage) = cc.storage {
@@ -100,6 +105,10 @@ pub fn run_tray_popup(
         "Sentinel - Vue Rapide",
         options,
         Box::new(|cc| {
+            // Fonts must be registered before the first frame: `set_fonts`
+            // only lands on the next one, and the theme names weight families
+            // that have to exist by then.
+            theme::configure_fonts(&cc.egui_ctx);
             let mut app = sentinel_app;
             if let Some(storage) = cc.storage {
                 if let Some(json) = storage.get_string("gui_preferences") {

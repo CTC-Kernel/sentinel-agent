@@ -22,7 +22,7 @@ impl DiscoveryPage {
             &["Actifs & inventaire", "D\u{00e9}tection"],
             "D\u{00e9}tection Shadow IT",
             Some(
-                "IDENTIFICATION DES \u{00c9}QUIPEMENTS NON AUTORIS\u{00c9}S SUR LE P\u{00c9}RIM\u{00c8}TRE R\u{00c9}SEAU",
+                "\u{00c9}quipements non autoris\u{00e9}s d\u{00e9}tect\u{00e9}s sur le p\u{00e9}rim\u{00e8}tre r\u{00e9}seau.",
             ),
             Some(
                 "Scannez votre r\u{00e9}seau pour d\u{00e9}tecter les \u{00e9}quipements non r\u{00e9}f\u{00e9}renc\u{00e9}s dans l\u{2019}inventaire. Les appareils inconnus repr\u{00e9}sentent un risque de s\u{00e9}curit\u{00e9} (Shadow IT).",
@@ -31,7 +31,7 @@ impl DiscoveryPage {
         ui.add_space(theme::SPACE_LG);
 
         // Control bar (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        ui.scope(|ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 let is_scanning = state.discovery.in_progress;
 
@@ -44,14 +44,14 @@ impl DiscoveryPage {
                 } else if state.security.admin_unlocked {
                     widgets::primary_button(
                         ui,
-                        format!("{}  LANCER LA DÉCOUVERTE", icons::PLAY),
+                        format!("{}  Lancer la découverte", icons::PLAY),
                         true,
                     )
                 } else {
                     // Disabled button for non-admin users
                     widgets::primary_button(
                         ui,
-                        format!("{}  LANCER LA DÉCOUVERTE", icons::LOCK),
+                        format!("{}  Lancer la découverte", icons::LOCK),
                         false,
                     )
                 };
@@ -165,10 +165,13 @@ impl DiscoveryPage {
                                     .strong(),
                             );
                             ui.label(
-                                egui::RichText::new(format!("{:.0}% COMPLET", progress * 100.0))
-                                    .font(theme::font_label())
-                                    .color(theme::accent_text())
-                                    .strong(),
+                                egui::RichText::new(format!(
+                                    "{:.0}\u{202f}% COMPLET",
+                                    progress * 100.0
+                                ))
+                                .font(theme::font_label())
+                                .color(theme::accent_text())
+                                .strong(),
                             );
                         });
                     });
@@ -269,11 +272,23 @@ impl DiscoveryPage {
             .map(|(i, _)| i)
             .collect();
 
+        // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+        let mut position = state.discovery.selected_device;
+        if widgets::navigate_list(
+            ui.ctx(),
+            &mut position,
+            filtered.len(),
+            &mut state.discovery.detail_open,
+        ) && let Some(pos) = position
+        {
+            state.discovery.selected_device = Some(filtered[pos]);
+        }
+
         let result_count = filtered.len();
 
         widgets::SearchFilterBar::new(
             &mut state.discovery.search,
-            "Filtrer par adresse IP, nom d'hôte ou constructeur...",
+            "Filtrer par adresse IP, nom d'hôte ou constructeur…",
         )
         .result_count(result_count)
         .show(ui);
@@ -316,7 +331,7 @@ impl DiscoveryPage {
                     widgets::empty_state(
                         ui,
                         icons::NETWORK,
-                        "AUCUN \u{00c9}QUIPEMENT D\u{00c9}TECT\u{00c9}",
+                        "Aucun \u{00e9}quipement d\u{00e9}tect\u{00e9}",
                         Some("Lancez un scan pour identifier les appareils non autoris\u{00e9}s sur votre r\u{00e9}seau (Shadow IT)."),
                     );
                     ui.add_space(theme::SPACE_XL);
@@ -495,10 +510,8 @@ impl DiscoveryPage {
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 let ago = now.signed_duration_since(device.last_seen);
-                                let text = if ago.num_hours() < 1 {
-                                    format!("il y a {}m", ago.num_minutes().max(1))
-                                } else if ago.num_hours() < 24 {
-                                    format!("il y a {}h", ago.num_hours())
+                                let text = if ago.num_hours() < 24 {
+                                    crate::format::ago(now, device.last_seen)
                                 } else {
                                     device.last_seen.format("%d/%m %H:%M").to_string()
                                 };
@@ -512,12 +525,15 @@ impl DiscoveryPage {
                                             theme::text_secondary()
                                         }),
                                     ),
+                                )
+                                .on_hover_text(
+                                    device.last_seen.format("%d/%m/%Y %H:%M:%S").to_string(),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 if widgets::chip_button(
                                     ui,
-                                    &format!("{}  COPIER IP", icons::COPY),
+                                    &format!("{}  Copier IP", icons::COPY),
                                     false,
                                     theme::ACCENT,
                                 )

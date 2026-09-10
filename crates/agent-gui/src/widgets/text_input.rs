@@ -184,9 +184,18 @@ pub fn text_input_with_options(
     // Determine border color based on validation
     let (border_color, icon_color) = match &validation {
         InputValidation::None => (theme::border(), None),
-        InputValidation::Valid => (theme::SUCCESS, Some(theme::SUCCESS)),
-        InputValidation::Invalid => (theme::ERROR, Some(theme::ERROR)),
-        InputValidation::Warning => (theme::WARNING, Some(theme::WARNING)),
+        InputValidation::Valid => (
+            theme::readable_color(theme::SUCCESS),
+            Some(theme::readable_color(theme::SUCCESS)),
+        ),
+        InputValidation::Invalid => (
+            theme::readable_color(theme::ERROR),
+            Some(theme::readable_color(theme::ERROR)),
+        ),
+        InputValidation::Warning => (
+            theme::readable_color(theme::WARNING),
+            Some(theme::readable_color(theme::WARNING)),
+        ),
     };
 
     // Calculate space needed for icons
@@ -211,12 +220,30 @@ pub fn text_input_with_options(
     if ui.is_rect_visible(rect) {
         let painter = ui.painter_at(rect);
 
-        // Background with modern rounded corners
+        // A field sits one step above the canvas, not in a well below it:
+        // bg_deep is the terminal's inset surface, and using it here made
+        // every form look like a console on top of a card.
+        let fill = if response.hovered() {
+            theme::bg_elevated()
+        } else {
+            theme::bg_tertiary()
+        };
         painter.rect(
             rect,
             egui::CornerRadius::same(theme::INPUT_ROUNDING),
-            theme::bg_deep(),
-            egui::Stroke::new(theme::BORDER_THIN, border_color),
+            fill,
+            egui::Stroke::new(
+                if response.has_focus() {
+                    theme::BORDER_MEDIUM
+                } else {
+                    theme::BORDER_THIN
+                },
+                if response.has_focus() {
+                    theme::accent_text()
+                } else {
+                    border_color
+                },
+            ),
             egui::epaint::StrokeKind::Inside,
         );
 
@@ -342,7 +369,7 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
         painter.rect(
             rect,
             egui::CornerRadius::same(theme::INPUT_ROUNDING),
-            theme::bg_deep(),
+            theme::bg_tertiary(),
             egui::Stroke::new(theme::BORDER_THIN, theme::border()),
             egui::epaint::StrokeKind::Inside,
         );

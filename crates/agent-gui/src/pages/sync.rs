@@ -46,7 +46,7 @@ impl SyncPage {
                         if state.sync.in_progress {
                             widgets::status_badge(
                                 ui,
-                                &format!("{} SYNCHRONISATION...", icons::SYNC),
+                                &format!("{} SYNCHRONISATION…", icons::SYNC),
                                 theme::INFO,
                             );
                         } else if state.summary.pending_sync_count > 0 {
@@ -102,7 +102,7 @@ impl SyncPage {
                         // Force sync button
                         if widgets::primary_button_loading(
                             ui,
-                            format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC),
+                            format!("{}  Synchroniser maintenant", icons::SYNC),
                             !state.sync.in_progress,
                             state.sync.in_progress,
                         )
@@ -117,7 +117,7 @@ impl SyncPage {
             if let Some(ref err) = state.sync.error {
                 ui.add_space(theme::SPACE_MD);
                 egui::Frame::new()
-                    .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
+                    .fill(theme::tinted_surface(theme::ERROR))
                     .corner_radius(egui::CornerRadius::same(theme::ROUNDING_SM))
                     .inner_margin(egui::Margin::symmetric(
                         theme::SPACE_SM as i8,

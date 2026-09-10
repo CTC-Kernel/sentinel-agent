@@ -45,7 +45,7 @@ Sentinel GRC Agent est un agent d'endpoint souverain et ultra-performant, conçu
 ### 4. Intégration & Résilience (Ecosystem)
 - **Moteur SIEM** : Connecteurs natifs pour **Splunk, Microsoft Sentinel, ELK et Syslog**.
 - **Persistance & Recovery** : Gestion avancée du cycle de vie (backup chiffré, rotation de clés, migration de base de données).
-- **Interface Next-Gen** : Dashboard interactif 19 modules sur **egui** avec mode sombre dynamique.
+- **Interface Next-Gen** : Dashboard interactif 19 modules sur **egui**, design system typographie (Inter / JetBrains Mono) et contraste WCAG verifie par tests, thème clair et sombre, navigation repliable.
 
 ### 5. Gestion des Assets & CMDB
 - **Découverte d'assets** : Inventaire automatique des endpoints avec synchronisation vers la plateforme GRC.

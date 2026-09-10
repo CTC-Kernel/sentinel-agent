@@ -10,7 +10,259 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
-*Aucun changement non publié.*
+### 🎨 Refonte complète de l'interface (GUI / UI / UX)
+
+#### Fondations du design system
+- **Typographie embarquée** : Inter (interface, 4 graisses) et JetBrains Mono NL
+  (données techniques, 2 graisses), sous-ensemblées à 312 Ko au total — moins que
+  le seul fichier Font Awesome déjà présent. Chiffres tabulaires figés dans les
+  fontes : les cartes de métriques et les colonnes de tableaux ne « sautent »
+  plus quand les valeurs changent.
+- **Échelle typographique sémantique** (`font_display` → `font_micro`) : la taille
+  et la graisse voyagent ensemble, à la place des `FontId::proportional()` posés
+  au cas par cas.
+- **Palette recalibrée** : six surfaces régulièrement espacées par thème formant
+  une véritable échelle d'élévation ; chaque couleur sémantique dispose d'une
+  variante mode clair calibrée à la main. `border()` porte les contours de
+  contrôles (≥3:1), `border_subtle()` les filets décoratifs.
+- **Élévation à deux couches** (ombre ambiante + ombre de contact) avec liseré
+  supérieur éclairé.
+- **Contrat d'accessibilité vérifié par tests** : AAA pour les textes primaire et
+  secondaire, AA pour le tertiaire et toutes les couleurs sémantiques, 3:1 pour
+  les bordures de contrôles, lisibilité des badges et des avatars, monotonie de
+  l'échelle de surfaces. Deux affirmations des anciens commentaires ne tenaient
+  pas et ont été corrigées.
+
+#### Chrome applicatif
+- **Barre supérieure** reconstruite : marque, bascule de la navigation, fil
+  d'Ariane, recherche globale (raccourci propre à la plateforme), santé de
+  l'agent, contexte du workspace et action principale.
+- **Barre latérale** reconstruite : suppression du bloc de marque redondant qui
+  consommait ~190 px avant la première entrée, rail d'icônes repliable et
+  persistant, lignes plus denses, sections déclarées en données, pied de page
+  unifié (synchronisation, analyse, workspace).
+- **Largeur de contenu bornée** puis centrée au-delà, pour préserver une longueur
+  de ligne lisible sur écran large.
+
+#### Composants
+- Cartes : élévation correcte (l'ombre était peinte par-dessus le contenu),
+  empilement vertical garanti, variantes plate / danger / accentuée ; suppression
+  du miroitement d'angle dessiné à la main.
+- Tableaux : texte de cellule tronqué proprement (il débordait sur les colonnes
+  voisines), survol neutre et sélection accentuée distincts, filets discrets.
+- Champs de saisie : posés une marche au-dessus de leur surface au lieu du fond
+  du terminal, dans lequel ils devenaient invisibles.
+- Onglets, badges, curseurs, tiroirs de détail, modales, palette de commandes,
+  info-bulles : alignés sur les nouveaux jetons ; ordre de dessin des ombres
+  corrigé sur le tiroir et les onglets encadrés.
+- État « rien à signaler » redessiné : médaillon sobre à la place de douze
+  cercles empilés qui s'accumulaient en tache verte pulsant deux fois par seconde.
+- En-têtes de page : suppression du filet dégradé animé qui forçait un
+  rafraîchissement toutes les 100 ms sur chaque page.
+
+#### Langue et cohérence
+- Casse de phrase pour tout ce qui est cliquable ou lu (libellés d'action,
+  intitulés d'onglets, filtres, états vides, lignes d'introduction des pages) ;
+  les intitulés de section en petites capitales sont conservés.
+- Points de suspension typographiques dans les textes d'interface.
+
+#### Corrections
+- Correction d'un plantage au démarrage : le thème nommait des familles de
+  graisses dans la même frame que leur enregistrement, alors que `set_fonts`
+  ne prend effet qu'à la frame suivante.
+- L'écran de démarrage teintait son logo avec la couleur de texte, ce qui le
+  noircissait en thème clair au lieu de le faire apparaître en fondu.
+- Les grilles responsives plafonnent leur nombre de colonnes au nombre
+  d'éléments, au lieu de laisser des colonnes vides.
+
+#### Surfaces superposées
+- Modale : suppression de la barre colorée supérieure qui s'arrêtait avant le
+  bord droit (allouée à la largeur nominale alors que le cadre débordait) ;
+  largeur du message bornée explicitement ; médaillon et titre sur les jetons.
+- Palette de commandes : ligne sélectionnée en lavis opaque au lieu d'un accent
+  translucide qui rendait en bleu plein ; raccourcis épelés selon la plateforme
+  (`⌘R` sur macOS, `Ctrl R` ailleurs).
+- Toasts : contour neutre — la barre latérale et l'icône portent déjà le niveau,
+  quatre toasts empilés à contour coloré faisaient un feu tricolore.
+- Alertes : le bouton de fermeture (32 px) débordait de 8 px de la colonne et
+  élargissait tout ce qui suivait.
+
+#### Clavier
+- Les raccourcis de page (`⌘1`…`⌘8`) apparaissent dans les info-bulles de la
+  barre latérale ; un raccourci qu'on ne peut pas découvrir n'existe pas.
+
+#### Consommation au repos
+- L'interface se rafraîchissait dix fois par seconde en permanence pour
+  scruter les canaux d'événements. Des threads relais réveillent désormais le
+  contexte à l'arrivée d'un message ; le filet de sécurité passe à 1 s. Un agent
+  d'endpoint qui repeint à 10 Hz sans raison chauffe le portable qu'il protège.
+  Comportement couvert par deux tests.
+
+#### Outillage
+- `cargo run -p agent-gui --all-features --example preview` : banc de rendu du
+  chrome, de la galerie de composants et des pages réelles, sans runtime agent.
+  `PREVIEW_PAGE=overlays` rend modale, toasts, alertes, progression, squelettes
+  et états vides ; `PREVIEW_PAGE=palette` ouvre la palette de commandes.
+  `PREVIEW_DATA=1` peuple toutes les pages de données réalistes et
+  déterministes (`examples/preview/fixtures.rs`) ; `PREVIEW_DRAWER=vuln|threat|
+  asset|package|connection|risk|fim|notification|log` ouvre le tiroir de détail ;
+  `PREVIEW_LIGHT`, `PREVIEW_RAIL`, `PREVIEW_W`/`PREVIEW_H` pilotent thème,
+  rail et taille de fenêtre ; `PREVIEW_PAGE=splash|enrollment` et
+  `PREVIEW_STEP=welcome|token|admin|progress|done|failed` rendent le premier
+  lancement. Le banc dispose les pages avec la colonne du shell
+  (`app::page_column`), pour que la capture mesure ce que l'application montre.
+
+#### Vues peuplées — revue de 44 rendus
+- Notifications : les lignes non lues posaient un fond plein jaune, brun ou
+  bleu (accent translucide composité en linéaire). Elles reposent désormais sur
+  un lavis opaque de leur sévérité avec une barre d'accent sur le bord d'attaque,
+  colonne de badge à largeur fixe pour aligner les titres, survol visible.
+- Journal SIEM : cellules qui se rétractaient sur leur contenu, si bien que les
+  messages flottaient d'une ligne à l'autre ; colonnes texte alignées à gauche
+  et largeurs garanties.
+- Alertes réseau : types en français lisible (« SORTIE TOR », « DHCP PIRATE »)
+  à la place des clés brutes ; lavis opaque sur les lignes d'alerte.
+- Tableau de bord : les huit cartes d'indicateurs partagent une hauteur et les
+  graphes CPU / mémoire remplissent la leur ; jauge SLA corrigée (la fraction
+  était divisée deux fois, l'arc affichait 1 %) ; score et delta du héros
+  centrés sous le titre (« 87 % ▲ 4,3 ») ; la tendance des KPI se termine sur
+  le score de la carte de synthèse.
+- Grilles : dernière ligne équilibrée — 4 cartes à 3 colonnes donnent 2 + 2,
+  7 à 5 donnent 4 + 3 — au lieu d'un orphelin.
+- Barres de progression : suppression du reflet qui balayait les barres
+  déterminées ; une mesure qui scintille se lit comme une activité en cours.
+- Matrice des risques : cases vides en teinte discrète, cases occupées en
+  couleur pleine avec le compte en texte primaire ; libellé d'axe dégagé.
+- Séparateurs entre cartes supprimés (risques, intégrité des fichiers) ; journal
+  d'audit dimensionné par ses lignes plutôt qu'à la hauteur de la fenêtre ;
+  export CSV posé sur la ligne de recherche (logiciels) ou à droite (audit),
+  comme sur les autres pages ; le bouton de découverte Shadow IT n'est plus
+  seul dans une carte.
+- L'icône ▶ précède le libellé des boutons d'analyse sur toutes les pages ;
+  elle le suivait sur six d'entre elles.
+- Modale : voile bleu nuit en thème sombre, neutre en clair. Un flou
+  d'arrière-plan réel n'est pas à la portée du peintre immédiat d'egui sans
+  passe de rendu dédiée ; le voile et l'élévation à deux couches jouent ce rôle.
+
+#### Formatage français
+- Nouveau module `format` : milliers groupés par espace fine insécable
+  (« 1 284 »), virgule décimale (« 87,4 »), « % » précédé d'une espace fine,
+  unités d'octets (« 1,2 Mo »), durées compactes (« 3 j 05 h »), temps relatifs
+  (« il y a 5 min ») et pluriels accordés (« 3 échecs », « 1 résultat ») à la
+  place des « (s) ». Appliqué aux cartes, tableaux, tiroirs et rapports ; les
+  exports CSV gardent le format machine. Couvert par tests.
+
+#### Réactivité
+- Sous 1 120 px de large, la barre latérale se replie en rail d'icônes ; le
+  bouton de menu la déploie le temps d'une navigation sans toucher à la
+  préférence enregistrée.
+
+#### Premier lancement
+- Assistant d'enrôlement : colonne unique de 520 px centrée (la carte s'étirait
+  sur toute la largeur de la fenêtre et son stepper collait au bord gauche),
+  stepper numéroté avec coches, sélecteur Jeton / QR code en pilules, actions
+  alignées à droite comme dans toute boîte de dialogue, états de fin sur le
+  médaillon commun aux états vides ; vocabulaire unifié sur « jeton
+  d'enrôlement ».
+- Écran de démarrage extrait en widget (`widgets::splash_screen`) et rendu
+  dans le banc.
+
+#### Onglets secondaires — revue de 16 rendus supplémentaires
+- Le banc accepte `PREVIEW_TAB=<n>` et les fixtures couvrent désormais la
+  réponse (file d'actions, quarantaine, journal), les playbooks, les règles de
+  détection, les règles d'alerte, les webhooks et l'historique de l'assistant :
+  six onglets Menaces, deux onglets Notifications, les statistiques SIEM, les
+  quatre onglets Rapports, les trois onglets IA et la matrice de conformité
+  ont été rendus peuplés pour la première fois.
+- Zébrures de tableau : le blanc à 4 % composité en linéaire donnait une
+  dalle de gris moyen sur une ligne sur deux (événements, chronologie,
+  playbooks, règles). Remplacé par un pas opaque de l'échelle de surfaces.
+- Événements : colonnes « SÉVÉRI… », « PROCESS… », « 10/09/2026 … » tronquées
+  → largeurs à la mesure des mots ; recherche et menu déroulant remplacés par
+  la barre de recherche à puces du design system.
+- Règles d'alerte et webhooks : un bouton rouge plein par ligne pour supprimer
+  faisait un mur de danger ; icône discrète en couleur d'erreur, avec
+  info-bulle.
+- Cartes de modèles de playbook à hauteur commune ; jauge de l'assistant
+  légendée « SCORE IA » (elle disait « CONFORMITÉ » sous 57 %) ; tailles de
+  modèles et mémoire en français (« 5,2 Go », « 4 210 Mo »).
+
+#### Graphes
+- Sparklines repeintes directement : polyligne 1,5 px, aire en dégradé qui
+  s'éteint vers la ligne de base, point sur la dernière valeur, axe à zéro.
+  La version `egui_plot` posait un remplissage translucide qui, composité en
+  linéaire, formait une dalle bleue sous la courbe — et embarquait axes,
+  zoom et glisser pour 32 pixels de hauteur.
+- Cartes CPU / mémoire du tableau de bord : le graphe remplit la carte.
+
+#### Matrice des risques
+- La matrice occupait seule une carte pleine largeur. Elle est désormais
+  accompagnée de la légende des niveaux avec le nombre de risques ouverts par
+  bande, et des trois risques ouverts au score le plus élevé.
+
+#### Détails
+- Sélecteur Jeton / QR code centré dans l'assistant d'enrôlement
+  (`TabBar::centered`) ; badge de risque centré sur la carte IA du tableau de
+  bord ; la page Logiciels n'affiche plus une barre à un seul onglet sur
+  Linux ; export CSV du terminal posé sur la ligne de filtres ; l'état vide
+  des rapports porte le bouton « Générer le rapport » au lieu d'y renvoyer.
+
+#### Tiroirs de détail
+- Les actions sont épinglées au bas du tiroir, sur leur propre surface avec
+  filet et ombre : elles restent à portée quelle que soit la longueur du
+  détail, au lieu d'attendre en fin de défilement (sur une fenêtre de 700 px,
+  « Appliquer le correctif » n'était pas visible sans faire défiler).
+- Les blocs de prose (description, instructions, analyse) passent de `bg_deep`
+  — un puits de terminal autour d'une phrase — à un pas de l'échelle de
+  surfaces ; les valeurs mono (hash, IP) gardent leur puits.
+
+#### Petites fenêtres
+- Barre supérieure : à 800 px, le titre de page se tronquait en « Men » ou
+  « Vuln » pendant que la puce d'organisation gardait sa place. Le titre ne se
+  tronque plus : le parent du fil d'Ariane s'efface d'abord, puis la puce
+  d'organisation cède si le titre et l'icône de recherche en ont besoin.
+- Barres d'onglets : sept onglets sur 800 px se superposaient (largeur
+  répartie à parts égales) ; quand ils ne tiennent pas, la barre devient une
+  bande défilante à largeur naturelle.
+
+#### Mouvement
+- Le soulignement de l'onglet actif glisse d'un onglet à l'autre ; le
+  marqueur de la page active glisse le long de la barre latérale. Les deux
+  respectent la préférence de mouvement réduit. (Les cartes cliquables
+  s'élevaient déjà au survol et les boutons ont un état enfoncé.)
+
+#### Clavier
+- Sur les listes (vulnérabilités, inventaire, logiciels, connexions
+  réseau, risques), ↑ / ↓ déplacent la sélection dans l'ordre affiché et
+  changent de page avec elle, Entrée ouvre le tiroir, Échap le ferme.
+  Inactif tant qu'un champ de texte a le clavier, qu'un menu est ouvert ou
+  qu'une modale est affichée, pour que la recherche ne fasse jamais défiler
+  le tableau derrière elle.
+
+#### Palette de commandes
+- `⌘K` / `Ctrl K` cherche aussi dans les données : une CVE, un actif (nom
+  d'hôte ou IP), un paquet, un processus suspect, un risque. Le résultat
+  ouvre la page et le tiroir de l'enregistrement (le processus arrive par la
+  recherche de l'onglet Événements, dont la liste est reconstruite à chaque
+  image). Plafonné à 200 entrées par famille : une recherche, pas un
+  inventaire.
+
+#### Détails qui comptent
+- Les valeurs mono des tiroirs (hash, adresse IP, MAC, identifiant CVE) ont
+  un bouton de copie à côté du puits — une empreinte est faite pour être
+  collée ailleurs, pas sélectionnée à la souris.
+- Une cellule de tableau tronquée montre son texte complet au survol, sans
+  voler le survol à sa ligne.
+- Les dates relatives (« il y a 15 min ») affichent l'horodatage complet au
+  survol.
+- Navigation clavier étendue aux listes restantes : intégrité des fichiers,
+  journal d'audit, Shadow IT, événements et chronologie des menaces,
+  notifications.
+
+#### Thème clair
+- Revue des 20 pages et de 11 onglets secondaires en thème clair, données
+  peuplées : aucune régression relevée après les corrections des phases
+  précédentes.
 
 ---
 

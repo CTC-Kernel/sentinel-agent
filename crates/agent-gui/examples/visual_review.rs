@@ -169,7 +169,8 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "Sentinel Review",
         options,
-        Box::new(move |_| {
+        Box::new(move |cc| {
+            agent_gui::theme::configure_fonts(&cc.egui_ctx);
             Ok(Box::new(Review {
                 app,
                 output,

@@ -11,7 +11,7 @@ use crate::theme;
 ///
 /// Usage (builder pattern):
 /// ```ignore
-/// let toggled = SearchFilterBar::new(&mut my_search, "Rechercher...")
+/// let toggled = SearchFilterBar::new(&mut my_search, "Rechercher…")
 ///     .chip("CONFORME", is_active, theme::SUCCESS)
 ///     .chip("NON-CONFORME", other_active, theme::ERROR)
 ///     .result_count(42)
@@ -22,6 +22,7 @@ pub struct SearchFilterBar<'a> {
     placeholder: &'a str,
     chips: Vec<(&'a str, bool, egui::Color32)>,
     count: Option<usize>,
+    action: Option<String>,
 }
 
 impl<'a> SearchFilterBar<'a> {
@@ -31,6 +32,7 @@ impl<'a> SearchFilterBar<'a> {
             placeholder,
             chips: Vec::new(),
             count: None,
+            action: None,
         }
     }
 
@@ -46,33 +48,69 @@ impl<'a> SearchFilterBar<'a> {
         self
     }
 
+    /// A ghost action on the trailing edge, next to the result count: the
+    /// place for an export that applies to the filtered list, so it sits on
+    /// the row it acts on rather than on a row of its own.
+    pub fn action(mut self, label: impl Into<String>) -> Self {
+        self.action = Some(label.into());
+        self
+    }
+
     /// Render the bar. Returns `Some(index)` of a chip that was toggled, or `None`.
     pub fn show(self, ui: &mut Ui) -> Option<usize> {
+        self.show_with_action(ui).0
+    }
+
+    /// [`show`](Self::show), also reporting whether the trailing action was clicked.
+    pub fn show_with_action(self, ui: &mut Ui) -> (Option<usize>, bool) {
         let mut toggled: Option<usize> = None;
+        let mut action_clicked = false;
 
-        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
-            // Search input
-            let search_width = 260.0_f32.min((ui.available_width() - 44.0).max(40.0));
-            ui.add_sized(
+        ui.horizontal(|ui: &mut egui::Ui| {
+            // Search field: framed and prefixed with a magnifier, matching the
+            // global search in the top bar. A bare TextEdit here read as a
+            // stray line of text next to the filter chips.
+            let search_width = 260.0_f32.min(ui.available_width() * 0.4);
+            let (field, _) = ui.allocate_exact_size(
                 Vec2::new(search_width, theme::SEARCH_INPUT_HEIGHT),
-                egui::TextEdit::singleline(self.search)
-                    .hint_text(self.placeholder)
-                    .font(theme::font_body())
-                    .text_color(theme::text_primary())
-                    .desired_width(search_width),
+                egui::Sense::hover(),
             );
+            let radius = CornerRadius::same(theme::ROUNDING_MD);
+            ui.painter().rect(
+                field,
+                radius,
+                theme::bg_tertiary(),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+                egui::StrokeKind::Inside,
+            );
+            ui.painter().text(
+                egui::pos2(field.left() + theme::SPACE_SM, field.center().y),
+                egui::Align2::LEFT_CENTER,
+                crate::icons::SEARCH,
+                theme::font_icon(theme::ICON_XS),
+                theme::text_tertiary(),
+            );
+            let text_rect = egui::Rect::from_min_max(
+                egui::pos2(field.left() + theme::SPACE_LG + 2.0, field.top()),
+                egui::pos2(field.right() - theme::SPACE_SM, field.bottom()),
+            );
+            ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+                // Clip the editor to the framed field so a long placeholder or
+                // value cannot spill past the rounded edge.
+                ui.set_clip_rect(text_rect);
+                ui.add_sized(
+                    text_rect.size(),
+                    egui::TextEdit::singleline(self.search)
+                        .hint_text(
+                            egui::RichText::new(self.placeholder).color(theme::text_tertiary()),
+                        )
+                        .font(theme::font_body_sm())
+                        .text_color(theme::text_primary())
+                        .frame(false)
+                        .desired_width(text_rect.width()),
+                );
+            });
 
-            if !self.search.is_empty()
-                && ui
-                    .add(
-                        egui::Button::new("Effacer")
-                            .min_size(Vec2::new(0.0, theme::MIN_TOUCH_TARGET)),
-                    )
-                    .on_hover_text("Effacer la recherche")
-                    .clicked()
-            {
-                self.search.clear();
-            }
             ui.add_space(theme::SPACE_SM);
 
             // Chips — unified with badge design system
@@ -86,19 +124,14 @@ impl<'a> SearchFilterBar<'a> {
                 let border_color = theme::badge_border(*color);
 
                 let btn = egui::Button::new(
-                    egui::RichText::new(if *active {
-                        format!("✓ {label}")
-                    } else {
-                        (*label).to_owned()
-                    })
-                    .font(theme::font_small())
-                    .color(fg)
-                    .strong(),
+                    egui::RichText::new(*label)
+                        .font(theme::font_label())
+                        .color(fg),
                 )
                 .fill(bg)
                 .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, border_color))
                 .corner_radius(CornerRadius::same(theme::BADGE_ROUNDING))
-                .min_size(Vec2::new(0.0, theme::MIN_TOUCH_TARGET));
+                .min_size(Vec2::new(0.0, theme::SEARCH_INPUT_HEIGHT));
 
                 let response = ui.add(btn);
 
@@ -118,25 +151,28 @@ impl<'a> SearchFilterBar<'a> {
                 }
             }
 
-            // Result count on right
-            if let Some(n) = self.count {
+            // Trailing edge: action, then the result count beside it
+            if self.count.is_some() || self.action.is_some() {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(format!(
-                                "{} résultat{}",
-                                n,
-                                if n > 1 { "s" } else { "" }
-                            ))
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary()),
-                        );
+                        if let Some(label) = self.action.as_deref()
+                            && crate::widgets::ghost_button(ui, label).clicked()
+                        {
+                            action_clicked = true;
+                        }
+                        if let Some(n) = self.count {
+                            ui.label(
+                                egui::RichText::new(crate::format::count(n, "résultat"))
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary()),
+                            );
+                        }
                     },
                 );
             }
         });
 
-        toggled
+        (toggled, action_clicked)
     }
 }

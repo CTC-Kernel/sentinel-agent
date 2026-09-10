@@ -38,7 +38,7 @@ impl CompliancePage {
             ui,
             &["Conformité & risques", "Conformité"],
             "Conformité Réglementaire",
-            Some("ANALYSE DES ÉCARTS ET MATRICE DE CONTRÔLES MULTI-RÉFÉRENTIELS"),
+            Some("Écarts et matrice de contrôles, tous référentiels confondus."),
             Some(&format!(
                 "Évaluez votre posture de sécurité par rapport à vos référentiels actifs ({active_label}). Chaque contrôle indique son statut et propose des actions de remédiation directes.",
             )),
@@ -55,12 +55,12 @@ impl CompliancePage {
                     ui,
                     format!(
                         "{}  {}",
+                        icons::PLAY,
                         if is_scanning {
                             "Analyse en cours"
                         } else {
                             "Lancer l'analyse"
-                        },
-                        icons::PLAY
+                        }
                     ),
                     !is_scanning,
                     is_scanning,
@@ -288,7 +288,7 @@ impl CompliancePage {
                             |ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(format!(
-                                        "{:.0}% ({}/{})",
+                                        "{:.0}\u{202f}% ({}/{})",
                                         pct, pass_count, total_count
                                     ))
                                     .font(theme::font_body())
@@ -379,11 +379,11 @@ impl CompliancePage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.compliance.search,
-            "Rechercher un contrôle, un identifiant ou une catégorie...",
+            "Rechercher un contrôle, un identifiant ou une catégorie…",
         )
-        .chip("CONFORME", pass_active, theme::SUCCESS)
-        .chip("DÉFAILLANT", fail_active, theme::ERROR)
-        .chip("ERREUR", err_active, theme::WARNING)
+        .chip("Conforme", pass_active, theme::SUCCESS)
+        .chip("Défaillant", fail_active, theme::ERROR)
+        .chip("Erreur", err_active, theme::WARNING)
         .result_count(result_count)
         .show(ui);
 
@@ -416,9 +416,9 @@ impl CompliancePage {
             );
             ui.add_space(theme::SPACE_XS);
             for (val, label) in [
-                (ComplianceGroupBy::None, "LISTE PLATE"),
-                (ComplianceGroupBy::Category, "PAR CATÉGORIE"),
-                (ComplianceGroupBy::Framework, "PAR RÉFÉRENTIEL"),
+                (ComplianceGroupBy::None, "Liste plate"),
+                (ComplianceGroupBy::Category, "Par catégorie"),
+                (ComplianceGroupBy::Framework, "Par référentiel"),
             ] {
                 let active = state.compliance.group_by == val;
 
@@ -433,7 +433,7 @@ impl CompliancePage {
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         Self::export_csv(state, &filtered);
                         state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
                             ui.ctx(),
                         );
                     }
@@ -454,8 +454,8 @@ impl CompliancePage {
             );
             ui.add_space(theme::SPACE_XS);
             for (mode, label) in [
-                (ComplianceViewMode::List, "LISTE"),
-                (ComplianceViewMode::Matrix, "MATRICE"),
+                (ComplianceViewMode::List, "Liste"),
+                (ComplianceViewMode::Matrix, "Matrice"),
             ] {
                 let active = state.compliance.view_mode == mode;
                 if widgets::chip_button(ui, label, active, theme::ACCENT).clicked() {
@@ -497,23 +497,23 @@ impl CompliancePage {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
-                        "OBJECTIF DE CONFORMIT\u{00c9} ATTEINT",
+                        "Objectif de conformit\u{00e9} atteint",
                         "Tous les contr\u{00f4}les audit\u{00e9}s sont conformes aux r\u{00e9}f\u{00e9}rentiels actifs.",
                     );
                 } else if state.checks.is_empty() {
                     widgets::empty_state(
                         ui,
                         icons::COMPLIANCE,
-                        "AUCUNE BASE DE CONTR\u{00d4}LES",
+                        "Aucune base de contr\u{00f4}les",
                         Some(
-                            "En attente de synchronisation des politiques avec le serveur central...",
+                            "En attente de synchronisation des politiques avec le serveur central…",
                         ),
                     );
                 } else {
                     widgets::empty_state(
                         ui,
                         icons::COMPLIANCE,
-                        "AUCUN R\u{00c9}SULTAT CORRESPONDANT",
+                        "Aucun r\u{00e9}sultat correspondant",
                         Some("Modifiez vos crit\u{00e8}res de recherche ou de filtrage."),
                     );
                 }
@@ -604,7 +604,10 @@ impl CompliancePage {
                         let score_color = theme::score_color(pct);
                         widgets::status_badge(
                             ui,
-                            &format!("{:.0}% CONFORMIT\u{00c9} ({}/{})", pct, pass_count, total),
+                            &format!(
+                                "{:.0}\u{202f}% CONFORMIT\u{00c9} ({}/{})",
+                                pct, pass_count, total
+                            ),
                             score_color,
                         );
                     });
@@ -693,7 +696,7 @@ impl CompliancePage {
                             let json_str = serde_json::to_string_pretty(details).unwrap_or_default();
                             let display_str = if json_str.chars().count() > 500 {
                                 let truncated: String = json_str.chars().take(497).collect();
-                                format!("{}...", truncated)
+                                format!("{}…", truncated)
                             } else {
                                 json_str
                             };
@@ -710,7 +713,7 @@ impl CompliancePage {
                                 ui.horizontal(|ui| {
                                     ui.spinner();
                                     ui.label(
-                                        egui::RichText::new("Analyse en cours...")
+                                        egui::RichText::new("Analyse en cours…")
                                             .font(theme::font_small())
                                             .color(theme::readable_color(theme::INFO)),
                                     );
@@ -733,7 +736,7 @@ impl CompliancePage {
                     1 => {
                         Self::export_csv(state, &[sel_idx]);
                         state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
                             ui.ctx(),
                         );
                     }
@@ -931,7 +934,7 @@ impl CompliancePage {
                         row.col(|ui: &mut egui::Ui| {
                             if let Some(s) = check.score {
                                 ui.label(
-                                    egui::RichText::new(format!("{:.0}%", s))
+                                    egui::RichText::new(crate::format::pct(s, 0))
                                         .font(theme::font_body())
                                         .color(theme::readable_color(theme::score_color(s as f32)))
                                         .strong(),
@@ -999,7 +1002,7 @@ impl CompliancePage {
             widgets::empty_state(
                 ui,
                 icons::COMPLIANCE,
-                "AUCUN R\u{00c9}F\u{00c9}RENTIEL",
+                "Aucun r\u{00e9}f\u{00e9}rentiel",
                 Some(
                     "Les contr\u{00f4}les s\u{00e9}lectionn\u{00e9}s ne sont associ\u{00e9}s \u{00e0} aucun r\u{00e9}f\u{00e9}rentiel.",
                 ),
@@ -1069,7 +1072,7 @@ impl CompliancePage {
                                     .extra_letter_spacing(theme::TRACKING_NORMAL),
                             );
                             ui.label(
-                                egui::RichText::new(format!("{:.0}%", pct))
+                                egui::RichText::new(crate::format::pct(pct, 0))
                                     .font(theme::font_label())
                                     .color(score_color)
                                     .strong(),
@@ -1140,10 +1143,11 @@ impl CompliancePage {
             if fail_count > 0 {
                 ui.label(
                     egui::RichText::new(format!(
-                        "{} : {} contr\u{00f4}le(s) \u{00e9}chou\u{00e9}(s) sur {}",
+                        "{} : {} contr\u{00f4}le{s} \u{00e9}chou\u{00e9}{s} sur {}",
                         fw.to_uppercase(),
                         fail_count,
-                        fw_total[fi]
+                        fw_total[fi],
+                        s = crate::format::plural_suffix(fail_count)
                     ))
                     .font(theme::font_small())
                     .color(theme::readable_color(theme::ERROR)),

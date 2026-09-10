@@ -9,6 +9,7 @@ mod empty_state;
 mod header;
 mod help_info;
 pub mod layout;
+pub mod list_keys;
 pub mod modal;
 mod premium_badge;
 pub mod progress;
@@ -18,8 +19,10 @@ mod search_filter_bar;
 mod security_hero;
 pub mod sentinel_ai_core;
 pub mod sidebar;
+pub mod splash;
 mod status_badge;
 mod toggle_switch;
+pub mod topbar;
 pub mod tray_radar;
 pub mod voice;
 
@@ -56,23 +59,26 @@ pub mod detail_drawer;
 mod org_banner;
 mod sparkline;
 
-pub use card::{card, clickable_card, danger_card};
-pub use compliance_gauge::compliance_gauge;
+pub use card::{Card, CardVariant, card, clickable_card, danger_card, flat_card};
+pub use compliance_gauge::{compliance_gauge, compliance_gauge_captioned};
 pub use empty_state::{
     empty_state, empty_state_compact, empty_state_with_action, no_results_state, pending_state,
 };
-pub use header::{page_header, page_header_nav};
+pub use header::{eyebrow, page_header, page_header_nav, section_header};
 pub use help_info::help_button;
 pub use layout::ResponsiveGrid;
+pub use list_keys::navigate_list;
 pub use premium_badge::{BadgeSize, ComplianceBadge, PremiumBadge, StatusBadge, StatusLevel};
-pub use protected_state::protected_state;
+pub use protected_state::{hero_state, protected_state};
 pub use resource_bar::resource_bar;
 pub use search_filter_bar::SearchFilterBar;
 pub use security_hero::security_hero;
 pub use sentinel_ai_core::SentinelAICore;
-pub use sidebar::Sidebar;
+pub use sidebar::{Sidebar, SidebarContext};
+pub use splash::splash_screen;
 pub use status_badge::status_badge;
 pub use toggle_switch::toggle_switch;
+pub use topbar::{TopBarAction, TopBarContext, top_bar};
 pub use tray_radar::TrayRadar;
 
 // Premium dashboard exports
@@ -82,7 +88,9 @@ pub use detail_drawer::{
     detail_field_colored, detail_mono, detail_progress, detail_section, detail_text,
 };
 pub use org_banner::org_banner;
-pub use sparkline::{SparklineConfig, mini_gauge, sparkline, sparkline_with_value};
+pub use sparkline::{
+    SparklineConfig, mini_gauge, sparkline, sparkline_card_body, sparkline_with_value,
+};
 
 // UX feedback & input exports
 pub use loading_state::{error_state, loading_skeleton};

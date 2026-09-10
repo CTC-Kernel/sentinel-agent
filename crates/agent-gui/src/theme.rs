@@ -198,90 +198,121 @@ pub fn detect_reduced_motion() -> bool {
 }
 
 // ============================================================================
-// Brand / semantic colors (shared between themes)
+// Brand / semantic colors
 // ============================================================================
+//
+// Every hue exists twice: a bright variant tuned for dark surfaces and a
+// deepened variant tuned for light surfaces. `readable_color()` picks the
+// right one, so a call site never has to think about the active theme.
+//
+// Contrast contract (verified by the tests at the bottom of this file):
+//   • text_primary / text_secondary  ≥ 7:1 (WCAG AAA) on every surface
+//   • text_tertiary and semantic text ≥ 4.5:1 (WCAG AA) on every surface
+//   • border()                        ≥ 3:1 (WCAG 1.4.11) on every surface
 
-/// Primary action blue, tuned for readable white labels.
-pub const ACCENT: Color32 = Color32::from_rgb(37, 83, 190); // #2553BE
-/// Secondary accent (lighter brand blue).
-pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(139, 180, 255); // #5AC8FA (Apple System Teal/Blue mix)
-/// Accent hover state.
-pub const ACCENT_HOVER: Color32 = Color32::from_rgb(30, 68, 158);
+/// Primary accent — Sentinel sovereign blue.
+pub const ACCENT: Color32 = Color32::from_rgb(38, 97, 239); // #2661EF
+/// Accent tuned for text and icons on dark surfaces.
+pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(107, 165, 255); // #6BA5FF
+/// Accent hover state (one step deeper than `ACCENT`).
+pub const ACCENT_HOVER: Color32 = Color32::from_rgb(31, 85, 219); // #1F55DB
+/// Accent pressed state.
+pub const ACCENT_PRESSED: Color32 = Color32::from_rgb(26, 74, 196); // #1A4AC4
+/// Accent tuned for text and icons on light surfaces.
+pub const ACCENT_DEEP: Color32 = Color32::from_rgb(29, 79, 216); // #1D4FD8
 
-/// Success green (Refined Mint - more premium/professional).
-pub const SUCCESS: Color32 = Color32::from_rgb(52, 199, 89); // Apple System Green
-/// Warning orange (Refined Amber).
-pub const WARNING: Color32 = Color32::from_rgb(255, 159, 10); // Apple System Orange
-/// Error red (Refined Crimson).
-pub const ERROR: Color32 = Color32::from_rgb(255, 69, 58); // Apple System Red
-/// Info blue (Refined Azure).
-pub const INFO: Color32 = Color32::from_rgb(10, 132, 255); // Apple System Blue
-/// Severity-high amber (high contrast).
-pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 214, 10); // Apple System Yellow
-/// Severity-medium (Burnt Orange — visually distinct from WARNING).
-pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 135, 0);
+/// Success — emerald.
+pub const SUCCESS: Color32 = Color32::from_rgb(43, 201, 138); // #2BC98A
+/// Warning — amber.
+pub const WARNING: Color32 = Color32::from_rgb(245, 165, 36); // #F5A524
+/// Error — signal red.
+pub const ERROR: Color32 = Color32::from_rgb(255, 97, 99); // #FF6163
+/// Info — azure.
+pub const INFO: Color32 = Color32::from_rgb(56, 166, 245); // #38A6F5
+/// Severity-high — saturated amber, one step hotter than `WARNING`.
+pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 176, 32); // #FFB020
+/// Severity-medium — burnt orange, visually distinct from `WARNING`.
+pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 140, 58); // #FF8C3A
+/// Assistant / AI — violet, the one hue reserved for machine reasoning.
+pub const AI: Color32 = Color32::from_rgb(167, 139, 255); // #A78BFF
+
+// Light-mode counterparts (deepened for ≥4.5:1 on white and near-white).
+const ACCENT_ON_LIGHT: Color32 = Color32::from_rgb(29, 79, 216); // #1D4FD8
+const SUCCESS_ON_LIGHT: Color32 = Color32::from_rgb(8, 108, 74); // #086C4A
+const WARNING_ON_LIGHT: Color32 = Color32::from_rgb(138, 87, 0); // #8A5700
+const ERROR_ON_LIGHT: Color32 = Color32::from_rgb(196, 38, 43); // #C4262B
+const INFO_ON_LIGHT: Color32 = Color32::from_rgb(11, 107, 181); // #0B6BB5
+const SEVERITY_HIGH_ON_LIGHT: Color32 = Color32::from_rgb(125, 81, 0); // #7D5100
+const SEVERITY_MEDIUM_ON_LIGHT: Color32 = Color32::from_rgb(155, 63, 8); // #9B3F08
+const AI_ON_LIGHT: Color32 = Color32::from_rgb(109, 75, 216); // #6D4BD8
 
 // ============================================================================
 // Surface colors (dynamic – depends on active theme)
 // ============================================================================
+//
+// Six evenly-stepped surfaces form the elevation ladder. Each step is a small,
+// *perceptually even* lift so depth reads as depth instead of as banding:
+//
+//   deep  <  sidebar  <  primary  <  secondary  <  tertiary  <  elevated
 
-/// Window / app background.
+/// Window / app background — the canvas everything else sits on.
 #[inline]
 pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(13, 17, 23) // Deep navy undertone (Sequoia-inspired)
+        Color32::from_rgb(12, 15, 21) // #0C0F15
     } else {
-        Color32::from_rgb(244, 246, 249) // Cool off-white with subtle blue tint
+        Color32::from_rgb(242, 245, 250) // #F2F5FA
     }
 }
 
-/// Card / panel background (must be lighter than bg_primary for elevation).
+/// Card / panel background (one step above the canvas).
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(21, 27, 36) // Elevated navy surface
+        Color32::from_rgb(19, 22, 30) // #13161E
     } else {
-        Color32::from_rgb(255, 255, 255) // Near-white with warmth
+        Color32::from_rgb(255, 255, 255) // #FFFFFF
     }
 }
 
-/// Elevated surface (hover, modal — must be visually distinct from bg_secondary).
+/// Elevated surface — popovers, menus, hovered rows, modals.
 #[inline]
 pub fn bg_elevated() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(39, 48, 62) // Softer elevated surface with navy tint
+        Color32::from_rgb(35, 40, 51) // #232833
     } else {
-        Color32::from_rgb(236, 238, 247) // Distinct cool-tinted elevated surface
+        Color32::from_rgb(228, 233, 242) // #E4E9F2
     }
 }
 
-/// Tertiary surface (button groups, input fields, subtle containers).
+/// Tertiary surface — inputs, chips, segmented controls, table headers.
 #[inline]
 pub fn bg_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(29, 37, 49) // Tertiary with consistent navy undertone
+        Color32::from_rgb(26, 30, 40) // #1A1E28
     } else {
-        Color32::from_rgb(230, 232, 241) // Cool-tinted tertiary surface
+        Color32::from_rgb(237, 241, 247) // #EDF1F7
     }
 }
 
-/// Sidebar background.
+/// Sidebar background — recessed relative to the canvas so the navigation
+/// reads as chrome, not content.
 #[inline]
 pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(8, 9, 15) // Deep navy sidebar for clear depth separation
+        Color32::from_rgb(9, 11, 17) // #090B11
     } else {
-        Color32::from_rgb(236, 238, 247) // Cool-tinted sidebar with brand presence
+        Color32::from_rgb(247, 249, 252) // #F7F9FC
     }
 }
 
-/// Deep/inset background (terminal, canvas).
+/// Deep / inset background — terminal, canvas, code blocks.
 #[inline]
 pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(6, 7, 13) // Near-black with navy undertone for terminal/canvas
+        Color32::from_rgb(5, 7, 11) // #05070B
     } else {
-        Color32::from_rgb(246, 247, 253) // Clean cool surface for inset areas
+        Color32::from_rgb(239, 242, 248) // #EFF2F8
     }
 }
 
@@ -289,41 +320,41 @@ pub fn bg_deep() -> Color32 {
 // Text colors (dynamic)
 // ============================================================================
 
-/// Primary text (high emphasis).
+/// Primary text (high emphasis) — ≥12.9:1 on every surface, WCAG AAA.
 #[inline]
 pub fn text_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::WHITE
+        Color32::from_rgb(237, 240, 245) // #EDF0F5
     } else {
-        Color32::BLACK
+        Color32::from_rgb(16, 20, 28) // #10141C
     }
 }
 
-/// Secondary text (medium emphasis).
-/// Dark: ~8.1:1 on bg_secondary — passes WCAG AAA.
-/// Light: ~9.5:1 on white — passes WCAG AAA.
+/// Secondary text (medium emphasis) — ≥6.3:1 on every surface, AAA on cards.
 #[inline]
 pub fn text_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(175, 175, 180) // AAA-compliant on dark surfaces (≥7:1)
+        Color32::from_rgb(180, 188, 201) // #B4BCC9
     } else {
-        Color32::from_rgb(72, 72, 77) // Strong contrast on white/light surfaces (AAA)
+        Color32::from_rgb(67, 75, 91) // #434B5B
     }
 }
 
-/// Tertiary / disabled text.
-/// Dark: ~7.2:1 on bg_secondary — passes WCAG AAA.
-/// Light: ~7.3:1 on white — passes WCAG AAA.
+/// Tertiary text (low emphasis: timestamps, hints, units) — ≥4.5:1, WCAG AA.
+///
+/// Deliberately not AAA: forcing 7:1 here would collapse it onto
+/// `text_secondary()` and destroy the three-step hierarchy. Weight and size
+/// carry the rest of the distinction.
 #[inline]
 pub fn text_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(155, 155, 160) // AAA-compliant on dark surfaces (≥7:1)
+        Color32::from_rgb(147, 155, 169) // #939BA9
     } else {
-        Color32::from_rgb(88, 88, 92) // WCAG AAA contrast (~7.3:1 on white)
+        Color32::from_rgb(93, 102, 118) // #5D6676
     }
 }
 
-/// White text on the deep blue primary action surface.
+/// Text on accent-filled surfaces.
 #[inline]
 pub fn text_on_accent() -> Color32 {
     Color32::WHITE
@@ -335,7 +366,17 @@ pub fn text_on_accent() -> Color32 {
 /// yields the highest contrast ratio.
 #[inline]
 pub fn text_on_color(bg: Color32) -> Color32 {
-    // WCAG relative luminance uses BT.709 sRGB linearization
+    // Crossover: (1+0.05)/(lum+0.05) vs (lum+0.05)/(0+0.05) → lum ≈ 0.179
+    if relative_luminance(bg) > 0.179 {
+        Color32::BLACK
+    } else {
+        Color32::WHITE
+    }
+}
+
+/// WCAG 2.x relative luminance (sRGB, BT.709 coefficients).
+#[inline]
+pub fn relative_luminance(color: Color32) -> f32 {
     fn srgb_lin(c: u8) -> f32 {
         let s = c as f32 / 255.0;
         if s <= 0.04045 {
@@ -344,24 +385,24 @@ pub fn text_on_color(bg: Color32) -> Color32 {
             ((s + 0.055) / 1.055).powf(2.4)
         }
     }
-    let lum = 0.2126 * srgb_lin(bg.r()) + 0.7152 * srgb_lin(bg.g()) + 0.0722 * srgb_lin(bg.b());
-    // Crossover: (1+0.05)/(lum+0.05) vs (lum+0.05)/(0+0.05) → lum ≈ 0.179
-    if lum > 0.179 {
-        Color32::BLACK
-    } else {
-        Color32::WHITE
-    }
+    0.2126 * srgb_lin(color.r()) + 0.7152 * srgb_lin(color.g()) + 0.0722 * srgb_lin(color.b())
+}
+
+/// WCAG contrast ratio between two opaque colors (1.0 … 21.0).
+#[inline]
+pub fn contrast_ratio(a: Color32, b: Color32) -> f32 {
+    let (la, lb) = (relative_luminance(a), relative_luminance(b));
+    let (hi, lo) = if la > lb { (la, lb) } else { (lb, la) };
+    (hi + 0.05) / (lo + 0.05)
 }
 
 /// Accent-colored text — readable in both themes.
-/// Dark mode: bright cyan (ACCENT_LIGHT). Light mode: deeper blue for WCAG AAA
-/// compliance (≥7:1 on bg_secondary).
 #[inline]
 pub fn accent_text() -> Color32 {
     if is_dark_mode() {
         ACCENT_LIGHT
     } else {
-        Color32::from_rgb(0, 75, 170) // AAA-compliant accent text on light surfaces (≥7:1)
+        ACCENT_DEEP
     }
 }
 
@@ -369,34 +410,36 @@ pub fn accent_text() -> Color32 {
 // Border / separator (dynamic)
 // ============================================================================
 
-/// Subtle border (visible but unobtrusive).
-/// Meets WCAG 1.4.11 (≥3:1 contrast for UI component boundaries).
+/// Control border — meets WCAG 1.4.11 (≥3:1) on every surface.
+///
+/// Use for anything whose boundary carries meaning: inputs, secondary
+/// buttons, checkboxes, focusable containers.
 #[inline]
 pub fn border() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(90) // ~3.2:1 on bg_secondary
+        Color32::from_rgb(114, 123, 141) // #727B8D
     } else {
-        Color32::from_black_alpha(110) // ~3.2:1 on bg_secondary
+        Color32::from_rgb(121, 129, 143) // #79818F
     }
 }
 
-/// Decorative panel outlines; interactive controls retain stronger borders.
-pub fn surface_border() -> Color32 {
+/// Decorative hairline — card edges, table rules, chrome seams.
+///
+/// Intentionally below the 3:1 control threshold: these edges describe
+/// grouping, never a control, so subtlety wins.
+#[inline]
+pub fn border_subtle() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(45, 55, 70)
+        Color32::from_rgb(43, 49, 62) // #2B313E
     } else {
-        Color32::from_rgb(221, 227, 235)
+        Color32::from_rgb(221, 227, 236) // #DDE3EC
     }
 }
 
-/// Separator line (meets WCAG 1.4.11 non-text contrast ≥3:1).
+/// Separator line between groups of controls (≥3:1, WCAG 1.4.11).
 #[inline]
 pub fn separator() -> Color32 {
-    if is_dark_mode() {
-        Color32::from_rgba_premultiplied(255, 255, 255, 95)
-    } else {
-        Color32::from_rgba_premultiplied(0, 0, 0, 115)
-    }
+    border()
 }
 
 /// Theme-aware overlay color (white in dark mode, black in light mode).
@@ -428,26 +471,46 @@ pub const SPACE: f32 = 16.0;
 pub const SPACE_LG: f32 = 24.0;
 /// Extra-large spacing (32px).
 pub const SPACE_XL: f32 = 32.0;
+/// Section spacing (48px) — between major blocks on a page.
+pub const SPACE_2XL: f32 = 48.0;
+/// Page spacing (64px) — around hero and empty states.
+pub const SPACE_3XL: f32 = 64.0;
 
-/// Sidebar width.
-pub const SIDEBAR_WIDTH: f32 = 232.0;
+/// Sidebar width (expanded).
+pub const SIDEBAR_WIDTH: f32 = 244.0;
+/// Sidebar width when collapsed to an icon rail.
+pub const SIDEBAR_RAIL_WIDTH: f32 = 64.0;
+/// Window width below which the sidebar collapses to the rail on its own.
+/// A 244px column on a 960px window leaves 690px for a data table.
+pub const SIDEBAR_BREAKPOINT: f32 = 1120.0;
+/// Global top bar height.
+pub const TOPBAR_HEIGHT: f32 = 56.0;
+/// Maximum content measure. Beyond this, tables and prose stop stretching and
+/// centre instead — an unbounded line length is unreadable on wide displays.
+pub const CONTENT_MAX_WIDTH: f32 = 1560.0;
 
-/// Card rounding radius.
-pub const CARD_ROUNDING: u8 = 12;
-/// Button rounding radius.
-pub const BUTTON_ROUNDING: u8 = 8;
+/// Radius scale — one step per component scale, so nothing looks borrowed.
+///
+/// `XS` accent bars · `SM` chips and hover fills · `MD` inputs and small
+/// buttons · `LG` buttons and menus · `XL` cards · `FULL` pills.
 /// Extra-small element rounding (accent bars, tiny indicators).
-pub const ROUNDING_XS: u8 = 2;
+pub const ROUNDING_XS: u8 = 3;
 /// Small element rounding (checkboxes, inline tags, hover backgrounds).
-pub const ROUNDING_SM: u8 = 4;
+pub const ROUNDING_SM: u8 = 6;
 /// Medium element rounding (tooltips, pagination buttons, focus rings).
-pub const ROUNDING_MD: u8 = 6;
-/// Large element rounding (enrollment logo, hero buttons).
+pub const ROUNDING_MD: u8 = 8;
+/// Large element rounding (buttons, menus, drawers).
 pub const ROUNDING_LG: u8 = 10;
+/// Extra-large element rounding (cards, modals).
+pub const ROUNDING_XL: u8 = 14;
+/// Card rounding radius.
+pub const CARD_ROUNDING: u8 = ROUNDING_XL;
+/// Button rounding radius.
+pub const BUTTON_ROUNDING: u8 = ROUNDING_LG;
 /// Badge rounding radius (pill-shaped).
 pub const BADGE_ROUNDING: u8 = 100;
 /// Minimum badge height for consistent pill shape.
-pub const BADGE_MIN_HEIGHT: f32 = 18.0;
+pub const BADGE_MIN_HEIGHT: f32 = 20.0;
 
 /// Left accent indicator bar width (activity feed, timeline).
 pub const ACCENT_BAR_WIDTH: f32 = 3.0;
@@ -478,105 +541,80 @@ fn color_blend(base: Color32, tint: Color32, ratio: f32) -> Color32 {
     )
 }
 
-/// Badge background: opaque soft tinted wash of the semantic color.
+/// Badge background: soft tinted wash of the semantic color.
 ///
-/// Dark mode: tint blended into dark surface (visible but muted).
-/// Light mode: tint blended into white surface (pastel wash).
+/// Dark mode blends the hue into the tertiary surface; light mode blends it
+/// into white. Either way the result is opaque, so badges stack predictably
+/// over striped table rows.
 #[inline]
 pub fn badge_bg(color: Color32) -> Color32 {
     if is_dark_mode() {
-        color_blend(bg_tertiary(), color, 0.18)
+        color_blend(bg_tertiary(), color, 0.16)
     } else {
-        color_blend(Color32::WHITE, color, 0.12)
+        color_blend(Color32::WHITE, color, 0.13)
     }
 }
 
-/// Perceived luminance using ITU-R BT.601 coefficients.
+/// Map a semantic color to the variant calibrated for the active theme.
+///
+/// The eight brand hues have hand-tuned light-mode counterparts (each verified
+/// ≥4.5:1 on white); anything else falls back to a luminance-driven
+/// adjustment so ad-hoc colors still stay legible.
 #[inline]
-fn perceived_luminance(color: Color32) -> f32 {
-    0.299 * color.r() as f32 + 0.587 * color.g() as f32 + 0.114 * color.b() as f32
+fn theme_variant(color: Color32) -> Color32 {
+    if is_dark_mode() {
+        // The filled accent is too deep to read as text on a dark surface;
+        // every other hue is already tuned for it.
+        return if color == ACCENT { ACCENT_LIGHT } else { color };
+    }
+    match (color.r(), color.g(), color.b()) {
+        (38, 97, 239) | (107, 165, 255) => ACCENT_ON_LIGHT, // ACCENT / ACCENT_LIGHT
+        (43, 201, 138) => SUCCESS_ON_LIGHT,
+        (245, 165, 36) => WARNING_ON_LIGHT,
+        (255, 97, 99) => ERROR_ON_LIGHT,
+        (56, 166, 245) => INFO_ON_LIGHT,
+        (255, 176, 32) => SEVERITY_HIGH_ON_LIGHT,
+        (255, 140, 58) => SEVERITY_MEDIUM_ON_LIGHT,
+        (167, 139, 255) => AI_ON_LIGHT,
+        _ => darken_for_light_bg(color),
+    }
 }
 
-// Adaptive darkening parameters for light-mode AAA contrast.
-//
-// Uses a quadratic curve: brighter colors (yellow, green) are darkened
-// aggressively while already-dark colors (blue, red) receive less
-// darkening.  All results guarantee ≥7:1 contrast on bg_secondary.
-//
-// factor = MIN + RANGE × t²   where t = ((lum − LUM_LOW) / LUM_SPAN).clamp(0,1)
-const DARKEN_MIN: f32 = 0.35;
-const DARKEN_RANGE: f32 = 0.05;
-const LUM_LOW: f32 = 50.0;
-const LUM_SPAN: f32 = 175.0;
-
-/// Darken a color for AAA-readable contrast on light backgrounds.
+/// Darken an arbitrary color until it clears WCAG AA on a white surface.
 ///
-/// ALL semantic colors are darkened in light mode using a quadratic curve.
-/// Bright colors (yellow/green, lum≈200) get factor≈0.39 (aggressive),
-/// while dark colors (blue/red, lum≈100) get factor≈0.35 (lighter touch).
-/// This guarantees ≥7:1 contrast on typical light surfaces.
-#[inline]
+/// Used only for colors outside the brand palette (avatar hues, plot series,
+/// user-supplied tints); the brand hues use their hand-tuned counterparts.
 fn darken_for_light_bg(color: Color32) -> Color32 {
-    let lum = perceived_luminance(color);
-    let t = ((lum - LUM_LOW) / LUM_SPAN).clamp(0.0, 1.0);
-    let factor = DARKEN_MIN + DARKEN_RANGE * t * t; // Quadratic curve
-    Color32::from_rgb(
-        (color.r() as f32 * factor) as u8,
-        (color.g() as f32 * factor) as u8,
-        (color.b() as f32 * factor) as u8,
-    )
+    const TARGET: f32 = 4.6; // A hair over AA, to survive rounding.
+    let mut candidate = color;
+    for step in 1..=24 {
+        if contrast_ratio(candidate, Color32::WHITE) >= TARGET {
+            break;
+        }
+        let factor = 1.0 - (step as f32 * 0.04);
+        candidate = Color32::from_rgb(
+            (color.r() as f32 * factor) as u8,
+            (color.g() as f32 * factor) as u8,
+            (color.b() as f32 * factor) as u8,
+        );
+    }
+    candidate
 }
 
 /// Badge text: readable color with strong contrast on `badge_bg()`.
-///
-/// Dark mode: use the semantic color directly (bright on dark bg).
-/// Light mode: darken the semantic color for WCAG-friendly contrast.
 #[inline]
 pub fn badge_text(color: Color32) -> Color32 {
-    if is_dark_mode() {
-        color
-    } else {
-        darken_for_light_bg(color)
-    }
+    theme_variant(color)
 }
 
 /// Badge border: subtle opaque definition line.
 #[inline]
 pub fn badge_border(color: Color32) -> Color32 {
     if is_dark_mode() {
-        color_blend(bg_tertiary(), color, 0.30)
+        color_blend(bg_tertiary(), color, 0.32)
     } else {
-        color_blend(Color32::WHITE, color, 0.25)
+        color_blend(Color32::WHITE, color, 0.28)
     }
-}
-
-// ============================================================================
-// Semantic font sizes (use these instead of inline FontId::proportional())
-// ============================================================================
-
-/// Card large value font (26px - for metric numbers).
-pub fn font_card_value() -> FontId {
-    FontId::new(26.0, egui::FontFamily::Proportional)
-}
-
-/// Stat/metric font (20px - for dashboard numbers).
-pub fn font_stat() -> FontId {
-    FontId::new(20.0, egui::FontFamily::Proportional)
-}
-
-/// Label font (11px - for labels and annotations, WCAG accessible minimum).
-pub fn font_label() -> FontId {
-    FontId::new(12.0, egui::FontFamily::Proportional)
-}
-
-/// Minimum readable font (11px - minimum for accessibility).
-pub fn font_min() -> FontId {
-    FontId::new(12.0, egui::FontFamily::Proportional)
-}
-
-/// Caption font (11px - WCAG AA minimum readable text).
-pub fn font_caption() -> FontId {
-    FontId::new(12.0, egui::FontFamily::Proportional)
 }
 
 // ============================================================================
@@ -667,11 +705,11 @@ pub const ICON_MICRO: f32 = 6.0;
 // ============================================================================
 
 /// Default window width.
-pub const WINDOW_WIDTH: f32 = 1280.0;
+pub const WINDOW_WIDTH: f32 = 1360.0;
 /// Default window height.
-pub const WINDOW_HEIGHT: f32 = 750.0;
+pub const WINDOW_HEIGHT: f32 = 820.0;
 /// Minimum window width.
-pub const WINDOW_MIN_WIDTH: f32 = 800.0;
+pub const WINDOW_MIN_WIDTH: f32 = 960.0;
 /// Minimum window height.
 pub const WINDOW_MIN_HEIGHT: f32 = 600.0;
 /// Tray popup width (satellite mode).
@@ -694,7 +732,7 @@ pub const TRAY_SATELLITE_CARD_WIDTH: f32 = 135.0;
 // ============================================================================
 
 /// Modal backdrop alpha (0-255).
-pub const BACKDROP_ALPHA: u8 = 180;
+pub const BACKDROP_ALPHA: u8 = 168;
 
 /// Backdrop color (navy-tinted in dark mode for brand depth, black in light mode).
 #[inline]
@@ -716,24 +754,26 @@ pub const TABLE_ROW_HEIGHT: f32 = 36.0;
 /// Compact row height for dense / terminal-like tables.
 pub const TABLE_COMPACT_ROW_HEIGHT: f32 = 22.0;
 /// Data table row height (generous padding for premium feel).
-pub const TABLE_DATA_ROW_HEIGHT: f32 = 48.0;
+pub const TABLE_DATA_ROW_HEIGHT: f32 = 44.0;
 /// Data table header height (used by DataTable widget).
-pub const TABLE_HEADER_HEIGHT: f32 = 44.0;
+pub const TABLE_HEADER_HEIGHT: f32 = 38.0;
 /// Inline / compact table header height (raw TableBuilder tables).
 pub const TABLE_INLINE_HEADER_HEIGHT: f32 = 30.0;
 /// Data table empty state height.
 pub const TABLE_EMPTY_HEIGHT: f32 = 120.0;
 /// Alternating row tint alpha (visible stripe differentiation).
-pub const TABLE_ALT_ROW_ALPHA: u8 = 35;
+pub const TABLE_ALT_ROW_ALPHA: u8 = 10;
+/// Blend of the overlay colour into the surface for alternate table rows.
+pub const TABLE_ALT_ROW_BLEND: f32 = 0.04;
 
 /// Get alternating row background color.
 pub fn table_row_bg(row_index: usize) -> Color32 {
     if row_index.is_multiple_of(2) {
         Color32::TRANSPARENT
-    } else if is_dark_mode() {
-        Color32::from_white_alpha(TABLE_ALT_ROW_ALPHA)
     } else {
-        Color32::from_black_alpha(TABLE_ALT_ROW_ALPHA)
+        // Opaque: white at 4 % alpha composited in linear space came out as a
+        // slab of mid-grey, which is what every striped table looked like.
+        color_blend(bg_secondary(), overlay_color(), TABLE_ALT_ROW_BLEND)
     }
 }
 
@@ -746,30 +786,30 @@ pub fn table_row_hover() -> Color32 {
 // Glass morphism helpers
 // ============================================================================
 
-/// Semi-transparent card background for glass effect.
+/// Frosted surface for floating chrome (command palette, tray popup).
 pub fn glass_card_bg() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgba_premultiplied(18, 20, 28, 225) // Navy-tinted frosted glass
+        Color32::from_rgba_premultiplied(19, 22, 30, 232)
     } else {
-        Color32::from_rgba_premultiplied(250, 251, 255, 238) // Cool frosted glass
+        Color32::from_rgba_premultiplied(255, 255, 255, 240)
     }
 }
 
-/// Glass card border (brighter top-left edge).
+/// Lit edge of a glass surface (top-left).
 pub fn glass_border_top() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(28) // Slightly brighter shimmer edge
+        Color32::from_white_alpha(20)
     } else {
-        Color32::from_white_alpha(180) // Crisp highlight for clean light-mode elevation
+        Color32::from_white_alpha(200)
     }
 }
 
-/// Glass card border (darker bottom-right edge).
+/// Shaded edge of a glass surface (bottom-right).
 pub fn glass_border_bottom() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(6)
+        Color32::from_black_alpha(40)
     } else {
-        Color32::from_black_alpha(18) // Slightly stronger bottom edge in light mode
+        Color32::from_black_alpha(16)
     }
 }
 
@@ -778,7 +818,7 @@ pub fn glass_border_bottom() -> Color32 {
 // ============================================================================
 
 /// Duration for page fade transitions.
-pub const PAGE_TRANSITION_DURATION: f32 = 0.15;
+pub const PAGE_TRANSITION_DURATION: f32 = 0.18;
 
 /// Fast animation (buttons, micro-interactions) - 150ms.
 pub const ANIM_FAST: f32 = 0.15;
@@ -805,147 +845,349 @@ pub const TOAST_DURATION_ERROR_SECS: f64 = 6.0;
 pub const SKELETON_DELAY_MS: u64 = 200;
 
 // ============================================================================
-// Font helpers
+// Typography — Inter (UI) + JetBrains Mono (data), 3-weight system
 // ============================================================================
+//
+// egui has no synthetic bolding: a weight is a *font family*. The design
+// system therefore registers one family per weight and exposes semantic
+// helpers instead of raw `FontId::proportional()` calls, so weight and size
+// always travel together and stay consistent across the 20 pages.
+//
+// Scale (1.25 modular, 13px base — the density a dense security console
+// needs while staying above the 11px accessibility floor):
+//
+//   micro 10 · caption 11 · label 11 · body_sm 12 · body 13 · body_lg 15
+//   h3 16 · h2 20 · h1 26 · display 34
+//
+// Numerals are tabular in every weight (the `tnum` feature is baked into the
+// shipped subsets), so metric cards and table columns never jitter as values
+// change.
 
-/// Title font (24px bold).
+/// Family name for the medium (500) UI weight.
+pub const FAMILY_UI_MEDIUM: &str = "ui_medium";
+/// Family name for the semibold (600) UI weight.
+pub const FAMILY_UI_SEMIBOLD: &str = "ui_semibold";
+/// Family name for the bold (700) UI weight.
+pub const FAMILY_UI_BOLD: &str = "ui_bold";
+/// Family name for the medium (500) monospace weight.
+pub const FAMILY_MONO_MEDIUM: &str = "mono_medium";
+
+/// Inter Regular (400) — body copy, long-form text.
+#[inline]
+pub fn family_regular() -> egui::FontFamily {
+    egui::FontFamily::Proportional
+}
+
+/// Inter Medium (500) — labels, table cells, secondary emphasis.
+#[inline]
+pub fn family_medium() -> egui::FontFamily {
+    egui::FontFamily::Name(FAMILY_UI_MEDIUM.into())
+}
+
+/// Inter SemiBold (600) — headings, buttons, active navigation.
+#[inline]
+pub fn family_semibold() -> egui::FontFamily {
+    egui::FontFamily::Name(FAMILY_UI_SEMIBOLD.into())
+}
+
+/// Inter Bold (700) — display numbers, hero titles.
+#[inline]
+pub fn family_bold() -> egui::FontFamily {
+    egui::FontFamily::Name(FAMILY_UI_BOLD.into())
+}
+
+/// JetBrains Mono Medium (500) — emphasised technical values.
+#[inline]
+pub fn family_mono_medium() -> egui::FontFamily {
+    egui::FontFamily::Name(FAMILY_MONO_MEDIUM.into())
+}
+
+// ── Type scale ──────────────────────────────────────────────────────────
+
+/// Size step: micro annotations (10px) — use sparingly, never for prose.
+pub const TEXT_MICRO: f32 = 10.0;
+/// Size step: caption / label (11px) — the accessibility floor.
+pub const TEXT_CAPTION: f32 = 11.0;
+/// Size step: dense body (12px) — table cells, chips.
+pub const TEXT_BODY_SM: f32 = 12.0;
+/// Size step: body (13px) — the default reading size.
+pub const TEXT_BODY: f32 = 13.0;
+/// Size step: lead body (15px) — subtitles, drawer intros.
+pub const TEXT_BODY_LG: f32 = 15.0;
+/// Size step: section heading (16px).
+pub const TEXT_H3: f32 = 16.0;
+/// Size step: page / card title (20px).
+pub const TEXT_H2: f32 = 20.0;
+/// Size step: page display title (26px).
+pub const TEXT_H1: f32 = 26.0;
+/// Size step: hero / splash display (34px).
+pub const TEXT_DISPLAY: f32 = 34.0;
+
+// ── Semantic helpers ────────────────────────────────────────────────────
+
+/// Hero / splash display type (34px bold).
+pub fn font_display() -> FontId {
+    FontId::new(TEXT_DISPLAY, family_bold())
+}
+
+/// Page display title (26px bold).
+pub fn font_h1() -> FontId {
+    FontId::new(TEXT_H1, family_bold())
+}
+
+/// Page / card title (20px semibold).
+pub fn font_h2() -> FontId {
+    FontId::new(TEXT_H2, family_semibold())
+}
+
+/// Section heading (16px semibold).
+pub fn font_h3() -> FontId {
+    FontId::new(TEXT_H3, family_semibold())
+}
+
+/// Page title (20px semibold) — alias kept for call-site stability.
 pub fn font_title() -> FontId {
-    FontId::new(24.0, egui::FontFamily::Proportional) // SF Pro Display Bold equivalent
+    font_h2()
 }
 
-/// Heading font (17px semibold).
+/// Section heading (16px semibold).
 pub fn font_heading() -> FontId {
-    FontId::new(17.0, egui::FontFamily::Proportional) // SF Pro Text Semibold equivalent
+    font_h3()
 }
 
-/// Body font (14px).
+/// Body text (13px regular) — the default.
 pub fn font_body() -> FontId {
-    FontId::new(14.0, egui::FontFamily::Proportional) // SF Pro Text Regular equivalent
+    FontId::new(TEXT_BODY, family_regular())
 }
 
-/// Small / caption font (12px).
+/// Body text with medium weight (13px) — emphasis inside dense layouts.
+pub fn font_body_medium() -> FontId {
+    FontId::new(TEXT_BODY, family_medium())
+}
+
+/// Body text with semibold weight (13px) — buttons, active items.
+pub fn font_body_strong() -> FontId {
+    FontId::new(TEXT_BODY, family_semibold())
+}
+
+/// Lead body (15px regular) — subtitles and short intros.
+pub fn font_body_lg() -> FontId {
+    FontId::new(TEXT_BODY_LG, family_regular())
+}
+
+/// Dense body (12px regular) — table cells, secondary rows.
+pub fn font_body_sm() -> FontId {
+    FontId::new(TEXT_BODY_SM, family_regular())
+}
+
+/// Dense body, medium weight (12px) — table headers, chips.
+pub fn font_body_sm_medium() -> FontId {
+    FontId::new(TEXT_BODY_SM, family_medium())
+}
+
+/// Small text (11px regular).
 pub fn font_small() -> FontId {
-    FontId::new(12.0, egui::FontFamily::Proportional) // SF Pro Text Medium equivalent
+    FontId::new(TEXT_CAPTION, family_regular())
 }
 
-/// Monospace font (12px).
-pub fn font_mono() -> FontId {
-    FontId::new(12.0, egui::FontFamily::Monospace) // SF Mono equivalent
+/// Caption (11px regular) — timestamps, helper text.
+pub fn font_caption() -> FontId {
+    font_small()
 }
 
-/// Small monospace font (11px - terminal, settings, technical annotations).
-pub fn font_mono_sm() -> FontId {
-    FontId::new(11.0, egui::FontFamily::Monospace)
+/// Minimum readable font (11px) — accessibility floor.
+pub fn font_min() -> FontId {
+    font_small()
 }
 
-/// Icon font at a given size (proportional, for FA icons used as visual elements).
-///
-/// Use this instead of `FontId::proportional(size)` for icons rendered via
-/// `painter.text()` to keep icon sizing centralized in the design system.
-pub fn font_icon(size: f32) -> FontId {
-    FontId::new(size, egui::FontFamily::Proportional)
+/// Label (11px medium) — form labels, eyebrow text, uppercase section titles.
+pub fn font_label() -> FontId {
+    FontId::new(TEXT_CAPTION, family_medium())
 }
 
-/// COMEX-ready header font (32px Extra-Bold/strong).
+/// Micro annotation (10px medium) — axis ticks, badge counters.
+pub fn font_micro() -> FontId {
+    FontId::new(TEXT_MICRO, family_medium())
+}
+
+/// Dashboard stat (20px semibold, tabular figures).
+pub fn font_stat() -> FontId {
+    FontId::new(TEXT_H2, family_semibold())
+}
+
+/// Card metric value (26px bold, tabular figures).
+pub fn font_card_value() -> FontId {
+    FontId::new(TEXT_H1, family_bold())
+}
+
+/// COMEX-ready header (30px bold).
 pub fn font_comex() -> FontId {
-    FontId::new(32.0, egui::FontFamily::Proportional)
+    FontId::new(30.0, family_bold())
 }
 
-/// Splash screen title font (36px).
+/// Splash screen title (34px bold).
 pub fn font_splash() -> FontId {
-    FontId::new(36.0, egui::FontFamily::Proportional)
+    font_display()
+}
+
+/// Monospace (12px) — hashes, IPs, CVE ids, paths, terminal output.
+pub fn font_mono() -> FontId {
+    FontId::new(TEXT_BODY_SM, egui::FontFamily::Monospace)
+}
+
+/// Small monospace (11px).
+pub fn font_mono_sm() -> FontId {
+    FontId::new(TEXT_CAPTION, egui::FontFamily::Monospace)
+}
+
+/// Monospace with medium weight (12px) — emphasised technical values.
+pub fn font_mono_strong() -> FontId {
+    FontId::new(TEXT_BODY_SM, family_mono_medium())
+}
+
+/// Icon glyph at an explicit size (Font Awesome resolves through the fallback
+/// chain of every registered family).
+pub fn font_icon(size: f32) -> FontId {
+    FontId::new(size, family_regular())
+}
+
+/// Icon glyph rendered at semibold optical weight, for active/selected states.
+pub fn font_icon_strong(size: f32) -> FontId {
+    FontId::new(size, family_semibold())
 }
 
 // ============================================================================
 // Style application
 // ============================================================================
 
-/// Load embedded icon font (Font Awesome 6 Solid) + system symbol fallback.
+/// Register the application's font stack.
+///
+/// Three families are layered so that every glyph resolves without tofu:
+/// 1. **Inter** (subset, `tnum` baked in) for UI text — one registered family
+///    per weight, because egui cannot synthesise bold.
+/// 2. **JetBrains Mono NL** for technical values — ligature-free on purpose so
+///    hashes, CVE ids and IPs read literally.
+/// 3. **Font Awesome 6 Solid** plus an OS symbol font as fallbacks on every
+///    family, so an icon glyph works inside any weight.
 pub fn configure_fonts(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
 
-    // ── Embedded Font Awesome 6 Free Solid ──────────────────────────
+    // ── Embedded UI + data typefaces ────────────────────────────────
+    static INTER_REGULAR: &[u8] = include_bytes!("../assets/fonts/Inter-Regular.ttf");
+    static INTER_MEDIUM: &[u8] = include_bytes!("../assets/fonts/Inter-Medium.ttf");
+    static INTER_SEMIBOLD: &[u8] = include_bytes!("../assets/fonts/Inter-SemiBold.ttf");
+    static INTER_BOLD: &[u8] = include_bytes!("../assets/fonts/Inter-Bold.ttf");
+    static MONO_REGULAR: &[u8] = include_bytes!("../assets/fonts/JetBrainsMono-Regular.ttf");
+    static MONO_MEDIUM: &[u8] = include_bytes!("../assets/fonts/JetBrainsMono-Medium.ttf");
     static FA_SOLID: &[u8] = include_bytes!("../assets/fonts/fa-solid-900.ttf");
+
+    // Inter's hhea ascent (0.97em) is generous; trimming the line box keeps
+    // dense tables and nav rows optically centred without clipping accents.
+    let ui_tweak = egui::FontTweak {
+        scale: 1.0,
+        y_offset_factor: -0.01,
+        y_offset: 0.0,
+        baseline_offset_factor: -0.0333,
+    };
+    // Font Awesome's cap height (0.84em) overshoots Inter's (0.73em); nudging
+    // the glyphs down aligns icon centres with the text they label.
+    let icon_tweak = egui::FontTweak {
+        scale: 0.92,
+        y_offset_factor: 0.04,
+        y_offset: 0.0,
+        baseline_offset_factor: 0.0,
+    };
+
+    for (name, bytes) in [
+        ("ui_regular", INTER_REGULAR),
+        (FAMILY_UI_MEDIUM, INTER_MEDIUM),
+        (FAMILY_UI_SEMIBOLD, INTER_SEMIBOLD),
+        (FAMILY_UI_BOLD, INTER_BOLD),
+    ] {
+        fonts.font_data.insert(
+            name.to_owned(),
+            std::sync::Arc::new(egui::FontData::from_static(bytes).tweak(ui_tweak)),
+        );
+    }
+    for (name, bytes) in [
+        ("mono_regular", MONO_REGULAR),
+        (FAMILY_MONO_MEDIUM, MONO_MEDIUM),
+    ] {
+        fonts
+            .font_data
+            .insert(name.to_owned(), egui::FontData::from_static(bytes).into());
+    }
     fonts.font_data.insert(
         "fa_solid".to_owned(),
-        egui::FontData::from_static(FA_SOLID).into(),
+        std::sync::Arc::new(egui::FontData::from_static(FA_SOLID).tweak(icon_tweak)),
     );
-    // Add as fallback so FA codepoints (Private Use Area) resolve automatically.
-    if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
-        family.push("fa_solid".to_owned());
-    }
-    if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
-        family.push("fa_solid".to_owned());
-    }
 
-    // ── System symbol fonts (for any remaining Unicode symbols) ─────
-    #[cfg(target_os = "macos")]
-    {
-        let paths = [
-            "/System/Library/Fonts/Apple Symbols.ttf",
-            "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
-        ];
-        for path in &paths {
-            if let Ok(data) = std::fs::read(path) {
-                fonts.font_data.insert(
-                    "system_symbols".to_owned(),
-                    egui::FontData::from_owned(data).into(),
-                );
-                if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
-                    family.push("system_symbols".to_owned());
-                }
-                if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
-                    family.push("system_symbols".to_owned());
-                }
-                break;
-            }
-        }
+    // ── System symbol font (last-resort Unicode fallback) ───────────
+    let system_symbols = load_system_symbol_font();
+    if let Some(data) = system_symbols {
+        fonts.font_data.insert(
+            "system_symbols".to_owned(),
+            egui::FontData::from_owned(data).into(),
+        );
     }
+    let has_symbols = fonts.font_data.contains_key("system_symbols");
 
-    #[cfg(target_os = "windows")]
-    {
-        if let Ok(data) = std::fs::read("C:\\Windows\\Fonts\\seguisym.ttf") {
-            fonts.font_data.insert(
-                "system_symbols".to_owned(),
-                egui::FontData::from_owned(data).into(),
-            );
-            if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
-                family.push("system_symbols".to_owned());
-            }
-            if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
-                family.push("system_symbols".to_owned());
-            }
+    // ── Families: primary face first, then the shared fallback chain ─
+    let fallbacks = |primary: &str| {
+        let mut chain = vec![primary.to_owned(), "fa_solid".to_owned()];
+        if has_symbols {
+            chain.push("system_symbols".to_owned());
         }
-    }
+        // egui's bundled faces close the chain so an unexpected codepoint
+        // degrades to a glyph rather than a blank box.
+        chain.extend([
+            "Ubuntu-Light".to_owned(),
+            "NotoEmoji-Regular".to_owned(),
+            "emoji-icon-font".to_owned(),
+        ]);
+        chain
+    };
 
-    #[cfg(target_os = "linux")]
-    {
-        // Common Linux symbol/fallback font paths (Noto, DejaVu, Liberation)
-        let paths = [
-            "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf",
-            "/usr/share/fonts/noto/NotoSansSymbols2-Regular.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-            "/usr/share/fonts/dejavu/DejaVuSans.ttf",
-            "/usr/share/fonts/TTF/DejaVuSans.ttf",
-        ];
-        for path in &paths {
-            if let Ok(data) = std::fs::read(path) {
-                fonts.font_data.insert(
-                    "system_symbols".to_owned(),
-                    egui::FontData::from_owned(data).into(),
-                );
-                if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
-                    family.push("system_symbols".to_owned());
-                }
-                if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
-                    family.push("system_symbols".to_owned());
-                }
-                break;
-            }
-        }
+    fonts
+        .families
+        .insert(egui::FontFamily::Proportional, fallbacks("ui_regular"));
+    fonts
+        .families
+        .insert(egui::FontFamily::Monospace, fallbacks("mono_regular"));
+    for name in [FAMILY_UI_MEDIUM, FAMILY_UI_SEMIBOLD, FAMILY_UI_BOLD] {
+        fonts
+            .families
+            .insert(egui::FontFamily::Name(name.into()), fallbacks(name));
     }
+    fonts.families.insert(
+        egui::FontFamily::Name(FAMILY_MONO_MEDIUM.into()),
+        fallbacks(FAMILY_MONO_MEDIUM),
+    );
 
     ctx.set_fonts(fonts);
+}
+
+/// Locate an OS-provided symbol font for codepoints outside the bundled subsets.
+fn load_system_symbol_font() -> Option<Vec<u8>> {
+    #[cfg(target_os = "macos")]
+    const PATHS: &[&str] = &[
+        "/System/Library/Fonts/Apple Symbols.ttf",
+        "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+    ];
+    #[cfg(target_os = "windows")]
+    const PATHS: &[&str] = &["C:\\Windows\\Fonts\\seguisym.ttf"];
+    #[cfg(target_os = "linux")]
+    const PATHS: &[&str] = &[
+        "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf",
+        "/usr/share/fonts/noto/NotoSansSymbols2-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/TTF/DejaVuSans.ttf",
+    ];
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    const PATHS: &[&str] = &[];
+
+    PATHS.iter().find_map(|path| std::fs::read(path).ok())
 }
 
 /// Apply the Sentinel theme to an egui context.
@@ -957,99 +1199,145 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
 
     let mut style = Style::default();
 
-    // Text styles
-    style.text_styles.insert(TextStyle::Heading, font_heading());
+    // ── Text styles ────────────────────────────────────────────────
+    // `Heading` and `Button` map to the semibold family so egui's own
+    // widgets inherit the type system instead of falling back to regular.
+    style.text_styles.insert(TextStyle::Heading, font_h3());
     style.text_styles.insert(TextStyle::Body, font_body());
-    style.text_styles.insert(TextStyle::Button, font_body());
+    style
+        .text_styles
+        .insert(TextStyle::Button, font_body_medium());
     style.text_styles.insert(TextStyle::Small, font_small());
     style.text_styles.insert(TextStyle::Monospace, font_mono());
 
-    // Spacing
+    // ── Spacing ────────────────────────────────────────────────────
     style.spacing.item_spacing = Vec2::new(SPACE_SM, SPACE_SM);
-    style.spacing.window_margin = Margin::same(20);
+    style.spacing.window_margin = Margin::same(SPACE as i8);
+    style.spacing.menu_margin = Margin::same(SPACE_XS as i8);
     style.spacing.button_padding = Vec2::new(SPACE_MD, SPACE_SM);
-    style.spacing.indent = SPACE;
+    style.spacing.indent = SPACE_LG;
+    style.spacing.interact_size = Vec2::new(MIN_TOUCH_TARGET, BUTTON_HEIGHT_SM);
+    style.spacing.icon_width = ICON_SM;
+    style.spacing.icon_width_inner = ICON_XS;
+    style.spacing.tooltip_width = TOOLTIP_MAX_WIDTH;
 
-    // Scrollbar — thin macOS-style with padding from content
+    // Overlay scrollbars: thin, floating, out of the way until pointed at.
     style.spacing.scroll = egui::style::ScrollStyle {
-        bar_width: 6.0,
-        handle_min_length: 20.0,
-        bar_inner_margin: 4.0, // Gap between content edge and scrollbar track
-        bar_outer_margin: 2.0, // Gap between scrollbar track and window edge
-        floating: true,        // Overlay scrollbar (doesn't consume layout space)
-        ..style.spacing.scroll
+        bar_width: 8.0,
+        handle_min_length: 24.0,
+        bar_inner_margin: 4.0,
+        bar_outer_margin: 2.0,
+        floating: true,
+        floating_width: 4.0,
+        floating_allocated_width: 0.0,
+        foreground_color: false,
+        dormant_background_opacity: 0.0,
+        active_background_opacity: 0.25,
+        interact_background_opacity: 0.5,
+        dormant_handle_opacity: 0.28,
+        active_handle_opacity: 0.7,
+        interact_handle_opacity: 0.95,
     };
 
-    // Visuals
+    // ── Visuals ────────────────────────────────────────────────────
     let mut visuals = if dark {
         Visuals::dark()
     } else {
         Visuals::light()
     };
 
-    // Panel
     visuals.panel_fill = bg_primary();
     visuals.window_fill = bg_secondary();
+    visuals.override_text_color = None;
+    visuals.text_cursor.stroke = Stroke::new(BORDER_MEDIUM, accent_text());
 
-    // Use a slightly larger corner radius for modern macOS feel
-    let btn_rounding = CornerRadius::same(BUTTON_ROUNDING);
+    let control_radius = CornerRadius::same(BUTTON_ROUNDING);
 
-    // Widgets idle
+    // Non-interactive: labels, separators, frames.
     visuals.widgets.noninteractive.bg_fill = bg_secondary();
+    visuals.widgets.noninteractive.weak_bg_fill = bg_secondary();
     visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0_f32, text_secondary());
-    visuals.widgets.noninteractive.corner_radius = btn_rounding;
-    visuals.widgets.noninteractive.bg_stroke = Stroke::NONE;
+    visuals.widgets.noninteractive.corner_radius = control_radius;
+    visuals.widgets.noninteractive.bg_stroke = Stroke::new(BORDER_HAIRLINE, border_subtle());
 
-    // Widgets hovered — visible tint matching hover_bg() for WCAG 1.4.11.
-    visuals.widgets.hovered.bg_fill = hover_bg();
-    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0_f32, text_primary());
-    visuals.widgets.hovered.corner_radius = btn_rounding;
-    visuals.widgets.hovered.bg_stroke = Stroke::NONE;
-
-    // Widgets active
-    visuals.widgets.active.bg_fill = ACCENT;
-    visuals.widgets.active.fg_stroke = Stroke::new(1.0_f32, text_on_accent());
-    visuals.widgets.active.corner_radius = btn_rounding;
-
-    // Widgets inactive (buttons)
-    visuals.widgets.inactive.bg_fill = bg_elevated();
+    // Inactive: the resting state of buttons and inputs. A visible boundary
+    // here is what WCAG 1.4.11 asks for, so the border is the strong one.
+    visuals.widgets.inactive.bg_fill = bg_tertiary();
+    visuals.widgets.inactive.weak_bg_fill = bg_tertiary();
     visuals.widgets.inactive.fg_stroke = Stroke::new(1.0_f32, text_primary());
-    visuals.widgets.inactive.corner_radius = btn_rounding;
-    visuals.widgets.inactive.bg_stroke = Stroke::NONE; // Remove border for cleaner look
+    visuals.widgets.inactive.corner_radius = control_radius;
+    visuals.widgets.inactive.bg_stroke = Stroke::new(BORDER_HAIRLINE, border_subtle());
+    visuals.widgets.inactive.expansion = 0.0;
 
-    // Selection / Focus (accessibility: visible focus ring)
-    visuals.selection.bg_fill = ACCENT.linear_multiply(0.2);
-    visuals.selection.stroke = Stroke::new(2.0_f32, ACCENT); // 2px for WCAG-compliant focus visibility
+    // Hovered: accent-tinted wash plus a hint of accent in the border.
+    visuals.widgets.hovered.bg_fill = hover_bg();
+    visuals.widgets.hovered.weak_bg_fill = hover_bg();
+    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0_f32, text_primary());
+    visuals.widgets.hovered.corner_radius = control_radius;
+    visuals.widgets.hovered.bg_stroke =
+        Stroke::new(BORDER_THIN, ACCENT.linear_multiply(OPACITY_MODERATE));
+    visuals.widgets.hovered.expansion = 0.0;
 
-    // Window
-    visuals.window_corner_radius = CornerRadius::same(CARD_ROUNDING);
-    visuals.window_shadow = if dark {
-        premium_shadow(40, 96) // Deeper, smoother shadow
-    } else {
-        premium_shadow(24, 40)
-    };
-    visuals.window_stroke = Stroke::new(BORDER_HAIRLINE, overlay_color().linear_multiply(0.06));
+    // Active: pressed / engaged.
+    visuals.widgets.active.bg_fill = ACCENT;
+    visuals.widgets.active.weak_bg_fill = active_bg();
+    visuals.widgets.active.fg_stroke = Stroke::new(1.0_f32, text_on_accent());
+    visuals.widgets.active.corner_radius = control_radius;
+    visuals.widgets.active.bg_stroke = Stroke::NONE;
+    visuals.widgets.active.expansion = 0.0;
 
-    // Misc
-    visuals.popup_shadow = if dark {
-        premium_shadow(24, 80)
-    } else {
-        premium_shadow(12, 30)
-    };
-    visuals.resize_corner_size = 8.0;
+    // Open: menus and combo boxes while their popup is showing.
+    visuals.widgets.open.bg_fill = bg_elevated();
+    visuals.widgets.open.weak_bg_fill = bg_elevated();
+    visuals.widgets.open.fg_stroke = Stroke::new(1.0_f32, text_primary());
+    visuals.widgets.open.corner_radius = control_radius;
+    visuals.widgets.open.bg_stroke = Stroke::new(BORDER_THIN, border());
+
+    // Selection / focus — a 2px accent ring, always visible (WCAG 2.4.7).
+    visuals.selection.bg_fill = ACCENT.linear_multiply(if dark { 0.32 } else { 0.22 });
+    visuals.selection.stroke = Stroke::new(BORDER_THICK, accent_text());
+
+    // Windows, popups and menus.
+    visuals.window_corner_radius = CornerRadius::same(ROUNDING_XL);
+    visuals.menu_corner_radius = CornerRadius::same(ROUNDING_LG);
+    visuals.window_shadow = Elevation::Level4.ambient();
+    visuals.window_stroke = Stroke::new(BORDER_HAIRLINE, border_subtle());
+    visuals.popup_shadow = Elevation::Level3.ambient();
+
+    visuals.resize_corner_size = 10.0;
     visuals.hyperlink_color = accent_text();
-    visuals.faint_bg_color = bg_elevated();
-    visuals.extreme_bg_color = bg_deep();
-    visuals.striped = false; // Striping can look dated; plain is cleaner.
+    visuals.faint_bg_color = if dark {
+        Color32::from_white_alpha(TABLE_ALT_ROW_ALPHA)
+    } else {
+        Color32::from_black_alpha(TABLE_ALT_ROW_ALPHA)
+    };
+    // egui paints every bare TextEdit with `extreme_bg_color`. Pointing it at
+    // bg_deep made unstyled search fields disappear into the canvas — a field
+    // belongs one step above the surface it sits on, not below it. The
+    // terminal asks for bg_deep explicitly where it wants the inset look.
+    visuals.extreme_bg_color = bg_tertiary();
+    visuals.warn_fg_color = readable_color(WARNING);
+    visuals.error_fg_color = readable_color(ERROR);
+    visuals.striped = false; // Zebra striping is opt-in, per table.
+    visuals.slider_trailing_fill = true;
+    visuals.handle_shape = egui::style::HandleShape::Circle;
+    visuals.image_loading_spinners = true;
 
     style.visuals = visuals;
+    style.animation_time = ANIM_FAST;
+    style.interaction.selectable_labels = true;
+    style.interaction.tooltip_delay = 0.4;
+    style.interaction.tooltip_grace_time = 0.2;
     ctx.set_style(style);
 }
 
-/// Helper for a premium deep shadow.
+/// Build a shadow from its parts (offset, blur, spread, alpha).
+///
+/// Kept public for call sites that need a bespoke shadow; prefer the
+/// `shadow_*` elevation helpers so depth stays consistent.
 pub fn premium_shadow(blur: u8, alpha: u8) -> Shadow {
     Shadow {
-        offset: [0, 4], // Slight vertical offset
+        offset: [0, (blur / 4).max(1) as i8],
         blur,
         spread: 0,
         color: Color32::from_black_alpha(alpha),
@@ -1057,52 +1345,161 @@ pub fn premium_shadow(blur: u8, alpha: u8) -> Shadow {
 }
 
 // ============================================================================
-// Elevation shadow system (5 levels — Apple/Material-inspired)
+// Elevation system — five levels, two light sources
 // ============================================================================
+//
+// Real depth needs two shadows: a wide *ambient* one for the occlusion a
+// surface casts on its surroundings, and a tight *key* one for the light
+// falling from above. `paint_elevation()` renders both; the `shadow_*`
+// helpers return the ambient layer alone for the many call sites that hand a
+// single `Shadow` to `egui::Frame`.
+//
+// Dark surfaces absorb black shadows, so depth there is carried mostly by the
+// surface ladder and the hairline rim (see `paint_surface_rim`); the shadows
+// stay deliberately restrained to avoid muddy halos.
 
-/// Level 1: Subtle hover feedback, small interactive elements.
+/// Elevation step, from a resting surface to a full-screen overlay.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Elevation {
+    /// Resting interactive elements, hover feedback on flat items.
+    Level1,
+    /// Cards and raised panels.
+    Level2,
+    /// Dropdowns, popovers, floating buttons.
+    Level3,
+    /// Modals and dialogs.
+    Level4,
+    /// Full-screen overlays, command palette.
+    Level5,
+}
+
+impl Elevation {
+    /// (ambient blur, ambient alpha, key blur, key alpha, y offset)
+    const fn params(self, dark: bool) -> (u8, u8, u8, u8, i8) {
+        match (self, dark) {
+            (Elevation::Level1, true) => (6, 26, 2, 20, 1),
+            (Elevation::Level1, false) => (6, 14, 2, 10, 1),
+            (Elevation::Level2, true) => (16, 40, 4, 28, 2),
+            (Elevation::Level2, false) => (14, 20, 3, 14, 2),
+            (Elevation::Level3, true) => (28, 56, 8, 36, 4),
+            (Elevation::Level3, false) => (24, 28, 6, 18, 4),
+            (Elevation::Level4, true) => (44, 84, 12, 48, 8),
+            (Elevation::Level4, false) => (40, 40, 10, 24, 8),
+            (Elevation::Level5, true) => (64, 110, 18, 60, 12),
+            (Elevation::Level5, false) => (56, 52, 14, 30, 12),
+        }
+    }
+
+    /// The wide ambient layer, usable on its own with `egui::Frame::shadow`.
+    pub fn ambient(self) -> Shadow {
+        let (blur, alpha, _, _, dy) = self.params(is_dark_mode());
+        Shadow {
+            offset: [0, dy],
+            blur,
+            spread: 0,
+            color: Color32::from_black_alpha(alpha),
+        }
+    }
+
+    /// The tight key layer that sharpens the contact edge.
+    pub fn key(self) -> Shadow {
+        let (_, _, blur, alpha, dy) = self.params(is_dark_mode());
+        Shadow {
+            offset: [0, (dy / 2).max(1)],
+            blur,
+            spread: 0,
+            color: Color32::from_black_alpha(alpha),
+        }
+    }
+}
+
+/// Both shadow layers as shapes, ready to be placed behind a surface.
+///
+/// Returned rather than painted because a shadow drawn *after* its surface
+/// lands on top of it: callers reserve slots with `Shape::Noop` before
+/// drawing, then fill them here. `intensity` (0.0…1.0) animates the lift.
+pub fn elevation_shapes(
+    rect: egui::Rect,
+    radius: CornerRadius,
+    level: Elevation,
+    intensity: f32,
+) -> [egui::Shape; 2] {
+    let t = intensity.clamp(0.0, 1.0);
+    if t <= 0.0 {
+        return [egui::Shape::Noop, egui::Shape::Noop];
+    }
+    let mut shapes = [egui::Shape::Noop, egui::Shape::Noop];
+    for (slot, mut shadow) in shapes.iter_mut().zip([level.ambient(), level.key()]) {
+        shadow.blur = (shadow.blur as f32 * t) as u8;
+        shadow.color = shadow.color.linear_multiply(t);
+        *slot = egui::Shape::Rect(shadow.as_shape(rect, radius));
+    }
+    shapes
+}
+
+/// Paint both shadow layers at the current end of the paint list.
+///
+/// Only correct when the surface has not been drawn yet — for anything drawn
+/// through `egui::Frame`, reserve slots and use `elevation_shapes` instead.
+pub fn paint_elevation(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    radius: CornerRadius,
+    level: Elevation,
+    intensity: f32,
+) {
+    for shape in elevation_shapes(rect, radius, level, intensity) {
+        if !matches!(shape, egui::Shape::Noop) {
+            painter.add(shape);
+        }
+    }
+}
+
+/// Paint the hairline rim that separates a raised surface from what is behind
+/// it — the primary depth cue in dark mode, a crisp highlight in light mode.
+pub fn paint_surface_rim(painter: &egui::Painter, rect: egui::Rect, radius: CornerRadius) {
+    painter.rect_stroke(
+        rect.shrink(0.5),
+        radius,
+        Stroke::new(BORDER_HAIRLINE, border_subtle()),
+        egui::epaint::StrokeKind::Inside,
+    );
+    if is_dark_mode() {
+        // A single lit edge along the top reads as a surface catching light,
+        // without the full bevel that dates an interface.
+        painter.line_segment(
+            [
+                egui::pos2(rect.left() + f32::from(radius.nw), rect.top() + 0.5),
+                egui::pos2(rect.right() - f32::from(radius.ne), rect.top() + 0.5),
+            ],
+            Stroke::new(BORDER_HAIRLINE, Color32::from_white_alpha(14)),
+        );
+    }
+}
+
+/// Level 1: subtle hover feedback, small interactive elements.
 pub fn shadow_sm() -> Shadow {
-    if is_dark_mode() {
-        premium_shadow(4, 12)
-    } else {
-        premium_shadow(6, 16) // Stronger lift for clear elevation in light mode
-    }
+    Elevation::Level1.ambient()
 }
 
-/// Level 2: Cards, raised panels, hover on cards.
+/// Level 2: cards, raised panels.
 pub fn shadow_md() -> Shadow {
-    if is_dark_mode() {
-        premium_shadow(8, 24)
-    } else {
-        premium_shadow(12, 24) // More prominent card elevation in light mode
-    }
+    Elevation::Level2.ambient()
 }
 
-/// Level 3: Elevated cards, floating buttons, dropdown menus.
+/// Level 3: elevated cards, floating buttons, dropdown menus.
 pub fn shadow_lg() -> Shadow {
-    if is_dark_mode() {
-        premium_shadow(16, 48)
-    } else {
-        premium_shadow(16, 38) // Deeper floating effect in light mode
-    }
+    Elevation::Level3.ambient()
 }
 
-/// Level 4: Modals, dialog windows.
+/// Level 4: modals, dialog windows.
 pub fn shadow_xl() -> Shadow {
-    if is_dark_mode() {
-        premium_shadow(24, 80)
-    } else {
-        premium_shadow(20, 48)
-    }
+    Elevation::Level4.ambient()
 }
 
-/// Level 5: Top-level windows, full-screen overlays.
+/// Level 5: top-level windows, full-screen overlays.
 pub fn shadow_2xl() -> Shadow {
-    if is_dark_mode() {
-        premium_shadow(40, 96)
-    } else {
-        premium_shadow(32, 64)
-    }
+    Elevation::Level5.ambient()
 }
 
 /// Helper for a subtle glow effect around a rect.
@@ -1117,11 +1514,7 @@ pub fn glow_stroke(color: Color32) -> Stroke {
 /// (≥7:1 on typical light surfaces).
 #[inline]
 pub fn readable_color(color: Color32) -> Color32 {
-    if is_dark_mode() {
-        color
-    } else {
-        darken_for_light_bg(color)
-    }
+    theme_variant(color)
 }
 
 /// Color for a compliance score value.
@@ -1201,25 +1594,75 @@ pub fn disabled_color(color: Color32) -> Color32 {
     color.linear_multiply(OPACITY_DISABLED)
 }
 
-/// Hover background for interactive elements (accent-tinted semi-transparent).
-/// Sits in the same color family as `selected_bg()` (ACCENT × 0.15/0.12) but
-/// clearly weaker, so hover → selected reads as a natural intensity ramp.
-/// WCAG 1.4.11: interactive state indicators should be distinguishable.
+/// A color at a given alpha.
+///
+/// Note that egui composites in linear space, so a translucent saturated
+/// hue lands much brighter than its alpha suggests. Use this for glows and
+/// overlays; for state washes prefer the opaque helpers below.
+#[inline]
+pub fn with_alpha(color: Color32, alpha: u8) -> Color32 {
+    Color32::from_rgba_unmultiplied(color.r(), color.g(), color.b(), alpha)
+}
+
+// ── Interaction washes ──────────────────────────────────────────────────
+//
+// These are *opaque* mixes rather than translucent fills. egui blends in
+// linear space, where a saturated blue at 16% alpha still reads as a solid
+// blue band across a table row — mixing in gamma space gives the quiet tint
+// the design actually calls for, and it is predictable at review time.
+//
+// Hover → selected → pressed form a single intensity ramp in the accent
+// family, so a row's state is legible from its tint alone (WCAG 1.4.11).
+
+/// Hover wash for interactive elements.
 #[inline]
 pub fn hover_bg() -> Color32 {
-    ACCENT.linear_multiply(if is_dark_mode() { 0.09 } else { 0.07 })
+    color_blend(
+        bg_secondary(),
+        ACCENT,
+        if is_dark_mode() { 0.10 } else { 0.07 },
+    )
 }
 
-/// Active/pressed background for interactive elements (accent-tinted).
+/// Pressed wash for interactive elements.
 #[inline]
 pub fn active_bg() -> Color32 {
-    ACCENT.linear_multiply(if is_dark_mode() { 0.18 } else { 0.12 })
+    color_blend(
+        bg_secondary(),
+        ACCENT,
+        if is_dark_mode() { 0.26 } else { 0.18 },
+    )
 }
 
-/// Selected item background.
+/// Selected-row / active-nav wash.
 #[inline]
 pub fn selected_bg() -> Color32 {
-    ACCENT.linear_multiply(if is_dark_mode() { 0.15 } else { 0.12 })
+    color_blend(
+        bg_secondary(),
+        ACCENT,
+        if is_dark_mode() { 0.18 } else { 0.12 },
+    )
+}
+
+/// Neutral hover wash for surfaces that must not read as accented
+/// (table rows, list items inside an already-accented container).
+#[inline]
+pub fn hover_bg_neutral() -> Color32 {
+    color_blend(
+        bg_secondary(),
+        overlay_color(),
+        if is_dark_mode() { 0.07 } else { 0.05 },
+    )
+}
+
+/// Tinted wash of any semantic color, for banner and inline-alert surfaces.
+#[inline]
+pub fn tinted_surface(color: Color32) -> Color32 {
+    if is_dark_mode() {
+        color_blend(bg_secondary(), color, 0.14)
+    } else {
+        color_blend(Color32::WHITE, color, 0.10)
+    }
 }
 
 // ============================================================================
@@ -1230,7 +1673,7 @@ pub fn selected_bg() -> Color32 {
 pub const MIN_TOUCH_TARGET: f32 = 32.0;
 
 /// Standard button height.
-pub const BUTTON_HEIGHT: f32 = 40.0;
+pub const BUTTON_HEIGHT: f32 = 36.0;
 
 /// Large button height.
 pub const BUTTON_HEIGHT_LG: f32 = 44.0;
@@ -1239,10 +1682,10 @@ pub const BUTTON_HEIGHT_LG: f32 = 44.0;
 pub const BUTTON_HEIGHT_SM: f32 = 32.0;
 
 /// Input field height.
-pub const INPUT_HEIGHT: f32 = 40.0;
+pub const INPUT_HEIGHT: f32 = 38.0;
 
 /// Minimum button width for consistent look.
-pub const BUTTON_MIN_WIDTH: f32 = 120.0;
+pub const BUTTON_MIN_WIDTH: f32 = 88.0;
 
 // ============================================================================
 // Widget-specific sizing constants
@@ -1282,21 +1725,21 @@ pub const STATUS_DOT_SIZE: f32 = 8.0;
 pub const STEP_CIRCLE_SIZE: f32 = 24.0;
 
 /// Tab bar row height.
-pub const TAB_HEIGHT: f32 = 40.0;
-/// Tab icon column width (icon + spacing).
-pub const TAB_ICON_WIDTH: f32 = 20.0;
+pub const TAB_HEIGHT: f32 = 38.0;
+/// Tab icon column width (icon + the gap before its label).
+pub const TAB_ICON_WIDTH: f32 = 24.0;
 /// Tab badge pill width (underline style).
 pub const TAB_BADGE_WIDTH: f32 = 28.0;
 
 /// Dropdown option row height.
-pub const DROPDOWN_ROW_HEIGHT: f32 = 32.0;
+pub const DROPDOWN_ROW_HEIGHT: f32 = 34.0;
 /// Dropdown popup max height before scrolling.
 pub const DROPDOWN_MAX_HEIGHT: f32 = 200.0;
 /// Dropdown popup margin for click-outside detection.
 pub const DROPDOWN_POPUP_MARGIN: f32 = 50.0;
 
 /// Modal default width.
-pub const MODAL_WIDTH: f32 = 400.0;
+pub const MODAL_WIDTH: f32 = 440.0;
 /// Modal icon circle diameter.
 pub const MODAL_ICON_SIZE: f32 = 48.0;
 /// Modal header accent bar height.
@@ -1310,7 +1753,7 @@ pub const EMPTY_STATE_ICON: f32 = 64.0;
 pub const PENDING_SPINNER_SIZE: f32 = 48.0;
 
 /// Skeleton content card inner rounding.
-pub const SKELETON_CARD_ROUNDING: u8 = 12;
+pub const SKELETON_CARD_ROUNDING: u8 = ROUNDING_LG;
 
 // ── Toggle switch colors ──
 
@@ -1371,11 +1814,11 @@ pub const TOOLTIP_OFFSET: f32 = 8.0;
 pub const TOOLTIP_SCREEN_MARGIN: f32 = 4.0;
 
 /// Sidebar navigation item height.
-pub const NAV_ITEM_HEIGHT: f32 = 38.0;
+pub const NAV_ITEM_HEIGHT: f32 = 36.0;
 /// Sidebar nav item horizontal inset.
-pub const NAV_ITEM_INSET_H: f32 = 8.0;
+pub const NAV_ITEM_INSET_H: f32 = 10.0;
 /// Sidebar nav item vertical inset.
-pub const NAV_ITEM_INSET_V: f32 = 2.0;
+pub const NAV_ITEM_INSET_V: f32 = 1.0;
 /// Sidebar badge horizontal offset from right edge.
 pub const NAV_BADGE_OFFSET: f32 = 24.0;
 /// Sidebar badge pill width.
@@ -1393,9 +1836,9 @@ pub const COMMAND_PALETTE_ROW_HEIGHT: f32 = 48.0;
 pub const COMMAND_PALETTE_MAX_HEIGHT: f32 = 400.0;
 
 /// Toast notification corner radius.
-pub const TOAST_ROUNDING: u8 = 12;
+pub const TOAST_ROUNDING: u8 = ROUNDING_LG;
 /// Toast notification height.
-pub const TOAST_HEIGHT: f32 = 44.0;
+pub const TOAST_HEIGHT: f32 = 46.0;
 /// Toast left accent bar width.
 pub const TOAST_ACCENT_BAR: f32 = 4.0;
 /// Toast text left padding (past accent bar).
@@ -1430,17 +1873,17 @@ pub const CANVAS_MIN_HEIGHT: f32 = 500.0;
 pub const SUMMARY_CARD_MIN_HEIGHT: f32 = 72.0;
 
 /// Search filter bar input height.
-pub const SEARCH_INPUT_HEIGHT: f32 = 36.0;
+pub const SEARCH_INPUT_HEIGHT: f32 = 32.0;
 
 /// Input field corner radius.
-pub const INPUT_ROUNDING: u8 = 12;
+pub const INPUT_ROUNDING: u8 = ROUNDING_MD;
 
 /// Segmented control height.
-pub const SEGMENTED_CONTROL_HEIGHT: f32 = 40.0;
+pub const SEGMENTED_CONTROL_HEIGHT: f32 = 36.0;
 /// Segmented control default width.
 pub const SEGMENTED_CONTROL_WIDTH: f32 = 340.0;
 /// Segmented control outer rounding.
-pub const SEGMENTED_CONTROL_ROUNDING: u8 = 20;
+pub const SEGMENTED_CONTROL_ROUNDING: u8 = ROUNDING_LG;
 
 /// Splash screen content width.
 pub const SPLASH_CONTENT_WIDTH: f32 = 400.0;
@@ -1474,7 +1917,7 @@ pub fn enrollment_gradient() -> (Color32, Color32) {
 }
 
 /// Enrollment card/content max width.
-pub const ENROLLMENT_CARD_WIDTH: f32 = 480.0;
+pub const ENROLLMENT_CARD_WIDTH: f32 = 520.0;
 /// Enrollment input card max width.
 pub const ENROLLMENT_INPUT_WIDTH: f32 = 420.0;
 /// Enrollment hero icon font size.
@@ -1515,3 +1958,161 @@ pub const Z_MODAL_WINDOW: egui::Order = egui::Order::Foreground;
 
 /// Dropdown/popover z-order.
 pub const Z_DROPDOWN: egui::Order = egui::Order::Foreground;
+
+// ============================================================================
+// Accessibility contract (enforced, not asserted in prose)
+// ============================================================================
+
+#[cfg(test)]
+mod contrast_tests {
+    use super::*;
+
+    /// Every surface a body of text can land on.
+    fn surfaces() -> Vec<(&'static str, Color32)> {
+        vec![
+            ("bg_primary", bg_primary()),
+            ("bg_secondary", bg_secondary()),
+            ("bg_tertiary", bg_tertiary()),
+            ("bg_elevated", bg_elevated()),
+            ("bg_sidebar", bg_sidebar()),
+            ("bg_deep", bg_deep()),
+        ]
+    }
+
+    fn check(label: &str, fg: Color32, min: f32) {
+        for (name, bg) in surfaces() {
+            let ratio = contrast_ratio(fg, bg);
+            assert!(
+                ratio >= min,
+                "{label} on {name}: {ratio:.2}:1 < {min}:1 (theme: {})",
+                if is_dark_mode() { "dark" } else { "light" }
+            );
+        }
+    }
+
+    fn for_each_theme(body: impl Fn()) {
+        for dark in [true, false] {
+            set_dark_mode(dark);
+            body();
+        }
+        set_dark_mode(true);
+    }
+
+    #[test]
+    fn primary_and_secondary_text_meet_aaa() {
+        for_each_theme(|| {
+            check("text_primary", text_primary(), 7.0);
+            check("text_secondary", text_secondary(), 7.0);
+        });
+    }
+
+    #[test]
+    fn tertiary_text_meets_aa() {
+        for_each_theme(|| check("text_tertiary", text_tertiary(), 4.5));
+    }
+
+    #[test]
+    fn semantic_text_meets_aa_on_every_surface() {
+        for_each_theme(|| {
+            for (label, color) in [
+                ("ACCENT", ACCENT),
+                ("SUCCESS", SUCCESS),
+                ("WARNING", WARNING),
+                ("ERROR", ERROR),
+                ("INFO", INFO),
+                ("SEVERITY_HIGH", SEVERITY_HIGH),
+                ("SEVERITY_MEDIUM", SEVERITY_MEDIUM),
+                ("AI", AI),
+            ] {
+                check(label, readable_color(color), 4.5);
+            }
+            check("accent_text", accent_text(), 4.5);
+        });
+    }
+
+    #[test]
+    fn badge_text_is_readable_on_its_own_background() {
+        for_each_theme(|| {
+            for (label, color) in [
+                ("SUCCESS", SUCCESS),
+                ("WARNING", WARNING),
+                ("ERROR", ERROR),
+                ("INFO", INFO),
+                ("SEVERITY_HIGH", SEVERITY_HIGH),
+                ("SEVERITY_MEDIUM", SEVERITY_MEDIUM),
+                ("ACCENT", ACCENT),
+                ("AI", AI),
+            ] {
+                let ratio = contrast_ratio(badge_text(color), badge_bg(color));
+                assert!(
+                    ratio >= 4.5,
+                    "badge {label}: {ratio:.2}:1 < 4.5:1 (theme: {})",
+                    if is_dark_mode() { "dark" } else { "light" }
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn control_borders_meet_non_text_contrast() {
+        // WCAG 1.4.11 applies against the surface a control actually rests on:
+        // the canvas, a card, or an input group — not against the terminal's
+        // inset black or a popover the control never appears in.
+        for_each_theme(|| {
+            for (name, bg) in [
+                ("bg_primary", bg_primary()),
+                ("bg_secondary", bg_secondary()),
+                ("bg_tertiary", bg_tertiary()),
+                ("bg_elevated", bg_elevated()),
+            ] {
+                let ratio = contrast_ratio(border(), bg);
+                assert!(ratio >= 3.0, "border on {name}: {ratio:.2}:1 < 3:1");
+            }
+        });
+    }
+
+    #[test]
+    fn text_on_accent_is_readable() {
+        for accent in [ACCENT, ACCENT_HOVER, ACCENT_PRESSED] {
+            let ratio = contrast_ratio(text_on_accent(), accent);
+            assert!(ratio >= 4.5, "text on accent fill: {ratio:.2}:1");
+        }
+    }
+
+    #[test]
+    fn avatar_initials_are_readable_on_every_hue() {
+        for color in AVATAR_COLORS {
+            let ratio = contrast_ratio(avatar_text_color(color), color);
+            assert!(ratio >= 4.5, "avatar initials: {ratio:.2}:1 on {color:?}");
+        }
+    }
+
+    #[test]
+    fn dark_surface_ladder_is_monotonic() {
+        set_dark_mode(true);
+        let ladder = [
+            ("deep", relative_luminance(bg_deep())),
+            ("sidebar", relative_luminance(bg_sidebar())),
+            ("primary", relative_luminance(bg_primary())),
+            ("secondary", relative_luminance(bg_secondary())),
+            ("tertiary", relative_luminance(bg_tertiary())),
+            ("elevated", relative_luminance(bg_elevated())),
+        ];
+        for pair in ladder.windows(2) {
+            assert!(
+                pair[1].1 > pair[0].1,
+                "dark surface ladder not monotonic at {} -> {}",
+                pair[0].0,
+                pair[1].0
+            );
+        }
+    }
+
+    #[test]
+    fn light_cards_sit_above_the_canvas() {
+        set_dark_mode(false);
+        assert!(relative_luminance(bg_secondary()) > relative_luminance(bg_primary()));
+        assert!(relative_luminance(bg_primary()) > relative_luminance(bg_elevated()));
+        set_dark_mode(true);
+    }
+}

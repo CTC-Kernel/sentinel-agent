@@ -49,9 +49,9 @@ impl BadgeSize {
     /// Returns `(h_padding, v_padding, font)`.
     fn dimensions(&self) -> (f32, f32, egui::FontId) {
         match self {
-            BadgeSize::Small => (6.0, 2.0, theme::font_label()),
-            BadgeSize::Medium => (8.0, 3.0, theme::font_small()),
-            BadgeSize::Large => (10.0, 4.0, theme::font_body()),
+            BadgeSize::Small => (7.0, 3.0, theme::font_micro()),
+            BadgeSize::Medium => (9.0, 4.0, theme::font_label()),
+            BadgeSize::Large => (11.0, 5.0, theme::font_body_medium()),
         }
     }
 }

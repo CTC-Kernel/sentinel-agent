@@ -58,6 +58,57 @@ Cette crate fournit un tableau de bord interactif complet construit avec **egui/
 | **Feedback** | toast, loading_state, progress |
 | **Specialises** | compliance_gauge, security_hero, tray_radar, resource_bar, org_banner, sparkline |
 
+## Design system
+
+Tous les composants s'appuient sur les jetons de `theme.rs` ; aucun ne code une
+taille, une couleur ou un rayon en dur.
+
+| Couche | Ou |
+|--------|-----|
+| **Typographie** | Inter (interface, 4 graisses) + JetBrains Mono NL (donnees), sous-ensembles embarques. Chiffres tabulaires figes dans les fontes. Echelle semantique `font_display()` -> `font_micro()` |
+| **Couleurs** | Six surfaces par theme formant l'echelle d'elevation, huit couleurs semantiques avec variante mode clair calibree, `border()` (contours de controles, >=3:1) et `border_subtle()` (filets decoratifs) |
+| **Elevation** | `Elevation::Level1..5`, ombre ambiante + ombre de contact, liseré superieur eclaire |
+| **Espacement** | Echelle de 4 px, `SPACE_MICRO` -> `SPACE_3XL` |
+| **Rayons** | `ROUNDING_XS` -> `ROUNDING_XL`, un cran par echelle de composant |
+| **Mouvement** | `ANIM_FAST/NORMAL/SLOW`, courbes dans `animation.rs`, preference systeme « mouvement reduit » respectee |
+
+### Accessibilite
+
+Le contrat de contraste est verifie par les tests de `theme.rs`
+(`cargo test -p agent-gui --lib contrast`) :
+
+- textes primaire et secondaire : >= 7:1 (WCAG AAA) sur chaque surface ;
+- texte tertiaire et couleurs semantiques : >= 4.5:1 (WCAG AA) ;
+- bordures de controles : >= 3:1 (WCAG 1.4.11) ;
+- badges et avatars : lisibles sur leur propre fond ;
+- echelle de surfaces monotone en mode sombre.
+
+Ces regles echouent au build si une couleur est modifiee sans les respecter.
+
+### Banc de rendu
+
+```bash
+cargo run -p agent-gui --all-features --example preview
+```
+
+Affiche le chrome applicatif et une galerie de composants sans runtime agent.
+Variables d'environnement :
+
+| Variable | Effet |
+|----------|-------|
+| `PREVIEW_PAGE=<nom>` | Rend une page réelle (`dashboard`, `compliance`, `vulnerabilities`, `threats`, `network`, `monitoring`, `assets`, `software`, `risks`, `reports`, `notifications`, `fim`, `terminal`, `discovery`, `cartography`, `audit`, `sync`, `ai`, `settings`, `about`), ou une surface : `overlays`, `palette`, `splash`, `enrollment` |
+| `PREVIEW_DATA=1` | Peuple toutes les pages avec les fixtures déterministes de `examples/preview/fixtures.rs` |
+| `PREVIEW_DRAWER=<nom>` | Ouvre un tiroir de détail sur la page qui le porte : `vuln`, `threat`, `asset`, `package`, `connection`, `risk`, `fim`, `notification`, `log` (page `terminal`) |
+| `PREVIEW_TAB=<n>` | Onglet secondaire de la page (`threats` 0–6, `notifications` 0–2, `monitoring` 0–1, `reports` 0–3, `ai` 0–2, `compliance` 1 = matrice) |
+| `PREVIEW_STEP=<étape>` | Étape de l'assistant d'enrôlement : `welcome`, `token`, `admin`, `progress`, `done`, `failed` |
+| `PREVIEW_LIGHT=1` | Thème clair |
+| `PREVIEW_RAIL=1` | Barre latérale repliée en rail |
+| `PREVIEW_W`, `PREVIEW_H` | Taille de la fenêtre (le rail se replie seul sous 1 120 px) |
+| `PREVIEW_SHOT=<n>` | Ferme la fenêtre après `n` frames (captures automatisées) |
+
+Les pages sont disposées avec la colonne du shell (`app::page_column`), pour
+qu'une capture mesure ce que l'application montre.
+
 ## Feature flags
 
 | Feature | Description |

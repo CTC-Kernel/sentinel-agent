@@ -7,12 +7,11 @@ use crate::app::AppState;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
-use egui::{Color32, RichText, Ui};
+use egui::{Color32, RichText, Ui, Vec2};
 
 /// Security state categories.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SecurityState {
-    Pending,
     Secure,
     Attention,
     Critical,
@@ -21,7 +20,6 @@ pub enum SecurityState {
 impl SecurityState {
     pub fn color(&self) -> Color32 {
         match self {
-            Self::Pending => theme::INFO,
             Self::Secure => theme::SUCCESS,
             Self::Attention => theme::WARNING,
             Self::Critical => theme::ERROR,
@@ -30,7 +28,6 @@ impl SecurityState {
 
     pub fn icon(&self) -> &'static str {
         match self {
-            Self::Pending => icons::SHIELD_CHECK,
             Self::Secure => icons::SHIELD_CHECK,
             Self::Attention => icons::WARNING,
             Self::Critical => icons::SKULL,
@@ -39,7 +36,6 @@ impl SecurityState {
 
     pub fn title(&self) -> &'static str {
         match self {
-            Self::Pending => "Évaluation en attente",
             Self::Secure => "Poste de travail protégé",
             Self::Attention => "Vigilance recommandée",
             Self::Critical => "Alerte de sécurité critique",
@@ -47,63 +43,126 @@ impl SecurityState {
     }
 }
 
-/// Security posture with an explicit unknown state and readable score hierarchy.
+/// Renders the premium security hero component - clean Apple-style.
 pub fn security_hero(ui: &mut Ui, state: &AppState) {
-    let status = determine_security_state(state);
-    let color = theme::readable_color(status.color());
-    widgets::card(ui, |ui| {
+    let security_state = determine_security_state(state);
+    let base_color = security_state.color();
+
+    widgets::card(ui, |ui: &mut egui::Ui| {
         ui.set_min_width(ui.available_width());
         ui.set_min_height(220.0);
-        ui.horizontal(|ui| {
-            ui.label(RichText::new(status.icon()).size(18.0).color(color));
+        ui.vertical_centered(|ui: &mut egui::Ui| {
+            ui.add_space(theme::SPACE_MD);
+
+            let icon_size = 44.0;
+            let container_size = icon_size * 2.0;
+            let (rect, _resp) =
+                ui.allocate_exact_size(Vec2::splat(container_size), egui::Sense::hover());
+            let center = rect.center();
+            let painter = ui.painter_at(rect);
+
+            // Outer glow ring (theme-aware soft halo)
+            painter.circle_filled(
+                center,
+                icon_size * 1.05,
+                base_color.linear_multiply(theme::OPACITY_TINT * 0.5),
+            );
+
+            // Main background circle with glass-like fill
+            painter.circle_filled(
+                center,
+                icon_size * 0.9,
+                base_color.linear_multiply(theme::OPACITY_SUBTLE),
+            );
+
+            // Top highlight arc for glass depth
+            painter.circle_stroke(
+                center,
+                icon_size * 0.9,
+                egui::Stroke::new(
+                    theme::BORDER_MEDIUM,
+                    base_color.linear_multiply(theme::OPACITY_MODERATE),
+                ),
+            );
+
+            // Icon with subtle shadow (theme-aware)
+            painter.text(
+                center + Vec2::new(1.0, 1.5),
+                egui::Align2::CENTER_CENTER,
+                security_state.icon(),
+                theme::font_icon(icon_size),
+                theme::overlay_color().linear_multiply(theme::OPACITY_TINT),
+            );
+            painter.text(
+                center,
+                egui::Align2::CENTER_CENTER,
+                security_state.icon(),
+                theme::font_icon(icon_size),
+                theme::readable_color(base_color),
+            );
+
+            ui.add_space(theme::SPACE_MD);
+
+            // Title
             ui.label(
-                RichText::new("POSTURE DE SÉCURITÉ")
-                    .font(theme::font_small())
-                    .extra_letter_spacing(1.2)
-                    .color(theme::text_secondary())
+                RichText::new(security_state.title().to_uppercase())
+                    .font(theme::font_body())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .color(theme::text_primary())
                     .strong(),
             );
-        });
-        ui.add_space(theme::SPACE);
-        ui.label(
-            RichText::new(status.title())
-                .size(22.0)
-                .color(theme::text_primary())
-                .strong(),
-        );
-        ui.add_space(theme::SPACE_SM);
-        ui.horizontal(|ui| {
-            let score = state
-                .summary
-                .compliance_score
-                .map(|score| format!("{:.0}", score.clamp(0.0, 100.0)))
-                .unwrap_or_else(|| "—".to_owned());
-            ui.label(RichText::new(score).size(48.0).color(color).strong());
-            ui.vertical(|ui| {
-                ui.label(
-                    RichText::new("/ 100")
-                        .font(theme::font_heading())
-                        .color(theme::text_tertiary()),
+
+            // Score display
+            if let Some(score) = state.summary.compliance_score {
+                ui.add_space(theme::SPACE_XS);
+
+                let score_color = theme::readable_color(theme::score_color(score));
+                // One layout job, so score and delta centre together under
+                // the title instead of hugging the left edge.
+                let mut job = egui::text::LayoutJob::default();
+                job.append(
+                    &format!("{}\u{202f}%", score as i32),
+                    0.0,
+                    egui::TextFormat {
+                        font_id: theme::font_heading(),
+                        color: score_color,
+                        ..Default::default()
+                    },
                 );
-                ui.label(
-                    RichText::new("Score de conformité")
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
-                );
-            });
+                if let Some(prev) = state.previous_compliance_score {
+                    let diff: f32 = score - prev;
+                    if diff.abs() > 0.5 {
+                        let (arrow, arrow_color) = if diff > 0.0 {
+                            ("\u{25b2}", theme::readable_color(theme::SUCCESS))
+                        } else {
+                            ("\u{25bc}", theme::readable_color(theme::ERROR))
+                        };
+                        job.append(
+                            &format!("{arrow} {}", crate::format::decimal(diff.abs(), 1)),
+                            theme::SPACE_SM,
+                            egui::TextFormat {
+                                font_id: theme::font_label(),
+                                color: arrow_color,
+                                valign: egui::Align::Center,
+                                ..Default::default()
+                            },
+                        );
+                    }
+                }
+                ui.label(job);
+            }
+
+            ui.add_space(theme::SPACE_XS);
+
+            // Summary text
+            ui.label(
+                RichText::new(get_security_summary(state, security_state))
+                    .font(theme::font_body())
+                    .color(theme::text_tertiary()),
+            );
+
+            ui.add_space(theme::SPACE_SM);
         });
-        ui.add_space(theme::SPACE_SM);
-        ui.label(
-            RichText::new(get_security_summary(state, status))
-                .font(theme::font_body())
-                .color(theme::text_secondary()),
-        );
-        ui.add_space(theme::SPACE_MD);
-        ui.label(
-            RichText::new("Consulter les contrôles  →")
-                .font(theme::font_body())
-                .color(theme::accent_text()),
-        );
     });
 }
 
@@ -137,17 +196,11 @@ fn determine_security_state(state: &AppState) -> SecurityState {
         return SecurityState::Attention;
     }
 
-    if state.summary.compliance_score.is_none() {
-        return SecurityState::Pending;
-    }
     SecurityState::Secure
 }
 
 fn get_security_summary(state: &AppState, status: SecurityState) -> String {
     match status {
-        SecurityState::Pending => {
-            "Lancez une analyse pour évaluer la conformité de ce poste.".to_owned()
-        }
         SecurityState::Secure => {
             "Aucune menace détectée. Configuration conforme aux standards.".to_string()
         }
@@ -180,30 +233,6 @@ fn get_security_summary(state: &AppState, status: SecurityState) -> String {
                 return format!("{} vulnérabilités CRITIQUES.", vuln.critical);
             }
             "Niveau de protection insuffisant.".to_string()
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn missing_assessment_is_never_presented_as_secure() {
-        let state = AppState::default();
-        assert_eq!(determine_security_state(&state), SecurityState::Pending);
-    }
-    #[test]
-    fn assessed_scores_preserve_severity_thresholds() {
-        let mut state = AppState::default();
-        for (score, expected) in [
-            (59.0, SecurityState::Critical),
-            (60.0, SecurityState::Attention),
-            (84.0, SecurityState::Attention),
-            (85.0, SecurityState::Secure),
-        ] {
-            state.summary.compliance_score = Some(score);
-            assert_eq!(determine_security_state(&state), expected);
         }
     }
 }

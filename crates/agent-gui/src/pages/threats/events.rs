@@ -23,50 +23,30 @@ const ITEMS_PER_PAGE: usize = 25;
 pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let command = None;
 
-    // ── Search bar + severity filter ────────────────────────────────
-    ui.horizontal(|ui: &mut egui::Ui| {
-        // Search input
-        let search_width = (ui.available_width() - 200.0).max(200.0);
-        ui.add_sized(
-            egui::vec2(search_width, theme::MIN_TOUCH_TARGET),
-            egui::TextEdit::singleline(&mut state.threats.search)
-                .hint_text("Rechercher un \u{00e9}v\u{00e9}nement...")
-                .font(theme::font_body()),
-        );
-
-        ui.add_space(theme::SPACE_SM);
-
-        // Severity dropdown filter
-        let severity_labels = [
-            "TOUTES",
-            "CRITIQUE",
-            "\u{00c9}LEV\u{00c9}E",
-            "MOYENNE",
-            "FAIBLE",
-        ];
-        let mut severity_idx = match state.threats.events_severity_filter {
-            None => 0,
-            Some(Severity::Critical) => 1,
-            Some(Severity::High) => 2,
-            Some(Severity::Medium) => 3,
-            Some(Severity::Low) | Some(Severity::Info) => 4,
+    // ── Search and severity chips ───────────────────────────────────
+    let current = state.threats.events_severity_filter;
+    let chips = [
+        ("Critique", Severity::Critical, theme::ERROR),
+        ("\u{00c9}lev\u{00e9}e", Severity::High, theme::SEVERITY_HIGH),
+        ("Moyenne", Severity::Medium, theme::WARNING),
+        ("Faible", Severity::Low, theme::INFO),
+    ];
+    let mut bar = widgets::SearchFilterBar::new(
+        &mut state.threats.search,
+        "Rechercher un \u{00e9}v\u{00e9}nement…",
+    );
+    for (label, severity, color) in chips {
+        bar = bar.chip(label, current == Some(severity), color);
+    }
+    if let Some(idx) = bar.show(ui) {
+        let picked = chips[idx].1;
+        state.threats.events_severity_filter = if current == Some(picked) {
+            None
+        } else {
+            Some(picked)
         };
-        if widgets::dropdown(
-            ui,
-            "events_severity_filter",
-            &severity_labels,
-            &mut severity_idx,
-        ) {
-            state.threats.events_severity_filter = match severity_idx {
-                1 => Some(Severity::Critical),
-                2 => Some(Severity::High),
-                3 => Some(Severity::Medium),
-                4 => Some(Severity::Low),
-                _ => None,
-            };
-            state.threats.events_page = 0;
-        }
-    });
+        state.threats.events_page = 0;
+    }
 
     ui.add_space(theme::SPACE_MD);
 
@@ -95,6 +75,19 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let total = threats.len();
 
     // ── Pagination ──────────────────────────────────────────────────
+    // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+    let mut position = state.threats.selected_threat;
+    if widgets::navigate_list(
+        ui.ctx(),
+        &mut position,
+        total,
+        &mut state.threats.detail_open,
+    ) && let Some(pos) = position
+    {
+        state.threats.selected_threat = Some(pos);
+        state.threats.events_page = pos / ITEMS_PER_PAGE;
+    }
+
     let total_pages = total.div_ceil(ITEMS_PER_PAGE).max(1);
     if state.threats.events_page >= total_pages {
         state.threats.events_page = total_pages.saturating_sub(1);
@@ -108,14 +101,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         TableColumn {
             key: "severity",
             label: "S\u{00c9}V\u{00c9}RIT\u{00c9}",
-            width: ColumnWidth::Fixed(80.0),
+            width: ColumnWidth::Fixed(110.0),
             sortable: false,
             align: ColumnAlign::Center,
         },
         TableColumn {
             key: "type",
             label: "TYPE",
-            width: ColumnWidth::Fixed(100.0),
+            width: ColumnWidth::Fixed(120.0),
             sortable: false,
             align: ColumnAlign::Left,
         },
@@ -136,14 +129,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         TableColumn {
             key: "confidence",
             label: "CONFIANCE",
-            width: ColumnWidth::Fixed(85.0),
+            width: ColumnWidth::Fixed(100.0),
             sortable: false,
             align: ColumnAlign::Center,
         },
         TableColumn {
             key: "date",
             label: "DATE",
-            width: ColumnWidth::Fixed(130.0),
+            width: ColumnWidth::Fixed(150.0),
             sortable: false,
             align: ColumnAlign::Right,
         },
@@ -187,7 +180,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             let confidence = threat
                 .confidence
-                .map(|c| format!("{}%", c))
+                .map(|c| format!("{}\u{202f}%", c))
                 .unwrap_or_else(|| "\u{2014}".to_string());
 
             let date = threat.timestamp.format("%d/%m/%Y %H:%M").to_string();
@@ -281,7 +274,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 widgets::detail_field_colored(
                                     ui,
                                     "Confiance",
-                                    &format!("{}%", conf),
+                                    &format!("{}\u{202f}%", conf),
                                     theme::readable_color(sev_color),
                                 );
                             }

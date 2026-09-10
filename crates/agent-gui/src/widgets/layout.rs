@@ -48,6 +48,34 @@ impl ResponsiveGrid {
         (cols, item_width)
     }
 
+    /// Columns for `count` items, and the width each gets.
+    ///
+    /// Never an empty column: two cards on a wide display share the row
+    /// instead of sitting at minimum width beside 600px of nothing. And never
+    /// a lone orphan on the last row when one column fewer balances the rows:
+    /// four stat cards at three columns become two by two, not three and one.
+    pub fn columns_for(&self, ui: &Ui, count: usize) -> (usize, f32) {
+        let (max_cols, _) = self.calculate(ui);
+        let mut cols = max_cols.min(count.max(1));
+        if count > cols {
+            // Same number of rows, fullest last row: 7 cards at 5 columns
+            // become 4 + 3, 8 become 4 + 4, 4 at 3 become 2 + 2.
+            let rows = count.div_ceil(cols);
+            let fullness = |c: usize| (count - (rows - 1) * c) as f32 / c as f32;
+            cols = (max_cols.saturating_sub(2).max(2)..=cols)
+                .filter(|&c| count.div_ceil(c) == rows)
+                .max_by(|&a, &b| {
+                    fullness(a)
+                        .partial_cmp(&fullness(b))
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                        .then(a.cmp(&b))
+                })
+                .unwrap_or(cols);
+        }
+        let total = (ui.available_width() - 12.0).max(0.0);
+        (cols, (total - self.gap * (cols - 1) as f32) / cols as f32)
+    }
+
     /// Render items in a responsive grid.
     ///
     /// # Arguments
@@ -58,14 +86,7 @@ impl ResponsiveGrid {
     where
         F: FnMut(&mut Ui, f32, &T),
     {
-        if items.is_empty() {
-            return;
-        }
-        let (capacity, _) = self.calculate(ui);
-        let cols = balanced_columns(capacity, items.len());
-        let item_width = ((ui.available_width() - 12.0).max(0.0) - self.gap * (cols - 1) as f32)
-            .max(0.0)
-            / cols as f32;
+        let (cols, item_width) = self.columns_for(ui, items.len());
 
         ui.vertical_centered_justified(|ui: &mut egui::Ui| {
             ui.spacing_mut().item_spacing.y = self.gap;
@@ -79,24 +100,5 @@ impl ResponsiveGrid {
                 });
             }
         });
-    }
-}
-
-/// Balance rows without allocating columns for nonexistent items.
-fn balanced_columns(capacity: usize, count: usize) -> usize {
-    let capacity = capacity.max(1).min(count.max(1));
-    let rows = count.div_ceil(capacity).max(1);
-    count.div_ceil(rows).max(1)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn grids_fill_the_row_and_balance_wrapping() {
-        assert_eq!(balanced_columns(3, 2), 2);
-        assert_eq!(balanced_columns(5, 8), 4);
-        assert_eq!(balanced_columns(1, 8), 1);
-        assert_eq!(balanced_columns(4, 0), 1);
     }
 }

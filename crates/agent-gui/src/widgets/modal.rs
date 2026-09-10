@@ -39,6 +39,16 @@ pub struct Modal {
     width: f32,
 }
 
+fn open_frame_id() -> egui::Id {
+    egui::Id::new("modal_open_frame")
+}
+
+/// Whether any modal was shown this frame or the previous one.
+pub fn any_modal_open(ctx: &egui::Context) -> bool {
+    ctx.memory(|mem| mem.data.get_temp::<u64>(open_frame_id()))
+        .is_some_and(|frame| frame + 1 >= ctx.cumulative_pass_nr())
+}
+
 impl Modal {
     /// Create a new modal with the given ID and title.
     pub fn new(id: impl std::hash::Hash, title: impl Into<String>) -> Self {
@@ -116,6 +126,12 @@ impl Modal {
         if !is_open {
             return ModalResult::None;
         }
+        // Mark the frame, so list keyboard navigation stands down while a
+        // modal is up (pages render before overlays, hence the one-frame lag).
+        ctx.memory_mut(|mem| {
+            mem.data
+                .insert_temp(open_frame_id(), ctx.cumulative_pass_nr())
+        });
 
         let mut result = ModalResult::None;
 
@@ -181,28 +197,21 @@ impl Modal {
         egui::Frame::new()
             .fill(theme::bg_secondary())
             .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
-            .shadow(theme::shadow_xl())
-            .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
+            .shadow(theme::Elevation::Level4.ambient())
+            .stroke(egui::Stroke::new(
+                theme::BORDER_HAIRLINE,
+                theme::border_subtle(),
+            ))
             .inner_margin(egui::Margin::same(0))
             .show(ui, |ui| {
                 ui.set_width(self.width);
 
-                // Header with icon and title
+                // Header with icon and title. The old top bar was allocated
+                // at `self.width` while the frame grew wider than that, so it
+                // stopped short of the right edge; the medallion already says
+                // which kind of dialog this is.
                 ui.vertical(|ui| {
-                    // Top colored bar
-                    let header_rect = ui
-                        .allocate_space(egui::vec2(self.width, theme::MODAL_HEADER_BAR))
-                        .1;
-                    ui.painter().rect_filled(
-                        header_rect,
-                        CornerRadius {
-                            nw: theme::CARD_ROUNDING,
-                            ne: theme::CARD_ROUNDING,
-                            ..Default::default()
-                        },
-                        color,
-                    );
-
+                    ui.set_max_width(self.width);
                     ui.add_space(theme::SPACE_LG);
 
                     // Icon and close button row
@@ -218,14 +227,14 @@ impl Modal {
                         ui.painter().circle_filled(
                             icon_rect.center(),
                             icon_size / 2.0,
-                            color.linear_multiply(theme::OPACITY_TINT),
+                            theme::tinted_surface(color),
                         );
                         ui.painter().text(
                             icon_rect.center(),
                             egui::Align2::CENTER_CENTER,
                             icon,
-                            egui::FontId::proportional(theme::ICON_LG),
-                            color,
+                            theme::font_icon(theme::ICON_LG),
+                            theme::readable_color(color),
                         );
 
                         ui.add_space(theme::SPACE_MD);
@@ -235,9 +244,8 @@ impl Modal {
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new(&self.title)
-                                    .font(theme::font_heading())
-                                    .color(theme::text_primary())
-                                    .strong(),
+                                    .font(theme::font_h3())
+                                    .color(theme::text_primary()),
                             );
                         });
 
@@ -256,17 +264,22 @@ impl Modal {
 
                     // Message body
                     if let Some(ref msg) = self.message {
+                        // Bound the label explicitly: a wrapping label takes
+                        // whatever width it is offered, and the trailing
+                        // spacer then pushed the frame past `self.width`.
                         ui.horizontal(|ui| {
                             ui.add_space(theme::SPACE_LG);
-                            ui.add(
-                                egui::Label::new(
-                                    egui::RichText::new(msg)
-                                        .font(theme::font_body())
-                                        .color(theme::text_secondary()),
-                                )
-                                .wrap_mode(egui::TextWrapMode::Wrap),
-                            );
-                            ui.add_space(theme::SPACE_LG);
+                            ui.vertical(|ui| {
+                                ui.set_max_width(self.width - theme::SPACE_LG * 2.0);
+                                ui.add(
+                                    egui::Label::new(
+                                        egui::RichText::new(msg)
+                                            .font(theme::font_body())
+                                            .color(theme::text_secondary()),
+                                    )
+                                    .wrap_mode(egui::TextWrapMode::Wrap),
+                                );
+                            });
                         });
                     }
 

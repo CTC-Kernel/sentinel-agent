@@ -12,6 +12,12 @@ use crate::theme;
 ///
 /// `score` is expected in range 0..=100.
 pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
+    compliance_gauge_captioned(ui, score, radius, "CONFORMITÉ");
+}
+
+/// [`compliance_gauge`] with its own caption, for a score that is not a
+/// compliance score — the AI posture gauge said "CONFORMITÉ" under 57 %.
+pub fn compliance_gauge_captioned(ui: &mut Ui, score: Option<f32>, radius: f32, caption: &str) {
     let desired_size = Vec2::splat(radius * 2.0 + theme::SPACE);
     let (rect, _response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
     let center = rect.center();
@@ -20,8 +26,14 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
     let track_color = theme::bg_tertiary();
     let stroke_width = theme::GAUGE_STROKE;
 
-    // Subtle background fill for depth
-    painter.circle_filled(center, radius + stroke_width * 0.5, theme::bg_deep());
+    // The dial sits on a card, so its well is one step *below* that card —
+    // not at bg_deep, which is the terminal's near-black and turned an empty
+    // gauge into a hole punched through the panel.
+    painter.circle_filled(
+        center,
+        radius + stroke_width * 0.5,
+        theme::color_blend_pub(theme::bg_secondary(), theme::overlay_color(), 0.04),
+    );
 
     // Background track
     painter.circle_stroke(center, radius, egui::Stroke::new(stroke_width, track_color));
@@ -72,14 +84,14 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
             painter.text(
                 center + Vec2::new(0.0, -theme::SPACE_XS),
                 egui::Align2::CENTER_CENTER,
-                format!("{:.0}%", clamped),
+                crate::format::pct(clamped, 0),
                 theme::font_card_value(),
                 theme::readable_color(color),
             );
             painter.text(
                 center + Vec2::new(0.0, theme::SPACE),
                 egui::Align2::CENTER_CENTER,
-                "CONFORMITÉ",
+                caption,
                 theme::font_caption(),
                 theme::text_tertiary(),
             );

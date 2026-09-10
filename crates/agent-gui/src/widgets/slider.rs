@@ -182,8 +182,13 @@ impl Slider {
                     && let Some(step) = self.step
                     && step.abs() > f32::EPSILON
                 {
-                    let tick_count = (((self.max - self.min) / step) as usize).min(200);
-                    if tick_count > 0 {
+                    // Ticks are an aid to hitting a step, not a decoration.
+                    // Past a dozen they stop reading as marks and start
+                    // reading as a dotted rule under the track, so they are
+                    // dropped rather than drawn at unusable density.
+                    const MAX_TICKS: usize = 12;
+                    let tick_count = ((self.max - self.min) / step) as usize;
+                    if tick_count > 0 && tick_count <= MAX_TICKS {
                         for i in 0..=tick_count {
                             let tick_t = i as f32 / tick_count as f32;
                             let tick_x = track_rect.min.x + tick_t * track_rect.width();
@@ -191,11 +196,11 @@ impl Slider {
 
                             painter.circle_filled(
                                 egui::pos2(tick_x, tick_y),
-                                theme::BORDER_THICK,
+                                theme::BORDER_MEDIUM,
                                 if tick_t <= t {
-                                    accent // Filled tick: full accent color
+                                    accent
                                 } else {
-                                    theme::text_tertiary() // Unfilled tick: muted
+                                    theme::border_subtle()
                                 },
                             );
                         }

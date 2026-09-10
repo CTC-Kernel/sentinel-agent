@@ -14,6 +14,9 @@ use crate::dto::{
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
+
+/// Inner height of a template card: icon row, three lines of copy, button.
+const TEMPLATE_CARD_MIN_HEIGHT: f32 = 118.0;
 use crate::widgets;
 use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort};
 use crate::widgets::pagination::PaginationState;
@@ -145,6 +148,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .inner_margin(egui::Margin::same(theme::SPACE as i8))
                     .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
                     .show(ui, |ui: &mut egui::Ui| {
+                        // Same height whether the description wraps to two
+                        // lines or three, so the row of templates reads as one.
+                        ui.set_min_height(TEMPLATE_CARD_MIN_HEIGHT);
                         ui.horizontal(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(tpl.icon)
@@ -244,7 +250,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             widgets::empty_state(
                 ui,
                 icons::CLIPBOARD_LIST,
-                "AUCUN PLAYBOOK",
+                "Aucun playbook",
                 Some("Installez un template ou cr\u{00e9}ez un playbook personnalis\u{00e9}."),
             );
         } else {
@@ -403,7 +409,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             widgets::empty_state(
                 ui,
                 icons::LIST,
-                "AUCUNE EX\u{00c9}CUTION",
+                "Aucune ex\u{00e9}cution",
                 Some("Les d\u{00e9}clenchements de playbooks seront enregistr\u{00e9}s ici."),
             );
         } else {
@@ -556,7 +562,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                         .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_SM);
-                widgets::text_input(ui, &mut f.name, "Nom du playbook...");
+                widgets::text_input(ui, &mut f.name, "Nom du playbook…");
             });
             ui.add_space(theme::SPACE_XS);
 
@@ -568,7 +574,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                         .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_SM);
-                widgets::text_input(ui, &mut f.description, "Description...");
+                widgets::text_input(ui, &mut f.description, "Description…");
             });
             ui.add_space(theme::SPACE_SM);
 
@@ -598,7 +604,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                             cond.condition_type = *ct;
                         }
                         ui.add_space(theme::SPACE_XS);
-                        widgets::text_input(ui, &mut cond.value, "Valeur...");
+                        widgets::text_input(ui, &mut cond.value, "Valeur…");
                         ui.add_space(theme::SPACE_XS);
                         if widgets::ghost_button(ui, icons::TRASH.to_string()).clicked() {
                             remove_cond_idx = Some(i);
