@@ -320,19 +320,22 @@ mkdir -p "$CONFIG_DIR/cache/llm"
 mkdir -p "$CONFIG_DIR/logs"
 chown -R "$REAL_USER" "$CONFIG_DIR"
 
-if [[ ! -f "$CONFIG_DIR/config/agent.json" ]]; then
-    cat > "$CONFIG_DIR/config/agent.json" << CONFIG
+# The agent reads its configuration from
+# ~/Library/Application Support/SentinelGRC/agent.json (see
+# AgentConfig::platform_config_path) — NOT from the config/ sub-directory,
+# which only holds llm.json.
+if [[ ! -f "$CONFIG_DIR/agent.json" ]]; then
+    cat > "$CONFIG_DIR/agent.json" << CONFIG
 {
-    "server_url": "${SENTINEL_SERVER_URL:-"https://agentapi-your-project-hash.a.run.app"}",
+    "server_url": "__SENTINEL_SERVER_URL__",
     "check_interval_secs": 3600,
     "heartbeat_interval_secs": 60,
     "log_level": "info",
-    "tls_verify": true,
-    "data_dir": "$CONFIG_DIR"
+    "tls_verify": true
 }
 CONFIG
-    chown "$REAL_USER" "$CONFIG_DIR/config/agent.json"
-    chmod 600 "$CONFIG_DIR/config/agent.json"
+    chown "$REAL_USER" "$CONFIG_DIR/agent.json"
+    chmod 600 "$CONFIG_DIR/agent.json"
 fi
 
 # Copy LLM config template if not exists
@@ -399,6 +402,13 @@ sudo -u "$REAL_USER" open "$3/Applications/SentinelAgent.app" || echo "Warning: 
 echo "Installation completed!"
 exit 0
 POSTINSTALL
+
+# The heredoc above is quoted (no expansion at build time), so the server URL
+# is injected here from the build environment. This is what allows an
+# on-premise build (SENTINEL_SERVER_URL=https://grc.example.com/fn/agentApi)
+# to ship a pkg whose agent.json already points to the right platform.
+SENTINEL_SERVER_URL_BAKED="${SENTINEL_SERVER_URL:-https://agentapi-your-project-hash.a.run.app}"
+sed -i '' "s|__SENTINEL_SERVER_URL__|${SENTINEL_SERVER_URL_BAKED}|g" "$BUILD_DIR/postinstall"
 
 chmod +x "$BUILD_DIR/postinstall"
 

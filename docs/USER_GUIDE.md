@@ -58,6 +58,13 @@ sentinel-agent enroll --token "<token>"
 > [!NOTE]
 > Si l'enrollment échoue, vérifiez que le token n'a pas expiré et que le port 443 est ouvert.
 
+> [!IMPORTANT]
+> **Plateforme on-premise** : passez l'URL de l'API agents avec `--server`, par exemple
+> `sentinel-agent enroll --server https://grc.votre-domaine.com/fn/agentApi`.
+> L'URL est enregistrée dans `agent.json` à l'issue de l'enrollment ; sans elle, le service
+> démarrerait sur l'URL SaaS compilée par défaut. Si la plateforme utilise un certificat
+> auto-signé, renseignez aussi `ca_cert_path` (voir `config/README.md`).
+
 ---
 
 ## 💓 Heartbeat & Communication

@@ -10,6 +10,28 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🔌 Communication avec la plateforme on-premise
+
+- **Variables d'environnement `SENTINEL_*` réellement prises en compte** :
+  `SENTINEL_SERVER_URL`, `SENTINEL_ENROLLMENT_TOKEN`, `SENTINEL_CA_CERT_PATH`,
+  etc. étaient silencieusement ignorées (le séparateur `_` les transformait en
+  clés imbriquées `server.url`). Les champs de premier niveau sont désormais
+  mappés à plat, les champs imbriqués (`proxy.*`, `llm.*`) explicitement, et
+  les listes acceptent des valeurs séparées par des virgules. Tests ajoutés
+  avec environnement injecté.
+- **`sentinel-agent enroll --server <URL>` persiste l'URL** dans `agent.json`
+  (en conservant les autres clés et les permissions du fichier). Auparavant le
+  service redémarrait sur l'URL SaaS compilée par défaut après un enrôlement
+  réussi sur une instance on-premise.
+- **macOS** : le `postinstall` écrivait `agent.json` dans `SentinelGRC/config/`
+  alors que l'agent le lit dans `SentinelGRC/` ; l'URL serveur intégrée au
+  paquet n'était donc jamais appliquée. De plus, `SENTINEL_SERVER_URL` était
+  évaluée sur le poste cible (heredoc non interpolé) et non au build : elle est
+  maintenant injectée dans le `.pkg` au moment de la construction.
+- **Documentation** : section on-premise dans `config/README.md` (URL
+  `https://<domaine>/fn/agentApi`, `ca_cert_path`, TLS 1.3, commande de
+  vérification) et rappel dans le guide utilisateur.
+
 ### 🎨 Refonte complète de l'interface (GUI / UI / UX)
 
 #### Fondations du design system

@@ -37,18 +37,28 @@ L'agent determine automatiquement les chemins en fonction du systeme d'exploitat
 
 ## Variables d'environnement
 
-Toutes les valeurs de configuration peuvent etre surchargees via des variables d'environnement avec le prefixe `SENTINEL_` :
+Toutes les valeurs de premier niveau peuvent etre surchargees via des variables d'environnement avec le prefixe `SENTINEL_` suivi du nom du champ en majuscules :
 
 | Variable d'environnement | Champ de configuration | Exemple |
 |--------------------------|------------------------|---------|
-| `SENTINEL_SERVER_URL` | `server_url` | `https://your-sentinel-server.example.com` |
+| `SENTINEL_SERVER_URL` | `server_url` | `https://grc.votre-domaine.com/fn/agentApi` |
+| `SENTINEL_ENROLLMENT_TOKEN` | `enrollment_token` | `<orgId>:<token>` |
+| `SENTINEL_CA_CERT_PATH` | `ca_cert_path` | `/etc/sentinel/ca.pem` |
 | `SENTINEL_CHECK_INTERVAL_SECS` | `check_interval_secs` | `3600` |
-| `SENTINEL_LOG_LEVEL` | `log_level` | `debug` |
-| `SENTINEL_PROXY_URL` | `proxy.url` | `http://proxy:8080` |
-| `SENTINEL_PROXY_USERNAME` | `proxy.username` | `user` |
-| `SENTINEL_VULNERABILITY_SCAN_INTERVAL_SECS` | `vulnerability_scan_interval_secs` | `21600` |
-| `SENTINEL_SECURITY_SCAN_INTERVAL_SECS` | `security_scan_interval_secs` | `300` |
 | `SENTINEL_HEARTBEAT_INTERVAL_SECS` | `heartbeat_interval_secs` | `60` |
+| `SENTINEL_LOG_LEVEL` | `log_level` | `debug` |
+| `SENTINEL_ACTIVE_FRAMEWORKS` | `active_frameworks` (liste, separateur `,`) | `ISO27001,NIST-CSF` |
+| `SENTINEL_DATA_DIR` | repertoire de donnees et de configuration | `/opt/sentinel-data` |
+
+Les champs imbriques sont mappes explicitement :
+
+| Variable d'environnement | Champ de configuration |
+|--------------------------|------------------------|
+| `SENTINEL_PROXY_URL` | `proxy.url` |
+| `SENTINEL_PROXY_USERNAME` | `proxy.username` |
+| `SENTINEL_PROXY_PASSWORD` | `proxy.password` |
+| `SENTINEL_LLM_ENABLED` | `llm.enabled` |
+| `SENTINEL_LLM_MODEL` | `llm.model` |
 
 ## Priorite de configuration
 
@@ -61,3 +71,40 @@ La configuration est chargee dans cet ordre (les sources ulterieures ecrasent le
 ## Mode developpement
 
 Pour le developpement, placez `agent.json` dans le repertoire de travail courant. L'agent utilisera ce fichier si aucune configuration au niveau systeme n'existe.
+
+## Plateforme on-premise (self-hosted)
+
+En mode self-hosted, la plateforme Sentinel GRC expose l'API agents derriere le
+reverse proxy Nginx sous le prefixe `/fn/agentApi` (pont Cloud Functions,
+ADR-013). Le `server_url` doit donc pointer sur ce prefixe, **pas** sur la
+racine du domaine :
+
+```json
+{
+  "server_url": "https://grc.votre-domaine.com/fn/agentApi",
+  "ca_cert_path": "/etc/sentinel/ca.pem"
+}
+```
+
+- `server_url` : `https://<APP_BASE_URL>/fn/agentApi` (l'agent ajoute lui-meme
+  `/v1/agents/...`). Le schema `https://` est obligatoire en build release.
+- `ca_cert_path` : requis si la plateforme utilise un certificat auto-signe ou
+  une PKI interne qui n'est pas dans le magasin de confiance du systeme.
+  L'agent utilise le magasin systeme (Windows/macOS/`/etc/ssl/certs`) ; un CA
+  deploye par GPO/MDM fonctionne sans ce champ.
+- TLS 1.3 minimum : le Nginx fourni avec la plateforme le supporte ; un
+  equipement intermediaire limite a TLS 1.2 bloquera l'agent.
+- Enrolement en ligne de commande : `sentinel-agent enroll --server
+  https://grc.votre-domaine.com/fn/agentApi` enregistre l'URL dans `agent.json`
+  afin que le service demarre sur la meme instance.
+- Windows (MSI) : `msiexec /i sentinel-agent.msi /qn
+  SERVERURL=https://grc.votre-domaine.com/fn/agentApi ENROLLMENTTOKEN=<token>`.
+
+Verification rapide depuis un poste :
+
+```bash
+curl -sS https://grc.votre-domaine.com/fn/agentApi/v1/health
+```
+
+La reponse doit etre un JSON (`{"status":"ok",...}`) et non la page HTML du
+tableau de bord.
