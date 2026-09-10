@@ -41,7 +41,7 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: 
         return;
     }
 
-    ui.horizontal(|ui: &mut Ui| {
+    ui.horizontal_wrapped(|ui: &mut Ui| {
         if let Some(lead) = subtitle {
             ui.label(
                 egui::RichText::new(lead)

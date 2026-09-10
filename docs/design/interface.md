@@ -4,6 +4,12 @@ La page d’accueil rassemble l’état de sécurité, les indicateurs du poste,
 les tendances et l’assistant. La navigation et la barre supérieure utilisent
 le système visuel partagé avec les autres écrans.
 
+Le bandeau d’organisation présente la connexion et la dernière synchronisation
+sur deux lignes adaptatives. Les actions d’analyse et de synchronisation restent
+dans la barre dédiée. L’identifiant du poste peut être copié directement.
+La carte de sécurité ouvre les menaces, les vulnérabilités ou la conformité
+selon les constats ; son pourcentage est explicitement libellé « Conformité ».
+
 ## Intégration avec le système visuel
 
 La refonte utilise les polices Inter et JetBrains Mono, les surfaces, les cartes,
@@ -13,8 +19,11 @@ enrichis par les changements distants. Les correctifs de dépendances du dépôt
 distant sont également conservés.
 
 Les champs proposent un effacement rapide et signalent les filtres actifs par
-une coche. La palette recherche sans accents, actualise immédiatement ses
-résultats et suit la sélection au clavier. Les boutons partagés exposent leurs
+une coche.
+Les filtres passent à la ligne lorsque la largeur diminue et l’effacement
+rend le focus à la recherche. Leur sélection est exposée aux outils d’accessibilité.
+La palette recherche sans accents, actualise immédiatement ses résultats
+et suit la sélection au clavier. Les boutons partagés exposent leurs
 libellés aux outils d’accessibilité. Les actions indisponibles ne reçoivent ni
 clic ni focus clavier.
 

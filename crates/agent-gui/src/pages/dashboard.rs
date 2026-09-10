@@ -123,11 +123,31 @@ impl DashboardPage {
                                 ui.id().with("hero_security_click"),
                                 egui::Sense::click(),
                             );
+                            click.widget_info(|| {
+                                egui::WidgetInfo::labeled(
+                                    egui::WidgetType::Button,
+                                    ui.is_enabled(),
+                                    "Consulter les détails de sécurité",
+                                )
+                            });
                             if click.hovered() {
                                 ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                             }
                             if click.clicked() {
-                                action = Some(DashboardAction::NavigateTo(Page::Compliance));
+                                let target = if !state.threats.suspicious_processes.is_empty()
+                                    || !state.threats.usb_events.is_empty()
+                                {
+                                    Page::Threats
+                                } else if state
+                                    .vulnerability_summary
+                                    .as_ref()
+                                    .is_some_and(|v| v.critical > 0 || v.high > 0)
+                                {
+                                    Page::Vulnerabilities
+                                } else {
+                                    Page::Compliance
+                                };
+                                action = Some(DashboardAction::NavigateTo(target));
                             }
                         }
                         _ => {

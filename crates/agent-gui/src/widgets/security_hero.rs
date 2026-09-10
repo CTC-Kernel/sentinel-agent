@@ -109,8 +109,8 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
 
             // Title
             ui.label(
-                RichText::new(security_state.title().to_uppercase())
-                    .font(theme::font_body())
+                RichText::new(security_state.title())
+                    .font(theme::font_heading())
                     .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .color(theme::text_primary())
                     .strong(),
@@ -129,7 +129,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                 // the title instead of hugging the left edge.
                 let mut job = egui::text::LayoutJob::default();
                 job.append(
-                    &format!("{}\u{202f}%", score as i32),
+                    &format!("Conformité · {}", crate::format::pct(score, 0)),
                     0.0,
                     egui::TextFormat {
                         font_id: theme::font_heading(),

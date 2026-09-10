@@ -66,11 +66,11 @@ impl<'a> SearchFilterBar<'a> {
         let mut toggled: Option<usize> = None;
         let mut action_clicked = false;
 
-        ui.horizontal(|ui: &mut egui::Ui| {
+        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
             // Search field: framed and prefixed with a magnifier, matching the
             // global search in the top bar. A bare TextEdit here read as a
             // stray line of text next to the filter chips.
-            let search_width = 260.0_f32.min(ui.available_width() * 0.4);
+            let search_width = 260.0_f32.min(ui.available_width());
             let (field, _) = ui.allocate_exact_size(
                 Vec2::new(search_width, theme::SEARCH_INPUT_HEIGHT),
                 egui::Sense::hover(),
@@ -94,7 +94,7 @@ impl<'a> SearchFilterBar<'a> {
                 egui::pos2(field.left() + theme::SPACE_LG + 2.0, field.top()),
                 egui::pos2(field.right() - 32.0, field.bottom()),
             );
-            ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+            let editor = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
                 // Clip the editor to the framed field so a long placeholder or
                 // value cannot spill past the rounded edge.
                 ui.set_clip_rect(text_rect);
@@ -108,7 +108,7 @@ impl<'a> SearchFilterBar<'a> {
                         .text_color(theme::text_primary())
                         .frame(false)
                         .desired_width(text_rect.width()),
-                );
+                )
             });
 
             if !self.search.is_empty() {
@@ -116,12 +116,19 @@ impl<'a> SearchFilterBar<'a> {
                     egui::pos2(field.right() - 16.0, field.center().y),
                     Vec2::splat(28.0),
                 );
-                if ui
+                let clear = ui
                     .put(clear_rect, egui::Button::new("×").frame(false))
-                    .on_hover_text("Effacer la recherche")
-                    .clicked()
-                {
+                    .on_hover_text("Effacer la recherche");
+                clear.widget_info(|| {
+                    egui::WidgetInfo::labeled(
+                        egui::WidgetType::Button,
+                        ui.is_enabled(),
+                        "Effacer la recherche",
+                    )
+                });
+                if clear.clicked() {
                     self.search.clear();
+                    editor.inner.request_focus();
                 }
             }
 
@@ -152,6 +159,14 @@ impl<'a> SearchFilterBar<'a> {
                 .min_size(Vec2::new(0.0, theme::SEARCH_INPUT_HEIGHT));
 
                 let response = ui.add(btn);
+                response.widget_info(|| {
+                    egui::WidgetInfo::selected(
+                        egui::WidgetType::SelectableLabel,
+                        ui.is_enabled(),
+                        *active,
+                        *label,
+                    )
+                });
 
                 // Subtle border emphasis on hover
                 if response.hovered() && !*active {
