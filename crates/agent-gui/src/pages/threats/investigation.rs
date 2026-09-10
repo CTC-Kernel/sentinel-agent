@@ -70,11 +70,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // Search input
             let hint = match state.threats.ioc_type {
-                IocSearchType::Ip => "192.168.1.100, 10.0.0.1...",
-                IocSearchType::Domain => "example.com, malware.xyz...",
-                IocSearchType::Hash => "SHA-256 hash...",
-                IocSearchType::Process => "powershell, curl, nc...",
-                IocSearchType::Cve => "CVE-2024-12345...",
+                IocSearchType::Ip => "192.168.1.100, 10.0.0.1…",
+                IocSearchType::Domain => "example.com, malware.xyz…",
+                IocSearchType::Hash => "SHA-256 hash…",
+                IocSearchType::Process => "powershell, curl, nc…",
+                IocSearchType::Cve => "CVE-2024-12345…",
             };
             let input_width = (ui.available_width() - 120.0).max(200.0);
             ui.add_sized(
@@ -86,7 +86,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             ui.add_space(theme::SPACE_SM);
 
-            if widgets::button::primary_button(ui, format!("{}  RECHERCHER", icons::SEARCH), true)
+            if widgets::button::primary_button(ui, format!("{}  Rechercher", icons::SEARCH), true)
                 .clicked()
                 || (ui.input(|i| i.key_pressed(egui::Key::Enter))
                     && !state.threats.ioc_search.is_empty())
@@ -104,7 +104,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         widgets::empty_state(
             ui,
             icons::SEARCH,
-            "AUCUNE RECHERCHE",
+            "Aucune recherche",
             Some(
                 "Entrez un indicateur de compromission (IP, hash, domaine, processus ou CVE) pour lancer une recherche multi-sources.",
             ),
@@ -136,7 +136,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             widgets::empty_state(
                 ui,
                 icons::SHIELD_CHECK,
-                "AUCUNE CORRESPONDANCE",
+                "Aucune correspondance",
                 Some(
                     "Aucun \u{00e9}v\u{00e9}nement ne correspond \u{00e0} cet indicateur dans les sources de d\u{00e9}tection.",
                 ),
@@ -331,7 +331,7 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                         source: "PROCESSUS",
                         title: proc.process_name.clone(),
                         match_description: format!(
-                            "{} \u{2014} Confiance: {}%",
+                            "{} \u{2014} Confiance: {}\u{202f}%",
                             proc.reason, proc.confidence,
                         ),
                         severity,
@@ -362,7 +362,7 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
             for vuln in &state.vulnerability_findings {
                 if vuln.cve_id.to_lowercase().contains(query) {
                     results.push(IocSearchResult {
-                        source: "VULN\u{00c9}RA.",
+                        source: "CVE",
                         title: format!("{} \u{2014} {}", vuln.cve_id, vuln.affected_software),
                         match_description: vuln.description.clone(),
                         severity: vuln.severity.as_str(),

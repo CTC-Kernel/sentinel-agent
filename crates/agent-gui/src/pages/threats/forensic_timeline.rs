@@ -38,7 +38,7 @@ const SOURCE_FILTERS: &[(&str, &str)] = &[
     ("fim", "FIM"),
     ("usb", "USB"),
     ("system", "SYST\u{00c8}ME"),
-    ("vulnerability", "VULN\u{00c9}RA."),
+    ("vulnerability", "CVE"),
 ];
 
 /// Severity filter chips.
@@ -172,6 +172,19 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     ui.add_space(theme::SPACE_SM);
 
     // ── Pagination ──────────────────────────────────────────────────
+    // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+    let mut position = state.threats.forensic_selected_event;
+    if widgets::navigate_list(
+        ui.ctx(),
+        &mut position,
+        total,
+        &mut state.threats.forensic_detail_open,
+    ) && let Some(pos) = position
+    {
+        state.threats.forensic_selected_event = Some(pos);
+        state.threats.forensic_page = pos / ITEMS_PER_PAGE;
+    }
+
     let total_pages = total.div_ceil(ITEMS_PER_PAGE).max(1);
     if state.threats.forensic_page >= total_pages {
         state.threats.forensic_page = total_pages.saturating_sub(1);
@@ -186,14 +199,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             TableColumn {
                 key: "severity",
                 label: "S\u{00c9}V\u{00c9}RIT\u{00c9}",
-                width: ColumnWidth::Fixed(90.0),
+                width: ColumnWidth::Fixed(110.0),
                 sortable: false,
                 align: ColumnAlign::Center,
             },
             TableColumn {
                 key: "source",
                 label: "SOURCE",
-                width: ColumnWidth::Fixed(100.0),
+                width: ColumnWidth::Fixed(120.0),
                 sortable: false,
                 align: ColumnAlign::Center,
             },
@@ -214,7 +227,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             TableColumn {
                 key: "date",
                 label: "DATE",
-                width: ColumnWidth::Fixed(130.0),
+                width: ColumnWidth::Fixed(150.0),
                 sortable: false,
                 align: ColumnAlign::Right,
             },
@@ -241,7 +254,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let is_truncated = evt.detail.chars().count() > 60;
                 let detail_display = if is_truncated {
                     let truncated: String = evt.detail.chars().take(57).collect();
-                    format!("{}...", truncated)
+                    format!("{}…", truncated)
                 } else {
                     evt.detail.clone()
                 };
@@ -431,7 +444,7 @@ fn build_timeline(state: &AppState, cutoff: DateTime<Utc>) -> Vec<TimelineEvent>
             source: "process",
             severity,
             title: p.process_name.clone(),
-            detail: format!("{} \u{2014} Confiance: {}%", p.reason, p.confidence),
+            detail: format!("{} \u{2014} Confiance: {}\u{202f}%", p.reason, p.confidence),
             _source_index: i,
         });
     }
@@ -567,7 +580,7 @@ fn source_label_fr(source: &str) -> &'static str {
         "fim" => "FIM",
         "usb" => "USB",
         "system" => "SYST\u{00c8}ME",
-        "vulnerability" => "VULN\u{00c9}RA.",
+        "vulnerability" => "CVE",
         _ => "AUTRE",
     }
 }

@@ -29,7 +29,7 @@ impl ReportsPage {
             &["Conformité & risques", "Rapports"],
             "Centre de Rapports",
             Some(
-                "G\u{00c9}N\u{00c9}RATION ET EXPORT DE RAPPORTS CONFORMIT\u{00c9} / AUDIT / INCIDENTS",
+                "G\u{00e9}n\u{00e9}ration et export des rapports de conformit\u{00e9}, d\u{2019}audit et d\u{2019}incident.",
             ),
             Some(
                 "G\u{00e9}n\u{00e9}rez des rapports d\u{00e9}taill\u{00e9}s pour vos audits de conformit\u{00e9}, synth\u{00e8}ses ex\u{00e9}cutives et rapports d\u{2019}incidents. Chaque rapport peut \u{00ea}tre export\u{00e9} au format HTML.",
@@ -39,10 +39,10 @@ impl ReportsPage {
 
         // Tab bar
         let tab_labels = &[
-            "SYNTH\u{00c8}SE EX\u{00c9}CUTIVE",
-            "AUDIT CONFORMIT\u{00c9}",
-            "INCIDENTS",
-            "HISTORIQUE",
+            "Synth\u{00e8}se ex\u{00e9}cutive",
+            "Audit de conformit\u{00e9}",
+            "Incidents",
+            "Historique",
         ];
         widgets::tabs(ui, tab_labels, &mut state.reports.active_tab);
         ui.add_space(theme::SPACE_MD);
@@ -101,7 +101,7 @@ impl ReportsPage {
                                     widgets::detail_field_colored(
                                         ui,
                                         "Score de conformit\u{00e9}",
-                                        &format!("{:.0}%", score),
+                                        &crate::format::pct(score, 0),
                                         theme::readable_color(theme::score_color(score)),
                                     );
                                 }
@@ -133,42 +133,17 @@ impl ReportsPage {
         ui.horizontal(|ui: &mut egui::Ui| {
             let btn_label = if is_generating {
                 format!(
-                    "{}  G\u{00c9}N\u{00c9}RATION EN COURS...",
+                    "{}  G\u{00c9}N\u{00c9}RATION EN COURS…",
                     icons::CIRCLE_NOTCH
                 )
             } else {
-                format!("{}  G\u{00c9}N\u{00c9}RER LE RAPPORT", icons::PLAY)
+                format!("{}  G\u{00e9}n\u{00e9}rer le rapport", icons::PLAY)
             };
 
             if widgets::button::primary_button_loading(ui, btn_label, !is_generating, is_generating)
                 .clicked()
             {
-                let framework = state
-                    .summary
-                    .active_frameworks
-                    .as_ref()
-                    .and_then(|fws| fws.first().cloned());
-
-                // push_front shifts all indices — invalidate selection BEFORE mutating
-                state.reports.selected_report = None;
-                state.reports.detail_open = false;
-                // Generate locally and store
-                let report = Self::generate_report(state, report_type, framework.as_deref());
-                state.reports.reports.push_front(report);
-                if state.reports.reports.len() > MAX_REPORT_HISTORY {
-                    state.reports.reports.pop_back();
-                }
-                state.push_toast(
-                    crate::widgets::toast::Toast::success(
-                        "Rapport g\u{00e9}n\u{00e9}r\u{00e9} avec succ\u{00e8}s",
-                    ),
-                    ui.ctx(),
-                );
-                // Also emit command for runtime awareness
-                *command = Some(GuiCommand::GenerateReport {
-                    report_type,
-                    framework,
-                });
+                Self::generate_now(ui, state, report_type, command);
             }
         });
 
@@ -215,7 +190,7 @@ impl ReportsPage {
                                 .strong(),
                         );
                         ui.label(
-                            egui::RichText::new(format!("{:.0}%", score))
+                            egui::RichText::new(crate::format::pct(score, 0))
                                 .font(theme::font_card_value())
                                 .color(theme::readable_color(theme::score_color(score)))
                                 .strong(),
@@ -246,7 +221,7 @@ impl ReportsPage {
                 ui.add_space(theme::SPACE_SM);
 
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  EXPORTER HTML", icons::DOWNLOAD))
+                    if widgets::ghost_button(ui, format!("{}  Exporter HTML", icons::DOWNLOAD))
                         .clicked()
                     {
                         Self::export_html(state, report);
@@ -255,16 +230,58 @@ impl ReportsPage {
             });
         } else {
             widgets::card(ui, |ui: &mut egui::Ui| {
-                widgets::empty_state(
+                // The empty state carries the action it describes, instead of
+                // sending the reader back up the page to find a button.
+                if widgets::empty_state_with_action(
                     ui,
                     icons::FILE_EXPORT,
-                    "AUCUN RAPPORT DE CE TYPE",
+                    "Aucun rapport de ce type",
                     Some(
-                        "Cliquez sur \u{00ab} G\u{00e9}n\u{00e9}rer le rapport \u{00bb} pour cr\u{00e9}er une nouvelle synth\u{00e8}se.",
+                        "La premi\u{00e8}re synth\u{00e8}se appara\u{00ee}tra ici, avec son score et ses exports.",
                     ),
-                );
+                    Some((
+                        format!("{}  G\u{00e9}n\u{00e9}rer le rapport", icons::PLAY).as_str(),
+                        || {},
+                    )),
+                ) {
+                    Self::generate_now(ui, state, report_type, command);
+                }
             });
         }
+    }
+
+    /// Generate a report of `report_type` now, store it, and tell the runtime.
+    fn generate_now(
+        ui: &Ui,
+        state: &mut AppState,
+        report_type: ReportType,
+        command: &mut Option<GuiCommand>,
+    ) {
+        let framework = state
+            .summary
+            .active_frameworks
+            .as_ref()
+            .and_then(|fws| fws.first().cloned());
+
+        // push_front shifts all indices — invalidate selection BEFORE mutating
+        state.reports.selected_report = None;
+        state.reports.detail_open = false;
+        let report = Self::generate_report(state, report_type, framework.as_deref());
+        state.reports.reports.push_front(report);
+        if state.reports.reports.len() > MAX_REPORT_HISTORY {
+            state.reports.reports.pop_back();
+        }
+        state.push_toast(
+            crate::widgets::toast::Toast::success(
+                "Rapport g\u{00e9}n\u{00e9}r\u{00e9} avec succ\u{00e8}s",
+            ),
+            ui.ctx(),
+        );
+        // Also emit command for runtime awareness
+        *command = Some(GuiCommand::GenerateReport {
+            report_type,
+            framework,
+        });
     }
 
     fn show_history_tab(ui: &mut Ui, state: &mut AppState, _command: &mut Option<GuiCommand>) {
@@ -273,7 +290,7 @@ impl ReportsPage {
                 widgets::empty_state(
                     ui,
                     icons::FILE_EXPORT,
-                    "AUCUN RAPPORT G\u{00c9}N\u{00c9}R\u{00c9}",
+                    "Aucun rapport g\u{00e9}n\u{00e9}r\u{00e9}",
                     Some(
                         "G\u{00e9}n\u{00e9}rez un rapport depuis l\u{2019}un des onglets pour le retrouver ici.",
                     ),
@@ -393,7 +410,7 @@ impl ReportsPage {
                             row.col(|ui: &mut egui::Ui| {
                                 if let Some(score) = report.compliance_score {
                                     ui.label(
-                                        egui::RichText::new(format!("{:.0}%", score))
+                                        egui::RichText::new(crate::format::pct(score, 0))
                                             .font(theme::font_body())
                                             .color(theme::readable_color(theme::score_color(score)))
                                             .strong(),
@@ -500,7 +517,7 @@ impl ReportsPage {
             .filter(|v| v.severity == Severity::High)
             .count();
 
-        let score_display = score.map_or("N/A".to_string(), |s| format!("{:.0}%", s));
+        let score_display = score.map_or("N/A".to_string(), |s| crate::format::pct(s, 0));
 
         let summary_text = format!(
             "Score de conformit\u{00e9} : {}. {} contr\u{00f4}les audit\u{00e9}s, {} d\u{00e9}faillants. {} vuln\u{00e9}rabilit\u{00e9}s d\u{00e9}tect\u{00e9}es. {} menaces actives.",
@@ -577,7 +594,7 @@ impl ReportsPage {
                 0.0
             };
             fw_rows.push_str(&format!(
-                "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{:.0}%</td></tr>",
+                "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{:.0}\u{202f}%</td></tr>",
                 html_escape(fw),
                 total,
                 pass,
@@ -592,7 +609,7 @@ impl ReportsPage {
             state.summary.compliance_score
         };
 
-        let score_display = overall_pct.map_or("N/A".to_string(), |s| format!("{:.0}%", s));
+        let score_display = overall_pct.map_or("N/A".to_string(), |s| crate::format::pct(s, 0));
 
         let summary_text = format!(
             "Audit de conformit\u{00e9} : {} contr\u{00f4}les analys\u{00e9}s sur {} r\u{00e9}f\u{00e9}rentiels. Taux de conformit\u{00e9} global : {}.",
@@ -641,7 +658,7 @@ impl ReportsPage {
         let mut process_rows = String::new();
         for proc in state.threats.suspicious_processes.iter().take(50) {
             process_rows.push_str(&format!(
-                "<tr><td>{}</td><td>{}</td><td>{}%</td><td>{}</td></tr>",
+                "<tr><td>{}</td><td>{}</td><td>{}\u{202f}%</td><td>{}</td></tr>",
                 html_escape(&proc.process_name),
                 html_escape(&proc.reason),
                 proc.confidence,

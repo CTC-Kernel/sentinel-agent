@@ -40,7 +40,12 @@ const KPI_GAUGE_SIZE: f32 = 56.0;
 /// Seconds per day for KPI period filtering.
 const SECS_PER_DAY: i64 = 86_400;
 /// Minimum inner height for indicator cards (ensures uniform row height).
-const INDICATOR_CARD_MIN_HEIGHT: f32 = theme::SUMMARY_CARD_MIN_HEIGHT + theme::SPACE_LG;
+/// Inner height of the eight indicator cards. Fixed rather than derived so
+/// the grid reads as a grid: the tallest card (a value plus two sub-stats)
+/// sets it, and the sparkline cards grow their chart to match.
+const INDICATOR_CARD_MIN_HEIGHT: f32 = 136.0;
+/// Chart height that fills an indicator card under its header row.
+const INDICATOR_CHART_HEIGHT: f32 = INDICATOR_CARD_MIN_HEIGHT - 56.0;
 /// Minimum inner height for bottom-row cards (recommendations + feed).
 const BOTTOM_CARD_MIN_HEIGHT: f32 = 200.0;
 /// Minimum inner height for the AI posture score hero card.
@@ -65,9 +70,9 @@ impl DashboardPage {
             ui,
             &["Vue d'ensemble", "Tableau de bord"],
             "Tableau de bord",
-            Some("CENTRE DE PILOTAGE GRC"),
+            Some("Posture de sécurité et de conformité de ce poste, en temps réel."),
             Some(
-                "Vue d'ensemble de votre posture de s\u{00e9}curit\u{00e9}. Pilotez conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s et menaces en temps r\u{00e9}el.",
+                "Les indicateurs sont recalcul\u{00e9}s \u{00e0} chaque analyse. Utilisez « Analyser » pour \u{00e9}valuer imm\u{00e9}diatement conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s et menaces.",
             ),
         );
 
@@ -255,7 +260,7 @@ impl DashboardPage {
                     "{}  {}",
                     icons::PLAY,
                     if is_scanning {
-                        "Analyse en cours..."
+                        "Analyse en cours…"
                     } else {
                         "Analyser"
                     }
@@ -277,9 +282,9 @@ impl DashboardPage {
                     "{}  {}",
                     icons::SYNC,
                     if is_syncing {
-                        "SYNC..."
+                        "Synchronisation…"
                     } else {
-                        "SYNCHRONISER"
+                        "Synchroniser"
                     }
                 ),
                 !is_syncing,
@@ -294,7 +299,7 @@ impl DashboardPage {
 
             if widgets::button::secondary_button_loading(
                 ui,
-                format!("{}  EXPORTER", icons::DOWNLOAD),
+                format!("{}  Exporter", icons::DOWNLOAD),
                 true,
                 false,
             )
@@ -322,12 +327,12 @@ impl DashboardPage {
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
                     // Uptime
-                    let uptime_hours = state.summary.uptime_secs / 3600;
-                    let uptime_mins = (state.summary.uptime_secs % 3600) / 60;
                     ui.label(
-                        egui::RichText::new(format!("{}h{}m", uptime_hours, uptime_mins))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary()),
+                        egui::RichText::new(crate::format::duration_short(
+                            state.summary.uptime_secs,
+                        ))
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
                     );
                     ui.label(
                         egui::RichText::new(icons::BOLT)
@@ -343,9 +348,9 @@ impl DashboardPage {
                         let elapsed_text = if elapsed.num_minutes() < 1 {
                             "\u{00e0} l'instant".to_string()
                         } else if elapsed.num_minutes() < 60 {
-                            format!("{}min", elapsed.num_minutes())
+                            format!("{}{}min", elapsed.num_minutes(), crate::format::THIN_SPACE)
                         } else {
-                            format!("{}h", elapsed.num_hours())
+                            format!("{}{}h", elapsed.num_hours(), crate::format::THIN_SPACE)
                         };
                         ui.label(
                             egui::RichText::new(elapsed_text)
@@ -426,8 +431,8 @@ impl DashboardPage {
 
                 ui.add_space(theme::SPACE_SM);
 
-                // Risk badge
-                ui.horizontal(|ui: &mut egui::Ui| {
+                // Risk badge, centred like the title and the core above it
+                ui.vertical_centered(|ui: &mut egui::Ui| {
                     widgets::status_badge(ui, risk_label, risk_color);
                 });
 
@@ -449,7 +454,7 @@ impl DashboardPage {
                     }
 
                     let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
-                        .hint_text("Demander \u{00e0} Jarvis...")
+                        .hint_text("Demander \u{00e0} Jarvis…")
                         .font(theme::font_body())
                         .desired_width(ui.available_width() - 32.0);
 
@@ -541,7 +546,7 @@ impl DashboardPage {
                 widgets::protected_state(
                     ui,
                     icons::SHIELD_CHECK,
-                    "POSTURE S\u{00c9}CURIS\u{00c9}E",
+                    "Posture s\u{00e9}curis\u{00e9}e",
                     "Aucune recommandation. Contr\u{00f4}les conformes.",
                 );
             } else {
@@ -647,12 +652,13 @@ impl DashboardPage {
 
             // PERF: VecDeque->Vec copy every frame; cost is minimal (~300 * 16 = 4.8KB).
             let cpu_data: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
-            widgets::sparkline_with_value(
+            widgets::sparkline_card_body(
                 ui,
                 "CPU",
-                &format!("{:.1}%", state.resources.cpu_percent),
+                &crate::format::pct(state.resources.cpu_percent, 1),
                 &cpu_data,
                 &config,
+                INDICATOR_CHART_HEIGHT,
             );
         })
         .clicked()
@@ -674,12 +680,13 @@ impl DashboardPage {
 
             // PERF: VecDeque->Vec copy every frame; cost is minimal (~300 * 16 = 4.8KB).
             let mem_data: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
-            widgets::sparkline_with_value(
+            widgets::sparkline_card_body(
                 ui,
                 "M\u{00c9}MOIRE",
-                &format!("{:.1}%", state.resources.memory_percent),
+                &crate::format::pct(state.resources.memory_percent, 1),
                 &mem_data,
                 &config,
+                INDICATOR_CHART_HEIGHT,
             );
         })
         .clicked()
@@ -734,7 +741,7 @@ impl DashboardPage {
             ui.add_space(theme::SPACE_XS);
 
             let status_text = if state.policy.failing > 0 {
-                format!("{} \u{00e9}chec(s)", state.policy.failing)
+                crate::format::count(state.policy.failing, "\u{00e9}chec")
             } else {
                 "Tous conformes".to_string()
             };
@@ -911,7 +918,7 @@ impl DashboardPage {
 
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new(format!("{}", state.fim.monitored_count))
+                    egui::RichText::new(crate::format::int(state.fim.monitored_count))
                         .font(theme::font_card_value())
                         .color(theme::accent_text())
                         .strong(),
@@ -925,9 +932,12 @@ impl DashboardPage {
 
             ui.add_space(theme::SPACE_XS);
             ui.label(
-                egui::RichText::new(format!("{} modification(s) aujourd'hui", changes))
-                    .font(theme::font_label())
-                    .color(color),
+                egui::RichText::new(format!(
+                    "{} aujourd'hui",
+                    crate::format::count(changes, "modification")
+                ))
+                .font(theme::font_label())
+                .color(color),
             );
         })
         .clicked()
@@ -966,7 +976,7 @@ impl DashboardPage {
                         .strong(),
                 );
                 ui.label(
-                    egui::RichText::new("alerte(s)")
+                    egui::RichText::new(if alerts == 1 { "alerte" } else { "alertes" })
                         .font(theme::font_label())
                         .color(theme::text_tertiary()),
                 );
@@ -1039,7 +1049,7 @@ impl DashboardPage {
 
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
-                        egui::RichText::new(format!("{:.0}%", coverage))
+                        egui::RichText::new(crate::format::pct(coverage, 0))
                             .font(theme::font_card_value())
                             .color(color)
                             .strong(),
@@ -1059,9 +1069,13 @@ impl DashboardPage {
             let outdated = total - up_to_date;
             if outdated > 0 {
                 ui.label(
-                    egui::RichText::new(format!("{} mise(s) \u{00e0} jour requise(s)", outdated))
-                        .font(theme::font_label())
-                        .color(theme::readable_color(theme::WARNING)),
+                    egui::RichText::new(format!(
+                        "{} mise{s} \u{00e0} jour requise{s}",
+                        crate::format::int(outdated),
+                        s = crate::format::plural_suffix(outdated)
+                    ))
+                    .font(theme::font_label())
+                    .color(theme::readable_color(theme::WARNING)),
                 );
             } else {
                 ui.label(
@@ -1190,9 +1204,9 @@ impl DashboardPage {
                 let Some(last) = filtered.last() else {
                     return;
                 };
-                let current_compliance = format!("{:.0}%", last.compliance_score);
-                let current_incidents = last.incident_count.to_string();
-                let current_vulns = last.open_vulns.to_string();
+                let current_compliance = crate::format::pct(last.compliance_score, 0);
+                let current_incidents = crate::format::int(last.incident_count);
+                let current_vulns = crate::format::int(last.open_vulns);
                 let current_sla = last.remediation_sla_pct;
 
                 // Compute trends (first half avg vs second half avg)
@@ -1258,10 +1272,7 @@ impl DashboardPage {
                                     let sla_color =
                                         theme::readable_color(theme::score_color(current_sla));
                                     egui::Frame::new()
-                                        .fill(
-                                            theme::bg_tertiary()
-                                                .linear_multiply(theme::OPACITY_TINT),
-                                        )
+                                        .fill(theme::bg_tertiary())
                                         .corner_radius(egui::CornerRadius::same(
                                             theme::CARD_ROUNDING,
                                         ))
@@ -1277,7 +1288,7 @@ impl DashboardPage {
                                             ui.horizontal(|ui: &mut egui::Ui| {
                                                 ui.label(
                                                     egui::RichText::new(format!(
-                                                        "{:.0}%",
+                                                        "{:.0}\u{202f}%",
                                                         current_sla
                                                     ))
                                                     .font(theme::font_card_value())
@@ -1294,7 +1305,7 @@ impl DashboardPage {
                                             ui.vertical_centered(|ui: &mut egui::Ui| {
                                                 widgets::mini_gauge(
                                                     ui,
-                                                    current_sla / 100.0,
+                                                    current_sla,
                                                     sla_color,
                                                     KPI_GAUGE_SIZE,
                                                 );
@@ -1320,7 +1331,7 @@ impl DashboardPage {
         line_color: egui::Color32,
     ) {
         egui::Frame::new()
-            .fill(theme::bg_tertiary().linear_multiply(theme::OPACITY_TINT))
+            .fill(theme::bg_tertiary())
             .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
             .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
             .show(ui, |ui: &mut egui::Ui| {

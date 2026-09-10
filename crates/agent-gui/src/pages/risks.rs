@@ -25,7 +25,7 @@ impl RisksPage {
             ui,
             &["Conformité & risques", "Risques"],
             "Registre des Risques",
-            Some("MATRICE DE RISQUES ET SUIVI DES MESURES D\u{2019}ATT\u{00c9}NUATION"),
+            Some("Matrice des risques et suivi des mesures d\u{2019}att\u{00e9}nuation."),
             Some(
                 "\u{00c9}valuez et suivez vos risques de s\u{00e9}curit\u{00e9} selon une matrice probabilit\u{00e9}/impact. Identifiez les risques critiques, assignez des propri\u{00e9}taires et mesurez l\u{2019}avancement des plans d\u{2019}att\u{00e9}nuation.",
             ),
@@ -34,8 +34,6 @@ impl RisksPage {
 
         // Risk matrix heatmap
         Self::draw_risk_matrix(ui, state);
-        ui.add_space(theme::SPACE_MD);
-        widgets::divider_thin(ui);
         ui.add_space(theme::SPACE_MD);
 
         // Summary cards
@@ -121,7 +119,7 @@ impl RisksPage {
             if state.security.admin_unlocked {
                 if widgets::primary_button(
                     ui,
-                    format!("{}  AUTO-POPULER", icons::WAND_SPARKLES),
+                    format!("{}  Auto-populer", icons::WAND_SPARKLES),
                     true,
                 )
                 .clicked()
@@ -145,14 +143,14 @@ impl RisksPage {
                     );
                 }
             } else {
-                widgets::primary_button(ui, format!("{}  AUTO-POPULER", icons::LOCK), false);
+                widgets::primary_button(ui, format!("{}  Auto-populer", icons::LOCK), false);
             }
 
             ui.add_space(theme::SPACE_SM);
 
             if widgets::secondary_button(
                 ui,
-                format!("{}  NOUVEAU RISQUE", icons::PLUS),
+                format!("{}  Nouveau risque", icons::PLUS),
                 state.security.admin_unlocked,
             )
             .clicked()
@@ -185,7 +183,7 @@ impl RisksPage {
                         let filtered = Self::filtered_indices(state);
                         Self::export_csv(state, &filtered);
                         state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours..."),
+                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
                             ui.ctx(),
                         );
                     }
@@ -206,12 +204,12 @@ impl RisksPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.risks.search,
-            "Rechercher un risque par titre, propri\u{00e9}taire ou source...",
+            "Rechercher un risque par titre, propri\u{00e9}taire ou source…",
         )
-        .chip("OUVERT", open_active, theme::WARNING)
-        .chip("ATT\u{00c9}NUATION", mit_active, theme::INFO)
-        .chip("ACCEPT\u{00c9}", acc_active, theme::text_tertiary())
-        .chip("CL\u{00d4}TUR\u{00c9}", closed_active, theme::SUCCESS)
+        .chip("Ouvert", open_active, theme::WARNING)
+        .chip("Att\u{00e9}nuation", mit_active, theme::INFO)
+        .chip("Accept\u{00e9}", acc_active, theme::text_tertiary())
+        .chip("Cl\u{00f4}tur\u{00e9}", closed_active, theme::SUCCESS)
         .result_count(result_count)
         .show(ui);
 
@@ -230,9 +228,7 @@ impl RisksPage {
             }
         }
 
-        ui.add_space(theme::SPACE_SM);
-        widgets::divider_thin(ui);
-        ui.add_space(theme::SPACE_SM);
+        ui.add_space(theme::SPACE_MD);
 
         // Risk table
         widgets::card(ui, |ui: &mut egui::Ui| {
@@ -270,7 +266,7 @@ impl RisksPage {
                         widgets::empty_state(
                             ui,
                             icons::SCALE_BALANCED,
-                            "AUCUN RISQUE ENREGISTR\u{00c9}",
+                            "Aucun risque enregistr\u{00e9}",
                             Some(
                                 "Utilisez \u{00ab} Auto-populer \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement.",
                             ),
@@ -280,7 +276,7 @@ impl RisksPage {
                     widgets::empty_state(
                         ui,
                         icons::SCALE_BALANCED,
-                        "AUCUN R\u{00c9}SULTAT",
+                        "Aucun r\u{00e9}sultat",
                         Some("Modifiez vos crit\u{00e8}res de recherche ou de filtrage."),
                     );
                 }
@@ -314,112 +310,246 @@ impl RisksPage {
             let total_width = label_margin + cell_size * 5.0 + theme::SPACE_SM;
             let total_height = label_margin + cell_size * 5.0 + theme::SPACE_SM;
 
-            let (rect, _) =
-                ui.allocate_exact_size(egui::vec2(total_width, total_height), egui::Sense::hover());
-
-            if ui.is_rect_visible(rect) {
-                let painter = ui.painter_at(rect);
-                let origin = rect.min + egui::vec2(label_margin, 0.0);
-
-                // Build count matrix [prob][impact] — indices 0..5 map to values 1..5
-                let mut counts = [[0_u32; 5]; 5];
-                for risk in &state.risks.entries {
-                    let p = (risk.probability.clamp(1, 5) as usize).saturating_sub(1);
-                    let i = (risk.impact.clamp(1, 5) as usize).saturating_sub(1);
-                    counts[p][i] = counts[p][i].saturating_add(1);
-                }
-
-                // Y-axis label
-                painter.text(
-                    egui::pos2(rect.min.x + 4.0, origin.y + cell_size * 2.5),
-                    egui::Align2::LEFT_CENTER,
-                    "P",
-                    theme::font_label(),
-                    theme::text_tertiary(),
+            ui.horizontal_top(|ui: &mut egui::Ui| {
+                let (rect, _) = ui.allocate_exact_size(
+                    egui::vec2(total_width, total_height),
+                    egui::Sense::hover(),
                 );
 
-                // Draw cells (Y axis: probability 5 at top, 1 at bottom)
-                for (prob_idx, count_row) in counts.iter().enumerate() {
-                    let display_row = 4_usize.saturating_sub(prob_idx); // row 0 = prob 5
+                if ui.is_rect_visible(rect) {
+                    let painter = ui.painter_at(rect);
+                    let origin = rect.min + egui::vec2(label_margin, 0.0);
 
-                    // Y-axis tick
+                    // Build count matrix [prob][impact] — indices 0..5 map to values 1..5
+                    let mut counts = [[0_u32; 5]; 5];
+                    for risk in &state.risks.entries {
+                        let p = (risk.probability.clamp(1, 5) as usize).saturating_sub(1);
+                        let i = (risk.impact.clamp(1, 5) as usize).saturating_sub(1);
+                        counts[p][i] = counts[p][i].saturating_add(1);
+                    }
+
+                    // Y-axis label
                     painter.text(
-                        egui::pos2(
-                            origin.x - theme::SPACE_SM,
-                            origin.y + display_row as f32 * cell_size + cell_size * 0.5,
-                        ),
-                        egui::Align2::RIGHT_CENTER,
-                        format!("{}", prob_idx + 1),
+                        egui::pos2(rect.min.x + 4.0, origin.y + cell_size * 2.5),
+                        egui::Align2::LEFT_CENTER,
+                        "P",
                         theme::font_label(),
                         theme::text_tertiary(),
                     );
 
-                    for (impact_idx, count) in count_row.iter().enumerate() {
-                        let score = (prob_idx + 1).saturating_mul(impact_idx + 1);
-                        let color = Self::matrix_cell_color(score as u8);
-                        let count = *count;
+                    // Draw cells (Y axis: probability 5 at top, 1 at bottom)
+                    for (prob_idx, count_row) in counts.iter().enumerate() {
+                        let display_row = 4_usize.saturating_sub(prob_idx); // row 0 = prob 5
 
-                        let cell_rect = egui::Rect::from_min_size(
-                            origin
-                                + egui::vec2(
-                                    impact_idx as f32 * cell_size,
-                                    display_row as f32 * cell_size,
-                                ),
-                            egui::vec2(cell_size - 2.0, cell_size - 2.0),
-                        );
-
-                        painter.rect_filled(
-                            cell_rect,
-                            egui::CornerRadius::same(theme::ROUNDING_SM),
-                            color.linear_multiply(theme::OPACITY_MUTED),
-                        );
-                        painter.rect_stroke(
-                            cell_rect,
-                            egui::CornerRadius::same(theme::ROUNDING_SM),
-                            egui::Stroke::new(
-                                theme::BORDER_THIN,
-                                color.linear_multiply(theme::OPACITY_MEDIUM),
+                        // Y-axis tick
+                        painter.text(
+                            egui::pos2(
+                                origin.x - theme::SPACE_SM,
+                                origin.y + display_row as f32 * cell_size + cell_size * 0.5,
                             ),
-                            egui::StrokeKind::Inside,
+                            egui::Align2::RIGHT_CENTER,
+                            format!("{}", prob_idx + 1),
+                            theme::font_label(),
+                            theme::text_tertiary(),
                         );
 
-                        if count > 0 {
-                            painter.text(
-                                cell_rect.center(),
-                                egui::Align2::CENTER_CENTER,
-                                count.to_string(),
-                                theme::font_body(),
-                                color,
+                        for (impact_idx, count) in count_row.iter().enumerate() {
+                            let score = (prob_idx + 1).saturating_mul(impact_idx + 1);
+                            let color = Self::matrix_cell_color(score as u8);
+                            let count = *count;
+                            // Empty cells only hint at their band; a cell with
+                            // risks in it is the one that should be seen.
+                            let (fill, ring) = if count > 0 {
+                                (
+                                    theme::color_blend_pub(theme::bg_secondary(), color, 0.6),
+                                    color,
+                                )
+                            } else {
+                                (
+                                    theme::color_blend_pub(theme::bg_secondary(), color, 0.18),
+                                    theme::color_blend_pub(theme::bg_secondary(), color, 0.38),
+                                )
+                            };
+
+                            let cell_rect = egui::Rect::from_min_size(
+                                origin
+                                    + egui::vec2(
+                                        impact_idx as f32 * cell_size,
+                                        display_row as f32 * cell_size,
+                                    ),
+                                egui::vec2(cell_size - 2.0, cell_size - 2.0),
                             );
+
+                            painter.rect_filled(
+                                cell_rect,
+                                egui::CornerRadius::same(theme::ROUNDING_SM),
+                                fill,
+                            );
+                            painter.rect_stroke(
+                                cell_rect,
+                                egui::CornerRadius::same(theme::ROUNDING_SM),
+                                egui::Stroke::new(theme::BORDER_THIN, ring),
+                                egui::StrokeKind::Inside,
+                            );
+
+                            if count > 0 {
+                                painter.text(
+                                    cell_rect.center(),
+                                    egui::Align2::CENTER_CENTER,
+                                    count.to_string(),
+                                    theme::font_body(),
+                                    theme::text_primary(),
+                                );
+                            }
                         }
                     }
-                }
 
-                // X-axis labels
-                for impact_idx in 0..5_usize {
+                    // X-axis labels
+                    for impact_idx in 0..5_usize {
+                        painter.text(
+                            egui::pos2(
+                                origin.x + impact_idx as f32 * cell_size + cell_size * 0.5,
+                                origin.y + cell_size * 5.0 + theme::SPACE_XS,
+                            ),
+                            egui::Align2::CENTER_TOP,
+                            format!("{}", impact_idx + 1),
+                            theme::font_label(),
+                            theme::text_tertiary(),
+                        );
+                    }
+
+                    // X-axis label
                     painter.text(
                         egui::pos2(
-                            origin.x + impact_idx as f32 * cell_size + cell_size * 0.5,
-                            origin.y + cell_size * 5.0 + theme::SPACE_XS,
+                            origin.x + cell_size * 2.5,
+                            origin.y + cell_size * 5.0 + theme::SPACE_MD + theme::SPACE_SM,
                         ),
                         egui::Align2::CENTER_TOP,
-                        format!("{}", impact_idx + 1),
+                        "Impact",
                         theme::font_label(),
                         theme::text_tertiary(),
                     );
                 }
 
-                // X-axis label
-                painter.text(
-                    egui::pos2(
-                        origin.x + cell_size * 2.5,
-                        origin.y + cell_size * 5.0 + theme::SPACE_MD,
-                    ),
-                    egui::Align2::CENTER_TOP,
-                    "Impact",
-                    theme::font_label(),
-                    theme::text_tertiary(),
+                ui.add_space(theme::SPACE_2XL);
+                Self::matrix_legend(ui, state);
+            });
+        });
+    }
+
+    /// Beside the matrix: what each band means and how many open risks sit
+    /// in it, then the open risks that score highest — the question the
+    /// matrix is there to answer, without reading twenty-five cells.
+    fn matrix_legend(ui: &mut Ui, state: &AppState) {
+        const LEGEND_WIDTH: f32 = 320.0;
+        const BANDS: [(&str, &str, u8, u8); 4] = [
+            ("Critique", "16 \u{2013} 25", 16, 25),
+            ("\u{00c9}lev\u{00e9}", "10 \u{2013} 15", 10, 15),
+            ("Mod\u{00e9}r\u{00e9}", "5 \u{2013} 9", 5, 9),
+            ("Faible", "1 \u{2013} 4", 1, 4),
+        ];
+        let open = |r: &&crate::dto::RiskEntry| {
+            !matches!(
+                r.status,
+                crate::dto::RiskStatus::Closed | crate::dto::RiskStatus::Accepted
+            )
+        };
+
+        ui.vertical(|ui: &mut egui::Ui| {
+            ui.set_max_width(LEGEND_WIDTH);
+            ui.label(
+                egui::RichText::new("NIVEAUX")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+            for (name, range, lo, hi) in BANDS {
+                let count = state
+                    .risks
+                    .entries
+                    .iter()
+                    .filter(open)
+                    .filter(|r| (lo..=hi).contains(&r.score()))
+                    .count();
+                let color = Self::matrix_cell_color(lo);
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    let (swatch, _) = ui.allocate_exact_size(
+                        egui::vec2(theme::ICON_XS, theme::ICON_XS),
+                        egui::Sense::hover(),
+                    );
+                    ui.painter().rect_filled(
+                        swatch,
+                        egui::CornerRadius::same(3),
+                        theme::color_blend_pub(theme::bg_secondary(), color, 0.6),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new(name)
+                            .font(theme::font_body_sm())
+                            .color(theme::text_primary()),
+                    );
+                    ui.label(
+                        egui::RichText::new(range)
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(crate::format::int(count))
+                                    .font(theme::font_body_strong())
+                                    .color(if count > 0 {
+                                        theme::readable_color(color)
+                                    } else {
+                                        theme::text_tertiary()
+                                    }),
+                            );
+                        },
+                    );
+                });
+                ui.add_space(theme::SPACE_XS);
+            }
+
+            ui.add_space(theme::SPACE_MD);
+            ui.label(
+                egui::RichText::new("\u{00c0} TRAITER EN PRIORIT\u{00c9}")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+            let mut top: Vec<&crate::dto::RiskEntry> =
+                state.risks.entries.iter().filter(open).collect();
+            top.sort_by_key(|r| std::cmp::Reverse(r.score()));
+            if top.is_empty() {
+                ui.label(
+                    egui::RichText::new("Aucun risque ouvert.")
+                        .font(theme::font_body_sm())
+                        .color(theme::text_tertiary()),
                 );
+            }
+            for risk in top.iter().take(3) {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    widgets::status_badge(
+                        ui,
+                        &risk.score().to_string(),
+                        Self::matrix_cell_color(risk.score()),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new(&risk.title)
+                                .font(theme::font_body_sm())
+                                .color(theme::text_primary()),
+                        )
+                        .truncate(),
+                    );
+                });
+                ui.add_space(theme::SPACE_XS);
             }
         });
     }
@@ -601,6 +731,23 @@ impl RisksPage {
             state.risks.editing = false;
         }
 
+        // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+        // and the page follows the selection.
+        let mut position = state
+            .risks
+            .selected_risk
+            .and_then(|real| indices.iter().position(|&r| r == real));
+        if widgets::navigate_list(
+            ui.ctx(),
+            &mut position,
+            indices.len(),
+            &mut state.risks.detail_open,
+        ) && let Some(pos) = position
+        {
+            state.risks.selected_risk = Some(indices[pos]);
+            state.risks.page = pos / RISKS_PER_PAGE;
+        }
+
         widgets::paginate_controls(ui, indices.len(), RISKS_PER_PAGE, &mut state.risks.page);
     }
 
@@ -702,7 +849,7 @@ impl RisksPage {
                                 ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.spinner();
                                     ui.label(
-                                        egui::RichText::new("  Analyse en cours...")
+                                        egui::RichText::new("  Analyse en cours…")
                                             .font(theme::font_small())
                                             .color(theme::text_secondary()),
                                     );

@@ -36,6 +36,8 @@ pub struct GuiPreferences {
     pub discovery_enabled: bool,
     pub architecture_url: String,
     pub admin_password_sha256: String,
+    #[serde(default)]
+    pub sidebar_collapsed: bool,
 }
 
 impl Default for GuiPreferences {
@@ -59,6 +61,7 @@ impl Default for GuiPreferences {
             discovery_enabled: false,
             architecture_url: String::new(),
             admin_password_sha256: String::new(),
+            sidebar_collapsed: false,
         }
     }
 }
@@ -80,6 +83,7 @@ impl GuiPreferences {
             discovery_enabled: state.discovery.enabled,
             architecture_url: state.settings.architecture_url.clone(),
             admin_password_sha256: state.settings.admin_password_sha256.clone(),
+            sidebar_collapsed: state.settings.sidebar_collapsed,
         }
     }
 
@@ -101,6 +105,7 @@ impl GuiPreferences {
         state.settings.log_collector_enabled = self.log_collector_enabled;
         state.settings.log_collector_sources = self.log_collector_sources.clone();
         state.settings.log_collector_poll_secs = self.log_collector_poll_secs;
+        state.settings.sidebar_collapsed = self.sidebar_collapsed;
         state.discovery.enabled = self.discovery_enabled;
         state
             .settings
@@ -679,6 +684,8 @@ pub struct SettingsState {
     pub log_collector_sources: Vec<String>,
     /// Log collector polling interval in seconds.
     pub log_collector_poll_secs: u64,
+    /// Navigation sidebar is collapsed to an icon rail.
+    pub sidebar_collapsed: bool,
 }
 
 impl Default for SettingsState {
@@ -707,6 +714,7 @@ impl Default for SettingsState {
                 "firewall".to_string(),
             ],
             log_collector_poll_secs: 60,
+            sidebar_collapsed: false,
         }
     }
 }

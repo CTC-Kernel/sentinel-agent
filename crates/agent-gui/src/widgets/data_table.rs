@@ -243,26 +243,23 @@ impl<'a> DataTable<'a> {
             .1;
 
         if ui.is_rect_visible(header_rect) {
-            // Header background with refined rounding
             ui.painter().rect_filled(
                 header_rect,
                 CornerRadius {
-                    nw: theme::BUTTON_ROUNDING,
-                    ne: theme::BUTTON_ROUNDING,
+                    nw: theme::ROUNDING_MD,
+                    ne: theme::ROUNDING_MD,
                     ..Default::default()
                 },
                 theme::bg_tertiary(),
             );
-            // Bottom accent line for clear header/body separation
+            // A neutral seam separates header from body. The previous accent
+            // line drew the eye to the chrome rather than to the data.
             ui.painter().line_segment(
                 [
-                    egui::pos2(header_rect.min.x, header_rect.max.y),
-                    egui::pos2(header_rect.max.x, header_rect.max.y),
+                    egui::pos2(header_rect.min.x, header_rect.max.y - 0.5),
+                    egui::pos2(header_rect.max.x, header_rect.max.y - 0.5),
                 ],
-                egui::Stroke::new(
-                    theme::BORDER_THIN,
-                    theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
-                ),
+                egui::Stroke::new(theme::BORDER_THIN, theme::border_subtle()),
             );
         }
 
@@ -289,7 +286,8 @@ impl<'a> DataTable<'a> {
 
                         // Hover/focus effect
                         if is_hovered {
-                            ui.painter().rect_filled(cell_rect, 0, theme::hover_bg());
+                            ui.painter()
+                                .rect_filled(cell_rect, 0, theme::hover_bg_neutral());
                         }
 
                         // Focus ring for keyboard navigation
@@ -309,24 +307,18 @@ impl<'a> DataTable<'a> {
                             theme::text_secondary()
                         };
 
-                        let align = match col.align {
-                            ColumnAlign::Left => egui::Align2::LEFT_CENTER,
-                            ColumnAlign::Center => egui::Align2::CENTER_CENTER,
-                            ColumnAlign::Right => egui::Align2::RIGHT_CENTER,
-                        };
-
-                        let text_x = match col.align {
-                            ColumnAlign::Left => cell_rect.min.x + theme::SPACE_MD,
-                            ColumnAlign::Center => cell_rect.center().x,
-                            ColumnAlign::Right => cell_rect.max.x - theme::SPACE_MD,
-                        };
-
-                        ui.painter().text(
-                            egui::pos2(text_x, cell_rect.center().y),
-                            align,
+                        // Header labels are clipped to their column, minus the
+                        // room the sort indicator needs, so a long header can
+                        // never bleed into its neighbour.
+                        let reserved = if col.sortable { theme::ICON_MD } else { 0.0 };
+                        paint_cell_text(
+                            ui,
+                            cell_rect,
+                            col.align,
                             col.label,
-                            theme::font_small(),
+                            theme::font_body_sm_medium(),
                             text_color,
+                            reserved,
                         );
 
                         // Sort indicator
@@ -347,12 +339,12 @@ impl<'a> DataTable<'a> {
                                 };
                                 ui.painter().text(
                                     egui::pos2(
-                                        cell_rect.max.x - theme::ICON_MD,
+                                        cell_rect.max.x - theme::SPACE_MD,
                                         cell_rect.center().y,
                                     ),
-                                    egui::Align2::CENTER_CENTER,
+                                    egui::Align2::RIGHT_CENTER,
                                     icon,
-                                    theme::font_label(),
+                                    theme::font_icon(theme::ICON_XS),
                                     text_color.linear_multiply(icon_alpha),
                                 );
                             }
@@ -365,7 +357,7 @@ impl<'a> DataTable<'a> {
                                     egui::pos2(cell_rect.max.x, cell_rect.min.y + theme::SPACE_SM),
                                     egui::pos2(cell_rect.max.x, cell_rect.max.y - theme::SPACE_SM),
                                 ],
-                                egui::Stroke::new(theme::BORDER_THIN, theme::border()),
+                                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
                             );
                         }
                     }
@@ -420,11 +412,12 @@ impl<'a> DataTable<'a> {
             let is_hovered = response.hovered();
             let is_odd = row_index % 2 == 1;
 
-            // Background
+            // Selection is accent-tinted; hover is neutral, so the two states
+            // never read as the same thing at a glance.
             let bg_color = if selected {
                 theme::selected_bg()
             } else if is_hovered && self.hoverable {
-                theme::hover_bg()
+                theme::hover_bg_neutral()
             } else if self.striped && is_odd {
                 theme::table_row_bg(row_index)
             } else {
@@ -433,6 +426,16 @@ impl<'a> DataTable<'a> {
 
             if bg_color != Color32::TRANSPARENT {
                 ui.painter().rect_filled(row_rect, 0, bg_color);
+            }
+            if selected {
+                ui.painter().rect_filled(
+                    egui::Rect::from_min_size(
+                        row_rect.left_top(),
+                        egui::vec2(theme::ACCENT_BAR_WIDTH, row_rect.height()),
+                    ),
+                    0,
+                    theme::accent_text(),
+                );
             }
 
             // Draw cells
@@ -448,24 +451,14 @@ impl<'a> DataTable<'a> {
                 let text = cells.get(i).copied().unwrap_or("");
                 let text_color = theme::text_primary();
 
-                let align = match col.align {
-                    ColumnAlign::Left => egui::Align2::LEFT_CENTER,
-                    ColumnAlign::Center => egui::Align2::CENTER_CENTER,
-                    ColumnAlign::Right => egui::Align2::RIGHT_CENTER,
-                };
-
-                let text_x = match col.align {
-                    ColumnAlign::Left => cell_rect.min.x + theme::SPACE_MD,
-                    ColumnAlign::Center => cell_rect.center().x,
-                    ColumnAlign::Right => cell_rect.max.x - theme::SPACE_MD,
-                };
-
-                ui.painter().text(
-                    egui::pos2(text_x, cell_rect.center().y),
-                    align,
+                paint_cell_text(
+                    ui,
+                    cell_rect,
+                    col.align,
                     text,
                     theme::font_body(),
                     text_color,
+                    0.0,
                 );
 
                 // Border
@@ -475,20 +468,21 @@ impl<'a> DataTable<'a> {
                             egui::pos2(cell_rect.max.x, cell_rect.min.y),
                             egui::pos2(cell_rect.max.x, cell_rect.max.y),
                         ],
-                        egui::Stroke::new(theme::BORDER_THIN, theme::separator()),
+                        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
                     );
                 }
 
                 x += width;
             }
 
-            // Bottom border
+            // Row rule: a hairline, not the control-strength separator. Rows
+            // are grouped by proximity, not fenced off from one another.
             ui.painter().line_segment(
                 [
-                    egui::pos2(row_rect.min.x, row_rect.max.y),
-                    egui::pos2(row_rect.max.x, row_rect.max.y),
+                    egui::pos2(row_rect.min.x, row_rect.max.y - 0.5),
+                    egui::pos2(row_rect.max.x, row_rect.max.y - 0.5),
                 ],
-                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::separator()),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
             );
 
             // Focus ring for keyboard navigation (WCAG 2.4.7)
@@ -524,11 +518,11 @@ impl<'a> DataTable<'a> {
             ui.painter().rect_filled(
                 rect,
                 CornerRadius {
-                    sw: theme::BUTTON_ROUNDING,
-                    se: theme::BUTTON_ROUNDING,
+                    sw: theme::ROUNDING_MD,
+                    se: theme::ROUNDING_MD,
                     ..Default::default()
                 },
-                theme::bg_deep(),
+                theme::bg_tertiary(),
             );
 
             // Empty state icon
@@ -536,8 +530,8 @@ impl<'a> DataTable<'a> {
                 egui::pos2(rect.center().x, rect.center().y - 12.0),
                 egui::Align2::CENTER_CENTER,
                 crate::icons::FOLDER_OPEN,
-                egui::FontId::proportional(theme::ICON_LG),
-                theme::text_tertiary().linear_multiply(theme::OPACITY_DISABLED),
+                theme::font_icon(theme::ICON_LG),
+                theme::text_tertiary(),
             );
             ui.painter().text(
                 egui::pos2(rect.center().x, rect.center().y + 14.0),
@@ -548,6 +542,73 @@ impl<'a> DataTable<'a> {
             );
         }
     }
+}
+
+/// Paint one cell's text, clipped to its column and truncated with an ellipsis.
+///
+/// Table cells hold hostnames, CVE ids and file paths — content whose length
+/// the layout cannot predict. Without a clip rect a long value silently paints
+/// across its neighbours, which is how a table stops being readable.
+#[allow(clippy::too_many_arguments)]
+fn paint_cell_text(
+    ui: &Ui,
+    cell: egui::Rect,
+    align: ColumnAlign,
+    text: &str,
+    font: egui::FontId,
+    color: Color32,
+    reserved: f32,
+) {
+    let inner = egui::Rect::from_min_max(
+        egui::pos2(cell.min.x + theme::SPACE_MD, cell.min.y),
+        egui::pos2(cell.max.x - theme::SPACE_MD - reserved, cell.max.y),
+    );
+    if inner.width() <= 1.0 || text.is_empty() {
+        return;
+    }
+
+    let painter = ui.painter();
+    let mut galley = painter.layout_no_wrap(text.to_owned(), font.clone(), color);
+    if galley.size().x > inner.width() {
+        // The full text on hover, without registering a widget that would
+        // take the hover away from the row underneath.
+        if ui.rect_contains_pointer(inner) {
+            egui::show_tooltip_at_pointer(
+                ui.ctx(),
+                ui.layer_id(),
+                ui.id()
+                    .with(("cell_tip", cell.min.x as i32, cell.min.y as i32)),
+                |ui| {
+                    ui.label(text);
+                },
+            );
+        }
+        // Truncate to what fits, leaving room for the ellipsis.
+        let mut visible = text.to_owned();
+        while !visible.is_empty() {
+            visible.pop();
+            let candidate = format!("{visible}\u{2026}");
+            let trial = painter.layout_no_wrap(candidate.clone(), font.clone(), color);
+            if trial.size().x <= inner.width() {
+                galley = trial;
+                break;
+            }
+        }
+        if visible.is_empty() {
+            return;
+        }
+    }
+
+    let x = match align {
+        ColumnAlign::Left => inner.min.x,
+        ColumnAlign::Center => inner.center().x - galley.size().x / 2.0,
+        ColumnAlign::Right => inner.max.x - galley.size().x,
+    };
+    painter.with_clip_rect(inner).galley(
+        egui::pos2(x, cell.center().y - galley.size().y / 2.0),
+        galley,
+        color,
+    );
 }
 
 /// Helper struct for building table rows with typed data.

@@ -23,7 +23,7 @@ impl FimPage {
             ui,
             &["Détection & réponse", "FIM"],
             "Surveillance d'Intégrité",
-            Some("D\u{00c9}TECTION DES MODIFICATIONS DE FICHIERS SYST\u{00c8}MES CRITIQUES"),
+            Some("D\u{00e9}tection des modifications sur les fichiers syst\u{00e8}me critiques."),
             Some(
                 "Surveillance en temps réel des modifications de fichiers critiques. Chaque événement est horodaté et classé par type pour une analyse forensique complète.",
             ),
@@ -42,7 +42,7 @@ impl FimPage {
             let items: Vec<(&str, String, egui::Color32, &str)> = vec![
                 (
                     "FICHIERS SURVEILLÉS",
-                    state.fim.monitored_count.to_string(),
+                    crate::format::int(state.fim.monitored_count),
                     theme::INFO,
                     icons::FILE_SHIELD,
                 ),
@@ -142,7 +142,7 @@ impl FimPage {
                         theme::ERROR
                     };
                     ui.label(
-                        egui::RichText::new(format!("{:.0}%", ack_pct))
+                        egui::RichText::new(crate::format::pct(ack_pct, 0))
                             .font(theme::font_body())
                             .color(pct_color)
                             .strong(),
@@ -172,16 +172,14 @@ impl FimPage {
             });
         }
 
-        ui.add_space(theme::SPACE_LG);
-        widgets::divider_thin(ui);
-        ui.add_space(theme::SPACE_LG);
+        ui.add_space(theme::SPACE_MD);
 
         // ── Alerts table (AAA Grade) ─────────────────────────────────────
         if state.fim.alerts.is_empty() {
             widgets::empty_state(
                 ui,
                 icons::FILE_SHIELD,
-                "AUCUNE ALERTE FIM",
+                "Aucune alerte FIM",
                 Some(
                     "Aucune modification de fichier critique détectée. La surveillance est active et fonctionnelle.",
                 ),
@@ -339,7 +337,7 @@ impl FimPage {
                                 } else if admin_unlocked {
                                     if widgets::chip_button(
                                         ui,
-                                        &format!("{}  ACQUITTER", icons::CHECK),
+                                        &format!("{}  Acquitter", icons::CHECK),
                                         false,
                                         theme::ACCENT,
                                     )
@@ -350,7 +348,7 @@ impl FimPage {
                                 } else {
                                     widgets::chip_button(
                                         ui,
-                                        &format!("{}  ACQUITTER", icons::LOCK),
+                                        &format!("{}  Acquitter", icons::LOCK),
                                         false,
                                         theme::text_tertiary(),
                                     );
@@ -370,6 +368,19 @@ impl FimPage {
                 if let Some(idx) = clicked_row {
                     state.fim.selected_alert = Some(idx);
                     state.fim.detail_open = true;
+                }
+
+                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
+                let mut position = state.fim.selected_alert;
+                if widgets::navigate_list(
+                    ui.ctx(),
+                    &mut position,
+                    state.fim.alerts.len(),
+                    &mut state.fim.detail_open,
+                ) && let Some(pos) = position
+                {
+                    state.fim.selected_alert = Some(pos);
+                    state.fim.page = pos / FIM_PER_PAGE;
                 }
 
                 // Apply acknowledgment after the table

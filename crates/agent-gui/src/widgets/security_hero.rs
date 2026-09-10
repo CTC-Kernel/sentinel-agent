@@ -90,14 +90,14 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                 center + Vec2::new(1.0, 1.5),
                 egui::Align2::CENTER_CENTER,
                 security_state.icon(),
-                egui::FontId::proportional(icon_size),
+                theme::font_icon(icon_size),
                 theme::overlay_color().linear_multiply(theme::OPACITY_TINT),
             );
             painter.text(
                 center,
                 egui::Align2::CENTER_CENTER,
                 security_state.icon(),
-                egui::FontId::proportional(icon_size),
+                theme::font_icon(icon_size),
                 theme::readable_color(base_color),
             );
 
@@ -117,31 +117,39 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                 ui.add_space(theme::SPACE_XS);
 
                 let score_color = theme::readable_color(theme::score_color(score));
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        RichText::new(format!("{}%", score as i32))
-                            .font(theme::font_heading())
-                            .color(score_color)
-                            .strong(),
-                    );
-
-                    // Trend indicator
-                    if let Some(prev) = state.previous_compliance_score {
-                        let diff: f32 = score - prev;
-                        if diff.abs() > 0.5 {
-                            let (arrow, arrow_color) = if diff > 0.0 {
-                                ("▲", theme::readable_color(theme::SUCCESS))
-                            } else {
-                                ("▼", theme::readable_color(theme::ERROR))
-                            };
-                            ui.label(
-                                RichText::new(format!("{}{:.1}", arrow, diff.abs()))
-                                    .font(theme::font_label())
-                                    .color(arrow_color),
-                            );
-                        }
+                // One layout job, so score and delta centre together under
+                // the title instead of hugging the left edge.
+                let mut job = egui::text::LayoutJob::default();
+                job.append(
+                    &format!("{}\u{202f}%", score as i32),
+                    0.0,
+                    egui::TextFormat {
+                        font_id: theme::font_heading(),
+                        color: score_color,
+                        ..Default::default()
+                    },
+                );
+                if let Some(prev) = state.previous_compliance_score {
+                    let diff: f32 = score - prev;
+                    if diff.abs() > 0.5 {
+                        let (arrow, arrow_color) = if diff > 0.0 {
+                            ("\u{25b2}", theme::readable_color(theme::SUCCESS))
+                        } else {
+                            ("\u{25bc}", theme::readable_color(theme::ERROR))
+                        };
+                        job.append(
+                            &format!("{arrow} {}", crate::format::decimal(diff.abs(), 1)),
+                            theme::SPACE_SM,
+                            egui::TextFormat {
+                                font_id: theme::font_label(),
+                                color: arrow_color,
+                                valign: egui::Align::Center,
+                                ..Default::default()
+                            },
+                        );
                     }
-                });
+                }
+                ui.label(job);
             }
 
             ui.add_space(theme::SPACE_XS);

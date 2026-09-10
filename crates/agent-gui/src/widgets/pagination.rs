@@ -190,7 +190,7 @@ impl Pagination {
                     None => {
                         // Ellipsis
                         ui.label(
-                            egui::RichText::new("...")
+                            egui::RichText::new("…")
                                 .font(theme::font_body())
                                 .color(theme::text_tertiary()),
                         );

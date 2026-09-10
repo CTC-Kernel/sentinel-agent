@@ -55,7 +55,13 @@ fn draw_premium_button(
     loading: bool,
 ) -> Response {
     let text = text.into();
-    let font = theme::font_body();
+    // Buttons carry a heavier weight than body copy: a label is a target, and
+    // at 13px the weight is what makes it read as one.
+    let font = if is_primary {
+        theme::font_body_strong()
+    } else {
+        theme::font_body_medium()
+    };
 
     let text_galley = text.into_galley(ui, Some(egui::TextWrapMode::Extend), f32::INFINITY, font);
 
@@ -88,7 +94,7 @@ fn draw_premium_button(
             let fill = if !enabled {
                 theme::ACCENT.linear_multiply(theme::OPACITY_DISABLED)
             } else if is_clicked {
-                theme::ACCENT.linear_multiply(theme::OPACITY_STRONG)
+                theme::ACCENT_PRESSED
             } else {
                 animation::lerp_color(theme::ACCENT, theme::ACCENT_HOVER, hover_t)
             };
@@ -103,19 +109,25 @@ fn draw_premium_button(
             )
         } else {
             // Secondary: Bordered / Surface
+            // A resting fill, not transparency: on a card surface a
+            // transparent secondary button reads as a link, not a control.
             let fill = if !enabled {
                 Color32::TRANSPARENT
             } else if is_clicked {
-                theme::bg_elevated().linear_multiply(theme::OPACITY_HOVER)
-            } else if is_hovered {
                 theme::bg_elevated()
+            } else if is_hovered {
+                theme::hover_bg()
             } else {
-                Color32::TRANSPARENT
+                theme::bg_tertiary()
             };
 
-            // Border logic: simplified, no emphasis on hover
             let stroke = if !enabled {
-                Stroke::new(theme::BORDER_THIN, theme::separator())
+                Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle())
+            } else if is_hovered {
+                Stroke::new(
+                    theme::BORDER_THIN,
+                    theme::ACCENT.linear_multiply(theme::OPACITY_MODERATE),
+                )
             } else {
                 Stroke::new(theme::BORDER_THIN, theme::border())
             };
@@ -132,10 +144,15 @@ fn draw_premium_button(
         };
 
         // ─── Shadows ───
+        // Painted before the fill below, so the button sits on its shadow.
         if is_primary && enabled && !loading && !is_clicked {
-            let shadow = theme::shadow_sm();
-            ui.painter()
-                .add(shadow.as_shape(rect, CornerRadius::same(theme::BUTTON_ROUNDING)));
+            theme::paint_elevation(
+                ui.painter(),
+                rect,
+                CornerRadius::same(theme::BUTTON_ROUNDING),
+                theme::Elevation::Level1,
+                1.0,
+            );
         }
 
         // ─── Background Paint ───
@@ -158,9 +175,10 @@ fn draw_premium_button(
         }
 
         // ─── Inner Bevel / Highlight (Primary Only) ───
+        // One lit edge, half the previous strength: enough to give the fill
+        // some volume, not enough to look embossed.
         if is_primary && enabled && !loading {
-            let stroke_color = theme::overlay_color()
-                .linear_multiply(theme::SUBTLE_HIGHLIGHT_ALPHA as f32 / 255.0);
+            let stroke_color = Color32::from_white_alpha(theme::SUBTLE_HIGHLIGHT_ALPHA / 2);
             ui.painter().rect_stroke(
                 rect.shrink(theme::BORDER_THIN),
                 CornerRadius::same(theme::BUTTON_ROUNDING),
@@ -750,7 +768,7 @@ pub fn fab_button(ui: &mut Ui, icon: &str) -> Response {
             rect.center(),
             egui::Align2::CENTER_CENTER,
             icon,
-            egui::FontId::proportional(theme::ICON_LG),
+            theme::font_icon(theme::ICON_LG),
             theme::text_on_accent(),
         );
     }

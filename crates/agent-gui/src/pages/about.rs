@@ -32,7 +32,7 @@ impl AboutPage {
             ui,
             &["Configuration", "\u{00c0} propos"],
             "\u{00c0} propos",
-            Some("INFORMATIONS PRODUIT ET SUPPORT TECHNIQUE"),
+            Some("Informations produit et support technique."),
             Some(
                 "Informations de version et cr\u{00e9}dits de Sentinel Agent. Lors d\u{2019}un contact avec le support, veuillez mentionner le num\u{00e9}ro de build et l\u{2019}identifiant unique d\u{2019}installation.",
             ),
@@ -215,7 +215,7 @@ impl AboutPage {
                 |ui: &mut egui::Ui| {
                     if ui
                         .link(
-                            egui::RichText::new("OUVRIR")
+                            egui::RichText::new("Ouvrir")
                                 .font(theme::font_small())
                                 .color(theme::accent_text())
                                 .strong(),

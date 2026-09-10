@@ -62,7 +62,7 @@ impl LLMPanel {
             ui,
             &["Assistant", "Assistant IA"],
             "Assistant IA",
-            Some("MODULE D'ANALYSE IA ET RECOMMANDATIONS AUTOMATIQUES"),
+            Some("Analyse locale et recommandations générées par le modèle embarqué."),
             Some(
                 "Synth\u{00e8}se automatique des donn\u{00e9}es de conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s, menaces et alertes r\u{00e9}seau en recommandations prioris\u{00e9}es par niveau de criticit\u{00e9}.",
             ),
@@ -76,15 +76,15 @@ impl LLMPanel {
         // Use cached count for badge to avoid building recommendations twice per frame
         let rec_count = state.ai.recommendations_count as u32;
 
-        let mut assistant_tab = Tab::new("ASSISTANT IA").icon(icons::ROBOT);
+        let mut assistant_tab = Tab::new("Assistant IA").icon(icons::ROBOT);
         if chat_count > 0 {
             assistant_tab = assistant_tab.badge(chat_count.min(99));
         }
-        let mut recs_tab = Tab::new("RECOMMANDATIONS").icon(icons::BRAIN);
+        let mut recs_tab = Tab::new("Recommandations").icon(icons::BRAIN);
         if rec_count > 0 {
             recs_tab = recs_tab.badge(rec_count.min(99));
         }
-        let model_tab = Tab::new("STATUT MOD\u{00c8}LE").icon(icons::MICROCHIP);
+        let model_tab = Tab::new("Statut mod\u{00e8}le").icon(icons::MICROCHIP);
 
         let tabs = vec![assistant_tab, recs_tab, model_tab];
 
@@ -115,7 +115,7 @@ impl LLMPanel {
             widgets::empty_state(
                 ui,
                 icons::ROBOT,
-                "ASSISTANT IA",
+                "Assistant IA",
                 Some(
                     "Posez une question de s\u{00e9}curit\u{00e9} ou utilisez les actions rapides ci-dessous pour d\u{00e9}marrer.",
                 ),
@@ -164,14 +164,21 @@ impl LLMPanel {
             ];
 
             for &(icon, label, prompt) in quick_actions {
+                // Suggestion chips, not primary actions: they sit at body
+                // size on a tinted surface so a first-time user can read them,
+                // and defer to the field below rather than competing with it.
                 let btn = egui::Button::new(
-                    egui::RichText::new(format!("{} {}", icon, label))
-                        .font(theme::font_small())
+                    egui::RichText::new(format!("{}  {}", icon, label))
+                        .font(theme::font_body())
                         .color(theme::accent_text()),
                 )
-                .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
-                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)));
+                .fill(theme::tinted_surface(theme::ACCENT))
+                .corner_radius(egui::CornerRadius::same(theme::ROUNDING_LG))
+                .min_size(egui::vec2(0.0, theme::BUTTON_HEIGHT_SM))
+                .stroke(egui::Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    theme::with_alpha(theme::ACCENT, 90),
+                ));
 
                 if ui.add_enabled(!state.ai.is_processing, btn).clicked() {
                     // Add user message to history
@@ -209,7 +216,7 @@ impl LLMPanel {
                 ui.add_space(theme::SPACE_XS);
 
                 let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
-                    .hint_text("Posez une question de s\u{00e9}curit\u{00e9}...")
+                    .hint_text("Posez une question de s\u{00e9}curit\u{00e9}…")
                     .font(theme::font_body())
                     .desired_width(ui.available_width() - 80.0)
                     .text_color(theme::text_primary());
@@ -386,7 +393,7 @@ impl LLMPanel {
                                         ui.spinner();
                                         ui.add_space(theme::SPACE_SM);
                                         ui.label(
-                                            egui::RichText::new("Analyse en cours...")
+                                            egui::RichText::new("Analyse en cours…")
                                                 .font(theme::font_body())
                                                 .color(theme::text_secondary())
                                                 .italics(),
@@ -460,7 +467,7 @@ impl LLMPanel {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.ai.search,
-            "Rechercher une recommandation, une cat\u{00e9}gorie...",
+            "Rechercher une recommandation, une cat\u{00e9}gorie…",
         )
         .chip("CONFORMIT\u{00c9}", compliance_active, theme::ACCENT)
         .chip("VULN\u{00c9}RABILIT\u{00c9}S", vuln_active, theme::ERROR)
@@ -516,14 +523,14 @@ impl LLMPanel {
                     widgets::empty_state(
                         ui,
                         icons::SEARCH,
-                        "AUCUN R\u{00c9}SULTAT",
+                        "Aucun r\u{00e9}sultat",
                         Some("Modifiez vos crit\u{00e8}res de recherche ou de filtrage."),
                     );
                 } else {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
-                        "POSTURE DE S\u{00c9}CURIT\u{00c9} OPTIMALE",
+                        "Posture de s\u{00e9}curit\u{00e9} optimale",
                         "Aucune recommandation \u{00e0} signaler. Tous les contr\u{00f4}les sont conformes.",
                     );
                 }
@@ -727,7 +734,10 @@ impl LLMPanel {
                     );
                     ui.label(
                         egui::RichText::new(if state.ai.model_status.memory_mb > 0 {
-                            format!("{} Mo alloués", state.ai.model_status.memory_mb)
+                            format!(
+                                "{} Mo alloués",
+                                crate::format::int(state.ai.model_status.memory_mb)
+                            )
                         } else {
                             "--".to_string()
                         })
@@ -937,9 +947,12 @@ impl LLMPanel {
                                                     .color(meta_color),
                                             );
                                             ui.label(
-                                                egui::RichText::new(format!("{:.1} Go", size_gb))
-                                                    .font(theme::font_min())
-                                                    .color(meta_color),
+                                                egui::RichText::new(format!(
+                                                    "{} Go",
+                                                    crate::format::decimal(*size_gb, 1)
+                                                ))
+                                                .font(theme::font_min())
+                                                .color(meta_color),
                                             );
                                             ui.add_space(theme::SPACE_SM);
                                             ui.label(
@@ -1176,7 +1189,7 @@ impl LLMPanel {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     // Percentage
                     ui.label(
-                        egui::RichText::new(format!("{}%", progress_percent))
+                        egui::RichText::new(format!("{}\u{202f}%", progress_percent))
                             .font(theme::font_stat())
                             .color(if is_paused {
                                 theme::WARNING
@@ -1461,7 +1474,7 @@ impl LLMPanel {
                 title: format!("R\u{00e9}soudre : {}", incident.title),
                 subtitle: incident.description.clone(),
                 detail: format!(
-                    "Type : {} \u{2014} Confiance : {}%",
+                    "Type : {} \u{2014} Confiance : {}\u{202f}%",
                     incident.incident_type, incident.confidence
                 ),
                 category: incident.incident_type.clone(),
@@ -1480,7 +1493,7 @@ impl LLMPanel {
         widgets::empty_state(
             ui,
             icons::BRAIN,
-            "ANALYSE EN ATTENTE",
+            "Analyse en attente",
             Some("Lancez un audit de conformit\u{00e9} pour activer l'analyse IA automatique."),
         );
     }
@@ -1491,7 +1504,7 @@ impl LLMPanel {
                 // Left: Gauge
                 ui.vertical(|ui| {
                     ui.set_width(POSTURE_GAUGE_WIDTH);
-                    widgets::compliance_gauge(ui, Some(ai_score), 70.0);
+                    widgets::compliance_gauge_captioned(ui, Some(ai_score), 70.0, "SCORE IA");
                 });
 
                 ui.add_space(theme::SPACE_LG);
@@ -1514,7 +1527,7 @@ impl LLMPanel {
 
                     ui.horizontal(|ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new(format!("{:.0}%", ai_score))
+                            egui::RichText::new(format!("{:.0}\u{202f}%", ai_score))
                                 .font(theme::font_card_value())
                                 .color(risk_color)
                                 .strong(),
@@ -1572,7 +1585,7 @@ impl LLMPanel {
                                 egui::Layout::right_to_left(egui::Align::Center),
                                 |ui: &mut egui::Ui| {
                                     ui.label(
-                                        egui::RichText::new(format!("{:.0}%", score))
+                                        egui::RichText::new(format!("{:.0}\u{202f}%", score))
                                             .font(theme::font_small())
                                             .color(color)
                                             .strong(),
@@ -1595,7 +1608,7 @@ impl LLMPanel {
         let compliance_pct = state
             .summary
             .compliance_score
-            .map(|s| format!("{:.0}%", s))
+            .map(|s| format!("{:.0}\u{202f}%", s))
             .unwrap_or_else(|| "--".to_string());
 
         let items = vec![

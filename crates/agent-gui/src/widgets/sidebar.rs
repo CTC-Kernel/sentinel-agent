@@ -1,7 +1,16 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Navigation sidebar widget.
+//! Navigation sidebar.
+//!
+//! Two shapes, one component: a labelled column at `SIDEBAR_WIDTH`, and an
+//! icon rail at `SIDEBAR_RAIL_WIDTH` for operators who want the screen back.
+//! Both share the same rows, the same active treatment, and the same footer,
+//! so collapsing changes the density and nothing else.
+//!
+//! Brand marks live in the top bar, not here — repeating them above the
+//! navigation cost ~190px of vertical space and pushed half the sections
+//! below the fold on a laptop.
 
 use chrono::{DateTime, Utc};
 use egui::{CornerRadius, Margin, Ui, Vec2};
@@ -9,7 +18,6 @@ use egui::{CornerRadius, Margin, Ui, Vec2};
 use crate::app::Page;
 use crate::icons;
 use crate::theme;
-use crate::theme::FontIdExt;
 
 /// Sync state passed to the sidebar for the status indicator.
 pub struct SidebarSyncState {
@@ -19,770 +27,720 @@ pub struct SidebarSyncState {
     pub error: Option<String>,
 }
 
+/// Everything the sidebar renders, gathered so the call site reads as data.
+pub struct SidebarContext<'a> {
+    /// Page currently routed to.
+    pub current: &'a Page,
+    /// A compliance scan is running.
+    pub scanning: bool,
+    /// Unread notification count, shown as a badge.
+    pub unread_notifications: u32,
+    /// Platform sync state, shown in the footer.
+    pub sync: &'a SidebarSyncState,
+    /// Tenant name, shown in the footer.
+    pub organization: Option<&'a str>,
+    /// Local model is loaded and ready.
+    pub ai_ready: bool,
+    /// Voice assistant is listening.
+    pub voice_active: bool,
+    /// Render as an icon rail instead of a labelled column.
+    pub collapsed: bool,
+}
+
+/// One navigation section: an uppercase eyebrow and its rows.
+struct NavSection {
+    label: &'static str,
+    items: &'static [(Page, &'static str, &'static str)],
+}
+
+/// Navigation grouped by the operator's mental model: what is happening now,
+/// then the SOC domain, then GRC, then asset posture, then tooling.
+fn nav_sections() -> [NavSection; 5] {
+    [
+        NavSection {
+            label: "VUE D'ENSEMBLE",
+            items: &[
+                (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
+                (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
+                (Page::Notifications, icons::BELL, "Notifications"),
+            ],
+        },
+        NavSection {
+            label: "D\u{00c9}TECTION & R\u{00c9}PONSE",
+            items: &[
+                (Page::Threats, icons::SKULL, "Menaces"),
+                (
+                    Page::Vulnerabilities,
+                    icons::VULNERABILITIES,
+                    "Vuln\u{00e9}rabilit\u{00e9}s",
+                ),
+                (
+                    Page::FileIntegrity,
+                    icons::FILE_SHIELD,
+                    "Int\u{00e9}grit\u{00e9} des fichiers",
+                ),
+                (Page::Network, icons::NETWORK, "R\u{00e9}seau"),
+            ],
+        },
+        NavSection {
+            label: "CONFORMIT\u{00c9} & RISQUES",
+            items: &[
+                (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
+                (Page::Risks, icons::SCALE_BALANCED, "Risques"),
+                (Page::Reports, icons::FILE_EXPORT, "Rapports"),
+            ],
+        },
+        NavSection {
+            label: "ACTIFS & INVENTAIRE",
+            items: &[
+                (Page::Assets, icons::BOXES_STACKED, "Inventaire"),
+                (Page::Software, icons::SOFTWARE, "Logiciels & MDM"),
+                (Page::Discovery, icons::DISCOVERY, "Shadow IT"),
+                (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
+            ],
+        },
+        NavSection {
+            label: "SYST\u{00c8}ME",
+            items: &[
+                (Page::AuditTrail, icons::CLIPBOARD, "Journal d'audit"),
+                (Page::Sync, icons::SYNC, "Synchronisation"),
+                (Page::Terminal, icons::TERMINAL, "Terminal"),
+            ],
+        },
+    ]
+}
+
+/// Keyboard shortcut for a page, matching the bindings in `app.rs`.
+///
+/// Surfaced in the row's tooltip: a shortcut nobody can discover is a
+/// shortcut nobody uses.
+fn shortcut_for(page: &Page) -> Option<String> {
+    let key = match page {
+        Page::Dashboard => "1",
+        Page::Compliance => "2",
+        Page::Vulnerabilities => "3",
+        Page::Software => "4",
+        Page::Network => "5",
+        Page::FileIntegrity => "6",
+        Page::Threats => "7",
+        Page::Settings => "8",
+        _ => return None,
+    };
+    Some(super::topbar::shortcut_label(false, key))
+}
+
+/// Rows pinned to the bottom, above the workspace footer.
+const FOOTER_ITEMS: &[(Page, &str, &str)] = &[
+    (Page::Settings, icons::SETTINGS, "Param\u{00e8}tres"),
+    (Page::About, icons::ABOUT, "\u{00c0} propos"),
+];
+
+/// Horizontal inset of a nav row from the sidebar edges.
+const ROW_INSET: f32 = 8.0;
+/// Left padding inside a nav row, before the icon.
+const ROW_PADDING: f32 = 10.0;
+/// Width reserved for the icon column, so labels align down the column.
+const ICON_COLUMN: f32 = 22.0;
+/// Height of the pinned footer, reserved before the scroll area is laid out:
+/// a rule, two nav rows and the status strip.
+const FOOTER_RESERVE: f32 = theme::BORDER_THIN
+    + theme::SPACE_XS * 2.0
+    + theme::NAV_ITEM_HEIGHT * 2.0
+    + 2.0
+    + 34.0
+    + theme::SPACE_XS
+    + theme::SPACE_SM;
+
 /// Navigation sidebar.
 pub struct Sidebar;
 
 impl Sidebar {
     /// Render the sidebar. Returns the newly selected page, if any.
-    #[allow(clippy::too_many_arguments)]
-    pub fn show(
-        ui: &mut Ui,
-        current: &Page,
-        _scanning: bool,
-        unread_notifications: u32,
-        sync_state: &SidebarSyncState,
-        organization: Option<&str>,
-        ai_ready: bool,
-        voice_active: bool,
-    ) -> Option<Page> {
+    pub fn show(ui: &mut Ui, ctx: &SidebarContext<'_>) -> Option<Page> {
         let mut selected: Option<Page> = None;
+        let width = Self::width(ctx.collapsed);
 
         egui::Frame {
-            fill: egui::Color32::TRANSPARENT, // We paint manually
+            fill: egui::Color32::TRANSPARENT,
             inner_margin: Margin::same(0),
             ..Default::default()
         }
         .show(ui, |ui: &mut egui::Ui| {
-            ui.set_min_width(theme::SIDEBAR_WIDTH);
-            ui.set_max_width(theme::SIDEBAR_WIDTH);
+            ui.set_min_width(width);
+            ui.set_max_width(width);
+            ui.spacing_mut().item_spacing.y = 1.0;
 
-            // Paint gradient background
-            let rect = ui.max_rect();
-            if ui.is_rect_visible(rect) {
-                use egui::epaint::{Mesh, Vertex};
-                let mut mesh = Mesh::default();
-
-                let (top_col, bot_col) = theme::sidebar_gradient();
-
-                // Tricky: we need correct indices for 2 triangles forming the rect
-                let idx = mesh.vertices.len() as u32;
-                mesh.vertices.push(Vertex {
-                    pos: rect.left_top(),
-                    uv: Default::default(),
-                    color: top_col,
-                });
-                mesh.vertices.push(Vertex {
-                    pos: rect.right_top(),
-                    uv: Default::default(),
-                    color: top_col,
-                });
-                mesh.vertices.push(Vertex {
-                    pos: rect.right_bottom(),
-                    uv: Default::default(),
-                    color: bot_col,
-                });
-                mesh.vertices.push(Vertex {
-                    pos: rect.left_bottom(),
-                    uv: Default::default(),
-                    color: bot_col,
-                });
-
-                mesh.add_triangle(idx, idx + 1, idx + 2);
-                mesh.add_triangle(idx + 2, idx + 3, idx);
-
-                ui.painter().add(mesh);
-            }
+            let full = ui.max_rect();
+            let footer_top = full.bottom() - FOOTER_RESERVE;
 
             egui::ScrollArea::vertical()
                 .auto_shrink(egui::Vec2b::new(false, false))
+                .max_height((footer_top - full.top()).max(0.0))
                 .show(ui, |ui: &mut egui::Ui| {
-                    // Logo / brand section
-                    ui.add_space(theme::SPACE);
-                    ui.vertical_centered(|ui: &mut egui::Ui| {
-                        // IA.png logo - Perfectly centered with subtle drop shadow
-                        let logo = egui::Image::from_bytes(
-                            "bytes://ia_sidebar",
-                            include_bytes!("../../assets/IA.png"),
-                        )
-                        .max_width(64.0);
+                    ui.add_space(theme::SPACE_MD);
 
-                        let r = ui.add(logo);
-                        // Subtle inner shadow for the logo container
-                        ui.painter().circle_filled(
-                            r.rect.center(),
-                            32.0,
-                            theme::bg_sidebar().linear_multiply(theme::OPACITY_SUBTLE),
-                        );
-
+                    for section in nav_sections() {
+                        Self::section_label(ui, section.label, ctx.collapsed, width);
+                        for (page, icon, label) in section.items {
+                            let badge = (*page == Page::Notifications
+                                && ctx.unread_notifications > 0)
+                                .then_some(ctx.unread_notifications);
+                            if Self::nav_row(
+                                ui,
+                                NavRow {
+                                    icon,
+                                    label,
+                                    shortcut: shortcut_for(page),
+                                    is_current: ctx.current == page,
+                                    badge,
+                                    trailing: None,
+                                    width,
+                                    collapsed: ctx.collapsed,
+                                },
+                            ) {
+                                selected = Some(page.clone());
+                            }
+                        }
                         ui.add_space(theme::SPACE_MD);
+                    }
 
-                        ui.vertical_centered(|ui| {
-                            ui.label(
-                                egui::RichText::new("SENTINEL")
-                                    .font(theme::font_title().size(22.0))
-                                    .color(theme::accent_text())
-                                    .extra_letter_spacing(theme::TRACKING_WIDE)
-                                    .strong(),
-                            );
-                            ui.label(
-                                egui::RichText::new("GRC AGENT")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
+                    // ── Assistant ────────────────────────────────────
+                    Self::section_label(ui, "ASSISTANT", ctx.collapsed, width);
+                    let (ai_label, ai_color) = Self::ai_status(ctx);
+                    if Self::nav_row(
+                        ui,
+                        NavRow {
+                            icon: icons::BRAIN,
+                            label: "Assistant IA",
+                            shortcut: None,
+                            is_current: ctx.current == &Page::AI,
+                            badge: None,
+                            trailing: Some(TrailingDot {
+                                color: ai_color,
+                                label: ai_label,
+                                pulsing: ctx.voice_active,
+                            }),
+                            width,
+                            collapsed: ctx.collapsed,
+                        },
+                    ) {
+                        selected = Some(Page::AI);
+                    }
 
-                        // Bell badge with unread count
-                        if unread_notifications > 0 {
-                            ui.add_space(theme::SPACE_SM);
-                            ui.horizontal(|ui: &mut egui::Ui| {
-                                ui.add_space(theme::SIDEBAR_WIDTH / 2.0 - 30.0);
-                                let bell_response = ui.label(
-                                    egui::RichText::new(icons::BELL)
-                                        .size(theme::ICON_SM)
-                                        .color(theme::readable_color(theme::WARNING)),
-                                );
-                                // Draw count badge
-                                let badge_text = if unread_notifications > 9 {
-                                    "9+".to_string()
-                                } else {
-                                    unread_notifications.to_string()
-                                };
-                                let badge_rect = egui::Rect::from_min_size(
-                                    bell_response.rect.right_top()
-                                        + egui::vec2(
-                                            -theme::BADGE_INDICATOR_OFFSET,
-                                            -theme::BADGE_INDICATOR_OFFSET,
-                                        ),
-                                    egui::vec2(theme::ICON_SM, theme::ICON_SM),
-                                );
-                                let rounding = CornerRadius::same(theme::BUTTON_ROUNDING);
-                                ui.painter().rect_filled(
-                                    badge_rect,
-                                    rounding,
-                                    theme::badge_bg(theme::ERROR),
-                                );
-                                ui.painter().rect_stroke(
-                                    badge_rect,
-                                    rounding,
-                                    egui::Stroke::new(
-                                        theme::BORDER_HAIRLINE,
-                                        theme::badge_border(theme::ERROR),
-                                    ),
-                                    egui::StrokeKind::Inside,
-                                );
-                                ui.painter().text(
-                                    badge_rect.center(),
-                                    egui::Align2::CENTER_CENTER,
-                                    &badge_text,
-                                    theme::font_label(),
-                                    theme::badge_text(theme::ERROR),
-                                );
-                            });
-                        }
+                    ui.add_space(theme::SPACE_MD);
+                });
 
-                        ui.add_space(theme::SPACE_LG);
+            // Fade the last few pixels of the scroll area into the surface,
+            // so a row cut off by the footer reads as "more below" rather
+            // than as a row overlapping the footer.
+            let fade = egui::Rect::from_min_max(
+                egui::pos2(full.left(), footer_top - theme::SPACE_LG),
+                egui::pos2(full.right(), footer_top),
+            );
+            if ui.is_rect_visible(fade) {
+                use egui::epaint::{Mesh, Vertex};
+                let (_, bottom) = theme::sidebar_gradient();
+                let mut mesh = Mesh::default();
+                for (pos, color) in [
+                    (fade.left_top(), egui::Color32::TRANSPARENT),
+                    (fade.right_top(), egui::Color32::TRANSPARENT),
+                    (fade.right_bottom(), bottom),
+                    (fade.left_bottom(), bottom),
+                ] {
+                    mesh.vertices.push(Vertex {
+                        pos,
+                        uv: Default::default(),
+                        color,
                     });
+                }
+                mesh.add_triangle(0, 1, 2);
+                mesh.add_triangle(2, 3, 0);
+                ui.painter().add(mesh);
+            }
 
-                    ui.vertical(|ui: &mut egui::Ui| {
-                        ui.set_width(theme::SIDEBAR_WIDTH);
-
-                        // Sync status at the top
-                        Self::sync_indicator(ui, sync_state);
-                        ui.add_space(theme::SPACE_SM);
-                        // Themed divider (softer than egui default)
-                        let sep_rect = ui
-                            .allocate_space(egui::vec2(
-                                theme::SIDEBAR_WIDTH - theme::SPACE_LG * 2.0,
-                                theme::BORDER_HAIRLINE,
-                            ))
-                            .1;
-                        ui.painter().rect_filled(
-                            sep_rect,
-                            egui::CornerRadius::ZERO,
-                            theme::border(),
-                        );
-                        ui.add_space(theme::SPACE_SM);
-
-                        // Navigation grouped by the operator's mental model:
-                        // overview first, then the detection/response domain, GRC,
-                        // asset posture, and finally system tooling. Section labels
-                        // are all French for a single, consistent voice.
-
-                        // ── Vue d'ensemble ──────────────────────────────────
-                        // Notifications lives here (cross-cutting) until a global
-                        // top bar exists to host it; the loop stays badge-aware.
-                        ui.add_space(theme::SPACE_SM);
-                        Self::section_label(ui, "VUE D'ENSEMBLE");
-
-                        let overview_items: &[(Page, &str, &str)] = &[
-                            (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
-                            (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
-                            (Page::Notifications, icons::BELL, "Notifications"),
-                        ];
-
-                        for (page, icon, label) in overview_items {
-                            let badge = if *page == Page::Notifications && unread_notifications > 0
-                            {
-                                Some(unread_notifications)
-                            } else {
-                                None
-                            };
-                            if Self::nav_item_with_badge(ui, icon, label, current == page, badge) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        // ── Détection & Réponse (le domaine SOC) ─────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "D\u{00c9}TECTION & R\u{00c9}PONSE");
-
-                        let detection_items: &[(Page, &str, &str)] = &[
-                            (Page::Threats, icons::SKULL, "Menaces"),
-                            (
-                                Page::Vulnerabilities,
-                                icons::VULNERABILITIES,
-                                "Vuln\u{00e9}rabilit\u{00e9}s",
-                            ),
-                            (
-                                Page::FileIntegrity,
-                                icons::FILE_SHIELD,
-                                "Int\u{00e9}grit\u{00e9} des fichiers",
-                            ),
-                            (Page::Network, icons::NETWORK, "R\u{00e9}seau"),
-                        ];
-
-                        for (page, icon, label) in detection_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        // ── Conformité & Risques (GRC) ───────────────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "CONFORMIT\u{00c9} & RISQUES");
-
-                        let grc_items: &[(Page, &str, &str)] = &[
-                            (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
-                            (Page::Risks, icons::SCALE_BALANCED, "Risques"),
-                            (Page::Reports, icons::FILE_EXPORT, "Rapports"),
-                        ];
-
-                        for (page, icon, label) in grc_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        // ── Actifs & Inventaire ──────────────────────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "ACTIFS & INVENTAIRE");
-
-                        let asset_items: &[(Page, &str, &str)] = &[
-                            (Page::Assets, icons::BOXES_STACKED, "Inventaire"),
-                            (Page::Software, icons::SOFTWARE, "Logiciels & MDM"),
-                            (Page::Discovery, icons::DISCOVERY, "Shadow IT"),
-                            (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
-                        ];
-
-                        for (page, icon, label) in asset_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        // ── Système (outillage) ──────────────────────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "SYST\u{00c8}ME");
-
-                        let system_items: &[(Page, &str, &str)] = &[
-                            (Page::AuditTrail, icons::CLIPBOARD, "Journal d'audit"),
-                            (Page::Sync, icons::SYNC, "Synchronisation"),
-                            (Page::Terminal, icons::TERMINAL, "Terminal"),
-                        ];
-
-                        for (page, icon, label) in system_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        // ── Assistant (statut du modèle IA) ──────────────────
-                        ui.add_space(theme::SPACE);
-                        Self::section_label(ui, "ASSISTANT");
-                        if Self::ai_status_item(ui, current == &Page::AI, ai_ready, voice_active) {
-                            selected = Some(Page::AI);
-                        }
-
-                        // Flexible spacer: push bottom items down when space allows,
-                        // but never overlap -- ScrollArea handles overflow.
-                        let bottom_height = theme::NAV_ITEM_HEIGHT * 2.0
-                            + theme::SPACE_SM * 2.0
-                            + theme::SPACE_XL
-                            + 2.0;
-                        let remaining = ui.available_height() - bottom_height;
-                        if remaining > 0.0 {
-                            ui.add_space(remaining);
-                        } else {
-                            ui.add_space(theme::SPACE);
-                        }
-
-                        let bottom_items: &[(Page, &str, &str)] = &[
-                            (Page::Settings, icons::SETTINGS, "Param\u{00e8}tres"),
-                            (Page::About, icons::ABOUT, "\u{00c0} propos"),
-                        ];
-
-                        for (page, icon, label) in bottom_items {
-                            if Self::nav_item(ui, icon, label, current == page) {
-                                selected = Some(page.clone());
-                            }
-                        }
-
-                        ui.add_space(theme::SPACE_XL);
-
-                        // Workspace context (AAA Grade)
-                        if let Some(org) = organization {
-                            // Themed divider
-                            let sep_rect = ui
-                                .allocate_space(egui::vec2(
-                                    theme::SIDEBAR_WIDTH - theme::SPACE_LG * 2.0,
-                                    theme::BORDER_HAIRLINE,
-                                ))
-                                .1;
-                            ui.painter().rect_filled(
-                                sep_rect,
-                                egui::CornerRadius::ZERO,
-                                theme::border(),
-                            );
-                            ui.add_space(theme::SPACE_SM);
-                            ui.horizontal(|ui: &mut egui::Ui| {
-                                ui.add_space(theme::SPACE_MD);
-                                ui.vertical(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(org.to_uppercase())
-                                            .font(theme::font_body())
-                                            .color(theme::accent_text())
-                                            .strong(),
-                                    );
-                                    ui.label(
-                                        egui::RichText::new("WORKSPACE ACTIF")
-                                            .font(theme::font_min())
-                                            .color(theme::text_tertiary())
-                                            .strong(),
-                                    );
-                                });
-                            });
-                        }
-
-                        ui.add_space(theme::SPACE_XL);
-                    });
-                }); // end ScrollArea
+            // ── Pinned footer ────────────────────────────────────────
+            let footer = egui::Rect::from_min_max(
+                egui::pos2(full.left(), footer_top),
+                egui::pos2(full.right(), full.bottom()),
+            );
+            let mut footer_ui = ui.new_child(
+                egui::UiBuilder::new()
+                    .max_rect(footer)
+                    .layout(egui::Layout::top_down(egui::Align::Min)),
+            );
+            footer_ui.spacing_mut().item_spacing.y = 1.0;
+            if let Some(page) = Self::footer(&mut footer_ui, ctx, width) {
+                selected = Some(page);
+            }
         });
 
         selected
     }
 
-    fn section_label(ui: &mut Ui, text: &str) {
+    /// Pixel width of the sidebar in its current shape.
+    pub fn width(collapsed: bool) -> f32 {
+        if collapsed {
+            theme::SIDEBAR_RAIL_WIDTH
+        } else {
+            theme::SIDEBAR_WIDTH
+        }
+    }
+
+    /// Paint the sidebar's vertical gradient and its trailing seam.
+    ///
+    /// Called by the shell so the gradient covers the full panel height,
+    /// including the area under the scroll area.
+    pub fn paint_background(ui: &Ui, rect: egui::Rect) {
+        use egui::epaint::{Mesh, Vertex};
+        if !ui.is_rect_visible(rect) {
+            return;
+        }
+        let (top, bottom) = theme::sidebar_gradient();
+        let mut mesh = Mesh::default();
+        for (pos, color) in [
+            (rect.left_top(), top),
+            (rect.right_top(), top),
+            (rect.right_bottom(), bottom),
+            (rect.left_bottom(), bottom),
+        ] {
+            mesh.vertices.push(Vertex {
+                pos,
+                uv: Default::default(),
+                color,
+            });
+        }
+        mesh.add_triangle(0, 1, 2);
+        mesh.add_triangle(2, 3, 0);
+        ui.painter().add(mesh);
+
+        ui.painter().vline(
+            rect.right() - 0.5,
+            rect.y_range(),
+            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+        );
+    }
+
+    /// Section eyebrow. In rail mode a short rule replaces the words, so the
+    /// grouping survives the collapse.
+    fn section_label(ui: &mut Ui, text: &str, collapsed: bool, width: f32) {
         ui.add_space(theme::SPACE_SM);
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.add_space(theme::SPACE_MD);
-            // Accent dot indicator
-            let (dot_rect, _) = ui.allocate_exact_size(Vec2::splat(4.0), egui::Sense::empty());
-            ui.painter().circle_filled(
-                dot_rect.center(),
-                2.0,
-                theme::accent_text().linear_multiply(theme::OPACITY_MODERATE),
+        if collapsed {
+            let (rect, _) =
+                ui.allocate_exact_size(Vec2::new(width, theme::BORDER_THIN), egui::Sense::hover());
+            let rule = egui::Rect::from_min_size(
+                egui::pos2(rect.left() + theme::SPACE_MD, rect.top()),
+                egui::vec2(width - theme::SPACE_MD * 2.0, theme::BORDER_HAIRLINE),
             );
-            ui.add_space(theme::SPACE_XS);
-            ui.label(
-                egui::RichText::new(text)
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_WIDE)
-                    .strong(),
+            ui.painter()
+                .rect_filled(rule, CornerRadius::ZERO, theme::border_subtle());
+        } else {
+            let (rect, _) = ui.allocate_exact_size(Vec2::new(width, 16.0), egui::Sense::hover());
+            ui.painter().text(
+                egui::pos2(rect.left() + ROW_INSET + ROW_PADDING, rect.center().y),
+                egui::Align2::LEFT_CENTER,
+                text,
+                theme::font_micro(),
+                theme::text_tertiary(),
             );
-        });
+        }
         ui.add_space(theme::SPACE_XS);
     }
 
-    fn nav_item(ui: &mut Ui, icon: &str, label: &str, is_current: bool) -> bool {
-        Self::nav_item_with_badge(ui, icon, label, is_current, None)
-    }
-
-    fn nav_item_with_badge(
-        ui: &mut Ui,
-        icon: &str,
-        label: &str,
-        is_current: bool,
-        badge: Option<u32>,
-    ) -> bool {
-        let text_color = if is_current {
-            theme::text_primary()
-        } else {
-            theme::text_secondary()
-        };
-
-        let bg_fill = if is_current {
-            theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)
-        } else {
-            egui::Color32::TRANSPARENT
-        };
-
+    /// Everything a navigation row needs to draw itself.
+    fn nav_row(ui: &mut Ui, row: NavRow<'_>) -> bool {
         let (rect, response) = ui.allocate_exact_size(
-            Vec2::new(theme::SIDEBAR_WIDTH, theme::NAV_ITEM_HEIGHT),
+            Vec2::new(row.width, theme::NAV_ITEM_HEIGHT),
             egui::Sense::click(),
         );
+        let hovered = response.hovered();
 
         if ui.is_rect_visible(rect) {
-            // Background tint on hover or active
-            if is_current || response.hovered() {
-                let fill = if is_current {
-                    bg_fill
+            let painter = ui.painter();
+            let body = rect.shrink2(Vec2::new(ROW_INSET, theme::NAV_ITEM_INSET_V));
+            let radius = CornerRadius::same(theme::ROUNDING_MD);
+
+            // Surface: selected reads stronger than hover, same hue family.
+            let fill = if row.is_current {
+                theme::selected_bg()
+            } else if hovered {
+                theme::hover_bg_neutral()
+            } else {
+                egui::Color32::TRANSPARENT
+            };
+            if fill != egui::Color32::TRANSPARENT {
+                painter.rect_filled(body, radius, fill);
+            }
+
+            // Active marker: a short accent bar bled off the left edge. Its
+            // position is animated, so a navigation reads as the marker
+            // moving to the new row rather than appearing there.
+            if row.is_current {
+                let target_y = body.center().y;
+                let y = if theme::is_reduced_motion() {
+                    target_y
                 } else {
-                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
-                };
-
-                let rect_shrunk =
-                    rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
-
-                ui.painter().rect(
-                    rect_shrunk,
-                    CornerRadius::same(theme::BUTTON_ROUNDING),
-                    fill,
-                    egui::Stroke::NONE,
-                    egui::epaint::StrokeKind::Inside,
-                );
-
-                // Active indicator bar (left accent strip)
-                if is_current {
-                    let bar_rect = egui::Rect::from_min_size(
-                        egui::pos2(rect_shrunk.left(), rect_shrunk.top() + 6.0),
-                        egui::vec2(theme::ACCENT_BAR_WIDTH, rect_shrunk.height() - 12.0),
-                    );
-                    ui.painter().rect_filled(
-                        bar_rect,
-                        CornerRadius::same(theme::ROUNDING_XS),
-                        theme::accent_text(),
-                    );
-                }
-            }
-
-            // Icon and label - centered vertically with proper alignment
-            let icon_x = rect.left() + theme::SPACE_LG;
-            let icon_center_y = rect.center().y;
-            ui.painter().text(
-                egui::pos2(icon_x, icon_center_y),
-                egui::Align2::LEFT_CENTER,
-                icon,
-                theme::font_heading(),
-                if is_current {
-                    theme::accent_text()
-                } else {
-                    theme::text_secondary()
-                },
-            );
-
-            let label_x = icon_x + theme::ICON_MD + theme::SPACE_SM;
-            ui.painter().text(
-                egui::pos2(label_x, icon_center_y),
-                egui::Align2::LEFT_CENTER,
-                label,
-                theme::font_body(),
-                text_color,
-            );
-
-            // Focus ring for keyboard navigation
-            if response.has_focus() {
-                let rect_shrunk =
-                    rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
-                ui.painter().rect_stroke(
-                    rect_shrunk.expand(1.0),
-                    egui::CornerRadius::same(theme::BUTTON_ROUNDING),
-                    theme::focus_ring(),
-                    egui::epaint::StrokeKind::Outside,
-                );
-            }
-
-            // Badge (soft tinted pill)
-            if let Some(count) = badge
-                && count > 0
-            {
-                let badge_text = if count > 9 {
-                    "9+".to_string()
-                } else {
-                    count.to_string()
-                };
-                let badge_center = rect.right_center() + Vec2::new(-theme::NAV_BADGE_OFFSET, 0.0);
-                let badge_rect = egui::Rect::from_center_size(
-                    badge_center,
-                    Vec2::new(theme::NAV_BADGE_WIDTH, theme::NAV_BADGE_HEIGHT),
-                );
-                let rounding = CornerRadius::same(theme::BUTTON_ROUNDING);
-                ui.painter()
-                    .rect_filled(badge_rect, rounding, theme::badge_bg(theme::ERROR));
-                ui.painter().rect_stroke(
-                    badge_rect,
-                    rounding,
-                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::ERROR)),
-                    egui::StrokeKind::Inside,
-                );
-                ui.painter().text(
-                    badge_center,
-                    egui::Align2::CENTER_CENTER,
-                    &badge_text,
-                    theme::font_label(),
-                    theme::badge_text(theme::ERROR),
-                );
-            }
-        }
-
-        if response.hovered() {
-            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-        }
-
-        response.clicked()
-    }
-
-    /// Compact AI model status indicator.
-    ///
-    /// Shows a brain icon + "IA" label with a colored status dot and short
-    /// text ("Actif" / "Inactif"). Clicking navigates to the AI page.
-    fn ai_status_item(ui: &mut Ui, is_current: bool, ai_ready: bool, voice_active: bool) -> bool {
-        let (status_label, dot_color) = if voice_active {
-            ("Jarvis Écoute", theme::ACCENT)
-        } else if ai_ready {
-            ("IA Prête", theme::SUCCESS)
-        } else {
-            ("IA Inactive", theme::text_tertiary())
-        };
-
-        let text_color = if is_current {
-            theme::text_primary()
-        } else {
-            theme::text_secondary()
-        };
-
-        let bg_fill = if is_current {
-            theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)
-        } else {
-            egui::Color32::TRANSPARENT
-        };
-
-        let (rect, response) = ui.allocate_exact_size(
-            Vec2::new(theme::SIDEBAR_WIDTH, theme::NAV_ITEM_HEIGHT),
-            egui::Sense::click(),
-        );
-
-        if ui.is_rect_visible(rect) {
-            // Background tint on hover or active
-            if is_current || response.hovered() {
-                let fill = if is_current {
-                    bg_fill
-                } else {
-                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
-                };
-                let rect_shrunk =
-                    rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
-                ui.painter().rect(
-                    rect_shrunk,
-                    CornerRadius::same(theme::BUTTON_ROUNDING),
-                    fill,
-                    egui::Stroke::NONE,
-                    egui::epaint::StrokeKind::Inside,
-                );
-
-                // Active indicator bar
-                if is_current {
-                    let bar_rect = egui::Rect::from_min_size(
-                        egui::pos2(rect_shrunk.left(), rect_shrunk.top() + 6.0),
-                        egui::vec2(theme::ACCENT_BAR_WIDTH, rect_shrunk.height() - 12.0),
-                    );
-                    ui.painter().rect_filled(
-                        bar_rect,
-                        CornerRadius::same(theme::ROUNDING_XS),
-                        theme::accent_text(),
-                    );
-                }
-            }
-
-            // Brain icon
-            let icon_x = rect.left() + theme::SPACE_LG;
-            let icon_center_y = rect.center().y;
-            ui.painter().text(
-                egui::pos2(icon_x, icon_center_y),
-                egui::Align2::LEFT_CENTER,
-                icons::BRAIN,
-                theme::font_heading(),
-                if is_current {
-                    theme::accent_text()
-                } else {
-                    theme::text_secondary()
-                },
-            );
-
-            // "IA" label
-            let label_x = icon_x + theme::ICON_MD + theme::SPACE_SM;
-            ui.painter().text(
-                egui::pos2(label_x, icon_center_y),
-                egui::Align2::LEFT_CENTER,
-                "IA",
-                theme::font_body(),
-                text_color,
-            );
-
-            // Status dot + status text on the right side
-            let status_text_galley = ui.painter().layout_no_wrap(
-                status_label.to_string(),
-                theme::font_small(),
-                dot_color,
-            );
-            let status_text_w = status_text_galley.size().x;
-            let dot_radius = theme::STATUS_DOT_SIZE / 2.0;
-            let right_margin = theme::SPACE_MD;
-            let gap = theme::SPACE_XS;
-
-            // Position: [...dot gap text right_margin]
-            let text_right = rect.right() - right_margin;
-            let text_left = text_right - status_text_w;
-            let dot_cx = text_left - gap - dot_radius;
-
-            // Draw dot (with Pulse if listening)
-            if voice_active && !theme::is_reduced_motion() {
-                let pulse_t = ui.input(|i| i.time);
-                let pulse_alpha = ((pulse_t * 5.0).sin() * 0.5 + 0.5) as f32;
-                ui.painter().circle_filled(
-                    egui::pos2(dot_cx, icon_center_y),
-                    dot_radius * (1.0 + pulse_alpha * 0.5),
-                    dot_color.linear_multiply(pulse_alpha * 0.3),
-                );
-                ui.ctx().request_repaint();
-            }
-
-            ui.painter()
-                .circle_filled(egui::pos2(dot_cx, icon_center_y), dot_radius, dot_color);
-
-            // Draw status text
-            ui.painter().text(
-                egui::pos2(text_left, icon_center_y),
-                egui::Align2::LEFT_CENTER,
-                status_label,
-                theme::font_small(),
-                dot_color,
-            );
-
-            // Focus ring for keyboard navigation
-            if response.has_focus() {
-                let rect_shrunk =
-                    rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
-                ui.painter().rect_stroke(
-                    rect_shrunk.expand(1.0),
-                    egui::CornerRadius::same(theme::BUTTON_ROUNDING),
-                    theme::focus_ring(),
-                    egui::epaint::StrokeKind::Outside,
-                );
-            }
-        }
-
-        if response.hovered() {
-            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-        }
-
-        response.clicked()
-    }
-
-    /// Premium sync status indicator with animated dot, label, and relative timestamp.
-    fn sync_indicator(ui: &mut Ui, state: &SidebarSyncState) {
-        let now = Utc::now();
-        let t = ui.input(|i| i.time);
-
-        // Determine visual state
-        let (dot_color, label, pulse_speed): (egui::Color32, String, f64) = if state.syncing {
-            (theme::ACCENT, "Synchronisation...".to_string(), 3.0)
-        } else if state.error.is_some() {
-            (theme::ERROR, "Erreur sync".to_string(), 0.0)
-        } else if let Some(last) = state.last_sync_at {
-            let age_secs = (now - last).num_seconds();
-            if age_secs < 120 {
-                // If we have pending items, show that instead of a generic "Synchronisé"
-                if state.pending_count > 0 {
-                    (
-                        theme::ACCENT,
-                        format!("{} en attente", state.pending_count),
-                        2.0,
+                    ui.ctx().animate_value_with_time(
+                        egui::Id::new("sidebar_active_marker_y"),
+                        target_y,
+                        theme::ANIM_NORMAL,
                     )
-                } else {
-                    (theme::SUCCESS, "Synchronis\u{00e9}".to_string(), 1.0)
+                };
+                let bar = egui::Rect::from_min_size(
+                    egui::pos2(rect.left(), y - 8.0),
+                    egui::vec2(theme::ACCENT_BAR_WIDTH, 16.0),
+                );
+                painter.rect_filled(
+                    bar,
+                    CornerRadius {
+                        nw: 0,
+                        sw: 0,
+                        ne: theme::ROUNDING_XS,
+                        se: theme::ROUNDING_XS,
+                    },
+                    theme::accent_text(),
+                );
+            }
+
+            let (icon_color, label_color, label_font) = if row.is_current {
+                (
+                    theme::accent_text(),
+                    theme::text_primary(),
+                    theme::font_body_strong(),
+                )
+            } else if hovered {
+                (
+                    theme::text_primary(),
+                    theme::text_primary(),
+                    theme::font_body(),
+                )
+            } else {
+                (
+                    theme::text_tertiary(),
+                    theme::text_secondary(),
+                    theme::font_body(),
+                )
+            };
+
+            let center_y = rect.center().y;
+            if row.collapsed {
+                painter.text(
+                    egui::pos2(rect.center().x, center_y),
+                    egui::Align2::CENTER_CENTER,
+                    row.icon,
+                    theme::font_icon(theme::ICON_SM),
+                    icon_color,
+                );
+                // Rail mode has no room for a count, so unread collapses to a dot.
+                if row.badge.is_some() {
+                    painter.circle_filled(
+                        egui::pos2(rect.center().x + 9.0, center_y - 8.0),
+                        3.5,
+                        theme::ERROR,
+                    );
                 }
             } else {
-                (theme::WARNING, "En attente".to_string(), 0.0)
+                let icon_x = rect.left() + ROW_INSET + ROW_PADDING;
+                painter.text(
+                    egui::pos2(icon_x, center_y),
+                    egui::Align2::LEFT_CENTER,
+                    row.icon,
+                    theme::font_icon(theme::ICON_SM),
+                    icon_color,
+                );
+
+                let label_x = icon_x + ICON_COLUMN;
+                let reserved =
+                    row.trailing.as_ref().map_or(0.0, |_| 58.0) + row.badge.map_or(0.0, |_| 30.0);
+                let available = (body.right() - label_x - theme::SPACE_SM - reserved).max(24.0);
+                let galley =
+                    painter.layout(row.label.to_owned(), label_font, label_color, f32::INFINITY);
+                let truncated = galley.size().x > available;
+                painter
+                    .with_clip_rect(egui::Rect::from_min_size(
+                        egui::pos2(label_x, rect.top()),
+                        egui::vec2(available, rect.height()),
+                    ))
+                    .galley(
+                        egui::pos2(label_x, center_y - galley.size().y / 2.0),
+                        galley,
+                        label_color,
+                    );
+                if truncated {
+                    response.clone().on_hover_text(row.label);
+                }
+
+                if let Some(count) = row.badge {
+                    Self::count_badge(ui, body, count);
+                }
+                if let Some(trailing) = &row.trailing {
+                    Self::trailing_status(ui, body, trailing);
+                }
             }
-        } else {
-            (
-                theme::text_tertiary(),
-                "Non synchronis\u{00e9}".to_string(),
-                0.0,
-            )
-        };
 
-        // Pulse animation (cosine ease) — respects reduced motion
-        let alpha = if pulse_speed > 0.0 && !theme::is_reduced_motion() {
-            0.5 + 0.5 * (t * pulse_speed * std::f64::consts::TAU).cos() as f32
-        } else {
-            1.0
-        };
-
-        // Row 1: dot + label
-        let row_response = ui.horizontal(|ui: &mut egui::Ui| {
-            ui.add_space(theme::SPACE_MD + theme::SPACE_SM);
-            // Animated dot
-            let (dot_rect, _) =
-                ui.allocate_exact_size(Vec2::splat(theme::STATUS_DOT_SIZE), egui::Sense::empty());
-            ui.painter().circle_filled(
-                dot_rect.center(),
-                theme::STATUS_DOT_SIZE / 2.0,
-                dot_color.linear_multiply(alpha),
-            );
-            // Subtle glow on synced/syncing
-            if pulse_speed > 0.0 {
-                ui.painter().circle_filled(
-                    dot_rect.center(),
-                    6.0,
-                    dot_color.linear_multiply(alpha * theme::OPACITY_TINT),
+            if response.has_focus() {
+                painter.rect_stroke(
+                    body.expand(1.0),
+                    radius,
+                    theme::focus_ring(),
+                    egui::epaint::StrokeKind::Outside,
                 );
             }
-            ui.add_space(theme::SPACE_XS);
-            ui.label(
-                egui::RichText::new(&label)
-                    .font(theme::font_small())
-                    .color(theme::text_secondary()),
-            );
-        });
-
-        // Tooltip on error
-        if let Some(ref err) = state.error {
-            row_response.response.on_hover_text(err);
         }
 
-        // Row 2: relative timestamp
-        if let Some(last) = state.last_sync_at {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.add_space(
-                    theme::SPACE_MD + theme::SPACE_SM + theme::STATUS_DOT_SIZE + theme::SPACE_XS,
+        if hovered {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+            let hint = match (row.collapsed, &row.shortcut) {
+                (true, Some(sc)) => Some(format!("{}  \u{00b7}  {sc}", row.label)),
+                (true, None) => Some(row.label.to_owned()),
+                (false, Some(sc)) => Some(sc.clone()),
+                (false, None) => None,
+            };
+            if let Some(hint) = hint {
+                response.clone().on_hover_text(hint);
+            }
+        }
+
+        response.clicked()
+    }
+
+    /// Unread-count pill, right-aligned inside a nav row.
+    fn count_badge(ui: &Ui, body: egui::Rect, count: u32) {
+        let text = if count > 99 {
+            "99+".to_string()
+        } else {
+            count.to_string()
+        };
+        let width = theme::NAV_BADGE_WIDTH.max(text.len() as f32 * 8.0 + 10.0);
+        let rect = egui::Rect::from_center_size(
+            egui::pos2(
+                body.right() - width / 2.0 - theme::SPACE_SM,
+                body.center().y,
+            ),
+            Vec2::new(width, theme::NAV_BADGE_HEIGHT),
+        );
+        ui.painter().rect_filled(
+            rect,
+            CornerRadius::same(theme::BADGE_ROUNDING),
+            theme::badge_bg(theme::ERROR),
+        );
+        ui.painter().text(
+            rect.center(),
+            egui::Align2::CENTER_CENTER,
+            &text,
+            theme::font_micro(),
+            theme::badge_text(theme::ERROR),
+        );
+    }
+
+    /// Status dot plus short caption, right-aligned inside a nav row.
+    fn trailing_status(ui: &Ui, body: egui::Rect, trailing: &TrailingDot) {
+        let painter = ui.painter();
+        let galley = painter.layout_no_wrap(
+            trailing.label.to_owned(),
+            theme::font_micro(),
+            trailing.color,
+        );
+        let text_right = body.right() - theme::SPACE_SM;
+        let text_left = text_right - galley.size().x;
+        let dot_x = text_left - theme::SPACE_XS - theme::STATUS_DOT_SIZE / 2.0;
+        let center_y = body.center().y;
+
+        if trailing.pulsing && !theme::is_reduced_motion() {
+            let t = ui.input(|i| i.time);
+            let pulse = ((t * 4.0).sin() * 0.5 + 0.5) as f32;
+            painter.circle_filled(
+                egui::pos2(dot_x, center_y),
+                theme::STATUS_DOT_SIZE / 2.0 + pulse * 3.0,
+                trailing.color.linear_multiply(0.25 * (1.0 - pulse)),
+            );
+            ui.ctx().request_repaint();
+        }
+        painter.circle_filled(
+            egui::pos2(dot_x, center_y),
+            theme::STATUS_DOT_SIZE / 2.0 - 1.0,
+            trailing.color,
+        );
+        painter.galley(
+            egui::pos2(text_left, center_y - galley.size().y / 2.0),
+            galley,
+            trailing.color,
+        );
+    }
+
+    /// Assistant status, reduced to a colour and three words.
+    fn ai_status(ctx: &SidebarContext<'_>) -> (&'static str, egui::Color32) {
+        if ctx.voice_active {
+            ("Écoute", theme::readable_color(theme::ACCENT))
+        } else if ctx.ai_ready {
+            ("Prêt", theme::readable_color(theme::SUCCESS))
+        } else {
+            ("Inactif", theme::text_tertiary())
+        }
+    }
+
+    /// Pinned footer: settings, about, sync health and the active workspace.
+    fn footer(ui: &mut Ui, ctx: &SidebarContext<'_>, width: f32) -> Option<Page> {
+        let mut selected = None;
+
+        let (rect, _) =
+            ui.allocate_exact_size(Vec2::new(width, theme::BORDER_THIN), egui::Sense::hover());
+        ui.painter().rect_filled(
+            egui::Rect::from_min_size(
+                egui::pos2(rect.left() + ROW_INSET, rect.top()),
+                egui::vec2(width - ROW_INSET * 2.0, theme::BORDER_HAIRLINE),
+            ),
+            CornerRadius::ZERO,
+            theme::border_subtle(),
+        );
+        ui.add_space(theme::SPACE_XS);
+
+        for (page, icon, label) in FOOTER_ITEMS {
+            if Self::nav_row(
+                ui,
+                NavRow {
+                    icon,
+                    label,
+                    shortcut: shortcut_for(page),
+                    is_current: ctx.current == page,
+                    badge: None,
+                    trailing: None,
+                    width,
+                    collapsed: ctx.collapsed,
+                },
+            ) {
+                selected = Some(page.clone());
+            }
+        }
+
+        ui.add_space(theme::SPACE_XS);
+        Self::status_strip(ui, ctx, width);
+        selected
+    }
+
+    /// One line that answers "is this agent healthy right now?".
+    fn status_strip(ui: &mut Ui, ctx: &SidebarContext<'_>, width: f32) {
+        let (color, label, detail) = Self::sync_summary(ctx);
+        let height = if ctx.collapsed { 24.0 } else { 34.0 };
+        let (rect, response) =
+            ui.allocate_exact_size(Vec2::new(width, height), egui::Sense::hover());
+        let painter = ui.painter();
+        let center_y = rect.center().y;
+
+        if ctx.collapsed {
+            painter.circle_filled(
+                egui::pos2(rect.center().x, center_y),
+                theme::STATUS_DOT_SIZE / 2.0,
+                color,
+            );
+        } else {
+            let dot_x = rect.left() + ROW_INSET + ROW_PADDING + theme::STATUS_DOT_SIZE / 2.0;
+            painter.circle_filled(
+                egui::pos2(dot_x, rect.top() + 11.0),
+                theme::STATUS_DOT_SIZE / 2.0 - 1.0,
+                color,
+            );
+            let text_x = dot_x + theme::SPACE_SM + 2.0;
+            painter.text(
+                egui::pos2(text_x, rect.top() + 11.0),
+                egui::Align2::LEFT_CENTER,
+                label,
+                theme::font_micro(),
+                theme::text_secondary(),
+            );
+            if let Some(detail) = detail {
+                painter.text(
+                    egui::pos2(text_x, rect.top() + 25.0),
+                    egui::Align2::LEFT_CENTER,
+                    detail,
+                    theme::font_micro(),
+                    theme::text_tertiary(),
                 );
-                ui.label(
-                    egui::RichText::new(Self::relative_time_fr(now, last))
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary()),
-                );
-            });
+            }
+        }
+
+        let tooltip = match (&ctx.sync.error, ctx.organization) {
+            (Some(err), _) => err.clone(),
+            (None, Some(org)) => format!("Workspace : {org}"),
+            (None, None) => "Aucun workspace".to_string(),
+        };
+        response.on_hover_text(tooltip);
+        ui.add_space(theme::SPACE_XS);
+    }
+
+    /// Collapse sync + scan state into a colour, a label and a detail line.
+    fn sync_summary(ctx: &SidebarContext<'_>) -> (egui::Color32, String, Option<String>) {
+        let now = Utc::now();
+        if ctx.scanning {
+            return (
+                theme::readable_color(theme::ACCENT),
+                "Analyse en cours".to_string(),
+                None,
+            );
+        }
+        if ctx.sync.syncing {
+            return (
+                theme::readable_color(theme::ACCENT),
+                "Synchronisation…".to_string(),
+                None,
+            );
+        }
+        if ctx.sync.error.is_some() {
+            return (
+                theme::readable_color(theme::ERROR),
+                "Erreur de synchro".to_string(),
+                Some("Survoler pour le détail".to_string()),
+            );
+        }
+        if ctx.sync.pending_count > 0 {
+            return (
+                theme::readable_color(theme::WARNING),
+                format!("{} en attente", ctx.sync.pending_count),
+                ctx.sync
+                    .last_sync_at
+                    .map(|last| Self::relative_time_fr(now, last)),
+            );
+        }
+        match ctx.sync.last_sync_at {
+            Some(last) if (now - last).num_seconds() < 900 => (
+                theme::readable_color(theme::SUCCESS),
+                "Synchronis\u{00e9}".to_string(),
+                Some(Self::relative_time_fr(now, last)),
+            ),
+            Some(last) => (
+                theme::readable_color(theme::WARNING),
+                "Synchro ancienne".to_string(),
+                Some(Self::relative_time_fr(now, last)),
+            ),
+            None => (
+                theme::text_tertiary(),
+                "Non synchronis\u{00e9}".to_string(),
+                None,
+            ),
         }
     }
 
     /// Format a relative time difference in French.
     fn relative_time_fr(now: DateTime<Utc>, then: DateTime<Utc>) -> String {
-        let secs = (now - then).num_seconds().max(0);
-        if secs < 120 {
-            "\u{00e0} l'instant".into()
-        } else if secs < 3600 {
-            format!("il y a {} min", secs / 60)
-        } else if secs < agent_common::constants::SECS_PER_DAY as i64 {
-            format!("il y a {} h", secs / 3600)
-        } else {
-            format!(
-                "il y a {} j",
-                secs / agent_common::constants::SECS_PER_DAY as i64
-            )
-        }
+        crate::format::ago(now, then)
     }
+}
+
+/// Parameters of a single navigation row.
+struct NavRow<'a> {
+    icon: &'a str,
+    label: &'a str,
+    /// Hover text: the shortcut when there is one, the label in rail mode.
+    shortcut: Option<String>,
+    is_current: bool,
+    badge: Option<u32>,
+    trailing: Option<TrailingDot>,
+    width: f32,
+    collapsed: bool,
+}
+
+/// Status dot and caption rendered at the trailing edge of a row.
+struct TrailingDot {
+    color: egui::Color32,
+    label: &'static str,
+    pulsing: bool,
 }

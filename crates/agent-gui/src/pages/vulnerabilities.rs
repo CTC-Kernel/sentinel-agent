@@ -24,7 +24,7 @@ impl VulnerabilitiesPage {
             ui,
             &["Détection & réponse", "Vulnérabilités"],
             "Vulnérabilités",
-            Some("ANALYSE DYNAMIQUE DES FAILLES ET EXPOSITION AUX CVE"),
+            Some("Failles détectées et exposition aux CVE connues."),
             Some(
                 "Identifiez les failles de sécurité connues (CVE) affectant vos logiciels. Le score critique (V3) priorise les vulnérabilités les plus dangereuses nécessitant une mise à jour immédiate.",
             ),
@@ -38,12 +38,12 @@ impl VulnerabilitiesPage {
                 ui,
                 format!(
                     "{}  {}",
+                    icons::PLAY,
                     if is_scanning {
                         "Analyse en cours"
                     } else {
                         "Lancer l'analyse"
-                    },
-                    icons::PLAY
+                    }
                 ),
                 !is_scanning,
                 is_scanning,
@@ -191,7 +191,7 @@ impl VulnerabilitiesPage {
                 };
                 ui.label(
                     egui::RichText::new(format!(
-                        "Correctifs disponibles : {}/{} ({:.0}%)",
+                        "Correctifs disponibles : {}/{} ({:.0}\u{202f}%)",
                         fix_available_count, total_findings, fix_pct
                     ))
                     .font(theme::font_body())
@@ -231,7 +231,7 @@ impl VulnerabilitiesPage {
                 };
                 ui.label(
                     egui::RichText::new(format!(
-                        "Couverture de rem\u{00e9}diation : {:.0}%",
+                        "Couverture de rem\u{00e9}diation : {:.0}\u{202f}%",
                         remediation_pct
                     ))
                     .font(theme::font_body())
@@ -281,10 +281,13 @@ impl VulnerabilitiesPage {
                 );
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
-                    egui::RichText::new(format!("Score CVSS moyen : {:.1}", avg_cvss))
-                        .font(theme::font_body())
-                        .color(theme::text_primary())
-                        .strong(),
+                    egui::RichText::new(format!(
+                        "Score CVSS moyen : {}",
+                        crate::format::decimal(avg_cvss, 1)
+                    ))
+                    .font(theme::font_body())
+                    .color(theme::text_primary())
+                    .strong(),
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
@@ -324,12 +327,12 @@ impl VulnerabilitiesPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.vulnerability.search,
-            "RECHERCHER (CVE, LOGICIEL, DESCRIPTION)...",
+            "Rechercher une CVE, un logiciel ou une description…",
         )
-        .chip("CRITIQUE", crit_active, theme::ERROR)
-        .chip("ÉLEVÉE", high_active, theme::SEVERITY_HIGH)
-        .chip("MOYENNE", med_active, theme::SEVERITY_MEDIUM)
-        .chip("FAIBLE", low_active, theme::INFO)
+        .chip("Critique", crit_active, theme::ERROR)
+        .chip("Élevée", high_active, theme::SEVERITY_HIGH)
+        .chip("Moyenne", med_active, theme::SEVERITY_MEDIUM)
+        .chip("Faible", low_active, theme::INFO)
         .show(ui);
 
         if let Some(idx) = toggled {
@@ -448,7 +451,7 @@ impl VulnerabilitiesPage {
                                 widgets::detail_field_colored(
                                     ui,
                                     "Score CVSS",
-                                    &format!("{:.1}", s),
+                                    &crate::format::decimal(s, 1),
                                     theme::readable_color(cvss_color),
                                 );
                             }
@@ -522,7 +525,7 @@ impl VulnerabilitiesPage {
                                     widgets::detail_field_badge(
                                         ui,
                                         "Confiance",
-                                        &format!("{}%", confidence),
+                                        &format!("{}\u{202f}%", confidence),
                                         conf_color,
                                     );
                                 }
@@ -611,7 +614,7 @@ impl VulnerabilitiesPage {
 
                         let time = ui.input(|i| i.time);
                         state.toasts.push(
-                            crate::widgets::toast::Toast::info("Application du correctif IA...")
+                            crate::widgets::toast::Toast::info("Application du correctif IA…")
                                 .with_time(time),
                         );
                     }
@@ -703,7 +706,7 @@ impl VulnerabilitiesPage {
                 widgets::protected_state(
                     ui,
                     icons::SHIELD_CHECK,
-                    "AUCUNE VULN\u{00c9}RABILIT\u{00c9} D\u{00c9}TECT\u{00c9}E",
+                    "Aucune vuln\u{00e9}rabilit\u{00e9} d\u{00e9}tect\u{00e9}e",
                     "Le syst\u{00e8}me est \u{00e0} jour et ne pr\u{00e9}sente aucune faille connue \u{00e0} ce jour.",
                 );
             }
@@ -711,7 +714,7 @@ impl VulnerabilitiesPage {
             widgets::empty_state(
                 ui,
                 icons::VULNERABILITIES,
-                "AUCUN R\u{00c9}SULTAT",
+                "Aucun r\u{00e9}sultat",
                 Some(
                     "Ajustez vos filtres de recherche pour voir les vuln\u{00e9}rabilit\u{00e9}s.",
                 ),
@@ -851,7 +854,7 @@ impl VulnerabilitiesPage {
                         row.col(|ui: &mut egui::Ui| {
                             if let Some(s) = finding.cvss_score {
                                 ui.label(
-                                    egui::RichText::new(format!("{:.1}", s))
+                                    egui::RichText::new(crate::format::decimal(s, 1))
                                         .font(theme::font_body())
                                         .color(theme::readable_color(theme::score_color(
                                             100.0 - s * 10.0,
@@ -880,7 +883,7 @@ impl VulnerabilitiesPage {
 
                         // Actions column
                         row.col(|ui: &mut egui::Ui| {
-                            if widgets::ghost_button(ui, format!("{}  D\u{00c9}TAILS", icons::EYE))
+                            if widgets::ghost_button(ui, format!("{}  D\u{00e9}tails", icons::EYE))
                                 .clicked()
                             {
                                 clicked_idx = Some(real_idx);
@@ -935,6 +938,23 @@ impl VulnerabilitiesPage {
             if let Some(idx) = clicked_idx {
                 state.vulnerability.selected_vuln = Some(idx);
                 state.vulnerability.detail_open = true;
+            }
+
+            // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+            // and the page follows the selection.
+            let mut position = state
+                .vulnerability
+                .selected_vuln
+                .and_then(|real| filtered.iter().position(|&r| r == real));
+            if widgets::navigate_list(
+                ui.ctx(),
+                &mut position,
+                filtered.len(),
+                &mut state.vulnerability.detail_open,
+            ) && let Some(pos) = position
+            {
+                state.vulnerability.selected_vuln = Some(filtered[pos]);
+                state.vulnerability.page = pos / VULNS_PER_PAGE;
             }
 
             widgets::paginate_controls(

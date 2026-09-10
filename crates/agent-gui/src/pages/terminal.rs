@@ -50,41 +50,12 @@ impl TerminalPage {
             ui,
             &["Système", "Terminal"],
             "Terminal Analytique",
-            Some("FLUX EN TEMPS RÉEL DES ÉVÉNEMENTS ET DE L'ACTIVITÉ DE L'AGENT"),
+            Some("Flux temps réel des événements et de l'activité de l'agent."),
             Some(
                 "Suivez en temps réel l'activité technique de l'agent. Ce flux bas niveau est utile pour le diagnostic et la vérification du bon fonctionnement des modules de scan et de surveillance.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
-
-        // Action bar (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let success = Self::export_logs_csv(state);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success(
-                                    "Export CSV du terminal réussi",
-                                )
-                                .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error(
-                                    "Échec de l'export CSV du terminal",
-                                )
-                                .with_time(time),
-                            );
-                        }
-                    }
-                },
-            );
-        });
-        ui.add_space(theme::SPACE_MD);
 
         // Stats bar
         Self::stats_bar(ui, state);
@@ -113,13 +84,10 @@ impl TerminalPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 // Uptime
                 let uptime_secs = state.resources.uptime_secs;
-                let hours = uptime_secs / 3600;
-                let mins = (uptime_secs % 3600) / 60;
-                let secs = uptime_secs % 60;
                 Self::stat_item(
                     ui,
                     "DURÉE D'ACTIVITÉ",
-                    &format!("{:02}h {:02}m {:02}s", hours, mins, secs),
+                    &crate::format::duration_short(uptime_secs),
                     theme::accent_text(),
                 );
 
@@ -129,7 +97,7 @@ impl TerminalPage {
                 Self::stat_item(
                     ui,
                     "ÉVÉNEMENTS GÉNÉRÉS",
-                    &state.terminal.event_count.to_string(),
+                    &crate::format::int(state.terminal.event_count),
                     theme::text_primary(),
                 );
 
@@ -222,14 +190,37 @@ impl TerminalPage {
                 );
                 ui.add_space(theme::SPACE_XS);
                 let search_edit = egui::TextEdit::singleline(&mut state.terminal.search)
-                    .desired_width((ui.available_width() - 300.0).max(150.0))
+                    .desired_width((ui.available_width() - 120.0).max(150.0))
                     .margin(egui::Margin::symmetric(
                         theme::SPACE_SM as i8,
                         theme::SPACE_XS as i8,
                     ))
                     .font(theme::font_mono_sm())
-                    .hint_text("rechercher...");
+                    .hint_text("rechercher…");
                 ui.add(search_edit);
+
+                // Export lives on the row it applies to, as on every list page.
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked()
+                        {
+                            let success = Self::export_logs_csv(state);
+                            let time = ui.input(|i| i.time);
+                            state.toasts.push(if success {
+                                crate::widgets::toast::Toast::success(
+                                    "Export CSV du terminal réussi",
+                                )
+                                .with_time(time)
+                            } else {
+                                crate::widgets::toast::Toast::error(
+                                    "Échec de l'export CSV du terminal",
+                                )
+                                .with_time(time)
+                            });
+                        }
+                    },
+                );
             });
         });
     }
@@ -294,7 +285,7 @@ impl TerminalPage {
                     crate::widgets::empty_state(
                         ui,
                         icons::TERMINAL,
-                        "AUCUN ÉVÉNEMENT DÉTECTÉ",
+                        "Aucun événement détecté",
                         Some("Les événements système apparaîtront ici."),
                     );
                     return;

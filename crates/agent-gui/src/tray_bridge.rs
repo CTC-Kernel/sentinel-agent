@@ -262,7 +262,10 @@ impl TrayBridge {
 
     /// Update the resource info line.
     pub fn update_resources(&self, cpu_percent: f64, memory_mb: u64) {
-        let text = format!("CPU: {:.1}% | Mémoire: {} MB", cpu_percent, memory_mb);
+        let text = format!(
+            "CPU : {:.1}\u{202f}% \u{00b7} Mémoire : {} Mo",
+            cpu_percent, memory_mb
+        );
         self.resources_item.set_text(&text);
     }
 

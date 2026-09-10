@@ -23,7 +23,7 @@ impl NetworkPage {
             ui,
             &["Détection & réponse", "Réseau"],
             "Réseau",
-            Some("CARTOGRAPHIE DES INTERFACES ET CONNEXIONS ACTIVES"),
+            Some("Cartographie des interfaces et des connexions actives."),
             Some(
                 "Analysez l'état des interfaces réseau et la liste des connexions actives. Les alertes DNS ou les flux vers des IPs suspectes sont mis en évidence pour faciliter l'investigation.",
             ),
@@ -40,11 +40,14 @@ impl NetworkPage {
                 return command;
             }
 
-            widgets::protected_state(
+            // Nothing scanned yet is a neutral state, not an all-clear: a
+            // green shield here would claim a verdict the agent has not made.
+            widgets::hero_state(
                 ui,
-                icons::WARNING,
-                "AUCUNE DONNÉE RÉSEAU",
+                icons::NETWORK,
+                "Aucune donnée réseau",
                 "Lancez un scan pour cartographier les interfaces et connexions de cet endpoint.",
+                theme::INFO,
             );
 
             ui.add_space(theme::SPACE_MD);
@@ -54,12 +57,12 @@ impl NetworkPage {
                     ui,
                     format!(
                         "{}  {}",
+                        icons::PLAY,
                         if is_scanning {
                             "Analyse en cours"
                         } else {
                             "Lancer l'analyse"
-                        },
-                        icons::PLAY
+                        }
                     ),
                     !is_scanning,
                     is_scanning,
@@ -80,12 +83,12 @@ impl NetworkPage {
                 ui,
                 format!(
                     "{}  {}",
+                    icons::PLAY,
                     if is_scanning {
                         "Analyse en cours"
                     } else {
                         "Lancer l'analyse"
-                    },
-                    icons::PLAY
+                    }
                 ),
                 !is_scanning,
                 is_scanning,
@@ -469,7 +472,7 @@ impl NetworkPage {
                                 widgets::detail_field_colored(
                                     ui,
                                     "Confiance",
-                                    &format!("{}%", alert.confidence),
+                                    &format!("{}\u{202f}%", alert.confidence),
                                     theme::readable_color(conf_color),
                                 );
                                 widgets::detail_field(
@@ -492,7 +495,7 @@ impl NetworkPage {
                                         widgets::detail_field_badge(
                                             ui,
                                             "Confiance IA",
-                                            &format!("{}%", confidence),
+                                            &format!("{}\u{202f}%", confidence),
                                             c,
                                         );
                                     }
@@ -591,7 +594,7 @@ impl NetworkPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                        if widgets::ghost_button(ui, format!("{}  Export CSV", icons::DOWNLOAD))
                             .clicked()
                             && Self::export_interfaces_csv(state)
                         {
@@ -626,7 +629,7 @@ impl NetworkPage {
                     widgets::empty_state(
                         ui,
                         icons::WIFI,
-                        "AUCUNE INTERFACE D\u{00c9}TECT\u{00c9}E",
+                        "Aucune interface d\u{00e9}tect\u{00e9}e",
                         None,
                     );
                 }
@@ -762,7 +765,7 @@ impl NetworkPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                        if widgets::ghost_button(ui, format!("{}  Export CSV", icons::DOWNLOAD))
                             .clicked()
                             && Self::export_connections_csv(state)
                         {
@@ -827,7 +830,7 @@ impl NetworkPage {
                 &mut state.network.connections_page,
             );
 
-            widgets::SearchFilterBar::new(&mut state.network.search, "Rechercher...")
+            widgets::SearchFilterBar::new(&mut state.network.search, "Rechercher…")
                 .result_count(filtered.len())
                 .show(ui);
 
@@ -849,7 +852,7 @@ impl NetworkPage {
                         }
                     });
                 } else {
-                    widgets::empty_state(ui, icons::NETWORK, "AUCUNE CONNEXION ACTIVE", None);
+                    widgets::empty_state(ui, icons::NETWORK, "Aucune connexion active", None);
                 }
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -995,6 +998,23 @@ impl NetworkPage {
                     state.network.detail_open = true;
                 }
 
+                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+                // and the page follows the selection.
+                let mut position = state
+                    .network
+                    .selected_connection
+                    .and_then(|real| filtered.iter().position(|&r| r == real));
+                if widgets::navigate_list(
+                    ui.ctx(),
+                    &mut position,
+                    filtered.len(),
+                    &mut state.network.detail_open,
+                ) && let Some(pos) = position
+                {
+                    state.network.selected_connection = Some(filtered[pos]);
+                    state.network.connections_page = pos / CONN_PER_PAGE;
+                }
+
                 widgets::paginate_controls(
                     ui,
                     filtered.len(),
@@ -1065,7 +1085,7 @@ impl NetworkPage {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
-                        "RÉSEAU SÉCURISÉ",
+                        "Réseau sécurisé",
                         "Le trafic est analysé en temps réel. Aucun flux malveillant détecté.",
                     );
                 });
@@ -1136,7 +1156,13 @@ impl NetworkPage {
             "port_scan" => ("SCAN PORTS".to_string(), theme::WARNING),
             "suspicious_port" => ("PORT SUSPECT".to_string(), theme::WARNING),
             "dns_tunneling" => ("TUNNEL DNS".to_string(), theme::SEVERITY_HIGH),
-            other => (other.to_uppercase(), theme::INFO),
+            "tor_exit" => ("SORTIE TOR".to_string(), theme::SEVERITY_HIGH),
+            "rogue_dhcp" => ("DHCP PIRATE".to_string(), theme::SEVERITY_HIGH),
+            "arp_spoofing" | "arp_spoof" => ("USURPATION ARP".to_string(), theme::ERROR),
+            "new_device" => ("NOUVEL APPAREIL".to_string(), theme::INFO),
+            "unusual_traffic" => ("TRAFIC INHABITUEL".to_string(), theme::WARNING),
+            // Unknown keys still read as words, never as identifiers.
+            other => (other.replace('_', " ").to_uppercase(), theme::INFO),
         }
     }
 
@@ -1146,10 +1172,10 @@ impl NetworkPage {
         let frame_resp = egui::Frame::NONE
             .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
             .corner_radius(egui::CornerRadius::same(theme::SPACE_XS as u8))
-            .fill(type_color.linear_multiply(theme::OPACITY_SUBTLE))
+            .fill(theme::tinted_surface(type_color))
             .stroke(egui::Stroke::new(
                 theme::BORDER_HAIRLINE,
-                type_color.linear_multiply(theme::OPACITY_MUTED),
+                theme::color_blend_pub(theme::bg_secondary(), type_color, 0.45),
             ))
             .show(ui, |ui: &mut egui::Ui| {
                 ui.horizontal(|ui: &mut egui::Ui| {
@@ -1185,9 +1211,12 @@ impl NetworkPage {
                                 );
                             }
                             ui.label(
-                                egui::RichText::new(format!("Confiance: {}%", alert.confidence))
-                                    .font(theme::font_min())
-                                    .color(theme::text_tertiary()),
+                                egui::RichText::new(format!(
+                                    "Confiance: {}\u{202f}%",
+                                    alert.confidence
+                                ))
+                                .font(theme::font_min())
+                                .color(theme::text_tertiary()),
                             );
                             ui.label(
                                 egui::RichText::new(

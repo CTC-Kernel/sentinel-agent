@@ -25,7 +25,7 @@ impl SoftwarePage {
             ui,
             &["Actifs & inventaire", "Logiciels"],
             "Inventaire Logiciel",
-            Some("CATALOGUE DES APPLICATIONS ET COMPOSANTS SYSTÈME INSTALLÉS SUR L'HÔTE"),
+            Some("Applications et composants système installés sur cet hôte."),
             Some(
                 "Consultez la liste exhaustive des paquets système et des applications installées. Le système vérifie automatiquement si vos logiciels sont à jour pour réduire la surface d'attaque.",
             ),
@@ -39,12 +39,12 @@ impl SoftwarePage {
                 ui,
                 format!(
                     "{}  {}",
+                    icons::PLAY,
                     if is_scanning {
                         "Analyse en cours"
                     } else {
                         "Actualiser l'inventaire"
-                    },
-                    icons::PLAY
+                    }
                 ),
                 !is_scanning,
                 is_scanning,
@@ -56,30 +56,25 @@ impl SoftwarePage {
         });
         ui.add_space(theme::SPACE_MD);
 
-        // Tab bar (AAA Grade) — Applications tab shown on macOS and Windows
-        let active = state.software.active_tab;
-        // On unsupported platforms, force back to Packages if Applications was somehow selected
+        // Tab bar — the Applications tab exists on macOS and Windows only,
+        // and a bar with one tab is a label pretending to be a control.
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-        let active = {
-            if active == SoftwareTab::Applications {
-                state.software.active_tab = SoftwareTab::Packages;
-                SoftwareTab::Packages
-            } else {
-                active
-            }
-        };
-        ui.horizontal(|ui: &mut egui::Ui| {
-            if Self::tab_button(
-                ui,
-                &format!("{} DÉPENDANCES ET PAQUETS", icons::SOFTWARE),
-                active == SoftwareTab::Packages,
-            ) {
-                state.software.active_tab = SoftwareTab::Packages;
-                state.software.selected_package = None;
-                state.software.detail_open = false;
-            }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
-            {
+        if state.software.active_tab == SoftwareTab::Applications {
+            state.software.active_tab = SoftwareTab::Packages;
+        }
+        let active = state.software.active_tab;
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        {
+            ui.horizontal(|ui: &mut egui::Ui| {
+                if Self::tab_button(
+                    ui,
+                    &format!("{} Dépendances et paquets", icons::SOFTWARE),
+                    active == SoftwareTab::Packages,
+                ) {
+                    state.software.active_tab = SoftwareTab::Packages;
+                    state.software.selected_package = None;
+                    state.software.detail_open = false;
+                }
                 ui.add_space(theme::SPACE_SM);
                 if Self::tab_button(
                     ui,
@@ -90,10 +85,10 @@ impl SoftwarePage {
                     state.software.selected_package = None;
                     state.software.detail_open = false;
                 }
-            }
-        });
+            });
 
-        ui.add_space(theme::SPACE_LG);
+            ui.add_space(theme::SPACE_LG);
+        }
 
         let search_id = ui.id().with("software_search_cache");
         let search_upper: String = ui
@@ -403,7 +398,7 @@ impl SoftwarePage {
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
                     egui::RichText::new(format!(
-                        "Couverture des mises \u{00e0} jour : {:.0}%",
+                        "Couverture des mises \u{00e0} jour : {:.0}\u{202f}%",
                         coverage_pct
                     ))
                     .font(theme::font_body())
@@ -423,38 +418,26 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_MD);
 
-        widgets::SearchFilterBar::new(
+        let (_, export) = widgets::SearchFilterBar::new(
             &mut state.software.search,
-            "Rechercher un paquet, une version ou un éditeur...",
+            "Rechercher un paquet, une version ou un éditeur…",
         )
         .result_count(result_count)
-        .show(ui);
-
-        ui.add_space(theme::SPACE_SM);
-
-        // Action Buttons (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let success = Self::export_packages_csv(state, &filtered);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV réussi")
-                                    .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
-                                    .with_time(time),
-                            );
-                        }
-                    }
-                },
-            );
-        });
+        .action(format!("{}  CSV", icons::DOWNLOAD))
+        .show_with_action(ui);
+        if export {
+            let success = Self::export_packages_csv(state, &filtered);
+            let time = ui.input(|i| i.time);
+            if success {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success("Export CSV réussi").with_time(time),
+                );
+            } else {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::error("Échec de l'export CSV").with_time(time),
+                );
+            }
+        }
 
         ui.add_space(theme::SPACE_SM);
 
@@ -487,7 +470,7 @@ impl SoftwarePage {
                     widgets::empty_state(
                         ui,
                         icons::SOFTWARE,
-                        "AUCUNE OCCURRENCE TROUV\u{00c9}E",
+                        "Aucune occurrence trouv\u{00e9}e",
                         Some(
                             "Ajustez vos crit\u{00e8}res de recherche ou actualisez l'inventaire.",
                         ),
@@ -625,7 +608,7 @@ impl SoftwarePage {
                             row.col(|ui: &mut egui::Ui| {
                                 if widgets::ghost_button(
                                     ui,
-                                    format!("{}  D\u{00c9}TAILS", icons::EYE),
+                                    format!("{}  D\u{00e9}tails", icons::EYE),
                                 )
                                 .clicked()
                                 {
@@ -665,6 +648,40 @@ impl SoftwarePage {
                 if let Some(idx) = clicked_idx {
                     state.software.selected_package = Some(idx);
                     state.software.detail_open = true;
+                }
+
+                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+                // and the page follows the selection.
+                let mut position = state
+                    .software
+                    .selected_package
+                    .and_then(|real| filtered.iter().position(|&r| r == real));
+                if widgets::navigate_list(
+                    ui.ctx(),
+                    &mut position,
+                    filtered.len(),
+                    &mut state.software.detail_open,
+                ) && let Some(pos) = position
+                {
+                    state.software.selected_package = Some(filtered[pos]);
+                    state.software.native_page = pos / SW_PER_PAGE;
+                }
+
+                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+                // and the page follows the selection.
+                let mut position = state
+                    .software
+                    .selected_package
+                    .and_then(|real| filtered.iter().position(|&r| r == real));
+                if widgets::navigate_list(
+                    ui.ctx(),
+                    &mut position,
+                    filtered.len(),
+                    &mut state.software.detail_open,
+                ) && let Some(pos) = position
+                {
+                    state.software.selected_package = Some(filtered[pos]);
+                    state.software.packages_page = pos / SW_PER_PAGE;
                 }
 
                 widgets::paginate_controls(
@@ -743,38 +760,26 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_MD);
 
-        widgets::SearchFilterBar::new(
+        let (_, export) = widgets::SearchFilterBar::new(
             &mut state.software.search,
-            "Rechercher une application, un bundle ou un éditeur...",
+            "Rechercher une application, un bundle ou un éditeur…",
         )
         .result_count(result_count)
-        .show(ui);
-
-        ui.add_space(theme::SPACE_SM);
-
-        // Action Buttons (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let success = Self::export_apps_csv(state, &filtered);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV réussi")
-                                    .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
-                                    .with_time(time),
-                            );
-                        }
-                    }
-                },
-            );
-        });
+        .action(format!("{}  CSV", icons::DOWNLOAD))
+        .show_with_action(ui);
+        if export {
+            let success = Self::export_apps_csv(state, &filtered);
+            let time = ui.input(|i| i.time);
+            if success {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success("Export CSV réussi").with_time(time),
+                );
+            } else {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::error("Échec de l'export CSV").with_time(time),
+                );
+            }
+        }
 
         ui.add_space(theme::SPACE_SM);
 
@@ -806,7 +811,7 @@ impl SoftwarePage {
                     widgets::empty_state(
                         ui,
                         icons::CUBE,
-                        "AUCUNE ENTIT\u{00c9} IDENTIFI\u{00c9}E",
+                        "Aucune entit\u{00e9} identifi\u{00e9}e",
                         Some(
                             "Veuillez patienter pendant la fin de la synchronisation de l'inventaire.",
                         ),
@@ -909,7 +914,7 @@ impl SoftwarePage {
                                 let pub_text = if app.publisher.chars().count() > 64 {
                                     let truncated: String =
                                         app.publisher.chars().take(61).collect();
-                                    format!("{}...", truncated)
+                                    format!("{}…", truncated)
                                 } else {
                                     app.publisher.clone()
                                 };
@@ -924,7 +929,7 @@ impl SoftwarePage {
                             row.col(|ui: &mut egui::Ui| {
                                 if widgets::ghost_button(
                                     ui,
-                                    format!("{}  D\u{00c9}TAILS", icons::EYE),
+                                    format!("{}  D\u{00e9}tails", icons::EYE),
                                 )
                                 .clicked()
                                 {
@@ -1004,6 +1009,7 @@ impl SoftwarePage {
 
     // -- Shared helpers (AAA Grade) --
 
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     fn tab_button(ui: &mut Ui, label: &str, active: bool) -> bool {
         widgets::chip_button(ui, label, active, theme::ACCENT).clicked()
     }

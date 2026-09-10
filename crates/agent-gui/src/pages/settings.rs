@@ -86,7 +86,7 @@ impl SettingsPage {
             ui,
             &["Configuration"],
             "Configuration",
-            Some("GESTION ANALYTIQUE DES PARAMÈTRES ET CONTRÔLE DES SERVICES SENTINEL"),
+            Some("Paramètres de l'agent et contrôle des services Sentinel."),
             Some(
                 "Configurez le comportement de l'agent, les fréquences de scan et les exclusions. Vous pouvez également ajuster les paramètres d'export et les options d'affichage.",
             ),
@@ -108,17 +108,26 @@ impl SettingsPage {
                 let is_paused = state.settings.is_paused;
                 let (label, cmd) = if is_paused {
                     (
-                        format!("{}  REPRENDRE L'AGENT", icons::PLAY),
+                        format!("{}  Reprendre l'agent", icons::PLAY),
                         GuiCommand::Resume,
                     )
                 } else {
                     (
-                        format!("{}  METTRE EN PAUSE", icons::STOP),
+                        format!("{}  Mettre en pause", icons::STOP),
                         GuiCommand::Pause,
                     )
                 };
 
-                if widgets::button::primary_button(ui, label, true).clicked() {
+                // One primary per row: running a check is the action an
+                // operator came here for; pausing the agent is a control.
+                // Resuming a paused agent is the exception — then it is the
+                // one thing that matters on this screen.
+                let pause_clicked = if is_paused {
+                    widgets::button::primary_button(ui, label, true).clicked()
+                } else {
+                    widgets::button::secondary_button(ui, label, true).clicked()
+                };
+                if pause_clicked {
                     state.settings.is_paused = !is_paused;
                     command = Some(cmd);
                 }
@@ -127,14 +136,24 @@ impl SettingsPage {
 
                 let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
                 let check_label = if is_scanning {
-                    format!("{}  VÉRIFICATION...", icons::CHECK)
+                    format!("{}  Vérification…", icons::CHECK)
                 } else {
-                    format!("{}  VÉRIFIER MAINTENANT", icons::CHECK)
+                    format!("{}  Vérifier maintenant", icons::CHECK)
                 };
                 let can_check = !state.settings.is_paused && !is_scanning;
-                if widgets::button::primary_button_loading(ui, check_label, can_check, is_scanning)
+                let check_clicked = if is_paused {
+                    widgets::button::secondary_button_loading(
+                        ui,
+                        check_label,
+                        can_check,
+                        is_scanning,
+                    )
                     .clicked()
-                {
+                } else {
+                    widgets::button::primary_button_loading(ui, check_label, can_check, is_scanning)
+                        .clicked()
+                };
+                if check_clicked {
                     command = Some(GuiCommand::RunCheck);
                 }
             });
@@ -193,7 +212,7 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new(format!(
-                    "CONFIGURATION ACTUELLE : {} MINUTES",
+                    "Configuration actuelle : {} minutes",
                     state.settings.check_interval_secs / 60,
                 ))
                 .font(theme::font_label())
@@ -263,13 +282,13 @@ impl SettingsPage {
                 let is_dark = state.settings.dark_mode;
                 let (mode_label, mode_icon, mode_desc) = if is_dark {
                     (
-                        "MODE SOMBRE",
+                        "Mode sombre",
                         icons::MOON,
                         "Interface optimisée pour faible luminosité avec sous-tons navy.",
                     )
                 } else {
                     (
-                        "MODE CLAIR",
+                        "Mode clair",
                         icons::SUN,
                         "Interface lumineuse avec teintes froides et élévation prononcée.",
                     )
@@ -288,7 +307,7 @@ impl SettingsPage {
                     icon_rect.center(),
                     egui::Align2::CENTER_CENTER,
                     mode_icon,
-                    egui::FontId::proportional(theme::ICON_LG),
+                    theme::font_icon(theme::ICON_LG),
                     theme::accent_text(),
                 );
 
@@ -363,14 +382,14 @@ impl SettingsPage {
                     use crate::dto::UpdateStatus;
 
                     let (btn_text, is_busy) = match &state.settings.update_status {
-                        UpdateStatus::Idle => (format!("{}  VÉRIFIER", icons::DOWNLOAD), false),
-                        UpdateStatus::Available(v) => (format!("{}  INSTALLER v{}", icons::DOWNLOAD, v), false),
-                        UpdateStatus::UpToDate => (format!("{}  À JOUR", icons::CHECK), false),
-                        UpdateStatus::Downloading(p) => (format!("{}  {}%", icons::DOWNLOAD, (p * 100.0) as u32), true),
-                        UpdateStatus::Verifying => (format!("{}  VÉRIFICATION", icons::DOWNLOAD), true),
-                        UpdateStatus::Installing => (format!("{}  INSTALLATION", icons::DOWNLOAD), true),
-                        UpdateStatus::Completed => (format!("{}  TERMINÉ", icons::CHECK), false),
-                        UpdateStatus::Failed(_) => (format!("{}  RÉESSAYER", icons::REFRESH), false),
+                        UpdateStatus::Idle => (format!("{}  Vérifier", icons::DOWNLOAD), false),
+                        UpdateStatus::Available(v) => (format!("{}  Installer la v{}", icons::DOWNLOAD, v), false),
+                        UpdateStatus::UpToDate => (format!("{}  À jour", icons::CHECK), false),
+                        UpdateStatus::Downloading(p) => (format!("{}  {}\u{202f}%", icons::DOWNLOAD, (p * 100.0) as u32), true),
+                        UpdateStatus::Verifying => (format!("{}  Vérification…", icons::DOWNLOAD), true),
+                        UpdateStatus::Installing => (format!("{}  Installation…", icons::DOWNLOAD), true),
+                        UpdateStatus::Completed => (format!("{}  Terminé", icons::CHECK), false),
+                        UpdateStatus::Failed(_) => (format!("{}  Réessayer", icons::REFRESH), false),
                     };
 
                     let can_click = !state.settings.is_paused && !is_busy;
@@ -452,7 +471,7 @@ impl SettingsPage {
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.add(
                             egui::TextEdit::singleline(&mut state.settings.architecture_url)
-                                .hint_text("https://...")
+                                .hint_text("https://…")
                                 .desired_width(input_width - theme::SPACE_LG)
                                 .char_limit(2048)
                                 .frame(false)
@@ -585,13 +604,13 @@ impl SettingsPage {
             Self::setting_row(
                 ui,
                 "INTERVALLE SCAN",
-                &format!("{} SECONDES", state.settings.check_interval_secs),
+                &format!("{} secondes", state.settings.check_interval_secs),
                 icons::ARROW_RIGHT,
             );
             Self::setting_row(
                 ui,
                 "HEARTBEAT",
-                &format!("{} SECONDES", state.settings.heartbeat_interval_secs),
+                &format!("{} secondes", state.settings.heartbeat_interval_secs),
                 icons::ARROW_RIGHT,
             );
         });
@@ -620,7 +639,7 @@ impl SettingsPage {
 
                 if widgets::primary_button(
                     ui,
-                    format!("{}  VOIR SUR LE PORTAIL WEB", icons::EXTERNAL_LINK),
+                    format!("{}  Voir sur le portail web", icons::EXTERNAL_LINK),
                     true,
                 )
                 .clicked()
@@ -635,7 +654,7 @@ impl SettingsPage {
                 }
             } else {
                 ui.label(
-                    egui::RichText::new("AGENT NON ENREGISTRÉ")
+                    egui::RichText::new("Agent non enregistré")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong(),
@@ -661,7 +680,7 @@ impl SettingsPage {
 
         if modal_state.0 {
             let ctx = ui.ctx().clone();
-            egui::Window::new("DÉVERROUILLAGE ADMIN")
+            egui::Window::new("Déverrouillage admin")
                 .collapsible(false)
                 .resizable(false)
                 .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
@@ -703,7 +722,7 @@ impl SettingsPage {
                                     .strong(),
                             );
                             ui.add_space(theme::SPACE_LG);
-                            if widgets::secondary_button(ui, "FERMER", true).clicked() {
+                            if widgets::secondary_button(ui, "Fermer", true).clicked() {
                                 modal_state.0 = false;
                                 modal_state.1.zeroize();
                                 modal_state.2 = None;
@@ -742,13 +761,13 @@ impl SettingsPage {
 
                             ui.add_space(theme::SPACE_LG);
                             ui.horizontal(|ui| {
-                                if widgets::secondary_button(ui, "ANNULER", true).clicked() {
+                                if widgets::secondary_button(ui, "Annuler", true).clicked() {
                                     modal_state.0 = false;
                                     modal_state.1.zeroize();
                                     modal_state.2 = None;
                                 }
                                 ui.add_space(theme::SPACE_SM);
-                                if widgets::primary_button(ui, "DÉVERROUILLER", true).clicked() {
+                                if widgets::primary_button(ui, "Déverrouiller", true).clicked() {
                                     attempt_validate = true;
                                 }
                             });
@@ -822,7 +841,7 @@ impl SettingsPage {
                     );
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if widgets::button::secondary_button(ui, "DÉVERROUILLER (ADMIN)", true)
+                        if widgets::button::secondary_button(ui, "Déverrouiller (admin)", true)
                             .clicked()
                         {
                             ui.memory_mut(|mem| {
@@ -859,7 +878,7 @@ impl SettingsPage {
                     ui.add_space(theme::SPACE_MD);
 
                     ui.horizontal(|ui: &mut egui::Ui| {
-                        if widgets::secondary_button(ui, "ANNULER", true).clicked() {
+                        if widgets::secondary_button(ui, "Annuler", true).clicked() {
                             ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, false));
                         }
 
@@ -867,7 +886,7 @@ impl SettingsPage {
 
                         if widgets::destructive_button(
                             ui,
-                            format!("{}  CONFIRMER L'ARRÊT", icons::POWER_OFF),
+                            format!("{}  Confirmer l'arrêt", icons::POWER_OFF),
                             true,
                         )
                         .clicked()
@@ -880,7 +899,7 @@ impl SettingsPage {
                     // Normal state
                     if widgets::destructive_button(
                         ui,
-                        format!("{}  QUITTER L'AGENT SENTINEL", icons::POWER_OFF),
+                        format!("{}  Quitter l'agent sentinel", icons::POWER_OFF),
                         true,
                     )
                     .clicked()

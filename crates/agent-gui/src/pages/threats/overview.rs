@@ -384,14 +384,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.threats.search,
-            "RECHERCHER (PROCESSUS, RÉSEAU, USB, FIM, SYSTÈME, VULNÉRA.)...",
+            "Rechercher un processus, une alerte réseau, USB, FIM…",
         )
-        .chip("PROCESSUS", proc_active, theme::ERROR)
-        .chip("RÉSEAU", net_active, theme::SEVERITY_HIGH)
+        .chip("Processus", proc_active, theme::ERROR)
+        .chip("Réseau", net_active, theme::SEVERITY_HIGH)
         .chip("USB", usb_active, theme::WARNING)
         .chip("FIM", fim_active, theme::INFO)
-        .chip("SYSTÈME", sys_active, theme::SEVERITY_HIGH)
-        .chip("VULNÉRA.", vuln_active, theme::ERROR)
+        .chip("Système", sys_active, theme::SEVERITY_HIGH)
+        .chip("Vulnéra.", vuln_active, theme::ERROR)
         .result_count(result_count)
         .show(ui);
 
@@ -496,7 +496,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 widgets::protected_state(
                     ui,
                     icons::SHIELD_CHECK,
-                    "AUCUNE MENACE IDENTIFIÉE",
+                    "Aucune menace identifiée",
                     "Le système ne présente aucun événement de sécurité suspect à ce jour.",
                 );
             } else {
@@ -573,7 +573,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 widgets::detail_field_colored(
                                     ui,
                                     "Confiance",
-                                    &format!("{}%", p.confidence),
+                                    &format!("{}\u{202f}%", p.confidence),
                                     theme::readable_color(conf_color),
                                 );
                                 widgets::detail_field(
@@ -596,7 +596,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                         widgets::detail_field_badge(
                                             ui,
                                             "Confiance IA",
-                                            &format!("{}%", confidence),
+                                            &format!("{}\u{202f}%", confidence),
                                             c,
                                         );
                                     }
@@ -645,7 +645,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 state.threats.selected_threat = None;
                             } else if action_idx == report_idx {
                                 let details = format!(
-                                    "Processus: {}\nCommande: {}\nRaison: {}\nConfiance: {}%",
+                                    "Processus: {}\nCommande: {}\nRaison: {}\nConfiance: {}\u{202f}%",
                                     p.process_name, p.command_line, p.reason, p.confidence,
                                 );
                                 ctx.copy_text(details);
@@ -754,7 +754,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                         widgets::detail_field_colored(
                                             ui,
                                             "Confiance",
-                                            &format!("{}%", inc.confidence),
+                                            &format!("{}\u{202f}%", inc.confidence),
                                             theme::readable_color(sev_color),
                                         );
                                         widgets::detail_field_badge(
@@ -785,7 +785,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                                 widgets::detail_field_badge(
                                                     ui,
                                                     "Confiance IA",
-                                                    &format!("{}%", confidence),
+                                                    &format!("{}\u{202f}%", confidence),
                                                     c,
                                                 );
                                             }
@@ -844,7 +844,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 );
                             } else if action_idx == report_idx {
                                 let details = format!(
-                                    "Incident: {}\nType: {}\nDescription: {}\nConfiance: {}%",
+                                    "Incident: {}\nType: {}\nDescription: {}\nConfiance: {}\u{202f}%",
                                     inc.title, inc.incident_type, inc.description, inc.confidence,
                                 );
                                 ctx.copy_text(details);
@@ -891,7 +891,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     widgets::detail_field_colored(
                                         ui,
                                         "Score CVSS",
-                                        &format!("{:.1}", cvss),
+                                        &crate::format::decimal(cvss, 1),
                                         theme::readable_color(sev_color),
                                     );
                                 }
@@ -1048,7 +1048,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                         widgets::detail_field_colored(
                                             ui,
                                             "Confiance",
-                                            &format!("{}%", a.confidence),
+                                            &format!("{}\u{202f}%", a.confidence),
                                             theme::readable_color(sev_color),
                                         );
                                         widgets::detail_field(
@@ -1071,7 +1071,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                                 widgets::detail_field_badge(
                                                     ui,
                                                     "Confiance IA",
-                                                    &format!("{}%", confidence),
+                                                    &format!("{}\u{202f}%", confidence),
                                                     c,
                                                 );
                                             }
@@ -1126,7 +1126,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 );
                             } else if action_idx == copy_idx {
                                 let details = format!(
-                                    "Type: {}\nDescription: {}\nSource: {}\nDestination: {}:{}\nConfiance: {}%",
+                                    "Type: {}\nDescription: {}\nSource: {}\nDestination: {}:{}\nConfiance: {}\u{202f}%",
                                     alert_label,
                                     a.description,
                                     a.source_ip.as_deref().unwrap_or("--"),
@@ -1212,7 +1212,7 @@ fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
                         // Truncate long command lines to prevent overflow
                         let display_cmd: String = if cmd.chars().count() > 80 {
                             let truncated: String = cmd.chars().take(77).collect();
-                            format!("{}...", truncated)
+                            format!("{}…", truncated)
                         } else {
                             cmd.clone()
                         };
@@ -1249,7 +1249,7 @@ fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
                             } else {
                                 theme::INFO
                             };
-                            widgets::status_badge(ui, &format!("{}%", conf), conf_color);
+                            widgets::status_badge(ui, &format!("{}\u{202f}%", conf), conf_color);
                         }
                     },
                 );

@@ -242,8 +242,14 @@ impl<'a> Alert<'a> {
                         }
                     });
 
-                    // Spacer
-                    ui.add_space((ui.available_width() - theme::SPACE_LG).max(0.0));
+                    // Spacer: leave exactly the close target's width, or the
+                    // alert overflows its column and drags the layout below it.
+                    let trailing = if self.dismissible {
+                        theme::MIN_TOUCH_TARGET
+                    } else {
+                        0.0
+                    };
+                    ui.add_space((ui.available_width() - trailing).max(0.0));
 
                     // Dismiss button (meets MIN_TOUCH_TARGET)
                     if self.dismissible {

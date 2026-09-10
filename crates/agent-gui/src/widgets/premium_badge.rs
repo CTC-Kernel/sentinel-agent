@@ -44,9 +44,9 @@ impl PremiumBadge {
 
     pub fn ui(self, ui: &mut Ui) -> Response {
         let (font, h_pad, v_pad) = match self.size {
-            BadgeSize::Small => (theme::font_label(), 8.0_f32, 3.0_f32),
-            BadgeSize::Medium => (theme::font_small(), 10.0, 4.0),
-            BadgeSize::Large => (theme::font_body(), 12.0, 5.0),
+            BadgeSize::Small => (theme::font_micro(), 8.0_f32, 3.0_f32),
+            BadgeSize::Medium => (theme::font_label(), 10.0, 4.0),
+            BadgeSize::Large => (theme::font_body_medium(), 12.0, 5.0),
         };
 
         let text_color = theme::badge_text(self.color);
@@ -154,11 +154,14 @@ impl ComplianceBadge {
 
     pub fn ui(self, ui: &mut Ui) -> Response {
         let (color, text) = if self.score >= 85.0 {
-            (theme::SUCCESS, format!("Excellent {:.0}%", self.score))
+            (
+                theme::SUCCESS,
+                format!("Excellent {:.0}\u{202f}%", self.score),
+            )
         } else if self.score >= 60.0 {
-            (theme::WARNING, format!("Bon {:.0}%", self.score))
+            (theme::WARNING, format!("Bon {:.0}\u{202f}%", self.score))
         } else {
-            (theme::ERROR, format!("Critique {:.0}%", self.score))
+            (theme::ERROR, format!("Critique {:.0}\u{202f}%", self.score))
         };
 
         PremiumBadge::new(text)

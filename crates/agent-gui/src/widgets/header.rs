@@ -1,23 +1,26 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Page header widget.
+//! Page sub-header.
+//!
+//! The page title lives in the global top bar, which is always visible; a
+//! second H1 in the body would only repeat it. What the body owes the reader
+//! is the one line explaining what this page is for, and a way to get help.
+//!
+//! The previous version drew a gradient rule under that line and animated its
+//! brightness continuously, forcing a repaint every 100ms on every page for a
+//! decoration nobody reads. It is gone: the space below the lead does the same
+//! separating work, silently.
 
 use egui::Ui;
 
 use crate::theme;
 
-/// Draw a page sub-header (subtitle + contextual help + accent line).
+/// Draw a page sub-header (lead line + contextual help).
 ///
-/// The breadcrumb trail is intentionally **not** rendered. The global top bar
-/// already shows the current page, and the sidebar shows its domain grouping,
-/// so an inert trail in the body was pure duplication — the intermediate
-/// segment is a domain (a sidebar section), not a routable page, so it could
-/// not be made meaningfully clickable anyway.
-///
-/// `breadcrumbs` and `title` are retained in the signature for call-site
-/// stability (each page still declares its location in one place). The function
-/// always returns `None`: nothing here is clickable.
+/// `breadcrumbs` and `title` are retained in the signature so each page keeps
+/// declaring its location in one place; both are surfaced by the top bar.
+/// Always returns `None` — nothing here is clickable.
 pub fn page_header_nav(
     ui: &mut Ui,
     breadcrumbs: &[&str],
@@ -30,88 +33,58 @@ pub fn page_header_nav(
     None
 }
 
-/// Draw a page sub-header: optional subtitle, contextual help and an accent
-/// line.
-///
-/// The `title` is intentionally **not** rendered here. The global top bar
-/// already shows the current page name, so a body-level H1 would duplicate it.
-/// The parameter is retained so each page keeps declaring its title in one
-/// place at the call site.
+/// Draw a page sub-header: the lead line and its contextual help.
 pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: Option<&str>) {
     let _ = title; // Surfaced by the global top bar, not repeated in the body.
-    ui.vertical(|ui: &mut egui::Ui| {
-        if subtitle.is_some() || help_text.is_some() {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                if let Some(sub) = subtitle {
-                    ui.label(
-                        egui::RichText::new(sub)
-                            .font(theme::font_body())
-                            .color(theme::text_secondary()),
-                    );
-                }
 
-                if let Some(help) = help_text {
-                    ui.add_space(theme::SPACE_SM);
-                    super::help_button(ui, help);
-                }
-            });
+    if subtitle.is_none() && help_text.is_none() {
+        return;
+    }
+
+    ui.horizontal(|ui: &mut Ui| {
+        if let Some(lead) = subtitle {
+            ui.label(
+                egui::RichText::new(lead)
+                    .font(theme::font_body_lg())
+                    .color(theme::text_secondary()),
+            );
         }
-
-        // Premium accent line with gradient effect
-        ui.add_space(theme::SPACE_SM);
-        let (rect, _) = ui.allocate_exact_size(
-            egui::Vec2::new(ui.available_width().min(200.0), theme::BORDER_THICK),
-            egui::Sense::hover(),
-        );
-
-        if ui.is_rect_visible(rect) {
-            let shimmer = if theme::is_reduced_motion() {
-                0.5
-            } else {
-                let time = ui.input(|i| i.time);
-                ((time * theme::ANIM_SKELETON_SPEED as f64).sin() * 0.5 + 0.5) as f32
-            };
-
-            // Gradient from accent to transparent
-            let left_color = theme::ACCENT
-                .linear_multiply(theme::OPACITY_STRONG + shimmer * theme::OPACITY_TINT);
-            let right_color = theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE);
-
-            // Draw gradient line using mesh
-            use egui::epaint::{Mesh, Vertex};
-            let mut mesh = Mesh::default();
-            let idx = mesh.vertices.len() as u32;
-
-            mesh.vertices.push(Vertex {
-                pos: rect.left_top(),
-                uv: Default::default(),
-                color: left_color,
-            });
-            mesh.vertices.push(Vertex {
-                pos: rect.right_top(),
-                uv: Default::default(),
-                color: right_color,
-            });
-            mesh.vertices.push(Vertex {
-                pos: rect.right_bottom(),
-                uv: Default::default(),
-                color: right_color,
-            });
-            mesh.vertices.push(Vertex {
-                pos: rect.left_bottom(),
-                uv: Default::default(),
-                color: left_color,
-            });
-
-            mesh.add_triangle(idx, idx + 1, idx + 2);
-            mesh.add_triangle(idx + 2, idx + 3, idx);
-
-            ui.painter().add(mesh);
-
-            if !theme::is_reduced_motion() {
-                ui.ctx()
-                    .request_repaint_after(std::time::Duration::from_millis(100));
-            }
+        if let Some(help) = help_text {
+            ui.add_space(theme::SPACE_SM);
+            super::help_button(ui, help);
         }
     });
+    ui.add_space(theme::SPACE_LG);
+}
+
+/// Draw a section heading inside a page body.
+///
+/// Use between blocks of a long page — a heading, an optional caption, and the
+/// vertical rhythm that separates it from what came before.
+pub fn section_header(ui: &mut Ui, title: &str, caption: Option<&str>) {
+    ui.add_space(theme::SPACE_LG);
+    ui.label(
+        egui::RichText::new(title)
+            .font(theme::font_h3())
+            .color(theme::text_primary()),
+    );
+    if let Some(caption) = caption {
+        ui.add_space(theme::SPACE_XS);
+        ui.label(
+            egui::RichText::new(caption)
+                .font(theme::font_body())
+                .color(theme::text_tertiary()),
+        );
+    }
+    ui.add_space(theme::SPACE_MD);
+}
+
+/// Draw an uppercase eyebrow label — the smallest step in the heading scale.
+pub fn eyebrow(ui: &mut Ui, text: &str) {
+    ui.label(
+        egui::RichText::new(text)
+            .font(theme::font_label())
+            .color(theme::text_tertiary())
+            .extra_letter_spacing(theme::TRACKING_WIDE),
+    );
 }
