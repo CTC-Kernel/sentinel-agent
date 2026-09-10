@@ -92,7 +92,7 @@ impl<'a> SearchFilterBar<'a> {
             );
             let text_rect = egui::Rect::from_min_max(
                 egui::pos2(field.left() + theme::SPACE_LG + 2.0, field.top()),
-                egui::pos2(field.right() - theme::SPACE_SM, field.bottom()),
+                egui::pos2(field.right() - 32.0, field.bottom()),
             );
             ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
                 // Clip the editor to the framed field so a long placeholder or
@@ -111,6 +111,20 @@ impl<'a> SearchFilterBar<'a> {
                 );
             });
 
+            if !self.search.is_empty() {
+                let clear_rect = egui::Rect::from_center_size(
+                    egui::pos2(field.right() - 16.0, field.center().y),
+                    Vec2::splat(28.0),
+                );
+                if ui
+                    .put(clear_rect, egui::Button::new("×").frame(false))
+                    .on_hover_text("Effacer la recherche")
+                    .clicked()
+                {
+                    self.search.clear();
+                }
+            }
+
             ui.add_space(theme::SPACE_SM);
 
             // Chips — unified with badge design system
@@ -124,9 +138,13 @@ impl<'a> SearchFilterBar<'a> {
                 let border_color = theme::badge_border(*color);
 
                 let btn = egui::Button::new(
-                    egui::RichText::new(*label)
-                        .font(theme::font_label())
-                        .color(fg),
+                    egui::RichText::new(if *active {
+                        format!("✓ {label}")
+                    } else {
+                        (*label).to_owned()
+                    })
+                    .font(theme::font_label())
+                    .color(fg),
                 )
                 .fill(bg)
                 .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, border_color))

@@ -1,9 +1,8 @@
 # Sentinel — centre de contrôle
 
-La page d’accueil présente une synthèse contextuelle, quatre indicateurs de
-sécurité, les prochaines actions et la santé du poste. L’assistant ouvre son
-espace de travail ; les tendances 30/90 jours et l’activité restent accessibles
-dans un volet secondaire. L’export de synthèse est conservé.
+La page d’accueil rassemble l’état de sécurité, les indicateurs du poste,
+les tendances et l’assistant. La navigation et la barre supérieure utilisent
+le système visuel partagé avec les autres écrans.
 
 ## Intégration avec le système visuel
 
@@ -36,9 +35,9 @@ cargo run -p agent-gui --example visual_review -- /tmp/sentinel-light.png --ligh
 cargo run -p agent-gui --example visual_review -- /tmp/sentinel-compact.png --compact --empty
 ```
 
-La suite intégrée comporte 44 tests, dont les contrats de contraste du système
-visuel, l’activation clavier et l’absence de débordement horizontal du tableau
-de bord à 650, 900 et 1 200 points de contenu. Ces tests ne constituent pas une
+La suite intégrée vérifie notamment les contrats de contraste du système
+visuel, l’activation clavier et les seuils de l’état de sécurité, y compris
+l’absence de score. Ces tests ne constituent pas une
 certification d’accessibilité de tous les parcours.
 
 `visual_review` rend la véritable application avec des événements synthétiques

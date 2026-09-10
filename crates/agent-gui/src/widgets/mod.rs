@@ -17,6 +17,7 @@ mod protected_state;
 mod resource_bar;
 mod search_filter_bar;
 mod security_hero;
+pub(crate) use security_hero::determine_security_state;
 pub mod sentinel_ai_core;
 pub mod sidebar;
 pub mod splash;

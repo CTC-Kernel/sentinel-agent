@@ -393,8 +393,9 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn ai_posture_score_card(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
         let ai_score = LLMPanel::compute_ai_score(state);
-        let risk_label = LLMPanel::risk_label(ai_score);
-        let risk_color = theme::score_color(ai_score);
+        let security_state = widgets::determine_security_state(state);
+        let risk_label = security_state.title();
+        let risk_color = security_state.color();
 
         let mut nav_action = None;
 
