@@ -76,3 +76,9 @@ certification d’accessibilité de tous les parcours.
 identifiés « DÉMONSTRATION », sans runtime de sécurité ni enregistrement des
 préférences. Il applique les dimensions après la transition de démarrage.
 Les captures conservées sont dans `previews/`.
+
+La navigation et les lignes sélectionnables des tableaux défilent vers l’élément
+qui reçoit le focus. Les en-têtes de tri ont des identifiants stables : l’ajout
+d’un contenu au-dessus du tableau ne déplace pas leur focus. La chronologie
+transmet les descriptions complètes au tableau pour les rendre consultables
+dans les infobulles lorsque les cellules sont abrégées.

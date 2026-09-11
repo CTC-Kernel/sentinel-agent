@@ -250,17 +250,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let source_label = source_label_fr(evt.source);
                 let date = evt.timestamp.format("%d/%m/%Y %H:%M").to_string();
 
-                // Truncate detail for table display (tooltip shows full text)
-                let is_truncated = evt.detail.chars().count() > 60;
-                let detail_display = if is_truncated {
-                    let truncated: String = evt.detail.chars().take(57).collect();
-                    format!("{}…", truncated)
-                } else {
-                    evt.detail.clone()
-                };
-
                 let cells: Vec<&str> =
-                    vec![&sev_cell, source_label, &evt.title, &detail_display, &date];
+                    vec![&sev_cell, source_label, &evt.title, &evt.detail, &date];
 
                 let global_idx = start.saturating_add(row_idx);
                 let selected = state.threats.forensic_selected_event == Some(global_idx);

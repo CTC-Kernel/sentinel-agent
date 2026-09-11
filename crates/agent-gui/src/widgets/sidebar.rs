@@ -352,7 +352,18 @@ impl Sidebar {
             Vec2::new(row.width, theme::NAV_ITEM_HEIGHT),
             egui::Sense::click(),
         );
+        response.widget_info(|| {
+            egui::WidgetInfo::selected(
+                egui::WidgetType::SelectableLabel,
+                ui.is_enabled(),
+                row.is_current,
+                row.label,
+            )
+        });
         let hovered = response.hovered();
+        if response.gained_focus() {
+            response.scroll_to_me(Some(egui::Align::Center));
+        }
 
         if ui.is_rect_visible(rect) {
             let painter = ui.painter();
@@ -360,14 +371,18 @@ impl Sidebar {
             let radius = CornerRadius::same(theme::ROUNDING_MD);
 
             // Surface: selected reads stronger than hover, same hue family.
+            let hover_t =
+                crate::animation::animate_hover(ui.ctx(), response.id.with("hover"), hovered);
             let fill = if row.is_current {
                 theme::selected_bg()
-            } else if hovered {
-                theme::hover_bg_neutral()
             } else {
-                egui::Color32::TRANSPARENT
+                crate::animation::lerp_color(
+                    theme::bg_sidebar(),
+                    theme::hover_bg_neutral(),
+                    hover_t,
+                )
             };
-            if fill != egui::Color32::TRANSPARENT {
+            if hover_t > 0.0 || row.is_current {
                 painter.rect_filled(body, radius, fill);
             }
 
@@ -743,4 +758,64 @@ struct TrailingDot {
     color: egui::Color32,
     label: &'static str,
     pulsing: bool,
+}
+
+#[cfg(test)]
+mod navigation_tests {
+    use super::*;
+
+    #[test]
+    fn focusing_a_hidden_navigation_row_scrolls_it_into_view() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let mut target = None;
+        let mut offset = 0.0;
+        for pass in 0..4 {
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(300.0, 180.0),
+                    )),
+                    time: Some(pass as f64),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        let scroll = egui::ScrollArea::vertical().show(ui, |ui| {
+                            for index in 0..20 {
+                                if index == 19 {
+                                    target = Some(ui.next_auto_id());
+                                    if pass == 1 {
+                                        ui.memory_mut(|memory| {
+                                            memory.request_focus(target.unwrap())
+                                        });
+                                    }
+                                }
+                                Sidebar::nav_row(
+                                    ui,
+                                    NavRow {
+                                        icon: icons::DASHBOARD,
+                                        label: "Page de démonstration",
+                                        shortcut: None,
+                                        is_current: false,
+                                        badge: None,
+                                        trailing: None,
+                                        width: 260.0,
+                                        collapsed: false,
+                                    },
+                                );
+                            }
+                        });
+                        offset = scroll.state.offset.y;
+                    });
+                },
+            );
+        }
+        assert!(
+            offset > 400.0,
+            "hidden row must become visible, offset={offset}"
+        );
+        assert_eq!(ctx.memory(|memory| memory.focused()), target);
+    }
 }
