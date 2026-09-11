@@ -334,7 +334,7 @@ impl AssetsPage {
                     table::Col::fluid(80.0, 0.5),  // Type
                     table::Col::fluid(96.0, 0.0),  // Criticité
                     table::Col::fluid(110.0, 0.0), // Cycle de vie
-                    table::Col::fixed(56.0),       // Score
+                    table::Col::fixed(76.0),       // Score
                     table::Col::fluid(110.0, 1.0), // Dernière vue
                 ],
             )
