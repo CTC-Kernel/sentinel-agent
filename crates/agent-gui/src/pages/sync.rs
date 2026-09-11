@@ -23,7 +23,7 @@ impl SyncPage {
             &["Système", "Synchronisation"],
             "Synchronisation",
             Some(
-                "Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur",
+                "Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur.",
             ),
             Some(
                 "Gérez la synchronisation des données avec le serveur Sentinel central. Vérifiez l'état de la connexion et forcez une mise à jour manuelle des politiques et référentiels.",

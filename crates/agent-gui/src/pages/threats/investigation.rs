@@ -76,13 +76,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 IocSearchType::Process => "powershell, curl, nc…",
                 IocSearchType::Cve => "CVE-2024-12345…",
             };
-            let input_width = (ui.available_width() - 120.0).max(200.0);
-            ui.add_sized(
-                egui::vec2(input_width, theme::MIN_TOUCH_TARGET),
-                egui::TextEdit::singleline(&mut state.threats.ioc_search)
-                    .hint_text(hint)
-                    .font(theme::font_body()),
-            );
+            let input_width = (ui.available_width() - 140.0).max(200.0);
+            widgets::SearchInput::new(&mut state.threats.ioc_search, hint)
+                .width(input_width)
+                .height(theme::BUTTON_HEIGHT)
+                .font(theme::font_body())
+                .id_salt("ioc_search")
+                .show(ui);
 
             ui.add_space(theme::SPACE_SM);
 

@@ -84,6 +84,17 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Banc de rendu** : `PREVIEW_OUT=<png>` écrit la capture de la fenêtre ;
   la taille demandée (`PREVIEW_W`/`PREVIEW_H`) n'est plus écrasée par la
   géométrie mémorisée de la session précédente.
+- **Gel à l'ouverture d'une modale** : la boîte de confirmation (mise en
+  quarantaine, arrêt de processus, blocage d'IP, suppression) relisait le
+  numéro de passe egui *pendant* qu'elle tenait le verrou mémoire du
+  contexte — verrou non réentrant, application figée dès le premier clic
+  sur « Confirmer ». Le numéro est lu avant la prise du verrou ; test de
+  non-régression qui rend une modale ouverte sur plusieurs frames.
+- Recherche d'IOC (Menaces › Investigation) sur le champ de recherche
+  partagé ; historique de synchronisation dans les fixtures du banc de rendu
+  (la table de la page Synchronisation est enfin rendue) ; fondu du bas de la
+  barre latérale allongé pour que la dernière entrée ne semble plus coupée par
+  le pied ; le banc capture aussi le splash et l'assistant d'enrôlement.
 - Correctif au passage : la liste des paquets appelait deux fois la navigation
   clavier, faisant sauter deux lignes par flèche et déréglant la pagination
   de l'onglet Applications.

@@ -234,7 +234,7 @@ impl Sidebar {
             // so a row cut off by the footer reads as "more below" rather
             // than as a row overlapping the footer.
             let fade = egui::Rect::from_min_max(
-                egui::pos2(full.left(), footer_top - theme::SPACE_LG),
+                egui::pos2(full.left(), footer_top - theme::SPACE_2XL),
                 egui::pos2(full.right(), footer_top),
             );
             if ui.is_rect_visible(fade) {

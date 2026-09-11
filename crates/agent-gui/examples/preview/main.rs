@@ -112,6 +112,7 @@ impl eframe::App for Preview {
         match self.requested.as_str() {
             "splash" => {
                 widgets::splash_screen(ctx, 1.2);
+                self.end_frame(ctx);
                 ctx.request_repaint();
                 return;
             }
@@ -125,6 +126,7 @@ impl eframe::App for Preview {
                     .show(ctx, |ui| {
                         let _ = self.wizard.show(ui);
                     });
+                self.end_frame(ctx);
                 ctx.request_repaint();
                 return;
             }
@@ -231,7 +233,20 @@ impl eframe::App for Preview {
 
         self.overlays(ctx);
 
+        self.end_frame(ctx);
+        ctx.request_repaint();
+    }
+}
+
+impl Preview {
+    /// Count the frame and, when a capture was asked for, request it and
+    /// write it out; every surface the harness renders ends its frame here,
+    /// the first-run ones included.
+    fn end_frame(&mut self, ctx: &egui::Context) {
         self.frame_count += 1;
+        if std::env::var("PREVIEW_DEBUG").is_ok() {
+            eprintln!("frame {}", self.frame_count);
+        }
         if let Some(n) = self.shot_after
             && self.frame_count >= n
         {
@@ -272,11 +287,8 @@ impl eframe::App for Preview {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             }
         }
-        ctx.request_repaint();
     }
-}
 
-impl Preview {
     /// Overlay surfaces the real shell layers over the content: toasts, a
     /// modal, and the command palette. Selected by PREVIEW_PAGE.
     fn overlays(&mut self, ctx: &egui::Context) {
