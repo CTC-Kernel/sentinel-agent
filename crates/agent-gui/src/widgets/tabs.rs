@@ -38,8 +38,10 @@ impl<'a> Tab<'a> {
         self
     }
 
+    /// A count on the tab. Zero is no badge: a "0" pill next to a section
+    /// name says nothing the empty list will not.
     pub fn badge(mut self, count: u32) -> Self {
-        self.badge = Some(count);
+        self.badge = (count > 0).then_some(count);
         self
     }
 
@@ -104,17 +106,25 @@ impl<'a> TabBar<'a> {
     }
 
     /// Width the tabs need at their natural size, spacing included.
-    fn natural_width(&self, ui: &Ui) -> f32 {
+    fn natural_width(&self, ui: &Ui, compact: bool) -> f32 {
         let spacing = ui.spacing().item_spacing.x * self.tabs.len().saturating_sub(1) as f32;
         self.tabs
             .iter()
             .enumerate()
-            .map(|(i, tab)| self.underline_tab_width(ui, tab, i == self.selected))
+            .map(|(i, tab)| {
+                self.underline_tab_width(ui, tab, i == self.selected, compact && i != self.selected)
+            })
             .sum::<f32>()
             + spacing
     }
 
-    fn underline_tab_width(&self, ui: &Ui, tab: &Tab, is_selected: bool) -> f32 {
+    /// Every tab has an icon, so a compact strip (icons for the tabs that
+    /// are not selected) would still say what each one is.
+    fn can_compact(&self) -> bool {
+        self.tabs.len() > 1 && self.tabs.iter().all(|tab| tab.icon.is_some())
+    }
+
+    fn underline_tab_width(&self, ui: &Ui, tab: &Tab, is_selected: bool, compact: bool) -> f32 {
         let font = if is_selected {
             theme::font_body_strong()
         } else {
@@ -124,11 +134,13 @@ impl<'a> TabBar<'a> {
         if tab.icon.is_some() {
             width += theme::TAB_ICON_WIDTH;
         }
-        width += ui
-            .painter()
-            .layout_no_wrap(tab.label.to_string(), font, theme::text_primary())
-            .size()
-            .x;
+        if !(compact && tab.icon.is_some()) {
+            width += ui
+                .painter()
+                .layout_no_wrap(tab.label.to_string(), font, theme::text_primary())
+                .size()
+                .x;
+        }
         if tab.badge.is_some() {
             width += theme::TAB_BADGE_WIDTH;
         }
@@ -139,7 +151,12 @@ impl<'a> TabBar<'a> {
         let mut new_selection = None;
         let available_width = ui.available_width();
         let tab_count = self.tabs.len();
-        let fits = self.natural_width(ui) <= available_width;
+        let fits = self.natural_width(ui, false) <= available_width;
+        // When the labels do not fit, the tabs that are not selected fold
+        // to their icon (label on hover) before the strip resorts to
+        // scrolling: seven sections stay visible on a narrow window.
+        let compact =
+            !fits && self.can_compact() && self.natural_width(ui, true) <= available_width;
         let mut rects: Vec<egui::Rect> = Vec::with_capacity(tab_count);
 
         let mut strip = |ui: &mut Ui| {
@@ -158,8 +175,13 @@ impl<'a> TabBar<'a> {
                         0.0 // Auto-size
                     };
 
-                    let (clicked, rect) =
-                        self.render_underline_tab(ui, tab, is_selected, tab_width);
+                    let (clicked, rect) = self.render_underline_tab(
+                        ui,
+                        tab,
+                        is_selected,
+                        tab_width,
+                        compact && !is_selected,
+                    );
                     rects.push(rect);
                     if clicked {
                         new_selection = Some(i);
@@ -168,7 +190,7 @@ impl<'a> TabBar<'a> {
             });
         };
 
-        if fits {
+        if fits || compact {
             strip(ui);
         } else {
             // Seven tabs on an 800-pixel window: at their natural width in a
@@ -225,6 +247,7 @@ impl<'a> TabBar<'a> {
         tab: &Tab,
         is_selected: bool,
         fixed_width: f32,
+        compact: bool,
     ) -> (bool, egui::Rect) {
         // The selected tab carries weight as well as colour, so the active
         // section is legible without relying on hue alone (WCAG 1.4.1).
@@ -233,17 +256,21 @@ impl<'a> TabBar<'a> {
         } else {
             theme::font_body()
         };
+        // A compact tab shows its icon and keeps the label for the tooltip.
+        let show_label = !(compact && tab.icon.is_some());
         let mut content_width = 0.0;
 
         // Calculate content width
         if tab.icon.is_some() {
             content_width += theme::TAB_ICON_WIDTH;
         }
-        content_width += ui
-            .painter()
-            .layout_no_wrap(tab.label.to_string(), font.clone(), theme::text_primary())
-            .size()
-            .x;
+        if show_label {
+            content_width += ui
+                .painter()
+                .layout_no_wrap(tab.label.to_string(), font.clone(), theme::text_primary())
+                .size()
+                .x;
+        }
         if tab.badge.is_some() {
             content_width += theme::TAB_BADGE_WIDTH;
         }
@@ -311,13 +338,15 @@ impl<'a> TabBar<'a> {
             }
 
             // Label
-            painter.text(
-                egui::pos2(x, rect.center().y),
-                egui::Align2::LEFT_CENTER,
-                tab.label,
-                font,
-                text_color,
-            );
+            if show_label {
+                painter.text(
+                    egui::pos2(x, rect.center().y),
+                    egui::Align2::LEFT_CENTER,
+                    tab.label,
+                    font,
+                    text_color,
+                );
+            }
 
             // Badge (unified design system)
             if let Some(count) = tab.badge {
@@ -360,6 +389,20 @@ impl<'a> TabBar<'a> {
                 );
             }
         }
+
+        let response = if show_label {
+            response
+        } else {
+            response.on_hover_text(tab.label)
+        };
+        response.widget_info(|| {
+            egui::WidgetInfo::selected(
+                egui::WidgetType::SelectableLabel,
+                !tab.disabled,
+                is_selected,
+                tab.label,
+            )
+        });
 
         (response.clicked() && !tab.disabled, rect)
     }

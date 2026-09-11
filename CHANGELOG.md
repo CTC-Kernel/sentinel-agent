@@ -95,6 +95,14 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   (la table de la page Synchronisation est enfin rendue) ; fondu du bas de la
   barre latérale allongé pour que la dernière entrée ne semble plus coupée par
   le pied ; le banc capture aussi le splash et l'assistant d'enrôlement.
+- **Barre d'onglets étroite** : quand les libellés ne tiennent plus (sept
+  onglets Menaces à 960 px), les onglets non sélectionnés se replient sur
+  leur icône (libellé en infobulle, badge conservé) avant de recourir à la
+  bande défilante qui coupait « Règles » et « Chronologie ». Un badge à zéro
+  n'est plus affiché.
+- **Squelettes de chargement** : les lignes fantômes des tableaux se
+  répartissent sur la largeur réelle de la carte (proportions conservées) au
+  lieu de déborder de 50 px à droite sur Vulnérabilités et Risques.
 - Correctif au passage : la liste des paquets appelait deux fois la navigation
   clavier, faisant sauter deux lignes par flèche et déréglant la pagination
   de l'onglet Applications.

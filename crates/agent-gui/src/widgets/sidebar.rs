@@ -240,10 +240,16 @@ impl Sidebar {
             if ui.is_rect_visible(fade) {
                 use egui::epaint::{Mesh, Vertex};
                 let (_, bottom) = theme::sidebar_gradient();
+                // Transparent at the top, opaque well before the footer: a
+                // row that straddles the boundary dissolves instead of being
+                // sliced through its label by the footer's rule.
+                let solid_top = fade.bottom() - theme::SPACE;
                 let mut mesh = Mesh::default();
                 for (pos, color) in [
                     (fade.left_top(), egui::Color32::TRANSPARENT),
                     (fade.right_top(), egui::Color32::TRANSPARENT),
+                    (egui::pos2(fade.right(), solid_top), bottom),
+                    (egui::pos2(fade.left(), solid_top), bottom),
                     (fade.right_bottom(), bottom),
                     (fade.left_bottom(), bottom),
                 ] {
@@ -255,6 +261,8 @@ impl Sidebar {
                 }
                 mesh.add_triangle(0, 1, 2);
                 mesh.add_triangle(2, 3, 0);
+                mesh.add_triangle(3, 2, 4);
+                mesh.add_triangle(4, 5, 3);
                 ui.painter().add(mesh);
             }
 
