@@ -141,28 +141,27 @@ pub fn sparkline(
     }
 
     // Reveal the closest sample without making a miniature chart draggable.
-    if let Some(pointer) = response.hover_pos() {
-        if let Some((index, point)) = points
+    if let Some(pointer) = response.hover_pos()
+        && let Some((index, point)) = points
             .iter()
             .enumerate()
             .min_by(|(_, a), (_, b)| (a.x - pointer.x).abs().total_cmp(&(b.x - pointer.x).abs()))
-        {
-            painter.line_segment(
-                [
-                    egui::pos2(point.x, plot.top()),
-                    egui::pos2(point.x, plot.bottom()),
-                ],
-                Stroke::new(theme::BORDER_HAIRLINE, theme::text_tertiary()),
-            );
-            painter.circle_filled(*point, 4.0, theme::bg_secondary());
-            painter.circle_stroke(*point, 4.0, Stroke::new(1.5_f32, config.color));
-            response.on_hover_ui(|ui| {
-                ui.label(format!(
-                    "Valeur : {}",
-                    crate::format::decimal(data[index][1], 1)
-                ));
-            });
-        }
+    {
+        painter.line_segment(
+            [
+                egui::pos2(point.x, plot.top()),
+                egui::pos2(point.x, plot.bottom()),
+            ],
+            Stroke::new(theme::BORDER_HAIRLINE, theme::text_tertiary()),
+        );
+        painter.circle_filled(*point, 4.0, theme::bg_secondary());
+        painter.circle_stroke(*point, 4.0, Stroke::new(1.5_f32, config.color));
+        response.on_hover_ui(|ui| {
+            ui.label(format!(
+                "Valeur : {}",
+                crate::format::decimal(data[index][1], 1)
+            ));
+        });
     }
 }
 

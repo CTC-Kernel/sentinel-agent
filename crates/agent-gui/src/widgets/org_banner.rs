@@ -60,10 +60,10 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
             }
             if widgets::ghost_button(ui, "Ouvrir la console ↗").clicked() {
                 let url = format!("{}/dashboard", crate::pages::about::branding::CONSOLE);
-                if url.starts_with("https://") {
-                    if let Err(error) = open::that(&url) {
-                        tracing::warn!("Failed to open console: {error}");
-                    }
+                if url.starts_with("https://")
+                    && let Err(error) = open::that(&url)
+                {
+                    tracing::warn!("Failed to open console: {error}");
                 }
             }
             if let Some(agent_id) = &state.summary.agent_id {

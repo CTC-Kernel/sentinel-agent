@@ -25,63 +25,6 @@ pub struct SearchFilterBar<'a> {
     action: Option<String>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn escape_clears_the_focused_search_without_leaving_it() {
-        let ctx = egui::Context::default();
-        theme::configure_fonts(&ctx);
-        let mut search = String::from("serveur");
-        let mut frame = |events| {
-            let _ = ctx.run(
-                egui::RawInput {
-                    screen_rect: Some(egui::Rect::from_min_size(
-                        egui::Pos2::ZERO,
-                        egui::vec2(640.0, 200.0),
-                    )),
-                    events,
-                    ..Default::default()
-                },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
-                        SearchFilterBar::new(&mut search, "Rechercher un équipement").show(ui);
-                    });
-                },
-            );
-        };
-        frame(vec![]);
-        let position = egui::pos2(80.0, 22.0);
-        frame(vec![
-            egui::Event::PointerMoved(position),
-            egui::Event::PointerButton {
-                pos: position,
-                button: egui::PointerButton::Primary,
-                pressed: true,
-                modifiers: egui::Modifiers::NONE,
-            },
-        ]);
-        frame(vec![egui::Event::PointerButton {
-            pos: position,
-            button: egui::PointerButton::Primary,
-            pressed: false,
-            modifiers: egui::Modifiers::NONE,
-        }]);
-        let focused = ctx.memory(|memory| memory.focused());
-        assert!(focused.is_some());
-        frame(vec![egui::Event::Key {
-            key: egui::Key::Escape,
-            physical_key: None,
-            pressed: true,
-            repeat: false,
-            modifiers: egui::Modifiers::NONE,
-        }]);
-        assert!(search.is_empty());
-        assert_eq!(ctx.memory(|memory| memory.focused()), focused);
-    }
-}
-
 impl<'a> SearchFilterBar<'a> {
     pub fn new(search: &'a mut String, placeholder: &'a str) -> Self {
         Self {
@@ -302,5 +245,62 @@ impl<'a> SearchFilterBar<'a> {
         });
 
         (toggled, action_clicked)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn escape_clears_the_focused_search_without_leaving_it() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let mut search = String::from("serveur");
+        let mut frame = |events| {
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(640.0, 200.0),
+                    )),
+                    events,
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        SearchFilterBar::new(&mut search, "Rechercher un équipement").show(ui);
+                    });
+                },
+            );
+        };
+        frame(vec![]);
+        let position = egui::pos2(80.0, 22.0);
+        frame(vec![
+            egui::Event::PointerMoved(position),
+            egui::Event::PointerButton {
+                pos: position,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                modifiers: egui::Modifiers::NONE,
+            },
+        ]);
+        frame(vec![egui::Event::PointerButton {
+            pos: position,
+            button: egui::PointerButton::Primary,
+            pressed: false,
+            modifiers: egui::Modifiers::NONE,
+        }]);
+        let focused = ctx.memory(|memory| memory.focused());
+        assert!(focused.is_some());
+        frame(vec![egui::Event::Key {
+            key: egui::Key::Escape,
+            physical_key: None,
+            pressed: true,
+            repeat: false,
+            modifiers: egui::Modifiers::NONE,
+        }]);
+        assert!(search.is_empty());
+        assert_eq!(ctx.memory(|memory| memory.focused()), focused);
     }
 }

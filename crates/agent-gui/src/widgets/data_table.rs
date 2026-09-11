@@ -674,6 +674,65 @@ fn paint_cell_text(
     );
 }
 
+/// Helper struct for building table rows with typed data.
+pub struct TableRow<'a, T> {
+    data: &'a T,
+    cells: Vec<String>,
+}
+
+impl<'a, T> TableRow<'a, T> {
+    pub fn new(data: &'a T) -> Self {
+        Self {
+            data,
+            cells: Vec::new(),
+        }
+    }
+
+    pub fn cell(mut self, value: impl ToString) -> Self {
+        self.cells.push(value.to_string());
+        self
+    }
+
+    pub fn cells(&self) -> Vec<&str> {
+        self.cells.iter().map(|s| s.as_str()).collect()
+    }
+
+    pub fn data(&self) -> &'a T {
+        self.data
+    }
+}
+
+/// Simple table from string data.
+pub fn simple_table(
+    ui: &mut Ui,
+    headers: &[&str],
+    rows: &[Vec<&str>],
+    sort: &mut TableSort,
+) -> Option<usize> {
+    let columns: Vec<TableColumn> = headers
+        .iter()
+        .map(|h| TableColumn::new(h, h).sortable().width(ColumnWidth::Fill))
+        .collect();
+
+    let table = DataTable::new("simple_table", columns).selectable();
+
+    table.show_header(ui, sort);
+
+    let mut clicked_row = None;
+    for (i, row) in rows.iter().enumerate() {
+        let cells: Vec<&str> = row.to_vec();
+        if table.show_row(ui, i, false, &cells) {
+            clicked_row = Some(i);
+        }
+    }
+
+    if rows.is_empty() {
+        table.show_empty(ui, "Aucune donnée");
+    }
+
+    clicked_row
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -758,63 +817,4 @@ mod tests {
             assert!(columns.iter().sum::<f32>() <= width + 0.01);
         }
     }
-}
-
-/// Helper struct for building table rows with typed data.
-pub struct TableRow<'a, T> {
-    data: &'a T,
-    cells: Vec<String>,
-}
-
-impl<'a, T> TableRow<'a, T> {
-    pub fn new(data: &'a T) -> Self {
-        Self {
-            data,
-            cells: Vec::new(),
-        }
-    }
-
-    pub fn cell(mut self, value: impl ToString) -> Self {
-        self.cells.push(value.to_string());
-        self
-    }
-
-    pub fn cells(&self) -> Vec<&str> {
-        self.cells.iter().map(|s| s.as_str()).collect()
-    }
-
-    pub fn data(&self) -> &'a T {
-        self.data
-    }
-}
-
-/// Simple table from string data.
-pub fn simple_table(
-    ui: &mut Ui,
-    headers: &[&str],
-    rows: &[Vec<&str>],
-    sort: &mut TableSort,
-) -> Option<usize> {
-    let columns: Vec<TableColumn> = headers
-        .iter()
-        .map(|h| TableColumn::new(h, h).sortable().width(ColumnWidth::Fill))
-        .collect();
-
-    let table = DataTable::new("simple_table", columns).selectable();
-
-    table.show_header(ui, sort);
-
-    let mut clicked_row = None;
-    for (i, row) in rows.iter().enumerate() {
-        let cells: Vec<&str> = row.to_vec();
-        if table.show_row(ui, i, false, &cells) {
-            clicked_row = Some(i);
-        }
-    }
-
-    if rows.is_empty() {
-        table.show_empty(ui, "Aucune donnée");
-    }
-
-    clicked_row
 }

@@ -94,35 +94,6 @@ fn check_status(state: &AppState) -> (String, egui::Color32) {
     }
 }
 
-#[cfg(test)]
-mod status_tests {
-    use super::*;
-
-    #[test]
-    fn zero_usage_is_only_displayed_after_a_measurement() {
-        assert_eq!(resource_value(0.0, false), "—");
-        assert_eq!(resource_value(f64::NAN, true), "—");
-        assert_eq!(resource_value(0.0, true), crate::format::pct(0.0, 1));
-    }
-
-    #[test]
-    fn conformity_requires_complete_successful_results() {
-        let mut state = AppState::default();
-        assert_eq!(check_status(&state).0, "Évaluation en attente");
-        state.policy.total_policies = 2;
-        state.policy.passing = 1;
-        assert_eq!(check_status(&state).0, "Résultats incomplets");
-        state.policy.pending = 1;
-        assert!(check_status(&state).0.contains("en attente"));
-        state.policy.pending = 0;
-        state.policy.errors = 1;
-        assert_eq!(check_status(&state).1, theme::ERROR);
-        state.policy.errors = 0;
-        state.policy.passing = 2;
-        assert_eq!(check_status(&state).0, "Tous conformes");
-    }
-}
-
 impl DashboardPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
         let mut action: Option<DashboardAction> = None;
@@ -1613,5 +1584,34 @@ impl DashboardPage {
                 false
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod status_tests {
+    use super::*;
+
+    #[test]
+    fn zero_usage_is_only_displayed_after_a_measurement() {
+        assert_eq!(resource_value(0.0, false), "—");
+        assert_eq!(resource_value(f64::NAN, true), "—");
+        assert_eq!(resource_value(0.0, true), crate::format::pct(0.0, 1));
+    }
+
+    #[test]
+    fn conformity_requires_complete_successful_results() {
+        let mut state = AppState::default();
+        assert_eq!(check_status(&state).0, "Évaluation en attente");
+        state.policy.total_policies = 2;
+        state.policy.passing = 1;
+        assert_eq!(check_status(&state).0, "Résultats incomplets");
+        state.policy.pending = 1;
+        assert!(check_status(&state).0.contains("en attente"));
+        state.policy.pending = 0;
+        state.policy.errors = 1;
+        assert_eq!(check_status(&state).1, theme::ERROR);
+        state.policy.errors = 0;
+        state.policy.passing = 2;
+        assert_eq!(check_status(&state).0, "Tous conformes");
     }
 }
