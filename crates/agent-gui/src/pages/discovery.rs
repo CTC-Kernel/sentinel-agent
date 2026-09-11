@@ -8,7 +8,6 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 use egui::Ui;
-use egui_extras::{Column, TableBuilder};
 
 pub struct DiscoveryPage;
 
@@ -286,40 +285,27 @@ impl DiscoveryPage {
 
         let result_count = filtered.len();
 
-        widgets::SearchFilterBar::new(
+        let (_, export) = widgets::SearchFilterBar::new(
             &mut state.discovery.search,
             "Filtrer par adresse IP, nom d'hôte ou constructeur…",
         )
         .result_count(result_count)
-        .show(ui);
-
-        ui.add_space(theme::SPACE_MD);
-
-        // Action Buttons (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let success = Self::export_csv(state, &filtered);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success(
-                                    "Export CSV découverte terminé",
-                                )
-                                .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
-                                    .with_time(time),
-                            );
-                        }
-                    }
-                },
-            );
-        });
+        .action(format!("{}  CSV", icons::DOWNLOAD))
+        .show_with_action(ui);
+        if export {
+            let success = Self::export_csv(state, &filtered);
+            let time = ui.input(|i| i.time);
+            if success {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success("Export CSV découverte terminé")
+                        .with_time(time),
+                );
+            } else {
+                state.toasts.push(
+                    crate::widgets::toast::Toast::error("Échec de l'export CSV").with_time(time),
+                );
+            }
+        }
 
         ui.add_space(theme::SPACE_MD);
 
@@ -339,216 +325,147 @@ impl DiscoveryPage {
             });
         } else if !filtered.is_empty() {
             widgets::card(ui, |ui: &mut egui::Ui| {
-                let table = TableBuilder::new(ui)
-                    .striped(false)
-                    .resizable(true)
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(110.0).range(80.0..=160.0)) // IP
-                    .column(Column::initial(140.0).range(80.0..=400.0)) // Hostname
-                    .column(Column::initial(120.0).range(80.0..=160.0)) // MAC
-                    .column(Column::initial(110.0).range(70.0..=200.0)) // Vendor
-                    .column(Column::initial(80.0).range(60.0..=120.0)) // Type
-                    .column(Column::initial(80.0).range(60.0..=140.0)) // Ports
-                    .column(Column::initial(90.0).range(70.0..=130.0)) // Last seen
-                    .column(Column::remainder()); // Actions
+                use widgets::table;
 
-                table
-                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("ADRESSE IP")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("NOM D'HÔTE (DNS/NETBIOS)")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("ADRESSE MAC")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("CONSTRUCTEUR")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("TYPE D'ACTIF")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("SERVICES")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("DERNIÈRE VUE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("OPÉRATIONS")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                    })
-                    .body(|body| {
-                        let now = chrono::Utc::now();
-                        body.rows(theme::TABLE_DATA_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let row_idx = row.index();
-                            let Some(&dev_idx) = filtered.get(row_idx) else {
-                                return;
-                            };
-                            let Some(device) = state.discovery.devices.get(dev_idx) else {
-                                return;
-                            };
+                let mut clicked_idx: Option<usize> = None;
+                let selected = state.discovery.selected_device;
 
-                            row.set_selected(state.discovery.selected_device == Some(dev_idx));
+                table::fluid_clickable(
+                    ui,
+                    &[
+                        table::Col::fluid(120.0, 1.0), // Adresse IP / MAC
+                        table::Col::fluid(84.0, 0.0),  // Statut
+                        table::Col::fluid(120.0, 3.0), // Nom d'hôte
+                        table::Col::fluid(90.0, 1.5),  // Constructeur
+                        table::Col::fluid(80.0, 0.0),  // Type d'actif
+                        table::Col::fluid(70.0, 0.5),  // Services
+                        table::Col::fluid(84.0, 0.5),  // Dernière vue
+                        table::Col::fixed(110.0),      // Opérations
+                    ],
+                )
+                .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                    header.col(|ui| {
+                        table::header_cell(ui, "ADRESSE IP / MAC");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "STATUT");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "NOM D'HÔTE (DNS/NETBIOS)");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "CONSTRUCTEUR");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "TYPE D'ACTIF");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "SERVICES");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "DERNIÈRE VUE");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "OPÉRATIONS");
+                    });
+                })
+                .body(|body| {
+                    let now = chrono::Utc::now();
+                    body.rows(theme::TABLE_DATA_ROW_HEIGHT, filtered.len(), |mut row| {
+                        let Some(&dev_idx) = filtered.get(row.index()) else {
+                            return;
+                        };
+                        let Some(device) = state.discovery.devices.get(dev_idx) else {
+                            return;
+                        };
+                        let is_selected = selected == Some(dev_idx);
+                        row.set_selected(is_selected);
 
-                            let is_authorized =
-                                state.assets.assets.iter().any(|a| a.ip == device.ip);
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.horizontal(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&device.ip)
-                                            .font(theme::font_mono())
-                                            .color(theme::text_primary())
-                                            .strong(),
-                                    );
-                                    if is_authorized {
-                                        widgets::status_badge(
-                                            ui,
-                                            "AUTORIS\u{00c9}",
-                                            theme::SUCCESS,
-                                        );
-                                    } else {
-                                        widgets::status_badge(ui, "SHADOW", theme::ERROR);
-                                    }
-                                });
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let text = device.hostname.as_deref().unwrap_or("--");
-                                ui.label(
-                                    egui::RichText::new(text)
-                                        .font(theme::font_body())
-                                        .color(theme::text_primary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let text = device.mac.as_deref().unwrap_or("--");
-                                ui.label(
-                                    egui::RichText::new(text)
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::text_tertiary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let text = device.vendor.as_deref().unwrap_or("Non identifié");
-                                ui.label(
-                                    egui::RichText::new(text.to_uppercase())
-                                        .font(theme::font_min())
-                                        .color(theme::text_secondary())
-                                        .strong(),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let (label, color) = device_type_badge(&device.device_type);
-                                widgets::status_badge(ui, label, color);
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let ports_str = if device.open_ports.is_empty() {
-                                    "--".to_string()
-                                } else {
-                                    device
-                                        .open_ports
-                                        .iter()
-                                        .take(3)
-                                        .map(|p| p.to_string())
-                                        .collect::<Vec<_>>()
-                                        .join(", ")
-                                };
-                                ui.label(
-                                    egui::RichText::new(&ports_str)
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::text_tertiary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let ago = now.signed_duration_since(device.last_seen);
-                                let text = if ago.num_hours() < 24 {
-                                    crate::format::ago(now, device.last_seen)
-                                } else {
-                                    device.last_seen.format("%d/%m %H:%M").to_string()
-                                };
-                                ui.label(
-                                    egui::RichText::new(text).font(theme::font_small()).color(
-                                        theme::readable_color(if ago.num_hours() < 1 {
-                                            theme::SUCCESS
-                                        } else if ago.num_hours() < 24 {
-                                            theme::WARNING
-                                        } else {
-                                            theme::text_secondary()
-                                        }),
-                                    ),
-                                )
-                                .on_hover_text(
-                                    device.last_seen.format("%d/%m/%Y %H:%M:%S").to_string(),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                if widgets::chip_button(
-                                    ui,
-                                    &format!("{}  Copier IP", icons::COPY),
-                                    false,
-                                    theme::ACCENT,
-                                )
-                                .clicked()
-                                {
-                                    ui.ctx().copy_text(device.ip.clone());
-                                }
-                            });
+                        let is_authorized = state.assets.assets.iter().any(|a| a.ip == device.ip);
 
-                            if row.response().clicked() {
-                                state.discovery.selected_device = Some(dev_idx);
-                                state.discovery.detail_open = true;
+                        row.col(|ui| {
+                            table::cell_stack_mono(
+                                ui,
+                                &device.ip,
+                                device.mac.as_deref().unwrap_or_default(),
+                            );
+                        });
+                        row.col(|ui| {
+                            if is_authorized {
+                                widgets::status_badge(ui, "AUTORIS\u{00c9}", theme::SUCCESS);
+                            } else {
+                                widgets::status_badge(ui, "SHADOW", theme::ERROR);
                             }
                         });
+                        row.col(|ui| {
+                            match device.hostname.as_deref() {
+                                Some(name) => table::cell(ui, name),
+                                None => table::cell_empty(ui),
+                            };
+                        });
+                        row.col(|ui| {
+                            let vendor = device.vendor.as_deref().unwrap_or("Non identifié");
+                            table::cell_small(ui, &vendor.to_uppercase());
+                        });
+                        row.col(|ui| {
+                            let (label, color) = device_type_badge(&device.device_type);
+                            widgets::status_badge(ui, label, color);
+                        });
+                        row.col(|ui| {
+                            if device.open_ports.is_empty() {
+                                table::cell_empty(ui);
+                            } else {
+                                let ports_str = device
+                                    .open_ports
+                                    .iter()
+                                    .take(3)
+                                    .map(|p| p.to_string())
+                                    .collect::<Vec<_>>()
+                                    .join(", ");
+                                table::cell_mono_muted(ui, &ports_str);
+                            }
+                        });
+                        row.col(|ui| {
+                            let ago = now.signed_duration_since(device.last_seen);
+                            let text = if ago.num_hours() < 24 {
+                                crate::format::ago(now, device.last_seen)
+                            } else {
+                                device.last_seen.format("%d/%m %H:%M").to_string()
+                            };
+                            let color = theme::readable_color(if ago.num_hours() < 1 {
+                                theme::SUCCESS
+                            } else if ago.num_hours() < 24 {
+                                theme::WARNING
+                            } else {
+                                theme::text_secondary()
+                            });
+                            table::cell_colored(ui, &text, color).on_hover_text(
+                                device.last_seen.format("%d/%m/%Y %H:%M:%S").to_string(),
+                            );
+                        });
+                        row.col(|ui| {
+                            if widgets::chip_button(
+                                ui,
+                                &format!("{}  Copier IP", icons::COPY),
+                                false,
+                                theme::ACCENT,
+                            )
+                            .clicked()
+                            {
+                                ui.ctx().copy_text(device.ip.clone());
+                            }
+                        });
+
+                        if table::row_interaction(&row, is_selected) {
+                            clicked_idx = Some(dev_idx);
+                        }
                     });
+                });
+
+                if let Some(idx) = clicked_idx {
+                    state.discovery.selected_device = Some(idx);
+                    state.discovery.detail_open = true;
+                }
             });
         }
 

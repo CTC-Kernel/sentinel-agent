@@ -7,6 +7,11 @@ use egui::{CornerRadius, Ui, Vec2};
 
 use crate::theme;
 
+/// Narrowest the search field goes before the chips wrap under it.
+const SEARCH_MIN_WIDTH: f32 = 240.0;
+/// Widest it goes on a large display.
+const SEARCH_MAX_WIDTH: f32 = 460.0;
+
 /// A horizontal bar with a search text input, filter chips, and optional result count.
 ///
 /// Usage (builder pattern):
@@ -67,109 +72,16 @@ impl<'a> SearchFilterBar<'a> {
         let mut action_clicked = false;
 
         ui.horizontal_wrapped(|ui: &mut egui::Ui| {
-            // Search field: framed and prefixed with a magnifier, matching the
-            // global search in the top bar. A bare TextEdit here read as a
-            // stray line of text next to the filter chips.
-            let search_width = 260.0_f32.min(ui.available_width());
-            let (field, _) = ui.allocate_exact_size(
-                Vec2::new(search_width, theme::SEARCH_INPUT_HEIGHT),
-                egui::Sense::hover(),
-            );
-            let radius = CornerRadius::same(theme::ROUNDING_MD);
-            ui.painter().rect(
-                field,
-                radius,
-                theme::bg_tertiary(),
-                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
-                egui::StrokeKind::Inside,
-            );
-            ui.painter().text(
-                egui::pos2(field.left() + theme::SPACE_SM, field.center().y),
-                egui::Align2::LEFT_CENTER,
-                crate::icons::SEARCH,
-                theme::font_icon(theme::ICON_XS),
-                theme::text_tertiary(),
-            );
-            let text_rect = egui::Rect::from_min_max(
-                egui::pos2(field.left() + theme::SPACE_LG + 2.0, field.top()),
-                egui::pos2(field.right() - 32.0, field.bottom()),
-            );
-            let editor_id = ui.id().with("search_editor");
-            if ui.memory(|memory| memory.has_focus(editor_id))
-                && !self.search.is_empty()
-                && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
-            {
-                self.search.clear();
-            }
-            let editor = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
-                // Clip the editor to the framed field so a long placeholder or
-                // value cannot spill past the rounded edge.
-                ui.set_clip_rect(text_rect);
-                ui.add_sized(
-                    text_rect.size(),
-                    egui::TextEdit::singleline(self.search)
-                        .id(editor_id)
-                        .hint_text(
-                            egui::RichText::new(self.placeholder).color(theme::text_tertiary()),
-                        )
-                        .font(theme::font_body_sm())
-                        .vertical_align(egui::Align::Center)
-                        .text_color(theme::text_primary())
-                        .frame(false)
-                        .desired_width(text_rect.width()),
-                )
-            });
-
-            if editor.inner.has_focus() {
-                ui.memory_mut(|memory| {
-                    memory.set_focus_lock_filter(
-                        editor_id,
-                        egui::EventFilter {
-                            horizontal_arrows: true,
-                            vertical_arrows: true,
-                            escape: !self.search.is_empty(),
-                            ..Default::default()
-                        },
-                    )
-                });
-                ui.painter().rect_stroke(
-                    field,
-                    radius,
-                    theme::focus_ring(),
-                    egui::StrokeKind::Inside,
-                );
-            }
-            editor.inner.widget_info(|| {
-                egui::WidgetInfo::labeled(
-                    egui::WidgetType::TextEdit,
-                    ui.is_enabled(),
-                    self.placeholder,
-                )
-            });
-
-            if !self.search.is_empty() {
-                let clear_rect = egui::Rect::from_center_size(
-                    egui::pos2(field.right() - 16.0, field.center().y),
-                    Vec2::splat(28.0),
-                );
-                let clear = ui
-                    .put(clear_rect, egui::Button::new("×").frame(false))
-                    .on_hover_text("Effacer la recherche · Échap");
-                clear.widget_info(|| {
-                    egui::WidgetInfo::labeled(
-                        egui::WidgetType::Button,
-                        ui.is_enabled(),
-                        "Effacer la recherche",
-                    )
-                });
-                if clear.clicked() {
-                    self.search.clear();
-                    editor.inner.request_focus();
-                }
-            }
-
-            // The inset editor must not move the next chip inside the field.
-            ui.advance_cursor_after_rect(field);
+            // The shared search field, sized to the row: two fifths of the
+            // bar on a wide window, never narrower than a readable
+            // placeholder, never wider than a comfortable line.
+            let search_width = (ui.available_width() * 0.42)
+                .clamp(SEARCH_MIN_WIDTH, SEARCH_MAX_WIDTH)
+                .min(ui.available_width());
+            crate::widgets::SearchInput::new(self.search, self.placeholder)
+                .width(search_width)
+                .height(theme::SEARCH_INPUT_HEIGHT)
+                .show(ui);
             ui.add_space(theme::SPACE_SM);
 
             // Chips — unified with badge design system

@@ -171,14 +171,14 @@ impl MonitoringPage {
 
         // ── Search and filters ─────────────────────────────────────────────
         ui.horizontal(|ui: &mut egui::Ui| {
-            // Search input
-            let search_width = (ui.available_width() - 300.0).max(200.0);
-            ui.add_sized(
-                [search_width, theme::MIN_TOUCH_TARGET],
-                egui::TextEdit::singleline(&mut state.siem.search)
-                    .hint_text(format!("{}  Rechercher dans les journaux…", icons::SEARCH))
-                    .font(theme::font_body()),
-            );
+            // Search input: the product's field, sized to leave the two
+            // filter chips their room on the trailing edge.
+            let search_width = (ui.available_width() - 300.0).clamp(200.0, 560.0);
+            widgets::SearchInput::new(&mut state.siem.search, "Rechercher dans les journaux…")
+                .width(search_width)
+                .height(theme::SEARCH_INPUT_HEIGHT)
+                .id_salt("siem_search")
+                .show(ui);
 
             ui.add_space(theme::SPACE_SM);
 
@@ -254,11 +254,13 @@ impl MonitoringPage {
 
         // ── Log well ───────────────────────────────────────────────────────
         let search_lower = state.siem.search.to_lowercase();
-        let filtered: Vec<&crate::dto::GuiSiemLogEntry> = state
+        // Indices into `log_entries`, so the selection survives a page change.
+        let filtered: Vec<usize> = state
             .siem
             .log_entries
             .iter()
-            .filter(|e| {
+            .enumerate()
+            .filter(|(_, e)| {
                 if let Some(src) = state.siem.source_filter
                     && e.source != src
                 {
@@ -278,20 +280,20 @@ impl MonitoringPage {
                 }
                 true
             })
+            .map(|(i, _)| i)
             .collect();
 
         let total = filtered.len();
-        let total_pages = (total + LOGS_PER_PAGE - 1).max(1) / LOGS_PER_PAGE.max(1);
-        if state.siem.logs_page >= total_pages {
-            state.siem.logs_page = total_pages.saturating_sub(1);
+        // AUTO keeps the journal on its last page, where the newest entries
+        // land; `page_window` clamps the overshoot to that page.
+        if state.siem.auto_scroll {
+            state.siem.logs_page = usize::MAX;
         }
+        let (page_start, page_len, _) =
+            widgets::page_window(total, LOGS_PER_PAGE, &mut state.siem.logs_page);
 
-        let page_start = state.siem.logs_page * LOGS_PER_PAGE;
-        let page_entries: Vec<&&crate::dto::GuiSiemLogEntry> = filtered
-            .iter()
-            .skip(page_start)
-            .take(LOGS_PER_PAGE)
-            .collect();
+        let mut clicked_idx: Option<usize> = None;
+        let selected = state.siem.selected_log;
 
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
@@ -307,7 +309,7 @@ impl MonitoringPage {
             );
             ui.add_space(theme::SPACE_SM);
 
-            if page_entries.is_empty() {
+            if page_len == 0 {
                 ui.add_space(theme::SPACE_LG);
                 widgets::empty_state_compact(
                     ui,
@@ -315,164 +317,86 @@ impl MonitoringPage {
                     "Aucun événement — les événements SIEM apparaîtront ici en temps réel.",
                 );
                 ui.add_space(theme::SPACE_LG);
-            } else {
-                // Log table
-                let available_w = ui.available_width();
-                let time_w = 70.0_f32;
-                let sev_w = 42.0_f32;
-                let src_w = 90.0_f32;
-                let msg_w =
-                    (available_w - time_w - sev_w - src_w - theme::SPACE_SM * 4.0).max(150.0);
-
-                // Header row
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    let header_style = |text: &str| -> RichText {
-                        RichText::new(text)
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_TIGHT)
-                    };
-                    Self::log_cell(ui, time_w, |ui| ui.label(header_style("HEURE")));
-                    ui.add_sized([sev_w, 16.0], egui::Label::new(header_style("SEV")));
-                    Self::log_cell(ui, src_w, |ui| ui.label(header_style("SOURCE")));
-                    Self::log_cell(ui, msg_w, |ui| ui.label(header_style("MESSAGE")));
-                });
-
-                widgets::divider_thin(ui);
-
-                // Log entries
-                egui::ScrollArea::vertical()
-                    .id_salt("siem_log_well")
-                    .max_height(450.0)
-                    .auto_shrink(false)
-                    .stick_to_bottom(state.siem.auto_scroll)
-                    .show(ui, |ui: &mut egui::Ui| {
-                        for entry in &page_entries {
-                            let is_selected = state
-                                .siem
-                                .selected_log
-                                .map(|idx| {
-                                    state
-                                        .siem
-                                        .log_entries
-                                        .get(idx)
-                                        .map(|e| e.id == entry.id)
-                                        .unwrap_or(false)
-                                })
-                                .unwrap_or(false);
-
-                            let row_bg = if is_selected {
-                                theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE)
-                            } else {
-                                egui::Color32::TRANSPARENT
-                            };
-
-                            egui::Frame::new()
-                                .fill(row_bg)
-                                .inner_margin(egui::Margin::symmetric(0, 2))
-                                .show(ui, |ui: &mut egui::Ui| {
-                                    ui.horizontal(|ui: &mut egui::Ui| {
-                                        ui.set_min_height(24.0);
-
-                                        // Time
-                                        let time_str =
-                                            entry.timestamp.format("%H:%M:%S").to_string();
-                                        Self::log_cell(ui, time_w, |ui| {
-                                            ui.label(
-                                                RichText::new(&time_str)
-                                                    .font(theme::font_mono_sm())
-                                                    .color(theme::text_tertiary()),
-                                            )
-                                        });
-
-                                        // Severity badge
-                                        let (sev_color, sev_label) =
-                                            Self::severity_style(&entry.severity);
-                                        let badge_variant = match entry.severity {
-                                            SiemLogSeverity::Critical | SiemLogSeverity::Error => {
-                                                widgets::badge::BadgeVariant::Error
-                                            }
-                                            SiemLogSeverity::Warning => {
-                                                widgets::badge::BadgeVariant::Warning
-                                            }
-                                            SiemLogSeverity::Notice => {
-                                                widgets::badge::BadgeVariant::Info
-                                            }
-                                            SiemLogSeverity::Info => {
-                                                widgets::badge::BadgeVariant::Neutral
-                                            }
-                                        };
-                                        let _ = sev_color; // used for future enhancements
-                                        ui.add_sized([sev_w, 20.0], |ui: &mut egui::Ui| {
-                                            widgets::badge_variant(ui, sev_label, badge_variant)
-                                        });
-
-                                        // Source
-                                        Self::log_cell(ui, src_w, |ui| {
-                                            ui.label(
-                                                RichText::new(entry.source.label())
-                                                    .font(theme::font_label())
-                                                    .color(theme::text_secondary()),
-                                            )
-                                        });
-
-                                        // Message (truncated) — use char boundary to avoid UTF-8 panic
-                                        let msg_display = if entry.message.len() > 120 {
-                                            let mut end = 120;
-                                            while !entry.message.is_char_boundary(end) {
-                                                end -= 1;
-                                            }
-                                            format!("{}…", &entry.message[..end])
-                                        } else {
-                                            entry.message.clone()
-                                        };
-                                        Self::log_cell(ui, msg_w, |ui| {
-                                            ui.add(
-                                                egui::Label::new(
-                                                    RichText::new(&msg_display)
-                                                        .font(theme::font_mono_sm())
-                                                        .color(theme::text_primary()),
-                                                )
-                                                .truncate(),
-                                            )
-                                        });
-                                    });
-                                });
-
-                            // Subtle separator
-                            let rect = ui.max_rect();
-                            let sep_y = ui.cursor().top();
-                            ui.painter().hline(
-                                rect.left()..=rect.right(),
-                                sep_y,
-                                egui::Stroke::new(
-                                    theme::BORDER_HAIRLINE,
-                                    theme::separator().linear_multiply(0.3),
-                                ),
-                            );
-                        }
-                    });
+                return;
             }
+
+            use widgets::table;
+
+            table::fluid_clickable(
+                ui,
+                &[
+                    table::Col::fixed(76.0),       // Heure
+                    table::Col::fixed(64.0),       // Sévérité
+                    table::Col::fluid(100.0, 0.5), // Source
+                    table::Col::fluid(200.0, 4.0), // Message
+                ],
+            )
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                header.col(|ui: &mut egui::Ui| {
+                    table::header_cell(ui, "HEURE");
+                });
+                header.col(|ui: &mut egui::Ui| {
+                    table::header_cell(ui, "SEV");
+                });
+                header.col(|ui: &mut egui::Ui| {
+                    table::header_cell(ui, "SOURCE");
+                });
+                header.col(|ui: &mut egui::Ui| {
+                    table::header_cell(ui, "MESSAGE");
+                });
+            })
+            .body(|body| {
+                body.rows(theme::TABLE_ROW_HEIGHT, page_len, |mut row| {
+                    let Some(&real_idx) = filtered.get(page_start + row.index()) else {
+                        return;
+                    };
+                    let Some(entry) = state.siem.log_entries.get(real_idx) else {
+                        return;
+                    };
+                    let is_selected = selected == Some(real_idx);
+                    row.set_selected(is_selected);
+
+                    row.col(|ui: &mut egui::Ui| {
+                        table::cell_mono_muted(ui, &entry.timestamp.format("%H:%M:%S").to_string());
+                    });
+
+                    row.col(|ui: &mut egui::Ui| {
+                        let (_, sev_label) = Self::severity_style(&entry.severity);
+                        let badge_variant = match entry.severity {
+                            SiemLogSeverity::Critical | SiemLogSeverity::Error => {
+                                widgets::badge::BadgeVariant::Error
+                            }
+                            SiemLogSeverity::Warning => widgets::badge::BadgeVariant::Warning,
+                            SiemLogSeverity::Notice => widgets::badge::BadgeVariant::Info,
+                            SiemLogSeverity::Info => widgets::badge::BadgeVariant::Neutral,
+                        };
+                        widgets::badge_variant(ui, sev_label, badge_variant);
+                    });
+
+                    row.col(|ui: &mut egui::Ui| {
+                        table::cell_secondary(ui, entry.source.label());
+                    });
+
+                    row.col(|ui: &mut egui::Ui| {
+                        table::cell_mono(ui, &entry.message);
+                    });
+
+                    if table::row_interaction(&row, is_selected) {
+                        clicked_idx = Some(real_idx);
+                    }
+                });
+            });
         });
 
-        // Pagination
-        if total_pages > 1 {
-            ui.add_space(theme::SPACE_SM);
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.with_layout(
-                    egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
-                    |ui: &mut egui::Ui| {
-                        let mut pag_state = widgets::PaginationState::new(total, LOGS_PER_PAGE);
-                        pag_state.current_page = state.siem.logs_page + 1; // 1-indexed
-                        pag_state.total_pages = total_pages;
-                        if widgets::pagination_compact(ui, &mut pag_state) {
-                            state.siem.logs_page = pag_state.current_page.saturating_sub(1); // back to 0-indexed
-                        }
-                    },
-                );
-            });
+        if let Some(idx) = clicked_idx {
+            state.siem.selected_log = Some(idx);
+            state.siem.detail_open = true;
         }
+
+        // Pagination
+        widgets::paginate_controls(ui, total, LOGS_PER_PAGE, &mut state.siem.logs_page);
+
+        Self::siem_log_drawer(ui, state);
 
         // Request periodic repaint for real-time updates
         ui.ctx()
@@ -1136,19 +1060,75 @@ impl MonitoringPage {
         }
     }
 
-    /// One text column of the event journal: fixed width, left-aligned, so a
-    /// long message starts where its header does instead of floating.
-    fn log_cell<R>(ui: &mut Ui, width: f32, add: impl FnOnce(&mut Ui) -> R) -> R {
-        ui.allocate_ui_with_layout(
-            egui::vec2(width, 20.0),
-            egui::Layout::left_to_right(egui::Align::Center),
-            |ui: &mut Ui| {
-                // The child ui reports its used width; claim the column's.
-                ui.set_min_width(width);
-                add(ui)
-            },
-        )
-        .inner
+    /// Detail drawer for the selected journal entry.
+    fn siem_log_drawer(ui: &mut Ui, state: &mut AppState) {
+        let Some(entry) = state
+            .siem
+            .selected_log
+            .and_then(|idx| state.siem.log_entries.get(idx))
+        else {
+            return;
+        };
+
+        let ts = entry.timestamp.format("%d/%m/%Y %H:%M:%S").to_string();
+        let (sev_color, _) = Self::severity_style(&entry.severity);
+        let severity = entry.severity.full_label();
+        let source = entry.source.label();
+        let category = entry.category.clone();
+        let message = entry.message.clone();
+        let hostname = entry.hostname.clone();
+        let process = entry.process.clone();
+        let pid = entry.pid.map(|p| p.to_string());
+        let user = entry.user.clone();
+
+        let actions = [widgets::DetailAction::secondary("Copier", icons::COPY)];
+
+        let action =
+            widgets::DetailDrawer::new("siem_log_detail", "Événement SIEM", icons::DATABASE)
+                .accent(sev_color)
+                .subtitle(severity)
+                .show(
+                    ui.ctx(),
+                    &mut state.siem.detail_open,
+                    |ui| {
+                        widgets::detail_section(ui, "ÉVÉNEMENT");
+                        widgets::detail_field(ui, "Horodatage", &ts);
+                        widgets::detail_field_badge(ui, "Sévérité", severity, sev_color);
+                        widgets::detail_field(ui, "Source", source);
+                        if !category.is_empty() {
+                            widgets::detail_field(ui, "Catégorie", &category);
+                        }
+
+                        if hostname.is_some()
+                            || process.is_some()
+                            || pid.is_some()
+                            || user.is_some()
+                        {
+                            widgets::detail_section(ui, "ORIGINE");
+                            if let Some(h) = &hostname {
+                                widgets::detail_mono(ui, "Hôte", h);
+                            }
+                            if let Some(p) = &process {
+                                widgets::detail_mono(ui, "Processus", p);
+                            }
+                            if let Some(p) = &pid {
+                                widgets::detail_mono(ui, "PID", p);
+                            }
+                            if let Some(u) = &user {
+                                widgets::detail_field(ui, "Utilisateur", u);
+                            }
+                        }
+
+                        widgets::detail_section(ui, "MESSAGE");
+                        widgets::detail_text(ui, "Contenu", &message);
+                    },
+                    &actions,
+                );
+
+        if action == Some(0) {
+            ui.ctx()
+                .copy_text(format!("[{}] {} {} {}", ts, severity, source, message));
+        }
     }
 
     /// Premium summary card - clean Apple-style design

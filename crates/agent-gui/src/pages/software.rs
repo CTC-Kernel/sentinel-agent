@@ -477,173 +477,105 @@ impl SoftwarePage {
                     );
                 }
             } else {
-                use egui_extras::{Column, TableBuilder};
+                use widgets::table;
 
                 let mut clicked_idx: Option<usize> = None;
+                let selected = state.software.selected_package;
 
-                let table = TableBuilder::new(ui)
-                    .striped(false)
-                    .resizable(true)
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(150.0).range(100.0..=300.0))
-                    .column(Column::initial(80.0).range(60.0..=120.0))
-                    .column(Column::initial(120.0).range(80.0..=200.0))
-                    .column(Column::initial(80.0).range(60.0..=120.0))
-                    .column(Column::initial(80.0).range(60.0..=120.0))
-                    .column(Column::remainder());
-
-                table
-                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("D\u{00c9}SIGNATION")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("VERSION")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("\u{00c9}DITEUR / ORIGINE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("\u{00c9}TAT")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("ACTIONS")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("CIBLE DE MAJ")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                    })
-                    .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, pkg_len, |mut row| {
-                            let real_idx = filtered[pkg_start + row.index()];
-                            let pkg = &state.software.packages[real_idx];
-                            row.col(|ui: &mut egui::Ui| {
-                                let response = ui
-                                    .vertical(|ui: &mut egui::Ui| {
-                                        ui.label(
-                                            egui::RichText::new(&pkg.name)
-                                                .font(theme::font_body())
-                                                .color(theme::text_primary())
-                                                .strong(),
-                                        );
-                                        if let Some(ref installed) = pkg.installed_at {
-                                            ui.label(
-                                                egui::RichText::new(format!(
-                                                    "Install\u{00e9} le {}",
-                                                    installed.format("%d/%m/%Y")
-                                                ))
-                                                .font(theme::font_min())
-                                                .color(theme::text_tertiary()),
-                                            );
-                                        }
-                                    })
-                                    .response
-                                    .interact(egui::Sense::click());
-                                if response.clicked() {
-                                    clicked_idx = Some(real_idx);
-                                }
-                                if response.hovered() {
-                                    ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                                }
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&pkg.version)
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::text_secondary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let publisher = pkg.publisher.as_deref().unwrap_or("--");
-                                ui.label(
-                                    egui::RichText::new(publisher.to_uppercase())
-                                        .font(theme::font_min())
-                                        .color(theme::text_tertiary())
-                                        .strong(),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                if pkg.up_to_date {
-                                    widgets::status_badge(ui, "CONFORME", theme::SUCCESS);
-                                } else {
-                                    widgets::status_badge(ui, "OBSOL\u{00c8}TE", theme::WARNING);
-                                }
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                if widgets::ghost_button(
-                                    ui,
-                                    format!("{}  D\u{00e9}tails", icons::EYE),
-                                )
-                                .clicked()
-                                {
-                                    clicked_idx = Some(real_idx);
-                                }
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                if let Some(latest) = &pkg.latest_version {
-                                    if !pkg.up_to_date {
-                                        ui.horizontal(|ui: &mut egui::Ui| {
-                                            ui.label(
-                                                egui::RichText::new(icons::ARROW_RIGHT)
-                                                    .color(theme::accent_text())
-                                                    .strong(),
-                                            );
-                                            ui.label(
-                                                egui::RichText::new(latest)
-                                                    .font(theme::font_mono_sm())
-                                                    .color(theme::accent_text())
-                                                    .strong(),
-                                            );
-                                        });
-                                    } else {
-                                        ui.label(
-                                            egui::RichText::new("--").color(theme::text_tertiary()),
-                                        );
-                                    }
-                                } else {
-                                    ui.label(
-                                        egui::RichText::new("--").color(theme::text_tertiary()),
-                                    );
-                                }
-                            });
-                        });
+                table::fluid_clickable(
+                    ui,
+                    &[
+                        table::Col::fluid(160.0, 3.0), // Désignation
+                        table::Col::fluid(90.0, 1.0),  // Version
+                        table::Col::fluid(120.0, 1.5), // Éditeur / origine
+                        table::Col::fluid(96.0, 0.0),  // État
+                        table::Col::fluid(100.0, 1.0), // Cible de MAJ
+                        table::Col::fixed(88.0),       // Actions
+                    ],
+                )
+                .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "D\u{00c9}SIGNATION");
                     });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "VERSION");
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "\u{00c9}DITEUR / ORIGINE");
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "\u{00c9}TAT");
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "CIBLE DE MAJ");
+                    });
+                    header.col(|_ui: &mut egui::Ui| {}); // Actions
+                })
+                .body(|body| {
+                    body.rows(theme::TABLE_DATA_ROW_HEIGHT, pkg_len, |mut row| {
+                        let Some(&real_idx) = filtered.get(pkg_start + row.index()) else {
+                            return;
+                        };
+                        let Some(pkg) = state.software.packages.get(real_idx) else {
+                            return;
+                        };
+                        let is_selected = selected == Some(real_idx);
+                        row.set_selected(is_selected);
+
+                        row.col(|ui: &mut egui::Ui| {
+                            let installed = pkg
+                                .installed_at
+                                .map(|dt| format!("Install\u{00e9} le {}", dt.format("%d/%m/%Y")))
+                                .unwrap_or_default();
+                            table::cell_stack(ui, &pkg.name, &installed);
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            if pkg.version.is_empty() {
+                                table::cell_empty(ui);
+                            } else {
+                                table::cell_mono(ui, &pkg.version);
+                            }
+                        });
+                        row.col(|ui: &mut egui::Ui| match pkg.publisher.as_deref() {
+                            Some(publisher) if !publisher.is_empty() => {
+                                table::cell_muted(ui, &publisher.to_uppercase());
+                            }
+                            _ => {
+                                table::cell_empty(ui);
+                            }
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            if pkg.up_to_date {
+                                widgets::status_badge(ui, "CONFORME", theme::SUCCESS);
+                            } else {
+                                widgets::status_badge(ui, "OBSOL\u{00c8}TE", theme::WARNING);
+                            }
+                        });
+                        row.col(|ui: &mut egui::Ui| match &pkg.latest_version {
+                            Some(latest) if !pkg.up_to_date => {
+                                table::cell_colored(
+                                    ui,
+                                    &format!("{} {}", icons::ARROW_RIGHT, latest),
+                                    theme::accent_text(),
+                                );
+                            }
+                            _ => {
+                                table::cell_empty(ui);
+                            }
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            if widgets::ghost_button(ui, format!("{}  D\u{00e9}tails", icons::EYE))
+                                .clicked()
+                            {
+                                clicked_idx = Some(real_idx);
+                            }
+                        });
+
+                        if table::row_interaction(&row, is_selected) {
+                            clicked_idx = Some(real_idx);
+                        }
+                    });
+                });
 
                 if let Some(idx) = clicked_idx {
                     state.software.selected_package = Some(idx);
@@ -664,26 +596,8 @@ impl SoftwarePage {
                 ) && let Some(pos) = position
                 {
                     state.software.selected_package = Some(filtered[pos]);
-                    state.software.native_page = pos / SW_PER_PAGE;
-                }
-
-                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
-                // and the page follows the selection.
-                let mut position = state
-                    .software
-                    .selected_package
-                    .and_then(|real| filtered.iter().position(|&r| r == real));
-                if widgets::navigate_list(
-                    ui.ctx(),
-                    &mut position,
-                    filtered.len(),
-                    &mut state.software.detail_open,
-                ) && let Some(pos) = position
-                {
-                    state.software.selected_package = Some(filtered[pos]);
                     state.software.packages_page = pos / SW_PER_PAGE;
                 }
-
                 widgets::paginate_controls(
                     ui,
                     filtered.len(),
@@ -818,126 +732,91 @@ impl SoftwarePage {
                     );
                 }
             } else {
-                use egui_extras::{Column, TableBuilder};
+                use widgets::table;
 
                 let mut clicked_idx: Option<usize> = None;
+                let selected = state.software.selected_package;
 
-                let table = TableBuilder::new(ui)
-                    .striped(false)
-                    .resizable(true)
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(200.0).range(120.0..=500.0))
-                    .column(Column::initial(80.0).at_least(60.0))
-                    .column(Column::initial(180.0).at_least(120.0))
-                    .column(Column::initial(90.0).at_least(70.0))
-                    .column(Column::remainder());
-
-                table
-                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("POINT D'ENTR\u{00c9}E")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("VERSION")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(if cfg!(target_os = "macos") {
-                                    "IDENTIFIANT (BUNDLE ID)"
-                                } else {
-                                    "IDENTIFIANT PRODUIT"
-                                })
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("CERTIFICAT D'\u{00c9}DITEUR")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|_ui: &mut egui::Ui| {}); // Actions (remainder)
-                    })
-                    .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, app_len, |mut row| {
-                            let real_idx = filtered[app_start + row.index()];
-                            let app = &state.software.native_apps[real_idx];
-                            row.col(|ui: &mut egui::Ui| {
-                                let response = ui
-                                    .label(
-                                        egui::RichText::new(&app.name)
-                                            .font(theme::font_body())
-                                            .color(theme::text_primary())
-                                            .strong(),
-                                    )
-                                    .interact(egui::Sense::click());
-                                if response.clicked() {
-                                    clicked_idx = Some(real_idx);
-                                }
-                                if response.hovered() {
-                                    ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                                }
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&app.version)
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::text_secondary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&app.bundle_id)
-                                        .font(theme::font_mono_sm())
-                                        .color(theme::text_tertiary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let pub_text = if app.publisher.chars().count() > 64 {
-                                    let truncated: String =
-                                        app.publisher.chars().take(61).collect();
-                                    format!("{}…", truncated)
-                                } else {
-                                    app.publisher.clone()
-                                };
-                                ui.label(
-                                    egui::RichText::new(pub_text.to_uppercase())
-                                        .font(theme::font_min())
-                                        .color(theme::text_tertiary())
-                                        .strong(),
-                                );
-                            });
-
-                            row.col(|ui: &mut egui::Ui| {
-                                if widgets::ghost_button(
-                                    ui,
-                                    format!("{}  D\u{00e9}tails", icons::EYE),
-                                )
-                                .clicked()
-                                {
-                                    clicked_idx = Some(real_idx);
-                                }
-                            });
-                        });
+                table::fluid_clickable(
+                    ui,
+                    &[
+                        table::Col::fluid(160.0, 2.0), // Point d'entrée
+                        table::Col::fluid(90.0, 0.5),  // Version
+                        table::Col::fluid(140.0, 2.0), // Identifiant
+                        table::Col::fluid(140.0, 1.5), // Certificat d'éditeur
+                        table::Col::fixed(88.0),       // Actions
+                    ],
+                )
+                .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "POINT D'ENTR\u{00c9}E");
                     });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "VERSION");
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(
+                            ui,
+                            if cfg!(target_os = "macos") {
+                                "IDENTIFIANT (BUNDLE ID)"
+                            } else {
+                                "IDENTIFIANT PRODUIT"
+                            },
+                        );
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "CERTIFICAT D'\u{00c9}DITEUR");
+                    });
+                    header.col(|_ui: &mut egui::Ui| {}); // Actions
+                })
+                .body(|body| {
+                    body.rows(theme::TABLE_ROW_HEIGHT, app_len, |mut row| {
+                        let Some(&real_idx) = filtered.get(app_start + row.index()) else {
+                            return;
+                        };
+                        let Some(app) = state.software.native_apps.get(real_idx) else {
+                            return;
+                        };
+                        let is_selected = selected == Some(real_idx);
+                        row.set_selected(is_selected);
+
+                        row.col(|ui: &mut egui::Ui| {
+                            table::cell_strong(ui, &app.name);
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            if app.version.is_empty() {
+                                table::cell_empty(ui);
+                            } else {
+                                table::cell_mono(ui, &app.version);
+                            }
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            if app.bundle_id.is_empty() {
+                                table::cell_empty(ui);
+                            } else {
+                                table::cell_mono_muted(ui, &app.bundle_id);
+                            }
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            if app.publisher.is_empty() {
+                                table::cell_empty(ui);
+                            } else {
+                                table::cell_muted(ui, &app.publisher.to_uppercase());
+                            }
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            if widgets::ghost_button(ui, format!("{}  D\u{00e9}tails", icons::EYE))
+                                .clicked()
+                            {
+                                clicked_idx = Some(real_idx);
+                            }
+                        });
+
+                        if table::row_interaction(&row, is_selected) {
+                            clicked_idx = Some(real_idx);
+                        }
+                    });
+                });
 
                 if let Some(idx) = clicked_idx {
                     state.software.selected_package = Some(idx);

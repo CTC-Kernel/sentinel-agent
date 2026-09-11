@@ -806,171 +806,136 @@ impl CompliancePage {
         indices: &[usize],
         _command: &mut Option<GuiCommand>,
     ) {
-        use egui_extras::{Column, TableBuilder};
+        use widgets::table;
+
+        /// Framework badges shown inline before the "+N" overflow badge.
+        const INLINE_FRAMEWORKS: usize = 3;
 
         let mut clicked_idx: Option<usize> = None;
-        let ctx = ui.ctx().clone();
+        let selected = state.compliance.selected_check;
 
-        let table = TableBuilder::new(ui)
-            .striped(false)
-            .resizable(true)
-            .sense(egui::Sense::click())
-            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::initial(180.0).range(100.0..=500.0))
-            .column(Column::initial(90.0).range(60.0..=150.0))
-            .column(Column::initial(90.0).range(60.0..=140.0))
-            .column(Column::initial(80.0).range(60.0..=120.0))
-            .column(Column::initial(50.0).range(40.0..=70.0))
-            .column(Column::remainder());
+        table::fluid_clickable(
+            ui,
+            &[
+                table::Col::fluid(180.0, 3.0), // Désignation
+                table::Col::fluid(100.0, 0.5), // Domaine
+                table::Col::fluid(96.0, 0.0),  // Statut
+                table::Col::fluid(90.0, 0.0),  // Impact
+                table::Col::fixed(56.0),       // Taux
+                table::Col::fluid(150.0, 1.5), // Référentiels
+                table::Col::fluid(80.0, 0.0),  // Exécuté
+            ],
+        )
+        .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+            header.col(|ui| {
+                table::header_cell(ui, "D\u{00c9}SIGNATION DU POINT");
+            });
+            header.col(|ui| {
+                table::header_cell(ui, "DOMAINE");
+            });
+            header.col(|ui| {
+                table::header_cell(ui, "STATUT");
+            });
+            header.col(|ui| {
+                table::header_cell(ui, "IMPACT");
+            });
+            header.col(|ui| {
+                table::header_cell_right(ui, "TAUX");
+            });
+            header.col(|ui| {
+                table::header_cell(ui, "R\u{00c9}F\u{00c9}RENTIELS");
+            });
+            header.col(|ui| {
+                table::header_cell(ui, "EX\u{00c9}CUT\u{00c9}");
+            });
+        })
+        .body(|mut body| {
+            for &idx in indices {
+                let Some(check) = state.checks.get(idx) else {
+                    continue;
+                };
+                let is_selected = selected == Some(idx);
 
-        table
-            .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                header.col(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("DÉSIGNATION DU POINT")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
-                    );
-                });
-                header.col(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("DOMAINE")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
-                    );
-                });
-                header.col(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("STATUT")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
-                    );
-                });
-                header.col(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("IMPACT")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
-                    );
-                });
-                header.col(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("TAUX")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
-                    );
-                });
-                header.col(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("RÉFÉRENCES RÉGLEMENTAIRES")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
-                    );
-                });
-            })
-            .body(|mut body| {
-                for &idx in indices {
-                    let Some(check) = state.checks.get(idx) else {
-                        continue;
-                    };
-                    let is_selected = state.compliance.selected_check == Some(idx);
+                body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
+                    row.set_selected(is_selected);
 
-                    body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
-                        row.set_selected(is_selected);
+                    row.col(|ui| {
+                        if table::cell_link(ui, &check.name).clicked() {
+                            clicked_idx = Some(idx);
+                        }
+                    });
 
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(&check.name)
-                                    .font(theme::font_body())
-                                    .color(theme::accent_text())
-                                    .strong(),
-                            );
-                        });
+                    row.col(|ui| {
+                        table::cell_styled(
+                            ui,
+                            &Self::format_category(&check.category),
+                            theme::font_label(),
+                            theme::text_tertiary(),
+                        );
+                    });
 
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(Self::format_category(&check.category))
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
-                        });
+                    row.col(|ui| {
+                        let (label, color) = Self::status_display(&check.status);
+                        widgets::status_badge(ui, label, color);
+                    });
 
-                        row.col(|ui: &mut egui::Ui| {
-                            let (label, color) = Self::status_display(&check.status);
-                            widgets::status_badge(ui, label, color);
-                        });
+                    row.col(|ui| {
+                        let color = theme::severity_color_typed(&check.severity);
+                        table::cell_icon(ui, icons::CIRCLE, color, check.severity.label());
+                    });
 
-                        row.col(|ui: &mut egui::Ui| {
-                            let color = theme::severity_color_typed(&check.severity);
-                            ui.horizontal(|ui: &mut egui::Ui| {
-                                ui.painter().circle_filled(
-                                    ui.available_rect_before_wrap().min + egui::vec2(6.0, 10.0),
-                                    3.0,
-                                    color,
-                                );
-                                ui.add_space(theme::SPACE_MD);
-                                ui.label(
-                                    egui::RichText::new(check.severity.label())
-                                        .font(theme::font_label())
-                                        .color(color)
-                                        .strong(),
-                                );
-                            });
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
+                    row.col(|ui| {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             if let Some(s) = check.score {
-                                ui.label(
-                                    egui::RichText::new(crate::format::pct(s, 0))
-                                        .font(theme::font_body())
-                                        .color(theme::readable_color(theme::score_color(s as f32)))
-                                        .strong(),
+                                table::cell_colored(
+                                    ui,
+                                    &crate::format::pct(s, 0),
+                                    theme::readable_color(theme::score_color(s as f32)),
                                 );
                             } else {
-                                ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
+                                table::cell_empty(ui);
                             }
                         });
+                    });
 
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.vertical(|ui: &mut egui::Ui| {
-                                ui.horizontal_wrapped(|ui: &mut egui::Ui| {
-                                    for fw in &check.frameworks {
-                                        widgets::status_badge(ui, fw, theme::INFO);
-                                        ui.add_space(theme::SPACE_XS);
-                                    }
-                                });
-                                if let Some(dt) = check.executed_at {
-                                    ui.label(
-                                        egui::RichText::new(dt.format("%d/%m %H:%M").to_string())
-                                            .font(theme::font_min())
-                                            .color(theme::text_tertiary()),
+                    row.col(|ui| {
+                        if check.frameworks.is_empty() {
+                            table::cell_empty(ui);
+                        } else {
+                            // One line of badges; the rest folds into "+N" and
+                            // the full list lives in the drawer.
+                            ui.horizontal(|ui| {
+                                ui.spacing_mut().item_spacing.x = theme::SPACE_XS;
+                                for fw in check.frameworks.iter().take(INLINE_FRAMEWORKS) {
+                                    widgets::status_badge(ui, fw, theme::INFO);
+                                }
+                                let rest = check.frameworks.len().saturating_sub(INLINE_FRAMEWORKS);
+                                if rest > 0 {
+                                    widgets::status_badge(
+                                        ui,
+                                        &format!("+{rest}"),
+                                        theme::text_tertiary(),
                                     );
                                 }
                             });
-                        });
-
-                        if row.response().clicked() {
-                            clicked_idx = Some(idx);
-                        }
-                        if row.response().hovered() {
-                            ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
                         }
                     });
-                }
-            });
+
+                    row.col(|ui| match check.executed_at {
+                        Some(dt) => {
+                            table::cell_muted(ui, &dt.format("%d/%m %H:%M").to_string());
+                        }
+                        None => {
+                            table::cell_empty(ui);
+                        }
+                    });
+
+                    if table::row_interaction(&row, is_selected) {
+                        clicked_idx = Some(idx);
+                    }
+                });
+            }
+        });
 
         if let Some(idx) = clicked_idx {
             if state.compliance.selected_check != Some(idx) {
@@ -983,7 +948,6 @@ impl CompliancePage {
     }
 
     fn render_matrix_view(ui: &mut Ui, state: &AppState, indices: &[usize]) {
-        use egui_extras::{Column, TableBuilder};
         use std::collections::BTreeSet;
 
         // Collect unique frameworks from filtered checks
@@ -1027,55 +991,40 @@ impl CompliancePage {
             }
         }
 
-        // Build table
-        let fw_count = frameworks.len();
-        let name_col_width = 250.0_f32;
-        let fw_col_width = 100.0_f32;
+        // Build table: the control name takes the width the framework
+        // columns leave, every framework column is the same width.
+        use widgets::table;
 
-        let mut builder = TableBuilder::new(ui)
-            .striped(false)
-            .resizable(true)
+        let mut cols = Vec::with_capacity(frameworks.len() + 1);
+        cols.push(table::Col::fluid(180.0, 2.0));
+        cols.extend(frameworks.iter().map(|_| table::Col::fluid(72.0, 1.0)));
+
+        table::fluid(ui, &cols)
             .cell_layout(egui::Layout::centered_and_justified(
                 egui::Direction::LeftToRight,
             ))
-            .column(Column::initial(name_col_width).at_least(150.0));
-
-        for _ in 0..fw_count {
-            builder = builder.column(Column::initial(fw_col_width).at_least(70.0));
-        }
-
-        builder
-            .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                header.col(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("CONTR\u{00d4}LE")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
-                    );
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                header.col(|ui| {
+                    ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                        table::header_cell(ui, "CONTR\u{00d4}LE");
+                    });
                 });
                 for (fi, fw) in frameworks.iter().enumerate() {
-                    header.col(|ui: &mut egui::Ui| {
+                    header.col(|ui| {
                         let pct = if fw_total[fi] > 0 {
                             (fw_pass[fi] as f32 / fw_total[fi] as f32) * 100.0
                         } else {
                             0.0
                         };
                         let score_color = theme::readable_color(theme::score_color(pct));
-                        ui.vertical_centered(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(fw.to_uppercase())
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                            ui.label(
-                                egui::RichText::new(crate::format::pct(pct, 0))
-                                    .font(theme::font_label())
-                                    .color(score_color)
-                                    .strong(),
+                        ui.vertical_centered(|ui| {
+                            ui.spacing_mut().item_spacing.y = 0.0;
+                            table::header_cell(ui, &fw.to_uppercase());
+                            table::cell_styled(
+                                ui,
+                                &crate::format::pct(pct, 0),
+                                theme::font_label(),
+                                score_color,
                             );
                         });
                     });
@@ -1087,20 +1036,16 @@ impl CompliancePage {
                         continue;
                     };
                     body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
-                        row.col(|ui: &mut egui::Ui| {
+                        row.col(|ui| {
                             ui.with_layout(
                                 egui::Layout::left_to_right(egui::Align::Center),
-                                |ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&check.name)
-                                            .font(theme::font_body())
-                                            .color(theme::text_primary()),
-                                    );
+                                |ui| {
+                                    table::cell(ui, &check.name);
                                 },
                             );
                         });
                         for fw in &frameworks {
-                            row.col(|ui: &mut egui::Ui| {
+                            row.col(|ui| {
                                 if check.frameworks.contains(fw) {
                                     let (symbol, color) = match check.status {
                                         GuiCheckStatus::Pass => ("\u{2713}", theme::SUCCESS),
@@ -1108,18 +1053,9 @@ impl CompliancePage {
                                         GuiCheckStatus::Error => ("!", theme::WARNING),
                                         _ => ("\u{2014}", theme::text_tertiary()),
                                     };
-                                    ui.label(
-                                        egui::RichText::new(symbol)
-                                            .font(theme::font_body())
-                                            .color(color)
-                                            .strong(),
-                                    );
+                                    table::cell_colored(ui, symbol, color);
                                 } else {
-                                    ui.label(
-                                        egui::RichText::new("\u{2014}")
-                                            .font(theme::font_body())
-                                            .color(theme::text_tertiary()),
-                                    );
+                                    table::cell_empty(ui);
                                 }
                             });
                         }

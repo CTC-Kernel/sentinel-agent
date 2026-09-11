@@ -24,6 +24,10 @@ struct Preview {
     /// Screenshot after N frames, then quit (set via PREVIEW_SHOT).
     shot_after: Option<u32>,
     frame_count: u32,
+    /// Where the capture is written when PREVIEW_OUT names a PNG file.
+    shot_path: Option<String>,
+    /// The capture has been requested from the viewport.
+    shot_requested: bool,
     /// PREVIEW_DRAWER, re-applied once the page has built its caches.
     drawer: Option<String>,
     /// Command palette state, opened by PREVIEW_PAGE=palette.
@@ -64,6 +68,8 @@ impl Default for Preview {
                 .ok()
                 .and_then(|v| v.parse().ok()),
             frame_count: 0,
+            shot_path: std::env::var("PREVIEW_OUT").ok(),
+            shot_requested: false,
             drawer: std::env::var("PREVIEW_DRAWER").ok(),
             palette: widgets::CommandPaletteState::new(),
             toasts: Vec::new(),
@@ -229,7 +235,42 @@ impl eframe::App for Preview {
         if let Some(n) = self.shot_after
             && self.frame_count >= n
         {
-            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            if self.shot_path.is_none() {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            } else if !self.shot_requested {
+                // Ask the viewport for its pixels once, then quit as soon as
+                // they have been written: a capture that measures what the
+                // shell shows, without an X11 grab or a compositor.
+                self.shot_requested = true;
+                ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
+            }
+        }
+        if let Some(path) = self.shot_path.as_deref() {
+            let image = ctx.input(|i| {
+                i.events.iter().find_map(|event| match event {
+                    egui::Event::Screenshot { image, .. } => Some(image.clone()),
+                    _ => None,
+                })
+            });
+            if let Some(image) = image {
+                let bytes: Vec<u8> = image.pixels.iter().flat_map(|p| p.to_array()).collect();
+                eprintln!(
+                    "PREVIEW_OUT: {}x{} (screen {:?})",
+                    image.width(),
+                    image.height(),
+                    ctx.screen_rect().size()
+                );
+                if let Err(err) = image::save_buffer(
+                    path,
+                    &bytes,
+                    image.width() as u32,
+                    image.height() as u32,
+                    image::ColorType::Rgba8,
+                ) {
+                    eprintln!("PREVIEW_OUT: {err}");
+                }
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
         }
         ctx.request_repaint();
     }
@@ -768,6 +809,9 @@ fn main() -> eframe::Result<()> {
                     .and_then(|v| v.parse().ok())
                     .unwrap_or(theme::WINDOW_HEIGHT),
             ]),
+            // A capture must measure the size it was asked for, not the one
+            // the previous run left in the window store.
+            persist_window: false,
             ..Default::default()
         },
         Box::new(|cc| {

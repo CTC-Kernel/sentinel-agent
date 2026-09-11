@@ -4,7 +4,6 @@
 //! Asset management page — CMDB-lite with lifecycle and criticality tracking.
 
 use egui::Ui;
-use egui_extras::{Column, TableBuilder};
 
 use chrono::Utc;
 use uuid::Uuid;
@@ -323,135 +322,126 @@ impl AssetsPage {
             widgets::page_window(indices.len(), ASSETS_PER_PAGE, &mut state.assets.page);
 
         ui.push_id("assets_table", |ui: &mut egui::Ui| {
-            let ctx = ui.ctx().clone();
-            let table = TableBuilder::new(ui)
-                .striped(false)
-                .resizable(true)
-                .sense(egui::Sense::click())
-                .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::initial(120.0).range(80.0..=250.0))
-                .column(Column::initial(90.0).range(60.0..=150.0))
-                .column(Column::initial(80.0).range(60.0..=120.0))
-                .column(Column::initial(70.0).range(50.0..=100.0))
-                .column(Column::initial(90.0).range(60.0..=140.0))
-                .column(Column::initial(70.0).range(50.0..=100.0))
-                .column(Column::remainder());
+            use widgets::table;
 
-            table
-                .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                    for label in [
-                        "NOM",
-                        "IP",
-                        "TYPE",
-                        "CRITICIT\u{00c9}",
-                        "CYCLE DE VIE",
-                        "SCORE",
-                        "DERNI\u{00c8}RE VUE",
-                    ] {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(label)
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                    }
-                })
-                .body(|body| {
-                    let now = chrono::Utc::now();
-                    body.rows(theme::TABLE_ROW_HEIGHT, a_len, |mut row| {
-                        let row_idx = a_start + row.index();
-                        let Some(&real_idx) = indices.get(row_idx) else {
-                            return;
-                        };
-                        let Some(asset) = state.assets.assets.get(real_idx) else {
-                            return;
-                        };
-                        let is_selected = state.assets.selected_asset == Some(real_idx);
-                        row.set_selected(is_selected);
+            let selected = state.assets.selected_asset;
 
-                        row.col(|ui: &mut egui::Ui| {
-                            let name = asset.hostname.as_deref().unwrap_or(&asset.ip);
-                            ui.label(
-                                egui::RichText::new(name)
-                                    .font(theme::font_body())
-                                    .color(theme::accent_text())
-                                    .strong(),
-                            );
-                        });
+            table::fluid_clickable(
+                ui,
+                &[
+                    table::Col::fluid(140.0, 2.0), // Nom
+                    table::Col::fluid(110.0, 1.0), // IP
+                    table::Col::fluid(80.0, 0.5),  // Type
+                    table::Col::fluid(96.0, 0.0),  // Criticité
+                    table::Col::fluid(110.0, 0.0), // Cycle de vie
+                    table::Col::fixed(56.0),       // Score
+                    table::Col::fluid(110.0, 1.0), // Dernière vue
+                ],
+            )
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                header.col(|ui| {
+                    table::header_cell(ui, "NOM");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "IP");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "TYPE");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "CRITICIT\u{00c9}");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "CYCLE DE VIE");
+                });
+                header.col(|ui| {
+                    table::header_cell_right(ui, "SCORE");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "DERNI\u{00c8}RE VUE");
+                });
+            })
+            .body(|body| {
+                let now = chrono::Utc::now();
+                body.rows(theme::TABLE_ROW_HEIGHT, a_len, |mut row| {
+                    let row_idx = a_start + row.index();
+                    let Some(&real_idx) = indices.get(row_idx) else {
+                        return;
+                    };
+                    let Some(asset) = state.assets.assets.get(real_idx) else {
+                        return;
+                    };
+                    let is_selected = selected == Some(real_idx);
+                    row.set_selected(is_selected);
 
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(&asset.ip)
-                                    .font(theme::font_mono())
-                                    .color(theme::text_primary()),
-                            );
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(asset.device_type.to_uppercase())
-                                    .font(theme::font_label())
-                                    .color(theme::text_secondary())
-                                    .strong(),
-                            );
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            let (label, color) = Self::criticality_display(&asset.criticality);
-                            widgets::status_badge(ui, label, color);
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            let (label, color) = Self::lifecycle_display(&asset.lifecycle);
-                            widgets::status_badge(ui, label, color);
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            let score_pct = (asset.risk_score * 10.0).min(100.0);
-                            // Risk score: higher = worse, so invert for score_color
-                            // (score_color treats ≥85 as green/good).
-                            // A risk_score of 10 (max) → score_pct=100 → we want red.
-                            // score_color(100 - 100) = score_color(0) = ERROR ✓
-                            ui.label(
-                                egui::RichText::new(crate::format::decimal(asset.risk_score, 1))
-                                    .font(theme::font_body())
-                                    .color(theme::readable_color(theme::score_color(
-                                        100.0 - score_pct,
-                                    )))
-                                    .strong(),
-                            );
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            let ago = now.signed_duration_since(asset.last_seen);
-                            let text = if ago.num_hours() < 24 {
-                                crate::format::ago(now, asset.last_seen)
-                            } else {
-                                asset.last_seen.format("%d/%m %H:%M").to_string()
-                            };
-                            ui.label(egui::RichText::new(text).font(theme::font_small()).color(
-                                theme::readable_color(if ago.num_hours() < 1 {
-                                    theme::SUCCESS
-                                } else if ago.num_hours() < 24 {
-                                    theme::WARNING
-                                } else {
-                                    theme::text_secondary()
-                                }),
-                            ))
-                            .on_hover_text(asset.last_seen.format("%d/%m/%Y %H:%M:%S").to_string());
-                        });
-
-                        if row.response().clicked() {
+                    row.col(|ui| {
+                        let name = asset.hostname.as_deref().unwrap_or(&asset.ip);
+                        if table::cell_link(ui, name).clicked() {
                             clicked_idx = Some(real_idx);
                         }
-                        if row.response().hovered() {
-                            ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
-                        }
                     });
+
+                    row.col(|ui| {
+                        table::cell_mono(ui, &asset.ip);
+                    });
+
+                    row.col(|ui| {
+                        table::cell_styled(
+                            ui,
+                            &asset.device_type.to_uppercase(),
+                            theme::font_label(),
+                            theme::text_secondary(),
+                        );
+                    });
+
+                    row.col(|ui| {
+                        let (label, color) = Self::criticality_display(&asset.criticality);
+                        widgets::status_badge(ui, label, color);
+                    });
+
+                    row.col(|ui| {
+                        let (label, color) = Self::lifecycle_display(&asset.lifecycle);
+                        widgets::status_badge(ui, label, color);
+                    });
+
+                    row.col(|ui| {
+                        let score_pct = (asset.risk_score * 10.0).min(100.0);
+                        // Risk score: higher = worse, so invert for score_color
+                        // (score_color treats ≥85 as green/good).
+                        // A risk_score of 10 (max) → score_pct=100 → we want red.
+                        // score_color(100 - 100) = score_color(0) = ERROR ✓
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            table::cell_colored(
+                                ui,
+                                &crate::format::decimal(asset.risk_score, 1),
+                                theme::readable_color(theme::score_color(100.0 - score_pct)),
+                            );
+                        });
+                    });
+
+                    row.col(|ui| {
+                        let ago = now.signed_duration_since(asset.last_seen);
+                        let text = if ago.num_hours() < 24 {
+                            crate::format::ago(now, asset.last_seen)
+                        } else {
+                            asset.last_seen.format("%d/%m %H:%M").to_string()
+                        };
+                        let color = theme::readable_color(if ago.num_hours() < 1 {
+                            theme::SUCCESS
+                        } else if ago.num_hours() < 24 {
+                            theme::WARNING
+                        } else {
+                            theme::text_secondary()
+                        });
+                        table::cell_styled(ui, &text, theme::font_small(), color)
+                            .on_hover_text(asset.last_seen.format("%d/%m/%Y %H:%M:%S").to_string());
+                    });
+
+                    if table::row_interaction(&row, is_selected) {
+                        clicked_idx = Some(real_idx);
+                    }
                 });
+            });
         });
 
         if let Some(idx) = clicked_idx {

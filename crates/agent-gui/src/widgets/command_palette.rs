@@ -3,7 +3,6 @@
 
 //! Command palette / spotlight search widget.
 
-use crate::icons;
 use crate::theme;
 use egui::{CornerRadius, Key, Sense};
 
@@ -265,30 +264,23 @@ impl<'a> CommandPalette<'a> {
                         egui::Frame::new()
                             .inner_margin(egui::Margin::same(theme::SPACE as i8))
                             .show(ui, |ui| {
-                                ui.horizontal(|ui| {
-                                    ui.label(
-                                        egui::RichText::new(icons::SEARCH)
-                                            .font(theme::font_heading())
-                                            .color(theme::text_tertiary()),
-                                    );
-                                    ui.add_space(theme::SPACE_MD);
-
-                                    let response = ui.add(
-                                        egui::TextEdit::singleline(&mut state.query)
-                                            .hint_text(&self.placeholder)
-                                            .frame(false)
-                                            .font(theme::font_heading())
-                                            .desired_width(palette_width - theme::SPACE * 5.0),
-                                    );
-
-                                    // Auto-focus
-                                    response.request_focus();
-                                    // Reset selection when query changes
-                                    if response.changed() {
-                                        state.selected_index = 0;
-                                        filtered = self.filter_commands(&state.query);
-                                    }
-                                });
+                                // The product's search field, at heading
+                                // size: the palette is the one place where
+                                // the query is the whole surface.
+                                let search = crate::widgets::SearchInput::new(
+                                    &mut state.query,
+                                    &self.placeholder,
+                                )
+                                .height(theme::BUTTON_HEIGHT_LG)
+                                .font(theme::font_heading())
+                                .id_salt("command_palette_query")
+                                .autofocus(true)
+                                .show(ui);
+                                // Reset selection when query changes
+                                if search.response.changed() || search.cleared {
+                                    state.selected_index = 0;
+                                    filtered = self.filter_commands(&state.query);
+                                }
                             });
 
                         // Divider

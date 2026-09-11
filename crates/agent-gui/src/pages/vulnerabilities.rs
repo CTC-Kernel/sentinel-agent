@@ -705,220 +705,143 @@ impl VulnerabilitiesPage {
                 ),
             );
         } else {
-            use egui_extras::{Column, TableBuilder};
+            use widgets::table;
 
             let mut clicked_idx: Option<usize> = None;
+            let selected = state.vulnerability.selected_vuln;
 
-            let table = TableBuilder::new(ui)
-                .striped(false)
-                .resizable(true)
-                .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::initial(100.0).at_least(70.0)) // CVE ID
-                .column(Column::initial(110.0).at_least(80.0)) // Logiciel
-                .column(Column::initial(70.0).at_least(50.0)) // Sévérité
-                .column(Column::initial(55.0).at_least(45.0)) // CVSS
-                .column(Column::initial(80.0).at_least(60.0)) // Source
-                .column(Column::initial(90.0).at_least(70.0)) // Actions
-                .column(Column::remainder()); // Analyse et correctifs
-
-            table
-                .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                    header.col(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("IDENTIFIANT")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("LOGICIEL AFF\u{00c9}RENT")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("S\u{00c9}V\u{00c9}RIT\u{00c9}")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("SCORE CVSS")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("SOURCE")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("ACTIONS")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("ANALYSE ET CORRECTIFS")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                    });
-                })
-                .body(|body| {
-                    body.rows(theme::TABLE_DATA_ROW_HEIGHT, page_len, |mut row| {
-                        let Some(&real_idx) = filtered.get(page_start + row.index()) else {
-                            return;
-                        };
-                        let Some(finding) = state.vulnerability_findings.get(real_idx) else {
-                            return;
-                        };
-
-                        row.col(|ui: &mut egui::Ui| {
-                            let cve_label = &finding.cve_id;
-                            let response = ui
-                                .label(
-                                    egui::RichText::new(cve_label)
-                                        .font(theme::font_mono())
-                                        .color(theme::accent_text())
-                                        .strong(),
-                                )
-                                .interact(egui::Sense::click());
-                            if response.clicked() {
-                                clicked_idx = Some(real_idx);
-                            }
-                            if response.hovered() {
-                                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                            }
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.vertical(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&finding.affected_software)
-                                        .font(theme::font_body())
-                                        .color(theme::text_primary())
-                                        .strong(),
-                                );
-                                ui.label(
-                                    egui::RichText::new(&finding.affected_version)
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong(),
-                                );
-                            });
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            let (label, color) = Self::severity_display(&finding.severity);
-                            widgets::status_badge(ui, label, color);
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            if let Some(s) = finding.cvss_score {
-                                ui.label(
-                                    egui::RichText::new(crate::format::decimal(s, 1))
-                                        .font(theme::font_body())
-                                        .color(theme::readable_color(theme::score_color(
-                                            100.0 - s * 10.0,
-                                        )))
-                                        .strong(),
-                                );
-                            } else {
-                                ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
-                            }
-                        });
-
-                        // Source column
-                        row.col(|ui: &mut egui::Ui| {
-                            if !finding.source.is_empty() {
-                                let source_display =
-                                    finding.source.replace('/', " / ").to_uppercase();
-                                ui.label(
-                                    egui::RichText::new(&source_display)
-                                        .font(theme::font_small())
-                                        .color(theme::text_secondary()),
-                                );
-                            } else {
-                                ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
-                            }
-                        });
-
-                        // Actions column
-                        row.col(|ui: &mut egui::Ui| {
-                            if widgets::ghost_button(ui, format!("{}  D\u{00e9}tails", icons::EYE))
-                                .clicked()
-                            {
-                                clicked_idx = Some(real_idx);
-                            }
-                        });
-
-                        // Analysis & fix column (remainder)
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.vertical(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&finding.description)
-                                        .font(theme::font_small())
-                                        .color(theme::text_secondary()),
-                                );
-                                if finding.fix_available {
-                                    ui.add_space(theme::SPACE_MICRO);
-                                    if let Some(ref fv) = finding.fixed_version {
-                                        widgets::status_badge(
-                                            ui,
-                                            &format!("CORRECTIF {}", fv),
-                                            theme::SUCCESS,
-                                        );
-                                    } else {
-                                        widgets::status_badge(
-                                            ui,
-                                            "CORRECTIF DISPONIBLE",
-                                            theme::SUCCESS,
-                                        );
-                                    }
-                                }
-                                if finding.is_false_positive == Some(true) {
-                                    ui.add_space(theme::SPACE_MICRO);
-                                    widgets::status_badge(ui, "FAUX POSITIF", theme::WARNING);
-                                }
-                                if let Some(dt) = finding.discovered_at {
-                                    ui.add_space(theme::SPACE_MICRO);
-                                    ui.label(
-                                        egui::RichText::new(format!(
-                                            "{} {}",
-                                            icons::CLOCK,
-                                            dt.format("%d/%m/%Y %H:%M")
-                                        ))
-                                        .font(theme::font_min())
-                                        .color(theme::text_tertiary()),
-                                    );
-                                }
-                            });
-                        });
-                    });
+            table::fluid_clickable(
+                ui,
+                &[
+                    table::Col::fluid(124.0, 1.0), // Identifiant
+                    table::Col::fluid(120.0, 1.5), // Logiciel
+                    table::Col::fluid(96.0, 0.0),  // Sévérité
+                    table::Col::fixed(56.0),       // CVSS
+                    table::Col::fluid(64.0, 0.5),  // Source
+                    table::Col::fluid(104.0, 0.5), // Correctif
+                    table::Col::fluid(140.0, 4.0), // Description
+                    table::Col::fixed(88.0),       // Actions
+                ],
+            )
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                header.col(|ui| {
+                    table::header_cell(ui, "IDENTIFIANT");
                 });
+                header.col(|ui| {
+                    table::header_cell(ui, "LOGICIEL");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "S\u{00c9}V\u{00c9}RIT\u{00c9}");
+                });
+                header.col(|ui| {
+                    table::header_cell_right(ui, "CVSS");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "SOURCE");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "CORRECTIF");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "DESCRIPTION");
+                });
+                header.col(|_| {});
+            })
+            .body(|body| {
+                body.rows(theme::TABLE_DATA_ROW_HEIGHT, page_len, |mut row| {
+                    let Some(&real_idx) = filtered.get(page_start + row.index()) else {
+                        return;
+                    };
+                    let Some(finding) = state.vulnerability_findings.get(real_idx) else {
+                        return;
+                    };
+                    let is_selected = selected == Some(real_idx);
+                    row.set_selected(is_selected);
+
+                    row.col(|ui| {
+                        let discovered = finding
+                            .discovered_at
+                            .map(|dt| dt.format("%d/%m/%Y %H:%M").to_string())
+                            .unwrap_or_default();
+                        if table::cell_link_stack(ui, &finding.cve_id, &discovered).clicked() {
+                            clicked_idx = Some(real_idx);
+                        }
+                    });
+
+                    row.col(|ui| {
+                        table::cell_stack(
+                            ui,
+                            &finding.affected_software,
+                            &finding.affected_version,
+                        );
+                    });
+
+                    row.col(|ui| {
+                        let (label, color) = Self::severity_display(&finding.severity);
+                        widgets::status_badge(ui, label, color);
+                        if finding.is_false_positive == Some(true) {
+                            ui.add_space(theme::SPACE_XS);
+                            widgets::status_badge(ui, "FP", theme::WARNING);
+                        }
+                    });
+
+                    row.col(|ui| {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            if let Some(s) = finding.cvss_score {
+                                table::cell_colored(
+                                    ui,
+                                    &crate::format::decimal(s, 1),
+                                    theme::readable_color(theme::score_color(100.0 - s * 10.0)),
+                                );
+                            } else {
+                                table::cell_empty(ui);
+                            }
+                        });
+                    });
+
+                    row.col(|ui| {
+                        if finding.source.is_empty() {
+                            table::cell_empty(ui);
+                        } else {
+                            table::cell_muted(
+                                ui,
+                                &finding.source.replace('/', " / ").to_uppercase(),
+                            );
+                        }
+                    });
+
+                    row.col(|ui| {
+                        if finding.fix_available {
+                            match finding.fixed_version.as_deref() {
+                                Some(fv) => widgets::status_badge(
+                                    ui,
+                                    &format!("{} {}", icons::ARROW_UP, fv),
+                                    theme::SUCCESS,
+                                ),
+                                None => widgets::status_badge(ui, "DISPONIBLE", theme::SUCCESS),
+                            }
+                        } else {
+                            table::cell_empty(ui);
+                        }
+                    });
+
+                    row.col(|ui| {
+                        table::cell_small(ui, &finding.description);
+                    });
+
+                    row.col(|ui| {
+                        if widgets::ghost_button(ui, format!("{}  D\u{00e9}tails", icons::EYE))
+                            .clicked()
+                        {
+                            clicked_idx = Some(real_idx);
+                        }
+                    });
+
+                    if table::row_interaction(&row, is_selected) {
+                        clicked_idx = Some(real_idx);
+                    }
+                });
+            });
 
             if let Some(idx) = clicked_idx {
                 state.vulnerability.selected_vuln = Some(idx);

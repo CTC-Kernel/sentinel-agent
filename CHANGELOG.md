@@ -32,6 +32,62 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   `https://<domaine>/fn/agentApi`, `ca_cert_path`, TLS 1.3, commande de
   vérification) et rappel dans le guide utilisateur.
 
+### 🧱 Tableaux, champs de recherche et défilement
+
+- **La page défile à nouveau partout** : chaque tableau `egui_extras` créait
+  son propre conteneur défilant, borné à la place restante dans la fenêtre ;
+  la molette était capturée dès que le pointeur survolait une liste (registre
+  des paquets, journal SIEM, inventaire…) et la page semblait bloquée. Les
+  tableaux ne défilent plus par eux-mêmes (`vscroll(false)`) — la page est le
+  seul conteneur qui défile, les listes restant paginées. Le journal SIEM perd
+  son puits de 450 px au profit de la pagination (`AUTO` suit la dernière
+  page). Une sonde headless (`examples/scroll_probe.rs`) rend chaque page,
+  envoie un cran de molette sur une grille de positions et échoue si une
+  position ne défile pas.
+- **Module `widgets::table`** : colonnes fluides (`Col::fluid(min, part)`,
+  `Col::fixed`) calculées sur la largeur disponible et toujours coupées, en-têtes
+  et cellules partagés (`header_cell`, `cell`, `cell_mono`, `cell_stack`,
+  `cell_link`, `cell_number`, `cell_empty`…), `row_interaction` pour le curseur,
+  la barre d'accent et le clic de ligne. Les 18 tableaux des 14 pages
+  (vulnérabilités, logiciels ×2, FIM, journal d'audit, réseau ×2, Shadow IT,
+  synchronisation, inventaire, risques, rapports, conformité ×2, notifications
+  ×2, terminal, assistant IA, journal SIEM) y sont passés.
+- **Plus de débordement** : les colonnes non coupées poussaient les tableaux
+  au-delà de leur carte (10 à 30 px à 1360 px de large) et les valeurs longues
+  peignaient sur la colonne voisine. Une cellule tient sur une ligne, tronquée
+  avec une ellipse et la valeur complète en infobulle ; les cellules à deux
+  lignes (paquet + date d'installation, chemin + empreinte, CVE + date de
+  découverte) imposent une hauteur de ligne de 44 px au lieu de 36 px, où
+  elles se chevauchaient. Les colonnes sont dimensionnées pour tenir dans la
+  fenêtre minimale (960 px) ; les lignes de redimensionnement ont disparu.
+- **Vulnérabilités** : la colonne « Analyse et correctifs » (description
+  repliée sur plusieurs lignes + badges + date, coupée par la ligne) est
+  éclatée en colonnes CORRECTIF (version cible) et DESCRIPTION ; la date de
+  découverte passe sous l'identifiant, le faux positif en badge « FP ».
+  Shadow IT : IP et MAC empilées, statut dans sa colonne, export CSV sur la
+  ligne de recherche. Conformité : date d'exécution dans sa colonne,
+  référentiels au-delà du troisième repliés en « +N ».
+- **Un seul champ de recherche** (`widgets::SearchInput`) : cadre, loupe, anneau
+  de focus, bouton d'effacement à emplacement réservé, Échap pour vider sans
+  quitter le champ, texte qui défile sous la loupe. Il remplace le champ de la
+  barre de filtres (désormais fluide : 42 % de la ligne entre 240 et 460 px,
+  au lieu de 260 px fixes qui coupaient l'indication), les `TextEdit` nus du
+  journal SIEM et du terminal, et le champ de la palette de commandes.
+- **Un seul champ de conversation** (`widgets::ChatInput`) pour Jarvis sur le
+  tableau de bord et l'assistant : cadre, icône, bouton d'envoi rond
+  (inactif tant qu'il n'y a rien à envoyer, curseur « interdit »), rotor pendant
+  le traitement, Entrée envoie sans perdre le focus.
+- **Curseur main sur tout ce qui se clique** : `Visuals::interact_cursor`
+  fixé au niveau du thème, au lieu d'appels dispersés que la moitié des
+  contrôles oubliaient. Les rayures des tableaux `egui_extras` utilisent le
+  même mélange opaque que `DataTable` (fini la bande grise translucide).
+- **Banc de rendu** : `PREVIEW_OUT=<png>` écrit la capture de la fenêtre ;
+  la taille demandée (`PREVIEW_W`/`PREVIEW_H`) n'est plus écrasée par la
+  géométrie mémorisée de la session précédente.
+- Correctif au passage : la liste des paquets appelait deux fois la navigation
+  clavier, faisant sauter deux lignes par flèche et déréglant la pagination
+  de l'onglet Applications.
+
 ### 🎨 Refonte complète de l'interface (GUI / UI / UX)
 
 #### Fondations du design system

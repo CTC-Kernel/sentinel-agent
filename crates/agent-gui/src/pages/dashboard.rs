@@ -507,34 +507,17 @@ impl DashboardPage {
                             }));
                     }
 
-                    let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
-                        .hint_text("Demander \u{00e0} Jarvis…")
-                        .font(theme::font_body())
-                        .desired_width(ui.available_width() - 32.0);
-
-                    let response = ui.add_enabled(!state.ai.is_processing, text_edit);
-
-                    // Send on Enter
-                    let enter_pressed =
-                        response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-
-                    let send_btn = egui::Button::new(
-                        egui::RichText::new(icons::PAPER_PLANE)
-                            .size(theme::ICON_SM)
-                            .color(if state.ai.is_processing {
-                                theme::text_tertiary()
-                            } else {
-                                theme::accent_text()
-                            }),
+                    ui.add_space(theme::SPACE_XS);
+                    let chat = widgets::ChatInput::new(
+                        &mut state.ai.input_text,
+                        "Demander \u{00e0} Jarvis…",
                     )
-                    .fill(egui::Color32::TRANSPARENT)
-                    .frame(false);
+                    .processing(state.ai.is_processing)
+                    .id_salt("dashboard_jarvis_prompt")
+                    .show(ui);
+                    let can_send = chat.send;
 
-                    let can_send =
-                        !state.ai.is_processing && !state.ai.input_text.trim().is_empty();
-                    let send_clicked = ui.add_enabled(can_send, send_btn).clicked();
-
-                    if (enter_pressed || send_clicked) && can_send {
+                    if can_send {
                         let prompt = state.ai.input_text.trim().to_string();
                         state.ai.chat_history.push(crate::dto::LlmChatMessage {
                             role: crate::dto::ChatRole::User,

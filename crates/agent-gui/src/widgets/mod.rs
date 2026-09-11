@@ -3,6 +3,7 @@
 
 pub mod button;
 mod card;
+pub mod chat_input;
 mod compliance_gauge;
 pub mod copy_button;
 mod empty_state;
@@ -48,6 +49,7 @@ pub mod alert;
 pub mod breadcrumb;
 pub mod data_table;
 pub mod pagination;
+pub mod table;
 
 // Form components
 pub mod checkbox;
@@ -61,6 +63,7 @@ mod org_banner;
 mod sparkline;
 
 pub use card::{Card, CardVariant, card, clickable_card, danger_card, flat_card};
+pub use chat_input::{ChatInput, ChatInputResponse};
 pub use compliance_gauge::{compliance_gauge, compliance_gauge_captioned};
 pub use empty_state::{
     empty_state, empty_state_compact, empty_state_with_action, no_results_state, pending_state,
@@ -96,8 +99,9 @@ pub use sparkline::{
 // UX feedback & input exports
 pub use loading_state::{error_state, loading_skeleton};
 pub use text_input::{
-    InputValidation, ValidationState, form_field, search_input, text_input, text_input_clearable,
-    text_input_validated, text_input_with_limit, text_input_with_options,
+    InputValidation, SearchInput, SearchInputResponse, ValidationState, form_field, search_input,
+    text_input, text_input_clearable, text_input_validated, text_input_with_limit,
+    text_input_with_options,
 };
 pub use toast::{Toast, ToastLevel, ToastPosition, render_toasts, render_toasts_at};
 

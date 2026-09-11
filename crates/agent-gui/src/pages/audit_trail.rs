@@ -5,7 +5,6 @@
 //! Premium AAA design using high-performance tables.
 
 use egui::Ui;
-use egui_extras::{Column, TableBuilder};
 
 use crate::app::AppState;
 use crate::events::GuiCommand;
@@ -234,8 +233,6 @@ impl AuditTrailPage {
     }
 
     fn render_table(ui: &mut Ui, state: &mut AppState) {
-        let row_height = theme::TABLE_ROW_HEIGHT;
-
         let filtered_logs: Vec<_> = state
             .logs
             .iter()
@@ -283,67 +280,70 @@ impl AuditTrailPage {
             &mut state.audit_trail_page,
         );
 
-        TableBuilder::new(ui)
-            .striped(false)
-            .resizable(true)
-            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::auto().at_least(180.0)) // Timestamp
-            .column(Column::auto().at_least(100.0)) // Level
-            .column(Column::remainder()) // Message
-            .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                header.col(|ui| {
-                    ui.strong("HORODATAGE");
-                });
-                header.col(|ui| {
-                    ui.strong("NIVEAU");
-                });
-                header.col(|ui| {
-                    ui.strong("DÉTAILS DE L'ÉVÉNEMENT");
-                });
-            })
-            .body(|body| {
-                body.rows(row_height, at_len, |mut row| {
-                    let idx = at_start + row.index();
-                    let Some(log) = filtered_logs.get(idx) else {
-                        return;
-                    };
-                    let log = *log;
+        use widgets::table;
 
-                    row.set_selected(state.selected_audit_entry == Some(idx));
+        let selected = state.selected_audit_entry;
+        let mut clicked_row: Option<usize> = None;
 
-                    row.col(|ui| {
-                        ui.label(
-                            egui::RichText::new(
-                                log.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
-                            )
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                        );
-                    });
-
-                    row.col(|ui| {
-                        let (level_upper, color) = match log.level.to_lowercase().as_str() {
-                            "error" | "critical" => ("ERROR", theme::ERROR),
-                            "warn" | "warning" => ("WARN", theme::WARNING),
-                            _ => ("INFO", theme::INFO),
-                        };
-                        widgets::status_badge(ui, level_upper, color);
-                    });
-
-                    row.col(|ui| {
-                        ui.label(
-                            egui::RichText::new(&log.message)
-                                .font(theme::font_body())
-                                .color(theme::text_primary()),
-                        );
-                    });
-
-                    if row.response().clicked() {
-                        state.selected_audit_entry = Some(idx);
-                        state.audit_detail_open = true;
-                    }
-                });
+        table::fluid_clickable(
+            ui,
+            &[
+                table::Col::fluid(150.0, 0.0), // Horodatage
+                table::Col::fluid(80.0, 0.0),  // Niveau
+                table::Col::fluid(200.0, 1.0), // Détails de l'événement
+            ],
+        )
+        .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+            header.col(|ui| {
+                table::header_cell(ui, "HORODATAGE");
             });
+            header.col(|ui| {
+                table::header_cell(ui, "NIVEAU");
+            });
+            header.col(|ui| {
+                table::header_cell(ui, "D\u{00c9}TAILS DE L'\u{00c9}V\u{00c9}NEMENT");
+            });
+        })
+        .body(|body| {
+            body.rows(theme::TABLE_ROW_HEIGHT, at_len, |mut row| {
+                let idx = at_start + row.index();
+                let Some(log) = filtered_logs.get(idx) else {
+                    return;
+                };
+                let log = *log;
+                let is_selected = selected == Some(idx);
+                row.set_selected(is_selected);
+
+                row.col(|ui| {
+                    table::cell_secondary(
+                        ui,
+                        &log.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                    );
+                });
+
+                row.col(|ui| {
+                    let (level_upper, color) = match log.level.to_lowercase().as_str() {
+                        "error" | "critical" => ("ERROR", theme::ERROR),
+                        "warn" | "warning" => ("WARN", theme::WARNING),
+                        _ => ("INFO", theme::INFO),
+                    };
+                    widgets::status_badge(ui, level_upper, color);
+                });
+
+                row.col(|ui| {
+                    table::cell(ui, &log.message);
+                });
+
+                if table::row_interaction(&row, is_selected) {
+                    clicked_row = Some(idx);
+                }
+            });
+        });
+
+        if let Some(idx) = clicked_row {
+            state.selected_audit_entry = Some(idx);
+            state.audit_detail_open = true;
+        }
 
         widgets::paginate_controls(
             ui,
