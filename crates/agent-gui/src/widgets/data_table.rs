@@ -119,6 +119,7 @@ impl TableSort {
 
 /// Data table widget.
 pub struct DataTable<'a> {
+    id: egui::Id,
     columns: Vec<TableColumn<'a>>,
     row_height: f32,
     header_height: f32,
@@ -130,8 +131,9 @@ pub struct DataTable<'a> {
 
 impl<'a> DataTable<'a> {
     /// Create a new data table.
-    pub fn new(_id: impl std::hash::Hash, columns: Vec<TableColumn<'a>>) -> Self {
+    pub fn new(id: impl std::hash::Hash, columns: Vec<TableColumn<'a>>) -> Self {
         Self {
+            id: egui::Id::new(id),
             columns,
             row_height: theme::TABLE_DATA_ROW_HEIGHT,
             header_height: theme::TABLE_HEADER_HEIGHT,
@@ -205,7 +207,7 @@ impl<'a> DataTable<'a> {
 
         // Second pass: distribute remaining space
         let auto_width = if !auto_indices.is_empty() {
-            let auto_total = remaining * 0.6; // Auto columns get 60% of remaining
+            let auto_total = remaining * if fill_count > 0 { 0.6 } else { 1.0 };
             remaining -= auto_total;
             auto_total / auto_indices.len() as f32
         } else {
@@ -228,11 +230,20 @@ impl<'a> DataTable<'a> {
             }
         }
 
+        // Keep every column inside the table at narrow viewport widths.
+        let total: f32 = widths.iter().sum();
+        if total > available_width && total > 0.0 {
+            let scale = available_width.max(0.0) / total;
+            for width in &mut widths {
+                *width *= scale;
+            }
+        }
         widths
     }
 
     /// Show the table header.
     pub fn show_header(&self, ui: &mut Ui, sort: &mut TableSort) -> bool {
+        let table_id = ui.make_persistent_id(self.id);
         let mut sort_changed = false;
         let available_width = ui.available_width();
         let widths = self.calculate_widths(available_width);
@@ -277,18 +288,51 @@ impl<'a> DataTable<'a> {
                         Sense::hover()
                     };
 
-                    let (cell_rect, response) =
-                        ui.allocate_exact_size(egui::vec2(width, self.header_height), sense);
+                    let (_, cell_rect) = ui.allocate_space(egui::vec2(width, self.header_height));
+                    let response =
+                        ui.interact(cell_rect, table_id.with(("column", col.key)), sense);
+                    if col.sortable {
+                        response.widget_info(|| {
+                            egui::WidgetInfo::labeled(
+                                egui::WidgetType::Button,
+                                ui.is_enabled(),
+                                format!(
+                                    "Trier par {} — {}",
+                                    col.label,
+                                    if is_sorted {
+                                        match sort.direction {
+                                            SortDirection::Ascending => "croissant",
+                                            SortDirection::Descending => "décroissant",
+                                            _ => "sans tri",
+                                        }
+                                    } else {
+                                        "sans tri"
+                                    }
+                                ),
+                            )
+                        });
+                    }
 
                     if ui.is_rect_visible(cell_rect) {
                         let is_focused = response.has_focus() && col.sortable;
                         let is_hovered = (response.hovered() || is_focused) && col.sortable;
 
                         // Hover/focus effect
-                        if is_hovered {
-                            ui.painter()
-                                .rect_filled(cell_rect, 0, theme::hover_bg_neutral());
-                        }
+                        let hover = crate::animation::animate_hover(
+                            ui.ctx(),
+                            response.id.with("header_hover"),
+                            is_hovered,
+                        );
+                        let base = if is_sorted {
+                            theme::selected_bg()
+                        } else {
+                            theme::bg_tertiary()
+                        };
+                        ui.painter().rect_filled(
+                            cell_rect.shrink(2.0),
+                            theme::ROUNDING_XS,
+                            crate::animation::lerp_color(base, theme::hover_bg_neutral(), hover),
+                        );
 
                         // Focus ring for keyboard navigation
                         if is_focused {
@@ -405,6 +449,19 @@ impl<'a> DataTable<'a> {
 
         let (row_rect, response) =
             ui.allocate_exact_size(egui::vec2(available_width, self.row_height), sense);
+        if self.selectable {
+            if response.gained_focus() {
+                response.scroll_to_me(Some(egui::Align::Center));
+            }
+            response.widget_info(|| {
+                egui::WidgetInfo::selected(
+                    egui::WidgetType::SelectableLabel,
+                    ui.is_enabled(),
+                    selected,
+                    cells.join(" · "),
+                )
+            });
+        }
 
         let mut clicked = false;
 
@@ -414,14 +471,20 @@ impl<'a> DataTable<'a> {
 
             // Selection is accent-tinted; hover is neutral, so the two states
             // never read as the same thing at a glance.
-            let bg_color = if selected {
-                theme::selected_bg()
-            } else if is_hovered && self.hoverable {
-                theme::hover_bg_neutral()
-            } else if self.striped && is_odd {
+            let resting = if self.striped && is_odd {
                 theme::table_row_bg(row_index)
             } else {
-                Color32::TRANSPARENT
+                theme::bg_secondary()
+            };
+            let hover = crate::animation::animate_hover(
+                ui.ctx(),
+                response.id.with("row_hover"),
+                is_hovered && self.hoverable,
+            );
+            let bg_color = if selected {
+                theme::selected_bg()
+            } else {
+                crate::animation::lerp_color(resting, theme::hover_bg_neutral(), hover)
             };
 
             if bg_color != Color32::TRANSPARENT {
@@ -668,4 +731,90 @@ pub fn simple_table(
     }
 
     clicked_row
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sorting_keeps_focus_when_content_is_inserted_before_the_table() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let table = DataTable::new(
+            "focus_test",
+            vec![TableColumn::new("host", "Équipement").sortable()],
+        );
+        let mut sort = TableSort::default();
+        let mut target = None;
+        for pass in 0..3 {
+            let events = if pass == 2 {
+                vec![egui::Event::Key {
+                    key: egui::Key::Enter,
+                    physical_key: None,
+                    pressed: true,
+                    repeat: false,
+                    modifiers: egui::Modifiers::NONE,
+                }]
+            } else {
+                vec![]
+            };
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(500.0, 300.0),
+                    )),
+                    events,
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        if pass > 0 {
+                            ui.label("Résultats actualisés");
+                        }
+                        let id = ui.make_persistent_id(table.id).with(("column", "host"));
+                        target = Some(id);
+                        table.show_header(ui, &mut sort);
+                        if pass == 0 {
+                            ui.memory_mut(|memory| memory.request_focus(id));
+                        }
+                    });
+                },
+            );
+        }
+        assert_eq!(sort.column.as_deref(), Some("host"));
+        assert_eq!(sort.direction, SortDirection::Ascending);
+        assert_eq!(ctx.memory(|memory| memory.focused()), target);
+    }
+
+    #[test]
+    fn automatic_columns_use_the_full_table() {
+        let table = DataTable::new(
+            "auto",
+            vec![TableColumn::new("a", "A"), TableColumn::new("b", "B")],
+        );
+        assert_eq!(table.calculate_widths(600.0), vec![300.0, 300.0]);
+    }
+
+    #[test]
+    fn narrow_tables_keep_all_columns_within_their_bounds() {
+        let table = DataTable::new(
+            "narrow",
+            vec![
+                TableColumn::new("host", "Hôte").width(ColumnWidth::Fill),
+                TableColumn::new("id", "Identifiant").width(ColumnWidth::Fixed(180.0)),
+                TableColumn::new("status", "Statut").width(ColumnWidth::Percent(40.0)),
+            ],
+        );
+        for width in [0.0, 160.0, 320.0, 640.0] {
+            let columns = table.calculate_widths(width);
+            assert!(
+                columns
+                    .iter()
+                    .all(|value| value.is_finite() && *value >= 0.0)
+            );
+            assert!(columns.iter().sum::<f32>() <= width + 0.01);
+        }
+    }
 }

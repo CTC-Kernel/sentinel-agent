@@ -265,6 +265,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         );
 
         // Close button if dismissible (MIN_TOUCH_TARGET for accessibility)
+        let mut reading = ui.rect_contains_pointer(toast_rect);
         if toast.dismissible {
             let close_rect = egui::Rect::from_center_size(
                 egui::pos2(
@@ -276,26 +277,47 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
 
             // Check for click on close button
             let close_response = ui.allocate_rect(close_rect, egui::Sense::click());
+            reading |= close_response.has_focus();
+            close_response.widget_info(|| {
+                egui::WidgetInfo::labeled(
+                    egui::WidgetType::Button,
+                    ui.is_enabled(),
+                    "Fermer la notification",
+                )
+            });
+            if close_response.has_focus() {
+                ui.painter().rect_stroke(
+                    close_rect.shrink(2.0),
+                    theme::ROUNDING_SM,
+                    theme::focus_ring(),
+                    StrokeKind::Inside,
+                );
+            }
             let close_hovered = close_response.hovered();
 
             // Draw close button
             let close_color = if close_hovered {
                 theme::text_primary().linear_multiply(alpha)
             } else {
-                theme::text_tertiary().linear_multiply(alpha * theme::OPACITY_PRESSED)
+                theme::text_secondary().linear_multiply(alpha)
             };
 
             ui.painter().text(
                 close_rect.center(),
                 egui::Align2::CENTER_CENTER,
                 icons::XMARK,
-                theme::font_small(),
+                theme::font_icon(theme::ICON_SM),
                 close_color,
             );
 
             if close_response.clicked() {
                 toast_clone.dismissed = true;
             }
+        }
+
+        // Keep the message available while the user reads or focuses it.
+        if reading && age >= entrance_duration {
+            toast_clone.created_at += f64::from(ui.input(|input| input.stable_dt).min(0.1));
         }
 
         remaining.push(toast_clone);

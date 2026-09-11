@@ -66,11 +66,11 @@ impl<'a> SearchFilterBar<'a> {
         let mut toggled: Option<usize> = None;
         let mut action_clicked = false;
 
-        ui.horizontal(|ui: &mut egui::Ui| {
+        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
             // Search field: framed and prefixed with a magnifier, matching the
             // global search in the top bar. A bare TextEdit here read as a
             // stray line of text next to the filter chips.
-            let search_width = 260.0_f32.min(ui.available_width() * 0.4);
+            let search_width = 260.0_f32.min(ui.available_width());
             let (field, _) = ui.allocate_exact_size(
                 Vec2::new(search_width, theme::SEARCH_INPUT_HEIGHT),
                 egui::Sense::hover(),
@@ -92,25 +92,84 @@ impl<'a> SearchFilterBar<'a> {
             );
             let text_rect = egui::Rect::from_min_max(
                 egui::pos2(field.left() + theme::SPACE_LG + 2.0, field.top()),
-                egui::pos2(field.right() - theme::SPACE_SM, field.bottom()),
+                egui::pos2(field.right() - 32.0, field.bottom()),
             );
-            ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+            let editor_id = ui.id().with("search_editor");
+            if ui.memory(|memory| memory.has_focus(editor_id))
+                && !self.search.is_empty()
+                && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
+            {
+                self.search.clear();
+            }
+            let editor = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
                 // Clip the editor to the framed field so a long placeholder or
                 // value cannot spill past the rounded edge.
                 ui.set_clip_rect(text_rect);
                 ui.add_sized(
                     text_rect.size(),
                     egui::TextEdit::singleline(self.search)
+                        .id(editor_id)
                         .hint_text(
                             egui::RichText::new(self.placeholder).color(theme::text_tertiary()),
                         )
                         .font(theme::font_body_sm())
+                        .vertical_align(egui::Align::Center)
                         .text_color(theme::text_primary())
                         .frame(false)
                         .desired_width(text_rect.width()),
-                );
+                )
             });
 
+            if editor.inner.has_focus() {
+                ui.memory_mut(|memory| {
+                    memory.set_focus_lock_filter(
+                        editor_id,
+                        egui::EventFilter {
+                            horizontal_arrows: true,
+                            vertical_arrows: true,
+                            escape: !self.search.is_empty(),
+                            ..Default::default()
+                        },
+                    )
+                });
+                ui.painter().rect_stroke(
+                    field,
+                    radius,
+                    theme::focus_ring(),
+                    egui::StrokeKind::Inside,
+                );
+            }
+            editor.inner.widget_info(|| {
+                egui::WidgetInfo::labeled(
+                    egui::WidgetType::TextEdit,
+                    ui.is_enabled(),
+                    self.placeholder,
+                )
+            });
+
+            if !self.search.is_empty() {
+                let clear_rect = egui::Rect::from_center_size(
+                    egui::pos2(field.right() - 16.0, field.center().y),
+                    Vec2::splat(28.0),
+                );
+                let clear = ui
+                    .put(clear_rect, egui::Button::new("×").frame(false))
+                    .on_hover_text("Effacer la recherche · Échap");
+                clear.widget_info(|| {
+                    egui::WidgetInfo::labeled(
+                        egui::WidgetType::Button,
+                        ui.is_enabled(),
+                        "Effacer la recherche",
+                    )
+                });
+                if clear.clicked() {
+                    self.search.clear();
+                    editor.inner.request_focus();
+                }
+            }
+
+            // The inset editor must not move the next chip inside the field.
+            ui.advance_cursor_after_rect(field);
             ui.add_space(theme::SPACE_SM);
 
             // Chips — unified with badge design system
@@ -124,9 +183,13 @@ impl<'a> SearchFilterBar<'a> {
                 let border_color = theme::badge_border(*color);
 
                 let btn = egui::Button::new(
-                    egui::RichText::new(*label)
-                        .font(theme::font_label())
-                        .color(fg),
+                    egui::RichText::new(if *active {
+                        format!("✓ {label}")
+                    } else {
+                        (*label).to_owned()
+                    })
+                    .font(theme::font_label())
+                    .color(fg),
                 )
                 .fill(bg)
                 .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, border_color))
@@ -134,6 +197,14 @@ impl<'a> SearchFilterBar<'a> {
                 .min_size(Vec2::new(0.0, theme::SEARCH_INPUT_HEIGHT));
 
                 let response = ui.add(btn);
+                response.widget_info(|| {
+                    egui::WidgetInfo::selected(
+                        egui::WidgetType::SelectableLabel,
+                        ui.is_enabled(),
+                        *active,
+                        *label,
+                    )
+                });
 
                 // Subtle border emphasis on hover
                 if response.hovered() && !*active {
@@ -174,5 +245,62 @@ impl<'a> SearchFilterBar<'a> {
         });
 
         (toggled, action_clicked)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn escape_clears_the_focused_search_without_leaving_it() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let mut search = String::from("serveur");
+        let mut frame = |events| {
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(640.0, 200.0),
+                    )),
+                    events,
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        SearchFilterBar::new(&mut search, "Rechercher un équipement").show(ui);
+                    });
+                },
+            );
+        };
+        frame(vec![]);
+        let position = egui::pos2(80.0, 22.0);
+        frame(vec![
+            egui::Event::PointerMoved(position),
+            egui::Event::PointerButton {
+                pos: position,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                modifiers: egui::Modifiers::NONE,
+            },
+        ]);
+        frame(vec![egui::Event::PointerButton {
+            pos: position,
+            button: egui::PointerButton::Primary,
+            pressed: false,
+            modifiers: egui::Modifiers::NONE,
+        }]);
+        let focused = ctx.memory(|memory| memory.focused());
+        assert!(focused.is_some());
+        frame(vec![egui::Event::Key {
+            key: egui::Key::Escape,
+            physical_key: None,
+            pressed: true,
+            repeat: false,
+            modifiers: egui::Modifiers::NONE,
+        }]);
+        assert!(search.is_empty());
+        assert_eq!(ctx.memory(|memory| memory.focused()), focused);
     }
 }

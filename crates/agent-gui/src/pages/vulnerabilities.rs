@@ -170,6 +170,16 @@ impl VulnerabilitiesPage {
             ui.add_space(theme::SPACE_MD);
 
             let total_findings = state.vulnerability_findings.len();
+            if total_findings == 0 {
+                ui.label(
+                    egui::RichText::new(
+                        "Aucun détail de vulnérabilité disponible pour calculer la couverture.",
+                    )
+                    .font(theme::font_body())
+                    .color(theme::text_secondary()),
+                );
+                return;
+            }
             let fix_available_count = state
                 .vulnerability_findings
                 .iter()
@@ -216,42 +226,13 @@ impl VulnerabilitiesPage {
 
             ui.add_space(theme::SPACE_MD);
 
-            // B. Remediation coverage
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(icons::SHIELD_CHECK)
-                        .color(theme::readable_color(theme::SUCCESS))
-                        .size(theme::ICON_INLINE),
-                );
-                ui.add_space(theme::SPACE_XS);
-                let remediation_pct = if total_findings > 0 {
-                    (fix_available_count as f32 / total_findings as f32) * 100.0
-                } else {
-                    100.0
-                };
-                ui.label(
-                    egui::RichText::new(format!(
-                        "Couverture de rem\u{00e9}diation : {:.0}\u{202f}%",
-                        remediation_pct
-                    ))
-                    .font(theme::font_body())
-                    .color(theme::text_primary())
-                    .strong(),
-                );
-            });
-            ui.add_space(theme::SPACE_XS);
-            let remediation_ratio = if total_findings > 0 {
-                fix_available_count as f32 / total_findings as f32
-            } else {
-                1.0
-            };
-            widgets::progress_bar_styled(
-                ui,
-                remediation_ratio,
-                widgets::ProgressStyle::Gradient,
-                None,
+            ui.label(
+                egui::RichText::new(
+                    "Un correctif disponible doit encore être appliqué puis vérifié.",
+                )
+                .font(theme::font_small())
+                .color(theme::text_tertiary()),
             );
-
             ui.add_space(theme::SPACE_MD);
 
             // C. Average CVSS score
@@ -283,7 +264,11 @@ impl VulnerabilitiesPage {
                 ui.label(
                     egui::RichText::new(format!(
                         "Score CVSS moyen : {}",
-                        crate::format::decimal(avg_cvss, 1)
+                        if cvss_count == 0 {
+                            "Non disponible".to_owned()
+                        } else {
+                            crate::format::decimal(avg_cvss, 1)
+                        }
                     ))
                     .font(theme::font_body())
                     .color(theme::text_primary())

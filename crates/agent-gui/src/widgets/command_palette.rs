@@ -124,25 +124,25 @@ impl<'a> CommandPalette<'a> {
 
     /// Filter commands by query.
     fn filter_commands(&self, query: &str) -> Vec<&CommandItem> {
-        if query.is_empty() {
+        if query.trim().is_empty() {
             return self.commands.iter().take(self.max_results).collect();
         }
 
-        let query_lower = query.to_lowercase();
+        let query_lower = normalize_query(query);
         let mut results: Vec<(&CommandItem, i32)> = self
             .commands
             .iter()
             .filter_map(|cmd| {
-                let label_lower = cmd.label.to_lowercase();
+                let label_lower = normalize_query(&cmd.label);
                 let desc_lower = cmd
                     .description
                     .as_ref()
-                    .map(|d| d.to_lowercase())
+                    .map(|d| normalize_query(d))
                     .unwrap_or_default();
                 let cat_lower = cmd
                     .category
                     .as_ref()
-                    .map(|c| c.to_lowercase())
+                    .map(|c| normalize_query(c))
                     .unwrap_or_default();
 
                 // Score based on match quality
@@ -183,7 +183,7 @@ impl<'a> CommandPalette<'a> {
         }
 
         let mut result: Option<String> = None;
-        let filtered = self.filter_commands(&state.query);
+        let mut filtered = self.filter_commands(&state.query);
 
         // Clamp selected index
         if state.selected_index >= filtered.len() {
@@ -210,6 +210,12 @@ impl<'a> CommandPalette<'a> {
                 state.close();
             }
         });
+
+        if !state.open {
+            return result;
+        }
+        let keyboard_navigation =
+            ctx.input(|i| i.key_pressed(Key::ArrowDown) || i.key_pressed(Key::ArrowUp));
 
         // Backdrop
         egui::Area::new(egui::Id::new("command_palette_backdrop"))
@@ -280,6 +286,7 @@ impl<'a> CommandPalette<'a> {
                                     // Reset selection when query changes
                                     if response.changed() {
                                         state.selected_index = 0;
+                                        filtered = self.filter_commands(&state.query);
                                     }
                                 });
                             });
@@ -332,6 +339,17 @@ impl<'a> CommandPalette<'a> {
                                             ),
                                             Sense::click(),
                                         );
+
+                                        if is_selected && keyboard_navigation {
+                                            ui.scroll_to_rect(item_response.rect, None);
+                                        }
+                                        item_response.widget_info(|| {
+                                            egui::WidgetInfo::labeled(
+                                                egui::WidgetType::Button,
+                                                ui.is_enabled(),
+                                                &cmd.label,
+                                            )
+                                        });
 
                                         if ui.is_rect_visible(item_rect) {
                                             let is_hovered = item_response.hovered();
@@ -550,4 +568,42 @@ impl<'a> CommandPalette<'a> {
 /// Check if command palette shortcut (Cmd/Ctrl+K) is pressed.
 pub fn check_palette_shortcut(ctx: &egui::Context) -> bool {
     ctx.input(|i| i.key_pressed(Key::K) && i.modifiers.command)
+}
+
+/// French search normalization, including decomposed diacritics.
+fn normalize_query(text: &str) -> String {
+    text.trim()
+        .to_lowercase()
+        .chars()
+        .filter(|c| !('\u{0300}'..='\u{036f}').contains(c))
+        .map(|c| match c {
+            'à' | 'â' | 'ä' => 'a',
+            'é' | 'è' | 'ê' | 'ë' => 'e',
+            'î' | 'ï' => 'i',
+            'ô' | 'ö' => 'o',
+            'ù' | 'û' | 'ü' => 'u',
+            'ç' => 'c',
+            _ => c,
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod search_tests {
+    use super::*;
+    #[test]
+    fn french_navigation_is_searchable_without_accents() {
+        let commands = [
+            CommandItem::new("security", "Vulnérabilités"),
+            CommandItem::new("network", "Réseau"),
+        ];
+        let palette = CommandPalette::new(&commands);
+        assert_eq!(
+            palette.filter_commands(" VULNERABILITES ")[0].id,
+            "security"
+        );
+        assert_eq!(palette.filter_commands("re\u{301}seau")[0].id, "network");
+        assert_eq!(palette.filter_commands("  ").len(), 2);
+        assert!(palette.filter_commands("introuvable").is_empty());
+    }
 }

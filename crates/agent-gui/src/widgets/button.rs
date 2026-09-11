@@ -17,7 +17,7 @@ pub enum ButtonSize {
     Large,
 }
 
-/// A premium primary button with gradient, shadow, and hover effects.
+/// A primary action with a high-contrast fill, elevation and animated hover.
 pub fn primary_button(ui: &mut Ui, text: impl Into<WidgetText>, enabled: bool) -> Response {
     draw_premium_button(ui, text, true, enabled, false)
 }
@@ -71,27 +71,42 @@ fn draw_premium_button(
 
     // Add space for loading spinner
     if loading {
-        desired_size.x += theme::ICON_MD; // Space for spinner
+        desired_size.x += theme::SPINNER_SIZE + theme::SPACE_SM;
     }
 
     // Enforce minimum premium height and width
     desired_size.y = desired_size.y.max(theme::BUTTON_HEIGHT);
     desired_size.x = desired_size.x.max(theme::BUTTON_MIN_WIDTH);
 
-    let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
+    let (rect, response) = ui.allocate_exact_size(
+        desired_size,
+        if enabled && !loading {
+            Sense::click()
+        } else {
+            Sense::hover()
+        },
+    );
+
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(
+            egui::WidgetType::Button,
+            enabled && !loading && ui.is_enabled(),
+            text_galley.text(),
+        )
+    });
 
     if ui.is_rect_visible(rect) {
         // State interaction
         let is_hovered = enabled && !loading && response.hovered();
         let is_clicked = enabled && !loading && response.is_pointer_button_down_on();
+        let hover_t = animation::animate_hover(ui.ctx(), response.id.with("hover"), is_hovered);
 
         // ─── Colors ───
         let (bg_fill, bg_stroke, text_color) = if is_primary {
             // Smooth hover animation for primary button
-            let hover_t = animation::animate_hover(ui.ctx(), response.id.with("hover"), is_hovered);
 
             // Primary: Filled Accent
-            let fill = if !enabled {
+            let fill = if !enabled && !loading {
                 theme::ACCENT.linear_multiply(theme::OPACITY_DISABLED)
             } else if is_clicked {
                 theme::ACCENT_PRESSED
@@ -101,7 +116,7 @@ fn draw_premium_button(
             (
                 fill,
                 Stroke::NONE,
-                if enabled {
+                if enabled || loading {
                     theme::text_on_accent()
                 } else {
                     theme::text_on_accent().linear_multiply(theme::OPACITY_MEDIUM)
@@ -115,10 +130,8 @@ fn draw_premium_button(
                 Color32::TRANSPARENT
             } else if is_clicked {
                 theme::bg_elevated()
-            } else if is_hovered {
-                theme::hover_bg()
             } else {
-                theme::bg_tertiary()
+                animation::lerp_color(theme::bg_tertiary(), theme::hover_bg_neutral(), hover_t)
             };
 
             let stroke = if !enabled {
@@ -174,23 +187,13 @@ fn draw_premium_button(
             );
         }
 
-        // ─── Inner Bevel / Highlight (Primary Only) ───
-        // One lit edge, half the previous strength: enough to give the fill
-        // some volume, not enough to look embossed.
-        if is_primary && enabled && !loading {
-            let stroke_color = Color32::from_white_alpha(theme::SUBTLE_HIGHLIGHT_ALPHA / 2);
-            ui.painter().rect_stroke(
-                rect.shrink(theme::BORDER_THIN),
-                CornerRadius::same(theme::BUTTON_ROUNDING),
-                Stroke::new(theme::BORDER_THIN, stroke_color),
-                StrokeKind::Inside,
-            );
-        }
+        // The solid sapphire surface supplies contrast without a second,
+        // embossed border competing with the keyboard focus ring.
 
         // ─── Loading Spinner ───
         if loading {
             let spinner_rect = egui::Rect::from_center_size(
-                rect.center() - egui::vec2(text_galley.size().x / 2.0 + theme::SPACE_SM + 2.0, 0.0),
+                rect.center() - egui::vec2((text_galley.size().x + theme::SPACE_SM) / 2.0, 0.0),
                 egui::vec2(theme::SPINNER_SIZE, theme::SPINNER_SIZE),
             );
 
@@ -248,12 +251,11 @@ fn draw_premium_button(
 
         // ─── Text Paint ───
         let text_pos = if loading {
-            ui.layout()
-                .align_size_within_rect(
-                    text_galley.size(),
-                    rect.shrink2(egui::vec2(theme::ICON_MD, 0.0)),
+            rect.center()
+                + egui::vec2(
+                    (theme::SPINNER_SIZE + theme::SPACE_SM - text_galley.size().x) / 2.0,
+                    -text_galley.size().y / 2.0,
                 )
-                .min
         } else {
             ui.layout()
                 .align_size_within_rect(text_galley.size(), rect)
@@ -307,7 +309,22 @@ fn draw_destructive_button(
     desired_size.y = desired_size.y.max(theme::BUTTON_HEIGHT);
     desired_size.x = desired_size.x.max(theme::BUTTON_MIN_WIDTH);
 
-    let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
+    let (rect, response) = ui.allocate_exact_size(
+        desired_size,
+        if enabled && !loading {
+            Sense::click()
+        } else {
+            Sense::hover()
+        },
+    );
+
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(
+            egui::WidgetType::Button,
+            enabled && !loading && ui.is_enabled(),
+            text_galley.text(),
+        )
+    });
 
     if ui.is_rect_visible(rect) {
         let is_hovered = enabled && !loading && response.hovered();
@@ -394,6 +411,14 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
     let desired_size = text_galley.size() + padding * 2.0;
 
     let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
+
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(
+            egui::WidgetType::Button,
+            ui.is_enabled(),
+            text_galley.text(),
+        )
+    });
 
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
@@ -774,4 +799,59 @@ pub fn fab_button(ui: &mut Ui, icon: &str) -> Response {
     }
 
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
+}
+
+#[cfg(test)]
+mod interaction_tests {
+    use super::*;
+
+    #[test]
+    fn unavailable_actions_do_not_accept_clicks_or_keyboard_focus() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                for response in [
+                    primary_button(ui, "Disabled", false),
+                    primary_button_loading(ui, "Loading", true, true),
+                    secondary_button(ui, "Disabled secondary", false),
+                    destructive_button(ui, "Disabled destructive", false),
+                    destructive_button_loading(ui, "Loading destructive", true, true),
+                ] {
+                    assert!(!response.sense.senses_click());
+                    assert!(!response.sense.is_focusable());
+                }
+                assert!(primary_button(ui, "Available", true).sense.senses_click());
+            });
+        });
+    }
+    #[test]
+    fn primary_action_activates_from_keyboard() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let mut id = None;
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                id = Some(primary_button(ui, "Analyser", true).id);
+            });
+        });
+        ctx.memory_mut(|m| m.request_focus(id.unwrap()));
+        let input = egui::RawInput {
+            events: vec![egui::Event::Key {
+                key: egui::Key::Enter,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: egui::Modifiers::NONE,
+            }],
+            ..Default::default()
+        };
+        let mut clicked = false;
+        let _ = ctx.run(input, |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                clicked = primary_button(ui, "Analyser", true).clicked();
+            });
+        });
+        assert!(clicked);
+    }
 }

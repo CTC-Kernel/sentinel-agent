@@ -52,7 +52,7 @@ pub fn sparkline(
     size: Vec2,
     config: &SparklineConfig,
 ) {
-    let (rect, _) = ui.allocate_exact_size(size, egui::Sense::hover());
+    let (rect, response) = ui.allocate_exact_size(size, egui::Sense::hover());
     if !ui.is_rect_visible(rect) {
         return;
     }
@@ -70,6 +70,19 @@ pub fn sparkline(
                     egui::pos2(rect.max.x - 4.0, y),
                 ],
                 Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+            );
+        }
+        if rect.width() >= 120.0 && rect.height() >= 32.0 {
+            painter.text(
+                rect.center(),
+                egui::Align2::CENTER_CENTER,
+                if data.is_empty() {
+                    "En attente de mesures"
+                } else {
+                    "Historique en cours"
+                },
+                theme::font_small(),
+                theme::text_tertiary(),
             );
         }
         return;
@@ -125,6 +138,30 @@ pub fn sparkline(
     if let Some(last) = points.last() {
         painter.circle_filled(*last, 4.5, theme::with_alpha(config.color, 70));
         painter.circle_filled(*last, 2.5, config.color);
+    }
+
+    // Reveal the closest sample without making a miniature chart draggable.
+    if let Some(pointer) = response.hover_pos()
+        && let Some((index, point)) = points
+            .iter()
+            .enumerate()
+            .min_by(|(_, a), (_, b)| (a.x - pointer.x).abs().total_cmp(&(b.x - pointer.x).abs()))
+    {
+        painter.line_segment(
+            [
+                egui::pos2(point.x, plot.top()),
+                egui::pos2(point.x, plot.bottom()),
+            ],
+            Stroke::new(theme::BORDER_HAIRLINE, theme::text_tertiary()),
+        );
+        painter.circle_filled(*point, 4.0, theme::bg_secondary());
+        painter.circle_stroke(*point, 4.0, Stroke::new(1.5_f32, config.color));
+        response.on_hover_ui(|ui| {
+            ui.label(format!(
+                "Valeur : {}",
+                crate::format::decimal(data[index][1], 1)
+            ));
+        });
     }
 }
 
