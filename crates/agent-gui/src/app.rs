@@ -187,10 +187,12 @@ fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static 
 }
 
 /// Build the full command list shown in the palette: one entry per page plus
-/// the global actions that already have keyboard shortcuts.
-fn build_palette_commands() -> Vec<widgets::CommandItem> {
+/// the global actions that already have keyboard shortcuts. A standalone
+/// agent has no synchronisation page and nothing to synchronise.
+fn build_palette_commands(standalone: bool) -> Vec<widgets::CommandItem> {
     let mut commands: Vec<widgets::CommandItem> = page_catalog()
         .into_iter()
+        .filter(|(page, ..)| !(standalone && *page == Page::Sync))
         .map(|(_, nav_id, icon, label, category)| {
             widgets::CommandItem::new(format!("nav:{nav_id}"), label)
                 .icon(icon)
@@ -204,12 +206,14 @@ fn build_palette_commands() -> Vec<widgets::CommandItem> {
             .shortcut(widgets::topbar::shortcut_label(false, "R"))
             .category("Actions"),
     );
-    commands.push(
-        widgets::CommandItem::new("action:force_sync", "Synchroniser maintenant")
-            .icon(icons::SYNC)
-            .shortcut(widgets::topbar::shortcut_label(true, "S"))
-            .category("Actions"),
-    );
+    if !standalone {
+        commands.push(
+            widgets::CommandItem::new("action:force_sync", "Synchroniser maintenant")
+                .icon(icons::SYNC)
+                .shortcut(widgets::topbar::shortcut_label(true, "S"))
+                .category("Actions"),
+        );
+    }
     commands.push(
         widgets::CommandItem::new("action:toggle_theme", "Basculer le thème clair / sombre")
             .icon(icons::SETTINGS)
@@ -1359,7 +1363,7 @@ impl eframe::App for SentinelApp {
 
         // Command palette (⌘K) — rendered last so it overlays everything.
         if self.command_palette.open {
-            let mut commands = build_palette_commands();
+            let mut commands = build_palette_commands(self.state.summary.standalone);
             commands.extend(entity_commands(&self.state));
             let selected = widgets::CommandPalette::new(&commands)
                 .placeholder("Rechercher une page, une action, une CVE, un actif…")

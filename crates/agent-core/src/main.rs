@@ -239,6 +239,17 @@ fn main() -> ExitCode {
     }
 }
 
+/// Whether `SENTINEL_STANDALONE` in the environment pins the agent to
+/// standalone mode whatever the configuration file says.
+fn standalone_forced_by_env() -> bool {
+    std::env::var("SENTINEL_STANDALONE").is_ok_and(|value| {
+        matches!(
+            value.trim().to_ascii_lowercase().as_str(),
+            "1" | "true" | "yes" | "on"
+        )
+    })
+}
+
 /// Environment variable carrying the PID of the instance a relaunch
 /// replaces; the new instance waits for it to exit before starting.
 const RELAUNCH_PARENT_ENV: &str = "SENTINEL_RELAUNCH_AFTER_PID";
@@ -367,6 +378,12 @@ fn handle_standalone(disable: bool) -> ExitCode {
                 "Standalone mode disabled in {}. Enroll with: sentinel-agent enroll --token <TOKEN>",
                 path.display()
             );
+            if standalone_forced_by_env() {
+                warn!(
+                    "SENTINEL_STANDALONE is set in the environment and overrides the file: \
+                     unset it (service unit, launchd plist, or system variables) too"
+                );
+            }
             ExitCode::SUCCESS
         }
         Ok(path) => {
@@ -3748,14 +3765,24 @@ async fn listen_for_platform_connection(
                             "Platform connection saved to {}; active at the next start",
                             path.display()
                         );
+                        let mut message = format!(
+                            "Agent enrôlé avec succès.\nID: {}\nLa synchronisation démarre au \
+                             prochain lancement de l'agent ; d'ici là, la protection locale \
+                             continue.",
+                            config.agent_id.as_deref().unwrap_or("?")
+                        );
+                        if standalone_forced_by_env() {
+                            warn!(
+                                "SENTINEL_STANDALONE is set: it overrides the file at the next start"
+                            );
+                            message.push_str(
+                                "\nAttention : la variable d'environnement SENTINEL_STANDALONE \
+                                 force le mode autonome. Retirez-la avant de redémarrer.",
+                            );
+                        }
                         let _ = events.send(AgentEvent::EnrollmentResult {
                             success: true,
-                            message: format!(
-                                "Agent enrôlé avec succès.\nID: {}\nLa synchronisation démarre \
-                                 au prochain lancement de l'agent ; d'ici là, la protection \
-                                 locale continue.",
-                                config.agent_id.as_deref().unwrap_or("?")
-                            ),
+                            message,
                             agent_id: config.agent_id.clone(),
                         });
                         let _ = events.send(AgentEvent::Notification {
