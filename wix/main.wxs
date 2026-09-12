@@ -80,8 +80,8 @@
         <Control Id="StandaloneHelp" Type="Text" X="36" Y="136" Width="314" Height="40" Text="EDR, intégrité des fichiers, conformité et analyse de vulnérabilités sur ce poste uniquement. Aucune donnée n'est envoyée. Gratuit, pour les particuliers et les postes isolés." />
 
         <Control Id="Info" Type="Text" X="20" Y="180" Width="330" Height="22" Text="Un poste autonome peut rejoindre une plateforme à tout moment depuis les réglages, avec un jeton d'enrôlement." />
-        <!-- Same property as the checkbox on EnrollmentDlg: the standalone path
-             never reaches that dialog, so the choice is offered here too. -->
+        <!-- Every install path goes through this dialog, so the auto-start
+             choice is made here for both modes (one CheckBox row per property). -->
         <Control Id="AutoStartCheck" Type="CheckBox" X="20" Y="204" Width="330" Height="17" Property="AUTOSTART" CheckBoxValue="1" Text="Démarrer automatiquement avec Windows" />
 
         <Control Id="BottomLine" Type="Line" X="0" Y="224" Width="370" Height="0" />
@@ -108,9 +108,9 @@
         <Control Id="ServerLabel" Type="Text" X="20" Y="110" Width="100" Height="15" Text="URL du serveur:" />
         <Control Id="ServerEdit" Type="Edit" X="20" Y="128" Width="330" Height="18" Property="SERVERURL" />
 
-        <Control Id="AutoStartCheck" Type="CheckBox" X="20" Y="160" Width="330" Height="17" Property="AUTOSTART" CheckBoxValue="1" Text="Démarrer automatiquement avec Windows" />
-
-        <Control Id="Info" Type="Text" X="20" Y="190" Width="330" Height="30" Text="L'agent se connectera au serveur Sentinel GRC après l'installation pour vérifier la conformité de cet ordinateur." />
+        <!-- The auto-start checkbox lives on ModeDlg: MSI keys the CheckBox
+             table by property, so AUTOSTART can be bound to one control only. -->
+        <Control Id="Info" Type="Text" X="20" Y="164" Width="330" Height="30" Text="L'agent se connectera au serveur Sentinel GRC après l'installation pour vérifier la conformité de cet ordinateur." />
 
         <Control Id="BottomLine" Type="Line" X="0" Y="224" Width="370" Height="0" />
         <Control Id="Back" Type="PushButton" X="180" Y="237" Width="56" Height="17" Text="Retour">
