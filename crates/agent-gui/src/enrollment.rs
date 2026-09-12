@@ -207,11 +207,7 @@ impl EnrollmentWizard {
         if let Some(EnrollmentCommand::Finish) = &command
             && let EnrollmentStep::Complete { success: false, .. } = &self.step
         {
-            self.step = if self.standalone {
-                EnrollmentStep::AdminSetup
-            } else {
-                EnrollmentStep::TokenEntry
-            };
+            self.step = self.retry_step();
             self.token_input.clear();
             self.qr_input.clear();
             return None;
@@ -759,8 +755,72 @@ impl EnrollmentWizard {
         self.step = EnrollmentStep::Complete { success, message };
     }
 
+    /// The step the wizard goes back to after a failed attempt: where the
+    /// operator can change what failed (the token, or nothing but retry).
+    fn retry_step(&self) -> EnrollmentStep {
+        if self.standalone {
+            EnrollmentStep::AdminSetup
+        } else {
+            EnrollmentStep::TokenEntry
+        }
+    }
+
     /// Update the progress message.
     pub fn set_progress(&mut self, message: String) {
         self.progress_message = message;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn first_launch_starts_at_the_welcome_choice() {
+        let wizard = EnrollmentWizard::default();
+        assert!(matches!(wizard.step, EnrollmentStep::Welcome));
+        assert!(!wizard.standalone);
+    }
+
+    #[test]
+    fn connecting_later_skips_the_choice_and_is_a_platform_flow() {
+        let wizard = EnrollmentWizard::for_platform_connection();
+        assert!(matches!(wizard.step, EnrollmentStep::TokenEntry));
+        assert!(
+            !wizard.standalone,
+            "a standalone agent joining a platform enrols like any other"
+        );
+    }
+
+    #[test]
+    fn failure_retries_where_the_operator_can_act() {
+        let mut platform = EnrollmentWizard::default();
+        platform.set_result(false, "Échec".into());
+        assert!(matches!(platform.retry_step(), EnrollmentStep::TokenEntry));
+
+        let mut standalone = EnrollmentWizard {
+            standalone: true,
+            ..Default::default()
+        };
+        standalone.set_result(false, "Échec".into());
+        assert!(
+            matches!(standalone.retry_step(), EnrollmentStep::AdminSetup),
+            "no token to fix in standalone mode: back to the admin step"
+        );
+    }
+
+    #[test]
+    fn set_result_ends_the_in_progress_state() {
+        let mut wizard = EnrollmentWizard {
+            is_enrolling: true,
+            step: EnrollmentStep::InProgress,
+            ..Default::default()
+        };
+        wizard.set_result(true, "ok".into());
+        assert!(!wizard.is_enrolling);
+        assert!(matches!(
+            wizard.step,
+            EnrollmentStep::Complete { success: true, .. }
+        ));
     }
 }

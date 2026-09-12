@@ -372,14 +372,32 @@ impl SettingsPage {
                     );
                     ui.add_space(theme::SPACE_XS);
                     ui.label(
-                        egui::RichText::new("Maintenez votre agent à jour pour bénéficier des dernières protections GRC.")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary()),
+                        egui::RichText::new(if state.summary.standalone {
+                            "Mode autonome : aucun serveur n'est contacté, les mises à jour s'installent depuis un paquet téléchargé."
+                        } else {
+                            "Maintenez votre agent à jour pour bénéficier des dernières protections GRC."
+                        })
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
                     );
                 });
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                     use crate::dto::UpdateStatus;
+
+                    if state.summary.standalone {
+                        // Nothing to check against: point at the download page
+                        // instead of a button that would silently do nothing.
+                        let label = format!("{}  Télécharger la dernière version", icons::DOWNLOAD);
+                        if widgets::button::secondary_button(ui, &label, true)
+                            .on_hover_text("Ouvre la page de téléchargement dans le navigateur")
+                            .clicked()
+                            && let Err(error) = open::that(crate::pages::about::branding::DOWNLOADS)
+                        {
+                            tracing::warn!("Failed to open downloads page: {error}");
+                        }
+                        return;
+                    }
 
                     let (btn_text, is_busy) = match &state.settings.update_status {
                         UpdateStatus::Idle => (format!("{}  Vérifier", icons::DOWNLOAD), false),

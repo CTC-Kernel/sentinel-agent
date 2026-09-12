@@ -681,6 +681,7 @@ impl SentinelApp {
                 self.state.resources.memory_used_mb,
             );
             tray.set_jarvis_checked(self.state.jarvis_visible);
+            tray.set_standalone(self.state.summary.standalone);
         }
     }
 

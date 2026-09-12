@@ -34,6 +34,9 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Interface en mode autonome** : bandeau « Mode autonome · Protection locale
   active », pastille et pied de barre latérale dédiés, page Synchronisation et
   bouton « Synchroniser » retirés, carte « Plateforme » dans les réglages.
+  Le menu de la barre système grise « Synchroniser » et « Console », et la
+  carte « Maintenance et mises à jour » propose le téléchargement du dernier
+  paquet plutôt qu'une vérification qui ne contacterait aucun serveur.
   Partout, un bouton « Connecter à une plateforme » rouvre l'assistant ;
   l'enrôlement réussi désactive le mode autonome, la synchronisation démarre
   au redémarrage suivant et une notification le dit.
