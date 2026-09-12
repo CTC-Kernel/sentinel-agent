@@ -165,7 +165,21 @@ impl<'a, T> Dropdown<'a, T> {
         // Dropdown popup
         if is_open {
             let popup_id = self.id.with("popup");
-            let above = rect.min.y > ui.ctx().screen_rect().center().y;
+            // Open downwards unless the list would run off the bottom of the
+            // window; flipping whenever the control sat in the lower half
+            // laid the list over the fields above it for no reason.
+            let list_height = (self.options.len() as f32 * theme::DROPDOWN_ROW_HEIGHT
+                + if self.searchable {
+                    theme::INPUT_HEIGHT + theme::SPACE_SM
+                } else {
+                    0.0
+                }
+                + theme::SPACE_SM)
+                .min(theme::DROPDOWN_MAX_HEIGHT + theme::DROPDOWN_POPUP_MARGIN);
+            let screen = ui.ctx().screen_rect();
+            let fits_below = rect.max.y + theme::SPACE_XS + list_height <= screen.bottom();
+            let fits_above = rect.min.y - theme::SPACE_XS - list_height >= screen.top();
+            let above = !fits_below && fits_above;
 
             // Keyboard: Escape to close
             if ui.input(|i| i.key_pressed(egui::Key::Escape)) {

@@ -100,9 +100,9 @@ pub use sparkline::{
 // UX feedback & input exports
 pub use loading_state::{error_state, loading_skeleton};
 pub use text_input::{
-    InputValidation, SearchInput, SearchInputResponse, ValidationState, form_field, search_input,
-    text_input, text_input_clearable, text_input_validated, text_input_with_limit,
-    text_input_with_options,
+    InputValidation, PasswordInput, PasswordInputResponse, SearchInput, SearchInputResponse,
+    ValidationState, form_field, search_input, text_input, text_input_clearable,
+    text_input_validated, text_input_with_limit, text_input_with_options,
 };
 pub use toast::{Toast, ToastLevel, ToastPosition, render_toasts, render_toasts_at};
 

@@ -52,7 +52,7 @@ Cette crate fournit un tableau de bord interactif complet construit avec **egui/
 | Categorie | Composants |
 |-----------|------------|
 | **Layout** | card, modal, sidebar, layout, breadcrumb, divider, tabs |
-| **Saisie** | text_input, search_input (`SearchInput`), chat_input (`ChatInput`), form (`row`, `fields`/`field`), checkbox, toggle_switch, slider, dropdown, command_palette |
+| **Saisie** | text_input, search_input (`SearchInput`), chat_input (`ChatInput`), password_input (`PasswordInput`), form (`row`, `fields`/`field`), checkbox, toggle_switch, slider, dropdown, command_palette |
 | **Affichage** | badge, status_badge, avatar, alert, tooltip, skeleton, empty_state |
 | **Donnees** | table (cellules et colonnes fluides pour `egui_extras`), data_table, pagination, activity_feed, detail_drawer |
 | **Feedback** | toast, loading_state, progress |

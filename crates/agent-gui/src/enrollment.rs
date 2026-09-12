@@ -293,24 +293,13 @@ impl EnrollmentWizard {
                     );
                     ui.add_space(theme::SPACE_SM);
 
-                    ui.horizontal(|ui| {
-                        ui.add(
-                            egui::TextEdit::singleline(&mut self.token_input)
-                                .desired_width(ui.available_width() - 40.0)
-                                .font(egui::TextStyle::Monospace)
-                                .password(!self.show_token)
-                                .hint_text("Jeton d'enrôlement…"),
-                        );
-
-                        let vis_icon = if self.show_token {
-                            icons::EYE_SLASH
-                        } else {
-                            icons::EYE
-                        };
-                        if widgets::button::icon_button(ui, vis_icon, None).clicked() {
-                            self.show_token = !self.show_token;
-                        }
-                    });
+                    widgets::PasswordInput::new(
+                        &mut self.token_input,
+                        "Jeton d'enrôlement…",
+                        &mut self.show_token,
+                    )
+                    .id_salt("enrolment_token")
+                    .show(ui);
                 }
 
                 ui.add_space(theme::SPACE);
@@ -384,24 +373,14 @@ impl EnrollmentWizard {
                 );
                 ui.add_space(theme::SPACE_XS);
 
-                ui.horizontal(|ui| {
-                    ui.add(
-                        egui::TextEdit::singleline(&mut self.admin_password)
-                            .desired_width(ui.available_width() - 40.0)
-                            .font(egui::TextStyle::Monospace)
-                            .password(!self.show_password)
-                            .hint_text("Saisir un mot de passe sécurisé (min. 8 caractères)"),
-                    );
-
-                    let vis_icon = if self.show_password {
-                        icons::EYE_SLASH
-                    } else {
-                        icons::EYE
-                    };
-                    if widgets::button::icon_button(ui, vis_icon, None).clicked() {
-                        self.show_password = !self.show_password;
-                    }
-                });
+                widgets::PasswordInput::new(
+                    &mut self.admin_password,
+                    "Saisir un mot de passe sécurisé (min. 8 caractères)",
+                    &mut self.show_password,
+                )
+                .id_salt("enrolment_admin_password")
+                .proportional()
+                .show(ui);
 
                 // Password strength feedback
                 let pw_len = self.admin_password.trim().len();

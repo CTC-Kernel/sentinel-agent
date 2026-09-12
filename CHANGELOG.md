@@ -117,6 +117,15 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   qu'il faisait défiler. Le zoom passe sur Ctrl/⌘ + molette (et le pincement)
   avec le pointeur sur la carte, la molette seule fait défiler la page ; le
   raccourci est indiqué sous l'indicateur de zoom.
+- **Champ secret** (`widgets::PasswordInput`) : cadre, cadenas, valeur masquée,
+  œil pour la révéler, anneau de focus, Entrée pour valider. Il remplace les
+  `TextEdit` nus (une ligne soulignée à côté d'un bouton flottant) du jeton
+  d'enrôlement, du mot de passe administrateur de l'assistant et du dialogue
+  de déverrouillage des paramètres, lequel perd sa barre de titre egui pour
+  la surface de dialogue du produit.
+- **Listes déroulantes** : le menu s'ouvrait vers le haut dès que le contrôle
+  était dans la moitié basse de la fenêtre, recouvrant les champs au-dessus ;
+  il s'ouvre vers le bas tant qu'il y tient, et ne bascule que faute de place.
 - Correctif au passage : la liste des paquets appelait deux fois la navigation
   clavier, faisant sauter deux lignes par flèche et déréglant la pagination
   de l'onglet Applications.

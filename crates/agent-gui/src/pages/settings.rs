@@ -680,10 +680,21 @@ impl SettingsPage {
 
         if modal_state.0 {
             let ctx = ui.ctx().clone();
+            // Drawn as the product's dialog surface, not as an egui window
+            // with a title bar the rest of the interface never shows.
             egui::Window::new("Déverrouillage admin")
+                .title_bar(false)
                 .collapsible(false)
                 .resizable(false)
                 .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
+                .frame(
+                    egui::Frame::new()
+                        .fill(theme::bg_secondary())
+                        .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
+                        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()))
+                        .shadow(theme::Elevation::Level4.ambient())
+                        .inner_margin(egui::Margin::same(theme::SPACE_LG as i8)),
+                )
                 .show(&ctx, |ui| {
                     ui.set_min_width(320.0);
                     ui.vertical_centered(|ui| {
@@ -733,22 +744,22 @@ impl SettingsPage {
                             );
                             ui.add_space(theme::SPACE_MD);
 
-                            let resp = ui.add(
-                                egui::TextEdit::singleline(&mut modal_state.1)
-                                    .password(true)
-                                    .hint_text("Mot de passe")
-                                    .desired_width(200.0),
-                            );
+                            let reveal_id = unlock_modal_id.with("reveal");
+                            let mut revealed: bool =
+                                ui.memory(|mem| mem.data.get_temp(reveal_id).unwrap_or(false));
+                            let field = widgets::PasswordInput::new(
+                                &mut modal_state.1,
+                                "Mot de passe administrateur",
+                                &mut revealed,
+                            )
+                            .width(280.0)
+                            .id_salt("admin_unlock_password")
+                            .autofocus(true)
+                            .proportional()
+                            .show(ui);
+                            ui.memory_mut(|mem| mem.data.insert_temp(reveal_id, revealed));
 
-                            // Autofocus on first appearance only
-                            if !resp.has_focus() && !ui.input(|i| i.pointer.any_click()) {
-                                resp.request_focus();
-                            }
-
-                            let mut attempt_validate = false;
-                            if resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                                attempt_validate = true;
-                            }
+                            let mut attempt_validate = field.submitted;
 
                             if let Some(err) = &modal_state.2 {
                                 ui.add_space(theme::SPACE_XS);
