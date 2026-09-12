@@ -20,6 +20,7 @@
 //! - `SENTINEL_ENROLLMENT_TOKEN` → `enrollment_token`
 //! - `SENTINEL_CA_CERT_PATH` → `ca_cert_path`
 //! - `SENTINEL_CHECK_INTERVAL_SECS` → `check_interval_secs`
+//! - `SENTINEL_STANDALONE` → `standalone` (`true`: no platform, local protection only)
 //!
 //! Nested fields are mapped explicitly (see [`NESTED_ENV_KEYS`]):
 //!
@@ -157,6 +158,18 @@ pub struct AgentConfig {
     /// LLM configuration settings.
     #[serde(default)]
     pub llm: LLMSettings,
+
+    /// Standalone mode: the agent protects this endpoint on its own, with no
+    /// Sentinel GRC platform behind it.
+    ///
+    /// No enrollment, no heartbeat, no upload, no remote command and no
+    /// self-update from a server: detection (EDR), file integrity, compliance
+    /// checks, vulnerability scanning, the local database and the local
+    /// assistant all keep working. Chosen at installation for individuals and
+    /// for endpoints that only need protection; `sentinel-agent connect` (or
+    /// the "Connecter à une plateforme" action) leaves it later.
+    #[serde(default)]
+    pub standalone: bool,
 }
 
 /// LLM configuration settings for the agent.
@@ -332,6 +345,7 @@ impl Default for AgentConfig {
             active_frameworks: None,
             admin_password: None,
             llm: LLMSettings::default(),
+            standalone: false,
         }
     }
 }
@@ -340,6 +354,18 @@ impl AgentConfig {
     /// Returns true if the agent is enrolled (has an agent_id in configuration).
     pub fn is_enrolled(&self) -> bool {
         self.agent_id.is_some()
+    }
+
+    /// Returns true when the agent runs without a platform (see
+    /// [`AgentConfig::standalone`]).
+    pub fn is_standalone(&self) -> bool {
+        self.standalone
+    }
+
+    /// Returns true when the agent is ready to protect the endpoint: enrolled
+    /// with a platform, or standalone.
+    pub fn is_ready(&self) -> bool {
+        self.standalone || self.is_enrolled()
     }
 
     /// Load configuration from file and environment variables.
@@ -523,8 +549,8 @@ impl AgentConfig {
     }
 
     /// Validate the configuration.
-    pub fn validate(&self) -> crate::error::Result<()> {
-        // Validate server_url
+    /// Check that `server_url` names a reachable platform endpoint.
+    fn validate_server_url(&self) -> crate::error::Result<()> {
         if self.server_url.is_empty() {
             return Err(crate::error::CommonError::validation(
                 "server_url cannot be empty",
@@ -552,6 +578,15 @@ impl AgentConfig {
             return Err(crate::error::CommonError::validation(
                 "server_url targeting cloudfunctions.net must include the function name suffix (e.g., /agentApi)",
             ));
+        }
+        Ok(())
+    }
+
+    pub fn validate(&self) -> crate::error::Result<()> {
+        // The server is only a requirement when a platform is expected: a
+        // standalone agent never opens a connection to one.
+        if !self.standalone {
+            self.validate_server_url()?;
         }
 
         // Validate check_interval_secs
@@ -631,6 +666,32 @@ impl AgentConfig {
         Url::parse(server_url).map_err(|e| {
             CommonError::validation(format!("server_url is not a valid URL: {}", e))
         })?;
+        Self::persist_value_to(
+            path,
+            "server_url",
+            serde_json::Value::String(server_url.trim_end_matches('/').to_string()),
+        )
+    }
+
+    /// Persist the standalone choice into the platform configuration file.
+    ///
+    /// Written by the installer (Windows property, macOS choice, Linux
+    /// environment) and by `sentinel-agent standalone` / `connect`, so the
+    /// service started afterwards knows whether a platform is expected.
+    pub fn persist_standalone(standalone: bool) -> crate::error::Result<PathBuf> {
+        let path = Self::platform_config_path();
+        Self::persist_value_to(&path, "standalone", serde_json::Value::Bool(standalone))?;
+        Ok(path)
+    }
+
+    /// Set one top-level key of the JSON configuration at `path`, keeping every
+    /// other key and the file's ownership and permissions.
+    pub fn persist_value_to(
+        path: &Path,
+        key: &str,
+        value: serde_json::Value,
+    ) -> crate::error::Result<()> {
+        use crate::error::CommonError;
 
         let mut root = match std::fs::read_to_string(path) {
             Ok(content) if !content.trim().is_empty() => {
@@ -658,10 +719,7 @@ impl AgentConfig {
         let object = root.as_object_mut().ok_or_else(|| {
             CommonError::config(format!("{} does not contain a JSON object", path.display()))
         })?;
-        object.insert(
-            "server_url".to_string(),
-            serde_json::Value::String(server_url.trim_end_matches('/').to_string()),
-        );
+        object.insert(key.to_string(), value);
 
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent).map_err(|e| {
@@ -809,6 +867,7 @@ mod tests {
             admin_password: None,
             heartbeat_interval_secs: 60,
             llm: LLMSettings::default(),
+            standalone: false,
         };
 
         let json = serde_json::to_string(&config).unwrap();
@@ -1156,6 +1215,50 @@ mod tests {
             let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
             assert_eq!(mode, 0o600);
         }
+    }
+
+    #[test]
+    fn standalone_is_off_by_default_and_read_from_file_env_and_persist() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("agent.json");
+
+        // Default: a platform is expected.
+        let config = AgentConfig::default();
+        assert!(!config.is_standalone());
+        assert!(!config.is_ready());
+
+        // From the file.
+        std::fs::write(
+            &path,
+            r#"{ "standalone": true, "check_interval_secs": 1234 }"#,
+        )
+        .unwrap();
+        let loaded = AgentConfig::load(Some(path.to_str().unwrap())).unwrap();
+        assert!(loaded.is_standalone());
+        assert!(
+            loaded.is_ready(),
+            "standalone needs no enrollment to be ready"
+        );
+        assert!(!loaded.is_enrolled());
+
+        // Persisted next to the other keys.
+        AgentConfig::persist_value_to(&path, "standalone", serde_json::Value::Bool(false)).unwrap();
+        let value: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        assert_eq!(value["standalone"], false);
+        assert_eq!(value["check_interval_secs"], 1234);
+
+        // From the environment, over the file.
+        let env = env_map(&[("SENTINEL_STANDALONE", "true")]);
+        let config = load_with_env(r#"{ "standalone": false }"#, &env);
+        assert!(config.is_standalone());
+
+        // A standalone file needs no server to be valid.
+        let config: AgentConfig =
+            serde_json::from_str(r#"{ "standalone": true, "server_url": "" }"#).unwrap();
+        assert!(config.validate().is_ok());
+        let config: AgentConfig = serde_json::from_str(r#"{ "server_url": "" }"#).unwrap();
+        assert!(config.validate().is_err());
     }
 
     #[test]

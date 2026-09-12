@@ -10,6 +10,39 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🏠 Mode autonome (standalone), choisi à l'installation
+
+- **Un agent sans plateforme** : `"standalone": true` (ou `SENTINEL_STANDALONE`,
+  ou `sentinel-agent standalone`) coupe tout ce qui parle à la plateforme —
+  enrôlement, heartbeat, envoi des résultats de conformité, des vulnérabilités,
+  des logiciels, des incidents et des instantanés réseau, commandes distantes,
+  renouvellement de certificat et mise à jour distante. Aucun client HTTP n'est
+  créé. EDR, intégrité des fichiers, conformité, analyse de vulnérabilités,
+  inventaire et surveillance réseau tournent en local et les données restent
+  sur le poste. Destiné aux particuliers et aux postes qui n'ont besoin que
+  d'une protection locale, gratuitement.
+- **Choix à l'installation** : le MSI Windows ajoute un dialogue « Comment
+  protéger ce poste ? » (plateforme / protection locale), la propriété
+  `INSTALLMODE=STANDALONE` en silencieux, un `agent.json` autonome et un
+  raccourci « Tableau de bord » réservé au mode plateforme. Le `.deb` honore
+  `SENTINEL_STANDALONE=1` au `dpkg -i`, le `.pkg` macOS se construit avec
+  `SENTINEL_STANDALONE=1`.
+- **Assistant de premier lancement** : deux cartes, « Rejoindre une
+  plateforme » ou « Protection locale ». Le parcours autonome ne demande qu'un
+  mot de passe administrateur optionnel, en quatre étapes, et se termine par
+  « Protection activée ».
+- **Interface en mode autonome** : bandeau « Mode autonome · Protection locale
+  active », pastille et pied de barre latérale dédiés, page Synchronisation et
+  bouton « Synchroniser » retirés, carte « Plateforme » dans les réglages.
+  Partout, un bouton « Connecter à une plateforme » rouvre l'assistant ;
+  l'enrôlement réussi désactive le mode autonome, la synchronisation démarre
+  au redémarrage suivant et une notification le dit.
+- **Ligne de commande** : `sentinel-agent standalone` / `--disable` ;
+  `sentinel-agent enroll` réussi désactive lui aussi le mode autonome.
+- **Documentation** : `config/README.md` (section et variable
+  `SENTINEL_STANDALONE`), exemples JSON, README, guide utilisateur, README du
+  preview (`PREVIEW_STANDALONE=1`, étapes `standalone-*`).
+
 ### 🔌 Communication avec la plateforme on-premise
 
 - **Variables d'environnement `SENTINEL_*` réellement prises en compte** :

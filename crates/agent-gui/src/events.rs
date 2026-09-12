@@ -367,6 +367,9 @@ pub enum GuiCommand {
     RunSync,
     /// Request the current agent summary.
     GetSummary,
+    /// Leave standalone mode: open the platform connection wizard. Handled by
+    /// the shell itself; the runtime learns about it through the enrollment.
+    ConnectToPlatform,
     /// Request list of check results.
     GetCheckResults,
     /// Mark a notification as read.

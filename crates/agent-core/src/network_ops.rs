@@ -69,6 +69,9 @@ impl AgentRuntime {
         &self,
         snapshot: &NetworkSnapshot,
     ) -> Result<(), CommonError> {
+        if self.config.standalone {
+            return Ok(());
+        }
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()
@@ -101,6 +104,9 @@ impl AgentRuntime {
         &self,
         alert: &NetworkSecurityAlert,
     ) -> Result<(), CommonError> {
+        if self.config.standalone {
+            return Ok(());
+        }
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()
@@ -138,6 +144,9 @@ impl AgentRuntime {
         &self,
         proposal: &ProposeAssetData,
     ) -> Result<(), CommonError> {
+        if self.config.standalone {
+            return Ok(());
+        }
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()

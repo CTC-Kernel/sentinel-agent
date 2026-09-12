@@ -46,6 +46,9 @@ impl Default for Preview {
             if std::env::var("PREVIEW_DATA").is_ok() {
                 fixtures::seed(&mut state);
             }
+            if std::env::var("PREVIEW_STANDALONE").is_ok() {
+                fixtures::standalone(&mut state);
+            }
             if let Some(tab) = std::env::var("PREVIEW_TAB")
                 .ok()
                 .and_then(|v| v.parse().ok())
@@ -75,15 +78,22 @@ impl Default for Preview {
             toasts: Vec::new(),
             wizard: {
                 use agent_gui::enrollment::{EnrollmentStep, EnrollmentWizard};
-                let step = match std::env::var("PREVIEW_STEP").as_deref() {
-                    Ok("token") => EnrollmentStep::TokenEntry,
-                    Ok("admin") => EnrollmentStep::AdminSetup,
-                    Ok("progress") => EnrollmentStep::InProgress,
-                    Ok("done") => EnrollmentStep::Complete {
+                let requested_step = std::env::var("PREVIEW_STEP").unwrap_or_default();
+                // `standalone-<step>` previews the wizard's standalone branch.
+                let standalone = requested_step.starts_with("standalone-");
+                let step = match requested_step.trim_start_matches("standalone-") {
+                    "token" => EnrollmentStep::TokenEntry,
+                    "admin" => EnrollmentStep::AdminSetup,
+                    "progress" => EnrollmentStep::InProgress,
+                    "done" if standalone => EnrollmentStep::Complete {
+                        success: true,
+                        message: "Mode autonome activé. Ce poste est protégé localement, sans plateforme.".into(),
+                    },
+                    "done" => EnrollmentStep::Complete {
                         success: true,
                         message: "Agent enrôlé auprès de Cyber Threat Consulting.".into(),
                     },
-                    Ok("failed") => EnrollmentStep::Complete {
+                    "failed" => EnrollmentStep::Complete {
                         success: false,
                         message:
                             "Jeton expiré. Demandez un nouveau QR code à votre administrateur."
@@ -93,6 +103,7 @@ impl Default for Preview {
                 };
                 EnrollmentWizard {
                     step,
+                    standalone,
                     ..Default::default()
                 }
             },
@@ -133,19 +144,21 @@ impl eframe::App for Preview {
             _ => {}
         }
 
-        let (org, unread, pending, last_sync, scanning) = match self.state.as_deref() {
+        let (org, unread, pending, last_sync, scanning, standalone) = match self.state.as_deref() {
             Some(st) => (
                 st.summary.organization.clone(),
                 st.unread_notification_count,
                 st.summary.pending_sync_count,
                 st.summary.last_sync_at,
                 st.summary.status == agent_gui::dto::GuiAgentStatus::Scanning,
+                st.summary.standalone,
             ),
             None => (
                 Some("Cyber Threat Consulting".to_string()),
                 7,
                 3,
                 Some(chrono::Utc::now() - chrono::Duration::minutes(4)),
+                false,
                 false,
             ),
         };
@@ -166,6 +179,7 @@ impl eframe::App for Preview {
                 page_label,
                 page_section: Some(page_section),
                 organization: org.as_deref(),
+                standalone,
                 unread,
                 syncing: false,
                 scanning,
@@ -197,6 +211,7 @@ impl eframe::App for Preview {
                         unread_notifications: unread,
                         sync: &sync,
                         organization: org.as_deref(),
+                        standalone,
                         ai_ready: true,
                         voice_active: false,
                         collapsed,

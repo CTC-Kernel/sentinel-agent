@@ -329,21 +329,22 @@ impl DashboardPage {
             ui.add_space(theme::SPACE_SM);
 
             let is_syncing = state.summary.status == GuiAgentStatus::Syncing;
-            if widgets::button::secondary_button_loading(
-                ui,
-                format!(
-                    "{}  {}",
-                    icons::SYNC,
-                    if is_syncing {
-                        "Synchronisation…"
-                    } else {
-                        "Synchroniser"
-                    }
-                ),
-                !is_syncing,
-                is_syncing,
-            )
-            .clicked()
+            if !state.summary.standalone
+                && widgets::button::secondary_button_loading(
+                    ui,
+                    format!(
+                        "{}  {}",
+                        icons::SYNC,
+                        if is_syncing {
+                            "Synchronisation…"
+                        } else {
+                            "Synchroniser"
+                        }
+                    ),
+                    !is_syncing,
+                    is_syncing,
+                )
+                .clicked()
             {
                 command = Some(GuiCommand::RunSync);
             }
@@ -428,6 +429,7 @@ impl DashboardPage {
                             ("D\u{00e9}connect\u{00e9}", theme::WARNING)
                         }
                         GuiAgentStatus::Error => ("Erreur", theme::ERROR),
+                        GuiAgentStatus::Standalone => ("Autonome", theme::SUCCESS),
                         _ => ("Attente", theme::text_tertiary()),
                     };
                     widgets::status_badge(ui, status_text, status_color);

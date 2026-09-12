@@ -25,9 +25,38 @@ L'agent est conçu pour être à la fois **puissant** et **discret**. Il opère 
 
 ---
 
+## 🏠 Mode autonome (protection locale, sans plateforme)
+
+L'agent n'a pas besoin d'une plateforme pour protéger un poste. En **mode autonome**,
+la détection (EDR), l'intégrité des fichiers, la conformité, l'analyse de vulnérabilités,
+l'inventaire et la surveillance réseau fonctionnent entièrement en local. Aucune donnée
+ne quitte le poste : pas d'enrôlement, pas de heartbeat, pas d'envoi, pas de commande
+distante. C'est le mode gratuit destiné aux particuliers et aux postes qui ont seulement
+besoin d'une protection EDR performante.
+
+**Choisir le mode :**
+- **À l'installation** : l'installeur Windows propose « Rejoindre une plateforme » ou
+  « Protection locale (autonome) » ; en silencieux, `msiexec /i sentinel-agent.msi /qn INSTALLMODE=STANDALONE`.
+  Sur Debian/Ubuntu : `SENTINEL_STANDALONE=1 sudo -E dpkg -i sentinel-agent_*.deb`.
+  Sur macOS : paquet construit avec `SENTINEL_STANDALONE=1`.
+- **Au premier lancement** : l'assistant affiche les deux cartes ; « Protection locale »
+  demande seulement un mot de passe administrateur optionnel, puis active la protection.
+- **En ligne de commande** : `sentinel-agent standalone` (et `--disable` pour revenir).
+
+**Rejoindre une plateforme plus tard :** bouton **Connecter à une plateforme** dans le bandeau
+du tableau de bord ou dans **Réglages > Plateforme**, avec un jeton d'enrôlement. La
+synchronisation démarre au redémarrage suivant de l'agent ; d'ici là la protection locale continue.
+
+> [!NOTE]
+> En mode autonome, l'interface affiche « Mode autonome · Protection locale active », la page
+> Synchronisation n'est pas proposée et le bouton « Synchroniser » disparaît.
+
+---
+
 ## 🔑 Enrollment (Première Connexion)
 
-Avant de pouvoir communiquer avec la plateforme Sentinel GRC, l'agent doit s'enrôler.
+Avant de pouvoir communiquer avec la plateforme Sentinel GRC, l'agent doit s'enrôler
+(sauf en mode autonome, voir ci-dessus).
 
 ### Obtenir un token d'enrollment
 1. Connectez-vous à la plateforme Sentinel GRC en tant qu'administrateur.
@@ -138,7 +167,8 @@ Accédez à une visibilité complète via notre tableau de bord immersif compos�
 
 ### 🪟 Windows (Enterprise Ready)
 1. Exécutez `SentinelAgentSetup.exe` avec privilèges Administrateur.
-2. Suivez l'assistant de déploiement automatique.
+2. Choisissez le mode : **Rejoindre une plateforme** (jeton d'enrôlement demandé à l'étape
+   suivante) ou **Protection locale (autonome)**.
 3. L'agent s'enregistre immédiatement comme service système.
 
 ---
@@ -156,6 +186,7 @@ L'agent est piloté par un fichier de configuration structuré (JSON).
 ### Structure de Référence
 ```json
 {
+  "standalone": false,
   "server_url": "https://votre-instance.sentinel.com",
   "enrollment_token": "eyJhbGciOiJIUzI1NiIs...<JWT contenant organizationId>",
   "check_interval_secs": 3600,

@@ -112,6 +112,9 @@ impl AgentRuntime {
         &self,
         scan_result: &VulnerabilityScanResult,
     ) -> Result<(), CommonError> {
+        if self.config.standalone {
+            return Ok(());
+        }
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()
@@ -169,6 +172,9 @@ impl AgentRuntime {
 
     /// Upload software inventory from a vulnerability scan result.
     pub(crate) async fn upload_software_from_scan(&self, scan_result: &VulnerabilityScanResult) {
+        if self.config.standalone {
+            return;
+        }
         if scan_result.packages.is_empty() {
             debug!("No packages to upload for software inventory");
             return;
@@ -244,6 +250,9 @@ impl AgentRuntime {
         &self,
         incident: &agent_scanner::SecurityIncident,
     ) -> Result<(), CommonError> {
+        if self.config.standalone {
+            return Ok(());
+        }
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()

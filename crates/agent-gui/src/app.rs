@@ -1041,8 +1041,14 @@ impl eframe::App for SentinelApp {
                                 }
                             }
                             EnrollmentCommand::Cancel => {
-                                // Exit the app if user cancels enrollment.
-                                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                if self.state.summary.standalone {
+                                    // Connecting later was optional: back to
+                                    // the protected, standalone interface.
+                                    self.enrolled = true;
+                                } else {
+                                    // Exit the app if user cancels enrollment.
+                                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                }
                             }
                             _ => {}
                         }
@@ -1143,6 +1149,7 @@ impl eframe::App for SentinelApp {
                     unread_notifications: self.state.unread_notification_count,
                     sync: &sync_state,
                     organization: self.state.summary.organization.as_deref(),
+                    standalone: self.state.summary.standalone,
                     ai_ready: self.state.ai.model_status.is_ready,
                     voice_active: self.state.voice_active,
                     // Mid-animation the rail is already narrow enough that
@@ -1203,7 +1210,11 @@ impl eframe::App for SentinelApp {
                                 {
                                     match action {
                                         pages::DashboardAction::Command(cmd) => {
-                                            self.send_command(cmd);
+                                            if matches!(cmd, GuiCommand::ConnectToPlatform) {
+                                                self.start_platform_connection();
+                                            } else {
+                                                self.send_command(cmd);
+                                            }
                                         }
                                         pages::DashboardAction::NavigateTo(page) => {
                                             self.navigate_to(page);
@@ -1286,11 +1297,15 @@ impl eframe::App for SentinelApp {
                             }
                             Page::Settings => {
                                 if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
-                                    if matches!(cmd, GuiCommand::Shutdown) {
-                                        self.quit_requested = true;
-                                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                    if matches!(cmd, GuiCommand::ConnectToPlatform) {
+                                        self.start_platform_connection();
+                                    } else {
+                                        if matches!(cmd, GuiCommand::Shutdown) {
+                                            self.quit_requested = true;
+                                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                        }
+                                        self.send_command(cmd);
                                     }
-                                    self.send_command(cmd);
                                 }
                             }
                             Page::About => {
@@ -1376,6 +1391,7 @@ impl SentinelApp {
                 page_label: label,
                 page_section: section,
                 organization: self.state.summary.organization.as_deref(),
+                standalone: self.state.summary.standalone,
                 unread: self.state.unread_notification_count,
                 syncing: self.state.sync.in_progress,
                 scanning: self.state.summary.status == crate::dto::GuiAgentStatus::Scanning,
@@ -1528,6 +1544,14 @@ impl SentinelApp {
             }
             _ => {}
         }
+    }
+
+    /// Open the platform connection wizard from a standalone agent. The
+    /// runtime enrolls in the background; the connection is live at the next
+    /// start, the wizard says so.
+    fn start_platform_connection(&mut self) {
+        self.enrollment_wizard = EnrollmentWizard::for_platform_connection();
+        self.enrolled = false;
     }
 
     /// Render the splash screen.

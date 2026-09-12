@@ -575,6 +575,16 @@ impl SettingsPage {
             );
             ui.add_space(theme::SPACE_MD);
 
+            if state.summary.standalone {
+                Self::setting_row(
+                    ui,
+                    "MODE",
+                    "Autonome \u{00b7} protection locale",
+                    icons::SHIELD_CHECK,
+                );
+                Self::setting_row(ui, "PLATEFORME", "Aucune", icons::ARROW_RIGHT);
+                return;
+            }
             Self::setting_row(
                 ui,
                 "ENDPOINT",
@@ -607,27 +617,54 @@ impl SettingsPage {
                 &format!("{} secondes", state.settings.check_interval_secs),
                 icons::ARROW_RIGHT,
             );
-            Self::setting_row(
-                ui,
-                "HEARTBEAT",
-                &format!("{} secondes", state.settings.heartbeat_interval_secs),
-                icons::ARROW_RIGHT,
-            );
+            if !state.summary.standalone {
+                Self::setting_row(
+                    ui,
+                    "HEARTBEAT",
+                    &format!("{} secondes", state.settings.heartbeat_interval_secs),
+                    icons::ARROW_RIGHT,
+                );
+            }
         });
     }
 
-    fn cloud_access_card(ui: &mut Ui, state: &AppState, _command: &mut Option<GuiCommand>) {
+    fn cloud_access_card(ui: &mut Ui, state: &AppState, command: &mut Option<GuiCommand>) {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("ACCÈS CLOUD ET GESTION")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
+                egui::RichText::new(if state.summary.standalone {
+                    "PLATEFORME"
+                } else {
+                    "ACCÈS CLOUD ET GESTION"
+                })
+                .font(theme::font_label())
+                .color(theme::text_tertiary())
+                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                .strong(),
             );
             ui.add_space(theme::SPACE_MD);
 
-            if let Some(ref id) = state.summary.agent_id {
+            if state.summary.standalone {
+                ui.label(
+                    egui::RichText::new(
+                        "Ce poste est prot\u{00e9}g\u{00e9} en autonomie : aucune donn\u{00e9}e n'est \
+                         envoy\u{00e9}e. Pour le piloter depuis une plateforme Sentinel GRC \
+                         (politiques, rapports, r\u{00e9}ponse \u{00e0} distance), enr\u{00f4}lez-le \
+                         avec un jeton fourni par votre administrateur.",
+                    )
+                    .font(theme::font_label())
+                    .color(theme::text_secondary()),
+                );
+                ui.add_space(theme::SPACE_MD);
+                if widgets::primary_button(
+                    ui,
+                    format!("{}  Connecter \u{00e0} une plateforme", icons::LINK),
+                    true,
+                )
+                .clicked()
+                {
+                    *command = Some(GuiCommand::ConnectToPlatform);
+                }
+            } else if let Some(ref id) = state.summary.agent_id {
                 let url = format!("{}/agents/{}", super::about::branding::CONSOLE, id);
 
                 ui.label(

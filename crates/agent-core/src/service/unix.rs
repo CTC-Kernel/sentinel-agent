@@ -126,6 +126,8 @@ pub fn run_as_service() -> ServiceResult<()> {
                 config.client_key = Some(creds.client_private_key.clone());
                 info!("Loaded credentials for agent {}", creds.agent_id);
             }
+        } else if config.standalone {
+            info!("Standalone mode: local protection only, no platform expected.");
         } else {
             warn!("Agent not enrolled. Service will run in offline mode.");
         }

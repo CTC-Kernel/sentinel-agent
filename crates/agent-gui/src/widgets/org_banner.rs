@@ -7,6 +7,9 @@ use crate::{app::AppState, dto::GuiAgentStatus, events::GuiCommand, icons, theme
 use egui::{RichText, Ui};
 
 pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
+    if state.summary.standalone {
+        return standalone_banner(ui, state);
+    }
     widgets::card(ui, |ui| {
         ui.horizontal_wrapped(|ui| {
             ui.label(
@@ -76,4 +79,54 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
         });
     });
     None
+}
+
+/// The standalone counterpart: what protects this endpoint, and that
+/// nothing leaves it. Connecting to a platform is one click away, in the
+/// settings, never a nag.
+fn standalone_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
+    let mut command = None;
+    widgets::card(ui, |ui| {
+        ui.horizontal_wrapped(|ui| {
+            ui.label(
+                RichText::new(icons::SHIELD_CHECK)
+                    .font(theme::font_icon(theme::ICON_SM))
+                    .color(theme::readable_color(theme::SUCCESS)),
+            );
+            ui.label(
+                RichText::new("Mode autonome")
+                    .font(theme::font_body())
+                    .color(theme::text_primary())
+                    .strong(),
+            );
+            let (label, color) = match state.summary.status {
+                GuiAgentStatus::Scanning => ("Analyse en cours", theme::INFO),
+                GuiAgentStatus::Paused => ("En pause", theme::WARNING),
+                GuiAgentStatus::Error => ("Erreur", theme::ERROR),
+                GuiAgentStatus::Starting => ("D\u{00e9}marrage", theme::INFO),
+                _ => ("Protection locale active", theme::SUCCESS),
+            };
+            widgets::status_badge(ui, label, color);
+        });
+        ui.add_space(theme::SPACE_SM);
+        ui.horizontal_wrapped(|ui| {
+            ui.label(
+                RichText::new(
+                    "D\u{00e9}tection, int\u{00e9}grit\u{00e9} des fichiers, conformit\u{00e9} et \
+                     vuln\u{00e9}rabilit\u{00e9}s sur ce poste \u{00b7} aucune donn\u{00e9}e envoy\u{00e9}e",
+                )
+                .font(theme::font_small())
+                .color(theme::text_secondary()),
+            );
+            if widgets::ghost_button(ui, "Connecter \u{00e0} une plateforme")
+                .on_hover_text(
+                    "Rejoindre une plateforme Sentinel GRC avec un jeton d'enr\u{00f4}lement",
+                )
+                .clicked()
+            {
+                command = Some(GuiCommand::ConnectToPlatform);
+            }
+        });
+    });
+    command
 }

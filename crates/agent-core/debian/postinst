@@ -45,6 +45,23 @@ if [ ! -f /etc/sentinel/llm.json ] && [ -f /etc/sentinel/llm.example.json ]; the
     chmod 600 /etc/sentinel/llm.json
 fi
 
+# Standalone installation: SENTINEL_STANDALONE=1 dpkg -i sentinel-agent_*.deb
+# The agent protects this host locally (EDR, FIM, compliance, vulnerability
+# scans) and never contacts a platform. `sentinel-agent standalone --disable`
+# or an enrolment from the GUI reconnects it later.
+case "${SENTINEL_STANDALONE:-0}" in
+    1|true|yes)
+        if [ ! -f /etc/sentinel/agent.json ]; then
+            printf '{\n  "standalone": true,\n  "log_level": "info"\n}\n' > /etc/sentinel/agent.json
+        elif grep -q '"standalone"' /etc/sentinel/agent.json; then
+            sed -i 's/"standalone"[[:space:]]*:[[:space:]]*false/"standalone": true/' /etc/sentinel/agent.json
+        else
+            sed -i '0,/{/s/{/{\n  "standalone": true,/' /etc/sentinel/agent.json
+        fi
+        echo "Mode autonome : protection locale, aucune communication avec une plateforme."
+        ;;
+esac
+
 # Set config file permissions if already exists
 if [ -f /etc/sentinel/agent.json ]; then
     chown sentinel-grc:sentinel-grc /etc/sentinel/agent.json
@@ -78,6 +95,7 @@ esac
 echo "Sentinel GRC Agent installe avec succes."
 echo "Service : systemctl status sentinel-agent"
 echo "Config  : /etc/sentinel/agent.json"
+echo "Mode    : 'sentinel-agent standalone' (protection locale) / 'sentinel-agent enroll' (plateforme)"
 echo "LLM     : /etc/sentinel/llm.json"
 echo "Models  : /var/lib/sentinel-grc/models/"
 echo "Logs    : /var/log/sentinel-grc/"

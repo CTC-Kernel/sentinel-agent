@@ -1,4 +1,5 @@
 {
+  "standalone": false,
   "server_url": "https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi",
   "check_interval_secs": 3600,
   "heartbeat_interval_secs": 60,

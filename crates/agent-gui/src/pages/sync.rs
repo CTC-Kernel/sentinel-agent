@@ -17,6 +17,41 @@ impl SyncPage {
     pub fn show(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
         let mut command = None;
 
+        if state.summary.standalone {
+            ui.add_space(theme::SPACE_MD);
+            widgets::page_header_nav(
+                ui,
+                &["Syst\u{00e8}me", "Synchronisation"],
+                "Synchronisation",
+                Some("Aucune plateforme : ce poste est prot\u{00e9}g\u{00e9} en autonomie."),
+                None,
+            );
+            ui.add_space(theme::SPACE_LG);
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                widgets::hero_state(
+                    ui,
+                    icons::SHIELD_CHECK,
+                    "Mode autonome",
+                    "Les analyses, alertes et journaux restent sur ce poste. Rien n'est \
+                     transmis, rien n'est \u{00e0} synchroniser.",
+                    theme::SUCCESS,
+                );
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    if widgets::secondary_button(
+                        ui,
+                        format!("{}  Connecter \u{00e0} une plateforme", icons::LINK),
+                        true,
+                    )
+                    .clicked()
+                    {
+                        command = Some(GuiCommand::ConnectToPlatform);
+                    }
+                    ui.add_space(theme::SPACE_SM);
+                });
+            });
+            return command;
+        }
+
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,

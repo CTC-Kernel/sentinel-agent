@@ -78,6 +78,7 @@ pub fn seed(state: &mut AppState) {
                 .collect(),
         ),
         policy_summary: Some(policy),
+        standalone: false,
     };
     state.policy = policy;
     state.previous_compliance_score = Some(83.1);
@@ -1933,6 +1934,18 @@ pub fn seed(state: &mut AppState) {
                 message: message.to_string(),
             });
     }
+}
+
+/// Turn the seeded state into a standalone agent: no platform, no tenant,
+/// no sync, the same local data.
+pub fn standalone(state: &mut AppState) {
+    state.summary.standalone = true;
+    state.summary.status = GuiAgentStatus::Standalone;
+    state.summary.organization = None;
+    state.summary.agent_id = None;
+    state.summary.last_sync_at = None;
+    state.summary.pending_sync_count = 0;
+    state.sync.history.clear();
 }
 
 /// Select the secondary tab `PREVIEW_TAB` names on `page`; 0 is the first.
