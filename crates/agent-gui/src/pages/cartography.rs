@@ -110,6 +110,21 @@ impl CartographyPage {
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong(),
+                    )
+                    .on_hover_text(if cfg!(target_os = "macos") {
+                        "⌘ + molette pour zoomer · glisser pour déplacer"
+                    } else {
+                        "Ctrl + molette pour zoomer · glisser pour déplacer"
+                    });
+                    ui.add_space(theme::SPACE_SM);
+                    ui.label(
+                        egui::RichText::new(if cfg!(target_os = "macos") {
+                            "⌘ + molette · glisser"
+                        } else {
+                            "Ctrl + molette · glisser"
+                        })
+                        .font(theme::font_small())
+                        .color(theme::text_tertiary()),
                     );
 
                     ui.add_space(theme::SPACE_LG);
@@ -253,11 +268,23 @@ impl CartographyPage {
             state.cartography.pan += response.drag_delta();
         }
 
-        // Handle zoom via scroll
-        let scroll = ui.input(|i| i.smooth_scroll_delta.y);
-        if scroll != 0.0 {
-            state.cartography.zoom =
-                (state.cartography.zoom + scroll * ZOOM_SCROLL_FACTOR).clamp(ZOOM_MIN, ZOOM_MAX);
+        // Zoom: Ctrl (⌘) + wheel, or a pinch, while the pointer is over the
+        // map. A plain wheel scrolls the page, as it does everywhere else;
+        // before, every wheel tick anywhere on the page also zoomed the map
+        // it was scrolling past.
+        if response.hovered() {
+            let (wheel, pinch) = ui.input_mut(|input| {
+                let wheel = if input.modifiers.command {
+                    let delta = input.smooth_scroll_delta.y;
+                    input.smooth_scroll_delta.y = 0.0;
+                    delta
+                } else {
+                    0.0
+                };
+                (wheel, input.zoom_delta())
+            });
+            let zoom = (state.cartography.zoom + wheel * ZOOM_SCROLL_FACTOR) * pinch;
+            state.cartography.zoom = zoom.clamp(ZOOM_MIN, ZOOM_MAX);
         }
 
         let center = rect.center().to_vec2() + state.cartography.pan;

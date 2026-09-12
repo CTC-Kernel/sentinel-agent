@@ -103,6 +103,20 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Squelettes de chargement** : les lignes fantômes des tableaux se
   répartissent sur la largeur réelle de la carte (proportions conservées) au
   lieu de déborder de 50 px à droite sur Vulnérabilités et Risques.
+- **Formulaires de création** (`widgets::form`) : une colonne de libellés
+  commune (`form::row`) aligne les champs des formulaires Nouvel actif,
+  Nouveau playbook et Nouvelle règle de détection, dont chaque contrôle
+  partait d'un x différent ; les formulaires Règle d'alerte et Webhook
+  passent en champs empilés qui se replient (`form::fields`/`form::field`)
+  au lieu de déborder de la carte à 1360 px avec « Activé » plié lettre par
+  lettre, et leurs listes déroulantes natives egui sont remplacées par le
+  menu du produit. Le banc de rendu ouvre ces formulaires
+  (`PREVIEW_DRAWER=asset-form|rule-form|webhook-form|playbook-form|detection-form`)
+  et accepte un pointeur (`POINTER="x y"`) pour capturer les états au survol.
+- **Cartographie** : chaque cran de molette sur la page zoomait aussi la carte
+  qu'il faisait défiler. Le zoom passe sur Ctrl/⌘ + molette (et le pincement)
+  avec le pointeur sur la carte, la molette seule fait défiler la page ; le
+  raccourci est indiqué sous l'indicateur de zoom.
 - Correctif au passage : la liste des paquets appelait deux fois la navigation
   clavier, faisant sauter deux lignes par flèche et déréglant la pagination
   de l'onglet Applications.

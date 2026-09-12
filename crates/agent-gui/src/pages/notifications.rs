@@ -476,73 +476,41 @@ impl NotificationsPage {
             );
             ui.add_space(theme::SPACE_SM);
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Nom")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+            widgets::form::fields(ui, |ui: &mut egui::Ui| {
+                widgets::form::field(ui, "Nom", 300.0, |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut name, "Nom de la r\u{00e8}gle…");
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Type")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(ui, "Type", 200.0, |ui: &mut egui::Ui| {
                     let all_types = AlertRuleType::all();
-                    let type_labels: Vec<String> =
-                        all_types.iter().map(|t| t.label_fr().to_string()).collect();
-                    egui::ComboBox::from_id_salt("rule_type_combo")
-                        .selected_text(
-                            &type_labels[rule_type_idx.min(type_labels.len().saturating_sub(1))],
-                        )
-                        .show_ui(ui, |ui| {
-                            for (i, label) in type_labels.iter().enumerate() {
-                                ui.selectable_value(&mut rule_type_idx, i, label);
-                            }
-                        });
-                });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("S\u{00e9}v\u{00e9}rit\u{00e9}")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
+                    let type_labels: Vec<&str> = all_types.iter().map(|t| t.label_fr()).collect();
+                    widgets::dropdown_width(
+                        ui,
+                        "rule_type_combo",
+                        &type_labels,
+                        &mut rule_type_idx,
+                        200.0,
                     );
-                    let sev_labels = ["CRITIQUE", "\u{00c9}LEV\u{00c9}", "MOYEN", "FAIBLE", "INFO"];
-                    egui::ComboBox::from_id_salt("rule_severity_combo")
-                        .selected_text(
-                            sev_labels[severity_idx.min(sev_labels.len().saturating_sub(1))],
-                        )
-                        .show_ui(ui, |ui| {
-                            for (i, label) in sev_labels.iter().enumerate() {
-                                ui.selectable_value(&mut severity_idx, i, *label);
-                            }
-                        });
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Escalade (min)")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(
+                    ui,
+                    "S\u{00e9}v\u{00e9}rit\u{00e9}",
+                    150.0,
+                    |ui: &mut egui::Ui| {
+                        let sev_labels =
+                            ["CRITIQUE", "\u{00c9}LEV\u{00c9}", "MOYEN", "FAIBLE", "INFO"];
+                        widgets::dropdown_width(
+                            ui,
+                            "rule_severity_combo",
+                            &sev_labels,
+                            &mut severity_idx,
+                            150.0,
+                        );
+                    },
+                );
+                widgets::form::field(ui, "Escalade (min)", 120.0, |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut escalation_str, "30");
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Activ\u{00e9}")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(ui, "Activ\u{00e9}", 72.0, |ui: &mut egui::Ui| {
                     widgets::toggle_switch(ui, &mut enabled);
                 });
             });
@@ -844,51 +812,23 @@ impl NotificationsPage {
             );
             ui.add_space(theme::SPACE_SM);
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Nom")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+            widgets::form::fields(ui, |ui: &mut egui::Ui| {
+                widgets::form::field(ui, "Nom", 260.0, |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut name, "Nom du webhook…");
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("URL")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(ui, "URL", 380.0, |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut url, "https://hooks.example.com/…");
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Format")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
+                widgets::form::field(ui, "Format", 150.0, |ui: &mut egui::Ui| {
+                    widgets::dropdown_width(
+                        ui,
+                        "webhook_format_combo",
+                        &format_labels,
+                        &mut format_idx,
+                        150.0,
                     );
-                    egui::ComboBox::from_id_salt("webhook_format_combo")
-                        .selected_text(
-                            format_labels[format_idx.min(format_labels.len().saturating_sub(1))],
-                        )
-                        .show_ui(ui, |ui| {
-                            for (i, label) in format_labels.iter().enumerate() {
-                                ui.selectable_value(&mut format_idx, i, *label);
-                            }
-                        });
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Activ\u{00e9}")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(ui, "Activ\u{00e9}", 72.0, |ui: &mut egui::Ui| {
                     widgets::toggle_switch(ui, &mut enabled);
                 });
             });

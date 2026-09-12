@@ -52,7 +52,7 @@ Cette crate fournit un tableau de bord interactif complet construit avec **egui/
 | Categorie | Composants |
 |-----------|------------|
 | **Layout** | card, modal, sidebar, layout, breadcrumb, divider, tabs |
-| **Saisie** | text_input, search_input (`SearchInput`), chat_input (`ChatInput`), checkbox, toggle_switch, slider, dropdown, command_palette |
+| **Saisie** | text_input, search_input (`SearchInput`), chat_input (`ChatInput`), form (`row`, `fields`/`field`), checkbox, toggle_switch, slider, dropdown, command_palette |
 | **Affichage** | badge, status_badge, avatar, alert, tooltip, skeleton, empty_state |
 | **Donnees** | table (cellules et colonnes fluides pour `egui_extras`), data_table, pagination, activity_feed, detail_drawer |
 | **Feedback** | toast, loading_state, progress |
@@ -114,7 +114,7 @@ Variables d'environnement :
 |----------|-------|
 | `PREVIEW_PAGE=<nom>` | Rend une page réelle (`dashboard`, `compliance`, `vulnerabilities`, `threats`, `network`, `monitoring`, `assets`, `software`, `risks`, `reports`, `notifications`, `fim`, `terminal`, `discovery`, `cartography`, `audit`, `sync`, `ai`, `settings`, `about`), ou une surface : `overlays`, `palette`, `splash`, `enrollment` |
 | `PREVIEW_DATA=1` | Peuple toutes les pages avec les fixtures déterministes de `examples/preview/fixtures.rs` |
-| `PREVIEW_DRAWER=<nom>` | Ouvre un tiroir de détail sur la page qui le porte : `vuln`, `threat`, `asset`, `package`, `connection`, `risk`, `fim`, `notification`, `log` (page `terminal`) |
+| `PREVIEW_DRAWER=<nom>` | Ouvre un tiroir de détail sur la page qui le porte : `vuln`, `threat`, `asset`, `package`, `connection`, `risk`, `fim`, `notification`, `log` (page `terminal`) ; ou un formulaire de création : `asset-form`, `rule-form` (notifications, onglet 1), `webhook-form` (onglet 2), `playbook-form` (menaces, onglet 4), `detection-form` (onglet 5) |
 | `PREVIEW_TAB=<n>` | Onglet secondaire de la page (`threats` 0–6, `notifications` 0–2, `monitoring` 0–1, `reports` 0–3, `ai` 0–2, `compliance` 1 = matrice) |
 | `PREVIEW_STEP=<étape>` | Étape de l'assistant d'enrôlement : `welcome`, `token`, `admin`, `progress`, `done`, `failed` |
 | `PREVIEW_LIGHT=1` | Thème clair |

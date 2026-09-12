@@ -35,6 +35,7 @@ pub mod toast;
 
 // Navigation & selection widgets
 pub mod dropdown;
+pub mod form;
 pub mod tabs;
 pub mod tooltip;
 

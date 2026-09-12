@@ -254,41 +254,21 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
             let mut f = form.borrow_mut();
 
             // Name
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("Nom")
-                        .font(theme::font_label())
-                        .color(theme::text_secondary()),
-                );
-                ui.add_space(theme::SPACE_SM);
+            widgets::form::row(ui, "Nom", |ui: &mut egui::Ui| {
                 widgets::text_input(ui, &mut f.name, "Nom de la r\u{00e8}gle…");
             });
-            ui.add_space(theme::SPACE_XS);
 
             // Description
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("Description")
-                        .font(theme::font_label())
-                        .color(theme::text_secondary()),
-                );
-                ui.add_space(theme::SPACE_SM);
+            widgets::form::row(ui, "Description", |ui: &mut egui::Ui| {
                 widgets::text_input(ui, &mut f.description, "Description…");
             });
-            ui.add_space(theme::SPACE_XS);
 
             // Severity dropdown
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("S\u{00e9}v\u{00e9}rit\u{00e9}")
-                        .font(theme::font_label())
-                        .color(theme::text_secondary()),
-                );
-                ui.add_space(theme::SPACE_SM);
+            widgets::form::row(ui, "S\u{00e9}v\u{00e9}rit\u{00e9}", |ui: &mut egui::Ui| {
                 let sev_labels: Vec<&str> = SEVERITY_OPTIONS.iter().map(|s| s.label()).collect();
                 widgets::dropdown(ui, "rule_severity", &sev_labels, &mut f.severity_idx);
             });
-            ui.add_space(theme::SPACE_SM);
+            ui.add_space(theme::SPACE_XS);
 
             // Conditions
             ui.label(

@@ -2011,6 +2011,12 @@ pub fn open_drawer(state: &mut AppState, which: &str) {
             state.siem.selected_log = Some(0);
             state.siem.detail_open = true;
         }
+        // Forms: the surfaces a click on "Nouveau …" opens.
+        "asset-form" => state.assets.asset_editing = true,
+        "rule-form" => state.alerting.editing_rule = true,
+        "webhook-form" => state.alerting.editing_webhook = true,
+        "playbook-form" => state.threats.playbook_editing = true,
+        "detection-form" => state.threats.detection_rule_editing = true,
         _ => {}
     }
 }

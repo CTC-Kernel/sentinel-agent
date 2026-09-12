@@ -786,56 +786,29 @@ impl AssetsPage {
                 let mut f = form.borrow_mut();
 
                 // Hostname
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Nom")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
+                widgets::form::row(ui, "Nom", |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut f.hostname, "Nom d'h\u{00f4}te…");
                 });
-                ui.add_space(theme::SPACE_XS);
 
                 // IP address
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("IP")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
+                widgets::form::row(ui, "IP", |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut f.ip, "192.168.1.1…");
                 });
-                ui.add_space(theme::SPACE_XS);
 
                 // Device type
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Type")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
+                widgets::form::row(ui, "Type", |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut f.device_type, "serveur, poste, routeur…");
                 });
-                ui.add_space(theme::SPACE_XS);
 
                 // Criticality dropdown
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Criticit\u{00e9}")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
+                widgets::form::row(ui, "Criticit\u{00e9}", |ui: &mut egui::Ui| {
                     let crit_labels: Vec<&str> = AssetCriticality::all()
                         .iter()
                         .map(|c| c.label_fr())
                         .collect();
                     widgets::dropdown(ui, "asset_crit", &crit_labels, &mut f.criticality_idx);
                 });
-                ui.add_space(theme::SPACE_MD);
+                ui.add_space(theme::SPACE_SM);
 
                 // Save / Cancel
                 ui.horizontal(|ui: &mut egui::Ui| {
