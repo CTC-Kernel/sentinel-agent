@@ -44,8 +44,9 @@ besoin d'une protection EDR performante.
 - **En ligne de commande** : `sentinel-agent standalone` (et `--disable` pour revenir).
 
 **Rejoindre une plateforme plus tard :** bouton **Connecter à une plateforme** dans le bandeau
-du tableau de bord ou dans **Réglages > Plateforme**, avec un jeton d'enrôlement. La
-synchronisation démarre au redémarrage suivant de l'agent ; d'ici là la protection locale continue.
+du tableau de bord ou dans **Réglages > Plateforme**, avec un jeton d'enrôlement. À la fin,
+**Redémarrer maintenant** relance l'agent déjà connecté ; **Plus tard** garde la protection locale
+active jusqu'au prochain lancement, où la synchronisation démarre.
 
 > [!NOTE]
 > En mode autonome, l'interface affiche « Mode autonome · Protection locale active », la page

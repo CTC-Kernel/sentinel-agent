@@ -379,6 +379,9 @@ pub enum GuiCommand {
     },
     /// Request shutdown.
     Shutdown,
+    /// Relaunch the agent process, then shut this one down: what a
+    /// standalone agent does once it has joined a platform.
+    Restart,
     /// Start network discovery scan.
     StartDiscovery,
     /// Stop network discovery scan.

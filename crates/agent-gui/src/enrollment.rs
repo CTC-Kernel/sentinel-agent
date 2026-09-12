@@ -37,6 +37,12 @@ pub struct EnrollmentWizard {
     /// The operator chose to run without a platform: the wizard collects the
     /// local administrator password and activates standalone mode.
     pub standalone: bool,
+    /// Opened from a running standalone agent to join a platform: the
+    /// connection takes effect at the next start, so the completion step
+    /// offers to restart now.
+    pub connect_later: bool,
+    /// The operator chose "restart now" on the completion step.
+    pub restart_requested: bool,
     pub token_input: String,
     pub qr_input: String,
     pub use_qr: bool,
@@ -52,6 +58,8 @@ impl Default for EnrollmentWizard {
         Self {
             step: EnrollmentStep::Welcome,
             standalone: false,
+            connect_later: false,
+            restart_requested: false,
             token_input: String::new(),
             qr_input: String::new(),
             use_qr: false,
@@ -70,6 +78,7 @@ impl EnrollmentWizard {
     pub fn for_platform_connection() -> Self {
         Self {
             step: EnrollmentStep::TokenEntry,
+            connect_later: true,
             ..Default::default()
         }
     }
@@ -197,7 +206,15 @@ impl EnrollmentWizard {
                             Self::show_progress(ui, &self.progress_message);
                         }
                         EnrollmentStep::Complete { success, message } => {
-                            command = Self::show_complete(ui, *success, message, self.standalone);
+                            let (complete_command, restart) = Self::show_complete(
+                                ui,
+                                *success,
+                                message,
+                                self.standalone,
+                                self.connect_later,
+                            );
+                            command = complete_command;
+                            self.restart_requested = restart;
                         }
                     }
                 });
@@ -592,20 +609,26 @@ impl EnrollmentWizard {
         });
     }
 
+    /// Returns the wizard command and whether the operator asked for the
+    /// agent to restart now (only offered after a connect-later enrollment).
     fn show_complete(
         ui: &mut Ui,
         success: bool,
         message: &str,
         standalone: bool,
-    ) -> Option<EnrollmentCommand> {
+        connect_later: bool,
+    ) -> (Option<EnrollmentCommand>, bool) {
         let mut command = None;
+        let mut restart = false;
 
         Self::column(ui, |ui| {
             if success {
                 widgets::hero_state(
                     ui,
                     icons::SHIELD_CHECK,
-                    if standalone {
+                    if connect_later {
+                        "Plateforme connect\u{00e9}e"
+                    } else if standalone {
                         "Protection activ\u{00e9}e"
                     } else {
                         "Enr\u{00f4}lement r\u{00e9}ussi"
@@ -627,19 +650,64 @@ impl EnrollmentWizard {
                 );
             }
             ui.vertical_centered(|ui| {
-                let label = if success {
-                    "Continuer"
+                if success && connect_later {
+                    // The connection is saved; the running instance is
+                    // still standalone. Restarting is the whole point, so
+                    // it is the primary action; waiting is a valid choice.
+                    // A row of two buttons centres as one block: its width
+                    // is measured on the first frame and remembered.
+                    let row_id = ui.id().with("complete_actions_width");
+                    let remembered: Option<f32> = ui.data(|data| data.get_temp(row_id));
+                    let row_width = remembered.unwrap_or_else(|| ui.available_width());
+                    ui.allocate_ui_with_layout(
+                        egui::vec2(row_width, 0.0),
+                        egui::Layout::left_to_right(egui::Align::Center),
+                        |ui| {
+                            ui.spacing_mut().item_spacing.x = theme::SPACE_SM;
+                            if widgets::button::primary_button(
+                                ui,
+                                "Red\u{00e9}marrer maintenant",
+                                true,
+                            )
+                            .on_hover_text(
+                                "Relance l'agent pour d\u{00e9}marrer la synchronisation",
+                            )
+                            .clicked()
+                            {
+                                restart = true;
+                                command = Some(EnrollmentCommand::Finish);
+                            }
+                            if widgets::button::secondary_button(ui, "Plus tard", true)
+                                .on_hover_text(
+                                    "La protection locale continue ; la synchronisation \
+                                     d\u{00e9}marrera au prochain lancement",
+                                )
+                                .clicked()
+                            {
+                                command = Some(EnrollmentCommand::Finish);
+                            }
+                            let used = ui.min_rect().width();
+                            if (used - row_width).abs() > 0.5 {
+                                ui.data_mut(|data| data.insert_temp(row_id, used));
+                                ui.ctx().request_repaint();
+                            }
+                        },
+                    );
                 } else {
-                    "R\u{00e9}essayer"
-                };
-                if widgets::button::primary_button(ui, label, true).clicked() {
-                    command = Some(EnrollmentCommand::Finish);
+                    let label = if success {
+                        "Continuer"
+                    } else {
+                        "R\u{00e9}essayer"
+                    };
+                    if widgets::button::primary_button(ui, label, true).clicked() {
+                        command = Some(EnrollmentCommand::Finish);
+                    }
                 }
                 ui.add_space(theme::SPACE);
             });
         });
 
-        command
+        (command, restart)
     }
 
     /// Numbered stepper: done steps carry a check, the current one is filled,
@@ -789,6 +857,12 @@ mod tests {
         assert!(
             !wizard.standalone,
             "a standalone agent joining a platform enrols like any other"
+        );
+        assert!(wizard.connect_later, "the completion step offers a restart");
+        assert!(!wizard.restart_requested);
+        assert!(
+            !EnrollmentWizard::default().connect_later,
+            "a first launch has nothing to restart"
         );
     }
 

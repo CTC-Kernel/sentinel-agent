@@ -1039,6 +1039,13 @@ impl eframe::App for SentinelApp {
                                 } = &self.enrollment_wizard.step
                                 {
                                     self.enrolled = true;
+                                    if self.enrollment_wizard.restart_requested {
+                                        // The platform connection is on disk;
+                                        // the relaunched agent starts connected.
+                                        self.quit_requested = true;
+                                        self.send_command(GuiCommand::Restart);
+                                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                    }
                                 }
                             }
                             EnrollmentCommand::Cancel => {

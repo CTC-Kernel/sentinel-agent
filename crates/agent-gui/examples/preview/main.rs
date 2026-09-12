@@ -79,15 +79,28 @@ impl Default for Preview {
             wizard: {
                 use agent_gui::enrollment::{EnrollmentStep, EnrollmentWizard};
                 let requested_step = std::env::var("PREVIEW_STEP").unwrap_or_default();
-                // `standalone-<step>` previews the wizard's standalone branch.
+                // `standalone-<step>` previews the wizard's standalone branch;
+                // `connect-<step>` the wizard reopened from a standalone agent
+                // to join a platform.
                 let standalone = requested_step.starts_with("standalone-");
-                let step = match requested_step.trim_start_matches("standalone-") {
+                let connect_later = requested_step.starts_with("connect-");
+                let step = match requested_step
+                    .trim_start_matches("standalone-")
+                    .trim_start_matches("connect-")
+                {
                     "token" => EnrollmentStep::TokenEntry,
                     "admin" => EnrollmentStep::AdminSetup,
                     "progress" => EnrollmentStep::InProgress,
                     "done" if standalone => EnrollmentStep::Complete {
                         success: true,
                         message: "Mode autonome activé. Ce poste est protégé localement, sans plateforme.".into(),
+                    },
+                    "done" if connect_later => EnrollmentStep::Complete {
+                        success: true,
+                        message: "Agent enrôlé avec succès.\nID: 7f3c9a2e-1b4d-4e8f-9a6c-2d5e8f1a3b7c\n\
+                                  La synchronisation démarre au prochain lancement de l'agent ; \
+                                  d'ici là, la protection locale continue."
+                            .into(),
                     },
                     "done" => EnrollmentStep::Complete {
                         success: true,
@@ -104,6 +117,7 @@ impl Default for Preview {
                 EnrollmentWizard {
                     step,
                     standalone,
+                    connect_later,
                     ..Default::default()
                 }
             },

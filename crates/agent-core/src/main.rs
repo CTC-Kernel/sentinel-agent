@@ -188,6 +188,10 @@ fn main() -> ExitCode {
         return run_as_service();
     }
 
+    // A relaunched instance lets the one that spawned it finish first, so
+    // the single-instance guard, the database and the log files are free.
+    wait_for_relaunch_parent();
+
     // Determine if we'll launch the GUI (feature enabled + not headless).
     // GUI mode defers logging init to use the terminal-aware tracing subscriber.
     #[cfg(feature = "gui")]
@@ -232,6 +236,125 @@ fn main() -> ExitCode {
         Some(Commands::Status) => handle_status(),
         Some(Commands::Run { no_tray }) => handle_run(cli.config, no_tray, &cli.log_level),
         None => handle_run(cli.config, false, &cli.log_level),
+    }
+}
+
+/// Environment variable carrying the PID of the instance a relaunch
+/// replaces; the new instance waits for it to exit before starting.
+const RELAUNCH_PARENT_ENV: &str = "SENTINEL_RELAUNCH_AFTER_PID";
+
+/// Start a fresh copy of this executable with the same arguments, detached,
+/// so it outlives the current process. The copy waits for this PID to exit
+/// (see [`wait_for_relaunch_parent`]) before it takes over.
+fn spawn_relaunch() -> std::io::Result<()> {
+    let exe = std::env::current_exe()?;
+    let args: Vec<std::ffi::OsString> = std::env::args_os().skip(1).collect();
+    let mut command = std::process::Command::new(&exe);
+    command
+        .args(&args)
+        .env(RELAUNCH_PARENT_ENV, std::process::id().to_string())
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null());
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        // Its own process group: closing this one's terminal or session
+        // must not take the relaunched agent with it.
+        command.process_group(0);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+        const DETACHED_PROCESS: u32 = 0x0000_0008;
+        command.creation_flags(CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS);
+    }
+    let child = command.spawn()?;
+    info!(
+        "Relaunched {} as pid {}; this instance shuts down",
+        exe.display(),
+        child.id()
+    );
+    Ok(())
+}
+
+/// If this process was started by [`spawn_relaunch`], wait (bounded) for the
+/// instance it replaces to exit. A no-op otherwise.
+fn wait_for_relaunch_parent() {
+    let Some(pid) = std::env::var(RELAUNCH_PARENT_ENV)
+        .ok()
+        .and_then(|value| value.parse::<u32>().ok())
+    else {
+        return;
+    };
+    if pid == std::process::id() {
+        return;
+    }
+    if wait_for_pid_exit(pid, std::time::Duration::from_secs(30)) {
+        // The previous instance released its handles a moment ago; give
+        // the OS time to close the window and free the instance guard.
+        std::thread::sleep(std::time::Duration::from_millis(300));
+    } else {
+        warn!(
+            "Previous agent instance (pid {}) is still running after 30s; starting anyway",
+            pid
+        );
+    }
+}
+
+/// Poll until `pid` is gone or `timeout` elapses. Returns whether it exited.
+fn wait_for_pid_exit(pid: u32, timeout: std::time::Duration) -> bool {
+    let pid = sysinfo::Pid::from_u32(pid);
+    let deadline = std::time::Instant::now() + timeout;
+    let mut system = sysinfo::System::new();
+    loop {
+        system.refresh_processes(sysinfo::ProcessesToUpdate::Some(&[pid]), true);
+        // A zombie has exited: only its parent's `wait` is missing, and
+        // that parent is not us.
+        let exited = system.process(pid).is_none_or(|process| {
+            matches!(
+                process.status(),
+                sysinfo::ProcessStatus::Zombie | sysinfo::ProcessStatus::Dead
+            )
+        });
+        if exited {
+            return true;
+        }
+        if std::time::Instant::now() >= deadline {
+            return false;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+}
+
+#[cfg(test)]
+mod relaunch_tests {
+    use super::wait_for_pid_exit;
+    use std::time::Duration;
+
+    #[test]
+    fn waiting_on_a_live_process_times_out() {
+        assert!(
+            !wait_for_pid_exit(std::process::id(), Duration::from_millis(300)),
+            "this very process cannot have exited"
+        );
+    }
+
+    #[test]
+    fn waiting_on_an_exiting_process_returns_once_it_is_gone() {
+        let mut child =
+            agent_common::process::silent_command(if cfg!(windows) { "cmd" } else { "sh" })
+                .args(if cfg!(windows) {
+                    ["/C", "exit 0"]
+                } else {
+                    ["-c", "sleep 0.2"]
+                })
+                .spawn()
+                .expect("spawn a short-lived child");
+        let pid = child.id();
+        assert!(wait_for_pid_exit(pid, Duration::from_secs(10)));
+        let _ = child.wait();
     }
 }
 
@@ -1399,6 +1522,29 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI user requested agent shutdown");
                             handle_for_commands.request_shutdown();
                             break;
+                        }
+                        Ok(GuiCommand::Restart) => {
+                            info!("[AUDIT] GUI user requested agent restart");
+                            match spawn_relaunch() {
+                                Ok(()) => {
+                                    handle_for_commands.request_shutdown();
+                                    break;
+                                }
+                                Err(e) => {
+                                    error!("Failed to relaunch the agent: {}", e);
+                                    let _ = bg_event_tx.send(AgentEvent::Notification {
+                                        notification: agent_gui::dto::GuiNotification::error(
+                                            "Redémarrage impossible",
+                                            format!(
+                                                "L'agent n'a pas pu se relancer ({}). \
+                                                 Fermez-le et rouvrez-le pour activer la \
+                                                 connexion à la plateforme.",
+                                                e
+                                            ),
+                                        ),
+                                    });
+                                }
+                            }
                         }
                         Ok(GuiCommand::RunCheck) => {
                             info!("[AUDIT] GUI user requested manual check run");
@@ -3605,9 +3751,9 @@ async fn listen_for_platform_connection(
                         let _ = events.send(AgentEvent::EnrollmentResult {
                             success: true,
                             message: format!(
-                                "Agent enrôlé avec succès.\nID: {}\n\nLa synchronisation avec la \
-                                 plateforme démarre au prochain lancement de l'agent. D'ici là, \
-                                 la protection locale continue.",
+                                "Agent enrôlé avec succès.\nID: {}\nLa synchronisation démarre \
+                                 au prochain lancement de l'agent ; d'ici là, la protection \
+                                 locale continue.",
                                 config.agent_id.as_deref().unwrap_or("?")
                             ),
                             agent_id: config.agent_id.clone(),

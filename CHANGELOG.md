@@ -38,8 +38,11 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   carte « Maintenance et mises à jour » propose le téléchargement du dernier
   paquet plutôt qu'une vérification qui ne contacterait aucun serveur.
   Partout, un bouton « Connecter à une plateforme » rouvre l'assistant ;
-  l'enrôlement réussi désactive le mode autonome, la synchronisation démarre
-  au redémarrage suivant et une notification le dit.
+  l'enrôlement réussi désactive le mode autonome et l'étape finale propose
+  « Redémarrer maintenant » (l'agent se relance de lui-même, l'ancienne
+  instance libère d'abord le verrou d'instance unique et la base) ou « Plus
+  tard » (la synchronisation démarre au prochain lancement, une notification
+  le rappelle).
 - **Ligne de commande** : `sentinel-agent standalone` / `--disable` ;
   `sentinel-agent enroll` réussi désactive lui aussi le mode autonome.
 - **Documentation** : `config/README.md` (section et variable

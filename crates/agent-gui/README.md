@@ -116,7 +116,7 @@ Variables d'environnement :
 | `PREVIEW_DATA=1` | Peuple toutes les pages avec les fixtures déterministes de `examples/preview/fixtures.rs` |
 | `PREVIEW_DRAWER=<nom>` | Ouvre un tiroir de détail sur la page qui le porte : `vuln`, `threat`, `asset`, `package`, `connection`, `risk`, `fim`, `notification`, `log` (page `terminal`) ; ou un formulaire de création : `asset-form`, `rule-form` (notifications, onglet 1), `webhook-form` (onglet 2), `playbook-form` (menaces, onglet 4), `detection-form` (onglet 5) |
 | `PREVIEW_TAB=<n>` | Onglet secondaire de la page (`threats` 0–6, `notifications` 0–2, `monitoring` 0–1, `reports` 0–3, `ai` 0–2, `compliance` 1 = matrice) |
-| `PREVIEW_STEP=<étape>` | Étape de l'assistant d'enrôlement : `welcome`, `token`, `admin`, `progress`, `done`, `failed` ; préfixe `standalone-` (`standalone-welcome`, `standalone-admin`, `standalone-done`…) pour le parcours « Protection locale » |
+| `PREVIEW_STEP=<étape>` | Étape de l'assistant d'enrôlement : `welcome`, `token`, `admin`, `progress`, `done`, `failed` ; préfixe `standalone-` (`standalone-welcome`, `standalone-admin`, `standalone-done`…) pour le parcours « Protection locale » ; préfixe `connect-` (`connect-token`, `connect-done`) pour l'assistant rouvert depuis un agent autonome qui rejoint une plateforme |
 | `PREVIEW_STANDALONE=1` | Agent en mode autonome : bandeau « Mode autonome », page Sync remplacée, boutons de synchronisation masqués, carte « Plateforme » dans les réglages |
 | `PREVIEW_LIGHT=1` | Thème clair |
 | `PREVIEW_RAIL=1` | Barre latérale repliée en rail |
