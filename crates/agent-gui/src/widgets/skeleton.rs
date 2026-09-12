@@ -196,11 +196,28 @@ pub fn skeleton_list_item(ui: &mut Ui) {
 
 /// Skeleton table row.
 pub fn skeleton_table_row(ui: &mut Ui, columns: usize, column_widths: &[f32]) {
+    // The requested widths are proportions, not promises: the row is laid
+    // out over the width it actually has, so a loading table has the same
+    // silhouette as the rows that will replace it and never spills past
+    // the card.
+    let gaps = theme::SPACE * columns.saturating_sub(1) as f32;
+    let wanted: Vec<f32> = (0..columns)
+        .map(|i| column_widths.get(i).copied().unwrap_or(100.0).max(1.0))
+        .collect();
+    let total: f32 = wanted.iter().sum();
+    let room = (ui.available_width() - gaps).max(0.0);
     ui.horizontal(|ui| {
-        for i in 0..columns {
-            let width = column_widths.get(i).copied().unwrap_or(100.0);
-            Skeleton::text(width).show(ui);
-            if i < columns - 1 {
+        // The gap between bars is the explicit one below; the layout's own
+        // item spacing on top of it pushed the last bar past the card.
+        ui.spacing_mut().item_spacing.x = 0.0;
+        for (i, want) in wanted.iter().enumerate() {
+            let width = if total > 0.0 {
+                room * want / total
+            } else {
+                0.0
+            };
+            Skeleton::text(width.floor()).show(ui);
+            if i + 1 < columns {
                 ui.add_space(theme::SPACE);
             }
         }

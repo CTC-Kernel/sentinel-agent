@@ -215,28 +215,15 @@ impl LLMPanel {
 
                 ui.add_space(theme::SPACE_XS);
 
-                let text_edit = egui::TextEdit::singleline(&mut state.ai.input_text)
-                    .hint_text("Posez une question de s\u{00e9}curit\u{00e9}…")
-                    .font(theme::font_body())
-                    .desired_width(ui.available_width() - 80.0)
-                    .text_color(theme::text_primary());
-
-                let response = ui.add_enabled(!state.ai.is_processing, text_edit);
-
-                // Send on Enter
-                let enter_pressed =
-                    response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-
-                let send_btn = egui::Button::new(
-                    egui::RichText::new(icons::PAPER_PLANE)
-                        .size(theme::ICON_SM)
-                        .color(theme::text_on_accent()),
+                let chat = widgets::ChatInput::new(
+                    &mut state.ai.input_text,
+                    "Posez une question de s\u{00e9}curit\u{00e9}…",
                 )
-                .fill(theme::ACCENT)
-                .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
-
+                .processing(state.ai.is_processing)
+                .id_salt("assistant_prompt")
+                .show(ui);
                 let can_send = !state.ai.is_processing && !state.ai.input_text.trim().is_empty();
-                let send_clicked = ui.add_enabled(can_send, send_btn).clicked();
+                let send_requested = chat.send;
 
                 // Auto-send when a voice transcription has arrived
                 let voice_auto_send = state.ai.pending_voice_send && can_send;
@@ -244,7 +231,7 @@ impl LLMPanel {
                     state.ai.pending_voice_send = false;
                 }
 
-                if (enter_pressed || send_clicked || voice_auto_send) && can_send {
+                if (send_requested || voice_auto_send) && can_send {
                     let prompt = state.ai.input_text.trim().to_string();
                     state.ai.chat_history.push(crate::dto::LlmChatMessage {
                         role: ChatRole::User,
@@ -1700,101 +1687,72 @@ impl LLMPanel {
         recommendations: &[Recommendation],
         filtered: &[usize],
     ) {
-        use egui_extras::{Column, TableBuilder};
+        use widgets::table;
 
         let mut clicked_idx: Option<usize> = None;
-        let ctx = ui.ctx().clone();
+        let selected = state.ai.selected_recommendation;
 
-        let table = TableBuilder::new(ui)
-            .striped(false)
-            .resizable(true)
-            .sense(egui::Sense::click())
-            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::initial(100.0).at_least(80.0)) // Priority
-            .column(Column::initial(90.0).at_least(70.0)) // Source
-            .column(Column::initial(300.0).range(150.0..=600.0)) // Recommandation
-            .column(Column::remainder()); // Rem\u{00e9}diation
+        table::fluid_clickable(
+            ui,
+            &[
+                table::Col::fluid(96.0, 0.0),  // Priorité
+                table::Col::fluid(110.0, 0.5), // Source
+                table::Col::fluid(180.0, 2.0), // Recommandation
+                table::Col::fluid(160.0, 3.0), // Remédiation
+            ],
+        )
+        .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+            for label in [
+                "PRIORIT\u{00c9}",
+                "SOURCE",
+                "RECOMMANDATION",
+                "REM\u{00c9}DIATION",
+            ] {
+                header.col(|ui: &mut egui::Ui| {
+                    table::header_cell(ui, label);
+                });
+            }
+        })
+        .body(|mut body| {
+            for &idx in filtered {
+                let rec = &recommendations[idx];
+                let is_selected = selected == Some(idx);
+                let sev_color = theme::severity_color_typed(&rec.severity);
 
-        table
-            .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                for label in [
-                    "PRIORIT\u{00c9}",
-                    "SOURCE",
-                    "RECOMMANDATION",
-                    "REM\u{00c9}DIATION",
-                ] {
-                    header.col(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(label)
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
+                body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
+                    row.set_selected(is_selected);
+
+                    // Priority badge
+                    row.col(|ui: &mut egui::Ui| {
+                        widgets::status_badge(ui, rec.severity.label(), sev_color);
+                    });
+
+                    // Source kind
+                    row.col(|ui: &mut egui::Ui| {
+                        table::cell_icon(
+                            ui,
+                            kind_icon(rec.kind),
+                            kind_color(rec.kind),
+                            kind_label(rec.kind),
                         );
                     });
-                }
-            })
-            .body(|mut body| {
-                for &idx in filtered {
-                    let rec = &recommendations[idx];
-                    let is_selected = state.ai.selected_recommendation == Some(idx);
-                    let sev_color = theme::severity_color_typed(&rec.severity);
 
-                    body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
-                        row.set_selected(is_selected);
-
-                        // Priority badge
-                        row.col(|ui: &mut egui::Ui| {
-                            widgets::status_badge(ui, rec.severity.label(), sev_color);
-                        });
-
-                        // Source kind
-                        row.col(|ui: &mut egui::Ui| {
-                            let label = kind_label(rec.kind);
-                            let color = kind_color(rec.kind);
-                            ui.horizontal(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(kind_icon(rec.kind))
-                                        .size(theme::ICON_SM)
-                                        .color(color),
-                                );
-                                ui.label(
-                                    egui::RichText::new(label)
-                                        .font(theme::font_label())
-                                        .color(color)
-                                        .strong(),
-                                );
-                            });
-                        });
-
-                        // Title
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(&rec.title)
-                                    .font(theme::font_body())
-                                    .color(theme::accent_text())
-                                    .strong(),
-                            );
-                        });
-
-                        // Remediation short
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(&rec.subtitle)
-                                    .font(theme::font_small())
-                                    .color(theme::text_secondary()),
-                            );
-                        });
-
-                        if row.response().clicked() {
-                            clicked_idx = Some(idx);
-                        }
-                        if row.response().hovered() {
-                            ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
-                        }
+                    // Title
+                    row.col(|ui: &mut egui::Ui| {
+                        table::cell_colored(ui, &rec.title, theme::accent_text());
                     });
-                }
-            });
+
+                    // Remediation short
+                    row.col(|ui: &mut egui::Ui| {
+                        table::cell_small(ui, &rec.subtitle);
+                    });
+
+                    if table::row_interaction(&row, is_selected) {
+                        clicked_idx = Some(idx);
+                    }
+                });
+            }
+        });
 
         if let Some(idx) = clicked_idx {
             state.ai.selected_recommendation = Some(idx);

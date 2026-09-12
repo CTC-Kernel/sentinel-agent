@@ -211,11 +211,10 @@ pub fn text_input_with_options(
     };
     let right_padding = clear_space + validation_space + theme::SPACE_SM;
 
-    // Container frame
-    let (rect, response) = ui.allocate_exact_size(
-        egui::vec2(desired_width, input_height),
-        Sense::click_and_drag(),
-    );
+    // Container frame. A click on the padding focuses the editor, so the
+    // whole field is the target, not only the text inside it.
+    let (rect, response) =
+        ui.allocate_exact_size(egui::vec2(desired_width, input_height), Sense::click());
 
     if ui.is_rect_visible(rect) {
         let painter = ui.painter_at(rect);
@@ -232,30 +231,9 @@ pub fn text_input_with_options(
             rect,
             egui::CornerRadius::same(theme::INPUT_ROUNDING),
             fill,
-            egui::Stroke::new(
-                if response.has_focus() {
-                    theme::BORDER_MEDIUM
-                } else {
-                    theme::BORDER_THIN
-                },
-                if response.has_focus() {
-                    theme::accent_text()
-                } else {
-                    border_color
-                },
-            ),
+            egui::Stroke::new(theme::BORDER_THIN, border_color),
             egui::epaint::StrokeKind::Inside,
         );
-
-        // Focus ring when active (WCAG 2.4.7 compliant)
-        if response.has_focus() {
-            painter.rect_stroke(
-                rect.expand(theme::BORDER_THICK),
-                egui::CornerRadius::same(theme::INPUT_ROUNDING),
-                theme::focus_ring(),
-                egui::epaint::StrokeKind::Outside,
-            );
-        }
     }
 
     // Text edit area (slightly inset)
@@ -268,6 +246,7 @@ pub fn text_input_with_options(
     );
 
     let text_response = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+        ui.set_clip_rect(text_rect.intersect(ui.clip_rect()));
         ui.add_sized(
             text_rect.size(),
             egui::TextEdit::singleline(value)
@@ -281,6 +260,20 @@ pub fn text_input_with_options(
                 .desired_width(text_rect.width()),
         )
     });
+    if response.clicked() {
+        text_response.inner.request_focus();
+    }
+
+    // Focus ring when the editor is active (WCAG 2.4.7). The editor owns
+    // the focus, not the frame, so it is asked rather than the frame.
+    if text_response.inner.has_focus() && ui.is_rect_visible(rect) {
+        ui.painter().rect_stroke(
+            rect,
+            egui::CornerRadius::same(theme::INPUT_ROUNDING),
+            theme::focus_ring(),
+            egui::epaint::StrokeKind::Inside,
+        );
+    }
 
     // Validation icon
     if let Some(color) = icon_color {
@@ -355,89 +348,433 @@ pub fn text_input_with_options(
     text_response.inner
 }
 
-/// Search input with icon.
+/// Search input with icon, at the width the caller has.
 pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Response {
-    let desired_width = ui.available_width().min(theme::MODAL_WIDTH);
-    let input_height = theme::INPUT_HEIGHT;
+    SearchInput::new(value, placeholder).show(ui).response
+}
 
-    let (rect, _) = ui.allocate_exact_size(egui::vec2(desired_width, input_height), Sense::hover());
+/// What a [`SearchInput`] reports for the frame.
+pub struct SearchInputResponse {
+    /// The editor's response: `changed()`, `has_focus()`, `lost_focus()`.
+    pub response: Response,
+    /// Enter was pressed while the field had focus.
+    pub submitted: bool,
+    /// The value was emptied this frame, by the clear button or Escape.
+    pub cleared: bool,
+}
 
-    if ui.is_rect_visible(rect) {
-        let painter = ui.painter_at(rect);
+/// The one search field of the product.
+///
+/// A framed, magnifier-prefixed editor with a focus ring, a clear button
+/// once there is something to clear, and Escape to empty it without
+/// leaving it. Every search on every page is this widget, so the field the
+/// user learns on the vulnerabilities page is the field they meet in the
+/// terminal, the log well and the palette.
+pub struct SearchInput<'a> {
+    value: &'a mut String,
+    placeholder: &'a str,
+    width: Option<f32>,
+    height: f32,
+    font: Option<egui::FontId>,
+    id_salt: Option<egui::Id>,
+    autofocus: bool,
+}
 
-        // Background with modern rounded corners
-        painter.rect(
-            rect,
-            egui::CornerRadius::same(theme::INPUT_ROUNDING),
-            theme::bg_tertiary(),
-            egui::Stroke::new(theme::BORDER_THIN, theme::border()),
-            egui::epaint::StrokeKind::Inside,
-        );
-
-        // Search icon
-        painter.text(
-            egui::pos2(
-                rect.min.x + theme::SPACE_MD + theme::BORDER_THICK,
-                rect.center().y,
-            ),
-            egui::Align2::LEFT_CENTER,
-            icons::SEARCH,
-            theme::font_body(),
-            theme::text_tertiary(),
-        );
-    }
-
-    // Text edit area (after search icon)
-    let search_icon_offset = theme::TABLE_ROW_HEIGHT;
-    let text_rect = egui::Rect::from_min_size(
-        rect.min + egui::vec2(search_icon_offset, theme::SPACE_XS),
-        egui::vec2(
-            desired_width - search_icon_offset * 2.0,
-            input_height - theme::SPACE_SM,
-        ),
-    );
-
-    let text_response = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
-        ui.add_sized(
-            text_rect.size(),
-            egui::TextEdit::singleline(value)
-                .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
-                .font(theme::font_body())
-                .margin(egui::Margin::symmetric(
-                    0,
-                    (theme::SPACE_XS + theme::BORDER_THICK) as i8,
-                ))
-                .frame(false)
-                .desired_width(text_rect.width()),
-        )
-    });
-
-    // Clear button when there's text
-    if !value.is_empty() {
-        let clear_rect = egui::Rect::from_center_size(
-            egui::pos2(rect.max.x - theme::SPACE, rect.center().y),
-            egui::vec2(theme::ICON_MD, theme::ICON_MD),
-        );
-
-        let clear_response = ui.allocate_rect(clear_rect, Sense::click());
-        let clear_hovered = clear_response.hovered();
-
-        ui.painter().text(
-            clear_rect.center(),
-            egui::Align2::CENTER_CENTER,
-            icons::XMARK,
-            theme::font_small(),
-            if clear_hovered {
-                theme::text_primary()
-            } else {
-                theme::text_tertiary()
-            },
-        );
-
-        if clear_response.clicked() {
-            value.clear();
+impl<'a> SearchInput<'a> {
+    pub fn new(value: &'a mut String, placeholder: &'a str) -> Self {
+        Self {
+            value,
+            placeholder,
+            width: None,
+            height: theme::INPUT_HEIGHT,
+            font: None,
+            id_salt: None,
+            autofocus: false,
         }
     }
 
-    text_response.inner
+    /// Exact width; the default fills the available width.
+    pub fn width(mut self, width: f32) -> Self {
+        self.width = Some(width);
+        self
+    }
+
+    /// Field height; [`theme::SEARCH_INPUT_HEIGHT`] for a filter row, the
+    /// default [`theme::INPUT_HEIGHT`] for a form.
+    pub fn height(mut self, height: f32) -> Self {
+        self.height = height;
+        self
+    }
+
+    /// Text font; the body font by default.
+    pub fn font(mut self, font: egui::FontId) -> Self {
+        self.font = Some(font);
+        self
+    }
+
+    /// Stable id when several fields share a parent.
+    pub fn id_salt(mut self, salt: impl std::hash::Hash) -> Self {
+        self.id_salt = Some(egui::Id::new(salt));
+        self
+    }
+
+    /// Take keyboard focus as soon as the field appears.
+    pub fn autofocus(mut self, autofocus: bool) -> Self {
+        self.autofocus = autofocus;
+        self
+    }
+
+    pub fn show(self, ui: &mut Ui) -> SearchInputResponse {
+        let width = self
+            .width
+            .unwrap_or_else(|| ui.available_width())
+            .min(ui.available_width())
+            .max(theme::MIN_TOUCH_TARGET * 2.0);
+        let (field, frame_response) =
+            ui.allocate_exact_size(egui::vec2(width, self.height), Sense::hover());
+        let editor_id = ui.id().with(
+            self.id_salt
+                .unwrap_or_else(|| egui::Id::new("search_editor")),
+        );
+        let focused = ui.memory(|memory| memory.has_focus(editor_id));
+        let radius = egui::CornerRadius::same(theme::INPUT_ROUNDING);
+        let mut cleared = false;
+
+        // Escape empties a focused field but leaves the focus where it is, so
+        // a second query can be typed straight away.
+        if focused
+            && !self.value.is_empty()
+            && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
+        {
+            self.value.clear();
+            cleared = true;
+        }
+
+        if ui.is_rect_visible(field) {
+            let painter = ui.painter();
+            let fill = if frame_response.hovered() || focused {
+                theme::bg_elevated()
+            } else {
+                theme::bg_tertiary()
+            };
+            painter.rect(
+                field,
+                radius,
+                fill,
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+                egui::epaint::StrokeKind::Inside,
+            );
+            painter.text(
+                egui::pos2(field.left() + theme::SPACE_MD, field.center().y),
+                egui::Align2::LEFT_CENTER,
+                icons::SEARCH,
+                theme::font_icon(theme::ICON_XS),
+                if focused {
+                    theme::accent_text()
+                } else {
+                    theme::text_tertiary()
+                },
+            );
+        }
+
+        // Room for the clear button on the trailing edge, whether or not it
+        // is showing, so the text does not jump when it appears.
+        let clear_slot = theme::MIN_TOUCH_TARGET;
+        let text_rect = egui::Rect::from_min_max(
+            egui::pos2(
+                field.left() + theme::SPACE_MD + theme::ICON_XS + theme::SPACE_SM,
+                field.top(),
+            ),
+            egui::pos2(field.right() - clear_slot, field.bottom()),
+        );
+        let font = self.font.unwrap_or_else(theme::font_body_sm);
+        let editor = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+            // Clip the editor to the frame: a long value scrolls under the
+            // magnifier and the clear button instead of painting over them.
+            ui.set_clip_rect(text_rect.intersect(ui.clip_rect()));
+            ui.add_sized(
+                text_rect.size(),
+                egui::TextEdit::singleline(self.value)
+                    .id(editor_id)
+                    .hint_text(egui::RichText::new(self.placeholder).color(theme::text_tertiary()))
+                    .font(font)
+                    .vertical_align(egui::Align::Center)
+                    .text_color(theme::text_primary())
+                    .frame(false)
+                    .margin(egui::Margin::ZERO)
+                    .desired_width(text_rect.width()),
+            )
+        });
+        let response = editor.inner;
+        if self.autofocus && !response.has_focus() {
+            response.request_focus();
+        }
+        response.widget_info(|| {
+            egui::WidgetInfo::labeled(
+                egui::WidgetType::TextEdit,
+                ui.is_enabled(),
+                self.placeholder,
+            )
+        });
+
+        if response.has_focus() {
+            ui.memory_mut(|memory| {
+                memory.set_focus_lock_filter(
+                    editor_id,
+                    egui::EventFilter {
+                        horizontal_arrows: true,
+                        vertical_arrows: false,
+                        escape: !self.value.is_empty(),
+                        ..Default::default()
+                    },
+                )
+            });
+            ui.painter().rect_stroke(
+                field,
+                radius,
+                theme::focus_ring(),
+                egui::epaint::StrokeKind::Inside,
+            );
+        }
+        let submitted = response.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+
+        if !self.value.is_empty() {
+            let clear_rect = egui::Rect::from_center_size(
+                egui::pos2(field.right() - clear_slot / 2.0, field.center().y),
+                egui::vec2(clear_slot - theme::SPACE_XS, self.height - theme::SPACE_XS),
+            );
+            let clear = ui
+                .put(
+                    clear_rect,
+                    egui::Button::new(
+                        egui::RichText::new(icons::XMARK)
+                            .font(theme::font_icon(theme::ICON_XS))
+                            .color(theme::text_tertiary()),
+                    )
+                    .frame(false),
+                )
+                .on_hover_text("Effacer la recherche · Échap");
+            clear.widget_info(|| {
+                egui::WidgetInfo::labeled(
+                    egui::WidgetType::Button,
+                    ui.is_enabled(),
+                    "Effacer la recherche",
+                )
+            });
+            if clear.hovered() {
+                ui.painter().text(
+                    clear_rect.center(),
+                    egui::Align2::CENTER_CENTER,
+                    icons::XMARK,
+                    theme::font_icon(theme::ICON_XS),
+                    theme::text_primary(),
+                );
+            }
+            if clear.clicked() {
+                self.value.clear();
+                cleared = true;
+                response.request_focus();
+            }
+        }
+
+        // The inset editor must not move the next widget inside the field.
+        ui.advance_cursor_after_rect(field);
+
+        SearchInputResponse {
+            response,
+            submitted,
+            cleared,
+        }
+    }
+}
+
+/// What a [`PasswordInput`] reports for the frame.
+pub struct PasswordInputResponse {
+    /// The editor's response.
+    pub response: Response,
+    /// Enter was pressed while the field had focus.
+    pub submitted: bool,
+}
+
+/// A secret field: the product's framed input with a lock, the value
+/// masked, and an eye control that reveals it while it is needed.
+///
+/// The enrolment token, the administrator password and the unlock dialog
+/// each drew a bare `TextEdit` beside a loose eye button; this is the one
+/// field they share.
+pub struct PasswordInput<'a> {
+    value: &'a mut String,
+    placeholder: &'a str,
+    revealed: &'a mut bool,
+    width: Option<f32>,
+    id_salt: Option<egui::Id>,
+    autofocus: bool,
+    mono: bool,
+}
+
+impl<'a> PasswordInput<'a> {
+    pub fn new(value: &'a mut String, placeholder: &'a str, revealed: &'a mut bool) -> Self {
+        Self {
+            value,
+            placeholder,
+            revealed,
+            width: None,
+            id_salt: None,
+            autofocus: false,
+            mono: true,
+        }
+    }
+
+    /// Exact width; the default fills the available width.
+    pub fn width(mut self, width: f32) -> Self {
+        self.width = Some(width);
+        self
+    }
+
+    /// Stable id when several fields share a parent.
+    pub fn id_salt(mut self, salt: impl std::hash::Hash) -> Self {
+        self.id_salt = Some(egui::Id::new(salt));
+        self
+    }
+
+    /// Take keyboard focus as soon as the field appears.
+    pub fn autofocus(mut self, autofocus: bool) -> Self {
+        self.autofocus = autofocus;
+        self
+    }
+
+    /// Body font instead of monospace (for a passphrase rather than a token).
+    pub fn proportional(mut self) -> Self {
+        self.mono = false;
+        self
+    }
+
+    pub fn show(self, ui: &mut Ui) -> PasswordInputResponse {
+        let width = self
+            .width
+            .unwrap_or_else(|| ui.available_width())
+            .min(ui.available_width())
+            .max(theme::MIN_TOUCH_TARGET * 3.0);
+        let height = theme::INPUT_HEIGHT;
+        let (field, frame_response) =
+            ui.allocate_exact_size(egui::vec2(width, height), Sense::click());
+        let editor_id = ui.id().with(
+            self.id_salt
+                .unwrap_or_else(|| egui::Id::new("password_editor")),
+        );
+        let focused = ui.memory(|memory| memory.has_focus(editor_id));
+        let radius = egui::CornerRadius::same(theme::INPUT_ROUNDING);
+
+        if ui.is_rect_visible(field) {
+            let fill = if frame_response.hovered() || focused {
+                theme::bg_elevated()
+            } else {
+                theme::bg_tertiary()
+            };
+            ui.painter().rect(
+                field,
+                radius,
+                fill,
+                egui::Stroke::new(theme::BORDER_THIN, theme::border()),
+                egui::epaint::StrokeKind::Inside,
+            );
+            ui.painter().text(
+                egui::pos2(field.left() + theme::SPACE_MD, field.center().y),
+                egui::Align2::LEFT_CENTER,
+                icons::LOCK,
+                theme::font_icon(theme::ICON_XS),
+                if focused {
+                    theme::accent_text()
+                } else {
+                    theme::text_tertiary()
+                },
+            );
+        }
+
+        let slot = theme::MIN_TOUCH_TARGET;
+        let text_rect = egui::Rect::from_min_max(
+            egui::pos2(
+                field.left() + theme::SPACE_MD + theme::ICON_XS + theme::SPACE_SM,
+                field.top(),
+            ),
+            egui::pos2(field.right() - slot, field.bottom()),
+        );
+        let font = if self.mono {
+            theme::font_mono()
+        } else {
+            theme::font_body()
+        };
+        let editor = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+            ui.set_clip_rect(text_rect.intersect(ui.clip_rect()));
+            ui.add_sized(
+                text_rect.size(),
+                egui::TextEdit::singleline(self.value)
+                    .id(editor_id)
+                    .password(!*self.revealed)
+                    .hint_text(egui::RichText::new(self.placeholder).color(theme::text_tertiary()))
+                    .font(font)
+                    .vertical_align(egui::Align::Center)
+                    .text_color(theme::text_primary())
+                    .frame(false)
+                    .margin(egui::Margin::ZERO)
+                    .desired_width(text_rect.width()),
+            )
+        });
+        let response = editor.inner;
+        if (self.autofocus && !response.has_focus() && !ui.input(|i| i.pointer.any_click()))
+            || frame_response.clicked()
+        {
+            response.request_focus();
+        }
+        response.widget_info(|| {
+            egui::WidgetInfo::labeled(
+                egui::WidgetType::TextEdit,
+                ui.is_enabled(),
+                self.placeholder,
+            )
+        });
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                field,
+                radius,
+                theme::focus_ring(),
+                egui::epaint::StrokeKind::Inside,
+            );
+        }
+        let submitted = response.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+
+        // Reveal toggle on the trailing edge.
+        let eye_rect = egui::Rect::from_center_size(
+            egui::pos2(field.right() - slot / 2.0, field.center().y),
+            egui::vec2(slot - theme::SPACE_XS, height - theme::SPACE_XS),
+        );
+        let (icon, hint) = if *self.revealed {
+            (icons::EYE_SLASH, "Masquer")
+        } else {
+            (icons::EYE, "Afficher")
+        };
+        let eye = ui
+            .put(
+                eye_rect,
+                egui::Button::new(
+                    egui::RichText::new(icon)
+                        .font(theme::font_icon(theme::ICON_SM))
+                        .color(theme::text_tertiary()),
+                )
+                .frame(false),
+            )
+            .on_hover_text(hint);
+        eye.widget_info(|| {
+            egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), hint)
+        });
+        if eye.clicked() {
+            *self.revealed = !*self.revealed;
+        }
+
+        ui.advance_cursor_after_rect(field);
+        PasswordInputResponse {
+            response,
+            submitted,
+        }
+    }
 }

@@ -163,6 +163,28 @@ cargo build --release --package agent-core
 cargo install --path crates/agent-core
 ```
 
+### Deux modes, choisis à l'installation
+
+| Mode | Pour qui | Ce qui change |
+|------|----------|---------------|
+| **Plateforme** | Organisations, MSSP | L'agent s'enrôle avec un jeton et synchronise conformité, inventaire et alertes avec la console Sentinel GRC. |
+| **Autonome (standalone)** | Particuliers, postes isolés, protection EDR seule | Gratuit. EDR, intégrité des fichiers, conformité et analyse de vulnérabilités tournent en local ; **aucune donnée ne quitte le poste**, aucun serveur n'est contacté. Connexion à une plateforme possible plus tard depuis les réglages. |
+
+```bash
+# Windows (silencieux)
+msiexec /i sentinel-agent.msi /qn INSTALLMODE=STANDALONE     # autonome
+msiexec /i sentinel-agent.msi /qn ENROLLMENTTOKEN=<jeton>    # plateforme
+
+# Debian / Ubuntu
+SENTINEL_STANDALONE=1 sudo -E dpkg -i sentinel-agent_*.deb
+
+# macOS : pkg construit avec SENTINEL_STANDALONE=1, ou choix dans l'assistant au premier lancement
+
+# Basculer après coup
+sentinel-agent standalone            # protection locale seule
+sentinel-agent standalone --disable  # puis `sentinel-agent enroll` pour rejoindre une plateforme
+```
+
 ### Configuration Initiale
 
 ```bash

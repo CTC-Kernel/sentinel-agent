@@ -54,6 +54,8 @@ impl AgentRuntime {
             GuiAgentStatus::Paused
         } else if self.state.scanning.load(Ordering::Acquire) {
             GuiAgentStatus::Scanning
+        } else if self.config.standalone {
+            GuiAgentStatus::Standalone
         } else if self.authenticated_client.is_none() {
             GuiAgentStatus::Disconnected
         } else {
@@ -83,6 +85,7 @@ impl AgentRuntime {
                 .unwrap_or_else(|e| e.into_inner())
                 .clone(),
             policy_summary,
+            standalone: self.config.standalone,
         };
 
         self.emit_gui_event(AgentEvent::StatusChanged { summary });

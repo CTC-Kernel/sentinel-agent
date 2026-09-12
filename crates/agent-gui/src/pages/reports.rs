@@ -4,7 +4,6 @@
 //! Reports page — generate and export compliance, executive, and incident reports.
 
 use egui::Ui;
-use egui_extras::{Column, TableBuilder};
 
 use crate::app::AppState;
 use crate::dto::{GeneratedReport, GuiCheckStatus, ReportType, Severity};
@@ -315,129 +314,94 @@ impl ReportsPage {
             let mut clicked_idx: Option<usize> = None;
 
             ui.push_id("reports_history_table", |ui: &mut egui::Ui| {
-                let ctx = ui.ctx().clone();
-                let table = TableBuilder::new(ui)
-                    .striped(false)
-                    .resizable(true)
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(110.0).range(80.0..=180.0))
-                    .column(Column::initial(180.0).range(100.0..=500.0))
-                    .column(Column::initial(100.0).range(70.0..=160.0))
-                    .column(Column::initial(70.0).range(50.0..=100.0))
-                    .column(Column::remainder());
+                use widgets::table;
 
-                table
-                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("TYPE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
+                let selected = state.reports.selected_report;
+
+                table::fluid_clickable(
+                    ui,
+                    &[
+                        table::Col::fluid(110.0, 0.0), // Type
+                        table::Col::fluid(200.0, 3.0), // Titre
+                        table::Col::fluid(120.0, 0.5), // Date
+                        table::Col::fixed(60.0),       // Score
+                        table::Col::fixed(88.0),       // Actions
+                    ],
+                )
+                .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                    header.col(|ui| {
+                        table::header_cell(ui, "TYPE");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "TITRE");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "DATE");
+                    });
+                    header.col(|ui| {
+                        table::header_cell_right(ui, "SCORE");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "ACTIONS");
+                    });
+                })
+                .body(|body| {
+                    body.rows(theme::TABLE_ROW_HEIGHT, reports_vec.len(), |mut row| {
+                        let row_idx = row.index();
+                        let Some((real_idx, report)) = reports_vec.get(row_idx) else {
+                            return;
+                        };
+                        let is_selected = selected == Some(*real_idx);
+                        row.set_selected(is_selected);
+
+                        row.col(|ui| {
+                            let (label, color) = Self::report_type_display(&report.report_type);
+                            widgets::status_badge(ui, label, color);
                         });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("TITRE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("DATE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("SCORE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("ACTIONS")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                    })
-                    .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, reports_vec.len(), |mut row| {
-                            let row_idx = row.index();
-                            let Some((real_idx, report)) = reports_vec.get(row_idx) else {
-                                return;
-                            };
-                            let is_selected = state.reports.selected_report == Some(*real_idx);
-                            row.set_selected(is_selected);
 
-                            row.col(|ui: &mut egui::Ui| {
-                                let (label, color) = Self::report_type_display(&report.report_type);
-                                widgets::status_badge(ui, label, color);
-                            });
-
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&report.title)
-                                        .font(theme::font_body())
-                                        .color(theme::accent_text())
-                                        .strong(),
-                                );
-                            });
-
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(
-                                        report.generated_at.format("%d/%m/%Y %H:%M").to_string(),
-                                    )
-                                    .font(theme::font_small())
-                                    .color(theme::text_secondary()),
-                                );
-                            });
-
-                            row.col(|ui: &mut egui::Ui| {
-                                if let Some(score) = report.compliance_score {
-                                    ui.label(
-                                        egui::RichText::new(crate::format::pct(score, 0))
-                                            .font(theme::font_body())
-                                            .color(theme::readable_color(theme::score_color(score)))
-                                            .strong(),
-                                    );
-                                } else {
-                                    ui.label(
-                                        egui::RichText::new("--").color(theme::text_tertiary()),
-                                    );
-                                }
-                            });
-
-                            row.col(|ui: &mut egui::Ui| {
-                                if widgets::ghost_button(ui, format!("{}  HTML", icons::DOWNLOAD))
-                                    .clicked()
-                                {
-                                    Self::export_html(state, report);
-                                }
-                            });
-
-                            if row.response().clicked() {
+                        row.col(|ui| {
+                            if table::cell_link(ui, &report.title).clicked() {
                                 clicked_idx = Some(*real_idx);
                             }
-                            if row.response().hovered() {
-                                ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
+                        });
+
+                        row.col(|ui| {
+                            table::cell_small(
+                                ui,
+                                &report.generated_at.format("%d/%m/%Y %H:%M").to_string(),
+                            );
+                        });
+
+                        row.col(|ui| {
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui| {
+                                    if let Some(score) = report.compliance_score {
+                                        table::cell_colored(
+                                            ui,
+                                            &crate::format::pct(score, 0),
+                                            theme::readable_color(theme::score_color(score)),
+                                        );
+                                    } else {
+                                        table::cell_empty(ui);
+                                    }
+                                },
+                            );
+                        });
+
+                        row.col(|ui| {
+                            if widgets::ghost_button(ui, format!("{}  HTML", icons::DOWNLOAD))
+                                .clicked()
+                            {
+                                Self::export_html(state, report);
                             }
                         });
+
+                        if table::row_interaction(&row, is_selected) {
+                            clicked_idx = Some(*real_idx);
+                        }
                     });
+                });
             });
 
             if let Some(idx) = clicked_idx {

@@ -17,13 +17,48 @@ impl SyncPage {
     pub fn show(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
         let mut command = None;
 
+        if state.summary.standalone {
+            ui.add_space(theme::SPACE_MD);
+            widgets::page_header_nav(
+                ui,
+                &["Syst\u{00e8}me", "Synchronisation"],
+                "Synchronisation",
+                Some("Aucune plateforme : ce poste est prot\u{00e9}g\u{00e9} en autonomie."),
+                None,
+            );
+            ui.add_space(theme::SPACE_LG);
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                widgets::hero_state(
+                    ui,
+                    icons::SHIELD_CHECK,
+                    "Mode autonome",
+                    "Les analyses, alertes et journaux restent sur ce poste. Rien n'est \
+                     transmis, rien n'est \u{00e0} synchroniser.",
+                    theme::SUCCESS,
+                );
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    if widgets::secondary_button(
+                        ui,
+                        format!("{}  Connecter \u{00e0} une plateforme", icons::LINK),
+                        true,
+                    )
+                    .clicked()
+                    {
+                        command = Some(GuiCommand::ConnectToPlatform);
+                    }
+                    ui.add_space(theme::SPACE_SM);
+                });
+            });
+            return command;
+        }
+
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
             &["Système", "Synchronisation"],
             "Synchronisation",
             Some(
-                "Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur",
+                "Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur.",
             ),
             Some(
                 "Gérez la synchronisation des données avec le serveur Sentinel central. Vérifiez l'état de la connexion et forcez une mise à jour manuelle des politiques et référentiels.",
@@ -153,82 +188,60 @@ impl SyncPage {
                     "Aucun historique disponible",
                 );
             } else {
-                use egui_extras::{Column, TableBuilder};
+                use widgets::table;
 
-                let table = TableBuilder::new(ui)
-                    .striped(false)
-                    .resizable(true)
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(32.0).at_least(24.0)) // Status icon
-                    .column(Column::initial(80.0).at_least(60.0)) // Time
-                    .column(Column::remainder()); // Message
-
-                table
-                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("").font(theme::font_label()));
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("HEURE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("MESSAGE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                    })
-                    .body(|body| {
-                        body.rows(
-                            theme::TABLE_ROW_HEIGHT,
-                            state.sync.history.len(),
-                            |mut row| {
-                                let Some(entry) = state.sync.history.get(row.index()) else {
-                                    return;
-                                };
-
-                                row.col(|ui: &mut egui::Ui| {
-                                    let (icon, color) = if entry.success {
-                                        (icons::CIRCLE_CHECK, theme::SUCCESS)
-                                    } else {
-                                        (icons::CIRCLE_XMARK, theme::ERROR)
-                                    };
-                                    ui.label(
-                                        egui::RichText::new(icon)
-                                            .size(theme::ICON_SM + theme::BORDER_THICK)
-                                            .color(color),
-                                    );
-                                });
-
-                                row.col(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(
-                                            entry.timestamp.format("%H:%M:%S").to_string(),
-                                        )
-                                        .font(theme::font_mono())
-                                        .color(theme::text_tertiary()),
-                                    );
-                                });
-
-                                row.col(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&entry.message)
-                                            .font(theme::font_body())
-                                            .color(theme::text_primary()),
-                                    );
-                                });
-                            },
-                        );
+                table::fluid(
+                    ui,
+                    &[
+                        table::Col::fixed(32.0),       // Icône d'état
+                        table::Col::fluid(80.0, 0.0),  // Heure
+                        table::Col::fluid(200.0, 1.0), // Message
+                    ],
+                )
+                .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                    header.col(|_| {});
+                    header.col(|ui| {
+                        table::header_cell(ui, "HEURE");
                     });
+                    header.col(|ui| {
+                        table::header_cell(ui, "MESSAGE");
+                    });
+                })
+                .body(|body| {
+                    body.rows(
+                        theme::TABLE_ROW_HEIGHT,
+                        state.sync.history.len(),
+                        |mut row| {
+                            let Some(entry) = state.sync.history.get(row.index()) else {
+                                return;
+                            };
+
+                            row.col(|ui| {
+                                let (icon, color) = if entry.success {
+                                    (icons::CIRCLE_CHECK, theme::SUCCESS)
+                                } else {
+                                    (icons::CIRCLE_XMARK, theme::ERROR)
+                                };
+                                ui.label(
+                                    egui::RichText::new(icon)
+                                        .size(theme::ICON_SM + theme::BORDER_THICK)
+                                        .color(color),
+                                );
+                            });
+
+                            row.col(|ui| {
+                                table::cell_mono_muted(
+                                    ui,
+                                    &entry.timestamp.format("%H:%M:%S").to_string(),
+                                );
+                            });
+
+                            row.col(|ui| {
+                                table::cell(ui, &entry.message);
+                            });
+                        },
+                    );
+                });
             }
         });
 

@@ -329,132 +329,89 @@ impl NotificationsPage {
         } else {
             widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.push_id("alert_rules_table", |ui: &mut egui::Ui| {
-                    use egui_extras::{Column, TableBuilder};
+                    use widgets::table;
 
-                    let table = TableBuilder::new(ui)
-                        .striped(false)
-                        .resizable(true)
-                        .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                        .column(Column::initial(150.0).range(90.0..=300.0))
-                        .column(Column::initial(120.0).range(80.0..=200.0))
-                        .column(Column::initial(100.0).range(70.0..=160.0))
-                        .column(Column::initial(70.0).range(50.0..=100.0))
-                        .column(Column::remainder());
-
-                    table
-                        .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("NOM")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("TYPE")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("ESCALADE")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("ACTIV\u{00c9}")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("ACTIONS")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                        })
-                        .body(|mut body| {
-                            // Collect indices to avoid borrow issues
-                            let rule_count = state.alerting.rules.len();
-                            for i in 0..rule_count {
-                                body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
-                                    let rule = &state.alerting.rules[i];
-                                    let rule_id = rule.id.to_string();
-
-                                    row.col(|ui: &mut egui::Ui| {
-                                        ui.label(
-                                            egui::RichText::new(&rule.name)
-                                                .font(theme::font_body())
-                                                .color(theme::text_primary())
-                                                .strong(),
-                                        );
-                                    });
-                                    row.col(|ui: &mut egui::Ui| {
-                                        ui.label(
-                                            egui::RichText::new(rule.rule_type.label_fr())
-                                                .font(theme::font_small())
-                                                .color(theme::text_secondary()),
-                                        );
-                                    });
-                                    row.col(|ui: &mut egui::Ui| {
-                                        let text = rule
-                                            .escalation_minutes
-                                            .map(|m| format!("{}min", m))
-                                            .unwrap_or_else(|| "\u{2014}".to_string());
-                                        ui.label(
-                                            egui::RichText::new(text)
-                                                .font(theme::font_small())
-                                                .color(theme::text_secondary()),
-                                        );
-                                    });
-                                    row.col(|ui: &mut egui::Ui| {
-                                        let mut enabled = rule.enabled;
-                                        if widgets::toggle_switch(ui, &mut enabled).changed() {
-                                            // Toggling requires mutating — store via memory flag
-                                            ui.memory_mut(|m| {
-                                                m.data.insert_temp(
-                                                    egui::Id::new(format!("toggle_rule_{}", i)),
-                                                    enabled,
-                                                );
-                                            });
-                                        }
-                                    });
-                                    row.col(|ui: &mut egui::Ui| {
-                                        if widgets::button::icon_button_with_color(
-                                            ui,
-                                            icons::TRASH,
-                                            Some("Supprimer"),
-                                            theme::readable_color(theme::ERROR),
-                                        )
-                                        .clicked()
-                                        {
-                                            ui.memory_mut(|m| {
-                                                m.data.insert_temp(
-                                                    egui::Id::new("delete_rule_id"),
-                                                    rule_id,
-                                                );
-                                            });
-                                        }
-                                    });
-                                });
-                            }
+                    table::fluid(
+                        ui,
+                        &[
+                            table::Col::fluid(160.0, 2.0), // Nom
+                            table::Col::fluid(140.0, 1.5), // Type
+                            table::Col::fluid(90.0, 0.5),  // Escalade
+                            table::Col::fixed(72.0),       // Activé
+                            table::Col::fixed(64.0),       // Actions
+                        ],
+                    )
+                    .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "NOM");
                         });
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "TYPE");
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "ESCALADE");
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "ACTIV\u{00c9}");
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "ACTIONS");
+                        });
+                    })
+                    .body(|mut body| {
+                        // Collect indices to avoid borrow issues
+                        let rule_count = state.alerting.rules.len();
+                        for i in 0..rule_count {
+                            body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
+                                let rule = &state.alerting.rules[i];
+                                let rule_id = rule.id.to_string();
+
+                                row.col(|ui: &mut egui::Ui| {
+                                    table::cell_strong(ui, &rule.name);
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    table::cell_secondary(ui, rule.rule_type.label_fr());
+                                });
+                                row.col(|ui: &mut egui::Ui| match rule.escalation_minutes {
+                                    Some(m) => {
+                                        table::cell_secondary(ui, &format!("{}min", m));
+                                    }
+                                    None => {
+                                        table::cell_empty(ui);
+                                    }
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    let mut enabled = rule.enabled;
+                                    if widgets::toggle_switch(ui, &mut enabled).changed() {
+                                        // Toggling requires mutating — store via memory flag
+                                        ui.memory_mut(|m| {
+                                            m.data.insert_temp(
+                                                egui::Id::new(format!("toggle_rule_{}", i)),
+                                                enabled,
+                                            );
+                                        });
+                                    }
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    if widgets::button::icon_button_with_color(
+                                        ui,
+                                        icons::TRASH,
+                                        Some("Supprimer"),
+                                        theme::readable_color(theme::ERROR),
+                                    )
+                                    .clicked()
+                                    {
+                                        ui.memory_mut(|m| {
+                                            m.data.insert_temp(
+                                                egui::Id::new("delete_rule_id"),
+                                                rule_id,
+                                            );
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    });
                 });
             });
 
@@ -519,73 +476,41 @@ impl NotificationsPage {
             );
             ui.add_space(theme::SPACE_SM);
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Nom")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+            widgets::form::fields(ui, |ui: &mut egui::Ui| {
+                widgets::form::field(ui, "Nom", 300.0, |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut name, "Nom de la r\u{00e8}gle…");
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Type")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(ui, "Type", 200.0, |ui: &mut egui::Ui| {
                     let all_types = AlertRuleType::all();
-                    let type_labels: Vec<String> =
-                        all_types.iter().map(|t| t.label_fr().to_string()).collect();
-                    egui::ComboBox::from_id_salt("rule_type_combo")
-                        .selected_text(
-                            &type_labels[rule_type_idx.min(type_labels.len().saturating_sub(1))],
-                        )
-                        .show_ui(ui, |ui| {
-                            for (i, label) in type_labels.iter().enumerate() {
-                                ui.selectable_value(&mut rule_type_idx, i, label);
-                            }
-                        });
-                });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("S\u{00e9}v\u{00e9}rit\u{00e9}")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
+                    let type_labels: Vec<&str> = all_types.iter().map(|t| t.label_fr()).collect();
+                    widgets::dropdown_width(
+                        ui,
+                        "rule_type_combo",
+                        &type_labels,
+                        &mut rule_type_idx,
+                        200.0,
                     );
-                    let sev_labels = ["CRITIQUE", "\u{00c9}LEV\u{00c9}", "MOYEN", "FAIBLE", "INFO"];
-                    egui::ComboBox::from_id_salt("rule_severity_combo")
-                        .selected_text(
-                            sev_labels[severity_idx.min(sev_labels.len().saturating_sub(1))],
-                        )
-                        .show_ui(ui, |ui| {
-                            for (i, label) in sev_labels.iter().enumerate() {
-                                ui.selectable_value(&mut severity_idx, i, *label);
-                            }
-                        });
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Escalade (min)")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(
+                    ui,
+                    "S\u{00e9}v\u{00e9}rit\u{00e9}",
+                    150.0,
+                    |ui: &mut egui::Ui| {
+                        let sev_labels =
+                            ["CRITIQUE", "\u{00c9}LEV\u{00c9}", "MOYEN", "FAIBLE", "INFO"];
+                        widgets::dropdown_width(
+                            ui,
+                            "rule_severity_combo",
+                            &sev_labels,
+                            &mut severity_idx,
+                            150.0,
+                        );
+                    },
+                );
+                widgets::form::field(ui, "Escalade (min)", 120.0, |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut escalation_str, "30");
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Activ\u{00e9}")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(ui, "Activ\u{00e9}", 72.0, |ui: &mut egui::Ui| {
                     widgets::toggle_switch(ui, &mut enabled);
                 });
             });
@@ -704,169 +629,117 @@ impl NotificationsPage {
         } else {
             widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.push_id("webhooks_table", |ui: &mut egui::Ui| {
-                    use egui_extras::{Column, TableBuilder};
+                    use widgets::table;
 
-                    let table = TableBuilder::new(ui)
-                        .striped(false)
-                        .resizable(true)
-                        .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                        .column(Column::initial(120.0).range(80.0..=200.0))
-                        .column(Column::initial(160.0).range(100.0..=400.0))
-                        .column(Column::initial(70.0).range(50.0..=100.0))
-                        .column(Column::initial(110.0).range(80.0..=180.0))
-                        .column(Column::initial(60.0).range(40.0..=80.0))
-                        .column(Column::remainder());
+                    table::fluid(
+                        ui,
+                        &[
+                            table::Col::fluid(120.0, 1.0), // Nom
+                            table::Col::fluid(160.0, 3.0), // URL
+                            table::Col::fluid(72.0, 0.0),  // Format
+                            table::Col::fluid(116.0, 0.5), // Dernier envoi
+                            table::Col::fixed(72.0),       // Activé
+                            table::Col::fixed(148.0),      // Actions
+                        ],
+                    )
+                    .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "NOM");
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "URL");
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "FORMAT");
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "DERNIER ENVOI");
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "ACTIV\u{00c9}");
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell(ui, "ACTIONS");
+                        });
+                    })
+                    .body(|mut body| {
+                        let wh_count = state.alerting.webhooks.len();
+                        for i in 0..wh_count {
+                            body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
+                                let wh = &state.alerting.webhooks[i];
+                                let wh_id = wh.id.to_string();
 
-                    table
-                        .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("NOM")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("URL")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("FORMAT")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("DERNIER ENVOI")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("ACTIV\u{00c9}")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                            header.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new("ACTIONS")
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong()
-                                        .extra_letter_spacing(theme::TRACKING_NORMAL),
-                                );
-                            });
-                        })
-                        .body(|mut body| {
-                            let wh_count = state.alerting.webhooks.len();
-                            for i in 0..wh_count {
-                                body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
-                                    let wh = &state.alerting.webhooks[i];
-                                    let wh_id = wh.id.to_string();
-
-                                    row.col(|ui: &mut egui::Ui| {
-                                        ui.label(
-                                            egui::RichText::new(&wh.name)
-                                                .font(theme::font_body())
-                                                .color(theme::text_primary())
-                                                .strong(),
-                                        );
-                                    });
-                                    row.col(|ui: &mut egui::Ui| {
-                                        let display_url = if wh.url.chars().count() > 40 {
-                                            let truncated: String =
-                                                wh.url.chars().take(37).collect();
-                                            format!("{}…", truncated)
-                                        } else {
-                                            wh.url.clone()
-                                        };
-                                        ui.label(
-                                            egui::RichText::new(display_url)
-                                                .font(theme::font_small())
-                                                .color(theme::text_secondary()),
-                                        );
-                                    });
-                                    row.col(|ui: &mut egui::Ui| {
-                                        widgets::status_badge(
+                                row.col(|ui: &mut egui::Ui| {
+                                    table::cell_strong(ui, &wh.name);
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    // The cell truncates with the full URL on hover.
+                                    table::cell_small(ui, &wh.url);
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    widgets::status_badge(
+                                        ui,
+                                        &wh.format.to_uppercase(),
+                                        theme::INFO,
+                                    );
+                                });
+                                row.col(|ui: &mut egui::Ui| match wh.last_sent {
+                                    Some(dt) => {
+                                        table::cell_muted(
                                             ui,
-                                            &wh.format.to_uppercase(),
-                                            theme::INFO,
+                                            &dt.format("%d/%m/%Y %H:%M").to_string(),
                                         );
-                                    });
-                                    row.col(|ui: &mut egui::Ui| {
-                                        let text = wh
-                                            .last_sent
-                                            .map(|dt| dt.format("%d/%m/%Y %H:%M").to_string())
-                                            .unwrap_or_else(|| "\u{2014}".to_string());
-                                        ui.label(
-                                            egui::RichText::new(text)
-                                                .font(theme::font_small())
-                                                .color(theme::text_tertiary()),
-                                        );
-                                    });
-                                    row.col(|ui: &mut egui::Ui| {
-                                        let mut enabled = wh.enabled;
-                                        if widgets::toggle_switch(ui, &mut enabled).changed() {
+                                    }
+                                    None => {
+                                        table::cell_empty(ui);
+                                    }
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    let mut enabled = wh.enabled;
+                                    if widgets::toggle_switch(ui, &mut enabled).changed() {
+                                        ui.memory_mut(|m| {
+                                            m.data.insert_temp(
+                                                egui::Id::new(format!("toggle_wh_{}", i)),
+                                                enabled,
+                                            );
+                                        });
+                                    }
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.horizontal(|ui: &mut egui::Ui| {
+                                        if widgets::ghost_button(
+                                            ui,
+                                            format!("{}  Tester", icons::PLAY),
+                                        )
+                                        .clicked()
+                                        {
                                             ui.memory_mut(|m| {
                                                 m.data.insert_temp(
-                                                    egui::Id::new(format!("toggle_wh_{}", i)),
-                                                    enabled,
+                                                    egui::Id::new("test_wh_id"),
+                                                    wh_id.clone(),
+                                                );
+                                            });
+                                        }
+                                        if widgets::button::icon_button_with_color(
+                                            ui,
+                                            icons::TRASH,
+                                            Some("Supprimer"),
+                                            theme::readable_color(theme::ERROR),
+                                        )
+                                        .clicked()
+                                        {
+                                            ui.memory_mut(|m| {
+                                                m.data.insert_temp(
+                                                    egui::Id::new("delete_wh_id"),
+                                                    wh_id.clone(),
                                                 );
                                             });
                                         }
                                     });
-                                    row.col(|ui: &mut egui::Ui| {
-                                        ui.horizontal(|ui: &mut egui::Ui| {
-                                            if widgets::ghost_button(
-                                                ui,
-                                                format!("{}  Tester", icons::PLAY),
-                                            )
-                                            .clicked()
-                                            {
-                                                ui.memory_mut(|m| {
-                                                    m.data.insert_temp(
-                                                        egui::Id::new("test_wh_id"),
-                                                        wh_id.clone(),
-                                                    );
-                                                });
-                                            }
-                                            if widgets::button::icon_button_with_color(
-                                                ui,
-                                                icons::TRASH,
-                                                Some("Supprimer"),
-                                                theme::readable_color(theme::ERROR),
-                                            )
-                                            .clicked()
-                                            {
-                                                ui.memory_mut(|m| {
-                                                    m.data.insert_temp(
-                                                        egui::Id::new("delete_wh_id"),
-                                                        wh_id.clone(),
-                                                    );
-                                                });
-                                            }
-                                        });
-                                    });
                                 });
-                            }
-                        });
+                            });
+                        }
+                    });
                 });
             });
 
@@ -939,51 +812,23 @@ impl NotificationsPage {
             );
             ui.add_space(theme::SPACE_SM);
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Nom")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+            widgets::form::fields(ui, |ui: &mut egui::Ui| {
+                widgets::form::field(ui, "Nom", 260.0, |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut name, "Nom du webhook…");
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("URL")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(ui, "URL", 380.0, |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut url, "https://hooks.example.com/…");
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Format")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
+                widgets::form::field(ui, "Format", 150.0, |ui: &mut egui::Ui| {
+                    widgets::dropdown_width(
+                        ui,
+                        "webhook_format_combo",
+                        &format_labels,
+                        &mut format_idx,
+                        150.0,
                     );
-                    egui::ComboBox::from_id_salt("webhook_format_combo")
-                        .selected_text(
-                            format_labels[format_idx.min(format_labels.len().saturating_sub(1))],
-                        )
-                        .show_ui(ui, |ui| {
-                            for (i, label) in format_labels.iter().enumerate() {
-                                ui.selectable_value(&mut format_idx, i, *label);
-                            }
-                        });
                 });
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("Activ\u{00e9}")
-                            .font(theme::font_label())
-                            .color(theme::text_secondary()),
-                    );
+                widgets::form::field(ui, "Activ\u{00e9}", 72.0, |ui: &mut egui::Ui| {
                     widgets::toggle_switch(ui, &mut enabled);
                 });
             });

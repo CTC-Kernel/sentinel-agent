@@ -10,6 +10,48 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🏠 Mode autonome (standalone), choisi à l'installation
+
+- **Un agent sans plateforme** : `"standalone": true` (ou `SENTINEL_STANDALONE`,
+  ou `sentinel-agent standalone`) coupe tout ce qui parle à la plateforme —
+  enrôlement, heartbeat, envoi des résultats de conformité, des vulnérabilités,
+  des logiciels, des incidents et des instantanés réseau, commandes distantes,
+  renouvellement de certificat et mise à jour distante. Aucun client HTTP n'est
+  créé. EDR, intégrité des fichiers, conformité, analyse de vulnérabilités,
+  inventaire et surveillance réseau tournent en local et les données restent
+  sur le poste. Destiné aux particuliers et aux postes qui n'ont besoin que
+  d'une protection locale, gratuitement.
+- **Choix à l'installation** : le MSI Windows ajoute un dialogue « Comment
+  protéger ce poste ? » (plateforme / protection locale), la propriété
+  `INSTALLMODE=STANDALONE` en silencieux, un `agent.json` autonome et un
+  raccourci « Tableau de bord » réservé au mode plateforme. Le `.deb` honore
+  `SENTINEL_STANDALONE=1` au `dpkg -i`, le `.pkg` macOS se construit avec
+  `SENTINEL_STANDALONE=1`.
+- **Assistant de premier lancement** : deux cartes, « Rejoindre une
+  plateforme » ou « Protection locale ». Le parcours autonome ne demande qu'un
+  mot de passe administrateur optionnel, en quatre étapes, et se termine par
+  « Protection activée ».
+- **Interface en mode autonome** : bandeau « Mode autonome · Protection locale
+  active », pastille et pied de barre latérale dédiés, page Synchronisation et
+  bouton « Synchroniser » retirés, carte « Plateforme » dans les réglages.
+  Le menu de la barre système grise « Synchroniser » et « Console », et la
+  carte « Maintenance et mises à jour » propose le téléchargement du dernier
+  paquet plutôt qu'une vérification qui ne contacterait aucun serveur.
+  Partout, un bouton « Connecter à une plateforme » rouvre l'assistant ;
+  l'enrôlement réussi désactive le mode autonome et l'étape finale propose
+  « Redémarrer maintenant » (l'agent se relance de lui-même, l'ancienne
+  instance libère d'abord le verrou d'instance unique et la base) ou « Plus
+  tard » (la synchronisation démarre au prochain lancement, une notification
+  le rappelle).
+- **Ligne de commande** : `sentinel-agent standalone` / `--disable`
+  (droits administrateur requis) ; `sentinel-agent enroll` réussi désactive
+  lui aussi le mode autonome. Si `SENTINEL_STANDALONE` est définie dans
+  l'environnement, la commande et l'assistant préviennent qu'elle prime sur le
+  fichier.
+- **Documentation** : `config/README.md` (section et variable
+  `SENTINEL_STANDALONE`), exemples JSON, README, guide utilisateur, README du
+  preview (`PREVIEW_STANDALONE=1`, étapes `standalone-*`).
+
 ### 🔌 Communication avec la plateforme on-premise
 
 - **Variables d'environnement `SENTINEL_*` réellement prises en compte** :
@@ -31,6 +73,104 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Documentation** : section on-premise dans `config/README.md` (URL
   `https://<domaine>/fn/agentApi`, `ca_cert_path`, TLS 1.3, commande de
   vérification) et rappel dans le guide utilisateur.
+
+### 🧱 Tableaux, champs de recherche et défilement
+
+- **La page défile à nouveau partout** : chaque tableau `egui_extras` créait
+  son propre conteneur défilant, borné à la place restante dans la fenêtre ;
+  la molette était capturée dès que le pointeur survolait une liste (registre
+  des paquets, journal SIEM, inventaire…) et la page semblait bloquée. Les
+  tableaux ne défilent plus par eux-mêmes (`vscroll(false)`) — la page est le
+  seul conteneur qui défile, les listes restant paginées. Le journal SIEM perd
+  son puits de 450 px au profit de la pagination (`AUTO` suit la dernière
+  page). Une sonde headless (`examples/scroll_probe.rs`) rend chaque page,
+  envoie un cran de molette sur une grille de positions et échoue si une
+  position ne défile pas.
+- **Module `widgets::table`** : colonnes fluides (`Col::fluid(min, part)`,
+  `Col::fixed`) calculées sur la largeur disponible et toujours coupées, en-têtes
+  et cellules partagés (`header_cell`, `cell`, `cell_mono`, `cell_stack`,
+  `cell_link`, `cell_number`, `cell_empty`…), `row_interaction` pour le curseur,
+  la barre d'accent et le clic de ligne. Les 18 tableaux des 14 pages
+  (vulnérabilités, logiciels ×2, FIM, journal d'audit, réseau ×2, Shadow IT,
+  synchronisation, inventaire, risques, rapports, conformité ×2, notifications
+  ×2, terminal, assistant IA, journal SIEM) y sont passés.
+- **Plus de débordement** : les colonnes non coupées poussaient les tableaux
+  au-delà de leur carte (10 à 30 px à 1360 px de large) et les valeurs longues
+  peignaient sur la colonne voisine. Une cellule tient sur une ligne, tronquée
+  avec une ellipse et la valeur complète en infobulle ; les cellules à deux
+  lignes (paquet + date d'installation, chemin + empreinte, CVE + date de
+  découverte) imposent une hauteur de ligne de 44 px au lieu de 36 px, où
+  elles se chevauchaient. Les colonnes sont dimensionnées pour tenir dans la
+  fenêtre minimale (960 px) ; les lignes de redimensionnement ont disparu.
+- **Vulnérabilités** : la colonne « Analyse et correctifs » (description
+  repliée sur plusieurs lignes + badges + date, coupée par la ligne) est
+  éclatée en colonnes CORRECTIF (version cible) et DESCRIPTION ; la date de
+  découverte passe sous l'identifiant, le faux positif en badge « FP ».
+  Shadow IT : IP et MAC empilées, statut dans sa colonne, export CSV sur la
+  ligne de recherche. Conformité : date d'exécution dans sa colonne,
+  référentiels au-delà du troisième repliés en « +N ».
+- **Un seul champ de recherche** (`widgets::SearchInput`) : cadre, loupe, anneau
+  de focus, bouton d'effacement à emplacement réservé, Échap pour vider sans
+  quitter le champ, texte qui défile sous la loupe. Il remplace le champ de la
+  barre de filtres (désormais fluide : 42 % de la ligne entre 240 et 460 px,
+  au lieu de 260 px fixes qui coupaient l'indication), les `TextEdit` nus du
+  journal SIEM et du terminal, et le champ de la palette de commandes.
+- **Un seul champ de conversation** (`widgets::ChatInput`) pour Jarvis sur le
+  tableau de bord et l'assistant : cadre, icône, bouton d'envoi rond
+  (inactif tant qu'il n'y a rien à envoyer, curseur « interdit »), rotor pendant
+  le traitement, Entrée envoie sans perdre le focus.
+- **Curseur main sur tout ce qui se clique** : `Visuals::interact_cursor`
+  fixé au niveau du thème, au lieu d'appels dispersés que la moitié des
+  contrôles oubliaient. Les rayures des tableaux `egui_extras` utilisent le
+  même mélange opaque que `DataTable` (fini la bande grise translucide).
+- **Banc de rendu** : `PREVIEW_OUT=<png>` écrit la capture de la fenêtre ;
+  la taille demandée (`PREVIEW_W`/`PREVIEW_H`) n'est plus écrasée par la
+  géométrie mémorisée de la session précédente.
+- **Gel à l'ouverture d'une modale** : la boîte de confirmation (mise en
+  quarantaine, arrêt de processus, blocage d'IP, suppression) relisait le
+  numéro de passe egui *pendant* qu'elle tenait le verrou mémoire du
+  contexte — verrou non réentrant, application figée dès le premier clic
+  sur « Confirmer ». Le numéro est lu avant la prise du verrou ; test de
+  non-régression qui rend une modale ouverte sur plusieurs frames.
+- Recherche d'IOC (Menaces › Investigation) sur le champ de recherche
+  partagé ; historique de synchronisation dans les fixtures du banc de rendu
+  (la table de la page Synchronisation est enfin rendue) ; fondu du bas de la
+  barre latérale allongé pour que la dernière entrée ne semble plus coupée par
+  le pied ; le banc capture aussi le splash et l'assistant d'enrôlement.
+- **Barre d'onglets étroite** : quand les libellés ne tiennent plus (sept
+  onglets Menaces à 960 px), les onglets non sélectionnés se replient sur
+  leur icône (libellé en infobulle, badge conservé) avant de recourir à la
+  bande défilante qui coupait « Règles » et « Chronologie ». Un badge à zéro
+  n'est plus affiché.
+- **Squelettes de chargement** : les lignes fantômes des tableaux se
+  répartissent sur la largeur réelle de la carte (proportions conservées) au
+  lieu de déborder de 50 px à droite sur Vulnérabilités et Risques.
+- **Formulaires de création** (`widgets::form`) : une colonne de libellés
+  commune (`form::row`) aligne les champs des formulaires Nouvel actif,
+  Nouveau playbook et Nouvelle règle de détection, dont chaque contrôle
+  partait d'un x différent ; les formulaires Règle d'alerte et Webhook
+  passent en champs empilés qui se replient (`form::fields`/`form::field`)
+  au lieu de déborder de la carte à 1360 px avec « Activé » plié lettre par
+  lettre, et leurs listes déroulantes natives egui sont remplacées par le
+  menu du produit. Le banc de rendu ouvre ces formulaires
+  (`PREVIEW_DRAWER=asset-form|rule-form|webhook-form|playbook-form|detection-form`)
+  et accepte un pointeur (`POINTER="x y"`) pour capturer les états au survol.
+- **Cartographie** : chaque cran de molette sur la page zoomait aussi la carte
+  qu'il faisait défiler. Le zoom passe sur Ctrl/⌘ + molette (et le pincement)
+  avec le pointeur sur la carte, la molette seule fait défiler la page ; le
+  raccourci est indiqué sous l'indicateur de zoom.
+- **Champ secret** (`widgets::PasswordInput`) : cadre, cadenas, valeur masquée,
+  œil pour la révéler, anneau de focus, Entrée pour valider. Il remplace les
+  `TextEdit` nus (une ligne soulignée à côté d'un bouton flottant) du jeton
+  d'enrôlement, du mot de passe administrateur de l'assistant et du dialogue
+  de déverrouillage des paramètres, lequel perd sa barre de titre egui pour
+  la surface de dialogue du produit.
+- **Listes déroulantes** : le menu s'ouvrait vers le haut dès que le contrôle
+  était dans la moitié basse de la fenêtre, recouvrant les champs au-dessus ;
+  il s'ouvre vers le bas tant qu'il y tient, et ne bascule que faute de place.
+- Correctif au passage : la liste des paquets appelait deux fois la navigation
+  clavier, faisant sauter deux lignes par flèche et déréglant la pagination
+  de l'onglet Applications.
 
 ### 🎨 Refonte complète de l'interface (GUI / UI / UX)
 

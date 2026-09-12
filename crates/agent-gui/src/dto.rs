@@ -263,6 +263,8 @@ pub enum GuiAgentStatus {
     /// Agent is starting up.
     #[default]
     Starting,
+    /// Agent protects this endpoint on its own, with no platform behind it.
+    Standalone,
 }
 
 /// Summary view of the agent state for the GUI main panel.
@@ -293,6 +295,9 @@ pub struct AgentSummary {
     pub active_frameworks: Option<Vec<String>>,
     /// Summary of compliance policy status.
     pub policy_summary: Option<GuiPolicySummary>,
+    /// The agent runs without a platform: no enrollment, sync or console.
+    #[serde(default)]
+    pub standalone: bool,
 }
 
 /// A single compliance check result for GUI display.
@@ -1844,6 +1849,7 @@ mod tests {
             uptime_secs: 3600,
             active_frameworks: None,
             policy_summary: None,
+            standalone: false,
         };
 
         let json = serde_json::to_string(&summary).unwrap();

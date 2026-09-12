@@ -52,9 +52,9 @@ Cette crate fournit un tableau de bord interactif complet construit avec **egui/
 | Categorie | Composants |
 |-----------|------------|
 | **Layout** | card, modal, sidebar, layout, breadcrumb, divider, tabs |
-| **Saisie** | text_input, checkbox, toggle_switch, slider, dropdown, command_palette |
+| **Saisie** | text_input, search_input (`SearchInput`), chat_input (`ChatInput`), password_input (`PasswordInput`), form (`row`, `fields`/`field`), checkbox, toggle_switch, slider, dropdown, command_palette |
 | **Affichage** | badge, status_badge, avatar, alert, tooltip, skeleton, empty_state |
-| **Donnees** | data_table, pagination, activity_feed, detail_drawer |
+| **Donnees** | table (cellules et colonnes fluides pour `egui_extras`), data_table, pagination, activity_feed, detail_drawer |
 | **Feedback** | toast, loading_state, progress |
 | **Specialises** | compliance_gauge, security_hero, tray_radar, resource_bar, org_banner, sparkline |
 
@@ -85,6 +85,22 @@ Le contrat de contraste est verifie par les tests de `theme.rs`
 
 Ces regles echouent au build si une couleur est modifiee sans les respecter.
 
+### Tableaux
+
+Toutes les listes (`egui_extras::TableBuilder`) passent par `widgets::table` :
+
+- `table::fluid(ui, &[Col])` / `table::fluid_clickable` : colonnes calculées
+  sur la largeur disponible (`Col::fluid(min, part)`, `Col::fixed(px)`),
+  toujours coupées (`clip`) — un tableau remplit sa carte et ne la déborde
+  jamais, quelle que soit la taille de la fenêtre ;
+- aucun défilement interne : la page est le seul conteneur qui défile, la
+  molette n'est jamais capturée par un tableau (les listes sont paginées) ;
+- `header_cell`, `cell`, `cell_mono`, `cell_stack`, `cell_link`… : une cellule
+  tient sur une ligne, tronquée avec une ellipse, la valeur complète en
+  infobulle ; les cellules à deux lignes imposent `TABLE_DATA_ROW_HEIGHT` ;
+- `row_interaction(&row, selected)` : curseur main, barre d'accent sur la
+  ligne sélectionnée, clic de ligne.
+
 ### Banc de rendu
 
 ```bash
@@ -98,16 +114,30 @@ Variables d'environnement :
 |----------|-------|
 | `PREVIEW_PAGE=<nom>` | Rend une page réelle (`dashboard`, `compliance`, `vulnerabilities`, `threats`, `network`, `monitoring`, `assets`, `software`, `risks`, `reports`, `notifications`, `fim`, `terminal`, `discovery`, `cartography`, `audit`, `sync`, `ai`, `settings`, `about`), ou une surface : `overlays`, `palette`, `splash`, `enrollment` |
 | `PREVIEW_DATA=1` | Peuple toutes les pages avec les fixtures déterministes de `examples/preview/fixtures.rs` |
-| `PREVIEW_DRAWER=<nom>` | Ouvre un tiroir de détail sur la page qui le porte : `vuln`, `threat`, `asset`, `package`, `connection`, `risk`, `fim`, `notification`, `log` (page `terminal`) |
+| `PREVIEW_DRAWER=<nom>` | Ouvre un tiroir de détail sur la page qui le porte : `vuln`, `threat`, `asset`, `package`, `connection`, `risk`, `fim`, `notification`, `log` (page `terminal`) ; ou un formulaire de création : `asset-form`, `rule-form` (notifications, onglet 1), `webhook-form` (onglet 2), `playbook-form` (menaces, onglet 4), `detection-form` (onglet 5) |
 | `PREVIEW_TAB=<n>` | Onglet secondaire de la page (`threats` 0–6, `notifications` 0–2, `monitoring` 0–1, `reports` 0–3, `ai` 0–2, `compliance` 1 = matrice) |
-| `PREVIEW_STEP=<étape>` | Étape de l'assistant d'enrôlement : `welcome`, `token`, `admin`, `progress`, `done`, `failed` |
+| `PREVIEW_STEP=<étape>` | Étape de l'assistant d'enrôlement : `welcome`, `token`, `admin`, `progress`, `done`, `failed` ; préfixe `standalone-` (`standalone-welcome`, `standalone-admin`, `standalone-done`…) pour le parcours « Protection locale » ; préfixe `connect-` (`connect-token`, `connect-done`) pour l'assistant rouvert depuis un agent autonome qui rejoint une plateforme |
+| `PREVIEW_STANDALONE=1` | Agent en mode autonome : bandeau « Mode autonome », page Sync remplacée, boutons de synchronisation masqués, carte « Plateforme » dans les réglages |
 | `PREVIEW_LIGHT=1` | Thème clair |
 | `PREVIEW_RAIL=1` | Barre latérale repliée en rail |
 | `PREVIEW_W`, `PREVIEW_H` | Taille de la fenêtre (le rail se replie seul sous 1 120 px) |
 | `PREVIEW_SHOT=<n>` | Ferme la fenêtre après `n` frames (captures automatisées) |
+| `PREVIEW_OUT=<fichier.png>` | Avec `PREVIEW_SHOT`, écrit la capture de la fenêtre dans ce fichier avant de fermer |
 
 Les pages sont disposées avec la colonne du shell (`app::page_column`), pour
 qu'une capture mesure ce que l'application montre.
+
+Sonde de défilement, sans fenêtre :
+
+```bash
+cargo run -p agent-gui --all-features --example scroll_probe
+PROBE_SWEEP=1 cargo run --release -p agent-gui --all-features --example scroll_probe
+```
+
+Rend chaque page avec les fixtures, envoie un cran de molette et vérifie que la
+page a défilé (`PROBE_SWEEP=1` balaie une grille de positions du pointeur,
+`PROBE_PAGE=<nom>` limite à une page, `PROBE_X`/`PROBE_Y` fixent le pointeur).
+Le code de sortie est non nul dès qu'une position bloque le défilement.
 
 ## Feature flags
 

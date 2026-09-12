@@ -628,9 +628,13 @@ impl AgentRuntime {
 
     /// Set the database and create an authenticated client for sync services.
     pub fn with_database(mut self, db: Arc<Database>) -> Self {
-        let auth_client = Arc::new(AuthenticatedClient::new(self.config.0.clone(), db.clone()));
         self.db = Some(db.clone());
-        self.authenticated_client = Some(auth_client);
+        // A standalone agent has no platform to authenticate against: with no
+        // client, every upload and sync path in the runtime stays dormant.
+        if !self.config.standalone {
+            let auth_client = Arc::new(AuthenticatedClient::new(self.config.0.clone(), db.clone()));
+            self.authenticated_client = Some(auth_client);
+        }
 
         let trail = Arc::new(audit_trail::LocalAuditTrail::new(db));
         self.audit_trail = Some(trail.clone());
@@ -732,34 +736,10 @@ impl AgentRuntime {
         }
     }
 
-    /// Run the agent main loop.
-    pub async fn run(&self) -> Result<(), CommonError> {
-        // Reset startup timer so it measures from run() start, not from
-        // AgentRuntime construction (which may include a failed GUI attempt).
-        self.resource_monitor.reset_startup_time();
-
-        info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
-        info!("Server URL: https://cyber-threat-consulting.com [redacted]");
-        info!(
-            "Check interval: {} seconds",
-            self.config.check_interval_secs
-        );
-        info!(
-            "Vulnerability scan interval: {} seconds",
-            self.vuln_scan_interval_secs
-        );
-        info!(
-            "Security scan interval: {} seconds",
-            self.security_scan_interval_secs
-        );
-
-        // Check startup time is within limits
-        self.resource_monitor.check_startup_time();
-
-        // Honor timed IP unblocks whose in-memory timers died with the previous
-        // process: expired blocks are lifted now, the rest are rescheduled.
-        crate::edr_actions::reconcile_pending_blocks().await;
-
+    /// Connect to the platform: API client, enrollment (with a probe
+    /// heartbeat and an immediate re-enrollment on a stale identity) and
+    /// the sync services. Never called in standalone mode.
+    async fn run_platform_startup(&self) -> Result<(), CommonError> {
         // Initialize API client
         self.init_api_client().await?;
 
@@ -823,6 +803,49 @@ impl AgentRuntime {
                 warn!("Enrollment failed: {}. Running in offline mode.", e);
                 // Continue running in offline mode
             }
+        }
+
+        Ok(())
+    }
+
+    pub async fn run(&self) -> Result<(), CommonError> {
+        // Reset startup timer so it measures from run() start, not from
+        // AgentRuntime construction (which may include a failed GUI attempt).
+        self.resource_monitor.reset_startup_time();
+
+        info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
+        info!("Server URL: https://cyber-threat-consulting.com [redacted]");
+        info!(
+            "Check interval: {} seconds",
+            self.config.check_interval_secs
+        );
+        info!(
+            "Vulnerability scan interval: {} seconds",
+            self.vuln_scan_interval_secs
+        );
+        info!(
+            "Security scan interval: {} seconds",
+            self.security_scan_interval_secs
+        );
+
+        // Check startup time is within limits
+        self.resource_monitor.check_startup_time();
+
+        // Honor timed IP unblocks whose in-memory timers died with the previous
+        // process: expired blocks are lifted now, the rest are rescheduled.
+        crate::edr_actions::reconcile_pending_blocks().await;
+
+        if self.config.standalone {
+            // ── Standalone: no platform, local protection only ──
+            info!(
+                "Standalone mode: no enrollment, heartbeat, upload or remote command; \
+                 detection, file integrity, compliance and scanning run locally"
+            );
+            // The bundled check rules back the results table's foreign key;
+            // the platform normally seeds them through the sync services.
+            self.seed_builtin_check_rules().await;
+        } else {
+            self.run_platform_startup().await?;
         }
 
         // Log initial resource usage
@@ -1380,8 +1403,10 @@ impl AgentRuntime {
                 }
             }
 
-            // 2. Heartbeat & Config Sync
-            if last_heartbeat.elapsed().as_secs() >= *self.heartbeat_interval_secs.read().await {
+            // 2. Heartbeat & Config Sync (a standalone agent has nobody to report to)
+            if !self.config.standalone
+                && last_heartbeat.elapsed().as_secs() >= *self.heartbeat_interval_secs.read().await
+            {
                 last_heartbeat = std::time::Instant::now();
                 match self
                     .send_heartbeat(compliance_score, last_compliance_check_at)
@@ -2449,7 +2474,9 @@ impl AgentRuntime {
             }
 
             // Certificate renewal check (daily)
-            if last_cert_check.elapsed().as_secs() >= cert_check_interval_secs {
+            if !self.config.standalone
+                && last_cert_check.elapsed().as_secs() >= cert_check_interval_secs
+            {
                 if let Some(ref auth_client) = self.authenticated_client {
                     match auth_client.check_and_renew_if_needed().await {
                         Ok(()) => {
@@ -2612,6 +2639,22 @@ impl AgentRuntime {
                 self.state.force_check.store(false, Ordering::Release);
             }
 
+            // A sync request in standalone mode has nothing to sync: say so
+            // once in the interface instead of spinning against no server.
+            if self.config.standalone && self.state.force_sync.swap(false, Ordering::AcqRel) {
+                info!("Sync requested in standalone mode: no platform, nothing to send");
+                #[cfg(feature = "gui")]
+                self.emit_gui_event(AgentEvent::SyncStatus {
+                    syncing: false,
+                    pending_count: 0,
+                    last_sync_at: None,
+                    error: Some(
+                        "Mode autonome : aucune plateforme à synchroniser. Les données restent sur ce poste."
+                            .to_string(),
+                    ),
+                });
+            }
+
             // Check for force_sync flag (GUI "Forcer la synchronisation" button)
             if self.state.force_sync.load(Ordering::Acquire) {
                 info!("Force sync triggered");
@@ -2693,10 +2736,17 @@ impl AgentRuntime {
             }
 
             // Check for force_update flag (trigger from GUI button)
-            if self.state.force_update.swap(false, Ordering::AcqRel)
-                && let Err(e) = self.run_self_update().await
-            {
-                warn!("Self-update failed: {}", e);
+            if self.state.force_update.swap(false, Ordering::AcqRel) {
+                if self.config.standalone {
+                    // No vendor endpoint is contacted in standalone mode;
+                    // updates are installed from a downloaded package.
+                    info!(
+                        "Update check requested in standalone mode: automatic updates are off, \
+                         install a newer package to update"
+                    );
+                } else if let Err(e) = self.run_self_update().await {
+                    warn!("Self-update failed: {}", e);
+                }
             }
 
             // Check for force_discovery flag (GUI network discovery)
@@ -2935,8 +2985,10 @@ impl AgentRuntime {
         info!("Performing final cleanup and data flush...");
 
         // 1. Flush pending check results
-        info!("Flushing pending check results to server...");
-        self.upload_check_results().await;
+        if !self.config.standalone {
+            info!("Flushing pending check results to server...");
+            self.upload_check_results().await;
+        }
 
         // 2. Send final 'offline' heartbeat if possible
         let api_client = self.api_client.read().await;

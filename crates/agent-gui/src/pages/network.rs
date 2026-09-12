@@ -634,120 +634,72 @@ impl NetworkPage {
                     );
                 }
             } else {
-                use egui_extras::{Column, TableBuilder};
+                use widgets::table;
 
-                let table = TableBuilder::new(ui)
-                    .striped(false)
-                    .resizable(true)
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(90.0).range(60.0..=160.0)) // Name
-                    .column(Column::initial(90.0).range(60.0..=140.0)) // Type
-                    .column(Column::initial(70.0).range(50.0..=120.0)) // Status
-                    .column(Column::initial(120.0).range(80.0..=200.0)) // IPv4
-                    .column(Column::remainder()); // MAC
-
-                table
-                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("NOM")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("TYPE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("STATUT")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("IPV4")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("MAC")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                    })
-                    .body(|body| {
-                        body.rows(
-                            theme::TABLE_ROW_HEIGHT,
-                            state.network.interfaces.len(),
-                            |mut row| {
-                                let Some(iface) = state.network.interfaces.get(row.index()) else {
-                                    return;
-                                };
-                                row.col(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&iface.name)
-                                            .font(theme::font_body())
-                                            .color(theme::text_primary())
-                                            .strong(),
-                                    );
-                                });
-                                row.col(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&iface.interface_type)
-                                            .font(theme::font_min())
-                                            .color(theme::text_secondary()),
-                                    );
-                                });
-                                row.col(|ui: &mut egui::Ui| {
-                                    let (label, color) = if iface.status == "up" {
-                                        ("OPÉRATIONNEL", theme::SUCCESS)
-                                    } else {
-                                        ("HORS-LIGNE", theme::WARNING)
-                                    };
-                                    widgets::status_badge(ui, label, color);
-                                });
-                                row.col(|ui: &mut egui::Ui| {
-                                    let addr = iface
-                                        .ipv4_addresses
-                                        .first()
-                                        .map(|s| s.as_str())
-                                        .unwrap_or("--");
-                                    ui.label(
-                                        egui::RichText::new(addr)
-                                            .font(theme::font_mono())
-                                            .color(theme::text_secondary()),
-                                    );
-                                });
-                                row.col(|ui: &mut egui::Ui| {
-                                    let mac = iface.mac_address.as_deref().unwrap_or("--");
-                                    ui.label(
-                                        egui::RichText::new(mac)
-                                            .font(theme::font_mono())
-                                            .color(theme::text_tertiary()),
-                                    );
-                                });
-                            },
-                        );
+                table::fluid(
+                    ui,
+                    &[
+                        table::Col::fluid(100.0, 1.0), // Nom
+                        table::Col::fluid(80.0, 1.0),  // Type
+                        table::Col::fluid(110.0, 0.0), // Statut
+                        table::Col::fluid(120.0, 1.0), // IPv4
+                        table::Col::fluid(140.0, 2.0), // MAC
+                    ],
+                )
+                .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                    header.col(|ui| {
+                        table::header_cell(ui, "NOM");
                     });
+                    header.col(|ui| {
+                        table::header_cell(ui, "TYPE");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "STATUT");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "IPV4");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "MAC");
+                    });
+                })
+                .body(|body| {
+                    body.rows(
+                        theme::TABLE_ROW_HEIGHT,
+                        state.network.interfaces.len(),
+                        |mut row| {
+                            let Some(iface) = state.network.interfaces.get(row.index()) else {
+                                return;
+                            };
+                            row.col(|ui| {
+                                table::cell_strong(ui, &iface.name);
+                            });
+                            row.col(|ui| {
+                                table::cell_small(ui, &iface.interface_type);
+                            });
+                            row.col(|ui| {
+                                let (label, color) = if iface.status == "up" {
+                                    ("OPÉRATIONNEL", theme::SUCCESS)
+                                } else {
+                                    ("HORS-LIGNE", theme::WARNING)
+                                };
+                                widgets::status_badge(ui, label, color);
+                            });
+                            row.col(|ui| {
+                                match iface.ipv4_addresses.first() {
+                                    Some(addr) => table::cell_mono(ui, addr),
+                                    None => table::cell_empty(ui),
+                                };
+                            });
+                            row.col(|ui| {
+                                match iface.mac_address.as_deref() {
+                                    Some(mac) => table::cell_mono_muted(ui, mac),
+                                    None => table::cell_empty(ui),
+                                };
+                            });
+                        },
+                    );
+                });
             }
         });
     }
@@ -855,142 +807,93 @@ impl NetworkPage {
                     widgets::empty_state(ui, icons::NETWORK, "Aucune connexion active", None);
                 }
             } else {
-                use egui_extras::{Column, TableBuilder};
-
-                // Capture ctx before table borrows ui mutably
-                let ctx_for_cursor = ui.ctx().clone();
-                let table = TableBuilder::new(ui)
-                    .striped(false)
-                    .resizable(true)
-                    .sense(egui::Sense::click())
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(60.0).range(40.0..=80.0))
-                    .column(Column::initial(140.0).range(80.0..=300.0))
-                    .column(Column::initial(140.0).range(80.0..=300.0))
-                    .column(Column::initial(90.0).range(60.0..=140.0))
-                    .column(Column::remainder());
+                use widgets::table;
 
                 let mut clicked_conn: Option<usize> = None;
+                let selected = state.network.selected_connection;
 
-                table
-                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("PROTO")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("LOCAL")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("DISTANT")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("\u{00c9}TAT")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("PROCESSUS")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                    .strong(),
-                            );
-                        });
-                    })
-                    .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, nc_len, |mut row| {
-                            let Some(&real_idx) = filtered.get(nc_start + row.index()) else {
-                                return;
-                            };
-                            let Some(conn) = state.network.connections.get(real_idx) else {
-                                return;
-                            };
-                            row.col(|ui: &mut egui::Ui| {
-                                widgets::status_badge(ui, &conn.protocol, theme::INFO);
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(format!(
-                                        "{}:{}",
-                                        conn.local_address, conn.local_port
-                                    ))
-                                    .font(theme::font_mono())
-                                    .color(theme::text_primary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let remote = if let (Some(addr), Some(port)) =
-                                    (&conn.remote_address, conn.remote_port)
-                                {
-                                    format!("{}:{}", addr, port)
-                                } else if let Some(addr) = &conn.remote_address {
-                                    addr.clone()
-                                } else {
-                                    "--".to_string()
-                                };
-                                ui.label(
-                                    egui::RichText::new(remote)
-                                        .font(theme::font_mono())
-                                        .color(theme::text_secondary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let (label, color) = match conn.state.as_str() {
-                                    "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
-                                    "LISTEN" => ("LISTEN", theme::INFO),
-                                    "CLOSE_WAIT" | "TIME_WAIT" => ("CLOSED", theme::WARNING),
-                                    _ => (conn.state.as_str(), theme::WARNING),
-                                };
-                                widgets::status_badge(ui, label, color);
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.horizontal(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(icons::CUBE)
-                                            .color(theme::readable_color(theme::INFO)),
-                                    );
-                                    let proc_name = conn.process_name.as_deref().unwrap_or("--");
-                                    ui.label(
-                                        egui::RichText::new(proc_name)
-                                            .font(theme::font_body())
-                                            .color(theme::text_primary())
-                                            .strong(),
-                                    );
-                                });
-                            });
-
-                            let row_resp = row.response();
-                            if row_resp.hovered() {
-                                ctx_for_cursor.set_cursor_icon(egui::CursorIcon::PointingHand);
-                            }
-                            if row_resp.clicked() {
-                                clicked_conn = Some(real_idx);
-                            }
-                        });
+                table::fluid_clickable(
+                    ui,
+                    &[
+                        table::Col::fluid(64.0, 0.0),  // Proto
+                        table::Col::fluid(150.0, 1.5), // Local
+                        table::Col::fluid(150.0, 1.5), // Distant
+                        table::Col::fluid(104.0, 0.0), // État
+                        table::Col::fluid(120.0, 2.0), // Processus
+                    ],
+                )
+                .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                    header.col(|ui| {
+                        table::header_cell(ui, "PROTO");
                     });
+                    header.col(|ui| {
+                        table::header_cell(ui, "LOCAL");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "DISTANT");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "\u{00c9}TAT");
+                    });
+                    header.col(|ui| {
+                        table::header_cell(ui, "PROCESSUS");
+                    });
+                })
+                .body(|body| {
+                    body.rows(theme::TABLE_ROW_HEIGHT, nc_len, |mut row| {
+                        let Some(&real_idx) = filtered.get(nc_start + row.index()) else {
+                            return;
+                        };
+                        let Some(conn) = state.network.connections.get(real_idx) else {
+                            return;
+                        };
+                        let is_selected = selected == Some(real_idx);
+                        row.set_selected(is_selected);
+
+                        row.col(|ui| {
+                            widgets::status_badge(ui, &conn.protocol, theme::INFO);
+                        });
+                        row.col(|ui| {
+                            table::cell_mono(
+                                ui,
+                                &format!("{}:{}", conn.local_address, conn.local_port),
+                            );
+                        });
+                        row.col(|ui| {
+                            match (&conn.remote_address, conn.remote_port) {
+                                (Some(addr), Some(port)) => {
+                                    table::cell_mono(ui, &format!("{}:{}", addr, port))
+                                }
+                                (Some(addr), None) => table::cell_mono(ui, addr),
+                                (None, _) => table::cell_empty(ui),
+                            };
+                        });
+                        row.col(|ui| {
+                            let (label, color) = match conn.state.as_str() {
+                                "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
+                                "LISTEN" => ("LISTEN", theme::INFO),
+                                "CLOSE_WAIT" | "TIME_WAIT" => ("CLOSED", theme::WARNING),
+                                _ => (conn.state.as_str(), theme::WARNING),
+                            };
+                            widgets::status_badge(ui, label, color);
+                        });
+                        row.col(|ui| {
+                            match conn.process_name.as_deref() {
+                                Some(name) => table::cell_icon(
+                                    ui,
+                                    icons::CUBE,
+                                    theme::readable_color(theme::INFO),
+                                    name,
+                                ),
+                                None => table::cell_empty(ui),
+                            };
+                        });
+
+                        if table::row_interaction(&row, is_selected) {
+                            clicked_conn = Some(real_idx);
+                        }
+                    });
+                });
 
                 if let Some(idx) = clicked_conn {
                     state.network.selected_connection = Some(idx);

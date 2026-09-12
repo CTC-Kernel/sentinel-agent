@@ -78,6 +78,7 @@ pub fn seed(state: &mut AppState) {
                 .collect(),
         ),
         policy_summary: Some(policy),
+        standalone: false,
     };
     state.policy = policy;
     state.previous_compliance_score = Some(83.1);
@@ -1898,6 +1899,53 @@ pub fn seed(state: &mut AppState) {
     if let Some(last) = state.kpi.snapshots.back_mut() {
         last.compliance_score = 87.4;
     }
+
+    // ── Sync history: the transfer log the Synchronisation page lists ──
+    for (minutes, success, message) in [
+        (
+            4,
+            true,
+            "148 actifs, 21 contrôles et 22 vulnérabilités poussés",
+        ),
+        (34, true, "Politiques et référentiels mis à jour (CIS v8.1)"),
+        (
+            64,
+            false,
+            "Délai dépassé sur /fn/agentApi/sync (30 s) — nouvelle tentative",
+        ),
+        (94, true, "3 alertes FIM et 4 événements EDR transmis"),
+        (
+            124,
+            true,
+            "Heartbeat accepté, certificat mTLS valide 6 jours",
+        ),
+        (
+            184,
+            true,
+            "Inventaire logiciel complet transmis (24 paquets)",
+        ),
+    ] {
+        state
+            .sync
+            .history
+            .push_back(agent_gui::state::SyncHistoryEntry {
+                timestamp: ago(minutes),
+                success,
+                message: message.to_string(),
+            });
+    }
+}
+
+/// Turn the seeded state into a standalone agent: no platform, no tenant,
+/// no sync, the same local data.
+pub fn standalone(state: &mut AppState) {
+    state.summary.standalone = true;
+    state.summary.status = GuiAgentStatus::Standalone;
+    state.summary.organization = None;
+    state.summary.agent_id = None;
+    state.summary.last_sync_at = None;
+    state.summary.pending_sync_count = 0;
+    state.sync.history.clear();
 }
 
 /// Select the secondary tab `PREVIEW_TAB` names on `page`; 0 is the first.
@@ -1976,6 +2024,12 @@ pub fn open_drawer(state: &mut AppState, which: &str) {
             state.siem.selected_log = Some(0);
             state.siem.detail_open = true;
         }
+        // Forms: the surfaces a click on "Nouveau …" opens.
+        "asset-form" => state.assets.asset_editing = true,
+        "rule-form" => state.alerting.editing_rule = true,
+        "webhook-form" => state.alerting.editing_webhook = true,
+        "playbook-form" => state.threats.playbook_editing = true,
+        "detection-form" => state.threats.detection_rule_editing = true,
         _ => {}
     }
 }

@@ -21,6 +21,8 @@ pub mod branding {
     pub const EMAIL: &str = "***REMOVED***";
     pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs/sentinel-agent";
     pub const CONSOLE: &str = "https://app.cyber-threat-consulting.com";
+    /// Where a standalone agent's updates come from: the release packages.
+    pub const DOWNLOADS: &str = "https://github.com/CTC-Kernel/sentinel-agent/releases/latest";
 }
 
 pub struct AboutPage;

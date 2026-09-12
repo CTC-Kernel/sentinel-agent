@@ -267,6 +267,9 @@ impl AgentRuntime {
 
     /// Upload pending check results to the SaaS platform.
     pub(crate) async fn upload_check_results(&self) {
+        if self.config.standalone {
+            return;
+        }
         let uploader = self.result_uploader.read().await;
         if let Some(ref uploader) = *uploader {
             match uploader.upload_pending().await {

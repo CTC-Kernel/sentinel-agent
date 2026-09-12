@@ -39,6 +39,8 @@ pub struct SidebarContext<'a> {
     pub sync: &'a SidebarSyncState,
     /// Tenant name, shown in the footer.
     pub organization: Option<&'a str>,
+    /// The agent runs without a platform: no sync entry, local health line.
+    pub standalone: bool,
     /// Local model is loaded and ready.
     pub ai_ready: bool,
     /// Voice assistant is listening.
@@ -182,6 +184,10 @@ impl Sidebar {
                     for section in nav_sections() {
                         Self::section_label(ui, section.label, ctx.collapsed, width);
                         for (page, icon, label) in section.items {
+                            // Nothing to synchronise without a platform.
+                            if ctx.standalone && *page == Page::Sync {
+                                continue;
+                            }
                             let badge = (*page == Page::Notifications
                                 && ctx.unread_notifications > 0)
                                 .then_some(ctx.unread_notifications);
@@ -234,16 +240,22 @@ impl Sidebar {
             // so a row cut off by the footer reads as "more below" rather
             // than as a row overlapping the footer.
             let fade = egui::Rect::from_min_max(
-                egui::pos2(full.left(), footer_top - theme::SPACE_LG),
+                egui::pos2(full.left(), footer_top - theme::SPACE_2XL),
                 egui::pos2(full.right(), footer_top),
             );
             if ui.is_rect_visible(fade) {
                 use egui::epaint::{Mesh, Vertex};
                 let (_, bottom) = theme::sidebar_gradient();
+                // Transparent at the top, opaque well before the footer: a
+                // row that straddles the boundary dissolves instead of being
+                // sliced through its label by the footer's rule.
+                let solid_top = fade.bottom() - theme::SPACE;
                 let mut mesh = Mesh::default();
                 for (pos, color) in [
                     (fade.left_top(), egui::Color32::TRANSPARENT),
                     (fade.right_top(), egui::Color32::TRANSPARENT),
+                    (egui::pos2(fade.right(), solid_top), bottom),
+                    (egui::pos2(fade.left(), solid_top), bottom),
                     (fade.right_bottom(), bottom),
                     (fade.left_bottom(), bottom),
                 ] {
@@ -255,6 +267,8 @@ impl Sidebar {
                 }
                 mesh.add_triangle(0, 1, 2);
                 mesh.add_triangle(2, 3, 0);
+                mesh.add_triangle(3, 2, 4);
+                mesh.add_triangle(4, 5, 3);
                 ui.painter().add(mesh);
             }
 
@@ -674,6 +688,9 @@ impl Sidebar {
         }
 
         let tooltip = match (&ctx.sync.error, ctx.organization) {
+            _ if ctx.standalone => {
+                "Mode autonome : protection locale, aucune donn\u{00e9}e envoy\u{00e9}e".to_string()
+            }
             (Some(err), _) => err.clone(),
             (None, Some(org)) => format!("Workspace : {org}"),
             (None, None) => "Aucun workspace".to_string(),
@@ -690,6 +707,13 @@ impl Sidebar {
                 theme::readable_color(theme::ACCENT),
                 "Analyse en cours".to_string(),
                 None,
+            );
+        }
+        if ctx.standalone {
+            return (
+                theme::readable_color(theme::SUCCESS),
+                "Mode autonome".to_string(),
+                Some("Protection locale".to_string()),
             );
         }
         if ctx.sync.syncing {

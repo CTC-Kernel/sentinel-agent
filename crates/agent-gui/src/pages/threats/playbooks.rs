@@ -555,28 +555,14 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
             let mut f = form.borrow_mut();
 
             // Name
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("Nom")
-                        .font(theme::font_label())
-                        .color(theme::text_secondary()),
-                );
-                ui.add_space(theme::SPACE_SM);
+            widgets::form::row(ui, "Nom", |ui: &mut egui::Ui| {
                 widgets::text_input(ui, &mut f.name, "Nom du playbook…");
             });
-            ui.add_space(theme::SPACE_XS);
 
             // Description
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("Description")
-                        .font(theme::font_label())
-                        .color(theme::text_secondary()),
-                );
-                ui.add_space(theme::SPACE_SM);
+            widgets::form::row(ui, "Description", |ui: &mut egui::Ui| {
                 widgets::text_input(ui, &mut f.description, "Description…");
             });
-            ui.add_space(theme::SPACE_SM);
 
             // Conditions section
             ui.label(

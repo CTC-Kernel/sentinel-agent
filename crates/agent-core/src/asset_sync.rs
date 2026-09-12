@@ -254,7 +254,11 @@ impl AgentRuntime {
 
         // Re-enqueue unsynced entities to ensure they reach the platform.
         // This covers data created before sync was properly wired.
-        self.requeue_unsynced_entities(db).await;
+        // Nothing waits for a platform in standalone mode; queueing would only
+        // grow a list that is never drained.
+        if !self.config.standalone {
+            self.requeue_unsynced_entities(db).await;
+        }
     }
 
     #[cfg(feature = "gui")]

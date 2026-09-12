@@ -24,6 +24,10 @@ struct Preview {
     /// Screenshot after N frames, then quit (set via PREVIEW_SHOT).
     shot_after: Option<u32>,
     frame_count: u32,
+    /// Where the capture is written when PREVIEW_OUT names a PNG file.
+    shot_path: Option<String>,
+    /// The capture has been requested from the viewport.
+    shot_requested: bool,
     /// PREVIEW_DRAWER, re-applied once the page has built its caches.
     drawer: Option<String>,
     /// Command palette state, opened by PREVIEW_PAGE=palette.
@@ -41,6 +45,9 @@ impl Default for Preview {
             let mut state = Box::new(AppState::default());
             if std::env::var("PREVIEW_DATA").is_ok() {
                 fixtures::seed(&mut state);
+            }
+            if std::env::var("PREVIEW_STANDALONE").is_ok() {
+                fixtures::standalone(&mut state);
             }
             if let Some(tab) = std::env::var("PREVIEW_TAB")
                 .ok()
@@ -64,20 +71,42 @@ impl Default for Preview {
                 .ok()
                 .and_then(|v| v.parse().ok()),
             frame_count: 0,
+            shot_path: std::env::var("PREVIEW_OUT").ok(),
+            shot_requested: false,
             drawer: std::env::var("PREVIEW_DRAWER").ok(),
             palette: widgets::CommandPaletteState::new(),
             toasts: Vec::new(),
             wizard: {
                 use agent_gui::enrollment::{EnrollmentStep, EnrollmentWizard};
-                let step = match std::env::var("PREVIEW_STEP").as_deref() {
-                    Ok("token") => EnrollmentStep::TokenEntry,
-                    Ok("admin") => EnrollmentStep::AdminSetup,
-                    Ok("progress") => EnrollmentStep::InProgress,
-                    Ok("done") => EnrollmentStep::Complete {
+                let requested_step = std::env::var("PREVIEW_STEP").unwrap_or_default();
+                // `standalone-<step>` previews the wizard's standalone branch;
+                // `connect-<step>` the wizard reopened from a standalone agent
+                // to join a platform.
+                let standalone = requested_step.starts_with("standalone-");
+                let connect_later = requested_step.starts_with("connect-");
+                let step = match requested_step
+                    .trim_start_matches("standalone-")
+                    .trim_start_matches("connect-")
+                {
+                    "token" => EnrollmentStep::TokenEntry,
+                    "admin" => EnrollmentStep::AdminSetup,
+                    "progress" => EnrollmentStep::InProgress,
+                    "done" if standalone => EnrollmentStep::Complete {
+                        success: true,
+                        message: "Mode autonome activé. Ce poste est protégé localement, sans plateforme.".into(),
+                    },
+                    "done" if connect_later => EnrollmentStep::Complete {
+                        success: true,
+                        message: "Agent enrôlé avec succès.\nID: 7f3c9a2e-1b4d-4e8f-9a6c-2d5e8f1a3b7c\n\
+                                  La synchronisation démarre au prochain lancement de l'agent ; \
+                                  d'ici là, la protection locale continue."
+                            .into(),
+                    },
+                    "done" => EnrollmentStep::Complete {
                         success: true,
                         message: "Agent enrôlé auprès de Cyber Threat Consulting.".into(),
                     },
-                    Ok("failed") => EnrollmentStep::Complete {
+                    "failed" => EnrollmentStep::Complete {
                         success: false,
                         message:
                             "Jeton expiré. Demandez un nouveau QR code à votre administrateur."
@@ -87,6 +116,8 @@ impl Default for Preview {
                 };
                 EnrollmentWizard {
                     step,
+                    standalone,
+                    connect_later,
                     ..Default::default()
                 }
             },
@@ -106,6 +137,7 @@ impl eframe::App for Preview {
         match self.requested.as_str() {
             "splash" => {
                 widgets::splash_screen(ctx, 1.2);
+                self.end_frame(ctx);
                 ctx.request_repaint();
                 return;
             }
@@ -119,25 +151,28 @@ impl eframe::App for Preview {
                     .show(ctx, |ui| {
                         let _ = self.wizard.show(ui);
                     });
+                self.end_frame(ctx);
                 ctx.request_repaint();
                 return;
             }
             _ => {}
         }
 
-        let (org, unread, pending, last_sync, scanning) = match self.state.as_deref() {
+        let (org, unread, pending, last_sync, scanning, standalone) = match self.state.as_deref() {
             Some(st) => (
                 st.summary.organization.clone(),
                 st.unread_notification_count,
                 st.summary.pending_sync_count,
                 st.summary.last_sync_at,
                 st.summary.status == agent_gui::dto::GuiAgentStatus::Scanning,
+                st.summary.standalone,
             ),
             None => (
                 Some("Cyber Threat Consulting".to_string()),
                 7,
                 3,
                 Some(chrono::Utc::now() - chrono::Duration::minutes(4)),
+                false,
                 false,
             ),
         };
@@ -158,6 +193,7 @@ impl eframe::App for Preview {
                 page_label,
                 page_section: Some(page_section),
                 organization: org.as_deref(),
+                standalone,
                 unread,
                 syncing: false,
                 scanning,
@@ -189,6 +225,7 @@ impl eframe::App for Preview {
                         unread_notifications: unread,
                         sync: &sync,
                         organization: org.as_deref(),
+                        standalone,
                         ai_ready: true,
                         voice_active: false,
                         collapsed,
@@ -225,17 +262,62 @@ impl eframe::App for Preview {
 
         self.overlays(ctx);
 
-        self.frame_count += 1;
-        if let Some(n) = self.shot_after
-            && self.frame_count >= n
-        {
-            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-        }
+        self.end_frame(ctx);
         ctx.request_repaint();
     }
 }
 
 impl Preview {
+    /// Count the frame and, when a capture was asked for, request it and
+    /// write it out; every surface the harness renders ends its frame here,
+    /// the first-run ones included.
+    fn end_frame(&mut self, ctx: &egui::Context) {
+        self.frame_count += 1;
+        if std::env::var("PREVIEW_DEBUG").is_ok() {
+            eprintln!("frame {}", self.frame_count);
+        }
+        if let Some(n) = self.shot_after
+            && self.frame_count >= n
+        {
+            if self.shot_path.is_none() {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            } else if !self.shot_requested {
+                // Ask the viewport for its pixels once, then quit as soon as
+                // they have been written: a capture that measures what the
+                // shell shows, without an X11 grab or a compositor.
+                self.shot_requested = true;
+                ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
+            }
+        }
+        if let Some(path) = self.shot_path.as_deref() {
+            let image = ctx.input(|i| {
+                i.events.iter().find_map(|event| match event {
+                    egui::Event::Screenshot { image, .. } => Some(image.clone()),
+                    _ => None,
+                })
+            });
+            if let Some(image) = image {
+                let bytes: Vec<u8> = image.pixels.iter().flat_map(|p| p.to_array()).collect();
+                eprintln!(
+                    "PREVIEW_OUT: {}x{} (screen {:?})",
+                    image.width(),
+                    image.height(),
+                    ctx.screen_rect().size()
+                );
+                if let Err(err) = image::save_buffer(
+                    path,
+                    &bytes,
+                    image.width() as u32,
+                    image.height() as u32,
+                    image::ColorType::Rgba8,
+                ) {
+                    eprintln!("PREVIEW_OUT: {err}");
+                }
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
+        }
+    }
+
     /// Overlay surfaces the real shell layers over the content: toasts, a
     /// modal, and the command palette. Selected by PREVIEW_PAGE.
     fn overlays(&mut self, ctx: &egui::Context) {
@@ -768,6 +850,9 @@ fn main() -> eframe::Result<()> {
                     .and_then(|v| v.parse().ok())
                     .unwrap_or(theme::WINDOW_HEIGHT),
             ]),
+            // A capture must measure the size it was asked for, not the one
+            // the previous run left in the window store.
+            persist_window: false,
             ..Default::default()
         },
         Box::new(|cc| {

@@ -187,10 +187,12 @@ fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static 
 }
 
 /// Build the full command list shown in the palette: one entry per page plus
-/// the global actions that already have keyboard shortcuts.
-fn build_palette_commands() -> Vec<widgets::CommandItem> {
+/// the global actions that already have keyboard shortcuts. A standalone
+/// agent has no synchronisation page and nothing to synchronise.
+fn build_palette_commands(standalone: bool) -> Vec<widgets::CommandItem> {
     let mut commands: Vec<widgets::CommandItem> = page_catalog()
         .into_iter()
+        .filter(|(page, ..)| !(standalone && *page == Page::Sync))
         .map(|(_, nav_id, icon, label, category)| {
             widgets::CommandItem::new(format!("nav:{nav_id}"), label)
                 .icon(icon)
@@ -204,12 +206,14 @@ fn build_palette_commands() -> Vec<widgets::CommandItem> {
             .shortcut(widgets::topbar::shortcut_label(false, "R"))
             .category("Actions"),
     );
-    commands.push(
-        widgets::CommandItem::new("action:force_sync", "Synchroniser maintenant")
-            .icon(icons::SYNC)
-            .shortcut(widgets::topbar::shortcut_label(true, "S"))
-            .category("Actions"),
-    );
+    if !standalone {
+        commands.push(
+            widgets::CommandItem::new("action:force_sync", "Synchroniser maintenant")
+                .icon(icons::SYNC)
+                .shortcut(widgets::topbar::shortcut_label(true, "S"))
+                .category("Actions"),
+        );
+    }
     commands.push(
         widgets::CommandItem::new("action:toggle_theme", "Basculer le thème clair / sombre")
             .icon(icons::SETTINGS)
@@ -681,6 +685,7 @@ impl SentinelApp {
                 self.state.resources.memory_used_mb,
             );
             tray.set_jarvis_checked(self.state.jarvis_visible);
+            tray.set_standalone(self.state.summary.standalone);
         }
     }
 
@@ -1038,11 +1043,24 @@ impl eframe::App for SentinelApp {
                                 } = &self.enrollment_wizard.step
                                 {
                                     self.enrolled = true;
+                                    if self.enrollment_wizard.restart_requested {
+                                        // The platform connection is on disk;
+                                        // the relaunched agent starts connected.
+                                        self.quit_requested = true;
+                                        self.send_command(GuiCommand::Restart);
+                                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                    }
                                 }
                             }
                             EnrollmentCommand::Cancel => {
-                                // Exit the app if user cancels enrollment.
-                                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                if self.state.summary.standalone {
+                                    // Connecting later was optional: back to
+                                    // the protected, standalone interface.
+                                    self.enrolled = true;
+                                } else {
+                                    // Exit the app if user cancels enrollment.
+                                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                }
                             }
                             _ => {}
                         }
@@ -1143,6 +1161,7 @@ impl eframe::App for SentinelApp {
                     unread_notifications: self.state.unread_notification_count,
                     sync: &sync_state,
                     organization: self.state.summary.organization.as_deref(),
+                    standalone: self.state.summary.standalone,
                     ai_ready: self.state.ai.model_status.is_ready,
                     voice_active: self.state.voice_active,
                     // Mid-animation the rail is already narrow enough that
@@ -1203,7 +1222,11 @@ impl eframe::App for SentinelApp {
                                 {
                                     match action {
                                         pages::DashboardAction::Command(cmd) => {
-                                            self.send_command(cmd);
+                                            if matches!(cmd, GuiCommand::ConnectToPlatform) {
+                                                self.start_platform_connection();
+                                            } else {
+                                                self.send_command(cmd);
+                                            }
                                         }
                                         pages::DashboardAction::NavigateTo(page) => {
                                             self.navigate_to(page);
@@ -1286,11 +1309,15 @@ impl eframe::App for SentinelApp {
                             }
                             Page::Settings => {
                                 if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
-                                    if matches!(cmd, GuiCommand::Shutdown) {
-                                        self.quit_requested = true;
-                                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                    if matches!(cmd, GuiCommand::ConnectToPlatform) {
+                                        self.start_platform_connection();
+                                    } else {
+                                        if matches!(cmd, GuiCommand::Shutdown) {
+                                            self.quit_requested = true;
+                                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                                        }
+                                        self.send_command(cmd);
                                     }
-                                    self.send_command(cmd);
                                 }
                             }
                             Page::About => {
@@ -1336,7 +1363,7 @@ impl eframe::App for SentinelApp {
 
         // Command palette (⌘K) — rendered last so it overlays everything.
         if self.command_palette.open {
-            let mut commands = build_palette_commands();
+            let mut commands = build_palette_commands(self.state.summary.standalone);
             commands.extend(entity_commands(&self.state));
             let selected = widgets::CommandPalette::new(&commands)
                 .placeholder("Rechercher une page, une action, une CVE, un actif…")
@@ -1376,6 +1403,7 @@ impl SentinelApp {
                 page_label: label,
                 page_section: section,
                 organization: self.state.summary.organization.as_deref(),
+                standalone: self.state.summary.standalone,
                 unread: self.state.unread_notification_count,
                 syncing: self.state.sync.in_progress,
                 scanning: self.state.summary.status == crate::dto::GuiAgentStatus::Scanning,
@@ -1528,6 +1556,14 @@ impl SentinelApp {
             }
             _ => {}
         }
+    }
+
+    /// Open the platform connection wizard from a standalone agent. The
+    /// runtime enrolls in the background; the connection is live at the next
+    /// start, the wizard says so.
+    fn start_platform_connection(&mut self) {
+        self.enrollment_wizard = EnrollmentWizard::for_platform_connection();
+        self.enrolled = false;
     }
 
     /// Render the splash screen.

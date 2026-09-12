@@ -222,148 +222,99 @@ impl FimPage {
                 let (fim_start, fim_len, _) =
                     widgets::page_window(state.fim.alerts.len(), FIM_PER_PAGE, &mut state.fim.page);
 
-                use egui_extras::{Column, TableBuilder};
+                use widgets::table;
 
-                let ctx_for_cursor = ui.ctx().clone();
-                let table = TableBuilder::new(ui)
-                    .striped(false)
-                    .resizable(true)
-                    .sense(egui::Sense::click())
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(90.0).range(60.0..=140.0)) // TYPE
-                    .column(Column::remainder()) // CHEMIN
-                    .column(Column::initial(110.0).range(70.0..=160.0)) // DATE
-                    .column(Column::initial(110.0).range(70.0..=160.0)); // STATUT
-
+                let selected = state.fim.selected_alert;
                 let mut clicked_row: Option<usize> = None;
 
-                table
-                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("TYPE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("CHEMIN")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("DATE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("STATUT")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                    })
-                    .body(|body| {
-                        body.rows(theme::TABLE_ROW_HEIGHT, fim_len, |mut row| {
-                            let idx = fim_start + row.index();
-                            let Some(alert) = state.fim.alerts.get(idx) else {
-                                return;
-                            };
-
-                            row.col(|ui: &mut egui::Ui| {
-                                let (label, color) = Self::change_type_display(&alert.change_type);
-                                widgets::status_badge(ui, label, color);
-                            });
-
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.vertical(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&alert.path)
-                                            .font(theme::font_mono())
-                                            .color(theme::text_primary()),
-                                    );
-                                    let hash_text = match (&alert.old_hash, &alert.new_hash) {
-                                        (Some(old), Some(new)) => {
-                                            Some(format!("HASH : {} \u{2192} {}", old, new))
-                                        }
-                                        (Some(old), None) => Some(format!("HASH : {}", old)),
-                                        (None, Some(new)) => Some(format!("HASH : {}", new)),
-                                        (None, None) => None,
-                                    };
-                                    if let Some(ref text) = hash_text {
-                                        ui.label(
-                                            egui::RichText::new(text)
-                                                .font(theme::font_mono_sm())
-                                                .color(theme::text_tertiary()),
-                                        );
-                                    }
-                                });
-                            });
-
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(
-                                        alert.timestamp.format("%d/%m %H:%M:%S").to_string(),
-                                    )
-                                    .font(theme::font_mono_sm())
-                                    .color(theme::text_tertiary()),
-                                );
-                            });
-
-                            row.col(|ui: &mut egui::Ui| {
-                                if alert_acked[idx] {
-                                    ui.label(
-                                        egui::RichText::new(format!(
-                                            "{}  ACQUITT\u{00c9}",
-                                            icons::CIRCLE_CHECK
-                                        ))
-                                        .font(theme::font_label())
-                                        .color(theme::text_tertiary())
-                                        .strong(),
-                                    );
-                                } else if admin_unlocked {
-                                    if widgets::chip_button(
-                                        ui,
-                                        &format!("{}  Acquitter", icons::CHECK),
-                                        false,
-                                        theme::ACCENT,
-                                    )
-                                    .clicked()
-                                    {
-                                        ack_command = Some(idx);
-                                    }
-                                } else {
-                                    widgets::chip_button(
-                                        ui,
-                                        &format!("{}  Acquitter", icons::LOCK),
-                                        false,
-                                        theme::text_tertiary(),
-                                    );
-                                }
-                            });
-
-                            let row_resp = row.response();
-                            if row_resp.hovered() {
-                                ctx_for_cursor.set_cursor_icon(egui::CursorIcon::PointingHand);
-                            }
-                            if row_resp.clicked() {
-                                clicked_row = Some(idx);
-                            }
-                        });
+                table::fluid_clickable(
+                    ui,
+                    &[
+                        table::Col::fluid(96.0, 0.0),  // Type
+                        table::Col::fluid(240.0, 4.0), // Chemin
+                        table::Col::fluid(110.0, 0.5), // Date
+                        table::Col::fixed(120.0),      // Statut
+                    ],
+                )
+                .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "TYPE");
                     });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "CHEMIN");
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "DATE");
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "STATUT");
+                    });
+                })
+                .body(|body| {
+                    body.rows(theme::TABLE_DATA_ROW_HEIGHT, fim_len, |mut row| {
+                        let idx = fim_start + row.index();
+                        let Some(alert) = state.fim.alerts.get(idx) else {
+                            return;
+                        };
+                        let is_selected = selected == Some(idx);
+                        row.set_selected(is_selected);
+
+                        row.col(|ui: &mut egui::Ui| {
+                            let (label, color) = Self::change_type_display(&alert.change_type);
+                            widgets::status_badge(ui, label, color);
+                        });
+
+                        row.col(|ui: &mut egui::Ui| {
+                            let hash_text = match (&alert.old_hash, &alert.new_hash) {
+                                (Some(old), Some(new)) => {
+                                    format!("HASH : {} \u{2192} {}", old, new)
+                                }
+                                (Some(old), None) => format!("HASH : {}", old),
+                                (None, Some(new)) => format!("HASH : {}", new),
+                                (None, None) => String::new(),
+                            };
+                            table::cell_stack_mono(ui, &alert.path, &hash_text);
+                        });
+
+                        row.col(|ui: &mut egui::Ui| {
+                            table::cell_mono_muted(
+                                ui,
+                                &alert.timestamp.format("%d/%m %H:%M:%S").to_string(),
+                            );
+                        });
+
+                        row.col(|ui: &mut egui::Ui| {
+                            if alert_acked[idx] {
+                                table::cell_muted(
+                                    ui,
+                                    &format!("{}  ACQUITT\u{00c9}", icons::CIRCLE_CHECK),
+                                );
+                            } else if admin_unlocked {
+                                if widgets::chip_button(
+                                    ui,
+                                    &format!("{}  Acquitter", icons::CHECK),
+                                    false,
+                                    theme::ACCENT,
+                                )
+                                .clicked()
+                                {
+                                    ack_command = Some(idx);
+                                }
+                            } else {
+                                widgets::chip_button(
+                                    ui,
+                                    &format!("{}  Acquitter", icons::LOCK),
+                                    false,
+                                    theme::text_tertiary(),
+                                );
+                            }
+                        });
+
+                        if table::row_interaction(&row, is_selected) {
+                            clicked_row = Some(idx);
+                        }
+                    });
+                });
 
                 if let Some(idx) = clicked_row {
                     state.fim.selected_alert = Some(idx);

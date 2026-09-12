@@ -4,7 +4,6 @@
 //! Risk management page — risk matrix, entries, and SLA tracking.
 
 use egui::Ui;
-use egui_extras::{Column, TableBuilder};
 
 use crate::app::AppState;
 use crate::dto::{GuiCheckStatus, RiskEntry, RiskStatus, Severity};
@@ -604,125 +603,106 @@ impl RisksPage {
             widgets::page_window(indices.len(), RISKS_PER_PAGE, &mut state.risks.page);
 
         ui.push_id("risks_table", |ui: &mut egui::Ui| {
-            let ctx = ui.ctx().clone();
-            let table = TableBuilder::new(ui)
-                .striped(false)
-                .resizable(true)
-                .sense(egui::Sense::click())
-                .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::initial(160.0).range(90.0..=400.0))
-                .column(Column::initial(50.0).range(40.0..=70.0))
-                .column(Column::initial(50.0).range(40.0..=70.0))
-                .column(Column::initial(50.0).range(40.0..=70.0))
-                .column(Column::initial(90.0).range(70.0..=140.0))
-                .column(Column::initial(100.0).range(60.0..=160.0))
-                .column(Column::remainder());
+            use widgets::table;
 
-            table
-                .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                    for label in [
-                        "TITRE",
-                        "PROB.",
-                        "IMPACT",
-                        "SCORE",
-                        "STATUT",
-                        "PROPRI\u{00c9}TAIRE",
-                        "DATE",
-                    ] {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(label)
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                    }
-                })
-                .body(|body| {
-                    body.rows(theme::TABLE_ROW_HEIGHT, r_len, |mut row| {
-                        let row_idx = r_start + row.index();
-                        let Some(&real_idx) = indices.get(row_idx) else {
-                            return;
-                        };
-                        let Some(risk) = state.risks.entries.get(real_idx) else {
-                            return;
-                        };
-                        let is_selected = state.risks.selected_risk == Some(real_idx);
-                        row.set_selected(is_selected);
+            let selected = state.risks.selected_risk;
 
-                        let score = risk.score();
-                        let score_color = Self::matrix_cell_color(score);
-                        let (status_label, status_color) = Self::status_display(&risk.status);
+            table::fluid_clickable(
+                ui,
+                &[
+                    table::Col::fluid(180.0, 3.0), // Titre
+                    table::Col::fixed(56.0),       // Prob.
+                    table::Col::fixed(60.0),       // Impact
+                    table::Col::fixed(56.0),       // Score
+                    table::Col::fluid(96.0, 0.0),  // Statut
+                    table::Col::fluid(120.0, 1.0), // Propriétaire
+                    table::Col::fluid(90.0, 0.5),  // Date
+                ],
+            )
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                header.col(|ui| {
+                    table::header_cell(ui, "TITRE");
+                });
+                header.col(|ui| {
+                    table::header_cell_right(ui, "PROB.");
+                });
+                header.col(|ui| {
+                    table::header_cell_right(ui, "IMPACT");
+                });
+                header.col(|ui| {
+                    table::header_cell_right(ui, "SCORE");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "STATUT");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "PROPRI\u{00c9}TAIRE");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "DATE");
+                });
+            })
+            .body(|body| {
+                body.rows(theme::TABLE_ROW_HEIGHT, r_len, |mut row| {
+                    let row_idx = r_start + row.index();
+                    let Some(&real_idx) = indices.get(row_idx) else {
+                        return;
+                    };
+                    let Some(risk) = state.risks.entries.get(real_idx) else {
+                        return;
+                    };
+                    let is_selected = selected == Some(real_idx);
+                    row.set_selected(is_selected);
 
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(&risk.title)
-                                    .font(theme::font_body())
-                                    .color(theme::accent_text())
-                                    .strong(),
-                            );
-                        });
+                    let score = risk.score();
+                    let score_color = Self::matrix_cell_color(score);
+                    let (status_label, status_color) = Self::status_display(&risk.status);
 
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(format!("{}", risk.probability))
-                                    .font(theme::font_body())
-                                    .color(theme::text_primary()),
-                            );
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(format!("{}", risk.impact))
-                                    .font(theme::font_body())
-                                    .color(theme::text_primary()),
-                            );
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(format!("{}", score))
-                                    .font(theme::font_body())
-                                    .color(theme::readable_color(score_color))
-                                    .strong(),
-                            );
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            widgets::status_badge(ui, status_label, status_color);
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            let owner_display = if risk.owner.is_empty() {
-                                "--"
-                            } else {
-                                &risk.owner
-                            };
-                            ui.label(
-                                egui::RichText::new(owner_display)
-                                    .font(theme::font_small())
-                                    .color(theme::text_secondary()),
-                            );
-                        });
-
-                        row.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(risk.created_at.format("%d/%m/%Y").to_string())
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary()),
-                            );
-                        });
-
-                        if row.response().clicked() {
+                    row.col(|ui| {
+                        if table::cell_link(ui, &risk.title).clicked() {
                             clicked_idx = Some(real_idx);
                         }
-                        if row.response().hovered() {
-                            ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
+                    });
+
+                    row.col(|ui| {
+                        table::cell_number(ui, &risk.probability.to_string());
+                    });
+
+                    row.col(|ui| {
+                        table::cell_number(ui, &risk.impact.to_string());
+                    });
+
+                    row.col(|ui| {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            table::cell_colored(
+                                ui,
+                                &score.to_string(),
+                                theme::readable_color(score_color),
+                            );
+                        });
+                    });
+
+                    row.col(|ui| {
+                        widgets::status_badge(ui, status_label, status_color);
+                    });
+
+                    row.col(|ui| {
+                        if risk.owner.is_empty() {
+                            table::cell_empty(ui);
+                        } else {
+                            table::cell_small(ui, &risk.owner);
                         }
                     });
+
+                    row.col(|ui| {
+                        table::cell_muted(ui, &risk.created_at.format("%d/%m/%Y").to_string());
+                    });
+
+                    if table::row_interaction(&row, is_selected) {
+                        clicked_idx = Some(real_idx);
+                    }
                 });
+            });
         });
 
         if let Some(idx) = clicked_idx {

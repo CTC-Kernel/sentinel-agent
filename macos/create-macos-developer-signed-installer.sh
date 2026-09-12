@@ -327,6 +327,7 @@ chown -R "$REAL_USER" "$CONFIG_DIR"
 if [[ ! -f "$CONFIG_DIR/agent.json" ]]; then
     cat > "$CONFIG_DIR/agent.json" << CONFIG
 {
+    "standalone": __SENTINEL_STANDALONE__,
     "server_url": "__SENTINEL_SERVER_URL__",
     "check_interval_secs": 3600,
     "heartbeat_interval_secs": 60,
@@ -409,6 +410,15 @@ POSTINSTALL
 # to ship a pkg whose agent.json already points to the right platform.
 SENTINEL_SERVER_URL_BAKED="${SENTINEL_SERVER_URL:-https://agentapi-your-project-hash.a.run.app}"
 sed -i '' "s|__SENTINEL_SERVER_URL__|${SENTINEL_SERVER_URL_BAKED}|g" "$BUILD_DIR/postinstall"
+
+# SENTINEL_STANDALONE=1 builds a standalone pkg: the agent protects the Mac
+# locally (EDR, FIM, compliance, vulnerability scans) and never contacts a
+# platform. The user can still connect later from the settings.
+case "${SENTINEL_STANDALONE:-0}" in
+    1|true|yes) SENTINEL_STANDALONE_BAKED="true" ;;
+    *)          SENTINEL_STANDALONE_BAKED="false" ;;
+esac
+sed -i '' "s|__SENTINEL_STANDALONE__|${SENTINEL_STANDALONE_BAKED}|g" "$BUILD_DIR/postinstall"
 
 chmod +x "$BUILD_DIR/postinstall"
 
@@ -604,9 +614,9 @@ cat > "$BUILD_DIR/conclusion.html" << 'CONCLUSIONHTML'
     <div class="next-steps">
         <h3>Next Steps:</h3>
         <div class="step">1. Launch Sentinel Agent from Applications</div>
-        <div class="step">2. Get your enrollment token from the Sentinel GRC dashboard</div>
-        <div class="step">3. Enroll the agent using the GUI or command line</div>
-        <div class="step">4. Monitor compliance from your Sentinel GRC dashboard</div>
+        <div class="step">2. Choose: join a Sentinel GRC platform with an enrollment token, or keep the agent standalone (local protection only, nothing leaves this Mac)</div>
+        <div class="step">3. Platform mode: monitor compliance from your Sentinel GRC dashboard</div>
+        <div class="step">4. Standalone mode: everything stays in the app; you can connect to a platform later from the settings</div>
     </div>
     
     <div class="footer">

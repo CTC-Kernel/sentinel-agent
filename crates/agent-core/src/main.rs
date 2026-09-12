@@ -64,6 +64,13 @@ enum Commands {
         #[arg(short, long)]
         server: Option<String>,
     },
+    /// Run without a platform: local protection only (EDR, integrity,
+    /// compliance, scanning), no enrollment, no upload, no remote command.
+    Standalone {
+        /// Leave standalone mode; enroll afterwards with `enroll --token`.
+        #[arg(long)]
+        disable: bool,
+    },
     /// Install the agent as a system service
     Install,
     /// Uninstall the agent service
@@ -181,6 +188,10 @@ fn main() -> ExitCode {
         return run_as_service();
     }
 
+    // A relaunched instance lets the one that spawned it finish first, so
+    // the single-instance guard, the database and the log files are free.
+    wait_for_relaunch_parent();
+
     // Determine if we'll launch the GUI (feature enabled + not headless).
     // GUI mode defers logging init to use the terminal-aware tracing subscriber.
     #[cfg(feature = "gui")]
@@ -217,6 +228,7 @@ fn main() -> ExitCode {
             };
             handle_enroll(&token, server.as_deref())
         }
+        Some(Commands::Standalone { disable }) => handle_standalone(disable),
         Some(Commands::Install) => handle_install(),
         Some(Commands::Uninstall { purge, keep_logs }) => handle_uninstall(purge, keep_logs),
         Some(Commands::Start) => handle_start(),
@@ -224,6 +236,178 @@ fn main() -> ExitCode {
         Some(Commands::Status) => handle_status(),
         Some(Commands::Run { no_tray }) => handle_run(cli.config, no_tray, &cli.log_level),
         None => handle_run(cli.config, false, &cli.log_level),
+    }
+}
+
+/// Whether `SENTINEL_STANDALONE` in the environment pins the agent to
+/// standalone mode whatever the configuration file says.
+fn standalone_forced_by_env() -> bool {
+    std::env::var("SENTINEL_STANDALONE").is_ok_and(|value| {
+        matches!(
+            value.trim().to_ascii_lowercase().as_str(),
+            "1" | "true" | "yes" | "on"
+        )
+    })
+}
+
+/// Environment variable carrying the PID of the instance a relaunch
+/// replaces; the new instance waits for it to exit before starting.
+const RELAUNCH_PARENT_ENV: &str = "SENTINEL_RELAUNCH_AFTER_PID";
+
+/// Start a fresh copy of this executable with the same arguments, detached,
+/// so it outlives the current process. The copy waits for this PID to exit
+/// (see [`wait_for_relaunch_parent`]) before it takes over.
+fn spawn_relaunch() -> std::io::Result<()> {
+    let exe = std::env::current_exe()?;
+    let args: Vec<std::ffi::OsString> = std::env::args_os().skip(1).collect();
+    let mut command = std::process::Command::new(&exe);
+    command
+        .args(&args)
+        .env(RELAUNCH_PARENT_ENV, std::process::id().to_string())
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null());
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        // Its own process group: closing this one's terminal or session
+        // must not take the relaunched agent with it.
+        command.process_group(0);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+        const DETACHED_PROCESS: u32 = 0x0000_0008;
+        command.creation_flags(CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS);
+    }
+    let child = command.spawn()?;
+    info!(
+        "Relaunched {} as pid {}; this instance shuts down",
+        exe.display(),
+        child.id()
+    );
+    Ok(())
+}
+
+/// If this process was started by [`spawn_relaunch`], wait (bounded) for the
+/// instance it replaces to exit. A no-op otherwise.
+fn wait_for_relaunch_parent() {
+    let Some(pid) = std::env::var(RELAUNCH_PARENT_ENV)
+        .ok()
+        .and_then(|value| value.parse::<u32>().ok())
+    else {
+        return;
+    };
+    if pid == std::process::id() {
+        return;
+    }
+    if wait_for_pid_exit(pid, std::time::Duration::from_secs(30)) {
+        // The previous instance released its handles a moment ago; give
+        // the OS time to close the window and free the instance guard.
+        std::thread::sleep(std::time::Duration::from_millis(300));
+    } else {
+        warn!(
+            "Previous agent instance (pid {}) is still running after 30s; starting anyway",
+            pid
+        );
+    }
+}
+
+/// Poll until `pid` is gone or `timeout` elapses. Returns whether it exited.
+fn wait_for_pid_exit(pid: u32, timeout: std::time::Duration) -> bool {
+    let pid = sysinfo::Pid::from_u32(pid);
+    let deadline = std::time::Instant::now() + timeout;
+    let mut system = sysinfo::System::new();
+    loop {
+        system.refresh_processes(sysinfo::ProcessesToUpdate::Some(&[pid]), true);
+        // A zombie has exited: only its parent's `wait` is missing, and
+        // that parent is not us.
+        let exited = system.process(pid).is_none_or(|process| {
+            matches!(
+                process.status(),
+                sysinfo::ProcessStatus::Zombie | sysinfo::ProcessStatus::Dead
+            )
+        });
+        if exited {
+            return true;
+        }
+        if std::time::Instant::now() >= deadline {
+            return false;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+}
+
+#[cfg(test)]
+mod relaunch_tests {
+    use super::wait_for_pid_exit;
+    use std::time::Duration;
+
+    #[test]
+    fn waiting_on_a_live_process_times_out() {
+        assert!(
+            !wait_for_pid_exit(std::process::id(), Duration::from_millis(300)),
+            "this very process cannot have exited"
+        );
+    }
+
+    #[test]
+    fn waiting_on_an_exiting_process_returns_once_it_is_gone() {
+        let mut child =
+            agent_common::process::silent_command(if cfg!(windows) { "cmd" } else { "sh" })
+                .args(if cfg!(windows) {
+                    ["/C", "exit 0"]
+                } else {
+                    ["-c", "sleep 0.2"]
+                })
+                .spawn()
+                .expect("spawn a short-lived child");
+        let pid = child.id();
+        assert!(wait_for_pid_exit(pid, Duration::from_secs(10)));
+        let _ = child.wait();
+    }
+}
+
+/// Switch the agent into (or out of) standalone mode by writing the
+/// platform configuration file; the service picks it up at its next start.
+fn handle_standalone(disable: bool) -> ExitCode {
+    // Cutting an endpoint off its platform (or reconnecting it) is an
+    // administrator's decision: a standard user must not be able to silence
+    // the reporting from a shell.
+    if !agent_core::service::is_admin() {
+        error!(
+            "Changing the standalone mode requires administrator (root) privileges. \
+             Re-run this command elevated."
+        );
+        return ExitCode::FAILURE;
+    }
+    match AgentConfig::persist_standalone(!disable) {
+        Ok(path) if disable => {
+            info!(
+                "Standalone mode disabled in {}. Enroll with: sentinel-agent enroll --token <TOKEN>",
+                path.display()
+            );
+            if standalone_forced_by_env() {
+                warn!(
+                    "SENTINEL_STANDALONE is set in the environment and overrides the file: \
+                     unset it (service unit, launchd plist, or system variables) too"
+                );
+            }
+            ExitCode::SUCCESS
+        }
+        Ok(path) => {
+            info!(
+                "Standalone mode enabled in {}: no platform, local protection only. \
+                 Restart the agent to apply.",
+                path.display()
+            );
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            error!("Could not update the configuration file: {}", e);
+            ExitCode::FAILURE
+        }
     }
 }
 
@@ -390,6 +574,17 @@ fn handle_enroll(token: &str, server_url: Option<&str>) -> ExitCode {
                     Err(e) => warn!(
                         "Enrolled, but the server URL could not be saved to the config file: {}. \
                          Set \"server_url\" manually in agent.json before starting the service.",
+                        e
+                    ),
+                }
+            }
+            // An enrolled agent is a connected one: leave standalone mode.
+            if config.standalone {
+                match AgentConfig::persist_standalone(false) {
+                    Ok(path) => info!("Standalone mode disabled in {}", path.display()),
+                    Err(e) => warn!(
+                        "Enrolled, but standalone mode could not be cleared in the config file: {}. \
+                         Set \"standalone\": false in agent.json before starting the service.",
                         e
                     ),
                 }
@@ -581,7 +776,9 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
             // If encryption is lost and agent is NOT enrolled, we can safely reset.
             // This happens after MSI upgrades if DPAPI context changes.
             if let agent_storage::StorageError::EncryptionLost(_) = &e {
-                if !config.is_enrolled() {
+                // A standalone agent's database is its only copy of the local
+                // history: it is never reset here.
+                if !config.is_ready() {
                     warn!(
                         "Encryption context lost on un-enrolled agent. Resetting database to recover."
                     );
@@ -659,7 +856,7 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
             // to recover. This can happen when the DB was created without encryption or with
             // a different key (e.g. after an upgrade or platform key context change).
             let is_encryption_error = matches!(&e, agent_storage::StorageError::Encryption(_));
-            if is_encryption_error && !config.is_enrolled() {
+            if is_encryption_error && !config.is_ready() {
                 warn!(
                     "Database encryption mismatch on un-enrolled agent: {}. Resetting to recover.",
                     e
@@ -727,6 +924,18 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
     let is_enrolled = rt
         .block_on(enrollment_manager.is_enrolled())
         .unwrap_or(false);
+    let standalone = config.standalone;
+    if standalone {
+        info!("Standalone mode: no platform, local protection only");
+        if is_enrolled {
+            warn!(
+                "Stored platform credentials are ignored while \"standalone\": true; \
+                 run `sentinel-agent standalone --disable` to reconnect"
+            );
+        }
+    }
+    // Credentials only matter to a connected agent.
+    let is_enrolled = is_enrolled && !standalone;
 
     // If enrolled, load credentials from database into config so AgentRuntime can use them
     if is_enrolled {
@@ -770,7 +979,7 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
 
         if !no_tray {
             match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                run_with_gui(config.clone(), is_enrolled, log_level)
+                run_with_gui(config.clone(), is_enrolled || standalone, log_level)
             })) {
                 Ok(ExitCode::SUCCESS) => return ExitCode::SUCCESS,
                 Ok(_) => {
@@ -788,7 +997,7 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
     }
 
     // ── Legacy / headless enrollment flow ──
-    if !is_enrolled {
+    if !is_enrolled && !standalone {
         info!("Agent not enrolled. Requesting enrollment token.");
 
         // Try to get token from config or prompt user
@@ -1158,11 +1367,16 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                     };
 
                     match cmd {
-                        Some(EnrollmentCommand::SubmitEnrollment { token, admin_password }) => {
-                            info!("GUI enrollment: received token");
-                            config.enrollment_token = Some(token);
-
-                            // Hash admin password (salted) for GUI unlock before zeroizing
+                        Some(cmd @ (EnrollmentCommand::SubmitEnrollment { .. }
+                        | EnrollmentCommand::SubmitQr(_))) => {
+                            if process_enrollment_submission(cmd, &mut config, &bg_event_tx).await {
+                                // Wait for Finish before starting runtime
+                                wait_for_finish(&enrollment_rx).await;
+                                break;
+                            }
+                        }
+                        Some(EnrollmentCommand::SetupStandalone { admin_password }) => {
+                            info!("GUI setup: standalone mode chosen");
                             if let Some(ref pw) = admin_password {
                                 use sha2::{Digest, Sha256};
                                 let mut hasher = Sha256::new();
@@ -1171,122 +1385,33 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 let hash = format!("salted:{:x}", hasher.finalize());
                                 let _ = bg_event_tx.send(AgentEvent::AdminPasswordSet { hash });
                             }
-
-                            config.admin_password = admin_password.clone();
-
-                            // Open DB and attempt enrollment
-                            let result = enroll_with_config(&config, admin_password).await;
-
-                            // Clear admin password from config after enrollment attempt
-                            // to minimize time sensitive data stays in memory.
-                            if let Some(ref mut pw) = config.admin_password {
-                                zeroize::Zeroize::zeroize(pw);
-                            }
-                            config.admin_password = None;
-                            match result {
-                                Ok(enrollment) => {
-                                    config.agent_id = Some(enrollment.agent_id.clone());
-                                    config.organization_id = Some(enrollment.organization_id.clone());
-                                    config.client_certificate = Some(enrollment.client_certificate);
-                                    config.client_key = Some(enrollment.client_key);
+                            match AgentConfig::persist_standalone(true) {
+                                Ok(path) => {
+                                    info!("Standalone mode saved to {}", path.display());
+                                    config.standalone = true;
                                     if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
                                         success: true,
-                                        message: format!(
-                                            "Agent enrôlé avec succès.\nID: {}",
-                                            enrollment.agent_id
-                                        ),
-                                        agent_id: Some(enrollment.agent_id),
-                                    }) {
-                                        error!("Failed to send enrollment success event: {}", e);
-                                    }
-                                    // Wait for Finish before starting runtime
-                                    wait_for_finish(&enrollment_rx).await;
-                                    break;
-                                }
-                                Err(e) => {
-                                    warn!("GUI enrollment failed: {}", e);
-                                    if let Err(e2) = bg_event_tx.send(AgentEvent::EnrollmentResult {
-                                        success: false,
-                                        message: format!("Échec: {}", e),
+                                        message: "Mode autonome activé. Ce poste est protégé \
+                                                  localement, sans plateforme."
+                                            .to_string(),
                                         agent_id: None,
                                     }) {
-                                        error!("Failed to send enrollment failure event: {}", e2);
-                                    }
-                                    // Continue loop -- user can retry
-                                }
-                            }
-                        }
-                        Some(EnrollmentCommand::SubmitQr(qr_data)) => {
-                            info!("GUI enrollment: received QR data");
-                            // QR payload is JSON with { server_url, token, ... }
-                            if let Ok(payload) = serde_json::from_str::<serde_json::Value>(&qr_data)
-                            {
-                                if let Some(token) = payload
-                                    .get("enrollment_token")
-                                    .or_else(|| payload.get("token"))
-                                    .and_then(|v| v.as_str())
-                                {
-                                    config.enrollment_token = Some(token.to_string());
-                                    if let Some(url) =
-                                        payload.get("server_url").and_then(|v| v.as_str())
-                                    {
-                                        // Validate server URL to prevent phishing via malicious QR codes.
-                                        // Must be HTTPS, no embedded credentials, no special chars,
-                                        // and must have a valid hostname.
-                                        let url_valid = url.starts_with("https://")
-                                            && !url.contains('@')
-                                            && !url.contains(' ')
-                                            && !url.contains('\\')
-                                            && url.parse::<url::Url>().is_ok_and(|u| {
-                                                u.scheme() == "https"
-                                                    && u.host_str().is_some_and(|h| {
-                                                        !h.is_empty()
-                                                            && h != "localhost"
-                                                            && !h.starts_with("127.")
-                                                            && !h.starts_with("[::1]")
-                                                    })
-                                                    && u.username().is_empty()
-                                                    && u.password().is_none()
-                                            });
-                                        if url_valid {
-                                            config.server_url = url.to_string();
-                                        } else {
-                                            warn!("Rejected invalid server_url from QR code: must be valid HTTPS URL without credentials or loopback");
-                                        }
-                                    }
-                                }
-                            } else {
-                                // Treat raw QR data as token
-                                config.enrollment_token = Some(qr_data);
-                            }
-
-                            let result = enroll_with_config(&config, None).await;
-                            match result {
-                                Ok(enrollment) => {
-                                    config.agent_id = Some(enrollment.agent_id.clone());
-                                    config.organization_id = Some(enrollment.organization_id.clone());
-                                    config.client_certificate = Some(enrollment.client_certificate);
-                                    config.client_key = Some(enrollment.client_key);
-                                    if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
-                                        success: true,
-                                        message: format!(
-                                            "Agent enrôlé avec succès.\nID: {}",
-                                            enrollment.agent_id
-                                        ),
-                                        agent_id: Some(enrollment.agent_id),
-                                    }) {
-                                        error!("Failed to send QR enrollment success event: {}", e);
+                                        error!("Failed to send standalone setup event: {}", e);
                                     }
                                     wait_for_finish(&enrollment_rx).await;
                                     break;
                                 }
                                 Err(e) => {
+                                    warn!("Standalone setup failed: {}", e);
                                     if let Err(e2) = bg_event_tx.send(AgentEvent::EnrollmentResult {
                                         success: false,
-                                        message: format!("Échec: {}", e),
+                                        message: format!(
+                                            "Impossible d'enregistrer le mode autonome : {}",
+                                            e
+                                        ),
                                         agent_id: None,
                                     }) {
-                                        error!("Failed to send QR enrollment failure event: {}", e2);
+                                        error!("Failed to send standalone failure event: {}", e2);
                                     }
                                 }
                             }
@@ -1327,6 +1452,22 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                     Ok(()) => info!("Persistence v2 migrations applied"),
                     Err(e) => warn!("Failed to apply v2 migrations (non-fatal): {}", e),
                 }
+            }
+
+            // ── Standalone: keep listening for a "connect later" enrollment ──
+            // The wizard reopened from the settings sends its token on the
+            // enrollment channel; nobody else reads it once the runtime runs.
+            if config.standalone {
+                let listener_config = config.clone();
+                let listener_events = bg_event_tx.clone();
+                tokio::spawn(async move {
+                    listen_for_platform_connection(
+                        enrollment_rx,
+                        listener_config,
+                        listener_events,
+                    )
+                    .await;
+                });
             }
 
             let db_for_commands = db_arc.clone();
@@ -1409,6 +1550,29 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             handle_for_commands.request_shutdown();
                             break;
                         }
+                        Ok(GuiCommand::Restart) => {
+                            info!("[AUDIT] GUI user requested agent restart");
+                            match spawn_relaunch() {
+                                Ok(()) => {
+                                    handle_for_commands.request_shutdown();
+                                    break;
+                                }
+                                Err(e) => {
+                                    error!("Failed to relaunch the agent: {}", e);
+                                    let _ = bg_event_tx.send(AgentEvent::Notification {
+                                        notification: agent_gui::dto::GuiNotification::error(
+                                            "Redémarrage impossible",
+                                            format!(
+                                                "L'agent n'a pas pu se relancer ({}). \
+                                                 Fermez-le et rouvrez-le pour activer la \
+                                                 connexion à la plateforme.",
+                                                e
+                                            ),
+                                        ),
+                                    });
+                                }
+                            }
+                        }
                         Ok(GuiCommand::RunCheck) => {
                             info!("[AUDIT] GUI user requested manual check run");
                             handle_for_commands.trigger_check();
@@ -1459,6 +1623,11 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Ok(GuiCommand::RunSync) => {
                             info!("[AUDIT] GUI user requested sync");
                             handle_for_commands.trigger_sync();
+                        }
+                        Ok(GuiCommand::ConnectToPlatform) => {
+                            // Handled by the shell (it opens the wizard); the
+                            // runtime hears the enrollment that follows.
+                            debug!("ConnectToPlatform reached the runtime; nothing to do here");
                         }
                         Ok(GuiCommand::GetSummary) => {
                             // Summary is emitted continuously via status updates; this is a no-op
@@ -3388,7 +3557,152 @@ struct EnrollmentResult {
     client_key: String,
 }
 
+/// Enroll with the platform on the GUI's behalf: the token (or QR payload)
+/// goes to the server, the outcome goes back to the wizard as an
+/// `EnrollmentResult`. Returns `true` when the agent is now enrolled.
 #[cfg(feature = "gui")]
+async fn process_enrollment_submission(
+    cmd: agent_gui::enrollment::EnrollmentCommand,
+    config: &mut AgentConfig,
+    events: &std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) -> bool {
+    use agent_gui::enrollment::EnrollmentCommand;
+    use agent_gui::events::AgentEvent;
+    match cmd {
+        EnrollmentCommand::SubmitEnrollment {
+            token,
+            admin_password,
+        } => {
+            info!("GUI enrollment: received token");
+            config.enrollment_token = Some(token);
+
+            // Hash admin password (salted) for GUI unlock before zeroizing
+            if let Some(ref pw) = admin_password {
+                use sha2::{Digest, Sha256};
+                let mut hasher = Sha256::new();
+                hasher.update(b"sentinel-grc-v2-admin-salt-2026");
+                hasher.update(pw.as_bytes());
+                let hash = format!("salted:{:x}", hasher.finalize());
+                let _ = events.send(AgentEvent::AdminPasswordSet { hash });
+            }
+
+            config.admin_password = admin_password.clone();
+
+            // Open DB and attempt enrollment
+            let result = enroll_with_config(config, admin_password).await;
+
+            // Clear admin password from config after enrollment attempt
+            // to minimize time sensitive data stays in memory.
+            if let Some(ref mut pw) = config.admin_password {
+                zeroize::Zeroize::zeroize(pw);
+            }
+            config.admin_password = None;
+            match result {
+                Ok(enrollment) => {
+                    config.agent_id = Some(enrollment.agent_id.clone());
+                    config.organization_id = Some(enrollment.organization_id.clone());
+                    config.client_certificate = Some(enrollment.client_certificate);
+                    config.client_key = Some(enrollment.client_key);
+                    if let Err(e) = events.send(AgentEvent::EnrollmentResult {
+                        success: true,
+                        message: format!("Agent enrôlé avec succès.\nID: {}", enrollment.agent_id),
+                        agent_id: Some(enrollment.agent_id),
+                    }) {
+                        error!("Failed to send enrollment success event: {}", e);
+                    }
+                    // Wait for Finish before starting runtime
+                    return true;
+                }
+                Err(e) => {
+                    warn!("GUI enrollment failed: {}", e);
+                    if let Err(e2) = events.send(AgentEvent::EnrollmentResult {
+                        success: false,
+                        message: format!("Échec: {}", e),
+                        agent_id: None,
+                    }) {
+                        error!("Failed to send enrollment failure event: {}", e2);
+                    }
+                    // Continue loop -- user can retry
+                }
+            }
+        }
+        EnrollmentCommand::SubmitQr(qr_data) => {
+            info!("GUI enrollment: received QR data");
+            // QR payload is JSON with { server_url, token, ... }
+            if let Ok(payload) = serde_json::from_str::<serde_json::Value>(&qr_data) {
+                if let Some(token) = payload
+                    .get("enrollment_token")
+                    .or_else(|| payload.get("token"))
+                    .and_then(|v| v.as_str())
+                {
+                    config.enrollment_token = Some(token.to_string());
+                    if let Some(url) = payload.get("server_url").and_then(|v| v.as_str()) {
+                        // Validate server URL to prevent phishing via malicious QR codes.
+                        // Must be HTTPS, no embedded credentials, no special chars,
+                        // and must have a valid hostname.
+                        let url_valid = url.starts_with("https://")
+                            && !url.contains('@')
+                            && !url.contains(' ')
+                            && !url.contains('\\')
+                            && url.parse::<url::Url>().is_ok_and(|u| {
+                                u.scheme() == "https"
+                                    && u.host_str().is_some_and(|h| {
+                                        !h.is_empty()
+                                            && h != "localhost"
+                                            && !h.starts_with("127.")
+                                            && !h.starts_with("[::1]")
+                                    })
+                                    && u.username().is_empty()
+                                    && u.password().is_none()
+                            });
+                        if url_valid {
+                            config.server_url = url.to_string();
+                        } else {
+                            warn!(
+                                "Rejected invalid server_url from QR code: must be valid HTTPS URL without credentials or loopback"
+                            );
+                        }
+                    }
+                }
+            } else {
+                // Treat raw QR data as token
+                config.enrollment_token = Some(qr_data);
+            }
+
+            let result = enroll_with_config(config, None).await;
+            match result {
+                Ok(enrollment) => {
+                    config.agent_id = Some(enrollment.agent_id.clone());
+                    config.organization_id = Some(enrollment.organization_id.clone());
+                    config.client_certificate = Some(enrollment.client_certificate);
+                    config.client_key = Some(enrollment.client_key);
+                    if let Err(e) = events.send(AgentEvent::EnrollmentResult {
+                        success: true,
+                        message: format!("Agent enrôlé avec succès.\nID: {}", enrollment.agent_id),
+                        agent_id: Some(enrollment.agent_id),
+                    }) {
+                        error!("Failed to send QR enrollment success event: {}", e);
+                    }
+                    return true;
+                }
+                Err(e) => {
+                    if let Err(e2) = events.send(AgentEvent::EnrollmentResult {
+                        success: false,
+                        message: format!("Échec: {}", e),
+                        agent_id: None,
+                    }) {
+                        error!("Failed to send QR enrollment failure event: {}", e2);
+                    }
+                }
+            }
+        }
+        EnrollmentCommand::SetupStandalone { .. }
+        | EnrollmentCommand::Cancel
+        | EnrollmentCommand::Finish => {}
+    }
+    false
+}
+
 async fn enroll_with_config(
     config: &AgentConfig,
     admin_password: Option<String>,
@@ -3424,6 +3738,93 @@ async fn enroll_with_config(
         client_certificate: creds.client_certificate,
         client_key: creds.client_private_key,
     })
+}
+
+/// A standalone agent's way onto a platform without leaving the window:
+/// the wizard's token goes through the usual enrollment, and on success the
+/// standalone flag is cleared so the next start comes up connected. The
+/// running instance keeps protecting locally until then.
+#[cfg(feature = "gui")]
+async fn listen_for_platform_connection(
+    rx: std::sync::mpsc::Receiver<agent_gui::enrollment::EnrollmentCommand>,
+    mut config: AgentConfig,
+    events: std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) {
+    use agent_gui::dto::GuiNotification;
+    use agent_gui::enrollment::EnrollmentCommand;
+    use agent_gui::events::AgentEvent;
+
+    loop {
+        let cmd = match rx.try_recv() {
+            Ok(cmd) => cmd,
+            Err(std::sync::mpsc::TryRecvError::Empty) => {
+                tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+                continue;
+            }
+            Err(std::sync::mpsc::TryRecvError::Disconnected) => return,
+        };
+        match cmd {
+            cmd @ (EnrollmentCommand::SubmitEnrollment { .. } | EnrollmentCommand::SubmitQr(_)) => {
+                info!("Standalone agent: platform connection requested from the GUI");
+                if !process_enrollment_submission(cmd, &mut config, &events).await {
+                    continue;
+                }
+                match AgentConfig::persist_standalone(false) {
+                    Ok(path) => {
+                        info!(
+                            "Platform connection saved to {}; active at the next start",
+                            path.display()
+                        );
+                        let mut message = format!(
+                            "Agent enrôlé avec succès.\nID: {}\nLa synchronisation démarre au \
+                             prochain lancement de l'agent ; d'ici là, la protection locale \
+                             continue.",
+                            config.agent_id.as_deref().unwrap_or("?")
+                        );
+                        if standalone_forced_by_env() {
+                            warn!(
+                                "SENTINEL_STANDALONE is set: it overrides the file at the next start"
+                            );
+                            message.push_str(
+                                "\nAttention : la variable d'environnement SENTINEL_STANDALONE \
+                                 force le mode autonome. Retirez-la avant de redémarrer.",
+                            );
+                        }
+                        let _ = events.send(AgentEvent::EnrollmentResult {
+                            success: true,
+                            message,
+                            agent_id: config.agent_id.clone(),
+                        });
+                        let _ = events.send(AgentEvent::Notification {
+                            notification: GuiNotification::info(
+                                "Plateforme connectée",
+                                "Redémarrez l'agent pour activer la synchronisation avec la \
+                                 plateforme.",
+                            ),
+                        });
+                    }
+                    Err(e) => {
+                        warn!(
+                            "Enrolled, but the standalone flag could not be cleared: {}",
+                            e
+                        );
+                        let _ = events.send(AgentEvent::EnrollmentResult {
+                            success: false,
+                            message: format!(
+                                "Enrôlement effectué, mais le mode autonome n'a pas pu être \
+                                 désactivé : {}. Lancez `sentinel-agent standalone --disable`.",
+                                e
+                            ),
+                            agent_id: config.agent_id.clone(),
+                        });
+                    }
+                }
+            }
+            EnrollmentCommand::SetupStandalone { .. }
+            | EnrollmentCommand::Cancel
+            | EnrollmentCommand::Finish => {}
+        }
+    }
 }
 
 /// Wait for the user to click "Continuer" after successful enrollment.

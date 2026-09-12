@@ -27,6 +27,8 @@ pub struct TopBarContext<'a> {
     pub page_section: Option<&'a str>,
     /// Tenant name.
     pub organization: Option<&'a str>,
+    /// The agent runs without a platform: no sync control, a mode chip.
+    pub standalone: bool,
     /// Unread notification count.
     pub unread: u32,
     /// A platform sync is running.
@@ -473,6 +475,9 @@ fn trailing_cluster(
             cx.syncing,
         ),
     ] {
+        if cx.standalone && act == TopBarAction::ForceSync {
+            continue;
+        }
         let rect =
             Rect::from_center_size(pos2(x - ICON_BTN / 2.0, center_y), Vec2::splat(ICON_BTN));
         let response = icon_button(ui, rect, icon, tooltip, spinning);
@@ -506,8 +511,22 @@ fn trailing_cluster(
         x = rect.left() - theme::SPACE_XS;
     }
 
-    // Workspace chip — context, not a control.
-    if let Some(org) = cx.organization {
+    // Workspace chip — context, not a control. A standalone agent shows its
+    // mode where a connected one shows its tenant.
+    let (chip_icon, chip_text, chip_hint) = if cx.standalone {
+        (
+            icons::SHIELD_CHECK,
+            Some("Mode autonome"),
+            "Mode autonome : protection locale, aucune donn\u{00e9}e envoy\u{00e9}e".to_string(),
+        )
+    } else {
+        (
+            icons::BUILDING,
+            cx.organization,
+            format!("Workspace actif : {}", cx.organization.unwrap_or_default()),
+        )
+    };
+    if let Some(org) = chip_text {
         x -= theme::SPACE_SM;
         let galley = ui.painter().layout_no_wrap(
             org.to_owned(),
@@ -528,7 +547,7 @@ fn trailing_cluster(
             ui.painter().text(
                 pos2(chip.left() + theme::SPACE_SM, chip.center().y),
                 Align2::LEFT_CENTER,
-                icons::BUILDING,
+                chip_icon,
                 theme::font_icon(theme::ICON_XS),
                 theme::text_tertiary(),
             );
@@ -541,7 +560,7 @@ fn trailing_cluster(
                 theme::text_secondary(),
             );
             ui.interact(chip, ui.id().with("topbar_org"), Sense::hover())
-                .on_hover_text(format!("Workspace actif : {org}"));
+                .on_hover_text(chip_hint);
             x = chip.left() - theme::SPACE_MD;
         }
     }

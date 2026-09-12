@@ -128,10 +128,11 @@ impl Modal {
         }
         // Mark the frame, so list keyboard navigation stands down while a
         // modal is up (pages render before overlays, hence the one-frame lag).
-        ctx.memory_mut(|mem| {
-            mem.data
-                .insert_temp(open_frame_id(), ctx.cumulative_pass_nr())
-        });
+        // The pass number is read before the memory lock is taken: reading it
+        // inside the closure re-entered the context lock and froze the
+        // application the moment any modal opened.
+        let pass = ctx.cumulative_pass_nr();
+        ctx.memory_mut(|mem| mem.data.insert_temp(open_frame_id(), pass));
 
         let mut result = ModalResult::None;
 
@@ -377,4 +378,51 @@ pub fn success_dialog(
         .confirm_text("OK")
         .cancel_text(None)
         .show(ctx)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Opening a modal must not deadlock the context: the frame it opens on
+    /// has to complete, and the modal has to be visible on the next one.
+    #[test]
+    fn an_open_modal_renders_without_locking_the_context() {
+        let ctx = egui::Context::default();
+        crate::theme::configure_fonts(&ctx);
+        let frame = || {
+            ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(800.0, 600.0),
+                    )),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        ui.label("page");
+                    });
+                    Modal::new("deadlock_test", "Confirmer ?")
+                        .message("Cette action est journalisée.")
+                        .show(ctx);
+                },
+            )
+        };
+        frame();
+        Modal::open(&ctx, "deadlock_test");
+        // The first frame after opening is the one that used to freeze; the
+        // next ones let the entrance animation and the sizing pass settle.
+        let mut output = frame();
+        for _ in 0..3 {
+            output = frame();
+        }
+        assert!(Modal::is_open(&ctx, "deadlock_test"));
+        let painted_title = output.shapes.iter().any(|clipped| match &clipped.shape {
+            egui::Shape::Text(text) => text.galley.text() == "Confirmer ?",
+            _ => false,
+        });
+        assert!(painted_title, "the modal title was not painted");
+        assert!(any_modal_open(&ctx));
+    }
 }

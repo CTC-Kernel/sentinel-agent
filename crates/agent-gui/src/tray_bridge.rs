@@ -122,7 +122,11 @@ pub struct TrayBridge {
     resources_item: MenuItem,
     pause_item: MenuItem,
     resume_item: MenuItem,
+    sync_item: MenuItem,
+    console_item: MenuItem,
     jarvis_item: CheckMenuItem,
+    /// Whether the platform entries (sync, console) are currently offered.
+    platform_entries: std::sync::atomic::AtomicBool,
 }
 
 impl TrayBridge {
@@ -251,8 +255,29 @@ impl TrayBridge {
             resources_item,
             pause_item,
             resume_item,
+            sync_item,
+            console_item,
             jarvis_item,
+            platform_entries: std::sync::atomic::AtomicBool::new(true),
         })
+    }
+
+    /// A standalone agent has no platform to sync with and no console to
+    /// open: those two entries go grey instead of doing nothing.
+    pub fn set_standalone(&self, standalone: bool) {
+        use std::sync::atomic::Ordering;
+        let was_platform = self.platform_entries.swap(!standalone, Ordering::AcqRel);
+        if was_platform != standalone {
+            // Already in that state: nothing to redraw.
+            return;
+        }
+        self.sync_item.set_enabled(!standalone);
+        self.console_item.set_enabled(!standalone);
+        self.sync_item.set_text(if standalone {
+            "☁  Synchroniser (mode autonome)"
+        } else {
+            "☁  Synchroniser"
+        });
     }
 
     /// Update the status text in the tray menu.

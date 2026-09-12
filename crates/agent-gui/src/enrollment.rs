@@ -34,6 +34,15 @@ pub enum EnrollmentStep {
 /// Enrollment wizard state.
 pub struct EnrollmentWizard {
     pub step: EnrollmentStep,
+    /// The operator chose to run without a platform: the wizard collects the
+    /// local administrator password and activates standalone mode.
+    pub standalone: bool,
+    /// Opened from a running standalone agent to join a platform: the
+    /// connection takes effect at the next start, so the completion step
+    /// offers to restart now.
+    pub connect_later: bool,
+    /// The operator chose "restart now" on the completion step.
+    pub restart_requested: bool,
     pub token_input: String,
     pub qr_input: String,
     pub use_qr: bool,
@@ -48,6 +57,9 @@ impl Default for EnrollmentWizard {
     fn default() -> Self {
         Self {
             step: EnrollmentStep::Welcome,
+            standalone: false,
+            connect_later: false,
+            restart_requested: false,
             token_input: String::new(),
             qr_input: String::new(),
             use_qr: false,
@@ -56,6 +68,18 @@ impl Default for EnrollmentWizard {
             admin_password: String::new(),
             show_password: false,
             is_enrolling: false,
+        }
+    }
+}
+
+impl EnrollmentWizard {
+    /// The wizard opened from a standalone agent to join a platform: straight
+    /// to the token, the welcome choice has already been made.
+    pub fn for_platform_connection() -> Self {
+        Self {
+            step: EnrollmentStep::TokenEntry,
+            connect_later: true,
+            ..Default::default()
         }
     }
 }
@@ -70,6 +94,9 @@ pub enum EnrollmentCommand {
     },
     /// User submitted a QR payload.
     SubmitQr(String),
+    /// User chose to run without a platform (standalone), with the local
+    /// administrator password that guards the critical settings.
+    SetupStandalone { admin_password: Option<String> },
     /// User wants to skip / cancel.
     Cancel,
     /// Enrollment finished, user clicked "Continuer".
@@ -162,7 +189,7 @@ impl EnrollmentWizard {
                     ui.add_space(theme::SPACE_LG);
 
                     // Step indicator
-                    Self::step_indicator(ui, &self.step);
+                    Self::step_indicator(ui, &self.step, self.standalone);
                     ui.add_space(theme::SPACE_LG);
 
                     match &self.step {
@@ -179,7 +206,15 @@ impl EnrollmentWizard {
                             Self::show_progress(ui, &self.progress_message);
                         }
                         EnrollmentStep::Complete { success, message } => {
-                            command = Self::show_complete(ui, *success, message);
+                            let (complete_command, restart) = Self::show_complete(
+                                ui,
+                                *success,
+                                message,
+                                self.standalone,
+                                self.connect_later,
+                            );
+                            command = complete_command;
+                            self.restart_requested = restart;
                         }
                     }
                 });
@@ -189,7 +224,7 @@ impl EnrollmentWizard {
         if let Some(EnrollmentCommand::Finish) = &command
             && let EnrollmentStep::Complete { success: false, .. } = &self.step
         {
-            self.step = EnrollmentStep::TokenEntry;
+            self.step = self.retry_step();
             self.token_input.clear();
             self.qr_input.clear();
             return None;
@@ -224,25 +259,129 @@ impl EnrollmentWizard {
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
                     egui::RichText::new(
-                        "Pour commencer, inscrivez cet agent aupr\u{00e8}s de votre plateforme \
-                         Sentinel GRC. Vous aurez besoin du jeton d'enr\u{00f4}lement fourni \
-                         par votre administrateur.",
+                        "Comment ce poste doit-il \u{00ea}tre prot\u{00e9}g\u{00e9} ? Le choix \
+                         se change plus tard dans les param\u{00e8}tres.",
                     )
                     .font(theme::font_body())
                     .color(theme::text_secondary())
                     .line_height(Some(theme::ICON_MD)),
                 );
                 ui.add_space(theme::SPACE_LG);
-                if widgets::button::primary_button(ui, "Commencer l'enr\u{00f4}lement", true)
-                    .clicked()
-                {
+            });
+
+            // Two ways in, side by side: the platform for a fleet, standalone
+            // for one endpoint that only needs protection.
+            let gap = theme::SPACE_MD;
+            let width = ((ui.available_width() - gap) / 2.0).max(180.0);
+            ui.horizontal_top(|ui: &mut egui::Ui| {
+                ui.spacing_mut().item_spacing.x = gap;
+                if Self::choice_card(
+                    ui,
+                    width,
+                    "welcome_platform",
+                    icons::BUILDING,
+                    theme::ACCENT,
+                    "Connect\u{00e9} \u{00e0} une plateforme",
+                    "Pilotage centralis\u{00e9} par votre \u{00e9}quipe s\u{00e9}curit\u{00e9} : \
+                     politiques, rapports et r\u{00e9}ponse \u{00e0} distance. Un jeton \
+                     d'enr\u{00f4}lement est requis.",
+                    "Enr\u{00f4}ler",
+                ) {
+                    self.standalone = false;
                     self.step = EnrollmentStep::TokenEntry;
                 }
-                ui.add_space(theme::SPACE);
+                if Self::choice_card(
+                    ui,
+                    width,
+                    "welcome_standalone",
+                    icons::SHIELD_CHECK,
+                    theme::SUCCESS,
+                    "Autonome",
+                    "Protection locale compl\u{00e8}te et gratuite : d\u{00e9}tection EDR, \
+                     int\u{00e9}grit\u{00e9} des fichiers, conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s. \
+                     Aucune donn\u{00e9}e ne quitte ce poste.",
+                    "Activer la protection",
+                ) {
+                    self.standalone = true;
+                    self.step = EnrollmentStep::AdminSetup;
+                }
             });
+            ui.add_space(theme::SPACE);
         });
 
         None
+    }
+
+    /// One of the welcome choices: an icon, a title, what it means, and its
+    /// action. The whole card is the target.
+    #[allow(clippy::too_many_arguments)]
+    fn choice_card(
+        ui: &mut Ui,
+        width: f32,
+        id: &str,
+        icon: &str,
+        color: egui::Color32,
+        title: &str,
+        blurb: &str,
+        action: &str,
+    ) -> bool {
+        let mut chosen = false;
+        // Both cards share one height: the taller one, measured last frame,
+        // so a two-line title on one side never leaves the other short.
+        let height_id = ui.id().with("choice_card_height");
+        let shared_height: f32 = ui.data(|data| data.get_temp(height_id)).unwrap_or(196.0);
+        let response = ui
+            .allocate_ui_with_layout(
+                egui::vec2(width, 0.0),
+                egui::Layout::top_down(egui::Align::Min),
+                |ui: &mut egui::Ui| {
+                    ui.set_width(width);
+                    widgets::clickable_card(ui, id, |ui: &mut egui::Ui| {
+                        ui.set_min_height(shared_height);
+                        let (badge, _) = ui.allocate_exact_size(
+                            egui::Vec2::splat(theme::MIN_TOUCH_TARGET + theme::SPACE_XS),
+                            egui::Sense::hover(),
+                        );
+                        ui.painter().circle_filled(
+                            badge.center(),
+                            badge.width() / 2.0,
+                            theme::tinted_surface(color),
+                        );
+                        ui.painter().text(
+                            badge.center(),
+                            egui::Align2::CENTER_CENTER,
+                            icon,
+                            theme::font_icon(theme::ICON_MD),
+                            theme::readable_color(color),
+                        );
+                        ui.add_space(theme::SPACE_SM);
+                        ui.label(
+                            egui::RichText::new(title)
+                                .font(theme::font_h3())
+                                .color(theme::text_primary()),
+                        );
+                        ui.add_space(theme::SPACE_XS);
+                        ui.label(
+                            egui::RichText::new(blurb)
+                                .font(theme::font_small())
+                                .color(theme::text_secondary()),
+                        );
+                        ui.add_space(theme::SPACE_MD);
+                        if widgets::button::primary_button(ui, action, true).clicked() {
+                            chosen = true;
+                        }
+                        // Content height, before the card's own padding: the
+                        // same measure `set_min_height` is compared against.
+                        let used = ui.min_rect().height();
+                        if used > shared_height + 0.5 {
+                            ui.data_mut(|data| data.insert_temp(height_id, used));
+                            ui.ctx().request_repaint();
+                        }
+                    })
+                },
+            )
+            .inner;
+        chosen || response.clicked()
     }
 
     fn show_token_entry(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
@@ -293,24 +432,13 @@ impl EnrollmentWizard {
                     );
                     ui.add_space(theme::SPACE_SM);
 
-                    ui.horizontal(|ui| {
-                        ui.add(
-                            egui::TextEdit::singleline(&mut self.token_input)
-                                .desired_width(ui.available_width() - 40.0)
-                                .font(egui::TextStyle::Monospace)
-                                .password(!self.show_token)
-                                .hint_text("Jeton d'enrôlement…"),
-                        );
-
-                        let vis_icon = if self.show_token {
-                            icons::EYE_SLASH
-                        } else {
-                            icons::EYE
-                        };
-                        if widgets::button::icon_button(ui, vis_icon, None).clicked() {
-                            self.show_token = !self.show_token;
-                        }
-                    });
+                    widgets::PasswordInput::new(
+                        &mut self.token_input,
+                        "Jeton d'enrôlement…",
+                        &mut self.show_token,
+                    )
+                    .id_salt("enrolment_token")
+                    .show(ui);
                 }
 
                 ui.add_space(theme::SPACE);
@@ -367,9 +495,12 @@ impl EnrollmentWizard {
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
-                    egui::RichText::new(
-                        "Définissez le mot de passe administrateur pour cet agent.",
-                    )
+                    egui::RichText::new(if self.standalone {
+                        "Ce mot de passe prot\u{00e8}ge les r\u{00e9}glages critiques et les \
+                         actions de r\u{00e9}ponse de ce poste. Il ne quitte jamais l'appareil."
+                    } else {
+                        "Définissez le mot de passe administrateur pour cet agent."
+                    })
                     .font(theme::font_small())
                     .color(theme::text_secondary()),
                 );
@@ -384,24 +515,14 @@ impl EnrollmentWizard {
                 );
                 ui.add_space(theme::SPACE_XS);
 
-                ui.horizontal(|ui| {
-                    ui.add(
-                        egui::TextEdit::singleline(&mut self.admin_password)
-                            .desired_width(ui.available_width() - 40.0)
-                            .font(egui::TextStyle::Monospace)
-                            .password(!self.show_password)
-                            .hint_text("Saisir un mot de passe sécurisé (min. 8 caractères)"),
-                    );
-
-                    let vis_icon = if self.show_password {
-                        icons::EYE_SLASH
-                    } else {
-                        icons::EYE
-                    };
-                    if widgets::button::icon_button(ui, vis_icon, None).clicked() {
-                        self.show_password = !self.show_password;
-                    }
-                });
+                widgets::PasswordInput::new(
+                    &mut self.admin_password,
+                    "Saisir un mot de passe sécurisé (min. 8 caractères)",
+                    &mut self.show_password,
+                )
+                .id_salt("enrolment_admin_password")
+                .proportional()
+                .show(ui);
 
                 // Password strength feedback
                 let pw_len = self.admin_password.trim().len();
@@ -422,27 +543,42 @@ impl EnrollmentWizard {
 
                     if widgets::primary_button_loading(
                         ui,
-                        "Enrôler",
+                        if self.standalone {
+                            "Activer la protection"
+                        } else {
+                            "Enrôler"
+                        },
                         is_valid && !self.is_enrolling,
                         self.is_enrolling,
                     )
                     .clicked()
                     {
-                        let token = self.token_input.trim().to_string();
                         let password = Some(self.admin_password.trim().to_string());
-
                         self.step = EnrollmentStep::InProgress;
                         self.is_enrolling = true;
-                        self.progress_message = "Connexion au serveur…".to_string();
-                        command = Some(EnrollmentCommand::SubmitEnrollment {
-                            token,
-                            admin_password: password,
-                        });
+                        if self.standalone {
+                            self.progress_message =
+                                "Activation de la protection locale…".to_string();
+                            command = Some(EnrollmentCommand::SetupStandalone {
+                                admin_password: password,
+                            });
+                        } else {
+                            let token = self.token_input.trim().to_string();
+                            self.progress_message = "Connexion au serveur…".to_string();
+                            command = Some(EnrollmentCommand::SubmitEnrollment {
+                                token,
+                                admin_password: password,
+                            });
+                        }
                     }
 
                     ui.add_space(theme::SPACE_SM);
                     if widgets::secondary_button(ui, "Retour", true).clicked() {
-                        self.step = EnrollmentStep::TokenEntry;
+                        self.step = if self.standalone {
+                            EnrollmentStep::Welcome
+                        } else {
+                            EnrollmentStep::TokenEntry
+                        };
                     }
                 });
             });
@@ -473,15 +609,30 @@ impl EnrollmentWizard {
         });
     }
 
-    fn show_complete(ui: &mut Ui, success: bool, message: &str) -> Option<EnrollmentCommand> {
+    /// Returns the wizard command and whether the operator asked for the
+    /// agent to restart now (only offered after a connect-later enrollment).
+    fn show_complete(
+        ui: &mut Ui,
+        success: bool,
+        message: &str,
+        standalone: bool,
+        connect_later: bool,
+    ) -> (Option<EnrollmentCommand>, bool) {
         let mut command = None;
+        let mut restart = false;
 
         Self::column(ui, |ui| {
             if success {
                 widgets::hero_state(
                     ui,
                     icons::SHIELD_CHECK,
-                    "Enr\u{00f4}lement r\u{00e9}ussi",
+                    if connect_later {
+                        "Plateforme connect\u{00e9}e"
+                    } else if standalone {
+                        "Protection activ\u{00e9}e"
+                    } else {
+                        "Enr\u{00f4}lement r\u{00e9}ussi"
+                    },
                     message,
                     theme::SUCCESS,
                 );
@@ -489,51 +640,109 @@ impl EnrollmentWizard {
                 widgets::hero_state(
                     ui,
                     icons::CIRCLE_XMARK,
-                    "\u{00c9}chec de l'enr\u{00f4}lement",
+                    if standalone {
+                        "\u{00c9}chec de l'activation"
+                    } else {
+                        "\u{00c9}chec de l'enr\u{00f4}lement"
+                    },
                     message,
                     theme::ERROR,
                 );
             }
             ui.vertical_centered(|ui| {
-                let label = if success {
-                    "Continuer"
+                if success && connect_later {
+                    // The connection is saved; the running instance is
+                    // still standalone. Restarting is the whole point, so
+                    // it is the primary action; waiting is a valid choice.
+                    // A row of two buttons centres as one block: its width
+                    // is measured on the first frame and remembered.
+                    let row_id = ui.id().with("complete_actions_width");
+                    let remembered: Option<f32> = ui.data(|data| data.get_temp(row_id));
+                    let row_width = remembered.unwrap_or_else(|| ui.available_width());
+                    ui.allocate_ui_with_layout(
+                        egui::vec2(row_width, 0.0),
+                        egui::Layout::left_to_right(egui::Align::Center),
+                        |ui| {
+                            ui.spacing_mut().item_spacing.x = theme::SPACE_SM;
+                            if widgets::button::primary_button(
+                                ui,
+                                "Red\u{00e9}marrer maintenant",
+                                true,
+                            )
+                            .on_hover_text(
+                                "Relance l'agent pour d\u{00e9}marrer la synchronisation",
+                            )
+                            .clicked()
+                            {
+                                restart = true;
+                                command = Some(EnrollmentCommand::Finish);
+                            }
+                            if widgets::button::secondary_button(ui, "Plus tard", true)
+                                .on_hover_text(
+                                    "La protection locale continue ; la synchronisation \
+                                     d\u{00e9}marrera au prochain lancement",
+                                )
+                                .clicked()
+                            {
+                                command = Some(EnrollmentCommand::Finish);
+                            }
+                            let used = ui.min_rect().width();
+                            if (used - row_width).abs() > 0.5 {
+                                ui.data_mut(|data| data.insert_temp(row_id, used));
+                                ui.ctx().request_repaint();
+                            }
+                        },
+                    );
                 } else {
-                    "R\u{00e9}essayer"
-                };
-                if widgets::button::primary_button(ui, label, true).clicked() {
-                    command = Some(EnrollmentCommand::Finish);
+                    let label = if success {
+                        "Continuer"
+                    } else {
+                        "R\u{00e9}essayer"
+                    };
+                    if widgets::button::primary_button(ui, label, true).clicked() {
+                        command = Some(EnrollmentCommand::Finish);
+                    }
                 }
                 ui.add_space(theme::SPACE);
             });
         });
 
-        command
+        (command, restart)
     }
 
     /// Numbered stepper: done steps carry a check, the current one is filled,
     /// the rest wait in outline. Painted, so it centres as one block.
-    fn step_indicator(ui: &mut Ui, current: &EnrollmentStep) {
-        const LABELS: [&str; 5] = [
+    fn step_indicator(ui: &mut Ui, current: &EnrollmentStep, standalone: bool) {
+        const PLATFORM_LABELS: [&str; 5] = [
             "Bienvenue",
             "Jeton",
             "Admin",
             "Enr\u{00f4}lement",
             "Termin\u{00e9}",
         ];
+        const STANDALONE_LABELS: [&str; 4] = ["Bienvenue", "Admin", "Activation", "Termin\u{00e9}"];
         const STEP_W: f32 = 96.0;
         const RADIUS: f32 = 11.0;
 
-        let current_idx = match current {
-            EnrollmentStep::Welcome => 0,
-            EnrollmentStep::TokenEntry => 1,
-            EnrollmentStep::AdminSetup => 2,
-            EnrollmentStep::InProgress => 3,
-            EnrollmentStep::Complete { .. } => 4,
+        let labels: &[&str] = if standalone {
+            &STANDALONE_LABELS
+        } else {
+            &PLATFORM_LABELS
+        };
+        let current_idx = match (current, standalone) {
+            (EnrollmentStep::Welcome, _) => 0,
+            (EnrollmentStep::TokenEntry, _) => 1,
+            (EnrollmentStep::AdminSetup, false) => 2,
+            (EnrollmentStep::AdminSetup, true) => 1,
+            (EnrollmentStep::InProgress, false) => 3,
+            (EnrollmentStep::InProgress, true) => 2,
+            (EnrollmentStep::Complete { .. }, false) => 4,
+            (EnrollmentStep::Complete { .. }, true) => 3,
         };
 
         let height = RADIUS * 2.0 + theme::SPACE_XS + theme::ICON_SM;
         let (rect, _) = ui.allocate_exact_size(
-            egui::vec2(STEP_W * LABELS.len() as f32, height),
+            egui::vec2(STEP_W * labels.len() as f32, height),
             egui::Sense::hover(),
         );
         if !ui.is_rect_visible(rect) {
@@ -543,7 +752,7 @@ impl EnrollmentWizard {
         let cy = rect.top() + RADIUS;
         let center_x = |i: usize| rect.left() + STEP_W * (i as f32 + 0.5);
 
-        for i in 0..LABELS.len() - 1 {
+        for i in 0..labels.len() - 1 {
             let done = i < current_idx;
             painter.line_segment(
                 [
@@ -557,7 +766,7 @@ impl EnrollmentWizard {
             );
         }
 
-        for (i, label) in LABELS.iter().enumerate() {
+        for (i, label) in labels.iter().enumerate() {
             let center = egui::pos2(center_x(i), cy);
             let (fill, ring, glyph, text) = match i.cmp(&current_idx) {
                 Ordering::Less => (
@@ -614,8 +823,78 @@ impl EnrollmentWizard {
         self.step = EnrollmentStep::Complete { success, message };
     }
 
+    /// The step the wizard goes back to after a failed attempt: where the
+    /// operator can change what failed (the token, or nothing but retry).
+    fn retry_step(&self) -> EnrollmentStep {
+        if self.standalone {
+            EnrollmentStep::AdminSetup
+        } else {
+            EnrollmentStep::TokenEntry
+        }
+    }
+
     /// Update the progress message.
     pub fn set_progress(&mut self, message: String) {
         self.progress_message = message;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn first_launch_starts_at_the_welcome_choice() {
+        let wizard = EnrollmentWizard::default();
+        assert!(matches!(wizard.step, EnrollmentStep::Welcome));
+        assert!(!wizard.standalone);
+    }
+
+    #[test]
+    fn connecting_later_skips_the_choice_and_is_a_platform_flow() {
+        let wizard = EnrollmentWizard::for_platform_connection();
+        assert!(matches!(wizard.step, EnrollmentStep::TokenEntry));
+        assert!(
+            !wizard.standalone,
+            "a standalone agent joining a platform enrols like any other"
+        );
+        assert!(wizard.connect_later, "the completion step offers a restart");
+        assert!(!wizard.restart_requested);
+        assert!(
+            !EnrollmentWizard::default().connect_later,
+            "a first launch has nothing to restart"
+        );
+    }
+
+    #[test]
+    fn failure_retries_where_the_operator_can_act() {
+        let mut platform = EnrollmentWizard::default();
+        platform.set_result(false, "Échec".into());
+        assert!(matches!(platform.retry_step(), EnrollmentStep::TokenEntry));
+
+        let mut standalone = EnrollmentWizard {
+            standalone: true,
+            ..Default::default()
+        };
+        standalone.set_result(false, "Échec".into());
+        assert!(
+            matches!(standalone.retry_step(), EnrollmentStep::AdminSetup),
+            "no token to fix in standalone mode: back to the admin step"
+        );
+    }
+
+    #[test]
+    fn set_result_ends_the_in_progress_state() {
+        let mut wizard = EnrollmentWizard {
+            is_enrolling: true,
+            step: EnrollmentStep::InProgress,
+            ..Default::default()
+        };
+        wizard.set_result(true, "ok".into());
+        assert!(!wizard.is_enrolling);
+        assert!(matches!(
+            wizard.step,
+            EnrollmentStep::Complete { success: true, .. }
+        ));
     }
 }

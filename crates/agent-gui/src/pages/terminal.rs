@@ -4,7 +4,6 @@
 //! Terminal Activity Monitor -- real-time view of all agent background activity.
 
 use egui::{Color32, Ui};
-use egui_extras::{Column, TableBuilder};
 
 use crate::app::AppState;
 use crate::dto::LogLevel;
@@ -189,15 +188,13 @@ impl TerminalPage {
                         .extra_letter_spacing(theme::TRACKING_NORMAL),
                 );
                 ui.add_space(theme::SPACE_XS);
-                let search_edit = egui::TextEdit::singleline(&mut state.terminal.search)
-                    .desired_width((ui.available_width() - 120.0).max(150.0))
-                    .margin(egui::Margin::symmetric(
-                        theme::SPACE_SM as i8,
-                        theme::SPACE_XS as i8,
-                    ))
+                let search_width = (ui.available_width() - 120.0).clamp(150.0, 480.0);
+                widgets::SearchInput::new(&mut state.terminal.search, "Rechercher…")
+                    .width(search_width)
+                    .height(theme::SEARCH_INPUT_HEIGHT)
                     .font(theme::font_mono_sm())
-                    .hint_text("rechercher…");
-                ui.add(search_edit);
+                    .id_salt("terminal_search")
+                    .show(ui);
 
                 // Export lives on the row it applies to, as on every list page.
                 ui.with_layout(
@@ -291,106 +288,75 @@ impl TerminalPage {
                     return;
                 }
 
-                let table = TableBuilder::new(ui)
-                    .striped(false)
-                    .resizable(true)
-                    .max_scroll_height(theme::VIEWPORT_MIN_HEIGHT)
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(90.0).at_least(80.0))
-                    .column(Column::initial(70.0).at_least(60.0))
-                    .column(Column::initial(130.0).at_least(100.0))
-                    .column(Column::remainder());
+                use widgets::table;
 
-                table
-                    .header(theme::TABLE_INLINE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("HEURE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("NIVEAU")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("CIBLE")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new("MESSAGE D'ACTIVITÉ")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong()
-                                    .extra_letter_spacing(theme::TRACKING_NORMAL),
-                            );
-                        });
-                    })
-                    .body(|body| {
-                        body.rows(
-                            theme::TABLE_COMPACT_ROW_HEIGHT,
-                            filtered.len(),
-                            |mut row| {
-                                let Some(&(original_idx, entry)) = filtered.get(row.index()) else {
-                                    return;
-                                };
-                                let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
-                                let color = level_color(&entry.level);
-                                let target_short = shorten_target(&entry.target);
+                let selected = state.terminal.selected_log;
+                let mut clicked: Option<usize> = None;
 
-                                row.set_selected(state.terminal.selected_log == Some(original_idx));
-
-                                row.col(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&ts)
-                                            .font(theme::font_mono_sm())
-                                            .color(theme::text_tertiary()),
-                                    );
-                                });
-                                row.col(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&entry.level)
-                                            .font(theme::font_mono_sm())
-                                            .color(color)
-                                            .strong(),
-                                    );
-                                });
-                                row.col(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(target_short)
-                                            .font(theme::font_mono_sm())
-                                            .color(theme::accent_text()),
-                                    );
-                                });
-                                row.col(|ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(&entry.message)
-                                            .font(theme::font_mono_sm())
-                                            .color(theme::text_primary()),
-                                    );
-                                });
-
-                                if row.response().clicked() {
-                                    state.terminal.selected_log = Some(original_idx);
-                                    state.terminal.detail_open = true;
-                                }
-                            },
-                        );
+                // The console is a live stream, so unlike the list pages it
+                // keeps a bounded scroll of its own; the wheel still reaches
+                // the page once the console has nothing more to scroll.
+                table::fluid_clickable(
+                    ui,
+                    &[
+                        table::Col::fixed(100.0),      // Heure
+                        table::Col::fixed(64.0),       // Niveau
+                        table::Col::fluid(120.0, 1.0), // Cible
+                        table::Col::fluid(200.0, 4.0), // Message
+                    ],
+                )
+                .vscroll(true)
+                .max_scroll_height(theme::VIEWPORT_MIN_HEIGHT)
+                .stick_to_bottom(true)
+                .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "HEURE");
                     });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "NIVEAU");
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "CIBLE");
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        table::header_cell(ui, "MESSAGE D'ACTIVITÉ");
+                    });
+                })
+                .body(|body| {
+                    body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
+                        let Some(&(original_idx, entry)) = filtered.get(row.index()) else {
+                            return;
+                        };
+                        let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
+                        let color = level_color(&entry.level);
+                        let target_short = shorten_target(&entry.target);
+                        let is_selected = selected == Some(original_idx);
+
+                        row.set_selected(is_selected);
+
+                        row.col(|ui: &mut egui::Ui| {
+                            table::cell_mono_muted(ui, &ts);
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            table::cell_colored(ui, &entry.level, color);
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            table::cell_mono(ui, target_short);
+                        });
+                        row.col(|ui: &mut egui::Ui| {
+                            table::cell_mono(ui, &entry.message);
+                        });
+
+                        if table::row_interaction(&row, is_selected) {
+                            clicked = Some(original_idx);
+                        }
+                    });
+                });
+
+                if let Some(idx) = clicked {
+                    state.terminal.selected_log = Some(idx);
+                    state.terminal.detail_open = true;
+                }
             });
     }
 

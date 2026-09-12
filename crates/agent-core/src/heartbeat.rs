@@ -274,6 +274,7 @@ impl AgentRuntime {
                         .unwrap_or_else(|e| e.into_inner())
                         .clone(),
                     policy_summary: None,
+                    standalone: false,
                 },
             });
 

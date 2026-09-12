@@ -1306,11 +1306,13 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
 
     visuals.resize_corner_size = 10.0;
     visuals.hyperlink_color = accent_text();
-    visuals.faint_bg_color = if dark {
-        Color32::from_white_alpha(TABLE_ALT_ROW_ALPHA)
-    } else {
-        Color32::from_black_alpha(TABLE_ALT_ROW_ALPHA)
-    };
+    // Striped rows in `egui_extras` tables paint `faint_bg_color`; the same
+    // opaque blend `DataTable` uses, so both table kinds stripe alike and
+    // neither turns into a slab of translucent grey.
+    visuals.faint_bg_color = table_row_bg(1);
+    // Every widget that reacts to a click shows the pointer hand, whichever
+    // page drew it, instead of only the ones that remembered to ask.
+    visuals.interact_cursor = Some(egui::CursorIcon::PointingHand);
     // egui paints every bare TextEdit with `extreme_bg_color`. Pointing it at
     // bg_deep made unstyled search fields disappear into the canvas — a field
     // belongs one step above the surface it sits on, not below it. The

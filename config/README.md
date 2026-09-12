@@ -41,6 +41,7 @@ Toutes les valeurs de premier niveau peuvent etre surchargees via des variables 
 
 | Variable d'environnement | Champ de configuration | Exemple |
 |--------------------------|------------------------|---------|
+| `SENTINEL_STANDALONE` | `standalone` (mode autonome, sans plateforme) | `true` |
 | `SENTINEL_SERVER_URL` | `server_url` | `https://grc.votre-domaine.com/fn/agentApi` |
 | `SENTINEL_ENROLLMENT_TOKEN` | `enrollment_token` | `<orgId>:<token>` |
 | `SENTINEL_CA_CERT_PATH` | `ca_cert_path` | `/etc/sentinel/ca.pem` |
@@ -67,6 +68,34 @@ La configuration est chargee dans cet ordre (les sources ulterieures ecrasent le
 1. **Valeurs par defaut** - Valeurs par defaut codees en dur
 2. **Fichier JSON** - Chemin specifique a la plateforme ou chemin personnalise
 3. **Variables d'environnement** - Prefixe `SENTINEL_*`
+
+## Mode autonome (standalone)
+
+L'agent peut proteger un poste **sans aucune plateforme** : detection (EDR),
+integrite des fichiers, conformite, analyse de vulnerabilites, inventaire et
+reseau restent actifs et toutes les donnees restent sur le poste. Aucun
+enrolement, aucun heartbeat, aucun envoi, aucune commande distante ni mise a
+jour distante. C'est le mode destine aux particuliers et aux postes qui ont
+seulement besoin d'une protection locale.
+
+```json
+{
+  "standalone": true
+}
+```
+
+- Activation : au choix a l'installation (dialogue du MSI, `INSTALLMODE=STANDALONE`,
+  `SENTINEL_STANDALONE=1` pour le `.deb` et le `.pkg`), depuis l'assistant de
+  premier lancement (« Protection locale »), ou en ligne de commande :
+  `sentinel-agent standalone` (droits administrateur requis : couper ou
+  rétablir la remontée vers la plateforme n'est pas à la portée d'un simple
+  utilisateur).
+- Retour vers une plateforme : bouton « Connecter a une plateforme » dans les
+  reglages de l'interface, `sentinel-agent enroll` (desactive le mode
+  autonome en cas de succes) ou `sentinel-agent standalone --disable`.
+- `server_url` n'est pas verifie en mode autonome ; `enrollment_token` est
+  ignore. Les identifiants d'une plateforme deja enregistres sont conserves
+  mais inutilises tant que `standalone` vaut `true`.
 
 ## Mode developpement
 
