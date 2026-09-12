@@ -43,8 +43,11 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   instance libère d'abord le verrou d'instance unique et la base) ou « Plus
   tard » (la synchronisation démarre au prochain lancement, une notification
   le rappelle).
-- **Ligne de commande** : `sentinel-agent standalone` / `--disable` ;
-  `sentinel-agent enroll` réussi désactive lui aussi le mode autonome.
+- **Ligne de commande** : `sentinel-agent standalone` / `--disable`
+  (droits administrateur requis) ; `sentinel-agent enroll` réussi désactive
+  lui aussi le mode autonome. Si `SENTINEL_STANDALONE` est définie dans
+  l'environnement, la commande et l'assistant préviennent qu'elle prime sur le
+  fichier.
 - **Documentation** : `config/README.md` (section et variable
   `SENTINEL_STANDALONE`), exemples JSON, README, guide utilisateur, README du
   preview (`PREVIEW_STANDALONE=1`, étapes `standalone-*`).

@@ -166,8 +166,9 @@ pub struct AgentConfig {
     /// self-update from a server: detection (EDR), file integrity, compliance
     /// checks, vulnerability scanning, the local database and the local
     /// assistant all keep working. Chosen at installation for individuals and
-    /// for endpoints that only need protection; `sentinel-agent connect` (or
-    /// the "Connecter à une plateforme" action) leaves it later.
+    /// for endpoints that only need protection; `sentinel-agent enroll`,
+    /// `sentinel-agent standalone --disable` or the "Connecter à une
+    /// plateforme" action leaves it later.
     #[serde(default)]
     pub standalone: bool,
 }
@@ -676,7 +677,7 @@ impl AgentConfig {
     /// Persist the standalone choice into the platform configuration file.
     ///
     /// Written by the installer (Windows property, macOS choice, Linux
-    /// environment) and by `sentinel-agent standalone` / `connect`, so the
+    /// environment) and by `sentinel-agent standalone` / `enroll`, so the
     /// service started afterwards knows whether a platform is expected.
     pub fn persist_standalone(standalone: bool) -> crate::error::Result<PathBuf> {
         let path = Self::platform_config_path();

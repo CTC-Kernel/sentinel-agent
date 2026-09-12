@@ -87,7 +87,9 @@ seulement besoin d'une protection locale.
 - Activation : au choix a l'installation (dialogue du MSI, `INSTALLMODE=STANDALONE`,
   `SENTINEL_STANDALONE=1` pour le `.deb` et le `.pkg`), depuis l'assistant de
   premier lancement (« Protection locale »), ou en ligne de commande :
-  `sentinel-agent standalone`.
+  `sentinel-agent standalone` (droits administrateur requis : couper ou
+  rétablir la remontée vers la plateforme n'est pas à la portée d'un simple
+  utilisateur).
 - Retour vers une plateforme : bouton « Connecter a une plateforme » dans les
   reglages de l'interface, `sentinel-agent enroll` (desactive le mode
   autonome en cas de succes) ou `sentinel-agent standalone --disable`.

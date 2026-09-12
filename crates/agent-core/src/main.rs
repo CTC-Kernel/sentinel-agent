@@ -372,6 +372,16 @@ mod relaunch_tests {
 /// Switch the agent into (or out of) standalone mode by writing the
 /// platform configuration file; the service picks it up at its next start.
 fn handle_standalone(disable: bool) -> ExitCode {
+    // Cutting an endpoint off its platform (or reconnecting it) is an
+    // administrator's decision: a standard user must not be able to silence
+    // the reporting from a shell.
+    if !agent_core::service::is_admin() {
+        error!(
+            "Changing the standalone mode requires administrator (root) privileges. \
+             Re-run this command elevated."
+        );
+        return ExitCode::FAILURE;
+    }
     match AgentConfig::persist_standalone(!disable) {
         Ok(path) if disable => {
             info!(
