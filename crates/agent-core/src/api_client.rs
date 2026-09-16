@@ -907,6 +907,28 @@ impl ApiClient {
         Ok(result)
     }
 
+    /// POST a JSON body and return the HTTP status and response body.
+    ///
+    /// Unlike [`ApiClient::post`], a non-2xx status is not an error: callers
+    /// can decide whether to retry (5xx/429) or give up (other 4xx). `Err` is
+    /// returned only when no HTTP response was received (network failure).
+    pub async fn post_status<T>(&self, path: &str, body: &T) -> Result<(u16, String)>
+    where
+        T: Serialize,
+    {
+        let url = format!("{}{}", self.base_url, path);
+        debug!("POST {}", self.safe_log_url(&url));
+
+        let response = self
+            .authenticate(self.client.post(&url).json(body))
+            .send()
+            .await
+            .map_err(|e| CommonError::network(format!("POST {} failed: {}", path, e)))?;
+        let status = response.status().as_u16();
+        let text = response.text().await.unwrap_or_default();
+        Ok((status, text))
+    }
+
     /// Fetch the latest release information from the update server.
     pub async fn get_latest_release_info(&self) -> Result<agent_common::types::UpdateInfo> {
         let url = &format!(

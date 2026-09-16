@@ -68,6 +68,7 @@ mod scanning;
 mod self_update;
 mod sync_init;
 pub mod threat_pipeline;
+mod vuln_upload;
 
 #[cfg(feature = "tray")]
 pub mod tray;
@@ -262,11 +263,11 @@ pub struct ProposeAssetData {
 pub struct AgentRuntime {
     config: SecureConfig,
     resource_monitor: ResourceMonitor,
-    api_client: RwLock<Option<ApiClient>>,
+    api_client: Arc<RwLock<Option<ApiClient>>>,
     /// Heartbeat interval in seconds (dynamic).
     heartbeat_interval_secs: RwLock<u64>,
     /// Vulnerability scanner for package vulnerability detection.
-    vulnerability_scanner: VulnerabilityScanner,
+    vulnerability_scanner: Arc<VulnerabilityScanner>,
     /// Security monitor for incident detection.
     security_monitor: SecurityMonitor,
     /// USB device monitor for tracking connections/disconnections.
@@ -583,9 +584,9 @@ impl AgentRuntime {
             config,
             active_frameworks: std::sync::RwLock::new(active_frameworks),
             resource_monitor,
-            api_client: RwLock::new(None),
+            api_client: Arc::new(RwLock::new(None)),
             heartbeat_interval_secs: RwLock::new(DEFAULT_HEARTBEAT_INTERVAL_SECS),
-            vulnerability_scanner,
+            vulnerability_scanner: Arc::new(vulnerability_scanner),
             security_monitor,
             usb_monitor: std::sync::Mutex::new(usb_monitor),
             network_manager: RwLock::new(network_manager),
@@ -922,6 +923,10 @@ impl AgentRuntime {
         let mut last_vuln_scan = std::time::Instant::now()
             .checked_sub(std::time::Duration::from_secs(self.vuln_scan_interval_secs))
             .unwrap_or_else(std::time::Instant::now);
+        // Background vulnerability scan (see `VulnScanJob`); `Some` while running.
+        let mut vuln_scan_task: Option<
+            tokio::task::JoinHandle<Result<agent_scanner::VulnerabilityScanResult, CommonError>>,
+        > = None;
         // Compliance check timer: trigger immediately on first loop
         let mut last_compliance_check_time = std::time::Instant::now()
             .checked_sub(std::time::Duration::from_secs(
@@ -1610,25 +1615,20 @@ impl AgentRuntime {
                 }
             }
 
-            // 3. Vulnerability Scanning (skip when paused)
-            if !is_paused && last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs {
-                #[cfg(feature = "gui")]
-                {
-                    self.state.scanning.store(true, Ordering::Release);
-                    self.emit_status_update(
-                        last_check_at,
-                        compliance_score,
-                        cached_pending_sync,
-                        cached_policy_summary,
-                    );
-                }
-                match self.run_vulnerability_scan().await {
-                    Ok(result) => {
+            // 3. Vulnerability Scanning — runs in its own task so that a long
+            //    scan (inventory, OSV lookups, AI analysis, uploads) never delays
+            //    heartbeats. At most one scan runs at a time: a new one is only
+            //    started once the previous task handle has been collected here.
+            if vuln_scan_task.as_ref().is_some_and(|t| t.is_finished())
+                && let Some(task) = vuln_scan_task.take()
+            {
+                last_vuln_scan = std::time::Instant::now();
+                match task.await {
+                    Ok(Ok(result)) => {
                         let count = result.vulnerabilities.len();
                         if count > 0 {
                             info!("Vulnerability scan found {} issues", count);
                         }
-                        self.upload_software_from_scan(&result).await;
                         #[cfg(feature = "gui")]
                         {
                             let severity = if count > 0 { "warning" } else { "info" };
@@ -1679,7 +1679,7 @@ impl AgentRuntime {
                             last_check_at = Some(chrono::Utc::now());
                         }
                     }
-                    Err(e) => {
+                    Ok(Err(e)) => {
                         warn!("Vulnerability scan failed: {}", e);
                         #[cfg(feature = "gui")]
                         self.emit_notification(
@@ -1688,10 +1688,37 @@ impl AgentRuntime {
                             "error",
                         );
                     }
+                    Err(join_error) => {
+                        error!("Vulnerability scan task aborted: {}", join_error);
+                    }
                 }
                 #[cfg(feature = "gui")]
-                self.state.scanning.store(false, Ordering::Release);
-                last_vuln_scan = std::time::Instant::now();
+                {
+                    self.state.scanning.store(false, Ordering::Release);
+                    self.emit_status_update(
+                        last_check_at,
+                        compliance_score,
+                        cached_pending_sync,
+                        cached_policy_summary,
+                    );
+                }
+            }
+
+            if !is_paused
+                && vuln_scan_task.is_none()
+                && last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs
+            {
+                #[cfg(feature = "gui")]
+                {
+                    self.state.scanning.store(true, Ordering::Release);
+                    self.emit_status_update(
+                        last_check_at,
+                        compliance_score,
+                        cached_pending_sync,
+                        cached_policy_summary,
+                    );
+                }
+                vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
             }
 
             // Run security scan if interval has passed (skip when paused)
@@ -2522,66 +2549,12 @@ impl AgentRuntime {
                     );
                 }
 
-                match self.run_vulnerability_scan().await {
-                    Ok(result) => {
-                        let count = result.vulnerabilities.len();
-                        info!(
-                            "Force vuln check: {} findings from {} packages",
-                            count, result.packages_scanned
-                        );
-                        self.upload_software_from_scan(&result).await;
-                        #[cfg(feature = "gui")]
-                        {
-                            self.emit_notification(
-                                "Scan vulnérabilités",
-                                &format!(
-                                    "{} vulnérabilités sur {} paquets",
-                                    count, result.packages_scanned
-                                ),
-                                if count > 0 { "warning" } else { "info" },
-                            );
-                            let mut critical = 0u32;
-                            let mut high = 0u32;
-                            let mut medium = 0u32;
-                            let mut low = 0u32;
-                            for v in &result.vulnerabilities {
-                                match v.severity {
-                                    agent_scanner::Severity::Critical => {
-                                        critical = critical.saturating_add(1)
-                                    }
-                                    agent_scanner::Severity::High => high = high.saturating_add(1),
-                                    agent_scanner::Severity::Medium => {
-                                        medium = medium.saturating_add(1)
-                                    }
-                                    agent_scanner::Severity::Low => low = low.saturating_add(1),
-                                }
-                            }
-                            self.emit_gui_event(AgentEvent::VulnerabilityUpdate {
-                                summary: GuiVulnerabilitySummary {
-                                    critical,
-                                    high,
-                                    medium,
-                                    low,
-                                    last_scan_at: Some(chrono::Utc::now()),
-                                },
-                            });
-                            self.emit_gui_event(AgentEvent::SoftwareUpdate {
-                                packages: self.build_software_packages(&result),
-                            });
-                            self.emit_gui_event(AgentEvent::VulnerabilityFindings {
-                                findings: self.build_vulnerability_findings(&result),
-                            });
-                        }
-                    }
-                    Err(e) => {
-                        warn!("Force vuln check failed: {}", e);
-                        #[cfg(feature = "gui")]
-                        self.emit_notification(
-                            "Scan vulnérabilités échoué",
-                            &format!("{}", e),
-                            "error",
-                        );
-                    }
+                // The vulnerability scan runs in the background task; its
+                // results are published when the task is collected above.
+                if vuln_scan_task.is_none() {
+                    vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
+                } else {
+                    info!("Vulnerability scan already running, not starting another one");
                 }
 
                 let (check_results, score) = self.run_compliance_checks().await;
@@ -2625,7 +2598,10 @@ impl AgentRuntime {
                             "warning"
                         },
                     );
-                    self.state.scanning.store(false, Ordering::Release);
+                    // Still "scanning" while the vulnerability task runs.
+                    self.state
+                        .scanning
+                        .store(vuln_scan_task.is_some(), Ordering::Release);
                     self.emit_status_update(
                         last_check_at,
                         compliance_score,
@@ -2983,6 +2959,11 @@ impl AgentRuntime {
 
         // --- Graceful Shutdown Sequence ---
         info!("Performing final cleanup and data flush...");
+
+        // 0. Do not keep scanning/uploading while shutting down.
+        if let Some(task) = vuln_scan_task.take() {
+            task.abort();
+        }
 
         // 1. Flush pending check results
         if !self.config.standalone {

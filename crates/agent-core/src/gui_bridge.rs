@@ -139,7 +139,12 @@ impl AgentRuntime {
             .packages
             .iter()
             .map(|pkg| {
-                let has_vulns = vuln_counts.contains_key(&pkg.name);
+                // Debian/Ubuntu findings are reported on the source package.
+                let has_vulns = vuln_counts.contains_key(&pkg.name)
+                    || pkg
+                        .source_name
+                        .as_ref()
+                        .is_some_and(|source| vuln_counts.contains_key(source));
                 GuiSoftwarePackage {
                     name: pkg.name.clone(),
                     version: pkg.version.clone(),
