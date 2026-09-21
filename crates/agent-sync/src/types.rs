@@ -954,13 +954,6 @@ pub struct KpiSnapshotPayload {
     pub remediation_sla_pct: f64,
 }
 
-/// Request to sync KPI snapshots.
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub struct KpiSyncRequest {
-    pub snapshots: Vec<KpiSnapshotPayload>,
-}
-
 // ============================================================================
 // Alert Rule Sync Types
 // ============================================================================
@@ -1091,6 +1084,28 @@ pub struct FimAlertSyncRequest {
     pub alerts: Vec<FimAlertPayload>,
 }
 
+/// The `timestamp` string of an uploaded FIM alert, exactly as
+/// [`FimAlertPayload`] serializes it (same serde encoding).
+pub fn fim_wire_timestamp(timestamp: &DateTime<Utc>) -> String {
+    match serde_json::to_value(timestamp) {
+        Ok(serde_json::Value::String(s)) => s,
+        _ => timestamp.to_rfc3339_opts(chrono::SecondsFormat::AutoSi, true),
+    }
+}
+
+/// Body of `POST /v1/agents/{id}/fim-alerts/{local_id}/acknowledge`.
+///
+/// The platform document id of an uploaded alert is derived from
+/// (agent id, path, upload timestamp), so the acknowledgement carries the
+/// path and the timestamp string that was sent in the upload.
+pub fn fim_acknowledge_body(path: &str, timestamp: &DateTime<Utc>) -> serde_json::Value {
+    serde_json::json!({
+        "acknowledged": true,
+        "path": path,
+        "timestamp": fim_wire_timestamp(timestamp),
+    })
+}
+
 // ============================================================================
 // USB Event Sync Types
 // ============================================================================
@@ -1120,7 +1135,9 @@ pub struct UsbEventPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub serial_number: Option<String>,
 
-    /// Action taken (allowed, blocked).
+    /// Action taken (`allowed`, `blocked`). The agent monitors USB devices
+    /// but never blocks them, so it always reports `allowed`; a device the
+    /// policy does not allow is flagged in `metadata` instead.
     pub action: String,
 
     /// When the event occurred (ISO 8601).
@@ -1159,9 +1176,15 @@ impl From<agent_common::types::UsbEvent> for UsbEventPayload {
             vendor_id: format!("{:04x}", event.device.vendor_id),
             product_id: format!("{:04x}", event.device.product_id),
             serial_number: event.device.serial,
-            action: if event.allowed { "allowed" } else { "blocked" }.to_string(),
+            // Never "blocked": no blocking is enforced on the endpoint.
+            action: "allowed".to_string(),
             timestamp: event.timestamp,
-            metadata: None,
+            metadata: (!event.allowed).then(|| {
+                serde_json::json!({
+                    "policy_violation": true,
+                    "enforcement": "monitor_only",
+                })
+            }),
         }
     }
 }
@@ -1662,5 +1685,61 @@ mod tests {
                 panic!("Expected Success variant, got AlreadyEnrolled");
             }
         }
+    }
+
+    #[test]
+    fn fim_acknowledge_body_repeats_the_uploaded_timestamp() {
+        use chrono::TimeZone;
+        let ts = Utc.timestamp_opt(1_790_000_000, 123_456_789).unwrap();
+        let alert = agent_common::types::FimAlert {
+            path: std::path::PathBuf::from("/etc/passwd"),
+            change: agent_common::types::FimChangeType::Modified,
+            old_hash: None,
+            new_hash: None,
+            new_size: None,
+            timestamp: ts,
+            acknowledged: false,
+        };
+        let upload = serde_json::to_value(FimAlertPayload::from(alert)).unwrap();
+
+        let body = fim_acknowledge_body("/etc/passwd", &ts);
+        assert_eq!(body["acknowledged"], true);
+        assert_eq!(body["path"], upload["path"]);
+        // Byte-identical to the uploaded value (the platform derives the
+        // document id from it).
+        assert_eq!(body["timestamp"], upload["timestamp"]);
+        assert_eq!(body["timestamp"], "2026-09-21T14:13:20.123456789Z");
+
+        let whole_second = Utc.timestamp_opt(1_790_000_000, 0).unwrap();
+        assert_eq!(fim_wire_timestamp(&whole_second), "2026-09-21T14:13:20Z");
+    }
+
+    #[test]
+    fn usb_events_never_claim_a_block() {
+        use agent_common::types::usb::{UsbDevice, UsbDeviceClass, UsbEvent, UsbEventType};
+        let event = |allowed: bool| UsbEvent {
+            device: UsbDevice {
+                vendor_id: 0x0781,
+                product_id: 0x5567,
+                serial: None,
+                description: "Cruzer Blade".to_string(),
+                class: UsbDeviceClass::MassStorage,
+            },
+            event_type: UsbEventType::Connected,
+            timestamp: Utc::now(),
+            allowed,
+        };
+
+        // Not allowed by the policy: still reported as allowed (nothing is
+        // blocked on the endpoint), with the policy violation in metadata.
+        let payload = serde_json::to_value(UsbEventPayload::from(event(false))).unwrap();
+        assert_eq!(payload["action"], "allowed");
+        assert_eq!(payload["event_type"], "connected");
+        assert_eq!(payload["metadata"]["policy_violation"], true);
+        assert_eq!(payload["metadata"]["enforcement"], "monitor_only");
+
+        let payload = serde_json::to_value(UsbEventPayload::from(event(true))).unwrap();
+        assert_eq!(payload["action"], "allowed");
+        assert!(payload.get("metadata").is_none());
     }
 }

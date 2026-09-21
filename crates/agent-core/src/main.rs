@@ -1646,28 +1646,23 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             // Notification read state is managed in GUI state
                         }
                         Ok(GuiCommand::DeleteNotification { notification_id }) => {
+                            // Notifications are local to the desktop app (the GUI
+                            // already removed it): the platform has no such resource.
                             info!("[AUDIT] GUI deleted notification: {}", notification_id);
-                            // Sync deletion to platform
-                            if let Some(ref c) = sync_client {
-                                let c = std::sync::Arc::clone(c);
-                                let nid = notification_id.clone();
-                                tokio::spawn(async move {
-                                    if let Err(e) = c.delete_notification(&nid).await {
-                                        warn!("Failed to sync notification deletion: {}", e);
-                                    }
-                                });
-                            }
                         }
-                        Ok(GuiCommand::AcknowledgeFimAlert { alert_id }) => {
+                        Ok(GuiCommand::AcknowledgeFimAlert { alert_id, path, timestamp }) => {
                             info!("[AUDIT] GUI acknowledged FIM alert: {}", alert_id);
-                            // Report acknowledgment to the platform
+                            // Report acknowledgment to the platform. `alert_id` is
+                            // local to the desktop app: the platform derives its
+                            // document id from (agent, path, upload timestamp).
                             let client_clone = sync_client.clone();
                             let aid = alert_id.clone();
                             tokio::spawn(async move {
                                 if let Some(ref client) = client_clone {
                                     match client.agent_id().await {
                                         Ok(agent_id) => {
-                                            let body = serde_json::json!({ "acknowledged": true });
+                                            let body =
+                                                agent_sync::types::fim_acknowledge_body(&path, &timestamp);
                                             let result: Result<serde_json::Value, _> = client
                                                 .post_json(
                                                     &format!(

@@ -55,6 +55,7 @@ pub mod voice {
 // Domain modules (impl AgentRuntime split)
 mod asset_sync;
 mod compliance;
+mod configure_cmd;
 pub mod edr_actions;
 mod enrollment;
 mod gui_bridge;
@@ -274,6 +275,8 @@ pub struct AgentRuntime {
     usb_monitor: std::sync::Mutex<UsbMonitor>,
     /// Network manager for network collection and detection.
     network_manager: RwLock<NetworkManager>,
+    /// Network alerts recently uploaded (re-upload cooldown).
+    network_alert_cooldown: std::sync::Mutex<agent_network::detection::AlertCooldown>,
     /// Vulnerability scan interval in seconds.
     vuln_scan_interval_secs: u64,
     /// Security scan interval in seconds.
@@ -590,6 +593,9 @@ impl AgentRuntime {
             security_monitor,
             usb_monitor: std::sync::Mutex::new(usb_monitor),
             network_manager: RwLock::new(network_manager),
+            network_alert_cooldown: std::sync::Mutex::new(
+                agent_network::detection::AlertCooldown::default(),
+            ),
             vuln_scan_interval_secs: DEFAULT_VULN_SCAN_INTERVAL_SECS,
             security_scan_interval_secs: DEFAULT_SECURITY_SCAN_INTERVAL_SECS,
             #[cfg(feature = "gui")]
@@ -849,6 +855,10 @@ impl AgentRuntime {
             self.run_platform_startup().await?;
         }
 
+        // Last network monitoring consent received from the platform: must be
+        // known before the first network collection.
+        self.load_persisted_network_consent().await;
+
         // Log initial resource usage
         let usage = self.resource_monitor.get_usage();
         debug!(
@@ -982,51 +992,56 @@ impl AgentRuntime {
         let mut last_log_collection = std::time::Instant::now();
 
         // Run initial network collection (with 30s timeout to avoid blocking the main loop)
-        info!("Running initial network collection...");
-        match tokio::time::timeout(
-            std::time::Duration::from_secs(30),
-            self.run_network_collection(),
-        )
-        .await
-        {
-            Ok(inner) => match inner {
-                Ok(snapshot) => {
-                    #[cfg(feature = "gui")]
-                    {
-                        let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
-                        self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
-                            interfaces,
-                            connections,
-                        });
-                    }
-                    if let Err(e) = self.upload_network_snapshot(&snapshot).await {
-                        warn!("Failed to upload initial network snapshot: {}", e);
+        if !self.state.network_monitoring_enabled() {
+            info!(
+                "Initial network collection skipped: network monitoring disabled by the platform"
+            );
+        } else {
+            info!("Running initial network collection...");
+            match tokio::time::timeout(
+                std::time::Duration::from_secs(30),
+                self.run_network_collection(),
+            )
+            .await
+            {
+                Ok(inner) => match inner {
+                    Ok(snapshot) => {
                         #[cfg(feature = "gui")]
-                        self.emit_gui_event(AgentEvent::SyncStatus {
-                            syncing: false,
-                            pending_count: 0,
-                            last_sync_at: None,
-                            error: Some(format!("Network upload failed: {}", e)),
-                        });
-                    }
-                    // Run initial network security detection
-                    match self.run_network_security_detection(&snapshot).await {
-                        Ok(alerts) => {
-                            for alert in &alerts {
-                                #[cfg(feature = "gui")]
-                                self.emit_network_security_alert_to_gui(alert);
-                                if let Err(e) = self.upload_network_alert(alert).await {
-                                    warn!("Failed to upload network alert: {}", e);
-                                }
-                            }
+                        {
+                            let (interfaces, connections) =
+                                Self::snapshot_to_gui_network(&snapshot);
+                            self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
+                                interfaces,
+                                connections,
+                            });
                         }
-                        Err(e) => warn!("Initial network security detection failed: {}", e),
+                        if let Err(e) = self.upload_network_snapshot(&snapshot).await {
+                            warn!("Failed to upload initial network snapshot: {}", e);
+                            #[cfg(feature = "gui")]
+                            self.emit_gui_event(AgentEvent::SyncStatus {
+                                syncing: false,
+                                pending_count: 0,
+                                last_sync_at: None,
+                                error: Some(format!("Network upload failed: {}", e)),
+                            });
+                        }
+                        // Run initial network security detection
+                        match self.run_network_security_detection(&snapshot).await {
+                            Ok(alerts) => {
+                                #[cfg(feature = "gui")]
+                                for alert in &alerts {
+                                    self.emit_network_security_alert_to_gui(alert);
+                                }
+                                self.upload_network_alerts(&alerts).await;
+                            }
+                            Err(e) => warn!("Initial network security detection failed: {}", e),
+                        }
                     }
+                    Err(e) => warn!("Initial network collection failed: {}", e),
+                },
+                Err(_) => {
+                    warn!("Initial network collection timed out after 30s, continuing without it")
                 }
-                Err(e) => warn!("Initial network collection failed: {}", e),
-            },
-            Err(_) => {
-                warn!("Initial network collection timed out after 30s, continuing without it")
             }
         }
 
@@ -1857,8 +1872,15 @@ impl AgentRuntime {
                 last_security_scan = std::time::Instant::now();
             }
 
+            // Network collection/detection only with the platform's consent
+            // (timers are left as-is so collection resumes at once when re-enabled).
+            let network_allowed = self.state.network_monitoring_enabled();
+
             // Run network static info collection if interval has passed (skip when paused)
-            if !is_paused && last_network_static.elapsed() >= current_network_static_interval {
+            if !is_paused
+                && network_allowed
+                && last_network_static.elapsed() >= current_network_static_interval
+            {
                 is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
@@ -1909,6 +1931,7 @@ impl AgentRuntime {
 
             // Run network connection scan if interval has passed (skip when paused)
             if !is_paused
+                && network_allowed
                 && last_network_connections.elapsed() >= current_network_connection_interval
             {
                 is_active = true;
@@ -1960,7 +1983,10 @@ impl AgentRuntime {
             }
 
             // Run network security detection if interval has passed (skip when paused)
-            if !is_paused && last_network_security.elapsed() >= current_network_security_interval {
+            if !is_paused
+                && network_allowed
+                && last_network_security.elapsed() >= current_network_security_interval
+            {
                 is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
@@ -1972,13 +1998,11 @@ impl AgentRuntime {
                                 {
                                     alert_count = u32::try_from(alerts.len()).unwrap_or(u32::MAX);
                                 }
+                                #[cfg(feature = "gui")]
                                 for alert in &alerts {
-                                    #[cfg(feature = "gui")]
                                     self.emit_network_security_alert_to_gui(alert);
-                                    if let Err(e) = self.upload_network_alert(alert).await {
-                                        warn!("Failed to upload network alert: {}", e);
-                                    }
                                 }
+                                self.upload_network_alerts(&alerts).await;
 
                                 // Accumulate network alerts for threat pipeline
                                 #[cfg(feature = "gui")]
@@ -2736,88 +2760,92 @@ impl AgentRuntime {
                     let db_clone = self.db.clone();
                     let sync_client = self.authenticated_client.clone();
 
-                    let subnet = {
+                    // Only the subnet of the primary IPv4 address is scanned:
+                    // never a guessed range.
+                    let subnet = if self.state.network_monitoring_enabled() {
                         let network_manager = self.network_manager.read().await;
                         match network_manager.collect_snapshot().await {
-                            Ok(snapshot) => snapshot
-                                .primary_ip
-                                .as_ref()
-                                .and_then(|ip| ip.parse::<std::net::Ipv4Addr>().ok())
-                                .map(|addr| {
-                                    let o = addr.octets();
-                                    format!("{}.{}.{}.0/24", o[0], o[1], o[2])
-                                })
-                                .unwrap_or_else(|| "192.168.1.0/24".to_string()),
-                            Err(_) => "192.168.1.0/24".to_string(),
+                            Ok(snapshot) => {
+                                let subnet =
+                                    network_ops::discovery_subnet(snapshot.primary_ip.as_deref());
+                                if subnet.is_none() {
+                                    warn!(
+                                        "Network discovery aborted: no primary IPv4 address \
+                                         (primary IP: {:?})",
+                                        snapshot.primary_ip
+                                    );
+                                }
+                                subnet.ok_or("Aucune adresse IPv4 principale : découverte annulée")
+                            }
+                            Err(e) => {
+                                warn!(
+                                    "Network discovery aborted: network information unavailable: {}",
+                                    e
+                                );
+                                Err("Informations réseau indisponibles : découverte annulée")
+                            }
                         }
+                    } else {
+                        info!(
+                            "Network discovery skipped: network monitoring disabled by the platform"
+                        );
+                        Err("Découverte réseau désactivée par la politique de la plateforme")
                     };
 
-                    tokio::spawn(async move {
-                        let config = DiscoveryConfig::default();
-                        let discovery = NetworkDiscovery::new(config);
-
-                        let disc_cancel = discovery.cancel_handle();
-                        let cancel_watcher = cancel.clone();
-                        let done = Arc::new(AtomicBool::new(false));
-                        let done_watcher = done.clone();
-                        tokio::spawn(async move {
-                            loop {
-                                if done_watcher.load(Ordering::Relaxed) {
-                                    break;
-                                }
-                                if cancel_watcher.load(Ordering::Relaxed) {
-                                    disc_cancel.store(true, Ordering::Relaxed);
-                                    break;
-                                }
-                                tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+                    match subnet {
+                        Err(reason) => {
+                            if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
+                                phase: reason.to_string(),
+                                progress: 0.0,
+                                devices_found: 0,
+                            }) {
+                                warn!("Failed to send discovery progress: {}", e);
                             }
-                        });
-
-                        if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
-                            phase: "Scan ARP en cours...".to_string(),
-                            progress: 0.1,
-                            devices_found: 0,
-                        }) {
-                            warn!("Failed to send discovery progress: {}", e);
                         }
+                        Ok(subnet) => {
+                            tokio::spawn(async move {
+                                let config = DiscoveryConfig::default();
+                                let discovery = NetworkDiscovery::new(config);
 
-                        let scan_result = discovery.scan(&subnet).await;
-                        done.store(true, Ordering::Relaxed);
-                        match scan_result {
-                            Ok(result) => {
-                                let devices: Vec<GuiDiscoveredDevice> = result
-                                    .devices
-                                    .iter()
-                                    .map(|d| GuiDiscoveredDevice {
-                                        ip: d.ip.clone(),
-                                        mac: d.mac.clone(),
-                                        hostname: d.hostname.clone(),
-                                        vendor: d.vendor.clone(),
-                                        device_type: format!("{}", d.device_type),
-                                        open_ports: d.open_ports.clone(),
-                                        first_seen: d.first_seen,
-                                        last_seen: d.last_seen,
-                                        is_gateway: d.is_gateway,
-                                        subnet: d.subnet.clone(),
-                                    })
-                                    .collect();
-                                info!(
-                                    "Discovery complete: {} devices in {}ms",
-                                    devices.len(),
-                                    result.scan_duration_ms
-                                );
+                                let disc_cancel = discovery.cancel_handle();
+                                let cancel_watcher = cancel.clone();
+                                let done = Arc::new(AtomicBool::new(false));
+                                let done_watcher = done.clone();
+                                tokio::spawn(async move {
+                                    loop {
+                                        if done_watcher.load(Ordering::Relaxed) {
+                                            break;
+                                        }
+                                        if cancel_watcher.load(Ordering::Relaxed) {
+                                            disc_cancel.store(true, Ordering::Relaxed);
+                                            break;
+                                        }
+                                        tokio::time::sleep(tokio::time::Duration::from_millis(200))
+                                            .await;
+                                    }
+                                });
 
-                                if let Some(ref db) = db_clone {
-                                    let repo = agent_storage::repositories::DiscoveredDevicesRepository::new(db);
-                                    let stored: Vec<agent_storage::repositories::StoredDevice> =
-                                        devices
+                                if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
+                                    phase: "Scan ARP en cours...".to_string(),
+                                    progress: 0.1,
+                                    devices_found: 0,
+                                }) {
+                                    warn!("Failed to send discovery progress: {}", e);
+                                }
+
+                                let scan_result = discovery.scan(&subnet).await;
+                                done.store(true, Ordering::Relaxed);
+                                match scan_result {
+                                    Ok(result) => {
+                                        let devices: Vec<GuiDiscoveredDevice> = result
+                                            .devices
                                             .iter()
-                                            .map(|d| agent_storage::repositories::StoredDevice {
+                                            .map(|d| GuiDiscoveredDevice {
                                                 ip: d.ip.clone(),
                                                 mac: d.mac.clone(),
                                                 hostname: d.hostname.clone(),
                                                 vendor: d.vendor.clone(),
-                                                device_type: d.device_type.clone(),
+                                                device_type: format!("{}", d.device_type),
                                                 open_ports: d.open_ports.clone(),
                                                 first_seen: d.first_seen,
                                                 last_seen: d.last_seen,
@@ -2825,68 +2853,98 @@ impl AgentRuntime {
                                                 subnet: d.subnet.clone(),
                                             })
                                             .collect();
-                                    if let Err(e) = repo.upsert_batch(&stored).await {
-                                        warn!("Failed to persist discovered devices: {}", e);
-                                    } else {
                                         info!(
-                                            "Persisted {} discovered devices to database",
-                                            stored.len()
+                                            "Discovery complete: {} devices in {}ms",
+                                            devices.len(),
+                                            result.scan_duration_ms
                                         );
-                                    }
-                                }
 
-                                // Sync discovered devices to the platform
-                                if let Some(ref client) = sync_client {
-                                    let mut synced = 0u32;
-                                    for d in &devices {
-                                        let payload = agent_sync::DiscoveredAssetPayload {
-                                            ip: d.ip.clone(),
-                                            hostname: d.hostname.clone(),
-                                            mac_address: d.mac.clone(),
-                                            vendor: d.vendor.clone(),
-                                            device_type: Some(d.device_type.to_string()),
-                                            open_ports: d.open_ports.clone(),
-                                            is_gateway: Some(d.is_gateway),
-                                            subnet: Some(d.subnet.clone()),
-                                            first_seen: Some(d.first_seen),
-                                            last_seen: Some(d.last_seen),
-                                            source: Some("network_discovery".to_string()),
-                                        };
-                                        match client.report_discovered_asset(payload).await {
-                                            Ok(_) => synced += 1,
-                                            Err(e) => {
+                                        if let Some(ref db) = db_clone {
+                                            let repo = agent_storage::repositories::DiscoveredDevicesRepository::new(db);
+                                            let stored: Vec<
+                                                agent_storage::repositories::StoredDevice,
+                                            > = devices
+                                                .iter()
+                                                .map(|d| {
+                                                    agent_storage::repositories::StoredDevice {
+                                                        ip: d.ip.clone(),
+                                                        mac: d.mac.clone(),
+                                                        hostname: d.hostname.clone(),
+                                                        vendor: d.vendor.clone(),
+                                                        device_type: d.device_type.clone(),
+                                                        open_ports: d.open_ports.clone(),
+                                                        first_seen: d.first_seen,
+                                                        last_seen: d.last_seen,
+                                                        is_gateway: d.is_gateway,
+                                                        subnet: d.subnet.clone(),
+                                                    }
+                                                })
+                                                .collect();
+                                            if let Err(e) = repo.upsert_batch(&stored).await {
                                                 warn!(
-                                                    "Failed to sync discovered device {}: {}",
-                                                    d.ip, e
+                                                    "Failed to persist discovered devices: {}",
+                                                    e
+                                                );
+                                            } else {
+                                                info!(
+                                                    "Persisted {} discovered devices to database",
+                                                    stored.len()
                                                 );
                                             }
                                         }
-                                    }
-                                    if synced > 0 {
-                                        info!(
-                                            "Synced {}/{} discovered devices to platform",
-                                            synced,
-                                            devices.len()
-                                        );
-                                    }
-                                }
 
-                                if let Err(e) = tx.send(AgentEvent::DiscoveryUpdate { devices }) {
-                                    warn!("Failed to send discovery update: {}", e);
+                                        // Sync discovered devices to the platform
+                                        if let Some(ref client) = sync_client {
+                                            let payloads: Vec<agent_sync::DiscoveredAssetPayload> =
+                                                devices
+                                                    .iter()
+                                                    .map(|d| agent_sync::DiscoveredAssetPayload {
+                                                        ip: d.ip.clone(),
+                                                        hostname: d.hostname.clone(),
+                                                        mac_address: d.mac.clone(),
+                                                        vendor: d.vendor.clone(),
+                                                        device_type: Some(
+                                                            d.device_type.to_string(),
+                                                        ),
+                                                        open_ports: d.open_ports.clone(),
+                                                        is_gateway: Some(d.is_gateway),
+                                                        subnet: Some(d.subnet.clone()),
+                                                        first_seen: Some(d.first_seen),
+                                                        last_seen: Some(d.last_seen),
+                                                        source: Some(
+                                                            "network_discovery".to_string(),
+                                                        ),
+                                                    })
+                                                    .collect();
+                                            network_ops::upload_discovered_devices(
+                                                client, &payloads,
+                                            )
+                                            .await;
+                                        }
+
+                                        if let Err(e) =
+                                            tx.send(AgentEvent::DiscoveryUpdate { devices })
+                                        {
+                                            warn!("Failed to send discovery update: {}", e);
+                                        }
+                                    }
+                                    Err(e) => {
+                                        warn!("Discovery scan failed: {}", e);
+                                        if let Err(e2) = tx.send(AgentEvent::DiscoveryProgress {
+                                            phase: format!("Erreur: {}", e),
+                                            progress: 0.0,
+                                            devices_found: 0,
+                                        }) {
+                                            warn!(
+                                                "Failed to send discovery error progress: {}",
+                                                e2
+                                            );
+                                        }
+                                    }
                                 }
-                            }
-                            Err(e) => {
-                                warn!("Discovery scan failed: {}", e);
-                                if let Err(e2) = tx.send(AgentEvent::DiscoveryProgress {
-                                    phase: format!("Erreur: {}", e),
-                                    progress: 0.0,
-                                    devices_found: 0,
-                                }) {
-                                    warn!("Failed to send discovery error progress: {}", e2);
-                                }
-                            }
+                            });
                         }
-                    });
+                    }
                 }
             }
 

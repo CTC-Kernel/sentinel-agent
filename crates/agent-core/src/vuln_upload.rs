@@ -12,9 +12,15 @@
 //! - pages are sent sequentially, each retried on network errors, 5xx and 429
 //!   ([`UPLOAD_BACKOFF`]); another 4xx is final; a page that definitively
 //!   fails stops the upload (the server then resolves nothing for that scan).
+//!
+//! The retry helpers ([`send_pages`], [`post_attempt`]) are also used for the
+//! software inventory upload, and [`send_each_throttled`] for the one-request-
+//! per-item discovered devices upload.
 
+use crate::api_client::ApiClient;
 use agent_scanner::VulnerabilityFinding;
 use agent_scanner::vulnerability::{normalize_cve_id, truncate_utf16};
+use serde::Serialize;
 use serde_json::{Value, json};
 use std::future::Future;
 use std::time::Duration;
@@ -140,20 +146,34 @@ pub(crate) fn classify_status(status: u16, body: &str) -> Result<(), PageError> 
     }
 }
 
+/// One POST attempt of `body` to `path`, classified for [`send_pages`]:
+/// no HTTP response (network failure) is retryable, like 5xx and 429.
+pub(crate) async fn post_attempt<T: Serialize>(
+    client: &ApiClient,
+    path: &str,
+    body: &T,
+) -> Result<(), PageError> {
+    match client.post_status(path, body).await {
+        Ok((status, text)) => classify_status(status, &text),
+        Err(e) => Err(PageError::Retryable(e.to_string())),
+    }
+}
+
 /// Send pages sequentially with per-page retries.
 ///
 /// `send(page)` performs one attempt. Each page is tried `backoff.len() + 1`
 /// times at most, sleeping `backoff[n]` before retry `n + 1`. Returns the
 /// number of pages sent, or an error (with the number of pages sent before
 /// the failure) as soon as one page definitively fails — remaining pages are
-/// not sent.
-pub(crate) async fn send_pages<'a, F, Fut>(
-    pages: &'a [Value],
+/// not sent. `what` names the upload in logs.
+pub(crate) async fn send_pages<'a, T, F, Fut>(
+    what: &str,
+    pages: &'a [T],
     backoff: &[Duration],
     mut send: F,
 ) -> Result<usize, (usize, String)>
 where
-    F: FnMut(&'a Value) -> Fut,
+    F: FnMut(&'a T) -> Fut,
     Fut: Future<Output = Result<(), PageError>>,
 {
     for (index, page) in pages.iter().enumerate() {
@@ -163,7 +183,8 @@ where
                 Ok(()) => break,
                 Err(PageError::Retryable(e)) if attempt < backoff.len() => {
                     tracing::warn!(
-                        "Vulnerability page {}/{} failed (attempt {}): {}; retrying",
+                        "{} page {}/{} failed (attempt {}): {}; retrying",
+                        what,
                         index + 1,
                         pages.len(),
                         attempt + 1,
@@ -182,6 +203,38 @@ where
         }
     }
     Ok(pages.len())
+}
+
+/// Send `items` one request each, sequentially, at most one request start
+/// per `spacing` (retries included, since they wait longer), each retried
+/// like a page of [`send_pages`]. An item that definitively fails is skipped
+/// (logged) and the next one is sent. Returns (sent, failed).
+#[cfg_attr(not(feature = "gui"), allow(dead_code))] // Only LAN discovery uses it.
+pub(crate) async fn send_each_throttled<'a, T, F, Fut>(
+    what: &str,
+    items: &'a [T],
+    spacing: Duration,
+    backoff: &[Duration],
+    mut send: F,
+) -> (usize, usize)
+where
+    F: FnMut(&'a T) -> Fut,
+    Fut: Future<Output = Result<(), PageError>>,
+{
+    let (mut sent, mut failed) = (0usize, 0usize);
+    for (index, item) in items.iter().enumerate() {
+        if index > 0 && !spacing.is_zero() {
+            tokio::time::sleep(spacing).await;
+        }
+        match send_pages(what, std::slice::from_ref(item), backoff, &mut send).await {
+            Ok(_) => sent += 1,
+            Err((_, e)) => {
+                failed += 1;
+                tracing::warn!("{} {}/{} not uploaded: {}", what, index + 1, items.len(), e);
+            }
+        }
+    }
+    (sent, failed)
 }
 
 #[cfg(test)]
@@ -289,9 +342,18 @@ mod tests {
     #[test]
     fn classify_statuses() {
         assert_eq!(classify_status(200, ""), Ok(()));
-        assert!(matches!(classify_status(429, ""), Err(PageError::Retryable(_))));
-        assert!(matches!(classify_status(503, ""), Err(PageError::Retryable(_))));
-        assert!(matches!(classify_status(400, "bad"), Err(PageError::Fatal(_))));
+        assert!(matches!(
+            classify_status(429, ""),
+            Err(PageError::Retryable(_))
+        ));
+        assert!(matches!(
+            classify_status(503, ""),
+            Err(PageError::Retryable(_))
+        ));
+        assert!(matches!(
+            classify_status(400, "bad"),
+            Err(PageError::Fatal(_))
+        ));
         assert!(matches!(classify_status(401, ""), Err(PageError::Fatal(_))));
     }
 
@@ -304,7 +366,7 @@ mod tests {
     #[tokio::test]
     async fn retries_transient_errors_then_succeeds() {
         let calls = RefCell::new(Vec::new());
-        let result = send_pages(&pages(2), &NO_WAIT, |p| {
+        let result = send_pages("test", &pages(2), &NO_WAIT, |p| {
             let page = p["page"].as_u64().unwrap();
             calls.borrow_mut().push(page);
             let n = calls.borrow().iter().filter(|&&c| c == page).count();
@@ -324,7 +386,7 @@ mod tests {
     #[tokio::test]
     async fn stops_after_three_failed_attempts() {
         let calls = RefCell::new(Vec::new());
-        let result = send_pages(&pages(3), &NO_WAIT, |p| {
+        let result = send_pages("test", &pages(3), &NO_WAIT, |p| {
             let page = p["page"].as_u64().unwrap();
             calls.borrow_mut().push(page);
             async move {
@@ -342,9 +404,42 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn throttled_sends_each_item_spaced_and_skips_failures() {
+        let calls = RefCell::new(Vec::new());
+        let started = std::time::Instant::now();
+        let (sent, failed) = send_each_throttled(
+            "device",
+            &pages(4),
+            Duration::from_millis(20),
+            &NO_WAIT,
+            |p| {
+                let page = p["page"].as_u64().unwrap();
+                calls.borrow_mut().push(page);
+                let n = calls.borrow().iter().filter(|&&c| c == page).count();
+                async move {
+                    match page {
+                        // 429 twice, then accepted.
+                        1 if n < 3 => Err(PageError::Retryable("HTTP 429".into())),
+                        // Rejected: not retried, the next device is still sent.
+                        2 => Err(PageError::Fatal("HTTP 400".into())),
+                        // Network down on every attempt.
+                        3 => Err(PageError::Retryable("network".into())),
+                        _ => Ok(()),
+                    }
+                }
+            },
+        )
+        .await;
+        assert_eq!((sent, failed), (2, 2));
+        assert_eq!(*calls.borrow(), vec![1, 1, 1, 2, 3, 3, 3, 4]);
+        // Three gaps of at least 20 ms between the four items.
+        assert!(started.elapsed() >= Duration::from_millis(60));
+    }
+
+    #[tokio::test]
     async fn does_not_retry_client_errors() {
         let calls = RefCell::new(0usize);
-        let result = send_pages(&pages(2), &NO_WAIT, |_| {
+        let result = send_pages("test", &pages(2), &NO_WAIT, |_| {
             *calls.borrow_mut() += 1;
             async { Err(PageError::Fatal("HTTP 400".into())) }
         })

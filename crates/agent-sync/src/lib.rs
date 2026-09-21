@@ -47,7 +47,6 @@ pub mod credentials;
 pub mod diagnostics;
 pub mod enrollment;
 pub mod error;
-pub mod heartbeat;
 pub mod integrity;
 pub mod offline;
 pub mod orchestrator;
@@ -67,12 +66,10 @@ pub use config_sync::{
 pub use credentials::CredentialsRepository;
 pub use diagnostics::{
     AgentHealth, ConnectionState, ConnectionStatus, ConnectionTracker, DiagnosticResult,
-    DiagnosticService, ErrorEntry, ErrorTracker, LogBuffer, LogEntry, LogUploadRequest,
-    LogUploadResponse, SystemInfo, upload_logs,
+    DiagnosticService, ErrorEntry, ErrorTracker, LogBuffer, LogEntry, SystemInfo,
 };
 pub use enrollment::EnrollmentManager;
 pub use error::{SyncError, SyncResult};
-pub use heartbeat::HeartbeatService;
 pub use integrity::{IntegrityChecker, verify_or_exit};
 pub use offline::{
     CircuitBreaker, CircuitState, ConflictResolution, ConflictStrategy, OfflineStatus,
@@ -87,8 +84,7 @@ pub use result_upload::{
 };
 pub use rules::{ApiCheckRule, CacheMetadata, RuleSyncResult, RuleSyncService, RulesResponse};
 pub use security::{
-    LogSigner, RevocationAction, RevocationService, RevocationStatus, SignatureType,
-    SignatureValidator, SignatureVerificationResult, SignedLogEntry,
+    LogSigner, SignatureType, SignatureValidator, SignatureVerificationResult, SignedLogEntry,
 };
 pub use types::{
     AcknowledgedResponse, AgentCommand, AlertRulePayload, AlertRuleSyncRequest, ApiErrorResponse,
@@ -97,10 +93,10 @@ pub use types::{
     DetectionMatchSyncRequest, DetectionRulePayload, DetectionRuleSyncRequest,
     DiscoveredAssetPayload, EnrollmentRequest, EnrollmentResponse, GenericSyncResponse,
     HeartbeatRequest, HeartbeatResponse, IncidentReportResponse, IncidentType, InitialConfig,
-    KpiSnapshotPayload, KpiSyncRequest, PlaybookActionPayload, PlaybookConditionPayload,
-    PlaybookLogPayload, PlaybookLogSyncRequest, PlaybookPayload, PlaybookSyncRequest,
-    PlaybookSyncResponse, PlaybookToggleRequest, RiskPayload, RiskSyncRequest, RiskSyncResponse,
-    SecurityIncidentReport, SelfCheckResult, Severity, SiemEventPayload, SiemStatsPayload,
-    SiemSyncRequest, SiemSyncResponse, StoredCredentials, VulnerabilityFinding,
-    VulnerabilityUploadRequest, VulnerabilityUploadResponse, WebhookPayload, WebhookSyncRequest,
+    KpiSnapshotPayload, PlaybookActionPayload, PlaybookConditionPayload, PlaybookLogPayload,
+    PlaybookLogSyncRequest, PlaybookPayload, PlaybookSyncRequest, PlaybookSyncResponse,
+    PlaybookToggleRequest, RiskPayload, RiskSyncRequest, RiskSyncResponse, SecurityIncidentReport,
+    SelfCheckResult, Severity, SiemEventPayload, SiemStatsPayload, SiemSyncRequest,
+    SiemSyncResponse, StoredCredentials, VulnerabilityFinding, VulnerabilityUploadRequest,
+    VulnerabilityUploadResponse, WebhookPayload, WebhookSyncRequest,
 };

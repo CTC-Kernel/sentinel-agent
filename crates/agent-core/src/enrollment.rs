@@ -92,6 +92,7 @@ impl AgentRuntime {
         // Update heartbeat interval from server config
         let mut interval = self.heartbeat_interval_secs.write().await;
         *interval = response.config.heartbeat_interval_secs.clamp(15, 3600);
+        self.apply_network_monitoring_consent(response.config.enable_network_monitoring);
 
         info!(
             "Enrolled successfully. Agent ID: {}, Organization ID: {}, Heartbeat interval: {}s",

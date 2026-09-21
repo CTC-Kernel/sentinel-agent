@@ -35,8 +35,6 @@ pub enum SyncKind {
     Risks,
     /// Asset inventory sync.
     Assets,
-    /// KPI snapshot sync.
-    Kpi,
     /// Alert rule sync.
     Alerting,
 }
@@ -50,7 +48,6 @@ impl SyncKind {
             SyncKind::DetectionRules => "detection_rules",
             SyncKind::Risks => "risks",
             SyncKind::Assets => "assets",
-            SyncKind::Kpi => "kpi",
             SyncKind::Alerting => "alerting",
         }
     }
@@ -256,12 +253,6 @@ impl SyncOrchestrator {
         }
         tokio::time::sleep(throttle).await;
 
-        match self.sync_kpi(client).await {
-            Ok(n) => total += n,
-            Err(e) => warn!("KPI queue drain: {}", e),
-        }
-        tokio::time::sleep(throttle).await;
-
         match self.sync_alerting(client).await {
             Ok(n) => total += n,
             Err(e) => warn!("Alert rules queue drain: {}", e),
@@ -322,7 +313,6 @@ impl SyncOrchestrator {
             SyncKind::DetectionRules => self.sync_detection_rules(client).await,
             SyncKind::Risks => self.sync_risks(client).await,
             SyncKind::Assets => self.sync_assets(client).await,
-            SyncKind::Kpi => self.sync_kpi(client).await,
             SyncKind::Alerting => self.sync_alerting(client).await,
         };
 
@@ -683,12 +673,6 @@ impl SyncOrchestrator {
         sync_assets
     );
     impl_sync_queue!(
-        sync_kpi,
-        agent_storage::SyncEntityType::Kpi,
-        crate::types::KpiSnapshotPayload,
-        sync_kpi_snapshots
-    );
-    impl_sync_queue!(
         sync_alerting,
         agent_storage::SyncEntityType::AlertRule,
         crate::types::AlertRulePayload,
@@ -779,7 +763,6 @@ mod tests {
         assert_eq!(SyncKind::DetectionRules.as_str(), "detection_rules");
         assert_eq!(SyncKind::Risks.as_str(), "risks");
         assert_eq!(SyncKind::Assets.as_str(), "assets");
-        assert_eq!(SyncKind::Kpi.as_str(), "kpi");
         assert_eq!(SyncKind::Alerting.as_str(), "alerting");
     }
 

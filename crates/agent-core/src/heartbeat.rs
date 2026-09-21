@@ -35,6 +35,39 @@ async fn run_remediation_blocking(
 }
 
 impl AgentRuntime {
+    /// Live connections reported in the heartbeat (platform Activity tab),
+    /// with canonical states. Empty without the platform's network
+    /// monitoring consent.
+    async fn heartbeat_connections(&self) -> Vec<crate::api_client::AgentConnection> {
+        if !self.state.network_monitoring_enabled() {
+            return Vec::new();
+        }
+        #[cfg(target_os = "windows")]
+        {
+            self.resource_monitor.get_connections()
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            // Linux /proc (with process attribution) and macOS lsof, shared
+            // with network monitoring.
+            match agent_network::collector::ConnectionCollector::new()
+                .collect()
+                .await
+            {
+                Ok(connections) => crate::resources::finalize_heartbeat_connections(
+                    connections
+                        .iter()
+                        .map(crate::resources::heartbeat_connection)
+                        .collect(),
+                ),
+                Err(e) => {
+                    warn!("Failed to collect connections for heartbeat: {}", e);
+                    Vec::new()
+                }
+            }
+        }
+    }
+
     /// Send a heartbeat to the server with real compliance data.
     ///
     /// Processes the server response: commands, config/rules sync triggers.
@@ -61,7 +94,7 @@ impl AgentRuntime {
 
         let sys_res = crate::resources::get_system_resources();
         let processes = self.resource_monitor.get_processes();
-        let connections = self.resource_monitor.get_connections();
+        let connections = self.heartbeat_connections().await;
 
         // Get total network bytes since boot
         let network_bytes = {
@@ -425,6 +458,11 @@ impl AgentRuntime {
                             self.run_mdm_command(&cmd.id, "uninstall", &cmd.payload, service)
                                 .await
                         }
+                        "configure" => {
+                            info!("Server command: configure ({})", cmd.id);
+                            self.run_configure_command(&cmd.id, &cmd.payload, service)
+                                .await
+                        }
                         "remediate" => {
                             info!("Server command: remediate ({})", cmd.id);
                             #[cfg(feature = "gui")]
@@ -593,6 +631,46 @@ impl AgentRuntime {
         }
 
         Ok(())
+    }
+
+    /// Execute a `configure` command (MDM policy push) and report the result:
+    /// supported settings are applied like a configuration download, and the
+    /// configuration is refreshed from the platform when nothing applies.
+    async fn run_configure_command(
+        &self,
+        cmd_id: &str,
+        payload: &serde_json::Value,
+        service: &agent_sync::CommandResultsService,
+    ) -> agent_sync::SyncResult<()> {
+        let outcome = match crate::configure_cmd::ConfigurePlan::from_payload(payload) {
+            Ok(plan) => self.execute_configure(&plan).await,
+            Err(e) => Err(format!("invalid configure command: {e}")),
+        };
+
+        #[cfg(feature = "gui")]
+        {
+            let title = "MDM · Configuration".to_string();
+            let notification = match &outcome {
+                Ok(report) => agent_gui::dto::GuiNotification::info(title, report.message.clone()),
+                Err(e) => agent_gui::dto::GuiNotification::error(title, e.clone()),
+            };
+            self.emit_gui_event(agent_gui::events::AgentEvent::Notification { notification });
+        }
+
+        match outcome {
+            Ok(report) => {
+                info!("Configure command {}: {}", cmd_id, report.message);
+                service
+                    .report_success(cmd_id, Some(report.to_output()))
+                    .await
+            }
+            Err(e) => {
+                warn!("Configure command {} failed: {}", cmd_id, e);
+                service
+                    .report_failure(cmd_id, format!("Configure failed: {e}"))
+                    .await
+            }
+        }
     }
 
     /// Execute an MDM software-deployment command and report the structured

@@ -256,7 +256,7 @@ pub struct NetworkSecurityAlert {
 }
 
 /// Network alert types.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "camelCase")]
 pub enum NetworkAlertType {
     /// C2 communication detected.

@@ -335,16 +335,19 @@ impl FimPage {
                 }
 
                 // Apply acknowledgment after the table
-                if let Some(idx) = ack_command {
-                    let alert_id = alert_ids[idx].clone();
-                    if let Some(alert) = state.fim.alerts.get_mut(idx) {
-                        alert.acknowledged = true;
-                    }
+                if let Some(idx) = ack_command
+                    && let Some(alert) = state.fim.alerts.get_mut(idx)
+                {
+                    alert.acknowledged = true;
+                    command = Some(GuiCommand::AcknowledgeFimAlert {
+                        alert_id: alert_ids[idx].clone(),
+                        path: alert.path.clone(),
+                        timestamp: alert.timestamp,
+                    });
                     // Close drawer if acknowledged alert was selected
                     if state.fim.selected_alert == Some(idx) {
                         state.fim.detail_open = false;
                     }
-                    command = Some(GuiCommand::AcknowledgeFimAlert { alert_id });
                 }
 
                 widgets::paginate_controls(
@@ -425,9 +428,13 @@ impl FimPage {
 
             if let Some(action_idx) = action {
                 if !alert.acknowledged && action_idx == 0 {
-                    let alert_id = state.fim.alerts[sel].id.clone();
-                    state.fim.alerts[sel].acknowledged = true;
-                    command = Some(GuiCommand::AcknowledgeFimAlert { alert_id });
+                    let acked = &mut state.fim.alerts[sel];
+                    acked.acknowledged = true;
+                    command = Some(GuiCommand::AcknowledgeFimAlert {
+                        alert_id: acked.id.clone(),
+                        path: acked.path.clone(),
+                        timestamp: acked.timestamp,
+                    });
                 } else {
                     let export_idx = if alert.acknowledged { 0 } else { 1 };
                     if action_idx == export_idx {

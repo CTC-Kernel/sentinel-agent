@@ -448,12 +448,8 @@ impl InterfaceCollector {
 
                 match family {
                     2 => ipv4.push(ip.to_string()), // IPv4
-                    23 => {
-                        // IPv6 - skip link-local
-                        if !ip.starts_with("fe80") {
-                            ipv6.push(ip.to_string());
-                        }
-                    }
+                    // IPv6 - skip link-local
+                    23 if !ip.starts_with("fe80") => ipv6.push(ip.to_string()),
                     _ => {}
                 }
             }

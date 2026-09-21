@@ -417,8 +417,13 @@ pub enum GuiCommand {
     },
     /// Acknowledge a FIM alert.
     AcknowledgeFimAlert {
-        /// Alert ID.
+        /// Alert ID (local to the desktop app).
         alert_id: String,
+        /// Path of the alert, as uploaded to the platform.
+        path: String,
+        /// Detection timestamp of the alert, as uploaded to the platform
+        /// (the platform identifies the alert by agent, path and timestamp).
+        timestamp: DateTime<Utc>,
     },
     /// Trigger a check for updates.
     CheckUpdate,

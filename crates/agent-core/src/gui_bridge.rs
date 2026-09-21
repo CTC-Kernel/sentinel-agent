@@ -166,17 +166,22 @@ impl AgentRuntime {
             .vulnerabilities
             .iter()
             .map(|v| GuiVulnerabilityFinding {
-                cve_id: v.cve_id.clone().unwrap_or_else(|| {
-                    format!(
-                        "{}-{}",
-                        v.source.to_uppercase(),
-                        v.package_name.to_uppercase()
-                    )
-                }),
+                cve_id: v
+                    .cve_id
+                    .clone()
+                    .or_else(|| v.advisory_id.clone())
+                    .unwrap_or_else(|| {
+                        format!(
+                            "{}-{}",
+                            v.source.to_uppercase(),
+                            v.package_name.to_uppercase()
+                        )
+                    }),
                 affected_software: v.package_name.clone(),
                 affected_version: v.installed_version.clone(),
                 severity: self.scanner_severity_to_gui(v.severity),
-                cvss_score: v.cvss_score.or(Some(v.severity.default_score())),
+                // Only a real score: none is invented from the severity.
+                cvss_score: v.cvss_score,
                 description: v.description.clone(),
                 fix_available: v.available_version.is_some(),
                 discovered_at: Some(v.detected_at),

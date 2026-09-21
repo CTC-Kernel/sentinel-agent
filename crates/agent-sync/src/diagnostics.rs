@@ -9,7 +9,6 @@
 //! - Error identification
 //! - Remote diagnostics triggering
 
-use crate::authenticated_client::AuthenticatedClient;
 use crate::error::SyncResult;
 use crate::security::LogSigner;
 use chrono::{DateTime, Duration, Utc};
@@ -212,51 +211,6 @@ impl LogBuffer {
         }
         true
     }
-}
-
-/// Log upload request for SaaS.
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub struct LogUploadRequest {
-    /// Agent ID.
-    pub agent_id: String,
-    /// Log entries to upload.
-    pub entries: Vec<LogEntry>,
-    /// Upload timestamp.
-    pub uploaded_at: DateTime<Utc>,
-}
-
-/// Log upload response from SaaS.
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub struct LogUploadResponse {
-    /// Number of entries received.
-    pub received_count: usize,
-    /// Upload acknowledgment ID.
-    pub ack_id: String,
-}
-
-/// Uploads logs to SaaS on request (AC4).
-pub async fn upload_logs(
-    client: &AuthenticatedClient,
-    entries: Vec<LogEntry>,
-) -> SyncResult<LogUploadResponse> {
-    let agent_id = client.agent_id().await?;
-    let path = format!("/v1/agents/{}/logs", agent_id);
-
-    let request = LogUploadRequest {
-        agent_id: agent_id.to_string(),
-        entries,
-        uploaded_at: Utc::now(),
-    };
-
-    let response: LogUploadResponse = client.post_json(&path, &request).await?;
-    info!(
-        "Uploaded {} log entries (ack: {})",
-        response.received_count, response.ack_id
-    );
-
-    Ok(response)
 }
 
 impl Default for LogBuffer {
@@ -760,7 +714,6 @@ pub struct AgentHealth {
 
 /// Diagnostic service for running diagnostics.
 pub struct DiagnosticService {
-    client: Arc<AuthenticatedClient>,
     log_buffer: Arc<LogBuffer>,
     connection_tracker: Arc<ConnectionTracker>,
     error_tracker: Arc<ErrorTracker>,
@@ -770,14 +723,12 @@ pub struct DiagnosticService {
 impl DiagnosticService {
     /// Create a new diagnostic service.
     pub fn new(
-        client: Arc<AuthenticatedClient>,
         log_buffer: Arc<LogBuffer>,
         connection_tracker: Arc<ConnectionTracker>,
         error_tracker: Arc<ErrorTracker>,
         agent_version: &str,
     ) -> Self {
         Self {
-            client,
             log_buffer,
             connection_tracker,
             error_tracker,
@@ -785,7 +736,7 @@ impl DiagnosticService {
         }
     }
 
-    /// Run diagnostics and upload results.
+    /// Run diagnostics.
     pub async fn run_diagnostics(&self) -> SyncResult<DiagnosticResult> {
         let start = std::time::Instant::now();
         let id = uuid::Uuid::new_v4().to_string();
@@ -827,20 +778,6 @@ impl DiagnosticService {
         info!("Diagnostics completed in {}ms", duration_ms);
 
         Ok(result)
-    }
-
-    /// Upload diagnostic results to SaaS.
-    pub async fn upload_diagnostics(&self, result: &DiagnosticResult) -> SyncResult<()> {
-        let agent_id = self.client.agent_id().await?;
-        let path = format!("/v1/agents/{}/diagnostics", agent_id);
-
-        self.client
-            .post_json::<_, serde_json::Value>(&path, result)
-            .await?;
-
-        info!("Uploaded diagnostic results (id: {})", result.id);
-
-        Ok(())
     }
 
     /// Collect system information.
