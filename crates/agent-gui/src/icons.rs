@@ -71,6 +71,7 @@ pub const PAUSE: &str = "\u{f04c}"; // fa-pause
 pub const PLUS: &str = "\u{f067}"; // fa-plus
 pub const LAYER_GROUP: &str = "\u{f5fd}"; // fa-layer-group
 pub const PLUG: &str = "\u{f1e6}"; // fa-plug
+pub const ORCHESTRATION: &str = "\u{f542}"; // fa-project-diagram
 
 // ── New pages / features ────────────────────────────────────────────
 pub const CHART_LINE: &str = "\u{f201}"; // fa-chart-line (monitoring)

@@ -8,6 +8,7 @@ use std::sync::mpsc;
 
 struct Review {
     components: bool,
+    orchestration: bool,
     light: bool,
     details: bool,
     detail_state: agent_gui::app::AppState,
@@ -51,7 +52,15 @@ impl eframe::App for Review {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             return;
         }
-        if self.components {
+        if self.orchestration {
+            agent_gui::theme::apply_theme(ctx, !self.light);
+            egui::CentralPanel::default().show(ctx, |ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.set_width(ui.available_width());
+                    agent_gui::pages::OrchestrationPage::show(ui);
+                });
+            });
+        } else if self.components {
             agent_gui::theme::apply_theme(ctx, !self.light);
             component_review(ctx);
         } else if self.details {
@@ -191,6 +200,7 @@ fn main() -> Result<(), eframe::Error> {
             agent_gui::theme::configure_fonts(&cc.egui_ctx);
             Ok(Box::new(Review {
                 components: args.iter().any(|arg| arg == "--components"),
+                orchestration: args.iter().any(|arg| arg == "--orchestration"),
                 light,
                 details: args.iter().any(|arg| arg == "--details"),
                 detail_state: {
