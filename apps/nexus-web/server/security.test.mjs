@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { AuditChain, ReplayGuard, assertSafeVariables, authorize, signWebhook, verifyWebhook } from "./security.mjs";
+import { AuditChain, IdempotencyStore, ReplayGuard, SlidingWindowLimiter, assertSafeVariables, authorize, identityFromClaims, signWebhook, validateVariableSchema, verifyWebhook } from "./security.mjs";
 
 test("RBAC enforces both role and tenant boundary", () => {
   const analyst = { subject: "user-1", tenantId: "acme", roles: ["analyst"] };
@@ -37,4 +37,30 @@ test("audit chain detects mutation", () => {
   audit.append({ action: "workflow.approve", tenantId: "acme" });
   assert.equal(audit.verify(), true);
   assert.equal(Object.isFrozen(audit.entries()[0]), true);
+});
+
+test("OIDC claims require issuer, audience, lifetime and expose MFA assurance", () => {
+  const policy = { issuer: "https://id.sentinel.test", audience: "nexus" };
+  const claims = { sub: "u1", tenant_id: "acme", roles: ["analyst"], iss: policy.issuer, aud: ["other", "nexus"], exp: 2_000, amr: ["pwd", "mfa"], sid: "s1" };
+  assert.equal(identityFromClaims(claims, policy, 1_000).mfa, true);
+  assert.throws(() => identityFromClaims({ ...claims, exp: 999 }, policy, 1_000), /invalid_token_time/);
+  assert.throws(() => identityFromClaims({ ...claims, tenant_id: undefined }, policy, 1_000), /invalid_identity_claims/);
+});
+
+test("dynamic workflow schema returns precise validation errors", () => {
+  const schema = { required: ["scope", "severity"], additionalProperties: false, properties: { scope: { type: "string", pattern: "^prod/" }, severity: { type: "string", enum: ["high", "critical"] } } };
+  assert.deepEqual(validateVariableSchema({ scope: "prod/eu", severity: "high" }, schema), []);
+  assert.deepEqual(validateVariableSchema({ scope: "dev/eu", extra: true }, schema), [{ path: "severity", code: "required" }, { path: "scope", code: "pattern" }, { path: "extra", code: "unknown" }]);
+});
+
+test("rate limiter resets and idempotency values expire", () => {
+  const limiter = new SlidingWindowLimiter(2, 1_000);
+  assert.equal(limiter.consume("actor", 0).allowed, true);
+  assert.equal(limiter.consume("actor", 1).allowed, true);
+  assert.equal(limiter.consume("actor", 2).allowed, false);
+  assert.equal(limiter.consume("actor", 1_001).allowed, true);
+  const store = new IdempotencyStore(100);
+  store.set("tenant:user", "key", { status: 202 }, 0);
+  assert.equal(store.get("tenant:user", "key", 50).status, 202);
+  assert.equal(store.get("tenant:user", "key", 101), undefined);
 });

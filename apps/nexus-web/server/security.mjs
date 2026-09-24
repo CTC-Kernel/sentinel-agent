@@ -31,6 +31,69 @@ export function assertSafeVariables(variables) {
   return structuredClone(variables);
 }
 
+export function validateVariableSchema(variables, schema = {}) {
+  const errors = [];
+  for (const required of schema.required ?? []) {
+    if (!(required in variables) || variables[required] === "") errors.push({ path: required, code: "required" });
+  }
+  for (const [key, value] of Object.entries(variables)) {
+    const rule = schema.properties?.[key];
+    if (!rule) {
+      if (schema.additionalProperties === false) errors.push({ path: key, code: "unknown" });
+      continue;
+    }
+    if (rule.type && typeof value !== rule.type) errors.push({ path: key, code: "type" });
+    if (rule.enum && !rule.enum.includes(value)) errors.push({ path: key, code: "enum" });
+    if (rule.pattern && typeof value === "string" && !new RegExp(rule.pattern, "u").test(value)) errors.push({ path: key, code: "pattern" });
+  }
+  return errors;
+}
+
+/** Validates normalized claims after the HTTP adapter verifies the JWT signature. */
+export function identityFromClaims(claims, policy, nowSeconds = Math.floor(Date.now() / 1_000)) {
+  if (!claims?.sub || !claims.exp || claims.exp <= nowSeconds || (claims.nbf && claims.nbf > nowSeconds)) throw new Error("invalid_token_time");
+  if (claims.iss !== policy.issuer) throw new Error("invalid_token_issuer");
+  const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
+  if (!audiences.includes(policy.audience)) throw new Error("invalid_token_audience");
+  if (!claims.tenant_id || !Array.isArray(claims.roles)) throw new Error("invalid_identity_claims");
+  const authenticationMethods = claims.amr ?? [];
+  return Object.freeze({
+    subject: claims.sub,
+    tenantId: claims.tenant_id,
+    roles: [...claims.roles],
+    sessionId: claims.sid,
+    mfa: authenticationMethods.includes("mfa") || authenticationMethods.includes("otp") || authenticationMethods.includes("hwk"),
+  });
+}
+
+export class SlidingWindowLimiter {
+  #windows = new Map();
+  constructor(limit = 20, windowMs = 60_000) { this.limit = limit; this.windowMs = windowMs; }
+  consume(key, now = Date.now()) {
+    const current = this.#windows.get(key);
+    if (!current || current.resetAt <= now) {
+      this.#windows.set(key, { count: 1, resetAt: now + this.windowMs });
+      return { allowed: true, remaining: this.limit - 1, retryAfterMs: 0 };
+    }
+    if (current.count >= this.limit) return { allowed: false, remaining: 0, retryAfterMs: current.resetAt - now };
+    current.count += 1;
+    return { allowed: true, remaining: this.limit - current.count, retryAfterMs: 0 };
+  }
+}
+
+export class IdempotencyStore {
+  #entries = new Map();
+  constructor(ttlMs = 86_400_000) { this.ttlMs = ttlMs; }
+  get(scope, key, now = Date.now()) {
+    const entry = this.#entries.get(`${scope}:${key}`);
+    if (!entry || entry.expiresAt <= now) { if (entry) this.#entries.delete(`${scope}:${key}`); return undefined; }
+    return structuredClone(entry.value);
+  }
+  set(scope, key, value, now = Date.now()) {
+    this.#entries.set(`${scope}:${key}`, { value: structuredClone(value), expiresAt: now + this.ttlMs });
+  }
+}
+
 export class ReplayGuard {
   #nonces = new Map();
   constructor(maxAgeMs = 300_000) { this.maxAgeMs = maxAgeMs; }

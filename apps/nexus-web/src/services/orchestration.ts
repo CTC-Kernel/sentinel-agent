@@ -2,6 +2,7 @@ export type ExecutionRequest = {
   workflowId: number;
   variables: Record<string, string>;
   approval: { confirmed: true; reason: string };
+  idempotencyKey?: string;
 };
 
 export type Execution = {
@@ -21,11 +22,12 @@ export class OrchestrationClient {
   constructor(private readonly baseUrl = "/api/orchestration") {}
 
   async execute(request: ExecutionRequest): Promise<Execution> {
+    const idempotencyKey = request.idempotencyKey ?? crypto.randomUUID();
     const response = await fetch(`${this.baseUrl}/executions`, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json", "X-CSRF-Protection": "1" },
-      body: JSON.stringify(request),
+      headers: { "Content-Type": "application/json", "X-CSRF-Protection": "1", "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify({ ...request, idempotencyKey }),
     });
     if (!response.ok) throw new Error(`Execution refused (${response.status})`);
     return response.json() as Promise<Execution>;

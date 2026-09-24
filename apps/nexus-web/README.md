@@ -41,6 +41,8 @@ Le répertoire `server/` contient le cœur testable du gateway d’orchestration
 
 Les webhooks utilisent une signature HMAC-SHA256 calculée sur `timestamp.nonce.body`, une comparaison en temps constant, une fenêtre de cinq minutes et un nonce à usage unique. Le journal d’audit forme une chaîne SHA-256 afin de rendre toute altération détectable.
 
+Les exécutions sont également protégées par une clé d’idempotence scoped par tenant et utilisateur, une limitation de débit à fenêtre glissante, un schéma dynamique de variables et une exigence MFA pour les workflows à impact élevé. L’adaptateur OIDC doit vérifier cryptographiquement le JWT avant de transmettre ses claims au noyau, qui contrôle ensuite issuer, audience, durée de vie, tenant, rôles et niveau d’authentification.
+
 ```bash
 npm run test:gateway
 ```
