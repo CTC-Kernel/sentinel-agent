@@ -7,9 +7,13 @@ export type ExecutionRequest = {
 
 export type Execution = {
   id: string;
-  status: "queued" | "running" | "waiting_approval" | "succeeded" | "failed";
+  status: "queued" | "running" | "waiting_approval" | "succeeded" | "failed" | "cancelled";
   createdAt: string;
+  updatedAt?: string;
+  timeline?: Array<{ id: string; status: Execution["status"]; at: string; actorId?: string; reason?: string }>;
 };
+
+export type ExecutionPage = { items: Execution[]; nextCursor?: string };
 
 /**
  * Browser-side gateway for Sentinel's orchestration backend.
@@ -37,9 +41,29 @@ export class OrchestrationClient {
     const response = await fetch(`${this.baseUrl}/executions/${encodeURIComponent(executionId)}/cancel`, {
       method: "POST",
       credentials: "include",
-      headers: { "X-CSRF-Protection": "1" },
+      headers: { "Content-Type": "application/json", "X-CSRF-Protection": "1" },
+      body: JSON.stringify({ reason: "Cancelled by operator" }),
     });
     if (!response.ok) throw new Error(`Cancellation refused (${response.status})`);
+  }
+
+  async listExecutions(cursor?: string, signal?: AbortSignal): Promise<ExecutionPage> {
+    const query = new URLSearchParams({ limit: "50" });
+    if (cursor) query.set("cursor", cursor);
+    const response = await fetch(`${this.baseUrl}/executions?${query}`, { credentials: "include", signal });
+    if (!response.ok) throw new Error(`Execution history unavailable (${response.status})`);
+    return response.json() as Promise<ExecutionPage>;
+  }
+
+  async approve(executionId: string, approved: boolean, reason: string): Promise<Execution> {
+    const response = await fetch(`${this.baseUrl}/executions/${encodeURIComponent(executionId)}/approval`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "X-CSRF-Protection": "1" },
+      body: JSON.stringify({ approved, reason }),
+    });
+    if (!response.ok) throw new Error(`Approval refused (${response.status})`);
+    return response.json() as Promise<Execution>;
   }
 }
 

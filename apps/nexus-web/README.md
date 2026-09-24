@@ -43,6 +43,8 @@ Les webhooks utilisent une signature HMAC-SHA256 calculée sur `timestamp.nonce.
 
 Les exécutions sont également protégées par une clé d’idempotence scoped par tenant et utilisateur, une limitation de débit à fenêtre glissante, un schéma dynamique de variables et une exigence MFA pour les workflows à impact élevé. L’adaptateur OIDC doit vérifier cryptographiquement le JWT avant de transmettre ses claims au noyau, qui contrôle ensuite issuer, audience, durée de vie, tenant, rôles et niveau d’authentification.
 
+Le moteur d’exécution applique une machine à états stricte, une pagination par curseur, l’isolation des historiques par tenant et le principe des quatre yeux : le demandeur ne peut pas approuver sa propre action. Une reprise après approbation requiert un responsable SOC authentifié en MFA. Les callbacks tardifs reçus après un état terminal sont ignorés de façon idempotente.
+
 ```bash
 npm run test:gateway
 ```
