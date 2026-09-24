@@ -1,0 +1,11 @@
+{
+  "name": "Sentinel Nexus",
+  "short_name": "Nexus",
+  "description": "Plateforme souveraine de pilotage SSI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#071011",
+  "theme_color": "#071011",
+  "lang": "fr",
+  "categories": ["business", "security", "productivity"]
+}
