@@ -34,3 +34,13 @@ Toute action proposée par un modèle est une proposition typée : elle doit rep
 - Raccourcis clavier `Cmd/Ctrl + K` et `Escape`, navigation responsive et reprise de la dernière page de la session.
 - PWA installable sur Windows, macOS, Linux, iOS et Android.
 - Service worker limité au shell statique : les routes `/api/*` et les données tenant ne sont jamais mises en cache.
+
+## Noyau sécurisé du gateway
+
+Le répertoire `server/` contient le cœur testable du gateway d’orchestration. Il reçoit uniquement une identité déjà vérifiée par l’adaptateur OIDC, impose simultanément le tenant et le rôle, valide les variables, exige l’approbation des workflows sensibles puis transmet à l’adaptateur n8n. Les erreurs n8n sont converties en réponses stables sans exposer les détails internes.
+
+Les webhooks utilisent une signature HMAC-SHA256 calculée sur `timestamp.nonce.body`, une comparaison en temps constant, une fenêtre de cinq minutes et un nonce à usage unique. Le journal d’audit forme une chaîne SHA-256 afin de rendre toute altération détectable.
+
+```bash
+npm run test:gateway
+```
