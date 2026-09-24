@@ -13,6 +13,7 @@
 
 mod beaconing_detector;
 mod c2_detector;
+mod cooldown;
 mod dga_detector;
 mod exfil_detector;
 mod miner_detector;
@@ -21,6 +22,7 @@ mod rules;
 
 pub use beaconing_detector::{BeaconingAnalysis, BeaconingConfig, BeaconingDetector};
 pub use c2_detector::C2Detector;
+pub use cooldown::{AlertCooldown, AlertKey, DEFAULT_ALERT_COOLDOWN};
 pub use dga_detector::{DgaConfig, DgaDetector};
 pub use exfil_detector::ExfilDetector;
 pub use miner_detector::MinerDetector;

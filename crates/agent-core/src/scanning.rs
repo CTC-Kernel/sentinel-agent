@@ -55,7 +55,11 @@ impl AgentRuntime {
 
 impl VulnScanJob {
     #[cfg(feature = "gui")]
-    fn emit_sync_status(&self, last_sync_at: Option<chrono::DateTime<chrono::Utc>>, error: Option<String>) {
+    fn emit_sync_status(
+        &self,
+        last_sync_at: Option<chrono::DateTime<chrono::Utc>>,
+        error: Option<String>,
+    ) {
         if let Some(ref tx) = self.gui_event_tx
             && let Err(e) = tx.send(agent_gui::events::AgentEvent::SyncStatus {
                 syncing: false,
@@ -152,16 +156,12 @@ impl VulnScanJob {
         );
         let url = format!("/v1/agents/{}/vulnerabilities", agent_id);
 
-        let sent = vuln_upload::send_pages(&pages, &vuln_upload::UPLOAD_BACKOFF, |page| {
-            let client = &client;
-            let url = &url;
-            async move {
-                match client.post_status(url, page).await {
-                    Ok((status, body)) => vuln_upload::classify_status(status, &body),
-                    Err(e) => Err(vuln_upload::PageError::Retryable(e.to_string())),
-                }
-            }
-        })
+        let sent = vuln_upload::send_pages(
+            "Vulnerability",
+            &pages,
+            &vuln_upload::UPLOAD_BACKOFF,
+            |page| vuln_upload::post_attempt(&client, &url, page),
+        )
         .await;
 
         match sent {
@@ -211,6 +211,12 @@ impl VulnScanJob {
                 name: p.name.clone(),
                 version: Some(p.version.clone()),
                 vendor: p.publisher.clone(),
+                source_name: p
+                    .source_name
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|source| !source.is_empty() && *source != p.name)
+                    .map(str::to_string),
             })
             .collect();
 
@@ -219,7 +225,12 @@ impl VulnScanJob {
         };
         match client.upload_software_inventory(&software).await {
             Ok(_) => {
-                info!("Uploaded software inventory: {} packages", software.len());
+                info!(
+                    "Uploaded software inventory: {} packages",
+                    software
+                        .len()
+                        .min(crate::api_client::MAX_SOFTWARE_ITEMS_PER_REQUEST)
+                );
                 #[cfg(feature = "gui")]
                 self.emit_sync_status(Some(chrono::Utc::now()), None);
             }

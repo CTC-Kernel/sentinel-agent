@@ -6,16 +6,13 @@
 //! This module provides:
 //! - HMAC-SHA256 log signing for tamper detection
 //! - Binary signature validation (Authenticode/GPG)
-//! - Agent revocation handling
 
-use crate::authenticated_client::AuthenticatedClient;
 use crate::error::{SyncError, SyncResult};
 use agent_common::process::silent_async_command;
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 
@@ -604,148 +601,6 @@ impl SignatureValidator {
     }
 }
 
-/// Agent revocation status.
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub struct RevocationStatus {
-    /// Whether the agent is revoked.
-    pub revoked: bool,
-    /// Reason for revocation.
-    pub reason: Option<String>,
-    /// Who revoked the agent.
-    pub revoked_by: Option<String>,
-    /// When the agent was revoked.
-    pub revoked_at: Option<DateTime<Utc>>,
-}
-
-/// Revocation action to take when agent is revoked.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RevocationAction {
-    /// Continue normal operations (not revoked).
-    Continue,
-    /// Stop all operations and exit gracefully.
-    StopAndExit,
-    /// Stop sync but continue local operations.
-    StopSyncOnly,
-}
-
-/// Service for handling agent revocation.
-pub struct RevocationService {
-    client: Arc<AuthenticatedClient>,
-    /// Cached revocation status.
-    status: RwLock<Option<RevocationStatus>>,
-    /// Flag indicating operations should stop.
-    should_stop: std::sync::atomic::AtomicBool,
-}
-
-impl RevocationService {
-    /// Create a new revocation service.
-    pub fn new(client: Arc<AuthenticatedClient>) -> Self {
-        Self {
-            client,
-            status: RwLock::new(None),
-            should_stop: std::sync::atomic::AtomicBool::new(false),
-        }
-    }
-
-    /// Check revocation status from SaaS.
-    pub async fn check_revocation(&self) -> SyncResult<RevocationStatus> {
-        let agent_id = self.client.agent_id().await?;
-        let path = format!("/v1/agents/{}/revocation", agent_id);
-
-        match self.client.get::<RevocationStatus>(&path).await {
-            Ok(status) => {
-                *self.status.write().await = Some(status.clone());
-
-                if status.revoked {
-                    warn!("Agent {} is revoked: {:?}", agent_id, status.reason);
-                    // Set the stop flag
-                    self.should_stop
-                        .store(true, std::sync::atomic::Ordering::SeqCst);
-                }
-
-                Ok(status)
-            }
-            Err(SyncError::ServerError { status: 404, .. }) => {
-                // Not found means not revoked
-                let status = RevocationStatus {
-                    revoked: false,
-                    reason: None,
-                    revoked_by: None,
-                    revoked_at: None,
-                };
-                *self.status.write().await = Some(status.clone());
-                Ok(status)
-            }
-            Err(e) => Err(e),
-        }
-    }
-
-    /// Get cached revocation status.
-    pub async fn status(&self) -> Option<RevocationStatus> {
-        self.status.read().await.clone()
-    }
-
-    /// Check if agent is revoked (from cache).
-    pub async fn is_revoked(&self) -> bool {
-        self.status
-            .read()
-            .await
-            .as_ref()
-            .map(|s| s.revoked)
-            .unwrap_or(false)
-    }
-
-    /// Check if operations should stop (thread-safe).
-    pub fn should_stop(&self) -> bool {
-        self.should_stop.load(std::sync::atomic::Ordering::SeqCst)
-    }
-
-    /// Handle revocation by determining what action to take.
-    ///
-    /// Returns the action that should be taken based on revocation status.
-    /// The caller is responsible for actually stopping operations.
-    pub async fn handle_revocation(&self) -> SyncResult<RevocationAction> {
-        let status = self.check_revocation().await?;
-
-        if !status.revoked {
-            return Ok(RevocationAction::Continue);
-        }
-
-        // Log the revocation event (AC4 - Audit)
-        error!(
-            "SECURITY: Agent has been REVOKED. Reason: {}. Revoked by: {}. At: {:?}",
-            status.reason.as_deref().unwrap_or("No reason provided"),
-            status.revoked_by.as_deref().unwrap_or("Unknown"),
-            status.revoked_at
-        );
-
-        // Set the stop flag for other threads to check
-        self.should_stop
-            .store(true, std::sync::atomic::Ordering::SeqCst);
-
-        // Return action for caller to execute
-        Ok(RevocationAction::StopAndExit)
-    }
-
-    /// Check revocation and return error if revoked (for use in request guards).
-    ///
-    /// This method can be called before any sync operation to ensure
-    /// the agent is not revoked.
-    pub async fn ensure_not_revoked(&self) -> SyncResult<()> {
-        if self.should_stop() {
-            return Err(SyncError::Config("Agent has been revoked".to_string()));
-        }
-
-        // Also check cache
-        if self.is_revoked().await {
-            return Err(SyncError::Config("Agent has been revoked".to_string()));
-        }
-
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -902,31 +757,6 @@ mod tests {
     }
 
     #[test]
-    fn test_revocation_status_deserialization() {
-        let json = r#"{
-            "revoked": true,
-            "reason": "Compromised",
-            "revoked_by": "admin@example.com",
-            "revoked_at": "2026-01-23T12:00:00Z"
-        }"#;
-
-        let status: RevocationStatus = serde_json::from_str(json).unwrap();
-        assert!(status.revoked);
-        assert_eq!(status.reason, Some("Compromised".to_string()));
-    }
-
-    #[test]
-    fn test_revocation_status_not_revoked() {
-        let json = r#"{
-            "revoked": false
-        }"#;
-
-        let status: RevocationStatus = serde_json::from_str(json).unwrap();
-        assert!(!status.revoked);
-        assert!(status.reason.is_none());
-    }
-
-    #[test]
     fn test_signed_log_entry_serialization() {
         let entry = SignedLogEntry {
             sequence: 1,
@@ -1059,17 +889,5 @@ mod tests {
         // Skip verification returns valid but with warning
         assert!(result.valid);
         assert!(result.error.as_ref().unwrap().contains("skipped"));
-    }
-
-    #[test]
-    fn test_revocation_action_enum() {
-        assert_eq!(RevocationAction::Continue, RevocationAction::Continue);
-        assert_ne!(RevocationAction::Continue, RevocationAction::StopAndExit);
-    }
-
-    #[test]
-    fn test_revocation_service_should_stop_initial() {
-        // Can't test full RevocationService without client, but we can test the flag behavior
-        // This would need integration testing with a mock client
     }
 }

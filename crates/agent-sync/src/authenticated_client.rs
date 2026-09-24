@@ -37,11 +37,6 @@ use crate::types::{
     IncidentReportResponse,
     // KPI sync
     KpiSnapshotPayload,
-    KpiSyncRequest,
-    // Log upload
-    LogEntryPayload,
-    LogUploadRequest,
-    LogUploadResponse,
     // Network sync
     NetworkSnapshotRequest,
     NetworkSnapshotResponse,
@@ -62,15 +57,10 @@ use crate::types::{
     SiemSyncResponse,
     // Software sync
     SoftwarePayload,
-    SoftwareSyncRequest,
-    SoftwareSyncResponse,
     StoredCredentials,
     // USB sync
     UsbEventPayload,
     UsbEventSyncRequest,
-    VulnerabilityFinding,
-    VulnerabilityUploadRequest,
-    VulnerabilityUploadResponse,
     // Webhook sync
     WebhookPayload,
     WebhookSyncRequest,
@@ -282,51 +272,6 @@ impl AuthenticatedClient {
     // Vulnerability and Incident Upload Methods
     // ========================================================================
 
-    /// Upload vulnerability findings to the SaaS.
-    ///
-    /// Sends detected vulnerabilities to the cloud for storage and alerting.
-    /// The SaaS will deduplicate by CVE+package+agent combination.
-    pub async fn upload_vulnerabilities(
-        &self,
-        vulnerabilities: Vec<VulnerabilityFinding>,
-        scan_type: &str,
-    ) -> SyncResult<VulnerabilityUploadResponse> {
-        if vulnerabilities.is_empty() {
-            return Ok(VulnerabilityUploadResponse {
-                received_count: 0,
-                created_count: 0,
-                updated_count: 0,
-                skipped_count: 0,
-            });
-        }
-
-        let agent_id = self.agent_id().await?;
-        info!(
-            "Uploading {} vulnerabilities for agent {}",
-            vulnerabilities.len(),
-            agent_id
-        );
-
-        let request = VulnerabilityUploadRequest {
-            vulnerabilities,
-            scan_type: scan_type.to_string(),
-        };
-
-        let response: VulnerabilityUploadResponse = self
-            .post_json(
-                &format!("/v1/agents/{}/vulnerabilities", agent_id),
-                &request,
-            )
-            .await?;
-
-        info!(
-            "Vulnerability upload complete: {} created, {} updated, {} skipped",
-            response.created_count, response.updated_count, response.skipped_count
-        );
-
-        Ok(response)
-    }
-
     /// Report a security incident to the SaaS.
     ///
     /// Sends a detected security incident to the cloud for immediate alerting
@@ -351,29 +296,6 @@ impl AuthenticatedClient {
         );
 
         Ok(response)
-    }
-
-    /// Report multiple security incidents to the SaaS.
-    ///
-    /// Convenience method to report multiple incidents. Each incident
-    /// is reported individually to ensure proper tracking.
-    pub async fn report_incidents(
-        &self,
-        incidents: Vec<SecurityIncidentReport>,
-    ) -> SyncResult<Vec<IncidentReportResponse>> {
-        let mut responses = Vec::with_capacity(incidents.len());
-
-        for incident in incidents {
-            match self.report_incident(incident).await {
-                Ok(response) => responses.push(response),
-                Err(e) => {
-                    warn!("Failed to report incident: {}", e);
-                    // Continue with other incidents
-                }
-            }
-        }
-
-        Ok(responses)
     }
 
     /// Report the result of a command execution.
@@ -536,23 +458,6 @@ impl AuthenticatedClient {
         .await
     }
 
-    /// Delete a notification on the SaaS.
-    pub async fn delete_notification(
-        &self,
-        notification_id: &str,
-    ) -> SyncResult<AcknowledgedResponse> {
-        let agent_id = self.agent_id().await?;
-        info!(
-            "Deleting notification {} for agent {}",
-            notification_id, agent_id
-        );
-        self.delete(&format!(
-            "/v1/agents/{}/notifications/{}",
-            agent_id, notification_id
-        ))
-        .await
-    }
-
     /// Delete a playbook on the SaaS.
     pub async fn delete_playbook(&self, playbook_id: &str) -> SyncResult<AcknowledgedResponse> {
         let agent_id = self.agent_id().await?;
@@ -702,25 +607,6 @@ impl AuthenticatedClient {
             .await
     }
 
-    /// Sync KPI snapshots to the SaaS.
-    pub async fn sync_kpi_snapshots(
-        &self,
-        snapshots: Vec<KpiSnapshotPayload>,
-    ) -> SyncResult<GenericSyncResponse> {
-        if snapshots.is_empty() {
-            return Ok(GenericSyncResponse { received_count: 0 });
-        }
-        let agent_id = self.agent_id().await?;
-        debug!(
-            "Syncing {} KPI snapshots for agent {}",
-            snapshots.len(),
-            agent_id
-        );
-        let request = KpiSyncRequest { snapshots };
-        self.post_json(&format!("/v1/agents/{}/kpi-snapshots", agent_id), &request)
-            .await
-    }
-
     /// Sync alert rule configurations to the SaaS.
     pub async fn sync_alert_rules(
         &self,
@@ -797,35 +683,6 @@ impl AuthenticatedClient {
             .await
     }
 
-    /// Upload software inventory to the SaaS.
-    ///
-    /// Sends the list of installed software for compliance and vulnerability tracking.
-    pub async fn upload_software_inventory(
-        &self,
-        software: Vec<SoftwarePayload>,
-        scan_timestamp: Option<DateTime<Utc>>,
-    ) -> SyncResult<SoftwareSyncResponse> {
-        if software.is_empty() {
-            return Ok(SoftwareSyncResponse {
-                received_count: 0,
-                added_count: 0,
-                updated_count: 0,
-            });
-        }
-        let agent_id = self.agent_id().await?;
-        info!(
-            "Uploading {} software items for agent {}",
-            software.len(),
-            agent_id
-        );
-        let request = SoftwareSyncRequest {
-            software,
-            scan_timestamp,
-        };
-        self.post_json(&format!("/v1/agents/{}/software", agent_id), &request)
-            .await
-    }
-
     /// Upload a network snapshot to the SaaS.
     ///
     /// Sends current network interface configuration for asset tracking.
@@ -871,57 +728,6 @@ impl AuthenticatedClient {
             request.stats.is_connected
         );
         self.post_json(&format!("/v1/agents/{}/siem", agent_id), &request)
-            .await
-    }
-
-    /// Upload log entries to the SaaS.
-    ///
-    /// Sends agent log entries for centralized monitoring and diagnostics.
-    pub async fn upload_logs(
-        &self,
-        entries: Vec<LogEntryPayload>,
-    ) -> SyncResult<LogUploadResponse> {
-        if entries.is_empty() {
-            return Ok(LogUploadResponse {
-                received_count: 0,
-                ack_id: String::new(),
-            });
-        }
-        let agent_id = self.agent_id().await?;
-        debug!(
-            "Uploading {} log entries for agent {}",
-            entries.len(),
-            agent_id
-        );
-        let request = LogUploadRequest {
-            entries,
-            uploaded_at: Some(Utc::now()),
-        };
-        self.post_json(&format!("/v1/agents/{}/logs", agent_id), &request)
-            .await
-    }
-
-    /// Download centrally managed playbooks from the SaaS.
-    pub async fn download_playbooks(&self) -> SyncResult<Vec<PlaybookPayload>> {
-        let agent_id = self.agent_id().await?;
-        debug!("Downloading central playbooks for agent {}", agent_id);
-        self.get(&format!("/v1/agents/{}/playbooks/central", agent_id))
-            .await
-    }
-
-    /// Download centrally managed detection rules from the SaaS.
-    pub async fn download_detection_rules(&self) -> SyncResult<Vec<DetectionRulePayload>> {
-        let agent_id = self.agent_id().await?;
-        debug!("Downloading central detection rules for agent {}", agent_id);
-        self.get(&format!("/v1/agents/{}/detection-rules/central", agent_id))
-            .await
-    }
-
-    /// Download centrally managed alert rules from the SaaS.
-    pub async fn download_alert_rules(&self) -> SyncResult<Vec<AlertRulePayload>> {
-        let agent_id = self.agent_id().await?;
-        debug!("Downloading central alert rules for agent {}", agent_id);
-        self.get(&format!("/v1/agents/{}/alert-rules/central", agent_id))
             .await
     }
 

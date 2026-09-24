@@ -17,7 +17,6 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
 
-#[allow(unused_imports)]
 use agent_network::{ConnectionProtocol, ConnectionState, NetworkConnection};
 
 /// Resource limits configuration.
@@ -264,127 +263,63 @@ impl ResourceMonitor {
         processes
     }
 
-    /// Get active network connections for telemetry.
+    /// Active connections for the heartbeat on Windows (`netstat -ano`,
+    /// much cheaper than the PowerShell-based network collector used on the
+    /// other platforms, see `AgentRuntime::heartbeat_connections`).
+    #[cfg(target_os = "windows")]
     pub fn get_connections(&self) -> Vec<crate::api_client::AgentConnection> {
-        #[allow(unused_mut)]
+        use std::process::Stdio;
         let mut connections = Vec::new();
+        let child = agent_common::process::silent_command("netstat")
+            .args(["-ano"])
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn();
 
-        #[cfg(target_os = "macos")]
-        {
-            use std::process::Stdio;
-            let child = agent_common::process::silent_command("lsof")
-                .args(["-i", "-n", "-P"])
-                .stdout(Stdio::piped())
-                .stderr(Stdio::null())
-                .spawn();
-
-            if let Ok(mut child) = child {
-                // Poll with 5-second timeout to prevent hanging
-                let timeout = std::time::Duration::from_secs(5);
-                let start = std::time::Instant::now();
-                let timed_out = loop {
-                    match child.try_wait() {
-                        Ok(Some(_)) => break false,
-                        Ok(None) if start.elapsed() >= timeout => {
-                            tracing::warn!("lsof timed out after 5s, killing process");
-                            let _ = child.kill();
-                            let _ = child.wait();
-                            break true;
-                        }
-                        Ok(None) => {
-                            std::thread::sleep(std::time::Duration::from_millis(50));
-                        }
-                        Err(_) => break true,
+        if let Ok(mut child) = child {
+            let timeout = std::time::Duration::from_secs(5);
+            let start = std::time::Instant::now();
+            let timed_out = loop {
+                match child.try_wait() {
+                    Ok(Some(_)) => break false,
+                    Ok(None) if start.elapsed() >= timeout => {
+                        tracing::warn!("netstat timed out after 5s, killing process");
+                        let _ = child.kill();
+                        let _ = child.wait();
+                        break true;
                     }
-                };
+                    Ok(None) => {
+                        std::thread::sleep(std::time::Duration::from_millis(50));
+                    }
+                    Err(_) => break true,
+                }
+            };
 
-                if !timed_out && let Ok(output) = child.wait_with_output() {
-                    let stdout = String::from_utf8_lossy(&output.stdout);
-                    for line in stdout.lines().skip(1) {
-                        if let Some(conn) = self.parse_lsof_line(line) {
-                            connections.push(conn);
-                        }
+            if !timed_out && let Ok(output) = child.wait_with_output() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                for line in stdout.lines() {
+                    if let Some(conn) = self.parse_netstat_line(line) {
+                        connections.push(conn);
                     }
                 }
             }
         }
 
-        #[cfg(target_os = "windows")]
-        {
-            use std::process::Stdio;
-            let child = agent_common::process::silent_command("netstat")
-                .args(["-ano"])
-                .stdout(Stdio::piped())
-                .stderr(Stdio::null())
-                .spawn();
-
-            if let Ok(mut child) = child {
-                let timeout = std::time::Duration::from_secs(5);
-                let start = std::time::Instant::now();
-                let timed_out = loop {
-                    match child.try_wait() {
-                        Ok(Some(_)) => break false,
-                        Ok(None) if start.elapsed() >= timeout => {
-                            tracing::warn!("netstat timed out after 5s, killing process");
-                            let _ = child.kill();
-                            let _ = child.wait();
-                            break true;
-                        }
-                        Ok(None) => {
-                            std::thread::sleep(std::time::Duration::from_millis(50));
-                        }
-                        Err(_) => break true,
-                    }
-                };
-
-                if !timed_out && let Ok(output) = child.wait_with_output() {
-                    let stdout = String::from_utf8_lossy(&output.stdout);
-                    for line in stdout.lines() {
-                        if let Some(conn) = self.parse_netstat_line(line) {
-                            connections.push(conn);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Truncate to 100 to respect server schema limit (HeartbeatSchema.connections.max(100))
-        connections.truncate(100);
-        connections
+        finalize_heartbeat_connections(connections)
     }
 
     #[cfg(target_os = "windows")]
     fn parse_netstat_line(&self, line: &str) -> Option<crate::api_client::AgentConnection> {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        // netstat -ano columns: Proto, Local Address, Foreign Address, State, PID
-        // BUT for UDP, State is missing: Proto, Local Address, Foreign Address, PID
-        if parts.len() < 4 {
-            return None;
-        }
-
-        let protocol = parts[0];
-        if protocol != "TCP" && protocol != "UDP" {
-            return None;
-        }
-
-        let local_full = parts[1];
-        let remote_full = parts[2];
-        let (local_address, local_port) = self.parse_netstat_address(local_full)?;
+        let row = parse_netstat_row(line)?;
+        let (local_address, local_port) = self.parse_netstat_address(row.local)?;
         let (remote_address, remote_port) = self
-            .parse_netstat_address(remote_full)
+            .parse_netstat_address(row.remote)
+            .filter(|(_, port)| *port != 0)
             .map(|(a, p)| (Some(a), Some(p)))
             .unwrap_or((None, None));
 
-        let (state, pid_str) = if protocol == "TCP" && parts.len() >= 5 {
-            (parts[3].to_string(), parts[4])
-        } else {
-            ("UNKNOWN".to_string(), parts[parts.len() - 1])
-        };
-
-        let pid = pid_str.parse::<u32>().ok();
-
         // Try to get process name from sysinfo if available
-        let process_name = if let Some(pid_val) = pid {
+        let process_name = if let Some(pid_val) = row.pid {
             if let Ok(sys) = self.sys.lock() {
                 sys.process(sysinfo::Pid::from(pid_val as usize))
                     .map(|p| p.name().to_string_lossy().to_string())
@@ -396,14 +331,14 @@ impl ResourceMonitor {
         };
 
         Some(crate::api_client::AgentConnection {
-            protocol: protocol.to_string(),
+            protocol: row.protocol.to_ascii_uppercase(),
             local_address,
             local_port,
             remote_address,
             remote_port,
-            state,
+            state: row.state,
             process_name,
-            pid,
+            pid: row.pid,
         })
     }
 
@@ -428,100 +363,6 @@ impl ResourceMonitor {
         if addr == "*" || addr == "0.0.0.0" || addr == "::" {
             Some(("0.0.0.0".to_string(), port))
         } else {
-            Some((addr, port))
-        }
-    }
-
-    #[cfg(target_os = "macos")]
-    fn parse_lsof_line(&self, line: &str) -> Option<crate::api_client::AgentConnection> {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() < 9 {
-            return None;
-        }
-
-        let process_name = Some(parts.first()?.to_string());
-        let pid = parts.get(1)?.parse().ok();
-        let type_col = *parts.get(4)?;
-        let name_col = parts.last()?;
-
-        let protocol = if type_col == "IPv4" {
-            if name_col.contains("TCP") {
-                "TCP"
-            } else {
-                "UDP"
-            }
-        } else if type_col == "IPv6" {
-            if name_col.contains("TCP") {
-                "TCP6"
-            } else {
-                "UDP6"
-            }
-        } else {
-            return None;
-        };
-
-        let name_str = parts.get(8..)?.join(" ");
-        let name_parts: Vec<&str> = name_str.split("->").collect();
-
-        let local_str = name_parts.first()?.replace("TCP ", "").replace("UDP ", "");
-        let (local_address, local_port) = self.parse_lsof_address(&local_str)?;
-
-        let (remote_address, remote_port) = if name_parts.len() > 1 {
-            let remote = name_parts.get(1)?.split_whitespace().next()?;
-            let (addr, port) = self.parse_lsof_address(remote)?;
-            (Some(addr), Some(port))
-        } else {
-            (None, None)
-        };
-
-        let state = if let Some(state_start) = line.rfind('(') {
-            let after_paren = state_start.checked_add(1)?;
-            let before_end = line.len().checked_sub(1)?;
-            if after_paren <= before_end
-                && line.is_char_boundary(after_paren)
-                && line.is_char_boundary(before_end)
-            {
-                line[after_paren..before_end].to_string()
-            } else {
-                "LISTEN".to_string()
-            }
-        } else {
-            "LISTEN".to_string()
-        };
-
-        Some(crate::api_client::AgentConnection {
-            protocol: protocol.to_string(),
-            local_address,
-            local_port,
-            remote_address,
-            remote_port,
-            state,
-            process_name,
-            pid,
-        })
-    }
-
-    #[cfg(target_os = "macos")]
-    fn parse_lsof_address(&self, addr_str: &str) -> Option<(String, u16)> {
-        let addr_str = addr_str.trim();
-
-        if addr_str.starts_with('[') {
-            let end_bracket = addr_str.find(']')?;
-            let addr = addr_str.get(1..end_bracket).unwrap_or("").to_string();
-            let port_str = addr_str.get(end_bracket + 2..)?;
-            let port = port_str.parse().ok()?;
-            Some((addr, port))
-        } else {
-            let parts: Vec<&str> = addr_str.rsplitn(2, ':').collect();
-            if parts.len() != 2 {
-                return None;
-            }
-            let port = parts[0].parse().ok()?;
-            let addr = if parts[1] == "*" {
-                "0.0.0.0".to_string()
-            } else {
-                parts[1].to_string()
-            };
             Some((addr, port))
         }
     }
@@ -1882,119 +1723,163 @@ fn get_logical_cores() -> u32 {
     }
 }
 
-#[cfg(target_os = "linux")]
-pub fn get_connections() -> Vec<NetworkConnection> {
-    let mut connections = Vec::new();
+/// Server cap on heartbeat connections (`HeartbeatSchema.connections.max(100)`).
+pub(crate) const MAX_HEARTBEAT_CONNECTIONS: usize = 100;
 
-    // Parse /proc/net/tcp and /proc/net/udp
-    let paths = [
-        "/proc/net/tcp",
-        "/proc/net/udp",
-        "/proc/net/tcp6",
-        "/proc/net/udp6",
-    ];
-
-    for path in paths {
-        let protocol = if path.contains("tcp6") {
-            ConnectionProtocol::Tcp6
-        } else if path.contains("udp6") {
-            ConnectionProtocol::Udp6
-        } else if path.contains("tcp") {
-            ConnectionProtocol::Tcp
-        } else {
-            ConnectionProtocol::Udp
-        };
-
-        if let Ok(content) = std::fs::read_to_string(path) {
-            for line in content.lines().skip(1) {
-                if let Some(conn) = parse_proc_net_line(line, protocol) {
-                    connections.push(conn);
-                }
-            }
-        }
+/// Canonical TCP state name, as used by the platform Activity tab:
+/// `ESTABLISHED`, `LISTEN`, `TIME_WAIT`, `CLOSE_WAIT`, `SYN_SENT`, `SYN_RECV`,
+/// `FIN_WAIT1`, `FIN_WAIT2`, `CLOSING`, `LAST_ACK`, `CLOSED`, else `UNKNOWN`.
+///
+/// Accepts the spellings of lsof (`SYN_RECEIVED`, `FIN_WAIT_1`), netstat
+/// (`LISTENING`, including the German and Spanish Windows translations),
+/// `/proc` and `ss` (`ESTAB`), in any case and with any separator.
+pub(crate) fn canonical_tcp_state(raw: &str) -> &'static str {
+    let key: String = raw
+        .chars()
+        .filter(|c| c.is_alphanumeric())
+        .flat_map(char::to_uppercase)
+        .collect();
+    match key.as_str() {
+        "ESTABLISHED" | "ESTAB" | "HERGESTELLT" | "ESTABLECIDO" | "ESTABLECIDA" => "ESTABLISHED",
+        "LISTEN" | "LISTENING" | "ABHÖREN" | "ABHREN" | "ESCUCHANDO" => "LISTEN",
+        "TIMEWAIT" | "WARTEND" => "TIME_WAIT",
+        "CLOSEWAIT" | "SCHLIESSENWARTEN" => "CLOSE_WAIT",
+        "SYNSENT" | "SYNGESENDET" => "SYN_SENT",
+        "SYNRECV" | "SYNRECEIVED" | "SYNRCVD" | "SYNEMPFANGEN" => "SYN_RECV",
+        "FINWAIT1" => "FIN_WAIT1",
+        "FINWAIT2" => "FIN_WAIT2",
+        "CLOSING" => "CLOSING",
+        "LASTACK" => "LAST_ACK",
+        "CLOSED" | "CLOSE" | "GESCHLOSSEN" => "CLOSED",
+        _ => "UNKNOWN",
     }
+}
+
+/// Whether a protocol label names UDP (`UDP`, `udp6`…).
+fn is_udp_protocol(protocol: &str) -> bool {
+    protocol.trim().to_ascii_uppercase().starts_with("UDP")
+}
+
+/// Canonical name of a TCP state from the network collector.
+#[cfg_attr(target_os = "windows", allow(dead_code))] // Windows uses netstat.
+fn tcp_state_name(state: ConnectionState) -> &'static str {
+    match state {
+        ConnectionState::Established => "ESTABLISHED",
+        ConnectionState::Listen => "LISTEN",
+        ConnectionState::TimeWait => "TIME_WAIT",
+        ConnectionState::CloseWait => "CLOSE_WAIT",
+        ConnectionState::SynSent => "SYN_SENT",
+        ConnectionState::SynReceived => "SYN_RECV",
+        ConnectionState::FinWait1 => "FIN_WAIT1",
+        ConnectionState::FinWait2 => "FIN_WAIT2",
+        ConnectionState::Closing => "CLOSING",
+        ConnectionState::LastAck => "LAST_ACK",
+        ConnectionState::Closed => "CLOSED",
+        ConnectionState::Unknown => "UNKNOWN",
+    }
+}
+
+/// Compact an IP address (`0000:…:0001` → `::1`); other strings unchanged.
+#[cfg_attr(target_os = "windows", allow(dead_code))] // Windows uses netstat.
+fn compact_ip(address: &str) -> String {
+    address
+        .parse::<std::net::IpAddr>()
+        .map(|ip| ip.to_string())
+        .unwrap_or_else(|_| address.to_string())
+}
+
+/// Heartbeat entry of a connection from the network collector (Linux
+/// `/proc`, macOS lsof), with the canonical protocol and state.
+#[cfg_attr(target_os = "windows", allow(dead_code))] // Windows uses netstat.
+pub(crate) fn heartbeat_connection(conn: &NetworkConnection) -> crate::api_client::AgentConnection {
+    let (protocol, udp) = match conn.protocol {
+        ConnectionProtocol::Tcp => ("TCP", false),
+        ConnectionProtocol::Tcp6 => ("TCP6", false),
+        ConnectionProtocol::Udp => ("UDP", true),
+        ConnectionProtocol::Udp6 => ("UDP6", true),
+    };
+    // No remote endpoint for listening/unconnected sockets.
+    let remote_port = conn.remote_port.filter(|p| *p != 0);
+    let remote_address = remote_port
+        .and(conn.remote_address.as_deref())
+        .map(compact_ip);
+    crate::api_client::AgentConnection {
+        local_address: compact_ip(&conn.local_address),
+        local_port: conn.local_port,
+        remote_address,
+        remote_port,
+        protocol: protocol.to_string(),
+        state: if udp {
+            String::new()
+        } else {
+            tcp_state_name(conn.state).to_string()
+        },
+        process_name: conn.process_name.clone(),
+        pid: conn.pid,
+    }
+}
+
+/// Order heartbeat connections by interest (established TCP, listening TCP,
+/// other TCP, UDP) and keep at most [`MAX_HEARTBEAT_CONNECTIONS`].
+pub(crate) fn finalize_heartbeat_connections(
+    mut connections: Vec<crate::api_client::AgentConnection>,
+) -> Vec<crate::api_client::AgentConnection> {
+    let rank = |c: &crate::api_client::AgentConnection| match c.state.as_str() {
+        _ if is_udp_protocol(&c.protocol) => 3,
+        "ESTABLISHED" => 0,
+        "LISTEN" => 1,
+        _ => 2,
+    };
+    connections.sort_by_key(rank);
+    connections.truncate(MAX_HEARTBEAT_CONNECTIONS);
     connections
 }
 
-#[cfg(target_os = "linux")]
-fn parse_proc_net_line(line: &str, protocol: ConnectionProtocol) -> Option<NetworkConnection> {
-    let parts: Vec<&str> = line.split_whitespace().collect();
-    if parts.len() < 4 {
-        return None;
-    }
-
-    let local = parse_proc_addr(parts[1])?;
-    let remote = parse_proc_addr(parts[2])?;
-    let state_str = match parts[3] {
-        "01" => "ESTABLISHED",
-        "02" => "SYN_SENT",
-        "03" => "SYN_RECV",
-        "04" => "FIN_WAIT1",
-        "05" => "FIN_WAIT2",
-        "06" => "TIME_WAIT",
-        "07" => "CLOSE",
-        "08" => "CLOSE_WAIT",
-        "09" => "LAST_ACK",
-        "0A" => "LISTEN",
-        "0B" => "CLOSING",
-        _ => "UNKNOWN",
-    };
-
-    let state = match state_str {
-        "ESTABLISHED" => ConnectionState::Established,
-        "SYN_SENT" => ConnectionState::SynSent,
-        "SYN_RECV" => ConnectionState::SynReceived,
-        "FIN_WAIT1" => ConnectionState::FinWait1,
-        "FIN_WAIT2" => ConnectionState::FinWait2,
-        "TIME_WAIT" => ConnectionState::TimeWait,
-        "CLOSE" => ConnectionState::Closed,
-        "CLOSE_WAIT" => ConnectionState::CloseWait,
-        "LAST_ACK" => ConnectionState::LastAck,
-        "LISTEN" => ConnectionState::Listen,
-        "CLOSING" => ConnectionState::Closing,
-        _ => ConnectionState::Unknown,
-    };
-
-    Some(NetworkConnection {
-        protocol,
-        local_address: local.0,
-        local_port: local.1,
-        remote_address: Some(remote.0),
-        remote_port: Some(remote.1),
-        state,
-        pid: None,
-        process_name: None,
-        process_path: None,
-    })
+/// One row of `netstat -ano` (Windows).
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+#[derive(Debug, PartialEq)]
+pub(crate) struct NetstatRow<'a> {
+    pub protocol: &'a str,
+    pub local: &'a str,
+    pub remote: &'a str,
+    /// Canonical state (`""` for UDP).
+    pub state: String,
+    pub pid: Option<u32>,
 }
 
-#[cfg(target_os = "linux")]
-fn parse_proc_addr(hex_addr: &str) -> Option<(String, u16)> {
-    let parts: Vec<&str> = hex_addr.split(':').collect();
-    if parts.len() != 2 {
+/// Parse a `netstat -ano` row. TCP rows are `Proto Local Foreign State PID`,
+/// the state being localized on non-English Windows (possibly several
+/// words); UDP rows have no state. A TCP socket whose foreign address is
+/// unspecified (`0.0.0.0:0`, `[::]:0`) is listening whatever the language.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+pub(crate) fn parse_netstat_row(line: &str) -> Option<NetstatRow<'_>> {
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    let protocol = *parts.first()?;
+    let is_tcp = protocol.eq_ignore_ascii_case("TCP");
+    if (!is_tcp && !protocol.eq_ignore_ascii_case("UDP")) || parts.len() < 4 {
         return None;
     }
-
-    let addr_hex = parts[0];
-    let port_hex = parts[1];
-
-    let port = u16::from_str_radix(port_hex, 16).ok()?;
-
-    // Handle IPv4
-    if addr_hex.len() == 8 {
-        let bytes = u32::from_str_radix(addr_hex, 16).ok()?;
-        let ip = std::net::Ipv4Addr::from(bytes.swap_bytes());
-        return Some((ip.to_string(), port));
-    }
-
-    // Handle IPv6 (not implemented in the provided snippet, but good to note)
-    if addr_hex.len() == 32 {
-        // IPv6 parsing would go here
-        // For now, return None for IPv6 if not explicitly handled
-        return None;
-    }
-
-    None
+    let (local, remote) = (parts[1], parts[2]);
+    let pid = parts[parts.len() - 1].parse::<u32>().ok();
+    let state = if !is_tcp {
+        String::new()
+    } else if matches!(remote, "0.0.0.0:0" | "[::]:0" | "*:*") {
+        "LISTEN".to_string()
+    } else {
+        let end = if pid.is_some() {
+            parts.len() - 1
+        } else {
+            parts.len()
+        };
+        canonical_tcp_state(&parts[3..end].join(" ")).to_string()
+    };
+    Some(NetstatRow {
+        protocol,
+        local,
+        remote,
+        state,
+        pid,
+    })
 }
 
 /// System-level resource information (CPU, memory total, disk usage).
@@ -2042,6 +1927,157 @@ pub fn get_system_resources() -> SystemResources {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tcp_states_are_canonical_uppercase() {
+        for (raw, canonical) in [
+            ("ESTABLISHED", "ESTABLISHED"),
+            ("established", "ESTABLISHED"),
+            ("ESTAB", "ESTABLISHED"),
+            ("LISTENING", "LISTEN"),
+            ("Listen", "LISTEN"),
+            ("TIME_WAIT", "TIME_WAIT"),
+            ("TIME-WAIT", "TIME_WAIT"),
+            ("CLOSE_WAIT", "CLOSE_WAIT"),
+            ("SYN_SENT", "SYN_SENT"),
+            ("SYN_RECEIVED", "SYN_RECV"),
+            ("SYN_RECV", "SYN_RECV"),
+            ("FIN_WAIT_1", "FIN_WAIT1"),
+            ("FIN_WAIT2", "FIN_WAIT2"),
+            ("LAST_ACK", "LAST_ACK"),
+            ("CLOSED", "CLOSED"),
+            // Localized Windows netstat (German, including a mis-decoded
+            // OEM code page, and Spanish).
+            ("ABHÖREN", "LISTEN"),
+            ("ABH\u{FFFD}REN", "LISTEN"),
+            ("HERGESTELLT", "ESTABLISHED"),
+            ("WARTEND", "TIME_WAIT"),
+            ("SCHLIESSEN_WARTEN", "CLOSE_WAIT"),
+            ("ESCUCHANDO", "LISTEN"),
+            ("ESTABLECIDO", "ESTABLISHED"),
+            ("", "UNKNOWN"),
+            ("BOUND", "UNKNOWN"),
+        ] {
+            assert_eq!(canonical_tcp_state(raw), canonical, "{raw}");
+        }
+    }
+
+    #[test]
+    fn netstat_rows_are_normalized() {
+        let row =
+            parse_netstat_row("  TCP    0.0.0.0:135    0.0.0.0:0    LISTENING    1044").unwrap();
+        assert_eq!(row.state, "LISTEN");
+        assert_eq!(row.pid, Some(1044));
+        assert_eq!((row.local, row.remote), ("0.0.0.0:135", "0.0.0.0:0"));
+
+        // Localized (Italian, two words) listening state: detected from the
+        // unspecified foreign address.
+        let row = parse_netstat_row("  TCP    [::]:445    [::]:0    IN ASCOLTO    4").unwrap();
+        assert_eq!((row.state.as_str(), row.pid), ("LISTEN", Some(4)));
+
+        let row = parse_netstat_row(
+            "  TCP    192.168.1.10:49712    20.42.65.85:443    HERGESTELLT    6120",
+        )
+        .unwrap();
+        assert_eq!((row.state.as_str(), row.pid), ("ESTABLISHED", Some(6120)));
+
+        let row =
+            parse_netstat_row("  TCP    10.0.0.2:50000   10.0.0.9:80   TIME_WAIT    0").unwrap();
+        assert_eq!(row.state, "TIME_WAIT");
+
+        // UDP has no state column and never reports LISTEN.
+        let row = parse_netstat_row("  UDP    0.0.0.0:5353    *:*    2280").unwrap();
+        assert_eq!(
+            (row.protocol, row.state.as_str(), row.pid),
+            ("UDP", "", Some(2280))
+        );
+
+        assert_eq!(
+            parse_netstat_row("  Proto  Local Address  Foreign Address  State  PID"),
+            None
+        );
+        assert_eq!(parse_netstat_row("Active Connections"), None);
+        assert_eq!(parse_netstat_row(""), None);
+    }
+
+    fn collected(
+        protocol: ConnectionProtocol,
+        state: ConnectionState,
+        remote: Option<(&str, u16)>,
+    ) -> NetworkConnection {
+        NetworkConnection {
+            protocol,
+            local_address: "0000:0000:0000:0000:0000:0000:0000:0001".to_string(),
+            local_port: 8080,
+            remote_address: remote.map(|(a, _)| a.to_string()),
+            remote_port: remote.map(|(_, p)| p),
+            state,
+            pid: Some(7),
+            process_name: Some("nginx".to_string()),
+            process_path: None,
+        }
+    }
+
+    #[test]
+    fn collector_connections_map_to_canonical_heartbeat_entries() {
+        let listen = heartbeat_connection(&collected(
+            ConnectionProtocol::Tcp6,
+            ConnectionState::Listen,
+            Some(("0000:0000:0000:0000:0000:0000:0000:0000", 0)),
+        ));
+        assert_eq!(listen.protocol, "TCP6");
+        assert_eq!(listen.state, "LISTEN");
+        assert_eq!(listen.local_address, "::1");
+        assert_eq!((listen.remote_address, listen.remote_port), (None, None));
+        assert_eq!(
+            (listen.pid, listen.process_name.as_deref()),
+            (Some(7), Some("nginx"))
+        );
+
+        let established = heartbeat_connection(&collected(
+            ConnectionProtocol::Tcp,
+            ConnectionState::SynReceived,
+            Some(("203.0.113.5", 51000)),
+        ));
+        assert_eq!(established.state, "SYN_RECV");
+        assert_eq!(established.remote_address.as_deref(), Some("203.0.113.5"));
+        assert_eq!(established.remote_port, Some(51000));
+
+        // Linux reports unconnected UDP sockets as CLOSE (07): no state.
+        let udp = heartbeat_connection(&collected(
+            ConnectionProtocol::Udp,
+            ConnectionState::Closed,
+            None,
+        ));
+        assert_eq!((udp.protocol.as_str(), udp.state.as_str()), ("UDP", ""));
+    }
+
+    #[test]
+    fn heartbeat_connections_are_prioritized_and_capped() {
+        let entry = |protocol: &str, state: &str| crate::api_client::AgentConnection {
+            local_address: "10.0.0.1".to_string(),
+            local_port: 1,
+            remote_address: None,
+            remote_port: None,
+            protocol: protocol.to_string(),
+            state: state.to_string(),
+            process_name: None,
+            pid: None,
+        };
+        let mut all = Vec::new();
+        for _ in 0..60 {
+            all.push(entry("UDP", ""));
+            all.push(entry("TCP", "TIME_WAIT"));
+        }
+        all.push(entry("TCP", "LISTEN"));
+        all.push(entry("TCP6", "ESTABLISHED"));
+        let kept = finalize_heartbeat_connections(all);
+        assert_eq!(kept.len(), MAX_HEARTBEAT_CONNECTIONS);
+        assert_eq!(kept[0].state, "ESTABLISHED");
+        assert_eq!(kept[1].state, "LISTEN");
+        assert!(kept[2..62].iter().all(|c| c.state == "TIME_WAIT"));
+        assert!(kept[62..].iter().all(|c| c.protocol == "UDP"));
+    }
 
     #[test]
     fn test_resource_limits_default() {

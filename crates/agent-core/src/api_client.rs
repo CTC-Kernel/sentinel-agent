@@ -6,7 +6,6 @@
 //! This module provides the API client that handles:
 //! - Agent enrollment
 //! - Heartbeat sending
-//! - Configuration retrieval
 //! - Result upload
 
 use agent_common::config::AgentConfig;
@@ -114,9 +113,10 @@ pub struct ServerAgentConfig {
     #[serde(default)]
     pub enable_process_monitoring: bool,
 
-    /// Whether network monitoring is enabled.
+    /// Network monitoring consent. Only present when an administrator set it
+    /// explicitly; `None` keeps the agent's current behaviour (enabled).
     #[serde(default)]
-    pub enable_network_monitoring: bool,
+    pub enable_network_monitoring: Option<bool>,
 
     /// Whether software inventory is enabled.
     #[serde(default)]
@@ -158,7 +158,7 @@ impl Default for ServerAgentConfig {
             enable_auto_remediation: false,
             enable_realtime_monitoring: false,
             enable_process_monitoring: false,
-            enable_network_monitoring: false,
+            enable_network_monitoring: None,
             enable_software_inventory: false,
             enable_cis_benchmarks: false,
             auto_update_enabled: default_true_fn(),
@@ -336,6 +336,8 @@ const ALLOWED_COMMANDS: &[&str] = &[
     // MDM software deployment commands.
     "install",
     "uninstall",
+    // MDM policy push (settings applied through the agent configuration).
+    "configure",
 ];
 
 /// Command from the server.
@@ -426,38 +428,6 @@ impl AgentCommand {
     }
 }
 
-/// Full configuration response from the server.
-#[derive(Debug, Deserialize)]
-pub struct ConfigResponse {
-    pub config_version: u32,
-    pub check_interval_secs: u64,
-    pub heartbeat_interval_secs: u64,
-    pub log_level: String,
-    #[serde(default, deserialize_with = "deserialize_bounded_vec")]
-    pub enabled_checks: Vec<String>,
-    pub offline_mode_days: u32,
-    pub rules_version: u32,
-    #[serde(default, deserialize_with = "deserialize_bounded_vec")]
-    pub rules: Vec<CheckRule>,
-}
-
-/// Check rule from the server.
-#[derive(Debug, Deserialize, Clone)]
-pub struct CheckRule {
-    pub id: String,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub rule_type: String,
-    pub framework: String,
-    pub control_id: String,
-    pub check_command: Option<String>,
-    pub expected_result: Option<String>,
-    pub remediation: Option<String>,
-    pub severity: String,
-    #[serde(default)]
-    pub platforms: Vec<String>,
-}
-
 /// Update status report sent to the server.
 #[derive(Debug, Serialize)]
 pub struct UpdateStatusReport {
@@ -496,7 +466,7 @@ pub struct ResultResponse {
 /// Software entry for inventory upload.
 ///
 /// Fields must match the server-side `SoftwarePayload` schema
-/// (name, vendor, version) to avoid 500 errors from unknown fields.
+/// (name, vendor, version, source_name) to avoid 500 errors from unknown fields.
 #[derive(Debug, Serialize)]
 pub struct SoftwareEntry {
     pub name: String,
@@ -504,6 +474,29 @@ pub struct SoftwareEntry {
     pub version: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub vendor: Option<String>,
+    /// Debian/Ubuntu source package (`${source:Package}`), only when it
+    /// differs from `name`: vulnerabilities are reported on the source
+    /// package, so the platform links software to CVEs through it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_name: Option<String>,
+}
+
+/// Server cap on entries per software inventory request.
+pub const MAX_SOFTWARE_ITEMS_PER_REQUEST: usize = 10_000;
+
+/// Build the software inventory request body, capped at
+/// [`MAX_SOFTWARE_ITEMS_PER_REQUEST`] entries. Returns the body and the number
+/// of entries left out.
+pub(crate) fn software_inventory_payload(
+    software: &[SoftwareEntry],
+    scan_timestamp: chrono::DateTime<chrono::Utc>,
+) -> (serde_json::Value, usize) {
+    let kept = software.len().min(MAX_SOFTWARE_ITEMS_PER_REQUEST);
+    let payload = serde_json::json!({
+        "software": &software[..kept],
+        "scan_timestamp": scan_timestamp.to_rfc3339(),
+    });
+    (payload, software.len() - kept)
 }
 
 /// Wrapper for sensitive credential strings that are securely erased on drop.
@@ -749,49 +742,6 @@ impl ApiClient {
         Ok(heartbeat)
     }
 
-    /// Get agent configuration from the server.
-    pub async fn get_config(&self) -> Result<ConfigResponse> {
-        let agent_id = self
-            .agent_id
-            .as_ref()
-            .ok_or_else(|| CommonError::validation("Agent ID not set. Must enroll first."))?;
-
-        let url = format!("{}/v1/agents/{}/config", self.base_url, agent_id);
-        debug!("Fetching config from {}", self.safe_log_url(&url));
-
-        let builder = self.authenticate(self.client.get(&url));
-
-        let response = builder
-            .send()
-            .await
-            .map_err(|e| CommonError::network(format!("Config request failed: {}", e)))?;
-
-        let status = response.status();
-        if !status.is_success() {
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(CommonError::network(format!(
-                "Config fetch failed: {} - {}",
-                status, error_text
-            )));
-        }
-
-        let config: ConfigResponse = response
-            .json()
-            .await
-            .map_err(|e| CommonError::network(format!("Failed to parse config response: {}", e)))?;
-
-        info!(
-            "Received config version {} with {} rules",
-            config.config_version,
-            config.rules.len()
-        );
-
-        Ok(config)
-    }
-
     /// Upload a check result to the server.
     pub async fn upload_result(&self, request: ResultRequest) -> Result<ResultResponse> {
         let agent_id = self
@@ -847,22 +797,37 @@ impl ApiClient {
     }
 
     /// Upload software inventory to the server.
-    pub async fn upload_software_inventory(
-        &self,
-        software: &[SoftwareEntry],
-    ) -> Result<serde_json::Value> {
+    ///
+    /// One request of at most [`MAX_SOFTWARE_ITEMS_PER_REQUEST`] entries
+    /// (extra entries are dropped with a warning), retried like vulnerability
+    /// pages: up to 3 attempts on network errors, 5xx and 429 (backoff ≈2 s,
+    /// 8 s); any other 4xx is final.
+    pub async fn upload_software_inventory(&self, software: &[SoftwareEntry]) -> Result<()> {
         let agent_id = self
             .agent_id
             .as_ref()
             .ok_or_else(|| CommonError::validation("Agent ID not set"))?;
 
-        let payload = serde_json::json!({
-            "software": software,
-            "scan_timestamp": chrono::Utc::now().to_rfc3339(),
-        });
+        let (payload, dropped) = software_inventory_payload(software, chrono::Utc::now());
+        if dropped > 0 {
+            warn!(
+                "Software inventory has {} entries: only the first {} are uploaded (server cap), {} dropped",
+                software.len(),
+                MAX_SOFTWARE_ITEMS_PER_REQUEST,
+                dropped
+            );
+        }
 
         let url = format!("/v1/agents/{}/software", agent_id);
-        self.post(&url, &payload).await
+        crate::vuln_upload::send_pages(
+            "Software inventory",
+            std::slice::from_ref(&payload),
+            &crate::vuln_upload::UPLOAD_BACKOFF,
+            |body| crate::vuln_upload::post_attempt(self, &url, body),
+        )
+        .await
+        .map(|_| ())
+        .map_err(|(_, e)| CommonError::network(format!("Software inventory upload failed: {}", e)))
     }
 
     /// Generic POST request with JSON body and response.
@@ -1279,6 +1244,12 @@ mod tests {
                 command_type: "scan".to_string(),
                 payload: serde_json::Value::Null,
             },
+            // Signed MDM policy push (was rejected before being allowlisted).
+            AgentCommand {
+                id: "7".to_string(),
+                command_type: "configure".to_string(),
+                payload: serde_json::json!({"policyId": "p1", "policy": null, "action": "enforce"}),
+            },
         ];
 
         for cmd in valid_commands {
@@ -1331,6 +1302,30 @@ mod tests {
         assert_eq!(config.update_channel, "stable");
         assert!(!config.enable_auto_remediation);
         assert!(!config.enable_realtime_monitoring);
+        // Absent: the platform did not set it, the agent keeps its behaviour.
+        assert_eq!(config.enable_network_monitoring, None);
+    }
+
+    #[test]
+    fn test_server_agent_config_network_monitoring_consent() {
+        let off: ServerAgentConfig =
+            serde_json::from_str(r#"{"enable_network_monitoring": false}"#).unwrap();
+        assert_eq!(off.enable_network_monitoring, Some(false));
+        let on: ServerAgentConfig =
+            serde_json::from_str(r#"{"enable_network_monitoring": true}"#).unwrap();
+        assert_eq!(on.enable_network_monitoring, Some(true));
+        let null: ServerAgentConfig =
+            serde_json::from_str(r#"{"enable_network_monitoring": null}"#).unwrap();
+        assert_eq!(null.enable_network_monitoring, None);
+
+        // The config store keeps the JSON text of each key: the runtime reads
+        // it back as a typed bool (absent key = None = unchanged).
+        assert_eq!(serde_json::from_str::<bool>("false").ok(), Some(false));
+        let (state, _rx) = crate::state::RuntimeState::new();
+        state.apply_network_monitoring(off.enable_network_monitoring);
+        assert!(!state.network_monitoring_enabled());
+        state.apply_network_monitoring(ServerAgentConfig::default().enable_network_monitoring);
+        assert!(!state.network_monitoring_enabled());
     }
 
     #[test]
@@ -1362,7 +1357,7 @@ mod tests {
         assert!(config.enable_auto_remediation);
         assert!(config.enable_realtime_monitoring);
         assert!(config.enable_process_monitoring);
-        assert!(config.enable_network_monitoring);
+        assert_eq!(config.enable_network_monitoring, Some(true));
         assert!(!config.auto_update_enabled);
         assert_eq!(config.update_channel, "beta");
         assert_eq!(config.disabled_checks, vec!["usb_storage"]);
@@ -1408,37 +1403,6 @@ mod tests {
     }
 
     #[test]
-    fn test_config_response_deserialization() {
-        let json = r#"{
-            "config_version": 5,
-            "check_interval_secs": 3600,
-            "heartbeat_interval_secs": 60,
-            "log_level": "info",
-            "enabled_checks": ["disk_encryption"],
-            "offline_mode_days": 7,
-            "rules_version": 10,
-            "rules": [
-                {
-                    "id": "rule-1",
-                    "name": "Test Rule",
-                    "type": "registry",
-                    "framework": "NIS2",
-                    "control_id": "AC-1",
-                    "severity": "high",
-                    "platforms": ["windows"]
-                }
-            ]
-        }"#;
-
-        let config: ConfigResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(config.config_version, 5);
-        assert_eq!(config.rules_version, 10);
-        assert_eq!(config.rules.len(), 1);
-        assert_eq!(config.rules[0].name, "Test Rule");
-        assert_eq!(config.rules[0].framework, "NIS2");
-    }
-
-    #[test]
     fn test_result_request_serialization() {
         let request = ResultRequest {
             check_id: "disk_encryption".to_string(),
@@ -1458,42 +1422,53 @@ mod tests {
     }
 
     #[test]
+    fn test_software_inventory_payload_is_capped() {
+        let entry = |i: usize| SoftwareEntry {
+            name: format!("pkg{i}"),
+            version: Some("1.0".to_string()),
+            vendor: None,
+            source_name: None,
+        };
+        let now = chrono::Utc::now();
+
+        let small: Vec<SoftwareEntry> = (0..3).map(entry).collect();
+        let (payload, dropped) = software_inventory_payload(&small, now);
+        assert_eq!(dropped, 0);
+        assert_eq!(payload["software"].as_array().map(Vec::len), Some(3));
+        assert_eq!(payload["scan_timestamp"], now.to_rfc3339());
+
+        let large: Vec<SoftwareEntry> =
+            (0..MAX_SOFTWARE_ITEMS_PER_REQUEST + 5).map(entry).collect();
+        let (payload, dropped) = software_inventory_payload(&large, now);
+        assert_eq!(dropped, 5);
+        let items = payload["software"].as_array().unwrap();
+        assert_eq!(items.len(), MAX_SOFTWARE_ITEMS_PER_REQUEST);
+        assert_eq!(items[0]["name"], "pkg0");
+    }
+
+    #[test]
     fn test_software_entry_serialization() {
         let entry = SoftwareEntry {
             name: "Firefox".to_string(),
             version: Some("120.0".to_string()),
             vendor: Some("Mozilla".to_string()),
+            source_name: None,
         };
 
         let json = serde_json::to_string(&entry).unwrap();
         assert!(json.contains("Firefox"));
         assert!(json.contains("120.0"));
         assert!(json.contains("Mozilla"));
-    }
+        assert!(!json.contains("source_name"));
 
-    #[test]
-    fn test_check_rule_deserialization() {
-        let json = r#"{
-            "id": "rule-123",
-            "name": "Password Policy Check",
-            "type": "script",
-            "framework": "DORA",
-            "control_id": "IA-5",
-            "check_command": "pwpolicy getaccountpolicies",
-            "expected_result": "minChars=12",
-            "remediation": "Set minimum password length to 12",
-            "severity": "medium",
-            "platforms": ["macos", "linux"]
-        }"#;
-
-        let rule: CheckRule = serde_json::from_str(json).unwrap();
-        assert_eq!(rule.id, "rule-123");
-        assert_eq!(rule.name, "Password Policy Check");
-        assert_eq!(rule.rule_type, "script");
-        assert_eq!(rule.framework, "DORA");
-        assert_eq!(rule.severity, "medium");
-        assert_eq!(rule.platforms, vec!["macos", "linux"]);
-        assert!(rule.check_command.is_some());
-        assert!(rule.remediation.is_some());
+        let entry = SoftwareEntry {
+            name: "libssl3".to_string(),
+            version: Some("3.0.2-0ubuntu1.15".to_string()),
+            vendor: None,
+            source_name: Some("openssl".to_string()),
+        };
+        let value = serde_json::to_value(&entry).unwrap();
+        assert_eq!(value["name"], "libssl3");
+        assert_eq!(value["source_name"], "openssl");
     }
 }

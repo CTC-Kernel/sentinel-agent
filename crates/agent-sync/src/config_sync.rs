@@ -180,6 +180,24 @@ impl ConfigSyncService {
         self.sync_config().await
     }
 
+    /// Store values pushed by the platform outside the config download (a
+    /// signed `configure` command) as remote configuration, like downloaded
+    /// values: keys with a local override are left untouched.
+    ///
+    /// Returns the keys skipped because of a local override.
+    pub async fn store_remote_values(
+        &self,
+        values: &[(String, serde_json::Value)],
+    ) -> SyncResult<Vec<String>> {
+        let repo = ConfigRepository::new(&self.db);
+        let remote: HashMap<String, String> = values
+            .iter()
+            .map(|(k, v)| (k.clone(), serde_json::to_string(v).unwrap_or_default()))
+            .collect();
+        let merge = repo.merge_remote_config(remote).await?;
+        Ok(merge.skipped_keys)
+    }
+
     /// Get a specific configuration value.
     pub async fn get_config<T: for<'de> Deserialize<'de>>(
         &self,
@@ -266,6 +284,9 @@ pub mod config_keys {
     pub const USB_POLICY: &str = "usb_policy";
     /// Network threat intelligence configuration key.
     pub const THREAT_INTEL: &str = "threat_intel";
+    /// Network monitoring consent (bool). Only sent by the platform when an
+    /// administrator set it explicitly; absent means "agent default" (on).
+    pub const ENABLE_NETWORK_MONITORING: &str = "enable_network_monitoring";
 }
 
 #[cfg(test)]

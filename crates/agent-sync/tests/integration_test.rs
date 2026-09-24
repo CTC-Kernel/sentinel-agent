@@ -430,7 +430,6 @@ fn test_sync_kind_as_str_values() {
         (SyncKind::DetectionRules, "detection_rules"),
         (SyncKind::Risks, "risks"),
         (SyncKind::Assets, "assets"),
-        (SyncKind::Kpi, "kpi"),
         (SyncKind::Alerting, "alerting"),
     ];
 

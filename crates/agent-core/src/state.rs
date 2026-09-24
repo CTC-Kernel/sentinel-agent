@@ -39,6 +39,10 @@ pub struct RuntimeState {
     pub log_collector_poll_secs: Arc<AtomicU64>,
     /// Whether the LLM model is currently loaded (relaxes resource limits).
     pub llm_loaded: Arc<AtomicBool>,
+    /// Network monitoring consent (platform `enable_network_monitoring`):
+    /// when false, no network snapshot, connection list, network detection
+    /// upload or LAN discovery. True until the platform says otherwise.
+    pub network_monitoring: Arc<AtomicBool>,
     /// Last vulnerability scan results (cached for AI analysis context).
     pub last_vuln_findings:
         Arc<tokio::sync::RwLock<Option<agent_scanner::VulnerabilityScanResult>>>,
@@ -89,6 +93,7 @@ impl RuntimeState {
                 ]),
                 log_collector_poll_secs: Arc::new(AtomicU64::new(60)),
                 llm_loaded: Arc::new(AtomicBool::new(false)),
+                network_monitoring: Arc::new(AtomicBool::new(true)),
                 last_vuln_findings: Arc::new(tokio::sync::RwLock::new(None)),
             },
             rx,
@@ -117,5 +122,43 @@ impl RuntimeState {
 
     pub fn get_log_level(&self) -> u8 {
         self.log_level.load(Ordering::Acquire)
+    }
+
+    /// Whether network monitoring is allowed by the platform.
+    pub fn network_monitoring_enabled(&self) -> bool {
+        self.network_monitoring.load(Ordering::Acquire)
+    }
+
+    /// Apply the platform `enable_network_monitoring` value. `None` (the
+    /// platform did not set it) keeps the current behaviour. Returns the
+    /// previous value when it changed.
+    pub fn apply_network_monitoring(&self, value: Option<bool>) -> Option<bool> {
+        let enabled = value?;
+        let previous = self.network_monitoring.swap(enabled, Ordering::AcqRel);
+        (previous != enabled).then_some(previous)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn network_monitoring_defaults_on_and_absent_value_keeps_it() {
+        let (state, _rx) = RuntimeState::new();
+        assert!(state.network_monitoring_enabled());
+        assert_eq!(state.apply_network_monitoring(None), None);
+        assert!(state.network_monitoring_enabled());
+
+        assert_eq!(state.apply_network_monitoring(Some(false)), Some(true));
+        assert!(!state.network_monitoring_enabled());
+        // Absent later: the last explicit value stays.
+        assert_eq!(state.apply_network_monitoring(None), None);
+        assert!(!state.network_monitoring_enabled());
+        // Same value again: no change reported.
+        assert_eq!(state.apply_network_monitoring(Some(false)), None);
+
+        assert_eq!(state.apply_network_monitoring(Some(true)), Some(false));
+        assert!(state.network_monitoring_enabled());
     }
 }

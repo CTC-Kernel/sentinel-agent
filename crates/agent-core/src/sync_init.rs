@@ -73,144 +73,196 @@ impl AgentRuntime {
 
     /// Apply configuration changes received from the server.
     pub(crate) async fn apply_config_changes(&self) {
+        if let Err(e) = self.refresh_config().await {
+            warn!("Config sync failed: {}", e);
+        }
+    }
+
+    /// Download the server configuration and apply the stored settings.
+    ///
+    /// Returns whether the stored configuration changed.
+    pub(crate) async fn refresh_config(&self) -> Result<bool, String> {
         let config_sync = self.config_sync.read().await;
-        if let Some(ref config_sync) = *config_sync {
-            match config_sync.sync_config().await {
-                Ok(result) => {
-                    if result.changed {
-                        info!(
-                            "Config sync: {} added, {} updated, {} skipped",
-                            result.added, result.updated, result.skipped
-                        );
+        let Some(ref config_sync) = *config_sync else {
+            return Err("config sync service not initialized (agent not enrolled)".to_string());
+        };
+        let result = config_sync.sync_config().await.map_err(|e| e.to_string())?;
+        if result.changed {
+            info!(
+                "Config sync: {} added, {} updated, {} skipped",
+                result.added, result.updated, result.skipped
+            );
+            self.apply_stored_config(config_sync).await;
+        } else {
+            debug!("Config sync: no changes");
+        }
+        Ok(result.changed)
+    }
 
-                        // Apply heartbeat interval change if present
-                        if let Ok(Some(interval)) = config_sync
-                            .get_config::<u64>(agent_sync::config_keys::HEARTBEAT_INTERVAL_SECS)
-                            .await
-                        {
-                            let interval = interval.clamp(15, 3600);
-                            let mut current = self.heartbeat_interval_secs.write().await;
-                            if *current != interval {
-                                info!("Heartbeat interval updated: {}s → {}s", *current, interval);
-                                *current = interval;
-                            }
-                        }
-
-                        // Apply check interval change if present
-                        if let Ok(Some(interval)) = config_sync
-                            .get_config::<u64>(agent_sync::config_keys::CHECK_INTERVAL_SECS)
-                            .await
-                        {
-                            let interval = interval.clamp(60, 86400);
-                            let current = self.state.get_check_interval();
-                            if current != interval {
-                                info!("Check interval updated: {}s → {}s", current, interval);
-                                self.state.set_check_interval(interval);
-                            }
-                        }
-
-                        // Apply log level change if present
-                        if let Ok(Some(level_str)) = config_sync
-                            .get_config::<String>(agent_sync::config_keys::LOG_LEVEL)
-                            .await
-                        {
-                            let level: u8 = match level_str.as_str() {
-                                "trace" => 0,
-                                "debug" => 1,
-                                "info" => 2,
-                                "warn" => 3,
-                                "error" => 4,
-                                _ => 2,
-                            };
-                            let current = self.state.get_log_level();
-                            if current != level {
-                                info!("Log level updated: {} → {}", current, level_str);
-                                self.state.set_log_level(level);
-                            }
-                        }
-
-                        // Apply active frameworks change if present
-                        if let Ok(Some(frameworks)) = config_sync
-                            .get_config::<Vec<String>>(agent_sync::config_keys::ACTIVE_FRAMEWORKS)
-                            .await
-                        {
-                            let mut current = self
-                                .active_frameworks
-                                .write()
-                                .unwrap_or_else(|e| e.into_inner());
-                            if current.as_ref() != Some(&frameworks) {
-                                info!(
-                                    "Active frameworks updated: {:?} → {:?}",
-                                    current, frameworks
-                                );
-                                *current = Some(frameworks);
-                            }
-                        }
-
-                        // Apply FIM config changes
-                        if let Ok(Some(fim_config)) = config_sync
-                            .get_config::<agent_fim::FimConfig>(agent_sync::config_keys::FIM_CONFIG)
-                            .await
-                        {
-                            let mut guard = self.fim_engine.write().await;
-                            if let Some(fim_engine) = guard.as_mut() {
-                                if fim_engine.update_config(fim_config.clone()).await.is_ok() {
-                                    info!("FIM engine configuration updated.");
-                                } else {
-                                    warn!("Failed to update FIM engine configuration.");
-                                }
-                            }
-                        }
-
-                        // Apply USB policy changes
-                        if let Ok(Some(usb_policy)) = config_sync
-                            .get_config::<agent_common::types::UsbPolicy>(
-                                agent_sync::config_keys::USB_POLICY,
-                            )
-                            .await
-                            && let Ok(mut usb) = self.usb_monitor.lock()
-                        {
-                            info!(
-                                "USB policy updated: {} allowlisted devices",
-                                usb_policy.allowlist.len()
-                            );
-                            usb.update_policy(usb_policy);
-                        }
-
-                        // Apply SIEM config changes
-                        if let Ok(Some(siem_config)) = config_sync
-                            .get_config::<agent_siem::SiemConfig>(
-                                agent_sync::config_keys::SIEM_CONFIG,
-                            )
-                            .await
-                        {
-                            let mut siem_forwarder_guard = self.siem_forwarder.write().await;
-                            if let Some(ref mut siem_forwarder) = *siem_forwarder_guard {
-                                if siem_forwarder.update_config(siem_config.clone()).is_ok() {
-                                    info!("SIEM forwarder configuration updated.");
-                                } else {
-                                    warn!("Failed to update SIEM forwarder configuration.");
-                                }
-                            }
-                        }
-
-                        // Apply network threat intelligence changes
-                        if let Ok(Some(threat_intel)) = config_sync
-                            .get_config::<agent_network::ThreatIntelligence>(
-                                agent_sync::config_keys::THREAT_INTEL,
-                            )
-                            .await
-                        {
-                            let mut network_manager = self.network_manager.write().await;
-                            network_manager.update_threat_intel(threat_intel);
-                            info!("Network threat intelligence updated from platform.");
-                        }
-                    } else {
-                        debug!("Config sync: no changes");
-                    }
-                }
-                Err(e) => warn!("Config sync failed: {}", e),
+    /// Apply the settings held in the local config store (downloaded from the
+    /// server or pushed by a `configure` command) to the running agent.
+    pub(crate) async fn apply_stored_config(&self, config_sync: &ConfigSyncService) {
+        // Apply heartbeat interval change if present
+        if let Ok(Some(interval)) = config_sync
+            .get_config::<u64>(agent_sync::config_keys::HEARTBEAT_INTERVAL_SECS)
+            .await
+        {
+            let interval = interval.clamp(15, 3600);
+            let mut current = self.heartbeat_interval_secs.write().await;
+            if *current != interval {
+                info!("Heartbeat interval updated: {}s → {}s", *current, interval);
+                *current = interval;
             }
+        }
+
+        // Apply check interval change if present
+        if let Ok(Some(interval)) = config_sync
+            .get_config::<u64>(agent_sync::config_keys::CHECK_INTERVAL_SECS)
+            .await
+        {
+            let interval = interval.clamp(60, 86400);
+            let current = self.state.get_check_interval();
+            if current != interval {
+                info!("Check interval updated: {}s → {}s", current, interval);
+                self.state.set_check_interval(interval);
+            }
+        }
+
+        // Apply log level change if present
+        if let Ok(Some(level_str)) = config_sync
+            .get_config::<String>(agent_sync::config_keys::LOG_LEVEL)
+            .await
+        {
+            let level: u8 = match level_str.as_str() {
+                "trace" => 0,
+                "debug" => 1,
+                "info" => 2,
+                "warn" => 3,
+                "error" => 4,
+                _ => 2,
+            };
+            let current = self.state.get_log_level();
+            if current != level {
+                info!("Log level updated: {} → {}", current, level_str);
+                self.state.set_log_level(level);
+            }
+        }
+
+        // Apply active frameworks change if present
+        if let Ok(Some(frameworks)) = config_sync
+            .get_config::<Vec<String>>(agent_sync::config_keys::ACTIVE_FRAMEWORKS)
+            .await
+        {
+            let mut current = self
+                .active_frameworks
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
+            if current.as_ref() != Some(&frameworks) {
+                info!(
+                    "Active frameworks updated: {:?} → {:?}",
+                    current, frameworks
+                );
+                *current = Some(frameworks);
+            }
+        }
+
+        // Apply FIM config changes
+        if let Ok(Some(fim_config)) = config_sync
+            .get_config::<agent_fim::FimConfig>(agent_sync::config_keys::FIM_CONFIG)
+            .await
+        {
+            let mut guard = self.fim_engine.write().await;
+            if let Some(fim_engine) = guard.as_mut() {
+                if fim_engine.update_config(fim_config.clone()).await.is_ok() {
+                    info!("FIM engine configuration updated.");
+                } else {
+                    warn!("Failed to update FIM engine configuration.");
+                }
+            }
+        }
+
+        // Apply USB policy changes
+        if let Ok(Some(usb_policy)) = config_sync
+            .get_config::<agent_common::types::UsbPolicy>(agent_sync::config_keys::USB_POLICY)
+            .await
+            && let Ok(mut usb) = self.usb_monitor.lock()
+        {
+            info!(
+                "USB policy updated: {} allowlisted devices",
+                usb_policy.allowlist.len()
+            );
+            usb.update_policy(usb_policy);
+        }
+
+        // Apply SIEM config changes
+        if let Ok(Some(siem_config)) = config_sync
+            .get_config::<agent_siem::SiemConfig>(agent_sync::config_keys::SIEM_CONFIG)
+            .await
+        {
+            let mut siem_forwarder_guard = self.siem_forwarder.write().await;
+            if let Some(ref mut siem_forwarder) = *siem_forwarder_guard {
+                if siem_forwarder.update_config(siem_config.clone()).is_ok() {
+                    info!("SIEM forwarder configuration updated.");
+                } else {
+                    warn!("Failed to update SIEM forwarder configuration.");
+                }
+            }
+        }
+
+        // Apply network threat intelligence changes
+        if let Ok(Some(threat_intel)) = config_sync
+            .get_config::<agent_network::ThreatIntelligence>(agent_sync::config_keys::THREAT_INTEL)
+            .await
+        {
+            let mut network_manager = self.network_manager.write().await;
+            network_manager.update_threat_intel(threat_intel);
+            info!("Network threat intelligence updated from platform.");
+        }
+
+        // Network monitoring consent (absent = keep current behaviour).
+        match config_sync
+            .get_config::<bool>(agent_sync::config_keys::ENABLE_NETWORK_MONITORING)
+            .await
+        {
+            Ok(value) => self.apply_network_monitoring_consent(value),
+            Err(e) => warn!("Failed to read network monitoring consent: {}", e),
+        }
+    }
+
+    /// Apply the platform network monitoring consent (`None` = unchanged).
+    pub(crate) fn apply_network_monitoring_consent(&self, value: Option<bool>) {
+        if let Some(previous) = self.state.apply_network_monitoring(value) {
+            if previous {
+                warn!(
+                    "Network monitoring disabled by the platform: no network snapshot, \
+                     connection list, network alert upload or LAN discovery until re-enabled"
+                );
+            } else {
+                info!("Network monitoring re-enabled by the platform");
+            }
+        }
+    }
+
+    /// Restore the last network monitoring consent received from the
+    /// platform (persisted in the local config store) before any collection.
+    pub(crate) async fn load_persisted_network_consent(&self) {
+        if self.config.standalone {
+            return;
+        }
+        let Some(ref db) = self.db else {
+            return;
+        };
+        match agent_storage::ConfigRepository::new(db)
+            .get_typed::<bool>(agent_sync::config_keys::ENABLE_NETWORK_MONITORING)
+            .await
+        {
+            Ok(value) => {
+                if value == Some(false) {
+                    info!("Network monitoring disabled by platform policy (persisted)");
+                }
+                self.apply_network_monitoring_consent(value);
+            }
+            Err(e) => warn!("Failed to load persisted network monitoring consent: {}", e),
         }
     }
 

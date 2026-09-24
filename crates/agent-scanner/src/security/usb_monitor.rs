@@ -63,7 +63,11 @@ impl UsbMonitor {
                     device.class.label(),
                     device.vendor_id,
                     device.product_id,
-                    if allowed { "allowed" } else { "BLOCKED" }
+                    if allowed {
+                        "allowed"
+                    } else {
+                        "not allowed by policy (monitoring only, not blocked)"
+                    }
                 );
 
                 events.push(UsbEvent {
