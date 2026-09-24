@@ -15,6 +15,19 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
+  # Scan the complete Git history so credentials cannot silently enter releases.
+  secrets:
+    name: Secret Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
   # Format check - fast, run first
   fmt:
     name: Format Check
