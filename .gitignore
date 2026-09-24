@@ -74,6 +74,7 @@ build_log.txt
 node_modules/
 dist/
 dist-ssr/
+*.tsbuildinfo
 *.local
 
 # Firebase (NEVER commit)
@@ -141,6 +142,7 @@ docs/firebase-permissions.md
 
 # AI/IDE workflow configs (local tooling)
 .agent/
+.claude/settings.local.json
 .claude/commands/bmad/
 .windsurf/
 .github/agents/
