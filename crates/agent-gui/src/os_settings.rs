@@ -198,46 +198,49 @@ fn settings_target(check_id: &str) -> Option<SettingsTarget> {
     })
 }
 
-#[cfg(target_os = "macos")]
 fn open_os_settings(target: SettingsTarget) -> bool {
-    std::process::Command::new("open")
-        .arg(target.macos)
-        .spawn()
-        .is_ok()
-}
-
-#[cfg(target_os = "windows")]
-fn open_os_settings(target: SettingsTarget) -> bool {
-    agent_common::process::silent_command("cmd")
-        .args(["/C", "start", target.windows])
-        .spawn()
-        .is_ok()
-}
-
-#[cfg(target_os = "linux")]
-fn open_os_settings(target: SettingsTarget) -> bool {
-    // Desktop environments expose different settings launchers. Try the
-    // targeted GNOME panel first, then current and legacy KDE launchers.
-    // `spawn` is intentionally used: the GUI must never block on a panel.
-    for (program, argument) in [
-        ("gnome-control-center", Some(target.linux)),
-        ("systemsettings6", None),
-        ("systemsettings5", None),
-    ] {
-        let mut command = std::process::Command::new(program);
-        if let Some(argument) = argument {
-            command.arg(argument);
-        }
-        if command.spawn().is_ok() {
-            return true;
-        }
+    #[cfg(target_os = "macos")]
+    {
+        return std::process::Command::new("open")
+            .arg(target.macos)
+            .spawn()
+            .is_ok();
     }
-    false
-}
 
-#[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
-fn open_os_settings(_target: SettingsTarget) -> bool {
-    false
+    #[cfg(target_os = "windows")]
+    {
+        return agent_common::process::silent_command("cmd")
+            .args(["/C", "start", target.windows])
+            .spawn()
+            .is_ok();
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // Desktop environments expose different settings launchers. Try the
+        // targeted GNOME panel first, then current and legacy KDE launchers.
+        // `spawn` is intentionally used: the GUI must never block on a panel.
+        for (program, argument) in [
+            ("gnome-control-center", Some(target.linux)),
+            ("systemsettings6", None),
+            ("systemsettings5", None),
+        ] {
+            let mut command = std::process::Command::new(program);
+            if let Some(argument) = argument {
+                command.arg(argument);
+            }
+            if command.spawn().is_ok() {
+                return true;
+            }
+        }
+        false
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    {
+        let _ = target;
+        false
+    }
 }
 
 #[cfg(test)]
