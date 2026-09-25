@@ -517,16 +517,32 @@ pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
     }
 
     if is_dark_mode() {
-        // Concentric translucent discs approximate a soft radial gradient in
-        // egui while staying cheap enough to repaint during live telemetry.
+        // A single vertex-coloured mesh gives us a genuinely continuous
+        // radial falloff. Stacked translucent discs left visible contour
+        // rings on calibrated/high-contrast displays, especially in the
+        // upper-right corner of the workspace.
         let center = egui::pos2(rect.right() - 120.0, rect.top() + 40.0);
-        for (radius, alpha) in [(360.0, 3), (260.0, 4), (170.0, 5)] {
-            painter.circle_filled(
-                center,
-                radius,
-                Color32::from_rgba_unmultiplied(36, 78, 190, alpha),
-            );
+        let radius = 430.0;
+        let segments = 64_u32;
+        let mut mesh = egui::epaint::Mesh::default();
+        mesh.vertices.push(egui::epaint::Vertex {
+            pos: center,
+            uv: egui::epaint::WHITE_UV,
+            color: Color32::from_rgba_unmultiplied(55, 101, 225, 18),
+        });
+        for index in 0..segments {
+            let angle = std::f32::consts::TAU * index as f32 / segments as f32;
+            mesh.vertices.push(egui::epaint::Vertex {
+                pos: center + egui::vec2(angle.cos(), angle.sin()) * radius,
+                uv: egui::epaint::WHITE_UV,
+                color: Color32::TRANSPARENT,
+            });
         }
+        for index in 0..segments {
+            mesh.indices
+                .extend_from_slice(&[0, index + 1, (index + 1) % segments + 1]);
+        }
+        painter.add(egui::Shape::mesh(mesh));
     }
 }
 
