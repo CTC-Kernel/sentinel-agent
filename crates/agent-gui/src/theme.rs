@@ -67,14 +67,16 @@ pub fn detect_os_dark_mode() -> bool {
             .args(["read", "-g", "AppleInterfaceStyle"])
             .output()
             .ok()
-            .and_then(|out| {
-                if !out.status.success() {
-                    return None;
-                }
-                String::from_utf8(out.stdout).ok()
+            .map(|out| {
+                // In macOS light mode the key is normally absent and
+                // `defaults read` exits non-zero. That is a valid light-mode
+                // answer, not a detection failure.
+                out.status.success()
+                    && String::from_utf8_lossy(&out.stdout)
+                        .trim()
+                        .eq_ignore_ascii_case("Dark")
             })
-            .map(|s| s.trim().eq_ignore_ascii_case("Dark"))
-            .unwrap_or(true) // If key doesn't exist → light mode absent → assume dark
+            .unwrap_or(true) // Only a missing `defaults` binary uses the safe dark fallback.
     }
     #[cfg(target_os = "windows")]
     {
@@ -88,17 +90,15 @@ pub fn detect_os_dark_mode() -> bool {
             ])
             .output()
             .ok()
-            .and_then(|out| {
+            .map(|out| {
                 if !out.status.success() {
-                    return None;
+                    // Missing personalization value means the Windows
+                    // default, which is the light application theme.
+                    return false;
                 }
-                let text = String::from_utf8(out.stdout).ok()?;
+                let text = String::from_utf8_lossy(&out.stdout);
                 // Value is REG_DWORD: 0x0 = dark, 0x1 = light
-                if text.contains("0x0") {
-                    Some(true)
-                } else {
-                    Some(false)
-                }
+                text.contains("0x0")
             })
             .unwrap_or(true)
     }
@@ -489,6 +489,63 @@ pub const TOPBAR_HEIGHT: f32 = 56.0;
 /// centre instead — an unbounded line length is unreadable on wide displays.
 pub const CONTENT_MAX_WIDTH: f32 = 1560.0;
 
+/// Paint the quiet spatial grid and brand glow behind a workspace.
+///
+/// The treatment is intentionally restricted to the application canvas: it
+/// gives dense security views a stable coordinate system without competing
+/// with tables, cards, or text. Light mode keeps only the barely-visible grid.
+pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
+    if !painter.clip_rect().intersects(rect) {
+        return;
+    }
+
+    let grid = if is_dark_mode() {
+        Color32::from_rgba_unmultiplied(107, 165, 255, 10)
+    } else {
+        Color32::from_rgba_unmultiplied(29, 79, 216, 8)
+    };
+    let step = 32.0;
+    let mut x = rect.left() - rect.left().rem_euclid(step);
+    while x <= rect.right() {
+        painter.vline(x, rect.y_range(), Stroke::new(BORDER_HAIRLINE, grid));
+        x += step;
+    }
+    let mut y = rect.top() - rect.top().rem_euclid(step);
+    while y <= rect.bottom() {
+        painter.hline(rect.x_range(), y, Stroke::new(BORDER_HAIRLINE, grid));
+        y += step;
+    }
+
+    if is_dark_mode() {
+        // A single vertex-coloured mesh gives us a genuinely continuous
+        // radial falloff. Stacked translucent discs left visible contour
+        // rings on calibrated/high-contrast displays, especially in the
+        // upper-right corner of the workspace.
+        let center = egui::pos2(rect.right() - 120.0, rect.top() + 40.0);
+        let radius = 430.0;
+        let segments = 64_u32;
+        let mut mesh = egui::epaint::Mesh::default();
+        mesh.vertices.push(egui::epaint::Vertex {
+            pos: center,
+            uv: egui::epaint::WHITE_UV,
+            color: Color32::from_rgba_unmultiplied(55, 101, 225, 18),
+        });
+        for index in 0..segments {
+            let angle = std::f32::consts::TAU * index as f32 / segments as f32;
+            mesh.vertices.push(egui::epaint::Vertex {
+                pos: center + egui::vec2(angle.cos(), angle.sin()) * radius,
+                uv: egui::epaint::WHITE_UV,
+                color: Color32::TRANSPARENT,
+            });
+        }
+        for index in 0..segments {
+            mesh.indices
+                .extend_from_slice(&[0, index + 1, (index + 1) % segments + 1]);
+        }
+        painter.add(egui::Shape::mesh(mesh));
+    }
+}
+
 /// Radius scale — one step per component scale, so nothing looks borrowed.
 ///
 /// `XS` accent bars · `SM` chips and hover fills · `MD` inputs and small
@@ -713,19 +770,19 @@ pub const WINDOW_MIN_WIDTH: f32 = 960.0;
 /// Minimum window height.
 pub const WINDOW_MIN_HEIGHT: f32 = 600.0;
 /// Tray popup width (satellite mode).
-pub const TRAY_WIDTH: f32 = 320.0;
+pub const TRAY_WIDTH: f32 = 360.0;
 /// Tray popup height (satellite mode).
-pub const TRAY_HEIGHT: f32 = 480.0;
+pub const TRAY_HEIGHT: f32 = 570.0;
 /// Tray popup max height (expanded view).
-pub const TRAY_POPUP_MAX_HEIGHT: f32 = 500.0;
+pub const TRAY_POPUP_MAX_HEIGHT: f32 = 620.0;
 /// Tray popup min width.
 pub const TRAY_POPUP_MIN_WIDTH: f32 = 350.0;
 /// Tray popup max width.
 pub const TRAY_POPUP_MAX_WIDTH: f32 = 600.0;
 /// Tray radar visualization size.
-pub const TRAY_RADAR_SIZE: f32 = 240.0;
+pub const TRAY_RADAR_SIZE: f32 = 250.0;
 /// Tray satellite quick-stat card width.
-pub const TRAY_SATELLITE_CARD_WIDTH: f32 = 135.0;
+pub const TRAY_SATELLITE_CARD_WIDTH: f32 = 150.0;
 
 // ============================================================================
 // Backdrop / overlay constants

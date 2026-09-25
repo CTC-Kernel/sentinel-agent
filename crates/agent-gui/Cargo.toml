@@ -47,3 +47,22 @@ zeroize.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true
+
+# Every example exercises egui/eframe APIs. Declaring the requirement keeps
+# DTO-only builds (`--no-default-features --all-targets`) valid instead of
+# trying to compile graphical examples without their optional dependencies.
+[[example]]
+name = "gui_demo"
+required-features = ["render"]
+
+[[example]]
+name = "preview"
+required-features = ["render"]
+
+[[example]]
+name = "scroll_probe"
+required-features = ["render"]
+
+[[example]]
+name = "visual_review"
+required-features = ["render"]

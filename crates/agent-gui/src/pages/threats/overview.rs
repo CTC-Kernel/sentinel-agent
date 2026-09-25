@@ -28,8 +28,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
     // No inner ScrollArea — the parent in app.rs already wraps everything.
     {
-        // Build once: the command radar is deliberately the first operational
-        // surface on this page and every section below reuses the same snapshot.
+        // The operational radar is the primary decision surface and must be
+        // visible without scrolling. Build its unified feed once and keep all
+        // secondary analytics below it.
         let all_threats = build_threat_list(state);
 
         // ── Threat command radar — always above metrics and analytics ────────
@@ -1664,14 +1665,14 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             painter.circle_stroke(
                 position,
                 7.0 + pulse * 3.0,
-                egui::Stroke::new(1.0, color.linear_multiply(0.55)),
+                egui::Stroke::new(1.0_f32, color.linear_multiply(0.55)),
             );
             painter.circle_filled(position, if is_selected { 5.5 } else { 4.0 }, color);
             if is_selected {
                 painter.circle_stroke(
                     position,
                     11.0,
-                    egui::Stroke::new(2.0, theme::text_primary()),
+                    egui::Stroke::new(2.0_f32, theme::text_primary()),
                 );
             }
 
@@ -1688,7 +1689,11 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                         .strong()
                         .color(theme::text_primary()),
                 );
-                ui.label(egui::RichText::new(severity_display(threat.severity)).color(color));
+                let (sev_icon, _) = severity_display(threat.severity);
+                ui.label(
+                    egui::RichText::new(format!("{} {}", sev_icon, threat.severity.to_uppercase()))
+                        .color(color),
+                );
                 ui.label(
                     egui::RichText::new(&threat.description)
                         .font(theme::font_caption())
@@ -1766,7 +1771,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 egui::Align2::LEFT_BOTTOM,
                 format!(
                     "SIGNAL ÉPINGLÉ  ·  {}  ·  {}",
-                    severity_display(threat.severity).to_uppercase(),
+                    threat.severity.to_uppercase(),
                     threat.title
                 ),
                 theme::font_label(),

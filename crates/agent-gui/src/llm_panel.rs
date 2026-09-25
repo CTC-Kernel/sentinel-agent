@@ -58,6 +58,94 @@ impl LLMPanel {
     pub fn show(&mut self, ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         // ── Page Header ─────────────────────────────────────────────────
         ui.add_space(theme::SPACE_MD);
+
+        widgets::card(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(
+                    egui::RichText::new("VOICE COMMAND")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
+                );
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let (status, color) = if state.ai.is_listening {
+                        ("ÉCOUTE ACTIVE", theme::SUCCESS)
+                    } else if state.ai.is_speaking {
+                        ("RÉPONSE VOCALE", theme::ACCENT)
+                    } else if state.ai.is_processing {
+                        ("ANALYSE EN COURS", theme::WARNING)
+                    } else {
+                        ("PRÊT", theme::text_secondary())
+                    };
+                    widgets::status_badge(ui, status, color);
+                });
+            });
+            ui.add_space(theme::SPACE_SM);
+
+            ui.horizontal_wrapped(|ui| {
+                let conversation_toggle = ui
+                    .checkbox(
+                        &mut state.ai.voice_conversation_enabled,
+                        "Conversation vocale continue",
+                    )
+                    .on_hover_text("Lit les réponses puis rouvre automatiquement le microphone");
+                if conversation_toggle.changed() && !state.ai.voice_conversation_enabled {
+                    // Disabling hands-free mode must cancel a previously armed
+                    // microphone hand-back from an in-flight spoken response.
+                    state.ai.voice_reply_pending = false;
+                }
+                ui.checkbox(
+                    &mut state.ai.voice_alerts_enabled,
+                    "Alertes de sécurité vocales",
+                )
+                .on_hover_text("Annonce uniquement les notifications importantes ou critiques");
+            });
+
+            ui.add_space(theme::SPACE_SM);
+            ui.separator();
+            ui.add_space(theme::SPACE_XS);
+            ui.horizontal_wrapped(|ui| {
+                if state.ai.is_listening {
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "Niveau micro {:02}%",
+                            (state.ai.mic_level.clamp(0.0, 1.0) * 100.0).round() as u8
+                        ))
+                        .font(theme::font_small())
+                        .color(theme::SUCCESS),
+                    );
+                } else {
+                    ui.label(
+                        egui::RichText::new(
+                            "Le microphone reste local et ne s'ouvre que sur votre demande.",
+                        )
+                        .font(theme::font_small())
+                        .color(theme::text_tertiary()),
+                    );
+                }
+
+                if !state.ai.pending_voice_alerts.is_empty() {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(
+                            egui::RichText::new(format!(
+                                "{} alerte{} en attente",
+                                state.ai.pending_voice_alerts.len(),
+                                if state.ai.pending_voice_alerts.len() > 1 {
+                                    "s"
+                                } else {
+                                    ""
+                                }
+                            ))
+                            .font(theme::font_small())
+                            .color(theme::WARNING),
+                        );
+                    });
+                }
+            });
+        });
+
+        ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
             &["Assistant", "Assistant IA"],
@@ -189,10 +277,13 @@ impl LLMPanel {
                         processing_time_ms: None,
                     });
                     state.ai.is_processing = true;
+                    let prompt_context = Self::infer_prompt_context(prompt);
                     command = Some(GuiCommand::LlmPrompt {
-                        prompt: prompt.to_string(),
-                        context: None,
+                        prompt: Self::grounded_prompt(state, prompt),
+                        context: Some(prompt_context),
+                        speak_response: state.ai.voice_conversation_enabled,
                     });
+                    state.ai.voice_reply_pending = state.ai.voice_conversation_enabled;
                 }
             }
         });
@@ -205,6 +296,8 @@ impl LLMPanel {
                 // PREMIUM Voice Toggle
                 if widgets::voice_toggle_button(ui, state.ai.is_listening).clicked() {
                     state.ai.is_listening = !state.ai.is_listening;
+                    // A deliberate mic action supersedes any automatic hand-back.
+                    state.ai.voice_reply_pending = false;
                     if state.ai.is_listening {
                         state.ai.is_speaking = false;
                     }
@@ -241,15 +334,259 @@ impl LLMPanel {
                     });
                     state.ai.input_text.clear();
                     state.ai.is_processing = true;
+                    let prompt_context = Self::infer_prompt_context(&prompt);
                     command = Some(GuiCommand::LlmPrompt {
-                        prompt,
-                        context: None,
+                        prompt: Self::grounded_prompt(state, &prompt),
+                        context: Some(prompt_context),
+                        speak_response: voice_auto_send || state.ai.voice_conversation_enabled,
                     });
+                    state.ai.voice_reply_pending = state.ai.voice_conversation_enabled;
                 }
             });
         });
 
         command
+    }
+
+    fn infer_prompt_context(question: &str) -> crate::dto::LlmPromptContext {
+        use crate::dto::LlmPromptContext;
+        let normalized = question.to_lowercase();
+        if ["cve", "vuln", "correctif", "patch"]
+            .iter()
+            .any(|keyword| normalized.contains(keyword))
+        {
+            LlmPromptContext::Vulnerabilities
+        } else if ["réseau", "reseau", "ip", "port", "connexion", "dns"]
+            .iter()
+            .any(|keyword| normalized.contains(keyword))
+        {
+            LlmPromptContext::Network
+        } else if ["menace", "incident", "processus", "alerte", "ioc"]
+            .iter()
+            .any(|keyword| normalized.contains(keyword))
+        {
+            LlmPromptContext::Threats
+        } else if [
+            "conform",
+            "contrôle",
+            "controle",
+            "audit",
+            "iso",
+            "nis2",
+            "dora",
+        ]
+        .iter()
+        .any(|keyword| normalized.contains(keyword))
+        {
+            LlmPromptContext::Compliance
+        } else {
+            LlmPromptContext::General
+        }
+    }
+
+    /// Ground free-form chat in the live endpoint telemetry visible to the GUI.
+    /// The snapshot is deliberately bounded so local models keep enough context
+    /// budget for reasoning and never need direct database or network access.
+    fn grounded_prompt(state: &AppState, question: &str) -> String {
+        let failed_count = state
+            .checks
+            .iter()
+            .filter(|check| matches!(check.status, GuiCheckStatus::Fail | GuiCheckStatus::Error))
+            .count();
+        let mut prioritized_checks: Vec<_> = state
+            .checks
+            .iter()
+            .filter(|check| matches!(check.status, GuiCheckStatus::Fail | GuiCheckStatus::Error))
+            .collect();
+        prioritized_checks.sort_by_key(|check| {
+            std::cmp::Reverse((
+                Self::severity_weight(check.severity),
+                matches!(check.status, GuiCheckStatus::Error),
+            ))
+        });
+        let failed: Vec<String> = prioritized_checks
+            .into_iter()
+            .take(8)
+            .map(|check| {
+                format!(
+                    "{} [{}] ({:?}, {:?})",
+                    Self::text_excerpt(&check.name, 120),
+                    Self::text_excerpt(&check.check_id, 64),
+                    check.severity,
+                    check.status
+                )
+            })
+            .collect();
+        let mut prioritized_vulnerabilities: Vec<_> = state.vulnerability_findings.iter().collect();
+        prioritized_vulnerabilities.sort_by(|left, right| {
+            let right_score = right
+                .cvss_score
+                .unwrap_or_else(|| Self::severity_weight(right.severity) as f32);
+            let left_score = left
+                .cvss_score
+                .unwrap_or_else(|| Self::severity_weight(left.severity) as f32);
+            right_score.total_cmp(&left_score)
+        });
+        let vulnerabilities: Vec<String> = prioritized_vulnerabilities
+            .into_iter()
+            .take(8)
+            .map(|finding| {
+                format!(
+                    "{} sur {} {} ({:?}, CVSS {})",
+                    Self::text_excerpt(&finding.cve_id, 48),
+                    Self::text_excerpt(&finding.affected_software, 100),
+                    Self::text_excerpt(&finding.affected_version, 48),
+                    finding.severity,
+                    finding
+                        .cvss_score
+                        .map(|score| format!("{score:.1}"))
+                        .unwrap_or_else(|| "inconnu".to_string())
+                )
+            })
+            .collect();
+        let threats: Vec<String> = state
+            .threats
+            .suspicious_processes
+            .iter()
+            .take(6)
+            .map(|process| {
+                format!(
+                    "Processus {} PID {} (confiance {}%): {}",
+                    process.process_name,
+                    process.pid,
+                    process.confidence,
+                    Self::text_excerpt(&process.reason, 180)
+                )
+            })
+            .chain(
+                state
+                    .threats
+                    .system_incidents
+                    .iter()
+                    .take(6)
+                    .map(|incident| {
+                        format!(
+                            "{} ({:?}, confiance {}%)",
+                            Self::text_excerpt(&incident.title, 160),
+                            incident.severity,
+                            incident.confidence
+                        )
+                    }),
+            )
+            .chain(state.network.alerts.iter().take(6).map(|alert| {
+                format!(
+                    "Alerte réseau {} ({:?}, confiance {}%)",
+                    Self::text_excerpt(&alert.alert_type, 120),
+                    alert.severity,
+                    alert.confidence
+                )
+            }))
+            .chain(
+                state
+                    .fim
+                    .alerts
+                    .iter()
+                    .filter(|alert| !alert.acknowledged)
+                    .take(4)
+                    .map(|alert| {
+                        format!(
+                            "FIM {:?}: {}",
+                            alert.change_type,
+                            Self::text_excerpt(&alert.path, 180)
+                        )
+                    }),
+            )
+            .collect();
+        let recent_conversation: Vec<String> = state
+            .ai
+            .chat_history
+            .iter()
+            .rev()
+            .skip(1)
+            .take(4)
+            .rev()
+            .map(|message| {
+                format!(
+                    "{:?}: {}",
+                    message.role,
+                    Self::text_excerpt(&message.content, 600)
+                )
+            })
+            .collect();
+
+        let unacknowledged_fim = state
+            .fim
+            .alerts
+            .iter()
+            .filter(|alert| !alert.acknowledged)
+            .count();
+
+        format!(
+            "QUESTION OPÉRATEUR:\n{question}\n\nCONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):\n- Mode: {}\n- Score de conformité: {:.1}%\n- Contrôles: {} total, {} en échec/erreur\n- Vulnérabilités: {}\n- Menaces: {} processus suspects, {} incidents système, {} alertes réseau, {} alertes FIM\n- Ressources: CPU {:.0}%, mémoire {:.0}%, disque {:.0}%\n- Contrôles prioritaires: {}\n- Vulnérabilités prioritaires: {}\n- Signaux de menace: {}\n\nCONVERSATION RÉCENTE:\n{}\n\nRéponds en français, précisément et de façon actionnable. Distingue faits observés, inférences et données manquantes. Cite les identifiants présents dans ce contexte et n'affirme jamais avoir observé une donnée absente.",
+            if state.summary.standalone {
+                "autonome"
+            } else {
+                "connecté"
+            },
+            state.summary.compliance_score.unwrap_or(0.0),
+            state.checks.len(),
+            failed_count,
+            state.vulnerability_findings.len(),
+            state.threats.suspicious_processes.len(),
+            state.threats.system_incidents.len(),
+            state.network.alerts.len(),
+            unacknowledged_fim,
+            state.resources.cpu_percent,
+            state.resources.memory_percent,
+            state.resources.disk_percent,
+            if failed.is_empty() {
+                "aucun".to_string()
+            } else {
+                failed.join("; ")
+            },
+            if vulnerabilities.is_empty() {
+                "aucune".to_string()
+            } else {
+                vulnerabilities.join("; ")
+            },
+            if threats.is_empty() {
+                "aucun".to_string()
+            } else {
+                threats.join("; ")
+            },
+            if recent_conversation.is_empty() {
+                "aucune".to_string()
+            } else {
+                recent_conversation.join("\n")
+            },
+        )
+    }
+
+    /// Keep telemetry and conversation excerpts inside the local model's
+    /// context budget without splitting accented characters or emojis.
+    fn text_excerpt(value: &str, max_chars: usize) -> String {
+        if max_chars == 0 {
+            return String::new();
+        }
+        if value.chars().count() <= max_chars {
+            return value.to_string();
+        }
+        let mut excerpt = value
+            .chars()
+            .take(max_chars.saturating_sub(1))
+            .collect::<String>();
+        excerpt.push('…');
+        excerpt
+    }
+
+    fn severity_weight(severity: crate::dto::Severity) -> u8 {
+        match severity {
+            crate::dto::Severity::Critical => 10,
+            crate::dto::Severity::High => 8,
+            crate::dto::Severity::Medium => 5,
+            crate::dto::Severity::Low => 2,
+            crate::dto::Severity::Info => 0,
+        }
     }
 
     /// Render a single chat message bubble.
@@ -2042,6 +2379,52 @@ mod tests {
         assert_eq!(LLMPanel::risk_label(70.0), "RISQUE MOD\u{00c9}R\u{00c9}");
         assert_eq!(LLMPanel::risk_label(40.0), "RISQUE \u{00c9}LEV\u{00c9}");
         assert_eq!(LLMPanel::risk_label(10.0), "RISQUE CRITIQUE");
+    }
+
+    #[test]
+    fn prompt_context_routes_security_domains() {
+        use crate::dto::LlmPromptContext;
+
+        assert_eq!(
+            LLMPanel::infer_prompt_context("Quels correctifs pour cette CVE ?"),
+            LlmPromptContext::Vulnerabilities
+        );
+        assert_eq!(
+            LLMPanel::infer_prompt_context("Analyse les alertes DNS du réseau"),
+            LlmPromptContext::Network
+        );
+        assert_eq!(
+            LLMPanel::infer_prompt_context("Résume les incidents et IOC"),
+            LlmPromptContext::Threats
+        );
+        assert_eq!(
+            LLMPanel::infer_prompt_context("Prépare l'audit ISO 27001"),
+            LlmPromptContext::Compliance
+        );
+    }
+
+    #[test]
+    fn telemetry_excerpt_is_unicode_safe_and_bounded() {
+        assert_eq!(
+            LLMPanel::text_excerpt("sécurité 🚨 active", 10),
+            "sécurité …"
+        );
+        assert_eq!(LLMPanel::text_excerpt("court", 10), "court");
+        assert_eq!(LLMPanel::text_excerpt("donnée", 0), "");
+    }
+
+    #[test]
+    fn telemetry_severity_ranking_prioritizes_critical_evidence() {
+        use crate::dto::Severity;
+
+        assert!(
+            LLMPanel::severity_weight(Severity::Critical)
+                > LLMPanel::severity_weight(Severity::High)
+        );
+        assert!(
+            LLMPanel::severity_weight(Severity::High) > LLMPanel::severity_weight(Severity::Medium)
+        );
+        assert_eq!(LLMPanel::severity_weight(Severity::Info), 0);
     }
 
     #[test]

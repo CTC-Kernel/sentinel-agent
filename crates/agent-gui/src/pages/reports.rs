@@ -508,7 +508,7 @@ impl ReportsPage {
 {top_failing_html}
 <h2>Vuln&eacute;rabilit&eacute;s</h2>
 <p>{crit_vulns} critiques, {high_vulns} &eacute;lev&eacute;es sur {vuln_count} au total.</p>
-<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel Agent &mdash; {date_str}</div>
+<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel Nexus &mdash; {date_str}</div>
 </body></html>"#
         );
 
@@ -596,7 +596,7 @@ impl ReportsPage {
 <tr><th>R&eacute;f&eacute;rentiel</th><th>Total</th><th>Conforme</th><th>D&eacute;faillant</th><th>Taux</th></tr>
 {fw_rows}
 </table>
-<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel Agent &mdash; {date_str}</div>
+<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel Nexus &mdash; {date_str}</div>
 </body></html>"#
         );
 
@@ -666,7 +666,7 @@ impl ReportsPage {
 <tr><th>Titre</th><th>S&eacute;v&eacute;rit&eacute;</th><th>Confiance</th><th>D&eacute;tect&eacute;</th></tr>
 {incident_rows}
 </table>
-<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel Agent &mdash; {date_str}</div>
+<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel Nexus &mdash; {date_str}</div>
 </body></html>"#
         );
 

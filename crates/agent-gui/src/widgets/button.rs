@@ -177,6 +177,38 @@ fn draw_premium_button(
             StrokeKind::Inside,
         );
 
+        // A restrained top-edge reflection separates controls from flat
+        // labels, while the hover halo makes the hit target easier to track
+        // across dense SOC screens without moving its layout box.
+        if enabled {
+            let highlight = if is_primary {
+                theme::text_on_accent()
+            } else {
+                theme::overlay_color()
+            };
+            ui.painter().line_segment(
+                [
+                    rect.left_top() + egui::vec2(f32::from(theme::BUTTON_ROUNDING), 0.5),
+                    rect.right_top() + egui::vec2(-f32::from(theme::BUTTON_ROUNDING), 0.5),
+                ],
+                Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    highlight.linear_multiply(if is_primary { 0.22 } else { 0.08 }),
+                ),
+            );
+            if hover_t > 0.0 {
+                ui.painter().rect_stroke(
+                    rect.expand(1.0),
+                    CornerRadius::same(theme::BUTTON_ROUNDING + 1),
+                    Stroke::new(
+                        theme::BORDER_HAIRLINE,
+                        theme::accent_text().linear_multiply(0.28 * hover_t),
+                    ),
+                    StrokeKind::Outside,
+                );
+            }
+        }
+
         // ─── Focus Ring (WCAG 2.4.7) ───
         if response.has_focus() {
             ui.painter().rect_stroke(
@@ -494,20 +526,24 @@ pub fn icon_button_with_color(
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
         let is_clicked = response.is_pointer_button_down_on();
+        let hover_t =
+            animation::animate_hover(ui.ctx(), response.id.with("icon_hover"), is_hovered);
 
-        // Background on hover
-        if is_hovered || is_clicked {
-            let bg_color = if is_clicked {
-                theme::bg_elevated()
-            } else {
-                theme::bg_elevated().linear_multiply(theme::OPACITY_PRESSED)
-            };
-            ui.painter().rect_filled(
-                rect,
-                CornerRadius::same(theme::BUTTON_ROUNDING - 2),
-                bg_color,
-            );
-        }
+        let bg_color = if is_clicked {
+            theme::selected_bg()
+        } else {
+            animation::lerp_color(Color32::TRANSPARENT, theme::hover_bg_neutral(), hover_t)
+        };
+        ui.painter().rect(
+            rect,
+            CornerRadius::same(theme::BUTTON_ROUNDING - 2),
+            bg_color,
+            Stroke::new(
+                theme::BORDER_HAIRLINE,
+                theme::border_subtle().linear_multiply(0.35 + hover_t * 0.65),
+            ),
+            StrokeKind::Inside,
+        );
 
         // Focus Ring (WCAG 2.4.7)
         if response.has_focus() {

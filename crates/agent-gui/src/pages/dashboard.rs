@@ -127,7 +127,16 @@ impl DashboardPage {
             action = Some(DashboardAction::Command(cmd));
         }
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_SM);
+
+        // Persistent operational pulse: four concise, actionable signals
+        // answer “what is protected, what needs attention, and can I act?”
+        // before the operator reaches the analytical cards below.
+        if let Some(target) = Self::operational_pulse(ui, state) {
+            action = Some(DashboardAction::NavigateTo(target));
+        }
+
+        ui.add_space(theme::SPACE_LG);
 
         // ══════════════════════════════════════════════════════════════════
         // SECURITY HERO + AI POSTURE SCORE (Side by side on large screens)
@@ -443,6 +452,112 @@ impl DashboardPage {
         command
     }
 
+    /// Compact command-centre rail linking live posture signals to their
+    /// operational destinations. The grid folds naturally on narrow windows.
+    fn operational_pulse(ui: &mut Ui, state: &AppState) -> Option<Page> {
+        let protected = matches!(
+            state.summary.status,
+            GuiAgentStatus::Connected | GuiAgentStatus::Standalone | GuiAgentStatus::Scanning
+        );
+        let controls = if state.policy.total_policies == 0 {
+            "En attente".to_owned()
+        } else {
+            format!(
+                "{} / {}",
+                crate::format::int(state.policy.passing),
+                crate::format::int(state.policy.total_policies)
+            )
+        };
+        let exposures = state
+            .vulnerability_summary
+            .as_ref()
+            .map_or(0, |summary| summary.critical + summary.high);
+        let exposure_value = if exposures == 0 {
+            "Aucune critique".to_owned()
+        } else {
+            crate::format::count(exposures, "priorité")
+        };
+        let items = [
+            (
+                Page::Monitoring,
+                icons::SHIELD_CHECK,
+                "PROTECTION",
+                if protected { "Active" } else { "À vérifier" }.to_owned(),
+                if protected {
+                    theme::SUCCESS
+                } else {
+                    theme::WARNING
+                },
+            ),
+            (
+                Page::Compliance,
+                icons::CLIPBOARD_CHECK,
+                "CONTRÔLES",
+                controls,
+                if state.policy.failing == 0 {
+                    theme::SUCCESS
+                } else {
+                    theme::WARNING
+                },
+            ),
+            (
+                Page::Vulnerabilities,
+                icons::CROSSHAIRS,
+                "EXPOSITION",
+                exposure_value,
+                if exposures == 0 {
+                    theme::SUCCESS
+                } else {
+                    theme::ERROR
+                },
+            ),
+            (
+                Page::Orchestration,
+                icons::ORCHESTRATION,
+                "AUTOMATISATION",
+                "n8n connecté".to_owned(),
+                theme::AI,
+            ),
+        ];
+        let mut selected = None;
+
+        ui.push_id("operational_pulse", |ui| {
+            widgets::ResponsiveGrid::new(158.0, theme::SPACE_SM).show(
+                ui,
+                &items,
+                |ui, width, (page, icon, label, value, color)| {
+                    ui.set_width(width);
+                    let response =
+                        widgets::clickable_card(ui, ("pulse", label), |ui: &mut egui::Ui| {
+                            ui.set_min_height(44.0);
+                            ui.horizontal(|ui| {
+                                widgets::icon_tile(ui, icon, *color, 34.0);
+                                ui.add_space(theme::SPACE_XS);
+                                ui.vertical(|ui| {
+                                    ui.label(
+                                        egui::RichText::new(*label)
+                                            .font(theme::font_micro())
+                                            .color(theme::text_tertiary())
+                                            .extra_letter_spacing(theme::TRACKING_WIDE),
+                                    );
+                                    ui.label(
+                                        egui::RichText::new(value.as_str())
+                                            .font(theme::font_body_strong())
+                                            .color(theme::text_primary()),
+                                    );
+                                });
+                            });
+                        });
+                    if response.clicked() {
+                        selected = Some(page.clone());
+                    }
+                },
+            );
+        });
+
+        selected
+    }
+
     // ──────────────────────────────────────────────────────────────────────
     // AI POSTURE SCORE CARD (clickable → AI page)
     // ──────────────────────────────────────────────────────────────────────
@@ -499,6 +614,7 @@ impl DashboardPage {
                     // PREMIUM Voice Toggle
                     if widgets::voice_toggle_button(ui, state.ai.is_listening).clicked() {
                         state.ai.is_listening = !state.ai.is_listening;
+                        state.ai.voice_reply_pending = false;
                         // Turn off speaking if we start listening
                         if state.ai.is_listening {
                             state.ai.is_speaking = false;
@@ -539,7 +655,12 @@ impl DashboardPage {
                         nav_action = Some(DashboardAction::Command(GuiCommand::LlmPrompt {
                             prompt,
                             context: None,
+                            speak_response: state.ai.voice_conversation_enabled,
                         }));
+                        // Dashboard questions participate in the same hands-free
+                        // loop as the full assistant: reopen the mic only after
+                        // the spoken answer has actually completed.
+                        state.ai.voice_reply_pending = state.ai.voice_conversation_enabled;
                     }
                 });
             });

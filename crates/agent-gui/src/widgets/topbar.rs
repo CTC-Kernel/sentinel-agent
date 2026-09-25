@@ -197,7 +197,7 @@ fn brand_segment(ui: &mut Ui, rect: Rect, cx: &TopBarContext<'_>) -> Option<TopB
     ui.painter().text(
         pos2(text_x, center_y + 7.0),
         Align2::LEFT_CENTER,
-        "GRC AGENT",
+        "NEXUS",
         theme::font_micro(),
         theme::text_tertiary(),
     );
