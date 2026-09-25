@@ -304,6 +304,7 @@ pub async fn evaluate_playbook(
 /// what made a two-condition "all" playbook fire on a single condition that
 /// happened to hit two processes, quietly turning a narrow rule into a
 /// disjunctive one.
+#[allow(dead_code)]
 fn playbook_triggers(operator: &str, conditions_matched: usize, total_conditions: usize) -> bool {
     match operator {
         "all" | "and" | "AND" => total_conditions > 0 && conditions_matched >= total_conditions,
