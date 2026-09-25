@@ -58,16 +58,41 @@ impl TrayRadar {
     }
 
     pub fn show(&self, ui: &mut Ui, size: f32) {
-        let (rect, _response) = ui.allocate_exact_size(Vec2::splat(size), egui::Sense::hover());
+        let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), egui::Sense::hover());
         let center = rect.center();
         let radius = size * 0.4;
         let painter = ui.painter();
+        let posture = self.points.iter().map(|point| point.value).sum::<f32>()
+            / self.points.len().max(1) as f32;
         let reduced = crate::theme::is_reduced_motion();
         let time = if reduced {
             0.0
         } else {
             ui.input(|i| i.time) as f32
         };
+
+        // Quiet glass substrate and continuous aura: the compact popup now
+        // reads as a posture instrument rather than a bare chart.
+        painter.circle_filled(center, radius + 15.0, crate::theme::bg_deep());
+        let mut aura = egui::epaint::Mesh::default();
+        aura.vertices.push(egui::epaint::Vertex {
+            pos: center,
+            uv: egui::epaint::WHITE_UV,
+            color: crate::theme::ACCENT.linear_multiply(0.10),
+        });
+        for index in 0..48_u32 {
+            let angle = TAU * index as f32 / 48.0;
+            aura.vertices.push(egui::epaint::Vertex {
+                pos: center + Vec2::angled(angle) * (radius + 14.0),
+                uv: egui::epaint::WHITE_UV,
+                color: Color32::TRANSPARENT,
+            });
+        }
+        for index in 0..48_u32 {
+            aura.indices
+                .extend_from_slice(&[0, index + 1, (index + 1) % 48 + 1]);
+        }
+        painter.add(egui::Shape::mesh(aura));
 
         // 1. Background Grid (Web)
         self.draw_grid(painter, center, radius, 5);
@@ -82,6 +107,39 @@ impl TrayRadar {
 
         // 4. Labelling
         self.draw_labels(painter, center, radius);
+
+        // Central posture score, visible at a glance from the taskbar popup.
+        painter.circle_filled(center, 25.0, crate::theme::bg_elevated());
+        painter.circle_stroke(
+            center,
+            25.0,
+            Stroke::new(
+                crate::theme::BORDER_THIN,
+                crate::theme::score_color(posture * 100.0),
+            ),
+        );
+        painter.text(
+            center + Vec2::new(0.0, -3.0),
+            egui::Align2::CENTER_CENTER,
+            format!("{:.0}", posture * 100.0),
+            crate::theme::font_heading(),
+            crate::theme::text_primary(),
+        );
+        painter.text(
+            center + Vec2::new(0.0, 11.0),
+            egui::Align2::CENTER_CENTER,
+            "POSTURE",
+            crate::theme::font_micro(),
+            crate::theme::text_tertiary(),
+        );
+
+        response.on_hover_text(
+            self.points
+                .iter()
+                .map(|point| format!("{} : {:.0}%", point.label, point.value * 100.0))
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
 
         if !reduced {
             ui.ctx()
@@ -192,6 +250,14 @@ impl TrayRadar {
                     theme::font_small().size(9.0)
                 },
                 theme::text_tertiary(),
+            );
+
+            painter.text(
+                label_pos + Vec2::new(0.0, 10.0),
+                egui::Align2::CENTER_CENTER,
+                format!("{:.0}%", p.value * 100.0),
+                theme::font_micro(),
+                theme::readable_color(p.color),
             );
         }
     }

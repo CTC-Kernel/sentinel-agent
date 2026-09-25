@@ -190,8 +190,8 @@ impl LLMPanel {
                     });
                     state.ai.is_processing = true;
                     command = Some(GuiCommand::LlmPrompt {
-                        prompt: prompt.to_string(),
-                        context: None,
+                        prompt: Self::grounded_prompt(state, prompt),
+                        context: Some(crate::dto::LlmPromptContext::General),
                     });
                 }
             }
@@ -242,14 +242,113 @@ impl LLMPanel {
                     state.ai.input_text.clear();
                     state.ai.is_processing = true;
                     command = Some(GuiCommand::LlmPrompt {
-                        prompt,
-                        context: None,
+                        prompt: Self::grounded_prompt(state, &prompt),
+                        context: Some(crate::dto::LlmPromptContext::General),
                     });
                 }
             });
         });
 
         command
+    }
+
+    /// Ground free-form chat in the live endpoint telemetry visible to the GUI.
+    /// The snapshot is deliberately bounded so local models keep enough context
+    /// budget for reasoning and never need direct database or network access.
+    fn grounded_prompt(state: &AppState, question: &str) -> String {
+        let failed: Vec<String> = state
+            .checks
+            .iter()
+            .filter(|check| matches!(check.status, GuiCheckStatus::Fail | GuiCheckStatus::Error))
+            .take(8)
+            .map(|check| format!("{} ({:?}, {:?})", check.name, check.severity, check.status))
+            .collect();
+        let vulnerabilities: Vec<String> = state
+            .vulnerability_findings
+            .iter()
+            .take(8)
+            .map(|finding| {
+                format!(
+                    "{} sur {} {} ({:?}, CVSS {})",
+                    finding.cve_id,
+                    finding.affected_software,
+                    finding.affected_version,
+                    finding.severity,
+                    finding
+                        .cvss_score
+                        .map(|score| format!("{score:.1}"))
+                        .unwrap_or_else(|| "inconnu".to_string())
+                )
+            })
+            .collect();
+        let threats: Vec<String> = state
+            .threats
+            .system_incidents
+            .iter()
+            .take(6)
+            .map(|incident| {
+                format!(
+                    "{} ({:?}, confiance {}%)",
+                    incident.title, incident.severity, incident.confidence
+                )
+            })
+            .chain(state.network.alerts.iter().take(6).map(|alert| {
+                format!(
+                    "Alerte réseau {} ({:?}, confiance {}%)",
+                    alert.alert_type, alert.severity, alert.confidence
+                )
+            }))
+            .collect();
+        let recent_conversation: Vec<String> = state
+            .ai
+            .chat_history
+            .iter()
+            .rev()
+            .skip(1)
+            .take(4)
+            .rev()
+            .map(|message| format!("{:?}: {}", message.role, message.content))
+            .collect();
+
+        format!(
+            "QUESTION OPÉRATEUR:\n{question}\n\nCONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):\n- Mode: {}\n- Score de conformité: {:.1}%\n- Contrôles: {} total, {} en échec/erreur\n- Vulnérabilités: {}\n- Menaces: {} processus suspects, {} incidents système, {} alertes réseau, {} alertes FIM\n- Ressources: CPU {:.0}%, mémoire {:.0}%, disque {:.0}%\n- Contrôles prioritaires: {}\n- Vulnérabilités prioritaires: {}\n- Signaux de menace: {}\n\nCONVERSATION RÉCENTE:\n{}\n\nRéponds en français, précisément et de façon actionnable. Distingue faits observés, inférences et données manquantes. Cite les identifiants présents dans ce contexte et n'affirme jamais avoir observé une donnée absente.",
+            if state.summary.standalone {
+                "autonome"
+            } else {
+                "connecté"
+            },
+            state.summary.compliance_score.unwrap_or(0.0),
+            state.checks.len(),
+            failed.len(),
+            state.vulnerability_findings.len(),
+            state.threats.suspicious_processes.len(),
+            state.threats.system_incidents.len(),
+            state.network.alerts.len(),
+            state.fim.alerts.len(),
+            state.resources.cpu_percent,
+            state.resources.memory_percent,
+            state.resources.disk_percent,
+            if failed.is_empty() {
+                "aucun".to_string()
+            } else {
+                failed.join("; ")
+            },
+            if vulnerabilities.is_empty() {
+                "aucune".to_string()
+            } else {
+                vulnerabilities.join("; ")
+            },
+            if threats.is_empty() {
+                "aucun".to_string()
+            } else {
+                threats.join("; ")
+            },
+            if recent_conversation.is_empty() {
+                "aucune".to_string()
+            } else {
+                recent_conversation.join("\n")
+            },
+        )
     }
 
     /// Render a single chat message bubble.

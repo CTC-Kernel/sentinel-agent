@@ -28,6 +28,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
     // No inner ScrollArea — the parent in app.rs already wraps everything.
     {
+        // The operational radar is the primary decision surface and must be
+        // visible without scrolling. Build its unified feed once and keep all
+        // secondary analytics below it.
+        let all_threats = build_threat_list(state);
+        render_threat_radar(ui, &all_threats);
+        ui.add_space(theme::SPACE_LG);
+
         // ── Summary counts (AAA Grade) ──────────────────────────────────
         let process_count = state.threats.suspicious_processes.len();
         let usb_count = state.threats.usb_events.len();
@@ -124,9 +131,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         );
 
         ui.add_space(theme::SPACE_LG);
-
-        // Build the unified threat list ONCE for the entire overview.
-        let all_threats = build_threat_list(state);
 
         // ── Severity distribution bar + Detection coverage ──────────────
         {
@@ -463,11 +467,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 },
             );
         });
-
-        ui.add_space(theme::SPACE_LG);
-
-        // ── Threat Radar (AAA Grade) ────────────────────────────────────
-        render_threat_radar(ui, &threats);
 
         ui.add_space(theme::SPACE_LG);
 
