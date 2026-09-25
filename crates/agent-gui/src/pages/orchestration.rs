@@ -603,24 +603,107 @@ impl OrchestrationPage {
         widgets::Card::new().accent(workflow.accent).show(ui, |ui| {
             ui.label(RichText::new(workflow.name).font(theme::font_h3()).color(theme::text_primary()));
             ui.label(RichText::new("Les secrets sont injectés côté backend et ne transitent jamais dans l'interface.").font(theme::font_caption()).color(theme::text_tertiary()));
-            ui.add_space(theme::SPACE_LG);
-            Self::dynamic_field(ui, (index, "scope"), "Périmètre cible", "production-eu/*", false);
-            Self::dynamic_field(ui, (index, "severity"), "Sévérité minimale", "high", false);
-            Self::dynamic_field(ui, (index, "ticket"), "Ticket de changement", "CHG-2026-", false);
-            Self::dynamic_field(ui, (index, "token"), "Jeton API", "Secret géré par Vault", true);
             ui.add_space(theme::SPACE_MD);
+
+            widgets::eyebrow(ui, "MODE D'EXÉCUTION");
+            let mode_id = egui::Id::new(("workflow_run_mode", index));
+            let run_id = egui::Id::new(("workflow_config_run", index));
             let approval_id = egui::Id::new(("workflow_approval", index));
+            let mut mode = ui.ctx().data(|d| d.get_temp::<usize>(mode_id).unwrap_or(0));
+            if let Some(next) = widgets::button_group(ui, &["Dry-run", "Production"], mode) {
+                mode = next;
+                ui.ctx().data_mut(|d| {
+                    d.insert_temp(mode_id, mode);
+                    d.insert_temp(run_id, false);
+                    d.insert_temp(approval_id, false);
+                });
+            }
+            ui.label(
+                RichText::new(if mode == 0 {
+                    "Simulation isolée : aucun changement ne sera appliqué aux actifs."
+                } else {
+                    "Mode réel : les actions approuvées pourront modifier les actifs ciblés."
+                })
+                .font(theme::font_caption())
+                .color(if mode == 0 { theme::text_tertiary() } else { theme::readable_color(theme::WARNING) }),
+            );
+
+            ui.add_space(theme::SPACE_LG);
+            let scope = Self::dynamic_field(ui, (index, "scope"), "Périmètre cible", "production-eu/*", false);
+            let severity = Self::dynamic_field(ui, (index, "severity"), "Sévérité minimale", "high", false);
+            let ticket = Self::dynamic_field(ui, (index, "ticket"), "Ticket de changement", "CHG-2026-", false);
+            let _token = Self::dynamic_field(ui, (index, "token"), "Jeton API", "Secret géré par Vault", true);
+
+            let scope_valid = !scope.trim().is_empty() && scope.trim() != "*";
+            let severity_valid = ["critical", "high", "medium", "low"].contains(&severity.trim());
+            let ticket_valid = ticket.starts_with("CHG-") && ticket.len() > 9;
+            if !scope_valid {
+                Self::field_error(ui, "Le périmètre global « * » est interdit. Sélectionnez un tenant, une zone ou un actif.");
+            }
+            if !severity_valid {
+                Self::field_error(ui, "Valeur attendue : critical, high, medium ou low.");
+            }
+            if !ticket_valid {
+                Self::field_error(ui, "Un ticket de changement complet au format CHG-… est requis.");
+            }
+
+            ui.add_space(theme::SPACE_SM);
+            egui::Frame::new()
+                .fill(theme::tinted_surface(if mode == 0 { theme::INFO } else { theme::WARNING }))
+                .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
+                .inner_margin(egui::Margin::same(12))
+                .show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        widgets::icon_tile(ui, if mode == 0 { icons::EYE } else { icons::SHIELD }, if mode == 0 { theme::INFO } else { theme::WARNING }, 32.0);
+                        ui.vertical(|ui| {
+                            ui.label(RichText::new(if mode == 0 { "Impact nul" } else { "Impact contrôlé" }).font(theme::font_body_sm_medium()).color(theme::text_primary()));
+                            ui.label(RichText::new(format!("{} nœuds · périmètre {} · rollback journalisé", workflow.nodes, if scope_valid { "validé" } else { "invalide" })).font(theme::font_caption()).color(theme::text_secondary()));
+                        });
+                    });
+                });
+            ui.add_space(theme::SPACE_MD);
             let mut approved = ui.ctx().data(|d| d.get_temp(approval_id).unwrap_or(false));
-            if ui.checkbox(&mut approved, "J'ai vérifié le périmètre et autorise cette exécution").changed() {
+            let approval_label = if mode == 0 {
+                "J'ai vérifié le périmètre de simulation"
+            } else {
+                "J'ai vérifié le périmètre et autorise cette exécution en production"
+            };
+            if ui.checkbox(&mut approved, approval_label).changed() {
                 ui.ctx().data_mut(|d| d.insert_temp(approval_id, approved));
             }
             ui.add_space(theme::SPACE_MD);
-            let run_id = egui::Id::new(("workflow_config_run", index));
             let launched = ui.ctx().data(|d| d.get_temp(run_id).unwrap_or(false));
-            if widgets::primary_button_loading(ui, if launched { "Exécution créée · #EX-2841" } else { "Lancer en sécurité" }, approved, launched).clicked() {
+            let valid = scope_valid && severity_valid && ticket_valid && approved;
+            if widgets::primary_button(
+                ui,
+                if launched {
+                    "Exécution créée · #EX-2841"
+                } else if mode == 0 {
+                    "Simuler le workflow"
+                } else {
+                    "Lancer en sécurité"
+                },
+                valid && !launched,
+            )
+            .clicked()
+            {
                 ui.ctx().data_mut(|d| d.insert_temp(run_id, true));
             }
-            ui.label(RichText::new("Dry-run automatique · Signature HMAC · Trace d'audit").font(theme::font_caption()).color(theme::text_tertiary()));
+            if launched {
+                ui.add_space(theme::SPACE_SM);
+                widgets::alert_success(
+                    ui,
+                    "#EX-2841 créée, signée et inscrite au journal d'audit. Suivez-la dans Exécutions.",
+                );
+                if widgets::ghost_button(ui, "Préparer une nouvelle exécution").clicked() {
+                    ui.ctx().data_mut(|d| {
+                        d.insert_temp(run_id, false);
+                        d.insert_temp(approval_id, false);
+                    });
+                }
+            } else {
+                ui.label(RichText::new("Validation de schéma · Signature HMAC · Idempotence · Trace d'audit").font(theme::font_caption()).color(theme::text_tertiary()));
+            }
         });
     }
 
@@ -630,11 +713,17 @@ impl OrchestrationPage {
         label: &str,
         placeholder: &str,
         secret: bool,
-    ) {
+    ) -> String {
         let id = ui.id().with(salt);
-        let mut value = ui
-            .ctx()
-            .data(|d| d.get_temp::<String>(id).unwrap_or_default());
+        let mut value = ui.ctx().data(|d| {
+            d.get_temp::<String>(id).unwrap_or_else(|| {
+                if secret {
+                    String::new()
+                } else {
+                    placeholder.to_owned()
+                }
+            })
+        });
         ui.label(
             RichText::new(label)
                 .font(theme::font_body_sm_medium())
@@ -645,9 +734,21 @@ impl OrchestrationPage {
             .password(secret)
             .desired_width(f32::INFINITY);
         if ui.add(edit).changed() {
-            ui.ctx().data_mut(|d| d.insert_temp(id, value));
+            ui.ctx().data_mut(|d| d.insert_temp(id, value.clone()));
         }
         ui.add_space(theme::SPACE_SM);
+        value
+    }
+
+    fn field_error(ui: &mut Ui, message: &str) {
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(icons::WARNING).color(theme::readable_color(theme::ERROR)));
+            ui.label(
+                RichText::new(message)
+                    .font(theme::font_caption())
+                    .color(theme::readable_color(theme::ERROR)),
+            );
+        });
     }
 
     fn workflow_canvas(ui: &mut Ui) {
@@ -745,7 +846,26 @@ impl OrchestrationPage {
                     ui.horizontal(|ui| {
                         Self::metadata(ui, icons::DOWNLOAD, template.installs);
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            widgets::secondary_button(ui, "Installer", true);
+                            let install_id = egui::Id::new(("marketplace_install", template.name));
+                            let installed = ui
+                                .ctx()
+                                .data(|d| d.get_temp::<bool>(install_id).unwrap_or(false));
+                            if widgets::secondary_button(
+                                ui,
+                                if installed {
+                                    "Installé dans le tenant"
+                                } else {
+                                    "Installer"
+                                },
+                                !installed,
+                            )
+                            .clicked()
+                            {
+                                ui.ctx().data_mut(|d| d.insert_temp(install_id, true));
+                            }
+                            if installed {
+                                widgets::status_badge(ui, "Signé", theme::SUCCESS);
+                            }
                         });
                     });
                 });
@@ -827,6 +947,55 @@ impl OrchestrationPage {
                 });
                 ui.add_space(theme::SPACE_MD);
             }
+
+            widgets::divider_thin(ui);
+            ui.add_space(theme::SPACE_SM);
+            let decision_id = egui::Id::new("execution_2837_decision");
+            let decision = ui
+                .ctx()
+                .data(|d| d.get_temp::<u8>(decision_id).unwrap_or(0));
+            ui.horizontal_wrapped(|ui| {
+                if decision == 0 {
+                    if widgets::primary_button(
+                        ui,
+                        format!("{}  Approuver et reprendre", icons::CHECK),
+                        true,
+                    )
+                    .clicked()
+                    {
+                        ui.ctx().data_mut(|d| d.insert_temp(decision_id, 1));
+                    }
+                    if widgets::destructive_button(ui, "Refuser", true).clicked() {
+                        ui.ctx().data_mut(|d| d.insert_temp(decision_id, 2));
+                    }
+                    ui.label(
+                        RichText::new(
+                            "Principe des quatre yeux : le demandeur ne peut pas approuver.",
+                        )
+                        .font(theme::font_caption())
+                        .color(theme::text_tertiary()),
+                    );
+                } else {
+                    widgets::status_badge(
+                        ui,
+                        if decision == 1 {
+                            "Approuvée · reprise"
+                        } else {
+                            "Refusée · clôturée"
+                        },
+                        if decision == 1 {
+                            theme::SUCCESS
+                        } else {
+                            theme::ERROR
+                        },
+                    );
+                    ui.label(
+                        RichText::new("Décision signée, horodatée et ajoutée à la chaîne d'audit.")
+                            .font(theme::font_caption())
+                            .color(theme::text_secondary()),
+                    );
+                }
+            });
         });
     }
 

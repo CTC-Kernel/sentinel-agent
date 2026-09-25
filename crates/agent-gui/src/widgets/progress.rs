@@ -45,12 +45,29 @@ pub fn progress_bar_styled(
         let painter = ui.painter_at(rect);
         let rounding = CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
 
-        // Track background
+        let displayed_progress = if theme::is_reduced_motion() {
+            progress
+        } else {
+            ui.ctx().animate_value_with_time(
+                response.id.with("progress_value"),
+                progress,
+                theme::ANIM_NORMAL,
+            )
+        };
+
+        // Track background and inset keyline preserve the bar on adjacent
+        // surfaces in both themes.
         painter.rect_filled(rect, rounding, theme::bg_tertiary());
+        painter.rect_stroke(
+            rect,
+            rounding,
+            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+            egui::StrokeKind::Inside,
+        );
 
         // Fill
-        if progress > 0.0 {
-            let fill_width = rect.width() * progress;
+        if displayed_progress > 0.0 {
+            let fill_width = rect.width() * displayed_progress;
             let fill_rect = egui::Rect::from_min_size(rect.min, egui::vec2(fill_width, height));
 
             let fill_color = match style {
@@ -77,6 +94,14 @@ pub fn progress_bar_styled(
             // a glint travelling along it reads as activity that is not
             // happening. Motion belongs to the indeterminate bar below.
             painter.rect_filled(fill_rect, rounding, fill_color);
+            if fill_width > height {
+                let cap = egui::pos2(fill_rect.right() - height / 2.0, fill_rect.center().y);
+                painter.circle_filled(
+                    cap,
+                    height * 0.34,
+                    theme::overlay_color().linear_multiply(0.22),
+                );
+            }
         }
     }
 

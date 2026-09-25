@@ -1,6 +1,6 @@
 # agent-gui
 
-Interface graphique de bureau pour le Sentinel GRC Agent.
+Interface graphique de bureau pour le Sentinel Nexus.
 
 ## Presentation
 

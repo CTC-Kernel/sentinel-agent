@@ -107,6 +107,16 @@ pub fn sparkline(
     let points: Vec<Pos2> = data.iter().map(to_pos).collect();
     let baseline = plot.bottom() - ((0.0 - y_min) / y_span) as f32 * plot.height();
 
+    // Two quiet reference lines make slope and volatility easier to judge at
+    // a glance, especially when several KPI cards are compared side-by-side.
+    for fraction in [0.33_f32, 0.66] {
+        let y = plot.top() + plot.height() * fraction;
+        painter.line_segment(
+            [egui::pos2(plot.left(), y), egui::pos2(plot.right(), y)],
+            Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+        );
+    }
+
     if config.fill {
         // One quad per segment, alpha proportional to height so the wash
         // reads as a vertical gradient from the line down to the baseline.
@@ -130,9 +140,15 @@ pub fn sparkline(
         painter.add(egui::Shape::mesh(mesh));
     }
 
+    if theme::is_dark_mode() {
+        painter.add(egui::Shape::line(
+            points.clone(),
+            Stroke::new(4.0, theme::with_alpha(config.color, 24)),
+        ));
+    }
     painter.add(egui::Shape::line(
         points.clone(),
-        Stroke::new(1.5_f32, config.color),
+        Stroke::new(1.75, config.color),
     ));
 
     if let Some(last) = points.last() {

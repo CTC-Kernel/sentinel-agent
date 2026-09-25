@@ -31,7 +31,7 @@ static TRAY_ICON_PNG: &[u8] = include_bytes!("../../../assets/icons/png/icon_32x
 
 /// Branding constants.
 mod branding {
-    pub const PRODUCT_NAME: &str = "Sentinel Agent";
+    pub const PRODUCT_NAME: &str = "Sentinel Nexus";
     pub const COMPANY_NAME: &str = "Cyber Threat Consulting";
     pub const EMAIL: &str = "***REMOVED***";
     pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
@@ -156,7 +156,7 @@ impl TrayBridge {
             MenuItem::with_id(ids::RESOURCES, "CPU: --% | Mémoire: -- MB", false, None);
 
         // === Show / Dashboard ===
-        let show_item = MenuItem::with_id(ids::SHOW, "● Ouvrir Sentinel Agent", true, None);
+        let show_item = MenuItem::with_id(ids::SHOW, "● Ouvrir Sentinel Nexus", true, None);
         let quick_item = MenuItem::with_id(ids::QUICK_STATUS, "🛡️  Radar Sécurité", true, None);
 
         // === Control Section ===
@@ -233,7 +233,7 @@ impl TrayBridge {
         let tray_icon = if cfg!(target_os = "macos") {
             TrayIconBuilder::new()
                 .with_menu(Box::new(menu))
-                .with_tooltip("Sentinel Agent — Actif")
+                .with_tooltip("Sentinel Nexus — Actif")
                 .with_icon(icon)
                 .with_icon_as_template(true)
                 .build()
@@ -242,7 +242,7 @@ impl TrayBridge {
             TrayIconBuilder::new()
                 .with_menu(Box::new(menu))
                 .with_menu_on_left_click(true)
-                .with_tooltip("Sentinel Agent — Actif")
+                .with_tooltip("Sentinel Nexus — Actif")
                 .with_icon(icon)
                 .build()
                 .map_err(|e| format!("tray build: {}", e))?

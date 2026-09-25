@@ -10,8 +10,7 @@
 /// Returns `true` if a known mapping exists and the open command was issued.
 pub fn open_for_check(check_id: &str) -> bool {
     if let Some(target) = settings_target(check_id) {
-        open_os_settings(target);
-        true
+        open_os_settings(target)
     } else {
         false
     }
@@ -199,28 +198,71 @@ fn settings_target(check_id: &str) -> Option<SettingsTarget> {
     })
 }
 
-fn open_os_settings(target: SettingsTarget) {
-    #[cfg(target_os = "macos")]
-    {
-        let _ = std::process::Command::new("open").arg(target.macos).spawn();
-    }
+#[cfg(target_os = "macos")]
+fn open_os_settings(target: SettingsTarget) -> bool {
+    std::process::Command::new("open")
+        .arg(target.macos)
+        .spawn()
+        .is_ok()
+}
 
-    #[cfg(target_os = "windows")]
-    {
-        let _ = std::process::Command::new("cmd")
-            .args(["/C", "start", target.windows])
-            .spawn();
-    }
+#[cfg(target_os = "windows")]
+fn open_os_settings(target: SettingsTarget) -> bool {
+    agent_common::process::silent_command("cmd")
+        .args(["/C", "start", target.windows])
+        .spawn()
+        .is_ok()
+}
 
-    #[cfg(target_os = "linux")]
-    {
-        // Try GNOME settings first, fall back to xdg-open
-        let gnome = std::process::Command::new("gnome-control-center")
-            .arg(target.linux)
-            .spawn();
-        if gnome.is_err() {
-            // Try KDE systemsettings
-            let _ = std::process::Command::new("systemsettings5").spawn();
+#[cfg(target_os = "linux")]
+fn open_os_settings(target: SettingsTarget) -> bool {
+    // Desktop environments expose different settings launchers. Try the
+    // targeted GNOME panel first, then current and legacy KDE launchers.
+    // `spawn` is intentionally used: the GUI must never block on a panel.
+    for (program, argument) in [
+        ("gnome-control-center", Some(target.linux)),
+        ("systemsettings6", None),
+        ("systemsettings5", None),
+    ] {
+        let mut command = std::process::Command::new(program);
+        if let Some(argument) = argument {
+            command.arg(argument);
         }
+        if command.spawn().is_ok() {
+            return true;
+        }
+    }
+    false
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+fn open_os_settings(_target: SettingsTarget) -> bool {
+    false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn known_checks_have_a_platform_target() {
+        for check in [
+            "firewall_active",
+            "disk_encryption",
+            "screen_lock",
+            "mfa_enabled",
+            "patches_current",
+            "dns_security",
+        ] {
+            assert!(
+                settings_target(check).is_some(),
+                "missing target for {check}"
+            );
+        }
+    }
+
+    #[test]
+    fn unknown_check_does_not_claim_support() {
+        assert!(settings_target("not-a-real-check").is_none());
     }
 }

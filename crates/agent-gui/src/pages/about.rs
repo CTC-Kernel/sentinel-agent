@@ -16,7 +16,7 @@ const INFO_ROW_MIN_HEIGHT: f32 = 28.0;
 /// Company and product branding.
 pub mod branding {
     pub const COMPANY: &str = "Cyber Threat Consulting";
-    pub const PRODUCT: &str = "Sentinel Agent";
+    pub const PRODUCT: &str = "Sentinel Nexus";
     pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
     pub const EMAIL: &str = "***REMOVED***";
     pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs/sentinel-agent";
@@ -36,7 +36,7 @@ impl AboutPage {
             "\u{00c0} propos",
             Some("Informations produit et support technique."),
             Some(
-                "Informations de version et cr\u{00e9}dits de Sentinel Agent. Lors d\u{2019}un contact avec le support, veuillez mentionner le num\u{00e9}ro de build et l\u{2019}identifiant unique d\u{2019}installation.",
+                "Informations de version et cr\u{00e9}dits de Sentinel Nexus. Lors d\u{2019}un contact avec le support, veuillez mentionner le num\u{00e9}ro de build et l\u{2019}identifiant unique d\u{2019}installation.",
             ),
         );
         ui.add_space(theme::SPACE_LG);

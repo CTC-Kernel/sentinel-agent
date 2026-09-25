@@ -67,14 +67,16 @@ pub fn detect_os_dark_mode() -> bool {
             .args(["read", "-g", "AppleInterfaceStyle"])
             .output()
             .ok()
-            .and_then(|out| {
-                if !out.status.success() {
-                    return None;
-                }
-                String::from_utf8(out.stdout).ok()
+            .map(|out| {
+                // In macOS light mode the key is normally absent and
+                // `defaults read` exits non-zero. That is a valid light-mode
+                // answer, not a detection failure.
+                out.status.success()
+                    && String::from_utf8_lossy(&out.stdout)
+                        .trim()
+                        .eq_ignore_ascii_case("Dark")
             })
-            .map(|s| s.trim().eq_ignore_ascii_case("Dark"))
-            .unwrap_or(true) // If key doesn't exist → light mode absent → assume dark
+            .unwrap_or(true) // Only a missing `defaults` binary uses the safe dark fallback.
     }
     #[cfg(target_os = "windows")]
     {
@@ -88,17 +90,15 @@ pub fn detect_os_dark_mode() -> bool {
             ])
             .output()
             .ok()
-            .and_then(|out| {
+            .map(|out| {
                 if !out.status.success() {
-                    return None;
+                    // Missing personalization value means the Windows
+                    // default, which is the light application theme.
+                    return false;
                 }
-                let text = String::from_utf8(out.stdout).ok()?;
+                let text = String::from_utf8_lossy(&out.stdout);
                 // Value is REG_DWORD: 0x0 = dark, 0x1 = light
-                if text.contains("0x0") {
-                    Some(true)
-                } else {
-                    Some(false)
-                }
+                text.contains("0x0")
             })
             .unwrap_or(true)
     }
@@ -488,6 +488,47 @@ pub const TOPBAR_HEIGHT: f32 = 56.0;
 /// Maximum content measure. Beyond this, tables and prose stop stretching and
 /// centre instead — an unbounded line length is unreadable on wide displays.
 pub const CONTENT_MAX_WIDTH: f32 = 1560.0;
+
+/// Paint the quiet spatial grid and brand glow behind a workspace.
+///
+/// The treatment is intentionally restricted to the application canvas: it
+/// gives dense security views a stable coordinate system without competing
+/// with tables, cards, or text. Light mode keeps only the barely-visible grid.
+pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
+    if !painter.clip_rect().intersects(rect) {
+        return;
+    }
+
+    let grid = if is_dark_mode() {
+        Color32::from_rgba_unmultiplied(107, 165, 255, 10)
+    } else {
+        Color32::from_rgba_unmultiplied(29, 79, 216, 8)
+    };
+    let step = 32.0;
+    let mut x = rect.left() - rect.left().rem_euclid(step);
+    while x <= rect.right() {
+        painter.vline(x, rect.y_range(), Stroke::new(BORDER_HAIRLINE, grid));
+        x += step;
+    }
+    let mut y = rect.top() - rect.top().rem_euclid(step);
+    while y <= rect.bottom() {
+        painter.hline(rect.x_range(), y, Stroke::new(BORDER_HAIRLINE, grid));
+        y += step;
+    }
+
+    if is_dark_mode() {
+        // Concentric translucent discs approximate a soft radial gradient in
+        // egui while staying cheap enough to repaint during live telemetry.
+        let center = egui::pos2(rect.right() - 120.0, rect.top() + 40.0);
+        for (radius, alpha) in [(360.0, 3), (260.0, 4), (170.0, 5)] {
+            painter.circle_filled(
+                center,
+                radius,
+                Color32::from_rgba_unmultiplied(36, 78, 190, alpha),
+            );
+        }
+    }
+}
 
 /// Radius scale — one step per component scale, so nothing looks borrowed.
 ///

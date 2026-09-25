@@ -334,6 +334,19 @@ impl<'a> DataTable<'a> {
                             crate::animation::lerp_color(base, theme::hover_bg_neutral(), hover),
                         );
 
+                        if is_sorted {
+                            ui.painter().line_segment(
+                                [
+                                    egui::pos2(cell_rect.left() + theme::SPACE_MD, cell_rect.top()),
+                                    egui::pos2(
+                                        cell_rect.right() - theme::SPACE_MD,
+                                        cell_rect.top(),
+                                    ),
+                                ],
+                                egui::Stroke::new(theme::BORDER_MEDIUM, theme::accent_text()),
+                            );
+                        }
+
                         // Focus ring for keyboard navigation
                         if is_focused {
                             ui.painter().rect_stroke(
@@ -500,6 +513,16 @@ impl<'a> DataTable<'a> {
                     theme::accent_text(),
                 );
             }
+
+            // Rows remain individually scannable even when zebra striping is
+            // disabled, and the inset avoids turning the table into a cage.
+            ui.painter().line_segment(
+                [
+                    egui::pos2(row_rect.left() + theme::SPACE, row_rect.bottom() - 0.5),
+                    egui::pos2(row_rect.right() - theme::SPACE, row_rect.bottom() - 0.5),
+                ],
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+            );
 
             // Draw cells
             let mut x = row_rect.min.x;

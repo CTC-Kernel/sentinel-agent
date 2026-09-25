@@ -1,7 +1,7 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Agent GUI - Desktop interface for the Sentinel GRC Agent.
+//! Agent GUI - Desktop interface for Sentinel Nexus.
 //!
 //! This crate provides both the data contracts (DTOs, events) and the full
 //! egui/eframe desktop GUI for the Sentinel Agent.
@@ -17,6 +17,7 @@ pub mod events;
 pub mod format;
 pub mod os;
 pub mod os_settings;
+#[cfg(feature = "render")]
 pub mod state;
 
 #[cfg(feature = "render")]
@@ -58,7 +59,7 @@ pub fn run_gui(
     let options = app::SentinelApp::native_options();
 
     eframe::run_native(
-        "Sentinel Agent",
+        "Sentinel Nexus",
         options,
         Box::new(|cc| {
             // Fonts must be registered before the first frame: `set_fonts`
@@ -102,7 +103,7 @@ pub fn run_tray_popup(
     let options = app::SentinelApp::tray_popup_options();
 
     eframe::run_native(
-        "Sentinel - Vue Rapide",
+        "Sentinel Nexus - Vue rapide",
         options,
         Box::new(|cc| {
             // Fonts must be registered before the first frame: `set_fonts`

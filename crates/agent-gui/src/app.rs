@@ -1,7 +1,7 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Sentinel Agent application shell.
+//! Sentinel Nexus application shell.
 //!
 //! Manages the eframe window, routing, state, and event channels between
 //! the GUI and the agent runtime.
@@ -538,7 +538,7 @@ impl SentinelApp {
             renderer: eframe::Renderer::Wgpu,
             persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
-                .with_title("Sentinel Agent")
+                .with_title("Sentinel Nexus")
                 .with_inner_size([theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT])
                 .with_min_inner_size([theme::WINDOW_MIN_WIDTH, theme::WINDOW_MIN_HEIGHT])
                 .with_icon(Self::load_app_icon()),
@@ -552,13 +552,15 @@ impl SentinelApp {
             renderer: eframe::Renderer::Wgpu,
             persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
-                .with_title("Sentinel - Vue Rapide")
+                .with_title("Sentinel Nexus - Vue rapide")
                 .with_inner_size([theme::SPLASH_CONTENT_WIDTH, theme::TRAY_POPUP_MAX_HEIGHT])
                 .with_min_inner_size([theme::TRAY_POPUP_MIN_WIDTH, theme::SPLASH_CONTENT_HEIGHT])
                 .with_max_inner_size([theme::TRAY_POPUP_MAX_WIDTH, 800.0])
                 .with_icon(Self::load_app_icon())
                 .with_decorations(false)
-                .with_transparent(true),
+                // Transparent native windows produce black or undefined
+                // backgrounds on a number of Linux Wayland compositors.
+                .with_transparent(!cfg!(target_os = "linux")),
             ..Default::default()
         }
     }
@@ -594,7 +596,13 @@ impl SentinelApp {
     // ------------------------------------------------------------------
 
     fn process_events(&mut self) {
-        let rx = self.event_rx.lock().unwrap();
+        let rx = match self.event_rx.lock() {
+            Ok(rx) => rx,
+            Err(poisoned) => {
+                tracing::error!("GUI event channel lock was poisoned; recovering queued events");
+                poisoned.into_inner()
+            }
+        };
         while let Ok(event) = rx.try_recv() {
             // Special handling for enrollment result in app shell
             if let crate::events::AgentEvent::EnrollmentResult {
@@ -613,7 +621,13 @@ impl SentinelApp {
     /// Handle tray menu actions.
     fn process_tray_actions(&mut self, ctx: &egui::Context) {
         let rx = self.tray_action_rx.clone();
-        let rx_lock = rx.lock().unwrap();
+        let rx_lock = match rx.lock() {
+            Ok(rx) => rx,
+            Err(poisoned) => {
+                tracing::error!("Tray action channel lock was poisoned; recovering queued actions");
+                poisoned.into_inner()
+            }
+        };
         while let Ok(action) = rx_lock.try_recv() {
             match action {
                 TrayAction::ShowWindow => {
@@ -887,28 +901,32 @@ impl eframe::App for SentinelApp {
             Self::wake_on_message(ctx, &self.event_rx);
             Self::wake_on_message(ctx, &self.async_results_rx);
 
-            // Keep a dedicated listener thread to wake up eframe instantly on tray events.
-            let ctx_clone = ctx.clone();
-            let action_tx = self.tray_action_tx.clone();
-            std::thread::spawn(move || {
-                loop {
-                    let actions = crate::tray_bridge::TrayBridge::poll_events();
-                    for action in actions {
-                        let _ = action_tx.send(action.clone());
-                        match action {
-                            crate::tray_bridge::TrayAction::ShowWindow
-                            | crate::tray_bridge::TrayAction::QuickStatus => {
-                                ctx_clone.send_viewport_cmd(egui::ViewportCommand::Visible(true));
-                                ctx_clone.send_viewport_cmd(egui::ViewportCommand::Focus);
-                            }
-                            _ => {
-                                ctx_clone.request_repaint();
+            // A listener without an actual tray would leak a polling thread
+            // and could never produce an event (common on headless Linux).
+            if self.tray.is_some() {
+                let ctx_clone = ctx.clone();
+                let action_tx = self.tray_action_tx.clone();
+                std::thread::spawn(move || {
+                    loop {
+                        let actions = crate::tray_bridge::TrayBridge::poll_events();
+                        for action in actions {
+                            let _ = action_tx.send(action.clone());
+                            match action {
+                                crate::tray_bridge::TrayAction::ShowWindow
+                                | crate::tray_bridge::TrayAction::QuickStatus => {
+                                    ctx_clone
+                                        .send_viewport_cmd(egui::ViewportCommand::Visible(true));
+                                    ctx_clone.send_viewport_cmd(egui::ViewportCommand::Focus);
+                                }
+                                _ => {
+                                    ctx_clone.request_repaint();
+                                }
                             }
                         }
+                        std::thread::sleep(std::time::Duration::from_millis(50));
                     }
-                    std::thread::sleep(std::time::Duration::from_millis(50));
-                }
-            });
+                });
+            }
         } else if self.state.settings.dark_mode != self.last_dark_mode {
             theme::apply_theme(ctx, self.state.settings.dark_mode);
             self.last_dark_mode = self.state.settings.dark_mode;
@@ -935,7 +953,7 @@ impl eframe::App for SentinelApp {
                 .with_title("Jarvis AI Assistant")
                 .with_inner_size([400.0, 600.0])
                 .with_decorations(false)
-                .with_transparent(true)
+                .with_transparent(!cfg!(target_os = "linux"))
                 .with_always_on_top();
 
             ctx.show_viewport_immediate(viewport_id, builder, |ctx, _class| {
@@ -970,7 +988,15 @@ impl eframe::App for SentinelApp {
 
         // Process async task results from background threads
         {
-            let rx = self.async_results_rx.lock().unwrap();
+            let rx = match self.async_results_rx.lock() {
+                Ok(rx) => rx,
+                Err(poisoned) => {
+                    tracing::error!(
+                        "Async result channel lock was poisoned; recovering queued results"
+                    );
+                    poisoned.into_inner()
+                }
+            };
             while let Ok(result) = rx.try_recv() {
                 match result {
                     AsyncTaskResult::CsvExport(success, message) => {
@@ -1016,13 +1042,19 @@ impl eframe::App for SentinelApp {
             self.splash_done = true;
         }
 
-        // Handle close = hide to tray (instead of quit).
+        // Hide only when the application can actually be restored from a
+        // tray. Otherwise close normally instead of creating a ghost process.
         if ctx.input(|i| i.viewport().close_requested()) && !self.quit_requested {
-            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
-            ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
-            self.visible = false;
-            #[cfg(target_os = "macos")]
-            crate::os::macos::dock::hide_icon();
+            if self.tray.is_some() {
+                ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+                ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
+                self.visible = false;
+                #[cfg(target_os = "macos")]
+                crate::os::macos::dock::hide_icon();
+            } else {
+                self.quit_requested = true;
+                self.send_command(GuiCommand::Shutdown);
+            }
         }
 
         if !self.visible {
@@ -1208,6 +1240,11 @@ impl eframe::App for SentinelApp {
                     }),
             )
             .show(ctx, |ui: &mut egui::Ui| {
+                // A restrained spatial grid and brand glow make the central
+                // canvas read as the Nexus command surface, rather than a
+                // stack of disconnected utility panels.
+                theme::paint_workspace_backdrop(ui.painter(), ui.max_rect());
+
                 // Apply page transition and theme transition fade-in
                 let page_alpha = if self.state.reduced_motion {
                     1.0
@@ -1470,7 +1507,14 @@ impl SentinelApp {
         slot: &Arc<Mutex<mpsc::Receiver<T>>>,
     ) {
         let (tx, rx) = mpsc::channel();
-        let upstream = std::mem::replace(&mut *slot.lock().unwrap(), rx);
+        let upstream = match slot.lock() {
+            Ok(mut guard) => std::mem::replace(&mut *guard, rx),
+            Err(poisoned) => {
+                tracing::error!("GUI wake bridge channel was poisoned; recovering receiver");
+                let mut guard = poisoned.into_inner();
+                std::mem::replace(&mut *guard, rx)
+            }
+        };
         let ctx = ctx.clone();
         std::thread::spawn(move || {
             for msg in upstream {

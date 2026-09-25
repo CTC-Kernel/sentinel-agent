@@ -9,6 +9,7 @@ pub mod copy_button;
 mod empty_state;
 mod header;
 mod help_info;
+mod icon_tile;
 pub mod layout;
 pub mod list_keys;
 pub mod modal;
@@ -71,6 +72,7 @@ pub use empty_state::{
 };
 pub use header::{eyebrow, page_header, page_header_nav, section_header};
 pub use help_info::help_button;
+pub use icon_tile::icon_tile;
 pub use layout::ResponsiveGrid;
 pub use list_keys::navigate_list;
 pub use premium_badge::{BadgeSize, ComplianceBadge, PremiumBadge, StatusBadge, StatusLevel};

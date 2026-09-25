@@ -252,7 +252,7 @@ impl EnrollmentWizard {
             ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE);
                 ui.label(
-                    egui::RichText::new("Bienvenue dans Sentinel Agent")
+                    egui::RichText::new("Bienvenue dans Sentinel Nexus")
                         .font(theme::font_h2())
                         .color(theme::text_primary()),
                 );
