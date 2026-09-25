@@ -57,8 +57,8 @@ impl TrayRadar {
         }
     }
 
-    pub fn show(&self, ui: &mut Ui, size: f32) {
-        let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), egui::Sense::hover());
+    pub fn show(&self, ui: &mut Ui, size: f32) -> egui::Response {
+        let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), egui::Sense::click());
         let center = rect.center();
         let radius = size * 0.4;
         let painter = ui.painter();
@@ -133,7 +133,7 @@ impl TrayRadar {
             crate::theme::text_tertiary(),
         );
 
-        response.on_hover_text(
+        let response = response.on_hover_text(
             self.points
                 .iter()
                 .map(|point| format!("{} : {:.0}%", point.label, point.value * 100.0))
@@ -145,6 +145,8 @@ impl TrayRadar {
             ui.ctx()
                 .request_repaint_after(std::time::Duration::from_millis(100));
         }
+
+        response
     }
 
     fn draw_grid(&self, painter: &Painter, center: Pos2, radius: f32, steps: usize) {

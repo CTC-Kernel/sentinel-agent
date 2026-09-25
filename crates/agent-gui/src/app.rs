@@ -777,10 +777,68 @@ impl SentinelApp {
                     // ── Radar ───────────────────────────────────────
                     let (compliance, threats, vulns, resources, network) =
                         self.state.radar_scores();
-                    widgets::TrayRadar::new(compliance, threats, vulns, resources, network)
-                        .show(ui, theme::TRAY_RADAR_SIZE);
+                    let radar_response =
+                        widgets::TrayRadar::new(compliance, threats, vulns, resources, network)
+                            .show(ui, theme::TRAY_RADAR_SIZE);
+                    if radar_response.clicked() {
+                        self.show_tray_satellite = false;
+                        self.visible = true;
+                        self.navigate_to(Page::Dashboard);
+                        restore_window(ctx);
+                    }
 
                     ui.add_space(theme::SPACE_MD);
+
+                    let posture = ((compliance + threats + vulns + resources + network) / 5.0)
+                        .clamp(0.0, 1.0);
+                    let (posture_label, posture_color, posture_detail) = if posture >= 0.85 {
+                        (
+                            "POSTURE MAÎTRISÉE",
+                            theme::SUCCESS,
+                            "Aucune dérive majeure détectée",
+                        )
+                    } else if posture >= 0.65 {
+                        (
+                            "VIGILANCE REQUISE",
+                            theme::WARNING,
+                            "Des écarts nécessitent une revue",
+                        )
+                    } else {
+                        (
+                            "ACTION PRIORITAIRE",
+                            theme::ERROR,
+                            "Ouvrez le cockpit pour investiguer",
+                        )
+                    };
+                    egui::Frame::new()
+                        .fill(theme::tinted_surface(posture_color))
+                        .stroke(egui::Stroke::new(
+                            theme::BORDER_HAIRLINE,
+                            theme::readable_color(posture_color)
+                                .linear_multiply(theme::OPACITY_MEDIUM),
+                        ))
+                        .corner_radius(egui::CornerRadius::same(theme::ROUNDING_MD))
+                        .inner_margin(egui::Margin::symmetric(12, 9))
+                        .show(ui, |ui| {
+                            ui.horizontal(|ui| {
+                                widgets::status_dot(ui, posture_color);
+                                ui.vertical(|ui| {
+                                    ui.label(
+                                        egui::RichText::new(posture_label)
+                                            .font(theme::font_label())
+                                            .color(theme::readable_color(posture_color))
+                                            .strong(),
+                                    );
+                                    ui.label(
+                                        egui::RichText::new(posture_detail)
+                                            .font(theme::font_micro())
+                                            .color(theme::text_secondary()),
+                                    );
+                                });
+                            });
+                        });
+
+                    ui.add_space(theme::SPACE_SM);
 
                     // ── Two headline numbers ────────────────────────
                     let threat_count = self.state.threats.suspicious_processes.len();
