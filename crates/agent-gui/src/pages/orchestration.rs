@@ -245,38 +245,28 @@ impl OrchestrationPage {
 
     fn command_deck(ui: &mut Ui) {
         let rect = widgets::Card::new().accent(theme::AI).show(ui, |ui| {
+            widgets::eyebrow(ui, "NEXUS AUTOMATION CLOUD");
+            ui.add_space(theme::SPACE_SM);
+            ui.label(
+                RichText::new("Votre défense, orchestrée en temps réel.")
+                    .font(theme::font_title())
+                    .color(theme::text_primary()),
+            );
+            ui.add_space(theme::SPACE_SM);
+            ui.label(
+                RichText::new("n8n auto-hébergé · SSO actif · Webhooks HMAC · Journal immuable")
+                    .font(theme::font_body())
+                    .color(theme::text_secondary()),
+            );
+            ui.add_space(theme::SPACE_LG);
             ui.horizontal_wrapped(|ui| {
-                ui.vertical(|ui| {
-                    widgets::eyebrow(ui, "NEXUS AUTOMATION CLOUD");
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        RichText::new("Votre défense, orchestrée en temps réel.")
-                            .font(theme::font_title())
-                            .color(theme::text_primary()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        RichText::new(
-                            "n8n auto-hébergé · SSO actif · Webhooks HMAC · Journal immuable",
-                        )
-                        .font(theme::font_body())
-                        .color(theme::text_secondary()),
-                    );
-                });
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    if widgets::primary_button(
-                        ui,
-                        format!("{}  Nouveau workflow", icons::PLUS),
-                        true,
-                    )
+                widgets::status_badge(ui, "n8n connecté", theme::SUCCESS);
+                if widgets::primary_button(ui, format!("{}  Nouveau workflow", icons::PLUS), true)
                     .clicked()
-                    {
-                        ui.ctx().data_mut(|d| {
-                            d.insert_temp(egui::Id::new("orchestration_ai_open"), true)
-                        });
-                    }
-                    widgets::status_badge(ui, "n8n connecté", theme::SUCCESS);
-                });
+                {
+                    ui.ctx()
+                        .data_mut(|d| d.insert_temp(egui::Id::new("orchestration_ai_open"), true));
+                }
             });
         });
 
@@ -345,6 +335,7 @@ impl OrchestrationPage {
                     ui.horizontal(|ui| {
                         Self::icon_tile(ui, workflow.icon, workflow.accent);
                         ui.vertical(|ui| {
+                            ui.set_max_width((ui.available_width() - theme::SPACE_SM).max(120.0));
                             ui.label(
                                 RichText::new(workflow.name)
                                     .font(theme::font_body_strong())
@@ -366,29 +357,27 @@ impl OrchestrationPage {
                             &format!("{} nœuds", workflow.nodes),
                         );
                         Self::metadata(ui, icons::CHECK, workflow.success);
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            let id = egui::Id::new(("workflow_running", index));
-                            let running =
-                                ui.ctx().data(|d| d.get_temp::<bool>(id).unwrap_or(false));
-                            let label = if running {
-                                "Exécution lancée"
-                            } else {
-                                "Exécuter"
-                            };
-                            if widgets::secondary_button(
-                                ui,
-                                format!(
-                                    "{}  {label}",
-                                    if running { icons::CHECK } else { icons::PLAY }
-                                ),
-                                !running,
-                            )
-                            .clicked()
-                            {
-                                ui.ctx().data_mut(|d| d.insert_temp(id, true));
-                            }
-                        });
                     });
+                    ui.add_space(theme::SPACE_SM);
+                    let id = egui::Id::new(("workflow_running", index));
+                    let running = ui.ctx().data(|d| d.get_temp::<bool>(id).unwrap_or(false));
+                    let label = if running {
+                        "Exécution lancée"
+                    } else {
+                        "Exécuter"
+                    };
+                    if widgets::secondary_button(
+                        ui,
+                        format!(
+                            "{}  {label}",
+                            if running { icons::CHECK } else { icons::PLAY }
+                        ),
+                        !running,
+                    )
+                    .clicked()
+                    {
+                        ui.ctx().data_mut(|d| d.insert_temp(id, true));
+                    }
                 });
         }
     }
@@ -498,23 +487,20 @@ impl OrchestrationPage {
     }
 
     fn workflow_workspace(ui: &mut Ui) {
+        ui.label(
+            RichText::new("Bibliothèque de workflows")
+                .font(theme::font_h2())
+                .color(theme::text_primary()),
+        );
+        ui.label(
+            RichText::new("Déclenchez, planifiez et paramétrez vos automatisations n8n.")
+                .font(theme::font_body())
+                .color(theme::text_secondary()),
+        );
+        ui.add_space(theme::SPACE_MD);
         ui.horizontal_wrapped(|ui| {
-            ui.vertical(|ui| {
-                ui.label(
-                    RichText::new("Bibliothèque de workflows")
-                        .font(theme::font_h2())
-                        .color(theme::text_primary()),
-                );
-                ui.label(
-                    RichText::new("Déclenchez, planifiez et paramétrez vos automatisations n8n.")
-                        .font(theme::font_body())
-                        .color(theme::text_secondary()),
-                );
-            });
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                widgets::primary_button(ui, format!("{}  Créer", icons::PLUS), true);
-                widgets::secondary_button(ui, format!("{}  Importer", icons::DOWNLOAD), true);
-            });
+            widgets::primary_button(ui, format!("{}  Créer", icons::PLUS), true);
+            widgets::secondary_button(ui, format!("{}  Importer", icons::DOWNLOAD), true);
         });
         ui.add_space(theme::SPACE_LG);
 
@@ -574,17 +560,15 @@ impl OrchestrationPage {
                             .color(theme::text_tertiary()),
                     );
                 });
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    widgets::status_badge(
-                        ui,
-                        if selected { "Sélectionné" } else { "Actif" },
-                        if selected {
-                            theme::INFO
-                        } else {
-                            theme::SUCCESS
-                        },
-                    );
-                });
+                widgets::status_badge(
+                    ui,
+                    if selected { "Sélectionné" } else { "Actif" },
+                    if selected {
+                        theme::INFO
+                    } else {
+                        theme::SUCCESS
+                    },
+                );
             });
         });
         if response.clicked() {
@@ -804,14 +788,15 @@ impl OrchestrationPage {
         );
         ui.add_space(theme::SPACE_LG);
         widgets::Card::new().accent(theme::AI).show(ui, |ui| {
-            ui.horizontal_wrapped(|ui| {
+            ui.horizontal(|ui| {
                 Self::icon_tile(ui, icons::WAND_SPARKLES, theme::AI);
                 ui.vertical(|ui| {
                     ui.label(RichText::new("Décrivez votre besoin, Sentinel construit le workflow").font(theme::font_body_strong()).color(theme::text_primary()));
                     ui.label(RichText::new("Exemple : surveiller mes domaines, enrichir les nouveaux ports et créer une alerte critique.").font(theme::font_body_sm()).color(theme::text_secondary()));
                 });
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| { widgets::primary_button(ui, "Composer avec l'IA", true); });
             });
+            ui.add_space(theme::SPACE_MD);
+            widgets::primary_button(ui, "Composer avec l'IA", true);
         });
         ui.add_space(theme::SPACE_LG);
         widgets::ResponsiveGrid::new(330.0, theme::SPACE_MD).show(
@@ -843,31 +828,59 @@ impl OrchestrationPage {
                             .font(theme::font_caption())
                             .color(theme::text_tertiary()),
                     );
-                    ui.horizontal(|ui| {
-                        Self::metadata(ui, icons::DOWNLOAD, template.installs);
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            let install_id = egui::Id::new(("marketplace_install", template.name));
-                            let installed = ui
-                                .ctx()
-                                .data(|d| d.get_temp::<bool>(install_id).unwrap_or(false));
-                            if widgets::secondary_button(
-                                ui,
-                                if installed {
-                                    "Installé dans le tenant"
-                                } else {
-                                    "Installer"
+                    let install_id = egui::Id::new(("marketplace_install", template.name));
+                    let installed = ui
+                        .ctx()
+                        .data(|d| d.get_temp::<bool>(install_id).unwrap_or(false));
+                    let install_clicked = if width >= 410.0 {
+                        let mut clicked = false;
+                        ui.horizontal(|ui| {
+                            Self::metadata(ui, icons::DOWNLOAD, template.installs);
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui| {
+                                    clicked = widgets::secondary_button(
+                                        ui,
+                                        if installed {
+                                            "Installé dans le tenant"
+                                        } else {
+                                            "Installer"
+                                        },
+                                        !installed,
+                                    )
+                                    .clicked();
+                                    if installed {
+                                        widgets::status_badge(ui, "Signé", theme::SUCCESS);
+                                    }
                                 },
-                                !installed,
-                            )
-                            .clicked()
-                            {
-                                ui.ctx().data_mut(|d| d.insert_temp(install_id, true));
-                            }
+                            );
+                        });
+                        clicked
+                    } else {
+                        // On a one-column/narrow card the long installed label used
+                        // to collide with download metadata. Give each concern a row.
+                        ui.horizontal_wrapped(|ui| {
+                            Self::metadata(ui, icons::DOWNLOAD, template.installs);
                             if installed {
                                 widgets::status_badge(ui, "Signé", theme::SUCCESS);
                             }
                         });
-                    });
+                        ui.add_space(theme::SPACE_SM);
+                        widgets::secondary_button(
+                            ui,
+                            if installed {
+                                "Installé dans le tenant"
+                            } else {
+                                "Installer ce template"
+                            },
+                            !installed,
+                        )
+                        .clicked()
+                    };
+
+                    if install_clicked {
+                        ui.ctx().data_mut(|d| d.insert_temp(install_id, true));
+                    }
                 });
             },
         );
@@ -1049,22 +1062,21 @@ impl OrchestrationPage {
                 widgets::Card::new().accent(color).show(ui, |ui| {
                     ui.horizontal(|ui| {
                         Self::icon_tile(ui, icon, color);
-                        ui.vertical(|ui| {
-                            ui.label(
-                                RichText::new(title)
-                                    .font(theme::font_body_strong())
-                                    .color(theme::text_primary()),
-                            );
-                            ui.label(
-                                RichText::new(detail)
-                                    .font(theme::font_body_sm())
-                                    .color(theme::text_secondary()),
-                            );
-                        });
+                        ui.label(
+                            RichText::new(title)
+                                .font(theme::font_body_strong())
+                                .color(theme::text_primary()),
+                        );
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             widgets::status_badge(ui, status, color);
                         });
                     });
+                    ui.add_space(theme::SPACE_SM);
+                    ui.label(
+                        RichText::new(detail)
+                            .font(theme::font_body_sm())
+                            .color(theme::text_secondary()),
+                    );
                 });
             },
         );
@@ -1072,47 +1084,90 @@ impl OrchestrationPage {
         Self::section_title(ui, "Matrice des autorisations", "RBAC", theme::AI);
         ui.add_space(theme::SPACE_SM);
         widgets::Card::new().show(ui, |ui| {
-            egui::Grid::new("orchestration_rbac")
-                .num_columns(5)
-                .striped(true)
-                .spacing([28.0, 14.0])
-                .show(ui, |ui| {
-                    for title in ["Rôle", "Consulter", "Exécuter", "Modifier", "Approuver"] {
-                        ui.label(
-                            RichText::new(title)
-                                .font(theme::font_body_sm_medium())
-                                .color(theme::text_secondary()),
-                        );
-                    }
-                    ui.end_row();
-                    for (role, rights) in [
-                        ("SOC Manager", [true, true, true, true]),
-                        ("Analyste", [true, true, false, false]),
-                        ("Auditeur", [true, false, false, false]),
-                        ("Administrateur tenant", [true, true, true, false]),
-                    ] {
-                        ui.label(
-                            RichText::new(role)
-                                .font(theme::font_body_sm_medium())
-                                .color(theme::text_primary()),
-                        );
-                        for granted in rights {
+            let roles = [
+                ("SOC Manager", [true, true, true, true]),
+                ("Analyste", [true, true, false, false]),
+                ("Auditeur", [true, false, false, false]),
+                ("Administrateur tenant", [true, true, true, false]),
+            ];
+            let permissions = ["Consulter", "Exécuter", "Modifier", "Approuver"];
+
+            if ui.available_width() >= 620.0 {
+                egui::Grid::new("orchestration_rbac")
+                    .num_columns(5)
+                    .striped(true)
+                    .spacing([28.0, 14.0])
+                    .show(ui, |ui| {
+                        for title in ["Rôle", "Consulter", "Exécuter", "Modifier", "Approuver"] {
                             ui.label(
-                                RichText::new(if granted {
-                                    icons::CIRCLE_CHECK
-                                } else {
-                                    icons::XMARK
-                                })
-                                .color(if granted {
-                                    theme::SUCCESS
-                                } else {
-                                    theme::text_tertiary()
-                                }),
+                                RichText::new(title)
+                                    .font(theme::font_body_sm_medium())
+                                    .color(theme::text_secondary()),
                             );
                         }
                         ui.end_row();
+                        for (role, rights) in roles {
+                            ui.label(
+                                RichText::new(role)
+                                    .font(theme::font_body_sm_medium())
+                                    .color(theme::text_primary()),
+                            );
+                            for granted in rights {
+                                ui.label(
+                                    RichText::new(if granted {
+                                        icons::CIRCLE_CHECK
+                                    } else {
+                                        icons::XMARK
+                                    })
+                                    .color(if granted {
+                                        theme::SUCCESS
+                                    } else {
+                                        theme::text_tertiary()
+                                    }),
+                                );
+                            }
+                            ui.end_row();
+                        }
+                    });
+            } else {
+                // The desktop window can become narrow when docked. Stacking each
+                // role avoids the fixed five-column table colliding or clipping.
+                for (index, (role, rights)) in roles.into_iter().enumerate() {
+                    if index > 0 {
+                        ui.separator();
                     }
-                });
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        RichText::new(role)
+                            .font(theme::font_body_strong())
+                            .color(theme::text_primary()),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.horizontal_wrapped(|ui| {
+                        for (permission, granted) in permissions.into_iter().zip(rights) {
+                            let color = if granted {
+                                theme::SUCCESS
+                            } else {
+                                theme::text_tertiary()
+                            };
+                            ui.label(
+                                RichText::new(format!(
+                                    "{} {}",
+                                    if granted {
+                                        icons::CIRCLE_CHECK
+                                    } else {
+                                        icons::XMARK
+                                    },
+                                    permission
+                                ))
+                                .font(theme::font_small())
+                                .color(color),
+                            );
+                        }
+                    });
+                    ui.add_space(theme::SPACE_XS);
+                }
+            }
         });
         ui.add_space(theme::SPACE_LG);
         Self::connectors(ui);

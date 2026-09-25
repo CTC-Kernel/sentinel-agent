@@ -755,6 +755,7 @@ impl CompliancePage {
                         command = Some(GuiCommand::LlmPrompt {
                             prompt,
                             context: Some(crate::dto::LlmPromptContext::Compliance),
+                            speak_response: false,
                         });
                     }
                     3 if is_failed => {

@@ -16,8 +16,10 @@ pub struct UpdateInfo {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum UpdateStatus {
-    /// Checking for updates.
+    /// No update operation is running.
     Idle,
+    /// Querying the public release catalog.
+    Checking,
     /// Update available, version number included.
     Available(String),
     /// No update available.

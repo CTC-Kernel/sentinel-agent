@@ -614,6 +614,7 @@ impl DashboardPage {
                     // PREMIUM Voice Toggle
                     if widgets::voice_toggle_button(ui, state.ai.is_listening).clicked() {
                         state.ai.is_listening = !state.ai.is_listening;
+                        state.ai.voice_reply_pending = false;
                         // Turn off speaking if we start listening
                         if state.ai.is_listening {
                             state.ai.is_speaking = false;
@@ -654,7 +655,12 @@ impl DashboardPage {
                         nav_action = Some(DashboardAction::Command(GuiCommand::LlmPrompt {
                             prompt,
                             context: None,
+                            speak_response: state.ai.voice_conversation_enabled,
                         }));
+                        // Dashboard questions participate in the same hands-free
+                        // loop as the full assistant: reopen the mic only after
+                        // the spoken answer has actually completed.
+                        state.ai.voice_reply_pending = state.ai.voice_conversation_enabled;
                     }
                 });
             });
