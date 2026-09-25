@@ -2735,7 +2735,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             );
                                             let req = agent_llm::engine::InferenceRequest::new(&prompt)
                                                 .with_system_prompt(system_prompt)
-                                                .with_max_tokens(1200)
+                                                // A focused answer is faster and more useful on
+                                                // standalone CPU-only endpoints. The engine still
+                                                // has a reduced-token retry for constrained hosts.
+                                                .with_max_tokens(640)
                                                 .with_temperature(0.2);
                                             match manager.engine().infer(req).await {
                                                 Ok(resp) => {
@@ -3170,12 +3173,29 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::SpeakNotification { text }) => {
                             info!("[AUDIT] GUI requested a spoken security notification");
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
-                                voice.speak(&text);
+                            let speech_started = {
+                                #[cfg(feature = "voice")]
+                                {
+                                    if let Some(ref voice) = voice_service {
+                                        voice.speak(&text);
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                }
+                                #[cfg(not(feature = "voice"))]
+                                {
+                                    false
+                                }
+                            };
+                            if !speech_started {
+                                let _ = text;
+                                // Match the service's completion event even in
+                                // voice-less builds or when initialization failed.
+                                let _ = bg_event_tx.send(AgentEvent::VoiceStatus {
+                                    speaking: false,
+                                });
                             }
-                            #[cfg(not(feature = "voice"))]
-                            let _ = text;
                         }
 
                         Ok(GuiCommand::LlmToggleVoice) => {

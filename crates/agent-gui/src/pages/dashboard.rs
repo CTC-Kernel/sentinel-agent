@@ -511,13 +511,6 @@ impl DashboardPage {
                     theme::ERROR
                 },
             ),
-            (
-                Page::Orchestration,
-                icons::ORCHESTRATION,
-                "AUTOMATISATION",
-                "n8n connecté".to_owned(),
-                theme::AI,
-            ),
         ];
         let mut selected = None;
 

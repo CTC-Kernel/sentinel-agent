@@ -481,7 +481,10 @@ impl ModelEngine for MistralEngine {
         let max_tokens = request
             .max_tokens
             .unwrap_or(self.inference_config.max_tokens) as usize;
-        let timeout_secs = self.inference_config.timeout_secs;
+        // Older installations commonly persisted a 30-second timeout, which is
+        // too aggressive for CPU inference with a grounded SOC prompt. Preserve
+        // larger operator values while migrating the effective floor to 90s.
+        let timeout_secs = self.inference_config.timeout_secs.max(90);
 
         debug!(
             "Starting inference: prompt_len={}, max_tokens={}, temp={:.1}",
@@ -537,7 +540,7 @@ impl ModelEngine for MistralEngine {
             Err(_) => {
                 // After timeout, mistralrs internal state is corrupted (channel dropped).
                 // Unload, reload, and retry once with reduced tokens to break the death spiral.
-                let reduced_tokens = max_tokens.min(256);
+                let reduced_tokens = max_tokens.min(192);
                 warn!(
                     "LLM inference timed out after {}s — reloading and retrying with max_tokens={}",
                     timeout_secs, reduced_tokens
