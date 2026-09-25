@@ -207,7 +207,10 @@ impl VoiceService {
         info!("VoiceService: Native voice synthesis triggered.");
 
         let tx = self.event_tx.clone();
-        let rt_text = text.to_string();
+        // Markdown, long code blocks and raw URLs sound unnatural through an
+        // OS voice. Keep the spoken answer concise while the complete answer
+        // remains visible in chat.
+        let rt_text = prepare_spoken_text(text);
         let engine_lock = self.tts_engine.clone();
 
         std::thread::spawn(move || {
@@ -221,8 +224,9 @@ impl VoiceService {
                 if let Err(e) = engine.speak(&rt_text, false) {
                     warn!("VoiceService: TTS engine speak failed: {}", e);
                 } else {
-                    let char_count = rt_text.len() as u64;
-                    synth_duration = std::time::Duration::from_millis(150 * char_count.max(10));
+                    let char_count = rt_text.chars().count() as u64;
+                    synth_duration =
+                        std::time::Duration::from_millis((55 * char_count).clamp(1_200, 30_000));
                 }
             }
 
@@ -230,6 +234,39 @@ impl VoiceService {
             let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
         });
     }
+}
+
+#[cfg(feature = "gui")]
+fn prepare_spoken_text(text: &str) -> String {
+    let mut spoken = String::with_capacity(text.len().min(900));
+    let mut in_code_block = false;
+    for line in text.lines() {
+        if line.trim_start().starts_with("```") {
+            in_code_block = !in_code_block;
+            continue;
+        }
+        if in_code_block {
+            continue;
+        }
+        let cleaned = line
+            .replace(['#', '*', '`', '_'], "")
+            .split_whitespace()
+            .filter(|word| !word.starts_with("http://") && !word.starts_with("https://"))
+            .collect::<Vec<_>>()
+            .join(" ");
+        if !cleaned.is_empty() {
+            if !spoken.is_empty() {
+                spoken.push_str(". ");
+            }
+            spoken.push_str(&cleaned);
+        }
+        if spoken.chars().count() >= 850 {
+            spoken = spoken.chars().take(850).collect();
+            spoken.push_str(". Consultez le détail dans Sentinel Nexus.");
+            break;
+        }
+    }
+    spoken
 }
 
 /// Resolve the Whisper model path, preferring the platform data dir and falling

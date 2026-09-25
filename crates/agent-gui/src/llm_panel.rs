@@ -58,6 +58,23 @@ impl LLMPanel {
     pub fn show(&mut self, ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         // ── Page Header ─────────────────────────────────────────────────
         ui.add_space(theme::SPACE_MD);
+
+        widgets::card(ui, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.checkbox(
+                    &mut state.ai.voice_conversation_enabled,
+                    "Conversation vocale continue",
+                )
+                .on_hover_text("Lit les réponses puis rouvre automatiquement le microphone");
+                ui.checkbox(
+                    &mut state.ai.voice_alerts_enabled,
+                    "Alertes de sécurité vocales",
+                )
+                .on_hover_text("Annonce uniquement les notifications importantes ou critiques");
+            });
+        });
+
+        ui.add_space(theme::SPACE_MD);
         let _ = widgets::page_header_nav(
             ui,
             &["Assistant", "Assistant IA"],
@@ -193,6 +210,7 @@ impl LLMPanel {
                     command = Some(GuiCommand::LlmPrompt {
                         prompt: Self::grounded_prompt(state, prompt),
                         context: Some(prompt_context),
+                        speak_response: state.ai.voice_conversation_enabled,
                     });
                 }
             }
@@ -246,7 +264,10 @@ impl LLMPanel {
                     command = Some(GuiCommand::LlmPrompt {
                         prompt: Self::grounded_prompt(state, &prompt),
                         context: Some(prompt_context),
+                        speak_response: voice_auto_send || state.ai.voice_conversation_enabled,
                     });
+                    state.ai.voice_reply_pending =
+                        voice_auto_send || state.ai.voice_conversation_enabled;
                 }
             });
         });

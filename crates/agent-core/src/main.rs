@@ -2689,7 +2689,11 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
 
                         // ── LLM commands ──────────────────────────────────────
-                        Ok(GuiCommand::LlmPrompt { prompt, context }) => {
+                        Ok(GuiCommand::LlmPrompt {
+                            prompt,
+                            context,
+                            speak_response,
+                        }) => {
                             info!("[AUDIT] GUI sent LLM prompt ({} chars)", prompt.len());
                             if let Some(ref trail) = audit_trail_for_commands {
                                 let trail: std::sync::Arc<agent_core::audit_trail::LocalAuditTrail> = std::sync::Arc::clone(trail);
@@ -2732,16 +2736,21 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                         processing_time_ms: resp.duration_ms,
                                                     });
                                                     #[cfg(feature = "voice")]
-                                                    if let Some(ref v) = voice {
+                                                    if speak_response && let Some(ref v) = voice {
                                                         v.speak(&text);
                                                     }
                                                 }
                                                 Err(e) => {
                                                     warn!("LLM inference error: {}", e);
+                                                    let message = format!("Erreur d'inférence : {}", e);
                                                     let _ = tx.send(AgentEvent::LlmChatResponse {
-                                                        message: format!("Erreur d'inférence : {}", e),
+                                                        message: message.clone(),
                                                         processing_time_ms: start.elapsed().as_millis() as u64,
                                                     });
+                                                    #[cfg(feature = "voice")]
+                                                    if speak_response && let Some(ref v) = voice {
+                                                        v.speak(&message);
+                                                    }
                                                 }
                                             }
                                             return;
@@ -2749,19 +2758,29 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         // Manager not available — get the specific reason
                                         let reason = svc.unavailable_reason().await
                                             .unwrap_or_else(|| "Raison inconnue".to_string());
+                                        let message = format!("Modèle IA non disponible.\n\n{}", reason);
                                         let _ = tx.send(AgentEvent::LlmChatResponse {
-                                            message: format!("Modèle IA non disponible.\n\n{}", reason),
+                                            message: message.clone(),
                                             processing_time_ms: start.elapsed().as_millis() as u64,
                                         });
+                                        #[cfg(feature = "voice")]
+                                        if speak_response && let Some(ref v) = voice {
+                                            v.speak(&message);
+                                        }
                                         return;
                                     }
                                 }
                                 // LLM not available (feature disabled or no service)
                                 let _ = &svc; // suppress unused-variable warning when llm feature is off
+                                let message = "Module IA non compilé. La conversation vocale nécessite la fonctionnalité LLM.".to_string();
                                 let _ = tx.send(AgentEvent::LlmChatResponse {
-                                    message: "Module IA non compilé (feature 'llm' désactivée). Recompilez avec --features llm.".to_string(),
+                                    message: message.clone(),
                                     processing_time_ms: start.elapsed().as_millis() as u64,
                                 });
+                                #[cfg(feature = "voice")]
+                                if speak_response && let Some(ref v) = voice {
+                                    v.speak(&message);
+                                }
                             });
                         }
 
@@ -3135,6 +3154,15 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     }
                                 });
                             }
+                        }
+                        Ok(GuiCommand::SpeakNotification { text }) => {
+                            info!("[AUDIT] GUI requested a spoken security notification");
+                            #[cfg(feature = "voice")]
+                            if let Some(ref voice) = voice_service {
+                                voice.speak(&text);
+                            }
+                            #[cfg(not(feature = "voice"))]
+                            let _ = text;
                         }
 
                         Ok(GuiCommand::LlmToggleVoice) => {

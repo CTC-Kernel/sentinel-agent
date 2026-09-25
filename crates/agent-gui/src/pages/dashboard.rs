@@ -654,6 +654,7 @@ impl DashboardPage {
                         nav_action = Some(DashboardAction::Command(GuiCommand::LlmPrompt {
                             prompt,
                             context: None,
+                            speak_response: state.ai.voice_conversation_enabled,
                         }));
                     }
                 });

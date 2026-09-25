@@ -596,25 +596,76 @@ impl SentinelApp {
     // ------------------------------------------------------------------
 
     fn process_events(&mut self) {
-        let rx = match self.event_rx.lock() {
-            Ok(rx) => rx,
-            Err(poisoned) => {
-                tracing::error!("GUI event channel lock was poisoned; recovering queued events");
-                poisoned.into_inner()
-            }
-        };
-        while let Ok(event) = rx.try_recv() {
-            // Special handling for enrollment result in app shell
-            if let crate::events::AgentEvent::EnrollmentResult {
-                success,
-                ref message,
-                ..
-            } = event
-            {
-                self.enrollment_wizard.set_result(success, message.clone());
-            }
+        let mut spoken_notifications = Vec::new();
+        let mut resume_conversation = false;
+        {
+            let rx = match self.event_rx.lock() {
+                Ok(rx) => rx,
+                Err(poisoned) => {
+                    tracing::error!(
+                        "GUI event channel lock was poisoned; recovering queued events"
+                    );
+                    poisoned.into_inner()
+                }
+            };
+            while let Ok(event) = rx.try_recv() {
+                // Special handling for enrollment result in app shell
+                if let crate::events::AgentEvent::EnrollmentResult {
+                    success,
+                    ref message,
+                    ..
+                } = event
+                {
+                    self.enrollment_wizard.set_result(success, message.clone());
+                }
 
-            self.state.apply_event(event);
+                if self.state.ai.voice_alerts_enabled
+                    && let crate::events::AgentEvent::Notification { notification } = &event
+                    && matches!(
+                        notification.severity.as_str(),
+                        "warning" | "high" | "error" | "critical"
+                    )
+                {
+                    spoken_notifications.push(format!(
+                        "Alerte Sentinel. {}. {}",
+                        notification.title, notification.body
+                    ));
+                }
+                if matches!(
+                    &event,
+                    crate::events::AgentEvent::VoiceStatus { speaking: false }
+                ) && self.state.ai.voice_conversation_enabled
+                    && self.state.ai.voice_reply_pending
+                {
+                    self.state.ai.voice_reply_pending = false;
+                    resume_conversation = true;
+                }
+
+                self.state.apply_event(event);
+            }
+        }
+
+        // Commands are sent after releasing the event receiver lock: voice
+        // callbacks can emit new GUI events immediately and must never contend
+        // with the drain loop above.
+        if !spoken_notifications.is_empty() {
+            let total = spoken_notifications.len();
+            let mut text = spoken_notifications
+                .into_iter()
+                .take(3)
+                .collect::<Vec<_>>()
+                .join(". ");
+            if total > 3 {
+                text.push_str(&format!(
+                    ". Et {} autres alertes dans Sentinel Nexus.",
+                    total - 3
+                ));
+            }
+            self.send_command(GuiCommand::SpeakNotification { text });
+        }
+        if resume_conversation && !self.state.ai.is_listening {
+            self.state.ai.is_listening = true;
+            self.send_command(GuiCommand::SetVoiceListening { enabled: true });
         }
     }
 
@@ -1886,7 +1937,11 @@ impl SentinelApp {
                                 self.send_command(GuiCommand::LlmPrompt {
                                     prompt,
                                     context: None,
+                                    speak_response: voice_auto_send
+                                        || self.state.ai.voice_conversation_enabled,
                                 });
+                                self.state.ai.voice_reply_pending =
+                                    voice_auto_send || self.state.ai.voice_conversation_enabled;
                             }
                         });
                     });
