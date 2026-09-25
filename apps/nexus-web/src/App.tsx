@@ -3,7 +3,7 @@ import {
   Activity, ArrowRight, Bell, Bot, Check, ChevronDown, ChevronRight, Circle,
   Clock3, FileDown, Filter, Fingerprint, KeyRound, LockKeyhole, Menu, Play,
   Plus, Search, Send, Shield, ShieldCheck, Sparkles, Users, Workflow, X,
-  Zap,
+  Zap, Crosshair, Eye, Globe2, Radio, ScanLine, TriangleAlert,
 } from "lucide-react";
 import { compliance, genericPages, incidents, kpis, navGroups, templates, workflows } from "./data";
 import { orchestrationClient } from "./services/orchestration";
@@ -41,7 +41,7 @@ export function App() {
         </div>
       </header>
       <main>
-        {page === "dashboard" ? <Dashboard onNavigate={setPage} notify={notify}/> : page === "orchestration" ? <Orchestration notify={notify}/> : <ModulePage id={page}/>}
+        {page === "dashboard" ? <Dashboard onNavigate={setPage} notify={notify}/> : page === "orchestration" ? <Orchestration notify={notify}/> : page === "threats" ? <ThreatCenter notify={notify}/> : <ModulePage id={page}/>}
       </main>
     </div>
     <button className="ai-fab" onClick={() => setAssistantOpen(true)}><Sparkles size={20}/><span>Sentinel Intelligence</span></button>
@@ -85,15 +85,44 @@ function Dashboard({ onNavigate, notify }: { onNavigate: (id: string) => void; n
 
 function ScoreRing() { return <div className="score-ring"><svg viewBox="0 0 140 140"><circle cx="70" cy="70" r="57"/><circle className="score-progress" cx="70" cy="70" r="57"/></svg><div><strong>92</strong><small>/ 100</small><span>+4,8%</span></div></div>; }
 
+function ThreatCenter({ notify }: { notify: (s: string) => void }) {
+  const [window, setWindow] = useState("24 h");
+  const signals = [
+    { label: "Mouvement latéral", source: "FIN-WS-042 → DC-EU-02", time: "Il y a 3 min", tone: "critical", score: "98" },
+    { label: "Exfiltration DNS probable", source: "Kubernetes / payments-prod", time: "Il y a 11 min", tone: "high", score: "86" },
+    { label: "Authentification impossible", source: "IAM-PROD / user-1842", time: "Il y a 27 min", tone: "medium", score: "72" },
+  ];
+  return <div className="page threat-page fade-in">
+    <PageHeading eyebrow="SOC / THREAT INTELLIGENCE" title="Centre de détection" description="Une lecture temps réel de votre surface d'attaque, enrichie et priorisée par Sentinel Intelligence." actions={<><button className="secondary"><Filter size={16}/> Filtres avancés</button><button className="primary" onClick={() => notify("Chasse aux menaces lancée")}><Crosshair size={16}/> Nouvelle investigation</button></>}/>
+    <section className="threat-command panel">
+      <div className="radar-stage" aria-label="Radar de menaces en temps réel">
+        <div className="radar-grid"><i className="radar-sweep"/><i className="radar-core"/><span className="blip b1"/><span className="blip b2 danger"/><span className="blip b3"/><span className="blip b4 warning"/><span className="radar-axis horizontal"/><span className="radar-axis vertical"/></div>
+        <div className="radar-status"><span><i/> SURVEILLANCE ACTIVE</span><strong>2 847</strong><small>événements analysés / min</small></div>
+        <div className="radar-legend"><span><i className="safe"/> Normal</span><span><i className="warning"/> Suspect</span><span><i className="danger"/> Critique</span></div>
+      </div>
+      <div className="threat-overview">
+        <header><div><span className="eyebrow">SIGNAL DE MENACE GLOBAL</span><h2>Pression adversaire <em>élevée</em></h2></div><div className="time-switch">{["1 h","24 h","7 j"].map((item) => <button className={window === item ? "active" : ""} onClick={() => setWindow(item)} key={item}>{item}</button>)}</div></header>
+        <p>Une campagne coordonnée cible vos identités privilégiées depuis 3 infrastructures récemment observées. Les contrôles compensatoires restent efficaces.</p>
+        <div className="threat-metrics"><article><TriangleAlert/><span>Alertes corrélées</span><strong>07</strong><small>+3 sur {window}</small></article><article><Eye/><span>IOC surveillés</span><strong>1 284</strong><small>42 nouveaux</small></article><article><ScanLine/><span>Couverture MITRE</span><strong>84%</strong><small>11 tactiques</small></article></div>
+        <div className="ai-brief"><Sparkles/><div><b>Brief Sentinel Intelligence</b><p>Priorité recommandée : isoler FIN-WS-042 puis révoquer ses jetons actifs. Confiance de l'analyse : <strong>94%</strong>.</p></div><button onClick={() => notify("Plan de confinement préparé")}>Préparer la réponse <ArrowRight/></button></div>
+      </div>
+    </section>
+    <section className="threat-lower">
+      <article className="panel signal-feed"><div className="section-head"><div><span className="eyebrow">LIVE FEED</span><h2>Signaux prioritaires</h2></div><button>Voir la timeline <ArrowRight size={15}/></button></div>{signals.map((signal) => <button className="signal-row" key={signal.label}><span className={`signal-score ${signal.tone}`}>{signal.score}</span><span><b>{signal.label}</b><small>{signal.source}</small></span><span><Radio/> {signal.time}</span><ChevronRight/></button>)}</article>
+      <article className="panel intel-card"><div className="section-head"><div><span className="eyebrow">INTELLIGENCE</span><h2>Origine des signaux</h2></div><Globe2/></div><div className="source-map"><span className="source-point p1"/><span className="source-point p2"/><span className="source-point p3"/><svg viewBox="0 0 400 140" preserveAspectRatio="none"><path d="M30 105 C110 20 235 125 370 35"/><path d="M55 40 C170 110 245 10 345 92"/></svg></div><div className="intel-sources"><span><b>31%</b> Identités</span><span><b>28%</b> Endpoints</span><span><b>24%</b> Cloud</span><span><b>17%</b> Réseau</span></div></article>
+    </section>
+  </div>;
+}
+
 function Orchestration({ notify }: { notify: (s: string) => void }) {
-  const [tab, setTab] = useState("workflows");
+  const [tab, setTab] = useState("overview");
   const [selected, setSelected] = useState(workflows[0]);
   const [launchOpen, setLaunchOpen] = useState(false);
   const tabs = ["Vue d'ensemble", "Workflows", "Marketplace", "Exécutions", "Gouvernance"];
   return <div className="page fade-in orchestration-page">
     <PageHeading eyebrow="NEXUS AUTOMATION CLOUD" title="Orchestration" description="Concevez, gouvernez et exécutez votre défense automatisée." actions={<><span className="connection"><i/> n8n connecté</span><button className="secondary"><KeyRound size={16}/> Connecteurs</button><button className="primary" onClick={() => notify("Nouveau workflow initialisé")}><Plus size={16}/> Nouveau workflow</button></>}/>
     <div className="tabs">{tabs.map((name) => <button className={tab === name.toLowerCase().replace("vue d'ensemble", "overview") ? "active" : ""} key={name} onClick={() => setTab(name.toLowerCase().replace("vue d'ensemble", "overview"))}>{name}</button>)}</div>
-    {tab === "marketplace" ? <Marketplace notify={notify}/> : tab === "exécutions" ? <Executions/> : tab === "gouvernance" ? <Governance/> : <div className="orchestration-grid">
+    {tab === "overview" ? <OrchestrationOverview notify={notify} onOpenWorkflows={() => setTab("workflows")}/> : tab === "marketplace" ? <Marketplace notify={notify}/> : tab === "exécutions" ? <Executions/> : tab === "gouvernance" ? <Governance/> : <div className="orchestration-grid">
       <section>
         <div className="section-head large"><div><span className="eyebrow">AUTOMATISATIONS</span><h2>Workflows critiques</h2></div><div className="filter-actions"><button><Filter size={15}/> Tous</button><button><Search size={15}/></button></div></div>
         <div className="workflow-list">{workflows.map((workflow) => <button className={`workflow-card panel ${selected.id === workflow.id ? "selected" : ""}`} key={workflow.id} onClick={() => setSelected(workflow)}><div className={`workflow-icon ${workflow.color}`}><Workflow/></div><div className="workflow-info"><div><h3>{workflow.name}</h3><span className={`status ${workflow.status.toLowerCase()}`}>{workflow.status}</span></div><p>{workflow.description}</p><footer><span><Zap/> {workflow.trigger}</span><span><Activity/> {workflow.runs} exécutions</span><span><Check/> {workflow.rate}</span></footer></div><ChevronRight/></button>)}</div>
@@ -106,6 +135,29 @@ function Orchestration({ notify }: { notify: (s: string) => void }) {
       </aside>
     </div>}
     {launchOpen && <LaunchModal workflow={selected.name} workflowId={selected.id} onClose={() => setLaunchOpen(false)} onLaunch={(id) => { setLaunchOpen(false); notify(`Exécution ${id} lancée et journalisée`); }}/>}
+  </div>;
+}
+
+function OrchestrationOverview({ notify, onOpenWorkflows }: { notify: (s: string) => void; onOpenWorkflows: () => void }) {
+  const health = [
+    { label: "Workflows actifs", value: "12", detail: "+2 ce mois", tone: "mint" },
+    { label: "Exécutions / 30 j", value: "1 284", detail: "99,6% réussies", tone: "blue" },
+    { label: "Temps SOC économisé", value: "38 h", detail: "+18%", tone: "violet" },
+    { label: "Réponse P95", value: "8,7 s", detail: "Objectif < 10 s", tone: "coral" },
+  ];
+  return <div className="automation-overview">
+    <section className="automation-hero panel">
+      <div><span className="eyebrow">AUTOMATION CONTROL PLANE</span><h2>Votre défense s'exécute en continu.</h2><p>n8n auto-hébergé, secrets isolés et validations humaines réunis dans un cockpit opérationnel unique.</p><div className="automation-trust"><span><ShieldCheck/> SSO actif</span><span><Fingerprint/> HMAC vérifié</span><span><LockKeyhole/> Tenant isolé</span></div></div>
+      <div className="automation-score"><span>FIABILITÉ</span><strong>99,6<small>%</small></strong><em><i/> Tous les systèmes opérationnels</em></div>
+    </section>
+    <section className="automation-kpis">{health.map((item) => <article className={`panel ${item.tone}`} key={item.label}><span>{item.label}</span><strong>{item.value}</strong><small>{item.detail}</small></article>)}</section>
+    <section className="automation-columns">
+      <article className="panel automation-activity"><div className="section-head"><div><span className="eyebrow">TEMPS RÉEL</span><h2>Activité d'orchestration</h2></div><button onClick={onOpenWorkflows}>Tous les workflows <ArrowRight size={15}/></button></div>
+        {[{name:"Zero-day containment",meta:"Wazuh webhook · il y a 3 min",state:"Approbation",tone:"waiting"},{name:"Exposure intelligence",meta:"Shodan + VirusTotal · il y a 12 min",state:"Réussie",tone:"success"},{name:"Executive risk brief",meta:"LLM privé → PDF chiffré · il y a 1 h",state:"Réussie",tone:"success"}].map((run) => <div className="automation-run" key={run.name}><span className={`run-mark ${run.tone}`}><Workflow/></span><div><b>{run.name}</b><small>{run.meta}</small></div><span className={`run-state ${run.tone}`}>{run.state}</span><ChevronRight/></div>)}
+      </article>
+      <article className="panel automation-copilot"><span className="ai-orb"><Sparkles/></span><span className="eyebrow">ARCHITECTE SENTINEL AI</span><h2>Réponse adaptative recommandée</h2><p>Deux actifs exposés cumulent cinq vulnérabilités élevées. Créez une chaîne de qualification, approbation et isolement.</p><ol><li>Enrichir via Shodan et VirusTotal</li><li>Classifier avec le LLM privé</li><li>Valider puis isoler via Wazuh</li></ol><button className="primary full" onClick={() => notify("Brouillon IA généré et prêt à réviser")}><Sparkles size={15}/> Générer le workflow</button></article>
+    </section>
+    <section className="connector-strip panel"><div><span className="eyebrow">CONNECTEURS SÉCURISÉS</span><h3>Votre stack SOC, prête à agir</h3></div>{["Wazuh","TheHive","VirusTotal","Shodan","Qualys","Slack"].map((name) => <span key={name}><i/>{name}</span>)}<button onClick={() => notify("Catalogue des connecteurs ouvert")}>Gérer <ArrowRight size={14}/></button></section>
   </div>;
 }
 
