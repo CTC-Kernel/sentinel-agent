@@ -28,6 +28,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
     // No inner ScrollArea — the parent in app.rs already wraps everything.
     {
+        // The operational radar is the primary decision surface and must be
+        // visible without scrolling. Build its unified feed once and keep all
+        // secondary analytics below it.
+        let all_threats = build_threat_list(state);
+        render_threat_radar(ui, &all_threats);
+        ui.add_space(theme::SPACE_LG);
+
         // ── Summary counts (AAA Grade) ──────────────────────────────────
         let process_count = state.threats.suspicious_processes.len();
         let usb_count = state.threats.usb_events.len();
@@ -124,9 +131,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         );
 
         ui.add_space(theme::SPACE_LG);
-
-        // Build the unified threat list ONCE for the entire overview.
-        let all_threats = build_threat_list(state);
 
         // ── Severity distribution bar + Detection coverage ──────────────
         {
@@ -463,11 +467,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 },
             );
         });
-
-        ui.add_space(theme::SPACE_LG);
-
-        // ── Threat Radar (AAA Grade) ────────────────────────────────────
-        render_threat_radar(ui, &threats);
 
         ui.add_space(theme::SPACE_LG);
 
@@ -1421,18 +1420,60 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
 
         // ── Radar canvas ──
         let available_w = ui.available_width();
-        let (rect, _) = ui.allocate_exact_size(
-            egui::vec2(available_w, theme::RADAR_HEIGHT),
-            egui::Sense::hover(),
-        );
+        let canvas_height = (available_w * 0.72).clamp(300.0, 420.0);
+        let (rect, _) =
+            ui.allocate_exact_size(egui::vec2(available_w, canvas_height), egui::Sense::hover());
         let painter = ui.painter_at(rect);
         let center = rect.center();
-        let radius = theme::RADAR_RADIUS;
+        // Reserve room for sector labels so the radar never clips when the
+        // desktop window is snapped to a narrow column.
+        let radius = theme::RADAR_RADIUS
+            .min((available_w - 96.0).max(120.0) * 0.5)
+            .min((canvas_height - 64.0) * 0.5);
         let time = ui.input(|i| i.time);
 
-        // ─ Background: dark substrate + accent aura ─
-        painter.circle_filled(center, radius + theme::SPACE, theme::bg_deep());
-        painter.circle_filled(center, radius * 0.35, theme::ACCENT.linear_multiply(0.025));
+        // ─ Background: layered command-surface substrate ─
+        painter.circle_filled(
+            center,
+            radius + theme::SPACE_MD,
+            theme::ACCENT.linear_multiply(if theme::is_dark_mode() { 0.08 } else { 0.045 }),
+        );
+        painter.circle_filled(center, radius + theme::SPACE_XS, theme::bg_deep());
+        painter.circle_stroke(
+            center,
+            radius + theme::SPACE_XS,
+            egui::Stroke::new(
+                theme::BORDER_THIN,
+                theme::accent_text().linear_multiply(0.32),
+            ),
+        );
+
+        // Precision ticks give the surface an instrument-grade silhouette
+        // without adding another opaque gradient layer.
+        let tick_color = theme::accent_text().linear_multiply(0.34);
+        for tick in 0..48 {
+            let angle = tick as f32 / 48.0 * TAU;
+            let major = tick % 6 == 0;
+            let outer = radius + theme::SPACE_XS - 2.0;
+            let inner = outer - if major { 8.0 } else { 3.5 };
+            let direction = egui::vec2(angle.cos(), angle.sin());
+            painter.line_segment(
+                [center + direction * inner, center + direction * outer],
+                egui::Stroke::new(
+                    if major {
+                        theme::BORDER_MEDIUM
+                    } else {
+                        theme::BORDER_HAIRLINE
+                    },
+                    tick_color,
+                ),
+            );
+        }
+        painter.circle_filled(
+            center,
+            radius * 0.42,
+            theme::accent_text().linear_multiply(if theme::is_dark_mode() { 0.035 } else { 0.02 }),
+        );
 
         // ─ Grid: concentric rings ─
         let grid_color = theme::border().linear_multiply(theme::OPACITY_MODERATE);
@@ -1481,7 +1522,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 egui::Align2::LEFT_BOTTOM,
                 *label,
                 theme::font_caption(),
-                color.linear_multiply(theme::OPACITY_MEDIUM),
+                theme::readable_color(*color).linear_multiply(theme::OPACITY_MEDIUM),
             );
         }
 
@@ -1510,22 +1551,27 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             );
         }
 
-        // ─ Sweep animation with fading trail ─
+        // ─ Sweep animation: translucent fan + precision leading edge ─
         if !reduced {
             let sweep_angle = (time * 1.2) as f32 % TAU;
 
-            let trail_count = 25;
-            let trail_arc = 0.5_f32;
-            for i in 0..trail_count {
-                let t = i as f32 / trail_count as f32;
-                let a = sweep_angle - trail_arc * t;
-                let end = center + egui::vec2(a.cos(), a.sin()) * radius;
-                let alpha = 0.3 * (1.0 - t).powi(2);
-                let width = theme::BORDER_MEDIUM * (1.0 - t * 0.5);
-                painter.line_segment(
-                    [center, end],
-                    egui::Stroke::new(width, theme::SUCCESS.linear_multiply(alpha)),
-                );
+            let fan_segments = 32;
+            let fan_arc = 0.72_f32;
+            for segment in 0..fan_segments {
+                let near = segment as f32 / fan_segments as f32;
+                let far = (segment + 1) as f32 / fan_segments as f32;
+                let near_angle = sweep_angle - fan_arc * near;
+                let far_angle = sweep_angle - fan_arc * far;
+                let alpha = if theme::is_dark_mode() { 0.12 } else { 0.075 } * (1.0 - near).powi(2);
+                painter.add(egui::Shape::convex_polygon(
+                    vec![
+                        center,
+                        center + egui::vec2(near_angle.cos(), near_angle.sin()) * radius,
+                        center + egui::vec2(far_angle.cos(), far_angle.sin()) * radius,
+                    ],
+                    theme::readable_color(theme::SUCCESS).linear_multiply(alpha),
+                    egui::Stroke::NONE,
+                ));
             }
 
             let lead_end = center + egui::vec2(sweep_angle.cos(), sweep_angle.sin()) * radius;
@@ -1533,7 +1579,20 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 [center, lead_end],
                 egui::Stroke::new(
                     theme::BORDER_THICK,
-                    theme::SUCCESS.linear_multiply(theme::OPACITY_HOVER_SOFT),
+                    theme::readable_color(theme::SUCCESS)
+                        .linear_multiply(theme::OPACITY_HOVER_SOFT),
+                ),
+            );
+
+            // A restrained echo ring communicates continuous acquisition. It
+            // remains a single soft stroke, avoiding visible halo banding.
+            let echo_phase = ((time * 0.34) % 1.0) as f32;
+            painter.circle_stroke(
+                center,
+                radius * (0.18 + echo_phase * 0.82),
+                egui::Stroke::new(
+                    theme::BORDER_THIN,
+                    theme::readable_color(theme::SUCCESS).linear_multiply((1.0 - echo_phase) * 0.2),
                 ),
             );
         }
@@ -1545,7 +1604,9 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             (time * 1.2) as f32 % TAU
         };
 
-        for (i, threat) in threats.iter().enumerate() {
+        // Keep dense incident bursts legible; the header retains the complete
+        // signal count while the radar plots the highest-priority first page.
+        for (i, threat) in threats.iter().take(48).enumerate() {
             let mut hasher = DefaultHasher::new();
             threat.title.hash(&mut hasher);
             let seed = hasher.finish();
@@ -1578,6 +1639,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 "medium" => theme::WARNING,
                 _ => theme::INFO,
             };
+            let display_color = theme::readable_color(color);
 
             let blip_core = match threat.severity {
                 "critical" => 5.0_f32,
@@ -1601,16 +1663,39 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             for layer in (0..3).rev() {
                 let r = blip_core + (layer as f32 + 1.0) * 2.5 + pulse * 2.0;
                 let alpha = theme::OPACITY_SUBTLE / (layer as f32 + 1.0);
-                painter.circle_filled(blip_pos, r, color.linear_multiply(alpha));
+                painter.circle_filled(blip_pos, r, display_color.linear_multiply(alpha));
             }
 
             painter.circle_filled(
                 blip_pos,
                 blip_core + pulse * 2.0,
-                color.linear_multiply(theme::OPACITY_TINT + pulse * theme::OPACITY_TINT),
+                display_color.linear_multiply(theme::OPACITY_TINT + pulse * theme::OPACITY_TINT),
             );
 
-            painter.circle_filled(blip_pos, blip_core, color);
+            painter.circle_filled(blip_pos, blip_core, display_color);
+
+            if threat.severity == "critical" {
+                painter.circle_stroke(
+                    blip_pos,
+                    blip_core + 5.0 + pulse,
+                    egui::Stroke::new(theme::BORDER_THIN, display_color.linear_multiply(0.78)),
+                );
+                let cross = blip_core + 8.0;
+                painter.line_segment(
+                    [
+                        blip_pos + egui::vec2(-cross, 0.0),
+                        blip_pos + egui::vec2(cross, 0.0),
+                    ],
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, display_color.linear_multiply(0.46)),
+                );
+                painter.line_segment(
+                    [
+                        blip_pos + egui::vec2(0.0, -cross),
+                        blip_pos + egui::vec2(0.0, cross),
+                    ],
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, display_color.linear_multiply(0.46)),
+                );
+            }
 
             if !reduced {
                 let diff = ((sweep_angle - t_angle) % TAU + TAU) % TAU;
@@ -1634,9 +1719,9 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         painter.circle_filled(
             center,
             6.0,
-            theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+            theme::accent_text().linear_multiply(theme::OPACITY_TINT),
         );
-        painter.circle_filled(center, 3.0, theme::ACCENT);
+        painter.circle_filled(center, 3.0, theme::accent_text());
         painter.circle_filled(
             center,
             1.5,

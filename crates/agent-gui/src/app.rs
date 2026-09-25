@@ -65,7 +65,7 @@ pub enum Page {
 /// `(page, nav id, icon, label, category)`. Categories follow the product's
 /// domain grouping so palette results read like the navigation. Used both to
 /// build the palette and to resolve a selected `nav:<id>` back to a `Page`.
-fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static str); 21] {
+fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static str); 20] {
     use Page::*;
     [
         (
@@ -165,13 +165,6 @@ fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static 
             icons::CARTOGRAPHY,
             "Cartographie",
             "Actifs & Inventaire",
-        ),
-        (
-            Orchestration,
-            "orchestration",
-            icons::ORCHESTRATION,
-            "Orchestration",
-            "Automatisation",
         ),
         (
             AuditTrail,
@@ -596,25 +589,93 @@ impl SentinelApp {
     // ------------------------------------------------------------------
 
     fn process_events(&mut self) {
-        let rx = match self.event_rx.lock() {
-            Ok(rx) => rx,
-            Err(poisoned) => {
-                tracing::error!("GUI event channel lock was poisoned; recovering queued events");
-                poisoned.into_inner()
-            }
-        };
-        while let Ok(event) = rx.try_recv() {
-            // Special handling for enrollment result in app shell
-            if let crate::events::AgentEvent::EnrollmentResult {
-                success,
-                ref message,
-                ..
-            } = event
-            {
-                self.enrollment_wizard.set_result(success, message.clone());
-            }
+        let mut resume_conversation = false;
+        {
+            let rx = match self.event_rx.lock() {
+                Ok(rx) => rx,
+                Err(poisoned) => {
+                    tracing::error!(
+                        "GUI event channel lock was poisoned; recovering queued events"
+                    );
+                    poisoned.into_inner()
+                }
+            };
+            while let Ok(event) = rx.try_recv() {
+                // Special handling for enrollment result in app shell
+                if let crate::events::AgentEvent::EnrollmentResult {
+                    success,
+                    ref message,
+                    ..
+                } = event
+                {
+                    self.enrollment_wizard.set_result(success, message.clone());
+                }
 
-            self.state.apply_event(event);
+                if self.state.ai.voice_alerts_enabled
+                    && let crate::events::AgentEvent::Notification { notification } = &event
+                    && matches!(
+                        notification.severity.to_ascii_lowercase().as_str(),
+                        "warning" | "high" | "error" | "critical"
+                    )
+                {
+                    let spoken = format!(
+                        "Alerte Sentinel. {}. {}",
+                        notification.title, notification.body
+                    );
+                    if !self.state.ai.pending_voice_alerts.contains(&spoken) {
+                        if self.state.ai.pending_voice_alerts.len() >= 8 {
+                            self.state.ai.pending_voice_alerts.pop_front();
+                        }
+                        self.state.ai.pending_voice_alerts.push_back(spoken);
+                    }
+                }
+                if matches!(
+                    &event,
+                    crate::events::AgentEvent::VoiceStatus { speaking: false }
+                ) && self.state.ai.voice_conversation_enabled
+                    && self.state.ai.voice_reply_pending
+                {
+                    self.state.ai.voice_reply_pending = false;
+                    resume_conversation = true;
+                }
+
+                self.state.apply_event(event);
+            }
+        }
+
+        // Commands are sent after releasing the event receiver lock: voice
+        // callbacks can emit new GUI events immediately and must never contend
+        // with the drain loop above.
+        if resume_conversation && !self.state.ai.is_listening {
+            self.state.ai.is_listening = true;
+            self.send_command(GuiCommand::SetVoiceListening { enabled: true });
+        } else if self.state.ai.voice_alerts_enabled
+            && !self.state.ai.is_processing
+            && !self.state.ai.is_listening
+            && !self.state.ai.is_speaking
+            && !self.state.ai.voice_reply_pending
+            && !self.state.ai.pending_voice_alerts.is_empty()
+        {
+            let total = self.state.ai.pending_voice_alerts.len();
+            let mut alerts = Vec::with_capacity(total.min(3));
+            for _ in 0..total.min(3) {
+                if let Some(alert) = self.state.ai.pending_voice_alerts.pop_front() {
+                    alerts.push(alert);
+                }
+            }
+            let mut text = alerts.join(". ");
+            if total > 3 {
+                text.push_str(&format!(
+                    ". {} autres alertes restent disponibles dans Sentinel Nexus.",
+                    total - 3
+                ));
+            }
+            // Optimistic state prevents another frame from dispatching a second
+            // batch before the runtime's VoiceStatus event reaches the GUI.
+            self.state.ai.is_speaking = true;
+            self.send_command(GuiCommand::SpeakNotification { text });
+        } else if !self.state.ai.voice_alerts_enabled {
+            self.state.ai.pending_voice_alerts.clear();
         }
     }
 
@@ -777,10 +838,68 @@ impl SentinelApp {
                     // ── Radar ───────────────────────────────────────
                     let (compliance, threats, vulns, resources, network) =
                         self.state.radar_scores();
-                    widgets::TrayRadar::new(compliance, threats, vulns, resources, network)
-                        .show(ui, theme::TRAY_RADAR_SIZE);
+                    let radar_response =
+                        widgets::TrayRadar::new(compliance, threats, vulns, resources, network)
+                            .show(ui, theme::TRAY_RADAR_SIZE);
+                    if radar_response.clicked() {
+                        self.show_tray_satellite = false;
+                        self.visible = true;
+                        self.navigate_to(Page::Dashboard);
+                        restore_window(ctx);
+                    }
 
                     ui.add_space(theme::SPACE_MD);
+
+                    let posture = ((compliance + threats + vulns + resources + network) / 5.0)
+                        .clamp(0.0, 1.0);
+                    let (posture_label, posture_color, posture_detail) = if posture >= 0.85 {
+                        (
+                            "POSTURE MAÎTRISÉE",
+                            theme::SUCCESS,
+                            "Aucune dérive majeure détectée",
+                        )
+                    } else if posture >= 0.65 {
+                        (
+                            "VIGILANCE REQUISE",
+                            theme::WARNING,
+                            "Des écarts nécessitent une revue",
+                        )
+                    } else {
+                        (
+                            "ACTION PRIORITAIRE",
+                            theme::ERROR,
+                            "Ouvrez le cockpit pour investiguer",
+                        )
+                    };
+                    egui::Frame::new()
+                        .fill(theme::tinted_surface(posture_color))
+                        .stroke(egui::Stroke::new(
+                            theme::BORDER_HAIRLINE,
+                            theme::readable_color(posture_color)
+                                .linear_multiply(theme::OPACITY_MEDIUM),
+                        ))
+                        .corner_radius(egui::CornerRadius::same(theme::ROUNDING_MD))
+                        .inner_margin(egui::Margin::symmetric(12, 9))
+                        .show(ui, |ui| {
+                            ui.horizontal(|ui| {
+                                widgets::status_dot(ui, posture_color);
+                                ui.vertical(|ui| {
+                                    ui.label(
+                                        egui::RichText::new(posture_label)
+                                            .font(theme::font_label())
+                                            .color(theme::readable_color(posture_color))
+                                            .strong(),
+                                    );
+                                    ui.label(
+                                        egui::RichText::new(posture_detail)
+                                            .font(theme::font_micro())
+                                            .color(theme::text_secondary()),
+                                    );
+                                });
+                            });
+                        });
+
+                    ui.add_space(theme::SPACE_SM);
 
                     // ── Two headline numbers ────────────────────────
                     let threat_count = self.state.threats.suspicious_processes.len();
@@ -1682,6 +1801,7 @@ impl SentinelApp {
                                 .clicked()
                             {
                                 self.state.ai.is_listening = !self.state.ai.is_listening;
+                                self.state.ai.voice_reply_pending = false;
                                 self.send_command(GuiCommand::SetVoiceListening {
                                     enabled: self.state.ai.is_listening,
                                 });
@@ -1828,7 +1948,11 @@ impl SentinelApp {
                                 self.send_command(GuiCommand::LlmPrompt {
                                     prompt,
                                     context: None,
+                                    speak_response: voice_auto_send
+                                        || self.state.ai.voice_conversation_enabled,
                                 });
+                                self.state.ai.voice_reply_pending =
+                                    self.state.ai.voice_conversation_enabled;
                             }
                         });
                     });

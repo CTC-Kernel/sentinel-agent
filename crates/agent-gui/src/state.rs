@@ -38,6 +38,10 @@ pub struct GuiPreferences {
     pub admin_password_sha256: String,
     #[serde(default)]
     pub sidebar_collapsed: bool,
+    #[serde(default)]
+    pub voice_alerts_enabled: bool,
+    #[serde(default)]
+    pub voice_conversation_enabled: bool,
 }
 
 impl Default for GuiPreferences {
@@ -62,6 +66,8 @@ impl Default for GuiPreferences {
             architecture_url: String::new(),
             admin_password_sha256: String::new(),
             sidebar_collapsed: false,
+            voice_alerts_enabled: false,
+            voice_conversation_enabled: false,
         }
     }
 }
@@ -84,6 +90,8 @@ impl GuiPreferences {
             architecture_url: state.settings.architecture_url.clone(),
             admin_password_sha256: state.settings.admin_password_sha256.clone(),
             sidebar_collapsed: state.settings.sidebar_collapsed,
+            voice_alerts_enabled: state.ai.voice_alerts_enabled,
+            voice_conversation_enabled: state.ai.voice_conversation_enabled,
         }
     }
 
@@ -106,6 +114,8 @@ impl GuiPreferences {
         state.settings.log_collector_sources = self.log_collector_sources.clone();
         state.settings.log_collector_poll_secs = self.log_collector_poll_secs;
         state.settings.sidebar_collapsed = self.sidebar_collapsed;
+        state.ai.voice_alerts_enabled = self.voice_alerts_enabled;
+        state.ai.voice_conversation_enabled = self.voice_conversation_enabled;
         state.discovery.enabled = self.discovery_enabled;
         state
             .settings
@@ -505,6 +515,15 @@ pub struct AiState {
     /// Normalized microphone level in [0.0, 1.0], updated at ~10 Hz while listening.
     /// Drives the Jarvis core visualization so the user can see their voice being captured.
     pub mic_level: f32,
+    /// Speak warning/critical system notifications through native TTS.
+    pub voice_alerts_enabled: bool,
+    /// Speak assistant replies and reopen the microphone after TTS completes.
+    pub voice_conversation_enabled: bool,
+    /// A spoken assistant response should hand back to microphone capture.
+    pub voice_reply_pending: bool,
+    /// Important alerts waiting for a safe moment to be spoken. Alerts never
+    /// interrupt microphone capture or an active assistant answer.
+    pub pending_voice_alerts: VecDeque<String>,
 }
 
 // ---------------------------------------------------------------------------

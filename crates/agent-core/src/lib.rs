@@ -2737,14 +2737,10 @@ impl AgentRuntime {
 
             // Check for force_update flag (trigger from GUI button)
             if self.state.force_update.swap(false, Ordering::AcqRel) {
-                if self.config.standalone {
-                    // No vendor endpoint is contacted in standalone mode;
-                    // updates are installed from a downloaded package.
-                    info!(
-                        "Update check requested in standalone mode: automatic updates are off, \
-                         install a newer package to update"
-                    );
-                } else if let Err(e) = self.run_self_update().await {
+                // Release discovery is public and does not require platform
+                // enrollment, so standalone installations follow the same
+                // signed self-update path as connected agents.
+                if let Err(e) = self.run_self_update().await {
                     warn!("Self-update failed: {}", e);
                 }
             }

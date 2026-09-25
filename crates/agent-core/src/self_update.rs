@@ -40,16 +40,27 @@ impl AgentRuntime {
                 && instant.elapsed().as_secs() < 300
             {
                 info!("Skipping update check (rate limited)");
+                #[cfg(feature = "gui")]
+                self.emit_gui_event(agent_gui::events::AgentEvent::UpdateStatusChanged {
+                    status: UpdateStatus::UpToDate,
+                });
                 return Ok(());
             }
         }
 
-        let api_client = self.api_client.read().await;
-        let client = api_client
-            .as_ref()
-            .ok_or_else(|| CommonError::config("API client not initialized"))?;
+        #[cfg(feature = "gui")]
+        self.emit_gui_event(agent_gui::events::AgentEvent::UpdateStatusChanged {
+            status: UpdateStatus::Checking,
+        });
 
-        let update_client = Arc::new((*client).clone());
+        // Standalone mode intentionally has no authenticated platform client.
+        // The release catalog and signed artifacts are public, so build an
+        // unauthenticated client locally instead of disabling self-update.
+        let api_client = self.api_client.read().await;
+        let update_client = match api_client.as_ref() {
+            Some(client) => Arc::new(client.clone()),
+            None => Arc::new(crate::api_client::ApiClient::new(&self.config)?),
+        };
         let update_manager =
             crate::update_manager::UpdateManager::new(update_client, AGENT_VERSION.to_string());
 
@@ -58,11 +69,6 @@ impl AgentRuntime {
             let mut last_check = self.last_update_check.write().await;
             *last_check = Some(std::time::Instant::now());
         }
-
-        #[cfg(feature = "gui")]
-        self.emit_gui_event(agent_gui::events::AgentEvent::UpdateStatusChanged {
-            status: UpdateStatus::Idle,
-        });
 
         // Drop the read lock before the match so we can call report_update
         drop(api_client);

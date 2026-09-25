@@ -406,6 +406,16 @@ pub fn accent_text() -> Color32 {
     }
 }
 
+/// Solid accent fill with AAA white-text contrast in light mode.
+#[inline]
+pub fn accent_fill() -> Color32 {
+    if is_dark_mode() {
+        ACCENT
+    } else {
+        ACCENT_PRESSED
+    }
+}
+
 // ============================================================================
 // Border / separator (dynamic)
 // ============================================================================
@@ -517,16 +527,32 @@ pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
     }
 
     if is_dark_mode() {
-        // Concentric translucent discs approximate a soft radial gradient in
-        // egui while staying cheap enough to repaint during live telemetry.
+        // A single vertex-coloured mesh gives us a genuinely continuous
+        // radial falloff. Stacked translucent discs left visible contour
+        // rings on calibrated/high-contrast displays, especially in the
+        // upper-right corner of the workspace.
         let center = egui::pos2(rect.right() - 120.0, rect.top() + 40.0);
-        for (radius, alpha) in [(360.0, 3), (260.0, 4), (170.0, 5)] {
-            painter.circle_filled(
-                center,
-                radius,
-                Color32::from_rgba_unmultiplied(36, 78, 190, alpha),
-            );
+        let radius = 430.0;
+        let segments = 64_u32;
+        let mut mesh = egui::epaint::Mesh::default();
+        mesh.vertices.push(egui::epaint::Vertex {
+            pos: center,
+            uv: egui::epaint::WHITE_UV,
+            color: Color32::from_rgba_unmultiplied(55, 101, 225, 18),
+        });
+        for index in 0..segments {
+            let angle = std::f32::consts::TAU * index as f32 / segments as f32;
+            mesh.vertices.push(egui::epaint::Vertex {
+                pos: center + egui::vec2(angle.cos(), angle.sin()) * radius,
+                uv: egui::epaint::WHITE_UV,
+                color: Color32::TRANSPARENT,
+            });
         }
+        for index in 0..segments {
+            mesh.indices
+                .extend_from_slice(&[0, index + 1, (index + 1) % segments + 1]);
+        }
+        painter.add(egui::Shape::mesh(mesh));
     }
 }
 
@@ -754,19 +780,19 @@ pub const WINDOW_MIN_WIDTH: f32 = 960.0;
 /// Minimum window height.
 pub const WINDOW_MIN_HEIGHT: f32 = 600.0;
 /// Tray popup width (satellite mode).
-pub const TRAY_WIDTH: f32 = 320.0;
+pub const TRAY_WIDTH: f32 = 360.0;
 /// Tray popup height (satellite mode).
-pub const TRAY_HEIGHT: f32 = 480.0;
+pub const TRAY_HEIGHT: f32 = 570.0;
 /// Tray popup max height (expanded view).
-pub const TRAY_POPUP_MAX_HEIGHT: f32 = 500.0;
+pub const TRAY_POPUP_MAX_HEIGHT: f32 = 620.0;
 /// Tray popup min width.
 pub const TRAY_POPUP_MIN_WIDTH: f32 = 350.0;
 /// Tray popup max width.
 pub const TRAY_POPUP_MAX_WIDTH: f32 = 600.0;
 /// Tray radar visualization size.
-pub const TRAY_RADAR_SIZE: f32 = 240.0;
+pub const TRAY_RADAR_SIZE: f32 = 250.0;
 /// Tray satellite quick-stat card width.
-pub const TRAY_SATELLITE_CARD_WIDTH: f32 = 135.0;
+pub const TRAY_SATELLITE_CARD_WIDTH: f32 = 150.0;
 
 // ============================================================================
 // Backdrop / overlay constants
@@ -1320,7 +1346,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.widgets.hovered.expansion = 0.0;
 
     // Active: pressed / engaged.
-    visuals.widgets.active.bg_fill = ACCENT;
+    visuals.widgets.active.bg_fill = accent_fill();
     visuals.widgets.active.weak_bg_fill = active_bg();
     visuals.widgets.active.fg_stroke = Stroke::new(1.0_f32, text_on_accent());
     visuals.widgets.active.corner_radius = control_radius;
