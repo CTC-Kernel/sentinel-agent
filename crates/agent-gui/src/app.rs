@@ -1978,6 +1978,15 @@ mod wake_on_message_tests {
     use std::time::Duration;
 
     #[test]
+    fn orchestration_is_available_in_the_page_catalog() {
+        assert!(
+            page_catalog().iter().any(|(page, id, _, _, _)| {
+                *page == Page::Orchestration && *id == "orchestration"
+            })
+        );
+    }
+
+    #[test]
     fn forwards_the_message_and_requests_a_frame() {
         let ctx = egui::Context::default();
         let (tx, rx) = mpsc::channel::<u32>();

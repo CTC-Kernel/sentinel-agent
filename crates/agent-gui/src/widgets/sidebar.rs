@@ -793,6 +793,16 @@ mod navigation_tests {
     use super::*;
 
     #[test]
+    fn orchestration_is_available_in_desktop_navigation() {
+        assert!(nav_sections().iter().any(|section| {
+            section
+                .items
+                .iter()
+                .any(|(page, _, _)| *page == Page::Orchestration)
+        }));
+    }
+
+    #[test]
     fn focusing_a_hidden_navigation_row_scrolls_it_into_view() {
         let ctx = egui::Context::default();
         theme::configure_fonts(&ctx);
