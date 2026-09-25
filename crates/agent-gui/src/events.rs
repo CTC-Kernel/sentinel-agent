@@ -524,6 +524,9 @@ pub enum GuiCommand {
         prompt: String,
         /// Optional context type for prompt enrichment.
         context: Option<crate::dto::LlmPromptContext>,
+        /// Read the answer aloud through the native TTS engine.
+        #[serde(default)]
+        speak_response: bool,
     },
     /// Analyze a specific vulnerability finding with AI.
     LlmAnalyzeVulnerability {
@@ -567,6 +570,8 @@ pub enum GuiCommand {
         /// Whether the agent should actively listen and transcribe mic input.
         enabled: bool,
     },
+    /// Read a high-priority notification through the native TTS engine.
+    SpeakNotification { text: String },
     /// Toggle voice recognition on/off (convenience wrapper around SetVoiceListening).
     LlmToggleVoice,
     /// Select a specific LLM model (by registry key, e.g. "llama-4-8b").

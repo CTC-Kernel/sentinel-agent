@@ -770,19 +770,19 @@ pub const WINDOW_MIN_WIDTH: f32 = 960.0;
 /// Minimum window height.
 pub const WINDOW_MIN_HEIGHT: f32 = 600.0;
 /// Tray popup width (satellite mode).
-pub const TRAY_WIDTH: f32 = 320.0;
+pub const TRAY_WIDTH: f32 = 360.0;
 /// Tray popup height (satellite mode).
-pub const TRAY_HEIGHT: f32 = 480.0;
+pub const TRAY_HEIGHT: f32 = 570.0;
 /// Tray popup max height (expanded view).
-pub const TRAY_POPUP_MAX_HEIGHT: f32 = 500.0;
+pub const TRAY_POPUP_MAX_HEIGHT: f32 = 620.0;
 /// Tray popup min width.
 pub const TRAY_POPUP_MIN_WIDTH: f32 = 350.0;
 /// Tray popup max width.
 pub const TRAY_POPUP_MAX_WIDTH: f32 = 600.0;
 /// Tray radar visualization size.
-pub const TRAY_RADAR_SIZE: f32 = 240.0;
+pub const TRAY_RADAR_SIZE: f32 = 250.0;
 /// Tray satellite quick-stat card width.
-pub const TRAY_SATELLITE_CARD_WIDTH: f32 = 135.0;
+pub const TRAY_SATELLITE_CARD_WIDTH: f32 = 150.0;
 
 // ============================================================================
 // Backdrop / overlay constants

@@ -2,11 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity, ArrowRight, Bell, Bot, Check, ChevronDown, ChevronRight, Circle,
   Clock3, FileDown, Filter, Fingerprint, KeyRound, LockKeyhole, Menu, Play,
-  Plus, Search, Send, Shield, ShieldCheck, Sparkles, Users, Workflow, X,
+  Plus, RefreshCw, Search, Send, Shield, ShieldCheck, Sparkles, Users, Workflow, X,
   Zap, Crosshair, Eye, Globe2, Radio, ScanLine, TriangleAlert,
 } from "lucide-react";
 import { compliance, genericPages, incidents, kpis, navGroups, templates, workflows } from "./data";
-import { orchestrationClient } from "./services/orchestration";
+import { orchestrationClient, type Execution } from "./services/orchestration";
 import { intelligenceClient, modelCatalog, type ChatMessage, type ModelProvider } from "./services/ai";
 
 export function App() {
@@ -165,7 +165,61 @@ function FlowNode({ icon, label, sub }: { icon: React.ReactNode; label: string; 
 
 function Marketplace({ notify }: { notify: (s: string) => void }) { return <div className="subpage"><div className="market-hero panel"><div><span className="eyebrow">MARKETPLACE SSI</span><h2>Accélérez votre défense.</h2><p>Des automatisations vérifiées, versionnées et isolées par tenant.</p></div><button className="primary"><Sparkles size={16}/> Composer avec l'IA</button></div><div className="template-grid">{templates.map((template) => <article className="template panel" key={template.title}><template.icon/><span className="eyebrow">{template.type}</span><h3>{template.title}</h3><p>Template certifié Sentinel Labs, prêt à adapter à votre environnement.</p><footer><span>{template.nodes} nœuds · {template.installs} installations</span><button onClick={() => notify(`${template.title} ajouté au tenant`)}>Installer <Plus size={14}/></button></footer></article>)}</div></div>; }
 
-function Executions() { return <div className="subpage"><div className="section-head large"><div><span className="eyebrow">TEMPS RÉEL</span><h2>Historique d'exécution</h2></div><button className="secondary"><FileDown size={16}/> Exporter</button></div><div className="execution-table panel"><div className="table-row header"><span>ID</span><span>Workflow</span><span>Déclencheur</span><span>Durée</span><span>Statut</span></div>{[["EX-2841","Zero-day containment","Webhook","6,1 s","Approbation"],["EX-2840","Exposure intelligence","Planifié","3,8 s","Réussie"],["EX-2839","Executive risk brief","Planifié","12,4 s","Réussie"],["EX-2838","Critical CVE response","Manuel","4,7 s","Échec"]].map((row) => <div className="table-row" key={row[0]}>{row.map((cell, i) => <span key={cell} className={i === 4 ? `execution-status ${cell.toLowerCase()}` : ""}>{cell}</span>)}</div>)}</div></div>; }
+function Executions() {
+  const [items, setItems] = useState<Execution[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [approvalId, setApprovalId] = useState<string>();
+  const [actionError, setActionError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    orchestrationClient.listExecutions(undefined, controller.signal)
+      .then((page) => setItems(page.items))
+      .catch((reason: unknown) => {
+        if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Historique indisponible");
+      })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [refreshKey]);
+
+  const approve = async (execution: Execution) => {
+    setApprovalId(execution.id);
+    setActionError("");
+    try {
+      const updated = await orchestrationClient.approve(execution.id, true, "Validated from Sentinel Nexus console");
+      setItems((current) => current.map((item) => item.id === updated.id ? updated : item));
+    } catch (reason) {
+      setActionError(reason instanceof Error ? reason.message : "Approbation impossible");
+    } finally {
+      setApprovalId(undefined);
+    }
+  };
+  const statusLabel: Record<Execution["status"], string> = { queued: "En file", running: "En cours", waiting_approval: "Approbation", succeeded: "Réussie", failed: "Échec", cancelled: "Annulée" };
+  const duration = (execution: Execution) => execution.updatedAt ? `${Math.max(1, Math.round((Date.parse(execution.updatedAt) - Date.parse(execution.createdAt)) / 1000))} s` : "—";
+  const exportCsv = () => {
+    const quote = (value: string) => `"${value.replaceAll('"', '""')}"`;
+    const rows = items.map((execution) => [execution.id, execution.createdAt, execution.updatedAt ?? "", execution.status, duration(execution)]);
+    const csv = [["id", "created_at", "updated_at", "status", "duration"], ...rows].map((row) => row.map(quote).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url; anchor.download = `sentinel-executions-${new Date().toISOString().slice(0, 10)}.csv`; anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return <div className="subpage"><div className="section-head large"><div><span className="eyebrow">TEMPS RÉEL · API N8N SÉCURISÉE</span><h2>Historique d'exécution</h2></div><div className="execution-actions"><button className="secondary" onClick={() => setRefreshKey((value) => value + 1)} disabled={loading}><RefreshCw size={16} className={loading ? "spinning" : ""}/> Actualiser</button><button className="secondary" onClick={exportCsv} disabled={!items.length}><FileDown size={16}/> Exporter</button></div></div>
+    {actionError && <div className="action-error" role="alert"><TriangleAlert/>{actionError}<button onClick={() => setActionError("")} aria-label="Fermer"><X/></button></div>}
+    <div className="execution-table panel"><div className="table-row header"><span>ID</span><span>Démarrage</span><span>Dernière étape</span><span>Durée</span><span>Statut</span><span>Action</span></div>
+      {loading && <div className="execution-feedback"><RefreshCw className="spinning"/><b>Synchronisation avec le gateway n8n…</b><small>La clé API reste exclusivement côté serveur.</small></div>}
+      {!loading && error && <div className="execution-feedback error"><TriangleAlert/><b>Connexion au gateway indisponible</b><small>{error}</small><button className="secondary" onClick={() => setRefreshKey((value) => value + 1)}>Réessayer</button></div>}
+      {!loading && !error && items.length === 0 && <div className="execution-feedback"><ShieldCheck/><b>Aucune exécution pour ce tenant</b><small>Les nouvelles exécutions apparaîtront ici en temps réel.</small></div>}
+      {!loading && !error && items.map((execution) => <div className="table-row" key={execution.id}><span>{execution.id}</span><span>{new Date(execution.createdAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}</span><span>{execution.timeline?.at(-1)?.reason ?? "Déclenchement sécurisé"}</span><span>{duration(execution)}</span><span className={`execution-status ${execution.status}`}>{statusLabel[execution.status]}</span><span>{execution.status === "waiting_approval" ? <button className="approve-action" disabled={approvalId === execution.id} onClick={() => void approve(execution)}>{approvalId === execution.id ? <RefreshCw className="spinning"/> : <Check/>} {approvalId === execution.id ? "Validation…" : "Approuver"}</button> : <button className="row-action" aria-label={`Afficher ${execution.id}`}><ChevronRight/></button>}</span></div>)}
+    </div>
+  </div>;
+}
 
 function Governance() { return <div className="subpage governance"><div className="security-grid">{[[LockKeyhole,"Isolation multi-tenant","Credentials, exécutions et journaux cloisonnés"],[KeyRound,"OAuth 2.1 + PKCE","Sessions courtes et rotation automatique"],[Fingerprint,"Webhooks HMAC-SHA256","Signature, timestamp et protection anti-rejeu"],[ShieldCheck,"Audit immuable","Identité, paramètres masqués et résultat"]].map(([Icon,title,text]) => { const I = Icon as typeof ShieldCheck; return <article className="panel" key={title as string}><I/><div><h3>{title as string}</h3><p>{text as string}</p></div><span><Check/> Actif</span></article>; })}</div><article className="panel permission-card"><div className="section-head"><div><span className="eyebrow">ACCÈS</span><h2>Matrice des autorisations</h2></div><span className="connection"><i/> RBAC synchronisé</span></div><div className="permission-grid"><b>Rôle</b><b>Consulter</b><b>Exécuter</b><b>Modifier</b><b>Approuver</b>{["SOC Manager","Analyste","Auditeur","Admin tenant"].map((role, r) => <><strong key={role}>{role}</strong>{[0,1,2,3].map((c) => <span key={`${role}-${c}`}>{c <= (r === 0 ? 3 : r === 1 ? 1 : r === 2 ? 0 : 2) ? <Check/> : <X/>}</span>)}</>)}</div></article></div>; }
 
@@ -190,7 +244,30 @@ function LaunchModal({ workflow, workflowId, onClose, onLaunch }: { workflow: st
   return <div className="modal-backdrop" onMouseDown={onClose}><div className="modal panel" onMouseDown={(e) => e.stopPropagation()}><header><div><span className="eyebrow">EXÉCUTION CONTRÔLÉE</span><h2>{workflow}</h2></div><button className="icon-button" onClick={onClose}><X/></button></header><div className="secure-banner"><LockKeyhole/><div><b>Injection sécurisée</b><span>Les secrets sont résolus côté backend et ne transitent jamais par le navigateur.</span></div></div><label>Périmètre cible<input value={scope} onChange={(e) => setScope(e.target.value)}/></label><div className="field-row"><label>Sévérité minimale<select value={severity} onChange={(e) => setSeverity(e.target.value)}><option>critical</option><option>high</option><option>medium</option></select></label><label>Ticket de changement<input value={ticket} onChange={(e) => setTicket(e.target.value)} placeholder="CHG-2026-…"/></label></div><label>Canal de notification<select value={channel} onChange={(e) => setChannel(e.target.value)}><option value="slack:soc-critical">Slack · #soc-critical</option><option value="discord:security">Discord · Security</option><option value="email:encrypted">Email chiffré</option><option value="sms:on-call">SMS d'astreinte</option></select></label><label className="approval"><input type="checkbox" checked={approved} onChange={(e) => setApproved(e.target.checked)}/><span><b>Je confirme le périmètre et l'impact</b><small>Un dry-run et une trace d'audit seront générés.</small></span></label><footer><button className="secondary" onClick={onClose}>Annuler</button><button className="primary" disabled={!approved || submitting} onClick={launch}><Play/> {submitting ? "Lancement…" : "Lancer en sécurité"}</button></footer></div></div>;
 }
 
-function ModulePage({ id }: { id: string }) { const page = genericPages[id] ?? genericPages.posture; return <div className="page fade-in"><PageHeading eyebrow={page.eyebrow} title={page.title} description={page.description} actions={<button className="primary"><Plus size={16}/> Nouvelle action</button>}/><div className="kpi-grid module-kpis">{page.metrics.map((m, i) => <article className={`kpi panel ${["mint","blue","violet","coral"][i]}`} key={m}><span>{m}</span><div><strong>{["128","94%","07","2,4h"][i]}</strong></div><em>Mis à jour maintenant</em></article>)}</div><div className="module-empty panel"><div className="radar-visual"><Activity/></div><span className="eyebrow">ESPACE OPÉRATIONNEL</span><h2>Données {page.title.toLowerCase()} synchronisées</h2><p>Les vues détaillées, filtres, actions en masse et recommandations Sentinel Intelligence sont prêtes.</p><button className="secondary">Explorer les données <ArrowRight size={15}/></button></div></div>; }
+function ModulePage({ id }: { id: string }) {
+  const page = genericPages[id] ?? genericPages.posture;
+  const [query, setQuery] = useState("");
+  const [scope, setScope] = useState("Tous");
+  const [selected, setSelected] = useState(0);
+  const records = [
+    { title: `${page.metrics[0]} nécessitant une revue`, asset: "Production Europe", owner: "SOC Operations", score: 94, tone: "critical", state: "À traiter" },
+    { title: `${page.metrics[1]} sous surveillance`, asset: "Cloud & Identités", owner: "Nexus AI", score: 82, tone: "high", state: "En cours" },
+    { title: `${page.metrics[2]} récemment synchronisés`, asset: "Tenant ACME Europe", owner: "GRC Team", score: 68, tone: "medium", state: "Planifié" },
+    { title: `${page.metrics[3]} sans anomalie`, asset: "Périmètre global", owner: "Sentinel Agent", score: 31, tone: "low", state: "Conforme" },
+  ];
+  const visible = records.filter((record) => `${record.title} ${record.asset} ${record.owner}`.toLowerCase().includes(query.toLowerCase()) && (scope === "Tous" || record.state === scope));
+  const current = records[selected] ?? records[0];
+  return <div className="page fade-in module-workbench">
+    <PageHeading eyebrow={page.eyebrow} title={page.title} description={page.description} actions={<><button className="secondary"><FileDown size={16}/> Exporter</button><button className="primary"><Plus size={16}/> Nouvelle action</button></>}/>
+    <section className="module-kpis">{page.metrics.map((metric, index) => <article className={`panel ${["mint","blue","violet","coral"][index]}`} key={metric}><span>{metric}</span><strong>{["128","94%","07","2,4 h"][index]}</strong><small>{["+12 ce mois","+3,2%","−2 cette semaine","−18% vs période"][index]}</small><svg viewBox="0 0 120 28"><path d={`M0 ${22-index*2} C20 25,30 ${8+index*2},48 15 S78 ${6+index},120 ${9+index}`}/></svg></article>)}</section>
+    <section className="workbench-grid">
+      <article className="panel registry-panel"><header><div><span className="eyebrow">REGISTRE OPÉRATIONNEL</span><h2>Éléments prioritaires</h2></div><span className="sync-label"><i/> Synchronisé maintenant</span></header><div className="registry-tools"><label><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Rechercher dans ${page.title.toLowerCase()}…`}/></label><div className="scope-switch">{["Tous","À traiter","En cours"].map((item) => <button className={scope === item ? "active" : ""} onClick={() => setScope(item)} key={item}>{item}</button>)}</div><button className="icon-button"><Filter/></button></div>
+        <div className="registry-table"><div className="registry-row registry-head"><span>Élément</span><span>Périmètre</span><span>Responsable</span><span>Score</span><span>Statut</span></div>{visible.map((record) => { const index = records.indexOf(record); return <button className={`registry-row ${selected === index ? "selected" : ""}`} onClick={() => setSelected(index)} key={record.title}><span><i className={`record-mark ${record.tone}`}/><b>{record.title}</b></span><span>{record.asset}</span><span>{record.owner}</span><span><strong>{record.score}</strong>/100</span><span className={`record-state ${record.tone}`}>{record.state}</span></button>; })}{visible.length === 0 && <div className="registry-empty">Aucun résultat ne correspond à ces filtres.</div>}</div>
+      </article>
+      <aside className="panel context-panel"><div className="context-score"><span className={`score-badge ${current.tone}`}>{current.score}</span><div><span className="eyebrow">ANALYSE CONTEXTUELLE</span><h2>{current.state}</h2></div></div><h3>{current.title}</h3><p>Sentinel Intelligence a corrélé l'exposition technique, la criticité métier et les contrôles compensatoires actifs.</p><div className="context-factors"><span><ShieldCheck/> Contrôles actifs <b>8 / 10</b></span><span><Clock3/> SLA de traitement <b>4 heures</b></span><span><Users/> Responsable <b>{current.owner}</b></span></div><div className="context-ai"><Sparkles/><div><b>Recommandation IA</b><p>Prioriser la validation du périmètre puis déclencher le playbook contrôlé avec approbation humaine.</p></div></div><button className="primary full">Ouvrir le plan d'action <ArrowRight/></button><button className="secondary full">Ajouter au rapport</button></aside>
+    </section>
+  </div>;
+}
 
 function Assistant({ page, onClose }: { page: string; onClose: () => void }) {
   const [model, setModel] = useState<ModelProvider>("kimi");
