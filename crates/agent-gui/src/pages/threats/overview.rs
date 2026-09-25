@@ -28,6 +28,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
     // No inner ScrollArea — the parent in app.rs already wraps everything.
     {
+        // Build once: the command radar is deliberately the first operational
+        // surface on this page and every section below reuses the same snapshot.
+        let all_threats = build_threat_list(state);
+
+        // ── Threat command radar — always above metrics and analytics ────────
+        render_threat_radar(ui, &all_threats);
+        ui.add_space(theme::SPACE_LG);
+
         // ── Summary counts (AAA Grade) ──────────────────────────────────
         let process_count = state.threats.suspicious_processes.len();
         let usb_count = state.threats.usb_events.len();
@@ -124,9 +132,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         );
 
         ui.add_space(theme::SPACE_LG);
-
-        // Build the unified threat list ONCE for the entire overview.
-        let all_threats = build_threat_list(state);
 
         // ── Severity distribution bar + Detection coverage ──────────────
         {
@@ -463,11 +468,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 },
             );
         });
-
-        ui.add_space(theme::SPACE_LG);
-
-        // ── Threat Radar (AAA Grade) ────────────────────────────────────
-        render_threat_radar(ui, &threats);
 
         ui.add_space(theme::SPACE_LG);
 
@@ -1365,312 +1365,429 @@ fn summary_card(
 
 fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
     let reduced = theme::is_reduced_motion();
+    let range_id = ui.make_persistent_id("threat_radar_range");
+    let paused_id = ui.make_persistent_id("threat_radar_paused");
+    let layers_id = ui.make_persistent_id("threat_radar_layers");
+    let selected_id = ui.make_persistent_id("threat_radar_selected");
+    let mut range: u8 = ui.data(|d| d.get_temp(range_id).unwrap_or(1));
+    let mut paused: bool = ui.data(|d| d.get_temp(paused_id).unwrap_or(false));
+    let mut layers: u8 = ui.data(|d| d.get_temp(layers_id).unwrap_or(0b11_1111));
+    let mut selected: Option<usize> = ui.data(|d| d.get_temp(selected_id));
+
+    let cutoff = chrono::Utc::now()
+        - match range {
+            0 => chrono::Duration::hours(1),
+            2 => chrono::Duration::days(7),
+            _ => chrono::Duration::hours(24),
+        };
+    let kind_bit = |kind: &str| match kind {
+        "process" => 0,
+        "system" => 1,
+        "usb" => 2,
+        "fim" => 3,
+        "vulnerability" => 4,
+        "network" => 5,
+        _ => 7,
+    };
+    let visible: Vec<(usize, &ThreatEvent)> = threats
+        .iter()
+        .enumerate()
+        .filter(|(_, threat)| {
+            threat.timestamp >= cutoff && layers & (1 << kind_bit(threat.kind)) != 0
+        })
+        .collect();
+    if selected.is_some_and(|index| !visible.iter().any(|(i, _)| *i == index)) {
+        selected = None;
+    }
 
     widgets::card(ui, |ui: &mut egui::Ui| {
-        // ── Header with live indicator ──
-        ui.horizontal(|ui: &mut egui::Ui| {
+        // Command header: range, live state and operator controls are intentionally
+        // kept together so the visualization can be managed without leaving it.
+        ui.horizontal_wrapped(|ui| {
+            ui.vertical(|ui| {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        egui::RichText::new(icons::CROSSHAIRS)
+                            .size(theme::ICON_MD)
+                            .color(theme::ACCENT_LIGHT),
+                    );
+                    ui.label(
+                        egui::RichText::new("RADAR DE MENACES")
+                            .font(theme::font_heading())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                    let live_color = if paused {
+                        theme::WARNING
+                    } else {
+                        theme::SUCCESS
+                    };
+                    widgets::status_badge(
+                        ui,
+                        if paused { "EN PAUSE" } else { "TEMPS RÉEL" },
+                        live_color,
+                    );
+                });
+                ui.label(
+                    egui::RichText::new("Corrélation multi-source · télémétrie EDR locale")
+                        .font(theme::font_caption())
+                        .color(theme::text_tertiary()),
+                );
+            });
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let pause_label = if paused {
+                    format!("{}  Reprendre", icons::PLAY)
+                } else {
+                    format!("{}  Pause", icons::PAUSE)
+                };
+                if widgets::ghost_button(ui, pause_label)
+                    .on_hover_text(if paused {
+                        "Relancer le balayage et les animations du radar"
+                    } else {
+                        "Figer le balayage sans interrompre la collecte"
+                    })
+                    .clicked()
+                {
+                    paused = !paused;
+                }
+                ui.add_space(theme::SPACE_SM);
+                for (idx, label) in [(2, "7 j"), (1, "24 h"), (0, "1 h")] {
+                    let button = egui::Button::new(
+                        egui::RichText::new(label).font(theme::font_label()).color(
+                            if range == idx {
+                                theme::text_on_accent()
+                            } else {
+                                theme::text_secondary()
+                            },
+                        ),
+                    )
+                    .fill(if range == idx {
+                        theme::ACCENT
+                    } else {
+                        theme::bg_tertiary()
+                    })
+                    .stroke(egui::Stroke::new(
+                        theme::BORDER_HAIRLINE,
+                        theme::border_subtle(),
+                    ))
+                    .corner_radius(egui::CornerRadius::same(theme::ROUNDING_SM));
+                    if ui
+                        .add_sized([48.0, 30.0], button)
+                        .on_hover_text("Changer la fenêtre temporelle")
+                        .clicked()
+                    {
+                        range = idx;
+                        selected = None;
+                    }
+                }
+            });
+        });
+
+        ui.add_space(theme::SPACE_MD);
+        ui.separator();
+        ui.add_space(theme::SPACE_SM);
+
+        // Layer manager. Each chip directly controls a telemetry source.
+        ui.horizontal_wrapped(|ui| {
             ui.label(
-                egui::RichText::new(icons::EYE)
-                    .size(theme::ICON_SM)
-                    .color(theme::readable_color(theme::SUCCESS)),
-            );
-            ui.add_space(theme::SPACE_XS);
-            ui.label(
-                egui::RichText::new("RADAR DE D\u{00c9}TECTION")
+                egui::RichText::new(format!("{}  COUCHES", icons::FILTER))
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new(format!("{} signaux", threats.len()))
+            let sources = [
+                ("Processus", icons::BUG, 0),
+                ("Système", icons::SHIELD, 1),
+                ("USB", icons::PLUG, 2),
+                ("FIM", icons::FILE_SHIELD, 3),
+                ("Vulnérabilités", icons::SHIELD_VIRUS, 4),
+                ("Réseau", icons::NETWORK, 5),
+            ];
+            for (label, icon, bit) in sources {
+                let active = layers & (1 << bit) != 0;
+                let response = ui.add(
+                    egui::Button::new(
+                        egui::RichText::new(format!("{icon}  {label}"))
                             .font(theme::font_label())
-                            .color(theme::text_tertiary()),
-                    );
-                    if !threats.is_empty() {
-                        ui.add_space(theme::SPACE_SM);
-                        let pulse_alpha = if reduced {
-                            theme::OPACITY_STRONG
-                        } else {
-                            let t = ui.input(|i| i.time);
-                            (0.5 + (t * 2.0).sin() as f32 * 0.5).clamp(0.4, 1.0)
-                        };
-                        ui.label(
-                            egui::RichText::new("\u{25cf}")
-                                .size(theme::STATUS_DOT_SIZE)
-                                .color(
-                                    theme::readable_color(theme::SUCCESS)
-                                        .linear_multiply(pulse_alpha),
-                                ),
-                        );
-                        ui.add_space(theme::SPACE_XS);
-                        ui.label(
-                            egui::RichText::new("EN DIRECT")
-                                .font(theme::font_label())
-                                .color(theme::readable_color(theme::SUCCESS))
-                                .strong(),
-                        );
-                    }
-                },
-            );
+                            .color(if active {
+                                theme::ACCENT_LIGHT
+                            } else {
+                                theme::text_tertiary()
+                            }),
+                    )
+                    .selected(active),
+                );
+                if response
+                    .on_hover_text(format!(
+                        "{} la couche {label}",
+                        if active { "Masquer" } else { "Afficher" }
+                    ))
+                    .clicked()
+                {
+                    layers ^= 1 << bit;
+                    selected = None;
+                }
+            }
         });
         ui.add_space(theme::SPACE_MD);
 
-        // ── Radar canvas ──
         let available_w = ui.available_width();
-        let (rect, _) = ui.allocate_exact_size(
-            egui::vec2(available_w, theme::RADAR_HEIGHT),
-            egui::Sense::hover(),
-        );
+        let canvas_height = theme::RADAR_HEIGHT.max(360.0);
+        let (rect, _) =
+            ui.allocate_exact_size(egui::vec2(available_w, canvas_height), egui::Sense::hover());
         let painter = ui.painter_at(rect);
         let center = rect.center();
-        let radius = theme::RADAR_RADIUS;
+        let radius = theme::RADAR_RADIUS
+            .min(rect.width() * 0.31)
+            .min(rect.height() * 0.39);
         let time = ui.input(|i| i.time);
 
-        // ─ Background: dark substrate + accent aura ─
-        painter.circle_filled(center, radius + theme::SPACE, theme::bg_deep());
-        painter.circle_filled(center, radius * 0.35, theme::ACCENT.linear_multiply(0.025));
+        painter.rect_filled(rect, theme::ROUNDING_MD, theme::bg_deep());
+        painter.circle_filled(center, radius + 34.0, theme::ACCENT.linear_multiply(0.035));
+        painter.circle_filled(center, radius, theme::bg_secondary().linear_multiply(0.96));
 
-        // ─ Grid: concentric rings ─
-        let grid_color = theme::border().linear_multiply(theme::OPACITY_MODERATE);
-        let ring_count = 4;
-        for i in 1..=ring_count {
-            let r = radius * (i as f32 / ring_count as f32);
+        for i in 1..=4 {
+            let r = radius * (i as f32 / 4.0);
             painter.circle_stroke(
                 center,
                 r,
-                egui::Stroke::new(theme::BORDER_HAIRLINE, grid_color),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::ACCENT.linear_multiply(0.18)),
             );
         }
-
-        // ─ Radial lines (8 for premium density) ─
-        for i in 0..8 {
-            let angle = (i as f32 / 8.0) * TAU;
-            let end = center + egui::vec2(angle.cos(), angle.sin()) * radius;
-            let line_alpha = if i % 2 == 0 {
-                theme::OPACITY_MODERATE
-            } else {
-                theme::OPACITY_TINT
-            };
+        for i in 0..12 {
+            let angle = (i as f32 / 12.0) * TAU;
             painter.line_segment(
-                [center, end],
+                [
+                    center,
+                    center + egui::vec2(angle.cos(), angle.sin()) * radius,
+                ],
                 egui::Stroke::new(
                     theme::BORDER_HAIRLINE,
-                    theme::border().linear_multiply(line_alpha),
+                    theme::border().linear_multiply(0.24),
                 ),
             );
         }
 
-        // ─ Zone labels (NE quadrant, alongside rings) ─
-        let zone_labels = ["CRITIQUE", "\u{00c9}LEV\u{00c9}", "MOYEN", "FAIBLE"];
-        let zone_colors = [
-            theme::ERROR,
-            theme::SEVERITY_HIGH,
-            theme::WARNING,
-            theme::INFO,
-        ];
-        let zone_angle = TAU * 0.06;
-        for (i, (label, color)) in zone_labels.iter().zip(zone_colors.iter()).enumerate() {
-            let r = radius * ((i + 1) as f32 / ring_count as f32) - 6.0;
-            let pos = center + egui::vec2(zone_angle.cos() * r, zone_angle.sin() * r);
+        // Radar range annotations make severity-distance semantics explicit.
+        for (label, factor, color) in [
+            ("CRITIQUE", 0.24, theme::ERROR),
+            ("ÉLEVÉ", 0.48, theme::SEVERITY_HIGH),
+            ("MOYEN", 0.70, theme::WARNING),
+            ("FAIBLE", 0.91, theme::INFO),
+        ] {
             painter.text(
-                pos,
-                egui::Align2::LEFT_BOTTOM,
-                *label,
-                theme::font_caption(),
-                color.linear_multiply(theme::OPACITY_MEDIUM),
+                center + egui::vec2(7.0, -radius * factor),
+                egui::Align2::LEFT_CENTER,
+                label,
+                theme::font_min(),
+                color.linear_multiply(0.72),
             );
         }
 
-        // ─ Sector labels (cardinal directions) ─
-        let sectors: [(&str, f32, egui::Align2); 6] = [
-            ("PROCESSUS", -TAU / 4.0, egui::Align2::CENTER_BOTTOM),
-            ("SYST\u{00c8}ME", -TAU / 12.0, egui::Align2::LEFT_BOTTOM),
-            ("USB", TAU / 12.0, egui::Align2::LEFT_TOP),
-            ("FIM", TAU / 4.0, egui::Align2::CENTER_TOP),
-            ("VULN\u{00c9}RA.", 5.0 * TAU / 12.0, egui::Align2::RIGHT_TOP),
-            (
-                "R\u{00c9}SEAU",
-                -5.0 * TAU / 12.0,
-                egui::Align2::RIGHT_BOTTOM,
-            ),
-        ];
-        let sector_offset = radius + theme::SPACE_LG;
-        for (label, angle, align) in sectors {
-            let pos = center + egui::vec2(angle.cos() * sector_offset, angle.sin() * sector_offset);
+        let sweep_angle = if reduced || paused {
+            0.0
+        } else {
+            (time * 0.92) as f32 % TAU
+        };
+        if !reduced && !paused {
+            for i in 0..32 {
+                let trail = i as f32 / 32.0;
+                let angle = sweep_angle - 0.62 * trail;
+                painter.line_segment(
+                    [
+                        center,
+                        center + egui::vec2(angle.cos(), angle.sin()) * radius,
+                    ],
+                    egui::Stroke::new(
+                        1.7 - trail,
+                        theme::SUCCESS.linear_multiply(0.34 * (1.0 - trail).powi(2)),
+                    ),
+                );
+            }
+        }
+
+        let sector_angle = |kind: &str| match kind {
+            "process" => -TAU / 4.0,
+            "system" => -TAU / 12.0,
+            "usb" => TAU / 12.0,
+            "fim" => TAU / 4.0,
+            "vulnerability" => 5.0 * TAU / 12.0,
+            "network" => -5.0 * TAU / 12.0,
+            _ => 0.0,
+        };
+        for (label, kind) in [
+            ("PROCESSUS", "process"),
+            ("SYSTÈME", "system"),
+            ("USB", "usb"),
+            ("FIM", "fim"),
+            ("VULNÉRABILITÉS", "vulnerability"),
+            ("RÉSEAU", "network"),
+        ] {
+            let angle = sector_angle(kind);
             painter.text(
-                pos,
-                align,
+                center + egui::vec2(angle.cos(), angle.sin()) * (radius + 24.0),
+                egui::Align2::CENTER_CENTER,
                 label,
-                theme::font_label(),
+                theme::font_min(),
                 theme::text_tertiary(),
             );
         }
 
-        // ─ Sweep animation with fading trail ─
-        if !reduced {
-            let sweep_angle = (time * 1.2) as f32 % TAU;
-
-            let trail_count = 25;
-            let trail_arc = 0.5_f32;
-            for i in 0..trail_count {
-                let t = i as f32 / trail_count as f32;
-                let a = sweep_angle - trail_arc * t;
-                let end = center + egui::vec2(a.cos(), a.sin()) * radius;
-                let alpha = 0.3 * (1.0 - t).powi(2);
-                let width = theme::BORDER_MEDIUM * (1.0 - t * 0.5);
-                painter.line_segment(
-                    [center, end],
-                    egui::Stroke::new(width, theme::SUCCESS.linear_multiply(alpha)),
-                );
-            }
-
-            let lead_end = center + egui::vec2(sweep_angle.cos(), sweep_angle.sin()) * radius;
-            painter.line_segment(
-                [center, lead_end],
-                egui::Stroke::new(
-                    theme::BORDER_THICK,
-                    theme::SUCCESS.linear_multiply(theme::OPACITY_HOVER_SOFT),
-                ),
-            );
-        }
-
-        // ─ Blips (severity-based positioning + glow layers) ─
-        let sweep_angle = if reduced {
-            0.0
-        } else {
-            (time * 1.2) as f32 % TAU
-        };
-
-        for (i, threat) in threats.iter().enumerate() {
+        for (display_index, (source_index, threat)) in visible.iter().enumerate() {
             let mut hasher = DefaultHasher::new();
             threat.title.hash(&mut hasher);
+            threat.timestamp.hash(&mut hasher);
             let seed = hasher.finish();
-
-            let sector_base = match threat.kind {
-                "process" => -TAU / 4.0,
-                "system" => -TAU / 12.0,
-                "usb" => TAU / 12.0,
-                "fim" => TAU / 4.0,
-                "vulnerability" => 5.0 * TAU / 12.0,
-                "network" => -5.0 * TAU / 12.0,
-                _ => 0.0,
+            let angle =
+                sector_angle(threat.kind) + ((seed % 1000) as f32 / 1000.0 - 0.5) * (TAU / 5.2);
+            let (min, max) = match threat.severity {
+                "critical" => (0.10, 0.29),
+                "high" => (0.30, 0.52),
+                "medium" => (0.54, 0.74),
+                _ => (0.76, 0.93),
             };
-            let scatter = ((seed % 1000) as f32 / 1000.0 - 0.5) * (TAU / 4.5);
-            let t_angle = sector_base + scatter;
-
-            let (dist_min, dist_max) = match threat.severity {
-                "critical" => (0.12, 0.30),
-                "high" => (0.30, 0.55),
-                "medium" => (0.55, 0.75),
-                _ => (0.75, 0.92),
-            };
-            let hash_frac = ((seed >> 8) % 100) as f32 / 100.0;
-            let t_dist = (dist_min + hash_frac * (dist_max - dist_min)) * radius;
-            let blip_pos = center + egui::vec2(t_angle.cos(), t_angle.sin()) * t_dist;
-
+            let distance = (min + ((seed >> 8) % 100) as f32 / 100.0 * (max - min)) * radius;
+            let position = center + egui::vec2(angle.cos(), angle.sin()) * distance;
             let color = match threat.severity {
                 "critical" => theme::ERROR,
                 "high" => theme::SEVERITY_HIGH,
                 "medium" => theme::WARNING,
                 _ => theme::INFO,
             };
-
-            let blip_core = match threat.severity {
-                "critical" => 5.0_f32,
-                "high" => 4.0,
-                "medium" => 3.5,
-                _ => 3.0,
-            };
-
-            let pulse = if reduced {
-                0.5
+            let is_selected = selected == Some(*source_index);
+            let pulse = if reduced || paused {
+                0.45
             } else {
-                let diff = ((sweep_angle - t_angle) % TAU + TAU) % TAU;
-                let near = !(0.25..=(TAU - 0.25)).contains(&diff);
-                if near {
-                    1.0
-                } else {
-                    ((time * 2.0 + i as f64 * 0.7).sin() * 0.3 + 0.5) as f32
-                }
+                ((time * 2.2 + display_index as f64).sin() as f32 + 1.0) * 0.5
             };
-
-            for layer in (0..3).rev() {
-                let r = blip_core + (layer as f32 + 1.0) * 2.5 + pulse * 2.0;
-                let alpha = theme::OPACITY_SUBTLE / (layer as f32 + 1.0);
-                painter.circle_filled(blip_pos, r, color.linear_multiply(alpha));
-            }
-
-            painter.circle_filled(
-                blip_pos,
-                blip_core + pulse * 2.0,
-                color.linear_multiply(theme::OPACITY_TINT + pulse * theme::OPACITY_TINT),
+            painter.circle_filled(position, 13.0 + pulse * 5.0, color.linear_multiply(0.08));
+            painter.circle_stroke(
+                position,
+                7.0 + pulse * 3.0,
+                egui::Stroke::new(1.0, color.linear_multiply(0.55)),
             );
-
-            painter.circle_filled(blip_pos, blip_core, color);
-
-            if !reduced {
-                let diff = ((sweep_angle - t_angle) % TAU + TAU) % TAU;
-                if !(0.15..=(TAU - 0.15)).contains(&diff) {
-                    let label_text: String = threat.title.chars().take(24).collect();
-                    let label_pos = blip_pos + egui::vec2(theme::SPACE_SM, -theme::SPACE_SM);
-                    let galley = painter.layout_no_wrap(
-                        label_text,
-                        theme::font_min(),
-                        theme::text_primary(),
-                    );
-                    let text_rect = egui::Align2::LEFT_BOTTOM.anchor_size(label_pos, galley.size());
-                    let bg_rect = text_rect.expand(3.0);
-                    painter.rect_filled(bg_rect, theme::ROUNDING_SM, theme::bg_elevated());
-                    painter.galley(text_rect.min, galley, theme::text_primary());
-                }
-            }
-        }
-
-        // ─ Center dot (3-layer) ─
-        painter.circle_filled(
-            center,
-            6.0,
-            theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
-        );
-        painter.circle_filled(center, 3.0, theme::ACCENT);
-        painter.circle_filled(
-            center,
-            1.5,
-            theme::text_on_accent().linear_multiply(theme::OPACITY_MODERATE),
-        );
-
-        if !reduced {
-            ui.ctx()
-                .request_repaint_after(std::time::Duration::from_millis(50));
-        }
-
-        // ── Legend row ──
-        ui.add_space(theme::SPACE_MD);
-        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
-            let legends = [
-                ("Critique", theme::ERROR),
-                ("\u{00c9}lev\u{00e9}", theme::SEVERITY_HIGH),
-                ("Moyen", theme::WARNING),
-                ("Faible", theme::INFO),
-            ];
-            for (label, color) in legends {
-                ui.label(
-                    egui::RichText::new("\u{25cf}")
-                        .size(theme::STATUS_DOT_SIZE)
-                        .color(color),
+            painter.circle_filled(position, if is_selected { 5.5 } else { 4.0 }, color);
+            if is_selected {
+                painter.circle_stroke(
+                    position,
+                    11.0,
+                    egui::Stroke::new(2.0, theme::text_primary()),
                 );
-                ui.add_space(theme::SPACE_MICRO);
+            }
+
+            let hit = egui::Rect::from_center_size(position, egui::vec2(28.0, 28.0));
+            let response = ui.interact(
+                hit,
+                ui.make_persistent_id(("radar_blip", *source_index)),
+                egui::Sense::click(),
+            );
+            let response = response.on_hover_ui(|ui| {
+                ui.set_max_width(theme::TOOLTIP_MAX_WIDTH);
                 ui.label(
-                    egui::RichText::new(label)
-                        .font(theme::font_label())
+                    egui::RichText::new(&threat.title)
+                        .strong()
+                        .color(theme::text_primary()),
+                );
+                ui.label(egui::RichText::new(severity_display(threat.severity)).color(color));
+                ui.label(
+                    egui::RichText::new(&threat.description)
+                        .font(theme::font_caption())
                         .color(theme::text_secondary()),
                 );
-                ui.add_space(theme::SPACE_MD);
+                ui.separator();
+                ui.label(
+                    egui::RichText::new(format!(
+                        "Source : {} · {}",
+                        threat.kind,
+                        threat.timestamp.format("%d/%m %H:%M:%S")
+                    ))
+                    .font(theme::font_min())
+                    .color(theme::text_tertiary()),
+                );
+                ui.label(
+                    egui::RichText::new("Cliquer pour épingler le signal")
+                        .font(theme::font_min())
+                        .color(theme::ACCENT_LIGHT),
+                );
+            });
+            if response.clicked() {
+                selected = if is_selected {
+                    None
+                } else {
+                    Some(*source_index)
+                };
             }
-        });
+        }
+
+        painter.circle_filled(center, 12.0, theme::ACCENT.linear_multiply(0.16));
+        painter.circle_filled(center, 5.0, theme::ACCENT);
+        painter.text(
+            center + egui::vec2(0.0, 22.0),
+            egui::Align2::CENTER_TOP,
+            "NEXUS",
+            theme::font_min(),
+            theme::ACCENT_LIGHT,
+        );
+
+        // At-a-glance operational telemetry is overlaid without stealing radar space.
+        let critical = visible
+            .iter()
+            .filter(|(_, t)| t.severity == "critical")
+            .count();
+        let high = visible.iter().filter(|(_, t)| t.severity == "high").count();
+        let telemetry = format!(
+            "{} SIGNAUX   ·   {} CRITIQUES   ·   {} ÉLEVÉS   ·   6 SOURCES",
+            visible.len(),
+            critical,
+            high
+        );
+        painter.text(
+            rect.left_top() + egui::vec2(16.0, 14.0),
+            egui::Align2::LEFT_TOP,
+            telemetry,
+            theme::font_label(),
+            theme::text_secondary(),
+        );
+
+        if visible.is_empty() {
+            painter.text(
+                center,
+                egui::Align2::CENTER_CENTER,
+                "Aucun signal sur cette fenêtre",
+                theme::font_body(),
+                theme::SUCCESS,
+            );
+        }
+        if let Some(index) = selected
+            && let Some(threat) = threats.get(index)
+        {
+            painter.text(
+                rect.left_bottom() + egui::vec2(16.0, -14.0),
+                egui::Align2::LEFT_BOTTOM,
+                format!(
+                    "SIGNAL ÉPINGLÉ  ·  {}  ·  {}",
+                    severity_display(threat.severity).to_uppercase(),
+                    threat.title
+                ),
+                theme::font_label(),
+                theme::text_primary(),
+            );
+        }
+
+        if !reduced && !paused {
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(40));
+        }
+    });
+
+    ui.data_mut(|d| {
+        d.insert_temp(range_id, range);
+        d.insert_temp(paused_id, paused);
+        d.insert_temp(layers_id, layers);
+        if let Some(index) = selected {
+            d.insert_temp(selected_id, index);
+        } else {
+            d.remove::<usize>(selected_id);
+        }
     });
 }
