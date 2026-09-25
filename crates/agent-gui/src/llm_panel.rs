@@ -283,16 +283,16 @@ impl LLMPanel {
             .any(|keyword| normalized.contains(keyword))
         {
             LlmPromptContext::Vulnerabilities
-        } else if ["menace", "incident", "processus", "alerte", "ioc"]
-            .iter()
-            .any(|keyword| normalized.contains(keyword))
-        {
-            LlmPromptContext::Threats
         } else if ["réseau", "reseau", "ip", "port", "connexion", "dns"]
             .iter()
             .any(|keyword| normalized.contains(keyword))
         {
             LlmPromptContext::Network
+        } else if ["menace", "incident", "processus", "alerte", "ioc"]
+            .iter()
+            .any(|keyword| normalized.contains(keyword))
+        {
+            LlmPromptContext::Threats
         } else if [
             "conform",
             "contrôle",

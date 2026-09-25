@@ -3735,6 +3735,7 @@ async fn process_enrollment_submission(
     false
 }
 
+#[cfg(feature = "gui")]
 async fn enroll_with_config(
     config: &AgentConfig,
     admin_password: Option<String>,
