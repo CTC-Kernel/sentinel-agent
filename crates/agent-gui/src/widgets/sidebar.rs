@@ -102,6 +102,10 @@ fn nav_sections() -> [NavSection; 6] {
             ],
         },
         NavSection {
+            label: "AUTOMATISATION",
+            items: &[(Page::Orchestration, icons::ORCHESTRATION, "Orchestration")],
+        },
+        NavSection {
             label: "SYST\u{00c8}ME",
             items: &[
                 (Page::AuditTrail, icons::CLIPBOARD, "Journal d'audit"),

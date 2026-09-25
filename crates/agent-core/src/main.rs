@@ -3173,9 +3173,24 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             #[cfg(feature = "voice")]
                             if let Some(ref voice) = voice_service {
                                 voice.speak(&text);
+                            } else {
+                                // Match the completion event emitted by the voice
+                                // service so the GUI can release its optimistic
+                                // speaking state when no service is available.
+                                let _ = bg_event_tx.send(AgentEvent::VoiceStatus {
+                                    speaking: false,
+                                });
                             }
                             #[cfg(not(feature = "voice"))]
-                            let _ = text;
+                            {
+                                let _ = text;
+                                // Voice-less release builds still need to
+                                // acknowledge the command; otherwise the GUI
+                                // remains "speaking" and stops draining alerts.
+                                let _ = bg_event_tx.send(AgentEvent::VoiceStatus {
+                                    speaking: false,
+                                });
+                            }
                         }
 
                         Ok(GuiCommand::LlmToggleVoice) => {

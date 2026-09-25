@@ -65,7 +65,7 @@ pub enum Page {
 /// `(page, nav id, icon, label, category)`. Categories follow the product's
 /// domain grouping so palette results read like the navigation. Used both to
 /// build the palette and to resolve a selected `nav:<id>` back to a `Page`.
-fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static str); 20] {
+fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static str); 21] {
     use Page::*;
     [
         (
@@ -165,6 +165,13 @@ fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static 
             icons::CARTOGRAPHY,
             "Cartographie",
             "Actifs & Inventaire",
+        ),
+        (
+            Orchestration,
+            "orchestration",
+            icons::ORCHESTRATION,
+            "Orchestration",
+            "Automatisation",
         ),
         (
             AuditTrail,
