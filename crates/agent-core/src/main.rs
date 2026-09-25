@@ -257,6 +257,7 @@ const RELAUNCH_PARENT_ENV: &str = "SENTINEL_RELAUNCH_AFTER_PID";
 /// Start a fresh copy of this executable with the same arguments, detached,
 /// so it outlives the current process. The copy waits for this PID to exit
 /// (see [`wait_for_relaunch_parent`]) before it takes over.
+#[cfg(feature = "gui")]
 fn spawn_relaunch() -> std::io::Result<()> {
     let exe = std::env::current_exe()?;
     let args: Vec<std::ffi::OsString> = std::env::args_os().skip(1).collect();
@@ -2718,6 +2719,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let svc = llm_service.clone();
                             #[cfg(feature = "voice")]
                             let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
+                            #[cfg(not(feature = "voice"))]
+                            let _ = speak_response;
                             tokio::spawn(async move {
                                 let start = std::time::Instant::now();
                                 #[cfg(feature = "llm")]
