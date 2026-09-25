@@ -143,17 +143,17 @@ pub fn sparkline(
     if theme::is_dark_mode() {
         painter.add(egui::Shape::line(
             points.clone(),
-            Stroke::new(4.0, theme::with_alpha(config.color, 24)),
+            Stroke::new(4.0_f32, theme::with_alpha(config.color, 24)),
         ));
     }
     painter.add(egui::Shape::line(
         points.clone(),
-        Stroke::new(1.75, config.color),
+        Stroke::new(1.75_f32, config.color),
     ));
 
     if let Some(last) = points.last() {
-        painter.circle_filled(*last, 4.5, theme::with_alpha(config.color, 70));
-        painter.circle_filled(*last, 2.5, config.color);
+        painter.circle_filled(*last, 4.5_f32, theme::with_alpha(config.color, 70));
+        painter.circle_filled(*last, 2.5_f32, config.color);
     }
 
     // Reveal the closest sample without making a miniature chart draggable.
