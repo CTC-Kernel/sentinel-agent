@@ -656,6 +656,10 @@ impl DashboardPage {
                             context: None,
                             speak_response: state.ai.voice_conversation_enabled,
                         }));
+                        // Dashboard questions participate in the same hands-free
+                        // loop as the full assistant: reopen the mic only after
+                        // the spoken answer has actually completed.
+                        state.ai.voice_reply_pending = state.ai.voice_conversation_enabled;
                     }
                 });
             });

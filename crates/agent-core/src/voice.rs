@@ -217,6 +217,7 @@ impl VoiceService {
             let _ = tx.send(AgentEvent::VoiceStatus { speaking: true });
 
             let mut synth_duration = std::time::Duration::from_millis(2000);
+            let mut synthesis_started = false;
 
             if let Ok(mut engine_opt) = engine_lock.lock()
                 && let Some(engine) = engine_opt.as_mut()
@@ -224,15 +225,63 @@ impl VoiceService {
                 if let Err(e) = engine.speak(&rt_text, false) {
                     warn!("VoiceService: TTS engine speak failed: {}", e);
                 } else {
+                    synthesis_started = true;
                     let char_count = rt_text.chars().count() as u64;
                     synth_duration =
                         std::time::Duration::from_millis((55 * char_count).clamp(1_200, 30_000));
                 }
             }
 
-            std::thread::sleep(synth_duration);
+            if synthesis_started {
+                wait_for_speech_end(&engine_lock, synth_duration);
+            } else {
+                // Preserve a short, deterministic state transition when the OS
+                // has no TTS backend so the GUI never remains stuck in “speaking”.
+                std::thread::sleep(std::time::Duration::from_millis(250));
+            }
             let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
         });
+    }
+}
+
+/// Wait for the native synthesizer rather than guessing from the text length.
+/// The estimate remains a portability fallback for backends which do not expose
+/// `is_speaking` (and a safety deadline for a wedged platform synthesizer).
+#[cfg(feature = "gui")]
+fn wait_for_speech_end(
+    engine_lock: &Arc<std::sync::Mutex<Option<tts::Tts>>>,
+    estimated_duration: std::time::Duration,
+) {
+    use std::time::{Duration, Instant};
+
+    let started = Instant::now();
+    let deadline = started + estimated_duration + Duration::from_secs(5);
+    let mut observed_speech = false;
+
+    loop {
+        let speaking = engine_lock
+            .lock()
+            .ok()
+            .and_then(|engine| engine.as_ref().and_then(|tts| tts.is_speaking().ok()));
+
+        match speaking {
+            Some(true) => observed_speech = true,
+            Some(false) if observed_speech || started.elapsed() >= Duration::from_millis(500) => {
+                break;
+            }
+            // Unsupported backends still get the conservative text-based wait.
+            None => {
+                std::thread::sleep(estimated_duration);
+                break;
+            }
+            Some(false) => {}
+        }
+
+        if Instant::now() >= deadline {
+            warn!("VoiceService: TTS completion timed out; releasing voice session");
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(100));
     }
 }
 
