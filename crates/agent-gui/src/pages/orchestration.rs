@@ -828,31 +828,59 @@ impl OrchestrationPage {
                             .font(theme::font_caption())
                             .color(theme::text_tertiary()),
                     );
-                    ui.horizontal(|ui| {
-                        Self::metadata(ui, icons::DOWNLOAD, template.installs);
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            let install_id = egui::Id::new(("marketplace_install", template.name));
-                            let installed = ui
-                                .ctx()
-                                .data(|d| d.get_temp::<bool>(install_id).unwrap_or(false));
-                            if widgets::secondary_button(
-                                ui,
-                                if installed {
-                                    "Installé dans le tenant"
-                                } else {
-                                    "Installer"
+                    let install_id = egui::Id::new(("marketplace_install", template.name));
+                    let installed = ui
+                        .ctx()
+                        .data(|d| d.get_temp::<bool>(install_id).unwrap_or(false));
+                    let install_clicked = if width >= 410.0 {
+                        let mut clicked = false;
+                        ui.horizontal(|ui| {
+                            Self::metadata(ui, icons::DOWNLOAD, template.installs);
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui| {
+                                    clicked = widgets::secondary_button(
+                                        ui,
+                                        if installed {
+                                            "Installé dans le tenant"
+                                        } else {
+                                            "Installer"
+                                        },
+                                        !installed,
+                                    )
+                                    .clicked();
+                                    if installed {
+                                        widgets::status_badge(ui, "Signé", theme::SUCCESS);
+                                    }
                                 },
-                                !installed,
-                            )
-                            .clicked()
-                            {
-                                ui.ctx().data_mut(|d| d.insert_temp(install_id, true));
-                            }
+                            );
+                        });
+                        clicked
+                    } else {
+                        // On a one-column/narrow card the long installed label used
+                        // to collide with download metadata. Give each concern a row.
+                        ui.horizontal_wrapped(|ui| {
+                            Self::metadata(ui, icons::DOWNLOAD, template.installs);
                             if installed {
                                 widgets::status_badge(ui, "Signé", theme::SUCCESS);
                             }
                         });
-                    });
+                        ui.add_space(theme::SPACE_SM);
+                        widgets::secondary_button(
+                            ui,
+                            if installed {
+                                "Installé dans le tenant"
+                            } else {
+                                "Installer ce template"
+                            },
+                            !installed,
+                        )
+                        .clicked()
+                    };
+
+                    if install_clicked {
+                        ui.ctx().data_mut(|d| d.insert_temp(install_id, true));
+                    }
                 });
             },
         );
@@ -1034,22 +1062,21 @@ impl OrchestrationPage {
                 widgets::Card::new().accent(color).show(ui, |ui| {
                     ui.horizontal(|ui| {
                         Self::icon_tile(ui, icon, color);
-                        ui.vertical(|ui| {
-                            ui.label(
-                                RichText::new(title)
-                                    .font(theme::font_body_strong())
-                                    .color(theme::text_primary()),
-                            );
-                            ui.label(
-                                RichText::new(detail)
-                                    .font(theme::font_body_sm())
-                                    .color(theme::text_secondary()),
-                            );
-                        });
+                        ui.label(
+                            RichText::new(title)
+                                .font(theme::font_body_strong())
+                                .color(theme::text_primary()),
+                        );
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             widgets::status_badge(ui, status, color);
                         });
                     });
+                    ui.add_space(theme::SPACE_SM);
+                    ui.label(
+                        RichText::new(detail)
+                            .font(theme::font_body_sm())
+                            .color(theme::text_secondary()),
+                    );
                 });
             },
         );
@@ -1057,47 +1084,90 @@ impl OrchestrationPage {
         Self::section_title(ui, "Matrice des autorisations", "RBAC", theme::AI);
         ui.add_space(theme::SPACE_SM);
         widgets::Card::new().show(ui, |ui| {
-            egui::Grid::new("orchestration_rbac")
-                .num_columns(5)
-                .striped(true)
-                .spacing([28.0, 14.0])
-                .show(ui, |ui| {
-                    for title in ["Rôle", "Consulter", "Exécuter", "Modifier", "Approuver"] {
-                        ui.label(
-                            RichText::new(title)
-                                .font(theme::font_body_sm_medium())
-                                .color(theme::text_secondary()),
-                        );
-                    }
-                    ui.end_row();
-                    for (role, rights) in [
-                        ("SOC Manager", [true, true, true, true]),
-                        ("Analyste", [true, true, false, false]),
-                        ("Auditeur", [true, false, false, false]),
-                        ("Administrateur tenant", [true, true, true, false]),
-                    ] {
-                        ui.label(
-                            RichText::new(role)
-                                .font(theme::font_body_sm_medium())
-                                .color(theme::text_primary()),
-                        );
-                        for granted in rights {
+            let roles = [
+                ("SOC Manager", [true, true, true, true]),
+                ("Analyste", [true, true, false, false]),
+                ("Auditeur", [true, false, false, false]),
+                ("Administrateur tenant", [true, true, true, false]),
+            ];
+            let permissions = ["Consulter", "Exécuter", "Modifier", "Approuver"];
+
+            if ui.available_width() >= 620.0 {
+                egui::Grid::new("orchestration_rbac")
+                    .num_columns(5)
+                    .striped(true)
+                    .spacing([28.0, 14.0])
+                    .show(ui, |ui| {
+                        for title in ["Rôle", "Consulter", "Exécuter", "Modifier", "Approuver"] {
                             ui.label(
-                                RichText::new(if granted {
-                                    icons::CIRCLE_CHECK
-                                } else {
-                                    icons::XMARK
-                                })
-                                .color(if granted {
-                                    theme::SUCCESS
-                                } else {
-                                    theme::text_tertiary()
-                                }),
+                                RichText::new(title)
+                                    .font(theme::font_body_sm_medium())
+                                    .color(theme::text_secondary()),
                             );
                         }
                         ui.end_row();
+                        for (role, rights) in roles {
+                            ui.label(
+                                RichText::new(role)
+                                    .font(theme::font_body_sm_medium())
+                                    .color(theme::text_primary()),
+                            );
+                            for granted in rights {
+                                ui.label(
+                                    RichText::new(if granted {
+                                        icons::CIRCLE_CHECK
+                                    } else {
+                                        icons::XMARK
+                                    })
+                                    .color(if granted {
+                                        theme::SUCCESS
+                                    } else {
+                                        theme::text_tertiary()
+                                    }),
+                                );
+                            }
+                            ui.end_row();
+                        }
+                    });
+            } else {
+                // The desktop window can become narrow when docked. Stacking each
+                // role avoids the fixed five-column table colliding or clipping.
+                for (index, (role, rights)) in roles.into_iter().enumerate() {
+                    if index > 0 {
+                        ui.separator();
                     }
-                });
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        RichText::new(role)
+                            .font(theme::font_body_strong())
+                            .color(theme::text_primary()),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.horizontal_wrapped(|ui| {
+                        for (permission, granted) in permissions.into_iter().zip(rights) {
+                            let color = if granted {
+                                theme::SUCCESS
+                            } else {
+                                theme::text_tertiary()
+                            };
+                            ui.label(
+                                RichText::new(format!(
+                                    "{} {}",
+                                    if granted {
+                                        icons::CIRCLE_CHECK
+                                    } else {
+                                        icons::XMARK
+                                    },
+                                    permission
+                                ))
+                                .font(theme::font_small())
+                                .color(color),
+                            );
+                        }
+                    });
+                    ui.add_space(theme::SPACE_XS);
+                }
+            }
         });
         ui.add_space(theme::SPACE_LG);
         Self::connectors(ui);
