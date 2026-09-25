@@ -189,9 +189,10 @@ impl LLMPanel {
                         processing_time_ms: None,
                     });
                     state.ai.is_processing = true;
+                    let prompt_context = Self::infer_prompt_context(prompt);
                     command = Some(GuiCommand::LlmPrompt {
                         prompt: Self::grounded_prompt(state, prompt),
-                        context: Some(crate::dto::LlmPromptContext::General),
+                        context: Some(prompt_context),
                     });
                 }
             }
@@ -241,15 +242,52 @@ impl LLMPanel {
                     });
                     state.ai.input_text.clear();
                     state.ai.is_processing = true;
+                    let prompt_context = Self::infer_prompt_context(&prompt);
                     command = Some(GuiCommand::LlmPrompt {
                         prompt: Self::grounded_prompt(state, &prompt),
-                        context: Some(crate::dto::LlmPromptContext::General),
+                        context: Some(prompt_context),
                     });
                 }
             });
         });
 
         command
+    }
+
+    fn infer_prompt_context(question: &str) -> crate::dto::LlmPromptContext {
+        use crate::dto::LlmPromptContext;
+        let normalized = question.to_lowercase();
+        if ["cve", "vuln", "correctif", "patch"]
+            .iter()
+            .any(|keyword| normalized.contains(keyword))
+        {
+            LlmPromptContext::Vulnerabilities
+        } else if ["menace", "incident", "processus", "alerte", "ioc"]
+            .iter()
+            .any(|keyword| normalized.contains(keyword))
+        {
+            LlmPromptContext::Threats
+        } else if ["réseau", "reseau", "ip", "port", "connexion", "dns"]
+            .iter()
+            .any(|keyword| normalized.contains(keyword))
+        {
+            LlmPromptContext::Network
+        } else if [
+            "conform",
+            "contrôle",
+            "controle",
+            "audit",
+            "iso",
+            "nis2",
+            "dora",
+        ]
+        .iter()
+        .any(|keyword| normalized.contains(keyword))
+        {
+            LlmPromptContext::Compliance
+        } else {
+            LlmPromptContext::General
+        }
     }
 
     /// Ground free-form chat in the live endpoint telemetry visible to the GUI.
@@ -283,15 +321,28 @@ impl LLMPanel {
             .collect();
         let threats: Vec<String> = state
             .threats
-            .system_incidents
+            .suspicious_processes
             .iter()
             .take(6)
-            .map(|incident| {
+            .map(|process| {
                 format!(
-                    "{} ({:?}, confiance {}%)",
-                    incident.title, incident.severity, incident.confidence
+                    "Processus {} PID {} (confiance {}%): {}",
+                    process.process_name, process.pid, process.confidence, process.reason
                 )
             })
+            .chain(
+                state
+                    .threats
+                    .system_incidents
+                    .iter()
+                    .take(6)
+                    .map(|incident| {
+                        format!(
+                            "{} ({:?}, confiance {}%)",
+                            incident.title, incident.severity, incident.confidence
+                        )
+                    }),
+            )
             .chain(state.network.alerts.iter().take(6).map(|alert| {
                 format!(
                     "Alerte réseau {} ({:?}, confiance {}%)",
@@ -2141,6 +2192,28 @@ mod tests {
         assert_eq!(LLMPanel::risk_label(70.0), "RISQUE MOD\u{00c9}R\u{00c9}");
         assert_eq!(LLMPanel::risk_label(40.0), "RISQUE \u{00c9}LEV\u{00c9}");
         assert_eq!(LLMPanel::risk_label(10.0), "RISQUE CRITIQUE");
+    }
+
+    #[test]
+    fn prompt_context_routes_security_domains() {
+        use crate::dto::LlmPromptContext;
+
+        assert_eq!(
+            LLMPanel::infer_prompt_context("Quels correctifs pour cette CVE ?"),
+            LlmPromptContext::Vulnerabilities
+        );
+        assert_eq!(
+            LLMPanel::infer_prompt_context("Analyse les alertes DNS du réseau"),
+            LlmPromptContext::Network
+        );
+        assert_eq!(
+            LLMPanel::infer_prompt_context("Résume les incidents et IOC"),
+            LlmPromptContext::Threats
+        );
+        assert_eq!(
+            LLMPanel::infer_prompt_context("Prépare l'audit ISO 27001"),
+            LlmPromptContext::Compliance
+        );
     }
 
     #[test]
