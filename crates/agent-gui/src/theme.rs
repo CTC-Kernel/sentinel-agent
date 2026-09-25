@@ -406,6 +406,16 @@ pub fn accent_text() -> Color32 {
     }
 }
 
+/// Solid accent fill with AAA white-text contrast in light mode.
+#[inline]
+pub fn accent_fill() -> Color32 {
+    if is_dark_mode() {
+        ACCENT
+    } else {
+        ACCENT_PRESSED
+    }
+}
+
 // ============================================================================
 // Border / separator (dynamic)
 // ============================================================================
@@ -1336,7 +1346,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.widgets.hovered.expansion = 0.0;
 
     // Active: pressed / engaged.
-    visuals.widgets.active.bg_fill = ACCENT;
+    visuals.widgets.active.bg_fill = accent_fill();
     visuals.widgets.active.weak_bg_fill = active_bg();
     visuals.widgets.active.fg_stroke = Stroke::new(1.0_f32, text_on_accent());
     visuals.widgets.active.corner_radius = control_radius;

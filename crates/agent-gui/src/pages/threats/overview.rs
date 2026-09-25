@@ -1533,19 +1533,62 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         ui.add_space(theme::SPACE_MD);
 
         let available_w = ui.available_width();
-        let canvas_height = theme::RADAR_HEIGHT.max(360.0);
+        let canvas_height = (available_w * 0.72).clamp(360.0, 440.0);
         let (rect, _) =
             ui.allocate_exact_size(egui::vec2(available_w, canvas_height), egui::Sense::hover());
         let painter = ui.painter_at(rect);
         let center = rect.center();
         let radius = theme::RADAR_RADIUS
-            .min(rect.width() * 0.31)
-            .min(rect.height() * 0.39);
+            .min((available_w - 96.0).max(120.0) * 0.5)
+            .min((canvas_height - 64.0) * 0.5);
         let time = ui.input(|i| i.time);
 
+        // ─ Background: layered command-surface substrate ─
         painter.rect_filled(rect, theme::ROUNDING_MD, theme::bg_deep());
-        painter.circle_filled(center, radius + 34.0, theme::ACCENT.linear_multiply(0.035));
-        painter.circle_filled(center, radius, theme::bg_secondary().linear_multiply(0.96));
+        painter.circle_filled(
+            center,
+            radius + theme::SPACE_MD,
+            theme::ACCENT.linear_multiply(if theme::is_dark_mode() { 0.08 } else { 0.045 }),
+        );
+        painter.circle_filled(
+            center,
+            radius + theme::SPACE_XS,
+            theme::bg_secondary().linear_multiply(0.96),
+        );
+        painter.circle_stroke(
+            center,
+            radius + theme::SPACE_XS,
+            egui::Stroke::new(
+                theme::BORDER_THIN,
+                theme::accent_text().linear_multiply(0.32),
+            ),
+        );
+
+        // Precision ticks give the surface an instrument-grade silhouette
+        let tick_color = theme::accent_text().linear_multiply(0.34);
+        for tick in 0..48 {
+            let angle = tick as f32 / 48.0 * TAU;
+            let major = tick % 6 == 0;
+            let outer = radius + theme::SPACE_XS - 2.0;
+            let inner = outer - if major { 8.0 } else { 3.5 };
+            let direction = egui::vec2(angle.cos(), angle.sin());
+            painter.line_segment(
+                [center + direction * inner, center + direction * outer],
+                egui::Stroke::new(
+                    if major {
+                        theme::BORDER_MEDIUM
+                    } else {
+                        theme::BORDER_HAIRLINE
+                    },
+                    tick_color,
+                ),
+            );
+        }
+        painter.circle_filled(
+            center,
+            radius * 0.42,
+            theme::accent_text().linear_multiply(if theme::is_dark_mode() { 0.035 } else { 0.02 }),
+        );
 
         for i in 1..=4 {
             let r = radius * (i as f32 / 4.0);
@@ -1580,31 +1623,56 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 center + egui::vec2(7.0, -radius * factor),
                 egui::Align2::LEFT_CENTER,
                 label,
-                theme::font_min(),
-                color.linear_multiply(0.72),
+                theme::font_caption(),
+                theme::readable_color(color).linear_multiply(theme::OPACITY_MEDIUM),
             );
         }
 
         let sweep_angle = if reduced || paused {
             0.0
         } else {
-            (time * 0.92) as f32 % TAU
+            (time * 1.2) as f32 % TAU
         };
         if !reduced && !paused {
-            for i in 0..32 {
-                let trail = i as f32 / 32.0;
-                let angle = sweep_angle - 0.62 * trail;
-                painter.line_segment(
-                    [
+            let fan_segments = 32;
+            let fan_arc = 0.72_f32;
+            for segment in 0..fan_segments {
+                let near = segment as f32 / fan_segments as f32;
+                let far = (segment + 1) as f32 / fan_segments as f32;
+                let near_angle = sweep_angle - fan_arc * near;
+                let far_angle = sweep_angle - fan_arc * far;
+                let alpha = if theme::is_dark_mode() { 0.12 } else { 0.075 } * (1.0 - near).powi(2);
+                painter.add(egui::Shape::convex_polygon(
+                    vec![
                         center,
-                        center + egui::vec2(angle.cos(), angle.sin()) * radius,
+                        center + egui::vec2(near_angle.cos(), near_angle.sin()) * radius,
+                        center + egui::vec2(far_angle.cos(), far_angle.sin()) * radius,
                     ],
-                    egui::Stroke::new(
-                        1.7 - trail,
-                        theme::SUCCESS.linear_multiply(0.34 * (1.0 - trail).powi(2)),
-                    ),
-                );
+                    theme::readable_color(theme::SUCCESS).linear_multiply(alpha),
+                    egui::Stroke::NONE,
+                ));
             }
+
+            let lead_end = center + egui::vec2(sweep_angle.cos(), sweep_angle.sin()) * radius;
+            painter.line_segment(
+                [center, lead_end],
+                egui::Stroke::new(
+                    theme::BORDER_THICK,
+                    theme::readable_color(theme::SUCCESS)
+                        .linear_multiply(theme::OPACITY_HOVER_SOFT),
+                ),
+            );
+
+            // A restrained echo ring communicates continuous acquisition.
+            let echo_phase = ((time * 0.34) % 1.0) as f32;
+            painter.circle_stroke(
+                center,
+                radius * (0.18 + echo_phase * 0.82),
+                egui::Stroke::new(
+                    theme::BORDER_THIN,
+                    theme::readable_color(theme::SUCCESS).linear_multiply((1.0 - echo_phase) * 0.2),
+                ),
+            );
         }
 
         let sector_angle = |kind: &str| match kind {
@@ -1656,23 +1724,76 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 _ => theme::INFO,
             };
             let is_selected = selected == Some(*source_index);
+            let display_color = theme::readable_color(color);
+
+            let blip_core = match threat.severity {
+                "critical" => 5.0_f32,
+                "high" => 4.0,
+                "medium" => 3.5,
+                _ => 3.0,
+            };
+
             let pulse = if reduced || paused {
                 0.45
             } else {
-                ((time * 2.2 + display_index as f64).sin() as f32 + 1.0) * 0.5
+                let diff = ((sweep_angle - angle) % TAU + TAU) % TAU;
+                let near = !(0.25..=(TAU - 0.25)).contains(&diff);
+                if near {
+                    1.0
+                } else {
+                    ((time * 2.2 + display_index as f64).sin() as f32 + 1.0) * 0.5
+                }
             };
-            painter.circle_filled(position, 13.0 + pulse * 5.0, color.linear_multiply(0.08));
-            painter.circle_stroke(
+
+            for layer in (0..3).rev() {
+                let r = blip_core + (layer as f32 + 1.0) * 2.5 + pulse * 2.0;
+                let alpha = theme::OPACITY_SUBTLE / (layer as f32 + 1.0);
+                painter.circle_filled(position, r, display_color.linear_multiply(alpha));
+            }
+
+            painter.circle_filled(
                 position,
-                7.0 + pulse * 3.0,
-                egui::Stroke::new(1.0_f32, color.linear_multiply(0.55)),
+                blip_core + pulse * 2.0,
+                display_color.linear_multiply(theme::OPACITY_TINT + pulse * theme::OPACITY_TINT),
             );
-            painter.circle_filled(position, if is_selected { 5.5 } else { 4.0 }, color);
+
+            painter.circle_filled(
+                position,
+                if is_selected {
+                    blip_core + 2.0
+                } else {
+                    blip_core
+                },
+                display_color,
+            );
             if is_selected {
                 painter.circle_stroke(
                     position,
-                    11.0,
+                    blip_core + 7.0,
                     egui::Stroke::new(2.0_f32, theme::text_primary()),
+                );
+            }
+
+            if threat.severity == "critical" {
+                painter.circle_stroke(
+                    position,
+                    blip_core + 5.0 + pulse,
+                    egui::Stroke::new(theme::BORDER_THIN, display_color.linear_multiply(0.78)),
+                );
+                let cross = blip_core + 8.0;
+                painter.line_segment(
+                    [
+                        position + egui::vec2(-cross, 0.0),
+                        position + egui::vec2(cross, 0.0),
+                    ],
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, display_color.linear_multiply(0.46)),
+                );
+                painter.line_segment(
+                    [
+                        position + egui::vec2(0.0, -cross),
+                        position + egui::vec2(0.0, cross),
+                    ],
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, display_color.linear_multiply(0.46)),
                 );
             }
 
@@ -1692,7 +1813,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 let (sev_icon, _) = severity_display(threat.severity);
                 ui.label(
                     egui::RichText::new(format!("{} {}", sev_icon, threat.severity.to_uppercase()))
-                        .color(color),
+                        .color(display_color),
                 );
                 ui.label(
                     egui::RichText::new(&threat.description)
@@ -1724,8 +1845,17 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             }
         }
 
-        painter.circle_filled(center, 12.0, theme::ACCENT.linear_multiply(0.16));
-        painter.circle_filled(center, 5.0, theme::ACCENT);
+        painter.circle_filled(
+            center,
+            6.0,
+            theme::accent_text().linear_multiply(theme::OPACITY_TINT),
+        );
+        painter.circle_filled(center, 3.0, theme::accent_text());
+        painter.circle_filled(
+            center,
+            1.5,
+            theme::text_on_accent().linear_multiply(theme::OPACITY_MODERATE),
+        );
         painter.text(
             center + egui::vec2(0.0, 22.0),
             egui::Align2::CENTER_TOP,
@@ -1783,6 +1913,32 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             ui.ctx()
                 .request_repaint_after(std::time::Duration::from_millis(40));
         }
+
+        // ── Legend row ──
+        ui.add_space(theme::SPACE_MD);
+        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+            let legends = [
+                ("Critique", theme::ERROR),
+                ("Élevé", theme::SEVERITY_HIGH),
+                ("Moyen", theme::WARNING),
+                ("Faible", theme::INFO),
+            ];
+            for (label, color) in legends {
+                let display_color = theme::readable_color(color);
+                ui.horizontal(|ui| {
+                    let (dot_rect, _) =
+                        ui.allocate_exact_size(egui::vec2(8.0, 8.0), egui::Sense::hover());
+                    ui.painter()
+                        .circle_filled(dot_rect.center(), 3.5, display_color);
+                    ui.label(
+                        egui::RichText::new(label)
+                            .font(theme::font_caption())
+                            .color(theme::text_secondary()),
+                    );
+                });
+                ui.add_space(theme::SPACE_SM);
+            }
+        });
     });
 
     ui.data_mut(|d| {

@@ -99,7 +99,9 @@ impl LLMPanel {
                     &mut state.ai.voice_alerts_enabled,
                     "Alertes de sécurité vocales",
                 )
-                .on_hover_text("Annonce uniquement les notifications importantes ou critiques");
+                .on_hover_text(
+                    "Annonce les notifications importantes ou critiques lorsque le moteur vocal est disponible",
+                );
             });
 
             ui.add_space(theme::SPACE_SM);
@@ -1190,7 +1192,7 @@ impl LLMPanel {
 
             egui::ScrollArea::vertical()
                 .id_salt("model_catalogue_scroll")
-                .max_height(480.0)
+                .max_height(760.0)
                 .show(ui, |ui| {
                     for (i, (key, name, desc, size_gb, vram_min, badge, dl_url)) in
                         catalogue.iter().enumerate()

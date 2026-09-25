@@ -22,3 +22,146 @@
 @media(max-width:1120px){.module-workbench .module-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.workbench-grid{grid-template-columns:1fr}.context-panel{position:static}.registry-table{overflow-x:auto}.registry-row{min-width:700px}}
 @media(max-width:650px){.module-workbench .module-kpis{grid-template-columns:1fr 1fr}.registry-tools{align-items:stretch;flex-wrap:wrap}.registry-tools>label{flex-basis:100%}.scope-switch{flex:1}.registry-panel,.context-panel{padding:17px}.registry-panel>header{flex-direction:column}}
 @media(max-width:430px){.module-workbench .module-kpis{grid-template-columns:1fr}.scope-switch{overflow-x:auto}.registry-tools>.icon-button{display:none}}
+
+/* Polished light appearance — neutral mineral surfaces and one coherent emerald accent. */
+:root[data-theme="light"] {
+  color: #14231f;
+  background: #f3f1eb;
+  --bg: #f3f1eb;
+  --panel: #fffefa;
+  --line: #d9ddd7;
+  --muted: #65736e;
+  --mint: #08765f;
+  --blue: #315b68;
+  --violet: #5d536f;
+  --coral: #b83c38;
+  --amber: #9b6508;
+}
+:root[data-theme="light"] body {
+  background: #f3f1eb;
+}
+:root[data-theme="light"] body:before {
+  background: #9ab8aa;
+  opacity: .16;
+}
+:root[data-theme="light"] body:after {
+  background: #c1b79f;
+  opacity: .12;
+}
+:root[data-theme="light"] .app-shell {
+  background: linear-gradient(135deg, rgba(255,255,255,.42), rgba(236,235,228,.22));
+}
+:root[data-theme="light"] .sidebar {
+  background: rgba(250,249,244,.97);
+  box-shadow: 8px 0 30px rgba(38,48,44,.035);
+}
+:root[data-theme="light"] .topbar {
+  background: rgba(247,246,241,.9);
+  box-shadow: 0 8px 28px rgba(38,48,44,.035);
+}
+:root[data-theme="light"] .panel {
+  background: linear-gradient(145deg, rgba(255,255,252,.98), rgba(248,248,244,.96));
+  border-color: #daddd7;
+  box-shadow: 0 18px 45px rgba(31,43,38,.065), inset 0 1px rgba(255,255,255,.9);
+}
+:root[data-theme="light"] .eyebrow,
+:root[data-theme="light"] .tenant small,
+:root[data-theme="light"] .nav-group>label { color: #687770; }
+:root[data-theme="light"] .brand-mark,
+:root[data-theme="light"] .workflow-icon,
+:root[data-theme="light"] .tenant-logo,
+:root[data-theme="light"] .profile>span,
+:root[data-theme="light"] .avatar { background: #e5ece7; border-color: #c8d4cd; }
+:root[data-theme="light"] .nav-group button { color: #53625c; }
+:root[data-theme="light"] .nav-group button:hover { background: #e9ece7; color: #14231f; }
+:root[data-theme="light"] .nav-group button.active {
+  color: #063f34;
+  background: linear-gradient(90deg, rgba(8,118,95,.13), rgba(8,118,95,.025));
+}
+:root[data-theme="light"] .nav-group em,
+:root[data-theme="light"] .sidebar-footer button { background: #e7ece8; color: #31554a; }
+:root[data-theme="light"] .profile,
+:root[data-theme="light"] .posture-foot b,
+:root[data-theme="light"] .tabs button.active,
+:root[data-theme="light"] .module-kpis article>strong,
+:root[data-theme="light"] .registry-row b,
+:root[data-theme="light"] .context-factors b,
+:root[data-theme="light"] .intel-sources b { color: #14231f; }
+:root[data-theme="light"] .command-search,
+:root[data-theme="light"] .icon-button,
+:root[data-theme="light"] .secondary,
+:root[data-theme="light"] .filter-actions button,
+:root[data-theme="light"] .registry-tools>label,
+:root[data-theme="light"] .scope-switch,
+:root[data-theme="light"] .time-switch,
+:root[data-theme="light"] .connector-strip>span {
+  background: #fdfcf8;
+  border-color: #d4d9d3;
+  color: #475750;
+}
+:root[data-theme="light"] .primary {
+  color: #fff;
+  border-color: #07634f;
+  background: linear-gradient(135deg,#0b8067,#075e4d);
+  box-shadow: 0 6px 15px rgba(8,118,95,.16);
+}
+:root[data-theme="light"] .secure,
+:root[data-theme="light"] .connection,
+:root[data-theme="light"] .secure-banner { background: rgba(8,118,95,.065); border-color: rgba(8,118,95,.22); }
+:root[data-theme="light"] .score-ring circle { stroke: #e0e5df; }
+:root[data-theme="light"] .compliance-list>div>span { background: #e3e7e2; }
+:root[data-theme="light"] .flow-canvas { background-color:#f7f7f2; background-image:radial-gradient(#cbd4ce 1px,transparent 1px); }
+:root[data-theme="light"] .flow-node>span { border-color:#bdccc4; }
+:root[data-theme="light"] .modal input,
+:root[data-theme="light"] .modal select,
+:root[data-theme="light"] .model-switcher select { background:#fff; color:#14231f; }
+:root[data-theme="light"] .assistant-drawer { background:#f8f7f2; }
+:root[data-theme="light"] .assistant-drawer header button,
+:root[data-theme="light"] .assistant-drawer footer input,
+:root[data-theme="light"] .search-palette input { color:#14231f; }
+:root[data-theme="light"] .suggestions button,
+:root[data-theme="light"] .chat-thread article div { background:#f0f2ed; color:#33443d; }
+:root[data-theme="light"] .chat-thread article.user div { background:#e8eeeb; }
+:root[data-theme="light"] .chat-thread article p,
+:root[data-theme="light"] .automation-trust span { color:#53645d; }
+:root[data-theme="light"] .automation-score { background:#f2f1ed; border-color:#d3d0d9; }
+:root[data-theme="light"] .automation-copilot { background:linear-gradient(145deg,#f1efed,#faf9f5); }
+:root[data-theme="light"] .threat-metrics article { background:#f6f6f1; border-color:#d8ddd7; }
+:root[data-theme="light"] .time-switch button.active,
+:root[data-theme="light"] .scope-switch button.active { color:#064c3e; background:#dfe9e3; }
+:root[data-theme="light"] .ai-brief { border-color:rgba(93,83,111,.2); background:linear-gradient(100deg,rgba(93,83,111,.075),rgba(8,118,95,.035)); }
+:root[data-theme="light"] .ai-brief button { color:#554866; }
+:root[data-theme="light"] .threat-overview>p,
+:root[data-theme="light"] .ai-brief p { color:#596a63; }
+:root[data-theme="light"] .registry-row { color:#45564f; }
+:root[data-theme="light"] .registry-row:not(.registry-head):hover,
+:root[data-theme="light"] .registry-row.selected { background:#edf2ee; }
+:root[data-theme="light"] .toast { background:#123d34; color:#f3fff9; }
+
+/* The radar remains a calibrated dark instrument in both themes for maximum legibility. */
+.radar-stage {
+  isolation:isolate;
+  background: radial-gradient(circle at 50% 48%,#123c35 0,#0a201d 38%,#061411 72%,#050e0d 100%);
+}
+.radar-stage:before {
+  content:"";
+  position:absolute;
+  inset:13px;
+  border:1px solid rgba(105,224,190,.1);
+  border-radius:14px;
+  box-shadow:inset 0 0 35px rgba(0,0,0,.25);
+}
+.radar-grid {
+  border-color:rgba(105,224,190,.58);
+  background:repeating-radial-gradient(circle,transparent 0 48px,rgba(105,224,190,.2) 49px 50px),radial-gradient(circle,rgba(25,151,119,.14),transparent 70%);
+  box-shadow:0 0 0 10px rgba(105,224,190,.025),0 0 80px rgba(25,151,119,.2),inset 0 0 55px rgba(0,0,0,.46);
+}
+.radar-axis { background:rgba(105,224,190,.18); }
+.radar-status strong { color:#f2fff9; text-shadow:0 0 22px rgba(105,224,190,.25); }
+.radar-status small,.radar-legend { color:#9db8af; }
+.radar-status span { color:#69e0be; }
+.radar-legend span { padding:5px 8px; border:1px solid rgba(105,224,190,.12); border-radius:5px; background:rgba(2,10,8,.35); }
+:root[data-theme="light"] .radar-stage { border-color:#daddd7; }
+.theme-toggle { transition:transform .2s,border-color .2s,color .2s; }
+.theme-toggle:hover { transform:translateY(-1px); border-color:var(--mint); color:var(--mint); }
+@media (prefers-reduced-motion:reduce) { .radar-grid:before,.radar-sweep,.thinking i,.spinning { animation:none; } }
