@@ -4,6 +4,7 @@ import {
   Clock3, FileDown, Filter, Fingerprint, KeyRound, LockKeyhole, Menu, Play,
   Plus, RefreshCw, Search, Send, Shield, ShieldCheck, Sparkles, Users, Workflow, X,
   Zap, Crosshair, Eye, Globe2, Radio, ScanLine, TriangleAlert,
+  Moon, Sun,
 } from "lucide-react";
 import { compliance, genericPages, incidents, kpis, navGroups, templates, workflows } from "./data";
 import { orchestrationClient, type Execution } from "./services/orchestration";
@@ -15,10 +16,19 @@ export function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const saved = localStorage.getItem("nexus:theme");
+    return saved === "dark" || saved === "light" ? saved : "light";
+  });
 
   const pageLabel = useMemo(() => navGroups.flatMap((g) => g.items).find((item) => item.id === page)?.label ?? "Sentinel Nexus", [page]);
   const notify = (message: string) => { setToast(message); window.setTimeout(() => setToast(""), 2600); };
   useEffect(() => sessionStorage.setItem("nexus:last-page", page), [page]);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    localStorage.setItem("nexus:theme", theme);
+  }, [theme]);
   useEffect(() => {
     const shortcuts = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(true); }
@@ -36,6 +46,7 @@ export function App() {
         <button className="command-search" onClick={() => setSearchOpen(true)}><Search size={16}/><span>Rechercher partout…</span><kbd>⌘ K</kbd></button>
         <div className="top-actions">
           <div className="secure"><ShieldCheck size={15}/><span>Protection active</span></div>
+          <button className="icon-button theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={theme === "light" ? "Activer le thème sombre" : "Activer le thème clair"} title={theme === "light" ? "Thème sombre" : "Thème clair"}>{theme === "light" ? <Moon size={17}/> : <Sun size={17}/>}</button>
           <button className="icon-button has-dot" aria-label="Notifications"><Bell size={18}/></button>
           <button className="profile"><span>CD</span><div><strong>Camille Durand</strong><small>Security Admin</small></div><ChevronDown size={14}/></button>
         </div>
