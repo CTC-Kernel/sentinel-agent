@@ -3170,23 +3170,25 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::SpeakNotification { text }) => {
                             info!("[AUDIT] GUI requested a spoken security notification");
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
-                                voice.speak(&text);
-                            } else {
-                                // Match the completion event emitted by the voice
-                                // service so the GUI can release its optimistic
-                                // speaking state when no service is available.
-                                let _ = bg_event_tx.send(AgentEvent::VoiceStatus {
-                                    speaking: false,
-                                });
-                            }
-                            #[cfg(not(feature = "voice"))]
-                            {
+                            let speech_started = {
+                                #[cfg(feature = "voice")]
+                                {
+                                    if let Some(ref voice) = voice_service {
+                                        voice.speak(&text);
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                }
+                                #[cfg(not(feature = "voice"))]
+                                {
+                                    false
+                                }
+                            };
+                            if !speech_started {
                                 let _ = text;
-                                // Voice-less release builds still need to
-                                // acknowledge the command; otherwise the GUI
-                                // remains "speaking" and stops draining alerts.
+                                // Match the service's completion event even in
+                                // voice-less builds or when initialization failed.
                                 let _ = bg_event_tx.send(AgentEvent::VoiceStatus {
                                     speaking: false,
                                 });
