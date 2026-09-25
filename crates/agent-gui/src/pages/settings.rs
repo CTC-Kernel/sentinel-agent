@@ -373,7 +373,7 @@ impl SettingsPage {
                     ui.add_space(theme::SPACE_XS);
                     ui.label(
                         egui::RichText::new(if state.summary.standalone {
-                            "Mode autonome : aucun serveur n'est contacté, les mises à jour s'installent depuis un paquet téléchargé."
+                            "Mode autonome : seul le catalogue public des versions est contacté et chaque paquet est vérifié avant installation."
                         } else {
                             "Maintenez votre agent à jour pour bénéficier des dernières protections GRC."
                         })
@@ -385,22 +385,9 @@ impl SettingsPage {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                     use crate::dto::UpdateStatus;
 
-                    if state.summary.standalone {
-                        // Nothing to check against: point at the download page
-                        // instead of a button that would silently do nothing.
-                        let label = format!("{}  Télécharger la dernière version", icons::DOWNLOAD);
-                        if widgets::button::secondary_button(ui, &label, true)
-                            .on_hover_text("Ouvre la page de téléchargement dans le navigateur")
-                            .clicked()
-                            && let Err(error) = open::that(crate::pages::about::branding::DOWNLOADS)
-                        {
-                            tracing::warn!("Failed to open downloads page: {error}");
-                        }
-                        return;
-                    }
-
                     let (btn_text, is_busy) = match &state.settings.update_status {
                         UpdateStatus::Idle => (format!("{}  Vérifier", icons::DOWNLOAD), false),
+                        UpdateStatus::Checking => ("Recherche en cours…".to_string(), true),
                         UpdateStatus::Available(v) => (format!("{}  Installer la v{}", icons::DOWNLOAD, v), false),
                         UpdateStatus::UpToDate => (format!("{}  À jour", icons::CHECK), false),
                         UpdateStatus::Downloading(p) => (format!("{}  {}\u{202f}%", icons::DOWNLOAD, (p * 100.0) as u32), true),
@@ -414,6 +401,10 @@ impl SettingsPage {
                     if widgets::button::primary_button_loading(ui, btn_text, can_click, is_busy)
                         .clicked()
                     {
+                        // Reflect the request in the same frame instead of
+                        // leaving the previous checkmark visible until the
+                        // runtime loop receives and processes the command.
+                        state.settings.update_status = UpdateStatus::Checking;
                         command = Some(GuiCommand::CheckUpdate);
                     }
                 });
