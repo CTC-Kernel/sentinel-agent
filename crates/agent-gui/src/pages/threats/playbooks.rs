@@ -30,6 +30,17 @@ struct PlaybookTemplate {
     actions: Vec<PlaybookAction>,
 }
 
+/// A template is installed as soon as a playbook with its stable catalogue
+/// name exists. Older agents did not persist `is_template`, so relying on that
+/// flag made the marketplace offer the same installation again after a sync
+/// or an application restart.
+fn is_template_installed(playbooks: &[Playbook], template_name: &str) -> bool {
+    let template_name = template_name.trim();
+    playbooks
+        .iter()
+        .any(|playbook| playbook.name.trim().eq_ignore_ascii_case(template_name))
+}
+
 fn templates() -> Vec<PlaybookTemplate> {
     vec![
         PlaybookTemplate {
@@ -173,14 +184,22 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         );
                         ui.add_space(theme::SPACE_SM);
 
-                        let already_installed = state
-                            .threats
-                            .playbooks
-                            .iter()
-                            .any(|p| p.name == tpl.name && p.is_template);
+                        let already_installed =
+                            is_template_installed(&state.threats.playbooks, tpl.name);
 
                         if already_installed {
-                            widgets::status_badge(ui, "INSTALL\u{00c9}", theme::SUCCESS);
+                            ui.horizontal(|ui| {
+                                widgets::status_badge(
+                                    ui,
+                                    &format!("{}  INSTALL\u{00c9}", icons::CHECK),
+                                    theme::SUCCESS,
+                                );
+                                ui.label(
+                                    egui::RichText::new("Disponible dans vos playbooks")
+                                        .font(theme::font_min())
+                                        .color(theme::text_tertiary()),
+                                );
+                            });
                         } else if widgets::primary_button(
                             ui,
                             format!("{}  Installer", icons::DOWNLOAD),
@@ -527,6 +546,39 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     });
 
     command
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn playbook(name: &str, is_template: bool) -> Playbook {
+        Playbook {
+            id: Uuid::nil(),
+            name: name.to_owned(),
+            description: String::new(),
+            enabled: true,
+            conditions: Vec::new(),
+            actions: Vec::new(),
+            created_at: Utc::now(),
+            last_triggered: None,
+            trigger_count: 0,
+            is_template,
+        }
+    }
+
+    #[test]
+    fn installed_template_is_detected_even_when_legacy_flag_is_missing() {
+        let installed = vec![playbook("Ransomware", false)];
+        assert!(is_template_installed(&installed, "Ransomware"));
+    }
+
+    #[test]
+    fn installed_template_name_is_compared_robustly() {
+        let installed = vec![playbook("  crypto-MINER ", true)];
+        assert!(is_template_installed(&installed, "Crypto-miner"));
+        assert!(!is_template_installed(&installed, "Exfiltration"));
+    }
 }
 
 /// Inline form to create a new playbook.

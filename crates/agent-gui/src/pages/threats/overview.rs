@@ -1624,10 +1624,12 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
     let paused_id = ui.make_persistent_id("threat_radar_paused");
     let layers_id = ui.make_persistent_id("threat_radar_layers");
     let selected_id = ui.make_persistent_id("threat_radar_selected");
+    let priority_id = ui.make_persistent_id("threat_radar_priority_only");
     let mut range: u8 = ui.data(|d| d.get_temp(range_id).unwrap_or(1));
     let mut paused: bool = ui.data(|d| d.get_temp(paused_id).unwrap_or(false));
     let mut layers: u8 = ui.data(|d| d.get_temp(layers_id).unwrap_or(0b11_1111));
     let mut selected: Option<usize> = ui.data(|d| d.get_temp(selected_id));
+    let mut priority_only: bool = ui.data(|d| d.get_temp(priority_id).unwrap_or(false));
 
     let cutoff = chrono::Utc::now()
         - match range {
@@ -1648,7 +1650,9 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         .iter()
         .enumerate()
         .filter(|(_, threat)| {
-            threat.timestamp >= cutoff && layers & (1 << kind_bit(threat.kind)) != 0
+            threat.timestamp >= cutoff
+                && layers & (1 << kind_bit(threat.kind)) != 0
+                && (!priority_only || matches!(threat.severity, "critical" | "high"))
         })
         .collect();
     if selected.is_some_and(|index| !visible.iter().any(|(i, _)| *i == index)) {
@@ -1664,7 +1668,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                     ui.label(
                         egui::RichText::new(icons::CROSSHAIRS)
                             .size(theme::ICON_MD)
-                            .color(theme::ACCENT_LIGHT),
+                            .color(theme::SUCCESS),
                     );
                     ui.label(
                         egui::RichText::new("RADAR DE MENACES")
@@ -1705,6 +1709,31 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 {
                     paused = !paused;
                 }
+                let priority_label = format!("{}  P1 / P2", icons::FILTER);
+                let priority = ui.add(
+                    egui::Button::new(
+                        egui::RichText::new(priority_label)
+                            .font(theme::font_label())
+                            .color(if priority_only {
+                                theme::text_on_accent()
+                            } else {
+                                theme::text_secondary()
+                            }),
+                    )
+                    .fill(if priority_only {
+                        theme::ERROR
+                    } else {
+                        theme::bg_tertiary()
+                    })
+                    .selected(priority_only),
+                );
+                if priority
+                    .on_hover_text("Mode focus : n'afficher que les signaux critiques et élevés")
+                    .clicked()
+                {
+                    priority_only = !priority_only;
+                    selected = None;
+                }
                 ui.add_space(theme::SPACE_SM);
                 for (idx, label) in [(2, "7 j"), (1, "24 h"), (0, "1 h")] {
                     let button = egui::Button::new(
@@ -1717,7 +1746,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                         ),
                     )
                     .fill(if range == idx {
-                        theme::ACCENT
+                        theme::SUCCESS
                     } else {
                         theme::bg_tertiary()
                     })
@@ -1765,7 +1794,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                         egui::RichText::new(format!("{icon}  {label}"))
                             .font(theme::font_label())
                             .color(if active {
-                                theme::accent_text()
+                                theme::readable_color(theme::SUCCESS)
                             } else {
                                 theme::text_tertiary()
                             }),
@@ -1802,7 +1831,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         painter.circle_filled(
             center,
             radius + theme::SPACE_MD,
-            theme::chart_color(theme::ACCENT).linear_multiply(if theme::is_dark_mode() {
+            theme::chart_color(theme::SUCCESS).linear_multiply(if theme::is_dark_mode() {
                 0.08
             } else {
                 0.035
@@ -1818,12 +1847,12 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             radius + theme::SPACE_XS,
             egui::Stroke::new(
                 theme::BORDER_THIN,
-                theme::accent_text().linear_multiply(0.32),
+                theme::readable_color(theme::SUCCESS).linear_multiply(0.32),
             ),
         );
 
         // Precision ticks give the surface an instrument-grade silhouette
-        let tick_color = theme::accent_text().linear_multiply(0.34);
+        let tick_color = theme::readable_color(theme::SUCCESS).linear_multiply(0.34);
         for tick in 0..48 {
             let angle = tick as f32 / 48.0 * TAU;
             let major = tick % 6 == 0;
@@ -1845,7 +1874,11 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         painter.circle_filled(
             center,
             radius * 0.42,
-            theme::accent_text().linear_multiply(if theme::is_dark_mode() { 0.035 } else { 0.02 }),
+            theme::readable_color(theme::SUCCESS).linear_multiply(if theme::is_dark_mode() {
+                0.035
+            } else {
+                0.02
+            }),
         );
 
         for i in 1..=4 {
@@ -1875,7 +1908,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             ("CRITIQUE", 0.24, theme::ERROR),
             ("ÉLEVÉ", 0.48, theme::SEVERITY_HIGH),
             ("MOYEN", 0.70, theme::WARNING),
-            ("FAIBLE", 0.91, theme::INFO),
+            ("FAIBLE", 0.91, theme::AI),
         ] {
             painter.text(
                 center + egui::vec2(7.0, -radius * factor),
@@ -1979,7 +2012,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 "critical" => theme::ERROR,
                 "high" => theme::SEVERITY_HIGH,
                 "medium" => theme::WARNING,
-                _ => theme::INFO,
+                _ => theme::AI,
             };
             let is_selected = selected == Some(*source_index);
             let display_color = theme::readable_color(color);
@@ -2091,7 +2124,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 ui.label(
                     egui::RichText::new("Cliquer pour épingler le signal")
                         .font(theme::font_min())
-                        .color(theme::accent_text()),
+                        .color(theme::readable_color(theme::SUCCESS)),
                 );
             });
             if response.clicked() {
@@ -2106,9 +2139,9 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         painter.circle_filled(
             center,
             6.0,
-            theme::accent_text().linear_multiply(theme::OPACITY_TINT),
+            theme::readable_color(theme::SUCCESS).linear_multiply(theme::OPACITY_TINT),
         );
-        painter.circle_filled(center, 3.0, theme::accent_text());
+        painter.circle_filled(center, 3.0, theme::readable_color(theme::SUCCESS));
         painter.circle_filled(
             center,
             1.5,
@@ -2119,7 +2152,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             egui::Align2::CENTER_TOP,
             "NEXUS",
             theme::font_min(),
-            theme::accent_text(),
+            theme::readable_color(theme::SUCCESS),
         );
 
         // At-a-glance operational telemetry is overlaid without stealing radar space.
@@ -2151,19 +2184,36 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 theme::readable_color(theme::SUCCESS),
             );
         }
+        // Selection becomes a persistent analyst context rather than a
+        // transient tooltip, so an operator can compare the signal with the
+        // rest of the radar before opening the investigation workflow.
         if let Some(index) = selected
             && let Some(threat) = threats.get(index)
         {
+            let panel = egui::Rect::from_min_max(
+                rect.left_bottom() + egui::vec2(12.0, -78.0),
+                rect.right_bottom() + egui::vec2(-12.0, -10.0),
+            );
+            painter.rect_filled(panel, theme::ROUNDING_SM, theme::bg_elevated());
+            painter.rect_stroke(
+                panel,
+                theme::ROUNDING_SM,
+                egui::Stroke::new(theme::BORDER_THIN, theme::readable_color(theme::SUCCESS)),
+                egui::StrokeKind::Inside,
+            );
             painter.text(
-                rect.left_bottom() + egui::vec2(16.0, -14.0),
-                egui::Align2::LEFT_BOTTOM,
-                format!(
-                    "SIGNAL ÉPINGLÉ  ·  {}  ·  {}",
-                    threat.severity.to_uppercase(),
-                    threat.title
-                ),
+                panel.left_top() + egui::vec2(12.0, 10.0),
+                egui::Align2::LEFT_TOP,
+                format!("{}  {}", threat.severity.to_uppercase(), threat.title),
                 theme::font_label(),
                 theme::text_primary(),
+            );
+            painter.text(
+                panel.left_bottom() + egui::vec2(12.0, -10.0),
+                egui::Align2::LEFT_BOTTOM,
+                "Signal épinglé · cliquer de nouveau pour libérer la cible",
+                theme::font_caption(),
+                theme::text_secondary(),
             );
         }
 
@@ -2179,7 +2229,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 ("Critique", theme::ERROR),
                 ("Élevé", theme::SEVERITY_HIGH),
                 ("Moyen", theme::WARNING),
-                ("Faible", theme::INFO),
+                ("Faible", theme::AI),
             ];
             for (label, color) in legends {
                 let display_color = theme::readable_color(color);
@@ -2203,6 +2253,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         d.insert_temp(range_id, range);
         d.insert_temp(paused_id, paused);
         d.insert_temp(layers_id, layers);
+        d.insert_temp(priority_id, priority_only);
         if let Some(index) = selected {
             d.insert_temp(selected_id, index);
         } else {

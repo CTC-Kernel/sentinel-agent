@@ -8,6 +8,15 @@ use egui::{Color32, CornerRadius, Response, Sense, Stroke, Ui, WidgetText, epain
 use crate::animation;
 use crate::theme;
 
+/// Position content independently from the surrounding layout direction.
+///
+/// Buttons are frequently rendered inside right-to-left action bars. Using the
+/// parent layout's alignment there made their labels drift to an edge instead
+/// of remaining optically centred in the hit target.
+fn centered_in(content_size: egui::Vec2, rect: egui::Rect) -> egui::Pos2 {
+    rect.center() - content_size * 0.5
+}
+
 /// Button size variants.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum ButtonSize {
@@ -289,9 +298,7 @@ fn draw_premium_button(
                     -text_galley.size().y / 2.0,
                 )
         } else {
-            ui.layout()
-                .align_size_within_rect(text_galley.size(), rect)
-                .min
+            centered_in(text_galley.size(), rect)
         };
         ui.painter().galley(text_pos, text_galley, text_color);
     }
@@ -411,16 +418,12 @@ fn draw_destructive_button(
 
         // Text
         let text_pos = if loading {
-            ui.layout()
-                .align_size_within_rect(
-                    text_galley.size(),
-                    rect.shrink2(egui::vec2(theme::ICON_MD, 0.0)),
-                )
-                .min
+            centered_in(
+                text_galley.size(),
+                rect.shrink2(egui::vec2(theme::ICON_MD, 0.0)),
+            )
         } else {
-            ui.layout()
-                .align_size_within_rect(text_galley.size(), rect)
-                .min
+            centered_in(text_galley.size(), rect)
         };
         ui.painter().galley(text_pos, text_galley, text_color);
     }
@@ -498,10 +501,7 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
             );
         }
 
-        let text_pos = ui
-            .layout()
-            .align_size_within_rect(text_galley.size(), rect)
-            .min;
+        let text_pos = centered_in(text_galley.size(), rect);
         ui.painter().galley(text_pos, text_galley, text_color);
     }
 

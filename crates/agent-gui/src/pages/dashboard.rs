@@ -797,7 +797,7 @@ impl DashboardPage {
             ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             let config = widgets::SparklineConfig {
-                color: theme::accent_text(),
+                color: theme::SUCCESS,
                 fill: true,
                 show_trend: true,
                 show_stats: false,
@@ -825,7 +825,7 @@ impl DashboardPage {
             ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             let config = widgets::SparklineConfig {
-                color: theme::INFO,
+                color: theme::AI,
                 fill: true,
                 show_trend: true,
                 show_stats: false,
