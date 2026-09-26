@@ -377,25 +377,29 @@ mod tests {
 
     #[test]
     fn trend_calculation_handles_non_finite_values() {
-        let data = vec![
+        let data = [
             [0.0, f64::NAN],
             [1.0, 10.0],
             [2.0, f64::INFINITY],
             [3.0, 20.0],
         ];
-        let finite: Vec<f64> = data.iter().map(|p| p[1]).filter(|v| v.is_finite()).collect();
+        let finite: Vec<f64> = data
+            .iter()
+            .map(|p| p[1])
+            .filter(|v| v.is_finite())
+            .collect();
         assert_eq!(finite, vec![10.0, 20.0]);
         assert_eq!(*finite.last().unwrap(), 20.0);
     }
 
     #[test]
     fn stats_calculation_filters_out_nan() {
-        let data = vec![
-            [0.0, 50.0],
-            [1.0, f64::NAN],
-            [2.0, 100.0],
-        ];
-        let y_values: Vec<f64> = data.iter().map(|p| p[1]).filter(|v| v.is_finite()).collect();
+        let data = [[0.0, 50.0], [1.0, f64::NAN], [2.0, 100.0]];
+        let y_values: Vec<f64> = data
+            .iter()
+            .map(|p| p[1])
+            .filter(|v| v.is_finite())
+            .collect();
         assert_eq!(y_values.len(), 2);
         let avg = y_values.iter().sum::<f64>() / y_values.len() as f64;
         let max = y_values.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
@@ -403,4 +407,3 @@ mod tests {
         assert_eq!(max, 100.0);
     }
 }
-

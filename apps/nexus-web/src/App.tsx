@@ -55,7 +55,6 @@ export function App() {
       </header>
       <main>
         {page === "dashboard" ? <Dashboard onNavigate={setPage} notify={notify}/> :
-         page === "orchestration" ? <Orchestration notify={notify}/> :
          page === "threats" ? <ThreatCenter notify={notify}/> :
          page === "ai" ? <AICommandCenter notify={notify} onNavigate={setPage} onOpenAssistant={() => setAssistantOpen(true)}/> :
          page === "vulnerabilities" ? <VulnerabilityHub notify={notify} onOpenAssistant={() => setAssistantOpen(true)}/> :
