@@ -548,38 +548,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     command
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn playbook(name: &str, is_template: bool) -> Playbook {
-        Playbook {
-            id: Uuid::nil(),
-            name: name.to_owned(),
-            description: String::new(),
-            enabled: true,
-            conditions: Vec::new(),
-            actions: Vec::new(),
-            created_at: Utc::now(),
-            last_triggered: None,
-            trigger_count: 0,
-            is_template,
-        }
-    }
-
-    #[test]
-    fn installed_template_is_detected_even_when_legacy_flag_is_missing() {
-        let installed = vec![playbook("Ransomware", false)];
-        assert!(is_template_installed(&installed, "Ransomware"));
-    }
-
-    #[test]
-    fn installed_template_name_is_compared_robustly() {
-        let installed = vec![playbook("  crypto-MINER ", true)];
-        assert!(is_template_installed(&installed, "Crypto-miner"));
-        assert!(!is_template_installed(&installed, "Exfiltration"));
-    }
-}
 
 /// Inline form to create a new playbook.
 fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
@@ -762,4 +730,37 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
             });
         });
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn playbook(name: &str, is_template: bool) -> Playbook {
+        Playbook {
+            id: Uuid::nil(),
+            name: name.to_owned(),
+            description: String::new(),
+            enabled: true,
+            conditions: Vec::new(),
+            actions: Vec::new(),
+            created_at: Utc::now(),
+            last_triggered: None,
+            trigger_count: 0,
+            is_template,
+        }
+    }
+
+    #[test]
+    fn installed_template_is_detected_even_when_legacy_flag_is_missing() {
+        let installed = vec![playbook("Ransomware", false)];
+        assert!(is_template_installed(&installed, "Ransomware"));
+    }
+
+    #[test]
+    fn installed_template_name_is_compared_robustly() {
+        let installed = vec![playbook("  crypto-MINER ", true)];
+        assert!(is_template_installed(&installed, "Crypto-miner"));
+        assert!(!is_template_installed(&installed, "Exfiltration"));
+    }
 }
