@@ -456,10 +456,20 @@ jobs:
           cp -R "$APP_BUNDLE" "$DMG_TEMP/"
           ln -s /Applications "$DMG_TEMP/Applications"
 
+          # Calculate required DMG size with buffer (source size + 40% + 64MB filesystem overhead)
+          SOURCE_SIZE_MB=$(du -sm "$DMG_TEMP" | awk '{print $1}')
+          DMG_SIZE_MB=$(( SOURCE_SIZE_MB * 14 / 10 + 64 ))
+          echo "Source size: ${SOURCE_SIZE_MB}MB, allocated DMG size: ${DMG_SIZE_MB}MB"
+
+          # Unmount any stale volume if present
+          hdiutil detach "/Volumes/$APP_NAME" -force 2>/dev/null || true
+
           # Create DMG
           hdiutil create -volname "$APP_NAME" \
             -srcfolder "$DMG_TEMP" \
             -ov -format UDZO \
+            -fs HFS+ \
+            -size "${DMG_SIZE_MB}m" \
             "$DMG_PATH"
 
           rm -rf "$DMG_TEMP"
