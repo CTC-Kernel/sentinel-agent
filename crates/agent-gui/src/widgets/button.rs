@@ -370,13 +370,13 @@ fn draw_destructive_button(
         let is_clicked = enabled && !loading && response.is_pointer_button_down_on();
 
         let fill = if !enabled {
-            theme::ERROR.linear_multiply(theme::OPACITY_DISABLED)
+            theme::DANGER_FILL.linear_multiply(theme::OPACITY_DISABLED)
         } else if is_clicked {
-            theme::ERROR.linear_multiply(theme::OPACITY_PRESSED)
+            theme::DANGER_PRESSED
         } else if is_hovered {
-            theme::ERROR.linear_multiply(theme::OPACITY_HOVER)
+            theme::DANGER_HOVER
         } else {
-            theme::ERROR
+            theme::DANGER_FILL
         };
 
         let text_color = if enabled {

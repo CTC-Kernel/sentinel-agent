@@ -116,11 +116,12 @@ impl Slider {
             SliderStyle::Stepped => THUMB_RADIUS_STEPPED,
         };
 
-        let total_height = thumb_radius * 2.0 + if self.show_ticks { theme::SPACE } else { 0.0 };
+        let total_height = (thumb_radius * 2.0 + if self.show_ticks { theme::SPACE } else { 0.0 })
+            .max(theme::MIN_TOUCH_TARGET);
 
         ui.horizontal(|ui| {
             // Slider track area
-            let (rect, response) =
+            let (rect, mut response) =
                 ui.allocate_exact_size(egui::vec2(width, total_height), Sense::click_and_drag());
 
             let track_rect = egui::Rect::from_center_size(
@@ -139,7 +140,7 @@ impl Slider {
                 if let Some(step) = self.step
                     && step.abs() > f32::EPSILON
                 {
-                    new_value = (new_value / step).round() * step;
+                    new_value = self.min + ((new_value - self.min) / step).round() * step;
                 }
 
                 new_value = new_value.clamp(self.min, self.max);
@@ -149,6 +150,47 @@ impl Slider {
                     changed = true;
                 }
             }
+
+            if response.has_focus() {
+                let step = self
+                    .step
+                    .filter(|s| s.is_finite() && *s > 0.0)
+                    .unwrap_or((self.max - self.min) / 100.0);
+                let mut next = *value;
+                ui.input_mut(|input| {
+                    for (key, direction) in [
+                        (egui::Key::ArrowRight, 1.0),
+                        (egui::Key::ArrowUp, 1.0),
+                        (egui::Key::ArrowLeft, -1.0),
+                        (egui::Key::ArrowDown, -1.0),
+                    ] {
+                        if input.consume_key(egui::Modifiers::NONE, key) {
+                            next += step * direction;
+                        }
+                    }
+                    if input.consume_key(egui::Modifiers::NONE, egui::Key::Home) {
+                        next = self.min;
+                    }
+                    if input.consume_key(egui::Modifiers::NONE, egui::Key::End) {
+                        next = self.max;
+                    }
+                });
+                next = next.clamp(self.min, self.max);
+                if (*value - next).abs() > f32::EPSILON {
+                    *value = next;
+                    changed = true;
+                }
+            }
+            if changed {
+                response.mark_changed();
+            }
+            response.widget_info(|| {
+                egui::WidgetInfo::slider(
+                    ui.is_enabled(),
+                    *value as f64,
+                    self.suffix.as_deref().unwrap_or("Valeur"),
+                )
+            });
 
             if ui.is_rect_visible(rect) {
                 let painter = ui.painter();
@@ -335,4 +377,47 @@ pub fn slider_with_labels(
     });
 
     changed
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn keyboard_can_adjust_and_reach_both_range_bounds() {
+        let ctx = egui::Context::default();
+        let mut value = 15.0;
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                Slider::new(5.0, 25.0).step(5.0).show(ui, &mut value);
+            });
+        });
+        // Tab must discover the slider without a pointer interaction.
+        for (key, expected) in [
+            (egui::Key::Tab, 15.0),
+            (egui::Key::ArrowRight, 20.0),
+            (egui::Key::End, 25.0),
+            (egui::Key::ArrowRight, 25.0),
+            (egui::Key::Home, 5.0),
+        ] {
+            let _ = ctx.run(
+                egui::RawInput {
+                    events: vec![egui::Event::Key {
+                        key,
+                        physical_key: None,
+                        pressed: true,
+                        repeat: false,
+                        modifiers: egui::Modifiers::NONE,
+                    }],
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        Slider::new(5.0, 25.0).step(5.0).show(ui, &mut value);
+                    });
+                },
+            );
+            assert_eq!(value, expected, "key {key:?}");
+        }
+    }
 }

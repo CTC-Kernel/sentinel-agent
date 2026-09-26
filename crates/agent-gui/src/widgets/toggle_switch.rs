@@ -12,13 +12,22 @@ use crate::theme;
 ///
 /// Returns the [`Response`] for the toggle interaction.
 pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
+    toggle_switch_labeled(ui, on, "Activer")
+}
+
+/// Toggle with an explicit accessible name, including its row context.
+pub fn toggle_switch_labeled(ui: &mut Ui, on: &mut bool, label: &str) -> Response {
     // Allocate MIN_TOUCH_TARGET height for accessibility, but draw at SWITCH_HEIGHT
     let desired_size = Vec2::new(theme::SWITCH_WIDTH, theme::MIN_TOUCH_TARGET);
-    let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
+    let (rect, mut response) = ui.allocate_exact_size(desired_size, Sense::click());
 
     if response.clicked() {
         *on = !*on;
+        response.mark_changed();
     }
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(egui::WidgetType::Checkbox, ui.is_enabled(), *on, label)
+    });
 
     if ui.is_rect_visible(rect) {
         let time = ui.input(|i| i.time);
@@ -26,7 +35,15 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
 
         // Animation progress (smooth transition)
         let animation_id = response.id.with("anim");
-        let anim_progress = ui.ctx().animate_bool(animation_id, *on);
+        let anim_progress = ui.ctx().animate_bool_with_time(
+            animation_id,
+            *on,
+            if theme::is_reduced_motion() {
+                0.0
+            } else {
+                theme::ANIM_FAST
+            },
+        );
 
         // Colors
         let bg_off = if theme::is_dark_mode() {
@@ -60,18 +77,10 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
         ui.painter().rect_filled(track_rect, rounding, bg_color);
 
         // Track border (subtle)
-        let border_alpha = if is_hovered {
-            theme::OPACITY_MUTED
-        } else {
-            theme::OPACITY_TINT
-        };
         ui.painter().rect_stroke(
             track_rect,
             rounding,
-            Stroke::new(
-                theme::BORDER_HAIRLINE,
-                theme::overlay_color().linear_multiply(border_alpha),
-            ),
+            Stroke::new(theme::BORDER_HAIRLINE, theme::border()),
             egui::StrokeKind::Inside,
         );
 
@@ -92,7 +101,7 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
         );
 
         // Knob main
-        let knob_color = theme::text_on_accent();
+        let knob_color = theme::text_on_color(bg_color);
         ui.painter()
             .circle_filled(knob_center, knob_radius, knob_color);
 
@@ -130,4 +139,40 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
     }
 
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn keyboard_toggle_reports_change_to_its_caller() {
+        let ctx = egui::Context::default();
+        let mut on = false;
+        let mut id = None;
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                id = Some(toggle_switch_labeled(ui, &mut on, "Règle de détection").id);
+            });
+        });
+        ctx.memory_mut(|m| m.request_focus(id.unwrap()));
+        let _ = ctx.run(
+            egui::RawInput {
+                events: vec![egui::Event::Key {
+                    key: egui::Key::Space,
+                    physical_key: None,
+                    pressed: true,
+                    repeat: false,
+                    modifiers: egui::Modifiers::NONE,
+                }],
+                ..Default::default()
+            },
+            |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    assert!(toggle_switch_labeled(ui, &mut on, "Règle de détection").changed());
+                });
+            },
+        );
+        assert!(on);
+    }
 }

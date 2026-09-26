@@ -89,6 +89,15 @@ impl<'a> Checkbox<'a> {
             sense,
         );
 
+        response.widget_info(|| {
+            egui::WidgetInfo::selected(
+                egui::WidgetType::Checkbox,
+                ui.is_enabled() && !self.disabled,
+                *checked,
+                self.label,
+            )
+        });
+
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;
             let box_rect = egui::Rect::from_min_size(
@@ -163,7 +172,7 @@ impl<'a> Checkbox<'a> {
                 ui.painter().rect_stroke(
                     box_rect.expand(2.0),
                     CornerRadius::same(theme::ROUNDING_MD),
-                    egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT),
+                    theme::focus_ring(),
                     egui::epaint::StrokeKind::Outside,
                 );
             }
@@ -236,6 +245,15 @@ impl<'a> RadioButton<'a> {
             ),
             sense,
         );
+
+        response.widget_info(|| {
+            egui::WidgetInfo::selected(
+                egui::WidgetType::RadioButton,
+                ui.is_enabled() && !self.disabled,
+                selected,
+                self.label,
+            )
+        });
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;
@@ -487,6 +505,10 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
     let (rect, response) =
         ui.allocate_exact_size(egui::vec2(total_width, touch_height), Sense::click());
 
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(egui::WidgetType::Checkbox, ui.is_enabled(), *on, label)
+    });
+
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
         let switch_rect =
@@ -503,6 +525,13 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
             switch_rect,
             CornerRadius::same((switch_height / 2.0).min(255.0) as u8),
             track_color,
+        );
+
+        ui.painter().rect_stroke(
+            switch_rect,
+            CornerRadius::same((switch_height / 2.0) as u8),
+            egui::Stroke::new(theme::BORDER_THIN, theme::border()),
+            egui::StrokeKind::Inside,
         );
 
         // Thumb
@@ -522,8 +551,11 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
         );
 
         // Thumb
-        ui.painter()
-            .circle_filled(thumb_center, thumb_size / 2.0, theme::text_on_accent());
+        ui.painter().circle_filled(
+            thumb_center,
+            thumb_size / 2.0,
+            theme::text_on_color(track_color),
+        );
 
         // Hover effect
         if is_hovered {

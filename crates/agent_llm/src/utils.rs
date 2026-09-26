@@ -83,6 +83,7 @@ pub mod test_helpers {
     /// A mock engine that always returns a pre-configured response text.
     pub struct MockEngine {
         response_text: String,
+        tokens_generated: u32,
     }
 
     impl MockEngine {
@@ -90,6 +91,16 @@ pub mod test_helpers {
         pub fn arc(text: impl Into<String>) -> Arc<dyn ModelEngine> {
             Arc::new(Self {
                 response_text: text.into(),
+                tokens_generated: 0,
+            })
+        }
+    }
+
+    impl MockEngine {
+        pub fn arc_with_tokens(text: impl Into<String>, tokens: u32) -> Arc<dyn ModelEngine> {
+            Arc::new(Self {
+                response_text: text.into(),
+                tokens_generated: tokens,
             })
         }
     }
@@ -100,7 +111,9 @@ pub mod test_helpers {
             ModelStatus::Ready
         }
         async fn infer(&self, _request: InferenceRequest) -> Result<InferenceResponse> {
-            Ok(InferenceResponse::new(self.response_text.clone()))
+            let mut response = InferenceResponse::new(self.response_text.clone());
+            response.tokens_generated = self.tokens_generated;
+            Ok(response)
         }
         async fn memory_usage(&self) -> MemoryUsage {
             MemoryUsage {

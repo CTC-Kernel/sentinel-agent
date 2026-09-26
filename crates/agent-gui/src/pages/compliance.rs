@@ -294,7 +294,7 @@ impl CompliancePage {
                                         pct, pass_count, total_count
                                     ))
                                     .font(theme::font_body())
-                                    .color(bar_color)
+                                    .color(theme::readable_color(bar_color))
                                     .strong(),
                                 );
                             },

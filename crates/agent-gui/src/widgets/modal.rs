@@ -120,7 +120,7 @@ impl Modal {
     }
 
     /// Show the modal and return the result.
-    pub fn show(self, ctx: &egui::Context) -> ModalResult {
+    pub fn show(mut self, ctx: &egui::Context) -> ModalResult {
         let is_open = ctx.memory(|mem| mem.data.get_temp::<bool>(self.id).unwrap_or(false));
 
         if !is_open {
@@ -134,47 +134,25 @@ impl Modal {
         let pass = ctx.cumulative_pass_nr();
         ctx.memory_mut(|mem| mem.data.insert_temp(open_frame_id(), pass));
 
-        let mut result = ModalResult::None;
-
-        // Keyboard: Escape to dismiss, Enter to confirm
-        if self.show_close && ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
+        // The native modal layer contains pointer and keyboard interaction.
+        // Enter activates only the focused button, never a global default.
+        let screen = ctx.screen_rect();
+        self.width = self
+            .width
+            .min((screen.width() - theme::SPACE_LG * 2.0).max(1.0));
+        let modal = egui::Modal::new(self.id.with("window"))
+            .backdrop_color(theme::backdrop_color(theme::BACKDROP_ALPHA))
+            .frame(egui::Frame::NONE)
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical()
+                    .max_height((screen.height() - theme::SPACE_LG * 2.0).max(1.0))
+                    .show(ui, |ui| self.draw_modal(ui))
+                    .inner
+            });
+        let mut result = modal.inner;
+        if self.show_close && modal.should_close() && result == ModalResult::None {
             result = ModalResult::Dismiss;
         }
-        if ctx.input(|i| i.key_pressed(egui::Key::Enter)) {
-            result = ModalResult::Confirm;
-        }
-
-        // Backdrop
-        let screen = ctx.screen_rect();
-        egui::Area::new(egui::Id::new("modal_backdrop").with(self.id))
-            .fixed_pos(screen.min)
-            .order(egui::Order::Foreground)
-            .show(ctx, |ui| {
-                let backdrop_response = ui.allocate_response(screen.size(), egui::Sense::click());
-
-                // Frosted backdrop (navy-tinted in dark mode for depth)
-                ui.painter().rect_filled(
-                    screen,
-                    CornerRadius::ZERO,
-                    theme::backdrop_color(theme::BACKDROP_ALPHA),
-                );
-
-                // Close on backdrop click
-                if backdrop_response.clicked() && self.show_close {
-                    result = ModalResult::Dismiss;
-                }
-            });
-
-        // Modal window
-        egui::Area::new(egui::Id::new("modal_window").with(self.id))
-            .fixed_pos(screen.center() - egui::vec2(self.width / 2.0, theme::MODAL_Y_OFFSET))
-            .order(egui::Order::Foreground)
-            .show(ctx, |ui| {
-                let modal_result = self.draw_modal(ui);
-                if modal_result != ModalResult::None {
-                    result = modal_result;
-                }
-            });
 
         // Close modal if action taken
         if result != ModalResult::None {
@@ -383,6 +361,40 @@ pub fn success_dialog(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn enter_without_a_focused_action_never_confirms_danger() {
+        let ctx = egui::Context::default();
+        crate::theme::configure_fonts(&ctx);
+        Modal::open(&ctx, "danger_test");
+        for frame in 0..4 {
+            let _ = ctx.run(
+                egui::RawInput {
+                    events: if frame == 3 {
+                        vec![egui::Event::Key {
+                            key: egui::Key::Enter,
+                            physical_key: None,
+                            pressed: true,
+                            repeat: false,
+                            modifiers: egui::Modifiers::NONE,
+                        }]
+                    } else {
+                        vec![]
+                    },
+                    ..Default::default()
+                },
+                |ctx| {
+                    assert_eq!(
+                        Modal::new("danger_test", "Supprimer ?")
+                            .style(ModalStyle::Danger)
+                            .show(ctx),
+                        ModalResult::None
+                    );
+                },
+            );
+        }
+        assert!(Modal::is_open(&ctx, "danger_test"));
+    }
 
     /// Opening a modal must not deadlock the context: the frame it opens on
     /// has to complete, and the modal has to be visible on the next one.

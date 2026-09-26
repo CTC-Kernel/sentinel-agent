@@ -41,7 +41,7 @@ impl Default for Card {
     fn default() -> Self {
         Self {
             variant: CardVariant::Elevated,
-            padding: theme::SPACE_LG,
+            padding: theme::SPACE_MD,
             accent: None,
             interactive: false,
         }
@@ -60,7 +60,7 @@ impl Card {
         self
     }
 
-    /// Inner padding, overriding the default 24px.
+    /// Inner padding, overriding the default 16px.
     pub fn padding(mut self, padding: f32) -> Self {
         self.padding = padding;
         self
@@ -143,7 +143,11 @@ impl Card {
                     ui.id()
                         .with(("card_lift", rect.min.x as i32, rect.min.y as i32)),
                     ui.rect_contains_pointer(rect),
-                    theme::ANIM_FAST,
+                    if theme::is_reduced_motion() {
+                        0.0
+                    } else {
+                        theme::ANIM_FAST
+                    },
                 )
             } else {
                 0.0

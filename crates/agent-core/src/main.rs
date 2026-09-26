@@ -2719,6 +2719,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let svc = llm_service.clone();
                             #[cfg(feature = "voice")]
                             let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
+                            #[cfg(feature = "voice")]
+                            let voice_epoch = voice.as_ref().map_or(0, |v| v.speech_generation());
                             #[cfg(not(feature = "voice"))]
                             let _ = speak_response;
                             tokio::spawn(async move {
@@ -2749,7 +2751,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                     });
                                                     #[cfg(feature = "voice")]
                                                     if speak_response && let Some(ref v) = voice {
-                                                        v.speak(&text);
+                                                        v.speak_if_current(&text, voice_epoch);
                                                     }
                                                 }
                                                 Err(e) => {
@@ -2761,81 +2763,36 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                     });
                                                     #[cfg(feature = "voice")]
                                                     if speak_response && let Some(ref v) = voice {
-                                                        v.speak(&message);
+                                                        v.speak_if_current(&message, voice_epoch);
                                                     }
                                                 }
                                             }
                                             return;
                                         }
-                                        // Manager not yet loaded — provide instant expert SOC synthesis with GGUF guidance
                                         let reason = svc.unavailable_reason().await
                                             .unwrap_or_else(|| "Modèle en cours de configuration".to_string());
-                                        let context_label = context
-                                            .map(|value| value.label_fr())
-                                            .unwrap_or("Général");
-                                        let prompt_lower = prompt.to_lowercase();
-                                        let expert_analysis = if prompt_lower.contains("posture") || prompt_lower.contains("global") {
-                                            format!(
-                                                "**[Sentinel Intelligence — Analyse de Posture Autonome]** (Domaine : {context_label})\n\n\
-                                                1. **Constat factuel** : Votre posture de sécurité globale est opérationnelle et surveillée en continu. Les agents de détection (EDR, FIM, SIEM) transmettent les métriques nominales.\n\
-                                                2. **Niveau de risque & Justification** : Risque modéré à maîtrisé. Des actions préventives sont recommandées sur les identités dormantes et le contrôle DNS.\n\
-                                                3. **Actions prioritaires** :\n\
-                                                   • Revue des privilèges administrateurs non utilisés depuis >90 jours.\n\
-                                                   • Vérification de l'application des correctifs CVE critiques sur les serveurs DMZ.\n\
-                                                   • Validation des règles de conformité NIS 2 (Article 21).\n\
-                                                4. **Recommandation** : Téléchargez le modèle **Kimi K2 Sovereign** (200k) dans l'onglet *Statut modèle* pour l'inférence locale hors-ligne complète."
-                                            )
-                                        } else if prompt_lower.contains("vulnérab") || prompt_lower.contains("cve") {
-                                            format!(
-                                                "**[Sentinel Intelligence — Triage des Vulnérabilités]** (Domaine : {context_label})\n\n\
-                                                1. **Constat factuel** : L'inventaire logiciel a corrélé les signatures OSV et CVE actives sur vos endpoints.\n\
-                                                2. **Évaluation d'impact** : Les vulnérabilités identifiées concernent principalement des bibliothèques réseau et serveurs de fichiers.\n\
-                                                3. **Plan de remédiation** :\n\
-                                                   • Prioriser les correctifs CVSS > 8.0 avec exploit public disponible.\n\
-                                                   • Isoler préventivement les machines exposées avant la maintenance planifiée.\n\
-                                                   • Déclencher le playbook n8n d'application automatique des patchs."
-                                            )
-                                        } else if prompt_lower.contains("phishing") || prompt_lower.contains("mail") {
-                                            format!(
-                                                "**[Sentinel Intelligence — Triage Menace Hameçonnage]** (Domaine : {context_label})\n\n\
-                                                1. **Constat factuel** : Détection de signaux d'ingénierie sociale avec non-concordance DMARC/SPF.\n\
-                                                2. **Gravité** : Élevée (Risque de vol de session et credential stuffing).\n\
-                                                3. **Actions prioritaires** :\n\
-                                                   • Purge immédiate de la campagne suspecte sur Microsoft 365 / Google Workspace.\n\
-                                                   • Blocage périmétrique des indicateurs (IoC IP & domaine C2).\n\
-                                                   • Réinitialisation préventive des jetons d'accès pour les utilisateurs ciblés."
-                                            )
-                                        } else {
-                                            format!(
-                                                "**[Sentinel Intelligence — Analyse SOC Contextuelle]** (Domaine : {context_label})\n\n\
-                                                1. **Synthèse de votre requête** : *« {} »*\n\
-                                                2. **État de la télémétrie** : La surveillance temps réel est active. Aucune anomalie critique bloquante n'a été observée sur le périmètre système.\n\
-                                                3. **Actions suggérées** : Consultez l'onglet *Recommandations* pour les actions prioritaires ordonnées, ou téléchargez le modèle **Kimi K2** pour le raisonnement local autonome.",
-                                                prompt.chars().take(80).collect::<String>()
-                                            )
-                                        };
-                                        let message = format!("{}\n\n*(Moteur autonome actif · Inférer hors-ligne : {})*", expert_analysis, reason);
+                                        let message = format!("Analyse IA indisponible : {reason}.\n\nAucune analyse n’a été exécutée pour cette question. Ouvrez « Modèle & diagnostic » pour vérifier ou charger le modèle, puis renvoyez votre question. Les recommandations déterministes restent consultables dans l’onglet Recommandations.");
                                         let _ = tx.send(AgentEvent::LlmChatResponse {
                                             message: message.clone(),
                                             processing_time_ms: start.elapsed().as_millis() as u64,
                                         });
                                         #[cfg(feature = "voice")]
                                         if speak_response && let Some(ref v) = voice {
-                                            v.speak(&message);
+                                            v.speak_if_current(&message, voice_epoch);
                                         }
                                         return;
                                     }
                                 }
                                 // LLM not available (feature disabled or no service)
                                 let _ = &svc; // suppress unused-variable warning when llm feature is off
-                                let message = "Module IA non compilé. La conversation vocale nécessite la fonctionnalité LLM.".to_string();
+                                let message = "Service IA indisponible. Aucune analyse n’a été exécutée. Consultez Modèle & diagnostic avant de renvoyer votre question.".to_string();
                                 let _ = tx.send(AgentEvent::LlmChatResponse {
                                     message: message.clone(),
                                     processing_time_ms: start.elapsed().as_millis() as u64,
                                 });
                                 #[cfg(feature = "voice")]
                                 if speak_response && let Some(ref v) = voice {
-                                    v.speak(&message);
+                                    v.speak_if_current(&message, voice_epoch);
                                 }
                             });
                         }
@@ -3181,12 +3138,22 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             });
                         }
 
+                        Ok(GuiCommand::StopVoice) => {
+                            #[cfg(feature = "voice")]
+                            if let Some(ref voice) = voice_service {
+                                voice.stop_listening();
+                                voice.stop_speaking();
+                            }
+                            let _ = bg_event_tx.send(AgentEvent::LlmVoiceState { active: false });
+                            let _ = bg_event_tx.send(AgentEvent::VoiceStatus { speaking: false });
+                        }
                         Ok(GuiCommand::SetVoiceListening { enabled }) => {
                             info!("[AUDIT] GUI requested voice listening: {}", enabled);
                             #[cfg(feature = "voice")]
                             {
                                 let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
-                                tokio::spawn(async move {
+                                let tx = bg_event_tx.clone();
+                                {
                                     if let Some(ref voice) = voice {
                                         if enabled {
                                             // Natural barge-in: silence any answer/alert before
@@ -3199,8 +3166,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             // button off stops Whisper immediately.
                                             voice.stop_listening();
                                         }
+                                    } else if enabled {
+                                        let _ = tx.send(AgentEvent::VoiceError { message: "Service vocal indisponible. Vérifiez le microphone et le modèle Whisper.".to_string() });
                                     }
-                                });
+                                }
                             }
                             #[cfg(not(feature = "voice"))]
                             {
@@ -3208,8 +3177,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 tokio::spawn(async move {
                                     if enabled {
                                         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                                        let _ = tx.send(AgentEvent::VoiceTranscription {
-                                            text: "Moteur vocal désactivé à la compilation.".to_string()
+                                        let _ = tx.send(AgentEvent::VoiceError {
+                                            message: "Reconnaissance vocale indisponible dans cette version.".to_string()
                                         });
                                     }
                                 });
@@ -3234,6 +3203,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             };
                             if !speech_started {
                                 let _ = text;
+                                let _ = bg_event_tx.send(AgentEvent::VoiceError { message: "Synthèse vocale indisponible dans cette version.".to_string() });
                                 // Match the service's completion event even in
                                 // voice-less builds or when initialization failed.
                                 let _ = bg_event_tx.send(AgentEvent::VoiceStatus {

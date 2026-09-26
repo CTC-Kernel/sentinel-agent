@@ -21,7 +21,7 @@ impl NotificationsPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
             &["Vue d'ensemble", "Notifications"],
@@ -382,7 +382,13 @@ impl NotificationsPage {
                                 });
                                 row.col(|ui: &mut egui::Ui| {
                                     let mut enabled = rule.enabled;
-                                    if widgets::toggle_switch(ui, &mut enabled).changed() {
+                                    if widgets::toggle_switch_labeled(
+                                        ui,
+                                        &mut enabled,
+                                        &format!("Activer {}", rule.name),
+                                    )
+                                    .changed()
+                                    {
                                         // Toggling requires mutating — store via memory flag
                                         ui.memory_mut(|m| {
                                             m.data.insert_temp(
@@ -511,7 +517,7 @@ impl NotificationsPage {
                     widgets::text_input(ui, &mut escalation_str, "30");
                 });
                 widgets::form::field(ui, "Activ\u{00e9}", 72.0, |ui: &mut egui::Ui| {
-                    widgets::toggle_switch(ui, &mut enabled);
+                    widgets::toggle_switch_labeled(ui, &mut enabled, "Activer à la création");
                 });
             });
 
@@ -696,7 +702,13 @@ impl NotificationsPage {
                                 });
                                 row.col(|ui: &mut egui::Ui| {
                                     let mut enabled = wh.enabled;
-                                    if widgets::toggle_switch(ui, &mut enabled).changed() {
+                                    if widgets::toggle_switch_labeled(
+                                        ui,
+                                        &mut enabled,
+                                        &format!("Activer {}", wh.name),
+                                    )
+                                    .changed()
+                                    {
                                         ui.memory_mut(|m| {
                                             m.data.insert_temp(
                                                 egui::Id::new(format!("toggle_wh_{}", i)),
@@ -829,7 +841,7 @@ impl NotificationsPage {
                     );
                 });
                 widgets::form::field(ui, "Activ\u{00e9}", 72.0, |ui: &mut egui::Ui| {
-                    widgets::toggle_switch(ui, &mut enabled);
+                    widgets::toggle_switch_labeled(ui, &mut enabled, "Activer à la création");
                 });
             });
 

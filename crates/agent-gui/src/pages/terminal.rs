@@ -44,7 +44,7 @@ impl TerminalPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let command = None;
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
             &["Système", "Terminal"],

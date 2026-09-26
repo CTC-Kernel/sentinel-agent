@@ -18,7 +18,7 @@ impl NetworkPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
             &["Détection & réponse", "Réseau"],
@@ -149,108 +149,37 @@ impl NetworkPage {
 
         ui.add_space(theme::SPACE_LG);
 
+        widgets::tabs(
+            ui,
+            &["Connexions", "Alertes de sécurité", "Interfaces"],
+            &mut state.network.active_section,
+        );
+        ui.add_space(theme::SPACE_MD);
+        match state.network.active_section {
+            0 => {
+                ui.push_id("connections_section", |ui| {
+                    Self::connections_table(ui, state)
+                });
+            }
+            1 => {
+                ui.push_id("security_alerts_section", |ui| {
+                    Self::security_alerts_section(ui, state)
+                });
+            }
+            2 => {
+                ui.push_id("interfaces_section", |ui| Self::interfaces_table(ui, state));
+            }
+            _ => state.network.active_section = 0,
+        }
+        ui.add_space(theme::SPACE_MD);
         // ── Connection state + Protocol + Alert type distribution ───────
-        {
-            widgets::card(ui, |ui: &mut egui::Ui| {
-                // ── A. Connection state distribution ──
-                ui.label(
-                    egui::RichText::new("DISTRIBUTION DES CONNEXIONS PAR ÉTAT")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_SM);
-
-                let mut established: usize = 0;
-                let mut listen: usize = 0;
-                let mut time_wait: usize = 0;
-                let mut other_state: usize = 0;
-
-                for conn in &state.network.connections {
-                    match conn.state.as_str() {
-                        "ESTABLISHED" => established += 1,
-                        "LISTEN" => listen += 1,
-                        "TIME_WAIT" | "CLOSE_WAIT" => time_wait += 1,
-                        _ => other_state += 1,
-                    }
-                }
-
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    let states: &[(&str, usize, egui::Color32)] = &[
-                        ("ESTABLISHED", established, theme::SUCCESS),
-                        ("LISTEN", listen, theme::INFO),
-                        ("TIME_WAIT", time_wait, theme::WARNING),
-                        ("AUTRES", other_state, theme::text_tertiary()),
-                    ];
-                    for (label, count, color) in states {
-                        widgets::status_badge(ui, &format!("{}: {}", label, count), *color);
-                        ui.add_space(theme::SPACE_SM);
-                    }
-                });
-
-                ui.add_space(theme::SPACE_MD);
-
-                // ── B. Protocol distribution ──
-                ui.label(
-                    egui::RichText::new("DISTRIBUTION PAR PROTOCOLE")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_SM);
-
-                let mut tcp_count: usize = 0;
-                let mut udp_count: usize = 0;
-                for conn in &state.network.connections {
-                    match conn.protocol.as_str() {
-                        "tcp" | "tcp4" | "tcp6" | "TCP" | "TCP4" | "TCP6" => tcp_count += 1,
-                        "udp" | "udp4" | "udp6" | "UDP" | "UDP4" | "UDP6" => udp_count += 1,
-                        _ => {}
-                    }
-                }
-                let proto_total = tcp_count.saturating_add(udp_count).max(1);
-
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    widgets::status_badge(ui, &format!("TCP: {}", tcp_count), theme::ACCENT);
-                    ui.add_space(theme::SPACE_SM);
-                    widgets::status_badge(ui, &format!("UDP: {}", udp_count), theme::accent_text());
-                });
-                ui.add_space(theme::SPACE_XS);
-
-                let tcp_ratio = tcp_count as f32 / proto_total as f32;
-                // Mini stacked bar for TCP/UDP ratio
-                let bar_height = theme::PROGRESS_BAR_HEIGHT;
-                let bar_width = ui.available_width();
-                let (rect, _) =
-                    ui.allocate_exact_size(egui::vec2(bar_width, bar_height), egui::Sense::hover());
-                if ui.is_rect_visible(rect) {
-                    let painter = ui.painter_at(rect);
-                    let rounding = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
-                    painter.rect_filled(rect, rounding, theme::bg_tertiary());
-
-                    if tcp_count > 0 {
-                        let tcp_w = tcp_ratio * bar_width;
-                        let tcp_rect =
-                            egui::Rect::from_min_size(rect.min, egui::vec2(tcp_w, bar_height));
-                        painter.rect_filled(tcp_rect, rounding, theme::ACCENT);
-                    }
-                    if udp_count > 0 {
-                        let udp_w = (1.0 - tcp_ratio) * bar_width;
-                        let udp_rect = egui::Rect::from_min_size(
-                            egui::pos2(rect.min.x + tcp_ratio * bar_width, rect.min.y),
-                            egui::vec2(udp_w, bar_height),
-                        );
-                        painter.rect_filled(udp_rect, rounding, theme::accent_text());
-                    }
-                }
-
-                // ── C. Alert type distribution ──
-                if !state.network.alerts.is_empty() {
-                    ui.add_space(theme::SPACE_MD);
+        egui::CollapsingHeader::new("Répartition des flux et des alertes")
+            .id_salt("network_distribution")
+            .show(ui, |ui| {
+                widgets::card(ui, |ui: &mut egui::Ui| {
+                    // ── A. Connection state distribution ──
                     ui.label(
-                        egui::RichText::new("DISTRIBUTION DES ALERTES PAR TYPE")
+                        egui::RichText::new("DISTRIBUTION DES CONNEXIONS PAR ÉTAT")
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .extra_letter_spacing(theme::TRACKING_NORMAL)
@@ -258,49 +187,130 @@ impl NetworkPage {
                     );
                     ui.add_space(theme::SPACE_SM);
 
-                    // Count alert types
-                    let mut alert_type_counts: Vec<(String, usize, egui::Color32)> = Vec::new();
-                    for alert in state.network.alerts.iter() {
-                        let (label, color) = Self::alert_type_label_color(&alert.alert_type);
-                        if let Some(existing) =
-                            alert_type_counts.iter_mut().find(|(l, _, _)| *l == label)
-                        {
-                            existing.1 += 1;
-                        } else {
-                            alert_type_counts.push((label, 1, color));
+                    let mut established: usize = 0;
+                    let mut listen: usize = 0;
+                    let mut time_wait: usize = 0;
+                    let mut other_state: usize = 0;
+
+                    for conn in &state.network.connections {
+                        match conn.state.as_str() {
+                            "ESTABLISHED" => established += 1,
+                            "LISTEN" => listen += 1,
+                            "TIME_WAIT" | "CLOSE_WAIT" => time_wait += 1,
+                            _ => other_state += 1,
                         }
                     }
 
-                    ui.horizontal_wrapped(|ui: &mut egui::Ui| {
-                        for (label, count, color) in &alert_type_counts {
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        let states: &[(&str, usize, egui::Color32)] = &[
+                            ("ESTABLISHED", established, theme::SUCCESS),
+                            ("LISTEN", listen, theme::INFO),
+                            ("TIME_WAIT", time_wait, theme::WARNING),
+                            ("AUTRES", other_state, theme::text_tertiary()),
+                        ];
+                        for (label, count, color) in states {
                             widgets::status_badge(ui, &format!("{}: {}", label, count), *color);
                             ui.add_space(theme::SPACE_SM);
                         }
                     });
-                }
+
+                    ui.add_space(theme::SPACE_MD);
+
+                    // ── B. Protocol distribution ──
+                    ui.label(
+                        egui::RichText::new("DISTRIBUTION PAR PROTOCOLE")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+
+                    let mut tcp_count: usize = 0;
+                    let mut udp_count: usize = 0;
+                    for conn in &state.network.connections {
+                        match conn.protocol.as_str() {
+                            "tcp" | "tcp4" | "tcp6" | "TCP" | "TCP4" | "TCP6" => tcp_count += 1,
+                            "udp" | "udp4" | "udp6" | "UDP" | "UDP4" | "UDP6" => udp_count += 1,
+                            _ => {}
+                        }
+                    }
+                    let proto_total = tcp_count.saturating_add(udp_count).max(1);
+
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        widgets::status_badge(ui, &format!("TCP: {}", tcp_count), theme::ACCENT);
+                        ui.add_space(theme::SPACE_SM);
+                        widgets::status_badge(
+                            ui,
+                            &format!("UDP: {}", udp_count),
+                            theme::accent_text(),
+                        );
+                    });
+                    ui.add_space(theme::SPACE_XS);
+
+                    let tcp_ratio = tcp_count as f32 / proto_total as f32;
+                    // Mini stacked bar for TCP/UDP ratio
+                    let bar_height = theme::PROGRESS_BAR_HEIGHT;
+                    let bar_width = ui.available_width();
+                    let (rect, _) = ui.allocate_exact_size(
+                        egui::vec2(bar_width, bar_height),
+                        egui::Sense::hover(),
+                    );
+                    if ui.is_rect_visible(rect) {
+                        let painter = ui.painter_at(rect);
+                        let rounding = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+                        painter.rect_filled(rect, rounding, theme::bg_tertiary());
+
+                        if tcp_count > 0 {
+                            let tcp_w = tcp_ratio * bar_width;
+                            let tcp_rect =
+                                egui::Rect::from_min_size(rect.min, egui::vec2(tcp_w, bar_height));
+                            painter.rect_filled(tcp_rect, rounding, theme::ACCENT);
+                        }
+                        if udp_count > 0 {
+                            let udp_w = (1.0 - tcp_ratio) * bar_width;
+                            let udp_rect = egui::Rect::from_min_size(
+                                egui::pos2(rect.min.x + tcp_ratio * bar_width, rect.min.y),
+                                egui::vec2(udp_w, bar_height),
+                            );
+                            painter.rect_filled(udp_rect, rounding, theme::accent_text());
+                        }
+                    }
+
+                    // ── C. Alert type distribution ──
+                    if !state.network.alerts.is_empty() {
+                        ui.add_space(theme::SPACE_MD);
+                        ui.label(
+                            egui::RichText::new("DISTRIBUTION DES ALERTES PAR TYPE")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                                .strong(),
+                        );
+                        ui.add_space(theme::SPACE_SM);
+
+                        // Count alert types
+                        let mut alert_type_counts: Vec<(String, usize, egui::Color32)> = Vec::new();
+                        for alert in state.network.alerts.iter() {
+                            let (label, color) = Self::alert_type_label_color(&alert.alert_type);
+                            if let Some(existing) =
+                                alert_type_counts.iter_mut().find(|(l, _, _)| *l == label)
+                            {
+                                existing.1 += 1;
+                            } else {
+                                alert_type_counts.push((label, 1, color));
+                            }
+                        }
+
+                        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+                            for (label, count, color) in &alert_type_counts {
+                                widgets::status_badge(ui, &format!("{}: {}", label, count), *color);
+                                ui.add_space(theme::SPACE_SM);
+                            }
+                        });
+                    }
+                });
             });
-        }
-
-        ui.add_space(theme::SPACE_LG);
-
-        // Interfaces table
-        ui.push_id("interfaces_section", |ui: &mut egui::Ui| {
-            Self::interfaces_table(ui, state);
-        });
-
-        ui.add_space(theme::SPACE_LG);
-
-        // Connections table
-        ui.push_id("connections_section", |ui: &mut egui::Ui| {
-            Self::connections_table(ui, state);
-        });
-
-        ui.add_space(theme::SPACE_LG);
-
-        // Security section (AAA Grade)
-        ui.push_id("security_alerts_section", |ui: &mut egui::Ui| {
-            Self::security_alerts_section(ui, state);
-        });
 
         ui.add_space(theme::SPACE_XL);
 

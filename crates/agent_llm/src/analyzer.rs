@@ -165,6 +165,16 @@ pub enum RecommendationType {
     Policy,
 }
 
+/// Provenance for consumers deciding whether an analysis needs human review.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AnalysisSource {
+    #[default]
+    Unknown,
+    ModelStructured,
+    HeuristicFallback,
+}
+
 /// Analysis metadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisMetadata {
@@ -172,11 +182,17 @@ pub struct AnalysisMetadata {
     pub timestamp: chrono::DateTime<chrono::Utc>,
     /// Model used for analysis
     pub model_name: String,
-    /// Confidence score (0-100)
+    /// Legacy score: zero means uncalibrated; never interpret it as a probability.
     pub confidence_score: u8,
+    /// True only when confidence has been measured against a labeled evaluation set.
+    #[serde(default)]
+    pub confidence_calibrated: bool,
+    /// Origin of the result, independent of its correctness.
+    #[serde(default)]
+    pub analysis_source: AnalysisSource,
     /// Processing time in milliseconds
     pub processing_time_ms: u64,
-    /// Tokens processed
+    /// Generated tokens reported by the engine across all iterations; zero if unavailable.
     pub tokens_processed: u32,
 }
 
@@ -362,6 +378,7 @@ impl LLMAnalyzer {
 
         let mut current_user_prompt = user_prompt;
         let mut iteration = 0;
+        let mut generated_tokens = 0u32;
         const MAX_ITERATIONS: u8 = 3;
 
         while iteration < MAX_ITERATIONS {
@@ -376,6 +393,7 @@ impl LLMAnalyzer {
             }
 
             let response = self.engine.infer(request).await?;
+            generated_tokens = generated_tokens.saturating_add(response.tokens_generated);
             let text = response.text.trim();
 
             if text.starts_with("TOOL_CALL:") {
@@ -400,7 +418,8 @@ impl LLMAnalyzer {
             }
 
             // If not a tool call or max iterations reached, parse as final result
-            let result = self.parse_analysis_response(text, &context, start_time.elapsed())?;
+            let mut result = self.parse_analysis_response(text, &context, start_time.elapsed())?;
+            result.metadata.tokens_processed = generated_tokens;
             info!("Analysis completed in {} iterations", iteration);
             return Ok(result);
         }
@@ -545,12 +564,14 @@ impl LLMAnalyzer {
         context: &AnalysisContext,
         duration: std::time::Duration,
     ) -> Result<AnalysisResult> {
-        let build_metadata = |confidence: u8, tokens: u32| AnalysisMetadata {
+        let build_metadata = |analysis_source| AnalysisMetadata {
             timestamp: chrono::Utc::now(),
             model_name: self.config.model.name.clone(),
-            confidence_score: confidence,
+            confidence_score: 0,
+            confidence_calibrated: false,
+            analysis_source,
             processing_time_ms: duration.as_millis() as u64,
-            tokens_processed: tokens,
+            tokens_processed: 0,
         };
 
         match try_parse_json::<RawAnalysisResponse>(response) {
@@ -559,20 +580,18 @@ impl LLMAnalyzer {
                 Ok(self.raw_to_analysis_result(
                     raw,
                     context,
-                    build_metadata(80, response.len() as u32),
+                    build_metadata(AnalysisSource::ModelStructured),
                 ))
             }
             Err(_) => {
                 warn!(
-                    "Failed to parse LLM analysis response as JSON; falling back to heuristic analysis. \
-                     Response length: {} chars, first 200 chars: {:?}",
-                    response.len(),
-                    &response[..response.len().min(200)]
+                    response_bytes = response.len(),
+                    "Invalid structured LLM response; using heuristic fallback"
                 );
                 Ok(self.heuristic_analysis_result(
                     response,
                     context,
-                    build_metadata(40, response.len() as u32),
+                    build_metadata(AnalysisSource::HeuristicFallback),
                 ))
             }
         }
@@ -1236,6 +1255,46 @@ mod tests {
         LLMAnalyzer::new(MockEngine::arc(""), &test_config())
     }
 
+    #[tokio::test]
+    async fn analysis_uses_engine_token_count_and_preserves_unknown_legacy_provenance() {
+        use crate::utils::test_helpers::{MockEngine, test_config};
+        let analyzer = LLMAnalyzer::new(
+            MockEngine::arc_with_tokens(r#"{"risk_level":"low","risk_score":10}"#, 37),
+            &test_config(),
+        );
+        let result = analyzer.analyze(make_test_context()).await.unwrap();
+        assert_eq!(result.metadata.tokens_processed, 37);
+        assert_eq!(
+            result.metadata.analysis_source,
+            AnalysisSource::ModelStructured
+        );
+        let legacy = serde_json::json!({
+            "timestamp": "2026-09-26T00:00:00Z", "model_name": "legacy",
+            "confidence_score": 80, "processing_time_ms": 100, "tokens_processed": 10,
+        });
+        let parsed: AnalysisMetadata = serde_json::from_value(legacy).unwrap();
+        assert_eq!(parsed.analysis_source, AnalysisSource::Unknown);
+        assert!(!parsed.confidence_calibrated);
+    }
+
+    #[test]
+    fn unicode_fallback_is_safe_and_never_claims_calibrated_confidence() {
+        let result = make_test_analyzer()
+            .parse_analysis_response(
+                &"€".repeat(100),
+                &make_test_context(),
+                std::time::Duration::ZERO,
+            )
+            .unwrap();
+        assert_eq!(
+            result.metadata.analysis_source,
+            AnalysisSource::HeuristicFallback
+        );
+        assert!(!result.metadata.confidence_calibrated);
+        assert_eq!(result.metadata.confidence_score, 0);
+        assert_eq!(result.metadata.tokens_processed, 0);
+    }
+
     #[test]
     fn test_parse_analysis_response_valid_json() {
         let analyzer = make_test_analyzer();
@@ -1294,7 +1353,11 @@ mod tests {
             result.recommendations[0].recommendation_type,
             RecommendationType::Configuration
         ));
-        assert_eq!(result.metadata.confidence_score, 80);
+        assert_eq!(result.metadata.confidence_score, 0);
+        assert_eq!(
+            result.metadata.analysis_source,
+            AnalysisSource::ModelStructured
+        );
     }
 
     #[test]
@@ -1331,7 +1394,11 @@ Let me know if you need more details."#;
         ));
         assert_eq!(result.risk_assessment.risk_score, 95);
         // Unified confidence for JSON-parsed results
-        assert_eq!(result.metadata.confidence_score, 80);
+        assert_eq!(result.metadata.confidence_score, 0);
+        assert_eq!(
+            result.metadata.analysis_source,
+            AnalysisSource::ModelStructured
+        );
     }
 
     #[test]
@@ -1374,7 +1441,11 @@ Let me know if you need more details."#;
         );
         // Priority issues should come from failed scan results
         assert_eq!(result.priority_issues.len(), 2); // 2 failed checks
-        assert_eq!(result.metadata.confidence_score, 40);
+        assert_eq!(result.metadata.confidence_score, 0);
+        assert_eq!(
+            result.metadata.analysis_source,
+            AnalysisSource::HeuristicFallback
+        );
     }
 
     // -----------------------------------------------------------------------

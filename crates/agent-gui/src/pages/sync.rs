@@ -52,7 +52,7 @@ impl SyncPage {
             return command;
         }
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
             &["Système", "Synchronisation"],

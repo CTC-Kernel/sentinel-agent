@@ -154,70 +154,75 @@ impl EnrollmentWizard {
             ui.painter().add(mesh);
         }
 
-        egui::Frame::new()
-            .fill(egui::Color32::TRANSPARENT)
-            .inner_margin(egui::Margin::same(theme::SPACE_XL as i8))
-            .show(ui, |ui: &mut egui::Ui| {
-                ui.vertical_centered(|ui: &mut egui::Ui| {
-                    ui.add_space(theme::SPACE_XL);
+        // Short windows and larger text must never hide the enrollment choices.
+        egui::ScrollArea::vertical()
+            .id_salt("enrollment_scroll")
+            .show(ui, |ui| {
+                egui::Frame::new()
+                    .fill(egui::Color32::TRANSPARENT)
+                    .inner_margin(egui::Margin::same(theme::SPACE_XL as i8))
+                    .show(ui, |ui: &mut egui::Ui| {
+                        ui.vertical_centered(|ui: &mut egui::Ui| {
+                            ui.add_space(theme::SPACE_XL);
 
-                    // Hero Image (IA.png) - Professional clean look
-                    // Load image from bytes
-                    let image = egui::Image::from_bytes(
-                        "bytes://ia.png",
-                        include_bytes!("../assets/IA.png"),
-                    )
-                    .max_width(theme::ENROLLMENT_LOGO_WIDTH)
-                    .corner_radius(egui::CornerRadius::same(theme::ROUNDING_LG));
+                            // Hero Image (IA.png) - Professional clean look
+                            // Load image from bytes
+                            let image = egui::Image::from_bytes(
+                                "bytes://ia.png",
+                                include_bytes!("../assets/IA.png"),
+                            )
+                            .max_width(theme::ENROLLMENT_LOGO_WIDTH)
+                            .corner_radius(egui::CornerRadius::same(theme::ROUNDING_LG));
 
-                    let _image_response = ui.add(image);
+                            let _image_response = ui.add(image);
 
-                    ui.add_space(theme::SPACE_MD);
-                    ui.label(
-                        egui::RichText::new("SENTINEL")
-                            .font(theme::font_h2())
-                            .color(theme::text_primary())
-                            .extra_letter_spacing(theme::TRACKING_WIDE * 3.0),
-                    );
-                    ui.label(
-                        egui::RichText::new("GRC AGENT")
-                            .font(theme::font_micro())
-                            .color(theme::accent_text())
-                            .extra_letter_spacing(theme::TRACKING_WIDE * 2.0),
-                    );
-
-                    ui.add_space(theme::SPACE_LG);
-
-                    // Step indicator
-                    Self::step_indicator(ui, &self.step, self.standalone);
-                    ui.add_space(theme::SPACE_LG);
-
-                    match &self.step {
-                        EnrollmentStep::Welcome => {
-                            command = self.show_welcome(ui);
-                        }
-                        EnrollmentStep::TokenEntry => {
-                            command = self.show_token_entry(ui);
-                        }
-                        EnrollmentStep::AdminSetup => {
-                            command = self.show_admin_setup(ui);
-                        }
-                        EnrollmentStep::InProgress => {
-                            Self::show_progress(ui, &self.progress_message);
-                        }
-                        EnrollmentStep::Complete { success, message } => {
-                            let (complete_command, restart) = Self::show_complete(
-                                ui,
-                                *success,
-                                message,
-                                self.standalone,
-                                self.connect_later,
+                            ui.add_space(theme::SPACE_MD);
+                            ui.label(
+                                egui::RichText::new("SENTINEL")
+                                    .font(theme::font_h2())
+                                    .color(theme::text_primary())
+                                    .extra_letter_spacing(theme::TRACKING_WIDE * 3.0),
                             );
-                            command = complete_command;
-                            self.restart_requested = restart;
-                        }
-                    }
-                });
+                            ui.label(
+                                egui::RichText::new("GRC AGENT")
+                                    .font(theme::font_micro())
+                                    .color(theme::accent_text())
+                                    .extra_letter_spacing(theme::TRACKING_WIDE * 2.0),
+                            );
+
+                            ui.add_space(theme::SPACE_LG);
+
+                            // Step indicator
+                            Self::step_indicator(ui, &self.step, self.standalone);
+                            ui.add_space(theme::SPACE_LG);
+
+                            match &self.step {
+                                EnrollmentStep::Welcome => {
+                                    command = self.show_welcome(ui);
+                                }
+                                EnrollmentStep::TokenEntry => {
+                                    command = self.show_token_entry(ui);
+                                }
+                                EnrollmentStep::AdminSetup => {
+                                    command = self.show_admin_setup(ui);
+                                }
+                                EnrollmentStep::InProgress => {
+                                    Self::show_progress(ui, &self.progress_message);
+                                }
+                                EnrollmentStep::Complete { success, message } => {
+                                    let (complete_command, restart) = Self::show_complete(
+                                        ui,
+                                        *success,
+                                        message,
+                                        self.standalone,
+                                        self.connect_later,
+                                    );
+                                    command = complete_command;
+                                    self.restart_requested = restart;
+                                }
+                            }
+                        });
+                    });
             });
 
         // On failure retry: reset wizard to token entry instead of sending Finish to backend
@@ -842,6 +847,58 @@ impl EnrollmentWizard {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn short_window_can_scroll_to_enrollment_choices() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let mut wizard = EnrollmentWizard::default();
+        let mut title_y = Vec::new();
+        for frame in 0..8 {
+            let output = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(960.0, 640.0),
+                    )),
+                    time: Some(frame as f64 * 0.1),
+                    events: if frame >= 4 {
+                        vec![
+                            egui::Event::PointerMoved(egui::pos2(480.0, 400.0)),
+                            egui::Event::MouseWheel {
+                                unit: egui::MouseWheelUnit::Point,
+                                delta: egui::vec2(0.0, -150.0),
+                                modifiers: egui::Modifiers::NONE,
+                            },
+                        ]
+                    } else {
+                        vec![]
+                    },
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        wizard.show(ui);
+                    });
+                },
+            );
+            if frame == 3 || frame == 7 {
+                title_y.push(output.shapes.iter().find_map(|shape| match &shape.shape {
+                    egui::Shape::Text(text)
+                        if text.galley.text().contains("Bienvenue dans Sentinel") =>
+                    {
+                        Some(text.pos.y)
+                    }
+                    _ => None,
+                }));
+            }
+        }
+        let before = title_y[0].expect("welcome title must render");
+        assert!(
+            title_y[1].is_none_or(|after| after < before - 10.0),
+            "wizard did not scroll"
+        );
+    }
 
     #[test]
     fn first_launch_starts_at_the_welcome_choice() {

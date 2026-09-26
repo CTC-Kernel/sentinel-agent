@@ -283,11 +283,11 @@ impl LLMConfig {
             ));
         }
 
-        if self.inference.temperature < 0.0 || self.inference.temperature > 2.0 {
+        if !(0.0..=2.0).contains(&self.inference.temperature) {
             return Err(anyhow::anyhow!("Temperature must be between 0.0 and 2.0"));
         }
 
-        if self.inference.top_p < 0.0 || self.inference.top_p > 1.0 {
+        if !(0.0..=1.0).contains(&self.inference.top_p) {
             return Err(anyhow::anyhow!("Top-p must be between 0.0 and 1.0"));
         }
 

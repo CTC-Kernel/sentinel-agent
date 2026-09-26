@@ -1,0 +1,644 @@
+{
+  "scope": "headless CPU egui frame; synthetic preview fixtures; no GPU or live services",
+  "profile": "debug",
+  "os": "macos",
+  "arch": "aarch64",
+  "viewport": [
+    1360.0,
+    820.0
+  ],
+  "warmup_frames": 10,
+  "results": [
+    {
+      "page": "dashboard",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 2.024792,
+      "p95_ms": 4.554542,
+      "max_ms": 13.275792
+    },
+    {
+      "page": "monitoring",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 0.865375,
+      "p95_ms": 1.387042,
+      "max_ms": 1.928417
+    },
+    {
+      "page": "monitoring",
+      "tab": 1,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 1.226083,
+      "p95_ms": 2.403084,
+      "max_ms": 2.989333
+    },
+    {
+      "page": "compliance",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 4.566166,
+      "p95_ms": 9.706375,
+      "max_ms": 12.034625
+    },
+    {
+      "page": "compliance",
+      "tab": 1,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 3.10275,
+      "p95_ms": 6.779249999999999,
+      "max_ms": 25.476167
+    },
+    {
+      "page": "software",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 1.1895,
+      "p95_ms": 2.532416,
+      "max_ms": 4.0741249999999996
+    },
+    {
+      "page": "vulnerabilities",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 2.26575,
+      "p95_ms": 6.149792000000001,
+      "max_ms": 81.464834
+    },
+    {
+      "page": "fim",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 2.78525,
+      "p95_ms": 28.523083,
+      "max_ms": 131.745416
+    },
+    {
+      "page": "threats",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 6.2507079999999995,
+      "p95_ms": 24.305542,
+      "max_ms": 89.06195799999999
+    },
+    {
+      "page": "threats",
+      "tab": 1,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 0.90975,
+      "p95_ms": 4.581459000000001,
+      "max_ms": 15.63175
+    },
+    {
+      "page": "threats",
+      "tab": 2,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 0.28608300000000003,
+      "p95_ms": 2.968708,
+      "max_ms": 4.881042000000001
+    },
+    {
+      "page": "threats",
+      "tab": 3,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 1.2986250000000001,
+      "p95_ms": 9.780792,
+      "max_ms": 35.963291
+    },
+    {
+      "page": "threats",
+      "tab": 4,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 1.292791,
+      "p95_ms": 4.325459,
+      "max_ms": 14.958667
+    },
+    {
+      "page": "threats",
+      "tab": 5,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 0.798833,
+      "p95_ms": 9.798167,
+      "max_ms": 50.559417
+    },
+    {
+      "page": "threats",
+      "tab": 6,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 3.021958,
+      "p95_ms": 17.538167,
+      "max_ms": 58.080583
+    },
+    {
+      "page": "audit",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 2.248125,
+      "p95_ms": 16.846292,
+      "max_ms": 95.764583
+    },
+    {
+      "page": "network",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 17.136709,
+      "p95_ms": 195.918584,
+      "max_ms": 433.445959
+    },
+    {
+      "page": "discovery",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 8.375584,
+      "p95_ms": 60.620625,
+      "max_ms": 149.39725
+    },
+    {
+      "page": "cartography",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 1.172792,
+      "p95_ms": 15.932624999999998,
+      "max_ms": 38.695208
+    },
+    {
+      "page": "assets",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 4.771375,
+      "p95_ms": 27.695583,
+      "max_ms": 144.16637500000002
+    },
+    {
+      "page": "risks",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 4.372415999999999,
+      "p95_ms": 33.087790999999996,
+      "max_ms": 84.672708
+    },
+    {
+      "page": "reports",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 0.23149999999999998,
+      "p95_ms": 2.766667,
+      "max_ms": 30.560084
+    },
+    {
+      "page": "reports",
+      "tab": 1,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 0.37254200000000004,
+      "p95_ms": 3.470209,
+      "max_ms": 31.369042
+    },
+    {
+      "page": "reports",
+      "tab": 2,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 0.520042,
+      "p95_ms": 39.71525,
+      "max_ms": 205.627833
+    },
+    {
+      "page": "reports",
+      "tab": 3,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 1.9075,
+      "p95_ms": 18.317125,
+      "max_ms": 249.042292
+    },
+    {
+      "page": "notifications",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 2.638792,
+      "p95_ms": 9.960792,
+      "max_ms": 27.494834
+    },
+    {
+      "page": "notifications",
+      "tab": 1,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 0.996084,
+      "p95_ms": 14.642040999999999,
+      "max_ms": 51.168417
+    },
+    {
+      "page": "notifications",
+      "tab": 2,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 0.866,
+      "p95_ms": 3.522833,
+      "max_ms": 10.227834
+    },
+    {
+      "page": "sync",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 1.1032920000000002,
+      "p95_ms": 4.392208,
+      "max_ms": 10.082083
+    },
+    {
+      "page": "terminal",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 2.739292,
+      "p95_ms": 11.064875,
+      "max_ms": 42.248875
+    },
+    {
+      "page": "settings",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 4.002625,
+      "p95_ms": 31.771915999999997,
+      "max_ms": 75.697417
+    },
+    {
+      "page": "about",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 2.0252920000000003,
+      "p95_ms": 33.944791,
+      "max_ms": 155.59104200000002
+    },
+    {
+      "page": "ai",
+      "tab": 0,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 1.667167,
+      "p95_ms": 12.429583,
+      "max_ms": 35.628167000000005
+    },
+    {
+      "page": "ai",
+      "tab": 1,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 9.621208,
+      "p95_ms": 92.54483300000001,
+      "max_ms": 150.3365
+    },
+    {
+      "page": "ai",
+      "tab": 2,
+      "theme": "dark",
+      "samples": 100,
+      "p50_ms": 2.561,
+      "p95_ms": 46.538334,
+      "max_ms": 125.021083
+    },
+    {
+      "page": "dashboard",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 16.180166999999997,
+      "p95_ms": 117.686125,
+      "max_ms": 246.215875
+    },
+    {
+      "page": "monitoring",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 4.161541000000001,
+      "p95_ms": 44.693999999999996,
+      "max_ms": 146.153292
+    },
+    {
+      "page": "monitoring",
+      "tab": 1,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 6.18175,
+      "p95_ms": 40.233540999999995,
+      "max_ms": 365.093292
+    },
+    {
+      "page": "compliance",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 12.420291,
+      "p95_ms": 90.115167,
+      "max_ms": 152.757834
+    },
+    {
+      "page": "compliance",
+      "tab": 1,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 10.112875,
+      "p95_ms": 59.218542,
+      "max_ms": 155.775375
+    },
+    {
+      "page": "software",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 3.687292,
+      "p95_ms": 22.464292,
+      "max_ms": 46.659833
+    },
+    {
+      "page": "vulnerabilities",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 4.0995420000000005,
+      "p95_ms": 38.91625,
+      "max_ms": 83.180917
+    },
+    {
+      "page": "fim",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 3.766542,
+      "p95_ms": 21.30775,
+      "max_ms": 108.800459
+    },
+    {
+      "page": "threats",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 11.213958,
+      "p95_ms": 50.799916,
+      "max_ms": 112.273417
+    },
+    {
+      "page": "threats",
+      "tab": 1,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 2.0861669999999997,
+      "p95_ms": 7.056792,
+      "max_ms": 23.158334
+    },
+    {
+      "page": "threats",
+      "tab": 2,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 0.9875420000000001,
+      "p95_ms": 4.226208000000001,
+      "max_ms": 125.659709
+    },
+    {
+      "page": "threats",
+      "tab": 3,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 5.179125,
+      "p95_ms": 97.69975000000001,
+      "max_ms": 233.85958300000001
+    },
+    {
+      "page": "threats",
+      "tab": 4,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 5.546208,
+      "p95_ms": 111.999375,
+      "max_ms": 216.132833
+    },
+    {
+      "page": "threats",
+      "tab": 5,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 4.71325,
+      "p95_ms": 76.359292,
+      "max_ms": 126.48049999999999
+    },
+    {
+      "page": "threats",
+      "tab": 6,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 5.854042000000001,
+      "p95_ms": 63.106458,
+      "max_ms": 152.223167
+    },
+    {
+      "page": "audit",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 3.348959,
+      "p95_ms": 18.98875,
+      "max_ms": 49.392459
+    },
+    {
+      "page": "network",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 6.798208,
+      "p95_ms": 61.020792,
+      "max_ms": 115.94183299999999
+    },
+    {
+      "page": "discovery",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 4.183958,
+      "p95_ms": 11.136125,
+      "max_ms": 35.319
+    },
+    {
+      "page": "cartography",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 0.850542,
+      "p95_ms": 2.985334,
+      "max_ms": 6.435125
+    },
+    {
+      "page": "assets",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 7.0682920000000005,
+      "p95_ms": 67.20216699999999,
+      "max_ms": 118.465041
+    },
+    {
+      "page": "risks",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 3.039083,
+      "p95_ms": 8.637459,
+      "max_ms": 131.792208
+    },
+    {
+      "page": "reports",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 0.7274579999999999,
+      "p95_ms": 3.3900419999999998,
+      "max_ms": 21.863083
+    },
+    {
+      "page": "reports",
+      "tab": 1,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 0.398042,
+      "p95_ms": 2.873791,
+      "max_ms": 15.848125000000001
+    },
+    {
+      "page": "reports",
+      "tab": 2,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 0.42854200000000003,
+      "p95_ms": 6.377416,
+      "max_ms": 77.282958
+    },
+    {
+      "page": "reports",
+      "tab": 3,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 1.079958,
+      "p95_ms": 5.683792,
+      "max_ms": 58.389875
+    },
+    {
+      "page": "notifications",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 2.071542,
+      "p95_ms": 17.2375,
+      "max_ms": 44.865083999999996
+    },
+    {
+      "page": "notifications",
+      "tab": 1,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 1.1962920000000001,
+      "p95_ms": 13.316125,
+      "max_ms": 41.828875000000004
+    },
+    {
+      "page": "notifications",
+      "tab": 2,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 1.221542,
+      "p95_ms": 3.0976250000000003,
+      "max_ms": 5.201957999999999
+    },
+    {
+      "page": "sync",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 1.790834,
+      "p95_ms": 35.051333,
+      "max_ms": 55.772875
+    },
+    {
+      "page": "terminal",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 4.187834,
+      "p95_ms": 117.39820800000001,
+      "max_ms": 269.03387499999997
+    },
+    {
+      "page": "settings",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 3.31975,
+      "p95_ms": 14.993459000000001,
+      "max_ms": 89.156333
+    },
+    {
+      "page": "about",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 0.8045,
+      "p95_ms": 2.117208,
+      "max_ms": 3.8285419999999997
+    },
+    {
+      "page": "ai",
+      "tab": 0,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 1.6123750000000001,
+      "p95_ms": 10.345125,
+      "max_ms": 89.697917
+    },
+    {
+      "page": "ai",
+      "tab": 1,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 11.137541,
+      "p95_ms": 88.4385,
+      "max_ms": 161.14383299999997
+    },
+    {
+      "page": "ai",
+      "tab": 2,
+      "theme": "light",
+      "samples": 100,
+      "p50_ms": 1.836125,
+      "p95_ms": 41.305665999999995,
+      "max_ms": 131.914209
+    }
+  ],
+  "validation_note": "Concurrent compilation and native renders; not an isolated benchmark, no performance gain established."
+}

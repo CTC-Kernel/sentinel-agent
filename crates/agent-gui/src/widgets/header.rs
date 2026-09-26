@@ -54,7 +54,6 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: 
             super::help_button(ui, help);
         }
     });
-    ui.add_space(theme::SPACE_LG);
 }
 
 /// Draw a section heading inside a page body.

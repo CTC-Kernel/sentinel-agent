@@ -186,7 +186,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                         }
                                         ui.add_space(theme::SPACE_XS);
                                         let mut enabled = rule.enabled;
-                                        if widgets::toggle_switch(ui, &mut enabled).changed() {
+                                        if widgets::toggle_switch_labeled(
+                                            ui,
+                                            &mut enabled,
+                                            &format!("Activer {}", rule.name),
+                                        )
+                                        .changed()
+                                        {
                                             toggle_commands.push((rule.id.to_string(), enabled));
                                         }
                                     },

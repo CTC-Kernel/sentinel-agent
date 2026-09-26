@@ -172,6 +172,7 @@ struct ResponseCache {
     /// Approximate total size of cached files in bytes, tracked atomically to
     /// avoid re-scanning the directory on every `put()`.
     cached_size: std::sync::atomic::AtomicU64,
+    io_lock: std::sync::Mutex<()>,
 }
 
 impl ResponseCache {
@@ -195,27 +196,27 @@ impl ResponseCache {
 
         Self {
             config: resolved_config,
+            io_lock: std::sync::Mutex::new(()),
             cached_size: std::sync::atomic::AtomicU64::new(initial_size),
         }
     }
 
     /// Compute a cache key from request parameters.
     fn cache_key(request: &InferenceRequest) -> String {
-        let mut hasher = Sha256::new();
-        if let Some(ref sp) = request.system_prompt {
-            hasher.update(sp.as_bytes());
-        }
-        hasher.update(request.prompt.as_bytes());
-        if let Some(mt) = request.max_tokens {
-            hasher.update(mt.to_le_bytes());
-        }
-        if let Some(t) = request.temperature {
-            hasher.update(t.to_le_bytes());
-        }
-        if let Some(tp) = request.top_p {
-            hasher.update(tp.to_le_bytes());
-        }
-        format!("{:x}", hasher.finalize())
+        // Versioned, unambiguous framing, including tool stops and caller scope.
+        let metadata: std::collections::BTreeMap<_, _> = request.metadata.iter().collect();
+        let encoded = serde_json::to_vec(&(
+            "sentinel-cache-v2",
+            &request.system_prompt,
+            &request.prompt,
+            request.max_tokens,
+            request.temperature.map(f32::to_bits),
+            request.top_p.map(f32::to_bits),
+            &request.stop_sequences,
+            metadata,
+        ))
+        .expect("cache key contains only serializable primitive values");
+        format!("{:x}", Sha256::digest(encoded))
     }
 
     /// Try to read a cached response. Returns `None` if caching is disabled,
@@ -225,6 +226,7 @@ impl ResponseCache {
             return None;
         }
 
+        let _guard = self.io_lock.lock().ok()?;
         let key = Self::cache_key(request);
         let path = self.config.directory.join(format!("{}.json", key));
 
@@ -232,19 +234,27 @@ impl ResponseCache {
             return None;
         }
 
+        if std::fs::metadata(&path).ok()?.len()
+            > self.config.max_size_mb.saturating_mul(1024 * 1024)
+        {
+            return None;
+        }
         let data = std::fs::read_to_string(&path).ok()?;
         let entry: CacheEntry = serde_json::from_str(&data).ok()?;
 
         // Check TTL using the embedded timestamp.
         let age = chrono::Utc::now().signed_duration_since(entry.cached_at);
-        let ttl = chrono::Duration::hours(self.config.ttl_hours as i64);
-        if age > ttl {
-            // Expired — remove the file and update the size tracker.
+        let ttl_seconds = self.config.ttl_hours.saturating_mul(3600);
+        if age < chrono::Duration::zero() || age.num_seconds() as u64 >= ttl_seconds {
             if let Ok(meta) = std::fs::metadata(&path) {
-                self.cached_size
-                    .fetch_sub(meta.len(), std::sync::atomic::Ordering::Relaxed);
+                if std::fs::remove_file(&path).is_ok() {
+                    let _ = self.cached_size.fetch_update(
+                        std::sync::atomic::Ordering::Relaxed,
+                        std::sync::atomic::Ordering::Relaxed,
+                        |size| Some(size.saturating_sub(meta.len())),
+                    );
+                }
             }
-            let _ = std::fs::remove_file(&path);
             return None;
         }
 
@@ -258,35 +268,47 @@ impl ResponseCache {
             return;
         }
 
-        // Check total cache size via the atomic counter (no dir scan).
-        let current_size = self.cached_size.load(std::sync::atomic::Ordering::Relaxed);
-        if current_size >= self.config.max_size_mb * 1024 * 1024 {
-            debug!(
-                "Cache directory exceeds max size ({}MB), skipping write",
-                self.config.max_size_mb
-            );
+        let Ok(_guard) = self.io_lock.lock() else {
             return;
-        }
-
+        };
         let key = Self::cache_key(request);
         let path = self.config.directory.join(format!("{}.json", key));
-
         let entry = CacheEntry {
             cached_at: chrono::Utc::now(),
             response: response.clone(),
         };
-
-        match serde_json::to_string(&entry) {
-            Ok(data) => {
-                let data_len = data.len() as u64;
-                if let Err(e) = std::fs::write(&path, data) {
-                    warn!("Failed to write cache entry: {}", e);
-                } else {
-                    self.cached_size
-                        .fetch_add(data_len, std::sync::atomic::Ordering::Relaxed);
-                }
-            }
-            Err(e) => warn!("Failed to serialize response for cache: {}", e),
+        let Ok(data) = serde_json::to_vec(&entry) else {
+            return;
+        };
+        let current = self.cached_size.load(std::sync::atomic::Ordering::Relaxed);
+        let old_size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+        let projected = current
+            .saturating_sub(old_size)
+            .saturating_add(data.len() as u64);
+        if projected > self.config.max_size_mb.saturating_mul(1024 * 1024) {
+            return;
+        }
+        // Readers see either the complete previous entry or the complete replacement.
+        let temporary = self
+            .config
+            .directory
+            .join(format!("{}.tmp", uuid::Uuid::new_v4()));
+        let write = (|| -> std::io::Result<()> {
+            use std::io::Write;
+            let mut file = std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&temporary)?;
+            file.write_all(&data)?;
+            drop(file);
+            std::fs::rename(&temporary, &path)
+        })();
+        if let Err(error) = write {
+            let _ = std::fs::remove_file(&temporary);
+            warn!("Failed to store cache entry: {}", error);
+        } else {
+            self.cached_size
+                .store(projected, std::sync::atomic::Ordering::Relaxed);
         }
     }
 }
@@ -334,13 +356,21 @@ impl MistralEngine {
             })
             .collect();
 
+        let mut scoped_cache = cache_config;
+        let identity = std::fs::metadata(&config.path)
+            .ok()
+            .map(|m| (m.len(), m.modified().ok()));
+        let scope = format!("{:?}:{:?}:{:?}", config, inference_config, identity);
+        scoped_cache.directory = scoped_cache
+            .directory
+            .join(format!("v2-{:x}", Sha256::digest(scope.as_bytes())));
         Self {
             model: Arc::new(tokio::sync::Mutex::new(None)),
             config,
             inference_config,
             security_config,
             blocked_patterns,
-            cache: ResponseCache::new(cache_config),
+            cache: ResponseCache::new(scoped_cache),
             status: Arc::new(tokio::sync::RwLock::new(ModelStatus::Unloaded)),
             inference_count: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         }
@@ -407,6 +437,19 @@ impl ModelEngine for MistralEngine {
     }
 
     async fn infer(&self, request: InferenceRequest) -> Result<InferenceResponse> {
+        let temperature = request
+            .temperature
+            .unwrap_or(self.inference_config.temperature);
+        let top_p = request.top_p.unwrap_or(self.inference_config.top_p);
+        if !(0.0..=2.0).contains(&temperature)
+            || !(0.0..=1.0).contains(&top_p)
+            || request
+                .max_tokens
+                .unwrap_or(self.inference_config.max_tokens)
+                == 0
+        {
+            return Err(anyhow::anyhow!("Invalid inference sampling parameters"));
+        }
         // --- Security validation ---
         if self.security_config.sanitize_input {
             let total_len =
@@ -875,6 +918,10 @@ mod tests {
 
         // Should be expired
         assert!(cache.get(&request).is_none());
+        assert_eq!(
+            cache.cached_size.load(std::sync::atomic::Ordering::Relaxed),
+            0
+        );
         // File should have been deleted
         assert!(!path.exists());
     }
@@ -934,6 +981,29 @@ mod tests {
             security_config,
             cache_config,
         )
+    }
+
+    #[tokio::test]
+    async fn invalid_sampling_is_rejected_before_model_loading() {
+        let engine = make_test_engine();
+        for temperature in [f32::NAN, f32::INFINITY, -0.1, 2.1] {
+            let error = engine
+                .infer(InferenceRequest::new("hello").with_temperature(temperature))
+                .await
+                .unwrap_err();
+            assert!(error.to_string().contains("sampling"));
+            assert!(matches!(engine.status().await, ModelStatus::Unloaded));
+        }
+        let mut request = InferenceRequest::new("hello");
+        request.top_p = Some(f32::NAN);
+        assert!(
+            engine
+                .infer(request)
+                .await
+                .unwrap_err()
+                .to_string()
+                .contains("sampling")
+        );
     }
 
     #[tokio::test]
@@ -1014,5 +1084,75 @@ mod tests {
             assert!(!e.to_string().contains("exceeds maximum"));
             assert!(!e.to_string().contains("blocked pattern"));
         }
+    }
+}
+
+#[cfg(test)]
+mod cache_regressions {
+    use super::*;
+    #[test]
+    fn cache_key_frames_fields_and_includes_stops_and_scope() {
+        let a = InferenceRequest::new("bc").with_system_prompt("a");
+        let mut b = InferenceRequest::new("c").with_system_prompt("ab");
+        assert_ne!(ResponseCache::cache_key(&a), ResponseCache::cache_key(&b));
+        b = a.clone();
+        b.stop_sequences.push("END".into());
+        assert_ne!(ResponseCache::cache_key(&a), ResponseCache::cache_key(&b));
+        b = a.clone();
+        b.metadata.insert("tenant".into(), "other".into());
+        assert_ne!(ResponseCache::cache_key(&a), ResponseCache::cache_key(&b));
+    }
+    #[test]
+    fn replacement_accounting_matches_disk_and_rejects_oversized_entry() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = ResponseCache::new(CacheConfig {
+            enabled: true,
+            directory: dir.path().into(),
+            max_size_mb: 1,
+            ttl_hours: 1,
+        });
+        let request = InferenceRequest::new("request");
+        for text in ["short", "a slightly longer response", "tiny"] {
+            cache.put(&request, &InferenceResponse::new(text));
+            assert_eq!(cache.get(&request).unwrap().text, text);
+            assert_eq!(
+                cache.cached_size.load(std::sync::atomic::Ordering::Relaxed),
+                dir_size_bytes(dir.path()).unwrap()
+            );
+        }
+        cache.put(
+            &InferenceRequest::new("huge"),
+            &InferenceResponse::new("a".repeat(1024 * 1024)),
+        );
+        assert!(cache.get(&InferenceRequest::new("huge")).is_none());
+    }
+    #[test]
+    fn engines_with_different_models_do_not_share_cache() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = CacheConfig {
+            enabled: true,
+            directory: dir.path().into(),
+            max_size_mb: 1,
+            ttl_hours: 1,
+        };
+        let first = ModelConfig::default();
+        let mut second = first.clone();
+        second.name.push_str("-other");
+        let a = MistralEngine::new(
+            first,
+            InferenceConfig::default(),
+            SecurityConfig::default(),
+            cache.clone(),
+        );
+        let b = MistralEngine::new(
+            second,
+            InferenceConfig::default(),
+            SecurityConfig::default(),
+            cache,
+        );
+        let request = InferenceRequest::new("same question");
+        a.cache
+            .put(&request, &InferenceResponse::new("first model"));
+        assert!(b.cache.get(&request).is_none());
     }
 }

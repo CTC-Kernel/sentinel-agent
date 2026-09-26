@@ -1,0 +1,122 @@
+[
+  {
+    "view": "conversation",
+    "theme": "dark",
+    "image": "conversation-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "a99e837b8224e012b350c32b7a62ddb18026f5edd7e35d8f7c8d69e93b074a48",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  },
+  {
+    "view": "conversation",
+    "theme": "light",
+    "image": "conversation-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "6d10cd9dba80d07d157f136610a00669266b46d39aa2f0d9139ff4494998da4e",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  },
+  {
+    "view": "compact",
+    "theme": "dark",
+    "image": "compact-dark.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "a282df63883d8999b84b26c4d3a7c2e958def05ac34c445aa611b7c73c3040bc",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  },
+  {
+    "view": "compact",
+    "theme": "light",
+    "image": "compact-light.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "d5d2f9d14b48a481c317785d24ab62e3e48fc321a6b38cf5e02061123f5fb52e",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  },
+  {
+    "view": "vocal",
+    "theme": "dark",
+    "image": "vocal-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "aaa582c2f626743d462c4603f56400cf16d8b716a5fe21d410382e3e20965bdb",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  },
+  {
+    "view": "vocal",
+    "theme": "light",
+    "image": "vocal-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "c33161bcb238f5d3664f5fb3503ddf4a39878dbe6d8980352ef080b9730239cb",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  },
+  {
+    "view": "erreur",
+    "theme": "dark",
+    "image": "erreur-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "94c7df3e8dee499858a0a3ec8a1d45f2122e3732d532c55766a9625d7beb52d3",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  },
+  {
+    "view": "erreur",
+    "theme": "light",
+    "image": "erreur-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "07f07007d09e92305335ab6095769fe20c758ff047998911334f6316975f382d",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  },
+  {
+    "view": "modeles",
+    "theme": "dark",
+    "image": "modeles-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "a944e5c7137993fc9ba5d8f60764a54d1717a18479e7de886bbce6f259a248c4",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  },
+  {
+    "view": "modeles",
+    "theme": "light",
+    "image": "modeles-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "e2f21b5fdf7275109303b95f1080f6559d1e48f2d91c8ac4fe28477a0e15de53",
+    "data": "synthetic",
+    "audio_devices_opened": false
+  }
+]

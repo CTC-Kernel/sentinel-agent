@@ -74,6 +74,15 @@ impl<'a, T> Dropdown<'a, T> {
         // Main button
         let (rect, response) = ui.allocate_exact_size(egui::vec2(width, height), Sense::click());
 
+        let display_text = if self.selected < self.options.len() {
+            (self.display_fn)(&self.options[self.selected])
+        } else {
+            self.placeholder.clone()
+        };
+        response.widget_info(|| {
+            egui::WidgetInfo::labeled(egui::WidgetType::ComboBox, ui.is_enabled(), &display_text)
+        });
+
         if ui.is_rect_visible(rect) {
             let painter = ui.painter_at(rect);
             let is_hovered = response.hovered();
@@ -112,24 +121,27 @@ impl<'a, T> Dropdown<'a, T> {
                 );
             }
 
-            // Selected text or placeholder
-            let display_text = if self.selected < self.options.len() {
-                (self.display_fn)(&self.options[self.selected])
-            } else {
-                self.placeholder.clone()
-            };
-
             let text_color = if self.selected < self.options.len() {
                 theme::text_primary()
             } else {
                 theme::text_tertiary()
             };
 
-            painter.text(
-                egui::pos2(rect.min.x + theme::SPACE_MD, rect.center().y),
-                egui::Align2::LEFT_CENTER,
-                display_text,
+            let mut job = egui::text::LayoutJob::simple_singleline(
+                display_text.clone(),
                 theme::font_body(),
+                text_color,
+            );
+            job.wrap.max_width = (rect.width() - theme::SPACE_MD - theme::SPACE * 2.0).max(0.0);
+            job.wrap.max_rows = 1;
+            job.wrap.break_anywhere = true;
+            let galley = ui.fonts(|fonts| fonts.layout_job(job));
+            painter.galley(
+                egui::pos2(
+                    rect.min.x + theme::SPACE_MD,
+                    rect.center().y - galley.size().y / 2.0,
+                ),
+                galley,
                 text_color,
             );
 
@@ -150,6 +162,7 @@ impl<'a, T> Dropdown<'a, T> {
         }
 
         if response.hovered() {
+            response.clone().on_hover_text(&display_text);
             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
 
@@ -157,6 +170,7 @@ impl<'a, T> Dropdown<'a, T> {
         if response.clicked() {
             ui.memory_mut(|mem| mem.data.insert_temp(self.id, !is_open));
             if !is_open {
+                ui.memory_mut(|mem| mem.data.remove::<usize>(self.id.with("highlight")));
                 // Clear search when opening
                 ui.memory_mut(|mem| mem.data.insert_temp::<String>(search_id, String::new()));
             }
@@ -181,33 +195,13 @@ impl<'a, T> Dropdown<'a, T> {
             let fits_above = rect.min.y - theme::SPACE_XS - list_height >= screen.top();
             let above = !fits_below && fits_above;
 
-            // Keyboard: Escape to close
-            if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            if ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
                 ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));
+                response.request_focus();
+                return None;
             }
-
-            // Keyboard: Arrow keys to navigate, Enter to select
             let highlight_id = self.id.with("highlight");
             let mut highlight_idx: Option<usize> = ui.memory(|mem| mem.data.get_temp(highlight_id));
-
-            if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-                let next = highlight_idx
-                    .map(|h| (h + 1).min(self.options.len().saturating_sub(1)))
-                    .unwrap_or(0);
-                highlight_idx = Some(next);
-                ui.memory_mut(|mem| mem.data.insert_temp(highlight_id, next));
-            }
-            if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
-                let prev = highlight_idx.map(|h| h.saturating_sub(1)).unwrap_or(0);
-                highlight_idx = Some(prev);
-                ui.memory_mut(|mem| mem.data.insert_temp(highlight_id, prev));
-            }
-            if ui.input(|i| i.key_pressed(egui::Key::Enter))
-                && let Some(h) = highlight_idx
-            {
-                new_selection = Some(h);
-                ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));
-            }
 
             let area = egui::Area::new(popup_id).order(egui::Order::Foreground);
             let area = if above {
@@ -272,10 +266,74 @@ impl<'a, T> Dropdown<'a, T> {
                             })
                             .collect();
 
+                        // Store original option indices, but navigate only the visible results.
+                        // Reconcile after editing the search in this very frame.
+                        if !filtered_options
+                            .iter()
+                            .any(|(i, _)| Some(*i) == highlight_idx)
+                        {
+                            highlight_idx = filtered_options.first().map(|(i, _)| *i);
+                        }
+                        let mut moved = false;
+                        ui.input_mut(|input| {
+                            for (key, down) in
+                                [(egui::Key::ArrowDown, true), (egui::Key::ArrowUp, false)]
+                            {
+                                if input.consume_key(egui::Modifiers::NONE, key) {
+                                    let position = filtered_options
+                                        .iter()
+                                        .position(|(i, _)| Some(*i) == highlight_idx)
+                                        .unwrap_or(0);
+                                    let next = if down {
+                                        position
+                                            .saturating_add(1)
+                                            .min(filtered_options.len().saturating_sub(1))
+                                    } else {
+                                        position.saturating_sub(1)
+                                    };
+                                    highlight_idx = filtered_options.get(next).map(|(i, _)| *i);
+                                    moved = true;
+                                }
+                            }
+                            if input.consume_key(egui::Modifiers::NONE, egui::Key::Enter) {
+                                new_selection = highlight_idx;
+                            }
+                        });
+                        ui.memory_mut(|mem| {
+                            if let Some(i) = highlight_idx {
+                                mem.data.insert_temp(highlight_id, i);
+                            } else {
+                                mem.data.remove::<usize>(highlight_id);
+                            }
+                            if new_selection.is_some() {
+                                mem.data.insert_temp(self.id, false);
+                            }
+                        });
+                        if new_selection.is_some() {
+                            response.request_focus();
+                        }
+                        if filtered_options.is_empty() {
+                            ui.label(
+                                egui::RichText::new("Aucun résultat")
+                                    .color(theme::text_secondary()),
+                            );
+                        }
                         let row_height = theme::DROPDOWN_ROW_HEIGHT;
-                        egui::ScrollArea::vertical()
-                            .max_height(max_height)
-                            .show_rows(ui, row_height, filtered_options.len(), |ui, row_range| {
+                        let mut scroll = egui::ScrollArea::vertical().max_height(max_height);
+                        if moved
+                            && let Some(position) = filtered_options
+                                .iter()
+                                .position(|(i, _)| Some(*i) == highlight_idx)
+                        {
+                            scroll = scroll.vertical_scroll_offset(
+                                position as f32 * (row_height + ui.spacing().item_spacing.y),
+                            );
+                        }
+                        scroll.show_rows(
+                            ui,
+                            row_height,
+                            filtered_options.len(),
+                            |ui, row_range| {
                                 for idx in row_range {
                                     if idx >= filtered_options.len() {
                                         continue;
@@ -290,6 +348,14 @@ impl<'a, T> Dropdown<'a, T> {
                                         Sense::click(),
                                     );
 
+                                    option_response.widget_info(|| {
+                                        egui::WidgetInfo::selected(
+                                            egui::WidgetType::SelectableLabel,
+                                            ui.is_enabled(),
+                                            is_selected,
+                                            &text,
+                                        )
+                                    });
                                     if ui.is_rect_visible(option_response.rect) {
                                         let is_hovered = option_response.hovered();
 
@@ -317,7 +383,7 @@ impl<'a, T> Dropdown<'a, T> {
                                                 egui::Align2::LEFT_CENTER,
                                                 icons::CHECK,
                                                 theme::font_small(),
-                                                theme::ACCENT,
+                                                theme::accent_text(),
                                             );
                                         }
 
@@ -335,7 +401,7 @@ impl<'a, T> Dropdown<'a, T> {
                                             &text,
                                             theme::font_body(),
                                             if is_selected {
-                                                theme::ACCENT
+                                                theme::accent_text()
                                             } else {
                                                 theme::text_primary()
                                             },
@@ -351,7 +417,8 @@ impl<'a, T> Dropdown<'a, T> {
                                         ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));
                                     }
                                 }
-                            });
+                            },
+                        );
                     });
             });
 
@@ -421,5 +488,68 @@ pub fn dropdown_width(
         true
     } else {
         false
+    }
+}
+
+#[cfg(test)]
+mod regression_tests {
+    use super::*;
+    fn select_filtered(search: &str, keys: &[egui::Key]) -> Option<usize> {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let id = egui::Id::new("filtered_test");
+        ctx.memory_mut(|m| {
+            m.data.insert_temp(id, true);
+            m.data.insert_temp(id.with("search"), search.to_string());
+            m.data.insert_temp(id.with("highlight"), 0usize);
+        });
+        let mut selection = None;
+        for frame in 0..3 {
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(960.0, 640.0),
+                    )),
+                    events: if frame == 2 {
+                        keys.iter()
+                            .map(|key| egui::Event::Key {
+                                key: *key,
+                                physical_key: None,
+                                pressed: true,
+                                repeat: false,
+                                modifiers: egui::Modifiers::NONE,
+                            })
+                            .collect()
+                    } else {
+                        vec![]
+                    },
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        selection = Dropdown::new("filtered_test", &["Alpha", "Beta", "Alpine"], 0)
+                            .searchable()
+                            .show(ui);
+                    });
+                },
+            );
+        }
+        selection
+    }
+    #[test]
+    fn enter_selects_visible_original_index() {
+        assert_eq!(select_filtered("Beta", &[egui::Key::Enter]), Some(1));
+    }
+    #[test]
+    fn arrows_skip_filtered_out_options() {
+        assert_eq!(
+            select_filtered("Al", &[egui::Key::ArrowDown, egui::Key::Enter]),
+            Some(2)
+        );
+    }
+    #[test]
+    fn empty_filter_never_selects_hidden_option() {
+        assert_eq!(select_filtered("missing", &[egui::Key::Enter]), None);
     }
 }

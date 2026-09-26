@@ -38,9 +38,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                 _ => ("En attente", theme::INFO),
             };
             widgets::status_badge(ui, label, color);
-        });
-        ui.add_space(theme::SPACE_SM);
-        ui.horizontal_wrapped(|ui| {
+            ui.separator();
             let sync = state
                 .summary
                 .last_sync_at

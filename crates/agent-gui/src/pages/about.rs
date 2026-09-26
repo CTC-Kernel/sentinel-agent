@@ -30,7 +30,7 @@ pub struct AboutPage;
 
 impl AboutPage {
     pub fn show(ui: &mut Ui) -> Option<GuiCommand> {
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
             &["Configuration", "\u{00c0} propos"],

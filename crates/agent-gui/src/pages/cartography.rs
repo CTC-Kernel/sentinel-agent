@@ -63,7 +63,7 @@ impl CartographyPage {
             return None;
         }
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
             &["Actifs & inventaire", "Cartographie"],
@@ -290,7 +290,7 @@ impl CartographyPage {
         let center = rect.center().to_vec2() + state.cartography.pan;
         let zoom = state.cartography.zoom;
 
-        // Draw edges (AAA grade subtlety)
+        // Relationships carry information: preserve contrast against the chart surface.
         for edge in &layout.edges {
             if edge.source < layout.nodes.len() && edge.target < layout.nodes.len() {
                 let p1 = Pos2::new(
@@ -303,10 +303,7 @@ impl CartographyPage {
                 );
                 painter.line_segment(
                     [p1, p2],
-                    egui::Stroke::new(
-                        theme::BORDER_THIN,
-                        theme::border().linear_multiply(theme::OPACITY_TINT),
-                    ),
+                    egui::Stroke::new(theme::BORDER_THIN, theme::border()),
                 );
             }
         }

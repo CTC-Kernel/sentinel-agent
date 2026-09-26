@@ -20,7 +20,7 @@ impl SoftwarePage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         let _ = widgets::page_header_nav(
             ui,
             &["Actifs & inventaire", "Logiciels"],

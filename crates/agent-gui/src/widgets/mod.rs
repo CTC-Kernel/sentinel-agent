@@ -84,7 +84,7 @@ pub use sentinel_ai_core::SentinelAICore;
 pub use sidebar::{Sidebar, SidebarContext};
 pub use splash::splash_screen;
 pub use status_badge::status_badge;
-pub use toggle_switch::toggle_switch;
+pub use toggle_switch::{toggle_switch, toggle_switch_labeled};
 pub use topbar::{TopBarAction, TopBarContext, top_bar};
 pub use tray_radar::TrayRadar;
 

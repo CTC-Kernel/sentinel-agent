@@ -34,7 +34,7 @@ impl MonitoringPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         let _ = widgets::page_header_nav(
             ui,
             &["Vue d'ensemble", "Surveillance"],
@@ -161,7 +161,11 @@ impl MonitoringPage {
                                 .color(theme::text_tertiary())
                                 .strong(),
                         );
-                        widgets::toggle_switch(ui, &mut state.siem.auto_scroll);
+                        widgets::toggle_switch_labeled(
+                            ui,
+                            &mut state.siem.auto_scroll,
+                            "Défilement automatique des événements",
+                        );
                     },
                 );
             });
