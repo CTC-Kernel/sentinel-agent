@@ -1511,7 +1511,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                         egui::RichText::new(format!("{icon}  {label}"))
                             .font(theme::font_label())
                             .color(if active {
-                                theme::ACCENT_LIGHT
+                                theme::accent_text()
                             } else {
                                 theme::text_tertiary()
                             }),
@@ -1544,11 +1544,15 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         let time = ui.input(|i| i.time);
 
         // ─ Background: layered command-surface substrate ─
-        painter.rect_filled(rect, theme::ROUNDING_MD, theme::bg_deep());
+        painter.rect_filled(rect, theme::ROUNDING_MD, theme::chart_surface());
         painter.circle_filled(
             center,
             radius + theme::SPACE_MD,
-            theme::ACCENT.linear_multiply(if theme::is_dark_mode() { 0.08 } else { 0.045 }),
+            theme::chart_color(theme::ACCENT).linear_multiply(if theme::is_dark_mode() {
+                0.08
+            } else {
+                0.035
+            }),
         );
         painter.circle_filled(
             center,
@@ -1595,7 +1599,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             painter.circle_stroke(
                 center,
                 r,
-                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::ACCENT.linear_multiply(0.18)),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::chart_grid()),
             );
         }
         for i in 0..12 {
@@ -1607,7 +1611,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 ],
                 egui::Stroke::new(
                     theme::BORDER_HAIRLINE,
-                    theme::border().linear_multiply(0.24),
+                    theme::chart_grid().linear_multiply(0.82),
                 ),
             );
         }
@@ -1833,7 +1837,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 ui.label(
                     egui::RichText::new("Cliquer pour épingler le signal")
                         .font(theme::font_min())
-                        .color(theme::ACCENT_LIGHT),
+                        .color(theme::accent_text()),
                 );
             });
             if response.clicked() {
@@ -1861,7 +1865,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             egui::Align2::CENTER_TOP,
             "NEXUS",
             theme::font_min(),
-            theme::ACCENT_LIGHT,
+            theme::accent_text(),
         );
 
         // At-a-glance operational telemetry is overlaid without stealing radar space.
@@ -1890,7 +1894,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 egui::Align2::CENTER_CENTER,
                 "Aucun signal sur cette fenêtre",
                 theme::font_body(),
-                theme::SUCCESS,
+                theme::readable_color(theme::SUCCESS),
             );
         }
         if let Some(index) = selected

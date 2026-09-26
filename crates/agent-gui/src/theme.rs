@@ -210,7 +210,8 @@ pub fn detect_reduced_motion() -> bool {
 //   • text_tertiary and semantic text ≥ 4.5:1 (WCAG AA) on every surface
 //   • border()                        ≥ 3:1 (WCAG 1.4.11) on every surface
 
-/// Primary accent — Sentinel sovereign blue.
+/// Primary accent — Sentinel sovereign blue. Reserved for actions and
+/// selection; neutral surfaces never inherit this hue in light mode.
 pub const ACCENT: Color32 = Color32::from_rgb(36, 78, 190); // #244EBE
 /// Accent tuned for text and icons on dark surfaces.
 pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(107, 165, 255); // #6BA5FF
@@ -261,7 +262,7 @@ pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(12, 15, 21) // #0C0F15
     } else {
-        Color32::from_rgb(242, 245, 250) // #F2F5FA
+        Color32::from_rgb(244, 245, 242) // #F4F5F2
     }
 }
 
@@ -281,7 +282,7 @@ pub fn bg_elevated() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(35, 40, 51) // #232833
     } else {
-        Color32::from_rgb(228, 233, 242) // #E4E9F2
+        Color32::from_rgb(232, 235, 230) // #E8EBE6
     }
 }
 
@@ -291,7 +292,7 @@ pub fn bg_tertiary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(26, 30, 40) // #1A1E28
     } else {
-        Color32::from_rgb(237, 241, 247) // #EDF1F7
+        Color32::from_rgb(239, 241, 237) // #EFF1ED
     }
 }
 
@@ -302,7 +303,7 @@ pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(9, 11, 17) // #090B11
     } else {
-        Color32::from_rgb(247, 249, 252) // #F7F9FC
+        Color32::from_rgb(249, 249, 246) // #F9F9F6
     }
 }
 
@@ -312,7 +313,7 @@ pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(5, 7, 11) // #05070B
     } else {
-        Color32::from_rgb(239, 242, 248) // #EFF2F8
+        Color32::from_rgb(235, 238, 233) // #EBEEE9
     }
 }
 
@@ -336,7 +337,7 @@ pub fn text_secondary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(180, 188, 201) // #B4BCC9
     } else {
-        Color32::from_rgb(67, 75, 91) // #434B5B
+        Color32::from_rgb(62, 73, 68) // #3E4944
     }
 }
 
@@ -350,7 +351,7 @@ pub fn text_tertiary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(147, 155, 169) // #939BA9
     } else {
-        Color32::from_rgb(93, 102, 118) // #5D6676
+        Color32::from_rgb(86, 98, 92) // #56625C
     }
 }
 
@@ -429,7 +430,7 @@ pub fn border() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(114, 123, 141) // #727B8D
     } else {
-        Color32::from_rgb(121, 129, 143) // #79818F
+        Color32::from_rgb(112, 124, 118) // #707C76
     }
 }
 
@@ -442,7 +443,7 @@ pub fn border_subtle() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(43, 49, 62) // #2B313E
     } else {
-        Color32::from_rgb(221, 227, 236) // #DDE3EC
+        Color32::from_rgb(218, 223, 217) // #DADFD9
     }
 }
 
@@ -512,7 +513,9 @@ pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
     let grid = if is_dark_mode() {
         Color32::from_rgba_unmultiplied(107, 165, 255, 10)
     } else {
-        Color32::from_rgba_unmultiplied(29, 79, 216, 8)
+        // Mineral green-grey rather than a blue graph-paper cast. The grid
+        // should structure the workspace, never tint every page.
+        Color32::from_rgba_unmultiplied(55, 91, 75, 9)
     };
     let step = 32.0;
     let mut x = rect.left() - rect.left().rem_euclid(step);
@@ -1586,6 +1589,36 @@ pub fn readable_color(color: Color32) -> Color32 {
     theme_variant(color)
 }
 
+/// Theme-aware series color for charts, maps and radar marks.
+///
+/// Semantic constants are intentionally vivid enough for dark surfaces. On
+/// light cards they must use their calibrated deep variant, otherwise lines
+/// and small dots look washed out even when large text still passes contrast.
+#[inline]
+pub fn chart_color(color: Color32) -> Color32 {
+    readable_color(color)
+}
+
+/// Quiet chart grid that remains visible without turning light cards blue.
+#[inline]
+pub fn chart_grid() -> Color32 {
+    if is_dark_mode() {
+        border_subtle().linear_multiply(0.72)
+    } else {
+        Color32::from_rgb(207, 214, 208) // #CFD6D0
+    }
+}
+
+/// Inset plot/radar substrate shared by every data-visualisation surface.
+#[inline]
+pub fn chart_surface() -> Color32 {
+    if is_dark_mode() {
+        bg_deep()
+    } else {
+        Color32::from_rgb(247, 248, 245) // #F7F8F5
+    }
+}
+
 /// Color for a compliance score value.
 pub fn score_color(score: f32) -> Color32 {
     if score >= 85.0 {
@@ -1979,8 +2012,8 @@ pub fn enrollment_gradient() -> (Color32, Color32) {
         )
     } else {
         (
-            Color32::from_rgb(246, 248, 255), // Luminous cool-white center
-            Color32::from_rgb(232, 235, 248), // Refined cool gray outer
+            Color32::from_rgb(249, 250, 247), // Luminous mineral-white center
+            Color32::from_rgb(232, 236, 230), // Quiet sage-grey outer
         )
     }
 }
@@ -2006,8 +2039,8 @@ pub fn sidebar_gradient() -> (Color32, Color32) {
         )
     } else {
         (
-            Color32::from_rgb(241, 243, 253), // Cool luminous top
-            Color32::from_rgb(228, 230, 244), // Refined cool bottom
+            Color32::from_rgb(248, 249, 246), // Neutral luminous top
+            Color32::from_rgb(235, 238, 232), // Mineral-grey bottom
         )
     }
 }
@@ -2182,6 +2215,20 @@ mod contrast_tests {
         set_dark_mode(false);
         assert!(relative_luminance(bg_secondary()) > relative_luminance(bg_primary()));
         assert!(relative_luminance(bg_primary()) > relative_luminance(bg_elevated()));
+        set_dark_mode(true);
+    }
+
+    #[test]
+    fn light_surfaces_remain_neutral() {
+        set_dark_mode(false);
+        for (name, color) in surfaces() {
+            let channels = [color.r(), color.g(), color.b()];
+            let spread = channels.iter().max().unwrap() - channels.iter().min().unwrap();
+            assert!(
+                spread <= 8,
+                "{name} carries too much hue for a neutral light surface: {color:?}"
+            );
+        }
         set_dark_mode(true);
     }
 }

@@ -567,6 +567,7 @@ impl MonitoringPage {
         line_color: egui::Color32,
         auto_y: bool,
     ) {
+        let line_color = theme::chart_color(line_color);
         widgets::card(ui, |ui: &mut egui::Ui| {
             // ── Header with live indicator ──────────────────────────────────
             ui.horizontal(|ui: &mut egui::Ui| {
@@ -686,7 +687,7 @@ impl MonitoringPage {
                     ];
                     plot_ui.line(
                         Line::new(PlotPoints::new(warn_pts))
-                            .color(theme::WARNING.linear_multiply(0.2))
+                            .color(theme::chart_color(theme::WARNING).linear_multiply(0.35))
                             .width(0.5_f32)
                             .style(egui_plot::LineStyle::dashed_dense()),
                     );
@@ -704,7 +705,7 @@ impl MonitoringPage {
                     ];
                     plot_ui.line(
                         Line::new(PlotPoints::new(crit_pts))
-                            .color(theme::ERROR.linear_multiply(0.2))
+                            .color(theme::chart_color(theme::ERROR).linear_multiply(0.35))
                             .width(0.5_f32)
                             .style(egui_plot::LineStyle::dashed_dense()),
                     );
@@ -903,7 +904,7 @@ impl MonitoringPage {
                     } else {
                         0.0
                     };
-                    let bar_color = colors[i % colors.len()];
+                    let bar_color = theme::chart_color(colors[i % colors.len()]);
 
                     ui.horizontal(|ui: &mut egui::Ui| {
                         // Category label
