@@ -150,10 +150,15 @@ impl AIPlugin for SigmaRulePlugin {
                 "message": "No high-severity Sigma detection rules triggered for this command line."
             }))
         } else {
+            let highest_severity = if matches.iter().any(|m| m["severity"] == "CRITICAL") {
+                "CRITICAL"
+            } else {
+                "HIGH"
+            };
             Ok(json!({
                 "status": "alert",
                 "matched_rules_count": matches.len(),
-                "highest_severity": matches.iter().any(|m| m["severity"] == "CRITICAL").then_some("CRITICAL").unwrap_or("HIGH"),
+                "highest_severity": highest_severity,
                 "detections": matches
             }))
         }
