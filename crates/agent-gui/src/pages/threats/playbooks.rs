@@ -548,7 +548,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     command
 }
 
-
 /// Inline form to create a new playbook.
 fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
     // Use a thread-local for form state so it persists across frames
