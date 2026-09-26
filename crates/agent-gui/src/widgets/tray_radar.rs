@@ -73,12 +73,12 @@ impl TrayRadar {
 
         // Quiet glass substrate and continuous aura: the compact popup now
         // reads as a posture instrument rather than a bare chart.
-        painter.circle_filled(center, radius + 15.0, crate::theme::bg_deep());
+        painter.circle_filled(center, radius + 15.0, crate::theme::chart_surface());
         let mut aura = egui::epaint::Mesh::default();
         aura.vertices.push(egui::epaint::Vertex {
             pos: center,
             uv: egui::epaint::WHITE_UV,
-            color: crate::theme::ACCENT.linear_multiply(0.10),
+            color: crate::theme::chart_color(crate::theme::ACCENT).linear_multiply(0.10),
         });
         for index in 0..48_u32 {
             let angle = TAU * index as f32 / 48.0;
@@ -164,10 +164,7 @@ impl TrayRadar {
             pts.push(pts[0]);
             painter.add(egui::Shape::line(
                 pts,
-                Stroke::new(
-                    theme::BORDER_HAIRLINE,
-                    theme::border().linear_multiply(theme::OPACITY_MODERATE),
-                ),
+                Stroke::new(theme::BORDER_HAIRLINE, theme::chart_grid()),
             ));
         }
 
@@ -177,10 +174,7 @@ impl TrayRadar {
             let end = center + Vec2::new(angle.cos() * radius, angle.sin() * radius);
             painter.line_segment(
                 [center, end],
-                Stroke::new(
-                    theme::BORDER_HAIRLINE,
-                    theme::border().linear_multiply(theme::OPACITY_MEDIUM),
-                ),
+                Stroke::new(theme::BORDER_HAIRLINE, theme::chart_grid()),
             );
         }
     }
@@ -201,21 +195,25 @@ impl TrayRadar {
         // Fill with gradient-like transparency
         painter.add(egui::Shape::convex_polygon(
             pts.clone(),
-            theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
-            Stroke::new(theme::BORDER_THICK, theme::ACCENT),
+            theme::chart_color(theme::ACCENT).linear_multiply(theme::OPACITY_TINT),
+            Stroke::new(theme::BORDER_THICK, theme::chart_color(theme::ACCENT)),
         ));
 
         // 3. Multi-layered diffuse dots at vertices
         for pt in pts {
             // Main dot
-            painter.circle_filled(pt, 2.5, theme::ACCENT);
+            painter.circle_filled(pt, 2.5, theme::chart_color(theme::ACCENT));
 
             // Diffuse glow
             let pulse = (time * 2.0).sin() * 0.5 + 0.5;
             for i in (0..8).rev() {
                 let r = 3.0 + i as f32 * 1.5 + pulse * 2.0;
                 let alpha = 0.1 / (i as f32 * 0.5 + 1.0).powi(2);
-                painter.circle_filled(pt, r, theme::ACCENT.linear_multiply(alpha));
+                painter.circle_filled(
+                    pt,
+                    r,
+                    theme::chart_color(theme::ACCENT).linear_multiply(alpha),
+                );
             }
         }
     }
@@ -230,7 +228,7 @@ impl TrayRadar {
             [center, scan_end],
             Stroke::new(
                 theme::BORDER_MEDIUM,
-                theme::ACCENT.linear_multiply(theme::OPACITY_DISABLED),
+                theme::chart_color(theme::ACCENT).linear_multiply(theme::OPACITY_DISABLED),
             ),
         );
     }

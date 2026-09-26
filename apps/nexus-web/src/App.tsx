@@ -111,18 +111,29 @@ function ScoreRing() { return <div className="score-ring"><svg viewBox="0 0 140 
 
 function ThreatCenter({ notify }: { notify: (s: string) => void }) {
   const [window, setWindow] = useState("24 h");
+  const [selectedSignal, setSelectedSignal] = useState(0);
   const signals = [
-    { label: "Mouvement latéral", source: "FIN-WS-042 → DC-EU-02", time: "Il y a 3 min", tone: "critical", score: "98" },
-    { label: "Exfiltration DNS probable", source: "Kubernetes / payments-prod", time: "Il y a 11 min", tone: "high", score: "86" },
-    { label: "Authentification impossible", source: "IAM-PROD / user-1842", time: "Il y a 27 min", tone: "medium", score: "72" },
+    { label: "Mouvement latéral", source: "FIN-WS-042 → DC-EU-02", time: "Il y a 3 min", tone: "critical", score: "98", ip: "185.220.101.17", origin: "Francfort, DE", tactic: "TA0008 · Lateral Movement" },
+    { label: "Exfiltration DNS probable", source: "Kubernetes / payments-prod", time: "Il y a 11 min", tone: "high", score: "86", ip: "45.155.205.233", origin: "Amsterdam, NL", tactic: "TA0010 · Exfiltration" },
+    { label: "Authentification impossible", source: "IAM-PROD / user-1842", time: "Il y a 27 min", tone: "medium", score: "72", ip: "91.214.124.18", origin: "Varsovie, PL", tactic: "TA0006 · Credential Access" },
   ];
+  const selected = signals[selectedSignal];
   return <div className="page threat-page fade-in">
     <PageHeading eyebrow="SOC / THREAT INTELLIGENCE" title="Centre de détection" description="Une lecture temps réel de votre surface d'attaque, enrichie et priorisée par Sentinel Intelligence." actions={<><button className="secondary"><Filter size={16}/> Filtres avancés</button><button className="primary" onClick={() => notify("Chasse aux menaces lancée")}><Crosshair size={16}/> Nouvelle investigation</button></>}/>
     <section className="threat-command panel">
       <div className="radar-stage" aria-label="Radar de menaces en temps réel">
-        <div className="radar-grid"><i className="radar-sweep"/><i className="radar-core"/><span className="blip b1"/><span className="blip b2 danger"/><span className="blip b3"/><span className="blip b4 warning"/><span className="radar-axis horizontal"/><span className="radar-axis vertical"/></div>
+        <div className="radar-hud" aria-hidden="true"><span>SONAR / EU-WEST</span><span>RAYON 360°</span><span>LATENCE 12 MS</span></div>
+        <div className="radar-grid">
+          <i className="radar-sweep"/><i className="radar-core"/><i className="radar-crosshair"/>
+          <span aria-hidden="true" className="radar-sector sector-n">N</span><span aria-hidden="true" className="radar-sector sector-e">E</span><span aria-hidden="true" className="radar-sector sector-s">S</span><span aria-hidden="true" className="radar-sector sector-w">W</span>
+          <span aria-hidden="true" className="blip b1 ambient"><i/></span>
+          {signals.map((signal, index) => <button aria-label={`${signal.label}, score ${signal.score}`} aria-pressed={selectedSignal === index} className={`blip threat-contact contact-${index + 1} ${signal.tone} ${selectedSignal === index ? "selected" : ""}`} key={signal.label} onClick={() => setSelectedSignal(index)}><i/></button>)}
+          <span aria-hidden="true" className="blip b3 ambient"><i/></span><span aria-hidden="true" className="blip b4 warning ambient"><i/></span>
+          <span className="radar-axis horizontal"/><span className="radar-axis vertical"/>
+        </div>
+        <div className={`radar-target ${selected.tone}`}><div><span>CIBLE CORRÉLÉE</span><b>{selected.ip}</b></div><strong>{selected.score}</strong><small>{selected.origin}<br/>{selected.tactic}</small></div>
         <div className="radar-status"><span><i/> SURVEILLANCE ACTIVE</span><strong>2 847</strong><small>événements analysés / min</small></div>
-        <div className="radar-legend"><span><i className="safe"/> Normal</span><span><i className="warning"/> Suspect</span><span><i className="danger"/> Critique</span></div>
+        <div className="radar-legend"><span><i className="safe"/> Normal <b>1 246</b></span><span><i className="warning"/> Suspect <b>18</b></span><span><i className="danger"/> Critique <b>03</b></span></div>
       </div>
       <div className="threat-overview">
         <header><div><span className="eyebrow">SIGNAL DE MENACE GLOBAL</span><h2>Pression adversaire <em>élevée</em></h2></div><div className="time-switch">{["1 h","24 h","7 j"].map((item) => <button className={window === item ? "active" : ""} onClick={() => setWindow(item)} key={item}>{item}</button>)}</div></header>
@@ -132,7 +143,7 @@ function ThreatCenter({ notify }: { notify: (s: string) => void }) {
       </div>
     </section>
     <section className="threat-lower">
-      <article className="panel signal-feed"><div className="section-head"><div><span className="eyebrow">LIVE FEED</span><h2>Signaux prioritaires</h2></div><button>Voir la timeline <ArrowRight size={15}/></button></div>{signals.map((signal) => <button className="signal-row" key={signal.label}><span className={`signal-score ${signal.tone}`}>{signal.score}</span><span><b>{signal.label}</b><small>{signal.source}</small></span><span><Radio/> {signal.time}</span><ChevronRight/></button>)}</article>
+      <article className="panel signal-feed"><div className="section-head"><div><span className="eyebrow">LIVE FEED</span><h2>Signaux prioritaires</h2></div><button>Voir la timeline <ArrowRight size={15}/></button></div>{signals.map((signal, index) => <button aria-pressed={selectedSignal === index} className={`signal-row ${selectedSignal === index ? "selected" : ""}`} key={signal.label} onClick={() => setSelectedSignal(index)}><span className={`signal-score ${signal.tone}`}>{signal.score}</span><span><b>{signal.label}</b><small>{signal.source}</small></span><span><Radio/> {signal.time}</span><ChevronRight/></button>)}</article>
       <article className="panel intel-card"><div className="section-head"><div><span className="eyebrow">INTELLIGENCE</span><h2>Origine des signaux</h2></div><Globe2/></div><div className="source-map"><span className="source-point p1"/><span className="source-point p2"/><span className="source-point p3"/><svg viewBox="0 0 400 140" preserveAspectRatio="none"><path d="M30 105 C110 20 235 125 370 35"/><path d="M55 40 C170 110 245 10 345 92"/></svg></div><div className="intel-sources"><span><b>31%</b> Identités</span><span><b>28%</b> Endpoints</span><span><b>24%</b> Cloud</span><span><b>17%</b> Réseau</span></div></article>
     </section>
   </div>;
