@@ -1982,6 +1982,8 @@ pub fn select_tab(state: &mut AppState, page: &str, tab: usize) {
         "notifications" => state.notifications_active_tab = tab,
         "monitoring" => state.monitoring.active_tab = tab,
         "reports" => state.reports.active_tab = tab,
+        "network" => state.network.active_section = tab,
+        "settings" => state.settings.active_section = tab,
         "ai" => {
             state.ai.active_tab = match tab {
                 1 => LlmTab::Recommendations,

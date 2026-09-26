@@ -16,6 +16,8 @@ pub struct VoiceService {
 
     #[cfg(feature = "gui")]
     tts_engine: Arc<std::sync::Mutex<Option<tts::Tts>>>,
+    #[cfg(feature = "gui")]
+    speech_epoch: Arc<std::sync::atomic::AtomicU64>,
 
     #[cfg(feature = "voice")]
     sound_manager: Option<crate::sounds::SoundManager>,
@@ -56,7 +58,7 @@ impl VoiceService {
             Ok(engine) => Some(engine),
             Err(e) => {
                 error!(
-                    "VoiceService: Failed to bind native OS TTS. Audio output will be mocked. {}",
+                    "VoiceService: Failed to bind native OS TTS. Audio output is unavailable. {}",
                     e
                 );
                 None
@@ -79,7 +81,7 @@ impl VoiceService {
                 }
                 Err(e) => {
                     warn!(
-                        "VoiceService: Failed to load Whisper model at {}. STT will be mocked. {}",
+                        "VoiceService: Failed to load Whisper model at {}. Speech recognition is unavailable. {}",
                         model_path.display(),
                         e
                     );
@@ -91,6 +93,7 @@ impl VoiceService {
         Self {
             event_tx,
             tts_engine: Arc::new(std::sync::Mutex::new(tts_engine)),
+            speech_epoch: Arc::new(std::sync::atomic::AtomicU64::new(0)),
             #[cfg(feature = "voice")]
             sound_manager: crate::sounds::SoundManager::new(),
             #[cfg(feature = "voice")]
@@ -115,6 +118,8 @@ impl VoiceService {
     /// without letting the recognizer capture the assistant's own voice.
     #[cfg(feature = "gui")]
     pub fn stop_speaking(&self) {
+        self.speech_epoch
+            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         match self.tts_engine.lock() {
             Ok(mut engine) => {
                 if let Some(engine) = engine.as_mut()
@@ -125,6 +130,9 @@ impl VoiceService {
             }
             Err(_) => warn!("VoiceService: TTS lock poisoned while stopping speech"),
         }
+        let _ = self
+            .event_tx
+            .send(AgentEvent::VoiceStatus { speaking: false });
     }
 
     #[cfg(feature = "voice")]
@@ -183,16 +191,21 @@ impl VoiceService {
 
                 match outcome {
                     Ok(Some(text)) => {
-                        info!("VoiceService: transcription = {:?}", text);
-                        let _ = tx_task.send(AgentEvent::VoiceTranscription { text });
+                        info!(
+                            "VoiceService: transcription ready ({} characters)",
+                            text.chars().count()
+                        );
+                        if !cancel.load(Ordering::SeqCst) {
+                            let _ = tx_task.send(AgentEvent::VoiceTranscription { text });
+                        }
                     }
                     Ok(None) => {
                         info!("VoiceService: no speech detected");
                     }
                     Err(e) => {
                         warn!("VoiceService: capture/transcription failed: {}", e);
-                        let _ = tx_task.send(AgentEvent::VoiceTranscription {
-                            text: format!("(Erreur moteur vocal : {})", e),
+                        let _ = tx_task.send(AgentEvent::VoiceError {
+                            message: format!("Impossible de dicter : {}", e),
                         });
                     }
                 }
@@ -209,8 +222,8 @@ impl VoiceService {
             let tx_fallback = tx.clone();
             tokio::spawn(async move {
                 tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
-                let _ = tx_fallback.send(AgentEvent::VoiceTranscription {
-                    text: "(Moteur vocal désactivé à la compilation)".to_string(),
+                let _ = tx_fallback.send(AgentEvent::VoiceError {
+                    message: "Reconnaissance vocale indisponible dans cette version.".to_string(),
                 });
                 let _ = tx_fallback.send(AgentEvent::LlmVoiceState { active: false });
             });
@@ -221,6 +234,24 @@ impl VoiceService {
     /// This runs in a dedicated OS thread to never block Tokio runtime.
     #[cfg(feature = "gui")]
     pub fn speak(&self, text: &str) {
+        let generation = self
+            .speech_epoch
+            .fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+            + 1;
+        self.speak_if_current(text, generation);
+    }
+
+    #[cfg(feature = "gui")]
+    pub fn speech_generation(&self) -> u64 {
+        self.speech_epoch.load(std::sync::atomic::Ordering::SeqCst)
+    }
+
+    /// A stop during inference invalidates the future spoken answer too.
+    #[cfg(feature = "gui")]
+    pub fn speak_if_current(&self, text: &str, generation: u64) {
+        if self.speech_generation() != generation {
+            return;
+        }
         info!("VoiceService: Native voice synthesis triggered.");
 
         let tx = self.event_tx.clone();
@@ -229,20 +260,25 @@ impl VoiceService {
         // remains visible in chat.
         let rt_text = prepare_spoken_text(text);
         let engine_lock = self.tts_engine.clone();
-
+        let epoch = self.speech_epoch.clone();
         std::thread::spawn(move || {
-            let _ = tx.send(AgentEvent::VoiceStatus { speaking: true });
-
+            if epoch.load(std::sync::atomic::Ordering::SeqCst) != generation {
+                return;
+            }
             let mut synth_duration = std::time::Duration::from_millis(2000);
             let mut synthesis_started = false;
 
             if let Ok(mut engine_opt) = engine_lock.lock()
                 && let Some(engine) = engine_opt.as_mut()
             {
-                if let Err(e) = engine.speak(&rt_text, false) {
+                if epoch.load(std::sync::atomic::Ordering::SeqCst) != generation {
+                    return;
+                }
+                if let Err(e) = engine.speak(&rt_text, true) {
                     warn!("VoiceService: TTS engine speak failed: {}", e);
                 } else {
                     synthesis_started = true;
+                    let _ = tx.send(AgentEvent::VoiceStatus { speaking: true });
                     let char_count = rt_text.chars().count() as u64;
                     synth_duration =
                         std::time::Duration::from_millis((55 * char_count).clamp(1_200, 30_000));
@@ -252,11 +288,17 @@ impl VoiceService {
             if synthesis_started {
                 wait_for_speech_end(&engine_lock, synth_duration);
             } else {
+                if epoch.load(std::sync::atomic::Ordering::SeqCst) != generation {
+                    return;
+                }
+                let _ = tx.send(AgentEvent::VoiceError { message: "La synthèse vocale est indisponible. La réponse reste accessible à l’écran.".to_string() });
                 // Preserve a short, deterministic state transition when the OS
                 // has no TTS backend so the GUI never remains stuck in “speaking”.
                 std::thread::sleep(std::time::Duration::from_millis(250));
             }
-            let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
+            if epoch.load(std::sync::atomic::Ordering::SeqCst) == generation {
+                let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
+            }
         });
     }
 }
@@ -361,6 +403,14 @@ fn record_and_transcribe(
     use std::sync::Mutex;
     use std::time::Duration;
 
+    if whisper_ctx.blocking_lock().is_none() {
+        return Err(
+            "modèle Whisper non chargé : installez le modèle local pour activer la dictée".into(),
+        );
+    }
+    if cancel.load(Ordering::SeqCst) {
+        return Ok(None);
+    }
     let host = cpal::default_host();
     let device = host
         .default_input_device()
@@ -449,7 +499,7 @@ fn record_and_transcribe(
         // Honor a user-initiated cancel (mic toggle off) between frames.
         if cancel.load(Ordering::SeqCst) {
             info!("VoiceService: capture cancelled by UI");
-            break;
+            return Ok(None);
         }
 
         // Pull one frame from the shared buffer.
@@ -535,7 +585,7 @@ fn record_and_transcribe(
     // Stop the stream before CPU-heavy transcription.
     drop(stream);
 
-    if captured.len() < (sample_rate as usize * 300) / 1000 {
+    if cancel.load(Ordering::SeqCst) || captured.len() < (sample_rate as usize * 300) / 1000 {
         return Ok(None);
     }
 
@@ -591,7 +641,7 @@ fn record_and_transcribe(
     }
     let text = text.trim().to_string();
 
-    if text.is_empty() || is_whisper_hallucination(&text) {
+    if cancel.load(Ordering::SeqCst) || text.is_empty() || is_whisper_hallucination(&text) {
         return Ok(None);
     }
 
@@ -679,4 +729,45 @@ fn is_whisper_hallucination(text: &str) -> bool {
     // Pure punctuation or very short fillers.
     let trimmed: String = low.chars().filter(|c| c.is_alphanumeric()).collect();
     trimmed.len() < 2
+}
+
+#[cfg(all(test, feature = "voice", feature = "gui"))]
+mod workflow_tests {
+    use super::*;
+    #[test]
+    fn stopping_speech_invalidates_an_answer_still_being_generated() {
+        let (tx, rx) = mpsc::channel();
+        // No OS audio backend, microphone or model is opened in this test.
+        let service = VoiceService {
+            event_tx: tx,
+            tts_engine: Arc::new(std::sync::Mutex::new(None)),
+            speech_epoch: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            sound_manager: None,
+            whisper_ctx: Arc::new(tokio::sync::Mutex::new(None)),
+            is_listening: Arc::new(AtomicBool::new(false)),
+            cancel_requested: Arc::new(AtomicBool::new(false)),
+        };
+        let generation = service.speech_generation();
+        service.stop_speaking();
+        assert!(matches!(
+            rx.try_recv(),
+            Ok(AgentEvent::VoiceStatus { speaking: false })
+        ));
+        service.speak_if_current("Réponse devenue obsolète", generation);
+        assert!(rx.try_recv().is_err());
+        assert_ne!(service.speech_generation(), generation);
+        service.stop_listening();
+        assert!(service.cancel_requested.load(Ordering::SeqCst));
+    }
+    #[test]
+    fn missing_whisper_model_fails_before_opening_microphone() {
+        let (tx, _rx) = mpsc::channel();
+        let error = record_and_transcribe(
+            &Arc::new(tokio::sync::Mutex::new(None)),
+            &tx,
+            &Arc::new(AtomicBool::new(false)),
+        )
+        .unwrap_err();
+        assert!(error.contains("Whisper"));
+    }
 }

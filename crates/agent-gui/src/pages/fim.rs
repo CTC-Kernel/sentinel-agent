@@ -18,7 +18,7 @@ impl FimPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         let _ = widgets::page_header_nav(
             ui,
             &["Détection & réponse", "FIM"],
@@ -144,7 +144,7 @@ impl FimPage {
                     ui.label(
                         egui::RichText::new(crate::format::pct(ack_pct, 0))
                             .font(theme::font_body())
-                            .color(pct_color)
+                            .color(theme::readable_color(pct_color))
                             .strong(),
                     );
                     ui.label(

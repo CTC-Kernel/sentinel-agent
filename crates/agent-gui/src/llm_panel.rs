@@ -56,108 +56,27 @@ pub struct LLMPanel;
 impl LLMPanel {
     /// Show the Intelligence Artificielle page.
     pub fn show(&mut self, ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
-        // ── Page Header ─────────────────────────────────────────────────
-        ui.add_space(theme::SPACE_MD);
-
-        widgets::card(ui, |ui| {
-            ui.horizontal(|ui| {
-                ui.label(
-                    egui::RichText::new("VOICE COMMAND")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    let (status, color) = if state.ai.is_listening {
-                        ("ÉCOUTE ACTIVE", theme::SUCCESS)
-                    } else if state.ai.is_speaking {
-                        ("RÉPONSE VOCALE", theme::ACCENT)
-                    } else if state.ai.is_processing {
-                        ("ANALYSE EN COURS", theme::WARNING)
-                    } else {
-                        ("PRÊT", theme::text_secondary())
-                    };
-                    widgets::status_badge(ui, status, color);
-                });
-            });
-            ui.add_space(theme::SPACE_SM);
-
-            ui.horizontal_wrapped(|ui| {
-                let conversation_toggle = ui
-                    .checkbox(
-                        &mut state.ai.voice_conversation_enabled,
-                        "Conversation vocale continue",
-                    )
-                    .on_hover_text("Lit les réponses puis rouvre automatiquement le microphone");
-                if conversation_toggle.changed() && !state.ai.voice_conversation_enabled {
-                    // Disabling hands-free mode must cancel a previously armed
-                    // microphone hand-back from an in-flight spoken response.
-                    state.ai.voice_reply_pending = false;
-                }
-                ui.checkbox(
-                    &mut state.ai.voice_alerts_enabled,
-                    "Alertes de sécurité vocales",
-                )
-                .on_hover_text(
-                    "Annonce les notifications importantes ou critiques lorsque le moteur vocal est disponible",
-                );
-            });
-
-            ui.add_space(theme::SPACE_SM);
-            ui.separator();
-            ui.add_space(theme::SPACE_XS);
-            ui.horizontal_wrapped(|ui| {
-                if state.ai.is_listening {
-                    ui.label(
-                        egui::RichText::new(format!(
-                            "Niveau micro {:02}%",
-                            (state.ai.mic_level.clamp(0.0, 1.0) * 100.0).round() as u8
-                        ))
-                        .font(theme::font_small())
-                        .color(theme::SUCCESS),
-                    );
+        ui.add_space(theme::SPACE_XS);
+        ui.horizontal_wrapped(|ui| {
+            let (status, color) = if state.ai.is_processing {
+                ("ANALYSE EN COURS", theme::WARNING)
+            } else if state.ai.model_status.is_ready {
+                ("MODÈLE LOCAL PRÊT", theme::SUCCESS)
+            } else {
+                ("MODÈLE NON PRÊT", theme::text_secondary())
+            };
+            widgets::status_badge(ui, status, color);
+            ui.label(
+                egui::RichText::new(if state.ai.model_status.model_name.is_empty() {
+                    "Consultez Modèle & diagnostic pour configurer le moteur."
                 } else {
-                    ui.label(
-                        egui::RichText::new(
-                            "Le microphone reste local et ne s'ouvre que sur votre demande.",
-                        )
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary()),
-                    );
-                }
-
-                if !state.ai.pending_voice_alerts.is_empty() {
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        ui.label(
-                            egui::RichText::new(format!(
-                                "{} alerte{} en attente",
-                                state.ai.pending_voice_alerts.len(),
-                                if state.ai.pending_voice_alerts.len() > 1 {
-                                    "s"
-                                } else {
-                                    ""
-                                }
-                            ))
-                            .font(theme::font_small())
-                            .color(theme::WARNING),
-                        );
-                    });
-                }
-            });
+                    &state.ai.model_status.model_name
+                })
+                .font(theme::font_small())
+                .color(theme::text_secondary()),
+            );
         });
-
         ui.add_space(theme::SPACE_MD);
-        let _ = widgets::page_header_nav(
-            ui,
-            &["Assistant", "Assistant IA"],
-            "Assistant IA",
-            Some("Analyse locale et recommandations générées par le modèle embarqué."),
-            Some(
-                "Synth\u{00e8}se automatique des donn\u{00e9}es de conformit\u{00e9}, vuln\u{00e9}rabilit\u{00e9}s, menaces et alertes r\u{00e9}seau en recommandations prioris\u{00e9}es par niveau de criticit\u{00e9}.",
-            ),
-        );
-        ui.add_space(theme::SPACE_LG);
 
         // ── Tab Bar ─────────────────────────────────────────────────────
         let selected_idx = state.ai.active_tab.index() as usize;
@@ -174,16 +93,16 @@ impl LLMPanel {
         if rec_count > 0 {
             recs_tab = recs_tab.badge(rec_count.min(99));
         }
-        let model_tab = Tab::new("Statut mod\u{00e8}le").icon(icons::MICROCHIP);
+        let model_tab = Tab::new("Modèle & diagnostic").icon(icons::MICROCHIP);
 
         let tabs = vec![assistant_tab, recs_tab, model_tab];
 
-        if let Some(new_idx) = TabBar::new(tabs, selected_idx).full_width().show(ui) {
+        if let Some(new_idx) = TabBar::new(tabs, selected_idx).show(ui) {
             let new_tab = LlmTab::from_index(new_idx as u8);
             state.ai.active_tab = new_tab;
         }
 
-        ui.add_space(theme::SPACE_LG);
+        ui.add_space(theme::SPACE_SM);
 
         // ── Route to active tab ─────────────────────────────────────────
         match state.ai.active_tab {
@@ -198,156 +117,368 @@ impl LLMPanel {
     // ====================================================================
 
     fn show_assistant_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
-        let mut command: Option<GuiCommand> = None;
-
-        // Empty state
-        if state.ai.chat_history.is_empty() && !state.ai.is_processing {
-            widgets::empty_state(
-                ui,
-                icons::ROBOT,
-                "Assistant IA",
-                Some(
-                    "Posez une question de s\u{00e9}curit\u{00e9} ou utilisez les actions rapides ci-dessous pour d\u{00e9}marrer.",
-                ),
-            );
-            ui.add_space(theme::SPACE_LG);
-        } else {
-            // ── Chat History (scrollable) ────────────────────────────────
-            let available_height = ui.available_height() - 120.0; // Reserve space for input area
-            egui::ScrollArea::vertical()
-                .id_salt("llm_chat_scroll")
-                .max_height(available_height.max(200.0))
-                .stick_to_bottom(true)
-                .show(ui, |ui| {
-                    ui.add_space(theme::SPACE_SM);
-
-                    // Add lateral padding to the chat content to avoid bubbles touching the edges
-                    ui.horizontal(|ui| {
-                        ui.add_space(theme::SPACE_MD);
-                        ui.vertical(|ui| {
-                            for msg in &state.ai.chat_history {
-                                Self::render_chat_message(ui, msg);
-                                ui.add_space(theme::SPACE_SM);
-                            }
-
-                            // Processing indicator
-                            if state.ai.is_processing {
-                                Self::render_processing_indicator(ui);
-                                ui.add_space(theme::SPACE_SM);
-                            }
-                        });
-                        ui.add_space(theme::SPACE_MD);
-                    });
-                });
-
-            ui.add_space(theme::SPACE_MD);
-        }
-
-        // ── Quick Action Buttons ─────────────────────────────────────────
+        let mut command = None;
+        let mut focus_draft = false;
+        let mut draft_response = None;
         ui.horizontal_wrapped(|ui| {
-            ui.spacing_mut().item_spacing.x = theme::SPACE_SM;
-
-            let quick_actions: &[(&str, &str, &str)] = &[
-                (icons::SHIELD_CHECK, "Analyser ma posture", "Analyse ma posture de s\u{00e9}curit\u{00e9} globale et donne-moi un r\u{00e9}sum\u{00e9} des points critiques."),
-                (icons::SHIELD_VIRUS, "R\u{00e9}sumer les vuln\u{00e9}rabilit\u{00e9}s", "R\u{00e9}sume les vuln\u{00e9}rabilit\u{00e9}s d\u{00e9}tect\u{00e9}es et recommande les actions prioritaires."),
-                (icons::SEARCH, "D\u{00e9}tecter les faux positifs", "Analyse les alertes et menaces d\u{00e9}tect\u{00e9}es pour identifier les \u{00e9}ventuels faux positifs."),
-            ];
-
-            for &(icon, label, prompt) in quick_actions {
-                // Suggestion chips, not primary actions: they sit at body
-                // size on a tinted surface so a first-time user can read them,
-                // and defer to the field below rather than competing with it.
-                let btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  {}", icon, label))
-                        .font(theme::font_body())
-                        .color(theme::accent_text()),
+            egui::ComboBox::from_id_salt("assistant_work_mode")
+                .selected_text(
+                    [
+                        "SOC · Investigation",
+                        "RSSI / GRC · Décision",
+                        "MSP / IT · Exploitation",
+                    ][state.ai.work_mode.min(2)],
                 )
-                .fill(theme::tinted_surface(theme::ACCENT))
-                .corner_radius(egui::CornerRadius::same(theme::ROUNDING_LG))
-                .min_size(egui::vec2(0.0, theme::BUTTON_HEIGHT_SM))
-                .stroke(egui::Stroke::new(
-                    theme::BORDER_HAIRLINE,
-                    theme::with_alpha(theme::ACCENT, 90),
-                ));
-
-                if ui.add_enabled(!state.ai.is_processing, btn).clicked() {
-                    // Add user message to history
-                    state.ai.chat_history.push(crate::dto::LlmChatMessage {
-                        role: ChatRole::User,
-                        content: prompt.to_string(),
-                        timestamp: chrono::Utc::now(),
-                        processing_time_ms: None,
-                    });
-                    state.ai.is_processing = true;
-                    let prompt_context = Self::infer_prompt_context(prompt);
-                    command = Some(GuiCommand::LlmPrompt {
-                        prompt: Self::grounded_prompt(state, prompt),
-                        context: Some(prompt_context),
-                        speak_response: state.ai.voice_conversation_enabled,
-                    });
-                    state.ai.voice_reply_pending = state.ai.voice_conversation_enabled;
-                }
-            }
-        });
-
-        ui.add_space(theme::SPACE_MD);
-
-        // ── Input Area ───────────────────────────────────────────────────
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                // PREMIUM Voice Toggle
-                if widgets::voice_toggle_button(ui, state.ai.is_listening).clicked() {
-                    state.ai.is_listening = !state.ai.is_listening;
-                    // A deliberate mic action supersedes any automatic hand-back.
-                    state.ai.voice_reply_pending = false;
-                    if state.ai.is_listening {
-                        state.ai.is_speaking = false;
+                .show_ui(ui, |ui| {
+                    for (index, label) in [
+                        "SOC · Investigation",
+                        "RSSI / GRC · Décision",
+                        "MSP / IT · Exploitation",
+                    ]
+                    .iter()
+                    .enumerate()
+                    {
+                        ui.selectable_value(&mut state.ai.work_mode, index, *label);
                     }
+                });
+            egui::ComboBox::from_id_salt("assistant_context")
+                .selected_text(
+                    state
+                        .ai
+                        .prompt_context
+                        .map(|c| c.label_fr())
+                        .unwrap_or("Contexte automatique"),
+                )
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut state.ai.prompt_context, None, "Contexte automatique");
+                    for context in [
+                        crate::dto::LlmPromptContext::General,
+                        crate::dto::LlmPromptContext::Vulnerabilities,
+                        crate::dto::LlmPromptContext::Compliance,
+                        crate::dto::LlmPromptContext::Threats,
+                        crate::dto::LlmPromptContext::Network,
+                    ] {
+                        ui.selectable_value(
+                            &mut state.ai.prompt_context,
+                            Some(context),
+                            context.label_fr(),
+                        );
+                    }
+                });
+            ui.menu_button("Suggestions", |ui| {
+                for (label, prompt) in Self::prompt_presets(state.ai.work_mode) {
+                    if ui.button(*label).on_hover_text(*prompt).clicked() {
+                        state.ai.input_text = prompt.to_string();
+                        state.ai.pending_voice_send = false;
+                        focus_draft = true;
+                        ui.close_menu();
+                    }
+                }
+            });
+            ui.menu_button("Conversation", |ui| {
+                let has_messages = !state.ai.chat_history.is_empty();
+                if ui
+                    .add_enabled(has_messages, egui::Button::new("Copier la conversation"))
+                    .clicked()
+                {
+                    let text = state
+                        .ai
+                        .chat_history
+                        .iter()
+                        .map(|m| {
+                            format!(
+                                "{} · {}\n{}",
+                                m.role.label_fr(),
+                                m.timestamp.format("%H:%M"),
+                                m.content
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n\n");
+                    ui.ctx().copy_text(text);
+                    ui.close_menu();
+                }
+                if ui
+                    .add_enabled(
+                        has_messages && !state.ai.is_processing,
+                        egui::Button::new("Effacer l’historique…"),
+                    )
+                    .clicked()
+                {
+                    state.ai.confirm_clear_chat = true;
+                    ui.close_menu();
+                }
+            });
+        });
+        if state.ai.confirm_clear_chat {
+            widgets::card(ui, |ui| {
+                ui.label(
+                    "Effacer les messages de cette conversation ? Votre brouillon sera conservé.",
+                );
+                ui.horizontal(|ui| {
+                    if ui.button("Annuler").clicked() {
+                        state.ai.confirm_clear_chat = false;
+                    }
+                    if ui
+                        .add_enabled(
+                            !state.ai.is_processing,
+                            egui::Button::new("Effacer les messages"),
+                        )
+                        .clicked()
+                    {
+                        state.ai.chat_history.clear();
+                        state.ai.confirm_clear_chat = false;
+                    }
+                });
+            });
+        }
+        ui.add_space(theme::SPACE_SM);
+        // Lay out from the bottom so the composer keeps its measured height,
+        // including wrapped controls. Only the transcript consumes the remainder.
+        let height =
+            (ui.clip_rect().bottom() - ui.next_widget_position().y - theme::SPACE_SM).max(320.0);
+        let (workspace_rect, _) = ui.allocate_exact_size(
+            egui::vec2(ui.available_width(), height),
+            egui::Sense::hover(),
+        );
+        let mut workspace = ui.new_child(egui::UiBuilder::new().max_rect(workspace_rect));
+        workspace.set_clip_rect(workspace_rect.intersect(ui.clip_rect()));
+        egui::TopBottomPanel::bottom("assistant_composer").frame(egui::Frame::NONE).resizable(false).show_inside(&mut workspace, |ui| {
+        widgets::Card::new().padding(theme::SPACE_MD).show(ui, |ui| {
+            let chat = widgets::ChatInput::new(
+                &mut state.ai.input_text,
+                "Décrivez votre question, les faits et le résultat attendu…",
+            )
+            .multiline()
+            .height(72.0)
+            .processing(state.ai.is_processing)
+            .id_salt("assistant_prompt")
+            .show(ui);
+            draft_response = Some(chat.response);
+            let voice_send = state.ai.pending_voice_send && !state.ai.is_processing;
+            if chat.send || voice_send {
+                let prompt = state.ai.input_text.clone();
+                command = Self::submit_prompt(
+                    state,
+                    &prompt,
+                    voice_send || state.ai.voice_conversation_enabled,
+                );
+            }
+            ui.horizontal_wrapped(|ui| {
+                if ui
+                    .add_enabled_ui(!state.ai.is_processing || state.ai.is_listening, |ui| {
+                        ui.button(if state.ai.is_listening {
+                            "■ Terminer la dictée"
+                        } else {
+                            "Dicter"
+                        })
+                    })
+                    .inner
+                    .clicked()
+                {
+                    state.ai.is_listening = !state.ai.is_listening;
+                    state.ai.pending_voice_send = false;
+                    state.ai.voice_reply_pending = false;
+                    state.ai.voice_error = None;
                     command = Some(GuiCommand::SetVoiceListening {
                         enabled: state.ai.is_listening,
                     });
                 }
-
-                ui.add_space(theme::SPACE_XS);
-
-                let chat = widgets::ChatInput::new(
-                    &mut state.ai.input_text,
-                    "Posez une question de s\u{00e9}curit\u{00e9}…",
-                )
-                .processing(state.ai.is_processing)
-                .id_salt("assistant_prompt")
-                .show(ui);
-                let can_send = !state.ai.is_processing && !state.ai.input_text.trim().is_empty();
-                let send_requested = chat.send;
-
-                // Auto-send when a voice transcription has arrived
-                let voice_auto_send = state.ai.pending_voice_send && can_send;
-                if voice_auto_send {
-                    state.ai.pending_voice_send = false;
+                ui.label(if state.ai.is_listening {
+                    "Écoute en cours…"
+                } else if state.ai.is_speaking {
+                    "Lecture de la réponse…"
+                } else {
+                    ""
+                });
+                if state.ai.is_listening {
+                    ui.add(
+                        egui::ProgressBar::new(state.ai.mic_level.clamp(0.0, 1.0))
+                            .desired_width(90.0)
+                            .text("Micro"),
+                    );
                 }
-
-                if (send_requested || voice_auto_send) && can_send {
-                    let prompt = state.ai.input_text.trim().to_string();
-                    state.ai.chat_history.push(crate::dto::LlmChatMessage {
-                        role: ChatRole::User,
-                        content: prompt.clone(),
-                        timestamp: chrono::Utc::now(),
-                        processing_time_ms: None,
+                if state.ai.is_listening || state.ai.is_speaking || state.ai.voice_reply_pending {
+                    if ui
+                        .button(format!("{} Arrêter la voix", icons::STOP))
+                        .clicked()
+                    {
+                        Self::reset_voice_session(state);
+                        command = Some(GuiCommand::StopVoice);
+                    }
+                } else if let Some(message) = state
+                    .ai
+                    .chat_history
+                    .iter()
+                    .rev()
+                    .find(|m| m.role == ChatRole::Assistant)
+                {
+                    if ui
+                        .add_enabled(
+                            !state.ai.is_processing,
+                            egui::Button::new("Lire la dernière réponse"),
+                        )
+                        .clicked()
+                    {
+                        command = Some(GuiCommand::SpeakNotification {
+                            text: message.content.clone(),
+                        });
+                        state.ai.is_speaking = true;
+                        state.ai.voice_reply_pending = false;
+                    }
+                }
+            });
+            ui.horizontal_wrapped(|ui| {
+            ui.menu_button("Réglages vocaux", |ui| {
+                ui.set_max_width(360.0);
+                let toggle = ui.checkbox(&mut state.ai.voice_conversation_enabled, "Conversation continue : envoyer la dictée et lire la réponse");
+                if toggle.changed() && !state.ai.voice_conversation_enabled {
+                    state.ai.pending_voice_send = false;
+                    state.ai.voice_reply_pending = false;
+                }
+                ui.label(egui::RichText::new("En mode continu, le microphone se rouvre après la réponse. En dictée simple, le texte reste à relire avant envoi.").font(theme::font_small()).color(theme::text_secondary()));
+                if ui.checkbox(&mut state.ai.voice_alerts_enabled, "Lire les alertes de sécurité importantes").changed() && !state.ai.voice_alerts_enabled {
+                    state.ai.pending_voice_alerts.clear();
+                }
+                ui.label(egui::RichText::new("La dictée utilise le microphone et le modèle Whisper local. La lecture utilise la voix du système.").font(theme::font_small()).color(theme::text_secondary()));
+            });
+            ui.label(egui::RichText::new("Entrée : envoyer · Maj+Entrée : nouvelle ligne")
+                .font(theme::font_small()).color(theme::text_tertiary()));
+            if let Some(error) = &state.ai.voice_error {
+                ui.label(egui::RichText::new("Voix indisponible ⓘ").color(theme::readable_color(theme::ERROR)))
+                    .on_hover_text(format!("{}\nVous pouvez continuer par écrit.", error));
+            }
+            });
+        });
+            });
+        egui::CentralPanel::default().frame(egui::Frame::NONE).show_inside(&mut workspace, |ui| {
+            let chat_height = (ui.available_height() - theme::SPACE_MD).max(80.0);
+        egui::ScrollArea::vertical()
+            .id_salt("llm_chat_scroll")
+            .max_height(chat_height)
+            .auto_shrink([false, false])
+            .stick_to_bottom(!state.ai.chat_history.is_empty() || state.ai.is_processing)
+            .show(ui, |ui| {
+                if state.ai.chat_history.is_empty() && !state.ai.is_processing {
+                    ui.add_space(if chat_height < 280.0 { 4.0 } else { (chat_height * 0.16).min(64.0) });
+                    ui.vertical_centered(|ui| {
+                        ui.label(egui::RichText::new("Que souhaitez-vous analyser ?")
+                            .font(theme::font_heading()).color(theme::text_primary()));
+                        ui.add_space(theme::SPACE_SM);
+                        ui.label(egui::RichText::new("Explorez les signaux du poste et préparez vos prochaines décisions.")
+                            .color(theme::text_secondary()));
+                        ui.add_space(theme::SPACE_SM);
+                        for (label, prompt) in Self::prompt_presets(state.ai.work_mode) {
+                            if ui.add_sized([300.0_f32.min(ui.available_width()), 32.0], egui::Button::new(*label)).on_hover_text(*prompt).clicked() {
+                                state.ai.input_text = prompt.to_string();
+                                state.ai.pending_voice_send = false;
+                                focus_draft = true;
+                            }
+                        }
                     });
-                    state.ai.input_text.clear();
-                    state.ai.is_processing = true;
-                    let prompt_context = Self::infer_prompt_context(&prompt);
-                    command = Some(GuiCommand::LlmPrompt {
-                        prompt: Self::grounded_prompt(state, &prompt),
-                        context: Some(prompt_context),
-                        speak_response: voice_auto_send || state.ai.voice_conversation_enabled,
-                    });
-                    state.ai.voice_reply_pending = state.ai.voice_conversation_enabled;
+                } else {
+                    for (index, message) in state.ai.chat_history.iter().enumerate() {
+                        ui.push_id(index, |ui| Self::render_chat_message(ui, message));
+                        ui.add_space(theme::SPACE_MD);
+                    }
+                    if state.ai.is_processing {
+                        Self::render_processing_indicator(ui);
+                    }
                 }
             });
         });
-
+        if focus_draft && let Some(response) = draft_response {
+            response.request_focus();
+        }
         command
+    }
+
+    fn prompt_presets(mode: usize) -> &'static [(&'static str, &'static str)] {
+        match mode {
+            1 => &[
+                (
+                    "Synthèse des risques",
+                    "Prépare une synthèse des risques pour la direction : faits, impacts métier, incertitudes et décisions attendues.",
+                ),
+                (
+                    "Preuves de conformité",
+                    "Résume les contrôles en échec, les preuves disponibles et les preuves manquantes pour un audit de conformité.",
+                ),
+                (
+                    "Plan de traitement",
+                    "Propose un plan de traitement priorisé : risque, action, responsable à désigner, échéance proposée et preuve de clôture.",
+                ),
+            ],
+            2 => &[
+                (
+                    "Santé du poste",
+                    "Analyse la santé de ce poste : ressources, inventaire et signaux de sécurité. Distingue problèmes observés et informations manquantes.",
+                ),
+                (
+                    "Plan de correctifs",
+                    "Priorise les correctifs de vulnérabilités. Indique prérequis, impact attendu, vérification et retour arrière à prévoir.",
+                ),
+                (
+                    "Compte rendu client",
+                    "Prépare un compte rendu d'exploitation : état observé, incidents, actions recommandées et points à confirmer. N'invente aucune action réalisée.",
+                ),
+            ],
+            _ => &[
+                (
+                    "Triage des alertes",
+                    "Priorise les alertes et menaces observées. Cite les preuves, indique les hypothèses et propose les prochaines vérifications.",
+                ),
+                (
+                    "Exposition aux CVE",
+                    "Résume les vulnérabilités détectées, leur exposition et les correctifs prioritaires. Signale les données manquantes.",
+                ),
+                (
+                    "Plan d’investigation",
+                    "Prépare un plan d'investigation des signaux suspects : faits, hypothèses, preuves à collecter et critères pour confirmer ou écarter la menace.",
+                ),
+            ],
+        }
+    }
+
+    pub(crate) fn reset_voice_session(state: &mut AppState) {
+        state.ai.voice_conversation_enabled = false;
+        state.ai.pending_voice_send = false;
+        state.ai.voice_reply_pending = false;
+        state.ai.is_listening = false;
+        state.ai.is_speaking = false;
+        state.ai.mic_level = 0.0;
+    }
+
+    /// One submission path for the page and the floating assistant.
+    pub(crate) fn submit_prompt(
+        state: &mut AppState,
+        question: &str,
+        speak_response: bool,
+    ) -> Option<GuiCommand> {
+        let question = question.trim();
+        if state.ai.is_processing || question.is_empty() {
+            return None;
+        }
+        let context = state
+            .ai
+            .prompt_context
+            .unwrap_or_else(|| Self::infer_prompt_context(question));
+        state.ai.chat_history.push(crate::dto::LlmChatMessage {
+            role: ChatRole::User,
+            content: question.to_string(),
+            timestamp: chrono::Utc::now(),
+            processing_time_ms: None,
+        });
+        let prompt = Self::grounded_prompt(state, question);
+        state.ai.input_text.clear();
+        state.ai.pending_voice_send = false;
+        state.ai.is_processing = true;
+        state.ai.voice_reply_pending = speak_response && state.ai.voice_conversation_enabled;
+        Some(GuiCommand::LlmPrompt {
+            prompt,
+            context: Some(context),
+            speak_response,
+        })
     }
 
     fn infer_prompt_context(question: &str) -> crate::dto::LlmPromptContext {
@@ -358,9 +489,12 @@ impl LLMPanel {
             .any(|keyword| normalized.contains(keyword))
         {
             LlmPromptContext::Vulnerabilities
-        } else if ["réseau", "reseau", "ip", "port", "connexion", "dns"]
+        } else if ["réseau", "reseau", "connexion"]
             .iter()
             .any(|keyword| normalized.contains(keyword))
+            || normalized
+                .split(|c: char| !c.is_alphanumeric())
+                .any(|word| matches!(word, "ip" | "port" | "ports" | "dns"))
         {
             LlmPromptContext::Network
         } else if ["menace", "incident", "processus", "alerte", "ioc"]
@@ -524,13 +658,17 @@ impl LLMPanel {
             .count();
 
         format!(
-            "QUESTION OPÉRATEUR:\n{question}\n\nCONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):\n- Mode: {}\n- Score de conformité: {:.1}%\n- Contrôles: {} total, {} en échec/erreur\n- Vulnérabilités: {}\n- Menaces: {} processus suspects, {} incidents système, {} alertes réseau, {} alertes FIM\n- Ressources: CPU {:.0}%, mémoire {:.0}%, disque {:.0}%\n- Contrôles prioritaires: {}\n- Vulnérabilités prioritaires: {}\n- Signaux de menace: {}\n\nCONVERSATION RÉCENTE:\n{}\n\nRéponds en français, précisément et de façon actionnable. Distingue faits observés, inférences et données manquantes. Cite les identifiants présents dans ce contexte et n'affirme jamais avoir observé une donnée absente.",
+            "QUESTION OPÉRATEUR:\n{question}\n\nCONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):\n- Mode: {}\n- Score de conformité: {}\n- Contrôles: {} total, {} en échec/erreur\n- Vulnérabilités: {}\n- Menaces: {} processus suspects, {} incidents système, {} alertes réseau, {} alertes FIM\n- Ressources: CPU {:.0}%, mémoire {:.0}%, disque {:.0}%\n- Contrôles prioritaires: {}\n- Vulnérabilités prioritaires: {}\n- Signaux de menace: {}\n\nCONVERSATION RÉCENTE:\n{}\n\nRéponds en français, précisément et de façon actionnable. Distingue faits observés, inférences et données manquantes. Cite les identifiants présents dans ce contexte et n'affirme jamais avoir observé une donnée absente.",
             if state.summary.standalone {
                 "autonome"
             } else {
                 "connecté"
             },
-            state.summary.compliance_score.unwrap_or(0.0),
+            state
+                .summary
+                .compliance_score
+                .map(|s| format!("{s:.1}%"))
+                .unwrap_or_else(|| "non mesuré".into()),
             state.checks.len(),
             failed_count,
             state.vulnerability_findings.len(),
@@ -638,18 +776,19 @@ impl LLMPanel {
                     .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.vertical(|ui| {
+                            ui.set_max_width((max_bubble_width - theme::SPACE_MD * 2.0).max(80.0));
                             // Role badge & Time
                             ui.horizontal(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(role_icon)
                                         .size(theme::ICON_SM)
-                                        .color(role_color),
+                                        .color(theme::readable_color(role_color)),
                                 );
                                 ui.add_space(theme::SPACE_XS);
                                 ui.label(
                                     egui::RichText::new(msg.role.label_fr())
                                         .font(theme::font_label())
-                                        .color(role_color)
+                                        .color(theme::readable_color(role_color))
                                         .strong(),
                                 );
 
@@ -669,12 +808,33 @@ impl LLMPanel {
 
                             ui.add_space(theme::SPACE_XS);
 
-                            // Content with explicit wrapping
-                            ui.label(
-                                egui::RichText::new(&msg.content)
-                                    .font(theme::font_body())
-                                    .color(text_color),
+                            ui.add(
+                                egui::Label::new(
+                                    egui::RichText::new(&msg.content)
+                                        .font(theme::font_body())
+                                        .color(text_color),
+                                )
+                                .wrap()
+                                .selectable(true),
                             );
+                            ui.horizontal_wrapped(|ui| {
+                                if ui
+                                    .add(
+                                        egui::Button::new("Copier")
+                                            .min_size(egui::vec2(60.0, 24.0)),
+                                    )
+                                    .clicked()
+                                {
+                                    ui.ctx().copy_text(msg.content.clone());
+                                }
+                                if let Some(ms) = msg.processing_time_ms {
+                                    ui.label(
+                                        egui::RichText::new(format!("{:.1} s", ms as f64 / 1000.0))
+                                            .font(theme::font_small())
+                                            .color(theme::text_tertiary()),
+                                    );
+                                }
+                            });
                         });
                     });
             });
@@ -704,13 +864,13 @@ impl LLMPanel {
                                         ui.label(
                                             egui::RichText::new(icons::ROBOT)
                                                 .size(theme::ICON_SM)
-                                                .color(theme::SUCCESS),
+                                                .color(theme::readable_color(theme::SUCCESS)),
                                         );
                                         ui.add_space(theme::SPACE_XS);
                                         ui.label(
                                             egui::RichText::new("IA")
                                                 .font(theme::font_label())
-                                                .color(theme::SUCCESS)
+                                                .color(theme::readable_color(theme::SUCCESS))
                                                 .strong(),
                                         );
                                     });
@@ -739,6 +899,8 @@ impl LLMPanel {
 
     fn show_recommendations_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
+
+        ui.label(egui::RichText::new("Priorisation par règles à partir des données locales ; aucune inférence du modèle dans cette liste.").font(theme::font_small()).color(theme::text_secondary()));
 
         // Build recommendations from AppState and cache count for badge
         let recommendations = Self::build_recommendations(state);
@@ -954,6 +1116,16 @@ impl LLMPanel {
     fn show_model_status_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
 
+        ui.horizontal_wrapped(|ui| {
+            if ui.button(format!("{} Actualiser l’état", icons::REFRESH)).clicked() {
+                command = Some(GuiCommand::LlmGetStatus);
+            }
+            if state.ai.is_processing {
+                ui.label("Un échange est en cours. Le changement de modèle sera disponible après la réponse.");
+            }
+        });
+        ui.add_space(theme::SPACE_SM);
+
         // ── Download in progress / paused / failed ──────────────────────
         let download_phase = state.ai.download.phase;
         let show_download_ui = matches!(
@@ -995,7 +1167,7 @@ impl LLMPanel {
                 };
 
                 let t = ui.input(|i| i.time);
-                let pulse = if is_ready {
+                let pulse = if is_ready && !theme::is_reduced_motion() {
                     (t * 3.0).sin().abs() as f32 * 0.3 + 0.7
                 } else {
                     1.0
@@ -1086,7 +1258,10 @@ impl LLMPanel {
                                 theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
                             ));
 
-                            if ui.add(reload_btn).clicked() {
+                            if ui
+                                .add_enabled(!state.ai.is_processing, reload_btn)
+                                .clicked()
+                            {
                                 command = Some(GuiCommand::LlmReloadModel);
                             }
                         },
@@ -1104,7 +1279,13 @@ impl LLMPanel {
                         )
                         .fill(theme::ACCENT)
                         .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8));
-                        if ui.add(load_btn).clicked() {
+                        if ui
+                            .add_enabled(
+                                !state.ai.is_processing && model_status_str != "loading",
+                                load_btn,
+                            )
+                            .clicked()
+                        {
                             command = Some(GuiCommand::LlmReloadModel);
                         }
                     }
@@ -1114,294 +1295,100 @@ impl LLMPanel {
 
         ui.add_space(theme::SPACE_LG);
 
-        // ── Model Catalogue ──────────────────────────────────────────────
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("CATALOGUE DES MODÈLES")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-                ui.with_layout(
-                    egui::Layout::right_to_left(egui::Align::Center),
-                    |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("Sélectionnez un modèle à télécharger ou activer")
-                                .font(theme::font_small())
-                                .color(theme::text_tertiary()),
-                        );
-                    },
-                );
+        // Read the same registry used by the engine; no independently branded catalogue.
+        #[cfg(feature = "llm")]
+        widgets::card(ui, |ui| {
+            ui.label(
+                egui::RichText::new("Choisir un modèle local")
+                    .font(theme::font_heading())
+                    .color(theme::text_primary()),
+            );
+            ui.label(egui::RichText::new("Les tailles correspondent aux fichiers Q4_K_M. La mémoire nécessaire dépend aussi du contexte et du moteur.").font(theme::font_small()).color(theme::text_secondary()));
+            ui.add(
+                egui::TextEdit::singleline(&mut state.ai.model_search)
+                    .hint_text("Rechercher un modèle ou un usage…")
+                    .desired_width(ui.available_width()),
+            );
+            let mut models: Vec<_> = agent_llm::models::ModelRegistry::get_recommended_models()
+                .into_iter()
+                .filter(|(key, info)| info.download_url.is_some() && key != "kimi-k2-coder")
+                .collect();
+            models.sort_by(|a, b| {
+                a.1.file_size_gb
+                    .total_cmp(&b.1.file_size_gb)
+                    .then_with(|| a.0.cmp(&b.0))
             });
-
-            ui.add_space(theme::SPACE_MD);
-
-            // Model catalogue (static — mirrors ModelRegistry)
-            #[allow(clippy::type_complexity)]
-            let catalogue: &[(&str, &str, &str, f32, u32, &str, Option<&str>)] = &[
-                (
-                    "kimi-k2",
-                    "Kimi K2 Sovereign",
-                    "Modèle souverain agentique — Contexte 200k, raisonnement autonome et orchestration cyber.",
-                    5.6,
-                    8,
-                    "SOUVERAIN / RECOMMANDÉ",
-                    Some(
-                        "https://huggingface.co/bartowski/Kimi-k1.5-chat-GGUF/resolve/main/Kimi-k1.5-chat-Q4_K_M.gguf",
-                    ),
-                ),
-                (
-                    "kimi-k2-thinking",
-                    "Kimi K2 Deep Reasoner",
-                    "Raisonnement approfondi (Chain-of-Thought) pour triage d'incidents complexes et zero-day. Contexte 128k.",
-                    5.9,
-                    8,
-                    "RAISONNEMENT AVANCÉ",
-                    Some(
-                        "https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-14B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-14B-Q4_K_M.gguf",
-                    ),
-                ),
-                (
-                    "kimi-k2-coder",
-                    "Kimi K2 Autonomous Operator",
-                    "Génération et exécution de playbooks de remédiation, confinement et durcissement. Contexte 65k.",
-                    4.8,
-                    6,
-                    "AGENTIQUE & PLAYBOOKS",
-                    Some(
-                        "https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf",
-                    ),
-                ),
-                (
-                    "llama-4-8b",
-                    "Llama 4 8B Instruct",
-                    "Modèle polyvalent — analyse, remédiation, classification. Contexte 128k.",
-                    5.2,
-                    8,
-                    "POLYVALENT",
-                    Some(
-                        "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",
-                    ),
-                ),
-                (
-                    "qwen3-coder-7b",
-                    "Qwen3-Coder 7B",
-                    "Spécialisé analyse de code et audit de sécurité. Contexte 32k.",
-                    4.7,
-                    6,
-                    "CODE & AUDIT",
-                    Some(
-                        "https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf",
-                    ),
-                ),
-                (
-                    "deepseek-r1-8b",
-                    "DeepSeek-R1 Distill 8B",
-                    "Raisonnement avancé pour les scénarios de sécurité complexes. Contexte 65k.",
-                    5.8,
-                    8,
-                    "RAISONNEMENT",
-                    Some(
-                        "https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf",
-                    ),
-                ),
-                (
-                    "gemma-3-4b",
-                    "Gemma 3 4B",
-                    "Modèle léger pour classification et résumé. Idéal pour les machines avec peu de RAM.",
-                    2.8,
-                    4,
-                    "LÉGER",
-                    Some(
-                        "https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf",
-                    ),
-                ),
-            ];
-
-            let badge_colors: &[egui::Color32] =
-                &[theme::ACCENT, theme::INFO, theme::WARNING, theme::SUCCESS];
-
-            egui::ScrollArea::vertical()
-                .id_salt("model_catalogue_scroll")
-                .max_height(760.0)
-                .show(ui, |ui| {
-                    for (i, (key, name, desc, size_gb, vram_min, badge, dl_url)) in
-                        catalogue.iter().enumerate()
-                    {
-                        let is_active = model_name_str.to_lowercase().contains(key)
-                            || model_name_str
-                                .to_lowercase()
-                                .contains(&key.replace('-', " "));
-                        let badge_color = badge_colors[i % badge_colors.len()];
-
-                        let border_color = if is_active {
-                            theme::ACCENT
-                        } else {
-                            theme::border()
-                        };
-                        let bg_color = if is_active {
-                            theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE)
-                        } else {
-                            theme::bg_elevated()
-                        };
-
-                        egui::Frame::new()
-                            .fill(bg_color)
-                            .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
-                            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-                            .stroke(egui::Stroke::new(
-                                if is_active {
-                                    theme::BORDER_THIN * 2.0
-                                } else {
-                                    theme::BORDER_HAIRLINE
-                                },
-                                border_color,
-                            ))
-                            .show(ui, |ui: &mut egui::Ui| {
-                                ui.horizontal(|ui: &mut egui::Ui| {
-                                    // Model icon
-                                    ui.label(
-                                        egui::RichText::new(icons::MICROCHIP)
-                                            .size(theme::ICON_MD)
-                                            .color(if is_active {
-                                                theme::ACCENT
-                                            } else {
-                                                theme::text_tertiary()
-                                            }),
-                                    );
-                                    ui.add_space(theme::SPACE_SM);
-
-                                    ui.vertical(|ui: &mut egui::Ui| {
-                                        // Name + badge
-                                        ui.horizontal(|ui: &mut egui::Ui| {
-                                            ui.label(
-                                                egui::RichText::new(*name)
-                                                    .font(theme::font_body())
-                                                    .color(theme::text_primary())
-                                                    .strong(),
-                                            );
-                                            ui.add_space(theme::SPACE_XS);
-                                            widgets::status_badge(ui, badge, badge_color);
-                                            if is_active {
-                                                ui.add_space(theme::SPACE_XS);
-                                                widgets::status_badge(ui, "ACTIF", theme::SUCCESS);
-                                            }
-                                        });
-
-                                        ui.add_space(2.0);
-                                        ui.label(
-                                            egui::RichText::new(*desc)
-                                                .font(theme::font_small())
-                                                .color(theme::text_secondary()),
-                                        );
-
-                                        ui.add_space(theme::SPACE_SM);
-                                        ui.horizontal(|ui: &mut egui::Ui| {
-                                            let meta_color = theme::text_tertiary();
-                                            ui.label(
-                                                egui::RichText::new(icons::DATABASE)
-                                                    .size(theme::ICON_XS)
-                                                    .color(meta_color),
-                                            );
-                                            ui.label(
-                                                egui::RichText::new(format!(
-                                                    "{} Go",
-                                                    crate::format::decimal(*size_gb, 1)
-                                                ))
-                                                .font(theme::font_min())
-                                                .color(meta_color),
-                                            );
-                                            ui.add_space(theme::SPACE_SM);
-                                            ui.label(
-                                                egui::RichText::new(icons::MEMORY)
-                                                    .size(theme::ICON_XS)
-                                                    .color(meta_color),
-                                            );
-                                            ui.label(
-                                                egui::RichText::new(format!(
-                                                    "{}+ Go VRAM",
-                                                    vram_min
-                                                ))
-                                                .font(theme::font_min())
-                                                .color(meta_color),
-                                            );
-                                        });
-                                    });
-
-                                    ui.with_layout(
-                                        egui::Layout::right_to_left(egui::Align::Center),
-                                        |ui: &mut egui::Ui| {
-                                            if is_active {
-                                                // Already active — show reload button
-                                                let btn = egui::Button::new(
-                                                    egui::RichText::new(format!(
-                                                        "{} Recharger",
-                                                        icons::REFRESH
-                                                    ))
-                                                    .font(theme::font_small())
-                                                    .color(theme::accent_text()),
-                                                )
-                                                .fill(
-                                                    theme::ACCENT
-                                                        .linear_multiply(theme::OPACITY_SUBTLE),
-                                                )
-                                                .corner_radius(egui::CornerRadius::same(
-                                                    theme::SPACE_SM as u8,
-                                                ))
-                                                .stroke(egui::Stroke::new(
-                                                    theme::BORDER_THIN,
-                                                    theme::ACCENT
-                                                        .linear_multiply(theme::OPACITY_MUTED),
-                                                ));
-                                                if ui.add(btn).clicked() {
-                                                    command = Some(GuiCommand::LlmReloadModel);
-                                                }
-                                            } else {
-                                                // Select / download button
-                                                let btn_label = if dl_url.is_some() {
-                                                    format!("{} Sélectionner", icons::DOWNLOAD)
-                                                } else {
-                                                    format!("{} Activer", icons::PLAY)
-                                                };
-                                                let btn = egui::Button::new(
-                                                    egui::RichText::new(&btn_label)
-                                                        .font(theme::font_small())
-                                                        .color(theme::text_on_accent()),
-                                                )
-                                                .fill(theme::ACCENT)
-                                                .corner_radius(egui::CornerRadius::same(
-                                                    theme::SPACE_SM as u8,
-                                                ));
-
-                                                if ui.add(btn).clicked() {
-                                                    // Initiate download + selection
-                                                    state.ai.download.phase =
-                                                        crate::dto::DownloadPhase::Downloading;
-                                                    state.ai.download.progress_percent = 0;
-                                                    state.ai.download.downloaded_bytes = 0;
-                                                    state.ai.download.model_name = name.to_string();
-                                                    command = Some(GuiCommand::LlmSelectModel {
-                                                        model_key: key.to_string(),
-                                                        model_name: name.to_string(),
-                                                        download_url: dl_url.map(|s| s.to_string()),
-                                                        gguf_filename: Some(format!(
-                                                            "{}.Q4_K_M.gguf",
-                                                            key
-                                                        )),
-                                                    });
-                                                }
-                                            }
-                                        },
-                                    );
-                                });
+            let search = state.ai.model_search.to_lowercase();
+            let mut visible = 0;
+            for (key, model) in models {
+                if !search.is_empty()
+                    && !format!("{} {}", model.name, model.description)
+                        .to_lowercase()
+                        .contains(&search)
+                {
+                    continue;
+                }
+                visible += 1;
+                ui.push_id(&key, |ui| {
+                    ui.add_space(theme::SPACE_MD);
+                    ui.separator();
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label(
+                            egui::RichText::new(&model.name)
+                                .font(theme::font_body_strong())
+                                .color(theme::text_primary()),
+                        );
+                        ui.label(
+                            egui::RichText::new(format!("≈ {:.2} Go", model.file_size_gb))
+                                .color(theme::text_secondary()),
+                        );
+                        if model_name_str == key || model_name_str.eq_ignore_ascii_case(&model.name)
+                        {
+                            widgets::status_badge(
+                                ui,
+                                if is_ready { "ACTIF" } else { "CONFIGURÉ" },
+                                theme::ACCENT,
+                            );
+                        }
+                    });
+                    ui.label(
+                        egui::RichText::new(&model.description).color(theme::text_secondary()),
+                    );
+                    ui.horizontal_wrapped(|ui| {
+                        if let Some(url) = &model.download_url {
+                            if let Some((repository, _)) = url.split_once("/resolve/") {
+                                ui.hyperlink_to("Source et licence", repository);
+                            }
+                        }
+                        let can_select = !state.ai.is_processing && model_status_str != "loading";
+                        if ui
+                            .add_enabled(can_select, egui::Button::new("Télécharger / activer"))
+                            .on_hover_text(
+                                "Télécharge le fichier si nécessaire puis charge ce modèle local.",
+                            )
+                            .clicked()
+                        {
+                            state.ai.download = crate::dto::LlmDownloadState {
+                                phase: crate::dto::DownloadPhase::Downloading,
+                                model_name: model.name.clone(),
+                                ..Default::default()
+                            };
+                            command = Some(GuiCommand::LlmSelectModel {
+                                model_key: key.clone(),
+                                model_name: model.name.clone(),
+                                download_url: model.download_url.clone(),
+                                gguf_filename: model.gguf_filename.clone(),
                             });
-
-                        ui.add_space(theme::SPACE_SM);
-                    }
+                        }
+                    });
                 });
+            }
+            if visible == 0 {
+                ui.label("Aucun modèle ne correspond à cette recherche.");
+            }
         });
+        #[cfg(not(feature = "llm"))]
+        ui.label("Le catalogue nécessite une version compilée avec le module IA.");
 
         command
     }
@@ -2380,6 +2367,117 @@ fn format_category(category: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn assistant_composer_stays_visible_below_transcript() {
+        for size in [egui::vec2(960.0, 640.0), egui::vec2(1360.0, 820.0)] {
+            for scenario in 0..4 {
+                let ctx = egui::Context::default();
+                theme::configure_fonts(&ctx);
+                theme::apply_theme(&ctx, scenario % 2 == 0);
+                let mut state = AppState::default();
+                state.ai.is_listening = scenario == 2;
+                state.ai.voice_error = (scenario == 3).then(|| "Microphone indisponible".into());
+                if scenario != 0 {
+                    state.ai.chat_history.push(crate::dto::LlmChatMessage {
+                        role: ChatRole::Assistant,
+                        content: "Réponse longue à consulter. ".repeat(200),
+                        timestamp: chrono::Utc::now(),
+                        processing_time_ms: None,
+                    });
+                }
+                for frame in 0..3 {
+                    let output = ctx.run(
+                        egui::RawInput {
+                            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, size)),
+                            ..Default::default()
+                        },
+                        |ctx| {
+                            egui::TopBottomPanel::top("header")
+                                .exact_height(56.0)
+                                .show(ctx, |_| {});
+                            egui::SidePanel::left("sidebar")
+                                .exact_width(if size.x < 1000.0 { 64.0 } else { 244.0 })
+                                .show(ctx, |_| {});
+                            egui::CentralPanel::default().show(ctx, |ui| {
+                                egui::ScrollArea::vertical().show(ui, |ui| {
+                                    crate::app::page_column(ui, |ui| {
+                                        LLMPanel.show(ui, &mut state);
+                                    });
+                                });
+                            });
+                        },
+                    );
+                    if frame < 2 {
+                        continue;
+                    }
+                    for label in [
+                        if scenario == 2 {
+                            "■ Terminer la dictée"
+                        } else {
+                            "Dicter"
+                        },
+                        "Réglages vocaux",
+                        "Décrivez votre question, les faits et le résultat attendu…",
+                    ] {
+                        let painted = output
+                            .shapes
+                            .iter()
+                            .find_map(|shape| {
+                                if let egui::epaint::Shape::Text(text) = &shape.shape {
+                                    if text.galley.text() == label {
+                                        return Some((
+                                            text.galley.rect.translate(text.pos.to_vec2()),
+                                            shape.clip_rect,
+                                        ));
+                                    }
+                                }
+                                None
+                            })
+                            .unwrap_or_else(|| panic!("Missing {label}"));
+                        assert!(
+                            painted.1.expand(1.0).contains_rect(painted.0),
+                            "{label} clipped at {size:?}: {painted:?}"
+                        );
+                        assert!(painted.0.bottom() < size.y, "{label} below viewport");
+                        assert!(
+                            painted.0.top() > size.y * 0.5,
+                            "{label} overlaps navigation"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn submissions_share_grounding_respect_context_and_never_duplicate_while_busy() {
+        let mut state = AppState::default();
+        state.ai.prompt_context = Some(crate::dto::LlmPromptContext::Compliance);
+        let command =
+            LLMPanel::submit_prompt(&mut state, "Fais un rapport pour mon équipe", false).unwrap();
+        let GuiCommand::LlmPrompt {
+            prompt,
+            context,
+            speak_response,
+        } = command
+        else {
+            panic!("wrong command");
+        };
+        assert_eq!(context, Some(crate::dto::LlmPromptContext::Compliance));
+        assert!(prompt.contains("Score de conformité: non mesuré"));
+        assert!(!speak_response);
+        assert!(LLMPanel::submit_prompt(&mut state, "Encore", false).is_none());
+        assert_eq!(state.ai.chat_history.len(), 1);
+        assert_eq!(
+            LLMPanel::infer_prompt_context("rapport pour mon équipe"),
+            crate::dto::LlmPromptContext::General
+        );
+        assert_eq!(
+            LLMPanel::infer_prompt_context("Inspecter le port 443"),
+            crate::dto::LlmPromptContext::Network
+        );
+    }
 
     #[test]
     fn test_llm_panel_creation() {

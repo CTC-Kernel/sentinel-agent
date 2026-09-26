@@ -136,6 +136,8 @@ impl GuiPreferences {
 
 /// Network interfaces, connections, and alert data.
 pub struct NetworkState {
+    /// Selected workspace section; independent of backend configuration.
+    pub active_section: usize,
     pub interface_count: u32,
     pub connection_count: u32,
     pub alert_count: u32,
@@ -156,6 +158,7 @@ pub struct NetworkState {
 impl Default for NetworkState {
     fn default() -> Self {
         Self {
+            active_section: 0,
             interface_count: 0,
             connection_count: 0,
             alert_count: 0,
@@ -600,6 +603,12 @@ pub struct AiState {
     pub chat_history: Vec<crate::dto::LlmChatMessage>,
     /// Current input text in the chat input field.
     pub input_text: String,
+    /// Conversation presets: SOC, RSSI/GRC, MSP/IT. This does not change permissions.
+    pub work_mode: usize,
+    pub prompt_context: Option<crate::dto::LlmPromptContext>,
+    pub confirm_clear_chat: bool,
+    pub model_search: String,
+    pub voice_error: Option<String>,
     /// Whether the LLM is currently processing a prompt.
     pub is_processing: bool,
     /// Current model status.
@@ -781,6 +790,8 @@ pub struct SoftwareState {
 
 /// Agent configuration / settings state.
 pub struct SettingsState {
+    /// Selected workspace section; independent of backend configuration.
+    pub active_section: usize,
     pub is_paused: bool,
     pub server_url: String,
     pub architecture_url: String,
@@ -812,6 +823,7 @@ pub struct SettingsState {
 impl Default for SettingsState {
     fn default() -> Self {
         Self {
+            active_section: 0,
             is_paused: false,
             server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
             architecture_url: format!("{}/voxel", crate::pages::about::branding::CONSOLE),
@@ -1318,21 +1330,28 @@ impl AppState {
                     self.kpi.snapshots.pop_front();
                 }
             }
+            AgentEvent::VoiceError { message } => {
+                self.ai.voice_error = Some(message);
+                self.ai.is_listening = false;
+                self.ai.is_speaking = false;
+                self.ai.pending_voice_send = false;
+                self.ai.voice_reply_pending = false;
+                self.ai.voice_conversation_enabled = false;
+                self.ai.mic_level = 0.0;
+                self.voice_active = false;
+            }
             AgentEvent::VoiceTranscription { text } => {
-                // The voice backend surfaces engine failures through the same event
-                // as a real transcription. Don't feed those strings back into the LLM
-                // — route them to the chat history as a system notice instead.
-                if text.starts_with("(Erreur") || text.starts_with("(Moteur vocal") {
-                    self.ai.chat_history.push(crate::dto::LlmChatMessage {
-                        role: crate::dto::ChatRole::System,
-                        content: text,
-                        timestamp: chrono::Utc::now(),
-                        processing_time_ms: None,
-                    });
-                } else {
-                    self.ai.input_text = text;
-                    // Auto-trigger the prompt so the user doesn't need to click "Send"
-                    self.ai.pending_voice_send = true;
+                let text = text.trim();
+                if !text.is_empty() {
+                    let had_draft = !self.ai.input_text.trim().is_empty();
+                    if had_draft {
+                        self.ai.input_text.push(' ');
+                    }
+                    self.ai.input_text.push_str(text);
+                    // Dictation stays editable. Never auto-submit a pre-existing draft.
+                    self.ai.pending_voice_send =
+                        self.ai.voice_conversation_enabled && !had_draft && !self.ai.is_processing;
+                    self.ai.voice_error = None;
                 }
             }
 
@@ -1497,6 +1516,9 @@ impl AppState {
                 // backend lifecycle so the indicator falls back to idle when the
                 // capture loop finishes (e.g. silence timeout).
                 self.ai.is_listening = active;
+                if active {
+                    self.ai.is_speaking = false;
+                }
                 if !active {
                     self.ai.mic_level = 0.0;
                 }
@@ -1871,5 +1893,58 @@ impl AppState {
 
         self.policy = summary;
         self.summary.policy_summary = Some(summary);
+    }
+}
+
+#[cfg(test)]
+mod voice_workflow_tests {
+    use crate::{app::AppState, events::AgentEvent};
+    #[test]
+    fn dictation_preserves_draft_and_requires_review() {
+        let mut state = AppState::default();
+        state.ai.input_text = "Analyse".into();
+        state.apply_event(AgentEvent::VoiceTranscription {
+            text: " les alertes ".into(),
+        });
+        assert_eq!(state.ai.input_text, "Analyse les alertes");
+        assert!(!state.ai.pending_voice_send);
+    }
+    #[test]
+    fn continuous_voice_only_submits_an_idle_empty_draft() {
+        let mut state = AppState::default();
+        state.ai.voice_conversation_enabled = true;
+        state.apply_event(AgentEvent::VoiceTranscription {
+            text: "Analyse les alertes".into(),
+        });
+        assert!(state.ai.pending_voice_send);
+        state.apply_event(AgentEvent::VoiceTranscription {
+            text: "et les risques".into(),
+        });
+        assert!(!state.ai.pending_voice_send);
+        state.ai.input_text.clear();
+        state.ai.is_processing = true;
+        state.apply_event(AgentEvent::VoiceTranscription {
+            text: "Question suivante".into(),
+        });
+        assert!(!state.ai.pending_voice_send);
+    }
+    #[test]
+    fn voice_failure_preserves_draft_and_cancels_automatic_restart() {
+        let mut state = AppState::default();
+        state.ai.input_text = "Brouillon".into();
+        state.ai.voice_conversation_enabled = true;
+        state.ai.voice_reply_pending = true;
+        state.ai.pending_voice_send = true;
+        state.apply_event(AgentEvent::VoiceError {
+            message: "Microphone indisponible".into(),
+        });
+        assert_eq!(state.ai.input_text, "Brouillon");
+        assert!(state.ai.chat_history.is_empty());
+        assert!(
+            !state.ai.pending_voice_send
+                && !state.ai.voice_reply_pending
+                && !state.ai.voice_conversation_enabled
+        );
+        assert!(state.ai.voice_error.is_some());
     }
 }

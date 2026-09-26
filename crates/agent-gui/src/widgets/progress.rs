@@ -93,7 +93,7 @@ pub fn progress_bar_styled(
             // No sweeping highlight: a determinate bar is a measurement, and
             // a glint travelling along it reads as activity that is not
             // happening. Motion belongs to the indeterminate bar below.
-            painter.rect_filled(fill_rect, rounding, fill_color);
+            painter.rect_filled(fill_rect, rounding, theme::chart_color(fill_color));
             if fill_width > height {
                 let cap = egui::pos2(fill_rect.right() - height / 2.0, fill_rect.center().y);
                 painter.circle_filled(

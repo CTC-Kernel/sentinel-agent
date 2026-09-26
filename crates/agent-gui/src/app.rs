@@ -36,7 +36,7 @@ pub enum AsyncTaskResult {
 // ============================================================================
 
 /// Application pages.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Page {
     Dashboard,
     Monitoring,
@@ -334,6 +334,13 @@ const SCROLLBAR_GUTTER: f32 = 10.0;
 /// Past the bound the content centres instead of stretching, because a
 /// 3000px-wide table row is unreadable however premium it looks. The preview
 /// harness calls this too, so a capture measures what the shell shows.
+/// Keep each module's reading position separate when navigating the sidebar.
+pub fn page_scroll_area(page: &Page) -> egui::ScrollArea {
+    egui::ScrollArea::vertical()
+        .id_salt(("page_body", page))
+        .auto_shrink(egui::Vec2b::new(false, false))
+}
+
 pub fn page_column(ui: &mut egui::Ui, body: impl FnOnce(&mut egui::Ui)) {
     let gutter = theme::SPACE_LG;
     let full = ui.available_width();
@@ -646,7 +653,11 @@ impl SentinelApp {
         // Commands are sent after releasing the event receiver lock: voice
         // callbacks can emit new GUI events immediately and must never contend
         // with the drain loop above.
-        if resume_conversation && !self.state.ai.is_listening {
+        if resume_conversation
+            && self.state.ai.voice_conversation_enabled
+            && !self.state.ai.is_processing
+            && !self.state.ai.is_listening
+        {
             self.state.ai.is_listening = true;
             self.send_command(GuiCommand::SetVoiceListening { enabled: true });
         } else if self.state.ai.voice_alerts_enabled
@@ -1376,144 +1387,133 @@ impl eframe::App for SentinelApp {
                     ui.set_opacity(combined_alpha);
                 }
 
-                egui::ScrollArea::vertical()
-                    .auto_shrink(egui::Vec2b::new(false, false))
-                    .show(ui, |ui: &mut egui::Ui| {
-                        page_column(ui, |ui: &mut egui::Ui| match self.page {
-                            Page::Dashboard => {
-                                if let Some(action) =
-                                    pages::DashboardPage::show(ui, &mut self.state)
-                                {
-                                    match action {
-                                        pages::DashboardAction::Command(cmd) => {
-                                            if matches!(cmd, GuiCommand::ConnectToPlatform) {
-                                                self.start_platform_connection();
-                                            } else {
-                                                self.send_command(cmd);
-                                            }
+                page_scroll_area(&self.page).show(ui, |ui: &mut egui::Ui| {
+                    page_column(ui, |ui: &mut egui::Ui| match self.page {
+                        Page::Dashboard => {
+                            if let Some(action) = pages::DashboardPage::show(ui, &mut self.state) {
+                                match action {
+                                    pages::DashboardAction::Command(cmd) => {
+                                        if matches!(cmd, GuiCommand::ConnectToPlatform) {
+                                            self.start_platform_connection();
+                                        } else {
+                                            self.send_command(cmd);
                                         }
-                                        pages::DashboardAction::NavigateTo(page) => {
-                                            self.navigate_to(page);
-                                        }
+                                    }
+                                    pages::DashboardAction::NavigateTo(page) => {
+                                        self.navigate_to(page);
                                     }
                                 }
                             }
-                            Page::Monitoring => {
-                                if let Some(cmd) = pages::MonitoringPage::show(ui, &mut self.state)
-                                {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Monitoring => {
+                            if let Some(cmd) = pages::MonitoringPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Compliance => {
-                                if let Some(cmd) = pages::CompliancePage::show(ui, &mut self.state)
-                                {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Compliance => {
+                            if let Some(cmd) = pages::CompliancePage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Software => {
-                                if let Some(cmd) = pages::SoftwarePage::show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Software => {
+                            if let Some(cmd) = pages::SoftwarePage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Vulnerabilities => {
-                                if let Some(cmd) =
-                                    pages::VulnerabilitiesPage::show(ui, &mut self.state)
-                                {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Vulnerabilities => {
+                            if let Some(cmd) = pages::VulnerabilitiesPage::show(ui, &mut self.state)
+                            {
+                                self.send_command(cmd);
                             }
-                            Page::FileIntegrity => {
-                                if let Some(cmd) = pages::FimPage::show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::FileIntegrity => {
+                            if let Some(cmd) = pages::FimPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Threats => {
-                                if let Some(cmd) = pages::ThreatsPage::show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Threats => {
+                            if let Some(cmd) = pages::ThreatsPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::AuditTrail => {
-                                if let Some(cmd) = pages::AuditTrailPage::show(ui, &mut self.state)
-                                {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::AuditTrail => {
+                            if let Some(cmd) = pages::AuditTrailPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Network => {
-                                if let Some(cmd) = pages::NetworkPage::show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Network => {
+                            if let Some(cmd) = pages::NetworkPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Sync => {
-                                if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Sync => {
+                            if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Terminal => {
-                                if let Some(cmd) = pages::TerminalPage::show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Terminal => {
+                            if let Some(cmd) = pages::TerminalPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Discovery => {
-                                if let Some(cmd) = pages::DiscoveryPage::show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Discovery => {
+                            if let Some(cmd) = pages::DiscoveryPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Cartography => {
-                                if let Some(cmd) = pages::CartographyPage::show(ui, &mut self.state)
-                                {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Cartography => {
+                            if let Some(cmd) = pages::CartographyPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Notifications => {
-                                if let Some(cmd) =
-                                    pages::NotificationsPage::show(ui, &mut self.state)
-                                {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Notifications => {
+                            if let Some(cmd) = pages::NotificationsPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Settings => {
-                                if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
-                                    if matches!(cmd, GuiCommand::ConnectToPlatform) {
-                                        self.start_platform_connection();
-                                    } else {
-                                        if matches!(cmd, GuiCommand::Shutdown) {
-                                            self.quit_requested = true;
-                                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                                        }
-                                        self.send_command(cmd);
+                        }
+                        Page::Settings => {
+                            if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
+                                if matches!(cmd, GuiCommand::ConnectToPlatform) {
+                                    self.start_platform_connection();
+                                } else {
+                                    if matches!(cmd, GuiCommand::Shutdown) {
+                                        self.quit_requested = true;
+                                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                                     }
-                                }
-                            }
-                            Page::About => {
-                                if let Some(cmd) = pages::AboutPage::show(ui) {
                                     self.send_command(cmd);
                                 }
                             }
-                            Page::Reports => {
-                                if let Some(cmd) = pages::ReportsPage::show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::About => {
+                            if let Some(cmd) = pages::AboutPage::show(ui) {
+                                self.send_command(cmd);
                             }
-                            Page::Risks => {
-                                if let Some(cmd) = pages::RisksPage::show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Reports => {
+                            if let Some(cmd) = pages::ReportsPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Assets => {
-                                if let Some(cmd) = pages::AssetsPage::show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Risks => {
+                            if let Some(cmd) = pages::RisksPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::Orchestration => {
-                                pages::OrchestrationPage::show(ui);
+                        }
+                        Page::Assets => {
+                            if let Some(cmd) = pages::AssetsPage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                            Page::AI => {
-                                if let Some(cmd) = self.llm_panel.show(ui, &mut self.state) {
-                                    self.send_command(cmd);
-                                }
+                        }
+                        Page::Orchestration => {
+                            pages::OrchestrationPage::show(ui);
+                        }
+                        Page::AI => {
+                            if let Some(cmd) = self.llm_panel.show(ui, &mut self.state) {
+                                self.send_command(cmd);
                             }
-                        });
+                        }
                     });
+                });
             });
 
         // Render toast notifications (overlay on top of content)
@@ -1781,7 +1781,7 @@ impl SentinelApp {
                         );
                         ui.add_space(theme::SPACE_XS);
                         ui.label(
-                            egui::RichText::new("ASSISTANT JARVIS")
+                            egui::RichText::new("SENTINEL IA")
                                 .font(theme::font_title())
                                 .strong(),
                         );
@@ -1790,13 +1790,28 @@ impl SentinelApp {
                             ui.add_space(theme::SPACE_MD);
 
                             // Close button
-                            if ui.button(icons::XMARK).clicked() {
+                            if ui
+                                .button(icons::XMARK)
+                                .on_hover_text("Fermer et arrêter la voix")
+                                .clicked()
+                            {
+                                crate::llm_panel::LLMPanel::reset_voice_session(&mut self.state);
+                                self.send_command(GuiCommand::StopVoice);
                                 self.state.jarvis_visible = false;
                             }
 
                             ui.add_space(theme::SPACE_SM);
 
-                            // PREMIUM Voice Toggle
+                            if (self.state.ai.is_speaking || self.state.ai.voice_reply_pending)
+                                && ui
+                                    .button(icons::STOP)
+                                    .on_hover_text("Arrêter la voix")
+                                    .clicked()
+                            {
+                                crate::llm_panel::LLMPanel::reset_voice_session(&mut self.state);
+                                self.send_command(GuiCommand::StopVoice);
+                            }
+                            // Shared accessible microphone control.
                             if widgets::voice_toggle_button(ui, self.state.ai.is_listening)
                                 .clicked()
                             {
@@ -1903,7 +1918,7 @@ impl SentinelApp {
                         ui.horizontal(|ui| {
                             let text_edit =
                                 egui::TextEdit::singleline(&mut self.state.ai.input_text)
-                                    .hint_text("Demander à Jarvis…")
+                                    .hint_text("Poser une question…")
                                     .font(theme::font_body())
                                     .desired_width(ui.available_width() - 40.0);
 
@@ -1935,24 +1950,16 @@ impl SentinelApp {
                                 .clicked();
 
                             if (send_clicked || enter_pressed || voice_auto_send) && can_send {
-                                let prompt = self.state.ai.input_text.trim().to_string();
-                                self.state.ai.chat_history.push(crate::dto::LlmChatMessage {
-                                    role: crate::dto::ChatRole::User,
-                                    content: prompt.clone(),
-                                    timestamp: chrono::Utc::now(),
-                                    processing_time_ms: None,
-                                });
-                                self.state.ai.input_text.clear();
-                                self.state.ai.is_processing = true;
-
-                                self.send_command(GuiCommand::LlmPrompt {
-                                    prompt,
-                                    context: None,
-                                    speak_response: voice_auto_send
-                                        || self.state.ai.voice_conversation_enabled,
-                                });
-                                self.state.ai.voice_reply_pending =
-                                    self.state.ai.voice_conversation_enabled;
+                                let prompt = self.state.ai.input_text.clone();
+                                let speak =
+                                    voice_auto_send || self.state.ai.voice_conversation_enabled;
+                                if let Some(command) = crate::llm_panel::LLMPanel::submit_prompt(
+                                    &mut self.state,
+                                    &prompt,
+                                    speak,
+                                ) {
+                                    self.send_command(command);
+                                }
                             }
                         });
                     });
@@ -2008,5 +2015,61 @@ mod wake_on_message_tests {
         drop(slot);
         // The forwarder's send fails and it exits; the producer must not panic.
         assert!(tx.send(1).is_ok());
+    }
+}
+
+#[cfg(test)]
+mod module_navigation_tests {
+    use super::*;
+
+    #[test]
+    fn switching_modules_preserves_separate_reading_positions() {
+        let ctx = egui::Context::default();
+        let render = |page: &Page, events: Vec<egui::Event>| {
+            let mut offset = 0.0;
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(960.0, 640.0),
+                    )),
+                    events,
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        offset = page_scroll_area(page)
+                            .show(ui, |ui| {
+                                ui.allocate_space(egui::vec2(600.0, 2000.0));
+                            })
+                            .state
+                            .offset
+                            .y;
+                    });
+                },
+            );
+            offset
+        };
+        for _ in 0..3 {
+            render(&Page::Network, vec![]);
+        }
+        render(
+            &Page::Network,
+            vec![
+                egui::Event::PointerMoved(egui::pos2(100.0, 100.0)),
+                egui::Event::MouseWheel {
+                    unit: egui::MouseWheelUnit::Point,
+                    delta: egui::vec2(0.0, -180.0),
+                    modifiers: egui::Modifiers::NONE,
+                },
+            ],
+        );
+        let mut network_offset = 0.0;
+        for _ in 0..20 {
+            network_offset = render(&Page::Network, vec![]);
+        }
+        assert!(network_offset > 100.0);
+        assert_eq!(render(&Page::Settings, vec![]), 0.0);
+        assert!(render(&Page::Network, vec![]) >= network_offset);
     }
 }

@@ -96,6 +96,10 @@ impl SentinelAICore {
             // 5. Crosshair / HUD elements
             self.draw_hud(painter, center, radius);
 
+            if response.has_focus() {
+                painter.circle_stroke(rect.center(), radius * 1.08, crate::theme::focus_ring());
+            }
+
             // Request next frame if animating
             if !reduced {
                 ui.ctx().request_repaint();
@@ -119,7 +123,7 @@ impl SentinelAICore {
         // The AI core owns the violet channel. Keeping this palette separate
         // from the blue navigation accent makes state changes immediately
         // legible and removes the cyan wash previously visible on the dashboard.
-        let mut base_color = theme::AI;
+        let mut base_color = theme::chart_color(theme::AI);
 
         match self.voice_state {
             VoiceState::Listening(level) => {
@@ -127,7 +131,7 @@ impl SentinelAICore {
                 base_color = theme::SUCCESS.linear_multiply(1.0 + level * 0.35);
             }
             VoiceState::Speaking(vol) => {
-                base_color = theme::AI.linear_multiply(1.0 + vol * 0.35);
+                base_color = theme::chart_color(theme::AI).linear_multiply(1.0 + vol * 0.35);
             }
             _ => {}
         }
@@ -178,7 +182,7 @@ impl SentinelAICore {
 
     fn draw_rings(&self, painter: &Painter, center: Pos2, radius: f32, t: f32) {
         use crate::theme;
-        let color_primary = theme::AI;
+        let color_primary = theme::chart_color(theme::AI);
         let color_secondary = theme::readable_color(theme::SUCCESS);
 
         // --- Outer Ring (Many small segments, slow CW) ---
@@ -271,22 +275,25 @@ impl SentinelAICore {
                 + parallax * (i as f32 * 0.3);
 
             // Orbital dot
-            painter.circle_filled(pos, 2.0, theme::AI);
+            painter.circle_filled(pos, 2.0, theme::chart_color(theme::AI));
 
             // Sub-glow
-            painter.circle_filled(pos, 4.0, theme::AI.linear_multiply(0.2));
+            painter.circle_filled(pos, 4.0, theme::chart_color(theme::AI).linear_multiply(0.2));
 
             // Connector line (subtle)
             painter.line_segment(
                 [center, pos],
-                Stroke::new(theme::BORDER_HAIRLINE, theme::AI.linear_multiply(0.05)),
+                Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    theme::chart_color(theme::AI).linear_multiply(0.05),
+                ),
             );
         }
     }
 
     fn draw_hud(&self, painter: &Painter, center: Pos2, radius: f32) {
         use crate::theme;
-        let color = theme::AI.linear_multiply(0.3);
+        let color = theme::chart_color(theme::AI).linear_multiply(0.3);
 
         // Crosshair lines
         let len = radius * 1.2;

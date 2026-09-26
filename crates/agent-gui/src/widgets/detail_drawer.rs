@@ -121,11 +121,6 @@ impl<'a> DetailDrawer<'a> {
         let mut clicked_action: Option<usize> = None;
         let mut should_close = false;
 
-        // Escape to close
-        if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
-            should_close = true;
-        }
-
         let screen = ctx.screen_rect();
 
         // Responsive width: cap at DRAWER_WIDTH but never exceed 35% of screen
@@ -139,41 +134,30 @@ impl<'a> DetailDrawer<'a> {
             ctx.animate_value_with_time(anim_id, 1.0, theme::ANIM_NORMAL)
         };
 
-        // Frosted backdrop (navy-tinted in dark mode)
         let backdrop_alpha = (theme::BACKDROP_ALPHA as f32 / 2.0 * anim_t) as u8;
-        egui::Area::new(egui::Id::new("drawer_backdrop").with(self.id))
-            .fixed_pos(screen.min)
-            .order(egui::Order::Foreground)
-            .interactable(false)
-            .show(ctx, |ui| {
-                ui.painter().rect_filled(
-                    screen,
-                    CornerRadius::ZERO,
-                    theme::backdrop_color(backdrop_alpha),
-                );
-            });
-
-        // Track if drawer was already open on previous frame to avoid dismiss race
-        // (the same click that opens the drawer would otherwise immediately close it)
         let prev_open_id = self.id.with("prev_open");
-        let was_open_prev: bool =
-            ctx.memory(|mem| mem.data.get_temp(prev_open_id).unwrap_or(false));
-        ctx.memory_mut(|mem| mem.data.insert_temp(prev_open_id, true));
-
-        // Dismiss on click outside drawer (left of drawer edge)
-        let drawer_x = screen.max.x - drawer_width * anim_t;
-        if was_open_prev
-            && ctx.input(|i| i.pointer.primary_clicked())
-            && let Some(pos) = ctx.input(|i| i.pointer.interact_pos())
-            && pos.x < drawer_x
-        {
-            should_close = true;
+        let return_focus_id = self.id.with("return_focus");
+        let was_open_prev =
+            ctx.memory(|mem| mem.data.get_temp::<bool>(prev_open_id).unwrap_or(false));
+        if !was_open_prev {
+            let focused = ctx.memory(|mem| mem.focused());
+            ctx.memory_mut(|mem| mem.data.insert_temp(return_focus_id, focused));
         }
+        ctx.memory_mut(|mem| mem.data.insert_temp(prev_open_id, true));
+        let drawer_x = screen.max.x - drawer_width * anim_t;
 
         // Drawer panel — slide in from right with animation
-        egui::Area::new(egui::Id::new("drawer_panel").with(self.id))
-            .fixed_pos(egui::pos2(drawer_x, screen.min.y))
-            .order(egui::Order::Foreground)
+        let modal = egui::Modal::new(self.id.with("modal"))
+            .area(
+                egui::Area::new(egui::Id::new("drawer_panel").with(self.id))
+                    .kind(egui::UiKind::Modal)
+                    .sense(egui::Sense::hover())
+                    .interactable(true)
+                    .fixed_pos(egui::pos2(drawer_x, screen.min.y))
+                    .order(egui::Order::Foreground),
+            )
+            .frame(egui::Frame::NONE)
+            .backdrop_color(theme::backdrop_color(backdrop_alpha))
             .show(ctx, |ui| {
                 let drawer_rect = egui::Rect::from_min_size(
                     egui::pos2(drawer_x, screen.min.y),
@@ -405,8 +389,16 @@ impl<'a> DetailDrawer<'a> {
                 });
             });
 
+        should_close |= modal.should_close();
         if should_close {
             *open = false;
+            if let Some(id) = ctx.memory(|mem| {
+                mem.data
+                    .get_temp::<Option<egui::Id>>(return_focus_id)
+                    .flatten()
+            }) {
+                ctx.memory_mut(|mem| mem.request_focus(id));
+            }
             // Reset prev_open flag so next open skips dismiss for one frame
             ctx.memory_mut(|mem| mem.data.insert_temp::<bool>(prev_open_id, false));
             // Reset animation value so drawer animates in on next open
@@ -611,7 +603,7 @@ pub fn detail_ai_proposal(ui: &mut Ui, explanation: &str, commands: &[String]) {
         ui.label(
             egui::RichText::new("CONSEILLER IA SENTINEL")
                 .font(theme::font_label())
-                .color(theme::ACCENT)
+                .color(theme::accent_text())
                 .extra_letter_spacing(theme::TRACKING_NORMAL)
                 .strong(),
         );
@@ -673,4 +665,58 @@ pub fn detail_ai_proposal(ui: &mut Ui, explanation: &str, commands: &[String]) {
     }
 
     ui.add_space(theme::SPACE_MD);
+}
+
+#[cfg(test)]
+mod regression_tests {
+    use super::*;
+    #[test]
+    fn backdrop_click_closes_without_activating_underlying_button() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let mut open = true;
+        let mut underlying = egui::Rect::NOTHING;
+        for frame in 0..5 {
+            let pos = underlying.center();
+            let events = match frame {
+                3 | 4 => vec![
+                    egui::Event::PointerMoved(pos),
+                    egui::Event::PointerButton {
+                        pos,
+                        button: egui::PointerButton::Primary,
+                        pressed: frame == 3,
+                        modifiers: egui::Modifiers::NONE,
+                    },
+                ],
+                _ => vec![],
+            };
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(960.0, 640.0),
+                    )),
+                    events,
+                    time: Some(frame as f64 / 60.0),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        let response = ui.button("Action sous le panneau");
+                        underlying = response.rect;
+                        assert!(!response.clicked(), "drawer leaked a click to the page");
+                    });
+                    DetailDrawer::new("test_drawer", "Détail", "").show(
+                        ctx,
+                        &mut open,
+                        |ui| {
+                            ui.label("Contenu");
+                        },
+                        &[],
+                    );
+                },
+            );
+        }
+        assert!(!open, "backdrop should dismiss the drawer");
+    }
 }

@@ -138,6 +138,9 @@ Rend chaque page avec les fixtures, envoie un cran de molette et vérifie que la
 page a défilé (`PROBE_SWEEP=1` balaie une grille de positions du pointeur,
 `PROBE_PAGE=<nom>` limite à une page, `PROBE_X`/`PROBE_Y` fixent le pointeur).
 Le code de sortie est non nul dès qu'une position bloque le défilement.
+`PROBE_LIGHT=1` exécute la même sonde en thème clair ; `PROBE_W` et `PROBE_H` fixent les dimensions.
+
+L’[audit clair/sombre du 26 septembre 2026](../../docs/design/audit-gui-2026-09-26.md) documente les corrections, les captures et les validations encore nécessaires.
 
 ## Feature flags
 
@@ -179,3 +182,5 @@ run_tray_popup(app_state).await?;
 | **Windows** | APIs Windows natives, icone tray, menu contextuel, theme sombre auto |
 | **macOS** | Integration NSApplication, menu natif, mode sombre auto |
 | **Linux** | GTK3, detection du theme systeme |
+
+Mesure CPU des 35 combinaisons page/onglet dans les deux thèmes (fixtures, sans GPU ni services) : `PROBE_PERF=1 target/debug/examples/scroll_probe`. Le [bilan qualité transverse](../../docs/design/qualite-produit-2026-09-26.md) précise protocole, résultats et limites.

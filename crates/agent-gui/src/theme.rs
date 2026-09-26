@@ -228,6 +228,10 @@ pub const SUCCESS: Color32 = Color32::from_rgb(43, 201, 138); // #2BC98A
 pub const WARNING: Color32 = Color32::from_rgb(245, 165, 36); // #F5A524
 /// Error — signal red.
 pub const ERROR: Color32 = Color32::from_rgb(255, 97, 99); // #FF6163
+/// Opaque action fills, distinct from the bright semantic error text color.
+pub const DANGER_FILL: Color32 = Color32::from_rgb(164, 29, 42);
+pub const DANGER_HOVER: Color32 = Color32::from_rgb(145, 24, 37);
+pub const DANGER_PRESSED: Color32 = Color32::from_rgb(125, 20, 32);
 /// Info — azure.
 pub const INFO: Color32 = Color32::from_rgb(56, 166, 245); // #38A6F5
 /// Severity-high — saturated amber, one step hotter than `WARNING`.
@@ -1683,7 +1687,7 @@ pub fn log_level_color(level: &crate::dto::LogLevel) -> Color32 {
 
 /// Focus ring stroke for interactive elements (WCAG 2.4.7 compliant).
 pub fn focus_ring() -> egui::Stroke {
-    egui::Stroke::new(2.0_f32, ACCENT)
+    egui::Stroke::new(2.0_f32, accent_text())
 }
 
 /// Focus ring for dark backgrounds.
@@ -1972,7 +1976,7 @@ pub const VIEWPORT_MIN_HEIGHT: f32 = 400.0;
 /// Cartography canvas height.
 pub const CANVAS_MIN_HEIGHT: f32 = 500.0;
 /// Summary card minimum inner height (ensures uniform row height).
-pub const SUMMARY_CARD_MIN_HEIGHT: f32 = 72.0;
+pub const SUMMARY_CARD_MIN_HEIGHT: f32 = 56.0;
 
 /// Search filter bar input height.
 pub const SEARCH_INPUT_HEIGHT: f32 = 32.0;
@@ -2178,6 +2182,18 @@ mod contrast_tests {
         for accent in [ACCENT, ACCENT_HOVER, ACCENT_PRESSED] {
             let ratio = contrast_ratio(text_on_accent(), accent);
             assert!(ratio >= 7.0, "text on accent fill: {ratio:.2}:1");
+        }
+    }
+
+    #[test]
+    fn keyboard_focus_meets_non_text_contrast() {
+        for_each_theme(|| check("focus ring", focus_ring().color, 3.0));
+    }
+
+    #[test]
+    fn destructive_action_text_meets_aaa_in_every_state() {
+        for fill in [DANGER_FILL, DANGER_HOVER, DANGER_PRESSED] {
+            assert!(contrast_ratio(text_on_accent(), fill) >= 7.0);
         }
     }
 

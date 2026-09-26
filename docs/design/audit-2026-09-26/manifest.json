@@ -1,0 +1,618 @@
+[
+  {
+    "page": "dashboard",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "dashboard-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "18bcb05c686aef06c33cc3df89481563dab8b4331a41f3fafb4dfef8da162091"
+  },
+  {
+    "page": "dashboard",
+    "theme": "light",
+    "render_ok": true,
+    "image": "dashboard-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "026008a8b2d71aae00afb2065f0a375437d1c3d2938e9431e393e5ae5743bcba"
+  },
+  {
+    "page": "monitoring",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "monitoring-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "4be9c4adaed72a5f7918bcc3a706de236a133a57f3039c69c0847a321f2053b3"
+  },
+  {
+    "page": "monitoring",
+    "theme": "light",
+    "render_ok": true,
+    "image": "monitoring-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "2acdca1eb05a0b019529c862ce1037ed0453c0167e6b50871cfcbf00aa0da3b6"
+  },
+  {
+    "page": "compliance",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "compliance-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "d668530cea3b7a9357d780794ca43f077eb2beada6befc5260598d96a8f5d3ce"
+  },
+  {
+    "page": "compliance",
+    "theme": "light",
+    "render_ok": true,
+    "image": "compliance-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "5e81ba38cef1cf426e66001c85183bcca24ea02f56f49b4d4958a5eb4c29fe15"
+  },
+  {
+    "page": "software",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "software-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "bf2112ca5d92b32633be1b13e2066a1bb762f75bcf6cc3934f8ebc55571d6b02"
+  },
+  {
+    "page": "software",
+    "theme": "light",
+    "render_ok": true,
+    "image": "software-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "257693e15553cd9f89dad80639207f2ba4893be6ebededd79b5ddbc6a0f1115c"
+  },
+  {
+    "page": "vulnerabilities",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "vulnerabilities-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "15bb6635850425768215ec0ab8d4d447bdddccfd5e7d80db4d25e41264523409"
+  },
+  {
+    "page": "vulnerabilities",
+    "theme": "light",
+    "render_ok": true,
+    "image": "vulnerabilities-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "5a843f1030b0caebacf7fbb3640eb77abc6d61b842b51d5c516bc63400d4c60e"
+  },
+  {
+    "page": "fim",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "fim-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "6211c2fd1369d336f58801c26a79b37dc5062f5710ac0537103b16aef9093891"
+  },
+  {
+    "page": "fim",
+    "theme": "light",
+    "render_ok": true,
+    "image": "fim-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "6bdc03160a69e038a2971dbc7294c778b3c14ed6451a7ec377bb80093905782d"
+  },
+  {
+    "page": "threats",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "threats-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "f22be7631dfa314bfa6ea8ca6f7fb350d53b6bb3e22479d4d70ba2953d2267d4"
+  },
+  {
+    "page": "threats",
+    "theme": "light",
+    "render_ok": true,
+    "image": "threats-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "c5e1b25303582a2825eb595997c31cbc49debe29b7661c9c5aadc7cea6bea89a"
+  },
+  {
+    "page": "audit",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "audit-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "a5b91c6fcbad74950d7834e413de0efe076e85a12d491f3a211068f926a99d51"
+  },
+  {
+    "page": "audit",
+    "theme": "light",
+    "render_ok": true,
+    "image": "audit-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "69febb31af76275c5a16353c489fdf9791dc5a51848bcdff4ad743b99e489ee3"
+  },
+  {
+    "page": "network",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "network-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "b12a627472c51c2cc8c73ae79ff5de79471ee5dec1adf2b6e12c32c92463bd6f"
+  },
+  {
+    "page": "network",
+    "theme": "light",
+    "render_ok": true,
+    "image": "network-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "794fbc352e8e3ac5c3a465e9bd1fcc80ef6d312555c5d93526a4cf835d931989"
+  },
+  {
+    "page": "discovery",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "discovery-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "f0e8fb9d1c8d4fc340f44a1533b551f615f48045008a48e656d7a6cec1779ca7"
+  },
+  {
+    "page": "discovery",
+    "theme": "light",
+    "render_ok": true,
+    "image": "discovery-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "cbdb83470762fcd17dc5a5d5803ee0f361e1e3a88a44c7cf1f53b2e3bbca698b"
+  },
+  {
+    "page": "cartography",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "cartography-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "83a60f5098a22f89e5eaed52a5ccb0fdf214cb4680ccc9beb5141f258c204271"
+  },
+  {
+    "page": "cartography",
+    "theme": "light",
+    "render_ok": true,
+    "image": "cartography-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "3db8473ef06d60782521901290b9fc6fcb1e3386d19228e6ec420f6d35fa74af"
+  },
+  {
+    "page": "assets",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "assets-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "5737e268d8bbade768be73caf7e5497f625d6e4ae332271a79e97cfa56a59666"
+  },
+  {
+    "page": "assets",
+    "theme": "light",
+    "render_ok": true,
+    "image": "assets-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "60cac1a4500b9291b69ca0342d364ac8d8f9d8d34f3f3de353e3c24dccf20602"
+  },
+  {
+    "page": "risks",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "risks-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "5f040f1525b20ab6e54b7c345900365c96152ff2b5ef44c27586ff4a24938255"
+  },
+  {
+    "page": "risks",
+    "theme": "light",
+    "render_ok": true,
+    "image": "risks-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "9ab916eaab5c199d399f8acbd105e257535243375cd1b4100336bf04db35e97e"
+  },
+  {
+    "page": "reports",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "reports-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "07f445264726bded7b0be99a9c3344c06cafb08a35ba70352059bde61e2ac309"
+  },
+  {
+    "page": "reports",
+    "theme": "light",
+    "render_ok": true,
+    "image": "reports-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "3247eaf43dfe8132f2223df81e664b01737d3f6a9f44a4f6cde28562100b0080"
+  },
+  {
+    "page": "notifications",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "notifications-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "f5ffdc1bf4d433b6dad673224b32850b8cc7ed0ad5bf39b7d323f53b55e95562"
+  },
+  {
+    "page": "notifications",
+    "theme": "light",
+    "render_ok": true,
+    "image": "notifications-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "9f452ccdf7e53a1c0c95ec15af05cefba30a03621a88fc543afa3ad400804685"
+  },
+  {
+    "page": "sync",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "sync-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "976084b00ed56eab48e911c9393e5397676cc9aa03d7b57a257cd622f3cbdf23"
+  },
+  {
+    "page": "sync",
+    "theme": "light",
+    "render_ok": true,
+    "image": "sync-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "9141269ec9d332b57c0439b22939f97a1a7ed11ae9bb4a719b1e52e4e33641d1"
+  },
+  {
+    "page": "terminal",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "terminal-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "58c2bcea4a3195b7c0da129ebff2b82ab5ffdeb7c2227fa77cd4c5250615dd9c"
+  },
+  {
+    "page": "terminal",
+    "theme": "light",
+    "render_ok": true,
+    "image": "terminal-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "cb3fbd48e10b692def63dd793280735b0d815c2e42c05dbba4eb81b29a3a8ed0"
+  },
+  {
+    "page": "settings",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "settings-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "42acd214f3c313aa99718aea8531260e23daadd06e40ae3d17f2132c064c6ea5"
+  },
+  {
+    "page": "settings",
+    "theme": "light",
+    "render_ok": true,
+    "image": "settings-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "ce84440f3383a3f70360f6c1a71c7f5631962e895b7a0a5fa5925511d0b78571"
+  },
+  {
+    "page": "about",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "about-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "cff58568a11690722299f5ffdb003a0b037a47f71ef76f937b78df9693ebc7b8"
+  },
+  {
+    "page": "about",
+    "theme": "light",
+    "render_ok": true,
+    "image": "about-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "d352bf5a218eba75667b56d3e302455e3ad3360571d0c54a6f3ed508667baef4"
+  },
+  {
+    "page": "ai",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "ai-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "764619053b92be0a13757a3734180ad2a3ee6b5d8daee62840e4143e65b83bda"
+  },
+  {
+    "page": "ai",
+    "theme": "light",
+    "render_ok": true,
+    "image": "ai-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "bd1224474ace9777a77249495d6cbaf25d7fd26021c754aa43a3b232664a4acc"
+  },
+  {
+    "page": "dashboard-compact",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "dashboard-compact-dark.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "6eaeef95214c261204ff64a2860cca746b4b97516eaaa482dcd596fb5ebf9ca6"
+  },
+  {
+    "page": "settings-compact",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "settings-compact-dark.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "30647ac7a887fa417262b447132063f5b0c6f7a4ae9c496eb6c7f66d903fb98d"
+  },
+  {
+    "page": "vulnerabilities-compact",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "vulnerabilities-compact-dark.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "6690cabb6771ecf6bddbbb24a25414b77f0d5e98dc0f061408d95b2318ac31af"
+  },
+  {
+    "page": "overlays-compact",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "overlays-compact-dark.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "9e1228c84271c014d18472a8ca160dcc39a1eba609c50fda005a13c767e1911c"
+  },
+  {
+    "page": "palette-compact",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "palette-compact-dark.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "44c52f27bdf3c6ebf05c1db5ae5f8612bf163a4c53f022afc89e086c5bf4db34"
+  },
+  {
+    "page": "enrollment-compact",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "enrollment-compact-dark.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "7396f0914333493377ead76b62cafe417bd892917e91e29825610ff19a81fd14"
+  },
+  {
+    "page": "vulnerabilities-drawer",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "vulnerabilities-drawer-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "61de40cbcdd800d02be42d43177fef7f7ceb1f219d1b487ec1039922c74543dd"
+  },
+  {
+    "page": "dashboard-empty",
+    "theme": "dark",
+    "render_ok": true,
+    "image": "dashboard-empty-dark.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "6b25292e807663176777db68dfc75ef2936ba46b860d8bafe45f4c15a4f727d3"
+  },
+  {
+    "page": "dashboard-compact",
+    "theme": "light",
+    "render_ok": true,
+    "image": "dashboard-compact-light.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "d6ba9968f2ce8b0117d6179fa018623defb050c8db092944be805fd44b9eadeb"
+  },
+  {
+    "page": "settings-compact",
+    "theme": "light",
+    "render_ok": true,
+    "image": "settings-compact-light.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "c7a83abc8db55c434046d1a0037b978e91e694d653add6843313523bf32b411c"
+  },
+  {
+    "page": "vulnerabilities-compact",
+    "theme": "light",
+    "render_ok": true,
+    "image": "vulnerabilities-compact-light.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "2034bc7b4bc5defbccc413f9495cdb485afe05525a540a28ea7e4f9ac723d9b1"
+  },
+  {
+    "page": "overlays-compact",
+    "theme": "light",
+    "render_ok": true,
+    "image": "overlays-compact-light.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "d7649f7a615d0d0f5ee33c03be81a83c65f7c6b947f7bfbf48550e1ebf887f73"
+  },
+  {
+    "page": "palette-compact",
+    "theme": "light",
+    "render_ok": true,
+    "image": "palette-compact-light.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "ad67e8f0f6836acda5c238cfcf4d19cd4e5fd7a7ad3192040221d43efa71319b"
+  },
+  {
+    "page": "enrollment-compact",
+    "theme": "light",
+    "render_ok": true,
+    "image": "enrollment-compact-light.jpg",
+    "source_pixels": [
+      1920,
+      1280
+    ],
+    "source_sha256": "50fe7533f7481a0b29ebe3a86cde7bde33faeecdc8b3b6907dad69bcf36d5632"
+  },
+  {
+    "page": "vulnerabilities-drawer",
+    "theme": "light",
+    "render_ok": true,
+    "image": "vulnerabilities-drawer-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "932cd11eb88bf1516d99bf92f1ae2d5ac01f45d0f7ae59b91880036965541b42"
+  },
+  {
+    "page": "dashboard-empty",
+    "theme": "light",
+    "render_ok": true,
+    "image": "dashboard-empty-light.jpg",
+    "source_pixels": [
+      2720,
+      1640
+    ],
+    "source_sha256": "c64cb129bc0a46a5941f1ef229fd80ed7e4cfc80bc3f6aa1213b3b9c62afa7d2"
+  }
+]

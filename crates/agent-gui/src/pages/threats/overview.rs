@@ -1915,7 +1915,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 egui::Align2::LEFT_CENTER,
                 label,
                 theme::font_caption(),
-                theme::readable_color(color).linear_multiply(theme::OPACITY_MEDIUM),
+                theme::readable_color(color),
             );
         }
 

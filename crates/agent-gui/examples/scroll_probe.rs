@@ -33,6 +33,8 @@ const PAGES: &[(&str, usize)] = &[
     ("threats", 6),
     ("audit", 0),
     ("network", 0),
+    ("network", 1),
+    ("network", 2),
     ("discovery", 0),
     ("cartography", 0),
     ("assets", 0),
@@ -47,6 +49,9 @@ const PAGES: &[(&str, usize)] = &[
     ("sync", 0),
     ("terminal", 0),
     ("settings", 0),
+    ("settings", 1),
+    ("settings", 2),
+    ("settings", 3),
     ("about", 0),
     ("ai", 0),
     ("ai", 1),
@@ -133,7 +138,7 @@ fn probe_palette(width: f32, height: f32) -> bool {
     use agent_gui::widgets;
     let ctx = egui::Context::default();
     theme::configure_fonts(&ctx);
-    theme::apply_theme(&ctx, true);
+    theme::apply_theme(&ctx, std::env::var("PROBE_LIGHT").is_err());
     let mut state = Box::new(AppState::default());
     fixtures::seed(&mut state);
     let mut palette = widgets::CommandPaletteState::new();
@@ -197,6 +202,63 @@ fn probe_palette(width: f32, height: f32) -> bool {
     moved
 }
 
+/// CPU-only page preparation benchmark. Excludes GPU, runtime tasks and inference.
+fn benchmark_pages(width: f32, height: f32) {
+    let mut rows = Vec::new();
+    for dark in [true, false] {
+        for &(page, tab) in PAGES {
+            let ctx = egui::Context::default();
+            theme::configure_fonts(&ctx);
+            theme::apply_theme(&ctx, dark);
+            let mut state = Box::new(AppState::default());
+            fixtures::seed(&mut state);
+            fixtures::select_tab(&mut state, page, tab);
+            let mut samples = Vec::new();
+            for frame in 0..110 {
+                let start = std::time::Instant::now();
+                let output = ctx.run(
+                    egui::RawInput {
+                        screen_rect: Some(egui::Rect::from_min_size(
+                            egui::Pos2::ZERO,
+                            egui::vec2(width, height),
+                        )),
+                        time: Some(frame as f64 / 60.0),
+                        ..Default::default()
+                    },
+                    |ctx| {
+                        egui::CentralPanel::default().show(ctx, |ui| {
+                            egui::ScrollArea::vertical().show(ui, |ui| {
+                                agent_gui::app::page_column(ui, |ui| {
+                                    real_page(ui, page, &mut state)
+                                });
+                            });
+                        });
+                    },
+                );
+                std::hint::black_box(output);
+                if frame >= 10 {
+                    samples.push(start.elapsed().as_secs_f64() * 1000.0);
+                }
+            }
+            samples.sort_by(f64::total_cmp);
+            rows.push(serde_json::json!({
+                "page": page, "tab": tab, "theme": if dark { "dark" } else { "light" },
+                "samples": samples.len(), "p50_ms": samples[49], "p95_ms": samples[94], "max_ms": samples[99],
+            }));
+        }
+    }
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&serde_json::json!({
+            "scope": "headless CPU egui frame; synthetic preview fixtures; no GPU or live services",
+            "profile": if cfg!(debug_assertions) { "debug" } else { "release" },
+            "os": std::env::consts::OS, "arch": std::env::consts::ARCH,
+            "viewport": [width, height], "warmup_frames": 10, "results": rows,
+        }))
+        .unwrap()
+    );
+}
+
 fn main() {
     let width: f32 = std::env::var("PROBE_W")
         .ok()
@@ -206,6 +268,10 @@ fn main() {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(820.0);
+    if std::env::var("PROBE_PERF").is_ok() {
+        benchmark_pages(width, height);
+        return;
+    }
     let mut failures = 0;
     if !probe_palette(width, height) {
         failures += 1;
@@ -247,7 +313,7 @@ fn main() {
         for pointer in pointers {
             let ctx = egui::Context::default();
             theme::configure_fonts(&ctx);
-            theme::apply_theme(&ctx, true);
+            theme::apply_theme(&ctx, std::env::var("PROBE_LIGHT").is_err());
             let mut state = Box::new(AppState::default());
             fixtures::seed(&mut state);
             fixtures::select_tab(&mut state, page, tab);

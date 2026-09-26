@@ -1,0 +1,1272 @@
+{
+  "method": "declaration and textual reference inventory; comments/tests can be included; no completeness inference",
+  "pages_declared": [
+    "Dashboard",
+    "Monitoring",
+    "Compliance",
+    "Software",
+    "Vulnerabilities",
+    "FileIntegrity",
+    "Threats",
+    "AuditTrail",
+    "Network",
+    "Sync",
+    "Terminal",
+    "Discovery",
+    "Cartography",
+    "Notifications",
+    "Settings",
+    "AI",
+    "Reports",
+    "Risks",
+    "Assets",
+    "Orchestration",
+    "About"
+  ],
+  "render_probe_cases": [
+    {
+      "page": "dashboard",
+      "tab": 0
+    },
+    {
+      "page": "monitoring",
+      "tab": 0
+    },
+    {
+      "page": "monitoring",
+      "tab": 1
+    },
+    {
+      "page": "compliance",
+      "tab": 0
+    },
+    {
+      "page": "compliance",
+      "tab": 1
+    },
+    {
+      "page": "software",
+      "tab": 0
+    },
+    {
+      "page": "vulnerabilities",
+      "tab": 0
+    },
+    {
+      "page": "fim",
+      "tab": 0
+    },
+    {
+      "page": "threats",
+      "tab": 0
+    },
+    {
+      "page": "threats",
+      "tab": 1
+    },
+    {
+      "page": "threats",
+      "tab": 2
+    },
+    {
+      "page": "threats",
+      "tab": 3
+    },
+    {
+      "page": "threats",
+      "tab": 4
+    },
+    {
+      "page": "threats",
+      "tab": 5
+    },
+    {
+      "page": "threats",
+      "tab": 6
+    },
+    {
+      "page": "audit",
+      "tab": 0
+    },
+    {
+      "page": "network",
+      "tab": 0
+    },
+    {
+      "page": "discovery",
+      "tab": 0
+    },
+    {
+      "page": "cartography",
+      "tab": 0
+    },
+    {
+      "page": "assets",
+      "tab": 0
+    },
+    {
+      "page": "risks",
+      "tab": 0
+    },
+    {
+      "page": "reports",
+      "tab": 0
+    },
+    {
+      "page": "reports",
+      "tab": 1
+    },
+    {
+      "page": "reports",
+      "tab": 2
+    },
+    {
+      "page": "reports",
+      "tab": 3
+    },
+    {
+      "page": "notifications",
+      "tab": 0
+    },
+    {
+      "page": "notifications",
+      "tab": 1
+    },
+    {
+      "page": "notifications",
+      "tab": 2
+    },
+    {
+      "page": "sync",
+      "tab": 0
+    },
+    {
+      "page": "terminal",
+      "tab": 0
+    },
+    {
+      "page": "settings",
+      "tab": 0
+    },
+    {
+      "page": "about",
+      "tab": 0
+    },
+    {
+      "page": "ai",
+      "tab": 0
+    },
+    {
+      "page": "ai",
+      "tab": 1
+    },
+    {
+      "page": "ai",
+      "tab": 2
+    }
+  ],
+  "commands": [
+    {
+      "command": "Pause",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 722
+        },
+        {
+          "file": "crates/agent-gui/src/events.rs",
+          "line": 631
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 117
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1541
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "Resume",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 728
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 112
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1545
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "RunCheck",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 734
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 955
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1276
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1592
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1724
+        },
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 938
+        },
+        {
+          "file": "crates/agent-gui/src/pages/cartography.rs",
+          "line": 193
+        },
+        {
+          "file": "crates/agent-gui/src/pages/compliance.rs",
+          "line": 72
+        },
+        {
+          "file": "crates/agent-gui/src/pages/compliance.rs",
+          "line": 737
+        },
+        {
+          "file": "crates/agent-gui/src/pages/dashboard.rs",
+          "line": 335
+        },
+        {
+          "file": "crates/agent-gui/src/pages/network.rs",
+          "line": 72
+        },
+        {
+          "file": "crates/agent-gui/src/pages/network.rs",
+          "line": 98
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 157
+        },
+        {
+          "file": "crates/agent-gui/src/pages/software.rs",
+          "line": 54
+        },
+        {
+          "file": "crates/agent-gui/src/pages/threats/overview.rs",
+          "line": 446
+        },
+        {
+          "file": "crates/agent-gui/src/pages/vulnerabilities.rs",
+          "line": 53
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1577
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "ForceSync",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 737
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1279
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1593
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1725
+        },
+        {
+          "file": "crates/agent-gui/src/pages/sync.rs",
+          "line": 146
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1581
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "RunSync",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/dashboard.rs",
+          "line": 358
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1624
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "GetSummary",
+      "references": [
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1633
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "ConnectToPlatform",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1389
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1476
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 678
+        },
+        {
+          "file": "crates/agent-gui/src/pages/sync.rs",
+          "line": 47
+        },
+        {
+          "file": "crates/agent-gui/src/widgets/org_banner.rs",
+          "line": 127
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1628
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "GetCheckResults",
+      "references": [
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1637
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "MarkNotificationRead",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/events.rs",
+          "line": 635
+        },
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 971
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1641
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "Shutdown",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 756
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1175
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1479
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 956
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1549
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "Restart",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1209
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1554
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "StartDiscovery",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 519
+        },
+        {
+          "file": "crates/agent-gui/src/pages/discovery.rs",
+          "line": 65
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 443
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1585
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "StopDiscovery",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/discovery.rs",
+          "line": 60
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 445
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1589
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "ProposeAsset",
+      "references": [
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1597
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "UpdateCheckInterval",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 501
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 201
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1605
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "SetLogLevel",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 504
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 259
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1609
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "Remediate",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/compliance.rs",
+          "line": 765
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1612
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "RemediatePreview",
+      "references": [
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1616
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "AcknowledgeFimAlert",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/fim.rs",
+          "line": 342
+        },
+        {
+          "file": "crates/agent-gui/src/pages/fim.rs",
+          "line": 433
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1654
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "CheckUpdate",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 408
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1593
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "MarkAllNotificationsRead",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 129
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1645
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "DeleteNotification",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 978
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1649
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "ExportCsvAuditTrail",
+      "references": [
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1685
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "KillProcess",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/response.rs",
+          "line": 145
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1689
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "QuarantineFile",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/response.rs",
+          "line": 150
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1727
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "RestoreQuarantinedFile",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/response.rs",
+          "line": 162
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1779
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "BlockIp",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/discovery.rs",
+          "line": 620
+        },
+        {
+          "file": "crates/agent-gui/src/pages/network.rs",
+          "line": 389
+        },
+        {
+          "file": "crates/agent-gui/src/pages/threats/response.rs",
+          "line": 154
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1817
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "UnblockIp",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/response.rs",
+          "line": 159
+        },
+        {
+          "file": "crates/agent-gui/src/pages/threats/response.rs",
+          "line": 398
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1855
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "GenerateReport",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/reports.rs",
+          "line": 280
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1893
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "ExportReportHtml",
+      "references": [
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1979
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "ExecutePlaybook",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/playbooks.rs",
+          "line": 404
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1982
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "TogglePlaybook",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/playbooks.rs",
+          "line": 388
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2132
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "SavePlaybook",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/playbooks.rs",
+          "line": 230
+        },
+        {
+          "file": "crates/agent-gui/src/pages/threats/playbooks.rs",
+          "line": 713
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2167
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "DeletePlaybook",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/playbooks.rs",
+          "line": 397
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2221
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "SaveDetectionRule",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/detection_rules.rs",
+          "line": 408
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2246
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "DeleteDetectionRule",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/detection_rules.rs",
+          "line": 227
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2283
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "ToggleDetectionRule",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/threats/detection_rules.rs",
+          "line": 215
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2302
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "SaveRisk",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/risks.rs",
+          "line": 132
+        },
+        {
+          "file": "crates/agent-gui/src/pages/risks.rs",
+          "line": 916
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2352
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "DeleteRisk",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/risks.rs",
+          "line": 960
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2393
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "SaveAsset",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1089
+        },
+        {
+          "file": "crates/agent-gui/src/pages/assets.rs",
+          "line": 856
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2412
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "UpdateAssetLifecycle",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/assets.rs",
+          "line": 599
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2454
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "SaveAlertRule",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 432
+        },
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 555
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2511
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "DeleteAlertRule",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 443
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2549
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "SaveWebhook",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 765
+        },
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 869
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2571
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "DeleteWebhook",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 786
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2609
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "TestWebhook",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/notifications.rs",
+          "line": 775
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2631
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "ApplyAiRemediation",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/vulnerabilities.rs",
+          "line": 598
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 1620
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmPrompt",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1948
+        },
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 283
+        },
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 340
+        },
+        {
+          "file": "crates/agent-gui/src/pages/compliance.rs",
+          "line": 757
+        },
+        {
+          "file": "crates/agent-gui/src/pages/dashboard.rs",
+          "line": 655
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2693
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmAnalyzeVulnerability",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/vulnerabilities.rs",
+          "line": 607
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3111
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmClassifyThreat",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/network.rs",
+          "line": 536
+        },
+        {
+          "file": "crates/agent-gui/src/pages/threats/overview.rs",
+          "line": 648
+        },
+        {
+          "file": "crates/agent-gui/src/pages/threats/overview.rs",
+          "line": 932
+        },
+        {
+          "file": "crates/agent-gui/src/pages/threats/overview.rs",
+          "line": 1336
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3465
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmGetStatus",
+      "references": [
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2843
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmReloadModel",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 1090
+        },
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 1108
+        },
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 1359
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2926
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmStartDownload",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 1633
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 2990
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmPauseDownload",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 1661
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3072
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmResumeDownload",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 1647
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3085
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmCancelDownload",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 1683
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3098
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmAnalyzeRisk",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/pages/risks.rs",
+          "line": 847
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3562
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "SetVoiceListening",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 651
+        },
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 1805
+        },
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 306
+        },
+        {
+          "file": "crates/agent-gui/src/pages/dashboard.rs",
+          "line": 623
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3184
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "SpeakNotification",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 676
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3218
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmToggleVoice",
+      "references": [
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3245
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "LlmSelectModel",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/llm_panel.rs",
+          "line": 1385
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3259
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "UpdateSiemConfig",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 507
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 1043
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 1075
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 1104
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 1132
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3654
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    },
+    {
+      "command": "UpdateLogCollectorConfig",
+      "references": [
+        {
+          "file": "crates/agent-gui/src/app.rs",
+          "line": 513
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 1193
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 1247
+        },
+        {
+          "file": "crates/agent-gui/src/pages/settings.rs",
+          "line": 1282
+        },
+        {
+          "file": "crates/agent-core/src/main.rs",
+          "line": 3679
+        }
+      ],
+      "verification": "static references only; execution not verified"
+    }
+  ]
+}

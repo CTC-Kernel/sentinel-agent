@@ -55,6 +55,20 @@ impl Default for Preview {
             {
                 fixtures::select_tab(&mut state, &requested, tab);
             }
+            // Synthetic assistant states: this preview never opens audio devices.
+            if let Ok(mode) = std::env::var("PREVIEW_AI_MODE") {
+                state.ai.work_mode = mode.parse::<usize>().unwrap_or(0).min(2);
+            }
+            match std::env::var("PREVIEW_AI_STATE").as_deref() {
+                Ok("empty") => { state.ai.chat_history.clear(); }
+                Ok("busy") => {
+                    state.ai.is_processing = true;
+                    state.ai.input_text = "Préparer la prochaine question…".into();
+                }
+                Ok("listening") => { state.ai.is_listening = true; state.ai.mic_level = 0.62; }
+                Ok("error") => { state.ai.voice_error = Some("Microphone indisponible : vérifiez l’autorisation et le périphérique sélectionné.".into()); }
+                _ => {}
+            }
             if let Ok(drawer) = std::env::var("PREVIEW_DRAWER") {
                 fixtures::open_drawer(&mut state, &drawer);
             }
@@ -250,14 +264,12 @@ impl eframe::App for Preview {
                     .inner_margin(egui::Margin::symmetric(0, theme::SPACE_LG as i8)),
             )
             .show(ctx, |ui| {
-                egui::ScrollArea::vertical()
-                    .auto_shrink(egui::Vec2b::new(false, false))
-                    .show(ui, |ui| {
-                        agent_gui::app::page_column(ui, |ui| match self.state.as_mut() {
-                            Some(state) => real_page(ui, &self.requested, state),
-                            None => gallery(ui),
-                        });
+                agent_gui::app::page_scroll_area(&self.page).show(ui, |ui| {
+                    agent_gui::app::page_column(ui, |ui| match self.state.as_mut() {
+                        Some(state) => real_page(ui, &self.requested, state),
+                        None => gallery(ui),
                     });
+                });
             });
 
         self.overlays(ctx);

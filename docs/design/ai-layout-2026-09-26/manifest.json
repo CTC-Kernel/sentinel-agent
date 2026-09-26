@@ -1,0 +1,82 @@
+[
+  {
+    "file": "compact-conversation-dark.jpg",
+    "original_pixels": [
+      1920,
+      1280
+    ],
+    "sha256": "82caf0c8cfc311f753370ca701bec1b02b3ae7c1342eed4c671e7f6ed5044ada"
+  },
+  {
+    "file": "compact-conversation-light.jpg",
+    "original_pixels": [
+      1920,
+      1280
+    ],
+    "sha256": "a2cb3d6b4e195c05c52ce43cf3313562a0471854d61f44046c847f3d30be0033"
+  },
+  {
+    "file": "compact-dark.jpg",
+    "original_pixels": [
+      1920,
+      1280
+    ],
+    "sha256": "5ed5a53a7135978275913fcf59c8b762d1f0a017871962aa116bfa0792b21872"
+  },
+  {
+    "file": "compact-light.jpg",
+    "original_pixels": [
+      1920,
+      1280
+    ],
+    "sha256": "d5104ede5a09653f6fbe64f44723d22328a13905baa19725f8461331771b152c"
+  },
+  {
+    "file": "conversation-dark.jpg",
+    "original_pixels": [
+      2720,
+      1640
+    ],
+    "sha256": "0d15299a90c4491e8b23c9ee37319e74d580d78f2096fcb266f01bfe822b38f8"
+  },
+  {
+    "file": "conversation-light.jpg",
+    "original_pixels": [
+      2720,
+      1640
+    ],
+    "sha256": "05644f655c31d917f81418e21de102b7fb08573334f7a7b40e8a7fd42684dcc6"
+  },
+  {
+    "file": "erreur-dark.jpg",
+    "original_pixels": [
+      2720,
+      1640
+    ],
+    "sha256": "74d6b2364a234ea4182722580dbf5aa23646f335afdd179d2661832c4f1eee56"
+  },
+  {
+    "file": "erreur-light.jpg",
+    "original_pixels": [
+      2720,
+      1640
+    ],
+    "sha256": "6eed630a3e9c8e06fe0eb63dfc69e6ec156f992e9c0be5d9e7315114e0bcdd13"
+  },
+  {
+    "file": "vocal-dark.jpg",
+    "original_pixels": [
+      2720,
+      1640
+    ],
+    "sha256": "0224a1f3b8cd7bd98472821b686f1208bfdcdf2c92e7df59b3546d8ce3c8dfb7"
+  },
+  {
+    "file": "vocal-light.jpg",
+    "original_pixels": [
+      2720,
+      1640
+    ],
+    "sha256": "dfd16b5c5f99be3ae3776264a95b29f58b1886f4ba63398f661679260de45d0d"
+  }
+]

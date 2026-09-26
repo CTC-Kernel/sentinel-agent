@@ -15,6 +15,18 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
     let size = theme::MIN_TOUCH_TARGET + 8.0; // Slightly larger for prominence
     let (rect, response) = ui.allocate_exact_size(egui::vec2(size, size), Sense::click());
 
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(
+            egui::WidgetType::Checkbox,
+            ui.is_enabled(),
+            is_listening,
+            if is_listening {
+                "Arrêter la dictée"
+            } else {
+                "Dicter une question"
+            },
+        )
+    });
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
         let is_clicked = response.is_pointer_button_down_on();
@@ -41,11 +53,11 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
         };
 
         let border_color = if is_listening {
-            theme::ACCENT
+            theme::accent_text()
         } else if is_hovered {
             theme::text_tertiary()
         } else {
-            theme::separator()
+            theme::border()
         };
 
         let border_width = if is_listening {
@@ -78,7 +90,7 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
             icons::MICROPHONE_SLASH
         };
         let icon_color = if is_listening {
-            theme::ACCENT
+            theme::accent_text()
         } else if is_hovered {
             theme::text_primary()
         } else {
@@ -99,6 +111,10 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
             icon_color,
         );
 
+        if response.has_focus() {
+            ui.painter()
+                .circle_stroke(rect.center(), size / 2.0 + 2.0, theme::focus_ring());
+        }
         // Handle animation refresh
         if is_listening && !theme::is_reduced_motion() {
             ui.ctx().request_repaint();
@@ -107,9 +123,9 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
 
     response
         .on_hover_text(if is_listening {
-            "Voice Assistant: ACTIF (cliquer pour désactiver)"
+            "Arrêter la dictée"
         } else {
-            "Voice Assistant: INACTIF (cliquer pour activer)"
+            "Dicter une question · microphone local"
         })
         .on_hover_cursor(egui::CursorIcon::PointingHand)
 }

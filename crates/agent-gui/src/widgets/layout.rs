@@ -95,10 +95,74 @@ impl ResponsiveGrid {
                 ui.horizontal_top(|ui: &mut egui::Ui| {
                     ui.spacing_mut().item_spacing.x = self.gap;
                     for item in row_chunk {
-                        render_fn(ui, item_width, item);
+                        // Isolate each cell: changing a cell's width must never
+                        // reset the parent row's cursor or affect its siblings.
+                        ui.vertical(|ui| {
+                            ui.set_width(item_width);
+                            render_fn(ui, item_width, item);
+                        });
                     }
                 });
             }
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cards_never_overlap_or_escape_the_grid() {
+        for dark in [false, true] {
+            for width in [640.0, 960.0, 1360.0, 1920.0] {
+                let ctx = egui::Context::default();
+                theme::configure_fonts(&ctx);
+                theme::apply_theme(&ctx, dark);
+                let _ = ctx.run(
+                    egui::RawInput {
+                        screen_rect: Some(egui::Rect::from_min_size(
+                            egui::Pos2::ZERO,
+                            egui::vec2(width, 820.0),
+                        )),
+                        ..Default::default()
+                    },
+                    |ctx| {
+                        egui::CentralPanel::default().show(ctx, |ui| {
+                            let bounds = ui.available_rect_before_wrap();
+                            let mut rects = Vec::new();
+                            ResponsiveGrid::new(158.0, theme::SPACE_SM).show(
+                                ui,
+                                &[0, 1, 2],
+                                |ui, width, item| {
+                                    ui.set_width(width);
+                                    rects.push(
+                                        ui.scope(|ui| {
+                                            crate::widgets::card(ui, |ui| {
+                                                ui.label(format!("Signal {item}"));
+                                            })
+                                        })
+                                        .response
+                                        .rect,
+                                    );
+                                },
+                            );
+                            for rect in &rects {
+                                assert!(
+                                    rect.left() >= bounds.left()
+                                        && rect.right() <= bounds.right() + 1.0
+                                );
+                            }
+                            for pair in rects.windows(2) {
+                                assert!(
+                                    !pair[0].intersects(pair[1]),
+                                    "overlapping cards at width {width}: {rects:?}"
+                                );
+                            }
+                        });
+                    },
+                );
+            }
+        }
     }
 }

@@ -19,7 +19,7 @@ impl RisksPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
             &["Conformité & risques", "Risques"],
@@ -30,10 +30,6 @@ impl RisksPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
-
-        // Risk matrix heatmap
-        Self::draw_risk_matrix(ui, state);
-        ui.add_space(theme::SPACE_MD);
 
         // Summary cards
         let total = state.risks.entries.len();
@@ -111,6 +107,13 @@ impl RisksPage {
             Self::summary_card(ui, width, label, value, *color, icon);
         });
 
+        ui.add_space(theme::SPACE_MD);
+
+        egui::CollapsingHeader::new("Matrice probabilité × impact")
+            .id_salt("risk_matrix")
+            .show(ui, |ui| {
+                Self::draw_risk_matrix(ui, state);
+            });
         ui.add_space(theme::SPACE_MD);
 
         // Action bar

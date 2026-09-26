@@ -160,7 +160,7 @@ const WORKFLOWS: [Workflow; 3] = [
 
 impl OrchestrationPage {
     pub fn show(ui: &mut Ui) {
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         let _ = widgets::page_header_nav(
             ui,
             &["Automatisation", "Orchestration"],

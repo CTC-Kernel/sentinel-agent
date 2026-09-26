@@ -297,6 +297,8 @@ pub enum AgentEvent {
         /// The parsed text question.
         text: String,
     },
+    /// Audio failure, never a user transcription.
+    VoiceError { message: String },
     /// Voice synthesis state change.
     VoiceStatus {
         /// True if the system is currently outputting synthesized text.
@@ -570,7 +572,9 @@ pub enum GuiCommand {
         /// Whether the agent should actively listen and transcribe mic input.
         enabled: bool,
     },
-    /// Read a high-priority notification through the native TTS engine.
+    /// Stop microphone capture and speech without rearming hands-free mode.
+    StopVoice,
+    /// Read text through the native TTS engine.
     SpeakNotification { text: String },
     /// Toggle voice recognition on/off (convenience wrapper around SetVoiceListening).
     LlmToggleVoice,

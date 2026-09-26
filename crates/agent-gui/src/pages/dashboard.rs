@@ -98,7 +98,7 @@ impl DashboardPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
         let mut action: Option<DashboardAction> = None;
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE_XS);
         let _ = widgets::page_header_nav(
             ui,
             &["Vue d'ensemble", "Tableau de bord"],
@@ -129,7 +129,7 @@ impl DashboardPage {
 
         ui.add_space(theme::SPACE_SM);
 
-        // Persistent operational pulse: four concise, actionable signals
+        // Persistent operational pulse: three concise, actionable signals
         // answer “what is protected, what needs attention, and can I act?”
         // before the operator reaches the analytical cards below.
         if let Some(target) = Self::operational_pulse(ui, state) {
@@ -472,7 +472,9 @@ impl DashboardPage {
             .vulnerability_summary
             .as_ref()
             .map_or(0, |summary| summary.critical + summary.high);
-        let exposure_value = if exposures == 0 {
+        let exposure_value = if state.vulnerability_summary.is_none() {
+            "En attente d’analyse".to_owned()
+        } else if exposures == 0 {
             "Aucune critique".to_owned()
         } else {
             crate::format::count(exposures, "priorité")
@@ -481,7 +483,7 @@ impl DashboardPage {
             (
                 Page::Monitoring,
                 icons::SHIELD_CHECK,
-                "PROTECTION",
+                "AGENT",
                 if protected { "Active" } else { "À vérifier" }.to_owned(),
                 if protected {
                     theme::SUCCESS
@@ -494,18 +496,16 @@ impl DashboardPage {
                 icons::CLIPBOARD_CHECK,
                 "CONTRÔLES",
                 controls,
-                if state.policy.failing == 0 {
-                    theme::SUCCESS
-                } else {
-                    theme::WARNING
-                },
+                check_status(state).1,
             ),
             (
                 Page::Vulnerabilities,
                 icons::CROSSHAIRS,
                 "EXPOSITION",
                 exposure_value,
-                if exposures == 0 {
+                if state.vulnerability_summary.is_none() {
+                    theme::text_tertiary()
+                } else if exposures == 0 {
                     theme::SUCCESS
                 } else {
                     theme::ERROR
@@ -541,6 +541,13 @@ impl DashboardPage {
                                 });
                             });
                         });
+                    response.widget_info(|| {
+                        egui::WidgetInfo::labeled(
+                            egui::WidgetType::Button,
+                            ui.is_enabled(),
+                            format!("{label} : {value}"),
+                        )
+                    });
                     if response.clicked() {
                         selected = Some(page.clone());
                     }
