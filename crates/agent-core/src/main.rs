@@ -2797,7 +2797,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             )
                                         } else if prompt_lower.contains("phishing") || prompt_lower.contains("mail") {
                                             format!(
-                                                "**[Sentinel Intelligence — Triage Menace Hameçonnage]**\n\n\
+                                                "**[Sentinel Intelligence — Triage Menace Hameçonnage]** (Domaine : {context_label})\n\n\
                                                 1. **Constat factuel** : Détection de signaux d'ingénierie sociale avec non-concordance DMARC/SPF.\n\
                                                 2. **Gravité** : Élevée (Risque de vol de session et credential stuffing).\n\
                                                 3. **Actions prioritaires** :\n\
