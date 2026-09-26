@@ -110,4 +110,3 @@ mod tests {
         assert_eq!(res["playbook"]["risk_level"], "HIGH");
     }
 }
-

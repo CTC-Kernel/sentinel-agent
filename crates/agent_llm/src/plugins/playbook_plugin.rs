@@ -53,8 +53,8 @@ impl AIPlugin for RemediationPlaybookPlugin {
                     json!({ "type": "KillProcess", "target": "offending_binary", "description": "Terminer le processus responsable du chiffrement suspect" }),
                     json!({ "type": "IsolateHost", "target": target, "description": "Isoler la carte réseau de l'hôte via l'EDR Sentinel" }),
                     json!({ "type": "QuarantineFile", "target": "suspicious_payload", "description": "Déplacer le binaire malveillant vers le coffre-fort chiffré" }),
-                    json!({ "type": "AlertSOC", "severity": "CRITICAL", "description": "Alerte d'astreinte SOC P1 avec corrélation MITRE T1486" })
-                ]
+                    json!({ "type": "AlertSOC", "severity": "CRITICAL", "description": "Alerte d'astreinte SOC P1 avec corrélation MITRE T1486" }),
+                ],
             ),
             "lateral_movement" => (
                 "Révocation & Rupture Mouvement Latéral",
@@ -63,8 +63,8 @@ impl AIPlugin for RemediationPlaybookPlugin {
                 vec![
                     json!({ "type": "RevokeSession", "target": target, "description": "Révoquer immédiatement les tokens Kerberos / JWT de l'identité compromise" }),
                     json!({ "type": "BlockPort", "port": 3389, "target": target, "description": "Fermer les flux RDP et SMB non autorisés sur le segment réseau" }),
-                    json!({ "type": "AuditLogon", "target": target, "description": "Capturer les événements d'authentification des 6 dernières heures" })
-                ]
+                    json!({ "type": "AuditLogon", "target": target, "description": "Capturer les événements d'authentification des 6 dernières heures" }),
+                ],
             ),
             "c2_beacon" => (
                 "Neutralisation Balise C2 & Blocage Passerelle",
@@ -73,8 +73,8 @@ impl AIPlugin for RemediationPlaybookPlugin {
                 vec![
                     json!({ "type": "BlockIp", "ip": target, "duration_secs": 86400, "description": "Injecter la règle de blocage IP sur le firewall de bordure et DNS Sinkhole" }),
                     json!({ "type": "KillProcess", "target": "beacon_process", "description": "Tuer le processus à l'origine du socket réseau anormal" }),
-                    json!({ "type": "Notify", "channel": "slack:soc-critical", "description": "Notifier les analystes de garde de la neutralisation" })
-                ]
+                    json!({ "type": "Notify", "channel": "slack:soc-critical", "description": "Notifier les analystes de garde de la neutralisation" }),
+                ],
             ),
             "phishing" => (
                 "Purge de Campagne Phishing & Révocation Identité",
@@ -83,8 +83,8 @@ impl AIPlugin for RemediationPlaybookPlugin {
                 vec![
                     json!({ "type": "PurgeMailboxes", "target": target, "description": "Supprimer l'email suspect de toutes les boîtes de réception de l'organisation" }),
                     json!({ "type": "ResetPasswordMFA", "target": target, "description": "Forcer le renouvellement du mot de passe et réinitialiser les sessions MFA" }),
-                    json!({ "type": "BlockDomain", "target": target, "description": "Ajouter le domaine de phishing sur les proxies web et serveurs DNS" })
-                ]
+                    json!({ "type": "BlockDomain", "target": target, "description": "Ajouter le domaine de phishing sur les proxies web et serveurs DNS" }),
+                ],
             ),
             _ => (
                 "Plan de Remédiation Standard Sentinel",
@@ -92,9 +92,9 @@ impl AIPlugin for RemediationPlaybookPlugin {
                 "30s",
                 vec![
                     json!({ "type": "CollectEvidence", "target": target, "description": "Collecter la télémétrie système, mémoire et logs récents" }),
-                    json!({ "type": "Notify", "channel": "soc-dashboard", "description": "Créer un ticket d'investigation niveau 1" })
-                ]
-            )
+                    json!({ "type": "Notify", "channel": "soc-dashboard", "description": "Créer un ticket d'investigation niveau 1" }),
+                ],
+            ),
         };
 
         Ok(json!({
