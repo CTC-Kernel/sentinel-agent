@@ -102,22 +102,32 @@ impl SentinelAICore {
             }
         }
 
+        response.widget_info(|| {
+            egui::WidgetInfo::labeled(
+                egui::WidgetType::Button,
+                ui.is_enabled(),
+                "Ouvrir l'assistant de sécurité IA",
+            )
+        });
         response
+            .on_hover_cursor(egui::CursorIcon::PointingHand)
+            .on_hover_text("Ouvrir le centre d'analyse et de recommandations IA")
     }
 
     fn draw_aura(&self, painter: &Painter, center: Pos2, radius: f32, t: f32) {
         use crate::theme;
-        let mut base_color = theme::ACCENT;
+        // The AI core owns the violet channel. Keeping this palette separate
+        // from the blue navigation accent makes state changes immediately
+        // legible and removes the cyan wash previously visible on the dashboard.
+        let mut base_color = theme::AI;
 
         match self.voice_state {
             VoiceState::Listening(level) => {
-                // Shift colour to a more "attentive" light blue/cyan,
-                // brightening proportionally to the microphone level.
-                base_color = theme::ACCENT_LIGHT.linear_multiply(1.0 + level * 0.5);
+                // Emerald communicates an open, healthy microphone channel.
+                base_color = theme::SUCCESS.linear_multiply(1.0 + level * 0.35);
             }
             VoiceState::Speaking(vol) => {
-                // Shift colour based on volume
-                base_color = theme::ACCENT.linear_multiply(1.0 + vol * 0.5);
+                base_color = theme::AI.linear_multiply(1.0 + vol * 0.35);
             }
             _ => {}
         }
@@ -168,8 +178,8 @@ impl SentinelAICore {
 
     fn draw_rings(&self, painter: &Painter, center: Pos2, radius: f32, t: f32) {
         use crate::theme;
-        let color_primary = theme::ACCENT;
-        let color_secondary = theme::ACCENT_LIGHT;
+        let color_primary = theme::AI;
+        let color_secondary = theme::readable_color(theme::SUCCESS);
 
         // --- Outer Ring (Many small segments, slow CW) ---
         let outer_r = radius * 1.05;
@@ -261,25 +271,22 @@ impl SentinelAICore {
                 + parallax * (i as f32 * 0.3);
 
             // Orbital dot
-            painter.circle_filled(pos, 2.0, theme::ACCENT_LIGHT);
+            painter.circle_filled(pos, 2.0, theme::AI);
 
             // Sub-glow
-            painter.circle_filled(pos, 4.0, theme::ACCENT_LIGHT.linear_multiply(0.2));
+            painter.circle_filled(pos, 4.0, theme::AI.linear_multiply(0.2));
 
             // Connector line (subtle)
             painter.line_segment(
                 [center, pos],
-                Stroke::new(
-                    theme::BORDER_HAIRLINE,
-                    theme::ACCENT_LIGHT.linear_multiply(0.05),
-                ),
+                Stroke::new(theme::BORDER_HAIRLINE, theme::AI.linear_multiply(0.05)),
             );
         }
     }
 
     fn draw_hud(&self, painter: &Painter, center: Pos2, radius: f32) {
         use crate::theme;
-        let color = theme::ACCENT.linear_multiply(0.3);
+        let color = theme::AI.linear_multiply(0.3);
 
         // Crosshair lines
         let len = radius * 1.2;
