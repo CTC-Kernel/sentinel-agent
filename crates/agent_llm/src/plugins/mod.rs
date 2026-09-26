@@ -6,7 +6,15 @@
 //! This module allows the LLM to call "tools" or plugins to gather
 //! deeper information or perform specialized tasks.
 
+pub mod mitre_plugin;
+pub mod playbook_plugin;
+pub mod sigma_plugin;
 pub mod vuln_plugin;
+
+pub use mitre_plugin::MitreAttackPlugin;
+pub use playbook_plugin::RemediationPlaybookPlugin;
+pub use sigma_plugin::SigmaRulePlugin;
+pub use vuln_plugin::OsvPlugin;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -58,5 +66,47 @@ impl PluginRegistry {
 impl Default for PluginRegistry {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[tokio::test]
+    async fn test_mitre_plugin_execution() {
+        let plugin = MitreAttackPlugin;
+        assert_eq!(plugin.name(), "mitre_attack_lookup");
+
+        let res = plugin.execute(json!({ "query": "T1059" })).await.unwrap();
+        assert_eq!(res["status"], "success");
+        assert!(res["total_matched"].as_u64().unwrap() >= 1);
+    }
+
+    #[tokio::test]
+    async fn test_sigma_plugin_execution() {
+        let plugin = SigmaRulePlugin;
+        assert_eq!(plugin.name(), "sigma_rule_matcher");
+
+        let res = plugin
+            .execute(json!({ "command_line": "powershell.exe -enc AAAA" }))
+            .await
+            .unwrap();
+        assert_eq!(res["status"], "alert");
+        assert_eq!(res["matched_rules_count"], 1);
+    }
+
+    #[tokio::test]
+    async fn test_playbook_plugin_execution() {
+        let plugin = RemediationPlaybookPlugin;
+        assert_eq!(plugin.name(), "remediation_playbook_generator");
+
+        let res = plugin
+            .execute(json!({ "threat_type": "ransomware", "target": "FIN-SRV-01" }))
+            .await
+            .unwrap();
+        assert_eq!(res["status"], "success");
+        assert_eq!(res["playbook"]["risk_level"], "HIGH");
     }
 }

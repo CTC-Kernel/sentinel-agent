@@ -88,11 +88,22 @@ pub fn sparkline(
         return;
     }
 
-    let (x0, x1) = data.iter().fold((f64::MAX, f64::MIN), |(lo, hi), p| {
+    // Sanitize data: filter out any non-finite (NaN / Inf) samples
+    let valid_data: Vec<[f64; 2]> = data
+        .iter()
+        .filter(|p| p[0].is_finite() && p[1].is_finite())
+        .copied()
+        .collect();
+
+    if valid_data.len() < 2 {
+        return;
+    }
+
+    let (x0, x1) = valid_data.iter().fold((f64::MAX, f64::MIN), |(lo, hi), p| {
         (lo.min(p[0]), hi.max(p[0]))
     });
-    let y_min = data.iter().map(|p| p[1]).fold(0.0_f64, f64::min);
-    let y_max = data.iter().map(|p| p[1]).fold(0.0_f64, f64::max);
+    let y_min = valid_data.iter().map(|p| p[1]).fold(0.0_f64, f64::min);
+    let y_max = valid_data.iter().map(|p| p[1]).fold(0.0_f64, f64::max);
     let x_span = (x1 - x0).max(f64::EPSILON);
     // 8 % headroom so the peak never touches the top edge.
     let y_span = ((y_max - y_min) * 1.08).max(f64::EPSILON);
@@ -104,7 +115,7 @@ pub fn sparkline(
             plot.bottom() - ((p[1] - y_min) / y_span) as f32 * plot.height(),
         )
     };
-    let points: Vec<Pos2> = data.iter().map(to_pos).collect();
+    let points: Vec<Pos2> = valid_data.iter().map(to_pos).collect();
     let baseline = plot.bottom() - ((0.0 - y_min) / y_span) as f32 * plot.height();
 
     // Two quiet reference lines make slope and volatility easier to judge at

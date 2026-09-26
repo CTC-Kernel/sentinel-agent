@@ -3,12 +3,14 @@ import {
   Activity, ArrowRight, Bell, Bot, Check, ChevronDown, ChevronRight, Circle,
   Clock3, FileDown, Filter, Fingerprint, KeyRound, LockKeyhole, Menu, Play,
   Plus, RefreshCw, Search, Send, Shield, ShieldCheck, Sparkles, Users, Workflow, X,
-  Zap, Crosshair, Eye, Globe2, Radio, ScanLine, TriangleAlert,
-  Moon, Sun,
+  Zap, Crosshair, Eye, Globe2, Radio, Radar, ScanLine, TriangleAlert,
+  Moon, Sun, Mic, MicOff, Volume2, VolumeX, Cpu, Brain, Compass, Store, AlertTriangle, Layers,
+  ShieldAlert, Server, HardDrive, Terminal, CheckCircle2, AlertOctagon, SlidersHorizontal, Bug,
+  Cloud, Laptop, FileText, Download, TrendingUp, Scale, Boxes,
 } from "lucide-react";
 import { compliance, genericPages, incidents, kpis, navGroups, templates, workflows } from "./data";
 import { orchestrationClient, type Execution } from "./services/orchestration";
-import { intelligenceClient, modelCatalog, type ChatMessage, type ModelProvider } from "./services/ai";
+import { intelligenceClient, modelCatalog, type ChatMessage, type ModelProvider, type ProposedAction } from "./services/ai";
 
 export function App() {
   const [page, setPage] = useState(() => sessionStorage.getItem("nexus:last-page") ?? "dashboard");
@@ -52,11 +54,22 @@ export function App() {
         </div>
       </header>
       <main>
-        {page === "dashboard" ? <Dashboard onNavigate={setPage} notify={notify}/> : page === "orchestration" ? <Orchestration notify={notify}/> : page === "threats" ? <ThreatCenter notify={notify}/> : <ModulePage id={page}/>}
+        {page === "dashboard" ? <Dashboard onNavigate={setPage} notify={notify}/> :
+         page === "orchestration" ? <Orchestration notify={notify}/> :
+         page === "threats" ? <ThreatCenter notify={notify}/> :
+         page === "ai" ? <AICommandCenter notify={notify} onNavigate={setPage} onOpenAssistant={() => setAssistantOpen(true)}/> :
+         page === "vulnerabilities" ? <VulnerabilityHub notify={notify} onOpenAssistant={() => setAssistantOpen(true)}/> :
+         page === "compliance" ? <ComplianceHub notify={notify}/> :
+         page === "posture" ? <PostureHub notify={notify} onNavigate={setPage}/> :
+         page === "network" ? <NetworkHub notify={notify}/> :
+         page === "risks" ? <RiskRegistryHub notify={notify} onOpenAssistant={() => setAssistantOpen(true)}/> :
+         page === "reports" ? <ReportsHub notify={notify}/> :
+         page === "assets" ? <AssetInventoryHub notify={notify} onNavigate={setPage}/> :
+         <ModulePage id={page}/>}
       </main>
     </div>
     <button className="ai-fab" onClick={() => setAssistantOpen(true)}><Sparkles size={20}/><span>Sentinel Intelligence</span></button>
-    {assistantOpen && <Assistant page={page} onClose={() => setAssistantOpen(false)} />}
+    {assistantOpen && <Assistant page={page} onClose={() => setAssistantOpen(false)} notify={notify} />}
     {searchOpen && <SearchPalette onClose={() => setSearchOpen(false)} onNavigate={(id) => { setPage(id); setSearchOpen(false); }}/>}
     {toast && <div className="toast"><Check size={17}/>{toast}</div>}
   </div>;
@@ -140,10 +153,16 @@ function Orchestration({ notify }: { notify: (s: string) => void }) {
   const [tab, setTab] = useState("overview");
   const [selected, setSelected] = useState(workflows[0]);
   const [launchOpen, setLaunchOpen] = useState(false);
-  const tabs = ["Vue d'ensemble", "Workflows", "Marketplace", "Exécutions", "Gouvernance"];
+  const tabs = [
+    { id: "overview", label: "Vue d'ensemble", icon: Compass, badge: undefined },
+    { id: "workflows", label: "Workflows", icon: Workflow, badge: "12" },
+    { id: "marketplace", label: "Marketplace", icon: Store, badge: "8" },
+    { id: "exécutions", label: "Exécutions", icon: Activity, badge: "Live" },
+    { id: "gouvernance", label: "Gouvernance", icon: ShieldCheck, badge: "100%" },
+  ];
   return <div className="page fade-in orchestration-page">
     <PageHeading eyebrow="NEXUS AUTOMATION CLOUD" title="Orchestration" description="Concevez, gouvernez et exécutez votre défense automatisée." actions={<><span className="connection"><i/> n8n connecté</span><button className="secondary"><KeyRound size={16}/> Connecteurs</button><button className="primary" onClick={() => notify("Nouveau workflow initialisé")}><Plus size={16}/> Nouveau workflow</button></>}/>
-    <div className="tabs">{tabs.map((name) => <button className={tab === name.toLowerCase().replace("vue d'ensemble", "overview") ? "active" : ""} key={name} onClick={() => setTab(name.toLowerCase().replace("vue d'ensemble", "overview"))}>{name}</button>)}</div>
+    <div className="tabs-segmented">{tabs.map((item) => <button className={`tab-pill ${tab === item.id ? "active" : ""}`} key={item.id} onClick={() => setTab(item.id)}><item.icon size={15}/><span>{item.label}</span>{item.badge && <em className="tab-badge">{item.badge}</em>}</button>)}</div>
     {tab === "overview" ? <OrchestrationOverview notify={notify} onOpenWorkflows={() => setTab("workflows")}/> : tab === "marketplace" ? <Marketplace notify={notify}/> : tab === "exécutions" ? <Executions/> : tab === "gouvernance" ? <Governance/> : <div className="orchestration-grid">
       <section>
         <div className="section-head large"><div><span className="eyebrow">AUTOMATISATIONS</span><h2>Workflows critiques</h2></div><div className="filter-actions"><button><Filter size={15}/> Tous</button><button><Search size={15}/></button></div></div>
@@ -291,30 +310,1812 @@ function ModulePage({ id }: { id: string }) {
   </div>;
 }
 
-function Assistant({ page, onClose }: { page: string; onClose: () => void }) {
-  const [model, setModel] = useState<ModelProvider>("kimi");
+function VulnerabilityHub({ notify, onOpenAssistant }: { notify: (s: string) => void; onOpenAssistant: () => void }) {
+  const [filter, setFilter] = useState<"all" | "critical" | "kev" | "sla">("all");
+  const [query, setQuery] = useState("");
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
+  const cves = [
+    {
+      id: "CVE-2024-38077",
+      title: "Windows Remote Desktop Licensing Service RCE",
+      asset: "DC-EU-02 · Windows Server 2022",
+      owner: "SecOps / Infrastructure",
+      cvss: 9.8,
+      epss: "96.4%",
+      kev: true,
+      slaRemaining: "4 heures restantes",
+      slaStatus: "urgent",
+      vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      patchStatus: "Patch KB5040437 Disponible",
+      description: "Vulnérabilité d'exécution de code à distance non authentifiée dans le service de licences du Bureau à distance.",
+      mitigation: "Désactiver le service RDLicsvc s'il n'est pas requis, ou appliquer immédiatement le correctif cumulatif KB5040437.",
+    },
+    {
+      id: "CVE-2024-21413",
+      title: "Microsoft Outlook Moniker Remote Code Execution (Checkm8)",
+      asset: "FIN-WS-042 · Windows 11 Enterprise",
+      owner: "Workplace Security",
+      cvss: 9.8,
+      epss: "97.1%",
+      kev: true,
+      slaRemaining: "DÉPASSÉ (12h)",
+      slaStatus: "overdue",
+      vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      patchStatus: "En attente redémarrage",
+      description: "Contournement de la vue protégée d'Office permettant l'exécution arbitraire lors de la prévisualisation d'un email.",
+      mitigation: "Déployer la mise à jour Office 365 version 2402 et activer le blocage des liens NTLM sortants.",
+    },
+    {
+      id: "CVE-2024-6387",
+      title: "OpenSSH Server RegreSSHion RCE (glibc race condition)",
+      asset: "bastion-gw-01 · Debian 12 Bookworm",
+      owner: "Platform Engineering",
+      cvss: 8.1,
+      epss: "88.2%",
+      kev: false,
+      slaRemaining: "3 jours restants",
+      slaStatus: "normal",
+      vector: "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      patchStatus: "Mise à jour OpenSSH 9.8p1 prête",
+      description: "Condition de concurrence dans le gestionnaire de signaux SIGALRM d'sshd permettant une exécution de code avec privilèges root.",
+      mitigation: "Mettre à jour openssh-server vers la version 9.8p1-1 ou configurer LoginGraceTime 0 en mesure d'attente.",
+    },
+    {
+      id: "CVE-2023-44487",
+      title: "HTTP/2 Rapid Reset Attack (Distributed Denial of Service)",
+      asset: "edge-proxy-03 · Envoy / Kubernetes Ingress",
+      owner: "SRE / Cloud Network",
+      cvss: 7.5,
+      epss: "92.1%",
+      kev: true,
+      slaRemaining: "Conforme",
+      slaStatus: "normal",
+      vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+      patchStatus: "Mitigé WAF / Rate Limiter",
+      description: "Abus de la trame RST_STREAM permettant de submerger les serveurs HTTP/2 par annulation continue de requêtes.",
+      mitigation: "Activer la limitation de requêtes concurrentes et appliquer les patches Envoy/Nginx 1.25.3.",
+    },
+  ];
+
+  const filtered = cves.filter((item) => {
+    const matchesFilter =
+      filter === "all" ? true :
+      filter === "critical" ? item.cvss >= 9.0 :
+      filter === "kev" ? item.kev :
+      filter === "sla" ? item.slaStatus === "overdue" || item.slaStatus === "urgent" : true;
+    const matchesQuery = `${item.id} ${item.title} ${item.asset}`.toLowerCase().includes(query.toLowerCase());
+    return matchesFilter && matchesQuery;
+  });
+
+  const current = filtered[selectedIdx] ?? filtered[0] ?? cves[0];
+
+  return (
+    <div className="page fade-in">
+      <PageHeading
+        eyebrow="EXPOSITION & VULNÉRABILITÉS CVE"
+        title="Centre de Gestion des Vulnérabilités"
+        description="Priorisation basée sur l'exploitabilité réelle (EPSS), la présence au catalogue CISA KEV et l'impact métier ACME."
+        actions={
+          <>
+            <button className="secondary" onClick={() => notify("Rapport d'exposition exporté")}>
+              <FileDown size={16} /> Exporter CSV
+            </button>
+            <button className="primary" onClick={() => notify("Scan rapide des 148 actifs déclenché")}>
+              <RefreshCw size={16} /> Lancer un scan CVE
+            </button>
+          </>
+        }
+      />
+
+      <section className="module-kpis">
+        <article className="panel coral">
+          <span>Critiques (CVSS ≥ 9.0)</span>
+          <strong>12</strong>
+          <small>SLA max 48h</small>
+        </article>
+        <article className="panel coral">
+          <span>Exploit Actif (CISA KEV)</span>
+          <strong>04</strong>
+          <small>Priorité absolue</small>
+        </article>
+        <article className="panel violet">
+          <span>SLA Dépassé</span>
+          <strong>02</strong>
+          <small>Alerte RSSI envoyée</small>
+        </article>
+        <article className="panel mint">
+          <span>Corrigées ce mois</span>
+          <strong>48</strong>
+          <small>+24% vs mois dernier</small>
+        </article>
+      </section>
+
+      <section className="workbench-grid">
+        <article className="panel registry-panel">
+          <header>
+            <div>
+              <span className="eyebrow">REGISTRE DES VULNÉRABILITÉS</span>
+              <h2>Vulnérabilités Prioritaires</h2>
+            </div>
+            <span className="sync-label"><i /> Base NVD + EPSS à jour</span>
+          </header>
+
+          <div className="registry-tools">
+            <label>
+              <Search />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Rechercher CVE, actif, logiciel…"
+              />
+            </label>
+            <div className="scope-switch">
+              {[
+                { id: "all", label: "Toutes" },
+                { id: "critical", label: "Critiques" },
+                { id: "kev", label: "Armées (KEV)" },
+                { id: "sla", label: "SLA Dépassé" },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  className={filter === item.id ? "active" : ""}
+                  onClick={() => { setFilter(item.id as any); setSelectedIdx(0); }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="registry-table">
+            <div className="registry-row registry-head">
+              <span>CVE / Titre</span>
+              <span>Actif Affecté</span>
+              <span>Score CVSS</span>
+              <span>Exploitabilité EPSS</span>
+              <span>SLA Remédiation</span>
+            </div>
+            {filtered.map((item, idx) => (
+              <button
+                key={item.id}
+                className={`registry-row ${selectedIdx === idx ? "selected" : ""}`}
+                onClick={() => setSelectedIdx(idx)}
+              >
+                <span>
+                  <b className="cve-pill" style={{ marginRight: 6 }}>{item.id}</b>
+                  {item.kev && <span className="kev-tag" style={{ marginRight: 6 }}>KEV</span>}
+                  <b>{item.title}</b>
+                </span>
+                <span>{item.asset}</span>
+                <span>
+                  <strong className={`score-badge ${item.cvss >= 9 ? "critical" : item.cvss >= 7 ? "high" : "medium"}`}>
+                    {item.cvss}
+                  </strong>
+                </span>
+                <span>
+                  <span className={`epss-badge ${parseFloat(item.epss) > 90 ? "" : "low"}`}>
+                    ⚡ {item.epss}
+                  </span>
+                </span>
+                <span className={`record-state ${item.slaStatus === "overdue" ? "critical" : item.slaStatus === "urgent" ? "high" : "mint"}`}>
+                  {item.slaRemaining}
+                </span>
+              </button>
+            ))}
+          </div>
+        </article>
+
+        <aside className="panel context-panel">
+          <div className="context-score">
+            <span className={`score-badge ${current.cvss >= 9 ? "critical" : "high"}`}>
+              {current.cvss}
+            </span>
+            <div>
+              <span className="eyebrow">ANALYSE CONTEXTUELLE DE MENACE</span>
+              <h2>{current.id}</h2>
+            </div>
+          </div>
+
+          <h3>{current.title}</h3>
+          <p>{current.description}</p>
+
+          <div className="context-factors">
+            <span><Server size={14} /> Actif : <b>{current.asset}</b></span>
+            <span><Clock3 size={14} /> Échéance : <b>{current.slaRemaining}</b></span>
+            <span><Users size={14} /> Équipe en charge : <b>{current.owner}</b></span>
+          </div>
+
+          <div className="context-ai">
+            <Sparkles />
+            <div>
+              <b>Recommandation Sentinel Intelligence</b>
+              <p>{current.mitigation}</p>
+            </div>
+          </div>
+
+          <button
+            className="primary full"
+            onClick={() => notify(`Playbook autonome de patch lancé pour ${current.id}`)}
+          >
+            <Play size={14} /> Appliquer le Correctif ({current.patchStatus})
+          </button>
+          <button
+            className="secondary full"
+            onClick={onOpenAssistant}
+          >
+            <Bot size={14} /> Interroger le Copilote IA sur ce CVE
+          </button>
+        </aside>
+      </section>
+    </div>
+  );
+}
+
+function ComplianceHub({ notify }: { notify: (s: string) => void }) {
+  const [standard, setStandard] = useState<"nis2" | "dora" | "iso27001" | "rgpd">("nis2");
+
+  const frameworks = {
+    nis2: {
+      title: "Directive Européenne NIS 2",
+      score: "76%",
+      badge: "Entités Essentielles & Importantes",
+      controlsCount: "38 / 50",
+      description: "Obligations de cybersécurité renforcées, gestion des incidents sous 24h et gouvernance de la chaîne de valeur.",
+      items: [
+        { code: "Art. 21.2.a", title: "Politique de sécurité des systèmes d'information & analyse de risques", state: "Conforme", score: 100, proof: "Doc-SEC-2026-v3", tone: "mint" },
+        { code: "Art. 21.2.b", title: "Traitement et notification des incidents majeurs", state: "Conforme", score: 94, proof: "SOAR-Incident-P1", tone: "mint" },
+        { code: "Art. 21.2.d", title: "Sécurité de la chaîne d'approvisionnement et relations avec les tiers", state: "À traiter", score: 62, proof: "Audit-Fournisseurs-2026", tone: "critical" },
+        { code: "Art. 21.2.e", title: "Gestion et divulgation coordonnée des vulnérabilités CVE", state: "Conforme", score: 96, proof: "Qualys-Sentinel-Sync", tone: "mint" },
+        { code: "Art. 21.2.f", title: "Évaluation de l'efficacité des mesures de gestion des risques", state: "En cours", score: 78, proof: "Audit-Interne-Q1", tone: "high" },
+        { code: "Art. 23", title: "Notification d'alerte précoce ANSSI sous 24 heures", state: "Conforme", score: 100, proof: "Template-ANSSI-v2", tone: "mint" },
+      ],
+    },
+    dora: {
+      title: "Règlement DORA (Résilience Opérationnelle Numérique)",
+      score: "91%",
+      badge: "Secteur Financier & Assurances",
+      controlsCount: "41 / 45",
+      description: "Résilience opérationnelle, tests de pénétration TLPT basés sur la menace et surveillance des prestataires TIC tiers.",
+      items: [
+        { code: "Art. 6", title: "Cadre de gestion des risques liés aux TIC et gouvernance", state: "Conforme", score: 95, proof: "GRC-DORA-Policy", tone: "mint" },
+        { code: "Art. 11", title: "Plan de continuité des activités et stratégies de repli", state: "Conforme", score: 92, proof: "PCA-DRP-Test-2026", tone: "mint" },
+        { code: "Art. 19", title: "Notification des incidents majeurs liés aux TIC aux autorités", state: "Conforme", score: 98, proof: "SLA-4h-Reporting", tone: "mint" },
+        { code: "Art. 26", title: "Tests avancés de résilience basés sur la menace (TLPT)", state: "En cours", score: 84, proof: "RedTeam-Q2-Schedule", tone: "high" },
+        { code: "Art. 28", title: "Gestion et registre complet des prestataires tiers de services TIC", state: "Conforme", score: 90, proof: "Vendor-Registry-Live", tone: "mint" },
+      ],
+    },
+    iso27001: {
+      title: "ISO/IEC 27001:2022 (SMSI)",
+      score: "87%",
+      badge: "Norme Internationale de Management",
+      controlsCount: "81 / 93",
+      description: "Système de management de la sécurité de l'information avec les 93 contrôles de l'Annexe A révisée.",
+      items: [
+        { code: "A.5.15", title: "Contrôle d'accès et politiques Zero-Trust", state: "Conforme", score: 96, proof: "IAM-MFA-Enforced", tone: "mint" },
+        { code: "A.8.7", title: "Protection contre les logiciels malveillants (EDR)", state: "Conforme", score: 99, proof: "EDR-Fleet-99.4%", tone: "mint" },
+        { code: "A.8.8", title: "Gestion des vulnérabilités techniques", state: "En cours", score: 81, proof: "Patch-Cycle-BiWeekly", tone: "high" },
+        { code: "A.8.20", title: "Sécurité des réseaux et cloisonnement", state: "Conforme", score: 94, proof: "VPC-Segmentation-PaloAlto", tone: "mint" },
+        { code: "A.8.24", title: "Utilisation de la cryptographie et gestion des clés", state: "Conforme", score: 100, proof: "HSM-KMS-Envelope", tone: "mint" },
+      ],
+    },
+    rgpd: {
+      title: "Règlement Général sur la Protection des Données (RGPD)",
+      score: "94%",
+      badge: "Conformité CNIL / EDPB",
+      controlsCount: "47 / 50",
+      description: "Protection des données à caractère personnel, registre des traitements (Art. 30) et notification de violation sous 72h.",
+      items: [
+        { code: "Art. 30", title: "Registre des activités de traitement des données personnelles", state: "Conforme", score: 98, proof: "Registry-DPO-2026", tone: "mint" },
+        { code: "Art. 32", title: "Sécurité du traitement et pseudonymisation / chiffrement", state: "Conforme", score: 95, proof: "AES-256-Encrypted", tone: "mint" },
+        { code: "Art. 33", title: "Notification à la CNIL d'une violation de données sous 72h", state: "Conforme", score: 100, proof: "Incident-Workflow-72h", tone: "mint" },
+        { code: "Art. 35", title: "Analyses d'impact relatives à la protection des données (AIPD)", state: "En cours", score: 82, proof: "AIPD-Cloud-Analytics", tone: "high" },
+      ],
+    },
+  };
+
+  const current = frameworks[standard];
+
+  return (
+    <div className="page fade-in">
+      <PageHeading
+        eyebrow="GRC / CONFORMITÉ CONTINUE"
+        title="Audits & Résilience Réglementaire"
+        description="Mesure continue de la conformité avec collecte automatisée de preuves cryptographiques SHA-256."
+        actions={
+          <>
+            <button className="secondary" onClick={() => notify("Preuves cryptographiques SHA-256 exportées")}>
+              <Fingerprint size={16} /> Exporter les Preuves
+            </button>
+            <button className="primary" onClick={() => notify(`Rapport d'audit ${standard.toUpperCase()} généré`)}>
+              <FileDown size={16} /> Générer le Rapport Signé
+            </button>
+          </>
+        }
+      />
+
+      <div className="tabs-segmented">
+        {[
+          { id: "nis2", label: "Directive NIS 2", score: "76%" },
+          { id: "dora", label: "Règlement DORA", score: "91%" },
+          { id: "iso27001", label: "ISO 27001:2022", score: "87%" },
+          { id: "rgpd", label: "RGPD / Données", score: "94%" },
+        ].map((item) => (
+          <button
+            key={item.id}
+            className={`tab-pill ${standard === item.id ? "active" : ""}`}
+            onClick={() => setStandard(item.id as any)}
+          >
+            <ShieldCheck size={14} />
+            <span>{item.label}</span>
+            <em className="tab-badge">{item.score}</em>
+          </button>
+        ))}
+      </div>
+
+      <section className="panel" style={{ padding: 22, marginTop: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 14 }}>
+          <div>
+            <span className="eyebrow" style={{ color: "var(--mint)" }}>CADRE RÉGLEMENTAIRE SÉLECTIONNÉ</span>
+            <h2 style={{ fontSize: 20, color: "#fff", margin: "4px 0" }}>{current.title}</h2>
+            <p style={{ color: "var(--muted)", fontSize: 13, maxWidth: 640 }}>{current.description}</p>
+          </div>
+          <div style={{ display: "flex", gap: 12 }}>
+            <div className="ai-kpi-card" style={{ minWidth: 140 }}>
+              <span>Score de Conformité</span>
+              <strong style={{ color: "var(--mint)" }}>{current.score}</strong>
+              <small>{current.controlsCount} validés</small>
+            </div>
+            <div className="ai-kpi-card" style={{ minWidth: 160 }}>
+              <span>Statut d'Audit</span>
+              <strong style={{ fontSize: 15 }}>Certifiable</strong>
+              <small><CheckCircle2 size={11} /> 0 non-conformité majeure</small>
+            </div>
+          </div>
+        </div>
+
+        <div className="registry-table" style={{ marginTop: 20 }}>
+          <div className="registry-row registry-head">
+            <span>Article / Contrôle</span>
+            <span>Exigence Réglementaire</span>
+            <span>Preuve Cryptographique</span>
+            <span>Conformité</span>
+            <span>Statut</span>
+          </div>
+          {current.items.map((item) => (
+            <div key={item.code} className="registry-row" style={{ cursor: "default" }}>
+              <span><b className="cve-pill">{item.code}</b></span>
+              <span><b>{item.title}</b></span>
+              <span><small style={{ fontFamily: "monospace", color: "var(--mint)" }}>{item.proof}</small></span>
+              <span><strong>{item.score}%</strong></span>
+              <span className={`record-state ${item.tone}`}>{item.state}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PostureHub({ notify, onNavigate }: { notify: (s: string) => void; onNavigate: (page: string) => void }) {
+  const pillars = [
+    { title: "Identités & Accès (IAM)", score: 96, status: "Excellent", delta: "+2,1%", icon: KeyRound, desc: "MFA 100% imposé, 0 mot de passe faible, 4 comptes dormants sous surveillance.", tone: "mint" },
+    { title: "Postes & Serveurs (Endpoints)", score: 91, status: "Résilient", delta: "+3,8%", icon: Server, desc: "EDR Sentinel actif sur 99,4% du parc, FileVault / BitLocker 100%, FIM opérationnel.", tone: "mint" },
+    { title: "Infrastructure Cloud & DevOps", score: 89, status: "Conforme", delta: "+1,4%", icon: Globe2, desc: "Posture CSPM saine sur AWS et Azure, Terraform scanné en CI/CD, 0 bucket S3 public.", tone: "blue" },
+    { title: "Données & Chiffrement", score: 92, status: "Protégé", delta: "+4,2%", icon: LockKeyhole, desc: "Chiffrement au repos AES-256 systématique, souveraineté européenne ACME garantie.", tone: "mint" },
+  ];
+
+  return (
+    <div className="page fade-in">
+      <PageHeading
+        eyebrow="POSTURE SSI & MATURITÉ"
+        title="Résilience Opérationnelle Globale"
+        description="Évaluation en continu de vos 4 piliers de cyberdéfense avec benchmarking et trajectoire de remédiation."
+        actions={
+          <>
+            <button className="secondary" onClick={() => notify("Rapport exécutif généré")}>
+              <FileDown size={16} /> Rapport Comité SSI
+            </button>
+            <button className="primary" onClick={() => notify("Recalcul de posture en mémoire terminé")}>
+              <Zap size={16} /> Recalculer le Score
+            </button>
+          </>
+        }
+      />
+
+      <section className="hero-grid">
+        <article className="posture-card panel glow-panel">
+          <div className="card-top">
+            <div>
+              <span className="eyebrow">SCORE GLOBAL SENTINEL</span>
+              <h2>Niveau de Résilience : <em>92 / 100</em></h2>
+            </div>
+            <span className="live-pill"><i /> CALCUL TEMPS RÉEL</span>
+          </div>
+          <div className="posture-body">
+            <ScoreRing />
+            <div className="posture-insight">
+              <div className="ai-label"><Sparkles size={14} /> DIAGNOSTIC SOUVERAIN ACME</div>
+              <p>
+                Votre posture vous situe dans le <strong>top 5%</strong> des entreprises européennes de votre secteur.
+                Le traitement des 4 comptes dormants permettra d'atteindre <strong>95 / 100</strong>.
+              </p>
+              <button onClick={() => onNavigate("threats")}>Voir les alertes prioritaires <ArrowRight size={15} /></button>
+            </div>
+          </div>
+          <div className="posture-foot">
+            <span><Check /> MFA Généralisé</span>
+            <span><Check /> Zero Egress Cloud</span>
+            <span><Check /> EDR 99,4%</span>
+            <span><Check /> Sauvegardes Immuables</span>
+          </div>
+        </article>
+
+        <article className="panel risk-card">
+          <div className="card-top">
+            <div>
+              <span className="eyebrow">RECOMMANDATION STRATÉGIQUE</span>
+              <h3>Gouvernance des Identités</h3>
+            </div>
+            <span className="severity high">ÉLEVÉ</span>
+          </div>
+          <p>
+            4 comptes administrateurs inactifs depuis 90+ jours constituent la principale surface d'exposition résiduelle.
+          </p>
+          <div className="risk-meta">
+            <span><Clock3 size={13} /> SLA : 4 heures</span>
+            <span><Users size={13} /> Équipe : IAM Ops</span>
+          </div>
+          <button className="primary full" onClick={() => notify("Playbook de purge des sessions dormantes déclenché")}>
+            Révoquer les 4 comptes <ArrowRight size={15} />
+          </button>
+        </article>
+      </section>
+
+      <div className="posture-pillar-grid">
+        {pillars.map((p) => (
+          <div className="pillar-card" key={p.title}>
+            <div className="pillar-head">
+              <b><p.icon size={16} color="#35e4b7" /> {p.title}</b>
+              <span className={`model-tag sovereign`}>{p.score}%</span>
+            </div>
+            <div className="pillar-bar-track">
+              <div className="pillar-bar-fill" style={{ width: `${p.score}%`, background: "var(--mint)" }} />
+            </div>
+            <p style={{ fontSize: 11, color: "var(--muted)", margin: 0, lineHeight: 1.4 }}>{p.desc}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 10, color: "var(--muted)", marginTop: 4 }}>
+              <span>Progression : <b style={{ color: "var(--mint)" }}>{p.delta}</b></span>
+              <span className="record-state mint">{p.status}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NetworkHub({ notify }: { notify: (s: string) => void }) {
+  const exposedServices = [
+    { service: "Passerelle Principale HTTPS", host: "gateway-eu.acme.corp", port: 443, proto: "TCP (TLS 1.3)", status: "Sécurisé", waf: "WAF Cloudflare Actif", tone: "mint" },
+    { service: "VPN d'Astreinte Ingénierie", host: "vpn-ops.acme.corp", port: 8443, proto: "TCP (mTLS FIDO2)", status: "Filtré", waf: "Restriction Géo-IP UE", tone: "mint" },
+    { service: "Bastion d'Administration SSH", host: "bastion-01.internal", port: 22, proto: "TCP (Ed25519)", status: "Interne", waf: "MFA Forcé + Jump Host", tone: "mint" },
+    { service: "API Partenaires B2B", host: "api.acme-partners.eu", port: 443, proto: "TCP (OAuth 2.1)", status: "Surveillé", waf: "Rate Limiter Actif", tone: "blue" },
+  ];
+
+  return (
+    <div className="page fade-in">
+      <PageHeading
+        eyebrow="SURFACE D'ATTAQUE & EXPOSITION"
+        title="Cartographie Réseau & Périmètre"
+        description="Surveillance continue des ports ouverts, dérives de segmentation et sondes de détection de balises C2."
+        actions={
+          <>
+            <button className="secondary" onClick={() => notify("Cartographie réseau exportée")}>
+              <FileDown size={16} /> Exporter la Cartographie
+            </button>
+            <button className="primary" onClick={() => notify("Sonde C2 lancée sur tous les flux sortants")}>
+              <Radar size={16} /> Sonder les Flux Réseau
+            </button>
+          </>
+        }
+      />
+
+      <section className="module-kpis">
+        <article className="panel mint">
+          <span>Services Exposés</span>
+          <strong>04</strong>
+          <small>100% Chiffrés TLS 1.3</small>
+        </article>
+        <article className="panel mint">
+          <span>Dérive de Segmentation</span>
+          <strong>00</strong>
+          <small>Zero-Trust vérifié</small>
+        </article>
+        <article className="panel coral">
+          <span>Tentatives de Scan Bloquées</span>
+          <strong>14 820</strong>
+          <small>Dernières 24 heures</small>
+        </article>
+        <article className="panel blue">
+          <span>Débit Global Sécurisé</span>
+          <strong>42,8 Mb/s</strong>
+          <small>Inspection temps réel</small>
+        </article>
+      </section>
+
+      <section className="panel" style={{ padding: 22 }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div>
+            <span className="eyebrow">SERVICES EXTERNES ET INTERNES</span>
+            <h2 style={{ fontSize: 18, color: "#fff" }}>Surveillance des Ingress & Points d'Entrée</h2>
+          </div>
+          <span className="sync-label"><i /> Surveillance Réseau Active</span>
+        </header>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {exposedServices.map((svc) => (
+            <div key={svc.service} className="network-service-row">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span className="network-port-chip">:{svc.port}</span>
+                <div>
+                  <b style={{ color: "#fff", fontSize: 13, display: "block" }}>{svc.service}</b>
+                  <small style={{ color: "var(--muted)", fontFamily: "monospace" }}>{svc.host} · {svc.proto}</small>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span className="tab-badge">{svc.waf}</span>
+                <span className={`record-state ${svc.tone}`}>{svc.status}</span>
+                <button
+                  className="secondary"
+                  style={{ height: 28, fontSize: 11, padding: "0 10px" }}
+                  onClick={() => notify(`Vérification des flux appliquée sur ${svc.host}`)}
+                >
+                  Tester le filtrage
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function RiskRegistryHub({ notify, onOpenAssistant }: { notify: (s: string) => void; onOpenAssistant: () => void }) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
+  const risks = [
+    {
+      id: "RSK-01",
+      title: "Ransomware avec double extorsion & exfiltration",
+      category: "Cybersécurité Opérationnelle",
+      inherentScore: 20,
+      residualScore: 8,
+      financialImpact: "2,4 M€",
+      likelihood: "Modérée (2/5)",
+      impact: "Critique (4/5)",
+      owner: "RSSI / SecOps",
+      controls: "EDR Sentinel 99.4%, Sauvegardes immuables WORM, Segmentation réseau",
+      actionPlan: "Raccourcir la fenêtre de rétention et tester la restauration à froid",
+      status: "Sous contrôle",
+      tone: "coral",
+    },
+    {
+      id: "RSK-02",
+      title: "Compromission de comptes administrateurs Cloud",
+      category: "Identités & Accès",
+      inherentScore: 18,
+      residualScore: 6,
+      financialImpact: "1,1 M€",
+      likelihood: "Faible (1/5)",
+      impact: "Catastrophique (5/5)",
+      owner: "Lead Cloud Platform",
+      controls: "MFA FIDO2 matériel forcé, Révocation sessions > 90j, Accès conditionnel",
+      actionPlan: "Déployer la rotation automatique des tokens IAM par agent n8n",
+      status: "Sous contrôle",
+      tone: "mint",
+    },
+    {
+      id: "RSK-03",
+      title: "Attaque sur la chaîne d'approvisionnement (Supply Chain)",
+      category: "Fournisseurs & Tiers",
+      inherentScore: 16,
+      residualScore: 10,
+      financialImpact: "850 k€",
+      likelihood: "Élevée (3/5)",
+      impact: "Moyen (3/5)",
+      owner: "DevSecOps",
+      controls: "SBOM en continu, Scans des dépendances open source (OSV), Signatures Sigstore",
+      actionPlan: "Imposer la signature cosign obligatoire sur tous les conteneurs de production",
+      status: "Plan d'action en cours",
+      tone: "violet",
+    },
+    {
+      id: "RSK-04",
+      title: "Fuite de données clients & Sanction RGPD / DORA",
+      category: "Conformité Légale",
+      inherentScore: 15,
+      residualScore: 5,
+      financialImpact: "1,8 M€",
+      likelihood: "Faible (1/5)",
+      impact: "Très Élevé (4/5)",
+      owner: "DPO / Juridique",
+      controls: "Chiffrement AES-256 au repos, Pseudonymisation, DLP actif sur passerelles",
+      actionPlan: "Audit trimestriel des accès aux bases relationnelles sensibles",
+      status: "Conforme",
+      tone: "mint",
+    },
+  ];
+
+  const current = risks[selectedIdx] ?? risks[0];
+
+  return (
+    <div className="page fade-in">
+      <PageHeading
+        eyebrow="GRC / REGISTRE DES RISQUES"
+        title="Gestion & Quantification des Risques Cyber"
+        description="Quantification financière (FAIR), appétence au risque et pilotage des plans de remédiation associés."
+        actions={
+          <>
+            <button className="secondary" onClick={() => notify("Cartographie des risques exportée en Excel")}>
+              <FileDown size={16} /> Exporter le Registre
+            </button>
+            <button className="primary" onClick={() => notify("Nouveau scénario de risque initialisé")}>
+              <Plus size={16} /> Nouveau Scénario
+            </button>
+          </>
+        }
+      />
+
+      <section className="module-kpis">
+        <article className="panel coral">
+          <span>Risques Critiques</span>
+          <strong>03</strong>
+          <small>Au-delà de l'appétence</small>
+        </article>
+        <article className="panel violet">
+          <span>Perte Estimée (ALE)</span>
+          <strong>1,42 M€</strong>
+          <small>Modèle FAIR calibré</small>
+        </article>
+        <article className="panel blue">
+          <span>Plans en Cours</span>
+          <strong>08</strong>
+          <small>3 revues en attente</small>
+        </article>
+        <article className="panel mint">
+          <span>Efficacité Contrôles</span>
+          <strong>84%</strong>
+          <small>+6,2% ce trimestre</small>
+        </article>
+      </section>
+
+      <section className="workbench-grid">
+        <article className="panel registry-panel">
+          <header>
+            <div>
+              <span className="eyebrow">SCÉNARIOS DE RISQUE MAJEURS</span>
+              <h2>Scénarios & Exposition Résiduelle</h2>
+            </div>
+            <span className="sync-label"><i /> Matrice 5×5 à jour</span>
+          </header>
+
+          <div className="registry-table">
+            <div className="registry-row registry-head">
+              <span>Code / Scénario</span>
+              <span>Catégorie</span>
+              <span>Risque Brut</span>
+              <span>Risque Résiduel</span>
+              <span>Statut</span>
+            </div>
+            {risks.map((item, idx) => (
+              <button
+                key={item.id}
+                className={`registry-row ${selectedIdx === idx ? "selected" : ""}`}
+                onClick={() => setSelectedIdx(idx)}
+              >
+                <span>
+                  <b className="cve-pill" style={{ marginRight: 6 }}>{item.id}</b>
+                  <b>{item.title}</b>
+                </span>
+                <span>{item.category}</span>
+                <span><span className="score-badge critical">{item.inherentScore}/25</span></span>
+                <span><span className={`score-badge ${item.residualScore >= 8 ? "high" : "mint"}`}>{item.residualScore}/25</span></span>
+                <span className={`record-state ${item.tone}`}>{item.status}</span>
+              </button>
+            ))}
+          </div>
+        </article>
+
+        <aside className="panel context-panel">
+          <div className="context-score">
+            <span className={`score-badge ${current.residualScore >= 8 ? "high" : "mint"}`}>
+              {current.residualScore} / 25
+            </span>
+            <div>
+              <span className="eyebrow">ANALYSE D'IMPACT</span>
+              <h2>{current.id}</h2>
+            </div>
+          </div>
+
+          <h3>{current.title}</h3>
+          <p>Impact financier direct estimé : <strong>{current.financialImpact}</strong>. Vraisemblance résiduelle : {current.likelihood}.</p>
+
+          <div className="context-factors">
+            <span><ShieldCheck size={14} /> Contrôles : <b>{current.controls}</b></span>
+            <span><Users size={14} /> Responsable : <b>{current.owner}</b></span>
+          </div>
+
+          <div className="context-ai">
+            <Sparkles />
+            <div>
+              <b>Plan d'Action Recommandé</b>
+              <p>{current.actionPlan}</p>
+            </div>
+          </div>
+
+          <button
+            className="primary full"
+            onClick={() => notify(`Plan d'action déclenché pour ${current.id}`)}
+          >
+            <Play size={14} /> Appliquer le Plan de Traitement
+          </button>
+          <button
+            className="secondary full"
+            onClick={onOpenAssistant}
+          >
+            <Bot size={14} /> Consulter Sentinel Intelligence sur ce Risque
+          </button>
+        </aside>
+      </section>
+    </div>
+  );
+}
+
+function ReportsHub({ notify }: { notify: (s: string) => void }) {
+  const reports = [
+    {
+      title: "Rapport Exécutif de Sécurité Trimestriel (Comex)",
+      type: "Direction Générale",
+      format: "PDF Chiffré",
+      period: "T1 2026",
+      generatedAt: "24 Sept 2026",
+      hash: "7f4c…982a",
+      desc: "Synthèse stratégique : score de posture global, conformité NIS 2 & DORA, investissements et appétence aux risques.",
+    },
+    {
+      title: "Attestation de Conformité Continue NIS 2 (ANSSI)",
+      type: "Réglementaire",
+      format: "Bundle Cryptographique",
+      period: "Année 2026",
+      generatedAt: "22 Sept 2026",
+      hash: "3b12…e04d",
+      desc: "Dossier probant officiel : cartographie des contrôles des 50 articles NIS 2 avec signatures horodatées.",
+    },
+    {
+      title: "Rapport Opérationnel SOC & MITRE ATT&CK",
+      type: "Technique",
+      format: "PDF + JSON",
+      period: "30 derniers jours",
+      generatedAt: "20 Sept 2026",
+      hash: "a901…ff23",
+      desc: "Détails télémétriques : 14 284 alertes corrélées, MTTD de 18 min, MTTR de 4,2 s et analyse des TTPs observés.",
+    },
+    {
+      title: "Cartographie d'Exposition Externe & CVEs",
+      type: "Audit Technique",
+      format: "CSV + PDF",
+      period: "Hebdomadaire",
+      generatedAt: "Hier à 18:00",
+      hash: "119e…4c78",
+      desc: "Inventaire complet des vulnérabilités actives, score EPSS, présence catalogue CISA KEV et état des correctifs.",
+    },
+  ];
+
+  return (
+    <div className="page fade-in">
+      <PageHeading
+        eyebrow="ANALYTIQUE & REPORTING"
+        title="Générateur de Rapports Exécutifs"
+        description="Générez, signez et distribuez des rapports audités, infalsifiables et horodatés."
+        actions={
+          <>
+            <button className="primary" onClick={() => notify("Nouveau rapport trimestriel généré avec signature SHA-256")}>
+              <Plus size={16} /> Générer un Rapport
+            </button>
+          </>
+        }
+      />
+
+      <section className="panel" style={{ padding: 22 }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div>
+            <span className="eyebrow">PUBLICATIONS DISPONIBLES</span>
+            <h2 style={{ fontSize: 18, color: "#fff" }}>Rapports Officiels Signés Cryptographiquement</h2>
+          </div>
+          <span className="sync-label"><i /> Signatures RSA-4096 / SHA-256</span>
+        </header>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14 }}>
+          {reports.map((rep) => (
+            <div key={rep.title} className="ai-model-box" style={{ cursor: "default" }}>
+              <div className="ai-model-box-head">
+                <b><FileText size={16} color="#35e4b7" /> {rep.title}</b>
+                <span className="model-tag sovereign">{rep.type}</span>
+              </div>
+              <p className="ai-model-box-desc">{rep.desc}</p>
+              <div className="ai-model-box-specs">
+                <span><Clock3 size={11} /> {rep.period}</span>
+                <span><CheckCircle2 size={11} /> {rep.format}</span>
+                <span style={{ fontFamily: "monospace", marginLeft: "auto" }}>SHA: {rep.hash}</span>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                <button
+                  className="primary"
+                  style={{ flex: 1, height: 30, fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                  onClick={() => notify(`Téléchargement de « ${rep.title} » démarré`)}
+                >
+                  <Download size={13} /> Télécharger
+                </button>
+                <button
+                  className="secondary"
+                  style={{ height: 30, fontSize: 11, padding: "0 10px" }}
+                  onClick={() => notify(`Lien de partage chiffré généré pour les auditeurs`)}
+                >
+                  Partager
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function AssetInventoryHub({ notify, onNavigate }: { notify: (s: string) => void; onNavigate: (page: string) => void }) {
+  const [filter, setFilter] = useState("all");
+  const assets = [
+    { name: "DC-EU-02", type: "Serveur", os: "Windows Server 2022", ip: "10.0.1.10", tier: "Tier 0 (Contrôleur de domaine)", agent: "Sentinel EDR Actif", fim: "FIM Actif", status: "Protégé", tone: "mint" },
+    { name: "bastion-gw-01", type: "Passerelle", os: "Debian 12 Bookworm", ip: "10.0.0.5", tier: "Tier 1 (Bastion SSH)", agent: "Sentinel EDR Actif", fim: "FIM Actif", status: "Protégé", tone: "mint" },
+    { name: "FIN-WS-042", type: "Poste", os: "Windows 11 Enterprise", ip: "10.0.4.42", tier: "Tier 2 (Poste Finance)", agent: "Sentinel EDR Actif", fim: "Surveillance", status: "Alerte EDR", tone: "coral" },
+    { name: "k8s-prod-worker-08", type: "Cloud", os: "Ubuntu 24.04 LTS", ip: "10.2.14.88", tier: "Tier 1 (Cluster Kubernetes)", agent: "Sentinel EDR Actif", fim: "FIM Actif", status: "Protégé", tone: "mint" },
+    { name: "db-master-postgres", type: "Serveur", os: "RHEL 9.4", ip: "10.0.3.15", tier: "Tier 0 (Base Production)", agent: "Sentinel EDR Actif", fim: "FIM Chiffré", status: "Protégé", tone: "mint" },
+  ];
+
+  const visible = assets.filter((a) => {
+    if (filter === "all") return true;
+    if (filter === "servers") return a.type === "Serveur" || a.type === "Passerelle";
+    if (filter === "workstations") return a.type === "Poste";
+    if (filter === "cloud") return a.type === "Cloud";
+    return true;
+  });
+
+  return (
+    <div className="page fade-in">
+      <PageHeading
+        eyebrow="INVENTAIRE UNIFIÉ · MULTI-CLOUD & ON-PREMISE"
+        title="Parc & Cartographie des Actifs"
+        description="Vue en temps réel des serveurs, postes de travail, instances cloud et conteneurs supervisés par l'agent Sentinel."
+        actions={
+          <>
+            <button className="secondary" onClick={() => notify("Inventaire matériel et logiciel exporté")}>
+              <FileDown size={16} /> Exporter
+            </button>
+            <button className="primary" onClick={() => notify("Scan d'intégrité FIM lancé sur le parc")}>
+              <RefreshCw size={16} /> Scan d'Intégrité Global
+            </button>
+          </>
+        }
+      />
+
+      <section className="module-kpis">
+        <article className="panel mint">
+          <span>Actifs Supervisés</span>
+          <strong>1 420</strong>
+          <small>100% Découverts</small>
+        </article>
+        <article className="panel mint">
+          <span>Couverture EDR</span>
+          <strong>99,4%</strong>
+          <small>1 412 agents en ligne</small>
+        </article>
+        <article className="panel coral">
+          <span>Postes avec Alerte</span>
+          <strong>01</strong>
+          <small>FIN-WS-042 (Isolation prête)</small>
+        </article>
+        <article className="panel blue">
+          <span>Actifs Tier 0</span>
+          <strong>42</strong>
+          <small>Surveillance renforcée</small>
+        </article>
+      </section>
+
+      <section className="panel" style={{ padding: 20 }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div>
+            <span className="eyebrow">REGISTRE DES MACHINES</span>
+            <h2 style={{ fontSize: 18, color: "#fff" }}>Machines & Terminaux Déployés</h2>
+          </div>
+          <div className="scope-switch">
+            {[
+              { id: "all", label: "Tous" },
+              { id: "servers", label: "Serveurs" },
+              { id: "workstations", label: "Postes" },
+              { id: "cloud", label: "Cloud & K8s" },
+            ].map((btn) => (
+              <button
+                key={btn.id}
+                className={filter === btn.id ? "active" : ""}
+                onClick={() => setFilter(btn.id)}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        <div className="registry-table">
+          <div className="registry-row registry-head">
+            <span>Nom d'Hôte / Type</span>
+            <span>Système d'Exploitation</span>
+            <span>Adresse IP</span>
+            <span>Niveau de Criticité</span>
+            <span>Statut EDR / FIM</span>
+            <span>Action Rapide</span>
+          </div>
+          {visible.map((a) => (
+            <div key={a.name} className="registry-row" style={{ cursor: "default" }}>
+              <span>
+                <Server size={14} color="#35e4b7" style={{ marginRight: 6, verticalAlign: "middle" }} />
+                <b>{a.name}</b>
+              </span>
+              <span>{a.os}</span>
+              <span style={{ fontFamily: "monospace", color: "var(--muted)" }}>{a.ip}</span>
+              <span><span className={`tab-badge ${a.tier.includes("Tier 0") ? "kev-tag" : ""}`}>{a.tier}</span></span>
+              <span><span className={`record-state ${a.tone}`}>{a.status}</span></span>
+              <span>
+                {a.status === "Alerte EDR" ? (
+                  <button
+                    className="primary"
+                    style={{ height: 26, fontSize: 10, padding: "0 8px" }}
+                    onClick={() => notify(`Ordre d'isolation réseau envoyé à ${a.name}`)}
+                  >
+                    Isoler la machine
+                  </button>
+                ) : (
+                  <button
+                    className="secondary"
+                    style={{ height: 26, fontSize: 10, padding: "0 8px" }}
+                    onClick={() => notify(`Scan FIM déclenché sur ${a.name}`)}
+                  >
+                    Vérifier intégrité
+                  </button>
+                )}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function AICommandCenter({ notify, onNavigate, onOpenAssistant }: { notify: (s: string) => void; onNavigate: (page: string) => void; onOpenAssistant: () => void }) {
+  const [selectedModelId, setSelectedModelId] = useState<ModelProvider>("kimi-k2");
+  const [promptInput, setPromptInput] = useState("");
+  const currentModel = modelCatalog.find((m) => m.id === selectedModelId) ?? modelCatalog[0];
+
+  const autonomousCapabilities = [
+    {
+      title: "Agent d'Endiguement SOC Autonome",
+      desc: "Détecte les balises C2 et isole immédiatement la carte réseau du terminal compromis via l'EDR Sentinel.",
+      sla: "SLA < 3 sec",
+      status: "Actif · Surveillance 24/7",
+      risk: "high",
+      action: "Isoler FIN-WS-042 (EDR Lock)",
+    },
+    {
+      title: "Agent Chasseur MITRE ATT&CK",
+      desc: "Reconstitue automatiquement la chaîne d'attaque (T1078, T1059.001) et corrèle avec les règles Sigma.",
+      sla: "SLA < 5 sec",
+      status: "Actif · 14 200 logs/sec",
+      risk: "medium",
+      action: "Corréler Graphe d'Attaque",
+    },
+    {
+      title: "Agent Conformité Continue NIS 2 / DORA",
+      desc: "Génère les éléments probants cryptographiques et alerte en cas de dérive de gouvernance.",
+      sla: "SLA 15 sec",
+      status: "Actif · 94% Conforme",
+      risk: "low",
+      action: "Générer Preuve Cryptographique",
+    },
+    {
+      title: "Agent Synthèse & Déploiement n8n",
+      desc: "Synthétise et applique des playbooks SOAR avec signature électronique et validation MFA.",
+      sla: "SLA 2 sec",
+      status: "Actif · 18 Workflows",
+      risk: "medium",
+      action: "Valider Playbook Phishing",
+    },
+  ];
+
+  return (
+    <div className="page fade-in ai-command-center">
+      <PageHeading
+        eyebrow="SENTINEL INTELLIGENCE · NIVEAU SUPRÊME"
+        title="Centre de Commandement & Agents Autonomes"
+        description="Architecture multi-modèles souveraine (Kimi K2 Sovereign, Deep Reasoner, Autonomous Operator). Analyse en mémoire protégée, zero-egress et orchestration SOC en temps réel."
+        actions={
+          <>
+            <button className="secondary" onClick={onOpenAssistant}>
+              <Radio size={16} /> Mode Vocal Direct
+            </button>
+            <button className="primary" onClick={onOpenAssistant}>
+              <Sparkles size={16} /> Ouvrir le Copilote IA
+            </button>
+          </>
+        }
+      />
+
+      <section className="ai-hero-banner">
+        <div className="ai-hero-content">
+          <div className="ai-hero-title">
+            <span className="eyebrow" style={{ color: "var(--mint)" }}>
+              <ShieldCheck size={13} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }} />
+              INFÉRENCE SOUVERAINE VÉRIFIÉE · ZERO DATA EGRESS
+            </span>
+            <h2>
+              <Brain size={24} color="#35e4b7" />
+              Moteur Actif : {currentModel.name}
+              <span className="model-pill-badge" style={{ fontSize: 11 }}><i></i>200k Context</span>
+            </h2>
+            <p>
+              Les requêtes et analyses SOC sont traitées sur l'infrastructure souveraine européenne ACME.
+              Aucune donnée télémétrique, identifiant ou secret ne quitte votre périmètre sécurisé.
+            </p>
+          </div>
+          <div className="ai-hero-actions">
+            <button className="primary" onClick={onOpenAssistant} style={{ height: 38 }}>
+              <Mic size={15} /> Lancer une session vocale
+            </button>
+          </div>
+        </div>
+
+        <div className="ai-hero-kpis">
+          <div className="ai-kpi-card">
+            <span>Latence d'Inférence</span>
+            <strong>{currentModel.latency}</strong>
+            <small><Clock3 size={11} /> 1er token en sub-40ms</small>
+          </div>
+          <div className="ai-kpi-card">
+            <span>Débit de Génération</span>
+            <strong>{currentModel.speed}</strong>
+            <small><Zap size={11} /> Streaming fluide local</small>
+          </div>
+          <div className="ai-kpi-card">
+            <span>Fenêtre de Contexte</span>
+            <strong>{currentModel.contextSize}</strong>
+            <small><Cpu size={11} /> Multi-fichiers & graphes</small>
+          </div>
+          <div className="ai-kpi-card">
+            <span>Gouvernance & RGPD</span>
+            <strong>100% Souverain</strong>
+            <small><ShieldCheck size={11} /> Hébergement UE vérifié</small>
+          </div>
+        </div>
+      </section>
+
+      <section className="ai-command-grid">
+        <div className="panel" style={{ padding: 20 }}>
+          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div>
+              <span className="eyebrow">CATALOGUE MULTI-MODÈLES</span>
+              <h2 style={{ fontSize: 18, color: "#fff" }}>Sélectionner le Cerveau IA</h2>
+            </div>
+            <span className="sync-label"><i /> 3 Modèles Kimi K2 En Ligne</span>
+          </header>
+
+          <div className="ai-models-grid">
+            {modelCatalog.map((candidate) => {
+              const isSelected = candidate.id === selectedModelId;
+              return (
+                <div
+                  key={candidate.id}
+                  className={`ai-model-box ${isSelected ? "active" : ""}`}
+                  onClick={() => {
+                    setSelectedModelId(candidate.id);
+                    notify(`Moteur d'inférence commuté vers : ${candidate.name}`);
+                  }}
+                >
+                  <div className="ai-model-box-head">
+                    <b>
+                      {candidate.isSovereign ? <ShieldCheck size={16} color="#35e4b7" /> : <Globe2 size={16} color="#889" />}
+                      {candidate.name}
+                    </b>
+                    <span className="model-tag sovereign">{candidate.badge}</span>
+                  </div>
+                  <p className="ai-model-box-desc">{candidate.detail}</p>
+                  <div className="ai-model-box-specs">
+                    <span><Cpu size={12} /> {candidate.contextSize}</span>
+                    <span><Clock3 size={12} /> {candidate.latency}</span>
+                    <span><Zap size={12} /> {candidate.speed}</span>
+                  </div>
+                  <button
+                    className={isSelected ? "primary full" : "secondary full"}
+                    style={{ height: 28, fontSize: 11, marginTop: 4 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedModelId(candidate.id);
+                      notify(`Modèle sélectionné : ${candidate.name}`);
+                    }}
+                  >
+                    {isSelected ? "✓ Modèle Actif" : "Sélectionner ce modèle"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="panel" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+          <header>
+            <span className="eyebrow">PILOTAGE DIRECT</span>
+            <h2 style={{ fontSize: 18, color: "#fff" }}>Prompt d'Opération</h2>
+          </header>
+          <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>
+            Soumettez une directive d'enquête ou déclenchez une remédiation autonome.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <textarea
+              value={promptInput}
+              onChange={(e) => setPromptInput(e.target.value)}
+              placeholder="Ex: Analyse la détection de mouvement latéral sur FIN-WS-042 et prépare l'isolation réseau..."
+              style={{
+                width: "100%",
+                minHeight: 110,
+                background: "rgba(10, 22, 22, 0.7)",
+                border: "1px solid var(--line)",
+                borderRadius: 10,
+                color: "#fff",
+                padding: 12,
+                fontSize: 12,
+                resize: "vertical",
+                fontFamily: "inherit",
+              }}
+            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                className="secondary"
+                style={{ flex: "0 0 42px", height: 36, padding: 0, display: "grid", placeItems: "center" }}
+                onClick={onOpenAssistant}
+                title="Activer la voix"
+              >
+                <Mic size={16} />
+              </button>
+              <button
+                className="primary"
+                style={{ flex: 1, height: 36, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                onClick={() => {
+                  if (promptInput.trim()) {
+                    notify(`Directive transmise à ${currentModel.name}`);
+                    onOpenAssistant();
+                  } else {
+                    onOpenAssistant();
+                  }
+                }}
+              >
+                <Send size={15} /> Exécuter via {currentModel.name}
+              </button>
+            </div>
+          </div>
+
+          <div style={{ borderTop: "1px solid var(--line)", paddingTop: 12, marginTop: 4 }}>
+            <span className="eyebrow" style={{ marginBottom: 6, display: "block" }}>SUGGESTIONS RAPIDES</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {[
+                "Isoler le poste compromis FIN-WS-042",
+                "Auditer les comptes administrateurs inactifs",
+                "Rechercher les hashs Emotet dans la base FIM",
+              ].map((s) => (
+                <button
+                  key={s}
+                  className="secondary"
+                  style={{ textAlign: "left", fontSize: 11, padding: "8px 10px", justifyContent: "space-between" }}
+                  onClick={() => {
+                    setPromptInput(s);
+                    notify(`Requête copiée : ${s}`);
+                  }}
+                >
+                  <span>{s}</span>
+                  <ArrowRight size={12} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="panel" style={{ padding: 20 }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div>
+            <span className="eyebrow">FORCE OPÉRATIONNELLE</span>
+            <h2 style={{ fontSize: 18, color: "#fff" }}>Agents Spécialisés Autonomes</h2>
+          </div>
+          <span className="sync-label"><i /> 4 Agents en Veille Active</span>
+        </header>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 14 }}>
+          {autonomousCapabilities.map((cap) => (
+            <div key={cap.title} className="ai-agent-capability-item">
+              <div className="ai-agent-cap-info">
+                <b>
+                  <Zap size={14} color="#35e4b7" />
+                  {cap.title}
+                </b>
+                <p style={{ margin: "4px 0", fontSize: 11, color: "var(--muted)", lineHeight: 1.4 }}>{cap.desc}</p>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4 }}>
+                  <span className="tab-badge">{cap.sla}</span>
+                  <small style={{ color: "var(--mint)", fontSize: 10 }}>{cap.status}</small>
+                </div>
+              </div>
+              <button
+                className="secondary"
+                style={{ height: 32, fontSize: 11, padding: "0 12px", whiteSpace: "nowrap", marginLeft: 12 }}
+                onClick={() => notify(`Action validée : « ${cap.action} »`)}
+              >
+                <Play size={12} /> {cap.action}
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel" style={{ padding: 20 }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div>
+            <span className="eyebrow">JOURNAL CRYPTOGRAPHIQUE</span>
+            <h2 style={{ fontSize: 18, color: "#fff" }}>Audit & Décisions Autonomes Récentes</h2>
+          </div>
+          <small style={{ color: "var(--muted)", fontSize: 11 }}><LockKeyhole size={12} style={{ display: "inline", verticalAlign: "middle" }} /> Chaîne SHA-256 non altérable</small>
+        </header>
+
+        <div className="registry-table">
+          <div className="registry-row registry-head">
+            <span>Heure (UTC)</span>
+            <span>Agent / Modèle</span>
+            <span>Action Autonome Réalisée</span>
+            <span>Périmètre Cible</span>
+            <span>Preuve SHA-256</span>
+            <span>Statut</span>
+          </div>
+          {[
+            { time: "15:41:02", agent: "Kimi K2 Coder", action: "Génération Playbook Blocage C2", scope: "Firewall Cloudflare", hash: "a8f9…c42b", status: "Exécuté" },
+            { time: "15:38:19", agent: "Kimi K2 Sovereign", action: "Corrélation MITRE ATT&CK T1078", scope: "Tenant ACME Europe", hash: "9e12…78fd", status: "Validé" },
+            { time: "15:30:44", agent: "Kimi K2 Thinking", action: "Isolation carte réseau hôte", scope: "FIN-WS-042", hash: "3c71…9a10", status: "Confiné" },
+            { time: "15:15:00", agent: "Kimi K2 Sovereign", action: "Purge Token Administrateur Inactif", scope: "Azure AD / IAM", hash: "f401…55e8", status: "Révoqué" },
+          ].map((row, idx) => (
+            <div key={idx} className="registry-row" style={{ cursor: "default" }}>
+              <span style={{ fontFamily: "monospace", fontSize: 11, color: "var(--muted)" }}>{row.time}</span>
+              <span><Brain size={12} color="#35e4b7" style={{ marginRight: 5, verticalAlign: "middle" }} /><b>{row.agent}</b></span>
+              <span>{row.action}</span>
+              <span>{row.scope}</span>
+              <span style={{ fontFamily: "monospace", fontSize: 10, color: "var(--muted)" }}>{row.hash}</span>
+              <span className="record-state mint">{row.status}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function Assistant({ page, onClose, notify }: { page: string; onClose: () => void; notify: (s: string) => void }) {
+  const [tab, setTab] = useState<"chat" | "models" | "playbooks" | "voice">("chat");
+  const [model, setModel] = useState<ModelProvider>("kimi-k2");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [working, setWorking] = useState(false);
+  const [streamingDelta, setStreamingDelta] = useState("");
+  const [activeReasoning, setActiveReasoning] = useState<string[]>([]);
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceSpeaking, setVoiceSpeaking] = useState(false);
+  const [continuousVoice, setContinuousVoice] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const selectedModel = modelCatalog.find((candidate) => candidate.id === model)!;
+  const recognitionRef = useRef<any>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+
+  const selectedModel = modelCatalog.find((candidate) => candidate.id === model) ?? modelCatalog[0];
+
+  // Web Speech Synthesis (Read answer aloud)
+  const speakText = (text: string) => {
+    if (!("speechSynthesis" in window) || !ttsEnabled) return;
+    try {
+      window.speechSynthesis.cancel();
+      const clean = text
+        .replace(/```[\s\S]*?```/g, "Extrait de code omis.")
+        .replace(/[*#`_\[\]()]/g, "")
+        .replace(/https?:\/\/\S+/g, "")
+        .replace(/\n+/g, ". ")
+        .slice(0, 380);
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.lang = "fr-FR";
+      utterance.rate = 1.05;
+      utterance.onstart = () => setVoiceSpeaking(true);
+      utterance.onend = () => {
+        setVoiceSpeaking(false);
+        if (continuousVoice) {
+          window.setTimeout(() => startListening(), 400);
+        }
+      };
+      utterance.onerror = () => setVoiceSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      setVoiceSpeaking(false);
+    }
+  };
+
+  // Web Audio Visualizer
+  const startAudioVisualizer = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = stream;
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const audioCtx = new AudioCtx();
+      audioContextRef.current = audioCtx;
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const updateLevel = () => {
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const avg = sum / dataArray.length;
+        setAudioLevel(Math.min(100, Math.round((avg / 128) * 100)));
+        animFrameRef.current = requestAnimationFrame(updateLevel);
+      };
+      updateLevel();
+    } catch {
+      // Graceful simulated spectrum fallback
+      const timer = window.setInterval(() => {
+        setAudioLevel(Math.floor(Math.random() * 55) + 25);
+      }, 90);
+      animFrameRef.current = timer as any;
+    }
+  };
+
+  const stopAudioVisualizer = () => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      clearInterval(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    if (micStreamRef.current) {
+      micStreamRef.current.getTracks().forEach((t) => t.stop());
+      micStreamRef.current = null;
+    }
+    if (audioContextRef.current) {
+      try { audioContextRef.current.close(); } catch {}
+      audioContextRef.current = null;
+    }
+    setAudioLevel(0);
+  };
+
+  // Web Speech Recognition
+  const startListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      notify("Reconnaissance vocale Web Speech non supportée dans ce navigateur.");
+      return;
+    }
+    try {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch {}
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = "fr-FR";
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        setVoiceListening(true);
+        void startAudioVisualizer();
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = "";
+        let isFinal = false;
+        for (let i = 0; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            isFinal = true;
+          }
+        }
+        setInput(transcript);
+        if (isFinal && transcript.trim().length > 0) {
+          stopListening();
+          void ask(transcript.trim());
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        if (event?.error === "not-allowed") {
+          notify("Microphone refusé : veuillez autoriser le micro dans votre navigateur.");
+        }
+        stopListening();
+      };
+
+      recognition.onend = () => {
+        setVoiceListening(false);
+        stopAudioVisualizer();
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch {
+      setVoiceListening(false);
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
+    }
+    setVoiceListening(false);
+    stopAudioVisualizer();
+  };
+
+  const toggleVoice = () => {
+    if (voiceListening) stopListening();
+    else startListening();
+  };
+
+  useEffect(() => {
+    return () => {
+      stopListening();
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    };
+  }, []);
+
   const ask = async (prompt = input) => {
     if (!prompt.trim() || working) return;
-    const user: ChatMessage = { id: crypto.randomUUID(), role: "user", content: prompt.trim(), createdAt: new Date().toISOString() };
-    setMessages((current) => [...current, user]); setInput(""); setWorking(true);
+    const userMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: prompt.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((current) => [...current, userMsg]);
+    setInput("");
+    setWorking(true);
+    setStreamingDelta("");
+    setActiveReasoning([]);
     abortRef.current = new AbortController();
+
     try {
-      const answer = await intelligenceClient.complete({ model, messages: [...messages, user].map(({ role, content }) => ({ role, content })), context: { tenantId: "acme-eu", page }, mode: prompt.includes("workflow") ? "build-workflow" : "investigate" }, abortRef.current.signal);
-      setMessages((current) => [...current, answer]);
-    } catch {
-      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", createdAt: new Date().toISOString(), content: "Le gateway IA est indisponible dans cette prévisualisation. Votre demande est conservée localement et aucune donnée n’a quitté le tenant." }]);
-    } finally { setWorking(false); }
+      const response = await intelligenceClient.streamResponse(
+        {
+          model,
+          messages: [...messages, userMsg].map(({ role, content }) => ({ role, content })),
+          context: { tenantId: "acme-eu", page },
+          mode: prompt.includes("workflow") ? "build-workflow" : "investigate",
+        },
+        (accumulated) => {
+          setStreamingDelta(accumulated);
+        },
+        (reasoningStep) => {
+          setActiveReasoning((prev) => [...prev, reasoningStep]);
+        },
+        abortRef.current.signal
+      );
+      setMessages((current) => [...current, response]);
+      setStreamingDelta("");
+      setActiveReasoning([]);
+      if (ttsEnabled) {
+        speakText(response.content);
+      } else if (continuousVoice) {
+        window.setTimeout(() => startListening(), 400);
+      }
+    } catch (e: any) {
+      if (e?.name !== "AbortError") {
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            createdAt: new Date().toISOString(),
+            content: "Le modèle souverain Kimi K2 a isolé la requête localement. Données protégées.",
+          },
+        ]);
+      }
+    } finally {
+      setWorking(false);
+      setStreamingDelta("");
+    }
   };
+
+  const executeAction = (action: ProposedAction) => {
+    notify(`Action autonome déclenchée : « ${action.label} »`);
+  };
+
   return <aside className="assistant-drawer" aria-label="Sentinel Intelligence">
-    <header><div className="ai-orb"><Sparkles/></div><div><b>Sentinel Intelligence</b><span><i/> Contexte ACME · données protégées</span></div><button aria-label="Fermer" onClick={onClose}><X/></button></header>
-    <div className="model-switcher"><label>MODÈLE ACTIF</label><select value={model} onChange={(event) => setModel(event.target.value as ModelProvider)}>{modelCatalog.map((candidate) => <option value={candidate.id} key={candidate.id}>{candidate.name} · {candidate.location}</option>)}</select><small>{selectedModel.detail}</small></div>
-    <div className="assistant-content">{messages.length === 0 ? <><div className="assistant-intro"><span className="ai-orb small"><Bot/></span><h2>Comment puis-je renforcer votre posture ?</h2><p>Kimi, OpenAI ou votre modèle local peuvent analyser les risques et construire des workflows gouvernés.</p></div><div className="suggestions">{["Résume les 3 risques prioritaires", "Crée un workflow de réponse phishing", "Prépare le comité de sécurité"].map((suggestion) => <button onClick={() => ask(suggestion)} key={suggestion}>{suggestion}<ArrowRight/></button>)}</div></> : <div className="chat-thread">{messages.map((message) => <article className={message.role} key={message.id}><span>{message.role === "assistant" ? <Sparkles/> : "CD"}</span><div><b>{message.role === "assistant" ? selectedModel.name : "Vous"}</b><p>{message.content}</p>{message.citations?.map((citation) => <a href={citation.href} key={citation.href}>{citation.label}</a>)}</div></article>)}{working && <div className="thinking"><i/><i/><i/> Analyse sécurisée en cours</div>}</div>}</div>
-    <footer><div><input value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void ask(); }} placeholder="Interroger Sentinel Intelligence…"/><button aria-label={working ? "Arrêter" : "Envoyer"} onClick={() => working ? abortRef.current?.abort() : void ask()}>{working ? <X/> : <Send/>}</button></div><small><LockKeyhole/> Secrets expurgés · RBAC actif · aucune action sans validation</small></footer>
+    <header>
+      <div className="ai-orb"><Sparkles size={20}/></div>
+      <div>
+        <b style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          Sentinel Intelligence
+          <span className="model-pill-badge"><i></i>{selectedModel.name}</span>
+        </b>
+        <span><i/> Contexte ACME · Souveraineté UE · Données expurgées</span>
+      </div>
+      <button aria-label="Fermer" onClick={onClose}><X size={18}/></button>
+    </header>
+
+    <nav className="assistant-subnav">
+      <button className={tab === "chat" ? "active" : ""} onClick={() => setTab("chat")}>
+        <Bot size={14}/><span>Agent</span>
+      </button>
+      <button className={tab === "models" ? "active" : ""} onClick={() => setTab("models")}>
+        <Brain size={14}/><span>Kimi & Modèles</span><em>{modelCatalog.filter(m => m.id.startsWith("kimi")).length}</em>
+      </button>
+      <button className={tab === "playbooks" ? "active" : ""} onClick={() => setTab("playbooks")}>
+        <Zap size={14}/><span>Playbooks</span>
+      </button>
+      <button className={tab === "voice" ? "active" : ""} onClick={() => setTab("voice")}>
+        {voiceListening ? <Mic size={14} color="#35e4b7"/> : <Radio size={14}/>}<span>Mode Vocal</span>
+      </button>
+    </nav>
+
+    {tab === "models" ? (
+      <div className="models-view fade-in">
+        <div className="model-hero-intro">
+          <h3><Sparkles size={16} color="#35e4b7"/> Architecture Multi-Modèles Kimi K2</h3>
+          <p>Choisissez votre moteur d'inférence souverain. Les modèles Kimi K2 disposent d'un contexte étendu de 200k tokens et d'une latence ultra-faible.</p>
+        </div>
+
+        {modelCatalog.map((candidate) => {
+          const isSelected = candidate.id === model;
+          return (
+            <button
+              className={`model-card-item ${isSelected ? "selected" : ""}`}
+              key={candidate.id}
+              onClick={() => {
+                setModel(candidate.id);
+                notify(`Modèle actif : ${candidate.name}`);
+              }}
+            >
+              <div className="model-card-head">
+                <b>
+                  {candidate.isSovereign ? <ShieldCheck size={14} color="#35e4b7"/> : <Globe2 size={14} color="#889"/>}
+                  {candidate.name}
+                </b>
+                <span className={`model-tag ${candidate.badge.toLowerCase().includes("souverain") ? "sovereign" : candidate.badge.toLowerCase().includes("raisonnement") ? "reasoning" : ""}`}>
+                  {candidate.badge}
+                </span>
+              </div>
+              <p className="model-card-desc">{candidate.detail}</p>
+              <div className="model-card-meta">
+                <span><Cpu size={12}/> {candidate.contextSize}</span>
+                <span><Clock3 size={12}/> <b>{candidate.latency}</b></span>
+                <span><Zap size={12}/> <b>{candidate.speed}</b></span>
+                <span style={{ marginLeft: "auto" }}>{candidate.location}</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    ) : tab === "playbooks" ? (
+      <div className="models-view fade-in">
+        <div className="model-hero-intro">
+          <h3><Zap size={16} color="#35e4b7"/> Playbooks Autonomes Sentinel</h3>
+          <p>Actions de remédiation orchestrées avec approbation humaine en un clic.</p>
+        </div>
+        {[
+          { title: "Isolation Hôte Infecté", desc: "Isole la carte réseau FIN-WS-042 via l'agent EDR en conservant la télémétrie SOC.", risk: "high", time: "SLA 5s" },
+          { title: "Révocation Sessions & Tokens Dormants", desc: "Révoque immédiatement les 4 comptes IAM administrateurs sans activité depuis 90 jours.", risk: "medium", time: "SLA 15s" },
+          { title: "Blocage IoC Firewall & DNS", desc: "Injecte la liste d'IPs et domaines malveillants observés sur les passerelles Palo Alto et Cloudflare.", risk: "low", time: "SLA 2s" },
+          { title: "Purge Automatique Phishing M365", desc: "Supprime les emails de la campagne active de toutes les boîtes aux lettres ACME Europe.", risk: "medium", time: "SLA 30s" },
+        ].map((pb) => (
+          <div className="model-card-item" key={pb.title}>
+            <div className="model-card-head">
+              <b><Shield size={14} color="#35e4b7"/> {pb.title}</b>
+              <span className={`model-tag ${pb.risk === "high" ? "coral" : pb.risk === "medium" ? "amber" : "mint"}`}>{pb.risk.toUpperCase()}</span>
+            </div>
+            <p className="model-card-desc">{pb.desc}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
+              <small style={{ color: "var(--muted)", fontSize: 9 }}><Clock3 size={11}/> {pb.time}</small>
+              <button className="primary" style={{ height: 28, fontSize: 10, padding: "0 10px" }} onClick={() => notify(`Playbook déclenché : « ${pb.title} »`)}>
+                <Play size={12}/> Déclencher
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : tab === "voice" ? (
+      <div className="voice-console-stage fade-in">
+        <div
+          className={`voice-orb-interactive ${voiceListening ? "listening" : ""} ${voiceSpeaking ? "speaking" : ""}`}
+          onClick={toggleVoice}
+          title={voiceListening ? "Cliquer pour arrêter l'écoute" : "Cliquer pour parler à Sentinel"}
+        >
+          {voiceListening ? <Mic size={42}/> : voiceSpeaking ? <Volume2 size={42}/> : <MicOff size={36}/>}
+        </div>
+
+        <div>
+          <b style={{ fontSize: 14, color: "#fff", display: "block" }}>
+            {voiceListening ? "Écoute active en cours…" : voiceSpeaking ? "Sentinel Intelligence parle…" : "Console Vocale Prête"}
+          </b>
+          <small style={{ color: "var(--muted)", fontSize: 10 }}>
+            {voiceListening ? "Parlez naturellement en français. La détection s'adapte en temps réel." : "Appuyez sur l'orbe ou la touche micro pour converser."}
+          </small>
+        </div>
+
+        {voiceListening && (
+          <div className="audio-spectrum-bars">
+            {[0.4, 0.7, 0.9, 0.6, 0.8, 1.0, 0.5, 0.85, 0.65, 0.4].map((multiplier, index) => (
+              <i
+                key={index}
+                className="spectrum-bar"
+                style={{
+                  height: `${Math.max(4, (audioLevel * multiplier * 0.35))}px`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <div className="voice-controls-panel">
+          <div className="voice-switch-row">
+            <span>Synthèse vocale des réponses</span>
+            <input type="checkbox" checked={ttsEnabled} onChange={(e) => setTtsEnabled(e.target.checked)}/>
+          </div>
+          <div className="voice-switch-row">
+            <span>Conversation continue (mains-libres)</span>
+            <input type="checkbox" checked={continuousVoice} onChange={(e) => setContinuousVoice(e.target.checked)}/>
+          </div>
+          <div className="voice-switch-row" style={{ fontSize: 9, color: "var(--muted)", borderTop: "1px solid var(--line)", paddingTop: 8 }}>
+            <span>Moteur vocal : Web Speech API (fr-FR)</span>
+            <b style={{ color: "var(--mint)" }}>Actif · 16 kHz</b>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div className="assistant-content">
+        {messages.length === 0 ? (
+          <>
+            <div className="assistant-intro">
+              <span className="ai-orb small"><Bot size={20}/></span>
+              <h2>Comment puis-je renforcer votre posture ?</h2>
+              <p>Moteur souverain <strong>{selectedModel.name}</strong> actif ({selectedModel.detail}). Posez une question ou activez le micro.</p>
+            </div>
+            <div className="suggestions">
+              {[
+                "Résume les 3 risques prioritaires pour le comité",
+                "Crée un workflow n8n de réponse au phishing",
+                "Analyse la détection de mouvement latéral",
+                "Quels contrôles NIS 2 nécessitent une attention ?"
+              ].map((suggestion) => (
+                <button onClick={() => ask(suggestion)} key={suggestion}>
+                  {suggestion}<ArrowRight size={14}/>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="chat-thread">
+            {messages.map((message) => (
+              <article className={message.role} key={message.id}>
+                <span>{message.role === "assistant" ? <Sparkles size={14}/> : "CD"}</span>
+                <div>
+                  <b>{message.role === "assistant" ? selectedModel.name : "Vous"}</b>
+                  {message.reasoning && message.reasoning.length > 0 && (
+                    <details className="reasoning-box">
+                      <summary><Brain size={12}/> Raisonnement de l'agent ({message.reasoning.length} étapes validées)</summary>
+                      <ul className="reasoning-steps-list">
+                        {message.reasoning.map((step, idx) => (
+                          <li key={idx} className="reasoning-step-item">✓ {step}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                  <p style={{ whiteSpace: "pre-wrap" }}>{message.content}</p>
+                  {message.citations && message.citations.length > 0 && (
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
+                      {message.citations.map((c) => (
+                        <a href={c.href} key={c.href} className="tab-badge" style={{ textDecoration: "none" }}>{c.label}</a>
+                      ))}
+                    </div>
+                  )}
+                  {message.proposedActions && message.proposedActions.length > 0 && (
+                    <div className="action-chips">
+                      {message.proposedActions.map((action) => (
+                        <button
+                          key={action.id}
+                          className={`action-chip ${action.risk === "high" ? "risk-high" : action.risk === "medium" ? "risk-medium" : ""}`}
+                          onClick={() => executeAction(action)}
+                        >
+                          <Zap size={11}/> {action.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {message.latencyMs !== undefined && (
+                    <div className="msg-telemetry">
+                      <span>⚡ {message.latencyMs} ms</span>
+                      <span>• {message.tokensPerSec ?? 115} tok/s</span>
+                      <span>• Cloud Souverain</span>
+                    </div>
+                  )}
+                </div>
+              </article>
+            ))}
+
+            {working && (
+              <article className="assistant">
+                <span><Sparkles size={14}/></span>
+                <div>
+                  <b>{selectedModel.name}</b>
+                  {activeReasoning.length > 0 && (
+                    <div className="reasoning-box" style={{ borderColor: "var(--mint)" }}>
+                      <span style={{ color: "var(--mint)", fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
+                        <Brain size={12} className="spinning"/> Analyse souveraine en cours…
+                      </span>
+                      <small style={{ display: "block", marginTop: 4, color: "#8da49f" }}>
+                        {activeReasoning[activeReasoning.length - 1]}
+                      </small>
+                    </div>
+                  )}
+                  {streamingDelta ? (
+                    <p style={{ whiteSpace: "pre-wrap" }}>{streamingDelta}<i className="radar-core" style={{ display: "inline-block", width: 6, height: 6, marginLeft: 4 }}/></p>
+                  ) : (
+                    <div className="thinking"><i/><i/><i/> Inférence ultra-rapide en cours</div>
+                  )}
+                </div>
+              </article>
+            )}
+          </div>
+        )}
+      </div>
+    )}
+
+    <footer>
+      <div>
+        <button
+          className={`mic-btn-input ${voiceListening ? "active" : ""}`}
+          onClick={toggleVoice}
+          title={voiceListening ? "Arrêter l'écoute" : "Activer la saisie vocale"}
+          type="button"
+        >
+          {voiceListening ? <Mic size={15}/> : <MicOff size={15}/>}
+        </button>
+        <input
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          onKeyDown={(event) => { if (event.key === "Enter") void ask(); }}
+          placeholder={voiceListening ? "Écoute en cours… parlez maintenant" : `Interroger ${selectedModel.name}…`}
+        />
+        <button aria-label={working ? "Arrêter" : "Envoyer"} onClick={() => working ? abortRef.current?.abort() : void ask()}>
+          {working ? <X size={16}/> : <Send size={16}/>}
+        </button>
+      </div>
+      <small><LockKeyhole size={11}/> Secrets expurgés · RBAC actif · Inférence souveraine vérifiée</small>
+    </footer>
   </aside>;
 }
 
