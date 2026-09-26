@@ -183,10 +183,11 @@ pub fn sparkline(
         );
         painter.circle_filled(*point, 4.0, theme::bg_secondary());
         painter.circle_stroke(*point, 4.0, Stroke::new(1.5_f32, config.color));
-        response.on_hover_ui(|ui| {
+        let hovered_val = valid_data[index][1];
+        response.on_hover_ui(move |ui| {
             ui.label(format!(
                 "Valeur : {}",
-                crate::format::decimal(data[index][1], 1)
+                crate::format::decimal(hovered_val, 1)
             ));
         });
     }
@@ -228,12 +229,16 @@ pub fn sparkline_card_body(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
                     // Trend arrow
-                    if config.show_trend && data.len() >= 2 {
-                        let last = data.last().map(|p| p[1]).unwrap_or(0.0);
-                        let prev = data
-                            .get(data.len().saturating_sub(10))
-                            .map(|p| p[1])
-                            .unwrap_or(last);
+                    let finite_values: Vec<f64> = data
+                        .iter()
+                        .map(|p| p[1])
+                        .filter(|v| v.is_finite())
+                        .collect();
+                    if config.show_trend && finite_values.len() >= 2 {
+                        let last = *finite_values.last().unwrap_or(&0.0);
+                        let prev = *finite_values
+                            .get(finite_values.len().saturating_sub(10))
+                            .unwrap_or(&last);
 
                         let (arrow, arrow_color) = if last > prev * 1.05 {
                             ("▲", theme::readable_color(theme::ERROR))
@@ -274,24 +279,30 @@ pub fn sparkline_card_body(
 
         // Stats row (optional)
         if config.show_stats && !data.is_empty() {
-            ui.add_space(theme::SPACE_XS);
-            let y_values: Vec<f64> = data.iter().map(|p| p[1]).collect();
-            let avg = y_values.iter().sum::<f64>() / y_values.len() as f64;
-            let max = y_values.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+            let y_values: Vec<f64> = data
+                .iter()
+                .map(|p| p[1])
+                .filter(|v| v.is_finite())
+                .collect();
+            if !y_values.is_empty() {
+                ui.add_space(theme::SPACE_XS);
+                let avg = y_values.iter().sum::<f64>() / y_values.len() as f64;
+                let max = y_values.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    RichText::new(format!("Moy: {:.0}\u{202f}%", avg))
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary()),
-                );
-                ui.add_space(theme::SPACE_SM);
-                ui.label(
-                    RichText::new(format!("Max: {:.0}\u{202f}%", max))
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary()),
-                );
-            });
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        RichText::new(format!("Moy: {:.0}\u{202f}%", avg))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    ui.label(
+                        RichText::new(format!("Max: {:.0}\u{202f}%", max))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                });
+            }
         }
     });
 }
@@ -351,3 +362,45 @@ pub fn mini_gauge(ui: &mut Ui, value: f32, color: Color32, size: f32) {
         theme::text_primary(),
     );
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sparkline_config_default_initializes() {
+        let config = SparklineConfig::default();
+        assert!(config.fill);
+        assert!(config.show_trend);
+        assert!(!config.show_stats);
+    }
+
+    #[test]
+    fn trend_calculation_handles_non_finite_values() {
+        let data = vec![
+            [0.0, f64::NAN],
+            [1.0, 10.0],
+            [2.0, f64::INFINITY],
+            [3.0, 20.0],
+        ];
+        let finite: Vec<f64> = data.iter().map(|p| p[1]).filter(|v| v.is_finite()).collect();
+        assert_eq!(finite, vec![10.0, 20.0]);
+        assert_eq!(*finite.last().unwrap(), 20.0);
+    }
+
+    #[test]
+    fn stats_calculation_filters_out_nan() {
+        let data = vec![
+            [0.0, 50.0],
+            [1.0, f64::NAN],
+            [2.0, 100.0],
+        ];
+        let y_values: Vec<f64> = data.iter().map(|p| p[1]).filter(|v| v.is_finite()).collect();
+        assert_eq!(y_values.len(), 2);
+        let avg = y_values.iter().sum::<f64>() / y_values.len() as f64;
+        let max = y_values.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+        assert_eq!(avg, 75.0);
+        assert_eq!(max, 100.0);
+    }
+}
+

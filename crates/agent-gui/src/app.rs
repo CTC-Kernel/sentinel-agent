@@ -65,7 +65,7 @@ pub enum Page {
 /// `(page, nav id, icon, label, category)`. Categories follow the product's
 /// domain grouping so palette results read like the navigation. Used both to
 /// build the palette and to resolve a selected `nav:<id>` back to a `Page`.
-fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static str); 21] {
+fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static str); 20] {
     use Page::*;
     [
         (
@@ -165,13 +165,6 @@ fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static 
             icons::CARTOGRAPHY,
             "Cartographie",
             "Actifs & Inventaire",
-        ),
-        (
-            Orchestration,
-            "orchestration",
-            icons::ORCHESTRATION,
-            "Orchestration",
-            "Automatisation",
         ),
         (
             AuditTrail,
@@ -1976,15 +1969,6 @@ impl SentinelApp {
 mod wake_on_message_tests {
     use super::*;
     use std::time::Duration;
-
-    #[test]
-    fn orchestration_is_available_in_the_page_catalog() {
-        assert!(
-            page_catalog().iter().any(|(page, id, _, _, _)| {
-                *page == Page::Orchestration && *id == "orchestration"
-            })
-        );
-    }
 
     #[test]
     fn forwards_the_message_and_requests_a_frame() {

@@ -25,7 +25,6 @@ export const navGroups: NavGroup[] = [
   ]},
   { label: "Opérations", items: [
     { id: "assets", label: "Actifs", icon: Boxes },
-    { id: "orchestration", label: "Orchestration", icon: Workflow, badge: "LIVE" },
     { id: "ai", label: "Sentinel Intelligence", icon: BrainCircuit },
   ]},
 ];

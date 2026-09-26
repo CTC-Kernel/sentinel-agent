@@ -57,7 +57,7 @@ struct NavSection {
 
 /// Navigation grouped by the operator's mental model: what is happening now,
 /// then the SOC domain, then GRC, then asset posture, then tooling.
-fn nav_sections() -> [NavSection; 6] {
+fn nav_sections() -> [NavSection; 5] {
     [
         NavSection {
             label: "VUE D'ENSEMBLE",
@@ -100,10 +100,6 @@ fn nav_sections() -> [NavSection; 6] {
                 (Page::Discovery, icons::DISCOVERY, "Shadow IT"),
                 (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
             ],
-        },
-        NavSection {
-            label: "AUTOMATISATION",
-            items: &[(Page::Orchestration, icons::ORCHESTRATION, "Orchestration")],
         },
         NavSection {
             label: "SYST\u{00c8}ME",
@@ -791,16 +787,6 @@ struct TrailingDot {
 #[cfg(test)]
 mod navigation_tests {
     use super::*;
-
-    #[test]
-    fn orchestration_is_available_in_desktop_navigation() {
-        assert!(nav_sections().iter().any(|section| {
-            section
-                .items
-                .iter()
-                .any(|(page, _, _)| *page == Page::Orchestration)
-        }));
-    }
 
     #[test]
     fn focusing_a_hidden_navigation_row_scrolls_it_into_view() {
