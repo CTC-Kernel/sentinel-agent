@@ -552,9 +552,27 @@ function VulnerabilityHub({ notify, onOpenAssistant }: { notify: (s: string) => 
 }
 
 function ComplianceHub({ notify }: { notify: (s: string) => void }) {
-  const [standard, setStandard] = useState<"nis2" | "dora" | "iso27001" | "rgpd">("nis2");
+  const [standard, setStandard] = useState<"nis2" | "dora" | "iso27001" | "rgpd" | "soc2">("soc2");
 
   const frameworks = {
+    soc2: {
+      title: "SOC 2 Type II (Trust Services Criteria)",
+      score: "98%",
+      badge: "AICPA TSC 2022 · Audit Ready",
+      controlsCount: "28 / 28",
+      description: "Contrôles Trust Services Criteria : Sécurité (CC6, CC7, CC8), Disponibilité (A1) et Confidentialité (C1) continuellement évalués.",
+      items: [
+        { code: "CC6.1", title: "Contrôle des accès logiques, MFA obligatoire et sessions sécurisées", state: "Conforme", score: 100, proof: "MFA-FIDO2-Enforced", tone: "mint" },
+        { code: "CC6.6", title: "Protection du périmètre, pare-feu hôte actif et ports distants restreints", state: "Conforme", score: 98, proof: "Firewall-ZeroTrust-State", tone: "mint" },
+        { code: "CC6.7", title: "Chiffrement des données en transit, TLS 1.3 et durcissement SSH", state: "Conforme", score: 100, proof: "TLS13-Harden-SSH-OK", tone: "mint" },
+        { code: "CC6.8", title: "Protection contre les logiciels malveillants, EDR en temps réel et intégrité", state: "Conforme", score: 99, proof: "EDR-Realtime-Telemetry", tone: "mint" },
+        { code: "CC7.1", title: "Gestion continue des vulnérabilités et correctifs de sécurité critiques", state: "Conforme", score: 95, proof: "Patch-Cycle-48h", tone: "mint" },
+        { code: "CC7.2", title: "Journalisation d'audit centralisée, horodatage NTP et rétention", state: "Conforme", score: 100, proof: "AuditTrail-WORM-SHA256", tone: "mint" },
+        { code: "CC8.1", title: "Durcissement du système hôte et gestion des changements de configuration", state: "Conforme", score: 96, proof: "Baseline-Hardening-Kernel", tone: "mint" },
+        { code: "A1.2", title: "Disponibilité des données, sauvegardes régulières et vérification d'intégrité", state: "Conforme", score: 95, proof: "Backup-Integrity-Verified", tone: "mint" },
+        { code: "C1.1", title: "Confidentialité et chiffrement matériel intégral des disques au repos (AES-256)", state: "Conforme", score: 100, proof: "FileVault-BitLocker-Active", tone: "mint" },
+      ],
+    },
     nis2: {
       title: "Directive Européenne NIS 2",
       score: "76%",
@@ -635,6 +653,7 @@ function ComplianceHub({ notify }: { notify: (s: string) => void }) {
 
       <div className="tabs-segmented">
         {[
+          { id: "soc2", label: "SOC 2 Type II", score: "98%" },
           { id: "nis2", label: "Directive NIS 2", score: "76%" },
           { id: "dora", label: "Règlement DORA", score: "91%" },
           { id: "iso27001", label: "ISO 27001:2022", score: "87%" },

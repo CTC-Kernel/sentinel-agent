@@ -33,7 +33,9 @@ impl CompliancePage {
                     .collect::<Vec<_>>()
                     .join(" · ")
             })
-            .unwrap_or_else(|| "CIS · NIST CSF · ISO 27001 · ANSSI · NIS 2 · DORA".to_string());
+            .unwrap_or_else(|| {
+                "CIS · NIST CSF · ISO 27001 · ANSSI · NIS 2 · DORA · SOC 2".to_string()
+            });
         let _ = widgets::page_header_nav(
             ui,
             &["Conformité & risques", "Conformité"],

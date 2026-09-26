@@ -123,7 +123,8 @@ out.txt
 *.gguf
 
 # Sentinel agent local data (dev artifacts)
-data/
+/data/
+!crates/agent-common/src/frameworks/data/
 *.db
 *.db-shm
 *.db-wal

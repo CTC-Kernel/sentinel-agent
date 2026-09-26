@@ -101,6 +101,7 @@ const CIS_V8_TOML: &str = include_str!("data/cis_v8.toml");
 const ISO27001_TOML: &str = include_str!("data/iso27001.toml");
 const NIST_CSF_TOML: &str = include_str!("data/nist_csf.toml");
 const PCI_DSS_TOML: &str = include_str!("data/pci_dss.toml");
+const SOC2_TOML: &str = include_str!("data/soc2.toml");
 
 /// TOML file structure for deserialization.
 #[derive(Deserialize)]
@@ -224,6 +225,7 @@ impl FrameworkRegistry {
         load_framework(self, PCI_DSS_TOML);
         load_framework(self, ISO27001_TOML);
         load_framework(self, ANSSI_TOML);
+        load_framework(self, SOC2_TOML);
     }
 
     /// Register a new framework.
@@ -447,6 +449,7 @@ mod tests {
         assert!(registry.get_framework("PCI_DSS").is_some());
         assert!(registry.get_framework("ISO_27001").is_some());
         assert!(registry.get_framework("ANSSI_HYGIENE").is_some());
+        assert!(registry.get_framework("SOC2").is_some());
     }
 
     #[test]

@@ -603,6 +603,9 @@ pub struct GuiFimAlert {
     pub timestamp: DateTime<Utc>,
     /// Whether the alert has been acknowledged.
     pub acknowledged: bool,
+    /// Whether the path has been added to an allowlist rule.
+    #[serde(default)]
+    pub allowlisted: bool,
 }
 
 /// A suspicious process event for GUI display.
@@ -630,6 +633,12 @@ pub struct GuiSuspiciousProcess {
     /// AI-generated analysis text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ai_analysis: Option<String>,
+    /// Whether the alert has been acknowledged by an operator.
+    #[serde(default)]
+    pub acknowledged: bool,
+    /// Whether the process or command pattern is allowlisted.
+    #[serde(default)]
+    pub allowlisted: bool,
 }
 
 /// A system security incident for GUI display (firewall, AV, privilege escalation, etc.).
@@ -657,6 +666,12 @@ pub struct GuiSystemIncident {
     /// AI-generated analysis text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ai_analysis: Option<String>,
+    /// Whether the incident has been acknowledged by an operator.
+    #[serde(default)]
+    pub acknowledged: bool,
+    /// Whether the incident pattern is allowlisted.
+    #[serde(default)]
+    pub allowlisted: bool,
 }
 
 /// A USB device event for GUI display.
@@ -673,6 +688,12 @@ pub struct GuiUsbEvent {
     pub event_type: UsbEventType,
     /// When the event occurred.
     pub timestamp: DateTime<Utc>,
+    /// Whether the event has been acknowledged.
+    #[serde(default)]
+    pub acknowledged: bool,
+    /// Whether this USB device is on the authorized allowlist.
+    #[serde(default)]
+    pub allowlisted: bool,
 }
 
 /// A network security alert for GUI display.
@@ -704,6 +725,58 @@ pub struct GuiNetworkAlert {
     /// AI-generated analysis text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ai_analysis: Option<String>,
+    /// Whether the alert has been acknowledged.
+    #[serde(default)]
+    pub acknowledged: bool,
+    /// Whether the target IP or domain is on the authorized allowlist.
+    #[serde(default)]
+    pub allowlisted: bool,
+}
+
+/// Category of an authorization / allowlist rule.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum AllowlistRuleType {
+    /// IP address or CIDR network block (e.g. "192.168.1.50", "10.0.0.0/8").
+    IpAddress,
+    /// Process executable name or wildcard pattern (e.g. "backup_agent", "cargo*").
+    ProcessPattern,
+    /// Fully qualified domain name or wildcard (e.g. "api.internal.corp", "*.nexus.io").
+    Domain,
+    /// File path or glob pattern (e.g. "/var/log/*.tmp").
+    FilePath,
+    /// USB device identifier (e.g. "0x0781:0x5567").
+    UsbDevice,
+}
+
+impl AllowlistRuleType {
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::IpAddress => "Adresse IP / CIDR",
+            Self::ProcessPattern => "Processus / Motif",
+            Self::Domain => "Domaine réseau",
+            Self::FilePath => "Chemin de fichier",
+            Self::UsbDevice => "Périphérique USB",
+        }
+    }
+}
+
+/// An authorization rule that suppresses alerts for legitimate operational activities.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct AllowlistRule {
+    /// Unique identifier for this authorization rule.
+    pub id: Uuid,
+    /// Categorization of the rule.
+    pub rule_type: AllowlistRuleType,
+    /// The target pattern, IP, or identifier authorized.
+    pub pattern: String,
+    /// Human-readable explanation or business justification.
+    pub description: String,
+    /// When this rule was approved.
+    pub created_at: DateTime<Utc>,
+    /// Operator or system that approved this rule.
+    pub created_by: String,
 }
 
 // ============================================================================

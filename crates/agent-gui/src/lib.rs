@@ -15,6 +15,7 @@
 pub mod dto;
 pub mod events;
 pub mod format;
+pub mod human_transcript;
 pub mod os;
 pub mod os_settings;
 #[cfg(feature = "render")]

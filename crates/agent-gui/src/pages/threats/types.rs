@@ -30,6 +30,10 @@ pub(super) struct ThreatEvent {
     pub command_line: Option<String>,
     /// Index into the original source collection.
     pub source_index: usize,
+    /// Whether this threat has been acknowledged by an operator.
+    pub acknowledged: bool,
+    /// Whether this threat is authorized/allowlisted by an explicit rule.
+    pub allowlisted: bool,
 }
 
 /// Compute a risk score (0-100) that prioritizes critical threats across all 6 sources.
@@ -120,6 +124,11 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
         } else {
             "low"
         };
+        let allowlisted = p.allowlisted
+            || state.threats.is_allowlisted(
+                crate::dto::AllowlistRuleType::ProcessPattern,
+                &p.process_name,
+            );
         events.push(ThreatEvent {
             kind: "process",
             severity,
@@ -129,6 +138,8 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
             confidence: Some(p.confidence),
             command_line: Some(p.command_line.clone()),
             source_index: i,
+            acknowledged: p.acknowledged || allowlisted,
+            allowlisted,
         });
     }
 
@@ -139,6 +150,14 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
             UsbEventType::Disconnected => "low",
             UsbEventType::Blocked => "high",
         };
+        let usb_id = format!("0x{:04x}:0x{:04x}", u.vendor_id, u.product_id);
+        let allowlisted = u.allowlisted
+            || state
+                .threats
+                .is_allowlisted(crate::dto::AllowlistRuleType::UsbDevice, &usb_id)
+            || state
+                .threats
+                .is_allowlisted(crate::dto::AllowlistRuleType::UsbDevice, &u.device_name);
         events.push(ThreatEvent {
             kind: "usb",
             severity,
@@ -151,6 +170,8 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
             confidence: None,
             command_line: None,
             source_index: i,
+            acknowledged: u.acknowledged || allowlisted,
+            allowlisted,
         });
     }
 
@@ -162,6 +183,9 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
             FimChangeType::Modified => "medium",
             FimChangeType::Renamed => "low",
         };
+        let allowlisted = state
+            .threats
+            .is_allowlisted(crate::dto::AllowlistRuleType::FilePath, &f.path);
         events.push(ThreatEvent {
             kind: "fim",
             severity,
@@ -169,7 +193,7 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
             description: format!(
                 "Changement d\u{00e9}tect\u{00e9} : {}{}",
                 change_type_label(f.change_type),
-                if f.acknowledged {
+                if f.acknowledged || allowlisted {
                     " (acquitt\u{00e9})"
                 } else {
                     ""
@@ -179,6 +203,8 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
             confidence: None,
             command_line: None,
             source_index: i,
+            acknowledged: f.acknowledged || allowlisted,
+            allowlisted,
         });
     }
 
@@ -197,6 +223,15 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
                 desc_parts.push(format!("DST: {}", dst));
             }
         }
+        let target_ip = alert
+            .destination_ip
+            .as_deref()
+            .or(alert.source_ip.as_deref())
+            .unwrap_or("");
+        let allowlisted = alert.allowlisted
+            || state
+                .threats
+                .is_allowlisted(crate::dto::AllowlistRuleType::IpAddress, target_ip);
         events.push(ThreatEvent {
             kind: "network",
             severity,
@@ -206,6 +241,8 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
             confidence: Some(alert.confidence),
             command_line: None,
             source_index: i,
+            acknowledged: alert.acknowledged || allowlisted,
+            allowlisted,
         });
     }
 
@@ -220,6 +257,8 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
             confidence: Some(inc.confidence),
             command_line: None,
             source_index: i,
+            acknowledged: inc.acknowledged,
+            allowlisted: inc.allowlisted,
         });
     }
 
@@ -234,6 +273,8 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
             confidence: v.cvss_score.map(|s| (s * 10.0).min(100.0) as u8),
             command_line: None,
             source_index: i,
+            acknowledged: false,
+            allowlisted: false,
         });
     }
 

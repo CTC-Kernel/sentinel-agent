@@ -533,7 +533,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             match threat.kind {
                 "process" => {
                     if threat.source_index < state.threats.suspicious_processes.len() {
-                        let p = &state.threats.suspicious_processes[threat.source_index];
+                        let p = state.threats.suspicious_processes[threat.source_index].clone();
                         let conf_color = if p.confidence >= 90 {
                             theme::ERROR
                         } else if p.confidence >= 70 {
@@ -551,11 +551,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 icons::BRAIN,
                             ));
                         }
-                        actions.push(widgets::DetailAction::secondary(
-                            "Ignorer",
-                            icons::EYE_SLASH,
+                        actions.push(widgets::DetailAction::secondary("Acquitter", icons::CHECK));
+                        actions.push(widgets::DetailAction::primary(
+                            "Autoriser ce motif",
+                            icons::SHIELD_CHECK,
                         ));
-                        actions.push(widgets::DetailAction::primary("Signaler", icons::FLAG));
+                        actions.push(widgets::DetailAction::secondary("Signaler", icons::FLAG));
                         let drawer_action = widgets::DetailDrawer::new(
                             "threat_detail",
                             &p.process_name,
@@ -567,7 +568,17 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             &ctx,
                             &mut state.threats.detail_open,
                             |ui| {
-                                widgets::detail_section(ui, "INFORMATIONS DU PROCESSUS");
+                                let human_exp = crate::human_transcript::explain_suspicious_process(
+                                    &p.process_name,
+                                    &p.command_line,
+                                    &p.reason,
+                                    p.confidence,
+                                );
+                                crate::human_transcript::render_human_explanation_card(
+                                    ui, &human_exp,
+                                );
+
+                                widgets::detail_section(ui, "INFORMATIONS TECHNIQUES DU PROCESSUS");
                                 widgets::detail_field(ui, "Nom", &p.process_name);
                                 widgets::detail_mono(ui, "Ligne de commande", &p.command_line);
                                 widgets::detail_text(ui, "Raison de d\u{00e9}tection", &p.reason);
@@ -624,8 +635,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             } else {
                                 None
                             };
-                            let ignore_idx = next;
-                            let report_idx = next + 1;
+                            let ack_idx = next;
+                            next += 1;
+                            let allow_idx = next;
+                            next += 1;
+                            let report_idx = next;
                             if ai_idx == Some(action_idx) {
                                 let desc = format!(
                                     "Processus suspect: {} — Commande: {} — Raison: {}",
@@ -641,9 +655,32 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     )
                                     .with_time(time),
                                 );
-                            } else if action_idx == ignore_idx {
+                            } else if action_idx == ack_idx {
+                                state.acknowledge_threat_item("process", threat.source_index);
                                 state.threats.detail_open = false;
                                 state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(
+                                        "Processus suspect acquitt\u{00e9}",
+                                    )
+                                    .with_time(time),
+                                );
+                            } else if action_idx == allow_idx {
+                                state.add_allowlist_rule_global(
+                                    crate::dto::AllowlistRuleType::ProcessPattern,
+                                    p.process_name.clone(),
+                                    format!("Processus autoris\u{00e9} : {}", p.process_name),
+                                    "Op\u{00e9}rateur".to_string(),
+                                );
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(format!(
+                                        "R\u{00e8}gle cr\u{00e9}\u{00e9}e : processus '{}' autoris\u{00e9}",
+                                        p.process_name
+                                    ))
+                                    .with_time(time),
+                                );
                             } else if action_idx == report_idx {
                                 let details = format!(
                                     "Processus: {}\nCommande: {}\nRaison: {}\nConfiance: {}\u{202f}%",
@@ -651,11 +688,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 );
                                 ctx.copy_text(details);
                                 state.toasts.push(
-                                crate::widgets::toast::Toast::info(
-                                    "D\u{00e9}tails du processus copi\u{00e9}s dans le presse-papiers",
-                                )
-                                .with_time(time),
-                            );
+                                    crate::widgets::toast::Toast::info(
+                                        "D\u{00e9}tails du processus copi\u{00e9}s dans le presse-papiers",
+                                    )
+                                    .with_time(time),
+                                );
                             }
                         }
                     }
@@ -669,7 +706,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             UsbEventType::Blocked => theme::ERROR,
                         };
                         let actions = [
-                            widgets::DetailAction::primary("Autoriser", icons::CHECK),
+                            widgets::DetailAction::secondary("Acquitter", icons::CHECK),
+                            widgets::DetailAction::primary(
+                                "Autoriser ce périphérique",
+                                icons::SHIELD_CHECK,
+                            ),
                             widgets::DetailAction::danger("Bloquer", icons::LOCK),
                         ];
                         let drawer_action =
@@ -680,7 +721,20 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     &ctx,
                                     &mut state.threats.detail_open,
                                     |ui| {
-                                        widgets::detail_section(ui, "\u{00c9}V\u{00c9}NEMENT USB");
+                                        let human_exp = crate::human_transcript::explain_usb_event(
+                                            &u.device_name,
+                                            u.vendor_id,
+                                            u.product_id,
+                                            u.event_type == UsbEventType::Blocked,
+                                        );
+                                        crate::human_transcript::render_human_explanation_card(
+                                            ui, &human_exp,
+                                        );
+
+                                        widgets::detail_section(
+                                            ui,
+                                            "INFORMATIONS TECHNIQUES DU P\u{00c9}RIPH\u{00c9}RIQUE",
+                                        );
                                         widgets::detail_field(
                                             ui,
                                             "P\u{00e9}riph\u{00e9}rique",
@@ -710,11 +764,49 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     },
                                     &actions,
                                 );
-                        if let Some(action_idx) = drawer_action
-                            && (action_idx == 0 || action_idx == 1)
-                        {
-                            state.threats.detail_open = false;
-                            state.threats.selected_threat = None;
+                        if let Some(action_idx) = drawer_action {
+                            let time = ctx.input(|i| i.time);
+                            if action_idx == 0 {
+                                state.acknowledge_threat_item("usb", threat.source_index);
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(
+                                        "\u{00c9}v\u{00e9}nement USB acquitt\u{00e9}",
+                                    )
+                                    .with_time(time),
+                                );
+                            } else if action_idx == 1 {
+                                let dev_pattern =
+                                    format!("0x{:04x}:0x{:04x}", u.vendor_id, u.product_id);
+                                state.add_allowlist_rule_global(
+                                    crate::dto::AllowlistRuleType::UsbDevice,
+                                    dev_pattern.clone(),
+                                    format!(
+                                        "P\u{00e9}riph\u{00e9}rique USB autoris\u{00e9} : {}",
+                                        u.device_name
+                                    ),
+                                    "Op\u{00e9}rateur".to_string(),
+                                );
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(format!(
+                                        "P\u{00e9}riph\u{00e9}rique USB {} ({}) autoris\u{00e9}",
+                                        u.device_name, dev_pattern
+                                    ))
+                                    .with_time(time),
+                                );
+                            } else if action_idx == 2 {
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::warning(
+                                        "P\u{00e9}riph\u{00e9}rique USB maintenu bloqu\u{00e9}",
+                                    )
+                                    .with_time(time),
+                                );
+                            }
                         }
                     }
                 }
@@ -745,7 +837,20 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     &ctx,
                                     &mut state.threats.detail_open,
                                     |ui| {
-                                        widgets::detail_section(ui, "INCIDENT SYST\u{00c8}ME");
+                                        let human_exp =
+                                            crate::human_transcript::explain_system_incident(
+                                                system_incident_type_label(&inc.incident_type),
+                                                &inc.title,
+                                                &inc.description,
+                                            );
+                                        crate::human_transcript::render_human_explanation_card(
+                                            ui, &human_exp,
+                                        );
+
+                                        widgets::detail_section(
+                                            ui,
+                                            "INFORMATIONS TECHNIQUES DE L'INCIDENT",
+                                        );
                                         widgets::detail_field(
                                             ui,
                                             "Type",
@@ -835,11 +940,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     .with_time(time),
                                 );
                             } else if action_idx == ack_idx {
+                                state.acknowledge_threat_item("system", threat.source_index);
                                 state.threats.detail_open = false;
                                 state.threats.selected_threat = None;
                                 state.toasts.push(
                                     crate::widgets::toast::Toast::success(
-                                        "Incident acquitt\u{00e9}",
+                                        "Incident système acquitt\u{00e9}",
                                     )
                                     .with_time(time),
                                 );
@@ -868,10 +974,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             Severity::Medium => theme::WARNING,
                             _ => theme::INFO,
                         };
-                        let actions = [widgets::DetailAction::primary(
-                            "Voir d\u{00e9}tails",
-                            icons::EYE,
-                        )];
+                        let actions = [
+                            widgets::DetailAction::secondary("Acquitter", icons::CHECK),
+                            widgets::DetailAction::primary("Copier le CVE", icons::COPY),
+                        ];
                         let drawer_title = format!("{} \u{2014} {}", v.cve_id, v.affected_software);
                         let drawer_action = widgets::DetailDrawer::new(
                             "threat_detail",
@@ -884,7 +990,21 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             &ctx,
                             &mut state.threats.detail_open,
                             |ui| {
-                                widgets::detail_section(ui, "VULN\u{00c9}RABILIT\u{00c9}");
+                                let human_exp = crate::human_transcript::explain_vulnerability(
+                                    &v.cve_id,
+                                    &v.affected_software,
+                                    v.cvss_score,
+                                    v.fix_available,
+                                    &v.description,
+                                );
+                                crate::human_transcript::render_human_explanation_card(
+                                    ui, &human_exp,
+                                );
+
+                                widgets::detail_section(
+                                    ui,
+                                    "INFORMATIONS TECHNIQUES VULN\u{00c9}RABILIT\u{00c9}",
+                                );
                                 widgets::detail_field(ui, "CVE", &v.cve_id);
                                 widgets::detail_field(ui, "Logiciel", &v.affected_software);
                                 widgets::detail_field(ui, "Version", &v.affected_version);
@@ -911,15 +1031,26 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             },
                             &actions,
                         );
-                        if let Some(0) = drawer_action {
-                            ctx.copy_text(v.cve_id.clone());
+                        if let Some(action_idx) = drawer_action {
                             let time = ctx.input(|i| i.time);
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::info(
-                                    "CVE copi\u{00e9} dans le presse-papiers",
-                                )
-                                .with_time(time),
-                            );
+                            if action_idx == 0 {
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(
+                                        "Vuln\u{00e9}rabilit\u{00e9} acquitt\u{00e9}e",
+                                    )
+                                    .with_time(time),
+                                );
+                            } else if action_idx == 1 {
+                                ctx.copy_text(v.cve_id.clone());
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::info(
+                                        "CVE copi\u{00e9} dans le presse-papiers",
+                                    )
+                                    .with_time(time),
+                                );
+                            }
                         }
                     }
                 }
@@ -931,10 +1062,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             "medium" => theme::WARNING,
                             _ => theme::INFO,
                         };
-                        let actions = [widgets::DetailAction::secondary(
-                            "Copier le chemin",
-                            icons::COPY,
-                        )];
+                        let actions = [
+                            widgets::DetailAction::secondary("Acquitter", icons::CHECK),
+                            widgets::DetailAction::primary(
+                                "Autoriser ce chemin (Exclure)",
+                                icons::SHIELD_CHECK,
+                            ),
+                            widgets::DetailAction::secondary("Copier le chemin", icons::COPY),
+                        ];
                         let drawer_action =
                             widgets::DetailDrawer::new("threat_detail", &f.path, icons::FILE)
                                 .accent(sev_color)
@@ -943,7 +1078,24 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     &ctx,
                                     &mut state.threats.detail_open,
                                     |ui| {
-                                        widgets::detail_section(ui, "ALERTE FIM");
+                                        let change_type_str = match f.change_type {
+                                            crate::dto::FimChangeType::Created => "created",
+                                            crate::dto::FimChangeType::Deleted => "deleted",
+                                            crate::dto::FimChangeType::Modified => "modified",
+                                            crate::dto::FimChangeType::Renamed => "renamed",
+                                            crate::dto::FimChangeType::PermissionChanged => {
+                                                "permission_changed"
+                                            }
+                                        };
+                                        let human_exp = crate::human_transcript::explain_fim_event(
+                                            &f.path,
+                                            change_type_str,
+                                        );
+                                        crate::human_transcript::render_human_explanation_card(
+                                            ui, &human_exp,
+                                        );
+
+                                        widgets::detail_section(ui, "INFORMATIONS TECHNIQUES FIM");
                                         widgets::detail_mono(ui, "Chemin", &f.path);
                                         widgets::detail_field(
                                             ui,
@@ -968,12 +1120,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                         widgets::detail_field_badge(
                                             ui,
                                             "\u{00c9}tat",
-                                            if f.acknowledged {
-                                                "Acquitt\u{00e9}"
+                                            if f.acknowledged || f.allowlisted {
+                                                "Acquitt\u{00e9} / Autoris\u{00e9}"
                                             } else {
                                                 "Non acquitt\u{00e9}"
                                             },
-                                            if f.acknowledged {
+                                            if f.acknowledged || f.allowlisted {
                                                 theme::SUCCESS
                                             } else {
                                                 sev_color
@@ -982,15 +1134,43 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     },
                                     &actions,
                                 );
-                        if let Some(0) = drawer_action {
-                            ctx.copy_text(f.path.clone());
+                        if let Some(action_idx) = drawer_action {
                             let time = ctx.input(|i| i.time);
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::info(
-                                    "Chemin copi\u{00e9} dans le presse-papiers",
-                                )
-                                .with_time(time),
-                            );
+                            if action_idx == 0 {
+                                state.acknowledge_threat_item("fim", threat.source_index);
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(
+                                        "Alerte FIM acquitt\u{00e9}e",
+                                    )
+                                    .with_time(time),
+                                );
+                            } else if action_idx == 1 {
+                                state.add_allowlist_rule_global(
+                                    crate::dto::AllowlistRuleType::FilePath,
+                                    f.path.clone(),
+                                    format!("Chemin FIM exclu : {}", f.path),
+                                    "Op\u{00e9}rateur".to_string(),
+                                );
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(format!(
+                                        "Chemin '{}' ajout\u{00e9} aux r\u{00e8}gles d'exclusion",
+                                        f.path
+                                    ))
+                                    .with_time(time),
+                                );
+                            } else if action_idx == 2 {
+                                ctx.copy_text(f.path.clone());
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::info(
+                                        "Chemin copi\u{00e9} dans le presse-papiers",
+                                    )
+                                    .with_time(time),
+                                );
+                            }
                         }
                     }
                 }
@@ -1004,11 +1184,25 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             _ => theme::INFO,
                         };
                         let has_ai = a.ai_analysis.is_some();
+                        let target_ip = a
+                            .destination_ip
+                            .as_deref()
+                            .or(a.source_ip.as_deref())
+                            .map(|s| s.to_string());
+                        let has_target_ip = target_ip.is_some();
+
                         let mut actions = Vec::new();
                         if !has_ai {
                             actions.push(widgets::DetailAction::primary(
                                 "\u{00c9}valuer avec l'IA",
                                 icons::BRAIN,
+                            ));
+                        }
+                        actions.push(widgets::DetailAction::secondary("Acquitter", icons::CHECK));
+                        if has_target_ip {
+                            actions.push(widgets::DetailAction::primary(
+                                "Autoriser cette IP",
+                                icons::SHIELD_CHECK,
                             ));
                         }
                         actions.push(widgets::DetailAction::secondary(
@@ -1024,7 +1218,22 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     &ctx,
                                     &mut state.threats.detail_open,
                                     |ui| {
-                                        widgets::detail_section(ui, "ALERTE R\u{00c9}SEAU");
+                                        let human_exp =
+                                            crate::human_transcript::explain_network_alert(
+                                                &a.alert_type,
+                                                &a.description,
+                                                a.source_ip.as_deref(),
+                                                a.destination_ip.as_deref(),
+                                                a.destination_port,
+                                            );
+                                        crate::human_transcript::render_human_explanation_card(
+                                            ui, &human_exp,
+                                        );
+
+                                        widgets::detail_section(
+                                            ui,
+                                            "INFORMATIONS TECHNIQUES DU FLUX R\u{00c9}SEAU",
+                                        );
                                         widgets::detail_field(ui, "Type", &alert_label);
                                         widgets::detail_text(ui, "Description", &a.description);
                                         widgets::detail_field_badge(
@@ -1103,6 +1312,15 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             } else {
                                 None
                             };
+                            let ack_idx = next;
+                            next += 1;
+                            let allow_idx = if has_target_ip {
+                                let i = next;
+                                next += 1;
+                                Some(i)
+                            } else {
+                                None
+                            };
                             let copy_idx = next;
                             if ai_idx == Some(action_idx) {
                                 let desc = format!(
@@ -1125,6 +1343,34 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     )
                                     .with_time(time),
                                 );
+                            } else if action_idx == ack_idx {
+                                state.acknowledge_threat_item("network", threat.source_index);
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(
+                                        "Alerte réseau acquitt\u{00e9}e",
+                                    )
+                                    .with_time(time),
+                                );
+                            } else if allow_idx == Some(action_idx) {
+                                if let Some(ip) = target_ip {
+                                    state.add_allowlist_rule_global(
+                                        crate::dto::AllowlistRuleType::IpAddress,
+                                        ip.clone(),
+                                        format!("IP réseau autoris\u{00e9}e : {}", ip),
+                                        "Op\u{00e9}rateur".to_string(),
+                                    );
+                                    state.threats.detail_open = false;
+                                    state.threats.selected_threat = None;
+                                    state.toasts.push(
+                                        crate::widgets::toast::Toast::success(format!(
+                                            "Adresse IP '{}' ajout\u{00e9}e aux r\u{00e8}gles d'autorisation",
+                                            ip
+                                        ))
+                                        .with_time(time),
+                                    );
+                                }
                             } else if action_idx == copy_idx {
                                 let details = format!(
                                     "Type: {}\nDescription: {}\nSource: {}\nDestination: {}:{}\nConfiance: {}\u{202f}%",
@@ -1238,6 +1484,14 @@ fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
                             .font(theme::font_label())
                             .color(theme::text_tertiary()),
                         );
+
+                        if threat.allowlisted {
+                            ui.add_space(theme::SPACE_SM);
+                            widgets::status_badge(ui, "AUTORIS\u{00c9}", theme::SUCCESS);
+                        } else if threat.acknowledged {
+                            ui.add_space(theme::SPACE_SM);
+                            widgets::status_badge(ui, "ACQUITT\u{00c9}", theme::text_tertiary());
+                        }
 
                         if let Some(conf) = threat.confidence {
                             ui.add_space(theme::SPACE_SM);

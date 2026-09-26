@@ -438,6 +438,8 @@ impl AgentRuntime {
                 ai_confidence: None,
                 is_false_positive: None,
                 ai_analysis: None,
+                acknowledged: false,
+                allowlisted: false,
             },
         });
     }
@@ -523,6 +525,8 @@ impl AgentRuntime {
                 ai_confidence: None,
                 is_false_positive: None,
                 ai_analysis: None,
+                acknowledged: false,
+                allowlisted: false,
             },
         });
     }

@@ -1231,6 +1231,7 @@ impl AgentRuntime {
                                     new_hash: alert.new_hash.clone(),
                                     timestamp: alert.timestamp,
                                     acknowledged: false,
+                                    allowlisted: false,
                                 },
                             });
                             let today = chrono::Utc::now().timestamp().max(0) as u64
@@ -1792,6 +1793,8 @@ impl AgentRuntime {
                                                 ai_confidence: None,
                                                 is_false_positive: None,
                                                 ai_analysis: None,
+                                                acknowledged: false,
+                                                allowlisted: false,
                                             },
                                         });
                                     }
@@ -1865,6 +1868,8 @@ impl AgentRuntime {
                             product_id: event.device.product_id,
                             event_type: gui_event_type,
                             timestamp: event.timestamp,
+                            acknowledged: false,
+                            allowlisted: false,
                         },
                     });
                 }

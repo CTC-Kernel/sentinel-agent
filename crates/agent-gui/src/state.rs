@@ -350,6 +350,107 @@ pub struct ThreatsState {
     pub forensic_selected_event: Option<usize>,
     pub forensic_detail_open: bool,
     pub forensic_page: usize,
+
+    // Exclusions & Authorization rules (IP, Process, Pattern, USB, FIM)
+    pub allowlist_rules: Vec<crate::dto::AllowlistRule>,
+}
+
+impl ThreatsState {
+    /// Acknowledge a threat by its kind and index in the respective source collection.
+    pub fn acknowledge_threat(&mut self, kind: &str, source_index: usize) -> bool {
+        match kind {
+            "process" => {
+                if let Some(p) = self.suspicious_processes.get_mut(source_index) {
+                    p.acknowledged = true;
+                    return true;
+                }
+            }
+            "system" => {
+                if let Some(inc) = self.system_incidents.get_mut(source_index) {
+                    inc.acknowledged = true;
+                    return true;
+                }
+            }
+            "usb" => {
+                if let Some(u) = self.usb_events.get_mut(source_index) {
+                    u.acknowledged = true;
+                    return true;
+                }
+            }
+            _ => {}
+        }
+        false
+    }
+
+    /// Add an authorization rule and retroactively mark matching threats as allowlisted.
+    pub fn add_allowlist_rule(
+        &mut self,
+        rule_type: crate::dto::AllowlistRuleType,
+        pattern: String,
+        description: String,
+        created_by: String,
+    ) -> uuid::Uuid {
+        let id = uuid::Uuid::new_v4();
+        self.allowlist_rules.push(crate::dto::AllowlistRule {
+            id,
+            rule_type,
+            pattern: pattern.clone(),
+            description,
+            created_at: chrono::Utc::now(),
+            created_by,
+        });
+
+        // Apply retroactively to active threats
+        let pattern_lower = pattern.to_lowercase();
+        match rule_type {
+            crate::dto::AllowlistRuleType::ProcessPattern => {
+                for p in self.suspicious_processes.iter_mut() {
+                    if p.process_name.to_lowercase().contains(&pattern_lower)
+                        || p.command_line.to_lowercase().contains(&pattern_lower)
+                    {
+                        p.allowlisted = true;
+                        p.acknowledged = true;
+                    }
+                }
+            }
+            crate::dto::AllowlistRuleType::UsbDevice => {
+                for u in self.usb_events.iter_mut() {
+                    let id_str = format!("0x{:04x}:0x{:04x}", u.vendor_id, u.product_id);
+                    if id_str.contains(&pattern_lower)
+                        || u.device_name.to_lowercase().contains(&pattern_lower)
+                    {
+                        u.allowlisted = true;
+                        u.acknowledged = true;
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        id
+    }
+
+    /// Check if a process, IP or pattern is covered by an active authorization rule.
+    pub fn is_allowlisted(&self, rule_type: crate::dto::AllowlistRuleType, value: &str) -> bool {
+        let val_lower = value.to_lowercase();
+        self.allowlist_rules.iter().any(|r| {
+            r.rule_type == rule_type
+                && (val_lower == r.pattern.to_lowercase()
+                    || val_lower.contains(&r.pattern.to_lowercase())
+                    || (r.pattern.starts_with('*')
+                        && val_lower.ends_with(&r.pattern[1..].to_lowercase())))
+        })
+    }
+
+    /// Remove an authorization rule by ID.
+    pub fn remove_allowlist_rule(&mut self, id: uuid::Uuid) -> bool {
+        if let Some(pos) = self.allowlist_rules.iter().position(|r| r.id == id) {
+            self.allowlist_rules.remove(pos);
+            true
+        } else {
+            false
+        }
+    }
 }
 
 impl Default for ThreatsState {
@@ -388,6 +489,7 @@ impl Default for ThreatsState {
             forensic_selected_event: None,
             forensic_detail_open: false,
             forensic_page: 0,
+            allowlist_rules: Vec::new(),
         }
     }
 }
@@ -884,6 +986,89 @@ impl AppState {
     pub fn push_toast(&mut self, toast: crate::widgets::toast::Toast, ctx: &egui::Context) {
         let time = ctx.input(|i| i.time);
         self.toasts.push(toast.with_time(time));
+    }
+
+    /// Acknowledge a threat item across any subsystem (process, system, usb, fim, network).
+    pub fn acknowledge_threat_item(&mut self, kind: &str, source_index: usize) -> bool {
+        match kind {
+            "process" => {
+                if let Some(p) = self.threats.suspicious_processes.get_mut(source_index) {
+                    p.acknowledged = true;
+                    return true;
+                }
+            }
+            "system" => {
+                if let Some(inc) = self.threats.system_incidents.get_mut(source_index) {
+                    inc.acknowledged = true;
+                    return true;
+                }
+            }
+            "usb" => {
+                if let Some(u) = self.threats.usb_events.get_mut(source_index) {
+                    u.acknowledged = true;
+                    return true;
+                }
+            }
+            "fim" => {
+                if let Some(f) = self.fim.alerts.get_mut(source_index) {
+                    f.acknowledged = true;
+                    return true;
+                }
+            }
+            "network" => {
+                if let Some(a) = self.network.alerts.get_mut(source_index) {
+                    a.acknowledged = true;
+                    return true;
+                }
+            }
+            _ => {}
+        }
+        false
+    }
+
+    /// Add an authorization allowlist rule and apply it across all subsystems.
+    pub fn add_allowlist_rule_global(
+        &mut self,
+        rule_type: crate::dto::AllowlistRuleType,
+        pattern: String,
+        description: String,
+        created_by: String,
+    ) -> uuid::Uuid {
+        let pattern_lower = pattern.to_lowercase();
+        let id = self
+            .threats
+            .add_allowlist_rule(rule_type, pattern, description, created_by);
+
+        match rule_type {
+            crate::dto::AllowlistRuleType::IpAddress => {
+                for alert in self.network.alerts.iter_mut() {
+                    let src = alert.source_ip.as_deref().unwrap_or("").to_lowercase();
+                    let dst = alert.destination_ip.as_deref().unwrap_or("").to_lowercase();
+                    if src == pattern_lower || dst == pattern_lower {
+                        alert.allowlisted = true;
+                        alert.acknowledged = true;
+                    }
+                }
+            }
+            crate::dto::AllowlistRuleType::FilePath => {
+                for alert in self.fim.alerts.iter_mut() {
+                    if alert.path.to_lowercase().contains(&pattern_lower) {
+                        alert.allowlisted = true;
+                        alert.acknowledged = true;
+                    }
+                }
+            }
+            crate::dto::AllowlistRuleType::Domain => {
+                for alert in self.network.alerts.iter_mut() {
+                    if alert.description.to_lowercase().contains(&pattern_lower) {
+                        alert.allowlisted = true;
+                        alert.acknowledged = true;
+                    }
+                }
+            }
+            _ => {}
+        }
+        id
     }
 
     /// Compute radar chart scores (compliance, threats, vulns, resources, network).

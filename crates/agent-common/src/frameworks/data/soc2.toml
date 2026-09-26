@@ -1,0 +1,279 @@
+[framework]
+id = "SOC2"
+name = "SOC 2 Type II"
+version = "2022 TSC"
+description = "AICPA Trust Services Criteria for Security, Availability, and Confidentiality"
+applicability = ["Cloud Providers", "SaaS Platforms", "Enterprise Systems", "AICPA Audit"]
+reference_url = "https://www.aicpa-cima.com/resources/landing/trust-services-criteria"
+
+# CC6.1 - Logical Access Controls & Authentication
+[[controls]]
+check_id = "mfa_enabled"
+control_id = "CC6.1"
+control_name = "Logical Access - Multi-Factor Authentication"
+category = "Logical and Physical Access Controls"
+description = "Multi-factor authentication is required for all access to endpoints and sensitive environments."
+weight = 0.98
+is_critical = true
+
+[[controls]]
+check_id = "password_policy"
+control_id = "CC6.1"
+control_name = "Logical Access - Password Complexity & Length"
+category = "Logical and Physical Access Controls"
+description = "Password parameters adhere to strict length, complexity and expiration policies."
+weight = 0.92
+is_critical = true
+
+[[controls]]
+check_id = "session_lock"
+control_id = "CC6.1"
+control_name = "Logical Access - Automated Session Inactivity Lock"
+category = "Logical and Physical Access Controls"
+description = "Endpoints automatically lock user sessions after a defined period of inactivity."
+weight = 0.90
+is_critical = true
+
+# CC6.2 - User Registration & Credential Management
+[[controls]]
+check_id = "admin_accounts"
+control_id = "CC6.2"
+control_name = "User Registration - Privileged Account Management"
+category = "Logical and Physical Access Controls"
+description = "Administrative accounts are minimized, inventoried, and governed under least privilege."
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "guest_account"
+control_id = "CC6.2"
+control_name = "Credential Management - Guest Account Restriction"
+category = "Logical and Physical Access Controls"
+description = "Default guest and anonymous accounts are disabled to prevent unauthenticated access."
+weight = 0.90
+is_critical = true
+
+[[controls]]
+check_id = "auto_login"
+control_id = "CC6.2"
+control_name = "Credential Management - Automatic Logon Prevention"
+category = "Logical and Physical Access Controls"
+description = "Automatic login bypass is disabled so credentials must be validated upon every boot and resume."
+weight = 0.88
+is_critical = false
+
+# CC6.3 - Identity Management & Directory Policies
+[[controls]]
+check_id = "directory_policy"
+control_id = "CC6.3"
+control_name = "Access Revocation & Central Directory Governance"
+category = "Logical and Physical Access Controls"
+description = "Centralized identity and group policies enforce automated provisioning and timely revocation."
+weight = 0.85
+is_critical = false
+
+# CC6.6 - Perimeter Defense, Firewalls & Network Isolation
+[[controls]]
+check_id = "firewall_active"
+control_id = "CC6.6"
+control_name = "Boundary Protection - Stateful Host Firewall"
+category = "Logical and Physical Access Controls"
+description = "Host-based packet filtering and stateful inspection are active on all network interfaces."
+weight = 0.98
+is_critical = true
+
+[[controls]]
+check_id = "remote_access"
+control_id = "CC6.6"
+control_name = "Boundary Protection - Secure Remote Access & Port Control"
+category = "Logical and Physical Access Controls"
+description = "Insecure listening ports and unprotected remote access protocols (RDP, VNC) are locked down."
+weight = 0.92
+is_critical = true
+
+[[controls]]
+check_id = "dns_security"
+control_id = "CC6.6"
+control_name = "Boundary Protection - Secure DNS Resolution"
+category = "Logical and Physical Access Controls"
+description = "DNS queries are channeled through authenticated and encrypted resolvers to prevent spoofing."
+weight = 0.80
+is_critical = false
+
+[[controls]]
+check_id = "bluetooth_status"
+control_id = "CC6.6"
+control_name = "Boundary Protection - Wireless Device Exposure"
+category = "Logical and Physical Access Controls"
+description = "Wireless interfaces such as Bluetooth are restricted when not actively authorized."
+weight = 0.70
+is_critical = false
+
+[[controls]]
+check_id = "ipv6_config"
+control_id = "CC6.6"
+control_name = "Boundary Protection - IPv6 Unfiltered Surface Defense"
+category = "Logical and Physical Access Controls"
+description = "IPv6 configuration is hardened and protected with firewall rules matching IPv4 policies."
+weight = 0.75
+is_critical = false
+
+# CC6.7 - Data Transmission & Encryption in Transit
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "CC6.7"
+control_name = "Transmission Integrity - SSH Cryptographic Hardening"
+category = "Logical and Physical Access Controls"
+description = "SSH services reject legacy ciphers, weak key exchange algorithms, and password-only root auth."
+weight = 0.90
+is_critical = true
+
+[[controls]]
+check_id = "certificate_validation"
+control_id = "CC6.7"
+control_name = "Transmission Integrity - Certificate Authority & TLS Validation"
+category = "Logical and Physical Access Controls"
+description = "System and browser trust stores reject untrusted root CAs and invalid TLS certificates."
+weight = 0.94
+is_critical = true
+
+[[controls]]
+check_id = "obsolete_protocols"
+control_id = "CC6.7"
+control_name = "Transmission Integrity - Deprecated Protocol Deprecation"
+category = "Logical and Physical Access Controls"
+description = "Obsolete unencrypted protocols (Telnet, FTP, SMBv1) are completely disabled across the system."
+weight = 0.92
+is_critical = true
+
+# CC6.8 - Prevention of Malicious Software & Removable Media
+[[controls]]
+check_id = "antivirus_active"
+control_id = "CC6.8"
+control_name = "Malware Defense - Endpoint Protection & Real-Time EDR"
+category = "Logical and Physical Access Controls"
+description = "Real-time antimalware or EDR engine is running with up-to-date threat signatures and behavioral detection."
+weight = 0.99
+is_critical = true
+
+[[controls]]
+check_id = "usb_storage"
+control_id = "CC6.8"
+control_name = "Malware Defense - Removable Storage Governance"
+category = "Logical and Physical Access Controls"
+description = "Unauthorized USB mass storage devices are blocked or audited to prevent data exfiltration and malware insertion."
+weight = 0.85
+is_critical = false
+
+[[controls]]
+check_id = "browser_security"
+control_id = "CC6.8"
+control_name = "Malware Defense - Web Browser Sandboxing & Security"
+category = "Logical and Physical Access Controls"
+description = "Web browsers enforce site isolation, phishing/malware protection, and secure defaults."
+weight = 0.82
+is_critical = false
+
+# CC7.1 - Vulnerability Detection & Patch Management
+[[controls]]
+check_id = "system_updates"
+control_id = "CC7.1"
+control_name = "Vulnerability Management - System Security Patching"
+category = "System Operations & Incident Management"
+description = "Operating system components and installed packages receive critical security updates within required SLAs."
+weight = 0.96
+is_critical = true
+
+[[controls]]
+check_id = "update_status"
+control_id = "CC7.1"
+control_name = "Vulnerability Management - Auto-Update Mechanism"
+category = "System Operations & Incident Management"
+description = "Automatic update verification ensures zero-day mitigations are promptly applied without delay."
+weight = 0.88
+is_critical = false
+
+# CC7.2 - System Monitoring, Audit Logging & Time Synchronization
+[[controls]]
+check_id = "audit_logging"
+control_id = "CC7.2"
+control_name = "Security Monitoring - Comprehensive Audit Logging"
+category = "System Operations & Incident Management"
+description = "System, authentication, and security audit logs are continuously generated and monitored."
+weight = 0.98
+is_critical = true
+
+[[controls]]
+check_id = "log_rotation"
+control_id = "CC7.2"
+control_name = "Security Monitoring - Log Retention & Archive Durability"
+category = "System Operations & Incident Management"
+description = "Audit logs are preserved and rotated with sufficient retention to reconstruct security incidents."
+weight = 0.85
+is_critical = false
+
+[[controls]]
+check_id = "time_sync"
+control_id = "CC7.2"
+control_name = "Security Monitoring - Network Time Protocol Synchronization"
+category = "System Operations & Incident Management"
+description = "System clocks are synchronized to reliable NTP sources to ensure forensic integrity of audit timestamps."
+weight = 0.88
+is_critical = false
+
+# CC8.1 - Baseline Hardening & Configuration Management
+[[controls]]
+check_id = "kernel_hardening"
+control_id = "CC8.1"
+control_name = "Change Management - Kernel Hardening & Exploit Mitigation"
+category = "Change Management & Hardening"
+description = "Kernel parameters enforce memory space layout randomization (ASLR), SYN flood defense, and ptrace isolation."
+weight = 0.90
+is_critical = true
+
+[[controls]]
+check_id = "linux_hardening"
+control_id = "CC8.1"
+control_name = "Change Management - Linux Host Security Baseline"
+category = "Change Management & Hardening"
+description = "Filesystem mount options, core dumps, and kernel module loading are hardened according to security baselines."
+weight = 0.90
+is_critical = false
+
+[[controls]]
+check_id = "windows_hardening"
+control_id = "CC8.1"
+control_name = "Change Management - Windows Baseline Hardening"
+category = "Change Management & Hardening"
+description = "UAC, BitLocker DMA protection, and Credential Guard are activated on Windows endpoints."
+weight = 0.90
+is_critical = false
+
+[[controls]]
+check_id = "container_security"
+control_id = "CC8.1"
+control_name = "Change Management - Container Runtime Isolation"
+category = "Change Management & Hardening"
+description = "Containers run without privileged capabilities and enforce rootless execution."
+weight = 0.85
+is_critical = false
+
+# A1.2 - Availability: Data Backup & Recovery Operations
+[[controls]]
+check_id = "backup_status"
+control_id = "A1.2"
+control_name = "Data Availability - Verified Backup Operations"
+category = "Availability & Resilience"
+description = "Critical data repositories and configuration states are regularly backed up and verified."
+weight = 0.94
+is_critical = true
+
+# C1.1 / C1.2 - Confidentiality: Data at Rest Cryptographic Protection
+[[controls]]
+check_id = "disk_encryption"
+control_id = "C1.1"
+control_name = "Confidentiality - Full-Disk Hardware Encryption"
+category = "Confidentiality & Data Protection"
+description = "All persistent storage volumes are encrypted with AES-256 (BitLocker, FileVault, LUKS) to protect data at rest."
+weight = 0.99
+is_critical = true

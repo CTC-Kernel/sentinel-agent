@@ -798,6 +798,8 @@ pub fn seed(state: &mut AppState) {
         ai_confidence: Some(91),
         is_false_positive: None,
         ai_analysis: Some("curl.exe n'a pas de raison métier de joindre un relais Tor ; probable exfiltration ou C2.".into()),
+        acknowledged: false,
+        allowlisted: false,
     });
     state.network.alerts.push_back(GuiNetworkAlert {
         alert_type: "port_scan".into(),
@@ -811,6 +813,8 @@ pub fn seed(state: &mut AppState) {
         ai_confidence: Some(70),
         is_false_positive: None,
         ai_analysis: None,
+        acknowledged: false,
+        allowlisted: false,
     });
     state.network.alerts.push_back(GuiNetworkAlert {
         alert_type: "rogue_dhcp".into(),
@@ -824,6 +828,8 @@ pub fn seed(state: &mut AppState) {
         ai_confidence: None,
         is_false_positive: Some(true),
         ai_analysis: Some("Box opérateur de secours déclarée par la DSI.".into()),
+        acknowledged: true,
+        allowlisted: false,
     });
     state.network.interface_count = 4;
     state.network.connection_count = state.network.connections.len() as u32;
@@ -973,6 +979,7 @@ pub fn seed(state: &mut AppState) {
                 .then(|| format!("{:016x}c4d7e10b", 0x7b21_0000u64 + i as u64)),
             timestamp: ago(*mins),
             acknowledged: *ack,
+            allowlisted: false,
         });
     }
 
@@ -1022,6 +1029,8 @@ pub fn seed(state: &mut AppState) {
             ai_confidence: Some(conf.saturating_add(3)),
             is_false_positive: None,
             ai_analysis: (i == 0).then(|| "Chaîne classique de compromission initiale : PowerShell encodé → téléchargement → reverse shell. Isoler le poste.".into()),
+            acknowledged: false,
+            allowlisted: false,
         });
     }
     state.threats.system_incidents.push_back(GuiSystemIncident {
@@ -1034,6 +1043,8 @@ pub fn seed(state: &mut AppState) {
         ai_confidence: Some(92),
         is_false_positive: None,
         ai_analysis: None,
+        acknowledged: false,
+        allowlisted: false,
     });
     state.threats.system_incidents.push_back(GuiSystemIncident {
         incident_type: "persistence".into(),
@@ -1047,6 +1058,8 @@ pub fn seed(state: &mut AppState) {
         ai_confidence: Some(85),
         is_false_positive: None,
         ai_analysis: None,
+        acknowledged: false,
+        allowlisted: false,
     });
     state.threats.system_incidents.push_back(GuiSystemIncident {
         incident_type: "tamper".into(),
@@ -1058,6 +1071,8 @@ pub fn seed(state: &mut AppState) {
         ai_confidence: None,
         is_false_positive: None,
         ai_analysis: None,
+        acknowledged: true,
+        allowlisted: false,
     });
     for (i, (name, vid, pid, kind, mins)) in [
         (
@@ -1092,6 +1107,8 @@ pub fn seed(state: &mut AppState) {
             product_id: *pid,
             event_type: *kind,
             timestamp: ago(*mins),
+            acknowledged: false,
+            allowlisted: false,
         });
     }
 
