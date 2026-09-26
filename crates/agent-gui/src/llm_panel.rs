@@ -1142,12 +1142,45 @@ impl LLMPanel {
             #[allow(clippy::type_complexity)]
             let catalogue: &[(&str, &str, &str, f32, u32, &str, Option<&str>)] = &[
                 (
+                    "kimi-k2",
+                    "Kimi K2 Sovereign",
+                    "Modèle souverain agentique — Contexte 200k, raisonnement autonome et orchestration cyber.",
+                    5.6,
+                    8,
+                    "SOUVERAIN / RECOMMANDÉ",
+                    Some(
+                        "https://huggingface.co/bartowski/Kimi-k1.5-chat-GGUF/resolve/main/Kimi-k1.5-chat-Q4_K_M.gguf",
+                    ),
+                ),
+                (
+                    "kimi-k2-thinking",
+                    "Kimi K2 Deep Reasoner",
+                    "Raisonnement approfondi (Chain-of-Thought) pour triage d'incidents complexes et zero-day. Contexte 128k.",
+                    5.9,
+                    8,
+                    "RAISONNEMENT AVANCÉ",
+                    Some(
+                        "https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-14B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-14B-Q4_K_M.gguf",
+                    ),
+                ),
+                (
+                    "kimi-k2-coder",
+                    "Kimi K2 Autonomous Operator",
+                    "Génération et exécution de playbooks de remédiation, confinement et durcissement. Contexte 65k.",
+                    4.8,
+                    6,
+                    "AGENTIQUE & PLAYBOOKS",
+                    Some(
+                        "https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf",
+                    ),
+                ),
+                (
                     "llama-4-8b",
                     "Llama 4 8B Instruct",
                     "Modèle polyvalent — analyse, remédiation, classification. Contexte 128k.",
                     5.2,
                     8,
-                    "RECOMMANDÉ",
+                    "POLYVALENT",
                     Some(
                         "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",
                     ),

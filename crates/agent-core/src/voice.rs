@@ -426,7 +426,7 @@ fn record_and_transcribe(
     let max_total_samples = sample_rate as usize * 20; // 20 s hard cap
     let silence_hangover_frames = 700 / frame_ms; // 700 ms of silence ends speech
     let min_speech_frames = 250 / frame_ms; // require 250 ms before ending
-    let initial_timeout_frames = 6_000 / frame_ms; // 6 s to start talking
+    let initial_timeout_frames = 10_000 / frame_ms; // 10 s to start talking
     let preroll_frames = 250 / frame_ms; // keep 250 ms before onset
     let calibration_total = 300 / frame_ms; // first 300 ms = noise floor
 
@@ -483,8 +483,9 @@ fn record_and_transcribe(
             continue;
         }
 
-        let speech_on = (noise_rms * 3.0).max(0.015);
-        let speech_off = (noise_rms * 1.8).max(0.009);
+        // Adaptive voice activity thresholds: sensitive enough for laptop and headset mics
+        let speech_on = (noise_rms * 1.8).clamp(0.004, 0.025);
+        let speech_off = (noise_rms * 1.2).clamp(0.002, 0.015);
 
         if !in_speech {
             preroll.push_back(frame.clone());
@@ -503,7 +504,7 @@ fn record_and_transcribe(
             } else {
                 idle_frames += 1;
                 if idle_frames >= initial_timeout_frames {
-                    info!("VoiceService: no speech within 6 s, aborting");
+                    info!("VoiceService: no speech within 10 s, ending capture session");
                     break;
                 }
             }

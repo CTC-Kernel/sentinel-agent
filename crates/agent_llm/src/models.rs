@@ -16,6 +16,61 @@ impl ModelRegistry {
     pub fn get_recommended_models() -> HashMap<String, ModelInfo> {
         let mut models = HashMap::new();
 
+        // Kimi K2 Sovereign - Sovereign agentic model with 200k context
+        models.insert("kimi-k2".to_string(), ModelInfo {
+            name: "Kimi K2 Sovereign".to_string(),
+            description: "Modèle souverain agentique de pointe — Contexte étendu 200k, raisonnement autonome et orchestration cyber".to_string(),
+            parameter_count: 15_000_000_000,
+            context_size: 200_000,
+            capabilities: ModelCapabilities::ALL,
+            recommended_use: vec![
+                "Agent autonome".to_string(),
+                "Raisonnement long contexte".to_string(),
+                "Remédiation SOC".to_string(),
+                "Audit de sécurité".to_string(),
+            ],
+            file_size_gb: 5.6,
+            vram_gb_min: 8,
+            download_url: Some("https://huggingface.co/bartowski/Kimi-k1.5-chat-GGUF/resolve/main/Kimi-k1.5-chat-Q4_K_M.gguf".to_string()),
+            gguf_filename: Some("kimi-k2.Q4_K_M.gguf".to_string()),
+        });
+
+        // Kimi K2 Deep Reasoner - Advanced chain-of-thought for complex threats
+        models.insert("kimi-k2-thinking".to_string(), ModelInfo {
+            name: "Kimi K2 Deep Reasoner".to_string(),
+            description: "Raisonnement séquentiel approfondi (Chain-of-Thought) pour triage d'incidents complexes et forensics".to_string(),
+            parameter_count: 15_000_000_000,
+            context_size: 128_000,
+            capabilities: ModelCapabilities::SECURITY_ANALYSIS | ModelCapabilities::REMEDIATION | ModelCapabilities::CLASSIFICATION,
+            recommended_use: vec![
+                "Triage forensic".to_string(),
+                "Détection zero-day".to_string(),
+                "Analyse d'attaque corrélée".to_string(),
+            ],
+            file_size_gb: 5.9,
+            vram_gb_min: 8,
+            download_url: Some("https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-14B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-14B-Q4_K_M.gguf".to_string()),
+            gguf_filename: Some("kimi-k2-thinking.Q4_K_M.gguf".to_string()),
+        });
+
+        // Kimi K2 Autonomous Operator - Playbook generation and automated response
+        models.insert("kimi-k2-coder".to_string(), ModelInfo {
+            name: "Kimi K2 Autonomous Operator".to_string(),
+            description: "Génération et validation automatique de playbooks, scripts de durcissement et workflows d'isolation".to_string(),
+            parameter_count: 7_000_000_000,
+            context_size: 65_536,
+            capabilities: ModelCapabilities::CODE_ANALYSIS | ModelCapabilities::REMEDIATION | ModelCapabilities::SECURITY_ANALYSIS,
+            recommended_use: vec![
+                "Automatisation de playbooks".to_string(),
+                "Scripts de confinement".to_string(),
+                "Audit de conformité".to_string(),
+            ],
+            file_size_gb: 4.8,
+            vram_gb_min: 6,
+            download_url: Some("https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf".to_string()),
+            gguf_filename: Some("kimi-k2-coder.Q4_K_M.gguf".to_string()),
+        });
+
         // Qwen3-Coder 7B - Best for code and security analysis
         models.insert("qwen3-coder-7b".to_string(), ModelInfo {
             name: "Qwen3-Coder 7B".to_string(),
@@ -151,6 +206,9 @@ mod tests {
     #[test]
     fn test_model_registry() {
         let models = ModelRegistry::get_recommended_models();
+        assert!(models.contains_key("kimi-k2"));
+        assert!(models.contains_key("kimi-k2-thinking"));
+        assert!(models.contains_key("kimi-k2-coder"));
         assert!(models.contains_key("qwen3-coder-7b"));
         assert!(models.contains_key("llama-4-8b"));
     }

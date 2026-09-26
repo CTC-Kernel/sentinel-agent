@@ -128,6 +128,9 @@ pub async fn create_llm_manager(config: LLMConfig) -> Result<LLMManager> {
 
     let mut plugin_registry = PluginRegistry::new();
     plugin_registry.register(Arc::new(OsvPlugin));
+    plugin_registry.register(Arc::new(plugins::MitreAttackPlugin));
+    plugin_registry.register(Arc::new(plugins::SigmaRulePlugin));
+    plugin_registry.register(Arc::new(plugins::RemediationPlaybookPlugin));
     let plugins = Arc::new(plugin_registry);
 
     let analyzer = Arc::new(analyzer.with_plugins(plugins.clone()));
