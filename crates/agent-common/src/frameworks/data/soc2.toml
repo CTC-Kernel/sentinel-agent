@@ -26,7 +26,7 @@ weight = 0.92
 is_critical = true
 
 [[controls]]
-check_id = "session_lock"
+check_id = "screen_lock"
 control_id = "CC6.1"
 control_name = "Logical Access - Automated Session Inactivity Lock"
 category = "Logical and Physical Access Controls"
@@ -45,7 +45,7 @@ weight = 0.95
 is_critical = true
 
 [[controls]]
-check_id = "guest_account"
+check_id = "guest_account_disabled"
 control_id = "CC6.2"
 control_name = "Credential Management - Guest Account Restriction"
 category = "Logical and Physical Access Controls"
@@ -54,7 +54,7 @@ weight = 0.90
 is_critical = true
 
 [[controls]]
-check_id = "auto_login"
+check_id = "auto_login_disabled"
 control_id = "CC6.2"
 control_name = "Credential Management - Automatic Logon Prevention"
 category = "Logical and Physical Access Controls"
@@ -64,7 +64,7 @@ is_critical = false
 
 # CC6.3 - Identity Management & Directory Policies
 [[controls]]
-check_id = "directory_policy"
+check_id = "privileged_groups"
 control_id = "CC6.3"
 control_name = "Access Revocation & Central Directory Governance"
 category = "Logical and Physical Access Controls"
@@ -83,7 +83,7 @@ weight = 0.98
 is_critical = true
 
 [[controls]]
-check_id = "remote_access"
+check_id = "remote_access_secure"
 control_id = "CC6.6"
 control_name = "Boundary Protection - Secure Remote Access & Port Control"
 category = "Logical and Physical Access Controls"
@@ -101,7 +101,7 @@ weight = 0.80
 is_critical = false
 
 [[controls]]
-check_id = "bluetooth_status"
+check_id = "bluetooth_disabled"
 control_id = "CC6.6"
 control_name = "Boundary Protection - Wireless Device Exposure"
 category = "Logical and Physical Access Controls"
@@ -110,7 +110,7 @@ weight = 0.70
 is_critical = false
 
 [[controls]]
-check_id = "ipv6_config"
+check_id = "ipv6_hardening"
 control_id = "CC6.6"
 control_name = "Boundary Protection - IPv6 Unfiltered Surface Defense"
 category = "Logical and Physical Access Controls"
@@ -157,7 +157,7 @@ weight = 0.99
 is_critical = true
 
 [[controls]]
-check_id = "usb_storage"
+check_id = "usb_storage_disabled"
 control_id = "CC6.8"
 control_name = "Malware Defense - Removable Storage Governance"
 category = "Logical and Physical Access Controls"
@@ -176,7 +176,7 @@ is_critical = false
 
 # CC7.1 - Vulnerability Detection & Patch Management
 [[controls]]
-check_id = "system_updates"
+check_id = "patches_current"
 control_id = "CC7.1"
 control_name = "Vulnerability Management - System Security Patching"
 category = "System Operations & Incident Management"
@@ -260,7 +260,7 @@ is_critical = false
 
 # A1.2 - Availability: Data Backup & Recovery Operations
 [[controls]]
-check_id = "backup_status"
+check_id = "backup_configured"
 control_id = "A1.2"
 control_name = "Data Availability - Verified Backup Operations"
 category = "Availability & Resilience"
