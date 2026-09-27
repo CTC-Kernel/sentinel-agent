@@ -398,19 +398,18 @@ impl NetworkPage {
                                 .with_time(time),
                             );
                         } else if action_idx == 1
-                            && let Some(ref remote_ip) = conn.remote_address {
-                                command = Some(GuiCommand::BlockIp {
-                                    ip: remote_ip.clone(),
-                                    duration_secs: 0,
-                                });
-                                state.network.detail_open = false;
-                                state.toasts.push(
-                                    crate::widgets::toast::Toast::info(
-                                        "Demande de blocage envoyée",
-                                    )
+                            && let Some(ref remote_ip) = conn.remote_address
+                        {
+                            command = Some(GuiCommand::BlockIp {
+                                ip: remote_ip.clone(),
+                                duration_secs: 0,
+                            });
+                            state.network.detail_open = false;
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::info("Demande de blocage envoyée")
                                     .with_time(time),
-                                );
-                            }
+                            );
+                        }
                     }
                 } else {
                     // Out-of-bounds — clean up stale selection

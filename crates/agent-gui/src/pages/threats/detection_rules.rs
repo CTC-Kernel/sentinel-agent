@@ -220,10 +220,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // Apply delete
             if let Some(ref id) = delete_id {
-                state
-                    .threats
-                    .detection_rules
-                    .retain(|r| r.id != *id);
+                state.threats.detection_rules.retain(|r| r.id != *id);
                 command = Some(GuiCommand::DeleteDetectionRule {
                     rule_id: id.clone(),
                 });

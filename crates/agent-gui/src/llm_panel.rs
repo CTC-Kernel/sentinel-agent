@@ -1371,9 +1371,10 @@ impl LLMPanel {
                     );
                     ui.horizontal_wrapped(|ui| {
                         if let Some(url) = &model.download_url
-                            && let Some((repository, _)) = url.split_once("/resolve/") {
-                                ui.hyperlink_to("Source et licence", repository);
-                            }
+                            && let Some((repository, _)) = url.split_once("/resolve/")
+                        {
+                            ui.hyperlink_to("Source et licence", repository);
+                        }
                         let can_select = !state.ai.is_processing && model_status_str != "loading";
                         if ui
                             .add_enabled(can_select, egui::Button::new("Télécharger / activer"))
@@ -2439,12 +2440,13 @@ mod tests {
                             .iter()
                             .find_map(|shape| {
                                 if let egui::epaint::Shape::Text(text) = &shape.shape
-                                    && text.galley.text() == label {
-                                        return Some((
-                                            text.galley.rect.translate(text.pos.to_vec2()),
-                                            shape.clip_rect,
-                                        ));
-                                    }
+                                    && text.galley.text() == label
+                                {
+                                    return Some((
+                                        text.galley.rect.translate(text.pos.to_vec2()),
+                                        shape.clip_rect,
+                                    ));
+                                }
                                 None
                             })
                             .unwrap_or_else(|| panic!("Missing {label}"));

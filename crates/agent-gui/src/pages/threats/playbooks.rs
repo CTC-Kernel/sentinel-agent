@@ -377,12 +377,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // Apply toggle commands
             for (id, enabled) in toggle_commands {
-                if let Some(pb) = state
-                    .threats
-                    .playbooks
-                    .iter_mut()
-                    .find(|p| p.id == id)
-                {
+                if let Some(pb) = state.threats.playbooks.iter_mut().find(|p| p.id == id) {
                     pb.enabled = enabled;
                 }
                 command = Some(GuiCommand::TogglePlaybook {

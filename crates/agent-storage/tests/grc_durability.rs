@@ -178,7 +178,9 @@ async fn risk_asset_webhook_remote_merges_protect_pending_edits() {
         synced: true,
     };
     let repo = RiskRepository::new(&db);
-    repo.reconcile_remote(std::slice::from_ref(&risk), false).await.unwrap();
+    repo.reconcile_remote(std::slice::from_ref(&risk), false)
+        .await
+        .unwrap();
     let mut local = risk.clone();
     local.title = "offline edit".into();
     local.synced = false;
