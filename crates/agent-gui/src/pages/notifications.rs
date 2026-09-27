@@ -435,7 +435,7 @@ impl NotificationsPage {
             let delete_id_str: Option<String> =
                 ui.memory(|m| m.data.get_temp(egui::Id::new("delete_rule_id")));
             if let Some(ref rid) = delete_id_str {
-                state.alerting.rules.retain(|r| r.id.to_string() != *rid);
+                state.alerting.rules.retain(|r| r.id != *rid);
                 command = Some(GuiCommand::DeleteAlertRule {
                     rule_id: rid.clone(),
                 });
@@ -783,7 +783,7 @@ impl NotificationsPage {
             let delete_id: Option<String> =
                 ui.memory(|m| m.data.get_temp(egui::Id::new("delete_wh_id")));
             if let Some(ref wid) = delete_id {
-                state.alerting.webhooks.retain(|w| w.id.to_string() != *wid);
+                state.alerting.webhooks.retain(|w| w.id != *wid);
                 command = Some(GuiCommand::DeleteWebhook {
                     webhook_id: wid.clone(),
                 });

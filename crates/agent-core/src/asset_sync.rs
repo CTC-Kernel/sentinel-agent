@@ -30,7 +30,7 @@ impl AgentRuntime {
 
         let mut gui_assets: Vec<agent_gui::dto::ManagedAsset> = stored
             .iter()
-            .filter_map(|s| {
+            .map(|s| {
                 let id = s.id.clone();
                 let first_seen = chrono::DateTime::parse_from_rfc3339(&s.first_seen)
                     .map(|dt| dt.with_timezone(&chrono::Utc))
@@ -55,7 +55,7 @@ impl AgentRuntime {
                     _ => agent_gui::dto::AssetLifecycle::Discovered,
                 };
 
-                Some(agent_gui::dto::ManagedAsset {
+                agent_gui::dto::ManagedAsset {
                     id,
                     ip: s.ip.clone(),
                     hostname: s.hostname.clone(),
@@ -71,7 +71,7 @@ impl AgentRuntime {
                     software: serde_json::from_str(&s.software).unwrap_or_default(),
                     first_seen,
                     last_seen,
-                })
+                }
             })
             .collect();
 
@@ -145,7 +145,7 @@ impl AgentRuntime {
 
             let gui_rules: Vec<agent_gui::dto::AlertRule> = stored_rules
                 .iter()
-                .filter_map(|s| {
+                .map(|s| {
                     let id = s.id.clone();
                     let severity_threshold = s.severity_threshold.as_deref().map(|sev| match sev {
                         "critical" | "Critical" => agent_gui::dto::Severity::Critical,
@@ -167,7 +167,7 @@ impl AgentRuntime {
                         .map(|dt| dt.with_timezone(&chrono::Utc))
                         .unwrap_or_else(|_| chrono::Utc::now());
 
-                    Some(agent_gui::dto::AlertRule {
+                    agent_gui::dto::AlertRule {
                         id,
                         name: s.name.clone(),
                         rule_type,
@@ -176,15 +176,15 @@ impl AgentRuntime {
                         escalation_minutes: s.escalation_minutes.map(|v| v as u32),
                         enabled: s.enabled,
                         created_at,
-                    })
+                    }
                 })
                 .collect();
 
             let gui_webhooks: Vec<agent_gui::dto::WebhookConfig> = stored_webhooks
                 .iter()
-                .filter_map(|s| {
+                .map(|s| {
                     let id = s.id.clone();
-                    Some(agent_gui::dto::WebhookConfig {
+                    agent_gui::dto::WebhookConfig {
                         id,
                         name: s.name.clone(),
                         url: s.url.clone(),
@@ -192,7 +192,7 @@ impl AgentRuntime {
                         enabled: s.enabled,
                         last_sent: None,
                         error: None,
-                    })
+                    }
                 })
                 .collect();
 
@@ -204,7 +204,7 @@ impl AgentRuntime {
         if let Ok(stored_risks) = risk_repo.get_all().await {
             let gui_risks: Vec<agent_gui::dto::RiskEntry> = stored_risks
                 .iter()
-                .filter_map(|s| {
+                .map(|s| {
                     let id = s.id.clone();
                     let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
                         .map(|dt| dt.with_timezone(&chrono::Utc))
@@ -218,7 +218,7 @@ impl AgentRuntime {
                         "closed" => agent_gui::dto::RiskStatus::Closed,
                         _ => agent_gui::dto::RiskStatus::Open,
                     };
-                    Some(agent_gui::dto::RiskEntry {
+                    agent_gui::dto::RiskEntry {
                         id,
                         title: s.title.clone(),
                         description: s.description.clone(),
@@ -231,7 +231,7 @@ impl AgentRuntime {
                         created_at,
                         updated_at,
                         sla_target_days: s.sla_target_days.map(|v| v as u32),
-                    })
+                    }
                 })
                 .collect();
 

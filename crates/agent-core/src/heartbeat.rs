@@ -325,11 +325,10 @@ impl AgentRuntime {
         }
 
         // A successful heartbeat is also an opportunity to deliver results retained offline.
-        if let Some(service) = self.command_results.read().await.as_ref() {
-            if let Err(error) = service.flush_pending().await {
+        if let Some(service) = self.command_results.read().await.as_ref()
+            && let Err(error) = service.flush_pending().await {
                 warn!("Command results remain queued: {}", error);
             }
-        }
 
         // Process server commands
         if !response.commands.is_empty() {

@@ -322,8 +322,7 @@ impl LLMPanel {
                     .iter()
                     .rev()
                     .find(|m| m.role == ChatRole::Assistant)
-                {
-                    if ui
+                    && ui
                         .add_enabled(
                             !state.ai.is_processing,
                             egui::Button::new("Lire la dernière réponse"),
@@ -336,7 +335,6 @@ impl LLMPanel {
                         state.ai.is_speaking = true;
                         state.ai.voice_reply_pending = false;
                     }
-                }
             });
             ui.horizontal_wrapped(|ui| {
             ui.menu_button("Réglages vocaux", |ui| {
@@ -1372,11 +1370,10 @@ impl LLMPanel {
                         egui::RichText::new(&model.description).color(theme::text_secondary()),
                     );
                     ui.horizontal_wrapped(|ui| {
-                        if let Some(url) = &model.download_url {
-                            if let Some((repository, _)) = url.split_once("/resolve/") {
+                        if let Some(url) = &model.download_url
+                            && let Some((repository, _)) = url.split_once("/resolve/") {
                                 ui.hyperlink_to("Source et licence", repository);
                             }
-                        }
                         let can_select = !state.ai.is_processing && model_status_str != "loading";
                         if ui
                             .add_enabled(can_select, egui::Button::new("Télécharger / activer"))
@@ -2441,14 +2438,13 @@ mod tests {
                             .shapes
                             .iter()
                             .find_map(|shape| {
-                                if let egui::epaint::Shape::Text(text) = &shape.shape {
-                                    if text.galley.text() == label {
+                                if let egui::epaint::Shape::Text(text) = &shape.shape
+                                    && text.galley.text() == label {
                                         return Some((
                                             text.galley.rect.translate(text.pos.to_vec2()),
                                             shape.clip_rect,
                                         ));
                                     }
-                                }
                                 None
                             })
                             .unwrap_or_else(|| panic!("Missing {label}"));

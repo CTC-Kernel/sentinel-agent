@@ -7,7 +7,7 @@ fn main() {
     let cases = [
         serde_json::json!({"cpu":1.0,"negative_zero":-0.0,"tiny":1e-7,"limit":1e21}),
         serde_json::json!({"10":42,"2":7,"text":"é / \\ \n \"","array":[true,null,1.5,1e-6]}),
-        serde_json::json!({"precise":333333333.33333329,"large":u64::MAX,"small":f64::MIN_POSITIVE}),
+        serde_json::json!({"precise":333_333_333.333_333_3,"large":u64::MAX,"small":f64::MIN_POSITIVE}),
         serde_json::json!({"timestamp":"2026-09-27T12:00:00Z","metrics":{"disk":2147483648_u64,"cpu":0.125}}),
     ];
     for case in cases {

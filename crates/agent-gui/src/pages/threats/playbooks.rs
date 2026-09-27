@@ -381,7 +381,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .threats
                     .playbooks
                     .iter_mut()
-                    .find(|p| p.id.to_string() == id)
+                    .find(|p| p.id == id)
                 {
                     pb.enabled = enabled;
                 }
@@ -393,7 +393,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // Apply delete
             if let Some(ref id) = delete_id {
-                state.threats.playbooks.retain(|p| p.id.to_string() != *id);
+                state.threats.playbooks.retain(|p| p.id != *id);
                 command = Some(GuiCommand::DeletePlaybook {
                     playbook_id: id.clone(),
                 });

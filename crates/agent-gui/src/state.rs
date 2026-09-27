@@ -2192,8 +2192,10 @@ mod triage_persistence_tests {
         let target = vulnerability_identity(&finding);
         let mut other = finding.clone();
         other.affected_software = "package-b".into();
-        let mut state = AppState::default();
-        state.vulnerability_findings = vec![other, finding];
+        let mut state = AppState {
+            vulnerability_findings: vec![other, finding],
+            ..Default::default()
+        };
         state.apply_event(AgentEvent::LlmAnalysisComplete {
             target,
             analysis: "Only package-a".into(),
@@ -2236,8 +2238,10 @@ mod triage_persistence_tests {
     fn old_preferences_remain_compatible_and_history_is_bounded() {
         let old: GuiPreferences = serde_json::from_str("{}").unwrap();
         assert!(old.acknowledged_event_keys.is_empty());
-        let mut state = AppState::default();
-        state.acknowledged_event_keys = (0..3000).map(|n| n.to_string()).collect();
+        let state = AppState {
+            acknowledged_event_keys: (0..3000).map(|n| n.to_string()).collect(),
+            ..Default::default()
+        };
         let prefs = GuiPreferences::from_state(&state);
         assert_eq!(prefs.acknowledged_event_keys.len(), 2000);
         assert_eq!(prefs.acknowledged_event_keys.front().unwrap(), "1000");

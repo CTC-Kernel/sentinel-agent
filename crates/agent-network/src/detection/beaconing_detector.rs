@@ -630,7 +630,7 @@ mod tests {
             detector.record_snapshot(&[conn.clone(), conn.clone()]);
         }
         assert_eq!(detector.connection_history["203.0.113.8:443"].len(), 1);
-        assert!(detector.detect(&[conn.clone()]).is_empty());
+        assert!(detector.detect(std::slice::from_ref(&conn)).is_empty());
         detector.record_snapshot(&[]);
         detector.record_snapshot(&[conn]);
         assert_eq!(detector.connection_history["203.0.113.8:443"].len(), 2);

@@ -1246,7 +1246,7 @@ async fn emit_alerting_loaded_from_db(
 
     let gui_rules: Vec<agent_gui::dto::AlertRule> = stored_rules
         .iter()
-        .filter_map(|s| {
+        .map(|s| {
             let id = s.id.clone();
             let severity_threshold = s.severity_threshold.as_deref().map(|sev| match sev {
                 "critical" | "Critical" => agent_gui::dto::Severity::Critical,
@@ -1266,7 +1266,7 @@ async fn emit_alerting_loaded_from_db(
                 .map(|dt| dt.with_timezone(&chrono::Utc))
                 .unwrap_or_else(|_| chrono::Utc::now());
 
-            Some(agent_gui::dto::AlertRule {
+            agent_gui::dto::AlertRule {
                 id,
                 name: s.name.clone(),
                 rule_type,
@@ -1275,15 +1275,15 @@ async fn emit_alerting_loaded_from_db(
                 escalation_minutes: s.escalation_minutes.map(|v| v as u32),
                 enabled: s.enabled,
                 created_at,
-            })
+            }
         })
         .collect();
 
     let gui_webhooks: Vec<agent_gui::dto::WebhookConfig> = stored_webhooks
         .iter()
-        .filter_map(|s| {
+        .map(|s| {
             let id = s.id.clone();
-            Some(agent_gui::dto::WebhookConfig {
+            agent_gui::dto::WebhookConfig {
                 id,
                 name: s.name.clone(),
                 url: s.url.clone(),
@@ -1291,7 +1291,7 @@ async fn emit_alerting_loaded_from_db(
                 enabled: s.enabled,
                 last_sent: None,
                 error: None,
-            })
+            }
         })
         .collect();
 
