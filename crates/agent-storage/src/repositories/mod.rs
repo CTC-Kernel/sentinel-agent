@@ -8,8 +8,8 @@
 pub mod audit_trail;
 pub mod check_results;
 pub mod check_rules;
-pub mod config;
 pub mod command_results;
+pub mod config;
 pub mod discovered_devices;
 pub mod grc;
 pub mod proofs;

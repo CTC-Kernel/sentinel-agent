@@ -318,7 +318,9 @@ impl AuthenticatedClient {
             .await?;
 
         if !response.acknowledged {
-            return Err(crate::error::SyncError::Config("Command result not acknowledged".into()));
+            return Err(crate::error::SyncError::Config(
+                "Command result not acknowledged".into(),
+            ));
         }
         Ok(())
     }
@@ -381,14 +383,20 @@ impl AuthenticatedClient {
     }
 
     /// Opt into completeness metadata; older servers still return safe partial arrays.
-    pub async fn fetch_risk_snapshot(&self) -> SyncResult<crate::types::RemoteSnapshot<RiskPayload>> {
+    pub async fn fetch_risk_snapshot(
+        &self,
+    ) -> SyncResult<crate::types::RemoteSnapshot<RiskPayload>> {
         let id = self.agent_id().await?;
-        self.get(&format!("/v1/agents/{id}/risks?snapshot=true")).await
+        self.get(&format!("/v1/agents/{id}/risks?snapshot=true"))
+            .await
     }
 
-    pub async fn fetch_asset_snapshot(&self) -> SyncResult<crate::types::RemoteSnapshot<AssetPayload>> {
+    pub async fn fetch_asset_snapshot(
+        &self,
+    ) -> SyncResult<crate::types::RemoteSnapshot<AssetPayload>> {
         let id = self.agent_id().await?;
-        self.get(&format!("/v1/agents/{id}/managed-assets?snapshot=true")).await
+        self.get(&format!("/v1/agents/{id}/managed-assets?snapshot=true"))
+            .await
     }
 
     /// Fetch KPI snapshots from the SaaS.

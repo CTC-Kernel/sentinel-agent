@@ -334,7 +334,11 @@ impl<'a> SyncQueueRepository<'a> {
             .await
     }
 
-    pub async fn get_pending_for(&self, entity: SyncEntityType, limit: i64) -> StorageResult<Vec<SyncQueueItem>> {
+    pub async fn get_pending_for(
+        &self,
+        entity: SyncEntityType,
+        limit: i64,
+    ) -> StorageResult<Vec<SyncQueueItem>> {
         let now = Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
         self.db
             .with_connection(move |conn| {
@@ -353,7 +357,10 @@ impl<'a> SyncQueueRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let results = stmt
-                    .query_map(rusqlite::params![now, entity.as_str(), limit], Self::row_to_sync_queue_item)
+                    .query_map(
+                        rusqlite::params![now, entity.as_str(), limit],
+                        Self::row_to_sync_queue_item,
+                    )
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {

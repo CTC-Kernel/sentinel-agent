@@ -35,7 +35,11 @@ pub struct RiskRepository<'a> {
 impl<'a> RiskRepository<'a> {
     /// Apply remote records without overwriting dirty local edits or pending deletes.
     /// Only callers with a complete, unfiltered response may remove absent records.
-    pub async fn reconcile_remote(&self, items: &[StoredRisk], complete: bool) -> StorageResult<()> {
+    pub async fn reconcile_remote(
+        &self,
+        items: &[StoredRisk],
+        complete: bool,
+    ) -> StorageResult<()> {
         let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
             .map_err(|e| StorageError::Query(e.to_string()))?;
         self.db.with_connection_mut(|conn| {
@@ -280,7 +284,11 @@ pub struct ManagedAssetRepository<'a> {
 impl<'a> ManagedAssetRepository<'a> {
     /// Apply remote records without overwriting dirty local edits or pending deletes.
     /// Only callers with a complete, unfiltered response may remove absent records.
-    pub async fn reconcile_remote(&self, items: &[StoredManagedAsset], complete: bool) -> StorageResult<()> {
+    pub async fn reconcile_remote(
+        &self,
+        items: &[StoredManagedAsset],
+        complete: bool,
+    ) -> StorageResult<()> {
         let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
             .map_err(|e| StorageError::Query(e.to_string()))?;
         self.db.with_connection_mut(|conn| {
@@ -492,7 +500,11 @@ pub struct AlertRuleRepository<'a> {
 impl<'a> AlertRuleRepository<'a> {
     /// Apply remote records without overwriting dirty local edits or pending deletes.
     /// Only callers with a complete, unfiltered response may remove absent records.
-    pub async fn reconcile_remote(&self, items: &[StoredAlertRule], complete: bool) -> StorageResult<()> {
+    pub async fn reconcile_remote(
+        &self,
+        items: &[StoredAlertRule],
+        complete: bool,
+    ) -> StorageResult<()> {
         let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
             .map_err(|e| StorageError::Query(e.to_string()))?;
         self.db.with_connection_mut(|conn| {
@@ -604,7 +616,11 @@ pub struct WebhookRepository<'a> {
 impl<'a> WebhookRepository<'a> {
     /// Apply remote records without overwriting dirty local edits or pending deletes.
     /// Only callers with a complete, unfiltered response may remove absent records.
-    pub async fn reconcile_remote(&self, items: &[StoredWebhook], complete: bool) -> StorageResult<()> {
+    pub async fn reconcile_remote(
+        &self,
+        items: &[StoredWebhook],
+        complete: bool,
+    ) -> StorageResult<()> {
         let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
             .map_err(|e| StorageError::Query(e.to_string()))?;
         self.db.with_connection_mut(|conn| {

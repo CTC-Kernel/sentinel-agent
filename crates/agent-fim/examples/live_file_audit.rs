@@ -36,24 +36,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::remove_file(&path)?;
     tokio::time::timeout(Duration::from_secs(8), async {
         while let Some(alert) = rx.recv().await {
-            if alert.path.ends_with("probe.txt") && alert.change == agent_common::types::FimChangeType::Deleted {
+            if alert.path.ends_with("probe.txt")
+                && alert.change == agent_common::types::FimChangeType::Deleted
+            {
                 return Ok::<_, &'static str>(());
             }
         }
         Err("missing deletion event")
-    }).await??;
+    })
+    .await??;
     engine.stop();
     engine.start().await?;
     tokio::time::sleep(Duration::from_secs(1)).await;
     std::fs::write(directory.path().join("after-restart.txt"), "new file")?;
     tokio::time::timeout(Duration::from_secs(8), async {
         while let Some(alert) = rx.recv().await {
-            if alert.path.ends_with("after-restart.txt") && alert.change == agent_common::types::FimChangeType::Created {
+            if alert.path.ends_with("after-restart.txt")
+                && alert.change == agent_common::types::FimChangeType::Created
+            {
                 return Ok::<_, &'static str>(());
             }
         }
         Err("missing event after restart")
-    }).await??;
+    })
+    .await??;
     engine.stop();
     println!(
         "{}",

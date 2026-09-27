@@ -221,9 +221,18 @@ async fn risk_asset_webhook_remote_merges_protect_pending_edits() {
     assert_eq!(repo.get_all().await.unwrap()[0].risk_score, 3.0);
     repo.reconcile_remote(&[], false).await.unwrap();
     assert_eq!(repo.get_all().await.unwrap().len(), 1);
-    let queue=SyncQueueRepository::new(&db);
-    let ids:Vec<i64>=queue.get_pending_for(SyncEntityType::Asset,50).await.unwrap().iter().map(|r|r.id).collect();
-    queue.acknowledge_grc(&ids,SyncEntityType::Asset).await.unwrap();
+    let queue = SyncQueueRepository::new(&db);
+    let ids: Vec<i64> = queue
+        .get_pending_for(SyncEntityType::Asset, 50)
+        .await
+        .unwrap()
+        .iter()
+        .map(|r| r.id)
+        .collect();
+    queue
+        .acknowledge_grc(&ids, SyncEntityType::Asset)
+        .await
+        .unwrap();
     repo.reconcile_remote(&[], true).await.unwrap();
     assert!(repo.get_all().await.unwrap().is_empty());
     let hook = StoredWebhook {

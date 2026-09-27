@@ -1241,11 +1241,12 @@ impl AgentRuntime {
                                 fim_last_day = today;
                             }
                             fim_changes_today = fim_changes_today.saturating_add(1);
-
-
                         }
 
-                        pipeline_fim_alerts.push((alert.path.to_string_lossy().to_string(), format!("{}", alert.change)));
+                        pipeline_fim_alerts.push((
+                            alert.path.to_string_lossy().to_string(),
+                            format!("{}", alert.change),
+                        ));
 
                         // Collect for batched uploads (avoid per-alert HTTP requests → 429)
                         fim_batch_payloads

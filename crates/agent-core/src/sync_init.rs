@@ -412,10 +412,14 @@ impl AgentRuntime {
         let uploader = self.result_uploader.read().await;
         let results = if let Some(ref uploader) = *uploader {
             uploader.pending_count().await.unwrap_or(0)
-        } else { 0 };
+        } else {
+            0
+        };
         let commands = if let Some(service) = self.command_results.read().await.as_ref() {
             service.pending_count().await.unwrap_or(0)
-        } else { 0 };
+        } else {
+            0
+        };
         results + commands
     }
 }

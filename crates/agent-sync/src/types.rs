@@ -1764,7 +1764,10 @@ pub enum RemoteSnapshot<T> {
 }
 impl<T> RemoteSnapshot<T> {
     pub fn into_parts(self) -> (Vec<T>, bool) {
-        match self { Self::Explicit {items,complete} => (items,complete), Self::Legacy(items) => (items,false) }
+        match self {
+            Self::Explicit { items, complete } => (items, complete),
+            Self::Legacy(items) => (items, false),
+        }
     }
 }
 
@@ -1773,9 +1776,13 @@ mod snapshot_contract_tests {
     use super::*;
     #[test]
     fn legacy_and_partial_responses_never_authorize_deletion() {
-        for (input, complete) in [("[]",false),(r#"{"items":[],"complete":false}"#,false),(r#"{"items":[],"complete":true}"#,true)] {
+        for (input, complete) in [
+            ("[]", false),
+            (r#"{"items":[],"complete":false}"#, false),
+            (r#"{"items":[],"complete":true}"#, true),
+        ] {
             let snapshot: RemoteSnapshot<String> = serde_json::from_str(input).unwrap();
-            assert_eq!(snapshot.into_parts().1,complete);
+            assert_eq!(snapshot.into_parts().1, complete);
         }
         assert!(serde_json::from_str::<RemoteSnapshot<String>>(r#"{"items":[]}"#).is_err());
     }

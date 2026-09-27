@@ -606,7 +606,9 @@ impl VulnerabilitiesPage {
                 } else if ai_action_idx == Some(action_idx) {
                     command = Some(GuiCommand::LlmAnalyzeVulnerability {
                         finding_index: sel_idx,
-                        target_id: crate::state::vulnerability_identity(&state.vulnerability_findings[sel_idx]),
+                        target_id: crate::state::vulnerability_identity(
+                            &state.vulnerability_findings[sel_idx],
+                        ),
                     });
                     let time = ui.input(|i| i.time);
                     state.toasts.push(

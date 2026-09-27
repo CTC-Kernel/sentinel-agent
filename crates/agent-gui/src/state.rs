@@ -16,15 +16,31 @@ pub fn event_identity(kind: &str, event: &impl Serialize) -> String {
     use sha2::{Digest, Sha256};
     let mut value = serde_json::to_value(event).expect("GUI event must serialize");
     if let Some(object) = value.as_object_mut() {
-        if kind == "fim" { object.remove("id"); } // The runtime recreates this presentation UUID.
-        object.retain(|key, _| !key.starts_with("ai_") && !matches!(key.as_str(), "acknowledged" | "allowlisted" | "is_false_positive"));
+        if kind == "fim" {
+            object.remove("id");
+        } // The runtime recreates this presentation UUID.
+        object.retain(|key, _| {
+            !key.starts_with("ai_")
+                && !matches!(
+                    key.as_str(),
+                    "acknowledged" | "allowlisted" | "is_false_positive"
+                )
+        });
     }
     format!("{kind}:{:x}", Sha256::digest(value.to_string().as_bytes()))
 }
 
 pub fn vulnerability_identity(finding: &crate::dto::GuiVulnerabilityFinding) -> String {
-    event_identity("finding", &(&finding.cve_id, &finding.affected_software,
-        &finding.affected_version, &finding.source, finding.discovered_at))
+    event_identity(
+        "finding",
+        &(
+            &finding.cve_id,
+            &finding.affected_software,
+            &finding.affected_version,
+            &finding.source,
+            finding.discovered_at,
+        ),
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -120,7 +136,16 @@ impl GuiPreferences {
 
     /// Apply persisted preferences to the app state.
     pub fn apply_to(&self, state: &mut AppState) {
-        state.acknowledged_event_keys = self.acknowledged_event_keys.iter().rev().take(2000).cloned().collect::<VecDeque<_>>().into_iter().rev().collect();
+        state.acknowledged_event_keys = self
+            .acknowledged_event_keys
+            .iter()
+            .rev()
+            .take(2000)
+            .cloned()
+            .collect::<VecDeque<_>>()
+            .into_iter()
+            .rev()
+            .collect();
         state.restore_acknowledgments();
         state
             .threats
@@ -1012,17 +1037,29 @@ impl AppState {
                     if !self.acknowledged_event_keys.contains(&key) {
                         self.acknowledged_event_keys.push_back(key);
                     }
-                    while self.acknowledged_event_keys.len() > 2000 { self.acknowledged_event_keys.pop_front(); }
+                    while self.acknowledged_event_keys.len() > 2000 {
+                        self.acknowledged_event_keys.pop_front();
+                    }
                     return true;
                 }
             };
         }
         match kind {
-            "process" => { acknowledge!(self.threats.suspicious_processes); }
-            "system" => { acknowledge!(self.threats.system_incidents); }
-            "usb" => { acknowledge!(self.threats.usb_events); }
-            "fim" => { acknowledge!(self.fim.alerts); }
-            "network" => { acknowledge!(self.network.alerts); }
+            "process" => {
+                acknowledge!(self.threats.suspicious_processes);
+            }
+            "system" => {
+                acknowledge!(self.threats.system_incidents);
+            }
+            "usb" => {
+                acknowledge!(self.threats.usb_events);
+            }
+            "fim" => {
+                acknowledge!(self.fim.alerts);
+            }
+            "network" => {
+                acknowledge!(self.network.alerts);
+            }
             _ => {}
         }
         false
@@ -1034,7 +1071,9 @@ impl AppState {
             ($kind:literal, $events:expr) => {
                 for event in $events.iter().rev().filter(|e| e.acknowledged) {
                     let key = event_identity($kind, event);
-                    if !keys.contains(&key) { keys.push_back(key); }
+                    if !keys.contains(&key) {
+                        keys.push_back(key);
+                    }
                 }
             };
         }
@@ -1043,7 +1082,9 @@ impl AppState {
         collect!("usb", self.threats.usb_events);
         collect!("fim", self.fim.alerts);
         collect!("network", self.network.alerts);
-        while keys.len() > 2000 { keys.pop_front(); }
+        while keys.len() > 2000 {
+            keys.pop_front();
+        }
         keys
     }
 
@@ -1249,7 +1290,9 @@ impl AppState {
                 self.network.detail_open = false;
             }
             AgentEvent::NetworkSecurityAlert { mut alert } => {
-                alert.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("network", &alert));
+                alert.acknowledged |= self
+                    .acknowledged_event_keys
+                    .contains(&event_identity("network", &alert));
                 self.network.alerts.push_front(alert);
                 self.network.alerts.truncate(200);
                 // Invalidate alert selection — push_front shifted all indices
@@ -1297,27 +1340,35 @@ impl AppState {
                 }
             }
             AgentEvent::FimAlert { mut alert } => {
-                alert.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("fim", &alert));
+                alert.acknowledged |= self
+                    .acknowledged_event_keys
+                    .contains(&event_identity("fim", &alert));
                 self.fim.alerts.push_front(alert);
                 self.fim.alerts.truncate(500);
                 // Invalidate selection — push_front shifted indices
                 self.fim.selected_alert = None;
             }
             AgentEvent::UsbEvent { mut event } => {
-                event.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("usb", &event));
+                event.acknowledged |= self
+                    .acknowledged_event_keys
+                    .contains(&event_identity("usb", &event));
                 self.threats.usb_events.push_front(event);
                 self.threats.usb_events.truncate(200);
                 // Invalidate threat selection — push_front shifted source indices
                 self.threats.selected_threat = None;
             }
             AgentEvent::SuspiciousProcess { mut process } => {
-                process.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("process", &process));
+                process.acknowledged |= self
+                    .acknowledged_event_keys
+                    .contains(&event_identity("process", &process));
                 self.threats.suspicious_processes.push_front(process);
                 self.threats.suspicious_processes.truncate(200);
                 self.threats.selected_threat = None;
             }
             AgentEvent::SystemIncident { mut incident } => {
-                incident.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("system", &incident));
+                incident.acknowledged |= self
+                    .acknowledged_event_keys
+                    .contains(&event_identity("system", &incident));
                 self.threats.system_incidents.push_front(incident);
                 self.threats.system_incidents.truncate(200);
                 self.threats.selected_threat = None;
@@ -1510,7 +1561,10 @@ impl AppState {
                 // Update the source DTO with AI analysis results
                 if target.starts_with("finding:") {
                     // Vulnerability finding
-                    if let Some(idx) = self.vulnerability_findings.iter().position(|finding| vulnerability_identity(finding) == target)
+                    if let Some(idx) = self
+                        .vulnerability_findings
+                        .iter()
+                        .position(|finding| vulnerability_identity(finding) == target)
                     {
                         self.vulnerability_findings[idx].ai_analysis = Some(analysis);
                         self.vulnerability_findings[idx].ai_confidence = confidence;
@@ -1522,7 +1576,11 @@ impl AppState {
                     }
                 } else if target.starts_with("process:") {
                     // Suspicious process
-                    if let Some(idx) = self.threats.suspicious_processes.iter().position(|event| event_identity("process", event) == target)
+                    if let Some(idx) = self
+                        .threats
+                        .suspicious_processes
+                        .iter()
+                        .position(|event| event_identity("process", event) == target)
                     {
                         self.threats.suspicious_processes[idx].ai_analysis = Some(analysis);
                         self.threats.suspicious_processes[idx].ai_confidence = confidence;
@@ -1531,7 +1589,11 @@ impl AppState {
                     }
                 } else if target.starts_with("system:") {
                     // System incident
-                    if let Some(idx) = self.threats.system_incidents.iter().position(|event| event_identity("system", event) == target)
+                    if let Some(idx) = self
+                        .threats
+                        .system_incidents
+                        .iter()
+                        .position(|event| event_identity("system", event) == target)
                     {
                         self.threats.system_incidents[idx].ai_analysis = Some(analysis);
                         self.threats.system_incidents[idx].ai_confidence = confidence;
@@ -1539,7 +1601,11 @@ impl AppState {
                     }
                 } else if target.starts_with("network:") {
                     // Network alert
-                    if let Some(idx) = self.network.alerts.iter().position(|event| event_identity("network", event) == target)
+                    if let Some(idx) = self
+                        .network
+                        .alerts
+                        .iter()
+                        .position(|event| event_identity("network", event) == target)
                     {
                         self.network.alerts[idx].ai_analysis = Some(analysis);
                         self.network.alerts[idx].ai_confidence = confidence;
@@ -1641,8 +1707,7 @@ impl AppState {
                 self.risks.ai_mitigation_suggestions = mitigation_suggestions;
 
                 // Optionally apply AI-suggested scores to the risk entry
-                if let Some(entry) = self.risks.entries.iter_mut().find(|r| r.id == risk_id)
-                {
+                if let Some(entry) = self.risks.entries.iter_mut().find(|r| r.id == risk_id) {
                     if let Some(prob) = suggested_probability {
                         entry.probability = prob.clamp(1, 5);
                     }
@@ -1661,13 +1726,19 @@ impl AppState {
                 });
             }
             AgentEvent::RisksSnapshot { risks } => {
-                let selected = self.risks.selected_risk.and_then(|i| self.risks.entries.get(i)).map(|r| r.id.clone());
-                self.risks.selected_risk = selected.and_then(|id| risks.iter().position(|r| r.id == id));
+                let selected = self
+                    .risks
+                    .selected_risk
+                    .and_then(|i| self.risks.entries.get(i))
+                    .map(|r| r.id.clone());
+                self.risks.selected_risk =
+                    selected.and_then(|id| risks.iter().position(|r| r.id == id));
                 self.risks.entries = risks;
             }
             AgentEvent::RisksLoaded { risks } => {
                 for risk in risks {
-                    if let Some(existing) = self.risks.entries.iter_mut().find(|r| r.id == risk.id) {
+                    if let Some(existing) = self.risks.entries.iter_mut().find(|r| r.id == risk.id)
+                    {
                         *existing = risk;
                     } else {
                         self.risks.entries.push(risk);
@@ -1678,8 +1749,13 @@ impl AppState {
                 self.settings.admin_password_sha256 = hash;
             }
             AgentEvent::AssetsLoaded { assets } => {
-                let selected = self.assets.selected_asset.and_then(|i| self.assets.assets.get(i)).map(|a| a.id.clone());
-                self.assets.selected_asset = selected.and_then(|id| assets.iter().position(|a| a.id == id));
+                let selected = self
+                    .assets
+                    .selected_asset
+                    .and_then(|i| self.assets.assets.get(i))
+                    .map(|a| a.id.clone());
+                self.assets.selected_asset =
+                    selected.and_then(|id| assets.iter().position(|a| a.id == id));
                 self.assets.assets = assets;
             }
             AgentEvent::PlaybooksLoaded { playbooks } => {
@@ -2038,10 +2114,17 @@ mod triage_persistence_tests {
 
     fn process() -> GuiSuspiciousProcess {
         GuiSuspiciousProcess {
-            process_name: "example".into(), pid: 42, command_line: "example --local".into(),
-            reason: "test".into(), confidence: 70, detected_at: chrono::Utc::now(),
-            ai_confidence: None, is_false_positive: None, ai_analysis: None,
-            acknowledged: false, allowlisted: false,
+            process_name: "example".into(),
+            pid: 42,
+            command_line: "example --local".into(),
+            reason: "test".into(),
+            confidence: 70,
+            detected_at: chrono::Utc::now(),
+            ai_confidence: None,
+            is_false_positive: None,
+            ai_analysis: None,
+            acknowledged: false,
+            allowlisted: false,
         }
     }
 
@@ -2049,18 +2132,24 @@ mod triage_persistence_tests {
     fn acknowledgment_survives_preferences_roundtrip_and_event_replay_only() {
         let event = process();
         let mut state = AppState::default();
-        state.apply_event(AgentEvent::SuspiciousProcess { process: event.clone() });
+        state.apply_event(AgentEvent::SuspiciousProcess {
+            process: event.clone(),
+        });
         assert!(state.acknowledge_threat_item("process", 0));
         let json = serde_json::to_string(&GuiPreferences::from_state(&state)).unwrap();
         assert!(!json.contains("example --local"));
         let prefs: GuiPreferences = serde_json::from_str(&json).unwrap();
         let mut restarted = AppState::default();
         prefs.apply_to(&mut restarted);
-        restarted.apply_event(AgentEvent::SuspiciousProcess { process: event.clone() });
+        restarted.apply_event(AgentEvent::SuspiciousProcess {
+            process: event.clone(),
+        });
         assert!(restarted.threats.suspicious_processes[0].acknowledged);
         let mut recurrence = event;
         recurrence.detected_at += chrono::Duration::seconds(1);
-        restarted.apply_event(AgentEvent::SuspiciousProcess { process: recurrence });
+        restarted.apply_event(AgentEvent::SuspiciousProcess {
+            process: recurrence,
+        });
         assert!(!restarted.threats.suspicious_processes[0].acknowledged);
     }
 
@@ -2069,18 +2158,27 @@ mod triage_persistence_tests {
         let event = process();
         let target = event_identity("process", &event);
         let mut state = AppState::default();
-        state.apply_event(AgentEvent::SuspiciousProcess { process: event.clone() });
+        state.apply_event(AgentEvent::SuspiciousProcess {
+            process: event.clone(),
+        });
         state.acknowledge_threat_item("process", 0);
         let mut other = event;
         other.pid += 1;
         state.apply_event(AgentEvent::SuspiciousProcess { process: other });
         state.apply_event(AgentEvent::LlmAnalysisComplete {
-            target, analysis: "Result for original event".into(), severity_override: None,
-            confidence: Some(80), is_false_positive: Some(false), ai_remediation_script: None,
+            target,
+            analysis: "Result for original event".into(),
+            severity_override: None,
+            confidence: Some(80),
+            is_false_positive: Some(false),
+            ai_remediation_script: None,
             ai_remediation_explanation: None,
         });
         assert!(state.threats.suspicious_processes[0].ai_analysis.is_none());
-        assert_eq!(state.threats.suspicious_processes[1].ai_analysis.as_deref(), Some("Result for original event"));
+        assert_eq!(
+            state.threats.suspicious_processes[1].ai_analysis.as_deref(),
+            Some("Result for original event")
+        );
         assert!(state.threats.suspicious_processes[1].acknowledged);
     }
 
@@ -2097,12 +2195,19 @@ mod triage_persistence_tests {
         let mut state = AppState::default();
         state.vulnerability_findings = vec![other, finding];
         state.apply_event(AgentEvent::LlmAnalysisComplete {
-            target, analysis: "Only package-a".into(), severity_override: None,
-            confidence: None, is_false_positive: None, ai_remediation_script: None,
+            target,
+            analysis: "Only package-a".into(),
+            severity_override: None,
+            confidence: None,
+            is_false_positive: None,
+            ai_remediation_script: None,
             ai_remediation_explanation: None,
         });
         assert!(state.vulnerability_findings[0].ai_analysis.is_none());
-        assert_eq!(state.vulnerability_findings[1].ai_analysis.as_deref(), Some("Only package-a"));
+        assert_eq!(
+            state.vulnerability_findings[1].ai_analysis.as_deref(),
+            Some("Only package-a")
+        );
         assert!(state.vulnerability_findings[1].ai_confidence.is_none());
     }
 
@@ -2112,9 +2217,12 @@ mod triage_persistence_tests {
             "id": "first-ui-id", "path": "/tmp/test", "change_type": "modified",
             "old_hash": "old", "new_hash": "new", "timestamp": "2026-09-27T10:00:00Z",
             "acknowledged": false
-        })).unwrap();
+        }))
+        .unwrap();
         let mut state = AppState::default();
-        state.apply_event(AgentEvent::FimAlert { alert: event.clone() });
+        state.apply_event(AgentEvent::FimAlert {
+            alert: event.clone(),
+        });
         state.acknowledge_threat_item("fim", 0);
         let prefs = GuiPreferences::from_state(&state);
         let mut restarted = AppState::default();
@@ -2143,29 +2251,73 @@ mod opaque_grc_identity_tests {
     use crate::events::AgentEvent;
     #[test]
     fn remote_risk_id_and_updates_survive_gui_and_json() {
-        let now=chrono::Utc::now();
-        let risk=RiskEntry {id:"firestore-risk-opaque".into(),title:"initial".into(),description:String::new(),probability:2,impact:3,owner:String::new(),status:RiskStatus::Open,mitigation:String::new(),source:"platform".into(),created_at:now,updated_at:now,sla_target_days:Some(0)};
-        let mut state=AppState::default();
-        state.apply_event(AgentEvent::RisksLoaded {risks:vec![risk.clone()]});
-        let mut updated=risk;updated.title="updated".into();updated.impact=5;
-        state.apply_event(AgentEvent::RisksLoaded {risks:vec![updated]});
-        assert_eq!(state.risks.entries.len(),1);
-        assert_eq!(state.risks.entries[0].title,"updated");
-        let reloaded:RiskEntry=serde_json::from_str(&serde_json::to_string(&state.risks.entries[0]).unwrap()).unwrap();
-        assert_eq!(reloaded.id,"firestore-risk-opaque");assert_eq!(reloaded.impact,5);
-        state.risks.selected_risk=Some(0);
-        state.apply_event(AgentEvent::RisksSnapshot {risks:vec![]});
-        assert!(state.risks.entries.is_empty());assert!(state.risks.selected_risk.is_none());
+        let now = chrono::Utc::now();
+        let risk = RiskEntry {
+            id: "firestore-risk-opaque".into(),
+            title: "initial".into(),
+            description: String::new(),
+            probability: 2,
+            impact: 3,
+            owner: String::new(),
+            status: RiskStatus::Open,
+            mitigation: String::new(),
+            source: "platform".into(),
+            created_at: now,
+            updated_at: now,
+            sla_target_days: Some(0),
+        };
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::RisksLoaded {
+            risks: vec![risk.clone()],
+        });
+        let mut updated = risk;
+        updated.title = "updated".into();
+        updated.impact = 5;
+        state.apply_event(AgentEvent::RisksLoaded {
+            risks: vec![updated],
+        });
+        assert_eq!(state.risks.entries.len(), 1);
+        assert_eq!(state.risks.entries[0].title, "updated");
+        let reloaded: RiskEntry =
+            serde_json::from_str(&serde_json::to_string(&state.risks.entries[0]).unwrap()).unwrap();
+        assert_eq!(reloaded.id, "firestore-risk-opaque");
+        assert_eq!(reloaded.impact, 5);
+        state.risks.selected_risk = Some(0);
+        state.apply_event(AgentEvent::RisksSnapshot { risks: vec![] });
+        assert!(state.risks.entries.is_empty());
+        assert!(state.risks.selected_risk.is_none());
     }
     #[test]
     fn alert_snapshot_keeps_opaque_ids_then_clears_deleted_objects() {
-        let mut state=AppState::default();
+        let mut state = AppState::default();
         state.apply_event(AgentEvent::AlertingLoaded {
-            rules:vec![AlertRule {id:"opaque-rule".into(),name:"rule".into(),rule_type:AlertRuleType::SeverityThreshold,severity_threshold:Some(Severity::Info),detection_types:vec![],escalation_minutes:Some(0),enabled:false,created_at:chrono::Utc::now()}],
-            webhooks:vec![WebhookConfig {id:"opaque-hook".into(),name:"hook".into(),url:"https://example.test".into(),format:"generic".into(),enabled:false,last_sent:None,error:None}]
+            rules: vec![AlertRule {
+                id: "opaque-rule".into(),
+                name: "rule".into(),
+                rule_type: AlertRuleType::SeverityThreshold,
+                severity_threshold: Some(Severity::Info),
+                detection_types: vec![],
+                escalation_minutes: Some(0),
+                enabled: false,
+                created_at: chrono::Utc::now(),
+            }],
+            webhooks: vec![WebhookConfig {
+                id: "opaque-hook".into(),
+                name: "hook".into(),
+                url: "https://example.test".into(),
+                format: "generic".into(),
+                enabled: false,
+                last_sent: None,
+                error: None,
+            }],
         });
-        assert_eq!(state.alerting.rules[0].id,"opaque-rule");assert_eq!(state.alerting.webhooks[0].id,"opaque-hook");
-        state.apply_event(AgentEvent::AlertingLoaded {rules:vec![],webhooks:vec![]});
-        assert!(state.alerting.rules.is_empty());assert!(state.alerting.webhooks.is_empty());
+        assert_eq!(state.alerting.rules[0].id, "opaque-rule");
+        assert_eq!(state.alerting.webhooks[0].id, "opaque-hook");
+        state.apply_event(AgentEvent::AlertingLoaded {
+            rules: vec![],
+            webhooks: vec![],
+        });
+        assert!(state.alerting.rules.is_empty());
+        assert!(state.alerting.webhooks.is_empty());
     }
 }

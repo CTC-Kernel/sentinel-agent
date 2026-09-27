@@ -562,9 +562,12 @@ impl AgentConfig {
         let url = Url::parse(&self.server_url).map_err(|e| {
             crate::error::CommonError::validation(format!("server_url is not a valid URL: {}", e))
         })?;
-        if !matches!(url.scheme(), "http" | "https") || url.host_str().is_none()
-            || !url.username().is_empty() || url.password().is_some()
-            || url.query().is_some() || url.fragment().is_some()
+        if !matches!(url.scheme(), "http" | "https")
+            || url.host_str().is_none()
+            || !url.username().is_empty()
+            || url.password().is_some()
+            || url.query().is_some()
+            || url.fragment().is_some()
         {
             return Err(crate::error::CommonError::validation(
                 "server_url must be an HTTP(S) endpoint without credentials, query or fragment",
@@ -670,8 +673,11 @@ impl AgentConfig {
 
     /// Same as [`Self::persist_server_url`] but targets an explicit file path.
     pub fn persist_server_url_to(path: &Path, server_url: &str) -> crate::error::Result<()> {
-        AgentConfig { server_url: server_url.to_string(), ..Default::default() }
-            .validate_server_url()?;
+        AgentConfig {
+            server_url: server_url.to_string(),
+            ..Default::default()
+        }
+        .validate_server_url()?;
         Self::persist_value_to(
             path,
             "server_url",
@@ -1273,8 +1279,18 @@ mod tests {
         let path = dir.path().join("agent.json");
         assert!(AgentConfig::persist_server_url_to(&path, "not a url").is_err());
         assert!(!path.exists());
-        for invalid in ["file:///tmp/agent", "ftp://example.com", "https://example.com?token=x", "https://example.com#fragment", "https://user:pass@example.com", "https://region-project.cloudfunctions.net/"] {
-            assert!(AgentConfig::persist_server_url_to(&path, invalid).is_err(), "{invalid}");
+        for invalid in [
+            "file:///tmp/agent",
+            "ftp://example.com",
+            "https://example.com?token=x",
+            "https://example.com#fragment",
+            "https://user:pass@example.com",
+            "https://region-project.cloudfunctions.net/",
+        ] {
+            assert!(
+                AgentConfig::persist_server_url_to(&path, invalid).is_err(),
+                "{invalid}"
+            );
             assert!(!path.exists());
         }
 

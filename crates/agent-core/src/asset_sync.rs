@@ -156,7 +156,9 @@ impl AgentRuntime {
                     });
                     let rule_type = match s.rule_type.as_str() {
                         "TypeFilter" | "DetectionType" => agent_gui::dto::AlertRuleType::TypeFilter,
-                        "EscalationDelay" | "Escalation" => agent_gui::dto::AlertRuleType::EscalationDelay,
+                        "EscalationDelay" | "Escalation" => {
+                            agent_gui::dto::AlertRuleType::EscalationDelay
+                        }
                         _ => agent_gui::dto::AlertRuleType::SeverityThreshold,
                     };
                     let detection_types: Vec<String> =
