@@ -196,3 +196,4 @@ diag_output*.txt
 
 # Stale script copies
 scripts/diag_results.rs
+models/
