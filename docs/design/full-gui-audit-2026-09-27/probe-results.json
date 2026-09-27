@@ -1,0 +1,34 @@
+[
+  {
+    "case": "800-dark-seeded",
+    "exit": 1
+  },
+  {
+    "case": "800-dark-empty",
+    "exit": 1
+  },
+  {
+    "case": "800-light-seeded",
+    "exit": 1
+  },
+  {
+    "case": "800-light-empty",
+    "exit": 1
+  },
+  {
+    "case": "1360-dark-seeded",
+    "exit": 0
+  },
+  {
+    "case": "1360-dark-empty",
+    "exit": 0
+  },
+  {
+    "case": "1360-light-seeded",
+    "exit": 0
+  },
+  {
+    "case": "1360-light-empty",
+    "exit": 0
+  }
+]

@@ -310,13 +310,18 @@ impl AuthenticatedClient {
             command_id, agent_id
         );
 
-        let _: serde_json::Value = self
+        let response: crate::types::AcknowledgedResponse = self
             .post_json(
                 &format!("/v1/agents/{}/commands/{}/results", agent_id, command_id),
                 &result,
             )
             .await?;
 
+        if !response.acknowledged {
+            return Err(crate::error::SyncError::Config(
+                "Command result not acknowledged".into(),
+            ));
+        }
         Ok(())
     }
 
@@ -374,6 +379,23 @@ impl AuthenticatedClient {
         let agent_id = self.agent_id().await?;
         debug!("Fetching managed assets for agent {}", agent_id);
         self.get(&format!("/v1/agents/{}/managed-assets", agent_id))
+            .await
+    }
+
+    /// Opt into completeness metadata; older servers still return safe partial arrays.
+    pub async fn fetch_risk_snapshot(
+        &self,
+    ) -> SyncResult<crate::types::RemoteSnapshot<RiskPayload>> {
+        let id = self.agent_id().await?;
+        self.get(&format!("/v1/agents/{id}/risks?snapshot=true"))
+            .await
+    }
+
+    pub async fn fetch_asset_snapshot(
+        &self,
+    ) -> SyncResult<crate::types::RemoteSnapshot<AssetPayload>> {
+        let id = self.agent_id().await?;
+        self.get(&format!("/v1/agents/{id}/managed-assets?snapshot=true"))
             .await
     }
 
@@ -788,7 +810,7 @@ impl AuthenticatedClient {
         // is not in native PEM format (e.g., base64-encoded JSON blobs). In that case
         // header-based auth (X-Agent-Certificate) provides equivalent application-layer
         // authentication and is fully supported by the server.
-        let client = match HttpClient::with_mtls(
+        let mut client = match HttpClient::with_mtls(
             &config,
             &credentials.client_certificate,
             &credentials.client_private_key,
@@ -806,6 +828,8 @@ impl AuthenticatedClient {
                 HttpClient::with_header_auth(&config, &credentials.client_certificate)?
             }
         };
+
+        client.set_signing_secret(credentials.hmac_secret.clone());
 
         // Cache the client and credentials
         {
@@ -875,6 +899,7 @@ mod tests {
 
     fn create_test_credentials() -> StoredCredentials {
         StoredCredentials {
+            hmac_secret: None,
             agent_id: Uuid::new_v4(),
             organization_id: Uuid::new_v4(),
             client_certificate: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----"

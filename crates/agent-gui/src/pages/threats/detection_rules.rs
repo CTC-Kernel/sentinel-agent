@@ -208,7 +208,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .threats
                     .detection_rules
                     .iter_mut()
-                    .find(|r| r.id.to_string() == id)
+                    .find(|r| r.id == id)
                 {
                     rule.enabled = enabled;
                 }
@@ -220,10 +220,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // Apply delete
             if let Some(ref id) = delete_id {
-                state
-                    .threats
-                    .detection_rules
-                    .retain(|r| r.id.to_string() != *id);
+                state.threats.detection_rules.retain(|r| r.id != *id);
                 command = Some(GuiCommand::DeleteDetectionRule {
                     rule_id: id.clone(),
                 });
@@ -393,7 +390,7 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                         .unwrap_or(Severity::Medium);
 
                     let rule = DetectionRule {
-                        id: Uuid::new_v4(),
+                        id: Uuid::new_v4().to_string(),
                         name: f.name.trim().to_string(),
                         description: f.description.trim().to_string(),
                         severity,

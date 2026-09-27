@@ -647,7 +647,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 );
                                 command = Some(GuiCommand::LlmClassifyThreat {
                                     event_description: desc,
-                                    target_id: format!("process#{}", threat.source_index),
+                                    target_id: crate::state::event_identity("process", &p),
                                 });
                                 state.toasts.push(
                                     crate::widgets::toast::Toast::info(
@@ -931,7 +931,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 );
                                 command = Some(GuiCommand::LlmClassifyThreat {
                                     event_description: desc,
-                                    target_id: format!("incident#{}", threat.source_index),
+                                    target_id: crate::state::event_identity("system", &inc),
                                 });
                                 state.toasts.push(
                                     crate::widgets::toast::Toast::info(
@@ -1335,7 +1335,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 );
                                 command = Some(GuiCommand::LlmClassifyThreat {
                                     event_description: desc,
-                                    target_id: format!("alert#{}", threat.source_index),
+                                    target_id: crate::state::event_identity("network", &a),
                                 });
                                 state.toasts.push(
                                     crate::widgets::toast::Toast::info(
@@ -1660,15 +1660,22 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
     }
 
     widgets::card(ui, |ui: &mut egui::Ui| {
+        let dark = theme::is_dark_mode();
+        let instrument = if dark {
+            theme::BRAND_CYAN
+        } else {
+            egui::Color32::from_rgb(66, 83, 120)
+        };
+        let control_color = if dark { theme::ACCENT } else { instrument };
         // Command header: range, live state and operator controls are intentionally
         // kept together so the visualization can be managed without leaving it.
-        ui.horizontal_wrapped(|ui| {
+        ui.vertical(|ui| {
             ui.vertical(|ui| {
                 ui.horizontal(|ui| {
                     ui.label(
                         egui::RichText::new(icons::CROSSHAIRS)
                             .size(theme::ICON_MD)
-                            .color(theme::SUCCESS),
+                            .color(theme::accent_text()),
                     );
                     ui.label(
                         egui::RichText::new("RADAR DE MENACES")
@@ -1693,78 +1700,53 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                         .color(theme::text_tertiary()),
                 );
             });
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                let pause_label = if paused {
-                    format!("{}  Reprendre", icons::PLAY)
-                } else {
-                    format!("{}  Pause", icons::PAUSE)
-                };
-                if widgets::ghost_button(ui, pause_label)
-                    .on_hover_text(if paused {
-                        "Relancer le balayage et les animations du radar"
+            ui.allocate_ui_with_layout(
+                egui::vec2(ui.available_width(), 32.0),
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui| {
+                    let pause_label = if paused {
+                        format!("{}  Reprendre", icons::PLAY)
                     } else {
-                        "Figer le balayage sans interrompre la collecte"
-                    })
-                    .clicked()
-                {
-                    paused = !paused;
-                }
-                let priority_label = format!("{}  P1 / P2", icons::FILTER);
-                let priority = ui.add(
-                    egui::Button::new(
-                        egui::RichText::new(priority_label)
-                            .font(theme::font_label())
-                            .color(if priority_only {
-                                theme::text_on_accent()
-                            } else {
-                                theme::text_secondary()
-                            }),
-                    )
-                    .fill(if priority_only {
-                        theme::ERROR
-                    } else {
-                        theme::bg_tertiary()
-                    })
-                    .selected(priority_only),
-                );
-                if priority
-                    .on_hover_text("Mode focus : n'afficher que les signaux critiques et élevés")
-                    .clicked()
-                {
-                    priority_only = !priority_only;
-                    selected = None;
-                }
-                ui.add_space(theme::SPACE_SM);
-                for (idx, label) in [(2, "7 j"), (1, "24 h"), (0, "1 h")] {
-                    let button = egui::Button::new(
-                        egui::RichText::new(label).font(theme::font_label()).color(
-                            if range == idx {
-                                theme::text_on_accent()
-                            } else {
-                                theme::text_secondary()
-                            },
-                        ),
-                    )
-                    .fill(if range == idx {
-                        theme::SUCCESS
-                    } else {
-                        theme::bg_tertiary()
-                    })
-                    .stroke(egui::Stroke::new(
-                        theme::BORDER_HAIRLINE,
-                        theme::border_subtle(),
-                    ))
-                    .corner_radius(egui::CornerRadius::same(theme::ROUNDING_SM));
-                    if ui
-                        .add_sized([48.0, 30.0], button)
-                        .on_hover_text("Changer la fenêtre temporelle")
+                        format!("{}  Pause", icons::PAUSE)
+                    };
+                    if widgets::ghost_button(ui, pause_label)
+                        .on_hover_text(if paused {
+                            "Relancer le balayage et les animations du radar"
+                        } else {
+                            "Figer le balayage sans interrompre la collecte"
+                        })
                         .clicked()
                     {
-                        range = idx;
+                        paused = !paused;
+                    }
+                    let priority_label = format!("{}  P1 / P2", icons::FILTER);
+                    let priority = widgets::button::chip_button(
+                        ui,
+                        &priority_label,
+                        priority_only,
+                        theme::ERROR,
+                    );
+                    if priority
+                        .on_hover_text(
+                            "Mode focus : n'afficher que les signaux critiques et élevés",
+                        )
+                        .clicked()
+                    {
+                        priority_only = !priority_only;
                         selected = None;
                     }
-                }
-            });
+                    ui.add_space(theme::SPACE_SM);
+                    for (idx, label) in [(2, "7 j"), (1, "24 h"), (0, "1 h")] {
+                        if widgets::button::chip_button(ui, label, range == idx, control_color)
+                            .on_hover_text("Changer la fenêtre temporelle")
+                            .clicked()
+                        {
+                            range = idx;
+                            selected = None;
+                        }
+                    }
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -1789,17 +1771,11 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             ];
             for (label, icon, bit) in sources {
                 let active = layers & (1 << bit) != 0;
-                let response = ui.add(
-                    egui::Button::new(
-                        egui::RichText::new(format!("{icon}  {label}"))
-                            .font(theme::font_label())
-                            .color(if active {
-                                theme::readable_color(theme::SUCCESS)
-                            } else {
-                                theme::text_tertiary()
-                            }),
-                    )
-                    .selected(active),
+                let response = widgets::button::chip_button(
+                    ui,
+                    &format!("{icon}  {label}"),
+                    active,
+                    control_color,
                 );
                 if response
                     .on_hover_text(format!(
@@ -1816,43 +1792,241 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         ui.add_space(theme::SPACE_MD);
 
         let available_w = ui.available_width();
-        let canvas_height = (available_w * 0.72).clamp(360.0, 440.0);
+        let canvas_height = (available_w * 0.72).clamp(400.0, 480.0);
         let (rect, _) =
             ui.allocate_exact_size(egui::vec2(available_w, canvas_height), egui::Sense::hover());
         let painter = ui.painter_at(rect);
-        let center = rect.center();
-        let radius = theme::RADAR_RADIUS
-            .min((available_w - 96.0).max(120.0) * 0.5)
-            .min((canvas_height - 64.0) * 0.5);
+        let has_rail = available_w >= 820.0;
+        let plot_width = available_w - if has_rail { 196.0 } else { 0.0 };
+        let center = egui::pos2(rect.left() + plot_width * 0.5, rect.center().y + 8.0);
+        let radius = 164.0_f32
+            .min((plot_width - 180.0).max(120.0) * 0.5)
+            .min((canvas_height - 128.0) * 0.5);
         let time = ui.input(|i| i.time);
 
-        // ─ Background: layered command-surface substrate ─
-        painter.rect_filled(rect, theme::ROUNDING_MD, theme::chart_surface());
+        // The light instrument uses cool ink and porcelain, not translucent neon.
+        let fade = |color: egui::Color32, alpha: f32| {
+            if dark {
+                color.linear_multiply(alpha)
+            } else {
+                egui::Color32::from_rgba_unmultiplied(
+                    color.r(),
+                    color.g(),
+                    color.b(),
+                    (alpha.clamp(0.0, 1.0) * 255.0).round() as u8,
+                )
+            }
+        };
+        // Neon belongs to the dark HUD; daylight uses a muted mineral palette.
+        // Decorative hues remain independent of signal severity.
+        let rim_palette = if dark {
+            [theme::BRAND_CYAN, theme::BRAND_BLUE, theme::BRAND_VIOLET]
+        } else {
+            [
+                egui::Color32::from_rgb(87, 105, 137),
+                egui::Color32::from_rgb(91, 98, 143),
+                egui::Color32::from_rgb(116, 107, 147),
+            ]
+        };
+        let rim_color = |angle: f32| {
+            let blend = (angle.cos() + 1.0) * 0.5;
+            if blend < 0.5 {
+                theme::color_blend_pub(rim_palette[0], rim_palette[1], blend * 2.0)
+            } else {
+                theme::color_blend_pub(rim_palette[1], rim_palette[2], (blend - 0.5) * 2.0)
+            }
+        };
+        let signal_color = |severity: &str| {
+            if dark {
+                theme::readable_color(match severity {
+                    "critical" => theme::ERROR,
+                    "high" => theme::SEVERITY_HIGH,
+                    "medium" => theme::WARNING,
+                    _ => theme::AI,
+                })
+            } else {
+                match severity {
+                    "critical" => egui::Color32::from_rgb(184, 47, 79),
+                    "high" => egui::Color32::from_rgb(184, 87, 39),
+                    "medium" => egui::Color32::from_rgb(150, 110, 35),
+                    _ => egui::Color32::from_rgb(104, 88, 167),
+                }
+            }
+        };
+        let grid = if dark {
+            theme::chart_grid()
+        } else {
+            egui::Color32::from_rgb(222, 225, 232)
+        };
+        painter.rect_filled(
+            rect,
+            theme::ROUNDING_MD,
+            if dark {
+                theme::chart_surface()
+            } else {
+                egui::Color32::from_rgb(246, 247, 250)
+            },
+        );
         painter.circle_filled(
             center,
             radius + theme::SPACE_MD,
-            theme::chart_color(theme::SUCCESS).linear_multiply(if theme::is_dark_mode() {
-                0.08
-            } else {
-                0.035
-            }),
+            fade(instrument, if theme::is_dark_mode() { 0.08 } else { 0.035 }),
         );
         painter.circle_filled(
             center,
             radius + theme::SPACE_XS,
             theme::bg_secondary().linear_multiply(0.96),
         );
+        if !dark {
+            let mut surface = egui::epaint::Mesh::default();
+            surface.vertices.push(egui::epaint::Vertex {
+                pos: center,
+                uv: egui::epaint::WHITE_UV,
+                color: egui::Color32::WHITE,
+            });
+            for index in 0..64_u32 {
+                surface.vertices.push(egui::epaint::Vertex {
+                    pos: center
+                        + egui::Vec2::angled(TAU * index as f32 / 64.0)
+                            * (radius + theme::SPACE_XS),
+                    uv: egui::epaint::WHITE_UV,
+                    color: theme::color_blend_pub(
+                        egui::Color32::WHITE,
+                        rim_color(TAU * index as f32 / 64.0),
+                        0.10,
+                    ),
+                });
+                surface
+                    .indices
+                    .extend_from_slice(&[0, index + 1, (index + 1) % 64 + 1]);
+            }
+            painter.add(egui::Shape::mesh(surface));
+        }
         painter.circle_stroke(
             center,
             radius + theme::SPACE_XS,
-            egui::Stroke::new(
-                theme::BORDER_THIN,
-                theme::readable_color(theme::SUCCESS).linear_multiply(0.32),
-            ),
+            egui::Stroke::new(theme::BORDER_THIN, fade(instrument, 0.32)),
         );
 
+        if !dark {
+            for segment in 0..96 {
+                let angle = TAU * segment as f32 / 96.0;
+                let next = TAU * (segment + 1) as f32 / 96.0;
+                painter.line_segment(
+                    [
+                        center + egui::Vec2::angled(angle) * (radius + theme::SPACE_XS),
+                        center + egui::Vec2::angled(next) * (radius + theme::SPACE_XS),
+                    ],
+                    egui::Stroke::new(1.5_f32, fade(rim_color(angle), 0.48)),
+                );
+            }
+        }
+
+        // Segmented outer bezel, with gaps reserved for the six source labels.
+        for sector in 0..6 {
+            let start = sector as f32 * TAU / 6.0 + 0.07;
+            let points: Vec<_> = (0..=24)
+                .map(|step| {
+                    let angle = start + step as f32 / 24.0 * (TAU / 6.0 - 0.14);
+                    center + egui::Vec2::angled(angle) * (radius + 14.0)
+                })
+                .collect();
+            painter.add(egui::Shape::line(
+                points,
+                egui::Stroke::new(
+                    2.5_f32,
+                    fade(rim_color(start), if dark { 0.55 } else { 0.42 }),
+                ),
+            ));
+        }
+        // Corner brackets frame the instrument without a heavy enclosing border.
+        for (corner, dx, dy) in [
+            (rect.left_top(), 1.0, 1.0),
+            (rect.right_top(), -1.0, 1.0),
+            (rect.left_bottom(), 1.0, -1.0),
+            (rect.right_bottom(), -1.0, -1.0),
+        ] {
+            let p = corner + egui::vec2(dx * 9.0, dy * 9.0);
+            painter.add(egui::Shape::line(
+                vec![
+                    p + egui::vec2(22.0 * dx, 0.0),
+                    p,
+                    p + egui::vec2(0.0, 22.0 * dy),
+                ],
+                egui::Stroke::new(1.5_f32, fade(instrument, 0.45)),
+            ));
+        }
+        if has_rail {
+            let rail = egui::Rect::from_min_max(
+                egui::pos2(rect.right() - 180.0, rect.top() + 60.0),
+                egui::pos2(rect.right() - 18.0, rect.bottom() - 30.0),
+            );
+            painter.rect_filled(rail, theme::ROUNDING_SM, theme::bg_secondary());
+            painter.rect_stroke(
+                rail,
+                theme::ROUNDING_SM,
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+                egui::StrokeKind::Inside,
+            );
+            painter.text(
+                rail.left_top() + egui::vec2(14.0, 18.0),
+                egui::Align2::LEFT_TOP,
+                "SIGNAUX PAR SOURCE",
+                theme::font_min(),
+                theme::text_secondary(),
+            );
+            for (index, (label, kind)) in [
+                ("Processus", "process"),
+                ("Système", "system"),
+                ("USB", "usb"),
+                ("Fichiers", "fim"),
+                ("Vulnérabilités", "vulnerability"),
+                ("Réseau", "network"),
+            ]
+            .iter()
+            .enumerate()
+            {
+                let count = visible.iter().filter(|(_, t)| t.kind == *kind).count();
+                let y = rail.top() + 61.0 + index as f32 * 41.0;
+                painter.text(
+                    egui::pos2(rail.left() + 14.0, y),
+                    egui::Align2::LEFT_CENTER,
+                    label,
+                    theme::font_caption(),
+                    theme::text_secondary(),
+                );
+                painter.text(
+                    egui::pos2(rail.right() - 14.0, y),
+                    egui::Align2::RIGHT_CENTER,
+                    format!("{count:02}"),
+                    theme::font_body_strong(),
+                    if dark {
+                        theme::accent_text()
+                    } else {
+                        instrument
+                    },
+                );
+                if index < 5 {
+                    painter.line_segment(
+                        [
+                            egui::pos2(rail.left() + 14.0, y + 20.0),
+                            egui::pos2(rail.right() - 14.0, y + 20.0),
+                        ],
+                        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+                    );
+                }
+            }
+            painter.text(
+                rail.left_bottom() + egui::vec2(14.0, -18.0),
+                egui::Align2::LEFT_BOTTOM,
+                "Selon les filtres actifs",
+                theme::font_min(),
+                theme::text_tertiary(),
+            );
+        }
+
         // Precision ticks give the surface an instrument-grade silhouette
-        let tick_color = theme::readable_color(theme::SUCCESS).linear_multiply(0.34);
+        let tick_color = fade(instrument, 0.34);
         for tick in 0..48 {
             let angle = tick as f32 / 48.0 * TAU;
             let major = tick % 6 == 0;
@@ -1874,20 +2048,12 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         painter.circle_filled(
             center,
             radius * 0.42,
-            theme::readable_color(theme::SUCCESS).linear_multiply(if theme::is_dark_mode() {
-                0.035
-            } else {
-                0.02
-            }),
+            fade(instrument, if theme::is_dark_mode() { 0.035 } else { 0.02 }),
         );
 
         for i in 1..=4 {
             let r = radius * (i as f32 / 4.0);
-            painter.circle_stroke(
-                center,
-                r,
-                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::chart_grid()),
-            );
+            painter.circle_stroke(center, r, egui::Stroke::new(theme::BORDER_HAIRLINE, grid));
         }
         for i in 0..12 {
             let angle = (i as f32 / 12.0) * TAU;
@@ -1896,26 +2062,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                     center,
                     center + egui::vec2(angle.cos(), angle.sin()) * radius,
                 ],
-                egui::Stroke::new(
-                    theme::BORDER_HAIRLINE,
-                    theme::chart_grid().linear_multiply(0.82),
-                ),
-            );
-        }
-
-        // Radar range annotations make severity-distance semantics explicit.
-        for (label, factor, color) in [
-            ("CRITIQUE", 0.24, theme::ERROR),
-            ("ÉLEVÉ", 0.48, theme::SEVERITY_HIGH),
-            ("MOYEN", 0.70, theme::WARNING),
-            ("FAIBLE", 0.91, theme::AI),
-        ] {
-            painter.text(
-                center + egui::vec2(7.0, -radius * factor),
-                egui::Align2::LEFT_CENTER,
-                label,
-                theme::font_caption(),
-                theme::readable_color(color),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, fade(grid, 0.82)),
             );
         }
 
@@ -1939,7 +2086,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                         center + egui::vec2(near_angle.cos(), near_angle.sin()) * radius,
                         center + egui::vec2(far_angle.cos(), far_angle.sin()) * radius,
                     ],
-                    theme::readable_color(theme::SUCCESS).linear_multiply(alpha),
+                    fade(instrument, alpha),
                     egui::Stroke::NONE,
                 ));
             }
@@ -1949,8 +2096,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 [center, lead_end],
                 egui::Stroke::new(
                     theme::BORDER_THICK,
-                    theme::readable_color(theme::SUCCESS)
-                        .linear_multiply(theme::OPACITY_HOVER_SOFT),
+                    fade(instrument, theme::OPACITY_HOVER_SOFT),
                 ),
             );
 
@@ -1961,7 +2107,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 radius * (0.18 + echo_phase * 0.82),
                 egui::Stroke::new(
                     theme::BORDER_THIN,
-                    theme::readable_color(theme::SUCCESS).linear_multiply((1.0 - echo_phase) * 0.2),
+                    fade(instrument, (1.0 - echo_phase) * 0.2),
                 ),
             );
         }
@@ -1985,7 +2131,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         ] {
             let angle = sector_angle(kind);
             painter.text(
-                center + egui::vec2(angle.cos(), angle.sin()) * (radius + 24.0),
+                center + egui::vec2(angle.cos(), angle.sin()) * (radius + 34.0),
                 egui::Align2::CENTER_CENTER,
                 label,
                 theme::font_min(),
@@ -2008,14 +2154,8 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             };
             let distance = (min + ((seed >> 8) % 100) as f32 / 100.0 * (max - min)) * radius;
             let position = center + egui::vec2(angle.cos(), angle.sin()) * distance;
-            let color = match threat.severity {
-                "critical" => theme::ERROR,
-                "high" => theme::SEVERITY_HIGH,
-                "medium" => theme::WARNING,
-                _ => theme::AI,
-            };
             let is_selected = selected == Some(*source_index);
-            let display_color = theme::readable_color(color);
+            let display_color = signal_color(threat.severity);
 
             let blip_core = match threat.severity {
                 "critical" => 5.0_f32,
@@ -2036,16 +2176,27 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 }
             };
 
-            for layer in (0..3).rev() {
+            for layer in (0..if dark { 3 } else { 1 }).rev() {
                 let r = blip_core + (layer as f32 + 1.0) * 2.5 + pulse * 2.0;
-                let alpha = theme::OPACITY_SUBTLE / (layer as f32 + 1.0);
-                painter.circle_filled(position, r, display_color.linear_multiply(alpha));
+                let alpha = if dark {
+                    theme::OPACITY_SUBTLE / (layer as f32 + 1.0)
+                } else {
+                    0.09
+                };
+                painter.circle_filled(position, r, fade(display_color, alpha));
             }
 
             painter.circle_filled(
                 position,
                 blip_core + pulse * 2.0,
-                display_color.linear_multiply(theme::OPACITY_TINT + pulse * theme::OPACITY_TINT),
+                fade(
+                    display_color,
+                    if dark {
+                        theme::OPACITY_TINT + pulse * theme::OPACITY_TINT
+                    } else {
+                        0.12
+                    },
+                ),
             );
 
             painter.circle_filled(
@@ -2057,6 +2208,17 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 },
                 display_color,
             );
+            if !dark {
+                painter.circle_stroke(
+                    position,
+                    if is_selected {
+                        blip_core + 2.0
+                    } else {
+                        blip_core
+                    },
+                    egui::Stroke::new(1.25_f32, egui::Color32::WHITE),
+                );
+            }
             if is_selected {
                 painter.circle_stroke(
                     position,
@@ -2069,7 +2231,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 painter.circle_stroke(
                     position,
                     blip_core + 5.0 + pulse,
-                    egui::Stroke::new(theme::BORDER_THIN, display_color.linear_multiply(0.78)),
+                    egui::Stroke::new(theme::BORDER_THIN, fade(display_color, 0.78)),
                 );
                 let cross = blip_core + 8.0;
                 painter.line_segment(
@@ -2077,14 +2239,14 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                         position + egui::vec2(-cross, 0.0),
                         position + egui::vec2(cross, 0.0),
                     ],
-                    egui::Stroke::new(theme::BORDER_HAIRLINE, display_color.linear_multiply(0.46)),
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, fade(display_color, 0.46)),
                 );
                 painter.line_segment(
                     [
                         position + egui::vec2(0.0, -cross),
                         position + egui::vec2(0.0, cross),
                     ],
-                    egui::Stroke::new(theme::BORDER_HAIRLINE, display_color.linear_multiply(0.46)),
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, fade(display_color, 0.46)),
                 );
             }
 
@@ -2124,7 +2286,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 ui.label(
                     egui::RichText::new("Cliquer pour épingler le signal")
                         .font(theme::font_min())
-                        .color(theme::readable_color(theme::SUCCESS)),
+                        .color(instrument),
                 );
             });
             if response.clicked() {
@@ -2136,23 +2298,19 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             }
         }
 
-        painter.circle_filled(
-            center,
-            6.0,
-            theme::readable_color(theme::SUCCESS).linear_multiply(theme::OPACITY_TINT),
-        );
-        painter.circle_filled(center, 3.0, theme::readable_color(theme::SUCCESS));
+        painter.circle_filled(center, 6.0, fade(instrument, theme::OPACITY_TINT));
+        painter.circle_filled(center, 3.0, instrument);
         painter.circle_filled(
             center,
             1.5,
             theme::text_on_accent().linear_multiply(theme::OPACITY_MODERATE),
         );
         painter.text(
-            center + egui::vec2(0.0, 22.0),
-            egui::Align2::CENTER_TOP,
+            rect.right_top() + egui::vec2(-18.0, 16.0),
+            egui::Align2::RIGHT_TOP,
             "NEXUS",
             theme::font_min(),
-            theme::readable_color(theme::SUCCESS),
+            instrument,
         );
 
         // At-a-glance operational telemetry is overlaid without stealing radar space.
@@ -2161,11 +2319,17 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
             .filter(|(_, t)| t.severity == "critical")
             .count();
         let high = visible.iter().filter(|(_, t)| t.severity == "high").count();
+        let source_count = visible
+            .iter()
+            .map(|(_, threat)| threat.kind)
+            .collect::<std::collections::HashSet<_>>()
+            .len();
         let telemetry = format!(
-            "{} SIGNAUX   ·   {} CRITIQUES   ·   {} ÉLEVÉS   ·   6 SOURCES",
+            "{} SIGNAUX   ·   {} CRITIQUES   ·   {} ÉLEVÉS   ·   {} SOURCES",
             visible.len(),
             critical,
-            high
+            high,
+            source_count
         );
         painter.text(
             rect.left_top() + egui::vec2(16.0, 14.0),
@@ -2181,7 +2345,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 egui::Align2::CENTER_CENTER,
                 "Aucun signal sur cette fenêtre",
                 theme::font_body(),
-                theme::readable_color(theme::SUCCESS),
+                instrument,
             );
         }
         // Selection becomes a persistent analyst context rather than a
@@ -2190,31 +2354,35 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         if let Some(index) = selected
             && let Some(threat) = threats.get(index)
         {
-            let panel = egui::Rect::from_min_max(
-                rect.left_bottom() + egui::vec2(12.0, -78.0),
-                rect.right_bottom() + egui::vec2(-12.0, -10.0),
-            );
-            painter.rect_filled(panel, theme::ROUNDING_SM, theme::bg_elevated());
-            painter.rect_stroke(
-                panel,
-                theme::ROUNDING_SM,
-                egui::Stroke::new(theme::BORDER_THIN, theme::readable_color(theme::SUCCESS)),
-                egui::StrokeKind::Inside,
-            );
-            painter.text(
-                panel.left_top() + egui::vec2(12.0, 10.0),
-                egui::Align2::LEFT_TOP,
-                format!("{}  {}", threat.severity.to_uppercase(), threat.title),
-                theme::font_label(),
-                theme::text_primary(),
-            );
-            painter.text(
-                panel.left_bottom() + egui::vec2(12.0, -10.0),
-                egui::Align2::LEFT_BOTTOM,
-                "Signal épinglé · cliquer de nouveau pour libérer la cible",
-                theme::font_caption(),
-                theme::text_secondary(),
-            );
+            ui.add_space(theme::SPACE_SM);
+            egui::Frame::new()
+                .fill(theme::bg_elevated())
+                .stroke(egui::Stroke::new(
+                    theme::BORDER_THIN,
+                    signal_color(threat.severity),
+                ))
+                .corner_radius(theme::ROUNDING_SM)
+                .inner_margin(theme::SPACE_MD)
+                .show(ui, |ui| {
+                    ui.set_width(ui.available_width());
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "{}  {}",
+                            threat.severity.to_uppercase(),
+                            threat.title
+                        ))
+                        .font(theme::font_label())
+                        .color(theme::text_primary()),
+                    );
+                    ui.label(
+                        egui::RichText::new(&threat.description)
+                            .font(theme::font_caption())
+                            .color(theme::text_secondary()),
+                    );
+                    if widgets::ghost_button(ui, "Libérer le signal épinglé").clicked() {
+                        selected = None;
+                    }
+                });
         }
 
         if !reduced && !paused {
@@ -2226,13 +2394,13 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         ui.add_space(theme::SPACE_MD);
         ui.horizontal_wrapped(|ui: &mut egui::Ui| {
             let legends = [
-                ("Critique", theme::ERROR),
-                ("Élevé", theme::SEVERITY_HIGH),
-                ("Moyen", theme::WARNING),
-                ("Faible", theme::AI),
+                ("Critique", "critical"),
+                ("Élevé", "high"),
+                ("Moyen", "medium"),
+                ("Faible", "low"),
             ];
             for (label, color) in legends {
-                let display_color = theme::readable_color(color);
+                let display_color = signal_color(color);
                 ui.horizontal(|ui| {
                     let (dot_rect, _) =
                         ui.allocate_exact_size(egui::vec2(8.0, 8.0), egui::Sense::hover());

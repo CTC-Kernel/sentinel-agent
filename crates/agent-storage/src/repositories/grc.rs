@@ -33,6 +33,32 @@ pub struct RiskRepository<'a> {
 }
 
 impl<'a> RiskRepository<'a> {
+    /// Apply remote records without overwriting dirty local edits or pending deletes.
+    /// Only callers with a complete, unfiltered response may remove absent records.
+    pub async fn reconcile_remote(
+        &self,
+        items: &[StoredRisk],
+        complete: bool,
+    ) -> StorageResult<()> {
+        let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
+            .map_err(|e| StorageError::Query(e.to_string()))?;
+        self.db.with_connection_mut(|conn| {
+            let tx = conn.transaction().map_err(|e| StorageError::Query(e.to_string()))?;
+            if complete {
+                tx.execute("DELETE FROM risks WHERE synced=1 AND id NOT IN (SELECT value FROM json_each(?1)) AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type='risk' AND entity_id=risks.id)", [&ids])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            for item in items {
+                let deleted: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM sync_queue WHERE entity_type='risk_delete' AND entity_id=?1)", [&item.id], |row| row.get(0))
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+                if deleted { continue; }
+                tx.execute("INSERT INTO risks (id, title, description, probability, impact, owner, status, mitigation, source, created_at, updated_at, sla_target_days, synced) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13) ON CONFLICT(id) DO UPDATE SET title=excluded.title, description=excluded.description, probability=excluded.probability, impact=excluded.impact, owner=excluded.owner, status=excluded.status, mitigation=excluded.mitigation, source=excluded.source, created_at=excluded.created_at, updated_at=excluded.updated_at, sla_target_days=excluded.sla_target_days, synced=excluded.synced WHERE risks.synced=1 AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type='risk' AND entity_id=risks.id)", rusqlite::params![item.id, item.title, item.description, item.probability, item.impact, item.owner, item.status, item.mitigation, item.source, item.created_at, item.updated_at, item.sla_target_days, 1])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            tx.commit().map_err(|e| StorageError::Query(e.to_string()))
+        }).await
+    }
+
     pub fn new(db: &'a Database) -> Self {
         Self { db }
     }
@@ -126,6 +152,26 @@ pub struct PlaybookRepository<'a> {
 }
 
 impl<'a> PlaybookRepository<'a> {
+    /// Apply a complete platform snapshot atomically. Pending local edits survive;
+    /// only acknowledged records absent from the platform are deleted.
+    pub async fn reconcile_snapshot(&self, items: &[StoredPlaybook]) -> StorageResult<()> {
+        let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
+            .map_err(|e| StorageError::Query(e.to_string()))?;
+        self.db.with_connection_mut(|conn| {
+            let tx = conn.transaction().map_err(|e| StorageError::Query(e.to_string()))?;
+            tx.execute("DELETE FROM playbooks WHERE synced = 1 AND id NOT IN (SELECT value FROM json_each(?1)) AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type = 'playbook' AND entity_id = playbooks.id)", [&ids])
+                .map_err(|e| StorageError::Query(e.to_string()))?;
+            for item in items {
+                let deleted: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM sync_queue WHERE entity_type = 'playbook_delete' AND entity_id = ?1)", [&item.id], |row| row.get(0))
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+                if deleted { continue; }
+                tx.execute("INSERT INTO playbooks (id, name, description, trigger_type, severity, steps, enabled, created_at, updated_at, synced, conditions) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11) ON CONFLICT(id) DO UPDATE SET name=excluded.name, description=excluded.description, trigger_type=excluded.trigger_type, severity=excluded.severity, steps=excluded.steps, enabled=excluded.enabled, created_at=excluded.created_at, updated_at=excluded.updated_at, synced=excluded.synced, conditions=excluded.conditions WHERE playbooks.synced = 1 AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type = 'playbook' AND entity_id = playbooks.id)", rusqlite::params![item.id, item.name, item.description, item.trigger_type, item.severity, item.steps, i32::from(item.enabled), item.created_at, item.updated_at, 1, item.conditions])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            tx.commit().map_err(|e| StorageError::Query(e.to_string()))
+        }).await
+    }
+
     pub fn new(db: &'a Database) -> Self {
         Self { db }
     }
@@ -236,6 +282,32 @@ pub struct ManagedAssetRepository<'a> {
 }
 
 impl<'a> ManagedAssetRepository<'a> {
+    /// Apply remote records without overwriting dirty local edits or pending deletes.
+    /// Only callers with a complete, unfiltered response may remove absent records.
+    pub async fn reconcile_remote(
+        &self,
+        items: &[StoredManagedAsset],
+        complete: bool,
+    ) -> StorageResult<()> {
+        let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
+            .map_err(|e| StorageError::Query(e.to_string()))?;
+        self.db.with_connection_mut(|conn| {
+            let tx = conn.transaction().map_err(|e| StorageError::Query(e.to_string()))?;
+            if complete {
+                tx.execute("DELETE FROM managed_assets WHERE synced=1 AND id NOT IN (SELECT value FROM json_each(?1)) AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type='asset' AND entity_id=managed_assets.id)", [&ids])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            for item in items {
+                let deleted: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM sync_queue WHERE entity_type='asset_delete' AND entity_id=?1)", [&item.id], |row| row.get(0))
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+                if deleted { continue; }
+                tx.execute("INSERT INTO managed_assets (id, ip, hostname, mac, vendor, device_type, criticality, lifecycle, tags, risk_score, vulnerability_count, open_ports, software, first_seen, last_seen, synced) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16) ON CONFLICT(id) DO UPDATE SET ip=excluded.ip, hostname=excluded.hostname, mac=excluded.mac, vendor=excluded.vendor, device_type=excluded.device_type, criticality=excluded.criticality, lifecycle=excluded.lifecycle, tags=excluded.tags, risk_score=excluded.risk_score, vulnerability_count=excluded.vulnerability_count, open_ports=excluded.open_ports, software=excluded.software, first_seen=excluded.first_seen, last_seen=excluded.last_seen, synced=excluded.synced WHERE managed_assets.synced=1 AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type='asset' AND entity_id=managed_assets.id)", rusqlite::params![item.id, item.ip, item.hostname, item.mac, item.vendor, item.device_type, item.criticality, item.lifecycle, item.tags, item.risk_score, item.vulnerability_count, item.open_ports, item.software, item.first_seen, item.last_seen, 1])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            tx.commit().map_err(|e| StorageError::Query(e.to_string()))
+        }).await
+    }
+
     pub fn new(db: &'a Database) -> Self {
         Self { db }
     }
@@ -426,6 +498,32 @@ pub struct AlertRuleRepository<'a> {
 }
 
 impl<'a> AlertRuleRepository<'a> {
+    /// Apply remote records without overwriting dirty local edits or pending deletes.
+    /// Only callers with a complete, unfiltered response may remove absent records.
+    pub async fn reconcile_remote(
+        &self,
+        items: &[StoredAlertRule],
+        complete: bool,
+    ) -> StorageResult<()> {
+        let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
+            .map_err(|e| StorageError::Query(e.to_string()))?;
+        self.db.with_connection_mut(|conn| {
+            let tx = conn.transaction().map_err(|e| StorageError::Query(e.to_string()))?;
+            if complete {
+                tx.execute("DELETE FROM alert_rules WHERE synced=1 AND id NOT IN (SELECT value FROM json_each(?1)) AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type='alert_rule' AND entity_id=alert_rules.id)", [&ids])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            for item in items {
+                let deleted: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM sync_queue WHERE entity_type='alert_rule_delete' AND entity_id=?1)", [&item.id], |row| row.get(0))
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+                if deleted { continue; }
+                tx.execute("INSERT INTO alert_rules (id, name, rule_type, severity_threshold, detection_types, escalation_minutes, enabled, created_at, synced) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) ON CONFLICT(id) DO UPDATE SET name=excluded.name, rule_type=excluded.rule_type, severity_threshold=excluded.severity_threshold, detection_types=excluded.detection_types, escalation_minutes=excluded.escalation_minutes, enabled=excluded.enabled, created_at=excluded.created_at, synced=excluded.synced WHERE alert_rules.synced=1 AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type='alert_rule' AND entity_id=alert_rules.id)", rusqlite::params![item.id, item.name, item.rule_type, item.severity_threshold, item.detection_types, item.escalation_minutes, item.enabled, item.created_at, 1])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            tx.commit().map_err(|e| StorageError::Query(e.to_string()))
+        }).await
+    }
+
     pub fn new(db: &'a Database) -> Self {
         Self { db }
     }
@@ -516,6 +614,32 @@ pub struct WebhookRepository<'a> {
 }
 
 impl<'a> WebhookRepository<'a> {
+    /// Apply remote records without overwriting dirty local edits or pending deletes.
+    /// Only callers with a complete, unfiltered response may remove absent records.
+    pub async fn reconcile_remote(
+        &self,
+        items: &[StoredWebhook],
+        complete: bool,
+    ) -> StorageResult<()> {
+        let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
+            .map_err(|e| StorageError::Query(e.to_string()))?;
+        self.db.with_connection_mut(|conn| {
+            let tx = conn.transaction().map_err(|e| StorageError::Query(e.to_string()))?;
+            if complete {
+                tx.execute("DELETE FROM webhooks WHERE synced=1 AND id NOT IN (SELECT value FROM json_each(?1)) AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type='webhook' AND entity_id=webhooks.id)", [&ids])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            for item in items {
+                let deleted: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM sync_queue WHERE entity_type='webhook_delete' AND entity_id=?1)", [&item.id], |row| row.get(0))
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+                if deleted { continue; }
+                tx.execute("INSERT INTO webhooks (id, name, url, events, secret, enabled, created_at, updated_at, synced) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) ON CONFLICT(id) DO UPDATE SET name=excluded.name, url=excluded.url, events=excluded.events, secret=excluded.secret, enabled=excluded.enabled, created_at=excluded.created_at, updated_at=excluded.updated_at, synced=excluded.synced WHERE webhooks.synced=1 AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type='webhook' AND entity_id=webhooks.id)", rusqlite::params![item.id, item.name, item.url, item.events, item.secret, item.enabled, item.created_at, item.updated_at, 1])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            tx.commit().map_err(|e| StorageError::Query(e.to_string()))
+        }).await
+    }
+
     pub fn new(db: &'a Database) -> Self {
         Self { db }
     }
@@ -553,7 +677,7 @@ impl<'a> WebhookRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let mut stmt = conn
-                    .prepare("SELECT * FROM webhooks")
+                    .prepare("SELECT id, name, url, events, secret, enabled, created_at, updated_at, synced FROM webhooks")
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
                 let rows = stmt
                     .query_map([], |row| {
@@ -615,6 +739,26 @@ pub struct DetectionRuleRepository<'a> {
 }
 
 impl<'a> DetectionRuleRepository<'a> {
+    /// Apply a complete platform snapshot atomically. Pending local edits survive;
+    /// only acknowledged records absent from the platform are deleted.
+    pub async fn reconcile_snapshot(&self, items: &[StoredDetectionRule]) -> StorageResult<()> {
+        let ids = serde_json::to_string(&items.iter().map(|item| &item.id).collect::<Vec<_>>())
+            .map_err(|e| StorageError::Query(e.to_string()))?;
+        self.db.with_connection_mut(|conn| {
+            let tx = conn.transaction().map_err(|e| StorageError::Query(e.to_string()))?;
+            tx.execute("DELETE FROM detection_rules WHERE synced = 1 AND id NOT IN (SELECT value FROM json_each(?1)) AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type = 'detection_rule' AND entity_id = detection_rules.id)", [&ids])
+                .map_err(|e| StorageError::Query(e.to_string()))?;
+            for item in items {
+                let deleted: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM sync_queue WHERE entity_type = 'detection_rule_delete' AND entity_id = ?1)", [&item.id], |row| row.get(0))
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+                if deleted { continue; }
+                tx.execute("INSERT INTO detection_rules (id, name, description, severity, conditions, actions, enabled, created_at, last_match, match_count, synced) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11) ON CONFLICT(id) DO UPDATE SET name=excluded.name, description=excluded.description, severity=excluded.severity, conditions=excluded.conditions, actions=excluded.actions, enabled=excluded.enabled, created_at=excluded.created_at, last_match=excluded.last_match, match_count=excluded.match_count, synced=excluded.synced WHERE detection_rules.synced = 1 AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_type = 'detection_rule' AND entity_id = detection_rules.id)", rusqlite::params![item.id, item.name, item.description, item.severity, item.conditions, item.actions, i32::from(item.enabled), item.created_at, item.last_match, item.match_count, 1])
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+            }
+            tx.commit().map_err(|e| StorageError::Query(e.to_string()))
+        }).await
+    }
+
     pub fn new(db: &'a Database) -> Self {
         Self { db }
     }

@@ -1,0 +1,75 @@
+[
+  {
+    "date": "2026-09-25",
+    "lines": 7433,
+    "levels": {
+      "WARN": 842,
+      "INFO": 6591
+    },
+    "first": "2026-09-25T00:49:21.971722Z",
+    "last": "2026-09-25T23:47:49.102667Z",
+    "counts": {
+      "network_alert_batches": 647,
+      "correlation_alert_batches": 129,
+      "inference_timeout_initial": 7,
+      "inference_timeout_retry": 7,
+      "whisper_load_failure": 4,
+      "voice_capture_failure": 0,
+      "tts_timeout": 0,
+      "unsigned_update_warning": 2,
+      "model_download_failed": 0,
+      "resource_limit_exceeded": 5,
+      "gpu_cpu_paged_attention": 15,
+      "gpo_check_failed": 17
+    }
+  },
+  {
+    "date": "2026-09-26",
+    "lines": 8353,
+    "levels": {
+      "WARN": 980,
+      "INFO": 7371,
+      "ERROR": 2
+    },
+    "first": "2026-09-26T02:03:44.598201Z",
+    "last": "2026-09-26T23:59:42.529682Z",
+    "counts": {
+      "network_alert_batches": 783,
+      "correlation_alert_batches": 125,
+      "inference_timeout_initial": 3,
+      "inference_timeout_retry": 2,
+      "whisper_load_failure": 7,
+      "voice_capture_failure": 10,
+      "tts_timeout": 6,
+      "unsigned_update_warning": 4,
+      "model_download_failed": 2,
+      "resource_limit_exceeded": 8,
+      "gpu_cpu_paged_attention": 8,
+      "gpo_check_failed": 20
+    }
+  },
+  {
+    "date": "2026-09-27",
+    "lines": 299,
+    "levels": {
+      "INFO": 250,
+      "WARN": 49
+    },
+    "first": "2026-09-27T00:00:02.659630Z",
+    "last": "2026-09-27T08:34:21.012751Z",
+    "counts": {
+      "network_alert_batches": 29,
+      "correlation_alert_batches": 20,
+      "inference_timeout_initial": 0,
+      "inference_timeout_retry": 0,
+      "whisper_load_failure": 0,
+      "voice_capture_failure": 0,
+      "tts_timeout": 0,
+      "unsigned_update_warning": 0,
+      "model_download_failed": 0,
+      "resource_limit_exceeded": 0,
+      "gpu_cpu_paged_attention": 0,
+      "gpo_check_failed": 0
+    }
+  }
+]

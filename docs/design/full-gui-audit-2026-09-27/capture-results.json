@@ -1,0 +1,472 @@
+[
+  {
+    "name": "dashboard-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "dashboard-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "monitoring-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "monitoring-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "monitoring-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "monitoring-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "compliance-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "compliance-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "compliance-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "compliance-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "software-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "software-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "software-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "software-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "vulnerabilities-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "vulnerabilities-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "fim-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "fim-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-2-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-2-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-3-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-3-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-4-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-4-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-5-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-5-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-6-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-6-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-7-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "threats-7-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "audit-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "audit-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "network-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "network-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "network-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "network-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "network-2-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "network-2-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "discovery-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "discovery-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "cartography-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "cartography-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "assets-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "assets-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "risks-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "risks-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "reports-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "reports-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "reports-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "reports-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "reports-2-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "reports-2-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "reports-3-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "reports-3-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "notifications-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "notifications-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "notifications-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "notifications-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "notifications-2-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "notifications-2-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "sync-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "sync-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "terminal-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "terminal-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "settings-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "settings-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "settings-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "settings-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "settings-2-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "settings-2-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "settings-3-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "settings-3-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-2-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-2-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-3-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-3-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-4-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "orchestration-4-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "about-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "about-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "ai-0-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "ai-0-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "ai-1-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "ai-1-dark",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "ai-2-light",
+    "exit": 0,
+    "capture": true
+  },
+  {
+    "name": "ai-2-dark",
+    "exit": 0,
+    "capture": true
+  }
+]

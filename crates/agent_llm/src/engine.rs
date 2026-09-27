@@ -246,14 +246,14 @@ impl ResponseCache {
         let age = chrono::Utc::now().signed_duration_since(entry.cached_at);
         let ttl_seconds = self.config.ttl_hours.saturating_mul(3600);
         if age < chrono::Duration::zero() || age.num_seconds() as u64 >= ttl_seconds {
-            if let Ok(meta) = std::fs::metadata(&path) {
-                if std::fs::remove_file(&path).is_ok() {
-                    let _ = self.cached_size.fetch_update(
-                        std::sync::atomic::Ordering::Relaxed,
-                        std::sync::atomic::Ordering::Relaxed,
-                        |size| Some(size.saturating_sub(meta.len())),
-                    );
-                }
+            if let Ok(meta) = std::fs::metadata(&path)
+                && std::fs::remove_file(&path).is_ok()
+            {
+                let _ = self.cached_size.fetch_update(
+                    std::sync::atomic::Ordering::Relaxed,
+                    std::sync::atomic::Ordering::Relaxed,
+                    |size| Some(size.saturating_sub(meta.len())),
+                );
             }
             return None;
         }

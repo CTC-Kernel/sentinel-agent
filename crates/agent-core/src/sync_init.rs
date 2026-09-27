@@ -40,7 +40,7 @@ impl AgentRuntime {
         *self.audit_sync.write().await = Some(audit_sync);
 
         // Initialize command results service
-        let command_results = CommandResultsService::new(auth_client.clone());
+        let command_results = CommandResultsService::new(auth_client.clone(), db.clone());
         *self.command_results.write().await = Some(command_results);
 
         // Initialize GRC sync orchestrator (processes queued playbooks, risks, assets, etc.)
@@ -275,12 +275,8 @@ impl AgentRuntime {
 
         match client.fetch_detection_rules().await {
             Ok(rules) => {
-                if rules.is_empty() {
-                    debug!("No central detection rules to download");
-                    return;
-                }
                 let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(db);
-                let mut count = 0u32;
+                let mut snapshot = Vec::new();
                 for r in &rules {
                     let stored = agent_storage::repositories::grc::StoredDetectionRule {
                         id: r.id.clone(),
@@ -307,13 +303,11 @@ impl AgentRuntime {
                         match_count: r.match_count.min(i32::MAX as u32) as i32,
                         synced: true,
                     };
-                    if let Err(e) = repo.upsert(&stored).await {
-                        warn!("Failed to upsert central detection rule {}: {}", r.id, e);
-                    } else {
-                        count += 1;
-                    }
+                    snapshot.push(stored);
                 }
-                info!("Downloaded {} central detection rules from platform", count);
+                if let Err(e) = repo.reconcile_snapshot(&snapshot).await {
+                    warn!("Failed to reconcile platform EDR snapshot: {}", e);
+                }
             }
             Err(e) => warn!("Failed to fetch central detection rules: {}", e),
         }
@@ -328,12 +322,8 @@ impl AgentRuntime {
 
         match client.fetch_playbooks().await {
             Ok(playbooks) => {
-                if playbooks.is_empty() {
-                    debug!("No central playbooks to download");
-                    return;
-                }
                 let repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
-                let mut count = 0u32;
+                let mut snapshot = Vec::new();
                 let now = chrono::Utc::now().to_rfc3339();
                 for p in &playbooks {
                     let stored = agent_storage::repositories::grc::StoredPlaybook {
@@ -358,13 +348,11 @@ impl AgentRuntime {
                             "[]".to_string()
                         }),
                     };
-                    if let Err(e) = repo.upsert(&stored).await {
-                        warn!("Failed to upsert central playbook {}: {}", p.id, e);
-                    } else {
-                        count += 1;
-                    }
+                    snapshot.push(stored);
                 }
-                info!("Downloaded {} central playbooks from platform", count);
+                if let Err(e) = repo.reconcile_snapshot(&snapshot).await {
+                    warn!("Failed to reconcile platform EDR snapshot: {}", e);
+                }
             }
             Err(e) => warn!("Failed to fetch central playbooks: {}", e),
         }
@@ -407,7 +395,7 @@ impl AgentRuntime {
                         created_at: r.created_at.to_rfc3339(),
                         synced: true,
                     };
-                    if let Err(e) = repo.upsert(&stored).await {
+                    if let Err(e) = repo.reconcile_remote(&[stored], false).await {
                         warn!("Failed to upsert central alert rule {}: {}", r.id, e);
                     } else {
                         count += 1;
@@ -422,10 +410,16 @@ impl AgentRuntime {
     /// Get the count of pending sync items for the heartbeat.
     pub(crate) async fn get_pending_sync_count(&self) -> i64 {
         let uploader = self.result_uploader.read().await;
-        if let Some(ref uploader) = *uploader {
+        let results = if let Some(ref uploader) = *uploader {
             uploader.pending_count().await.unwrap_or(0)
         } else {
             0
-        }
+        };
+        let commands = if let Some(service) = self.command_results.read().await.as_ref() {
+            service.pending_count().await.unwrap_or(0)
+        } else {
+            0
+        };
+        results + commands
     }
 }

@@ -30,8 +30,8 @@ impl AgentRuntime {
 
         let mut gui_assets: Vec<agent_gui::dto::ManagedAsset> = stored
             .iter()
-            .filter_map(|s| {
-                let id = uuid::Uuid::parse_str(&s.id).ok()?;
+            .map(|s| {
+                let id = s.id.clone();
                 let first_seen = chrono::DateTime::parse_from_rfc3339(&s.first_seen)
                     .map(|dt| dt.with_timezone(&chrono::Utc))
                     .unwrap_or_else(|_| chrono::Utc::now());
@@ -55,7 +55,7 @@ impl AgentRuntime {
                     _ => agent_gui::dto::AssetLifecycle::Discovered,
                 };
 
-                Some(agent_gui::dto::ManagedAsset {
+                agent_gui::dto::ManagedAsset {
                     id,
                     ip: s.ip.clone(),
                     hostname: s.hostname.clone(),
@@ -71,7 +71,7 @@ impl AgentRuntime {
                     software: serde_json::from_str(&s.software).unwrap_or_default(),
                     first_seen,
                     last_seen,
-                })
+                }
             })
             .collect();
 
@@ -118,26 +118,22 @@ impl AgentRuntime {
         let pb_repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
         if let Ok(stored_pbs) = pb_repo.get_all().await {
             let playbooks = crate::threat_pipeline::stored_playbooks_to_dto(&stored_pbs);
-            if !playbooks.is_empty() {
-                info!(
-                    "Loaded {} playbook(s) from SQLite into GUI",
-                    playbooks.len()
-                );
-                self.emit_gui_event(agent_gui::events::AgentEvent::PlaybooksLoaded { playbooks });
-            }
+            info!(
+                "Loaded {} playbook(s) from SQLite into GUI",
+                playbooks.len()
+            );
+            self.emit_gui_event(agent_gui::events::AgentEvent::PlaybooksLoaded { playbooks });
         }
 
         // Also load detection rules from SQLite
         let rule_repo = agent_storage::repositories::grc::DetectionRuleRepository::new(db);
         if let Ok(stored_rules) = rule_repo.get_all().await {
             let rules = crate::threat_pipeline::stored_rules_to_dto(&stored_rules);
-            if !rules.is_empty() {
-                info!(
-                    "Loaded {} detection rule(s) from SQLite into GUI",
-                    rules.len()
-                );
-                self.emit_gui_event(agent_gui::events::AgentEvent::DetectionRulesLoaded { rules });
-            }
+            info!(
+                "Loaded {} detection rule(s) from SQLite into GUI",
+                rules.len()
+            );
+            self.emit_gui_event(agent_gui::events::AgentEvent::DetectionRulesLoaded { rules });
         }
 
         // Also load alert rules and webhooks from SQLite
@@ -149,8 +145,8 @@ impl AgentRuntime {
 
             let gui_rules: Vec<agent_gui::dto::AlertRule> = stored_rules
                 .iter()
-                .filter_map(|s| {
-                    let id = uuid::Uuid::parse_str(&s.id).ok()?;
+                .map(|s| {
+                    let id = s.id.clone();
                     let severity_threshold = s.severity_threshold.as_deref().map(|sev| match sev {
                         "critical" | "Critical" => agent_gui::dto::Severity::Critical,
                         "high" | "High" => agent_gui::dto::Severity::High,
@@ -159,8 +155,10 @@ impl AgentRuntime {
                         _ => agent_gui::dto::Severity::Medium,
                     });
                     let rule_type = match s.rule_type.as_str() {
-                        "TypeFilter" => agent_gui::dto::AlertRuleType::TypeFilter,
-                        "EscalationDelay" => agent_gui::dto::AlertRuleType::EscalationDelay,
+                        "TypeFilter" | "DetectionType" => agent_gui::dto::AlertRuleType::TypeFilter,
+                        "EscalationDelay" | "Escalation" => {
+                            agent_gui::dto::AlertRuleType::EscalationDelay
+                        }
                         _ => agent_gui::dto::AlertRuleType::SeverityThreshold,
                     };
                     let detection_types: Vec<String> =
@@ -169,7 +167,7 @@ impl AgentRuntime {
                         .map(|dt| dt.with_timezone(&chrono::Utc))
                         .unwrap_or_else(|_| chrono::Utc::now());
 
-                    Some(agent_gui::dto::AlertRule {
+                    agent_gui::dto::AlertRule {
                         id,
                         name: s.name.clone(),
                         rule_type,
@@ -178,15 +176,15 @@ impl AgentRuntime {
                         escalation_minutes: s.escalation_minutes.map(|v| v as u32),
                         enabled: s.enabled,
                         created_at,
-                    })
+                    }
                 })
                 .collect();
 
             let gui_webhooks: Vec<agent_gui::dto::WebhookConfig> = stored_webhooks
                 .iter()
-                .filter_map(|s| {
-                    let id = uuid::Uuid::parse_str(&s.id).ok()?;
-                    Some(agent_gui::dto::WebhookConfig {
+                .map(|s| {
+                    let id = s.id.clone();
+                    agent_gui::dto::WebhookConfig {
                         id,
                         name: s.name.clone(),
                         url: s.url.clone(),
@@ -194,18 +192,11 @@ impl AgentRuntime {
                         enabled: s.enabled,
                         last_sent: None,
                         error: None,
-                    })
+                    }
                 })
                 .collect();
 
-            if !gui_rules.is_empty() || !gui_webhooks.is_empty() {
-                info!(
-                    "Loaded {} alert rule(s) and {} webhook(s) from SQLite into GUI",
-                    gui_rules.len(),
-                    gui_webhooks.len()
-                );
-                self.emit_alerting_loaded(gui_rules, gui_webhooks);
-            }
+            self.emit_alerting_loaded(gui_rules, gui_webhooks);
         }
 
         // Also load risks from SQLite so the Risks page is populated at startup
@@ -213,8 +204,8 @@ impl AgentRuntime {
         if let Ok(stored_risks) = risk_repo.get_all().await {
             let gui_risks: Vec<agent_gui::dto::RiskEntry> = stored_risks
                 .iter()
-                .filter_map(|s| {
-                    let id = uuid::Uuid::parse_str(&s.id).ok()?;
+                .map(|s| {
+                    let id = s.id.clone();
                     let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
                         .map(|dt| dt.with_timezone(&chrono::Utc))
                         .unwrap_or_else(|_| chrono::Utc::now());
@@ -227,7 +218,7 @@ impl AgentRuntime {
                         "closed" => agent_gui::dto::RiskStatus::Closed,
                         _ => agent_gui::dto::RiskStatus::Open,
                     };
-                    Some(agent_gui::dto::RiskEntry {
+                    agent_gui::dto::RiskEntry {
                         id,
                         title: s.title.clone(),
                         description: s.description.clone(),
@@ -240,16 +231,11 @@ impl AgentRuntime {
                         created_at,
                         updated_at,
                         sla_target_days: s.sla_target_days.map(|v| v as u32),
-                    })
+                    }
                 })
                 .collect();
 
-            if !gui_risks.is_empty() {
-                info!("Loaded {} risk(s) from SQLite into GUI", gui_risks.len());
-                self.emit_gui_event(agent_gui::events::AgentEvent::RisksLoaded {
-                    risks: gui_risks,
-                });
-            }
+            self.emit_gui_event(agent_gui::events::AgentEvent::RisksSnapshot { risks: gui_risks });
         }
 
         // Re-enqueue unsynced entities to ensure they reach the platform.
@@ -352,7 +338,7 @@ impl AgentRuntime {
         &self,
         s: &agent_storage::repositories::grc::StoredManagedAsset,
     ) -> agent_gui::dto::ManagedAsset {
-        let id = uuid::Uuid::parse_str(&s.id).unwrap_or_else(|_| uuid::Uuid::new_v4());
+        let id = s.id.clone();
         let first_seen = chrono::DateTime::parse_from_rfc3339(&s.first_seen)
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or_else(|_| chrono::Utc::now());
@@ -416,7 +402,7 @@ impl AgentRuntime {
 
         let now = chrono::Utc::now();
         agent_gui::dto::ManagedAsset {
-            id: uuid::Uuid::new_v4(),
+            id: uuid::Uuid::new_v4().to_string(),
             ip,
             hostname: Some(hostname),
             mac: None,

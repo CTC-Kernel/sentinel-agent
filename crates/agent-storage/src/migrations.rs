@@ -14,7 +14,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 9;
+pub const CURRENT_SCHEMA_VERSION: i32 = 10;
 
 /// A database migration.
 struct Migration {
@@ -478,6 +478,12 @@ const MIGRATIONS: &[Migration] = &[
             ALTER TABLE playbooks_v8 RENAME TO playbooks;
         "#,
     },
+    Migration {
+        version: 10,
+        name: "command_result_outbox_and_webhook_columns",
+        up: "CREATE TABLE command_result_outbox (agent_id TEXT NOT NULL, command_id TEXT NOT NULL, payload TEXT NOT NULL, last_attempt_at INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')), PRIMARY KEY(agent_id, command_id)); ALTER TABLE webhooks RENAME COLUMN token TO secret; ALTER TABLE webhooks ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''; UPDATE webhooks SET updated_at=created_at; UPDATE sync_queue SET max_attempts=2147483647 WHERE entity_type LIKE '%_delete';",
+        down: "DROP TABLE IF EXISTS command_result_outbox; ALTER TABLE webhooks RENAME COLUMN secret TO token; ALTER TABLE webhooks DROP COLUMN updated_at;",
+    },
 ];
 
 /// Initialize the schema_version table if it doesn't exist.
@@ -820,9 +826,11 @@ mod tests {
 
         // Run migrations
         run_migrations(&mut conn).unwrap();
-        assert_eq!(get_schema_version(&conn).unwrap(), 9);
+        assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
 
-        // Rollback from v9 down to v0
+        // Rollback from v10 down to v0
+        rollback_migration(&mut conn, 10).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 9);
         rollback_migration(&mut conn, 9).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 8);
 
@@ -876,7 +884,7 @@ mod tests {
         run_migrations(&mut conn).unwrap();
 
         let migrations = get_applied_migrations(&conn).unwrap();
-        assert_eq!(migrations.len(), 9);
+        assert_eq!(migrations.len(), CURRENT_SCHEMA_VERSION as usize);
         assert_eq!(migrations[0].0, 1);
         assert_eq!(migrations[0].1, "initial_schema");
         assert_eq!(migrations[1].0, 2);

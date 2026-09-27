@@ -3,6 +3,7 @@
 
 //! EDR module — Detection, Investigation & Response.
 
+mod authorizations;
 mod detection_rules;
 mod events;
 mod forensic_timeline;
@@ -76,6 +77,7 @@ impl ThreatsPage {
             EdrTab::Playbooks => 4,
             EdrTab::DetectionRules => 5,
             EdrTab::ForensicTimeline => 6,
+            EdrTab::Authorizations => 7,
         };
 
         let mut event_tab = Tab::new("\u{00c9}v\u{00e9}nements").icon(icons::LIST);
@@ -103,6 +105,7 @@ impl ThreatsPage {
             playbooks_tab,
             rules_tab,
             Tab::new("Chronologie").icon(icons::CLOCK),
+            Tab::new("Autorisations").icon(icons::SHIELD_CHECK),
         ];
 
         if let Some(new_idx) = TabBar::new(tabs, selected_idx).full_width().show(ui) {
@@ -114,6 +117,7 @@ impl ThreatsPage {
                 4 => EdrTab::Playbooks,
                 5 => EdrTab::DetectionRules,
                 6 => EdrTab::ForensicTimeline,
+                7 => EdrTab::Authorizations,
                 _ => EdrTab::Overview,
             };
             // Clear shared selection and pagination when switching tabs
@@ -137,6 +141,7 @@ impl ThreatsPage {
             EdrTab::Playbooks => playbooks::show(ui, state),
             EdrTab::DetectionRules => detection_rules::show(ui, state),
             EdrTab::ForensicTimeline => forensic_timeline::show(ui, state),
+            EdrTab::Authorizations => authorizations::show(ui, state),
         }
     }
 }

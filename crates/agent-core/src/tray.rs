@@ -701,24 +701,15 @@ fn open_logs_folder() {
 
 /// Get the platform-specific logs path.
 fn get_logs_path() -> std::path::PathBuf {
-    #[cfg(target_os = "macos")]
-    {
-        directories::BaseDirs::new()
-            .map(|dirs| dirs.data_dir().join("SentinelGRC").join("logs"))
-            .unwrap_or_else(|| {
-                std::path::PathBuf::from("/Library/Application Support/SentinelGRC/logs")
-            })
+    if let Some(path) = crate::logging::active_log_dir() {
+        return path.to_path_buf();
     }
-
-    #[cfg(target_os = "windows")]
-    {
-        std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs")
-    }
-
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    {
-        std::path::PathBuf::from("/var/log/sentinel-grc")
-    }
+    // The tray normally starts after logging. Keep its fallback aligned with
+    // the logger on every platform, without creating directories on a read.
+    crate::logging::log_dir_candidates()
+        .into_iter()
+        .find(|path| path.is_dir())
+        .unwrap_or_else(|| std::env::temp_dir().join("sentinel-logs"))
 }
 
 /// Open a URL in the default browser (HTTPS only).

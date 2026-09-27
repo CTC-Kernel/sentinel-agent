@@ -29,12 +29,24 @@ const SYSTEM_CRITICAL_DIRS: &[&str] = &[
 ];
 
 /// Directory where quarantined files are stored.
+#[cfg(not(test))]
 fn quarantine_dir() -> PathBuf {
     directories::BaseDirs::new()
         .map(|dirs| dirs.data_local_dir().to_path_buf())
         .unwrap_or_else(std::env::temp_dir)
         .join("sentinel-grc")
         .join("quarantine")
+}
+
+// Tests must never write to the operator's real quarantine store. Each test
+// runtime runs on its own thread, and the temporary store is cleaned on exit.
+#[cfg(test)]
+thread_local! {
+    static TEST_QUARANTINE: tempfile::TempDir = tempfile::tempdir().expect("create isolated quarantine");
+}
+#[cfg(test)]
+fn quarantine_dir() -> PathBuf {
+    TEST_QUARANTINE.with(|directory| directory.path().to_path_buf())
 }
 
 /// Canonicalized paths that belong to the agent itself or to the operating
@@ -917,11 +929,7 @@ mod tests {
             .expect("quarantine should succeed");
 
         // Step 2: Patch the metadata to claim the original path is /bin/evil.
-        let qdir = directories::BaseDirs::new()
-            .map(|dirs| dirs.data_local_dir().to_path_buf())
-            .unwrap_or_else(std::env::temp_dir)
-            .join("sentinel-grc")
-            .join("quarantine");
+        let qdir = super::quarantine_dir();
 
         let meta_path = qdir.join(format!("{}.meta", quarantine_id));
         let patched_metadata = serde_json::json!({

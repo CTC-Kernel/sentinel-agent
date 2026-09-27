@@ -575,7 +575,7 @@ impl DiscoveryPage {
                 );
 
                 let asset = crate::dto::ManagedAsset {
-                    id: uuid::Uuid::new_v4(),
+                    id: uuid::Uuid::new_v4().to_string(),
                     ip: ip.clone(),
                     hostname: hostname.clone(),
                     mac: mac.clone(),

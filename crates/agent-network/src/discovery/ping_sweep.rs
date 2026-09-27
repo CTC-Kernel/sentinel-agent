@@ -43,6 +43,15 @@ impl PingSweeper {
         config: &PingSweepConfig,
         cancel: Arc<AtomicBool>,
     ) -> NetworkResult<Vec<String>> {
+        if config.max_concurrent == 0
+            || config.max_concurrent > 1024
+            || config.timeout_ms == 0
+            || config.timeout_ms > 60_000
+        {
+            return Err(NetworkError::Discovery(
+                "Ping concurrency must be 1..=1024 and timeout 1..=60000 ms".into(),
+            ));
+        }
         let hosts = Self::cidr_to_hosts(cidr)?;
         let total = hosts.len();
         debug!("Ping sweep: {} hosts in {}", total, cidr);
@@ -164,29 +173,28 @@ impl PingSweeper {
 
     /// Ping a single host and return whether it responded.
     async fn ping_host(ip: &str, timeout_ms: u64) -> bool {
-        let result = if cfg!(target_os = "macos") {
+        let mut command = silent_async_command("ping");
+        if cfg!(target_os = "macos") {
             // macOS: -W is in ms
-            silent_async_command("ping")
-                .args(["-c", "1", "-W", &timeout_ms.to_string(), ip])
-                .output()
-                .await
+            command.args(["-c", "1", "-W", &timeout_ms.to_string(), ip]);
         } else if cfg!(target_os = "windows") {
-            silent_async_command("ping")
-                .args(["-n", "1", "-w", &timeout_ms.to_string(), ip])
-                .output()
-                .await
+            command.args(["-n", "1", "-w", &timeout_ms.to_string(), ip]);
         } else {
             // Linux: -W is in seconds, convert
             let timeout_secs = std::cmp::max(1, timeout_ms.div_ceil(1000));
-            silent_async_command("ping")
-                .args(["-c", "1", "-W", &timeout_secs.to_string(), ip])
-                .output()
-                .await
-        };
+            command.args(["-c", "1", "-W", &timeout_secs.to_string(), ip]);
+        }
+        // Bound the subprocess as well as the ICMP wait; cancellation kills it.
+        command.kill_on_drop(true);
+        let result = tokio::time::timeout(
+            std::time::Duration::from_millis(timeout_ms.saturating_add(1000)),
+            command.output(),
+        )
+        .await;
 
         match result {
-            Ok(output) => output.status.success(),
-            Err(_) => false,
+            Ok(Ok(output)) => output.status.success(),
+            _ => false,
         }
     }
 }
@@ -194,6 +202,25 @@ impl PingSweeper {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn invalid_sweep_config_fails_without_spawning_or_hanging() {
+        for (max_concurrent, timeout_ms) in [(0, 500), (1025, 500), (1, 0), (1, u64::MAX)] {
+            let result = tokio::time::timeout(
+                std::time::Duration::from_millis(100),
+                PingSweeper::sweep(
+                    "127.0.0.1/32",
+                    &PingSweepConfig {
+                        max_concurrent,
+                        timeout_ms,
+                    },
+                    Arc::new(AtomicBool::new(false)),
+                ),
+            )
+            .await;
+            assert!(result.unwrap().is_err());
+        }
+    }
 
     #[test]
     fn test_cidr_to_hosts_24() {

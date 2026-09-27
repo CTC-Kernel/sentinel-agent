@@ -21,7 +21,17 @@ const UNSAFE_PATH_CHARS: [char; 23] = [
 /// Returns `Ok(())` if the path is safe, or an `Err` with a description of the
 /// problem if it contains dangerous characters.
 fn validate_installer_path(path_str: &str) -> Result<()> {
-    if path_str.contains(UNSAFE_PATH_CHARS) {
+    validate_installer_path_for_platform(path_str, cfg!(target_os = "windows"))
+}
+
+fn validate_installer_path_for_platform(path_str: &str, windows: bool) -> Result<()> {
+    // Windows separators are literal arguments to msiexec, never shell escapes.
+    if path_str.is_empty()
+        || path_str.contains('\0')
+        || path_str
+            .chars()
+            .any(|c| UNSAFE_PATH_CHARS.contains(&c) && !(windows && c == '\\'))
+    {
         return Err(CommonError::validation(format!(
             "Installer path contains unsafe characters: {}",
             path_str
@@ -469,6 +479,20 @@ impl UpdateManager {
 mod tests {
     use super::*;
 
+    #[test]
+    fn windows_installer_accepts_native_separators_without_allowing_injection() {
+        assert!(
+            validate_installer_path_for_platform(
+                r"C:\Users\Alice\AppData\Local\Temp\Sentinel.msi",
+                true
+            )
+            .is_ok()
+        );
+        assert!(validate_installer_path_for_platform(r"C:\Temp\bad&command.msi", true).is_err());
+        assert!(validate_installer_path_for_platform("", true).is_err());
+        assert!(validate_installer_path_for_platform("/tmp/pkg\0.pkg", false).is_err());
+    }
+
     // ── installer path: shell metacharacter rejection ───────────────────
 
     #[test]
@@ -494,7 +518,7 @@ mod tests {
         ];
 
         for path in &dangerous_paths {
-            let result = validate_installer_path(path);
+            let result = validate_installer_path_for_platform(path, false);
             assert!(
                 result.is_err(),
                 "Path '{}' should be rejected for containing shell metacharacters",

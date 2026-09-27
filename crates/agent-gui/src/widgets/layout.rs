@@ -40,7 +40,7 @@ impl ResponsiveGrid {
         // Calculate max columns that can fit
         let mut cols =
             ((total_width + self.gap) / (self.min_item_width + self.gap)).floor() as usize;
-        cols = cols.max(1);
+        cols = cols.clamp(1, 4);
 
         // Calculate item width based on actual columns
         let item_width = (total_width - (self.gap * (cols - 1) as f32)) / cols as f32;
@@ -48,30 +48,10 @@ impl ResponsiveGrid {
         (cols, item_width)
     }
 
-    /// Columns for `count` items, and the width each gets.
-    ///
-    /// Never an empty column: two cards on a wide display share the row
-    /// instead of sitting at minimum width beside 600px of nothing. And never
-    /// a lone orphan on the last row when one column fewer balances the rows:
-    /// four stat cards at three columns become two by two, not three and one.
+    /// Up to four columns when they fit; a single item fills the available row.
     pub fn columns_for(&self, ui: &Ui, count: usize) -> (usize, f32) {
         let (max_cols, _) = self.calculate(ui);
-        let mut cols = max_cols.min(count.max(1));
-        if count > cols {
-            // Same number of rows, fullest last row: 7 cards at 5 columns
-            // become 4 + 3, 8 become 4 + 4, 4 at 3 become 2 + 2.
-            let rows = count.div_ceil(cols);
-            let fullness = |c: usize| (count - (rows - 1) * c) as f32 / c as f32;
-            cols = (max_cols.saturating_sub(2).max(2)..=cols)
-                .filter(|&c| count.div_ceil(c) == rows)
-                .max_by(|&a, &b| {
-                    fullness(a)
-                        .partial_cmp(&fullness(b))
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                        .then(a.cmp(&b))
-                })
-                .unwrap_or(cols);
-        }
+        let cols = max_cols.min(count.max(1));
         let total = (ui.available_width() - 12.0).max(0.0);
         (cols, (total - self.gap * (cols - 1) as f32) / cols as f32)
     }
@@ -131,6 +111,20 @@ mod tests {
                         egui::CentralPanel::default().show(ctx, |ui| {
                             let bounds = ui.available_rect_before_wrap();
                             let mut rects = Vec::new();
+                            assert_eq!(
+                                ResponsiveGrid::new(158.0, theme::SPACE_SM)
+                                    .columns_for(ui, 3)
+                                    .0,
+                                3
+                            );
+                            if width >= 960.0 {
+                                assert_eq!(
+                                    ResponsiveGrid::new(200.0, theme::SPACE_SM)
+                                        .columns_for(ui, 4)
+                                        .0,
+                                    4
+                                );
+                            }
                             ResponsiveGrid::new(158.0, theme::SPACE_SM).show(
                                 ui,
                                 &[0, 1, 2],

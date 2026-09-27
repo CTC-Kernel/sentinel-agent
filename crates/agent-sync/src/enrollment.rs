@@ -448,6 +448,7 @@ mod tests {
         // Store some credentials first
         let credentials_repo = CredentialsRepository::new(&db);
         let credentials = StoredCredentials {
+            hmac_secret: None,
             agent_id: Uuid::new_v4(),
             organization_id: Uuid::new_v4(),
             client_certificate: "cert".to_string(),
@@ -474,6 +475,7 @@ mod tests {
         // Store credentials
         let credentials_repo = CredentialsRepository::new(&db);
         let stored = StoredCredentials {
+            hmac_secret: None,
             agent_id: Uuid::new_v4(),
             organization_id: Uuid::new_v4(),
             client_certificate: "cert".to_string(),

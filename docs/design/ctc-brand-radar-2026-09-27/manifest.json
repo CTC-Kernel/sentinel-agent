@@ -1,0 +1,10 @@
+[
+  {
+    "file": "light.png",
+    "sha256": "e24f06b81fa43a16bd49dfe2433fcd6a5742763e7a9d6c5319a99bae7290c294"
+  },
+  {
+    "file": "dark.png",
+    "sha256": "aee79aacaccdec4ce73f346d0c065e0881d0e7c2133d55430253158aa28302d2"
+  }
+]

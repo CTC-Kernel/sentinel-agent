@@ -637,7 +637,7 @@ impl AssetsPage {
             let criticality = Self::infer_criticality(device);
 
             let asset = ManagedAsset {
-                id: uuid::Uuid::new_v4(),
+                id: uuid::Uuid::new_v4().to_string(),
                 ip: device.ip.clone(),
                 hostname: device.hostname.clone(),
                 mac: device.mac.clone(),
@@ -828,7 +828,7 @@ impl AssetsPage {
                             .unwrap_or(AssetCriticality::Medium);
                         let now = Utc::now();
                         let asset = ManagedAsset {
-                            id: Uuid::new_v4(),
+                            id: Uuid::new_v4().to_string(),
                             ip: f.ip.trim().to_string(),
                             hostname: if f.hostname.trim().is_empty() {
                                 None

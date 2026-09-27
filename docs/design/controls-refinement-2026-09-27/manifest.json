@@ -1,0 +1,18 @@
+[
+  {
+    "file": "threats-light.png",
+    "sha256": "49849ef0ccbecb701649bb220edbcf5a5fc4b5ae7b2b8c4c1b06b53b5d947206"
+  },
+  {
+    "file": "threats-dark.png",
+    "sha256": "69251ec9b10f810ae8ca33adbdeba01369b4fb08511a02ca2024987321ba4396"
+  },
+  {
+    "file": "settings-light.png",
+    "sha256": "075c6a6ee49ed060c5d8952c4067821bd6cbc596cbeb076cad248e77dc71de68"
+  },
+  {
+    "file": "settings-dark.png",
+    "sha256": "f140391eceeca6753f3c76143697e5268d6872c8653adf2410c615e40874077e"
+  }
+]

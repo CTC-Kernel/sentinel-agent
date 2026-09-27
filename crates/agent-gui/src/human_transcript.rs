@@ -383,6 +383,7 @@ pub fn explain_vulnerability(
 }
 
 /// Render a pedagogical human-readable explanation card inside a UI / detail drawer.
+#[cfg(feature = "render")]
 pub fn render_human_explanation_card(ui: &mut egui::Ui, exp: &HumanEventExplanation) {
     ui.add_space(crate::theme::SPACE_SM);
     crate::widgets::detail_section(ui, "COMPRÉHENSION & IMPACT HUMAIN");

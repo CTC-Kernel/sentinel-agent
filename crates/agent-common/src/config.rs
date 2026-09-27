@@ -562,6 +562,17 @@ impl AgentConfig {
         let url = Url::parse(&self.server_url).map_err(|e| {
             crate::error::CommonError::validation(format!("server_url is not a valid URL: {}", e))
         })?;
+        if !matches!(url.scheme(), "http" | "https")
+            || url.host_str().is_none()
+            || !url.username().is_empty()
+            || url.password().is_some()
+            || url.query().is_some()
+            || url.fragment().is_some()
+        {
+            return Err(crate::error::CommonError::validation(
+                "server_url must be an HTTP(S) endpoint without credentials, query or fragment",
+            ));
+        }
 
         // SECURITY: Enforce HTTPS scheme in release builds to prevent plaintext communication
         #[cfg(not(debug_assertions))]
@@ -573,7 +584,7 @@ impl AgentConfig {
 
         // Anti-Draper: Detect missing function name in direct GCF URLs (prevents 404)
         if let Some(host) = url.host_str()
-            && host.ends_with("cloudfunctions.net")
+            && (host == "cloudfunctions.net" || host.ends_with(".cloudfunctions.net"))
             && url.path() == "/"
         {
             return Err(crate::error::CommonError::validation(
@@ -662,11 +673,11 @@ impl AgentConfig {
 
     /// Same as [`Self::persist_server_url`] but targets an explicit file path.
     pub fn persist_server_url_to(path: &Path, server_url: &str) -> crate::error::Result<()> {
-        use crate::error::CommonError;
-
-        Url::parse(server_url).map_err(|e| {
-            CommonError::validation(format!("server_url is not a valid URL: {}", e))
-        })?;
+        AgentConfig {
+            server_url: server_url.to_string(),
+            ..Default::default()
+        }
+        .validate_server_url()?;
         Self::persist_value_to(
             path,
             "server_url",
@@ -1268,6 +1279,20 @@ mod tests {
         let path = dir.path().join("agent.json");
         assert!(AgentConfig::persist_server_url_to(&path, "not a url").is_err());
         assert!(!path.exists());
+        for invalid in [
+            "file:///tmp/agent",
+            "ftp://example.com",
+            "https://example.com?token=x",
+            "https://example.com#fragment",
+            "https://user:pass@example.com",
+            "https://region-project.cloudfunctions.net/",
+        ] {
+            assert!(
+                AgentConfig::persist_server_url_to(&path, invalid).is_err(),
+                "{invalid}"
+            );
+            assert!(!path.exists());
+        }
 
         std::fs::write(&path, "{ broken").unwrap();
         assert!(AgentConfig::persist_server_url_to(&path, "https://ok.example.com").is_err());

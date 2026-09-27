@@ -143,7 +143,18 @@ impl eframe::App for Preview {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if !self.started {
             theme::apply_theme(ctx, self.dark);
+            if let Some(state) = self.state.as_mut() {
+                state.settings.dark_mode = self.dark;
+            }
             egui_extras::install_image_loaders(ctx);
+            if self.requested == "orchestration" {
+                let tab = std::env::var("PREVIEW_TAB")
+                    .ok()
+                    .and_then(|v| v.parse::<u8>().ok())
+                    .unwrap_or(0)
+                    .min(4);
+                ctx.data_mut(|d| d.insert_temp(egui::Id::new("orchestration_workspace_view"), tab));
+            }
             self.started = true;
         }
 
@@ -264,7 +275,18 @@ impl eframe::App for Preview {
                     .inner_margin(egui::Margin::symmetric(0, theme::SPACE_LG as i8)),
             )
             .show(ctx, |ui| {
-                agent_gui::app::page_scroll_area(&self.page).show(ui, |ui| {
+                theme::paint_workspace_backdrop(ui.painter(), ui.max_rect());
+                let mut scroll = agent_gui::app::page_scroll_area(&self.page);
+                if self.shot_after.is_some() {
+                    scroll = scroll.vertical_scroll_offset(
+                        std::env::var("PREVIEW_SCROLL")
+                            .ok()
+                            .and_then(|value| value.parse::<f32>().ok())
+                            .filter(|value| value.is_finite() && *value >= 0.0)
+                            .unwrap_or(0.0),
+                    );
+                }
+                scroll.show(ui, |ui| {
                     agent_gui::app::page_column(ui, |ui| match self.state.as_mut() {
                         Some(state) => real_page(ui, &self.requested, state),
                         None => gallery(ui),
@@ -334,6 +356,15 @@ impl Preview {
     /// modal, and the command palette. Selected by PREVIEW_PAGE.
     fn overlays(&mut self, ctx: &egui::Context) {
         match self.requested.as_str() {
+            "radar-reference" => {
+                egui::Window::new("Radar Sécurité — widget de référence")
+                    .fixed_pos(egui::pos2(300.0, 140.0))
+                    .resizable(false)
+                    .show(ctx, |ui| {
+                        widgets::TrayRadar::new(0.82, 0.65, 0.72, 0.88, 0.76)
+                            .show(ui, theme::TRAY_RADAR_SIZE);
+                    });
+            }
             "overlays" => {
                 if self.toasts.is_empty() {
                     let t = ctx.input(|i| i.time);
@@ -447,6 +478,7 @@ fn page_from(name: &str) -> Page {
         "fim" => Page::FileIntegrity,
         "software" => Page::Software,
         "sync" => Page::Sync,
+        "orchestration" => Page::Orchestration,
         _ => Page::Dashboard,
     }
 }
@@ -482,6 +514,7 @@ fn location(page: &str) -> (&'static str, &'static str, &'static str) {
         ),
         "software" => (icons::SOFTWARE, "Logiciels & MDM", "Actifs & inventaire"),
         "sync" => (icons::SYNC, "Synchronisation", "Système"),
+        "orchestration" => (icons::ORCHESTRATION, "Orchestration", "Automatisation"),
         _ => (icons::DASHBOARD, "Tableau de bord", "Vue d'ensemble"),
     }
 }
@@ -546,6 +579,9 @@ fn real_page(ui: &mut egui::Ui, page: &str, state: &mut AppState) {
         }
         "sync" => {
             pages::SyncPage::show(ui, state);
+        }
+        "orchestration" => {
+            pages::OrchestrationPage::show(ui);
         }
         "overlays" => feedback_gallery(ui),
         _ => {

@@ -412,6 +412,7 @@ version = "4.0.16"
 dependencies = [
  "agent-common",
  "agent-storage",
+ "base64 0.22.1",
  "chrono",
  "flate2",
  "futures-util",

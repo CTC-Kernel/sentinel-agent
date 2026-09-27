@@ -35,12 +35,17 @@ pub enum SyncEntityType {
     Heartbeat,
     Config,
     Playbook,
+    PlaybookDelete,
     DetectionRule,
+    DetectionRuleDelete,
     Risk,
+    RiskDelete,
     Asset,
     Kpi,
     AlertRule,
+    AlertRuleDelete,
     Webhook,
+    WebhookDelete,
 }
 
 impl SyncEntityType {
@@ -52,12 +57,17 @@ impl SyncEntityType {
             SyncEntityType::Heartbeat => "heartbeat",
             SyncEntityType::Config => "config",
             SyncEntityType::Playbook => "playbook",
+            SyncEntityType::PlaybookDelete => "playbook_delete",
             SyncEntityType::DetectionRule => "detection_rule",
+            SyncEntityType::DetectionRuleDelete => "detection_rule_delete",
             SyncEntityType::Risk => "risk",
+            SyncEntityType::RiskDelete => "risk_delete",
             SyncEntityType::Asset => "asset",
             SyncEntityType::Kpi => "kpi",
             SyncEntityType::AlertRule => "alert_rule",
+            SyncEntityType::AlertRuleDelete => "alert_rule_delete",
             SyncEntityType::Webhook => "webhook",
+            SyncEntityType::WebhookDelete => "webhook_delete",
         }
     }
 
@@ -69,12 +79,17 @@ impl SyncEntityType {
             "heartbeat" => Some(SyncEntityType::Heartbeat),
             "config" => Some(SyncEntityType::Config),
             "playbook" => Some(SyncEntityType::Playbook),
+            "playbook_delete" => Some(SyncEntityType::PlaybookDelete),
             "detection_rule" => Some(SyncEntityType::DetectionRule),
+            "detection_rule_delete" => Some(SyncEntityType::DetectionRuleDelete),
             "risk" => Some(SyncEntityType::Risk),
+            "risk_delete" => Some(SyncEntityType::RiskDelete),
             "asset" => Some(SyncEntityType::Asset),
             "kpi" => Some(SyncEntityType::Kpi),
             "alert_rule" => Some(SyncEntityType::AlertRule),
+            "alert_rule_delete" => Some(SyncEntityType::AlertRuleDelete),
             "webhook" => Some(SyncEntityType::Webhook),
+            "webhook_delete" => Some(SyncEntityType::WebhookDelete),
             _ => None,
         }
     }
@@ -208,7 +223,7 @@ impl<'a> SyncQueueRepository<'a> {
                             r#"
                             DELETE FROM sync_queue WHERE id IN (
                                 SELECT id FROM sync_queue
-                                WHERE priority = 0
+                                WHERE priority = 0 AND entity_type NOT LIKE '%_delete'
                                 ORDER BY created_at ASC
                                 LIMIT ?
                             )
@@ -237,6 +252,7 @@ impl<'a> SyncQueueRepository<'a> {
                                 r#"
                                 DELETE FROM sync_queue WHERE id IN (
                                     SELECT id FROM sync_queue
+                                    WHERE entity_type NOT LIKE '%_delete'
                                     ORDER BY priority ASC, created_at ASC
                                     LIMIT ?
                                 )
@@ -318,6 +334,45 @@ impl<'a> SyncQueueRepository<'a> {
             .await
     }
 
+    pub async fn get_pending_for(
+        &self,
+        entity: SyncEntityType,
+        limit: i64,
+    ) -> StorageResult<Vec<SyncQueueItem>> {
+        let now = Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
+        self.db
+            .with_connection(move |conn| {
+                let mut stmt = conn
+                    .prepare(
+                        r#"
+                        SELECT id, entity_type, entity_id, payload, priority, attempts,
+                               max_attempts, last_attempt_at, last_error, created_at, next_retry_at
+                        FROM sync_queue
+                        WHERE attempts < max_attempts
+                          AND next_retry_at <= ? AND entity_type = ?
+                        ORDER BY priority DESC, created_at ASC
+                        LIMIT ?
+                        "#,
+                    )
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+
+                let results = stmt
+                    .query_map(
+                        rusqlite::params![now, entity.as_str(), limit],
+                        Self::row_to_sync_queue_item,
+                    )
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+
+                debug!("Found {} pending sync queue items", results.len());
+                Ok(results)
+            })
+            .await
+    }
+
     /// Record a failed attempt for a sync queue item.
     ///
     /// Increments the attempt counter, records the error message, and
@@ -376,6 +431,61 @@ impl<'a> SyncQueueRepository<'a> {
     }
 
     /// Remove successfully synced items from the queue.
+    /// Persist local deletion and its outgoing tombstone together, so offline
+    /// deletion survives restart and cannot be resurrected by a stale download.
+    pub async fn delete_grc(&self, entity: SyncEntityType, id: &str) -> StorageResult<()> {
+        let (table, tombstone) = match entity {
+            SyncEntityType::Playbook => ("playbooks", "playbook_delete"),
+            SyncEntityType::DetectionRule => ("detection_rules", "detection_rule_delete"),
+            SyncEntityType::Risk => ("risks", "risk_delete"),
+            SyncEntityType::AlertRule => ("alert_rules", "alert_rule_delete"),
+            SyncEntityType::Webhook => ("webhooks", "webhook_delete"),
+            _ => return Err(StorageError::Query("Not a deletable GRC entity".into())),
+        };
+        self.db.with_connection_mut(|conn| {
+            let tx = conn.transaction().map_err(|e| StorageError::Query(e.to_string()))?;
+            tx.execute(&format!("DELETE FROM {table} WHERE id = ?1"), [id])
+                .map_err(|e| StorageError::Query(e.to_string()))?;
+            tx.execute("DELETE FROM sync_queue WHERE entity_id = ?1 AND entity_type IN (?2, ?3)",
+                rusqlite::params![id, entity.as_str(), tombstone])
+                .map_err(|e| StorageError::Query(e.to_string()))?;
+            tx.execute("INSERT INTO sync_queue (entity_type, entity_id, payload, priority, max_attempts) VALUES (?1, ?2, '{}', 10, 2147483647)",
+                rusqlite::params![tombstone, id])
+                .map_err(|e| StorageError::Query(e.to_string()))?;
+            tx.commit().map_err(|e| StorageError::Query(e.to_string()))
+        }).await
+    }
+
+    /// Acknowledge EDR uploads and mark their records synchronized in one transaction.
+    /// A newer queued edit must remain dirty for the next upload.
+    pub async fn acknowledge_grc(&self, ids: &[i64], entity: SyncEntityType) -> StorageResult<()> {
+        let table = match entity {
+            SyncEntityType::Playbook => "playbooks",
+            SyncEntityType::DetectionRule => "detection_rules",
+            SyncEntityType::Risk => "risks",
+            SyncEntityType::Asset => "managed_assets",
+            SyncEntityType::AlertRule => "alert_rules",
+            SyncEntityType::Webhook => "webhooks",
+            _ => return Err(StorageError::Query("Not a mutable GRC entity".into())),
+        };
+        self.db.with_connection_mut(|conn| {
+            let tx = conn.transaction().map_err(|e| StorageError::Query(e.to_string()))?;
+            for id in ids {
+                let entity_id: Option<String> = tx.query_row(
+                    "SELECT entity_id FROM sync_queue WHERE id = ?1 AND entity_type = ?2",
+                    rusqlite::params![id, entity.as_str()], |row| row.get(0))
+                    .optional().map_err(|e| StorageError::Query(e.to_string()))?;
+                if let Some(entity_id) = entity_id {
+                    tx.execute("DELETE FROM sync_queue WHERE id = ?1", [id])
+                        .map_err(|e| StorageError::Query(e.to_string()))?;
+                    tx.execute(&format!("UPDATE {table} SET synced = 1 WHERE id = ?1 AND NOT EXISTS (SELECT 1 FROM sync_queue WHERE entity_id = ?1 AND entity_type = ?2)"), rusqlite::params![entity_id, entity.as_str()])
+                        .map_err(|e| StorageError::Query(e.to_string()))?;
+                }
+            }
+            tx.commit().map_err(|e| StorageError::Query(e.to_string()))
+        }).await
+    }
+
     pub async fn remove(&self, ids: &[i64]) -> StorageResult<usize> {
         if ids.is_empty() {
             return Ok(0);
@@ -430,6 +540,7 @@ impl<'a> SyncQueueRepository<'a> {
                         r#"
                         DELETE FROM sync_queue WHERE id IN (
                             SELECT id FROM sync_queue
+                            WHERE entity_type NOT LIKE '%_delete'
                             ORDER BY priority ASC, created_at ASC
                             LIMIT ?
                         )
@@ -528,7 +639,7 @@ impl<'a> SyncQueueRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let count = conn
-                    .execute("DELETE FROM sync_queue WHERE attempts >= max_attempts", [])
+                    .execute("DELETE FROM sync_queue WHERE attempts >= max_attempts AND entity_type NOT LIKE '%_delete'", [])
                     .map_err(|e| {
                         StorageError::Query(format!("Failed to purge failed items: {}", e))
                     })?;

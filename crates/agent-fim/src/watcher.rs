@@ -125,7 +125,9 @@ pub async fn watch_files(
                 }
             }
         }
-    });
+    })
+    .await
+    .map_err(|e| FimError::Watcher(format!("Watcher task failed: {e}")))?;
 
     Ok(())
 }
@@ -156,6 +158,19 @@ fn process_event(
         // processing an unresolved symlink that could bypass ignore patterns.
         let path = match raw_path.canonicalize() {
             Ok(p) => p,
+            Err(_) if matches!(change_type, FimChangeType::Deleted | FimChangeType::Renamed) => {
+                // Removed files cannot be canonicalized. Only accept a path
+                // already recorded in the baseline, never an arbitrary missing link.
+                let candidate = raw_path
+                    .parent()
+                    .and_then(|p| p.canonicalize().ok())
+                    .and_then(|parent| raw_path.file_name().map(|name| parent.join(name)))
+                    .unwrap_or_else(|| raw_path.clone());
+                if baseline.get(&candidate).is_none() {
+                    continue;
+                }
+                candidate
+            }
             Err(_) => {
                 debug!(
                     "FIM: skipping {} (canonicalize failed, possible broken symlink)",
@@ -187,16 +202,23 @@ fn process_event(
         let now = Instant::now();
         if let Some(last) = debounce_map.get(&path)
             && now.duration_since(*last) < debounce_duration
+            && !matches!(change_type, FimChangeType::Deleted | FimChangeType::Renamed)
         {
             continue;
         }
-        debounce_map.insert(path.clone(), now);
 
         debug!("FIM event: {:?} on {}", change_type, path.display());
 
         // Build the alert
         let old_baseline = baseline.get(&path);
         let old_hash = old_baseline.as_ref().map(|b| b.hash.clone());
+        // FSEvents can replay a creation event for a file already baselined.
+        // Compare its contents instead of declaring a new file unconditionally.
+        let change_type = if change_type == FimChangeType::Created && old_baseline.is_some() {
+            FimChangeType::Modified
+        } else {
+            change_type
+        };
 
         let (new_hash, new_size) = if change_type != FimChangeType::Deleted && path.exists() {
             match crate::baseline::compute_blake3(&path) {
@@ -217,6 +239,7 @@ fn process_event(
         {
             continue;
         }
+        debounce_map.insert(path.clone(), now);
 
         let alert = FimAlert {
             path: path.clone(),
@@ -288,6 +311,62 @@ fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn deleted_file_is_reported_even_inside_debounce_window() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("deleted.txt");
+        std::fs::write(&path, "content").unwrap();
+        let path = path.canonicalize().unwrap();
+        let baseline = BaselineManager::new();
+        baseline.update(&path).unwrap();
+        let (tx, mut rx) = mpsc::channel(8);
+        let mut debounce = HashMap::from([(path.clone(), Instant::now())]);
+        std::fs::remove_file(&path).unwrap();
+        process_event(
+            Event::new(EventKind::Remove(notify::event::RemoveKind::File)).add_path(path.clone()),
+            &baseline,
+            &tx,
+            &mut debounce,
+            Duration::from_secs(5),
+            &[],
+        );
+        assert_eq!(rx.try_recv().unwrap().change, FimChangeType::Deleted);
+        assert!(baseline.get(&path).is_none());
+    }
+
+    #[test]
+    fn replayed_creation_is_silent_and_does_not_hide_a_subsequent_change() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("existing.txt");
+        std::fs::write(&path, "before").unwrap();
+        let path = path.canonicalize().unwrap();
+        let baseline = BaselineManager::new();
+        baseline.update(&path).unwrap();
+        let (tx, mut rx) = mpsc::channel(8);
+        let mut debounce = HashMap::new();
+        let event =
+            Event::new(EventKind::Create(notify::event::CreateKind::File)).add_path(path.clone());
+        process_event(
+            event.clone(),
+            &baseline,
+            &tx,
+            &mut debounce,
+            Duration::from_secs(5),
+            &[],
+        );
+        assert!(rx.try_recv().is_err());
+        std::fs::write(&path, "after").unwrap();
+        process_event(
+            event,
+            &baseline,
+            &tx,
+            &mut debounce,
+            Duration::from_secs(5),
+            &[],
+        );
+        assert_eq!(rx.try_recv().unwrap().change, FimChangeType::Modified);
+    }
 
     #[test]
     fn test_is_ignored_path() {

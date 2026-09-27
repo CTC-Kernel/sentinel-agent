@@ -35,7 +35,7 @@ pub struct EnrollmentRequest {
 }
 
 /// Enrollment response from the server.
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct EnrollmentResponse {
     pub agent_id: String,
     pub organization_id: String,
@@ -45,12 +45,24 @@ pub struct EnrollmentResponse {
     /// Accepts both `client_key` (Cloud Function) and `client_private_key`.
     #[serde(alias = "client_private_key")]
     pub client_key: String,
+    #[serde(default)]
+    pub hmac_secret: Option<String>,
     pub certificate_expires_at: String,
     /// Server-provided agent config. Optional — may not be present in all SaaS versions.
     #[serde(default, alias = "initial_config")]
     pub config: ServerAgentConfig,
     #[serde(default)]
     pub message: Option<String>,
+}
+
+impl std::fmt::Debug for EnrollmentResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EnrollmentResponse")
+            .field("agent_id", &self.agent_id)
+            .field("organization_id", &self.organization_id)
+            .field("credentials", &"[REDACTED]")
+            .finish_non_exhaustive()
+    }
 }
 
 /// Result of enrollment request, handling both success and already_enrolled cases.
@@ -517,8 +529,9 @@ pub struct ApiClient {
     agent_id: Option<String>,
     /// Client certificate for X-Agent-Certificate header authentication.
     client_certificate: Option<SecretString>,
-    /// Client private key for HMAC signature authentication.
+    /// Client private key for certificate credentials; HMAC uses a dedicated secret.
     client_key: Option<SecretString>,
+    signing_secret: Option<agent_sync::request_auth::SigningSecret>,
     /// Organization ID for X-Organization-Id header authentication.
     organization_id: Option<String>,
 }
@@ -574,6 +587,7 @@ impl ApiClient {
                 .as_ref()
                 .map(|s| SecretString(s.clone())),
             client_key: config.client_key.as_ref().map(|s| SecretString(s.clone())),
+            signing_secret: None,
             organization_id: config.organization_id.clone(),
         })
     }
@@ -607,7 +621,11 @@ impl ApiClient {
     }
 
     /// Add authentication headers to a request builder.
-    fn authenticate(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+    pub fn set_signing_secret(&mut self, secret: Option<String>) {
+        self.signing_secret = secret.map(agent_sync::request_auth::SigningSecret::new);
+    }
+
+    fn authenticate(&self, builder: reqwest::RequestBuilder) -> Result<reqwest::RequestBuilder> {
         let mut builder = if let Some(ref cert) = self.client_certificate {
             builder.header("X-Agent-Certificate", &cert.0)
         } else {
@@ -619,7 +637,11 @@ impl ApiClient {
             builder = builder.header("X-Organization-Id", org_id);
         }
 
-        builder
+        if let Some(secret) = &self.signing_secret {
+            return agent_sync::request_auth::sign_request(builder, secret)
+                .map_err(CommonError::config);
+        }
+        Ok(builder)
     }
 
     /// Enroll the agent with the server.
@@ -692,7 +714,7 @@ impl ApiClient {
         let url = format!("{}/v1/agents/{}/heartbeat", self.base_url, agent_id);
         debug!("Sending heartbeat to {}", self.safe_log_url(&url));
 
-        let builder = self.authenticate(self.client.post(&url).json(&request));
+        let builder = self.authenticate(self.client.post(&url).json(&request))?;
 
         let response = builder.send().await.map_err(|e| {
             let err_type = if e.is_timeout() {
@@ -752,7 +774,7 @@ impl ApiClient {
         let url = format!("{}/v1/agents/{}/results", self.base_url, agent_id);
         debug!("Uploading result to {}", self.safe_log_url(&url));
 
-        let builder = self.authenticate(self.client.post(&url).json(&request));
+        let builder = self.authenticate(self.client.post(&url).json(&request))?;
 
         let response = builder
             .send()
@@ -786,7 +808,7 @@ impl ApiClient {
         let url = format!("{}/v1/health", self.base_url);
         debug!("Health check at {}", self.safe_log_url(&url));
 
-        let builder = self.authenticate(self.client.get(&url));
+        let builder = self.authenticate(self.client.get(&url))?;
 
         let response = builder
             .send()
@@ -839,7 +861,7 @@ impl ApiClient {
         let url = format!("{}{}", self.base_url, path);
         debug!("POST {}", self.safe_log_url(&url));
 
-        let builder = self.authenticate(self.client.post(&url).json(body));
+        let builder = self.authenticate(self.client.post(&url).json(body))?;
 
         let response = builder.send().await.map_err(|e| {
             let err_type = if e.is_timeout() {
@@ -885,7 +907,7 @@ impl ApiClient {
         debug!("POST {}", self.safe_log_url(&url));
 
         let response = self
-            .authenticate(self.client.post(&url).json(body))
+            .authenticate(self.client.post(&url).json(body))?
             .send()
             .await
             .map_err(|e| CommonError::network(format!("POST {} failed: {}", path, e)))?;
@@ -1031,7 +1053,7 @@ impl ApiClient {
         let url = format!("{}/v1/agents/{}/update-status", self.base_url, agent_id);
         debug!("Reporting update status to {}", self.safe_log_url(&url));
 
-        let builder = self.authenticate(self.client.post(&url).json(&report));
+        let builder = self.authenticate(self.client.post(&url).json(&report))?;
 
         let response = builder
             .send()
@@ -1071,7 +1093,7 @@ impl ApiClient {
         let url = format!("{}/v1/agents/{}/incidents", self.base_url, agent_id);
         info!("Reporting incident to {}", self.safe_log_url(&url));
 
-        let builder = self.authenticate(self.client.post(&url).json(&report));
+        let builder = self.authenticate(self.client.post(&url).json(&report))?;
 
         let response = builder
             .send()

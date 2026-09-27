@@ -29,6 +29,8 @@ impl NetworkPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
+        crate::pages::security_navigation(ui, state);
+        ui.add_space(theme::SPACE_MD);
 
         if state.network.interfaces.is_empty() && state.network.connections.is_empty() {
             ui.add_space(theme::SPACE_LG);
@@ -322,13 +324,14 @@ impl NetworkPage {
                     let (state_label, state_color) = match conn.state.as_str() {
                         "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
                         "LISTEN" => ("LISTEN", theme::INFO),
-                        "CLOSE_WAIT" | "TIME_WAIT" => ("CLOSED", theme::WARNING),
+                        "CLOSE_WAIT" | "TIME_WAIT" => (conn.state.as_str(), theme::WARNING),
                         _ => (conn.state.as_str(), theme::WARNING),
                     };
                     let title = format!("{}:{}", conn.local_address, conn.local_port);
                     let actions = [
                         widgets::DetailAction::secondary("Copier", icons::COPY),
-                        widgets::DetailAction::danger("Bloquer", icons::LOCK),
+                        widgets::DetailAction::danger("Bloquer", icons::LOCK)
+                            .enabled(conn.remote_address.is_some()),
                     ];
                     let drawer_action =
                         widgets::DetailDrawer::new("net_conn_detail", &title, icons::NETWORK)
@@ -394,16 +397,16 @@ impl NetworkPage {
                                 )
                                 .with_time(time),
                             );
-                        } else if action_idx == 1 {
-                            if let Some(ref remote_ip) = conn.remote_address {
-                                command = Some(GuiCommand::BlockIp {
-                                    ip: remote_ip.clone(),
-                                    duration_secs: 0,
-                                });
-                            }
+                        } else if action_idx == 1
+                            && let Some(ref remote_ip) = conn.remote_address
+                        {
+                            command = Some(GuiCommand::BlockIp {
+                                ip: remote_ip.clone(),
+                                duration_secs: 0,
+                            });
                             state.network.detail_open = false;
                             state.toasts.push(
-                                crate::widgets::toast::Toast::success("Connexion bloqu\u{00e9}e")
+                                crate::widgets::toast::Toast::info("Demande de blocage envoyée")
                                     .with_time(time),
                             );
                         }
@@ -442,7 +445,17 @@ impl NetworkPage {
                         icons::BRAIN,
                     ));
                 }
-                actions.push(widgets::DetailAction::primary("Acquitter", icons::CHECK));
+                actions.push(
+                    widgets::DetailAction::primary(
+                        if alert.acknowledged {
+                            "Acquittée"
+                        } else {
+                            "Acquitter"
+                        },
+                        icons::CHECK,
+                    )
+                    .enabled(!alert.acknowledged),
+                );
                 actions.push(widgets::DetailAction::secondary(
                     "Investiguer",
                     icons::SEARCH,
@@ -545,17 +558,14 @@ impl NetworkPage {
                         );
                         command = Some(GuiCommand::LlmClassifyThreat {
                             event_description: desc,
-                            target_id: format!("alert#{}", sel),
+                            target_id: crate::state::event_identity("network", &alert),
                         });
                         state.toasts.push(
                             crate::widgets::toast::Toast::info("Analyse IA en cours\u{2026}")
                                 .with_time(time),
                         );
                     } else if action_idx == ack_idx {
-                        state.network.alerts.remove(sel);
-                        if state.network.alert_count > 0 {
-                            state.network.alert_count -= 1;
-                        }
+                        state.acknowledge_threat_item("network", sel);
                         state.network.selected_alert = None;
                         state.network.detail_open = false;
                         state.toasts.push(
@@ -606,14 +616,17 @@ impl NetworkPage {
                     |ui: &mut egui::Ui| {
                         if widgets::ghost_button(ui, format!("{}  Export CSV", icons::DOWNLOAD))
                             .clicked()
-                            && Self::export_interfaces_csv(state)
                         {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success(
-                                    "Export CSV interfaces terminé",
-                                )
-                                .with_time(ui.input(|i| i.time)),
-                            );
+                            let toast = match Self::export_interfaces_csv(state) {
+                                Ok(path) => crate::widgets::toast::Toast::success(format!(
+                                    "Export CSV enregistré : {}",
+                                    path.display()
+                                )),
+                                Err(error) => crate::widgets::toast::Toast::error(format!(
+                                    "Export CSV impossible : {error}"
+                                )),
+                            };
+                            state.toasts.push(toast.with_time(ui.input(|i| i.time)));
                         }
                     },
                 );
@@ -729,14 +742,17 @@ impl NetworkPage {
                     |ui: &mut egui::Ui| {
                         if widgets::ghost_button(ui, format!("{}  Export CSV", icons::DOWNLOAD))
                             .clicked()
-                            && Self::export_connections_csv(state)
                         {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success(
-                                    "Export CSV connexions terminé",
-                                )
-                                .with_time(ui.input(|i| i.time)),
-                            );
+                            let toast = match Self::export_connections_csv(state) {
+                                Ok(path) => crate::widgets::toast::Toast::success(format!(
+                                    "Export CSV enregistré : {}",
+                                    path.display()
+                                )),
+                                Err(error) => crate::widgets::toast::Toast::error(format!(
+                                    "Export CSV impossible : {error}"
+                                )),
+                            };
+                            state.toasts.push(toast.with_time(ui.input(|i| i.time)));
                         }
                     },
                 );
@@ -785,16 +801,19 @@ impl NetworkPage {
                 .map(|(i, _)| i)
                 .collect();
 
+            let previous_search = state.network.search.clone();
+            widgets::SearchFilterBar::new(&mut state.network.search, "Adresse ou processus…")
+                .result_count(filtered.len())
+                .show(ui);
+            if state.network.search != previous_search {
+                state.network.connections_page = 0;
+            }
             const CONN_PER_PAGE: usize = 50;
             let (nc_start, nc_len, _) = widgets::page_window(
                 filtered.len(),
                 CONN_PER_PAGE,
                 &mut state.network.connections_page,
             );
-
-            widgets::SearchFilterBar::new(&mut state.network.search, "Rechercher…")
-                .result_count(filtered.len())
-                .show(ui);
 
             ui.add_space(theme::SPACE_MD);
 
@@ -814,7 +833,20 @@ impl NetworkPage {
                         }
                     });
                 } else {
-                    widgets::empty_state(ui, icons::NETWORK, "Aucune connexion active", None);
+                    if state.network.search.trim().is_empty() {
+                        widgets::empty_state(ui, icons::NETWORK, "Aucune connexion active", None);
+                    } else {
+                        widgets::empty_state(
+                            ui,
+                            icons::SEARCH,
+                            "Aucune connexion ne correspond à la recherche",
+                            Some("Essayez une autre adresse, un protocole ou un nom de processus."),
+                        );
+                        if widgets::ghost_button(ui, "Effacer la recherche").clicked() {
+                            state.network.search.clear();
+                            state.network.connections_page = 0;
+                        }
+                    }
                 }
             } else {
                 use widgets::table;
@@ -879,6 +911,10 @@ impl NetworkPage {
                             };
                         });
                         row.col(|ui| {
+                            if conn.state.trim().is_empty() {
+                                table::cell_empty(ui);
+                                return;
+                            }
                             let (label, color) = match conn.state.as_str() {
                                 "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
                                 "LISTEN" => ("LISTEN", theme::INFO),
@@ -1093,6 +1129,11 @@ impl NetworkPage {
             .show(ui, |ui: &mut egui::Ui| {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     widgets::status_badge(ui, &type_label, type_color);
+                    if alert.allowlisted {
+                        widgets::status_badge(ui, "Autorisée", theme::INFO);
+                    } else if alert.acknowledged {
+                        widgets::status_badge(ui, "Acquittée", theme::SUCCESS);
+                    }
 
                     ui.add_space(theme::SPACE_SM);
 
@@ -1155,7 +1196,7 @@ impl NetworkPage {
         resp.clicked()
     }
 
-    fn export_interfaces_csv(state: &AppState) -> bool {
+    fn export_interfaces_csv(state: &AppState) -> Result<std::path::PathBuf, String> {
         let headers = &["interface", "type", "statut", "mac", "ipv4"];
         let rows: Vec<Vec<String>> = state
             .network
@@ -1172,16 +1213,11 @@ impl NetworkPage {
             })
             .collect();
         let path = crate::export::default_export_path("network_interfaces.csv");
-        match crate::export::export_csv(headers, &rows, &path) {
-            Ok(()) => true,
-            Err(e) => {
-                tracing::warn!("Export CSV failed: {}", e);
-                false
-            }
-        }
+        crate::export::export_csv(headers, &rows, &path)?;
+        Ok(path)
     }
 
-    fn export_connections_csv(state: &AppState) -> bool {
+    fn export_connections_csv(state: &AppState) -> Result<std::path::PathBuf, String> {
         let headers = &["protocole", "local", "distant", "statut", "processus"];
         let rows: Vec<Vec<String>> = state
             .network
@@ -1201,12 +1237,7 @@ impl NetworkPage {
             })
             .collect();
         let path = crate::export::default_export_path("network_connections.csv");
-        match crate::export::export_csv(headers, &rows, &path) {
-            Ok(()) => true,
-            Err(e) => {
-                tracing::warn!("Export CSV failed: {}", e);
-                false
-            }
-        }
+        crate::export::export_csv(headers, &rows, &path)?;
+        Ok(path)
     }
 }

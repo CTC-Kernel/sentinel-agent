@@ -23,6 +23,25 @@ const ITEMS_PER_PAGE: usize = 25;
 pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let command = None;
 
+    let old_filter = state.threats.events_status_filter;
+    ui.horizontal_wrapped(|ui| {
+        for (index, label) in ["Tous", "À traiter", "Acquittés", "Autorisés"]
+            .iter()
+            .enumerate()
+        {
+            ui.selectable_value(&mut state.threats.events_status_filter, index, *label);
+        }
+        if widgets::button::ghost_button(ui, "Gérer les autorisations →").clicked() {
+            state.threats.active_tab = crate::dto::EdrTab::Authorizations;
+        }
+    });
+    if old_filter != state.threats.events_status_filter {
+        state.threats.events_page = 0;
+        state.threats.selected_threat = None;
+        state.threats.detail_open = false;
+    }
+    let previous_search = state.threats.search.clone();
+    let previous_severity = state.threats.events_severity_filter;
     // ── Search and severity chips ───────────────────────────────────
     let current = state.threats.events_severity_filter;
     let chips = [
@@ -51,7 +70,20 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     ui.add_space(theme::SPACE_MD);
 
     // ── Build & filter threat list ──────────────────────────────────
+    if previous_search != state.threats.search
+        || previous_severity != state.threats.events_severity_filter
+    {
+        state.threats.selected_threat = None;
+        state.threats.detail_open = false;
+        state.threats.events_page = 0;
+    }
     let mut threats = build_threat_list(state);
+    threats.retain(|t| match state.threats.events_status_filter {
+        1 => !t.acknowledged && !t.allowlisted,
+        2 => t.acknowledged && !t.allowlisted,
+        3 => t.allowlisted,
+        _ => true,
+    });
 
     // Apply severity filter
     if let Some(ref sev) = state.threats.events_severity_filter {
@@ -99,6 +131,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     // ── DataTable ───────────────────────────────────────────────────
     let columns = vec![
         TableColumn {
+            key: "status",
+            label: "STATUT",
+            width: ColumnWidth::Fixed(105.0),
+            sortable: false,
+            align: ColumnAlign::Left,
+        },
+        TableColumn {
             key: "severity",
             label: "S\u{00c9}V\u{00c9}RIT\u{00c9}",
             width: ColumnWidth::Fixed(110.0),
@@ -118,20 +157,6 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             width: ColumnWidth::Fill,
             sortable: false,
             align: ColumnAlign::Left,
-        },
-        TableColumn {
-            key: "mitre",
-            label: "MITRE",
-            width: ColumnWidth::Fixed(120.0),
-            sortable: false,
-            align: ColumnAlign::Center,
-        },
-        TableColumn {
-            key: "confidence",
-            label: "CONFIANCE",
-            width: ColumnWidth::Fixed(100.0),
-            sortable: false,
-            align: ColumnAlign::Center,
         },
         TableColumn {
             key: "date",
@@ -162,38 +187,17 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             };
             let (kind_label, _) = kind_badge(threat.kind);
 
-            // MITRE technique lookup
-            let subtype = match threat.kind {
-                "network" => threat.title.to_lowercase(),
-                "system" => threat.description.to_lowercase(),
-                "process" => format!(
-                    "{} {}",
-                    threat.title,
-                    threat.command_line.as_deref().unwrap_or("")
-                )
-                .to_lowercase(),
-                _ => String::new(),
-            };
-            let mitre_id = mitre::mitre_mapping(threat.kind, &subtype)
-                .map(|t| t.id.to_string())
-                .unwrap_or_else(|| "\u{2014}".to_string());
-
-            let confidence = threat
-                .confidence
-                .map(|c| format!("{}\u{202f}%", c))
-                .unwrap_or_else(|| "\u{2014}".to_string());
-
             let date = threat.timestamp.format("%d/%m/%Y %H:%M").to_string();
 
             let sev_cell = format!("{} {}", sev_icon, sev_label);
-            let cells: Vec<&str> = vec![
-                &sev_cell,
-                kind_label,
-                &threat.title,
-                &mitre_id,
-                &confidence,
-                &date,
-            ];
+            let status = if threat.allowlisted {
+                "Autorisé"
+            } else if threat.acknowledged {
+                "Acquitté"
+            } else {
+                "À traiter"
+            };
+            let cells: Vec<&str> = vec![status, &sev_cell, kind_label, &threat.title, &date];
 
             let global_idx = start.saturating_add(row_idx);
             let selected = state.threats.selected_threat == Some(global_idx);
@@ -243,11 +247,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             };
             let mitre_info = mitre::mitre_mapping(threat.kind, &subtype);
 
-            let actions = [widgets::DetailAction::secondary(
-                "Copier les d\u{00e9}tails",
-                icons::COPY,
-            )];
-
+            let actions = vec![
+                widgets::DetailAction::secondary("Copier les détails", icons::COPY),
+                widgets::DetailAction::primary("Acquitter", icons::CHECK).enabled(
+                    !threat.acknowledged && !threat.allowlisted && threat.kind != "vulnerability",
+                ),
+                widgets::DetailAction::secondary("Ouvrir le module", icons::SEARCH),
+            ];
             let drawer_action =
                 widgets::DetailDrawer::new("events_detail", &threat.title, icons::LIST)
                     .accent(sev_color)
@@ -296,6 +302,33 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         &actions,
                     );
 
+            if drawer_action == Some(1)
+                && state.acknowledge_threat_item(threat.kind, threat.source_index)
+            {
+                state.threats.detail_open = false;
+                state.threats.selected_threat = None;
+                state.push_toast(
+                    widgets::toast::Toast::success("Événement acquitté"),
+                    ui.ctx(),
+                );
+            }
+            if drawer_action == Some(2) {
+                use crate::app::Page;
+                state.threats.detail_open = false;
+                state.threats.selected_threat = None;
+                state.pending_navigation = Some(match threat.kind {
+                    "network" => {
+                        state.network.active_section = 1;
+                        Page::Network
+                    }
+                    "fim" => Page::FileIntegrity,
+                    "vulnerability" => Page::Vulnerabilities,
+                    _ => {
+                        state.threats.active_tab = crate::dto::EdrTab::Overview;
+                        Page::Threats
+                    }
+                });
+            }
             if let Some(0) = drawer_action {
                 let details = format!(
                     "Type: {}\nTitre: {}\nS\u{00e9}v\u{00e9}rit\u{00e9}: {}\nDescription: {}\nDate: {}",

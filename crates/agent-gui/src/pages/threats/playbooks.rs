@@ -208,7 +208,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         .clicked()
                         {
                             let playbook = Playbook {
-                                id: Uuid::new_v4(),
+                                id: Uuid::new_v4().to_string(),
                                 name: tpl.name.to_string(),
                                 description: tpl.description.to_string(),
                                 enabled: true,
@@ -377,12 +377,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // Apply toggle commands
             for (id, enabled) in toggle_commands {
-                if let Some(pb) = state
-                    .threats
-                    .playbooks
-                    .iter_mut()
-                    .find(|p| p.id.to_string() == id)
-                {
+                if let Some(pb) = state.threats.playbooks.iter_mut().find(|p| p.id == id) {
                     pb.enabled = enabled;
                 }
                 command = Some(GuiCommand::TogglePlaybook {
@@ -393,7 +388,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
             // Apply delete
             if let Some(ref id) = delete_id {
-                state.threats.playbooks.retain(|p| p.id.to_string() != *id);
+                state.threats.playbooks.retain(|p| p.id != *id);
                 command = Some(GuiCommand::DeletePlaybook {
                     playbook_id: id.clone(),
                 });
@@ -698,7 +693,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                     && can_save
                 {
                     let playbook = Playbook {
-                        id: Uuid::new_v4(),
+                        id: Uuid::new_v4().to_string(),
                         name: f.name.trim().to_string(),
                         description: f.description.trim().to_string(),
                         enabled: true,
@@ -743,7 +738,7 @@ mod tests {
 
     fn playbook(name: &str, is_template: bool) -> Playbook {
         Playbook {
-            id: Uuid::nil(),
+            id: Uuid::nil().to_string(),
             name: name.to_owned(),
             description: String::new(),
             enabled: true,

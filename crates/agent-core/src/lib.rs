@@ -341,6 +341,7 @@ pub struct AgentRuntime {
     voice_service: Option<Arc<voice::VoiceService>>,
     /// Consecutive authentication failure count for re-enrollment tracking.
     auth_failure_count: std::sync::atomic::AtomicU32,
+    re_enrollment_attempts: std::sync::atomic::AtomicU32,
     /// Timestamp of the last re-enrollment attempt (epoch seconds).
     last_re_enrollment_attempt: std::sync::atomic::AtomicU64,
 }
@@ -629,6 +630,7 @@ impl AgentRuntime {
             #[cfg(feature = "voice")]
             voice_service: None,
             auth_failure_count: std::sync::atomic::AtomicU32::new(0),
+            re_enrollment_attempts: std::sync::atomic::AtomicU32::new(0),
             last_re_enrollment_attempt: std::sync::atomic::AtomicU64::new(0),
         }
     }
@@ -773,6 +775,7 @@ impl AgentRuntime {
                             Ok(true) => {
                                 info!("Immediate re-enrollment succeeded");
                                 self.auth_failure_count.store(0, Ordering::Release);
+                                self.re_enrollment_attempts.store(0, Ordering::Release);
                                 true
                             }
                             Ok(false) => {
@@ -1166,11 +1169,8 @@ impl AgentRuntime {
             let mut kpi_incident_count: u32 = 0;
 
             // Threat pipeline accumulators (populated during this iteration)
-            #[cfg(feature = "gui")]
             let mut pipeline_incidents: Vec<agent_scanner::SecurityIncident> = Vec::new();
-            #[cfg(feature = "gui")]
             let mut pipeline_network_alerts: Vec<agent_network::NetworkSecurityAlert> = Vec::new();
-            #[cfg(feature = "gui")]
             let mut pipeline_fim_alerts: Vec<(String, String)> = Vec::new();
 
             // 1. Process FIM alerts (always — security-critical even when paused)
@@ -1241,13 +1241,12 @@ impl AgentRuntime {
                                 fim_last_day = today;
                             }
                             fim_changes_today = fim_changes_today.saturating_add(1);
-
-                            // Accumulate for threat pipeline
-                            pipeline_fim_alerts.push((
-                                alert.path.to_string_lossy().to_string(),
-                                format!("{}", alert.change),
-                            ));
                         }
+
+                        pipeline_fim_alerts.push((
+                            alert.path.to_string_lossy().to_string(),
+                            format!("{}", alert.change),
+                        ));
 
                         // Collect for batched uploads (avoid per-alert HTTP requests → 429)
                         fim_batch_payloads
@@ -1440,6 +1439,7 @@ impl AgentRuntime {
                         if self.auth_failure_count.load(Ordering::Acquire) > 0 {
                             info!("Connection restored, resetting authentication failure counter");
                             self.auth_failure_count.store(0, Ordering::Release);
+                            self.re_enrollment_attempts.store(0, Ordering::Release);
                         }
 
                         #[cfg(feature = "gui")]
@@ -1543,15 +1543,12 @@ impl AgentRuntime {
                         if e.is_auth_error() {
                             let failures =
                                 self.auth_failure_count.fetch_add(1, Ordering::AcqRel) + 1;
-                            warn!(
-                                "Authentication error (failure #{}/{})",
-                                failures,
-                                Self::MAX_RE_ENROLLMENT_ATTEMPTS
-                            );
+                            warn!("Authentication error (consecutive failure #{})", failures);
 
                             // Attempt re-enrollment with exponential backoff
-                            if (Self::AUTH_FAILURE_THRESHOLD..=Self::MAX_RE_ENROLLMENT_ATTEMPTS)
-                                .contains(&failures)
+                            let attempts = self.re_enrollment_attempts.load(Ordering::Acquire);
+                            if failures >= Self::AUTH_FAILURE_THRESHOLD
+                                && attempts < Self::MAX_RE_ENROLLMENT_ATTEMPTS
                             {
                                 let now_secs = std::time::SystemTime::now()
                                     .duration_since(std::time::UNIX_EPOCH)
@@ -1561,7 +1558,7 @@ impl AgentRuntime {
                                     self.last_re_enrollment_attempt.load(Ordering::Acquire);
 
                                 // Exponential backoff: 30s, 120s, 600s based on attempt number
-                                let attempt_index = failures - Self::AUTH_FAILURE_THRESHOLD;
+                                let attempt_index = attempts;
                                 let cooldown_secs: u64 = match attempt_index {
                                     0 => 30,
                                     1 => 120,
@@ -1571,6 +1568,7 @@ impl AgentRuntime {
                                 if now_secs.saturating_sub(last_attempt) >= cooldown_secs {
                                     self.last_re_enrollment_attempt
                                         .store(now_secs, Ordering::Release);
+                                    self.re_enrollment_attempts.fetch_add(1, Ordering::AcqRel);
                                     info!(
                                         "Initiating automatic re-enrollment (attempt {})",
                                         attempt_index + 1
@@ -1581,6 +1579,7 @@ impl AgentRuntime {
                                                 "Re-enrollment succeeded, resetting auth failure counter"
                                             );
                                             self.auth_failure_count.store(0, Ordering::Relaxed);
+                                            self.re_enrollment_attempts.store(0, Ordering::Release);
                                             #[cfg(feature = "gui")]
                                             self.emit_notification(
                                                 "Ré-enregistrement réussi",
@@ -1589,6 +1588,10 @@ impl AgentRuntime {
                                             );
                                         }
                                         Ok(false) => {
+                                            self.re_enrollment_attempts.store(
+                                                Self::MAX_RE_ENROLLMENT_ATTEMPTS,
+                                                Ordering::Release,
+                                            );
                                             warn!(
                                                 "Re-enrollment not possible (no enrollment token). \
                                                  Agent will continue in degraded mode."
@@ -1615,7 +1618,7 @@ impl AgentRuntime {
                                             .saturating_sub(now_secs.saturating_sub(last_attempt))
                                     );
                                 }
-                            } else if failures > Self::MAX_RE_ENROLLMENT_ATTEMPTS {
+                            } else if attempts >= Self::MAX_RE_ENROLLMENT_ATTEMPTS {
                                 // Already exceeded max attempts — log periodically
                                 if failures.is_multiple_of(10) {
                                     error!(
@@ -1806,8 +1809,8 @@ impl AgentRuntime {
                         #[cfg(feature = "gui")]
                         {
                             kpi_incident_count = kpi_incident_count.saturating_add(count as u32);
-                            pipeline_incidents.extend(result.incidents.iter().cloned());
                         }
+                        pipeline_incidents.extend(result.incidents.iter().cloned());
 
                         if count == 0 {
                             #[cfg(feature = "gui")]
@@ -2010,10 +2013,7 @@ impl AgentRuntime {
                                 self.upload_network_alerts(&alerts).await;
 
                                 // Accumulate network alerts for threat pipeline
-                                #[cfg(feature = "gui")]
-                                {
-                                    pipeline_network_alerts.extend(alerts.iter().cloned());
-                                }
+                                pipeline_network_alerts.extend(alerts.iter().cloned());
                             }
                             Err(e) => {
                                 warn!("Network security detection failed: {}", e);
@@ -2223,7 +2223,6 @@ impl AgentRuntime {
             // ── Autonomous threat pipeline ──
             // Evaluate detection rules against accumulated threat data from this
             // iteration (security scan incidents, network alerts, FIM alerts).
-            #[cfg(feature = "gui")]
             if !pipeline_incidents.is_empty()
                 || !pipeline_network_alerts.is_empty()
                 || !pipeline_fim_alerts.is_empty()
@@ -2263,16 +2262,22 @@ impl AgentRuntime {
                 }
 
                 if !detection_rules.is_empty() || !playbooks.is_empty() {
+                    let siem_delivery = self.siem_forwarder.read().await;
                     let pipeline_result = threat_pipeline::run_threat_pipeline(
                         &detection_rules,
                         &playbooks,
                         &threat_context,
+                        #[cfg(feature = "gui")]
                         &self.gui_event_tx,
+                        #[cfg(not(feature = "gui"))]
+                        &None,
                         #[cfg(feature = "llm")]
                         self.llm_service.as_ref().map(|s| s.as_ref()),
                         self.audit_trail.as_ref(),
+                        siem_delivery.as_ref(),
                     )
                     .await;
+                    drop(siem_delivery);
 
                     if let Some(ref client) = self.authenticated_client {
                         // Upload detection matches to the platform
@@ -2547,6 +2552,7 @@ impl AgentRuntime {
                                     Ok(true) => {
                                         info!("Re-enrollment after certificate expiry succeeded");
                                         self.auth_failure_count.store(0, Ordering::Release);
+                                        self.re_enrollment_attempts.store(0, Ordering::Release);
                                     }
                                     Ok(false) => {
                                         warn!("Cannot re-enroll: no enrollment token configured")

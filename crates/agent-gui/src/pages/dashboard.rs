@@ -13,8 +13,6 @@ use crate::llm_panel::{self, LLMPanel};
 use crate::theme;
 use crate::widgets;
 
-/// Threshold for threat count requiring attention (warning level).
-const THREATS_WARNING_THRESHOLD: usize = 3;
 /// Threshold for FIM changes per day considered safe (no warning).
 const FIM_SAFE_THRESHOLD: u32 = 5;
 /// Threshold for network alerts requiring attention (warning level).
@@ -128,6 +126,9 @@ impl DashboardPage {
         }
 
         ui.add_space(theme::SPACE_SM);
+
+        crate::pages::security_navigation(ui, state);
+        ui.add_space(theme::SPACE_MD);
 
         // Persistent operational pulse: three concise, actionable signals
         // answer “what is protected, what needs attention, and can I act?”
@@ -475,7 +476,7 @@ impl DashboardPage {
         let exposure_value = if state.vulnerability_summary.is_none() {
             "En attente d’analyse".to_owned()
         } else if exposures == 0 {
-            "Aucune critique".to_owned()
+            "Aucune CVE prioritaire".to_owned()
         } else {
             crate::format::count(exposures, "priorité")
         };
@@ -1018,18 +1019,13 @@ impl DashboardPage {
             );
             ui.add_space(theme::SPACE_SM);
 
-            let proc_count = state.threats.suspicious_processes.len();
-            let usb_count = state.threats.usb_events.len();
-            let net_alerts = state.network.alerts.len();
-            let fim_unacked = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
-            let total = proc_count + usb_count + net_alerts + fim_unacked;
-
+            let (total, critical) = state.security_attention_counts();
             let (color, label) = if total == 0 {
-                (theme::text_secondary(), "Aucune alerte reçue")
-            } else if total <= THREATS_WARNING_THRESHOLD {
-                (theme::WARNING, "Attention requise")
+                (theme::text_secondary(), "Aucun événement à traiter")
+            } else if critical > 0 {
+                (theme::ERROR, "Sévérité critique à examiner")
             } else {
-                (theme::ERROR, "Alerte critique")
+                (theme::WARNING, "Événements à examiner")
             };
 
             ui.horizontal(|ui: &mut egui::Ui| {
@@ -1040,7 +1036,7 @@ impl DashboardPage {
                         .strong(),
                 );
                 ui.label(
-                    egui::RichText::new("actives")
+                    egui::RichText::new("à traiter")
                         .font(theme::font_label())
                         .color(theme::text_tertiary()),
                 );

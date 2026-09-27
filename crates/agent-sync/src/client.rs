@@ -54,6 +54,7 @@ pub struct HttpClient {
     organization_id: Option<String>,
     /// Whether the client was created with mTLS identity.
     mtls_enabled: bool,
+    signing_secret: Option<crate::request_auth::SigningSecret>,
 }
 
 impl HttpClient {
@@ -117,6 +118,7 @@ impl HttpClient {
             auth_certificate: None,
             organization_id: config.organization_id.clone(),
             mtls_enabled: false,
+            signing_secret: None,
         })
     }
 
@@ -177,6 +179,7 @@ impl HttpClient {
             auth_certificate: Some(certificate.to_string()),
             organization_id: config.organization_id.clone(),
             mtls_enabled: false,
+            signing_secret: None,
         })
     }
 
@@ -295,6 +298,7 @@ impl HttpClient {
             auth_certificate: None,
             organization_id: config.organization_id.clone(),
             mtls_enabled: true,
+            signing_secret: None,
         })
     }
 
@@ -369,7 +373,11 @@ impl HttpClient {
     }
 
     /// Apply authentication headers (X-Agent-Certificate, X-Organization-Id).
-    fn apply_auth(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+    pub fn set_signing_secret(&mut self, secret: Option<String>) {
+        self.signing_secret = secret.map(crate::request_auth::SigningSecret::new);
+    }
+
+    fn apply_auth(&self, builder: reqwest::RequestBuilder) -> SyncResult<reqwest::RequestBuilder> {
         let mut b = builder;
         if let Some(ref cert) = self.auth_certificate {
             b = b.header("X-Agent-Certificate", cert);
@@ -377,7 +385,10 @@ impl HttpClient {
         if let Some(ref org_id) = self.organization_id {
             b = b.header("X-Organization-Id", org_id);
         }
-        b
+        if let Some(secret) = &self.signing_secret {
+            return crate::request_auth::sign_request(b, secret).map_err(SyncError::Config);
+        }
+        Ok(b)
     }
 
     /// Send a POST request with JSON body.
@@ -396,7 +407,7 @@ impl HttpClient {
             .header(header::ACCEPT, "application/json")
             .json(body);
 
-        let response = self.apply_auth(request).send().await.map_err(|e| {
+        let response = self.apply_auth(request)?.send().await.map_err(|e| {
             if e.is_timeout() {
                 SyncError::Timeout
             } else if e.is_connect() {
@@ -497,7 +508,7 @@ impl HttpClient {
             .get(&url)
             .header(header::ACCEPT, "application/json");
 
-        let response = self.apply_auth(request).send().await.map_err(|e| {
+        let response = self.apply_auth(request)?.send().await.map_err(|e| {
             if e.is_timeout() {
                 SyncError::Timeout
             } else if e.is_connect() {
@@ -539,7 +550,7 @@ impl HttpClient {
             request = request.header(header::IF_NONE_MATCH, etag);
         }
 
-        let response = self.apply_auth(request).send().await.map_err(|e| {
+        let response = self.apply_auth(request)?.send().await.map_err(|e| {
             if e.is_timeout() {
                 SyncError::Timeout
             } else if e.is_connect() {
@@ -626,7 +637,7 @@ impl HttpClient {
         // to prevent credential leakage to third-party hosts
         let is_same_origin = full_url.starts_with(&self.base_url);
         let response = if is_same_origin {
-            self.apply_auth(request).send().await
+            self.apply_auth(request)?.send().await
         } else {
             request.send().await
         }
@@ -694,7 +705,7 @@ impl HttpClient {
             .delete(&url)
             .header(header::ACCEPT, "application/json");
 
-        let response = self.apply_auth(request).send().await.map_err(|e| {
+        let response = self.apply_auth(request)?.send().await.map_err(|e| {
             if e.is_timeout() {
                 SyncError::Timeout
             } else if e.is_connect() {
