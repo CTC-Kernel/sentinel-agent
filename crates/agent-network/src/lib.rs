@@ -133,12 +133,12 @@ impl NetworkManager {
     pub fn record_connections_for_beaconing(&mut self, connections: &[NetworkConnection]) {
         let my_pid = std::process::id();
         let beaconing = self.detector.beaconing_detector_mut();
-        for conn in connections {
-            if conn.pid == Some(my_pid) {
-                continue;
-            }
-            beaconing.record_connection(conn);
-        }
+        let external: Vec<_> = connections
+            .iter()
+            .filter(|conn| conn.pid != Some(my_pid))
+            .cloned()
+            .collect();
+        beaconing.record_snapshot(&external);
     }
 
     /// Run security detection on connections.

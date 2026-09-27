@@ -64,9 +64,6 @@ impl MinerDetector {
 
                 if is_known_pool {
                     alerts.push(self.create_mining_pool_alert(conn, remote_port));
-                } else if remote_port == 3333 || remote_port == 4444 || remote_port == 5555 {
-                    // Common stratum ports - flag as suspicious
-                    alerts.push(self.create_suspicious_stratum_alert(conn, remote_port));
                 }
             }
         }
@@ -76,7 +73,10 @@ impl MinerDetector {
 
     fn is_miner_process(&self, name: &str) -> bool {
         let lower = name.to_lowercase();
-        self.miner_processes.iter().any(|p| lower.contains(p))
+        let executable = lower.rsplit(['/', '\\']).next().unwrap_or(&lower);
+        self.miner_processes.iter().any(|p| {
+            executable.trim_end_matches(".exe") == p.to_lowercase().trim_end_matches(".exe")
+        })
     }
 
     fn is_stratum_port(&self, port: u16) -> bool {
@@ -84,7 +84,10 @@ impl MinerDetector {
     }
 
     fn is_mining_pool(&self, addr: &str) -> bool {
-        self.mining_pools.iter().any(|pool| addr.contains(pool))
+        let host = addr.trim_end_matches('.').to_lowercase();
+        self.mining_pools
+            .iter()
+            .any(|pool| host == *pool || host.ends_with(&format!(".{pool}")))
     }
 
     fn create_miner_process_alert(
@@ -148,37 +151,6 @@ impl MinerDetector {
             confidence: 95,
             detected_at: Utc::now(),
             iocs_matched: vec![format!("pool:{}", remote_addr)],
-        }
-    }
-
-    fn create_suspicious_stratum_alert(
-        &self,
-        conn: &NetworkConnection,
-        port: u16,
-    ) -> NetworkSecurityAlert {
-        NetworkSecurityAlert {
-            alert_type: NetworkAlertType::CryptoMining,
-            severity: AlertSeverity::Medium,
-            title: format!("Suspicious stratum port connection: {}", port),
-            description: format!(
-                "Connection to port {} which is commonly used for crypto mining stratum protocol. \
-                Remote: {}. Process: {}. Investigate to confirm if this is legitimate.",
-                port,
-                conn.remote_address.as_deref().unwrap_or("unknown"),
-                conn.process_name.as_deref().unwrap_or("unknown")
-            ),
-            connection: Some(conn.clone()),
-            evidence: json!({
-                "port": port,
-                "remote_address": conn.remote_address,
-                "process_name": conn.process_name,
-                "process_path": conn.process_path,
-                "pid": conn.pid,
-                "detection_reason": "stratum_port"
-            }),
-            confidence: 60,
-            detected_at: Utc::now(),
-            iocs_matched: vec![format!("stratum_port:{}", port)],
         }
     }
 }

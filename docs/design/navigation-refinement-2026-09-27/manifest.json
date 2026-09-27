@@ -1,0 +1,26 @@
+[
+  {
+    "file": "network-light.png",
+    "sha256": "59c1e50b741ab6f43a14dbb2637f9f2227536e073cb1cd4172eda4bd343c7ff3"
+  },
+  {
+    "file": "network-dark.png",
+    "sha256": "e1080d7d427ce0f8435db06991cbf01f8b3b8e809a932c41472688e7d5de1422"
+  },
+  {
+    "file": "settings-light.png",
+    "sha256": "89913c7de326b714d00867937223198892423f33fa97a8f8e75c6b903ece1399"
+  },
+  {
+    "file": "settings-dark.png",
+    "sha256": "46e7274ab3af6f28fb5dd1828ea3ff7335b4d3b185de87677d266ce1360b36dc"
+  },
+  {
+    "file": "threats-light-narrow.png",
+    "sha256": "d73f32e97152162440acb9a49b4a16a05f8ac49571d0e433b680cb9f032f0102"
+  },
+  {
+    "file": "threats-dark-narrow.png",
+    "sha256": "2994f580e8ac718c3d7c06b6e970d67c21df34d065f1460c33dd07daa8e351b3"
+  }
+]

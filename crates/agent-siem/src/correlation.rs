@@ -72,6 +72,7 @@ pub struct CorrelationAlert {
 struct RuleState {
     /// Timestamps of matching events.
     occurrences: Vec<DateTime<Utc>>,
+    seen_ids: HashMap<String, DateTime<Utc>>,
     /// Sample event IDs.
     sample_ids: Vec<String>,
     /// Last time an alert was generated for this rule.
@@ -82,20 +83,36 @@ impl RuleState {
     fn new() -> Self {
         Self {
             occurrences: Vec::new(),
+            seen_ids: HashMap::new(),
             sample_ids: Vec::new(),
             last_alert: None,
         }
     }
 
     /// Add an occurrence and clean up expired entries.
-    fn add_occurrence(&mut self, timestamp: DateTime<Utc>, event_id: &str, window: Duration) {
+    fn add_occurrence(
+        &mut self,
+        timestamp: DateTime<Utc>,
+        event_id: &str,
+        window: Duration,
+    ) -> bool {
         let cutoff = Utc::now() - window;
+        self.seen_ids.retain(|_, timestamp| *timestamp > cutoff);
+        if timestamp <= cutoff
+            || timestamp > Utc::now() + Duration::seconds(30)
+            || self.seen_ids.contains_key(event_id)
+        {
+            return false;
+        }
+        self.seen_ids.insert(event_id.into(), timestamp);
+        self.sample_ids.retain(|id| self.seen_ids.contains_key(id));
         self.occurrences.retain(|t| *t > cutoff);
         self.occurrences.push(timestamp);
 
         if self.sample_ids.len() < 10 {
             self.sample_ids.push(event_id.to_string());
         }
+        true
     }
 
     /// Count occurrences within the window.
@@ -164,7 +181,9 @@ impl CorrelationEngine {
                 .entry(compiled.rule.id.clone())
                 .or_insert_with(RuleState::new);
 
-            rule_state.add_occurrence(event.timestamp, &event.event_id, window);
+            if !rule_state.add_occurrence(event.timestamp, &event.event_id, window) {
+                continue;
+            }
 
             let count = rule_state.count(window);
             if count >= compiled.rule.threshold {
@@ -543,5 +562,17 @@ mod tests {
     fn test_rule_count() {
         let engine = CorrelationEngine::with_default_rules();
         assert!(engine.rule_count() > 0);
+    }
+    #[tokio::test]
+    async fn replayed_event_does_not_manufacture_a_critical_error_burst() {
+        let engine = CorrelationEngine::with_default_rules();
+        let event = make_event(EventCategory::System, 9, "fatal application failure");
+        for _ in 0..10 {
+            assert!(engine.process_event(&event).await.is_empty());
+        }
+        let next = make_event(EventCategory::System, 9, "fatal application failure");
+        assert!(engine.process_event(&next).await.is_empty());
+        let third = make_event(EventCategory::System, 9, "fatal application failure");
+        assert!(!engine.process_event(&third).await.is_empty());
     }
 }

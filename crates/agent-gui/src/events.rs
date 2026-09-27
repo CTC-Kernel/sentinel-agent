@@ -305,6 +305,7 @@ pub enum AgentEvent {
         speaking: bool,
     },
     /// Risks loaded or auto-generated from the backend.
+    RisksSnapshot { risks: Vec<crate::dto::RiskEntry> },
     RisksLoaded {
         /// Risk entries to merge into GUI state.
         risks: Vec<crate::dto::RiskEntry>,
@@ -534,12 +535,14 @@ pub enum GuiCommand {
     LlmAnalyzeVulnerability {
         /// Index of the finding in the current findings list.
         finding_index: usize,
+        /// Stable identity of the finding selected by the user.
+        target_id: String,
     },
     /// Classify a threat event with AI.
     LlmClassifyThreat {
         /// Description of the event to classify.
         event_description: String,
-        /// Target identifier for routing the response (e.g. "process#0", "incident#2", "alert#1").
+        /// Target identifier for routing the response (digest of the selected event, independent of list position).
         target_id: String,
     },
     /// Request current LLM model status.

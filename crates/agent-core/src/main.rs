@@ -1247,7 +1247,7 @@ async fn emit_alerting_loaded_from_db(
     let gui_rules: Vec<agent_gui::dto::AlertRule> = stored_rules
         .iter()
         .filter_map(|s| {
-            let id = uuid::Uuid::parse_str(&s.id).ok()?;
+            let id = s.id.clone();
             let severity_threshold = s.severity_threshold.as_deref().map(|sev| match sev {
                 "critical" | "Critical" => agent_gui::dto::Severity::Critical,
                 "high" | "High" => agent_gui::dto::Severity::High,
@@ -1256,8 +1256,8 @@ async fn emit_alerting_loaded_from_db(
                 _ => agent_gui::dto::Severity::Medium,
             });
             let rule_type = match s.rule_type.as_str() {
-                "TypeFilter" => agent_gui::dto::AlertRuleType::TypeFilter,
-                "EscalationDelay" => agent_gui::dto::AlertRuleType::EscalationDelay,
+                "TypeFilter" | "DetectionType" => agent_gui::dto::AlertRuleType::TypeFilter,
+                "EscalationDelay" | "Escalation" => agent_gui::dto::AlertRuleType::EscalationDelay,
                 _ => agent_gui::dto::AlertRuleType::SeverityThreshold,
             };
             let detection_types: Vec<String> =
@@ -1282,7 +1282,7 @@ async fn emit_alerting_loaded_from_db(
     let gui_webhooks: Vec<agent_gui::dto::WebhookConfig> = stored_webhooks
         .iter()
         .filter_map(|s| {
-            let id = uuid::Uuid::parse_str(&s.id).ok()?;
+            let id = s.id.clone();
             Some(agent_gui::dto::WebhookConfig {
                 id,
                 name: s.name.clone(),
@@ -1995,8 +1995,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                 let actions: Vec<agent_gui::dto::PlaybookAction> =
                                                     serde_json::from_str(&stored.steps).unwrap_or_default();
                                                 agent_gui::dto::Playbook {
-                                                    id: uuid::Uuid::parse_str(&stored.id)
-                                                        .unwrap_or_else(|_| uuid::Uuid::new_v4()),
+                                                    id: stored.id.clone(),
                                                     name: stored.name.clone(),
                                                     description: stored.description.clone(),
                                                     enabled: stored.enabled,
@@ -2081,15 +2080,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         let audit_trail = db_clone.as_ref().map(|db: &std::sync::Arc<agent_storage::Database>| {
                                             std::sync::Arc::new(agent_core::audit_trail::LocalAuditTrail::new(db.clone()))
                                         });
-                                        agent_core::playbook_engine::execute_playbook_actions(
+                                        agent_core::playbook_engine::execute_playbook_actions_with_delivery(
                                             &playbook.name,
                                             &resolved_actions,
-                                            audit_trail.as_ref()
+                                            audit_trail.as_ref(),
+                                            Some(&tx),
+                                            None,
                                         ).await
                                     };
                                     let actions_executed: Vec<String> = results.iter().map(|r| r.action.clone()).collect();
-                                    let all_success = results.iter().all(|r| r.success);
-                                    let first_error = results.iter().find(|r| !r.success).and_then(|r| r.error.clone());
+                                    let all_success = !results.is_empty() && results.iter().all(|r| r.success);
+                                    let first_error = if results.is_empty() { Some("No executable action resolved for the configured playbook".to_string()) } else { results.iter().find(|r| !r.success).and_then(|r| r.error.clone()) };
 
                                     // Build playbook log entry
                                     let log_entry = agent_gui::dto::PlaybookLogEntry {
@@ -2219,25 +2220,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             }
                         }
                         Ok(GuiCommand::DeletePlaybook { playbook_id }) => {
-                            info!("[AUDIT] GUI deleted playbook: {}", playbook_id);
-                            // Delete from local SQLite (offline-first)
+                            info!("[AUDIT] GUI requested durable playbook deletion: {}", playbook_id);
                             if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let pid = playbook_id.clone();
+                                let db = std::sync::Arc::clone(db_arc);
                                 tokio::spawn(async move {
-                                    let repo = agent_storage::repositories::grc::PlaybookRepository::new(&db_clone);
-                                    if let Err(e) = repo.delete(&pid).await {
-                                        warn!("Failed to delete playbook from SQLite: {}", e);
-                                    }
-                                });
-                            }
-                            // Also delete from SaaS when online
-                            if let Some(ref c) = sync_client {
-                                let c = std::sync::Arc::clone(c);
-                                let pid = playbook_id.clone();
-                                tokio::spawn(async move {
-                                    if let Err(e) = c.delete_playbook(&pid).await {
-                                        warn!("Failed to sync playbook delete to SaaS: {}", e);
+                                    let queue = agent_storage::SyncQueueRepository::new(&db);
+                                    if let Err(e) = queue.delete_grc(agent_storage::SyncEntityType::Playbook, &playbook_id).await {
+                                        warn!("Failed to persist EDR deletion: {}", e);
                                     }
                                 });
                             }
@@ -2281,24 +2270,18 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             }
                         }
                         Ok(GuiCommand::DeleteDetectionRule { rule_id }) => {
-                            info!("[AUDIT] GUI deleted detection rule: {}", rule_id);
+                            info!("[AUDIT] GUI requested durable detection rule deletion: {}", rule_id);
                             if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let rid = rule_id.clone();
-                                let client_clone = sync_client.clone();
+                                let db = std::sync::Arc::clone(db_arc);
                                 tokio::spawn(async move {
-                                    let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
-                                    if let Err(e) = repo.delete(&rid).await {
-                                        warn!("Failed to delete detection rule from SQLite: {}", e);
-                                    }
-                                    // Also delete on the platform
-                                    if let Some(ref client) = client_clone
-                                        && let Err(e) = client.delete_detection_rule(&rid).await {
-                                            warn!("Failed to delete detection rule on platform: {}", e);
+                                    let queue = agent_storage::SyncQueueRepository::new(&db);
+                                    if let Err(e) = queue.delete_grc(agent_storage::SyncEntityType::DetectionRule, &rule_id).await {
+                                        warn!("Failed to persist EDR deletion: {}", e);
                                     }
                                 });
                             }
                         }
+
                         Ok(GuiCommand::ToggleDetectionRule { rule_id, enabled }) => {
                             info!("[AUDIT] GUI toggled detection rule {}: enabled={}", rule_id, enabled);
                             // Persist toggle to SQLite so it survives restarts
@@ -2395,16 +2378,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rid = risk_id.clone();
-                                let client_clone = sync_client.clone();
                                 tokio::spawn(async move {
-                                    let repo = agent_storage::repositories::grc::RiskRepository::new(&db_clone);
-                                    if let Err(e) = repo.delete(&rid).await {
-                                        warn!("Failed to delete risk from SQLite: {}", e);
-                                    }
-                                    // Also delete on the platform
-                                    if let Some(ref client) = client_clone
-                                        && let Err(e) = client.delete_risk(&rid).await {
-                                            warn!("Failed to delete risk on platform: {}", e);
+                                    let repo = agent_storage::SyncQueueRepository::new(&db_clone);
+                                    if let Err(e) = repo.delete_grc(agent_storage::SyncEntityType::Risk, &rid).await {
+                                        warn!("Failed to durably delete risk: {}", e);
                                     }
                                 });
                             }
@@ -2552,16 +2529,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rid = rule_id.clone();
                                 let tx = bg_event_tx.clone();
-                                let client_clone = sync_client.clone();
                                 tokio::spawn(async move {
-                                    let repo = agent_storage::repositories::grc::AlertRuleRepository::new(&db_clone);
-                                    if let Err(e) = repo.delete(&rid).await {
-                                        warn!("Failed to delete alert rule from SQLite: {}", e);
-                                    }
-                                    // Also delete on the platform
-                                    if let Some(ref client) = client_clone
-                                        && let Err(e) = client.delete_alert_rule(&rid).await {
-                                            warn!("Failed to delete alert rule on platform: {}", e);
+                                    let repo = agent_storage::SyncQueueRepository::new(&db_clone);
+                                    if let Err(e) = repo.delete_grc(agent_storage::SyncEntityType::AlertRule, &rid).await {
+                                        warn!("Failed to durably delete alert rule: {}", e);
                                     }
                                     // Reload and emit AlertingLoaded
                                     emit_alerting_loaded_from_db(&db_clone, &tx).await;
@@ -2612,16 +2583,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let wid = webhook_id.clone();
                                 let tx = bg_event_tx.clone();
-                                let client_clone = sync_client.clone();
                                 tokio::spawn(async move {
-                                    let repo = agent_storage::repositories::grc::WebhookRepository::new(&db_clone);
-                                    if let Err(e) = repo.delete(&wid).await {
-                                        warn!("Failed to delete webhook from SQLite: {}", e);
-                                    }
-                                    // Also delete on the platform
-                                    if let Some(ref client) = client_clone
-                                        && let Err(e) = client.delete_webhook(&wid).await {
-                                            warn!("Failed to delete webhook on platform: {}", e);
+                                    let repo = agent_storage::SyncQueueRepository::new(&db_clone);
+                                    if let Err(e) = repo.delete_grc(agent_storage::SyncEntityType::Webhook, &wid).await {
+                                        warn!("Failed to durably delete webhook: {}", e);
                                     }
                                     // Reload and emit AlertingLoaded
                                     emit_alerting_loaded_from_db(&db_clone, &tx).await;
@@ -3065,7 +3030,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             }
                         }
 
-                        Ok(GuiCommand::LlmAnalyzeVulnerability { finding_index }) => {
+                        Ok(GuiCommand::LlmAnalyzeVulnerability { finding_index, target_id }) => {
                             info!("[AUDIT] GUI requested LLM vulnerability analysis for finding #{}", finding_index);
                             if let Some(ref trail) = audit_trail_for_commands {
                                 let trail = std::sync::Arc::clone(trail);
@@ -3083,14 +3048,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let svc = llm_service.clone();
                             let handle = handle_for_commands.clone();
                             tokio::spawn(async move {
-                                let target = format!("finding#{}", finding_index);
+                                let target = target_id;
                                 #[cfg(feature = "llm")]
                                 {
                                     if let Some(ref svc) = svc {
                                         // Retrieve finding from cache
                                         let finding = {
                                             let cache = handle.state.last_vuln_findings.read().await;
-                                            cache.as_ref().and_then(|res| res.vulnerabilities.get(finding_index).cloned())
+                                            cache.as_ref().and_then(|res| res.vulnerabilities.iter().find(|v| {
+                                                let id = v.cve_id.clone().or_else(|| v.advisory_id.clone()).unwrap_or_else(|| format!("{}-{}", v.source.to_uppercase(), v.package_name.to_uppercase()));
+                                                agent_gui::state::event_identity("finding", &(&id, &v.package_name, &v.installed_version, &v.source, Some(v.detected_at))) == target
+                                            }).cloned())
                                         };
 
                                         if let Some(finding) = finding {
@@ -3100,8 +3068,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                         target: target.clone(),
                                                         analysis,
                                                         severity_override: None,
-                                                        is_false_positive: Some(false),
-                                                        confidence: Some(85),
+                                                        is_false_positive: None,
+                                                        confidence: None,
                                                         ai_remediation_script: None,
                                                         ai_remediation_explanation: None,
                                                     });

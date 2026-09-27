@@ -1,0 +1,14 @@
+[
+  {
+    "file": "light.png",
+    "sha256": "3d21cafa7d1887039dc451f2edb0cdf677c4f5bfffaaaba9345c701cb2805630"
+  },
+  {
+    "file": "reference.png",
+    "sha256": "485333576d5d407412dc4a3f07c5a5bb03781df6255f020678495f11c9fd3dcd"
+  },
+  {
+    "file": "dark.png",
+    "sha256": "a78c843a392ddff0fc899a4246a96c9d6eb37e7de6f18605f06eac217e342f22"
+  }
+]

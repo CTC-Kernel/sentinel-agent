@@ -588,49 +588,75 @@ pub fn icon_button_with_color(
 pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Response {
     let font = theme::font_label();
     let text_col = theme::badge_text(color);
-
     let galley = ui
         .painter()
         .layout_no_wrap(text.to_string(), font.clone(), text_col);
-
     let padding = egui::vec2(theme::SPACE_SM + theme::BORDER_THICK, theme::SPACE_XS);
-    let size = galley.size() + padding * 2.0;
-    let size = egui::vec2(size.x, size.y.max(theme::ICON_LG));
-
+    // Reserve the marker in both states so toggling cannot move neighbouring filters.
+    let marker_width = theme::ICON_SM + theme::SPACE_XS;
+    let size = egui::vec2(
+        galley.size().x + padding.x * 2.0 + marker_width,
+        (galley.size().y + padding.y * 2.0).max(30.0),
+    );
     let (rect, response) = ui.allocate_exact_size(size, Sense::click());
-
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(
+            egui::WidgetType::SelectableLabel,
+            ui.is_enabled(),
+            active,
+            text,
+        )
+    });
     if ui.is_rect_visible(rect) {
-        let is_hovered = response.hovered();
-
-        let (bg, stroke, fg) = if active || is_hovered {
-            (
-                theme::badge_bg(color),
-                Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(color)),
-                text_col,
-            )
+        let hovered = response.hovered() && ui.is_enabled();
+        let bg = if active {
+            theme::badge_bg(color)
+        } else if hovered {
+            theme::hover_bg_neutral()
         } else {
-            (
-                Color32::TRANSPARENT,
-                Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(color)),
-                theme::text_tertiary(),
-            )
+            Color32::TRANSPARENT
         };
-
+        let fg = if !ui.is_enabled() {
+            theme::text_tertiary()
+        } else if active {
+            text_col
+        } else {
+            theme::text_secondary()
+        };
+        let stroke = Stroke::new(
+            theme::BORDER_HAIRLINE,
+            if active {
+                theme::badge_border(color)
+            } else {
+                theme::border()
+            },
+        );
         let rounding = CornerRadius::same(theme::BADGE_ROUNDING);
         ui.painter()
             .rect(rect, rounding, bg, stroke, StrokeKind::Inside);
-
-        ui.painter()
-            .text(rect.center(), egui::Align2::CENTER_CENTER, text, font, fg);
-
-        // Focus ring for keyboard navigation
+        let marker = egui::pos2(
+            rect.left() + padding.x + theme::ICON_SM / 2.0,
+            rect.center().y,
+        );
+        if active {
+            ui.painter()
+                .text(marker, egui::Align2::CENTER_CENTER, "✓", font.clone(), fg);
+        } else {
+            ui.painter()
+                .circle_stroke(marker, 3.0, Stroke::new(theme::BORDER_THIN, fg));
+        }
+        ui.painter().text(
+            egui::pos2(rect.left() + padding.x + marker_width, rect.center().y),
+            egui::Align2::LEFT_CENTER,
+            text,
+            font,
+            fg,
+        );
         if response.has_focus() {
-            let rounding = CornerRadius::same(theme::BADGE_ROUNDING);
             ui.painter()
                 .rect_stroke(rect, rounding, theme::focus_ring(), StrokeKind::Outside);
         }
     }
-
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 

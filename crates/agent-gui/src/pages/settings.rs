@@ -92,6 +92,8 @@ impl SettingsPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
+        crate::pages::security_navigation(ui, state);
+        ui.add_space(theme::SPACE_MD);
 
         widgets::tabs(
             ui,
@@ -998,34 +1000,28 @@ impl SettingsPage {
     }
 
     fn setting_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.set_min_height(theme::MIN_TOUCH_TARGET);
-            ui.label(
-                egui::RichText::new(icon)
-                    .color(theme::text_tertiary())
-                    .strong(),
-            );
-            ui.add_space(theme::SPACE_XS);
-            ui.label(
-                egui::RichText::new(label)
-                    .font(theme::font_min())
-                    .color(theme::text_secondary())
-                    .strong(),
-            );
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    // Copy button for easy clipboard access
+        ui.vertical(|ui| {
+            ui.horizontal(|ui| {
+                ui.label(egui::RichText::new(icon).color(theme::text_tertiary()));
+                ui.label(
+                    egui::RichText::new(label)
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
+                );
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     widgets::copy_button(ui, value, Some("Copier la valeur"));
-                    ui.add_space(theme::SPACE_XS);
-                    ui.label(
-                        egui::RichText::new(value)
-                            .font(theme::font_mono_sm())
-                            .color(theme::text_primary())
-                            .strong(),
-                    );
-                },
+                });
+            });
+            ui.add(
+                egui::Label::new(
+                    egui::RichText::new(value)
+                        .font(theme::font_mono_sm())
+                        .color(theme::text_primary()),
+                )
+                .wrap()
+                .selectable(true),
             );
+            ui.add_space(theme::SPACE_SM);
         });
     }
 

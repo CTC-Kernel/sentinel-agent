@@ -18,6 +18,7 @@ mod keys {
     pub const AGENT_ID: &str = "credentials.agent_id";
     pub const ORGANIZATION_ID: &str = "credentials.organization_id";
     pub const CLIENT_CERTIFICATE: &str = "credentials.client_certificate";
+    pub const HMAC_SECRET: &str = "credentials.hmac_secret";
     pub const CLIENT_PRIVATE_KEY: &str = "credentials.client_private_key";
     pub const CERTIFICATE_EXPIRES_AT: &str = "credentials.certificate_expires_at";
     pub const SERVER_FINGERPRINTS: &str = "credentials.server_fingerprints";
@@ -51,6 +52,10 @@ impl<'a> CredentialsRepository<'a> {
 
                 // Store all credential fields
                 let fields = [
+                    (
+                        keys::HMAC_SECRET,
+                        credentials.hmac_secret.clone().unwrap_or_default(),
+                    ),
                     (keys::AGENT_ID, credentials.agent_id.to_string()),
                     (
                         keys::ORGANIZATION_ID,
@@ -190,6 +195,14 @@ impl<'a> CredentialsRepository<'a> {
                 let credentials = StoredCredentials {
                     agent_id,
                     organization_id,
+                    hmac_secret: conn
+                        .query_row(
+                            "SELECT (SELECT value FROM agent_config WHERE key = ?)",
+                            [keys::HMAC_SECRET],
+                            |row| row.get::<_, Option<String>>(0),
+                        )
+                        .map_err(|e| agent_storage::StorageError::Query(e.to_string()))?
+                        .filter(|s| !s.is_empty()),
                     client_certificate: get_value(keys::CLIENT_CERTIFICATE)?,
                     client_private_key: get_value(keys::CLIENT_PRIVATE_KEY)?,
                     certificate_expires_at,
@@ -404,6 +417,7 @@ mod tests {
 
     fn create_test_credentials() -> StoredCredentials {
         StoredCredentials {
+            hmac_secret: Some("c2lnbmluZy1rZXktZm9yLXRlc3RzLW9ubHktbm90LWxpdmU=".into()),
             agent_id: Uuid::new_v4(),
             organization_id: Uuid::new_v4(),
             client_certificate: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----"
@@ -428,6 +442,7 @@ mod tests {
         assert_eq!(loaded.agent_id, credentials.agent_id);
         assert_eq!(loaded.organization_id, credentials.organization_id);
         assert_eq!(loaded.client_certificate, credentials.client_certificate);
+        assert_eq!(loaded.hmac_secret, credentials.hmac_secret);
     }
 
     #[tokio::test]

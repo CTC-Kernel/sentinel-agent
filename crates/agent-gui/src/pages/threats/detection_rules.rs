@@ -393,7 +393,7 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                         .unwrap_or(Severity::Medium);
 
                     let rule = DetectionRule {
-                        id: Uuid::new_v4(),
+                        id: Uuid::new_v4().to_string(),
                         name: f.name.trim().to_string(),
                         description: f.description.trim().to_string(),
                         severity,

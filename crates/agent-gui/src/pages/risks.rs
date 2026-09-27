@@ -158,7 +158,7 @@ impl RisksPage {
             .clicked()
             {
                 let new_risk = RiskEntry {
-                    id: uuid::Uuid::new_v4(),
+                    id: uuid::Uuid::new_v4().to_string(),
                     title: "Nouveau risque".to_string(),
                     description: String::new(),
                     probability: 3,
@@ -827,7 +827,7 @@ impl RisksPage {
 
                             // AI Risk Analysis section
                             widgets::detail_section(ui, "ANALYSE IA");
-                            let is_analyzing = state.risks.ai_analyzing == Some(risk.id);
+                            let is_analyzing = state.risks.ai_analyzing == Some(risk.id.clone());
                             if is_analyzing {
                                 ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.spinner();
@@ -844,7 +844,7 @@ impl RisksPage {
                             )
                             .clicked()
                             {
-                                state.risks.ai_analyzing = Some(risk.id);
+                                state.risks.ai_analyzing = Some(risk.id.clone());
                                 state.risks.ai_analysis_result = None;
                                 state.risks.ai_mitigation_suggestions.clear();
                                 *command = Some(GuiCommand::LlmAnalyzeRisk {
@@ -1105,7 +1105,7 @@ impl RisksPage {
                 _ => (2, 3),
             };
             state.risks.entries.push(RiskEntry {
-                id: uuid::Uuid::new_v4(),
+                id: uuid::Uuid::new_v4().to_string(),
                 title,
                 description: check.message.clone().unwrap_or_else(|| {
                     "D\u{00e9}tect\u{00e9} par audit de conformit\u{00e9}".to_string()
@@ -1138,7 +1138,7 @@ impl RisksPage {
                 continue;
             }
             state.risks.entries.push(RiskEntry {
-                id: uuid::Uuid::new_v4(),
+                id: uuid::Uuid::new_v4().to_string(),
                 title,
                 description: vuln.description.clone(),
                 probability: 4,
@@ -1173,7 +1173,7 @@ impl RisksPage {
                 continue;
             }
             state.risks.entries.push(RiskEntry {
-                id: uuid::Uuid::new_v4(),
+                id: uuid::Uuid::new_v4().to_string(),
                 title,
                 description: proc.reason.clone(),
                 probability: 3,

@@ -119,7 +119,7 @@ macro_rules! impl_sync_queue {
         async fn $name(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
             use agent_storage::SyncQueueRepository;
             let repo = SyncQueueRepository::new(&self._db);
-            let pending = match repo.get_pending(50).await {
+            let pending = match repo.get_pending_for($entity, 50).await {
                 Ok(p) => p,
                 Err(e) => {
                     return Err(crate::error::SyncError::Config(format!(
@@ -154,8 +154,29 @@ macro_rules! impl_sync_queue {
 
             // Upload via AuthenticatedClient
             match client.$sync_method(items).await {
-                Ok(_) => {
-                    let _ = repo.remove(&ids).await;
+                Ok(response) => {
+                    if response.received_count as usize != ids.len() {
+                        return Err(crate::error::SyncError::Config(
+                            "Platform acknowledged an incomplete batch".into(),
+                        ));
+                    }
+                    if matches!(
+                        $entity,
+                        agent_storage::SyncEntityType::Playbook
+                            | agent_storage::SyncEntityType::DetectionRule
+                            | agent_storage::SyncEntityType::Risk
+                            | agent_storage::SyncEntityType::Asset
+                            | agent_storage::SyncEntityType::AlertRule
+                            | agent_storage::SyncEntityType::Webhook
+                    ) {
+                        repo.acknowledge_grc(&ids, $entity)
+                            .await
+                            .map_err(|e| crate::error::SyncError::Config(e.to_string()))?;
+                    } else {
+                        repo.remove(&ids)
+                            .await
+                            .map_err(|e| crate::error::SyncError::Config(e.to_string()))?;
+                    }
                     Ok(ids.len() as u32)
                 }
                 Err(e) => {
@@ -208,6 +229,45 @@ impl SyncOrchestrator {
         self.execute_sync(SyncKind::Manual, client).await
     }
 
+    async fn sync_edr_deletions(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
+        use agent_storage::{SyncEntityType, SyncQueueRepository};
+        let queue = SyncQueueRepository::new(&self._db);
+        let pending = queue.get_pending(50).await?;
+        let mut count = 0;
+        for item in pending {
+            let result = match item.entity_type {
+                SyncEntityType::PlaybookDelete => client.delete_playbook(&item.entity_id).await,
+                SyncEntityType::DetectionRuleDelete => {
+                    client.delete_detection_rule(&item.entity_id).await
+                }
+                SyncEntityType::RiskDelete => client.delete_risk(&item.entity_id).await,
+                SyncEntityType::AlertRuleDelete => client.delete_alert_rule(&item.entity_id).await,
+                SyncEntityType::WebhookDelete => client.delete_webhook(&item.entity_id).await,
+                _ => continue,
+            };
+            match result {
+                Ok(response) if response.acknowledged => {
+                    queue.remove(&[item.id]).await?;
+                    count += 1;
+                }
+                Err(crate::error::SyncError::ServerError { status: 404, .. }) => {
+                    queue.remove(&[item.id]).await?;
+                    count += 1;
+                }
+                Ok(_) => {
+                    return Err(crate::error::SyncError::Config(
+                        "Platform did not acknowledge deletion".into(),
+                    ));
+                }
+                Err(error) => {
+                    queue.record_failure(item.id, &error.to_string()).await?;
+                    return Err(error);
+                }
+            }
+        }
+        Ok(count)
+    }
+
     /// Drain only the GRC entity queues (playbooks, risks, assets, KPIs, alert rules, detection rules).
     ///
     /// Unlike `sync_full`, this does NOT re-do heartbeat/config/rules/results/audit
@@ -217,6 +277,7 @@ impl SyncOrchestrator {
     /// requests and avoid bursting ~350 requests in rapid succession.
     pub async fn drain_grc_queues(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
         let mut total = 0u32;
+        let mut errors = Vec::new();
         let throttle = std::time::Duration::from_millis(500);
 
         // Enforce queue size limit before draining to prevent unbounded growth
@@ -228,40 +289,63 @@ impl SyncOrchestrator {
             }
         }
 
+        match self.sync_edr_deletions(client).await {
+            Ok(n) => total += n,
+            Err(e) => errors.push(format!("EDR deletions: {e}")),
+        }
+
         // Upload locally-created GRC entities from the sync queue
         match self.sync_playbooks(client).await {
             Ok(n) => total += n,
-            Err(e) => warn!("Playbooks queue drain: {}", e),
+            Err(e) => {
+                warn!("Playbooks queue drain: {}", e);
+                errors.push(format!("Playbooks queue drain: {}", e));
+            }
         }
         tokio::time::sleep(throttle).await;
 
         match self.sync_detection_rules(client).await {
             Ok(n) => total += n,
-            Err(e) => warn!("Detection rules queue drain: {}", e),
+            Err(e) => {
+                warn!("Detection rules queue drain: {}", e);
+                errors.push(format!("Detection rules queue drain: {}", e));
+            }
         }
         tokio::time::sleep(throttle).await;
 
         match self.sync_risks(client).await {
             Ok(n) => total += n,
-            Err(e) => warn!("Risks queue drain: {}", e),
+            Err(e) => {
+                warn!("Risks queue drain: {}", e);
+                errors.push(format!("Risks queue drain: {}", e));
+            }
         }
         tokio::time::sleep(throttle).await;
 
         match self.sync_assets(client).await {
             Ok(n) => total += n,
-            Err(e) => warn!("Assets queue drain: {}", e),
+            Err(e) => {
+                warn!("Assets queue drain: {}", e);
+                errors.push(format!("Assets queue drain: {}", e));
+            }
         }
         tokio::time::sleep(throttle).await;
 
         match self.sync_alerting(client).await {
             Ok(n) => total += n,
-            Err(e) => warn!("Alert rules queue drain: {}", e),
+            Err(e) => {
+                warn!("Alert rules queue drain: {}", e);
+                errors.push(format!("Alert rules queue drain: {}", e));
+            }
         }
         tokio::time::sleep(throttle).await;
 
         match self.sync_webhooks(client).await {
             Ok(n) => total += n,
-            Err(e) => warn!("Webhooks queue drain: {}", e),
+            Err(e) => {
+                warn!("Webhooks queue drain: {}", e);
+                errors.push(format!("Webhooks queue drain: {}", e));
+            }
         }
         tokio::time::sleep(throttle).await;
 
@@ -273,10 +357,17 @@ impl SyncOrchestrator {
                 }
                 total += n;
             }
-            Err(e) => warn!("GRC entity download failed: {}", e),
+            Err(e) => {
+                warn!("GRC entity download failed: {}", e);
+                errors.push(format!("GRC entity download failed: {}", e));
+            }
         }
 
-        Ok(total)
+        if errors.is_empty() {
+            Ok(total)
+        } else {
+            Err(crate::error::SyncError::Config(errors.join("; ")))
+        }
     }
 
     /// Execute a sync operation of the given kind.
@@ -426,12 +517,15 @@ impl SyncOrchestrator {
         };
 
         let mut count = 0u32;
+        let mut errors = Vec::new();
         let now = chrono::Utc::now().to_rfc3339();
 
         // --- Risks ---
-        match client.fetch_risks().await {
-            Ok(risks) => {
+        match client.fetch_risk_snapshot().await {
+            Ok(remote) => {
+                let (risks, complete) = remote.into_parts();
                 let repo = RiskRepository::new(&self._db);
+                let mut snapshot = Vec::new();
                 for r in &risks {
                     let stored = StoredRisk {
                         id: r.id.clone(),
@@ -448,21 +542,23 @@ impl SyncOrchestrator {
                         sla_target_days: r.sla_target_days.map(|v| v as i32),
                         synced: true,
                     };
-                    if let Err(e) = repo.upsert(&stored).await {
-                        warn!("Failed to upsert risk {}: {}", r.id, e);
-                    } else {
-                        count += 1;
-                    }
+                    snapshot.push(stored);
                 }
+                repo.reconcile_remote(&snapshot, complete).await?;
+                count += snapshot.len() as u32;
                 debug!("Downloaded {} risks from SaaS", risks.len());
             }
-            Err(e) => warn!("Failed to fetch risks: {}", e),
+            Err(e) => {
+                warn!("Failed to fetch risks: {}", e);
+                errors.push(format!("Failed to fetch risks: {}", e));
+            }
         }
 
         // --- Playbooks ---
         match client.fetch_playbooks().await {
             Ok(playbooks) => {
                 let repo = PlaybookRepository::new(&self._db);
+                let mut snapshot = Vec::new();
                 for p in &playbooks {
                     let stored = StoredPlaybook {
                         id: p.id.clone(),
@@ -478,21 +574,26 @@ impl SyncOrchestrator {
                         conditions: serde_json::to_string(&p.conditions)
                             .unwrap_or_else(|_| "[]".to_string()),
                     };
-                    if let Err(e) = repo.upsert(&stored).await {
-                        warn!("Failed to upsert playbook {}: {}", p.id, e);
-                    } else {
-                        count += 1;
-                    }
+                    snapshot.push(stored);
                 }
+                repo.reconcile_snapshot(&snapshot)
+                    .await
+                    .map_err(|e| crate::error::SyncError::Config(e.to_string()))?;
+                count += snapshot.len() as u32;
                 debug!("Downloaded {} playbooks from SaaS", playbooks.len());
             }
-            Err(e) => warn!("Failed to fetch playbooks: {}", e),
+            Err(e) => {
+                warn!("Failed to fetch playbooks: {}", e);
+                errors.push(format!("Failed to fetch playbooks: {}", e));
+            }
         }
 
         // --- Managed Assets ---
-        match client.fetch_managed_assets().await {
-            Ok(assets) => {
+        match client.fetch_asset_snapshot().await {
+            Ok(remote) => {
+                let (assets, complete) = remote.into_parts();
                 let repo = ManagedAssetRepository::new(&self._db);
+                let mut snapshot = Vec::new();
                 for a in &assets {
                     let stored = StoredManagedAsset {
                         id: a.id.clone(),
@@ -514,21 +615,23 @@ impl SyncOrchestrator {
                         last_seen: a.last_seen.to_rfc3339(),
                         synced: true,
                     };
-                    if let Err(e) = repo.upsert(&stored).await {
-                        warn!("Failed to upsert asset {}: {}", a.id, e);
-                    } else {
-                        count += 1;
-                    }
+                    snapshot.push(stored);
                 }
+                repo.reconcile_remote(&snapshot, complete).await?;
+                count += snapshot.len() as u32;
                 debug!("Downloaded {} managed assets from SaaS", assets.len());
             }
-            Err(e) => warn!("Failed to fetch managed assets: {}", e),
+            Err(e) => {
+                warn!("Failed to fetch managed assets: {}", e);
+                errors.push(format!("Failed to fetch managed assets: {}", e));
+            }
         }
 
         // --- Alert Rules ---
         match client.fetch_alert_rules().await {
             Ok(rules) => {
                 let repo = AlertRuleRepository::new(&self._db);
+                let mut snapshot = Vec::new();
                 for r in &rules {
                     let stored = StoredAlertRule {
                         id: r.id.clone(),
@@ -542,21 +645,23 @@ impl SyncOrchestrator {
                         created_at: r.created_at.to_rfc3339(),
                         synced: true,
                     };
-                    if let Err(e) = repo.upsert(&stored).await {
-                        warn!("Failed to upsert alert rule {}: {}", r.id, e);
-                    } else {
-                        count += 1;
-                    }
+                    snapshot.push(stored);
                 }
+                repo.reconcile_remote(&snapshot, true).await?;
+                count += snapshot.len() as u32;
                 debug!("Downloaded {} alert rules from SaaS", rules.len());
             }
-            Err(e) => warn!("Failed to fetch alert rules: {}", e),
+            Err(e) => {
+                warn!("Failed to fetch alert rules: {}", e);
+                errors.push(format!("Failed to fetch alert rules: {}", e));
+            }
         }
 
         // --- Webhooks ---
         match client.fetch_webhooks().await {
             Ok(webhooks) => {
                 let repo = WebhookRepository::new(&self._db);
+                let mut snapshot = Vec::new();
                 for w in &webhooks {
                     let stored = StoredWebhook {
                         id: w.id.clone(),
@@ -569,21 +674,23 @@ impl SyncOrchestrator {
                         updated_at: now.clone(),
                         synced: true,
                     };
-                    if let Err(e) = repo.upsert(&stored).await {
-                        warn!("Failed to upsert webhook {}: {}", w.id, e);
-                    } else {
-                        count += 1;
-                    }
+                    snapshot.push(stored);
                 }
+                repo.reconcile_remote(&snapshot, true).await?;
+                count += snapshot.len() as u32;
                 debug!("Downloaded {} webhooks from SaaS", webhooks.len());
             }
-            Err(e) => warn!("Failed to fetch webhooks: {}", e),
+            Err(e) => {
+                warn!("Failed to fetch webhooks: {}", e);
+                errors.push(format!("Failed to fetch webhooks: {}", e));
+            }
         }
 
         // --- Detection Rules ---
         match client.fetch_detection_rules().await {
             Ok(rules) => {
                 let repo = DetectionRuleRepository::new(&self._db);
+                let mut snapshot = Vec::new();
                 for r in &rules {
                     let stored = StoredDetectionRule {
                         id: r.id.clone(),
@@ -600,15 +707,18 @@ impl SyncOrchestrator {
                         match_count: r.match_count.min(i32::MAX as u32) as i32,
                         synced: true,
                     };
-                    if let Err(e) = repo.upsert(&stored).await {
-                        warn!("Failed to upsert detection rule {}: {}", r.id, e);
-                    } else {
-                        count += 1;
-                    }
+                    snapshot.push(stored);
                 }
+                repo.reconcile_snapshot(&snapshot)
+                    .await
+                    .map_err(|e| crate::error::SyncError::Config(e.to_string()))?;
+                count += snapshot.len() as u32;
                 debug!("Downloaded {} detection rules from SaaS", rules.len());
             }
-            Err(e) => warn!("Failed to fetch detection rules: {}", e),
+            Err(e) => {
+                warn!("Failed to fetch detection rules: {}", e);
+                errors.push(format!("Failed to fetch detection rules: {}", e));
+            }
         }
 
         // --- Software Inventory ---
@@ -636,16 +746,24 @@ impl SyncOrchestrator {
                     };
                     if let Err(e) = repo.upsert(&stored).await {
                         warn!("Failed to upsert software {}: {}", s.name, e);
+                        errors.push(e.to_string());
                     } else {
                         count += 1;
                     }
                 }
                 debug!("Downloaded {} software items from SaaS", software.len());
             }
-            Err(e) => warn!("Failed to fetch software inventory: {}", e),
+            Err(e) => {
+                warn!("Failed to fetch software inventory: {}", e);
+                errors.push(format!("Failed to fetch software inventory: {}", e));
+            }
         }
 
-        Ok(count)
+        if errors.is_empty() {
+            Ok(count)
+        } else {
+            Err(crate::error::SyncError::Config(errors.join("; ")))
+        }
     }
 
     impl_sync_queue!(
@@ -753,6 +871,18 @@ mod tests {
 
         let history = orchestrator.history(10).await;
         assert!(history.is_empty());
+    }
+
+    #[tokio::test]
+    async fn failed_download_cannot_report_successful_manual_sync() {
+        let (_temp_dir, db) = create_test_db().await;
+        let client =
+            AuthenticatedClient::new(agent_common::config::AgentConfig::default(), db.clone());
+        let orchestrator = SyncOrchestrator::new(db);
+        // No credentials: every download fails before making any HTTP request.
+        assert!(orchestrator.manual_sync(&client).await.is_err());
+        assert_eq!(orchestrator.status().await.status, SyncStatus::Failed);
+        assert!(orchestrator.status().await.last_success_at.is_none());
     }
 
     #[test]

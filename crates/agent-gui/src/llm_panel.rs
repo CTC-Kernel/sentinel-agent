@@ -121,6 +121,11 @@ impl LLMPanel {
         let mut focus_draft = false;
         let mut draft_response = None;
         ui.horizontal_wrapped(|ui| {
+            ui.label(
+                egui::RichText::new("Métier")
+                    .font(theme::font_small())
+                    .color(theme::text_secondary()),
+            );
             egui::ComboBox::from_id_salt("assistant_work_mode")
                 .selected_text(
                     [
@@ -141,6 +146,11 @@ impl LLMPanel {
                         ui.selectable_value(&mut state.ai.work_mode, index, *label);
                     }
                 });
+            ui.label(
+                egui::RichText::new("Périmètre")
+                    .font(theme::font_small())
+                    .color(theme::text_secondary()),
+            );
             egui::ComboBox::from_id_salt("assistant_context")
                 .selected_text(
                     state
@@ -268,10 +278,10 @@ impl LLMPanel {
                 if ui
                     .add_enabled_ui(!state.ai.is_processing || state.ai.is_listening, |ui| {
                         ui.button(if state.ai.is_listening {
-                            "■ Terminer la dictée"
+                            format!("{} Terminer la dictée", icons::STOP)
                         } else {
-                            "Dicter"
-                        })
+                            format!("{} Dicter", icons::MICROPHONE)
+                        }).on_hover_text("Dicter un brouillon avec le microphone local")
                     })
                     .inner
                     .clicked()
@@ -344,11 +354,18 @@ impl LLMPanel {
             });
             ui.label(egui::RichText::new("Entrée : envoyer · Maj+Entrée : nouvelle ligne")
                 .font(theme::font_small()).color(theme::text_tertiary()));
-            if let Some(error) = &state.ai.voice_error {
-                ui.label(egui::RichText::new("Voix indisponible ⓘ").color(theme::readable_color(theme::ERROR)))
-                    .on_hover_text(format!("{}\nVous pouvez continuer par écrit.", error));
-            }
             });
+            if let Some(error) = &state.ai.voice_error {
+                ui.add_space(theme::SPACE_XS);
+                ui.label(egui::RichText::new(format!("{} Voix indisponible · Vous pouvez continuer par écrit.", icons::MICROPHONE_SLASH))
+                    .font(theme::font_small()).color(theme::readable_color(theme::ERROR)));
+                egui::CollapsingHeader::new("Détail du problème vocal")
+                    .id_salt("assistant_voice_error")
+                    .show(ui, |ui| {
+                        ui.add(egui::Label::new(egui::RichText::new(error)
+                            .font(theme::font_small()).color(theme::text_secondary())).wrap().selectable(true));
+                    });
+            }
         });
             });
         egui::CentralPanel::default().frame(egui::Frame::NONE).show_inside(&mut workspace, |ui| {
@@ -748,14 +765,14 @@ impl LLMPanel {
             ui.allocate_ui_with_layout(egui::Vec2::new(max_bubble_width, 0.0), layout, |ui| {
                 let (bg_color, text_color, role_icon, role_color) = if is_user {
                     (
-                        theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+                        theme::badge_bg(theme::ACCENT),
                         theme::text_primary(),
                         icons::USER,
                         theme::ACCENT,
                     )
                 } else if is_system {
                     (
-                        theme::WARNING.linear_multiply(theme::OPACITY_SUBTLE),
+                        theme::badge_bg(theme::WARNING),
                         theme::text_primary(),
                         icons::BOLT,
                         theme::WARNING,
@@ -765,7 +782,7 @@ impl LLMPanel {
                         theme::bg_elevated(),
                         theme::text_primary(),
                         icons::ROBOT,
-                        theme::SUCCESS,
+                        theme::AI,
                     )
                 };
 
@@ -2413,12 +2430,12 @@ mod tests {
                     }
                     for label in [
                         if scenario == 2 {
-                            "■ Terminer la dictée"
+                            format!("{} Terminer la dictée", icons::STOP)
                         } else {
-                            "Dicter"
+                            format!("{} Dicter", icons::MICROPHONE)
                         },
-                        "Réglages vocaux",
-                        "Décrivez votre question, les faits et le résultat attendu…",
+                        "Réglages vocaux".to_owned(),
+                        "Décrivez votre question, les faits et le résultat attendu…".to_owned(),
                     ] {
                         let painted = output
                             .shapes

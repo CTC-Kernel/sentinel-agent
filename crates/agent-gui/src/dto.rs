@@ -779,6 +779,62 @@ pub struct AllowlistRule {
     pub created_by: String,
 }
 
+impl AllowlistRule {
+    /// Match only the selected scope. IPs use address/network equality, never substrings.
+    pub fn matches(&self, value: &str) -> bool {
+        let pattern = self.pattern.trim();
+        if pattern.is_empty() || value.is_empty() {
+            return false;
+        }
+        if self.rule_type == AllowlistRuleType::IpAddress {
+            let Ok(ip) = value.parse::<std::net::IpAddr>() else {
+                return false;
+            };
+            let (network, prefix) = pattern.split_once('/').unwrap_or((pattern, ""));
+            let Ok(network) = network.parse::<std::net::IpAddr>() else {
+                return false;
+            };
+            return match (ip, network) {
+                (std::net::IpAddr::V4(ip), std::net::IpAddr::V4(net)) => {
+                    let bits = if prefix.is_empty() {
+                        Some(32)
+                    } else {
+                        prefix.parse::<u32>().ok()
+                    };
+                    bits.filter(|b| *b <= 32).is_some_and(|b| {
+                        let mask = u32::MAX.checked_shl(32 - b).unwrap_or(0);
+                        u32::from(ip) & mask == u32::from(net) & mask
+                    })
+                }
+                (std::net::IpAddr::V6(ip), std::net::IpAddr::V6(net)) => {
+                    let bits = if prefix.is_empty() {
+                        Some(128)
+                    } else {
+                        prefix.parse::<u32>().ok()
+                    };
+                    bits.filter(|b| *b <= 128).is_some_and(|b| {
+                        let mask = u128::MAX.checked_shl(128 - b).unwrap_or(0);
+                        u128::from(ip) & mask == u128::from(net) & mask
+                    })
+                }
+                _ => false,
+            };
+        }
+        if !pattern.contains('*') {
+            return if self.rule_type == AllowlistRuleType::FilePath {
+                value == pattern
+            } else {
+                value.eq_ignore_ascii_case(pattern)
+            };
+        }
+        let expression = format!("^{}$", regex::escape(pattern).replace("\\*", ".*"));
+        regex::RegexBuilder::new(&expression)
+            .case_insensitive(self.rule_type != AllowlistRuleType::FilePath)
+            .build()
+            .is_ok_and(|re| re.is_match(value))
+    }
+}
+
 // ============================================================================
 // EDR module types
 // ============================================================================
@@ -794,6 +850,7 @@ pub enum EdrTab {
     Playbooks,
     DetectionRules,
     ForensicTimeline,
+    Authorizations,
 }
 
 impl EdrTab {
@@ -806,6 +863,7 @@ impl EdrTab {
             EdrTab::Playbooks => 4,
             EdrTab::DetectionRules => 5,
             EdrTab::ForensicTimeline => 6,
+            EdrTab::Authorizations => 7,
         }
     }
 
@@ -817,6 +875,7 @@ impl EdrTab {
             4 => EdrTab::Playbooks,
             5 => EdrTab::DetectionRules,
             6 => EdrTab::ForensicTimeline,
+            7 => EdrTab::Authorizations,
             _ => EdrTab::Overview,
         }
     }
@@ -1044,10 +1103,15 @@ pub struct GeneratedReport {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PlaybookConditionType {
+    #[serde(alias = "ProcessNameMatch")]
     ProcessNameMatch,
+    #[serde(alias = "NetworkAlertType")]
     NetworkAlertType,
+    #[serde(alias = "FimChange")]
     FimChange,
+    #[serde(alias = "SeverityThreshold")]
     SeverityThreshold,
+    #[serde(alias = "CvssScore")]
     CvssScore,
 }
 
@@ -1087,10 +1151,15 @@ impl PlaybookConditionType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PlaybookActionType {
+    #[serde(alias = "KillProcess")]
     KillProcess,
+    #[serde(alias = "QuarantineFile")]
     QuarantineFile,
+    #[serde(alias = "BlockIp")]
     BlockIp,
+    #[serde(alias = "SendSiemAlert")]
     SendSiemAlert,
+    #[serde(alias = "CreateNotification")]
     CreateNotification,
 }
 
@@ -1129,6 +1198,7 @@ impl PlaybookActionType {
 /// A condition within a playbook.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlaybookCondition {
+    #[serde(alias = "conditionType")]
     pub condition_type: PlaybookConditionType,
     pub operator: String,
     pub value: String,
@@ -1137,6 +1207,7 @@ pub struct PlaybookCondition {
 /// An action within a playbook.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlaybookAction {
+    #[serde(alias = "actionType")]
     pub action_type: PlaybookActionType,
     pub parameters: String,
 }
@@ -1144,7 +1215,7 @@ pub struct PlaybookAction {
 /// An automated response playbook.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Playbook {
-    pub id: Uuid,
+    pub id: String,
     pub name: String,
     pub description: String,
     pub enabled: bool,
@@ -1160,7 +1231,7 @@ pub struct Playbook {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlaybookLogEntry {
     pub id: Uuid,
-    pub playbook_id: Uuid,
+    pub playbook_id: String,
     pub playbook_name: String,
     pub triggered_at: DateTime<Utc>,
     pub trigger_event: String,
@@ -1222,7 +1293,7 @@ impl RiskStatus {
 /// A risk register entry.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RiskEntry {
-    pub id: Uuid,
+    pub id: String,
     pub title: String,
     pub description: String,
     /// Probability (1-5).
@@ -1255,10 +1326,15 @@ impl RiskEntry {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DetectionConditionType {
+    #[serde(alias = "ProcessNameContains")]
     ProcessNameContains,
+    #[serde(alias = "NetworkPort")]
     NetworkPort,
+    #[serde(alias = "FimPathMatch")]
     FimPathMatch,
+    #[serde(alias = "CommandLineContains")]
     CommandLineContains,
+    #[serde(alias = "SeverityLevel")]
     SeverityLevel,
 }
 
@@ -1297,6 +1373,7 @@ impl DetectionConditionType {
 /// A condition within a detection rule.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DetectionCondition {
+    #[serde(alias = "conditionType")]
     pub condition_type: DetectionConditionType,
     pub value: String,
 }
@@ -1304,7 +1381,7 @@ pub struct DetectionCondition {
 /// A custom detection rule.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DetectionRule {
-    pub id: Uuid,
+    pub id: String,
     pub name: String,
     pub description: String,
     pub severity: Severity,
@@ -1481,7 +1558,7 @@ impl AssetLifecycle {
 /// A managed asset in the CMDB.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ManagedAsset {
-    pub id: Uuid,
+    pub id: String,
     pub ip: String,
     pub hostname: Option<String>,
     pub mac: Option<String>,
@@ -1591,7 +1668,7 @@ impl AlertRuleType {
 /// An alert rule configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AlertRule {
-    pub id: Uuid,
+    pub id: String,
     pub name: String,
     pub rule_type: AlertRuleType,
     pub severity_threshold: Option<Severity>,
@@ -1604,10 +1681,10 @@ pub struct AlertRule {
 /// A webhook configuration for external alerting.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WebhookConfig {
-    pub id: Uuid,
+    pub id: String,
     pub name: String,
     pub url: String,
-    /// Format: "slack", "teams", "generic".
+    /// Format: "slack", "msteams", "generic", "pagerduty".
     pub format: String,
     pub enabled: bool,
     pub last_sent: Option<DateTime<Utc>>,

@@ -147,7 +147,39 @@ impl<'a> TabBar<'a> {
         width
     }
 
+    /// Keep labels visible: one row when it fits, natural wrapping otherwise.
     fn show_underline(self, ui: &mut Ui) -> Option<usize> {
+        if self.natural_width(ui, false) <= ui.available_width() {
+            return self.show_underline_strip(ui);
+        }
+        let mut selected = None;
+        ui.horizontal_wrapped(|ui| {
+            ui.spacing_mut().item_spacing.y = theme::SPACE_XS;
+            for (index, tab) in self.tabs.iter().enumerate() {
+                let active = index == self.selected;
+                let (clicked, rect) = self.render_underline_tab(ui, tab, active, 0.0, false);
+                if active {
+                    ui.painter().rect_filled(
+                        egui::Rect::from_min_max(
+                            egui::pos2(
+                                rect.left() + theme::SPACE_SM,
+                                rect.bottom() - theme::ACCENT_BAR_WIDTH,
+                            ),
+                            egui::pos2(rect.right() - theme::SPACE_SM, rect.bottom()),
+                        ),
+                        CornerRadius::same(theme::ROUNDING_XS),
+                        theme::accent_text(),
+                    );
+                }
+                if clicked {
+                    selected = Some(index);
+                }
+            }
+        });
+        selected
+    }
+
+    fn show_underline_strip(self, ui: &mut Ui) -> Option<usize> {
         let mut new_selection = None;
         let available_width = ui.available_width();
         let tab_count = self.tabs.len();
@@ -307,6 +339,15 @@ impl<'a> TabBar<'a> {
                 theme::text_secondary()
             };
 
+            // A theme-aware wash gives the active destination a stable surface.
+            if is_selected {
+                painter.rect_filled(
+                    rect.shrink2(egui::vec2(theme::SPACE_XS, theme::SPACE_XS)),
+                    CornerRadius::same(theme::ROUNDING_SM),
+                    theme::badge_bg(theme::ACCENT),
+                );
+            }
+
             // Hover wash, so a tab reads as a target before it is clicked.
             if is_hovered && !is_selected {
                 painter.rect_filled(
@@ -410,7 +451,7 @@ impl<'a> TabBar<'a> {
     fn show_pills(self, ui: &mut Ui) -> Option<usize> {
         let mut new_selection = None;
 
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing.x = theme::SPACE_XS;
 
             if self.centered {
@@ -553,6 +594,14 @@ impl<'a> TabBar<'a> {
                     }
                 }
 
+                response.widget_info(|| {
+                    egui::WidgetInfo::selected(
+                        egui::WidgetType::SelectableLabel,
+                        !tab.disabled && ui.is_enabled(),
+                        is_selected,
+                        tab.label,
+                    )
+                });
                 if response.clicked() && !tab.disabled {
                     new_selection = Some(i);
                 }
@@ -719,5 +768,54 @@ pub fn tabs_boxed(ui: &mut Ui, labels: &[&str], selected: &mut usize) -> bool {
         true
     } else {
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn labeled_tabs_use_one_row_when_they_fit_and_wrap_when_needed() {
+        for dark in [false, true] {
+            for width in [420.0, 960.0] {
+                let ctx = egui::Context::default();
+                theme::configure_fonts(&ctx);
+                theme::apply_theme(&ctx, dark);
+                let _ = ctx.run(
+                    egui::RawInput {
+                        screen_rect: Some(egui::Rect::from_min_size(
+                            egui::Pos2::ZERO,
+                            egui::vec2(width, 600.0),
+                        )),
+                        ..Default::default()
+                    },
+                    |ctx| {
+                        egui::CentralPanel::default().show(ctx, |ui| {
+                            let bounds = ui.available_rect_before_wrap();
+                            let response = ui
+                                .scope(|ui| {
+                                    TabBar::from_labels(
+                                        &[
+                                            "Interfaces réseau",
+                                            "Connexions actives",
+                                            "Alertes de sécurité",
+                                        ],
+                                        1,
+                                    )
+                                    .show(ui);
+                                })
+                                .response;
+                            assert!(response.rect.right() <= bounds.right() + 1.0);
+                            if width > 900.0 {
+                                assert!(response.rect.height() <= theme::TAB_HEIGHT + 1.0);
+                            } else {
+                                assert!(response.rect.height() > theme::TAB_HEIGHT);
+                            }
+                        });
+                    },
+                );
+            }
+        }
     }
 }

@@ -1302,7 +1302,7 @@ pub fn seed(state: &mut AppState) {
         .enumerate()
         .map(
             |(i, (ip, host, vendor, kind, crit, life, risk, vulns, ports, tags))| ManagedAsset {
-                id: id(300 + i as u128),
+                id: id(300 + i as u128).to_string(),
                 ip: ip.to_string(),
                 hostname: Some(host.to_string()),
                 mac: Some(format!("3C:7C:3F:{:02X}:{:02X}:{:02X}", i, i * 7, i * 13)),
@@ -1405,7 +1405,7 @@ pub fn seed(state: &mut AppState) {
         .enumerate()
         .map(
             |(i, (title, desc, p, imp, owner, status, mit, src, sla))| RiskEntry {
-                id: id(400 + i as u128),
+                id: id(400 + i as u128).to_string(),
                 title: title.to_string(),
                 description: desc.to_string(),
                 probability: *p,
@@ -1639,7 +1639,7 @@ pub fn seed(state: &mut AppState) {
     }
     state.threats.playbooks = vec![
         Playbook {
-            id: id(730),
+            id: id(730).to_string(),
             name: "Isolement d'un processus encod\u{00e9}".into(),
             description: "Tue tout PowerShell lanc\u{00e9} avec -enc et pr\u{00e9}vient le SOC."
                 .into(),
@@ -1665,7 +1665,7 @@ pub fn seed(state: &mut AppState) {
             is_template: false,
         },
         Playbook {
-            id: id(731),
+            id: id(731).to_string(),
             name: "Blocage des sorties Tor".into(),
             description: "Bloque la destination et remonte l'alerte au SIEM.".into(),
             enabled: true,
@@ -1690,7 +1690,7 @@ pub fn seed(state: &mut AppState) {
             is_template: false,
         },
         Playbook {
-            id: id(732),
+            id: id(732).to_string(),
             name: "Quarantaine sur CVE critique".into(),
             description:
                 "Mod\u{00e8}le : met en quarantaine le binaire d'un paquet CVSS \u{2265} 9.".into(),
@@ -1712,7 +1712,7 @@ pub fn seed(state: &mut AppState) {
     ];
     state.threats.playbook_log.push_back(PlaybookLogEntry {
         id: id(740),
-        playbook_id: id(731),
+        playbook_id: id(731).to_string(),
         playbook_name: "Blocage des sorties Tor".into(),
         triggered_at: ago(3),
         trigger_event: "curl.exe \u{2192} 185.220.101.4:9001".into(),
@@ -1722,7 +1722,7 @@ pub fn seed(state: &mut AppState) {
     });
     state.threats.playbook_log.push_back(PlaybookLogEntry {
         id: id(741),
-        playbook_id: id(730),
+        playbook_id: id(730).to_string(),
         playbook_name: "Isolement d'un processus encod\u{00e9}".into(),
         triggered_at: ago(27),
         trigger_event: "powershell.exe -enc \u{2026} (PID 4812)".into(),
@@ -1791,7 +1791,7 @@ pub fn seed(state: &mut AppState) {
         .enumerate()
         .map(
             |(i, (name, desc, sev, cond, value, action, enabled, last, matches))| DetectionRule {
-                id: id(750 + i as u128),
+                id: id(750 + i as u128).to_string(),
                 name: name.to_string(),
                 description: desc.to_string(),
                 severity: *sev,
@@ -1811,7 +1811,7 @@ pub fn seed(state: &mut AppState) {
     // ── Alerting: rules and webhooks ──────────────────────────────────
     state.alerting.rules = vec![
         AlertRule {
-            id: id(760),
+            id: id(760).to_string(),
             name: "S\u{00e9}v\u{00e9}rit\u{00e9} \u{00e9}lev\u{00e9}e et plus".into(),
             rule_type: AlertRuleType::SeverityThreshold,
             severity_threshold: Some(Severity::High),
@@ -1821,7 +1821,7 @@ pub fn seed(state: &mut AppState) {
             created_at: days_ago(90),
         },
         AlertRule {
-            id: id(761),
+            id: id(761).to_string(),
             name: "Processus et r\u{00e9}seau seulement".into(),
             rule_type: AlertRuleType::TypeFilter,
             severity_threshold: None,
@@ -1831,7 +1831,7 @@ pub fn seed(state: &mut AppState) {
             created_at: days_ago(30),
         },
         AlertRule {
-            id: id(762),
+            id: id(762).to_string(),
             name: "Escalade apr\u{00e8}s 30 min sans acquittement".into(),
             rule_type: AlertRuleType::EscalationDelay,
             severity_threshold: None,
@@ -1843,7 +1843,7 @@ pub fn seed(state: &mut AppState) {
     ];
     state.alerting.webhooks = vec![
         WebhookConfig {
-            id: id(770),
+            id: id(770).to_string(),
             name: "Slack #soc".into(),
             url: "https://hooks.slack.com/services/T0AB12CD/B0EF34GH/xxxxxxxx".into(),
             format: "slack".into(),
@@ -1852,7 +1852,7 @@ pub fn seed(state: &mut AppState) {
             error: None,
         },
         WebhookConfig {
-            id: id(771),
+            id: id(771).to_string(),
             name: "Splunk HEC".into(),
             url: "https://splunk.ctc.local:8088/services/collector".into(),
             format: "json".into(),
@@ -1861,7 +1861,7 @@ pub fn seed(state: &mut AppState) {
             error: Some("HTTP 401 \u{2014} jeton HEC expir\u{00e9}".into()),
         },
         WebhookConfig {
-            id: id(772),
+            id: id(772).to_string(),
             name: "Teams \u{2014} Direction".into(),
             url: "https://ctc.webhook.office.com/webhookb2/…".into(),
             format: "teams".into(),
@@ -1976,7 +1976,15 @@ pub fn select_tab(state: &mut AppState, page: &str, tab: usize) {
                 4 => EdrTab::Playbooks,
                 5 => EdrTab::DetectionRules,
                 6 => EdrTab::ForensicTimeline,
+                7 => EdrTab::Authorizations,
                 _ => EdrTab::Overview,
+            }
+        }
+        "software" => {
+            state.software.active_tab = if tab == 1 {
+                SoftwareTab::Applications
+            } else {
+                SoftwareTab::Packages
             }
         }
         "notifications" => state.notifications_active_tab = tab,

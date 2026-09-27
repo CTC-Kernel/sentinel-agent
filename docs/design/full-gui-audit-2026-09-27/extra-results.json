@@ -1,0 +1,42 @@
+[
+  {
+    "name": "settings-1-light",
+    "exit": 0
+  },
+  {
+    "name": "settings-1-dark",
+    "exit": 0
+  },
+  {
+    "name": "extra-terminal-0-800-0-light",
+    "exit": 0
+  },
+  {
+    "name": "extra-cartography-0-800-200-light",
+    "exit": 0
+  },
+  {
+    "name": "extra-orchestration-0-800-700-light",
+    "exit": 0
+  },
+  {
+    "name": "extra-orchestration-4-800-500-light",
+    "exit": 0
+  },
+  {
+    "name": "extra-compliance-0-1100-600-light",
+    "exit": 0
+  },
+  {
+    "name": "extra-compliance-1-1100-600-light",
+    "exit": 0
+  },
+  {
+    "name": "extra-compliance-0-1100-600-dark",
+    "exit": 0
+  },
+  {
+    "name": "extra-compliance-1-1100-600-dark",
+    "exit": 0
+  }
+]

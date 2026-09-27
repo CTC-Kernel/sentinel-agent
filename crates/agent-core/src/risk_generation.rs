@@ -124,7 +124,7 @@ impl AgentRuntime {
             // Collect for GUI notification
             #[cfg(feature = "gui")]
             new_gui_risks.push(agent_gui::dto::RiskEntry {
-                id: risk_id,
+                id: risk_id.to_string(),
                 title,
                 description,
                 probability: prob,
@@ -167,7 +167,7 @@ impl AgentRuntime {
                 let gui_risks: Vec<agent_gui::dto::RiskEntry> = all_stored
                     .iter()
                     .filter_map(|s| {
-                        let id = uuid::Uuid::parse_str(&s.id).ok()?;
+                        let id = s.id.clone();
                         let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
                             .map(|dt| dt.with_timezone(&chrono::Utc))
                             .unwrap_or_else(|_| chrono::Utc::now());

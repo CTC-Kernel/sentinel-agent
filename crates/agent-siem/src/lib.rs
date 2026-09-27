@@ -385,6 +385,26 @@ impl SiemForwarder {
         })
     }
 
+    /// Explicit response actions require an actual transport attempt, not a
+    /// successful no-op because forwarding is disabled or the event is filtered.
+    pub async fn send_required_event(&self, event: &SiemEvent) -> SiemResult<()> {
+        let unconfigured = matches!(&self.config.transport, SiemTransport::Syslog {host, port, ..} if host == "localhost" && *port == 514);
+        if !self.config.enabled || unconfigured {
+            return Err(SiemError::ConfigError(
+                "SIEM destination is not enabled/configured".into(),
+            ));
+        }
+        if event.severity < self.config.min_severity
+            || (!self.config.include_categories.is_empty()
+                && !self.config.include_categories.contains(&event.category))
+        {
+            return Err(SiemError::ConfigError(
+                "SIEM policy filters this response action".into(),
+            ));
+        }
+        self.send_event(event).await
+    }
+
     /// Send a single event to the external SIEM transport.
     pub async fn send_event(&self, event: &SiemEvent) -> SiemResult<()> {
         if !self.config.enabled {
@@ -644,6 +664,67 @@ impl SiemForwarder {
 mod tests {
     use super::*;
     use agent_common::constants::AGENT_VERSION;
+
+    struct RecordingTransport(std::sync::Arc<std::sync::atomic::AtomicUsize>);
+
+    #[async_trait::async_trait]
+    impl SiemTransportTrait for RecordingTransport {
+        async fn send(&self, data: &str) -> SiemResult<usize> {
+            self.0.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            Ok(data.len())
+        }
+        async fn is_connected(&self) -> bool {
+            true
+        }
+        fn name(&self) -> &'static str {
+            "recording"
+        }
+    }
+
+    #[tokio::test]
+    async fn required_response_rejects_noops_and_reaches_transport() {
+        let event = SiemEvent {
+            timestamp: Utc::now(),
+            severity: 7,
+            category: EventCategory::Security,
+            name: "response".into(),
+            description: "test".into(),
+            source_host: "test".into(),
+            source_ip: None,
+            destination_ip: None,
+            destination_port: None,
+            user: None,
+            process_name: None,
+            process_id: None,
+            file_path: None,
+            custom_fields: serde_json::json!({}),
+            event_id: "test".into(),
+            agent_version: AGENT_VERSION.into(),
+        };
+        let count = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let mut forwarder = SiemForwarder::new(SiemConfig::default()).unwrap();
+        forwarder.transport = Box::new(RecordingTransport(count.clone()));
+        assert!(forwarder.send_required_event(&event).await.is_err());
+        forwarder.config.enabled = true;
+        assert!(forwarder.send_required_event(&event).await.is_err());
+        forwarder.config.transport = SiemTransport::Http {
+            url: "https://siem.invalid".into(),
+            auth_token: None,
+            auth_header: None,
+            verify_tls: true,
+            client_cert: None,
+            client_key: None,
+        };
+        forwarder.config.min_severity = 9;
+        assert!(forwarder.send_required_event(&event).await.is_err());
+        forwarder.config.min_severity = 0;
+        forwarder.config.include_categories = vec![EventCategory::Network];
+        assert!(forwarder.send_required_event(&event).await.is_err());
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 0);
+        forwarder.config.include_categories.clear();
+        forwarder.send_required_event(&event).await.unwrap();
+        assert_eq!(count.load(std::sync::atomic::Ordering::SeqCst), 1);
+    }
 
     #[test]
     fn test_siem_config_default() {

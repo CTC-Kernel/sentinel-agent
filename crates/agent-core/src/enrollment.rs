@@ -29,6 +29,28 @@ impl AgentRuntime {
             .as_mut()
             .ok_or_else(|| CommonError::config("API client not initialized"))?;
 
+        // Restore all application-authentication credentials, including the dedicated
+        // HMAC secret. An agent ID in config alone is not an authenticated client.
+        if let Some(db) = &self.db {
+            match agent_sync::CredentialsRepository::new(db).load().await {
+                Ok(Some(credentials)) => {
+                    client.set_agent_id(credentials.agent_id.to_string());
+                    client.set_credentials(
+                        credentials.client_certificate,
+                        credentials.client_private_key,
+                    );
+                    client.set_organization_id(credentials.organization_id.to_string());
+                    client.set_signing_secret(credentials.hmac_secret);
+                }
+                Ok(None) => {}
+                Err(error) => {
+                    return Err(CommonError::config(format!(
+                        "Unable to restore enrollment credentials: {error}"
+                    )));
+                }
+            }
+        }
+
         // Check if already enrolled
         if client.agent_id().is_some() {
             return Ok(());
@@ -85,6 +107,35 @@ impl AgentRuntime {
             response.client_key.clone(),
         );
         client.set_organization_id(response.organization_id.clone());
+        client.set_signing_secret(response.hmac_secret.clone());
+        if let Some(db) = &self.db {
+            let credentials = agent_sync::StoredCredentials {
+                agent_id: response
+                    .agent_id
+                    .parse()
+                    .map_err(|_| CommonError::validation("Invalid enrolled agent ID"))?,
+                organization_id: response
+                    .organization_id
+                    .parse()
+                    .map_err(|_| CommonError::validation("Invalid enrolled organization ID"))?,
+                client_certificate: response.client_certificate.clone(),
+                client_private_key: response.client_key.clone(),
+                hmac_secret: response.hmac_secret.clone(),
+                certificate_expires_at: chrono::DateTime::parse_from_rfc3339(
+                    &response.certificate_expires_at,
+                )
+                .map_err(|_| CommonError::validation("Invalid certificate expiration"))?
+                .with_timezone(&chrono::Utc),
+                server_fingerprints: Vec::new(),
+                enrolled_at: chrono::Utc::now(),
+            };
+            agent_sync::CredentialsRepository::new(db)
+                .store(&credentials)
+                .await
+                .map_err(|error| {
+                    CommonError::config(format!("Unable to save enrollment credentials: {error}"))
+                })?;
+        }
 
         // Drop the api_client write lock before acquiring heartbeat lock
         drop(api_client);
@@ -180,6 +231,7 @@ impl AgentRuntime {
                     credentials.client_private_key.clone(),
                 );
                 client.set_organization_id(credentials.organization_id.to_string());
+                client.set_signing_secret(credentials.hmac_secret.clone());
             }
         }
 

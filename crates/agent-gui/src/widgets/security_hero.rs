@@ -42,7 +42,7 @@ impl SecurityState {
             Self::Pending => "Évaluation en attente",
             Self::Secure => "Poste de travail protégé",
             Self::Attention => "Vigilance recommandée",
-            Self::Critical => "Alerte de sécurité critique",
+            Self::Critical => "Risque élevé à examiner",
         }
     }
 }
@@ -176,7 +176,8 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
 
 pub(crate) fn determine_security_state(state: &AppState) -> SecurityState {
     // 1. Check for active threats (Critical)
-    if !state.threats.suspicious_processes.is_empty() || !state.threats.usb_events.is_empty() {
+    let (pending, critical) = state.security_attention_counts();
+    if critical > 0 {
         return SecurityState::Critical;
     }
 
@@ -197,6 +198,9 @@ pub(crate) fn determine_security_state(state: &AppState) -> SecurityState {
     }
 
     // 4. Check for warning conditions (Attention)
+    if pending > 0 {
+        return SecurityState::Attention;
+    }
     if score.is_some_and(|score| score < 85.0) {
         return SecurityState::Attention;
     }
@@ -248,11 +252,9 @@ fn get_security_summary(state: &AppState, status: SecurityState) -> String {
             }
         }
         SecurityState::Critical => {
-            if !state.threats.suspicious_processes.is_empty() {
-                return format!(
-                    "{} processus suspects détectés !",
-                    state.threats.suspicious_processes.len()
-                );
+            let (_, critical) = state.security_attention_counts();
+            if critical > 0 {
+                return format!("{} événement(s) de sévérité critique à examiner.", critical);
             }
             if let Some(ref vuln) = state.vulnerability_summary
                 && vuln.critical > 0
@@ -321,5 +323,36 @@ mod tests {
             state.summary.compliance_score = Some(score);
             assert_eq!(determine_security_state(&state), expected);
         }
+    }
+    #[test]
+    fn ordinary_usb_activity_and_volume_alone_do_not_claim_critical_threats() {
+        let mut state = AppState::default();
+        state.summary.compliance_score = Some(100.0);
+        for n in 0..20 {
+            state.threats.usb_events.push_back(crate::dto::GuiUsbEvent {
+                device_name: "Keyboard".into(),
+                vendor_id: 1,
+                product_id: 2,
+                event_type: crate::dto::UsbEventType::Connected,
+                timestamp: chrono::Utc::now(),
+                acknowledged: false,
+                allowlisted: false,
+            });
+            state.fim.alerts.push_back(crate::dto::GuiFimAlert {
+                id: n.to_string(),
+                path: "/tmp/log".into(),
+                change_type: crate::dto::FimChangeType::Modified,
+                old_hash: None,
+                new_hash: None,
+                timestamp: chrono::Utc::now(),
+                acknowledged: false,
+                allowlisted: false,
+            });
+        }
+        assert_eq!(state.security_attention_counts(), (20, 0));
+        assert_eq!(determine_security_state(&state), SecurityState::Attention);
+        state.fim.alerts.clear();
+        assert_eq!(state.security_attention_counts(), (0, 0));
+        assert_eq!(determine_security_state(&state), SecurityState::Secure);
     }
 }

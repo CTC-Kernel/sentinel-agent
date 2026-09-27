@@ -10,6 +10,23 @@ use eframe::egui;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
+/// Stable local identity, independent of triage and asynchronous AI enrichment.
+/// Only its digest is persisted, never command lines or alert contents.
+pub fn event_identity(kind: &str, event: &impl Serialize) -> String {
+    use sha2::{Digest, Sha256};
+    let mut value = serde_json::to_value(event).expect("GUI event must serialize");
+    if let Some(object) = value.as_object_mut() {
+        if kind == "fim" { object.remove("id"); } // The runtime recreates this presentation UUID.
+        object.retain(|key, _| !key.starts_with("ai_") && !matches!(key.as_str(), "acknowledged" | "allowlisted" | "is_false_positive"));
+    }
+    format!("{kind}:{:x}", Sha256::digest(value.to_string().as_bytes()))
+}
+
+pub fn vulnerability_identity(finding: &crate::dto::GuiVulnerabilityFinding) -> String {
+    event_identity("finding", &(&finding.cve_id, &finding.affected_software,
+        &finding.affected_version, &finding.source, finding.discovered_at))
+}
+
 // ---------------------------------------------------------------------------
 // Persisted GUI Preferences
 // ---------------------------------------------------------------------------
@@ -23,6 +40,8 @@ use std::collections::VecDeque;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GuiPreferences {
+    pub acknowledged_event_keys: VecDeque<String>,
+    pub allowlist_rules: Vec<crate::dto::AllowlistRule>,
     pub dark_mode: bool,
     pub check_interval_secs: u64,
     pub log_level: u8,
@@ -47,6 +66,8 @@ pub struct GuiPreferences {
 impl Default for GuiPreferences {
     fn default() -> Self {
         Self {
+            acknowledged_event_keys: VecDeque::new(),
+            allowlist_rules: Vec::new(),
             dark_mode: true,
             check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
             log_level: 2, // Info
@@ -76,6 +97,8 @@ impl GuiPreferences {
     /// Snapshot current settings into a persistable struct.
     pub fn from_state(state: &AppState) -> Self {
         Self {
+            acknowledged_event_keys: state.acknowledgment_snapshot(),
+            allowlist_rules: state.threats.allowlist_rules.clone(),
             dark_mode: state.settings.dark_mode,
             check_interval_secs: state.settings.check_interval_secs,
             log_level: state.settings.log_level.index() as u8,
@@ -97,6 +120,13 @@ impl GuiPreferences {
 
     /// Apply persisted preferences to the app state.
     pub fn apply_to(&self, state: &mut AppState) {
+        state.acknowledged_event_keys = self.acknowledged_event_keys.iter().rev().take(2000).cloned().collect::<VecDeque<_>>().into_iter().rev().collect();
+        state.restore_acknowledgments();
+        state
+            .threats
+            .allowlist_rules
+            .clone_from(&self.allowlist_rules);
+        state.refresh_authorizations();
         state.settings.dark_mode = self.dark_mode;
         state.settings.check_interval_secs = self.check_interval_secs;
         state.settings.log_level = crate::dto::LogLevel::from_index(self.log_level as usize);
@@ -322,6 +352,7 @@ pub struct ThreatsState {
 
     // Events tab
     pub events_page: usize,
+    pub events_status_filter: usize,
     pub events_severity_filter: Option<crate::dto::Severity>,
 
     // Investigation tab
@@ -403,46 +434,14 @@ impl ThreatsState {
             created_by,
         });
 
-        // Apply retroactively to active threats
-        let pattern_lower = pattern.to_lowercase();
-        match rule_type {
-            crate::dto::AllowlistRuleType::ProcessPattern => {
-                for p in self.suspicious_processes.iter_mut() {
-                    if p.process_name.to_lowercase().contains(&pattern_lower)
-                        || p.command_line.to_lowercase().contains(&pattern_lower)
-                    {
-                        p.allowlisted = true;
-                        p.acknowledged = true;
-                    }
-                }
-            }
-            crate::dto::AllowlistRuleType::UsbDevice => {
-                for u in self.usb_events.iter_mut() {
-                    let id_str = format!("0x{:04x}:0x{:04x}", u.vendor_id, u.product_id);
-                    if id_str.contains(&pattern_lower)
-                        || u.device_name.to_lowercase().contains(&pattern_lower)
-                    {
-                        u.allowlisted = true;
-                        u.acknowledged = true;
-                    }
-                }
-            }
-            _ => {}
-        }
-
         id
     }
 
     /// Check if a process, IP or pattern is covered by an active authorization rule.
     pub fn is_allowlisted(&self, rule_type: crate::dto::AllowlistRuleType, value: &str) -> bool {
-        let val_lower = value.to_lowercase();
-        self.allowlist_rules.iter().any(|r| {
-            r.rule_type == rule_type
-                && (val_lower == r.pattern.to_lowercase()
-                    || val_lower.contains(&r.pattern.to_lowercase())
-                    || (r.pattern.starts_with('*')
-                        && val_lower.ends_with(&r.pattern[1..].to_lowercase())))
-        })
+        self.allowlist_rules
+            .iter()
+            .any(|r| r.rule_type == rule_type && r.matches(value))
     }
 
     /// Remove an authorization rule by ID.
@@ -470,6 +469,7 @@ impl Default for ThreatsState {
 
             active_tab: crate::dto::EdrTab::default(),
             events_page: 0,
+            events_status_filter: 0,
             events_severity_filter: None,
             ioc_search: String::new(),
             ioc_type: crate::dto::IocSearchType::default(),
@@ -683,8 +683,8 @@ pub struct RisksState {
     pub editing: bool,
     /// Timestamp until the fake "saving" state ends (for double-click prevention UX)
     pub saving_until: Option<chrono::DateTime<chrono::Utc>>,
-    /// UUID of the risk currently being analyzed by AI (None = idle).
-    pub ai_analyzing: Option<uuid::Uuid>,
+    /// Opaque ID of the risk currently being analyzed by AI (None = idle).
+    pub ai_analyzing: Option<String>,
     /// Last AI analysis result text for the selected risk.
     pub ai_analysis_result: Option<String>,
     /// Mitigation suggestions from the last AI analysis.
@@ -881,6 +881,7 @@ pub struct SyncHistoryEntry {
 ///
 /// Fields are grouped into domain sub-structs to keep the struct manageable.
 pub struct AppState {
+    pub acknowledged_event_keys: VecDeque<String>,
     pub summary: crate::dto::AgentSummary,
     pub checks: Vec<crate::dto::GuiCheckResult>,
     pub policy: crate::dto::GuiPolicySummary,
@@ -941,6 +942,7 @@ pub struct AppState {
 impl Default for AppState {
     fn default() -> Self {
         Self {
+            acknowledged_event_keys: VecDeque::new(),
             summary: crate::dto::AgentSummary::default(),
             checks: Vec::new(),
             policy: crate::dto::GuiPolicySummary::default(),
@@ -1002,40 +1004,63 @@ impl AppState {
 
     /// Acknowledge a threat item across any subsystem (process, system, usb, fim, network).
     pub fn acknowledge_threat_item(&mut self, kind: &str, source_index: usize) -> bool {
+        macro_rules! acknowledge {
+            ($events:expr) => {
+                if let Some(event) = $events.get_mut(source_index) {
+                    event.acknowledged = true;
+                    let key = event_identity(kind, event);
+                    if !self.acknowledged_event_keys.contains(&key) {
+                        self.acknowledged_event_keys.push_back(key);
+                    }
+                    while self.acknowledged_event_keys.len() > 2000 { self.acknowledged_event_keys.pop_front(); }
+                    return true;
+                }
+            };
+        }
         match kind {
-            "process" => {
-                if let Some(p) = self.threats.suspicious_processes.get_mut(source_index) {
-                    p.acknowledged = true;
-                    return true;
-                }
-            }
-            "system" => {
-                if let Some(inc) = self.threats.system_incidents.get_mut(source_index) {
-                    inc.acknowledged = true;
-                    return true;
-                }
-            }
-            "usb" => {
-                if let Some(u) = self.threats.usb_events.get_mut(source_index) {
-                    u.acknowledged = true;
-                    return true;
-                }
-            }
-            "fim" => {
-                if let Some(f) = self.fim.alerts.get_mut(source_index) {
-                    f.acknowledged = true;
-                    return true;
-                }
-            }
-            "network" => {
-                if let Some(a) = self.network.alerts.get_mut(source_index) {
-                    a.acknowledged = true;
-                    return true;
-                }
-            }
+            "process" => { acknowledge!(self.threats.suspicious_processes); }
+            "system" => { acknowledge!(self.threats.system_incidents); }
+            "usb" => { acknowledge!(self.threats.usb_events); }
+            "fim" => { acknowledge!(self.fim.alerts); }
+            "network" => { acknowledge!(self.network.alerts); }
             _ => {}
         }
         false
+    }
+
+    fn acknowledgment_snapshot(&self) -> VecDeque<String> {
+        let mut keys = self.acknowledged_event_keys.clone();
+        macro_rules! collect {
+            ($kind:literal, $events:expr) => {
+                for event in $events.iter().rev().filter(|e| e.acknowledged) {
+                    let key = event_identity($kind, event);
+                    if !keys.contains(&key) { keys.push_back(key); }
+                }
+            };
+        }
+        collect!("process", self.threats.suspicious_processes);
+        collect!("system", self.threats.system_incidents);
+        collect!("usb", self.threats.usb_events);
+        collect!("fim", self.fim.alerts);
+        collect!("network", self.network.alerts);
+        while keys.len() > 2000 { keys.pop_front(); }
+        keys
+    }
+
+    fn restore_acknowledgments(&mut self) {
+        let keys: std::collections::HashSet<_> = self.acknowledged_event_keys.iter().collect();
+        macro_rules! restore {
+            ($kind:literal, $events:expr) => {
+                for event in &mut $events {
+                    event.acknowledged |= keys.contains(&event_identity($kind, event));
+                }
+            };
+        }
+        restore!("process", self.threats.suspicious_processes);
+        restore!("system", self.threats.system_incidents);
+        restore!("usb", self.threats.usb_events);
+        restore!("fim", self.fim.alerts);
+        restore!("network", self.network.alerts);
     }
 
     /// Add an authorization allowlist rule and apply it across all subsystems.
@@ -1046,41 +1071,88 @@ impl AppState {
         description: String,
         created_by: String,
     ) -> uuid::Uuid {
-        let pattern_lower = pattern.to_lowercase();
         let id = self
             .threats
             .add_allowlist_rule(rule_type, pattern, description, created_by);
-
-        match rule_type {
-            crate::dto::AllowlistRuleType::IpAddress => {
-                for alert in self.network.alerts.iter_mut() {
-                    let src = alert.source_ip.as_deref().unwrap_or("").to_lowercase();
-                    let dst = alert.destination_ip.as_deref().unwrap_or("").to_lowercase();
-                    if src == pattern_lower || dst == pattern_lower {
-                        alert.allowlisted = true;
-                        alert.acknowledged = true;
-                    }
-                }
-            }
-            crate::dto::AllowlistRuleType::FilePath => {
-                for alert in self.fim.alerts.iter_mut() {
-                    if alert.path.to_lowercase().contains(&pattern_lower) {
-                        alert.allowlisted = true;
-                        alert.acknowledged = true;
-                    }
-                }
-            }
-            crate::dto::AllowlistRuleType::Domain => {
-                for alert in self.network.alerts.iter_mut() {
-                    if alert.description.to_lowercase().contains(&pattern_lower) {
-                        alert.allowlisted = true;
-                        alert.acknowledged = true;
-                    }
-                }
-            }
-            _ => {}
-        }
+        self.refresh_authorizations();
         id
+    }
+
+    /// Recompute derived authorization flags after adding/removing a rule or receiving telemetry.
+    /// Manual acknowledgments stay independent: revoking an exception restores visibility.
+    pub fn refresh_authorizations(&mut self) {
+        let rules = &self.threats.allowlist_rules;
+        let covered = |kind, value: &str| {
+            rules
+                .iter()
+                .any(|r| r.rule_type == kind && r.matches(value))
+        };
+        use crate::dto::AllowlistRuleType as Kind;
+        for p in &mut self.threats.suspicious_processes {
+            p.allowlisted = covered(Kind::ProcessPattern, &p.process_name);
+        }
+        for u in &mut self.threats.usb_events {
+            u.allowlisted = covered(
+                Kind::UsbDevice,
+                &format!("0x{:04x}:0x{:04x}", u.vendor_id, u.product_id),
+            ) || covered(Kind::UsbDevice, &u.device_name);
+        }
+        for f in &mut self.fim.alerts {
+            f.allowlisted = covered(Kind::FilePath, &f.path);
+        }
+        for a in &mut self.network.alerts {
+            a.allowlisted = covered(Kind::IpAddress, a.source_ip.as_deref().unwrap_or(""))
+                || covered(Kind::IpAddress, a.destination_ip.as_deref().unwrap_or(""));
+        }
+    }
+
+    /// Events still awaiting triage and their actual critical subset. A normal USB
+    /// connection/disconnection is inventory activity, not a security incident.
+    pub fn security_attention_counts(&self) -> (usize, usize) {
+        let processes = self
+            .threats
+            .suspicious_processes
+            .iter()
+            .filter(|p| !p.acknowledged && !p.allowlisted);
+        let network = self
+            .network
+            .alerts
+            .iter()
+            .filter(|a| !a.acknowledged && !a.allowlisted);
+        let system = self
+            .threats
+            .system_incidents
+            .iter()
+            .filter(|a| !a.acknowledged && !a.allowlisted);
+        let critical = processes.clone().filter(|p| p.confidence >= 90).count()
+            + network
+                .clone()
+                .filter(|a| a.severity == crate::dto::Severity::Critical)
+                .count()
+            + system
+                .clone()
+                .filter(|a| a.severity == crate::dto::Severity::Critical)
+                .count();
+        let total = processes.count()
+            + network.count()
+            + system.count()
+            + self
+                .fim
+                .alerts
+                .iter()
+                .filter(|a| !a.acknowledged && !a.allowlisted)
+                .count()
+            + self
+                .threats
+                .usb_events
+                .iter()
+                .filter(|a| {
+                    !a.acknowledged
+                        && !a.allowlisted
+                        && a.event_type == crate::dto::UsbEventType::Blocked
+                })
+                .count();
+        (total, critical)
     }
 
     /// Compute radar chart scores (compliance, threats, vulns, resources, network).
@@ -1109,6 +1181,23 @@ impl AppState {
     pub fn apply_event(&mut self, event: crate::events::AgentEvent) {
         use crate::events::AgentEvent;
 
+        let security_feed_changed = matches!(
+            &event,
+            AgentEvent::NetworkSecurityAlert { .. }
+                | AgentEvent::FimAlert { .. }
+                | AgentEvent::UsbEvent { .. }
+                | AgentEvent::SuspiciousProcess { .. }
+                | AgentEvent::SystemIncident { .. }
+                | AgentEvent::VulnerabilityFindings { .. }
+        );
+        if security_feed_changed {
+            // Unified lists are sorted across sources: any insertion can move the
+            // selected row. Never leave a drawer targeting a different event.
+            self.threats.selected_threat = None;
+            self.threats.detail_open = false;
+            self.threats.forensic_selected_event = None;
+            self.threats.forensic_detail_open = false;
+        }
         match event {
             AgentEvent::StatusChanged { summary } => {
                 // Preserve previous score for dashboard trend indicators
@@ -1159,7 +1248,8 @@ impl AppState {
                 self.network.selected_connection = None;
                 self.network.detail_open = false;
             }
-            AgentEvent::NetworkSecurityAlert { alert } => {
+            AgentEvent::NetworkSecurityAlert { mut alert } => {
+                alert.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("network", &alert));
                 self.network.alerts.push_front(alert);
                 self.network.alerts.truncate(200);
                 // Invalidate alert selection — push_front shifted all indices
@@ -1206,24 +1296,28 @@ impl AppState {
                     self.summary.agent_id = Some(id);
                 }
             }
-            AgentEvent::FimAlert { alert } => {
+            AgentEvent::FimAlert { mut alert } => {
+                alert.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("fim", &alert));
                 self.fim.alerts.push_front(alert);
                 self.fim.alerts.truncate(500);
                 // Invalidate selection — push_front shifted indices
                 self.fim.selected_alert = None;
             }
-            AgentEvent::UsbEvent { event } => {
+            AgentEvent::UsbEvent { mut event } => {
+                event.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("usb", &event));
                 self.threats.usb_events.push_front(event);
                 self.threats.usb_events.truncate(200);
                 // Invalidate threat selection — push_front shifted source indices
                 self.threats.selected_threat = None;
             }
-            AgentEvent::SuspiciousProcess { process } => {
+            AgentEvent::SuspiciousProcess { mut process } => {
+                process.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("process", &process));
                 self.threats.suspicious_processes.push_front(process);
                 self.threats.suspicious_processes.truncate(200);
                 self.threats.selected_threat = None;
             }
-            AgentEvent::SystemIncident { incident } => {
+            AgentEvent::SystemIncident { mut incident } => {
+                incident.acknowledged |= self.acknowledged_event_keys.contains(&event_identity("system", &incident));
                 self.threats.system_incidents.push_front(incident);
                 self.threats.system_incidents.truncate(200);
                 self.threats.selected_threat = None;
@@ -1414,10 +1508,9 @@ impl AppState {
                 self.ai.is_processing = false;
 
                 // Update the source DTO with AI analysis results
-                if let Some(idx_str) = target.strip_prefix("finding#") {
+                if target.starts_with("finding:") {
                     // Vulnerability finding
-                    if let Ok(idx) = idx_str.parse::<usize>()
-                        && idx < self.vulnerability_findings.len()
+                    if let Some(idx) = self.vulnerability_findings.iter().position(|finding| vulnerability_identity(finding) == target)
                     {
                         self.vulnerability_findings[idx].ai_analysis = Some(analysis);
                         self.vulnerability_findings[idx].ai_confidence = confidence;
@@ -1427,29 +1520,26 @@ impl AppState {
                         self.vulnerability_findings[idx].ai_remediation_explanation =
                             ai_remediation_explanation;
                     }
-                } else if let Some(idx_str) = target.strip_prefix("process#") {
+                } else if target.starts_with("process:") {
                     // Suspicious process
-                    if let Ok(idx) = idx_str.parse::<usize>()
-                        && idx < self.threats.suspicious_processes.len()
+                    if let Some(idx) = self.threats.suspicious_processes.iter().position(|event| event_identity("process", event) == target)
                     {
                         self.threats.suspicious_processes[idx].ai_analysis = Some(analysis);
                         self.threats.suspicious_processes[idx].ai_confidence = confidence;
                         self.threats.suspicious_processes[idx].is_false_positive =
                             is_false_positive;
                     }
-                } else if let Some(idx_str) = target.strip_prefix("incident#") {
+                } else if target.starts_with("system:") {
                     // System incident
-                    if let Ok(idx) = idx_str.parse::<usize>()
-                        && idx < self.threats.system_incidents.len()
+                    if let Some(idx) = self.threats.system_incidents.iter().position(|event| event_identity("system", event) == target)
                     {
                         self.threats.system_incidents[idx].ai_analysis = Some(analysis);
                         self.threats.system_incidents[idx].ai_confidence = confidence;
                         self.threats.system_incidents[idx].is_false_positive = is_false_positive;
                     }
-                } else if let Some(idx_str) = target.strip_prefix("alert#") {
+                } else if target.starts_with("network:") {
                     // Network alert
-                    if let Ok(idx) = idx_str.parse::<usize>()
-                        && idx < self.network.alerts.len()
+                    if let Some(idx) = self.network.alerts.iter().position(|event| event_identity("network", event) == target)
                     {
                         self.network.alerts[idx].ai_analysis = Some(analysis);
                         self.network.alerts[idx].ai_confidence = confidence;
@@ -1543,7 +1633,7 @@ impl AppState {
                 mitigation_suggestions,
             } => {
                 // Clear the analyzing spinner
-                if self.risks.ai_analyzing.map(|id| id.to_string()) == Some(risk_id.clone()) {
+                if self.risks.ai_analyzing.as_ref().cloned() == Some(risk_id.clone()) {
                     self.risks.ai_analyzing = None;
                 }
                 // Store the analysis result for display
@@ -1551,8 +1641,7 @@ impl AppState {
                 self.risks.ai_mitigation_suggestions = mitigation_suggestions;
 
                 // Optionally apply AI-suggested scores to the risk entry
-                if let Ok(rid) = uuid::Uuid::parse_str(&risk_id)
-                    && let Some(entry) = self.risks.entries.iter_mut().find(|r| r.id == rid)
+                if let Some(entry) = self.risks.entries.iter_mut().find(|r| r.id == risk_id)
                 {
                     if let Some(prob) = suggested_probability {
                         entry.probability = prob.clamp(1, 5);
@@ -1571,12 +1660,16 @@ impl AppState {
                     processing_time_ms: None,
                 });
             }
+            AgentEvent::RisksSnapshot { risks } => {
+                let selected = self.risks.selected_risk.and_then(|i| self.risks.entries.get(i)).map(|r| r.id.clone());
+                self.risks.selected_risk = selected.and_then(|id| risks.iter().position(|r| r.id == id));
+                self.risks.entries = risks;
+            }
             AgentEvent::RisksLoaded { risks } => {
-                // Merge loaded risks into GUI state, deduplicating by ID
-                let existing_ids: std::collections::HashSet<uuid::Uuid> =
-                    self.risks.entries.iter().map(|r| r.id).collect();
                 for risk in risks {
-                    if !existing_ids.contains(&risk.id) {
+                    if let Some(existing) = self.risks.entries.iter_mut().find(|r| r.id == risk.id) {
+                        *existing = risk;
+                    } else {
                         self.risks.entries.push(risk);
                     }
                 }
@@ -1585,53 +1678,15 @@ impl AppState {
                 self.settings.admin_password_sha256 = hash;
             }
             AgentEvent::AssetsLoaded { assets } => {
-                // Merge loaded assets into GUI state, deduplicating by ID
-                let existing_ids: std::collections::HashSet<uuid::Uuid> =
-                    self.assets.assets.iter().map(|a| a.id).collect();
-                for asset in assets {
-                    if existing_ids.contains(&asset.id) {
-                        if let Some(existing) =
-                            self.assets.assets.iter_mut().find(|a| a.id == asset.id)
-                        {
-                            *existing = asset;
-                        }
-                    } else {
-                        self.assets.assets.push(asset);
-                    }
-                }
+                let selected = self.assets.selected_asset.and_then(|i| self.assets.assets.get(i)).map(|a| a.id.clone());
+                self.assets.selected_asset = selected.and_then(|id| assets.iter().position(|a| a.id == id));
+                self.assets.assets = assets;
             }
             AgentEvent::PlaybooksLoaded { playbooks } => {
-                let existing_ids: std::collections::HashSet<uuid::Uuid> =
-                    self.threats.playbooks.iter().map(|p| p.id).collect();
-                for pb in playbooks {
-                    if existing_ids.contains(&pb.id) {
-                        if let Some(existing) =
-                            self.threats.playbooks.iter_mut().find(|p| p.id == pb.id)
-                        {
-                            *existing = pb;
-                        }
-                    } else {
-                        self.threats.playbooks.push(pb);
-                    }
-                }
+                self.threats.playbooks = playbooks;
             }
             AgentEvent::DetectionRulesLoaded { rules } => {
-                let existing_ids: std::collections::HashSet<uuid::Uuid> =
-                    self.threats.detection_rules.iter().map(|r| r.id).collect();
-                for rule in rules {
-                    if existing_ids.contains(&rule.id) {
-                        if let Some(existing) = self
-                            .threats
-                            .detection_rules
-                            .iter_mut()
-                            .find(|r| r.id == rule.id)
-                        {
-                            *existing = rule;
-                        }
-                    } else {
-                        self.threats.detection_rules.push(rule);
-                    }
-                }
+                self.threats.detection_rules = rules;
             }
             AgentEvent::AlertingLoaded { rules, webhooks } => {
                 self.alerting.rules = rules;
@@ -1650,6 +1705,9 @@ impl AppState {
             }
         }
 
+        if security_feed_changed {
+            self.refresh_authorizations();
+        }
         // Single recompute at end of every event
         self.recompute_summary_stats();
     }
@@ -1946,5 +2004,168 @@ mod voice_workflow_tests {
                 && !state.ai.voice_conversation_enabled
         );
         assert!(state.ai.voice_error.is_some());
+    }
+    #[test]
+    fn incoming_fim_event_cannot_retarget_open_security_drawer() {
+        let mut state = AppState::default();
+        state.threats.selected_threat = Some(0);
+        state.threats.detail_open = true;
+        state.threats.forensic_selected_event = Some(0);
+        state.threats.forensic_detail_open = true;
+        state.apply_event(crate::events::AgentEvent::FimAlert {
+            alert: crate::dto::GuiFimAlert {
+                id: "new".into(),
+                path: "/tmp/test".into(),
+                change_type: crate::dto::FimChangeType::Modified,
+                old_hash: None,
+                new_hash: None,
+                timestamp: chrono::Utc::now(),
+                acknowledged: false,
+                allowlisted: false,
+            },
+        });
+        assert!(state.threats.selected_threat.is_none());
+        assert!(!state.threats.detail_open);
+        assert!(state.threats.forensic_selected_event.is_none());
+        assert!(!state.threats.forensic_detail_open);
+    }
+}
+
+#[cfg(test)]
+mod triage_persistence_tests {
+    use super::*;
+    use crate::{dto::GuiSuspiciousProcess, events::AgentEvent};
+
+    fn process() -> GuiSuspiciousProcess {
+        GuiSuspiciousProcess {
+            process_name: "example".into(), pid: 42, command_line: "example --local".into(),
+            reason: "test".into(), confidence: 70, detected_at: chrono::Utc::now(),
+            ai_confidence: None, is_false_positive: None, ai_analysis: None,
+            acknowledged: false, allowlisted: false,
+        }
+    }
+
+    #[test]
+    fn acknowledgment_survives_preferences_roundtrip_and_event_replay_only() {
+        let event = process();
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::SuspiciousProcess { process: event.clone() });
+        assert!(state.acknowledge_threat_item("process", 0));
+        let json = serde_json::to_string(&GuiPreferences::from_state(&state)).unwrap();
+        assert!(!json.contains("example --local"));
+        let prefs: GuiPreferences = serde_json::from_str(&json).unwrap();
+        let mut restarted = AppState::default();
+        prefs.apply_to(&mut restarted);
+        restarted.apply_event(AgentEvent::SuspiciousProcess { process: event.clone() });
+        assert!(restarted.threats.suspicious_processes[0].acknowledged);
+        let mut recurrence = event;
+        recurrence.detected_at += chrono::Duration::seconds(1);
+        restarted.apply_event(AgentEvent::SuspiciousProcess { process: recurrence });
+        assert!(!restarted.threats.suspicious_processes[0].acknowledged);
+    }
+
+    #[test]
+    fn ai_result_follows_identity_after_new_event_and_triage() {
+        let event = process();
+        let target = event_identity("process", &event);
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::SuspiciousProcess { process: event.clone() });
+        state.acknowledge_threat_item("process", 0);
+        let mut other = event;
+        other.pid += 1;
+        state.apply_event(AgentEvent::SuspiciousProcess { process: other });
+        state.apply_event(AgentEvent::LlmAnalysisComplete {
+            target, analysis: "Result for original event".into(), severity_override: None,
+            confidence: Some(80), is_false_positive: Some(false), ai_remediation_script: None,
+            ai_remediation_explanation: None,
+        });
+        assert!(state.threats.suspicious_processes[0].ai_analysis.is_none());
+        assert_eq!(state.threats.suspicious_processes[1].ai_analysis.as_deref(), Some("Result for original event"));
+        assert!(state.threats.suspicious_processes[1].acknowledged);
+    }
+
+    #[test]
+    fn vulnerability_analysis_stays_with_selected_software_after_reordering() {
+        let finding: crate::dto::GuiVulnerabilityFinding = serde_json::from_value(serde_json::json!({
+            "cve_id": "CVE-test", "affected_software": "package-a", "affected_version": "1",
+            "severity": "high", "cvss_score": null, "description": "test", "fix_available": false,
+            "discovered_at": null, "source": "test"
+        })).unwrap();
+        let target = vulnerability_identity(&finding);
+        let mut other = finding.clone();
+        other.affected_software = "package-b".into();
+        let mut state = AppState::default();
+        state.vulnerability_findings = vec![other, finding];
+        state.apply_event(AgentEvent::LlmAnalysisComplete {
+            target, analysis: "Only package-a".into(), severity_override: None,
+            confidence: None, is_false_positive: None, ai_remediation_script: None,
+            ai_remediation_explanation: None,
+        });
+        assert!(state.vulnerability_findings[0].ai_analysis.is_none());
+        assert_eq!(state.vulnerability_findings[1].ai_analysis.as_deref(), Some("Only package-a"));
+        assert!(state.vulnerability_findings[1].ai_confidence.is_none());
+    }
+
+    #[test]
+    fn fim_acknowledgment_uses_event_content_not_recreated_display_uuid() {
+        let mut event: crate::dto::GuiFimAlert = serde_json::from_value(serde_json::json!({
+            "id": "first-ui-id", "path": "/tmp/test", "change_type": "modified",
+            "old_hash": "old", "new_hash": "new", "timestamp": "2026-09-27T10:00:00Z",
+            "acknowledged": false
+        })).unwrap();
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::FimAlert { alert: event.clone() });
+        state.acknowledge_threat_item("fim", 0);
+        let prefs = GuiPreferences::from_state(&state);
+        let mut restarted = AppState::default();
+        prefs.apply_to(&mut restarted);
+        event.id = "new-ui-id".into();
+        restarted.apply_event(AgentEvent::FimAlert { alert: event });
+        assert!(restarted.fim.alerts[0].acknowledged);
+    }
+
+    #[test]
+    fn old_preferences_remain_compatible_and_history_is_bounded() {
+        let old: GuiPreferences = serde_json::from_str("{}").unwrap();
+        assert!(old.acknowledged_event_keys.is_empty());
+        let mut state = AppState::default();
+        state.acknowledged_event_keys = (0..3000).map(|n| n.to_string()).collect();
+        let prefs = GuiPreferences::from_state(&state);
+        assert_eq!(prefs.acknowledged_event_keys.len(), 2000);
+        assert_eq!(prefs.acknowledged_event_keys.front().unwrap(), "1000");
+    }
+}
+
+#[cfg(test)]
+mod opaque_grc_identity_tests {
+    use super::*;
+    use crate::dto::*;
+    use crate::events::AgentEvent;
+    #[test]
+    fn remote_risk_id_and_updates_survive_gui_and_json() {
+        let now=chrono::Utc::now();
+        let risk=RiskEntry {id:"firestore-risk-opaque".into(),title:"initial".into(),description:String::new(),probability:2,impact:3,owner:String::new(),status:RiskStatus::Open,mitigation:String::new(),source:"platform".into(),created_at:now,updated_at:now,sla_target_days:Some(0)};
+        let mut state=AppState::default();
+        state.apply_event(AgentEvent::RisksLoaded {risks:vec![risk.clone()]});
+        let mut updated=risk;updated.title="updated".into();updated.impact=5;
+        state.apply_event(AgentEvent::RisksLoaded {risks:vec![updated]});
+        assert_eq!(state.risks.entries.len(),1);
+        assert_eq!(state.risks.entries[0].title,"updated");
+        let reloaded:RiskEntry=serde_json::from_str(&serde_json::to_string(&state.risks.entries[0]).unwrap()).unwrap();
+        assert_eq!(reloaded.id,"firestore-risk-opaque");assert_eq!(reloaded.impact,5);
+        state.risks.selected_risk=Some(0);
+        state.apply_event(AgentEvent::RisksSnapshot {risks:vec![]});
+        assert!(state.risks.entries.is_empty());assert!(state.risks.selected_risk.is_none());
+    }
+    #[test]
+    fn alert_snapshot_keeps_opaque_ids_then_clears_deleted_objects() {
+        let mut state=AppState::default();
+        state.apply_event(AgentEvent::AlertingLoaded {
+            rules:vec![AlertRule {id:"opaque-rule".into(),name:"rule".into(),rule_type:AlertRuleType::SeverityThreshold,severity_threshold:Some(Severity::Info),detection_types:vec![],escalation_minutes:Some(0),enabled:false,created_at:chrono::Utc::now()}],
+            webhooks:vec![WebhookConfig {id:"opaque-hook".into(),name:"hook".into(),url:"https://example.test".into(),format:"generic".into(),enabled:false,last_sent:None,error:None}]
+        });
+        assert_eq!(state.alerting.rules[0].id,"opaque-rule");assert_eq!(state.alerting.webhooks[0].id,"opaque-hook");
+        state.apply_event(AgentEvent::AlertingLoaded {rules:vec![],webhooks:vec![]});
+        assert!(state.alerting.rules.is_empty());assert!(state.alerting.webhooks.is_empty());
     }
 }

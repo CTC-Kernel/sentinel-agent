@@ -15,7 +15,7 @@ use crate::types::{
 };
 use chrono::{DateTime, Duration, Utc};
 use serde_json::json;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 /// Configuration for beaconing detection.
 #[derive(Debug, Clone)]
@@ -92,6 +92,7 @@ pub struct BeaconingDetector {
     connection_history: HashMap<String, Vec<ConnectionEvent>>,
     /// Whitelist of destinations to ignore.
     whitelist: Vec<String>,
+    observed_sockets: HashSet<String>,
 }
 
 impl BeaconingDetector {
@@ -106,7 +107,33 @@ impl BeaconingDetector {
             config,
             connection_history: HashMap::new(),
             whitelist: Self::default_whitelist(),
+            observed_sockets: HashSet::new(),
         }
+    }
+
+    /// A snapshot reports existing sockets, not connection-establishment events.
+    /// Record only sockets newly observed since the previous complete snapshot.
+    pub fn record_snapshot(&mut self, connections: &[NetworkConnection]) {
+        let mut current = HashSet::new();
+        for conn in connections
+            .iter()
+            .filter(|c| c.state == ConnectionState::Established)
+        {
+            let key = format!(
+                "{:?}|{}|{}|{:?}|{:?}|{:?}",
+                conn.protocol,
+                conn.local_address,
+                conn.local_port,
+                conn.remote_address,
+                conn.remote_port,
+                conn.pid
+            );
+            if current.insert(key.clone()) && !self.observed_sockets.contains(&key) {
+                self.record_connection(conn);
+            }
+        }
+        self.observed_sockets = current;
+        self.cleanup_old_events();
     }
 
     /// Record a connection event for future analysis.
@@ -163,70 +190,21 @@ impl BeaconingDetector {
     pub fn detect(&self, connections: &[NetworkConnection]) -> Vec<NetworkSecurityAlert> {
         let mut alerts = Vec::new();
 
-        // Build a temporary history from current connections if we have timestamps
-        // In a real scenario, this would use persistent history
-        let mut temp_history: HashMap<String, Vec<ConnectionEvent>> = HashMap::new();
-
-        for conn in connections {
-            if conn.state != ConnectionState::Established {
-                continue;
-            }
-
-            if let (Some(remote_addr), Some(remote_port)) = (&conn.remote_address, conn.remote_port)
-            {
-                let destination = format!("{}:{}", remote_addr, remote_port);
-
-                if self.is_whitelisted(&destination) || self.is_whitelisted(remote_addr) {
-                    continue;
-                }
-
-                let event = ConnectionEvent {
-                    destination: destination.clone(),
-                    timestamp: Utc::now(),
-                    process_name: conn.process_name.clone(),
-                    pid: conn.pid,
-                };
-
-                temp_history.entry(destination).or_default().push(event);
-            }
-        }
-
-        // Analyze combined history without cloning — iterate by reference and merge only overlapping keys
-        for (destination, history_events) in &self.connection_history {
-            let events_to_analyze: std::borrow::Cow<'_, [ConnectionEvent]> =
-                if let Some(temp_events) = temp_history.get(destination) {
-                    let mut merged = history_events.clone();
-                    merged.extend(temp_events.iter().cloned());
-                    std::borrow::Cow::Owned(merged)
-                } else {
-                    std::borrow::Cow::Borrowed(history_events.as_slice())
-                };
-
-            if let Some(analysis) = self.analyze_destination(destination, &events_to_analyze)
+        // Detection must not manufacture new observations or double-count the snapshot.
+        let cutoff = Utc::now() - Duration::seconds(self.config.analysis_window_secs);
+        for (destination, history) in &self.connection_history {
+            let recent: Vec<_> = history
+                .iter()
+                .filter(|e| e.timestamp > cutoff)
+                .cloned()
+                .collect();
+            if let Some(analysis) = self.analyze_destination(destination, &recent)
                 && analysis.is_beaconing
                 && let Some(conn) = connections.iter().find(|c| {
-                    c.remote_address
-                        .as_ref()
-                        .map(|a| destination.starts_with(a))
-                        == Some(true)
-                })
-            {
-                alerts.push(self.create_alert(conn, &analysis));
-            }
-        }
-
-        // Analyze destinations only in temp_history (not already in connection_history)
-        for (destination, events) in &temp_history {
-            if self.connection_history.contains_key(destination) {
-                continue; // Already analyzed above
-            }
-            if let Some(analysis) = self.analyze_destination(destination, events)
-                && analysis.is_beaconing
-                && let Some(conn) = connections.iter().find(|c| {
-                    c.remote_address
-                        .as_ref()
-                        .map(|a| destination.starts_with(a))
-                        == Some(true)
+                    c.state == ConnectionState::Established
+                        && c.remote_address.as_ref().zip(c.remote_port).is_some_and(
+                            |(address, port)| format!("{address}:{port}") == *destination,
+                        )
                 })
             {
                 alerts.push(self.create_alert(conn, &analysis));
@@ -254,11 +232,15 @@ impl BeaconingDetector {
         let intervals: Vec<f64> = sorted_events
             .windows(2)
             .map(|w| (w[1].timestamp - w[0].timestamp).num_seconds() as f64)
-            .filter(|&i| {
-                i >= self.config.min_beacon_interval_secs as f64
-                    && i <= self.config.max_beacon_interval_secs as f64
-            })
             .collect();
+
+        // Discarding outliers would turn irregular traffic into an artificial periodic signal.
+        if intervals.iter().any(|i| {
+            *i < self.config.min_beacon_interval_secs as f64
+                || *i > self.config.max_beacon_interval_secs as f64
+        }) {
+            return None;
+        }
 
         if intervals.len() < self.config.min_connections.saturating_sub(1) {
             return None;
@@ -429,12 +411,27 @@ impl BeaconingDetector {
 
     /// Check if a destination is whitelisted.
     fn is_whitelisted(&self, destination: &str) -> bool {
-        for pattern in &self.whitelist {
-            if destination.contains(pattern) {
-                return true;
-            }
+        let host = destination
+            .parse::<std::net::IpAddr>()
+            .map(|ip| ip.to_string())
+            .unwrap_or_else(|_| {
+                destination
+                    .rsplit_once(':')
+                    .filter(|(_, port)| port.parse::<u16>().is_ok())
+                    .map(|(host, _)| host)
+                    .unwrap_or(destination)
+                    .trim_end_matches('.')
+                    .to_lowercase()
+            });
+        if host
+            .parse::<std::net::IpAddr>()
+            .is_ok_and(|ip| ip.is_loopback())
+        {
+            return true;
         }
-        false
+        self.whitelist
+            .iter()
+            .any(|domain| host == *domain || host.ends_with(&format!(".{domain}")))
     }
 
     fn default_whitelist() -> Vec<String> {
@@ -442,7 +439,6 @@ impl BeaconingDetector {
             // Sentinel Agent backend (prevent heartbeat self-detection)
             "cloudfunctions.net".to_string(),
             "run.app".to_string(),
-            "sentinel-grc".to_string(),
             // Cloud providers (legitimate heartbeats)
             "googleapis.com".to_string(),
             "google.com".to_string(),
@@ -458,12 +454,8 @@ impl BeaconingDetector {
             "zoom.us".to_string(),
             "teams.microsoft.com".to_string(),
             // NTP servers
-            "time.".to_string(),
-            "ntp.".to_string(),
             "pool.ntp.org".to_string(),
             // Update services
-            "update.".to_string(),
-            "download.".to_string(),
             // Local addresses
             "127.0.0.1".to_string(),
             "localhost".to_string(),
@@ -474,6 +466,7 @@ impl BeaconingDetector {
     /// Clear all connection history.
     pub fn clear_history(&mut self) {
         self.connection_history.clear();
+        self.observed_sockets.clear();
     }
 
     /// Get the number of tracked destinations.
@@ -628,5 +621,70 @@ mod tests {
         // Low jitter should give high confidence
         let confidence = detector.calculate_confidence(19, 2.0, 300.0, &events);
         assert!(confidence >= 80);
+    }
+    #[test]
+    fn snapshots_do_not_invent_reconnections() {
+        let mut detector = BeaconingDetector::new(&DetectionRules::default());
+        let conn = create_test_connection("203.0.113.8", 443);
+        for _ in 0..30 {
+            detector.record_snapshot(&[conn.clone(), conn.clone()]);
+        }
+        assert_eq!(detector.connection_history["203.0.113.8:443"].len(), 1);
+        assert!(detector.detect(&[conn.clone()]).is_empty());
+        detector.record_snapshot(&[]);
+        detector.record_snapshot(&[conn]);
+        assert_eq!(detector.connection_history["203.0.113.8:443"].len(), 2);
+    }
+
+    #[test]
+    fn whitelist_matches_domain_boundaries_not_substrings() {
+        let detector = BeaconingDetector::new(&DetectionRules::default());
+        assert!(detector.is_whitelisted("api.google.com:443"));
+        for target in [
+            "google.com.attacker.test:443",
+            "notgoogle.com:443",
+            "update.attacker.test:443",
+            "2001:db8::1234:443",
+        ] {
+            assert!(!detector.is_whitelisted(target), "{target}");
+        }
+    }
+
+    #[test]
+    fn beacon_evidence_uses_exact_address_and_port() {
+        let mut detector = BeaconingDetector::new(&DetectionRules::default());
+        let destination = "203.0.113.10:443";
+        let now = Utc::now();
+        detector.connection_history.insert(
+            destination.into(),
+            (0..10)
+                .map(|i| ConnectionEvent {
+                    destination: destination.into(),
+                    timestamp: now - Duration::seconds((10 - i) * 60),
+                    process_name: Some("beacon".into()),
+                    pid: Some(1234),
+                })
+                .collect(),
+        );
+        let conns = [
+            create_test_connection("203.0.113.1", 443),
+            create_test_connection("203.0.113.10", 80),
+            create_test_connection("203.0.113.10", 443),
+        ];
+        let alerts = detector.detect(&conns);
+        assert_eq!(alerts.len(), 1);
+        assert_eq!(
+            alerts[0]
+                .connection
+                .as_ref()
+                .unwrap()
+                .remote_address
+                .as_deref(),
+            Some("203.0.113.10")
+        );
+        assert_eq!(
+            alerts[0].connection.as_ref().unwrap().remote_port,
+            Some(443)
+        );
     }
 }

@@ -47,7 +47,7 @@ impl MonitoringPage {
         ui.add_space(theme::SPACE_LG);
 
         // Tab bar with action buttons
-        ui.horizontal(|ui: &mut egui::Ui| {
+        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
             let tab_defs: &[(&str, &str)] = &[
                 (icons::DATABASE, "Journal SIEM"),
                 (icons::CHART_AREA, "Statistiques"),
@@ -62,20 +62,25 @@ impl MonitoringPage {
                 ui.add_space(theme::SPACE_XS);
             }
 
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if widgets::button::secondary_button(
-                        ui,
-                        format!("{}  CSV", icons::DOWNLOAD),
-                        true,
-                    )
-                    .clicked()
-                    {
-                        Self::export_metrics_csv(state);
+            if widgets::button::secondary_button(
+                ui,
+                format!("{}  Exporter les ressources", icons::DOWNLOAD),
+                !state.monitoring.cpu_history.is_empty(),
+            )
+            .on_hover_text("Exporter l’historique CPU, mémoire, disque et réseau au format CSV")
+            .clicked()
+            {
+                let toast = match Self::export_metrics_csv(state) {
+                    Ok(path) => widgets::toast::Toast::success(format!(
+                        "Export CSV enregistré : {}",
+                        path.display()
+                    )),
+                    Err(error) => {
+                        widgets::toast::Toast::error(format!("Export CSV impossible : {error}"))
                     }
-                },
-            );
+                };
+                state.toasts.push(toast.with_time(ui.input(|i| i.time)));
+            }
         });
         ui.add_space(theme::SPACE_LG);
 
@@ -1254,7 +1259,7 @@ impl MonitoringPage {
         }
     }
 
-    fn export_metrics_csv(state: &AppState) {
+    fn export_metrics_csv(state: &AppState) -> Result<std::path::PathBuf, String> {
         let headers = &[
             "timestamp",
             "cpu_percent",
@@ -1303,13 +1308,11 @@ impl MonitoringPage {
             .collect();
 
         let path = crate::export::default_export_path("surveillance_ressources.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
-        } else {
-            info!(
-                "[AUDIT] GUI user exported monitoring data to {}",
-                path.display()
-            );
-        }
+        crate::export::export_csv(headers, &rows, &path)?;
+        info!(
+            "[AUDIT] GUI user exported monitoring data to {}",
+            path.display()
+        );
+        Ok(path)
     }
 }

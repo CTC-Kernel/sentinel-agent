@@ -136,6 +136,26 @@ impl SentinelAICore {
             _ => {}
         }
 
+        if !theme::is_dark_mode() {
+            // A material base gives the orbital lines depth on a bright card.
+            // Both fills are opaque, so the core stays legible on any parent.
+            painter.circle_filled(
+                center + egui::vec2(0.0, 3.0),
+                radius * 1.05,
+                theme::color_blend(theme::bg_secondary(), theme::AI, 0.20),
+            );
+            painter.circle_filled(
+                center,
+                radius * 1.04,
+                theme::color_blend(theme::bg_secondary(), theme::AI, 0.12),
+            );
+            painter.circle_stroke(
+                center,
+                radius * 1.04,
+                Stroke::new(1.0_f32, theme::chart_color(theme::AI).linear_multiply(0.28)),
+            );
+        }
+
         // Pulsing background wash
         let pulse = match self.voice_state {
             VoiceState::Listening(level) => (t * 1.5).sin() * 0.15 + 0.25 + level * 0.4,

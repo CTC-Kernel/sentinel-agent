@@ -59,7 +59,12 @@ impl BaselineManager {
                 continue;
             }
 
-            let path = entry.path().to_path_buf();
+            let Ok(path) = entry.path().canonicalize() else {
+                continue;
+            };
+            if is_ignored(&path, ignore_patterns) {
+                continue;
+            }
 
             match compute_file_baseline(&path) {
                 Ok(baseline) => {
@@ -77,6 +82,8 @@ impl BaselineManager {
 
     /// Look up the baseline for a given path.
     pub fn get(&self, path: &Path) -> Option<FimBaseline> {
+        let normalized = baseline_path(path);
+        let path = normalized.as_path();
         match self.baselines.read() {
             Ok(b) => b.get(path).cloned(),
             Err(poisoned) => {
@@ -88,6 +95,8 @@ impl BaselineManager {
 
     /// Update the baseline for a specific file.
     pub fn update(&self, path: &Path) -> Result<Option<FimBaseline>, crate::FimError> {
+        let normalized = path.canonicalize()?;
+        let path = normalized.as_path();
         let new_baseline = compute_file_baseline(path)?;
         let mut baselines = self
             .baselines
@@ -100,6 +109,8 @@ impl BaselineManager {
 
     /// Remove a path from the baseline (e.g., when file is deleted).
     pub fn remove(&self, path: &Path) -> Option<FimBaseline> {
+        let normalized = baseline_path(path);
+        let path = normalized.as_path();
         match self.baselines.write() {
             Ok(mut b) => b.remove(path),
             Err(poisoned) => {
@@ -125,6 +136,20 @@ impl Default for BaselineManager {
     fn default() -> Self {
         Self::new()
     }
+}
+
+// Keep aliases such as /var and /private/var consistent with notify events,
+// including after deletion when only the parent can still be resolved.
+fn baseline_path(path: &Path) -> std::path::PathBuf {
+    path.canonicalize()
+        .ok()
+        .or_else(|| {
+            path.parent()?
+                .canonicalize()
+                .ok()
+                .map(|p| p.join(path.file_name().unwrap_or_default()))
+        })
+        .unwrap_or_else(|| path.to_path_buf())
 }
 
 /// Maximum file size for in-memory hashing (64 MB). Larger files use streaming.
@@ -246,6 +271,25 @@ fn is_ignored(path: &Path, patterns: &[String]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(unix)]
+    #[test]
+    fn baseline_alias_and_deleted_path_keep_the_same_identity() {
+        let dir = tempfile::tempdir().unwrap();
+        let real = dir.path().join("real");
+        std::fs::create_dir(&real).unwrap();
+        let alias = dir.path().join("alias");
+        std::os::unix::fs::symlink(&real, &alias).unwrap();
+        let path = real.join("file.txt");
+        std::fs::write(&path, "content").unwrap();
+        let manager = BaselineManager::new();
+        manager.create_baseline(&alias, &[]).unwrap();
+        assert!(manager.get(&path).is_some());
+        assert!(manager.get(&alias.join("file.txt")).is_some());
+        std::fs::remove_file(&path).unwrap();
+        assert!(manager.remove(&alias.join("file.txt")).is_some());
+        assert_eq!(manager.count(), 0);
+    }
     use std::io::Write;
     use tempfile::NamedTempFile;
 

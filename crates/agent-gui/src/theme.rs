@@ -213,6 +213,12 @@ pub fn detect_reduced_motion() -> bool {
 /// Primary accent — Sentinel sovereign blue. Reserved for actions and
 /// selection; neutral surfaces never inherit this hue in light mode.
 pub const ACCENT: Color32 = Color32::from_rgb(36, 78, 190); // #244EBE
+/// Decorative brand ramp observed on the CTC landing page. Semantic alert
+/// colors and readable control colors remain independent of these accents.
+pub const BRAND_CYAN: Color32 = Color32::from_rgb(6, 182, 212);
+pub const BRAND_BLUE: Color32 = Color32::from_rgb(37, 99, 235);
+pub const BRAND_VIOLET: Color32 = Color32::from_rgb(99, 102, 241);
+
 /// Accent tuned for text and icons on dark surfaces.
 pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(107, 165, 255); // #6BA5FF
 /// Accent hover state (one step deeper than `ACCENT`).
@@ -266,7 +272,7 @@ pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(12, 15, 21) // #0C0F15
     } else {
-        Color32::from_rgb(244, 245, 242) // #F4F5F2
+        Color32::from_rgb(238, 242, 246) // #EEF2F6 — pearl canvas
     }
 }
 
@@ -276,7 +282,7 @@ pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(19, 22, 30) // #13161E
     } else {
-        Color32::from_rgb(255, 255, 255) // #FFFFFF
+        Color32::from_rgb(253, 254, 255) // #FDFEFF — porcelain surface
     }
 }
 
@@ -286,7 +292,7 @@ pub fn bg_elevated() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(35, 40, 51) // #232833
     } else {
-        Color32::from_rgb(232, 235, 230) // #E8EBE6
+        Color32::from_rgb(230, 235, 238) // #E6EBEE
     }
 }
 
@@ -296,7 +302,7 @@ pub fn bg_tertiary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(26, 30, 40) // #1A1E28
     } else {
-        Color32::from_rgb(239, 241, 237) // #EFF1ED
+        Color32::from_rgb(240, 244, 248) // #F0F4F8
     }
 }
 
@@ -307,7 +313,7 @@ pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(9, 11, 17) // #090B11
     } else {
-        Color32::from_rgb(249, 249, 246) // #F9F9F6
+        Color32::from_rgb(246, 248, 252) // #F6F8FC
     }
 }
 
@@ -317,7 +323,7 @@ pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(5, 7, 11) // #05070B
     } else {
-        Color32::from_rgb(235, 238, 233) // #EBEEE9
+        Color32::from_rgb(232, 236, 240) // #E8ECF0
     }
 }
 
@@ -331,7 +337,7 @@ pub fn text_primary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(237, 240, 245) // #EDF0F5
     } else {
-        Color32::from_rgb(16, 20, 28) // #10141C
+        Color32::from_rgb(23, 34, 54) // #172236
     }
 }
 
@@ -341,7 +347,7 @@ pub fn text_secondary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(180, 188, 201) // #B4BCC9
     } else {
-        Color32::from_rgb(62, 73, 68) // #3E4944
+        Color32::from_rgb(56, 68, 88) // #384458
     }
 }
 
@@ -355,7 +361,7 @@ pub fn text_tertiary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(147, 155, 169) // #939BA9
     } else {
-        Color32::from_rgb(86, 98, 92) // #56625C
+        Color32::from_rgb(81, 96, 118) // #516076
     }
 }
 
@@ -434,7 +440,7 @@ pub fn border() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(114, 123, 141) // #727B8D
     } else {
-        Color32::from_rgb(112, 124, 118) // #707C76
+        Color32::from_rgb(105, 119, 139) // #69778B
     }
 }
 
@@ -447,7 +453,7 @@ pub fn border_subtle() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(43, 49, 62) // #2B313E
     } else {
-        Color32::from_rgb(218, 223, 217) // #DADFD9
+        Color32::from_rgb(208, 219, 233) // #D0DBE9
     }
 }
 
@@ -508,7 +514,7 @@ pub const CONTENT_MAX_WIDTH: f32 = 1560.0;
 ///
 /// The treatment is intentionally restricted to the application canvas: it
 /// gives dense security views a stable coordinate system without competing
-/// with tables, cards, or text. Light mode keeps only the barely-visible grid.
+/// with tables, cards, or text. Light mode uses a restrained blue reflection over the pearl canvas.
 pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
     if !painter.clip_rect().intersects(rect) {
         return;
@@ -517,9 +523,8 @@ pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
     let grid = if is_dark_mode() {
         Color32::from_rgba_unmultiplied(107, 165, 255, 10)
     } else {
-        // Mineral green-grey rather than a blue graph-paper cast. The grid
-        // should structure the workspace, never tint every page.
-        Color32::from_rgba_unmultiplied(55, 91, 75, 9)
+        // Cool grid aligned with the pearl surface palette.
+        Color32::from_rgba_unmultiplied(66, 96, 148, 8)
     };
     let step = 32.0;
     let mut x = rect.left() - rect.left().rem_euclid(step);
@@ -533,7 +538,7 @@ pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
         y += step;
     }
 
-    if is_dark_mode() {
+    {
         // A single vertex-coloured mesh gives us a genuinely continuous
         // radial falloff. Stacked translucent discs left visible contour
         // rings on calibrated/high-contrast displays, especially in the
@@ -545,7 +550,12 @@ pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
         mesh.vertices.push(egui::epaint::Vertex {
             pos: center,
             uv: egui::epaint::WHITE_UV,
-            color: Color32::from_rgba_unmultiplied(55, 101, 225, 18),
+            color: Color32::from_rgba_unmultiplied(
+                55,
+                101,
+                225,
+                if is_dark_mode() { 18 } else { 9 },
+            ),
         });
         for index in 0..segments {
             let angle = std::f32::consts::TAU * index as f32 / segments as f32;
@@ -606,7 +616,7 @@ pub fn color_blend_pub(base: Color32, tint: Color32, ratio: f32) -> Color32 {
 /// Blend two colors at a given ratio (opaque result).  `ratio=0` → pure base,
 /// `ratio=1` → pure tint.
 #[inline]
-fn color_blend(base: Color32, tint: Color32, ratio: f32) -> Color32 {
+pub(crate) fn color_blend(base: Color32, tint: Color32, ratio: f32) -> Color32 {
     let inv = 1.0 - ratio;
     Color32::from_rgb(
         (base.r() as f32 * inv + tint.r() as f32 * ratio) as u8,
@@ -1456,11 +1466,11 @@ impl Elevation {
             (Elevation::Level1, true) => (6, 26, 2, 20, 1),
             (Elevation::Level1, false) => (6, 14, 2, 10, 1),
             (Elevation::Level2, true) => (16, 40, 4, 28, 2),
-            (Elevation::Level2, false) => (14, 20, 3, 14, 2),
+            (Elevation::Level2, false) => (22, 27, 4, 15, 3),
             (Elevation::Level3, true) => (28, 56, 8, 36, 4),
-            (Elevation::Level3, false) => (24, 28, 6, 18, 4),
+            (Elevation::Level3, false) => (30, 36, 7, 22, 5),
             (Elevation::Level4, true) => (44, 84, 12, 48, 8),
-            (Elevation::Level4, false) => (40, 40, 10, 24, 8),
+            (Elevation::Level4, false) => (44, 46, 11, 28, 8),
             (Elevation::Level5, true) => (64, 110, 18, 60, 12),
             (Elevation::Level5, false) => (56, 52, 14, 30, 12),
         }
@@ -1473,7 +1483,11 @@ impl Elevation {
             offset: [0, dy],
             blur,
             spread: 0,
-            color: Color32::from_black_alpha(alpha),
+            color: if is_dark_mode() {
+                Color32::from_black_alpha(alpha)
+            } else {
+                Color32::from_rgba_unmultiplied(34, 58, 100, alpha)
+            },
         }
     }
 
@@ -1484,7 +1498,11 @@ impl Elevation {
             offset: [0, (dy / 2).max(1)],
             blur,
             spread: 0,
-            color: Color32::from_black_alpha(alpha),
+            color: if is_dark_mode() {
+                Color32::from_black_alpha(alpha)
+            } else {
+                Color32::from_rgba_unmultiplied(34, 58, 100, alpha)
+            },
         }
     }
 }
@@ -1549,6 +1567,23 @@ pub fn paint_surface_rim(painter: &egui::Painter, rect: egui::Rect, radius: Corn
                 egui::pos2(rect.right() - f32::from(radius.ne), rect.top() + 0.5),
             ],
             Stroke::new(BORDER_HAIRLINE, Color32::from_white_alpha(14)),
+        );
+    } else {
+        // The light surface catches a white top edge; its lower edge carries
+        // a cool contact tone instead of a grey bevel around the whole card.
+        painter.line_segment(
+            [
+                egui::pos2(rect.left() + f32::from(radius.nw), rect.top() + 1.0),
+                egui::pos2(rect.right() - f32::from(radius.ne), rect.top() + 1.0),
+            ],
+            Stroke::new(1.0_f32, Color32::from_white_alpha(230)),
+        );
+        painter.line_segment(
+            [
+                egui::pos2(rect.left() + f32::from(radius.sw), rect.bottom() - 1.0),
+                egui::pos2(rect.right() - f32::from(radius.se), rect.bottom() - 1.0),
+            ],
+            Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(63, 94, 145, 22)),
         );
     }
 }
@@ -2043,8 +2078,8 @@ pub fn sidebar_gradient() -> (Color32, Color32) {
         )
     } else {
         (
-            Color32::from_rgb(248, 249, 246), // Neutral luminous top
-            Color32::from_rgb(235, 238, 232), // Mineral-grey bottom
+            Color32::from_rgb(249, 251, 255), // Pearl highlight
+            Color32::from_rgb(229, 236, 247), // Cool recessed navigation
         )
     }
 }

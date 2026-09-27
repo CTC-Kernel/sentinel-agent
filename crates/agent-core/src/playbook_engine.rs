@@ -7,9 +7,9 @@
 //! and executes the appropriate response chain. When the `llm` feature is
 //! enabled, AI-powered confidence scoring enriches the evaluation.
 
-#[cfg(all(feature = "gui", feature = "llm"))]
+#[cfg(feature = "llm")]
 use tracing::debug;
-use tracing::{info, warn};
+use tracing::warn;
 
 /// Playbook condition evaluation result.
 #[derive(Debug)]
@@ -94,8 +94,7 @@ pub struct FimAlertInfo {
 /// - FIM alerts
 ///
 /// When the `llm` feature is enabled and a service is available, AI confidence
-/// scoring enriches the evaluation.
-#[cfg(feature = "gui")]
+/// annotations enrich the analysis without changing the deterministic verdict.
 pub async fn evaluate_playbook(
     playbook: &agent_gui::dto::Playbook,
     threat_context: &ThreatContext,
@@ -193,7 +192,8 @@ pub async fn evaluate_playbook(
             }
             PlaybookConditionType::SeverityThreshold => {
                 for alert in &threat_context.network_alerts {
-                    if alert.severity.to_lowercase() == condition_value {
+                    if matches!((severity_rank(&alert.severity), severity_rank(&condition_value)), (Some(actual), Some(threshold)) if actual >= threshold)
+                    {
                         matched_conditions
                             .push(format!("Severity '{}' matches threshold", condition.value));
                         base_confidence += 0.2;
@@ -201,21 +201,12 @@ pub async fn evaluate_playbook(
                 }
             }
             PlaybookConditionType::CvssScore => {
-                // CVSS score matching -- requires numeric parsing
-                if let Ok(threshold) = condition_value.parse::<f32>() {
-                    for alert in &threat_context.network_alerts {
-                        // If the alert description contains a CVSS-like score, compare
-                        if (alert.severity == "critical" && threshold <= 9.0)
-                            || (alert.severity == "high" && threshold <= 7.0)
-                        {
-                            matched_conditions.push(format!(
-                                "CVSS threshold {:.1} matched by {} alert",
-                                threshold, alert.severity
-                            ));
-                            base_confidence += 0.2;
-                        }
-                    }
-                }
+                // Network severity does not provide a vulnerability CVSS score.
+                // Do not fabricate one and trigger an action from unrelated evidence.
+                warn!(
+                    "Playbook '{}' CVSS condition cannot be evaluated without CVSS evidence",
+                    playbook.name
+                );
             }
         }
 
@@ -235,15 +226,48 @@ pub async fn evaluate_playbook(
     let actually_triggered =
         playbook_triggers(operator, conditions_matched, playbook.conditions.len());
 
-    // Add notification action for any triggered playbook
+    // Matching a condition identifies candidate targets; only configured actions
+    // authorize changing those targets. A notification-only console playbook
+    // must never terminate a matching process or quarantine a matching file.
+    actions.retain(|candidate| {
+        actually_triggered
+            && playbook.actions.iter().any(|configured| {
+                use agent_gui::dto::PlaybookActionType;
+                matches!(
+                    (candidate, configured.action_type),
+                    (
+                        ResolvedAction::KillProcess { .. },
+                        PlaybookActionType::KillProcess
+                    ) | (
+                        ResolvedAction::QuarantineFile { .. },
+                        PlaybookActionType::QuarantineFile
+                    ) | (ResolvedAction::BlockIp { .. }, PlaybookActionType::BlockIp)
+                )
+            })
+    });
     if actually_triggered {
-        actions.push(ResolvedAction::Alert {
-            title: format!("Playbook '{}' triggered", playbook.name),
-            severity: "medium".to_string(),
-            description: format!("Conditions matched: {}", matched_conditions.join(", ")),
-        });
+        for configured in &playbook.actions {
+            match configured.action_type {
+                agent_gui::dto::PlaybookActionType::CreateNotification => {
+                    actions.push(ResolvedAction::Notify {
+                        message: configured.parameters.clone(),
+                    })
+                }
+                agent_gui::dto::PlaybookActionType::SendSiemAlert => {
+                    actions.push(ResolvedAction::Alert {
+                        title: format!("Playbook '{}' triggered", playbook.name),
+                        severity: "medium".to_string(),
+                        description: format!(
+                            "Conditions matched: {}",
+                            matched_conditions.join(", ")
+                        ),
+                    })
+                }
+                _ => {}
+            }
+        }
 
-        // Enhance confidence with LLM if available
+        // Add an AI annotation when available; keep the deterministic verdict.
         #[cfg(feature = "llm")]
         {
             if let Some(svc) = llm_service
@@ -272,10 +296,11 @@ pub async fn evaluate_playbook(
 
                 match manager.classifier().classify_event(&event).await {
                     Ok(classification) => {
-                        // Use AI confidence to modulate base confidence
-                        let ai_confidence = classification.confidence as f32 / 100.0;
-                        base_confidence = (base_confidence + ai_confidence) / 2.0;
-                        debug!("AI-enhanced playbook confidence: {:.2}", base_confidence);
+                        // AI annotations must not authorize or suppress deterministic actions.
+                        debug!(
+                            "Playbook AI annotation: {:?}, confidence {}%",
+                            classification.threat_type, classification.confidence
+                        );
                     }
                     Err(e) => {
                         debug!("LLM classification for playbook failed: {}", e);
@@ -294,6 +319,17 @@ pub async fn evaluate_playbook(
         matched_conditions,
         confidence,
         actions,
+    }
+}
+
+fn severity_rank(value: &str) -> Option<u8> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "info" => Some(0),
+        "low" => Some(1),
+        "medium" => Some(2),
+        "high" => Some(3),
+        "critical" => Some(4),
+        _ => None,
     }
 }
 
@@ -376,6 +412,18 @@ pub async fn execute_playbook_actions(
     playbook_name: &str,
     actions: &[ResolvedAction],
     audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
+) -> Vec<ActionResult> {
+    execute_playbook_actions_with_delivery(playbook_name, actions, audit_trail, None, None).await
+}
+
+/// Execute actions with explicit delivery destinations. Without a destination,
+/// notification/SIEM actions fail instead of claiming success after logging only.
+pub async fn execute_playbook_actions_with_delivery(
+    playbook_name: &str,
+    actions: &[ResolvedAction],
+    audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
+    notifications: Option<&std::sync::mpsc::Sender<agent_gui::events::AgentEvent>>,
+    siem: Option<&agent_siem::SiemForwarder>,
 ) -> Vec<ActionResult> {
     let mut results = Vec::new();
     let mut destructive_executed = 0usize;
@@ -461,22 +509,56 @@ pub async fn execute_playbook_actions(
                 severity,
                 description,
             } => {
-                info!(
-                    "Playbook alert: [{}] {} -- {}",
-                    severity, title, description
-                );
+                let outcome = if let Some(forwarder) = siem {
+                    let event = agent_siem::SiemEvent {
+                        timestamp: chrono::Utc::now(),
+                        severity: severity_rank(severity).unwrap_or(2) * 2 + 1,
+                        category: agent_siem::EventCategory::Security,
+                        name: title.clone(),
+                        description: description.clone(),
+                        source_host: hostname::get()
+                            .map(|h| h.to_string_lossy().into_owned())
+                            .unwrap_or_default(),
+                        source_ip: None,
+                        destination_ip: None,
+                        destination_port: None,
+                        user: None,
+                        process_name: None,
+                        process_id: None,
+                        file_path: None,
+                        custom_fields: serde_json::json!({"playbook":playbook_name}),
+                        event_id: uuid::Uuid::new_v4().to_string(),
+                        agent_version: agent_common::constants::AGENT_VERSION.to_string(),
+                    };
+                    forwarder
+                        .send_required_event(&event)
+                        .await
+                        .map_err(|e| e.to_string())
+                } else {
+                    Err("No SIEM delivery destination configured".to_string())
+                };
                 ActionResult {
                     action: format!("Alert: {}", title),
-                    success: true,
-                    error: None,
+                    success: outcome.is_ok(),
+                    error: outcome.err(),
                 }
             }
             ResolvedAction::Notify { message } => {
-                info!("Playbook notification: {}", message);
+                let outcome = if let Some(tx) = notifications {
+                    tx.send(agent_gui::events::AgentEvent::Notification {
+                        notification: agent_gui::dto::GuiNotification::info(
+                            playbook_name,
+                            message.clone(),
+                        ),
+                    })
+                    .map_err(|e| e.to_string())
+                } else {
+                    Err("No notification delivery destination configured".to_string())
+                };
                 ActionResult {
                     action: format!("Notify: {}", message),
-                    success: true,
-                    error: None,
+                    success: outcome.is_ok(),
+                    error: outcome.err(),
                 }
             }
         };
@@ -662,14 +744,14 @@ mod guard_tests {
     }
 }
 
-#[cfg(all(test, feature = "gui"))]
+#[cfg(test)]
 mod tests {
     use super::*;
     use agent_gui::dto::{Playbook, PlaybookCondition, PlaybookConditionType};
 
     fn make_playbook(conditions: Vec<PlaybookCondition>) -> Playbook {
         Playbook {
-            id: uuid::Uuid::new_v4(),
+            id: uuid::Uuid::new_v4().to_string(),
             name: "test".to_string(),
             description: String::new(),
             enabled: true,
@@ -680,6 +762,76 @@ mod tests {
             trigger_count: 0,
             is_template: false,
         }
+    }
+
+    #[tokio::test]
+    async fn notifications_require_a_live_destination() {
+        let actions = vec![ResolvedAction::Notify {
+            message: "delivered".into(),
+        }];
+        let missing = execute_playbook_actions("test", &actions, None).await;
+        assert!(!missing[0].success);
+        let (tx, rx) = std::sync::mpsc::channel();
+        let sent =
+            execute_playbook_actions_with_delivery("test", &actions, None, Some(&tx), None).await;
+        assert!(sent[0].success);
+        assert!(
+            matches!(rx.recv().unwrap(), agent_gui::events::AgentEvent::Notification { notification } if notification.body == "delivered")
+        );
+        drop(rx);
+        let closed =
+            execute_playbook_actions_with_delivery("test", &actions, None, Some(&tx), None).await;
+        assert!(!closed[0].success);
+    }
+
+    #[tokio::test]
+    async fn standalone_playbook_runs_without_detection_rules_or_rendering() {
+        use agent_gui::dto::{PlaybookAction, PlaybookActionType};
+        let mut pb = make_playbook(vec![PlaybookCondition {
+            condition_type: PlaybookConditionType::SeverityThreshold,
+            operator: ">=".into(),
+            value: "medium".into(),
+        }]);
+        pb.actions.push(PlaybookAction {
+            action_type: PlaybookActionType::CreateNotification,
+            parameters: "response".into(),
+        });
+        let ctx = ThreatContext {
+            network_alerts: vec![NetworkAlertInfo {
+                remote_ip: None,
+                port: None,
+                severity: "high".into(),
+                description: "test".into(),
+            }],
+            ..Default::default()
+        };
+        let (tx, rx) = std::sync::mpsc::channel();
+        let result = crate::threat_pipeline::run_threat_pipeline(
+            &[],
+            &[pb.clone()],
+            &ctx,
+            &Some(tx),
+            #[cfg(feature = "llm")]
+            None,
+            None,
+            None,
+        )
+        .await;
+        assert!(result.rule_matches.is_empty());
+        assert_eq!(result.playbook_logs.len(), 1);
+        assert!(result.playbook_logs[0].success);
+        assert!(matches!(
+            rx.recv().unwrap(),
+            agent_gui::events::AgentEvent::Notification { .. }
+        ));
+        pb.conditions[0].value = "critical".into();
+        assert!(!eval(&pb, &ctx).await.triggered);
+        pb.conditions[0].condition_type = PlaybookConditionType::CvssScore;
+        pb.conditions[0].value = "7".into();
+        assert!(
+            !eval(&pb, &ctx).await.triggered,
+            "network severity is not CVSS evidence"
+        );
     }
 
     fn proc(name: &str, pid: u32) -> ProcessInfo {
@@ -783,12 +935,40 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn console_notification_playbook_never_resolves_destructive_actions() {
+        let mut pb = make_playbook(vec![PlaybookCondition {
+            condition_type: PlaybookConditionType::ProcessNameMatch,
+            operator: "any".into(),
+            value: "evil".into(),
+        }]);
+        let ctx = ThreatContext {
+            suspicious_processes: vec![proc("evil", 1234)],
+            ..Default::default()
+        };
+        assert!(eval(&pb, &ctx).await.actions.is_empty());
+        pb.actions.push(agent_gui::dto::PlaybookAction {
+            action_type: agent_gui::dto::PlaybookActionType::CreateNotification,
+            parameters: "Investigate".into(),
+        });
+        let result = eval(&pb, &ctx).await;
+        assert!(result.triggered);
+        assert_eq!(result.actions.len(), 1);
+        assert!(
+            matches!(&result.actions[0], ResolvedAction::Notify { message } if message == "Investigate")
+        );
+    }
+
+    #[tokio::test]
     async fn matching_process_name_kills_only_the_match() {
-        let pb = make_playbook(vec![PlaybookCondition {
+        let mut pb = make_playbook(vec![PlaybookCondition {
             condition_type: PlaybookConditionType::ProcessNameMatch,
             operator: "any".to_string(),
             value: "evil".to_string(),
         }]);
+        pb.actions.push(agent_gui::dto::PlaybookAction {
+            action_type: agent_gui::dto::PlaybookActionType::KillProcess,
+            parameters: String::new(),
+        });
         let ctx = ThreatContext {
             suspicious_processes: vec![proc("evil_miner", 1234), proc("chrome", 5678)],
             ..Default::default()

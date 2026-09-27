@@ -52,6 +52,7 @@ pub mod offline;
 pub mod orchestrator;
 pub mod pinning;
 pub mod result_upload;
+pub mod request_auth;
 pub mod rules;
 pub mod security;
 pub mod types;

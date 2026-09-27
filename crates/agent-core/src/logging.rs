@@ -10,6 +10,13 @@
 
 use std::io::Write;
 
+static ACTIVE_LOG_DIR: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
+
+/// Directory selected by logging initialization, without creating another sink.
+pub(crate) fn active_log_dir() -> Option<&'static std::path::Path> {
+    ACTIVE_LOG_DIR.get().map(std::path::PathBuf::as_path)
+}
+
 /// An [`std::io::Write`] wrapper that redacts sensitive data line by line.
 ///
 /// Bytes are buffered until a newline, then each complete line is passed
@@ -100,6 +107,7 @@ pub fn init_logging(log_level: &str) {
 
     // Initial log directory and file appender
     let log_dir = get_log_dir();
+    let _ = ACTIVE_LOG_DIR.set(log_dir.clone());
     let file_appender = tracing_appender::rolling::daily(&log_dir, "agent.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     // Leak the guard to keep it alive for the duration of the program
@@ -144,6 +152,7 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
 
     // Initial log directory and file appender
     let log_dir = get_log_dir();
+    let _ = ACTIVE_LOG_DIR.set(log_dir.clone());
     let file_appender = tracing_appender::rolling::daily(&log_dir, "agent.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     // Leak the guard to keep it alive for the duration of the program

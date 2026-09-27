@@ -45,7 +45,7 @@ pub struct FimEngine {
     alert_tx: mpsc::Sender<FimAlert>,
 
     /// Shutdown flag.
-    shutdown: Arc<std::sync::atomic::AtomicBool>,
+    shutdown: RwLock<Arc<std::sync::atomic::AtomicBool>>,
 
     /// Watcher task handle for monitoring termination.
     watcher_handle: RwLock<Option<tokio::task::JoinHandle<()>>>,
@@ -60,7 +60,7 @@ impl FimEngine {
             policy: Arc::new(RwLock::new(policy)),
             baseline_mgr,
             alert_tx,
-            shutdown: Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            shutdown: RwLock::new(Arc::new(std::sync::atomic::AtomicBool::new(false))),
             watcher_handle: RwLock::new(None),
         }
     }
@@ -97,7 +97,14 @@ impl FimEngine {
         let watcher_policy = policy.clone();
         let baseline = self.baseline_mgr.clone();
         let alert_tx = self.alert_tx.clone();
-        let shutdown = self.shutdown.clone();
+        // Every generation owns its cancellation flag. Restarting must never
+        // clear the flag still used by the previous blocking watcher.
+        let shutdown = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        {
+            let mut current = self.shutdown.write().unwrap();
+            current.store(true, std::sync::atomic::Ordering::Release);
+            *current = shutdown.clone();
+        }
 
         let handle = tokio::spawn(async move {
             if let Err(e) = watcher::watch_files(watcher_policy, baseline, alert_tx, shutdown).await
@@ -118,6 +125,8 @@ impl FimEngine {
     /// Stop the FIM engine.
     pub fn stop(&self) {
         self.shutdown
+            .read()
+            .unwrap()
             .store(true, std::sync::atomic::Ordering::Release);
         info!("FIM engine stopped");
     }
@@ -143,10 +152,6 @@ impl FimEngine {
                 *current = policy;
             }
         }
-
-        // Reset the shutdown flag so start() can launch a new watcher
-        self.shutdown
-            .store(false, std::sync::atomic::Ordering::Release);
 
         // Restart with the new config
         self.start().await?;
@@ -176,7 +181,23 @@ impl FimEngine {
 
     /// Get the number of alerts pending in the channel.
     pub fn is_running(&self) -> bool {
-        !self.shutdown.load(std::sync::atomic::Ordering::Acquire)
+        !self
+            .shutdown
+            .read()
+            .unwrap()
+            .load(std::sync::atomic::Ordering::Acquire)
+            && self
+                .watcher_handle
+                .read()
+                .unwrap()
+                .as_ref()
+                .is_none_or(|h| !h.is_finished())
+    }
+}
+
+impl Drop for FimEngine {
+    fn drop(&mut self) {
+        self.stop();
     }
 }
 
@@ -210,6 +231,27 @@ mod tests {
         let engine = FimEngine::with_defaults(tx);
         assert_eq!(engine.baseline_count(), 0);
         assert!(engine.is_running());
+    }
+
+    #[tokio::test]
+    async fn restart_keeps_previous_generation_cancelled() {
+        let (tx, _rx) = mpsc::channel(16);
+        let engine = FimEngine::new(
+            FimPolicy {
+                watched_paths: vec![],
+                ..Default::default()
+            },
+            tx,
+        );
+        engine.start().await.unwrap();
+        let previous = engine.shutdown.read().unwrap().clone();
+        engine.stop();
+        engine.start().await.unwrap();
+        assert!(previous.load(std::sync::atomic::Ordering::Acquire));
+        assert!(engine.is_running());
+        let current = engine.shutdown.read().unwrap().clone();
+        drop(engine);
+        assert!(current.load(std::sync::atomic::Ordering::Acquire));
     }
 
     #[tokio::test]

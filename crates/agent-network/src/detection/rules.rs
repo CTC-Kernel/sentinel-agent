@@ -76,14 +76,22 @@ impl DetectionRules {
     /// Check if a process name matches known miners.
     pub fn is_miner_process(&self, process_name: &str) -> bool {
         let lower = process_name.to_lowercase();
-        self.miner_processes.iter().any(|p| lower.contains(p))
+        self.miner_processes.iter().any(|p| {
+            lower
+                .rsplit(['/', '\\'])
+                .next()
+                .unwrap_or(&lower)
+                .trim_end_matches(".exe")
+                == p.to_lowercase().trim_end_matches(".exe")
+        })
     }
 
     /// Check if a destination is a known mining pool.
     pub fn is_mining_pool(&self, addr: &str) -> bool {
+        let host = addr.trim_end_matches('.').to_lowercase();
         self.mining_pools
             .iter()
-            .any(|pool| addr.contains(pool) || pool.contains(addr))
+            .any(|pool| host == *pool || host.ends_with(&format!(".{pool}")))
     }
 
     /// Get IOC match description.

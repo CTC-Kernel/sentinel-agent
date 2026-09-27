@@ -10,8 +10,7 @@
 
 use super::rules::DetectionRules;
 use crate::types::{
-    AlertSeverity, ConnectionProtocol, ConnectionState, NetworkAlertType, NetworkConnection,
-    NetworkSecurityAlert,
+    AlertSeverity, ConnectionState, NetworkAlertType, NetworkConnection, NetworkSecurityAlert,
 };
 use chrono::Utc;
 use serde_json::json;
@@ -39,7 +38,7 @@ impl ExfilDetector {
 
         // Analyze connection patterns
         alerts.extend(self.detect_multiple_connections(connections));
-        alerts.extend(self.detect_unusual_protocols(connections));
+        // Socket metadata alone cannot distinguish ordinary TCP DNS from tunneling.
 
         alerts
     }
@@ -73,33 +72,6 @@ impl ExfilDetector {
         for (dest, conns) in dest_counts {
             if conns.len() >= CONNECTIONS_THRESHOLD {
                 alerts.push(self.create_multiple_connections_alert(&dest, &conns));
-            }
-        }
-
-        alerts
-    }
-
-    /// Detect unusual protocols that might be used for exfiltration.
-    fn detect_unusual_protocols(
-        &self,
-        connections: &[NetworkConnection],
-    ) -> Vec<NetworkSecurityAlert> {
-        let mut alerts = Vec::new();
-
-        for conn in connections {
-            if conn.state != ConnectionState::Established {
-                continue;
-            }
-
-            // DNS over non-standard ports (potential DNS tunneling)
-            if let Some(remote_port) = conn.remote_port
-                && remote_port == 53
-                && !matches!(conn.protocol, ConnectionProtocol::Udp)
-                && let Some(ref remote_addr) = conn.remote_address
-                && !self.is_known_dns_server(remote_addr)
-            {
-                // TCP DNS could be legitimate but also used for tunneling
-                alerts.push(self.create_dns_tunnel_alert(conn));
             }
         }
 
@@ -158,20 +130,6 @@ impl ExfilDetector {
             || ip.starts_with("fd00:")
     }
 
-    fn is_known_dns_server(&self, ip: &str) -> bool {
-        // Common public DNS servers
-        matches!(
-            ip,
-            "8.8.8.8"
-                | "8.8.4.4"
-                | "1.1.1.1"
-                | "1.0.0.1"
-                | "9.9.9.9"
-                | "208.67.222.222"
-                | "208.67.220.220"
-        )
-    }
-
     fn create_multiple_connections_alert(
         &self,
         destination: &str,
@@ -192,15 +150,15 @@ impl ExfilDetector {
             .collect();
 
         NetworkSecurityAlert {
-            alert_type: NetworkAlertType::DataExfiltration,
-            severity: AlertSeverity::Medium,
+            alert_type: NetworkAlertType::ConnectionAnomaly,
+            severity: AlertSeverity::Low,
             title: format!(
                 "Multiple connections to single destination: {}",
                 destination
             ),
             description: format!(
                 "Detected {} simultaneous connections to external IP {}. \
-                This pattern may indicate data exfiltration or tunneling. \
+                Socket counts alone do not establish data exfiltration; investigate traffic volume and context. \
                 Processes involved: {:?}. Ports: {:?}",
                 connections.len(),
                 destination,
@@ -215,34 +173,9 @@ impl ExfilDetector {
                 "ports": ports,
                 "detection_reason": "multiple_connections"
             }),
-            confidence: 50,
+            confidence: 30,
             detected_at: Utc::now(),
             iocs_matched: vec![format!("multi_conn:{}", destination)],
-        }
-    }
-
-    fn create_dns_tunnel_alert(&self, conn: &NetworkConnection) -> NetworkSecurityAlert {
-        NetworkSecurityAlert {
-            alert_type: NetworkAlertType::DnsTunneling,
-            severity: AlertSeverity::Medium,
-            title: "Potential DNS tunneling detected".to_string(),
-            description: format!(
-                "TCP connection to non-standard DNS server {} on port 53. \
-                This could indicate DNS tunneling for data exfiltration. Process: {}",
-                conn.remote_address.as_deref().unwrap_or("unknown"),
-                conn.process_name.as_deref().unwrap_or("unknown")
-            ),
-            connection: Some(conn.clone()),
-            evidence: json!({
-                "remote_address": conn.remote_address,
-                "protocol": format!("{:?}", conn.protocol),
-                "process_name": conn.process_name,
-                "process_path": conn.process_path,
-                "detection_reason": "dns_tunneling"
-            }),
-            confidence: 60,
-            detected_at: Utc::now(),
-            iocs_matched: vec!["dns_tunnel".to_string()],
         }
     }
 }

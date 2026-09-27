@@ -66,9 +66,9 @@ impl C2Detector {
             .unwrap_or_default();
 
         NetworkSecurityAlert {
-            alert_type: NetworkAlertType::C2Communication,
-            severity: AlertSeverity::Critical,
-            title: format!("Potential C2 communication on port {}", port),
+            alert_type: NetworkAlertType::SuspiciousPort,
+            severity: AlertSeverity::Medium,
+            title: format!("Connection on a port associated with C2: {}", port),
             description: format!(
                 "Established connection to remote port {} which is commonly used for C2 communication{}. \
                 Remote address: {}",
@@ -86,7 +86,7 @@ impl C2Detector {
                 "pid": conn.pid,
                 "detection_reason": "known_c2_port"
             }),
-            confidence: 75,
+            confidence: 40,
             detected_at: Utc::now(),
             iocs_matched: vec![format!("port:{}", port)],
         }

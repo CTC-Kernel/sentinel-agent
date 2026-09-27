@@ -177,6 +177,9 @@ pub struct StoredCredentials {
     /// PEM-encoded private key for mTLS.
     pub client_private_key: String,
 
+    #[serde(default)]
+    pub hmac_secret: Option<String>,
+
     /// Certificate expiration timestamp.
     pub certificate_expires_at: DateTime<Utc>,
 
@@ -194,6 +197,7 @@ impl std::fmt::Debug for StoredCredentials {
             .field("organization_id", &self.organization_id)
             .field("client_certificate", &"[REDACTED]")
             .field("client_private_key", &"[REDACTED]")
+            .field("hmac_secret", &"[REDACTED]")
             .field("certificate_expires_at", &self.certificate_expires_at)
             .field("server_fingerprints", &self.server_fingerprints)
             .field("enrolled_at", &self.enrolled_at)
@@ -209,6 +213,7 @@ impl StoredCredentials {
             organization_id: response.organization_id,
             client_certificate: response.client_certificate,
             client_private_key: response.client_private_key,
+            hmac_secret: response.hmac_secret,
             certificate_expires_at: response.certificate_expires_at,
             server_fingerprints: response.server_fingerprints,
             enrolled_at: Utc::now(),
@@ -659,7 +664,7 @@ pub enum CommandStatus {
 }
 
 /// Request to report a command execution result.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct CommandResultRequest {
     /// Status of the execution.
@@ -707,6 +712,7 @@ pub struct AuditTrailSyncRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct PlaybookConditionPayload {
+    #[serde(alias = "conditionType")]
     pub condition_type: String,
     pub operator: String,
     pub value: String,
@@ -716,6 +722,7 @@ pub struct PlaybookConditionPayload {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct PlaybookActionPayload {
+    #[serde(alias = "actionType")]
     pub action_type: String,
     pub parameters: String,
 }
@@ -797,6 +804,7 @@ pub struct PlaybookLogSyncRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct DetectionConditionPayload {
+    #[serde(alias = "conditionType")]
     pub condition_type: String,
     pub value: String,
 }
@@ -1534,12 +1542,14 @@ mod tests {
 
         let credentials = StoredCredentials::from_enrollment(response.clone());
         assert_eq!(credentials.agent_id, response.agent_id);
+        assert_eq!(credentials.hmac_secret, response.hmac_secret);
         assert!(!credentials.is_certificate_expired());
     }
 
     #[test]
     fn test_certificate_expiration_check() {
         let credentials = StoredCredentials {
+            hmac_secret: None,
             agent_id: Uuid::new_v4(),
             organization_id: Uuid::new_v4(),
             client_certificate: "cert".to_string(),
@@ -1741,5 +1751,32 @@ mod tests {
         let payload = serde_json::to_value(UsbEventPayload::from(event(true))).unwrap();
         assert_eq!(payload["action"], "allowed");
         assert!(payload.get("metadata").is_none());
+    }
+}
+
+/// Complete snapshots are opt-in. A legacy array never authorizes deleting
+/// locally cached entities, since older servers may silently omit incomplete rows.
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum RemoteSnapshot<T> {
+    Explicit { items: Vec<T>, complete: bool },
+    Legacy(Vec<T>),
+}
+impl<T> RemoteSnapshot<T> {
+    pub fn into_parts(self) -> (Vec<T>, bool) {
+        match self { Self::Explicit {items,complete} => (items,complete), Self::Legacy(items) => (items,false) }
+    }
+}
+
+#[cfg(test)]
+mod snapshot_contract_tests {
+    use super::*;
+    #[test]
+    fn legacy_and_partial_responses_never_authorize_deletion() {
+        for (input, complete) in [("[]",false),(r#"{"items":[],"complete":false}"#,false),(r#"{"items":[],"complete":true}"#,true)] {
+            let snapshot: RemoteSnapshot<String> = serde_json::from_str(input).unwrap();
+            assert_eq!(snapshot.into_parts().1,complete);
+        }
+        assert!(serde_json::from_str::<RemoteSnapshot<String>>(r#"{"items":[]}"#).is_err());
     }
 }

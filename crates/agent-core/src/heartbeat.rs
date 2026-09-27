@@ -166,6 +166,8 @@ impl AgentRuntime {
             {
                 Ok(items) => items
                     .into_iter()
+                    .filter(|p| !p.synced)
+                    .take(100)
                     .map(|p| crate::api_client::HeartbeatPlaybook {
                         id: p.id.clone(),
                         name: p.name.clone(),
@@ -198,6 +200,8 @@ impl AgentRuntime {
             {
                 Ok(items) => items
                     .into_iter()
+                    .filter(|r| !r.synced)
+                    .take(500)
                     .map(|r| crate::api_client::HeartbeatDetectionRule {
                         id: r.id.clone(),
                         name: r.name.clone(),
@@ -217,7 +221,7 @@ impl AgentRuntime {
                         }),
                         created_at: Some(r.created_at.clone()),
                         last_match: r.last_match.clone(),
-                        match_count: r.match_count.max(0).min(u32::MAX as i32) as u32,
+                        match_count: r.match_count.max(0) as u32,
                     })
                     .collect(),
                 Err(e) => {
@@ -318,6 +322,13 @@ impl AgentRuntime {
                 last_sync_at: Some(now),
                 error: None,
             });
+        }
+
+        // A successful heartbeat is also an opportunity to deliver results retained offline.
+        if let Some(service) = self.command_results.read().await.as_ref() {
+            if let Err(error) = service.flush_pending().await {
+                warn!("Command results remain queued: {}", error);
+            }
         }
 
         // Process server commands
@@ -624,7 +635,10 @@ impl AgentRuntime {
                     Err(e) => warn!("Rule sync failed: {}", e),
                 }
             }
-            // Also sync central detection rules, playbooks, and alert rules
+        }
+
+        if response.config_changed || response.rules_changed {
+            // Console EDR edits increment the configuration version.
             self.sync_central_detection_rules().await;
             self.sync_central_playbooks().await;
             self.sync_central_alert_rules().await;

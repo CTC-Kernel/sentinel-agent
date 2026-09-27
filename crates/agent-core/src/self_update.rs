@@ -13,6 +13,14 @@ use tracing::{error, info, warn};
 
 use super::AgentRuntime;
 
+fn reserve_update_check(last: &mut Option<std::time::Instant>, now: std::time::Instant) -> bool {
+    if last.is_some_and(|previous| now.saturating_duration_since(previous).as_secs() < 300) {
+        return false;
+    }
+    *last = Some(now);
+    true
+}
+
 impl AgentRuntime {
     /// Report update status to the server (fire-and-forget).
     async fn report_update(&self, status: &str, version: Option<&str>, error_msg: Option<&str>) {
@@ -35,14 +43,18 @@ impl AgentRuntime {
 
         // Rate limiting: prevent checking more than once every 5 minutes manually
         {
-            let last_check = self.last_update_check.read().await;
-            if let Some(instant) = *last_check
-                && instant.elapsed().as_secs() < 300
-            {
+            let mut last_check = self.last_update_check.write().await;
+            if !reserve_update_check(&mut last_check, std::time::Instant::now()) {
                 info!("Skipping update check (rate limited)");
                 #[cfg(feature = "gui")]
+                self.emit_notification(
+                    "Vérification déjà demandée",
+                    "Patientez cinq minutes avant une nouvelle vérification.",
+                    "info",
+                );
+                #[cfg(feature = "gui")]
                 self.emit_gui_event(agent_gui::events::AgentEvent::UpdateStatusChanged {
-                    status: UpdateStatus::UpToDate,
+                    status: UpdateStatus::Idle,
                 });
                 return Ok(());
             }
@@ -59,16 +71,19 @@ impl AgentRuntime {
         let api_client = self.api_client.read().await;
         let update_client = match api_client.as_ref() {
             Some(client) => Arc::new(client.clone()),
-            None => Arc::new(crate::api_client::ApiClient::new(&self.config)?),
+            None => match crate::api_client::ApiClient::new(&self.config) {
+                Ok(client) => Arc::new(client),
+                Err(error) => {
+                    #[cfg(feature = "gui")]
+                    self.emit_gui_event(agent_gui::events::AgentEvent::UpdateStatusChanged {
+                        status: UpdateStatus::Failed(error.to_string()),
+                    });
+                    return Err(error);
+                }
+            },
         };
         let update_manager =
             crate::update_manager::UpdateManager::new(update_client, AGENT_VERSION.to_string());
-
-        // Update last check timestamp
-        {
-            let mut last_check = self.last_update_check.write().await;
-            *last_check = Some(std::time::Instant::now());
-        }
 
         // Drop the read lock before the match so we can call report_update
         drop(api_client);
@@ -181,5 +196,26 @@ impl AgentRuntime {
                 Err(e)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn update_check_reservation_prevents_duplicate_work_until_cooldown() {
+        let now = std::time::Instant::now();
+        let mut last = None;
+        assert!(reserve_update_check(&mut last, now));
+        assert!(!reserve_update_check(&mut last, now));
+        assert!(!reserve_update_check(
+            &mut last,
+            now + std::time::Duration::from_secs(299)
+        ));
+        assert_eq!(last, Some(now));
+        assert!(reserve_update_check(
+            &mut last,
+            now + std::time::Duration::from_secs(300)
+        ));
     }
 }

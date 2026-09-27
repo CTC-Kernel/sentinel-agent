@@ -208,7 +208,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         .clicked()
                         {
                             let playbook = Playbook {
-                                id: Uuid::new_v4(),
+                                id: Uuid::new_v4().to_string(),
                                 name: tpl.name.to_string(),
                                 description: tpl.description.to_string(),
                                 enabled: true,
@@ -698,7 +698,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                     && can_save
                 {
                     let playbook = Playbook {
-                        id: Uuid::new_v4(),
+                        id: Uuid::new_v4().to_string(),
                         name: f.name.trim().to_string(),
                         description: f.description.trim().to_string(),
                         enabled: true,
@@ -743,7 +743,7 @@ mod tests {
 
     fn playbook(name: &str, is_template: bool) -> Playbook {
         Playbook {
-            id: Uuid::nil(),
+            id: Uuid::nil().to_string(),
             name: name.to_owned(),
             description: String::new(),
             enabled: true,

@@ -11,7 +11,7 @@ default = ["tray", "voice"]
 # Enable system tray GUI (macOS/Windows desktop mode)
 tray = ["dep:tray-icon", "dep:muda", "dep:image", "dep:open", "dep:tao"]
 # Enable v2 desktop GUI features (includes LLM AI module + persistence)
-gui = ["dep:agent-gui", "dep:agent-persistence", "llm", "agent-gui/llm", "dep:eframe", "dep:egui", "dep:egui_extras", "dep:egui_plot"]
+gui = ["agent-gui/render", "dep:agent-persistence", "llm", "agent-gui/llm", "dep:eframe", "dep:egui", "dep:egui_extras", "dep:egui_plot"]
 # LLM features (can also be enabled standalone without GUI)
 llm = ["dep:agent_llm", "agent-scanner/llm"]
 llm_simple = []
@@ -29,7 +29,7 @@ agent-scanner = { path = "../agent-scanner", features = ["osv"] }
 agent-network = { path = "../agent-network" }
 agent-fim = { path = "../agent-fim" }
 agent-siem = { path = "../agent-siem" }
-agent-gui = { path = "../agent-gui", optional = true }
+agent-gui = { path = "../agent-gui", default-features = false }
 agent_llm = { path = "../agent_llm", optional = true }
 agent-persistence = { path = "../agent-persistence", optional = true }
 
@@ -144,3 +144,7 @@ assets = [
     ["../../README.md", "usr/share/doc/sentinel-agent/README.md", "644"],
     ["../../LICENSE", "usr/share/doc/sentinel-agent/LICENSE", "644"],
 ]
+
+[[example]]
+name = "edr_contract"
+required-features = ["gui"]

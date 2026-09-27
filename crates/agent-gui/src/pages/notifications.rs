@@ -5,9 +5,6 @@
 
 use egui::Ui;
 
-/// Width reserved for the severity badge, so row titles line up.
-const NOTIF_BADGE_COLUMN: f32 = 84.0;
-
 use crate::app::AppState;
 use crate::dto::{AlertRule, AlertRuleType, Severity, WebhookConfig};
 use crate::events::GuiCommand;
@@ -32,6 +29,8 @@ impl NotificationsPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
+        crate::pages::security_navigation(ui, state);
+        ui.add_space(theme::SPACE_MD);
 
         // Tab bar
         let unread = state.notifications.iter().filter(|n| !n.read).count();
@@ -71,7 +70,7 @@ impl NotificationsPage {
         let mut command = None;
 
         // Summary + mark all read button
-        ui.horizontal(|ui: &mut egui::Ui| {
+        ui.vertical(|ui: &mut egui::Ui| {
             let total = state.notifications.len();
             let unread = state.notifications.iter().filter(|n| !n.read).count();
 
@@ -86,51 +85,47 @@ impl NotificationsPage {
                 .color(theme::text_secondary()),
             );
 
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if !state.notifications.is_empty()
-                        && widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked()
+            ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+                if !state.notifications.is_empty()
+                    && widgets::ghost_button(
+                        ui,
+                        format!("{}  Exporter les notifications", icons::DOWNLOAD),
+                    )
+                    .clicked()
+                {
+                    let toast = match Self::export_notifications_csv(state) {
+                        Ok(path) => widgets::toast::Toast::success(format!(
+                            "Export CSV enregistré : {}",
+                            path.display()
+                        )),
+                        Err(error) => {
+                            widgets::toast::Toast::error(format!("Export CSV impossible : {error}"))
+                        }
+                    };
+                    state.toasts.push(toast.with_time(ui.input(|i| i.time)));
+                }
+
+                if unread > 0 {
+                    ui.add_space(theme::SPACE_SM);
+
+                    if widgets::primary_button(
+                        ui,
+                        format!("{}  Tout marquer comme lu", icons::CHECK),
+                        true,
+                    )
+                    .clicked()
                     {
-                        let success = Self::export_notifications_csv(state);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success(
-                                    "Export CSV notifications r\u{00e9}ussi",
-                                )
-                                .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
-                                    .with_time(time),
-                            );
+                        for n in &mut state.notifications {
+                            n.read = true;
                         }
+                        state.unread_notification_count = 0;
+                        // Invalidate selection as the list was mutated
+                        state.selected_notification = None;
+                        state.notification_detail_open = false;
+                        command = Some(GuiCommand::MarkAllNotificationsRead);
                     }
-
-                    if unread > 0 {
-                        ui.add_space(theme::SPACE_SM);
-
-                        if widgets::primary_button(
-                            ui,
-                            format!("{}  Tout marquer comme lu", icons::CHECK),
-                            true,
-                        )
-                        .clicked()
-                        {
-                            for n in &mut state.notifications {
-                                n.read = true;
-                            }
-                            state.unread_notification_count = 0;
-                            // Invalidate selection as the list was mutated
-                            state.selected_notification = None;
-                            state.notification_detail_open = false;
-                            command = Some(GuiCommand::MarkAllNotificationsRead);
-                        }
-                    }
-                },
-            );
+                }
+            });
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -170,10 +165,14 @@ impl NotificationsPage {
                     )
                 } else {
                     (
-                        theme::tinted_surface(severity),
+                        if theme::is_dark_mode() {
+                            theme::tinted_surface(severity)
+                        } else {
+                            theme::color_blend_pub(theme::bg_secondary(), severity, 0.035)
+                        },
                         egui::Stroke::new(
                             theme::BORDER_THIN,
-                            theme::color_blend_pub(theme::bg_secondary(), severity, 0.45),
+                            theme::color_blend_pub(theme::bg_secondary(), severity, 0.22),
                         ),
                     )
                 };
@@ -184,49 +183,46 @@ impl NotificationsPage {
                     .inner_margin(egui::Margin::same(theme::SPACE as i8))
                     .stroke(stroke)
                     .show(ui, |ui: &mut egui::Ui| {
-                        ui.horizontal(|ui: &mut egui::Ui| {
-                            // Fixed badge column, so titles align down the
-                            // list whatever the severity word's width.
-                            ui.allocate_ui_with_layout(
-                                egui::vec2(NOTIF_BADGE_COLUMN, theme::ICON_MD),
-                                egui::Layout::left_to_right(egui::Align::Center),
-                                |ui: &mut egui::Ui| {
-                                    ui.set_min_width(NOTIF_BADGE_COLUMN);
-                                    widgets::status_badge(
-                                        ui,
-                                        &notif.severity.to_uppercase(),
-                                        severity,
-                                    );
-                                },
+                        ui.set_width(ui.available_width());
+                        ui.horizontal_wrapped(|ui| {
+                            widgets::status_badge(
+                                ui,
+                                notification_severity_label(&notif.severity),
+                                severity,
                             );
-
-                            ui.vertical(|ui: &mut egui::Ui| {
-                                let title = egui::RichText::new(&notif.title)
-                                    .font(theme::font_body())
-                                    .color(theme::text_primary());
-                                ui.label(if notif.read { title } else { title.strong() });
-                                if !notif.body.is_empty() {
-                                    ui.label(
-                                        egui::RichText::new(&notif.body)
-                                            .font(theme::font_small())
-                                            .color(theme::text_secondary()),
-                                    );
-                                }
-                            });
-
-                            ui.with_layout(
-                                egui::Layout::right_to_left(egui::Align::Center),
-                                |ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(
-                                            notif.timestamp.format("%d/%m/%Y %H:%M").to_string(),
-                                        )
+                            ui.label(
+                                egui::RichText::new(
+                                    notif.timestamp.format("%d/%m/%Y %H:%M").to_string(),
+                                )
+                                .font(theme::font_small())
+                                .color(theme::text_tertiary()),
+                            );
+                            if !notif.read {
+                                ui.label(
+                                    egui::RichText::new("Non lue")
                                         .font(theme::font_small())
-                                        .color(theme::text_tertiary()),
-                                    );
-                                },
-                            );
+                                        .color(theme::text_secondary()),
+                                );
+                            }
                         });
+                        ui.add_space(theme::SPACE_XS);
+                        let title = egui::RichText::new(&notif.title)
+                            .font(theme::font_body())
+                            .color(theme::text_primary());
+                        ui.add(
+                            egui::Label::new(if notif.read { title } else { title.strong() })
+                                .wrap(),
+                        );
+                        if !notif.body.is_empty() {
+                            ui.add(
+                                egui::Label::new(
+                                    egui::RichText::new(&notif.body)
+                                        .font(theme::font_small())
+                                        .color(theme::text_secondary()),
+                                )
+                                .wrap(),
+                            );
+                        }
                     });
 
                 let row_rect = resp.response.rect;
@@ -523,8 +519,13 @@ impl NotificationsPage {
 
             ui.add_space(theme::SPACE_SM);
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                let can_save = !name.trim().is_empty();
+            let escalation = parse_escalation(&escalation_str);
+            if escalation.is_err() {
+                ui.label(egui::RichText::new("Indiquez un nombre entier de minutes supérieur à zéro, ou laissez vide pour désactiver l’escalade.")
+                    .font(theme::font_small()).color(theme::readable_color(theme::ERROR)));
+            }
+            ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+                let can_save = !name.trim().is_empty() && escalation.is_ok();
                 if widgets::primary_button(ui, format!("{}  Enregistrer", icons::CHECK), can_save)
                     .clicked()
                     && can_save
@@ -538,10 +539,10 @@ impl NotificationsPage {
                         3 => Severity::Low,
                         _ => Severity::Info,
                     };
-                    let escalation = escalation_str.trim().parse::<u32>().ok();
+                    let escalation = escalation.unwrap_or(None);
 
                     let rule = AlertRule {
-                        id: uuid::Uuid::new_v4(),
+                        id: uuid::Uuid::new_v4().to_string(),
                         name: name.trim().to_string(),
                         rule_type,
                         severity_threshold: Some(severity),
@@ -811,7 +812,7 @@ impl NotificationsPage {
             .memory(|m| m.data.get_temp(form_id.with("enabled")))
             .unwrap_or(true);
 
-        let format_options = ["slack", "teams", "generic"];
+        let format_options = ["slack", "msteams", "generic", "pagerduty"];
         let format_labels = ["Slack", "Teams", "G\u{00e9}n\u{00e9}rique"];
 
         widgets::card(ui, |ui: &mut egui::Ui| {
@@ -854,7 +855,7 @@ impl NotificationsPage {
                     && can_save
                 {
                     let webhook = WebhookConfig {
-                        id: uuid::Uuid::new_v4(),
+                        id: uuid::Uuid::new_v4().to_string(),
                         name: name.trim().to_string(),
                         url: url.trim().to_string(),
                         format: format_options
@@ -946,7 +947,7 @@ impl NotificationsPage {
                     widgets::detail_field_badge(
                         ui,
                         "Sévérité",
-                        &severity.to_uppercase(),
+                        notification_severity_label(&severity),
                         sev_color,
                     );
                     widgets::detail_field(ui, "Date", &ts);
@@ -982,7 +983,7 @@ impl NotificationsPage {
         }
     }
 
-    fn export_notifications_csv(state: &AppState) -> bool {
+    fn export_notifications_csv(state: &AppState) -> Result<std::path::PathBuf, String> {
         let headers = &["date", "severite", "titre", "message", "lu"];
         let rows: Vec<Vec<String>> = state
             .notifications
@@ -998,12 +999,45 @@ impl NotificationsPage {
             })
             .collect();
         let path = crate::export::default_export_path("notifications.csv");
-        match crate::export::export_csv(headers, &rows, &path) {
-            Ok(_) => true,
-            Err(e) => {
-                tracing::warn!("Export CSV failed: {}", e);
-                false
-            }
+        crate::export::export_csv(headers, &rows, &path)?;
+        Ok(path)
+    }
+}
+
+fn notification_severity_label(severity: &str) -> &str {
+    match severity {
+        "critical" => "CRITIQUE",
+        "high" => "ÉLEVÉ",
+        "medium" => "MOYEN",
+        "low" => "FAIBLE",
+        "info" => "INFO",
+        _ => severity,
+    }
+}
+
+fn parse_escalation(value: &str) -> Result<Option<u32>, ()> {
+    let value = value.trim();
+    if value.is_empty() {
+        return Ok(None);
+    }
+    value
+        .parse::<u32>()
+        .ok()
+        .filter(|minutes| *minutes > 0)
+        .map(Some)
+        .ok_or(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_escalation;
+
+    #[test]
+    fn escalation_never_silently_discards_invalid_input() {
+        assert_eq!(parse_escalation("  "), Ok(None));
+        assert_eq!(parse_escalation(" 30 "), Ok(Some(30)));
+        for value in ["0", "-1", "1.5", "demain", "4294967296"] {
+            assert!(parse_escalation(value).is_err(), "{value}");
         }
     }
 }

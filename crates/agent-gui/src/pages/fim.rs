@@ -29,6 +29,8 @@ impl FimPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
+        crate::pages::security_navigation(ui, state);
+        ui.add_space(theme::SPACE_MD);
 
         // ── Summary cards (AAA Grade) ───────────────────────────────────
         {
@@ -336,9 +338,9 @@ impl FimPage {
 
                 // Apply acknowledgment after the table
                 if let Some(idx) = ack_command
-                    && let Some(alert) = state.fim.alerts.get_mut(idx)
+                    && state.acknowledge_threat_item("fim", idx)
                 {
-                    alert.acknowledged = true;
+                    let alert = &state.fim.alerts[idx];
                     command = Some(GuiCommand::AcknowledgeFimAlert {
                         alert_id: alert_ids[idx].clone(),
                         path: alert.path.clone(),
@@ -428,8 +430,8 @@ impl FimPage {
 
             if let Some(action_idx) = action {
                 if !alert.acknowledged && action_idx == 0 {
-                    let acked = &mut state.fim.alerts[sel];
-                    acked.acknowledged = true;
+                    state.acknowledge_threat_item("fim", sel);
+                    let acked = &state.fim.alerts[sel];
                     command = Some(GuiCommand::AcknowledgeFimAlert {
                         alert_id: acked.id.clone(),
                         path: acked.path.clone(),

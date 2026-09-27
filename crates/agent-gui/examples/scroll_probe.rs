@@ -22,6 +22,7 @@ const PAGES: &[(&str, usize)] = &[
     ("compliance", 0),
     ("compliance", 1),
     ("software", 0),
+    ("software", 1),
     ("vulnerabilities", 0),
     ("fim", 0),
     ("threats", 0),
@@ -31,6 +32,7 @@ const PAGES: &[(&str, usize)] = &[
     ("threats", 4),
     ("threats", 5),
     ("threats", 6),
+    ("threats", 7),
     ("audit", 0),
     ("network", 0),
     ("network", 1),
@@ -52,6 +54,11 @@ const PAGES: &[(&str, usize)] = &[
     ("settings", 1),
     ("settings", 2),
     ("settings", 3),
+    ("orchestration", 0),
+    ("orchestration", 1),
+    ("orchestration", 2),
+    ("orchestration", 3),
+    ("orchestration", 4),
     ("about", 0),
     ("ai", 0),
     ("ai", 1),
@@ -60,6 +67,9 @@ const PAGES: &[(&str, usize)] = &[
 
 fn real_page(ui: &mut egui::Ui, page: &str, state: &mut AppState) {
     match page {
+        "orchestration" => {
+            pages::OrchestrationPage::show(ui);
+        }
         "compliance" => {
             pages::CompliancePage::show(ui, state);
         }
@@ -211,7 +221,12 @@ fn benchmark_pages(width: f32, height: f32) {
             theme::configure_fonts(&ctx);
             theme::apply_theme(&ctx, dark);
             let mut state = Box::new(AppState::default());
-            fixtures::seed(&mut state);
+            if std::env::var("PROBE_EMPTY").is_err() {
+                fixtures::seed(&mut state);
+            }
+            ctx.data_mut(|d| {
+                d.insert_temp(egui::Id::new("orchestration_workspace_view"), tab as u8)
+            });
             fixtures::select_tab(&mut state, page, tab);
             let mut samples = Vec::new();
             for frame in 0..110 {
@@ -315,10 +330,16 @@ fn main() {
             theme::configure_fonts(&ctx);
             theme::apply_theme(&ctx, std::env::var("PROBE_LIGHT").is_err());
             let mut state = Box::new(AppState::default());
-            fixtures::seed(&mut state);
+            if std::env::var("PROBE_EMPTY").is_err() {
+                fixtures::seed(&mut state);
+            }
+            ctx.data_mut(|d| {
+                d.insert_temp(egui::Id::new("orchestration_workspace_view"), tab as u8)
+            });
             fixtures::select_tab(&mut state, page, tab);
             let mut scroll_id = None;
             let mut content_height = 0.0_f32;
+            let mut content_width = 0.0_f32;
             let mut frame = |events: Vec<egui::Event>, state: &mut AppState| {
                 let _ =
                     ctx.run(
@@ -347,6 +368,7 @@ fn main() {
                                             });
                                         });
                                     content_height = out.content_size.y;
+                                    content_width = out.content_size.x;
                                 });
                         },
                     );
@@ -388,6 +410,12 @@ fn main() {
                 .and_then(|id| egui::scroll_area::State::load(&ctx, id))
                 .map(|s| s.offset.y)
                 .unwrap_or(f32::NAN);
+            if content_width > width + 1.0 {
+                println!(
+                    "OVERFLOW {page} tab {tab}: content width {content_width:.1} > viewport {width:.1}"
+                );
+                failures += 1;
+            }
             let scrollable = content_height > height - 2.0 * theme::SPACE_LG;
             let ok = !scrollable || offset > 1.0;
             if !ok {
@@ -416,7 +444,9 @@ fn main() {
         }
     }
     if failures > 0 {
-        eprintln!("{failures} page(s) did not scroll");
+        eprintln!(
+            "{failures} layout or scroll check(s) failed; inspect OVERFLOW/STUCK diagnostics"
+        );
         std::process::exit(1);
     }
 }
