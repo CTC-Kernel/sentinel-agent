@@ -3127,6 +3127,49 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let _ = bg_event_tx.send(AgentEvent::LlmVoiceState { active: false });
                             let _ = bg_event_tx.send(AgentEvent::VoiceStatus { speaking: false });
                         }
+                        Ok(GuiCommand::ConfigureVoice { settings }) => {
+                            #[cfg(feature = "voice")]
+                            if let Some(ref voice) = voice_service {
+                                voice.configure(settings);
+                            }
+                            #[cfg(not(feature = "voice"))]
+                            let _ = settings;
+                        }
+                        Ok(GuiCommand::VoiceRefreshStatus) => {
+                            #[cfg(feature = "voice")]
+                            if let Some(ref voice) = voice_service {
+                                voice.publish_status();
+                            }
+                            #[cfg(not(feature = "voice"))]
+                            let _ = bg_event_tx.send(AgentEvent::VoiceEngineStatus {
+                                info: Box::default(),
+                            });
+                        }
+                        Ok(GuiCommand::VoiceInstallModel { model_key }) => {
+                            info!("[AUDIT] GUI requested Whisper model installation: {}", model_key);
+                            #[cfg(feature = "voice")]
+                            if let Some(voice) = voice_service.clone() {
+                                tokio::spawn(async move {
+                                    voice.install_model(&model_key).await;
+                                });
+                            }
+                            #[cfg(not(feature = "voice"))]
+                            let _ = bg_event_tx.send(AgentEvent::VoiceModelInstall {
+                                progress: agent_gui::dto::VoiceInstallProgress {
+                                    model_key,
+                                    phase: agent_gui::dto::VoiceInstallPhase::Failed,
+                                    downloaded_bytes: 0,
+                                    total_bytes: 0,
+                                    error: Some("Reconnaissance vocale indisponible dans cette version.".to_string()),
+                                },
+                            });
+                        }
+                        Ok(GuiCommand::VoiceCancelModelInstall) => {
+                            #[cfg(feature = "voice")]
+                            if let Some(ref voice) = voice_service {
+                                voice.cancel_install();
+                            }
+                        }
                         Ok(GuiCommand::SetVoiceListening { enabled }) => {
                             info!("[AUDIT] GUI requested voice listening: {}", enabled);
                             #[cfg(feature = "voice")]
@@ -3142,9 +3185,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             voice.stop_speaking();
                                             voice.start_listening().await;
                                         } else {
-                                            // Abort any in-flight capture so toggling the mic
-                                            // button off stops Whisper immediately.
-                                            voice.stop_listening();
+                                            // Ending the dictation keeps what was already
+                                            // said: it is transcribed right away.
+                                            voice.finish_listening();
                                         }
                                     } else if enabled {
                                         let _ = tx.send(AgentEvent::VoiceError { message: "Service vocal indisponible. Vérifiez le microphone et le modèle Whisper.".to_string() });

@@ -253,118 +253,36 @@ impl LLMPanel {
         );
         let mut workspace = ui.new_child(egui::UiBuilder::new().max_rect(workspace_rect));
         workspace.set_clip_rect(workspace_rect.intersect(ui.clip_rect()));
-        egui::TopBottomPanel::bottom("assistant_composer").frame(egui::Frame::NONE).resizable(false).show_inside(&mut workspace, |ui| {
-        widgets::Card::new().padding(theme::SPACE_MD).show(ui, |ui| {
-            let chat = widgets::ChatInput::new(
-                &mut state.ai.input_text,
-                "Décrivez votre question, les faits et le résultat attendu…",
-            )
-            .multiline()
-            .height(72.0)
-            .processing(state.ai.is_processing)
-            .id_salt("assistant_prompt")
-            .show(ui);
-            draft_response = Some(chat.response);
-            let voice_send = state.ai.pending_voice_send && !state.ai.is_processing;
-            if chat.send || voice_send {
-                let prompt = state.ai.input_text.clone();
-                command = Self::submit_prompt(
-                    state,
-                    &prompt,
-                    voice_send || state.ai.voice_conversation_enabled,
-                );
-            }
-            ui.horizontal_wrapped(|ui| {
-                if ui
-                    .add_enabled_ui(!state.ai.is_processing || state.ai.is_listening, |ui| {
-                        ui.button(if state.ai.is_listening {
-                            format!("{} Terminer la dictée", icons::STOP)
-                        } else {
-                            format!("{} Dicter", icons::MICROPHONE)
-                        }).on_hover_text("Dicter un brouillon avec le microphone local")
-                    })
-                    .inner
-                    .clicked()
-                {
-                    state.ai.is_listening = !state.ai.is_listening;
-                    state.ai.pending_voice_send = false;
-                    state.ai.voice_reply_pending = false;
-                    state.ai.voice_error = None;
-                    command = Some(GuiCommand::SetVoiceListening {
-                        enabled: state.ai.is_listening,
-                    });
-                }
-                ui.label(if state.ai.is_listening {
-                    "Écoute en cours…"
-                } else if state.ai.is_speaking {
-                    "Lecture de la réponse…"
-                } else {
-                    ""
-                });
-                if state.ai.is_listening {
-                    ui.add(
-                        egui::ProgressBar::new(state.ai.mic_level.clamp(0.0, 1.0))
-                            .desired_width(90.0)
-                            .text("Micro"),
-                    );
-                }
-                if state.ai.is_listening || state.ai.is_speaking || state.ai.voice_reply_pending {
-                    if ui
-                        .button(format!("{} Arrêter la voix", icons::STOP))
-                        .clicked()
-                    {
-                        Self::reset_voice_session(state);
-                        command = Some(GuiCommand::StopVoice);
-                    }
-                } else if let Some(message) = state
-                    .ai
-                    .chat_history
-                    .iter()
-                    .rev()
-                    .find(|m| m.role == ChatRole::Assistant)
-                    && ui
-                        .add_enabled(
-                            !state.ai.is_processing,
-                            egui::Button::new("Lire la dernière réponse"),
-                        )
-                        .clicked()
-                    {
-                        command = Some(GuiCommand::SpeakNotification {
-                            text: message.content.clone(),
-                        });
-                        state.ai.is_speaking = true;
-                        state.ai.voice_reply_pending = false;
-                    }
-            });
-            ui.horizontal_wrapped(|ui| {
-            ui.menu_button("Réglages vocaux", |ui| {
-                ui.set_max_width(360.0);
-                let toggle = ui.checkbox(&mut state.ai.voice_conversation_enabled, "Conversation continue : envoyer la dictée et lire la réponse");
-                if toggle.changed() && !state.ai.voice_conversation_enabled {
-                    state.ai.pending_voice_send = false;
-                    state.ai.voice_reply_pending = false;
-                }
-                ui.label(egui::RichText::new("En mode continu, le microphone se rouvre après la réponse. En dictée simple, le texte reste à relire avant envoi.").font(theme::font_small()).color(theme::text_secondary()));
-                if ui.checkbox(&mut state.ai.voice_alerts_enabled, "Lire les alertes de sécurité importantes").changed() && !state.ai.voice_alerts_enabled {
-                    state.ai.pending_voice_alerts.clear();
-                }
-                ui.label(egui::RichText::new("La dictée utilise le microphone et le modèle Whisper local. La lecture utilise la voix du système.").font(theme::font_small()).color(theme::text_secondary()));
-            });
-            ui.label(egui::RichText::new("Entrée : envoyer · Maj+Entrée : nouvelle ligne")
-                .font(theme::font_small()).color(theme::text_tertiary()));
-            });
-            if let Some(error) = &state.ai.voice_error {
-                ui.add_space(theme::SPACE_XS);
-                ui.label(egui::RichText::new(format!("{} Voix indisponible · Vous pouvez continuer par écrit.", icons::MICROPHONE_SLASH))
-                    .font(theme::font_small()).color(theme::readable_color(theme::ERROR)));
-                egui::CollapsingHeader::new("Détail du problème vocal")
-                    .id_salt("assistant_voice_error")
+        egui::TopBottomPanel::bottom("assistant_composer")
+            .frame(egui::Frame::NONE)
+            .resizable(false)
+            .show_inside(&mut workspace, |ui| {
+                widgets::Card::new()
+                    .padding(theme::SPACE_MD)
                     .show(ui, |ui| {
-                        ui.add(egui::Label::new(egui::RichText::new(error)
-                            .font(theme::font_small()).color(theme::text_secondary())).wrap().selectable(true));
+                        let chat = widgets::ChatInput::new(
+                            &mut state.ai.input_text,
+                            "Décrivez votre question, les faits et le résultat attendu…",
+                        )
+                        .multiline()
+                        .height(72.0)
+                        .processing(state.ai.is_processing)
+                        .id_salt("assistant_prompt")
+                        .show(ui);
+                        draft_response = Some(chat.response);
+                        let voice_send = state.ai.pending_voice_send && !state.ai.is_processing;
+                        if chat.send || voice_send {
+                            let prompt = state.ai.input_text.clone();
+                            command = Self::submit_prompt(
+                                state,
+                                &prompt,
+                                voice_send || state.ai.voice_conversation_enabled,
+                            );
+                        }
+                        if let Some(voice_command) = Self::voice_controls(ui, state) {
+                            command = Some(voice_command);
+                        }
                     });
-            }
-        });
             });
         egui::CentralPanel::default().frame(egui::Frame::NONE).show_inside(&mut workspace, |ui| {
             let chat_height = (ui.available_height() - theme::SPACE_MD).max(80.0);
@@ -462,6 +380,616 @@ impl LLMPanel {
         state.ai.is_listening = false;
         state.ai.is_speaking = false;
         state.ai.mic_level = 0.0;
+        state.ai.is_transcribing = false;
+        state.ai.voice_relisten_pending = false;
+        state.ai.voice_empty_rounds = 0;
+    }
+
+    /// Missing Whisper model: explain and open the settings instead of
+    /// sending a command that can only fail.
+    fn require_dictation_model(state: &mut AppState) -> Option<GuiCommand> {
+        state.ai.voice_error = Some(
+            "La dictée utilise un modèle Whisper local qui n’est pas encore installé.".to_string(),
+        );
+        state.ai.voice_notice = None;
+        state.ai.voice_settings_open = true;
+        None
+    }
+
+    /// Start a hands-free conversation: listen, send automatically, read the
+    /// answer aloud, then listen again.
+    pub(crate) fn start_conversation(state: &mut AppState) -> Option<GuiCommand> {
+        if !state.ai.dictation_available() {
+            return Self::require_dictation_model(state);
+        }
+        state.ai.voice_conversation_enabled = true;
+        state.ai.voice_empty_rounds = 0;
+        state.ai.voice_error = None;
+        state.ai.voice_notice = None;
+        state.ai.pending_voice_send = false;
+        state.ai.voice_reply_pending = false;
+        state.ai.is_listening = true;
+        Some(GuiCommand::SetVoiceListening { enabled: true })
+    }
+
+    /// Start or end a dictation. Ending keeps and transcribes what was said.
+    pub(crate) fn toggle_dictation(state: &mut AppState) -> Option<GuiCommand> {
+        if !state.ai.is_listening && !state.ai.dictation_available() {
+            return Self::require_dictation_model(state);
+        }
+        state.ai.is_listening = !state.ai.is_listening;
+        state.ai.pending_voice_send = false;
+        state.ai.voice_reply_pending = false;
+        state.ai.voice_error = None;
+        state.ai.voice_notice = None;
+        state.ai.voice_empty_rounds = 0;
+        if state.ai.is_listening {
+            state.ai.is_speaking = false;
+        }
+        Some(GuiCommand::SetVoiceListening {
+            enabled: state.ai.is_listening,
+        })
+    }
+
+    fn voice_status_label(state: &AppState) -> &'static str {
+        let ai = &state.ai;
+        if ai.is_transcribing {
+            "Transcription…"
+        } else if ai.is_listening && ai.voice_conversation_enabled {
+            "À l’écoute… parlez naturellement"
+        } else if ai.is_listening {
+            "Dictée en cours…"
+        } else if ai.is_speaking {
+            "Sentinel répond…"
+        } else if ai.is_processing && ai.voice_reply_pending {
+            "Réflexion…"
+        } else {
+            ""
+        }
+    }
+
+    /// Voice controls under the composer: hands-free conversation, dictation,
+    /// playback, settings and an actionable status.
+    fn voice_controls(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let mut command = None;
+        let session_active = state.ai.is_listening
+            || state.ai.is_speaking
+            || state.ai.voice_reply_pending
+            || state.ai.is_transcribing
+            || state.ai.voice_relisten_pending;
+        let hands_free = state.ai.voice_conversation_enabled
+            && (session_active || state.ai.is_processing || state.ai.pending_voice_send);
+        ui.horizontal_wrapped(|ui| {
+            if hands_free {
+                if ui
+                    .button(format!("{} Quitter la conversation", icons::STOP))
+                    .on_hover_text("Ferme le micro et arrête la lecture")
+                    .clicked()
+                {
+                    Self::reset_voice_session(state);
+                    command = Some(GuiCommand::StopVoice);
+                }
+                if state.ai.is_listening
+                    && !state.ai.is_transcribing
+                    && ui
+                        .button(format!("{} J’ai fini", icons::PAPER_PLANE))
+                        .on_hover_text("Envoyer maintenant sans attendre le silence")
+                        .clicked()
+                {
+                    command = Some(GuiCommand::SetVoiceListening { enabled: false });
+                }
+                if state.ai.is_speaking
+                    && ui
+                        .button(format!("{} Interrompre et parler", icons::MICROPHONE))
+                        .on_hover_text("Coupe la réponse et rouvre le micro")
+                        .clicked()
+                {
+                    state.ai.voice_reply_pending = false;
+                    state.ai.is_speaking = false;
+                    state.ai.is_listening = true;
+                    command = Some(GuiCommand::SetVoiceListening { enabled: true });
+                }
+            } else {
+                if ui
+                    .add_enabled(
+                        !state.ai.is_processing && !state.ai.is_listening,
+                        egui::Button::new(format!("{} Parler", icons::HEADPHONES)),
+                    )
+                    .on_hover_text("Conversation vocale mains libres : vous parlez, Sentinel répond à voix haute puis vous écoute de nouveau")
+                    .clicked()
+                {
+                    command = Self::start_conversation(state);
+                }
+                let label = if state.ai.is_listening {
+                    format!("{} Terminer la dictée", icons::STOP)
+                } else {
+                    format!("{} Dicter", icons::MICROPHONE)
+                };
+                if ui
+                    .add_enabled(
+                        !state.ai.is_processing || state.ai.is_listening,
+                        egui::Button::new(label),
+                    )
+                    .on_hover_text("Dicter un brouillon à relire avant envoi. Terminer conserve ce qui a été dit.")
+                    .clicked()
+                {
+                    state.ai.voice_conversation_enabled = false;
+                    command = Self::toggle_dictation(state);
+                }
+            }
+
+            let status = Self::voice_status_label(state);
+            if !status.is_empty() {
+                ui.label(egui::RichText::new(status).color(theme::text_secondary()));
+            }
+            if state.ai.is_listening {
+                ui.add(
+                    egui::ProgressBar::new(state.ai.mic_level.clamp(0.0, 1.0))
+                        .desired_width(90.0)
+                        .text("Micro"),
+                );
+            }
+            if !hands_free {
+                if state.ai.is_speaking || state.ai.voice_reply_pending {
+                    if ui
+                        .button(format!("{} Arrêter la lecture", icons::STOP))
+                        .clicked()
+                    {
+                        Self::reset_voice_session(state);
+                        command = Some(GuiCommand::StopVoice);
+                    }
+                } else if !state.ai.is_listening
+                    && let Some(message) = state
+                        .ai
+                        .chat_history
+                        .iter()
+                        .rev()
+                        .find(|m| m.role == ChatRole::Assistant)
+                    && ui
+                        .add_enabled(
+                            !state.ai.is_processing,
+                            egui::Button::new(format!("{} Lire la réponse", icons::VOLUME_HIGH)),
+                        )
+                        .on_hover_text("Lire la dernière réponse à voix haute")
+                        .clicked()
+                {
+                    command = Some(GuiCommand::SpeakNotification {
+                        text: message.content.clone(),
+                    });
+                    state.ai.is_speaking = true;
+                    state.ai.voice_reply_pending = false;
+                }
+            }
+            if ui
+                .button(format!("{} Réglages vocaux", icons::GEAR))
+                .on_hover_text("Voix, vitesse, dictée, alertes vocales")
+                .clicked()
+            {
+                state.ai.voice_settings_open = true;
+            }
+        });
+        ui.label(
+            egui::RichText::new("Entrée : envoyer · Maj+Entrée : nouvelle ligne")
+                .font(theme::font_small())
+                .color(theme::text_tertiary()),
+        );
+        if let Some(feedback) = Self::voice_feedback(ui, state) {
+            command = Some(feedback);
+        }
+        command
+    }
+
+    fn install_button_label(key: &str) -> String {
+        let size = crate::dto::whisper_model_spec(key)
+            .map(|spec| spec.size_label())
+            .unwrap_or_default();
+        format!("{} Installer la dictée ({size})", icons::DOWNLOAD)
+    }
+
+    /// Installation progress, actionable errors and informational notices.
+    fn voice_feedback(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
+        use crate::dto::VoiceInstallPhase;
+        let mut command = None;
+        if let Some(install) = state.ai.voice_install.clone() {
+            match install.phase {
+                phase if phase.is_active() => {
+                    ui.add_space(theme::SPACE_XS);
+                    ui.horizontal_wrapped(|ui| {
+                        let fraction = if install.total_bytes > 0 {
+                            install.downloaded_bytes as f32 / install.total_bytes as f32
+                        } else {
+                            0.0
+                        };
+                        let text = match phase {
+                            VoiceInstallPhase::Verifying => {
+                                "Vérification de l’intégrité…".to_string()
+                            }
+                            VoiceInstallPhase::Loading => "Chargement du modèle…".to_string(),
+                            _ => format!("Installation de la dictée · {:.0} %", fraction * 100.0),
+                        };
+                        ui.add(
+                            egui::ProgressBar::new(fraction.clamp(0.0, 1.0))
+                                .desired_width(220.0)
+                                .text(text),
+                        );
+                        if phase == VoiceInstallPhase::Downloading && ui.button("Annuler").clicked()
+                        {
+                            command = Some(GuiCommand::VoiceCancelModelInstall);
+                        }
+                    });
+                }
+                VoiceInstallPhase::Failed => {
+                    ui.add_space(theme::SPACE_XS);
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label(
+                            egui::RichText::new(format!(
+                                "{} Installation de la dictée impossible : {}",
+                                icons::WARNING,
+                                install.error.as_deref().unwrap_or("erreur inconnue")
+                            ))
+                            .font(theme::font_small())
+                            .color(theme::readable_color(theme::ERROR)),
+                        );
+                        if ui.button("Réessayer").clicked() {
+                            command = Some(GuiCommand::VoiceInstallModel {
+                                model_key: install.model_key.clone(),
+                            });
+                        }
+                        if ui
+                            .small_button(icons::XMARK)
+                            .on_hover_text("Masquer")
+                            .clicked()
+                        {
+                            state.ai.voice_install = None;
+                        }
+                    });
+                }
+                _ => {}
+            }
+        }
+
+        if let Some(error) = state.ai.voice_error.clone() {
+            ui.add_space(theme::SPACE_XS);
+            let missing_model = !state.ai.dictation_available();
+            ui.horizontal_wrapped(|ui| {
+                let title = if missing_model {
+                    format!("{} Dictée non installée.", icons::MICROPHONE_SLASH)
+                } else {
+                    format!("{} Problème vocal :", icons::WARNING)
+                };
+                ui.label(
+                    egui::RichText::new(title)
+                        .font(theme::font_small())
+                        .strong()
+                        .color(theme::readable_color(theme::ERROR)),
+                );
+                ui.add(
+                    egui::Label::new(
+                        egui::RichText::new(if missing_model {
+                            "Whisper s’exécute localement : aucun son ne quitte le poste."
+                        } else {
+                            error.as_str()
+                        })
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
+                    )
+                    .wrap()
+                    .selectable(true),
+                );
+            });
+            ui.horizontal_wrapped(|ui| {
+                if missing_model && !state.ai.voice_install_active() {
+                    let key = state.ai.voice_settings.whisper_model.clone();
+                    if ui.button(Self::install_button_label(&key)).clicked() {
+                        state.ai.voice_error = None;
+                        command = Some(GuiCommand::VoiceInstallModel { model_key: key });
+                    }
+                }
+                if ui.small_button("Masquer").clicked() {
+                    state.ai.voice_error = None;
+                }
+            });
+        } else if let Some(notice) = state.ai.voice_notice.clone() {
+            ui.add_space(theme::SPACE_XS);
+            ui.horizontal_wrapped(|ui| {
+                ui.label(
+                    egui::RichText::new(format!("{} {notice}", icons::INFO_CIRCLE))
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
+                );
+                if ui
+                    .small_button(icons::XMARK)
+                    .on_hover_text("Masquer")
+                    .clicked()
+                {
+                    state.ai.voice_notice = None;
+                }
+            });
+        }
+        command
+    }
+
+    /// Voice preferences window, reachable from the assistant, the dashboard
+    /// and the floating assistant.
+    pub fn voice_settings_window(ctx: &egui::Context, state: &mut AppState) -> Vec<GuiCommand> {
+        use crate::dto::{SpokenReplyMode, VoiceAlertThreshold, WHISPER_MODELS};
+        let mut commands = Vec::new();
+        if !state.ai.voice_settings_open {
+            return commands;
+        }
+        let before = state.ai.voice_settings.clone();
+        let mut open = true;
+        let max_height = (ctx.screen_rect().height() - 80.0).max(240.0);
+        egui::Window::new(format!("{} Réglages vocaux", icons::GEAR))
+            .id(egui::Id::new("voice_settings_window"))
+            .open(&mut open)
+            .collapsible(false)
+            .resizable(true)
+            .default_width(460.0)
+            .max_height(max_height)
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical().auto_shrink([false, true]).show(ui, |ui| {
+                    let engine = state.ai.voice_engine.clone().unwrap_or_default();
+                    let known = state.ai.voice_engine.is_some();
+
+                    // ── Dictation & conversation ──────────────────────────
+                    ui.heading("Dictée et conversation");
+                    let status = if !known {
+                        "État en cours de vérification…".to_string()
+                    } else if let Some(model) = engine.stt_model.as_deref() {
+                        let label = crate::dto::whisper_model_spec(model)
+                            .map_or(model, |spec| spec.label);
+                        format!("{} Dictée prête · modèle {label}", icons::CIRCLE_CHECK)
+                    } else if engine.stt_ready {
+                        format!("{} Dictée prête (chargée à la première utilisation)", icons::CIRCLE_CHECK)
+                    } else {
+                        format!("{} Dictée non installée", icons::MICROPHONE_SLASH)
+                    };
+                    ui.label(egui::RichText::new(status).color(theme::text_secondary()));
+                    ui.add_space(theme::SPACE_XS);
+
+                    let selected_key = state.ai.voice_settings.whisper_model.clone();
+                    let selected = crate::dto::whisper_model_spec(&selected_key)
+                        .unwrap_or(&WHISPER_MODELS[1]);
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label("Modèle de reconnaissance");
+                        egui::ComboBox::from_id_salt("voice_whisper_model")
+                            .selected_text(format!("{} · {}", selected.label, selected.size_label()))
+                            .show_ui(ui, |ui| {
+                                for spec in WHISPER_MODELS {
+                                    let installed = engine.installed_models.iter().any(|key| key == spec.key);
+                                    let text = format!(
+                                        "{} · {}{}",
+                                        spec.label,
+                                        spec.size_label(),
+                                        if installed { " · installé" } else { "" }
+                                    );
+                                    ui.selectable_value(
+                                        &mut state.ai.voice_settings.whisper_model,
+                                        spec.key.to_string(),
+                                        text,
+                                    )
+                                    .on_hover_text(spec.description);
+                                }
+                            });
+                    });
+                    ui.label(
+                        egui::RichText::new(selected.description)
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
+                    let selected_installed = engine.installed_models.iter().any(|key| key == selected.key);
+                    if state.ai.voice_install_active() {
+                        ui.label(
+                            egui::RichText::new("Installation en cours, suivez la progression sous le champ de saisie.")
+                                .font(theme::font_small())
+                                .color(theme::text_secondary()),
+                        );
+                        if ui.button("Annuler l’installation").clicked() {
+                            commands.push(GuiCommand::VoiceCancelModelInstall);
+                        }
+                    } else if !selected_installed {
+                        if ui.button(Self::install_button_label(selected.key)).clicked() {
+                            state.ai.voice_error = None;
+                            commands.push(GuiCommand::VoiceInstallModel {
+                                model_key: selected.key.to_string(),
+                            });
+                        }
+                    } else if engine.stt_model.as_deref() != Some(selected.key) {
+                        ui.label(
+                            egui::RichText::new("Ce modèle sera utilisé à la prochaine dictée.")
+                                .font(theme::font_small())
+                                .color(theme::text_secondary()),
+                        );
+                    }
+                    ui.label(
+                        egui::RichText::new("Téléchargement unique depuis huggingface.co (ggerganov/whisper.cpp), intégrité vérifiée par SHA-256. La transcription s’exécute entièrement sur ce poste.")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label("Langue parlée");
+                        let language = &mut state.ai.voice_settings.dictation_language;
+                        let label = match language.as_str() {
+                            "en" => "Anglais",
+                            "auto" => "Détection automatique",
+                            _ => "Français",
+                        };
+                        egui::ComboBox::from_id_salt("voice_dictation_language")
+                            .selected_text(label)
+                            .show_ui(ui, |ui| {
+                                ui.selectable_value(language, "fr".to_string(), "Français");
+                                ui.selectable_value(language, "en".to_string(), "Anglais");
+                                ui.selectable_value(language, "auto".to_string(), "Détection automatique");
+                            });
+                    });
+                    let mut pause_secs = state.ai.voice_settings.end_of_speech_ms as f32 / 1000.0;
+                    if ui
+                        .add(
+                            egui::Slider::new(&mut pause_secs, 0.5..=3.0)
+                                .step_by(0.1)
+                                .suffix(" s")
+                                .text("Silence de fin de phrase"),
+                        )
+                        .on_hover_text("Durée de silence avant que Sentinel considère que vous avez terminé")
+                        .changed()
+                    {
+                        state.ai.voice_settings.end_of_speech_ms = (pause_secs * 1000.0).round() as u32;
+                    }
+                    ui.label(
+                        egui::RichText::new("Augmentez cette durée si vos phrases sont coupées pendant une pause. Une dictée peut durer jusqu’à 2 minutes ; « J’ai fini » envoie immédiatement.")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
+
+                    ui.add_space(theme::SPACE_MD);
+                    ui.separator();
+
+                    // ── Spoken answers ─────────────────────────────────────
+                    ui.heading("Lecture des réponses");
+                    if known && !engine.tts_available {
+                        ui.label(
+                            egui::RichText::new(format!("{} Aucune voix système détectée sur ce poste.", icons::WARNING))
+                                .color(theme::readable_color(theme::ERROR)),
+                        );
+                    }
+                    ui.horizontal_wrapped(|ui| {
+                        ui.radio_value(
+                            &mut state.ai.voice_settings.reply_mode,
+                            SpokenReplyMode::Full,
+                            "Réponse complète",
+                        );
+                        ui.radio_value(
+                            &mut state.ai.voice_settings.reply_mode,
+                            SpokenReplyMode::Summary,
+                            "Résumé (premières phrases)",
+                        );
+                    });
+                    if !known || engine.can_set_voice {
+                        ui.horizontal_wrapped(|ui| {
+                            ui.label("Voix");
+                            let current = state
+                                .ai
+                                .voice_settings
+                                .voice_id
+                                .as_ref()
+                                .and_then(|id| engine.voices.iter().find(|voice| &voice.id == id))
+                                .map_or_else(
+                                    || "Automatique (meilleure voix française)".to_string(),
+                                    |voice| format!("{} · {}", voice.name, voice.language),
+                                );
+                            egui::ComboBox::from_id_salt("voice_tts_voice")
+                                .selected_text(current)
+                                .width(260.0)
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(
+                                        &mut state.ai.voice_settings.voice_id,
+                                        None,
+                                        "Automatique (meilleure voix française)",
+                                    );
+                                    for voice in &engine.voices {
+                                        ui.selectable_value(
+                                            &mut state.ai.voice_settings.voice_id,
+                                            Some(voice.id.clone()),
+                                            format!("{} · {}", voice.name, voice.language),
+                                        );
+                                    }
+                                });
+                        });
+                    }
+                    ui.add_enabled(
+                        !known || engine.can_set_rate,
+                        egui::Slider::new(&mut state.ai.voice_settings.rate, 0.5..=2.0)
+                            .step_by(0.05)
+                            .suffix(" ×")
+                            .text("Vitesse"),
+                    );
+                    let mut volume = state.ai.voice_settings.volume * 100.0;
+                    if ui
+                        .add_enabled(
+                            !known || engine.can_set_volume,
+                            egui::Slider::new(&mut volume, 0.0..=100.0)
+                                .step_by(5.0)
+                                .suffix(" %")
+                                .text("Volume"),
+                        )
+                        .changed()
+                    {
+                        state.ai.voice_settings.volume = volume / 100.0;
+                    }
+                    if ui
+                        .add_enabled(
+                            !state.ai.is_listening,
+                            egui::Button::new(format!("{} Tester la voix", icons::PLAY)),
+                        )
+                        .clicked()
+                    {
+                        commands.push(GuiCommand::ConfigureVoice {
+                            settings: state.ai.voice_settings.clone().sanitized(),
+                        });
+                        commands.push(GuiCommand::SpeakNotification {
+                            text: "Bonjour, je suis Sentinel. Voici ma voix avec ces réglages. Je lis les réponses en entier, phrase par phrase.".to_string(),
+                        });
+                        state.ai.is_speaking = true;
+                    }
+
+                    ui.add_space(theme::SPACE_MD);
+                    ui.separator();
+
+                    // ── Spoken alerts ──────────────────────────────────────
+                    ui.heading("Alertes vocales");
+                    if ui
+                        .checkbox(&mut state.ai.voice_alerts_enabled, "Annoncer les alertes de sécurité")
+                        .changed()
+                        && !state.ai.voice_alerts_enabled
+                    {
+                        state.ai.pending_voice_alerts.clear();
+                    }
+                    ui.add_enabled_ui(state.ai.voice_alerts_enabled, |ui| {
+                        ui.horizontal_wrapped(|ui| {
+                            ui.label("Seuil");
+                            egui::ComboBox::from_id_salt("voice_alert_threshold")
+                                .selected_text(state.ai.voice_alert_threshold.label_fr())
+                                .show_ui(ui, |ui| {
+                                    for threshold in VoiceAlertThreshold::ALL {
+                                        ui.selectable_value(
+                                            &mut state.ai.voice_alert_threshold,
+                                            threshold,
+                                            threshold.label_fr(),
+                                        );
+                                    }
+                                });
+                        });
+                    });
+                    ui.label(
+                        egui::RichText::new("Les alertes n’interrompent jamais une dictée ni une réponse en cours ; au-delà de trois, elles sont résumées.")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
+
+                    ui.add_space(theme::SPACE_MD);
+                    ui.horizontal(|ui| {
+                        if ui.button("Rétablir les valeurs par défaut").clicked() {
+                            let model = state.ai.voice_settings.whisper_model.clone();
+                            state.ai.voice_settings = crate::dto::VoiceSettings {
+                                whisper_model: model,
+                                ..crate::dto::VoiceSettings::default()
+                            };
+                            state.ai.voice_alert_threshold = VoiceAlertThreshold::default();
+                        }
+                        if ui.button("Actualiser").on_hover_text("Relire les voix et modèles disponibles").clicked() {
+                            commands.push(GuiCommand::VoiceRefreshStatus);
+                        }
+                    });
+                });
+            });
+        state.ai.voice_settings_open = open;
+        if state.ai.voice_settings != before {
+            state.ai.voice_config_sync_pending = true;
+        }
+        commands
     }
 
     /// One submission path for the page and the floating assistant.
@@ -2424,7 +2952,8 @@ mod tests {
                         } else {
                             format!("{} Dicter", icons::MICROPHONE)
                         },
-                        "Réglages vocaux".to_owned(),
+                        format!("{} Réglages vocaux", icons::GEAR),
+                        format!("{} Parler", icons::HEADPHONES),
                         "Décrivez votre question, les faits et le résultat attendu…".to_owned(),
                     ] {
                         let painted = output

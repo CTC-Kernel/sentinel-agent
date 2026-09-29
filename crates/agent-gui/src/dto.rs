@@ -2062,3 +2062,286 @@ mod tests {
         assert!(json.contains("Check Failed"));
     }
 }
+
+// ---------------------------------------------------------------------------
+// Voice assistant
+// ---------------------------------------------------------------------------
+
+/// How much of an assistant answer is read aloud.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SpokenReplyMode {
+    /// Read the whole answer, split into natural sentences.
+    #[default]
+    Full,
+    /// Read the first sentences, the rest stays on screen.
+    Summary,
+}
+
+/// Operator voice preferences, persisted by the GUI and applied by the runtime.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct VoiceSettings {
+    /// Speech rate multiplier around the system's normal rate (0.5 – 2.0).
+    pub rate: f32,
+    /// Speech volume (0.0 – 1.0).
+    pub volume: f32,
+    /// Native system voice identifier. `None` picks the best French voice.
+    pub voice_id: Option<String>,
+    /// Whole answer or short summary.
+    pub reply_mode: SpokenReplyMode,
+    /// Silence needed before the dictation is considered finished.
+    pub end_of_speech_ms: u32,
+    /// Whisper language code: `fr`, `en` or `auto`.
+    pub dictation_language: String,
+    /// Preferred Whisper model key from [`WHISPER_MODELS`].
+    pub whisper_model: String,
+}
+
+impl Default for VoiceSettings {
+    fn default() -> Self {
+        Self {
+            rate: 1.0,
+            volume: 1.0,
+            voice_id: None,
+            reply_mode: SpokenReplyMode::Full,
+            end_of_speech_ms: 1_200,
+            dictation_language: "fr".to_string(),
+            whisper_model: DEFAULT_WHISPER_MODEL.to_string(),
+        }
+    }
+}
+
+impl VoiceSettings {
+    /// Clamp values restored from disk or received over IPC.
+    pub fn sanitized(mut self) -> Self {
+        self.rate = if self.rate.is_finite() {
+            self.rate.clamp(0.5, 2.0)
+        } else {
+            1.0
+        };
+        self.volume = if self.volume.is_finite() {
+            self.volume.clamp(0.0, 1.0)
+        } else {
+            1.0
+        };
+        self.end_of_speech_ms = self.end_of_speech_ms.clamp(500, 3_000);
+        if !matches!(self.dictation_language.as_str(), "fr" | "en" | "auto") {
+            self.dictation_language = "fr".to_string();
+        }
+        if whisper_model_spec(&self.whisper_model).is_none() {
+            self.whisper_model = DEFAULT_WHISPER_MODEL.to_string();
+        }
+        if self
+            .voice_id
+            .as_ref()
+            .is_some_and(|id| id.trim().is_empty())
+        {
+            self.voice_id = None;
+        }
+        self
+    }
+}
+
+/// A local speech-recognition model the runtime can install.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WhisperModelSpec {
+    pub key: &'static str,
+    pub label: &'static str,
+    pub description: &'static str,
+    pub file_name: &'static str,
+    pub size_bytes: u64,
+    /// SHA-256 published by Hugging Face (LFS object id) for this file.
+    pub sha256: &'static str,
+}
+
+impl WhisperModelSpec {
+    /// Pinned origin. The runtime never downloads from a user supplied URL.
+    pub fn download_url(&self) -> String {
+        format!(
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/{}",
+            self.file_name
+        )
+    }
+
+    pub fn size_label(&self) -> String {
+        format!("{} Mo", self.size_bytes / 1_000_000)
+    }
+}
+
+pub const DEFAULT_WHISPER_MODEL: &str = "base";
+
+/// Whisper models offered for dictation, fastest first.
+pub const WHISPER_MODELS: &[WhisperModelSpec] = &[
+    WhisperModelSpec {
+        key: "tiny",
+        label: "Tiny",
+        description: "Très rapide, précision limitée. Postes modestes.",
+        file_name: "ggml-tiny.bin",
+        size_bytes: 77_691_713,
+        sha256: "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21",
+    },
+    WhisperModelSpec {
+        key: "base",
+        label: "Base (recommandé)",
+        description: "Bon équilibre vitesse / précision en français.",
+        file_name: "ggml-base.bin",
+        size_bytes: 147_951_465,
+        sha256: "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe",
+    },
+    WhisperModelSpec {
+        key: "small-q5_1",
+        label: "Small (précis)",
+        description: "Meilleure compréhension du vocabulaire technique, plus lent.",
+        file_name: "ggml-small-q5_1.bin",
+        size_bytes: 190_085_487,
+        sha256: "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
+    },
+];
+
+pub fn whisper_model_spec(key: &str) -> Option<&'static WhisperModelSpec> {
+    WHISPER_MODELS.iter().find(|spec| spec.key == key)
+}
+
+/// One native system voice.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VoiceOption {
+    pub id: String,
+    pub name: String,
+    pub language: String,
+}
+
+/// What the runtime can actually do for voice on this host.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct VoiceEngineInfo {
+    /// A Whisper model is loaded (or loadable) and dictation can start.
+    pub stt_ready: bool,
+    /// Key of the loaded Whisper model.
+    pub stt_model: Option<String>,
+    /// Whisper models present on disk.
+    pub installed_models: Vec<String>,
+    /// Native text-to-speech is available.
+    pub tts_available: bool,
+    pub can_set_rate: bool,
+    pub can_set_volume: bool,
+    pub can_set_voice: bool,
+    /// Available system voices, French voices first.
+    pub voices: Vec<VoiceOption>,
+    /// Voice currently used by the synthesizer.
+    pub active_voice_id: Option<String>,
+}
+
+/// Progress of a Whisper model installation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceInstallPhase {
+    Downloading,
+    Verifying,
+    Loading,
+    Ready,
+    Failed,
+    Cancelled,
+}
+
+impl VoiceInstallPhase {
+    pub fn is_active(self) -> bool {
+        matches!(self, Self::Downloading | Self::Verifying | Self::Loading)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct VoiceInstallProgress {
+    pub model_key: String,
+    pub phase: VoiceInstallPhase,
+    pub downloaded_bytes: u64,
+    pub total_bytes: u64,
+    pub error: Option<String>,
+}
+
+/// Minimum notification severity read aloud.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VoiceAlertThreshold {
+    Warning,
+    #[default]
+    High,
+    Critical,
+}
+
+impl VoiceAlertThreshold {
+    pub const ALL: [Self; 3] = [Self::Warning, Self::High, Self::Critical];
+
+    pub fn label_fr(self) -> &'static str {
+        match self {
+            Self::Warning => "Avertissements et plus",
+            Self::High => "Sévérité élevée et critique",
+            Self::Critical => "Critiques uniquement",
+        }
+    }
+
+    /// Whether a notification severity string should be spoken.
+    pub fn accepts(self, severity: &str) -> bool {
+        let rank = match severity.to_ascii_lowercase().as_str() {
+            "critical" => 3,
+            "high" | "error" => 2,
+            "warning" | "medium" => 1,
+            _ => 0,
+        };
+        let min = match self {
+            Self::Warning => 1,
+            Self::High => 2,
+            Self::Critical => 3,
+        };
+        rank >= min
+    }
+}
+
+#[cfg(test)]
+mod voice_dto_tests {
+    use super::*;
+
+    #[test]
+    fn whisper_catalogue_is_pinned_and_consistent() {
+        assert!(whisper_model_spec(DEFAULT_WHISPER_MODEL).is_some());
+        for spec in WHISPER_MODELS {
+            assert_eq!(spec.sha256.len(), 64);
+            assert!(spec.sha256.chars().all(|c| c.is_ascii_hexdigit()));
+            assert!(
+                spec.download_url()
+                    .starts_with("https://huggingface.co/ggerganov/whisper.cpp/")
+            );
+            assert!(spec.file_name.ends_with(".bin") && !spec.file_name.contains('/'));
+        }
+    }
+
+    #[test]
+    fn voice_settings_are_clamped() {
+        let settings = VoiceSettings {
+            rate: 9.0,
+            volume: f32::NAN,
+            end_of_speech_ms: 10,
+            dictation_language: "xx".into(),
+            whisper_model: "../evil".into(),
+            voice_id: Some(" ".into()),
+            ..VoiceSettings::default()
+        }
+        .sanitized();
+        assert_eq!(settings.rate, 2.0);
+        assert_eq!(settings.volume, 1.0);
+        assert_eq!(settings.end_of_speech_ms, 500);
+        assert_eq!(settings.dictation_language, "fr");
+        assert_eq!(settings.whisper_model, DEFAULT_WHISPER_MODEL);
+        assert!(settings.voice_id.is_none());
+    }
+
+    #[test]
+    fn alert_threshold_filters_severities() {
+        assert!(VoiceAlertThreshold::High.accepts("critical"));
+        assert!(VoiceAlertThreshold::High.accepts("error"));
+        assert!(!VoiceAlertThreshold::High.accepts("warning"));
+        assert!(VoiceAlertThreshold::Warning.accepts("warning"));
+        assert!(!VoiceAlertThreshold::Critical.accepts("high"));
+        assert!(!VoiceAlertThreshold::Warning.accepts("info"));
+    }
+}

@@ -1,5 +1,15 @@
+//! Local voice assistant: native text-to-speech, microphone capture and
+//! on-device Whisper transcription.
+//!
+//! Design goals (hands-free conversation comparable to consumer assistants):
+//! * answers are read completely, sentence by sentence, and the microphone is
+//!   only reopened once the synthesizer has really finished;
+//! * “finish dictation” keeps and transcribes what was said, while “stop”
+//!   discards it;
+//! * the Whisper model can be installed from the GUI (pinned URL, SHA-256
+//!   verified) and is loaded without restarting the agent.
+
 use std::sync::Arc;
-#[cfg(feature = "voice")]
 use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(feature = "gui")]
 use std::sync::mpsc;
@@ -7,7 +17,20 @@ use std::sync::mpsc;
 use tracing::{error, info, warn};
 
 #[cfg(feature = "gui")]
+use agent_gui::dto::{
+    SpokenReplyMode, VoiceEngineInfo, VoiceInstallPhase, VoiceInstallProgress, VoiceOption,
+    VoiceSettings, WhisperModelSpec,
+};
+#[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
+
+#[cfg(feature = "gui")]
+type TtsSlot = Arc<std::sync::Mutex<Option<tts::Tts>>>;
+#[cfg(feature = "gui")]
+type WhisperSlot = Arc<tokio::sync::Mutex<Option<whisper_rs::WhisperContext>>>;
+
+#[cfg(feature = "gui")]
+const WHISPER_MISSING: &str = "modèle de dictée Whisper non installé : installez-le depuis « Réglages vocaux » pour activer la dictée";
 
 /// Core service for handling OS-native Audio I/O (cpal/tts) and local AI Inference (whisper-rs).
 pub struct VoiceService {
@@ -15,23 +38,39 @@ pub struct VoiceService {
     event_tx: mpsc::Sender<AgentEvent>,
 
     #[cfg(feature = "gui")]
-    tts_engine: Arc<std::sync::Mutex<Option<tts::Tts>>>,
+    tts_engine: TtsSlot,
     #[cfg(feature = "gui")]
     speech_epoch: Arc<std::sync::atomic::AtomicU64>,
+    #[cfg(feature = "gui")]
+    settings: Arc<std::sync::RwLock<VoiceSettings>>,
+    /// When the synthesizer last went quiet; the microphone waits a moment
+    /// after it so the tail of Sentinel's own voice is never transcribed.
+    #[cfg(feature = "gui")]
+    speech_ended_at: Arc<std::sync::Mutex<Option<std::time::Instant>>>,
 
-    #[cfg(feature = "voice")]
     sound_manager: Option<crate::sounds::SoundManager>,
 
-    #[cfg(all(feature = "voice", feature = "gui"))]
-    whisper_ctx: Arc<tokio::sync::Mutex<Option<whisper_rs::WhisperContext>>>,
+    #[cfg(feature = "gui")]
+    whisper_ctx: WhisperSlot,
+    /// Catalogue key of the loaded Whisper model (readable without the async lock).
+    #[cfg(feature = "gui")]
+    whisper_key: Arc<std::sync::Mutex<Option<String>>>,
 
-    #[cfg(all(feature = "voice", feature = "gui"))]
+    #[cfg(feature = "gui")]
     is_listening: Arc<AtomicBool>,
 
     /// Set to true when the UI requests an early stop. The VAD loop polls it every
     /// frame so users can toggle the mic off without waiting for silence timeout.
-    #[cfg(feature = "voice")]
+    /// The recording is discarded.
     cancel_requested: Arc<AtomicBool>,
+    /// End the capture now but transcribe what was already said.
+    #[cfg(feature = "gui")]
+    finish_requested: Arc<AtomicBool>,
+
+    #[cfg(feature = "gui")]
+    installing: Arc<AtomicBool>,
+    #[cfg(feature = "gui")]
+    install_cancel: Arc<AtomicBool>,
 
     #[cfg(not(feature = "gui"))]
     _dummy: bool,
@@ -42,9 +81,7 @@ impl Default for VoiceService {
     fn default() -> Self {
         Self {
             _dummy: false,
-            #[cfg(feature = "voice")]
             sound_manager: crate::sounds::SoundManager::new(),
-            #[cfg(feature = "voice")]
             cancel_requested: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -53,64 +90,66 @@ impl Default for VoiceService {
 impl VoiceService {
     #[cfg(feature = "gui")]
     pub fn new(event_tx: mpsc::Sender<AgentEvent>) -> Self {
-        // Initialize native OS Text-to-Speech binding
-        let tts_engine = match tts::Tts::default() {
-            Ok(engine) => Some(engine),
-            Err(e) => {
-                error!(
-                    "VoiceService: Failed to bind native OS TTS. Audio output is unavailable. {}",
-                    e
-                );
-                None
-            }
-        };
+        let settings = VoiceSettings::default();
+        let mut tts_engine = create_tts();
+        if let Some(engine) = tts_engine.as_mut() {
+            apply_tts_settings(engine, &settings);
+        }
 
-        #[cfg(feature = "voice")]
-        let whisper_ctx = {
-            let model_path = resolve_whisper_model_path();
-            match whisper_rs::WhisperContext::new_with_params(
-                &model_path.to_string_lossy(),
-                whisper_rs::WhisperContextParameters::default(),
-            ) {
+        let (whisper_ctx, whisper_key) = match pick_whisper_model(&settings.whisper_model) {
+            Some((spec, path)) => match load_whisper_context(&path) {
                 Ok(ctx) => {
-                    info!(
-                        "VoiceService: Whisper model loaded from {}",
-                        model_path.display()
-                    );
-                    Some(ctx)
+                    info!("VoiceService: Whisper model loaded from {}", path.display());
+                    (Some(ctx), Some(spec.key.to_string()))
                 }
                 Err(e) => {
                     warn!(
                         "VoiceService: Failed to load Whisper model at {}. Speech recognition is unavailable. {}",
-                        model_path.display(),
+                        path.display(),
                         e
                     );
-                    None
+                    (None, None)
                 }
+            },
+            None => {
+                info!(
+                    "VoiceService: no Whisper model installed; dictation can be installed from the GUI"
+                );
+                (None, None)
             }
         };
 
-        Self {
+        let service = Self {
             event_tx,
             tts_engine: Arc::new(std::sync::Mutex::new(tts_engine)),
             speech_epoch: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            #[cfg(feature = "voice")]
+            settings: Arc::new(std::sync::RwLock::new(settings)),
+            speech_ended_at: Arc::new(std::sync::Mutex::new(None)),
             sound_manager: crate::sounds::SoundManager::new(),
-            #[cfg(feature = "voice")]
             whisper_ctx: Arc::new(tokio::sync::Mutex::new(whisper_ctx)),
-            #[cfg(feature = "voice")]
+            whisper_key: Arc::new(std::sync::Mutex::new(whisper_key)),
             is_listening: Arc::new(AtomicBool::new(false)),
-            #[cfg(feature = "voice")]
             cancel_requested: Arc::new(AtomicBool::new(false)),
-        }
+            finish_requested: Arc::new(AtomicBool::new(false)),
+            installing: Arc::new(AtomicBool::new(false)),
+            install_cancel: Arc::new(AtomicBool::new(false)),
+        };
+        service.publish_status();
+        service
     }
 
-    /// Request an early end of the current capture. The running VAD loop will
-    /// exit at its next poll and the usual end-of-listening events will fire.
+    /// Discard the current capture. The running VAD loop exits at its next
+    /// poll and the usual end-of-listening events fire.
     /// Safe to call when no capture is active (no-op).
-    #[cfg(feature = "voice")]
     pub fn stop_listening(&self) {
         self.cancel_requested.store(true, Ordering::SeqCst);
+    }
+
+    /// End the current capture and transcribe what was already said, like
+    /// releasing the microphone button of a consumer assistant.
+    #[cfg(feature = "gui")]
+    pub fn finish_listening(&self) {
+        self.finish_requested.store(true, Ordering::SeqCst);
     }
 
     /// Stop native speech immediately. This enables “barge-in”: pressing the
@@ -135,14 +174,12 @@ impl VoiceService {
             .send(AgentEvent::VoiceStatus { speaking: false });
     }
 
-    #[cfg(feature = "voice")]
     pub fn play_beep(&self) {
         if let Some(sm) = &self.sound_manager {
             sm.play_confirmation();
         }
     }
 
-    #[cfg(feature = "voice")]
     pub fn play_scan_sound(&self) {
         if let Some(sm) = &self.sound_manager {
             sm.play_scan_start();
@@ -154,80 +191,120 @@ impl VoiceService {
         Self::default()
     }
 
+    /// Apply the operator's preferences to the synthesizer and recognizer.
+    #[cfg(feature = "gui")]
+    pub fn configure(&self, settings: VoiceSettings) {
+        let settings = settings.sanitized();
+        if let Ok(mut engine) = self.tts_engine.lock()
+            && let Some(engine) = engine.as_mut()
+        {
+            apply_tts_settings(engine, &settings);
+        }
+        let (voice_changed, model_changed) = match self.settings.write() {
+            Ok(mut current) => {
+                let changed = (
+                    current.voice_id != settings.voice_id,
+                    current.whisper_model != settings.whisper_model,
+                );
+                *current = settings;
+                changed
+            }
+            Err(_) => (true, true),
+        };
+        // Enumerating system voices can be slow: only republish when the
+        // visible status may have changed (not on every slider step).
+        if voice_changed || model_changed {
+            self.publish_status();
+        }
+    }
+
+    /// Publish the voice capabilities of this host to the GUI.
+    #[cfg(feature = "gui")]
+    pub fn publish_status(&self) {
+        let info = engine_info(&self.tts_engine, &self.whisper_key);
+        let _ = self.event_tx.send(AgentEvent::VoiceEngineStatus {
+            info: Box::new(info),
+        });
+    }
+
     /// Capture microphone audio via `cpal`, detect speech with an energy-based VAD,
     /// then transcribe via `whisper-rs` — and deliver the result as a
     /// `VoiceTranscription` event for the LLM pipeline.
     #[cfg(feature = "gui")]
     pub async fn start_listening(&self) {
-        #[cfg(feature = "voice")]
-        {
-            if self.is_listening.swap(true, Ordering::SeqCst) {
-                info!("VoiceService: already listening, ignoring re-entrant call");
-                return;
-            }
+        if self.is_listening.swap(true, Ordering::SeqCst) {
+            info!("VoiceService: already listening, ignoring re-entrant call");
+            return;
         }
 
         let tx = self.event_tx.clone();
         let _ = tx.send(AgentEvent::LlmVoiceState { active: true });
 
-        #[cfg(feature = "voice")]
-        {
-            if let Some(sm) = &self.sound_manager {
-                sm.play_scan_start();
-            }
+        if let Some(sm) = &self.sound_manager {
+            sm.play_scan_start();
+        }
 
-            let whisper_ctx = self.whisper_ctx.clone();
-            let is_listening = self.is_listening.clone();
-            let cancel = self.cancel_requested.clone();
-            // Clear any stale cancellation from a previous session.
-            cancel.store(false, Ordering::SeqCst);
-            let tx_task = tx.clone();
-            let tx_level = tx.clone();
+        let whisper_ctx = self.whisper_ctx.clone();
+        let whisper_key = self.whisper_key.clone();
+        let tts_engine = self.tts_engine.clone();
+        let is_listening = self.is_listening.clone();
+        let cancel = self.cancel_requested.clone();
+        let finish = self.finish_requested.clone();
+        let speech_ended_at = self.speech_ended_at.clone();
+        // Clear any stale request from a previous session.
+        cancel.store(false, Ordering::SeqCst);
+        finish.store(false, Ordering::SeqCst);
+        let options = self
+            .settings
+            .read()
+            .map(|settings| CaptureOptions::from_settings(&settings))
+            .unwrap_or_default();
 
-            // Whisper inference and cpal stream lifetime are both blocking — isolate
-            // from the Tokio runtime so we never stall async workers.
-            tokio::task::spawn_blocking(move || {
-                let outcome = record_and_transcribe(&whisper_ctx, &tx_level, &cancel);
+        // Whisper inference and cpal stream lifetime are both blocking — isolate
+        // from the Tokio runtime so we never stall async workers.
+        tokio::task::spawn_blocking(move || {
+            wait_for_echo_to_settle(&speech_ended_at, &cancel);
 
-                match outcome {
-                    Ok(Some(text)) => {
-                        info!(
-                            "VoiceService: transcription ready ({} characters)",
-                            text.chars().count()
-                        );
-                        if !cancel.load(Ordering::SeqCst) {
-                            let _ = tx_task.send(AgentEvent::VoiceTranscription { text });
-                        }
-                    }
-                    Ok(None) => {
-                        info!("VoiceService: no speech detected");
-                    }
+            let outcome =
+                match ensure_whisper_loaded(&whisper_ctx, &whisper_key, &options.model_key) {
+                    Ok(()) => record_and_transcribe(&whisper_ctx, &tx, &cancel, &finish, &options),
                     Err(e) => {
-                        warn!("VoiceService: capture/transcription failed: {}", e);
-                        let _ = tx_task.send(AgentEvent::VoiceError {
-                            message: format!("Impossible de dicter : {}", e),
+                        let _ = tx.send(AgentEvent::VoiceEngineStatus {
+                            info: Box::new(engine_info(&tts_engine, &whisper_key)),
                         });
+                        Err(e)
                     }
+                };
+
+            // Release the session *before* publishing the outcome: the GUI may
+            // immediately reopen the microphone (hands-free conversation).
+            is_listening.store(false, Ordering::SeqCst);
+            // Reset the mic level gauge so the UI indicator falls back to zero.
+            let _ = tx.send(AgentEvent::AudioLevel { rms: 0.0 });
+            let _ = tx.send(AgentEvent::LlmVoiceState { active: false });
+
+            let cancelled = cancel.load(Ordering::SeqCst);
+            match outcome {
+                Ok(Some(text)) if !cancelled => {
+                    info!(
+                        "VoiceService: transcription ready ({} characters)",
+                        text.chars().count()
+                    );
+                    let _ = tx.send(AgentEvent::VoiceTranscription { text });
                 }
-
-                is_listening.store(false, Ordering::SeqCst);
-                // Reset the mic level gauge so the UI indicator falls back to zero.
-                let _ = tx_task.send(AgentEvent::AudioLevel { rms: 0.0 });
-                let _ = tx_task.send(AgentEvent::LlmVoiceState { active: false });
-            });
-        }
-
-        #[cfg(not(feature = "voice"))]
-        {
-            let tx_fallback = tx.clone();
-            tokio::spawn(async move {
-                tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
-                let _ = tx_fallback.send(AgentEvent::VoiceError {
-                    message: "Reconnaissance vocale indisponible dans cette version.".to_string(),
-                });
-                let _ = tx_fallback.send(AgentEvent::LlmVoiceState { active: false });
-            });
-        }
+                Ok(_) if cancelled => info!("VoiceService: capture cancelled"),
+                Ok(_) => {
+                    info!("VoiceService: no speech detected");
+                    let _ = tx.send(AgentEvent::VoiceNoSpeech);
+                }
+                Err(e) => {
+                    warn!("VoiceService: capture/transcription failed: {}", e);
+                    let _ = tx.send(AgentEvent::VoiceError {
+                        message: format!("Impossible de dicter : {}", e),
+                    });
+                }
+            }
+        });
     }
 
     /// Read out text using the OS Native Voice Synth (NSSpeechSynthesizer on macOS, SAPI on Win).
@@ -247,6 +324,12 @@ impl VoiceService {
     }
 
     /// A stop during inference invalidates the future spoken answer too.
+    ///
+    /// The answer is spoken sentence group by sentence group. Each group waits
+    /// for the synthesizer to finish, so long answers are never cut by a
+    /// premature “speech finished” (which used to reopen the microphone and
+    /// interrupt the voice mid-sentence), and “Stop” takes effect between
+    /// sentences even on backends that cannot stop instantly.
     #[cfg(feature = "gui")]
     pub fn speak_if_current(&self, text: &str, generation: u64) {
         if self.speech_generation() != generation {
@@ -254,53 +337,367 @@ impl VoiceService {
         }
         info!("VoiceService: Native voice synthesis triggered.");
 
+        let settings = self
+            .settings
+            .read()
+            .map(|settings| settings.clone())
+            .unwrap_or_default();
+        let chunks = spoken_chunks(text, settings.reply_mode);
         let tx = self.event_tx.clone();
-        // Markdown, long code blocks and raw URLs sound unnatural through an
-        // OS voice. Keep the spoken answer concise while the complete answer
-        // remains visible in chat.
-        let rt_text = prepare_spoken_text(text);
+        if chunks.is_empty() {
+            let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
+            return;
+        }
         let engine_lock = self.tts_engine.clone();
         let epoch = self.speech_epoch.clone();
+        let speech_ended_at = self.speech_ended_at.clone();
         std::thread::spawn(move || {
-            if epoch.load(std::sync::atomic::Ordering::SeqCst) != generation {
+            let is_current = || epoch.load(std::sync::atomic::Ordering::SeqCst) == generation;
+            let mut announced = false;
+            let mut failure = None;
+
+            for (index, chunk) in chunks.iter().enumerate() {
+                if !is_current() {
+                    return;
+                }
+                if let Err(e) = speak_chunk(&engine_lock, &settings, chunk, index == 0) {
+                    failure = Some(e);
+                    break;
+                }
+                if !announced {
+                    announced = true;
+                    let _ = tx.send(AgentEvent::VoiceStatus { speaking: true });
+                }
+                wait_for_speech_end(&engine_lock, chunk, settings.rate, &epoch, generation);
+            }
+
+            if !is_current() {
                 return;
             }
-            let mut synth_duration = std::time::Duration::from_millis(2000);
-            let mut synthesis_started = false;
-
-            if let Ok(mut engine_opt) = engine_lock.lock()
-                && let Some(engine) = engine_opt.as_mut()
-            {
-                if epoch.load(std::sync::atomic::Ordering::SeqCst) != generation {
-                    return;
-                }
-                if let Err(e) = engine.speak(&rt_text, true) {
-                    warn!("VoiceService: TTS engine speak failed: {}", e);
+            if let Ok(mut ended) = speech_ended_at.lock() {
+                *ended = Some(std::time::Instant::now());
+            }
+            if let Some(e) = failure {
+                warn!("VoiceService: TTS engine speak failed: {}", e);
+                let message = if announced {
+                    format!(
+                        "La lecture vocale s’est interrompue ({e}). La réponse complète reste affichée."
+                    )
                 } else {
-                    synthesis_started = true;
-                    let _ = tx.send(AgentEvent::VoiceStatus { speaking: true });
-                    let char_count = rt_text.chars().count() as u64;
-                    synth_duration =
-                        std::time::Duration::from_millis((55 * char_count).clamp(1_200, 30_000));
-                }
+                    format!(
+                        "La synthèse vocale du système est indisponible ({e}). La réponse reste affichée à l’écran."
+                    )
+                };
+                let _ = tx.send(AgentEvent::VoiceError { message });
             }
-
-            if synthesis_started {
-                wait_for_speech_end(&engine_lock, synth_duration);
-            } else {
-                if epoch.load(std::sync::atomic::Ordering::SeqCst) != generation {
-                    return;
-                }
-                let _ = tx.send(AgentEvent::VoiceError { message: "La synthèse vocale est indisponible. La réponse reste accessible à l’écran.".to_string() });
-                // Preserve a short, deterministic state transition when the OS
-                // has no TTS backend so the GUI never remains stuck in “speaking”.
-                std::thread::sleep(std::time::Duration::from_millis(250));
-            }
-            if epoch.load(std::sync::atomic::Ordering::SeqCst) == generation {
-                let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
-            }
+            let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
         });
     }
+
+    /// Download, verify and load a Whisper model from the pinned catalogue.
+    #[cfg(feature = "gui")]
+    pub async fn install_model(&self, model_key: &str) {
+        let tx = self.event_tx.clone();
+        let report =
+            |phase: VoiceInstallPhase, downloaded: u64, total: u64, error: Option<String>| {
+                let _ = tx.send(AgentEvent::VoiceModelInstall {
+                    progress: VoiceInstallProgress {
+                        model_key: model_key.to_string(),
+                        phase,
+                        downloaded_bytes: downloaded,
+                        total_bytes: total,
+                        error,
+                    },
+                });
+            };
+        let Some(spec) = agent_gui::dto::whisper_model_spec(model_key) else {
+            report(
+                VoiceInstallPhase::Failed,
+                0,
+                0,
+                Some("modèle inconnu du catalogue".to_string()),
+            );
+            return;
+        };
+        if self.installing.swap(true, Ordering::SeqCst) {
+            info!("VoiceService: a Whisper installation is already running");
+            return;
+        }
+        self.install_cancel.store(false, Ordering::SeqCst);
+        info!("[AUDIT] Installing Whisper model '{}'", spec.key);
+
+        match download_whisper_model(spec, &tx, &self.install_cancel).await {
+            Ok(path) => {
+                report(
+                    VoiceInstallPhase::Loading,
+                    spec.size_bytes,
+                    spec.size_bytes,
+                    None,
+                );
+                let load_path = path.clone();
+                let loaded =
+                    tokio::task::spawn_blocking(move || load_whisper_context(&load_path)).await;
+                match loaded {
+                    Ok(Ok(ctx)) => {
+                        *self.whisper_ctx.lock().await = Some(ctx);
+                        if let Ok(mut key) = self.whisper_key.lock() {
+                            *key = Some(spec.key.to_string());
+                        }
+                        if let Ok(mut settings) = self.settings.write() {
+                            settings.whisper_model = spec.key.to_string();
+                        }
+                        info!(
+                            "VoiceService: Whisper model '{}' installed at {}",
+                            spec.key,
+                            path.display()
+                        );
+                        report(
+                            VoiceInstallPhase::Ready,
+                            spec.size_bytes,
+                            spec.size_bytes,
+                            None,
+                        );
+                    }
+                    Ok(Err(e)) => report(
+                        VoiceInstallPhase::Failed,
+                        spec.size_bytes,
+                        spec.size_bytes,
+                        Some(format!("modèle téléchargé mais impossible à charger : {e}")),
+                    ),
+                    Err(e) => report(
+                        VoiceInstallPhase::Failed,
+                        spec.size_bytes,
+                        spec.size_bytes,
+                        Some(format!("chargement interrompu : {e}")),
+                    ),
+                }
+            }
+            Err(InstallError::Cancelled) => {
+                report(VoiceInstallPhase::Cancelled, 0, spec.size_bytes, None)
+            }
+            Err(InstallError::Failed(e)) => {
+                warn!("VoiceService: Whisper installation failed: {}", e);
+                report(VoiceInstallPhase::Failed, 0, spec.size_bytes, Some(e));
+            }
+        }
+        self.installing.store(false, Ordering::SeqCst);
+        self.publish_status();
+    }
+
+    #[cfg(feature = "gui")]
+    pub fn cancel_install(&self) {
+        self.install_cancel.store(true, Ordering::SeqCst);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Text-to-speech
+// ---------------------------------------------------------------------------
+
+#[cfg(feature = "gui")]
+fn create_tts() -> Option<tts::Tts> {
+    match tts::Tts::default() {
+        Ok(engine) => Some(engine),
+        Err(e) => {
+            error!(
+                "VoiceService: Failed to bind native OS TTS. Audio output is unavailable. {}",
+                e
+            );
+            None
+        }
+    }
+}
+
+/// Map the operator's 0.5×–2× preference onto the backend's own rate range.
+#[cfg(feature = "gui")]
+fn backend_rate(multiplier: f32, min: f32, normal: f32, max: f32) -> f32 {
+    let rate = if multiplier >= 1.0 {
+        normal + (multiplier - 1.0) * (max - normal) * 0.5
+    } else {
+        normal - (1.0 - multiplier) * (normal - min)
+    };
+    rate.clamp(min.min(max), max.max(min))
+}
+
+#[cfg(feature = "gui")]
+fn is_french(voice: &tts::Voice) -> bool {
+    voice
+        .language()
+        .as_str()
+        .to_ascii_lowercase()
+        .starts_with("fr")
+}
+
+/// Prefer natural French voices (macOS “Premium/Enhanced”, Windows “Natural/Neural”).
+#[cfg(feature = "gui")]
+fn voice_quality_score(voice: &tts::Voice) -> i32 {
+    let name = voice.name().to_lowercase();
+    let language = voice.language().as_str().to_ascii_lowercase();
+    let mut score = 0;
+    if language.starts_with("fr") {
+        score += 100;
+    }
+    if language == "fr-fr" {
+        score += 10;
+    }
+    for marker in [
+        "premium", "enhanced", "amélior", "neural", "natural", "siri",
+    ] {
+        if name.contains(marker) {
+            score += 20;
+        }
+    }
+    score
+}
+
+#[cfg(feature = "gui")]
+fn apply_tts_settings(engine: &mut tts::Tts, settings: &VoiceSettings) {
+    let features = engine.supported_features();
+    if features.rate {
+        let rate = backend_rate(
+            settings.rate,
+            engine.min_rate(),
+            engine.normal_rate(),
+            engine.max_rate(),
+        );
+        if let Err(e) = engine.set_rate(rate) {
+            warn!("VoiceService: unable to set speech rate: {}", e);
+        }
+    }
+    if features.volume {
+        let (min, max) = (engine.min_volume(), engine.max_volume());
+        if let Err(e) = engine.set_volume(min + settings.volume * (max - min)) {
+            warn!("VoiceService: unable to set speech volume: {}", e);
+        }
+    }
+    if features.voice
+        && let Ok(voices) = engine.voices()
+    {
+        let requested = settings
+            .voice_id
+            .as_ref()
+            .and_then(|id| voices.iter().find(|voice| &voice.id() == id));
+        let chosen = requested.or_else(|| {
+            voices
+                .iter()
+                .filter(|voice| is_french(voice))
+                .max_by_key(|voice| voice_quality_score(voice))
+        });
+        let current = if features.get_voice {
+            engine.voice().ok().flatten().map(|voice| voice.id())
+        } else {
+            None
+        };
+        if let Some(voice) = chosen
+            && current.as_deref() != Some(voice.id().as_str())
+            && let Err(e) = engine.set_voice(voice)
+        {
+            warn!(
+                "VoiceService: unable to select voice '{}': {}",
+                voice.name(),
+                e
+            );
+        }
+    }
+}
+
+#[cfg(feature = "gui")]
+fn engine_info(
+    tts_engine: &TtsSlot,
+    whisper_key: &Arc<std::sync::Mutex<Option<String>>>,
+) -> VoiceEngineInfo {
+    let installed_models: Vec<String> = agent_gui::dto::WHISPER_MODELS
+        .iter()
+        .filter(|spec| find_whisper_model_file(spec).is_some())
+        .map(|spec| spec.key.to_string())
+        .collect();
+    let stt_model = whisper_key.lock().ok().and_then(|key| key.clone());
+    let mut info = VoiceEngineInfo {
+        stt_ready: stt_model.is_some() || !installed_models.is_empty(),
+        stt_model,
+        installed_models,
+        ..VoiceEngineInfo::default()
+    };
+    if let Ok(engine) = tts_engine.lock()
+        && let Some(engine) = engine.as_ref()
+    {
+        let features = engine.supported_features();
+        info.tts_available = true;
+        info.can_set_rate = features.rate;
+        info.can_set_volume = features.volume;
+        info.can_set_voice = features.voice;
+        if features.voice
+            && let Ok(voices) = engine.voices()
+        {
+            let mut voices: Vec<_> = voices
+                .iter()
+                .map(|voice| (is_french(voice), voice_quality_score(voice), voice))
+                .collect();
+            voices.sort_by(|a, b| {
+                b.0.cmp(&a.0)
+                    .then(b.1.cmp(&a.1))
+                    .then(a.2.name().cmp(&b.2.name()))
+            });
+            info.voices = voices
+                .into_iter()
+                .take(300)
+                .map(|(_, _, voice)| VoiceOption {
+                    id: voice.id(),
+                    name: voice.name(),
+                    language: voice.language().as_str().to_string(),
+                })
+                .collect();
+        }
+        if features.get_voice {
+            info.active_voice_id = engine.voice().ok().flatten().map(|voice| voice.id());
+        }
+    }
+    info
+}
+
+/// Queue one sentence group. A failing backend is re-created once: some
+/// platform synthesizers die after sleep/resume or an audio device change.
+#[cfg(feature = "gui")]
+fn speak_chunk(
+    engine_lock: &TtsSlot,
+    settings: &VoiceSettings,
+    chunk: &str,
+    interrupt: bool,
+) -> Result<(), String> {
+    let mut engine = engine_lock
+        .lock()
+        .map_err(|_| "verrou de synthèse vocale corrompu".to_string())?;
+    if engine.is_none() {
+        *engine = create_tts();
+        if let Some(engine) = engine.as_mut() {
+            apply_tts_settings(engine, settings);
+        }
+    }
+    let Some(tts) = engine.as_mut() else {
+        return Err("aucune voix système disponible".to_string());
+    };
+    match tts.speak(chunk, interrupt) {
+        Ok(_) => Ok(()),
+        Err(first) => {
+            warn!(
+                "VoiceService: speech failed, re-creating the synthesizer: {}",
+                first
+            );
+            let mut fresh = tts::Tts::default().map_err(|e| e.to_string())?;
+            apply_tts_settings(&mut fresh, settings);
+            fresh.speak(chunk, interrupt).map_err(|e| e.to_string())?;
+            *engine = Some(fresh);
+            Ok(())
+        }
+    }
+}
+
+/// Conservative spoken duration of a text at the operator's rate.
+#[cfg(feature = "gui")]
+fn estimated_speech(chunk: &str, rate: f32) -> std::time::Duration {
+    let chars = chunk.chars().count() as f32;
+    let millis = (chars * 70.0 / rate.clamp(0.5, 2.0)).clamp(800.0, 60_000.0);
+    std::time::Duration::from_millis(millis as u64)
 }
 
 /// Wait for the native synthesizer rather than guessing from the text length.
@@ -308,16 +705,27 @@ impl VoiceService {
 /// `is_speaking` (and a safety deadline for a wedged platform synthesizer).
 #[cfg(feature = "gui")]
 fn wait_for_speech_end(
-    engine_lock: &Arc<std::sync::Mutex<Option<tts::Tts>>>,
-    estimated_duration: std::time::Duration,
+    engine_lock: &TtsSlot,
+    chunk: &str,
+    rate: f32,
+    epoch: &std::sync::atomic::AtomicU64,
+    generation: u64,
 ) {
     use std::time::{Duration, Instant};
 
+    let estimated = estimated_speech(chunk, rate);
     let started = Instant::now();
-    let deadline = started + estimated_duration + Duration::from_secs(5);
+    // Generous: a long answer must never be declared finished while the voice
+    // is still speaking, or the conversation would reopen the microphone on it.
+    let deadline = started + estimated * 2 + Duration::from_secs(5);
+    // Some backends (WinRT) synthesize the whole utterance before playing.
+    let start_grace = Duration::from_millis(600 + 6 * chunk.chars().count() as u64);
     let mut observed_speech = false;
 
     loop {
+        if epoch.load(std::sync::atomic::Ordering::SeqCst) != generation {
+            return;
+        }
         let speaking = engine_lock
             .lock()
             .ok()
@@ -325,78 +733,487 @@ fn wait_for_speech_end(
 
         match speaking {
             Some(true) => observed_speech = true,
-            Some(false) if observed_speech || started.elapsed() >= Duration::from_millis(500) => {
-                break;
-            }
-            // Unsupported backends still get the conservative text-based wait.
-            None => {
-                std::thread::sleep(estimated_duration);
-                break;
-            }
+            Some(false) if observed_speech || started.elapsed() >= start_grace => break,
             Some(false) => {}
+            // Unsupported backends still get the conservative text-based wait,
+            // in small steps so “Stop” stays responsive.
+            None => {
+                if started.elapsed() >= estimated {
+                    break;
+                }
+            }
         }
 
         if Instant::now() >= deadline {
             warn!("VoiceService: TTS completion timed out; releasing voice session");
             break;
         }
-        std::thread::sleep(Duration::from_millis(100));
+        std::thread::sleep(Duration::from_millis(50));
     }
 }
 
 #[cfg(feature = "gui")]
-fn prepare_spoken_text(text: &str) -> String {
-    let mut spoken = String::with_capacity(text.len().min(900));
+const SPOKEN_CHUNK_CHARS: usize = 260;
+#[cfg(feature = "gui")]
+const SUMMARY_CHARS: usize = 650;
+/// Safety cap for pathological answers (roughly ten minutes of speech).
+#[cfg(feature = "gui")]
+const FULL_CHARS: usize = 9_000;
+
+/// Turn a Markdown answer into natural sentence groups for the synthesizer.
+#[cfg(feature = "gui")]
+fn spoken_chunks(text: &str, mode: SpokenReplyMode) -> Vec<String> {
+    let limit = match mode {
+        SpokenReplyMode::Full => FULL_CHARS,
+        SpokenReplyMode::Summary => SUMMARY_CHARS,
+    };
+    let mut kept = Vec::new();
+    let mut total = 0usize;
+    let mut truncated = false;
+    for sentence in split_sentences(&spoken_text(text)) {
+        let len = sentence.chars().count();
+        if total > 0 && total + len > limit {
+            truncated = true;
+            break;
+        }
+        total += len;
+        kept.push(sentence);
+    }
+    let mut chunks = pack_sentences(kept, SPOKEN_CHUNK_CHARS);
+    if truncated {
+        chunks.push("La suite de la réponse est affichée à l’écran.".to_string());
+    }
+    chunks
+}
+
+#[cfg(feature = "gui")]
+fn push_sentence(out: &mut String, sentence: &str) {
+    let sentence = sentence
+        .trim()
+        .trim_end_matches([':', ',', ';', '-', '—'])
+        .trim();
+    if sentence.chars().filter(|c| c.is_alphanumeric()).count() == 0 {
+        return;
+    }
+    if !out.is_empty() {
+        out.push(' ');
+    }
+    out.push_str(sentence);
+    if !sentence.ends_with(['.', '!', '?', '…']) {
+        out.push('.');
+    }
+}
+
+/// Strip Markdown, code blocks and links which sound unnatural when read.
+#[cfg(feature = "gui")]
+fn spoken_text(text: &str) -> String {
+    let mut out = String::with_capacity(text.len().min(FULL_CHARS + 64));
     let mut in_code_block = false;
-    for line in text.lines() {
-        if line.trim_start().starts_with("```") {
+    for raw in text.lines() {
+        let line = raw.trim();
+        if line.starts_with("```") || line.starts_with("~~~") {
+            if !in_code_block {
+                push_sentence(&mut out, "Un bloc de code est affiché à l’écran");
+            }
             in_code_block = !in_code_block;
             continue;
         }
-        if in_code_block {
+        if in_code_block || line.is_empty() {
             continue;
         }
+        // Markdown table separators and horizontal rules.
+        if line
+            .chars()
+            .all(|c| matches!(c, '|' | '-' | ':' | ' ' | '*' | '_' | '='))
+        {
+            continue;
+        }
+        let line = line.trim_start_matches(['#', '>']).trim_start();
+        let line = ["- ", "* ", "+ ", "• "]
+            .iter()
+            .find_map(|bullet| line.strip_prefix(bullet))
+            .unwrap_or(line);
         let cleaned = line
-            .replace(['#', '*', '`', '_'], "")
+            .replace('|', ", ")
             .split_whitespace()
-            .filter(|word| !word.starts_with("http://") && !word.starts_with("https://"))
+            .filter(|word| !word.contains("://") && !word.starts_with("www."))
+            .map(|word| {
+                word.replace("**", "")
+                    .replace(['`', '[', ']'], "")
+                    .trim_matches(['*', '_'])
+                    .to_string()
+            })
+            .filter(|word| !word.is_empty())
             .collect::<Vec<_>>()
             .join(" ");
-        if !cleaned.is_empty() {
-            if !spoken.is_empty() {
-                spoken.push_str(". ");
-            }
-            spoken.push_str(&cleaned);
-        }
-        if spoken.chars().count() >= 850 {
-            spoken = spoken.chars().take(850).collect();
-            spoken.push_str(". Consultez le détail dans Sentinel Nexus.");
-            break;
-        }
+        push_sentence(&mut out, &cleaned);
     }
-    spoken
+    out
 }
 
-/// Resolve the Whisper model path, preferring the platform data dir and falling
-/// back to the historic `models/whisper/ggml-base.bin` relative path.
-#[cfg(all(feature = "voice", feature = "gui"))]
-fn resolve_whisper_model_path() -> std::path::PathBuf {
-    let platform = agent_common::config::AgentConfig::platform_data_dir()
+#[cfg(feature = "gui")]
+fn split_sentences(text: &str) -> Vec<String> {
+    let mut sentences = Vec::new();
+    let mut current = String::new();
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        current.push(c);
+        let boundary = matches!(c, '.' | '!' | '?' | '…' | ';')
+            && chars.peek().is_none_or(|next| next.is_whitespace());
+        if boundary {
+            let sentence = current.trim().to_string();
+            if !sentence.is_empty() {
+                sentences.push(sentence);
+            }
+            current.clear();
+        }
+    }
+    let rest = current.trim();
+    if !rest.is_empty() {
+        sentences.push(rest.to_string());
+    }
+    sentences
+}
+
+/// Group sentences into chunks of at most `max` characters, splitting overly
+/// long sentences on commas, then on words.
+#[cfg(feature = "gui")]
+fn pack_sentences(sentences: Vec<String>, max: usize) -> Vec<String> {
+    let mut pieces = Vec::new();
+    for sentence in sentences {
+        if sentence.chars().count() <= max {
+            pieces.push(sentence);
+            continue;
+        }
+        let mut piece = String::new();
+        for word in sentence.split_inclusive([',', ' ']) {
+            if !piece.is_empty() && piece.chars().count() + word.chars().count() > max {
+                pieces.push(piece.trim().to_string());
+                piece.clear();
+            }
+            piece.push_str(word);
+        }
+        if !piece.trim().is_empty() {
+            pieces.push(piece.trim().to_string());
+        }
+    }
+
+    let mut chunks: Vec<String> = Vec::new();
+    for piece in pieces {
+        match chunks.last_mut() {
+            Some(last) if last.chars().count() + 1 + piece.chars().count() <= max => {
+                last.push(' ');
+                last.push_str(&piece);
+            }
+            _ => chunks.push(piece),
+        }
+    }
+    chunks
+}
+
+// ---------------------------------------------------------------------------
+// Whisper model management
+// ---------------------------------------------------------------------------
+
+#[cfg(feature = "gui")]
+fn whisper_install_dir() -> std::path::PathBuf {
+    agent_common::config::AgentConfig::platform_data_dir()
         .join("models")
         .join("whisper")
-        .join("ggml-base.bin");
-    if platform.exists() {
-        return platform;
-    }
-    std::path::PathBuf::from("models/whisper/ggml-base.bin")
 }
 
+/// Locations searched for a Whisper model: the platform data dir (where the
+/// GUI installs it), next to the executable (packaged builds, macOS bundle
+/// resources) and the historic relative `models/whisper` directory.
+#[cfg(feature = "gui")]
+fn find_whisper_model_file(spec: &WhisperModelSpec) -> Option<std::path::PathBuf> {
+    let mut candidates = vec![whisper_install_dir().join(spec.file_name)];
+    if let Ok(exe) = std::env::current_exe()
+        && let Some(dir) = exe.parent()
+    {
+        candidates.push(dir.join("models").join("whisper").join(spec.file_name));
+        candidates.push(
+            dir.join("..")
+                .join("Resources")
+                .join("models")
+                .join("whisper")
+                .join(spec.file_name),
+        );
+    }
+    candidates.push(
+        std::path::PathBuf::from("models")
+            .join("whisper")
+            .join(spec.file_name),
+    );
+    candidates.into_iter().find(|path| {
+        path.metadata()
+            .is_ok_and(|meta| meta.is_file() && meta.len() > 0)
+    })
+}
+
+/// The preferred model when installed, otherwise the first installed one.
+#[cfg(feature = "gui")]
+fn pick_whisper_model(preferred: &str) -> Option<(&'static WhisperModelSpec, std::path::PathBuf)> {
+    let preferred = agent_gui::dto::whisper_model_spec(preferred);
+    preferred
+        .into_iter()
+        .chain(agent_gui::dto::WHISPER_MODELS.iter())
+        .find_map(|spec| find_whisper_model_file(spec).map(|path| (spec, path)))
+}
+
+#[cfg(feature = "gui")]
+fn load_whisper_context(path: &std::path::Path) -> Result<whisper_rs::WhisperContext, String> {
+    whisper_rs::WhisperContext::new_with_params(
+        &path.to_string_lossy(),
+        whisper_rs::WhisperContextParameters::default(),
+    )
+    .map_err(|e| e.to_string())
+}
+
+/// Load the preferred model lazily: a model installed or copied after start-up
+/// is picked up at the next dictation, without restarting the agent.
+#[cfg(feature = "gui")]
+fn ensure_whisper_loaded(
+    whisper_ctx: &WhisperSlot,
+    whisper_key: &Arc<std::sync::Mutex<Option<String>>>,
+    preferred: &str,
+) -> Result<(), String> {
+    let mut ctx = whisper_ctx.blocking_lock();
+    let loaded_key = whisper_key.lock().ok().and_then(|key| key.clone());
+    if ctx.is_some() && loaded_key.as_deref() == Some(preferred) {
+        return Ok(());
+    }
+    let Some((spec, path)) = pick_whisper_model(preferred) else {
+        return if ctx.is_some() {
+            Ok(())
+        } else {
+            Err(WHISPER_MISSING.to_string())
+        };
+    };
+    if ctx.is_some() && loaded_key.as_deref() == Some(spec.key) {
+        return Ok(());
+    }
+    match load_whisper_context(&path) {
+        Ok(loaded) => {
+            info!(
+                "VoiceService: Whisper model '{}' loaded from {}",
+                spec.key,
+                path.display()
+            );
+            *ctx = Some(loaded);
+            if let Ok(mut key) = whisper_key.lock() {
+                *key = Some(spec.key.to_string());
+            }
+            Ok(())
+        }
+        Err(e) if ctx.is_some() => {
+            warn!(
+                "VoiceService: keeping the current Whisper model, '{}' failed to load: {}",
+                spec.key, e
+            );
+            Ok(())
+        }
+        Err(e) => Err(format!(
+            "modèle Whisper « {} » illisible ({e}) : réinstallez-le depuis « Réglages vocaux »",
+            spec.label
+        )),
+    }
+}
+
+#[cfg(feature = "gui")]
+enum InstallError {
+    Cancelled,
+    Failed(String),
+}
+
+/// Stream the model to a `.part` file while hashing it; only a file whose size
+/// and SHA-256 match the pinned catalogue is moved into place.
+#[cfg(feature = "gui")]
+async fn download_whisper_model(
+    spec: &WhisperModelSpec,
+    tx: &mpsc::Sender<AgentEvent>,
+    cancel: &AtomicBool,
+) -> Result<std::path::PathBuf, InstallError> {
+    use futures_util::StreamExt;
+    use sha2::{Digest, Sha256};
+    use tokio::io::AsyncWriteExt;
+
+    let failed =
+        |context: &str, e: &dyn std::fmt::Display| InstallError::Failed(format!("{context} : {e}"));
+    let progress = |phase, downloaded| {
+        let _ = tx.send(AgentEvent::VoiceModelInstall {
+            progress: VoiceInstallProgress {
+                model_key: spec.key.to_string(),
+                phase,
+                downloaded_bytes: downloaded,
+                total_bytes: spec.size_bytes,
+                error: None,
+            },
+        });
+    };
+
+    let dir = whisper_install_dir();
+    tokio::fs::create_dir_all(&dir)
+        .await
+        .map_err(|e| failed(&format!("création de {}", dir.display()), &e))?;
+    let final_path = dir.join(spec.file_name);
+    let part_path = dir.join(format!("{}.part", spec.file_name));
+
+    progress(VoiceInstallPhase::Downloading, 0);
+    let client = reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(20))
+        .timeout(std::time::Duration::from_secs(3_600))
+        .user_agent(concat!("SentinelAgent/", env!("CARGO_PKG_VERSION")))
+        .build()
+        .map_err(|e| failed("client HTTP", &e))?;
+    let response = client
+        .get(spec.download_url())
+        .send()
+        .await
+        .and_then(|response| response.error_for_status())
+        .map_err(|e| {
+            failed(
+                "téléchargement impossible (vérifiez l’accès à huggingface.co)",
+                &e,
+            )
+        })?;
+    if let Some(length) = response.content_length()
+        && length != spec.size_bytes
+    {
+        return Err(InstallError::Failed(format!(
+            "taille inattendue ({length} octets au lieu de {})",
+            spec.size_bytes
+        )));
+    }
+
+    let mut file = tokio::fs::File::create(&part_path)
+        .await
+        .map_err(|e| failed("écriture du modèle", &e))?;
+    let mut hasher = Sha256::new();
+    let mut downloaded = 0u64;
+    let mut last_report = std::time::Instant::now();
+    let mut stream = response.bytes_stream();
+
+    let result: Result<(), InstallError> = async {
+        while let Some(chunk) = stream.next().await {
+            if cancel.load(Ordering::SeqCst) {
+                return Err(InstallError::Cancelled);
+            }
+            let chunk = chunk.map_err(|e| failed("connexion interrompue", &e))?;
+            downloaded += chunk.len() as u64;
+            if downloaded > spec.size_bytes {
+                return Err(InstallError::Failed(
+                    "fichier plus volumineux que prévu".to_string(),
+                ));
+            }
+            hasher.update(&chunk);
+            file.write_all(&chunk)
+                .await
+                .map_err(|e| failed("écriture du modèle", &e))?;
+            if last_report.elapsed() >= std::time::Duration::from_millis(250) {
+                last_report = std::time::Instant::now();
+                progress(VoiceInstallPhase::Downloading, downloaded);
+            }
+        }
+        file.flush()
+            .await
+            .map_err(|e| failed("écriture du modèle", &e))?;
+        file.sync_all()
+            .await
+            .map_err(|e| failed("écriture du modèle", &e))?;
+        progress(VoiceInstallPhase::Verifying, downloaded);
+        if downloaded != spec.size_bytes {
+            return Err(InstallError::Failed(format!(
+                "téléchargement incomplet ({downloaded} / {} octets)",
+                spec.size_bytes
+            )));
+        }
+        let digest = hex::encode(std::mem::take(&mut hasher).finalize());
+        if !digest.eq_ignore_ascii_case(spec.sha256) {
+            return Err(InstallError::Failed(
+                "empreinte SHA-256 invalide : fichier rejeté".to_string(),
+            ));
+        }
+        Ok(())
+    }
+    .await;
+    drop(file);
+
+    if let Err(e) = result {
+        let _ = tokio::fs::remove_file(&part_path).await;
+        return Err(e);
+    }
+    tokio::fs::rename(&part_path, &final_path)
+        .await
+        .map_err(|e| failed("installation du modèle", &e))?;
+    Ok(final_path)
+}
+
+// ---------------------------------------------------------------------------
+// Capture and transcription
+// ---------------------------------------------------------------------------
+
+#[cfg(feature = "gui")]
+#[derive(Debug, Clone)]
+struct CaptureOptions {
+    model_key: String,
+    language: String,
+    end_of_speech_ms: usize,
+    max_seconds: usize,
+    start_timeout_ms: usize,
+}
+
+#[cfg(feature = "gui")]
+impl Default for CaptureOptions {
+    fn default() -> Self {
+        Self::from_settings(&VoiceSettings::default())
+    }
+}
+
+#[cfg(feature = "gui")]
+impl CaptureOptions {
+    fn from_settings(settings: &VoiceSettings) -> Self {
+        let settings = settings.clone().sanitized();
+        Self {
+            model_key: settings.whisper_model,
+            language: settings.dictation_language,
+            end_of_speech_ms: settings.end_of_speech_ms as usize,
+            // Long questions are welcome: Whisper handles them in 30 s windows.
+            max_seconds: 120,
+            start_timeout_ms: 10_000,
+        }
+    }
+}
+
+/// Keep the microphone closed for a moment after Sentinel stopped speaking.
+#[cfg(feature = "gui")]
+fn wait_for_echo_to_settle(
+    speech_ended_at: &std::sync::Mutex<Option<std::time::Instant>>,
+    cancel: &AtomicBool,
+) {
+    const SETTLE: std::time::Duration = std::time::Duration::from_millis(350);
+    let ended = speech_ended_at.lock().ok().and_then(|ended| *ended);
+    if let Some(ended) = ended {
+        let elapsed = ended.elapsed();
+        if elapsed < SETTLE && !cancel.load(Ordering::SeqCst) {
+            std::thread::sleep(SETTLE - elapsed);
+        }
+    }
+}
+
+/// Short vocabulary hint: Whisper recognizes security jargon much better.
+#[cfg(feature = "gui")]
+const WHISPER_PROMPT_FR: &str =
+    "Sentinel, cybersécurité, CVE, EDR, SOC, RSSI, pare-feu, vulnérabilités, conformité.";
+
 /// Capture mic audio until a natural end-of-speech is detected, then run Whisper.
-#[cfg(all(feature = "voice", feature = "gui"))]
+#[cfg(feature = "gui")]
 fn record_and_transcribe(
-    whisper_ctx: &Arc<tokio::sync::Mutex<Option<whisper_rs::WhisperContext>>>,
+    whisper_ctx: &WhisperSlot,
     tx_level: &mpsc::Sender<AgentEvent>,
     cancel: &Arc<AtomicBool>,
+    finish: &Arc<AtomicBool>,
+    options: &CaptureOptions,
 ) -> Result<Option<String>, String> {
     use cpal::SampleFormat;
     use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
@@ -404,23 +1221,21 @@ fn record_and_transcribe(
     use std::time::Duration;
 
     if whisper_ctx.blocking_lock().is_none() {
-        return Err(
-            "modèle Whisper non chargé : installez le modèle local pour activer la dictée".into(),
-        );
+        return Err(WHISPER_MISSING.into());
     }
     if cancel.load(Ordering::SeqCst) {
         return Ok(None);
     }
     let host = cpal::default_host();
-    let device = host
-        .default_input_device()
-        .ok_or_else(|| "aucun microphone détecté".to_string())?;
+    let device = host.default_input_device().ok_or_else(|| {
+        "aucun microphone détecté : branchez-en un ou autorisez l’accès au micro".to_string()
+    })?;
     let dev_name = device.name().unwrap_or_else(|_| "(inconnu)".into());
     info!("VoiceService: capturing from '{}'", dev_name);
 
-    let supported = device
-        .default_input_config()
-        .map_err(|e| format!("default_input_config: {e}"))?;
+    let supported = device.default_input_config().map_err(|e| {
+        format!("microphone inaccessible ({e}) : vérifiez les autorisations du système")
+    })?;
     let sample_rate = supported.sample_rate().0;
     let channels = supported.channels() as usize;
     let sample_format = supported.sample_format();
@@ -442,7 +1257,7 @@ fn record_and_transcribe(
                 err_fn,
                 None,
             )
-            .map_err(|e| format!("build_input_stream f32: {e}"))?,
+            .map_err(|e| format!("ouverture du microphone : {e}"))?,
         SampleFormat::I16 => device
             .build_input_stream(
                 &config,
@@ -452,7 +1267,7 @@ fn record_and_transcribe(
                 err_fn,
                 None,
             )
-            .map_err(|e| format!("build_input_stream i16: {e}"))?,
+            .map_err(|e| format!("ouverture du microphone : {e}"))?,
         SampleFormat::U16 => device
             .build_input_stream(
                 &config,
@@ -464,20 +1279,23 @@ fn record_and_transcribe(
                 err_fn,
                 None,
             )
-            .map_err(|e| format!("build_input_stream u16: {e}"))?,
+            .map_err(|e| format!("ouverture du microphone : {e}"))?,
         other => return Err(format!("format audio non supporté: {other:?}")),
     };
 
-    stream.play().map_err(|e| format!("stream.play: {e}"))?;
+    stream
+        .play()
+        .map_err(|e| format!("démarrage du microphone : {e}"))?;
 
     // VAD parameters — all expressed in 20 ms frames at the native mono rate.
     let frame_ms = 20usize;
     let frame_len = (sample_rate as usize * frame_ms) / 1000;
-    let max_total_samples = sample_rate as usize * 20; // 20 s hard cap
-    let silence_hangover_frames = 700 / frame_ms; // 700 ms of silence ends speech
+    let max_total_samples = sample_rate as usize * options.max_seconds;
+    // Natural pauses inside a sentence must not end the dictation.
+    let silence_hangover_frames = options.end_of_speech_ms / frame_ms;
     let min_speech_frames = 250 / frame_ms; // require 250 ms before ending
-    let initial_timeout_frames = 10_000 / frame_ms; // 10 s to start talking
-    let preroll_frames = 250 / frame_ms; // keep 250 ms before onset
+    let initial_timeout_frames = options.start_timeout_ms / frame_ms;
+    let preroll_frames = 300 / frame_ms; // keep 300 ms before onset
     let calibration_total = 300 / frame_ms; // first 300 ms = noise floor
 
     let mut noise_rms: f32 = 0.004;
@@ -488,7 +1306,7 @@ fn record_and_transcribe(
     let mut idle_frames = 0usize;
     let mut preroll: std::collections::VecDeque<Vec<f32>> =
         std::collections::VecDeque::with_capacity(preroll_frames + 1);
-    let mut captured: Vec<f32> = Vec::with_capacity(max_total_samples);
+    let mut captured: Vec<f32> = Vec::with_capacity(sample_rate as usize * 20);
     let mut cursor = 0usize;
     // Throttle the audio-level event to ~10 Hz (every 5 frames at 20 ms).
     let mut level_frame_counter: usize = 0;
@@ -500,6 +1318,11 @@ fn record_and_transcribe(
         if cancel.load(Ordering::SeqCst) {
             info!("VoiceService: capture cancelled by UI");
             return Ok(None);
+        }
+        // “Finish” keeps what was said so far, like releasing a talk button.
+        if finish.load(Ordering::SeqCst) {
+            info!("VoiceService: capture finished by UI");
+            break;
         }
 
         // Pull one frame from the shared buffer.
@@ -554,7 +1377,9 @@ fn record_and_transcribe(
             } else {
                 idle_frames += 1;
                 if idle_frames >= initial_timeout_frames {
-                    info!("VoiceService: no speech within 10 s, ending capture session");
+                    info!(
+                        "VoiceService: no speech within the start timeout, ending capture session"
+                    );
                     break;
                 }
             }
@@ -588,6 +1413,7 @@ fn record_and_transcribe(
     if cancel.load(Ordering::SeqCst) || captured.len() < (sample_rate as usize * 300) / 1000 {
         return Ok(None);
     }
+    let _ = tx_level.send(AgentEvent::VoiceTranscribing);
 
     // Whisper expects mono f32 at 16 kHz.
     let samples_16k = if sample_rate == 16_000 {
@@ -609,14 +1435,22 @@ fn record_and_transcribe(
     let ctx_guard = whisper_ctx.blocking_lock();
     let ctx = ctx_guard
         .as_ref()
-        .ok_or_else(|| "modèle Whisper non chargé (models/whisper/ggml-base.bin)".to_string())?;
+        .ok_or_else(|| WHISPER_MISSING.to_string())?;
 
     let mut state = ctx
         .create_state()
         .map_err(|e| format!("create_state: {e}"))?;
     let mut params =
         whisper_rs::FullParams::new(whisper_rs::SamplingStrategy::Greedy { best_of: 1 });
-    params.set_language(Some("fr"));
+    let threads = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4)
+        .clamp(1, 8);
+    params.set_n_threads(threads as std::os::raw::c_int);
+    params.set_language(Some(options.language.as_str()));
+    if options.language == "fr" {
+        params.set_initial_prompt(WHISPER_PROMPT_FR);
+    }
     params.set_translate(false);
     params.set_print_special(false);
     params.set_print_progress(false);
@@ -624,6 +1458,7 @@ fn record_and_transcribe(
     params.set_print_timestamps(false);
     params.set_no_context(true);
     params.set_suppress_blank(true);
+    params.set_suppress_non_speech_tokens(true);
     params.set_single_segment(false);
 
     state
@@ -639,7 +1474,7 @@ fn record_and_transcribe(
             text.push_str(&seg);
         }
     }
-    let text = text.trim().to_string();
+    let text = text.split_whitespace().collect::<Vec<_>>().join(" ");
 
     if cancel.load(Ordering::SeqCst) || text.is_empty() || is_whisper_hallucination(&text) {
         return Ok(None);
@@ -648,7 +1483,7 @@ fn record_and_transcribe(
     Ok(Some(text))
 }
 
-#[cfg(all(feature = "voice", feature = "gui"))]
+#[cfg(feature = "gui")]
 fn push_mono<T: Copy>(
     shared: &Arc<std::sync::Mutex<Vec<f32>>>,
     data: &[T],
@@ -670,7 +1505,7 @@ fn push_mono<T: Copy>(
     }
 }
 
-#[cfg(all(feature = "voice", feature = "gui"))]
+#[cfg(feature = "gui")]
 fn rms_of(frame: &[f32]) -> f32 {
     if frame.is_empty() {
         return 0.0;
@@ -681,7 +1516,7 @@ fn rms_of(frame: &[f32]) -> f32 {
 
 /// Downmix + resample to 16 kHz mono f32. Box-average for integer ratios (48 k, 32 k, 16 k),
 /// linear interpolation otherwise (44.1 k, etc.). Good enough for Whisper.
-#[cfg(all(feature = "voice", feature = "gui"))]
+#[cfg(feature = "gui")]
 fn resample_to_16k(samples: &[f32], from_sr: u32) -> Vec<f32> {
     let to_sr = 16_000u32;
     if from_sr == to_sr {
@@ -711,7 +1546,7 @@ fn resample_to_16k(samples: &[f32], from_sr: u32) -> Vec<f32> {
 }
 
 /// Whisper tends to invent stock French captions when fed near-silence. Filter those.
-#[cfg(all(feature = "voice", feature = "gui"))]
+#[cfg(feature = "gui")]
 fn is_whisper_hallucination(text: &str) -> bool {
     let low = text.to_lowercase();
     const NEEDLES: &[&str] = &[
@@ -723,7 +1558,9 @@ fn is_whisper_hallucination(text: &str) -> bool {
         "thanks for watching",
         "♪",
     ];
-    if NEEDLES.iter().any(|n| low.contains(n)) {
+    if NEEDLES.iter().any(|n| low.contains(n))
+        || low.trim_end_matches('.') == WHISPER_PROMPT_FR.to_lowercase().trim_end_matches('.')
+    {
         return true;
     }
     // Pure punctuation or very short fillers.
@@ -731,22 +1568,33 @@ fn is_whisper_hallucination(text: &str) -> bool {
     trimmed.len() < 2
 }
 
-#[cfg(all(test, feature = "voice", feature = "gui"))]
+#[cfg(all(test, feature = "gui"))]
 mod workflow_tests {
     use super::*;
-    #[test]
-    fn stopping_speech_invalidates_an_answer_still_being_generated() {
-        let (tx, rx) = mpsc::channel();
-        // No OS audio backend, microphone or model is opened in this test.
-        let service = VoiceService {
+
+    fn silent_service(tx: mpsc::Sender<AgentEvent>) -> VoiceService {
+        // No OS audio backend, microphone or model is opened in these tests.
+        VoiceService {
             event_tx: tx,
             tts_engine: Arc::new(std::sync::Mutex::new(None)),
             speech_epoch: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            settings: Arc::new(std::sync::RwLock::new(VoiceSettings::default())),
+            speech_ended_at: Arc::new(std::sync::Mutex::new(None)),
             sound_manager: None,
             whisper_ctx: Arc::new(tokio::sync::Mutex::new(None)),
+            whisper_key: Arc::new(std::sync::Mutex::new(None)),
             is_listening: Arc::new(AtomicBool::new(false)),
             cancel_requested: Arc::new(AtomicBool::new(false)),
-        };
+            finish_requested: Arc::new(AtomicBool::new(false)),
+            installing: Arc::new(AtomicBool::new(false)),
+            install_cancel: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    #[test]
+    fn stopping_speech_invalidates_an_answer_still_being_generated() {
+        let (tx, rx) = mpsc::channel();
+        let service = silent_service(tx);
         let generation = service.speech_generation();
         service.stop_speaking();
         assert!(matches!(
@@ -758,7 +1606,10 @@ mod workflow_tests {
         assert_ne!(service.speech_generation(), generation);
         service.stop_listening();
         assert!(service.cancel_requested.load(Ordering::SeqCst));
+        service.finish_listening();
+        assert!(service.finish_requested.load(Ordering::SeqCst));
     }
+
     #[test]
     fn missing_whisper_model_fails_before_opening_microphone() {
         let (tx, _rx) = mpsc::channel();
@@ -766,8 +1617,109 @@ mod workflow_tests {
             &Arc::new(tokio::sync::Mutex::new(None)),
             &tx,
             &Arc::new(AtomicBool::new(false)),
+            &Arc::new(AtomicBool::new(false)),
+            &CaptureOptions::default(),
         )
         .unwrap_err();
         assert!(error.contains("Whisper"));
+    }
+
+    #[test]
+    fn capture_options_follow_operator_settings() {
+        let settings = VoiceSettings {
+            end_of_speech_ms: 2_000,
+            dictation_language: "auto".into(),
+            ..VoiceSettings::default()
+        };
+        let options = CaptureOptions::from_settings(&settings);
+        assert_eq!(options.end_of_speech_ms, 2_000);
+        assert_eq!(options.language, "auto");
+        assert!(options.max_seconds >= 60, "long questions must not be cut");
+    }
+
+    #[test]
+    fn long_answers_are_read_completely_in_sentence_chunks() {
+        let sentence =
+            "Le poste présente une vulnérabilité critique qui doit être corrigée rapidement.";
+        let answer = (0..40)
+            .map(|i| format!("{i}. {sentence}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let chunks = spoken_chunks(&answer, SpokenReplyMode::Full);
+        assert!(chunks.len() > 5);
+        assert!(
+            chunks
+                .iter()
+                .all(|chunk| chunk.chars().count() <= SPOKEN_CHUNK_CHARS)
+        );
+        let spoken = chunks.join(" ");
+        assert_eq!(spoken.matches("vulnérabilité critique").count(), 40);
+        assert!(!spoken.contains("affichée à l’écran"));
+    }
+
+    #[test]
+    fn summary_mode_stops_on_a_sentence_boundary() {
+        let answer = "Première phrase importante. ".repeat(80);
+        let chunks = spoken_chunks(&answer, SpokenReplyMode::Summary);
+        let spoken = chunks.join(" ");
+        assert!(spoken.chars().count() < SUMMARY_CHARS + 120);
+        assert!(spoken.ends_with("La suite de la réponse est affichée à l’écran."));
+        assert!(!spoken.contains("Première phrase importante Première"));
+    }
+
+    #[test]
+    fn markdown_code_and_links_are_not_read_aloud() {
+        let answer = "## Constat\n**Risque élevé** sur `sshd` :\n- voir https://example.com/cve\n```bash\nrm -rf /tmp/x\n```\n| Hôte | Score |\n|---|---|\n| srv1 | 9 |";
+        let spoken = spoken_chunks(answer, SpokenReplyMode::Full).join(" ");
+        assert!(!spoken.contains('#') && !spoken.contains('*') && !spoken.contains('`'));
+        assert!(!spoken.contains("https") && !spoken.contains("rm -rf"));
+        assert!(spoken.contains("Un bloc de code est affiché à l’écran."));
+        assert!(spoken.contains("Risque élevé sur sshd."));
+        assert!(spoken.contains("srv1"));
+    }
+
+    #[test]
+    fn very_long_sentences_are_split_on_words() {
+        let answer = "mot ".repeat(400);
+        let chunks = spoken_chunks(&answer, SpokenReplyMode::Full);
+        assert!(chunks.len() >= 6);
+        assert!(
+            chunks
+                .iter()
+                .all(|chunk| chunk.chars().count() <= SPOKEN_CHUNK_CHARS)
+        );
+    }
+
+    #[test]
+    fn empty_answer_releases_the_voice_session() {
+        let (tx, rx) = mpsc::channel();
+        let service = silent_service(tx);
+        service.speak("");
+        assert!(matches!(
+            rx.try_recv(),
+            Ok(AgentEvent::VoiceStatus { speaking: false })
+        ));
+    }
+
+    #[test]
+    fn backend_rate_mapping_stays_in_range() {
+        assert_eq!(backend_rate(1.0, 0.0, 0.5, 1.0), 0.5);
+        assert!(backend_rate(2.0, 0.0, 0.5, 1.0) > 0.5);
+        assert!(backend_rate(0.5, 0.0, 0.5, 1.0) < 0.5);
+        assert!(backend_rate(2.0, -10.0, 0.0, 10.0) <= 10.0);
+        assert!(backend_rate(0.5, -10.0, 0.0, 10.0) >= -10.0);
+    }
+
+    #[test]
+    fn missing_model_is_reported_without_a_microphone() {
+        let error = ensure_whisper_loaded(
+            &Arc::new(tokio::sync::Mutex::new(None)),
+            &Arc::new(std::sync::Mutex::new(None)),
+            "unknown",
+        );
+        // Either a model is installed on the test host, or the error explains how to install one.
+        if let Err(message) = error {
+            assert!(message.contains("Réglages vocaux"));
+        }
     }
 }

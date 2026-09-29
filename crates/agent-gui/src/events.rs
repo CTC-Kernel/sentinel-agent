@@ -299,6 +299,18 @@ pub enum AgentEvent {
     },
     /// Audio failure, never a user transcription.
     VoiceError { message: String },
+    /// Capture ended and Whisper is transcribing the recorded speech.
+    VoiceTranscribing,
+    /// Capture ended without intelligible speech (silence timeout).
+    VoiceNoSpeech,
+    /// Voice capabilities of this host (dictation model, system voices).
+    VoiceEngineStatus {
+        info: Box<crate::dto::VoiceEngineInfo>,
+    },
+    /// Whisper model installation progress.
+    VoiceModelInstall {
+        progress: crate::dto::VoiceInstallProgress,
+    },
     /// Voice synthesis state change.
     VoiceStatus {
         /// True if the system is currently outputting synthesized text.
@@ -576,12 +588,22 @@ pub enum GuiCommand {
         current_impact: u8,
     },
     /// Enable or disable the Voice Interaction capability (STT).
+    /// Disabling ends the capture and transcribes what was already said.
     SetVoiceListening {
         /// Whether the agent should actively listen and transcribe mic input.
         enabled: bool,
     },
     /// Stop microphone capture and speech without rearming hands-free mode.
+    /// Unlike `SetVoiceListening { enabled: false }`, the recording is discarded.
     StopVoice,
+    /// Apply the operator's voice preferences (voice, rate, dictation...).
+    ConfigureVoice { settings: crate::dto::VoiceSettings },
+    /// Ask the runtime to publish its voice capabilities.
+    VoiceRefreshStatus,
+    /// Download, verify and load a Whisper model from the pinned catalogue.
+    VoiceInstallModel { model_key: String },
+    /// Cancel a Whisper model download.
+    VoiceCancelModelInstall,
     /// Read text through the native TTS engine.
     SpeakNotification { text: String },
     /// Toggle voice recognition on/off (convenience wrapper around SetVoiceListening).

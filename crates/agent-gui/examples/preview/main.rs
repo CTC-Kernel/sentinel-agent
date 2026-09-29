@@ -67,6 +67,38 @@ impl Default for Preview {
                 }
                 Ok("listening") => { state.ai.is_listening = true; state.ai.mic_level = 0.62; }
                 Ok("error") => { state.ai.voice_error = Some("Microphone indisponible : vérifiez l’autorisation et le périphérique sélectionné.".into()); }
+                Ok("conversation") => {
+                    state.ai.voice_conversation_enabled = true;
+                    state.ai.is_listening = true;
+                    state.ai.mic_level = 0.48;
+                }
+                Ok("no-model") => {
+                    state.ai.voice_engine = Some(agent_gui::dto::VoiceEngineInfo { tts_available: true, ..Default::default() });
+                    state.ai.voice_error = Some("La dictée utilise un modèle Whisper local qui n’est pas encore installé.".into());
+                }
+                Ok("installing") => {
+                    state.ai.voice_install = Some(agent_gui::dto::VoiceInstallProgress {
+                        model_key: "base".into(),
+                        phase: agent_gui::dto::VoiceInstallPhase::Downloading,
+                        downloaded_bytes: 61_000_000,
+                        total_bytes: 147_951_465,
+                        error: None,
+                    });
+                }
+                Ok("settings") => {
+                    state.ai.voice_settings_open = true;
+                    state.ai.voice_engine = Some(agent_gui::dto::VoiceEngineInfo {
+                        stt_ready: true,
+                        stt_model: Some("base".into()),
+                        installed_models: vec!["base".into()],
+                        tts_available: true,
+                        can_set_rate: true,
+                        can_set_volume: true,
+                        can_set_voice: true,
+                        voices: vec![agent_gui::dto::VoiceOption { id: "fr-amelie".into(), name: "Amélie (Premium)".into(), language: "fr-CA".into() }],
+                        active_voice_id: Some("fr-amelie".into()),
+                    });
+                }
                 _ => {}
             }
             if let Ok(drawer) = std::env::var("PREVIEW_DRAWER") {
@@ -295,6 +327,10 @@ impl eframe::App for Preview {
             });
 
         self.overlays(ctx);
+        if let Some(state) = self.state.as_mut() {
+            // Commands are not sent by the preview bench.
+            let _ = agent_gui::llm_panel::LLMPanel::voice_settings_window(ctx, state);
+        }
 
         self.end_frame(ctx);
         ctx.request_repaint();
