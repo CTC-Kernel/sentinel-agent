@@ -42,12 +42,11 @@ impl ThreatsPage {
         ui.add_space(theme::SPACE_MD);
 
         // ── Tab bar with badges ─────────────────────────────────────
-        let total_events = state.threats.suspicious_processes.len()
-            + state.threats.usb_events.len()
-            + state.threats.system_incidents.len()
-            + state.fim.alerts.len()
-            + state.network.alerts.len()
-            + state.vulnerability_findings.len();
+        // Badge = events still awaiting triage (the tab's default view).
+        let total_events = types::build_threat_list(state)
+            .iter()
+            .filter(|t| !t.acknowledged && !t.allowlisted)
+            .count();
 
         let pending_response = state
             .threats

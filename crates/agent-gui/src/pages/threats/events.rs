@@ -21,7 +21,7 @@ const ITEMS_PER_PAGE: usize = 25;
 
 /// Render the events tab.
 pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
-    let command = None;
+    let mut command = None;
 
     let old_filter = state.threats.events_status_filter;
     ui.horizontal_wrapped(|ui| {
@@ -305,6 +305,16 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             if drawer_action == Some(1)
                 && state.acknowledge_threat_item(threat.kind, threat.source_index)
             {
+                // Keep the platform in sync, as the FIM page does.
+                if threat.kind == "fim"
+                    && let Some(alert) = state.fim.alerts.get(threat.source_index)
+                {
+                    command = Some(GuiCommand::AcknowledgeFimAlert {
+                        alert_id: alert.id.clone(),
+                        path: alert.path.clone(),
+                        timestamp: alert.timestamp,
+                    });
+                }
                 state.threats.detail_open = false;
                 state.threats.selected_threat = None;
                 state.push_toast(

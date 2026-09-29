@@ -965,6 +965,12 @@ impl AgentRuntime {
             warn!("Initial security scan failed: {}", e);
         }
         let mut last_security_scan = std::time::Instant::now();
+        // Fingerprints of the incidents reported by the previous scan. A
+        // persistent condition is re-detected on every scan; only notify when
+        // it is new (or reappears after having cleared).
+        #[cfg(feature = "gui")]
+        let mut previous_incidents: std::collections::HashSet<String> =
+            std::collections::HashSet::new();
 
         // Initialize network collection with staggered start
         let (network_static_interval, network_connection_interval, network_security_interval) = {
@@ -1752,21 +1758,39 @@ impl AgentRuntime {
                             warn!("Security scan detected {} incident(s)!", count);
                             #[cfg(feature = "gui")]
                             {
-                                self.emit_notification(
-                                    "Incidents de sécurité détectés",
-                                    &format!("{} incident(s) détecté(s)", count),
-                                    "error",
-                                );
+                                let current: std::collections::HashSet<String> = result
+                                    .incidents
+                                    .iter()
+                                    .map(|i| {
+                                        format!(
+                                            "{}|{}|{}|{}",
+                                            i.incident_type, i.title, i.description, i.evidence
+                                        )
+                                    })
+                                    .collect();
+                                let new_count = current.difference(&previous_incidents).count();
+                                previous_incidents = current;
+                                if new_count > 0 {
+                                    self.emit_notification(
+                                        "Incidents de sécurité détectés",
+                                        &format!("{} nouvel(s) incident(s) détecté(s)", new_count),
+                                        "error",
+                                    );
+                                }
                                 for incident in &result.incidents {
-                                    // Emit SystemIncident for every detected incident
-                                    self.emit_system_incident(incident);
-
-                                    // Also emit SuspiciousProcess for process-related incidents
-                                    if incident.incident_type
+                                    let is_process = incident.incident_type
                                         == agent_scanner::IncidentType::SuspiciousProcess
                                         || incident.incident_type
-                                            == agent_scanner::IncidentType::CryptoMiner
-                                    {
+                                            == agent_scanner::IncidentType::CryptoMiner;
+                                    // Process detections are reported once, as a
+                                    // SuspiciousProcess: a duplicate SystemIncident
+                                    // could not be covered by a process authorization
+                                    // and was counted twice.
+                                    if !is_process {
+                                        self.emit_system_incident(incident);
+                                    }
+
+                                    if is_process {
                                         let process_name = incident
                                             .evidence
                                             .get("process_name")
@@ -1813,6 +1837,8 @@ impl AgentRuntime {
                         pipeline_incidents.extend(result.incidents.iter().cloned());
 
                         if count == 0 {
+                            #[cfg(feature = "gui")]
+                            previous_incidents.clear();
                             #[cfg(feature = "gui")]
                             self.emit_notification(
                                 "Scan sécurité",

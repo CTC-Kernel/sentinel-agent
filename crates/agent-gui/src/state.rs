@@ -19,6 +19,14 @@ pub fn event_identity(kind: &str, event: &impl Serialize) -> String {
         if kind == "fim" {
             object.remove("id");
         } // The runtime recreates this presentation UUID.
+        if is_recurring_kind(kind) {
+            // Periodic scanners re-report a persistent condition with a fresh
+            // timestamp (and sometimes a re-computed confidence). Those fields
+            // must not create a new alert, otherwise an acknowledgment only
+            // lasts until the next scan.
+            object.remove("detected_at");
+            object.remove("confidence");
+        }
         object.retain(|key, _| {
             !key.starts_with("ai_")
                 && !matches!(
@@ -28,6 +36,63 @@ pub fn event_identity(kind: &str, event: &impl Serialize) -> String {
         });
     }
     format!("{kind}:{:x}", Sha256::digest(value.to_string().as_bytes()))
+}
+
+/// Detections produced by periodic scans of a persistent condition. They are
+/// deduplicated on arrival and their acknowledgment survives re-detection.
+fn is_recurring_kind(kind: &str) -> bool {
+    matches!(kind, "process" | "system" | "network")
+}
+
+/// Recurring detection that can be merged with its previous occurrence.
+pub(crate) trait RecurringEvent: Serialize {
+    fn acknowledged_mut(&mut self) -> &mut bool;
+    /// Keep AI enrichment computed for the previous occurrence of the same condition.
+    fn inherit_enrichment(&mut self, previous: Self);
+}
+
+macro_rules! recurring_event {
+    ($($ty:ty),*) => {$(
+        impl RecurringEvent for $ty {
+            fn acknowledged_mut(&mut self) -> &mut bool {
+                &mut self.acknowledged
+            }
+            fn inherit_enrichment(&mut self, previous: Self) {
+                self.ai_confidence = self.ai_confidence.or(previous.ai_confidence);
+                self.is_false_positive = self.is_false_positive.or(previous.is_false_positive);
+                if self.ai_analysis.is_none() {
+                    self.ai_analysis = previous.ai_analysis;
+                }
+            }
+        }
+    )*};
+}
+recurring_event!(
+    crate::dto::GuiSuspiciousProcess,
+    crate::dto::GuiSystemIncident,
+    crate::dto::GuiNetworkAlert
+);
+
+/// Insert a detection at the front of its feed. A re-detection of an already
+/// listed condition replaces it (refreshing its timestamp) instead of adding a
+/// duplicate, and keeps the operator's acknowledgment.
+pub(crate) fn upsert_recurring<T: RecurringEvent>(
+    events: &mut VecDeque<T>,
+    kind: &str,
+    mut event: T,
+    acknowledged_keys: &VecDeque<String>,
+    capacity: usize,
+) {
+    let key = event_identity(kind, &event);
+    if let Some(position) = events.iter().position(|e| event_identity(kind, e) == key)
+        && let Some(mut previous) = events.remove(position)
+    {
+        *event.acknowledged_mut() |= *previous.acknowledged_mut();
+        event.inherit_enrichment(previous);
+    }
+    *event.acknowledged_mut() |= acknowledged_keys.contains(&key);
+    events.push_front(event);
+    events.truncate(capacity);
 }
 
 pub fn vulnerability_identity(finding: &crate::dto::GuiVulnerabilityFinding) -> String {
@@ -377,7 +442,10 @@ pub struct ThreatsState {
 
     // Events tab
     pub events_page: usize,
+    /// 0 = all, 1 = to triage (default), 2 = acknowledged, 3 = authorized.
     pub events_status_filter: usize,
+    /// Overview feed also lists acknowledged / authorized events.
+    pub overview_show_triaged: bool,
     pub events_severity_filter: Option<crate::dto::Severity>,
 
     // Investigation tab
@@ -494,7 +562,8 @@ impl Default for ThreatsState {
 
             active_tab: crate::dto::EdrTab::default(),
             events_page: 0,
-            events_status_filter: 0,
+            events_status_filter: 1,
+            overview_show_triaged: false,
             events_severity_filter: None,
             ioc_search: String::new(),
             ioc_type: crate::dto::IocSearchType::default(),
@@ -1142,8 +1211,9 @@ impl AppState {
             f.allowlisted = covered(Kind::FilePath, &f.path);
         }
         for a in &mut self.network.alerts {
-            a.allowlisted = covered(Kind::IpAddress, a.source_ip.as_deref().unwrap_or(""))
-                || covered(Kind::IpAddress, a.destination_ip.as_deref().unwrap_or(""));
+            // Only the remote peer is authorizable: `source_ip` is this host's
+            // own address, and matching it would silence every network alert.
+            a.allowlisted = covered(Kind::IpAddress, a.destination_ip.as_deref().unwrap_or(""));
         }
     }
 
@@ -1289,12 +1359,14 @@ impl AppState {
                 self.network.selected_connection = None;
                 self.network.detail_open = false;
             }
-            AgentEvent::NetworkSecurityAlert { mut alert } => {
-                alert.acknowledged |= self
-                    .acknowledged_event_keys
-                    .contains(&event_identity("network", &alert));
-                self.network.alerts.push_front(alert);
-                self.network.alerts.truncate(200);
+            AgentEvent::NetworkSecurityAlert { alert } => {
+                upsert_recurring(
+                    &mut self.network.alerts,
+                    "network",
+                    alert,
+                    &self.acknowledged_event_keys,
+                    200,
+                );
                 // Invalidate alert selection — push_front shifted all indices
                 self.network.selected_alert = None;
             }
@@ -1357,20 +1429,24 @@ impl AppState {
                 // Invalidate threat selection — push_front shifted source indices
                 self.threats.selected_threat = None;
             }
-            AgentEvent::SuspiciousProcess { mut process } => {
-                process.acknowledged |= self
-                    .acknowledged_event_keys
-                    .contains(&event_identity("process", &process));
-                self.threats.suspicious_processes.push_front(process);
-                self.threats.suspicious_processes.truncate(200);
+            AgentEvent::SuspiciousProcess { process } => {
+                upsert_recurring(
+                    &mut self.threats.suspicious_processes,
+                    "process",
+                    process,
+                    &self.acknowledged_event_keys,
+                    200,
+                );
                 self.threats.selected_threat = None;
             }
-            AgentEvent::SystemIncident { mut incident } => {
-                incident.acknowledged |= self
-                    .acknowledged_event_keys
-                    .contains(&event_identity("system", &incident));
-                self.threats.system_incidents.push_front(incident);
-                self.threats.system_incidents.truncate(200);
+            AgentEvent::SystemIncident { incident } => {
+                upsert_recurring(
+                    &mut self.threats.system_incidents,
+                    "system",
+                    incident,
+                    &self.acknowledged_event_keys,
+                    200,
+                );
                 self.threats.selected_threat = None;
             }
             AgentEvent::FimStats {
@@ -2145,12 +2221,109 @@ mod triage_persistence_tests {
             process: event.clone(),
         });
         assert!(restarted.threats.suspicious_processes[0].acknowledged);
-        let mut recurrence = event;
-        recurrence.detected_at += chrono::Duration::seconds(1);
+        // The next periodic scan re-detects the same condition: it refreshes the
+        // existing entry and stays acknowledged instead of reappearing.
+        let mut recurrence = event.clone();
+        recurrence.detected_at += chrono::Duration::minutes(5);
+        recurrence.confidence = 75;
         restarted.apply_event(AgentEvent::SuspiciousProcess {
             process: recurrence,
         });
+        assert_eq!(restarted.threats.suspicious_processes.len(), 1);
+        assert!(restarted.threats.suspicious_processes[0].acknowledged);
+        // A different process instance is a new alert.
+        let mut other = event;
+        other.pid += 1;
+        restarted.apply_event(AgentEvent::SuspiciousProcess { process: other });
+        assert_eq!(restarted.threats.suspicious_processes.len(), 2);
         assert!(!restarted.threats.suspicious_processes[0].acknowledged);
+    }
+
+    #[test]
+    fn recurring_detection_keeps_triage_and_ai_enrichment_without_duplicates() {
+        let mut state = AppState::default();
+        let incident = crate::dto::GuiSystemIncident {
+            incident_type: "firewall_disabled".into(),
+            severity: crate::dto::Severity::High,
+            title: "Pare-feu désactivé".into(),
+            description: "Profil public".into(),
+            confidence: 90,
+            detected_at: chrono::Utc::now(),
+            ai_confidence: None,
+            is_false_positive: None,
+            ai_analysis: None,
+            acknowledged: false,
+            allowlisted: false,
+        };
+        state.apply_event(AgentEvent::SystemIncident {
+            incident: incident.clone(),
+        });
+        state.threats.system_incidents[0].ai_analysis = Some("analyse".into());
+        assert!(state.acknowledge_threat_item("system", 0));
+        for minutes in 1..=3 {
+            let mut again = incident.clone();
+            again.detected_at += chrono::Duration::minutes(5 * minutes);
+            state.apply_event(AgentEvent::SystemIncident { incident: again });
+        }
+        assert_eq!(state.threats.system_incidents.len(), 1);
+        let current = &state.threats.system_incidents[0];
+        assert!(current.acknowledged);
+        assert_eq!(current.ai_analysis.as_deref(), Some("analyse"));
+        assert!(current.detected_at > incident.detected_at);
+        assert_eq!(state.security_attention_counts().0, 0);
+    }
+
+    #[test]
+    fn process_authorization_covers_new_detections_of_the_pattern() {
+        let mut state = AppState::default();
+        state.add_allowlist_rule_global(
+            crate::dto::AllowlistRuleType::ProcessPattern,
+            "example".into(),
+            "Outil interne".into(),
+            "Test".into(),
+        );
+        let mut later = process();
+        later.pid = 777;
+        state.apply_event(AgentEvent::SuspiciousProcess { process: later });
+        assert!(state.threats.suspicious_processes[0].allowlisted);
+        assert_eq!(state.security_attention_counts().0, 0);
+    }
+
+    #[test]
+    fn network_authorization_never_matches_the_local_address() {
+        let mut state = AppState::default();
+        state.add_allowlist_rule_global(
+            crate::dto::AllowlistRuleType::IpAddress,
+            "192.168.1.10".into(),
+            "Poste local".into(),
+            "Test".into(),
+        );
+        let alert = |remote: &str| crate::dto::GuiNetworkAlert {
+            alert_type: "c2".into(),
+            severity: crate::dto::Severity::Critical,
+            description: "test".into(),
+            source_ip: Some("192.168.1.10".into()),
+            destination_ip: Some(remote.into()),
+            destination_port: Some(443),
+            confidence: 90,
+            detected_at: chrono::Utc::now(),
+            ai_confidence: None,
+            is_false_positive: None,
+            ai_analysis: None,
+            acknowledged: false,
+            allowlisted: false,
+        };
+        state.apply_event(AgentEvent::NetworkSecurityAlert {
+            alert: alert("203.0.113.5"),
+        });
+        assert!(!state.network.alerts[0].allowlisted);
+        state.add_allowlist_rule_global(
+            crate::dto::AllowlistRuleType::IpAddress,
+            "203.0.113.0/24".into(),
+            "Partenaire".into(),
+            "Test".into(),
+        );
+        assert!(state.network.alerts[0].allowlisted);
     }
 
     #[test]

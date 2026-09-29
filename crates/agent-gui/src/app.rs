@@ -913,7 +913,7 @@ impl SentinelApp {
                     ui.add_space(theme::SPACE_SM);
 
                     // ── Two headline numbers ────────────────────────
-                    let threat_count = self.state.threats.suspicious_processes.len();
+                    let threat_count = self.state.security_attention_counts().0;
                     let stats: [(&str, String, egui::Color32); 2] = [
                         (
                             "Conformité",

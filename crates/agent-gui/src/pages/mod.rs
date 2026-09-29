@@ -83,7 +83,7 @@ pub(crate) fn security_navigation(ui: &mut egui::Ui, state: &mut crate::state::A
                     state.threats.events_page = 0;
                     state.threats.search.clear();
                     state.threats.events_severity_filter = None;
-                    state.threats.events_status_filter = if *target == 2 { 2 } else { 0 };
+                    state.threats.events_status_filter = if *target == 2 { 2 } else { 1 };
                     if *target == 3 {
                         state.notifications_active_tab = 1;
                         state.pending_navigation = Some(Page::Notifications);
