@@ -522,7 +522,7 @@ impl LogCollector {
         #[cfg(not(target_os = "windows"))]
         let (event_name, severity) = (
             format!("{}_log_event", entry.source),
-            classify_severity(&entry.message),
+            cap_severity_by_level(classify_severity(&entry.message), entry.level.as_deref()),
         );
 
         // Enrich: produce a human-readable name and description
@@ -1008,10 +1008,48 @@ fn humanize_event(
     (name.into(), desc)
 }
 
+/// True when `word` appears as a standalone word that is not a `key=value` /
+/// `key: value` field name. macOS logs are full of benign fields such as
+/// `critical=0`, `priority critical: 0`, `filesystemSpaceCritical:0` or the
+/// `SecCritical` category, which must not be read as critical errors.
+fn contains_severity_word(lower: &str, word: &str) -> bool {
+    let is_word_char = |c: char| c.is_alphanumeric() || c == '_';
+    lower.match_indices(word).any(|(start, _)| {
+        let end = start + word.len();
+        let before_ok = !lower[..start].chars().next_back().is_some_and(is_word_char);
+        let rest = &lower[end..];
+        let after_ok = !rest.chars().next().is_some_and(is_word_char);
+        let is_field = matches!(rest.trim_start().chars().next(), Some('=' | ':'))
+            && rest
+                .trim_start()
+                .chars()
+                .skip(1)
+                .find(|c| !c.is_whitespace())
+                .is_some_and(|c| c.is_ascii_digit());
+        before_ok && after_ok && !is_field
+    })
+}
+
+/// Bound keyword severity by the level the OS itself assigned (macOS unified
+/// log). A `default`/`info` message merely mentioning "error" is not a
+/// critical event; only faults may reach the critical range (>= 7).
+#[cfg_attr(target_os = "windows", allow(dead_code))]
+fn cap_severity_by_level(severity: u8, level: Option<&str>) -> u8 {
+    match level {
+        Some("fault") => severity.max(7),
+        Some("error") => severity.min(6),
+        Some("default" | "info" | "debug" | "activity") => severity.min(5),
+        _ => severity,
+    }
+}
+
 /// Classify severity from log message keywords.
 fn classify_severity(message: &str) -> u8 {
     let lower = message.to_lowercase();
-    if lower.contains("critical") || lower.contains("emergency") || lower.contains("panic") {
+    if ["critical", "emergency", "panic"]
+        .iter()
+        .any(|word| contains_severity_word(&lower, word))
+    {
         9
     } else if lower.contains("error") || lower.contains("fail") {
         7
@@ -1056,47 +1094,80 @@ fn extract_user(message: &str) -> Option<String> {
 /// Parse macOS unified log output lines.
 ///
 /// The `log show --style compact` format is:
-/// `YYYY-MM-DD HH:MM:SS.ffffff+ZZZZ 0xHEXTID Type Process[PID]: Message`
-///
-/// We extract the timestamp, process name, and PID from each line.
+/// `YYYY-MM-DD HH:MM:SS.fff Ty Process[PID:TID] [subsystem:category] Message`
+/// where the timestamp is in local time and `Ty` is the message type
+/// (`F` fault, `E` error, `Df` default, `I` info, `Db` debug, `A` activity).
+/// The older `default`-style layout with a timezone offset and a `0xTID`
+/// column is still accepted.
 #[cfg(target_os = "macos")]
 fn parse_macos_log(output: &str, source: LogSource) -> Vec<RawLogEntry> {
+    fn next_token(s: &str) -> Option<(&str, &str)> {
+        let s = s.trim_start();
+        if s.is_empty() {
+            return None;
+        }
+        let end = s.find(char::is_whitespace).unwrap_or(s.len());
+        Some((&s[..end], &s[end..]))
+    }
+
     output
         .lines()
         .filter(|line| !line.is_empty() && !line.starts_with("Timestamp"))
         .map(|line| {
-            // Try to parse: "YYYY-MM-DD HH:MM:SS.ffffff+ZZZZ 0xHEX Type Process[PID]: Message"
-            // The timestamp occupies the first 31 characters (e.g. "2026-03-24 10:15:30.123456+0200")
             let mut timestamp = None;
             let mut process = None;
             let mut pid = None;
+            let mut level = None;
 
-            // Split into whitespace-delimited tokens
-            let parts: Vec<&str> = line.splitn(5, ' ').collect();
-            // parts[0] = date, parts[1] = time+tz, parts[2] = thread_id, parts[3] = type, parts[4] = "Process[PID]: Message"
+            if let Some((date, rest)) = next_token(line)
+                && let Some((time, rest)) = next_token(rest)
+            {
+                let ts_str = format!("{date} {time}");
+                timestamp = chrono::DateTime::parse_from_str(&ts_str, "%Y-%m-%d %H:%M:%S%.f%z")
+                    .map(|dt| dt.with_timezone(&Utc))
+                    .ok()
+                    .or_else(|| {
+                        chrono::NaiveDateTime::parse_from_str(&ts_str, "%Y-%m-%d %H:%M:%S%.f")
+                            .ok()
+                            .and_then(|naive| naive.and_local_timezone(chrono::Local).earliest())
+                            .map(|dt| dt.with_timezone(&Utc))
+                    });
 
-            if parts.len() >= 5 {
-                // Parse timestamp from "YYYY-MM-DD HH:MM:SS.ffffff+ZZZZ"
-                let ts_str = format!("{} {}", parts[0], parts[1]);
-                // Try parsing with chrono - the format has microseconds and timezone offset
-                if let Ok(dt) = chrono::DateTime::parse_from_str(&ts_str, "%Y-%m-%d %H:%M:%S%.f%z")
+                let mut rest = rest;
+                // Legacy layout: thread id column before the type.
+                if let Some((token, after)) = next_token(rest)
+                    && token.starts_with("0x")
                 {
-                    timestamp = Some(dt.with_timezone(&Utc));
+                    rest = after;
                 }
-
-                // Parse "Process[PID]: Message" from parts[4]
-                let remainder = parts[4];
-                if let Some(bracket_start) = remainder.find('[') {
-                    process = Some(remainder[..bracket_start].to_string());
-                    if let Some(bracket_end) = remainder[bracket_start..].find(']') {
-                        let pid_str = &remainder[bracket_start + 1..bracket_start + bracket_end];
-                        pid = pid_str.parse::<u32>().ok();
+                if let Some((ty, after)) = next_token(rest) {
+                    let mapped = match ty {
+                        "F" | "Fault" => Some("fault"),
+                        "E" | "Error" => Some("error"),
+                        "Df" | "Default" => Some("default"),
+                        "I" | "Info" => Some("info"),
+                        "Db" | "Debug" => Some("debug"),
+                        "A" | "Activity" => Some("activity"),
+                        _ => None,
+                    };
+                    if let Some(mapped) = mapped {
+                        level = Some(mapped.to_string());
+                        rest = after;
                     }
-                } else if let Some(colon_pos) = remainder.find(':') {
-                    // Some lines may have "Process: Message" without a PID
-                    let proc_candidate = remainder[..colon_pos].trim();
-                    if !proc_candidate.is_empty() && !proc_candidate.contains(' ') {
-                        process = Some(proc_candidate.to_string());
+                }
+                if let Some((token, _)) = next_token(rest) {
+                    let token = token.trim_end_matches(':');
+                    if let Some(bracket) = token.find('[') {
+                        let name = &token[..bracket];
+                        if !name.is_empty() {
+                            process = Some(name.to_string());
+                        }
+                        pid = token[bracket + 1..]
+                            .split([':', ']'])
+                            .next()
+                            .and_then(|p| p.parse::<u32>().ok());
+                    } else if !token.is_empty() {
+                        process = Some(token.to_string());
                     }
                 }
             }
@@ -1110,7 +1181,7 @@ fn parse_macos_log(output: &str, source: LogSource) -> Vec<RawLogEntry> {
                 pid,
                 event_id: None,
                 user: None,
-                level: None,
+                level,
             }
         })
         .collect()
@@ -1305,5 +1376,52 @@ mod tests {
             level: None,
         };
         assert!(!collector.matches_severity_filter(&not_matching));
+    }
+
+    #[test]
+    fn benign_critical_fields_are_not_critical() {
+        for msg in [
+            "Df apsd[1:2] [com.apple.securityd:SecCritical] Failed to talk to secd after 1 attempts.",
+            "advbuf: 12, priority critical: 0, range: 3, usecases:  metricInfo:{}",
+            "_issueCommand id=4 cmd=<private> critical=0 qos=25 sending xpc msg",
+            "lockUsageCheck:0|filesystemSpaceCritical:0|purged:0",
+            "CACHE_DELETE_CRITICAL_RELINQUISH_PURGE_KEY=(null)",
+        ] {
+            assert!(classify_severity(msg) < 9, "{msg}");
+        }
+        assert_eq!(classify_severity("kernel: critical temperature reached"), 9);
+        assert_eq!(classify_severity("PANIC: bad state"), 9);
+    }
+
+    #[test]
+    fn severity_is_capped_by_os_level() {
+        assert_eq!(cap_severity_by_level(9, Some("default")), 5);
+        assert_eq!(cap_severity_by_level(7, Some("error")), 6);
+        assert_eq!(cap_severity_by_level(2, Some("fault")), 7);
+        assert_eq!(cap_severity_by_level(9, None), 9);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn parses_macos_compact_lines() {
+        let out = "Timestamp               Ty Process[PID:TID]\n\
+2026-09-29 14:53:35.569 E  SetStoreUpdateService[56962:508452] [com.apple.Biome:BiomeGeneral] Warning: x\n\
+2026-09-29 14:53:32.994 A  mds[368:508898] (CoreDuetContext) CoreDuet: y\n\
+2026-03-24 10:15:30.123456+0200 0x1a2b Default sshd[42]: Failed password\n";
+        let entries = parse_macos_log(out, LogSource::Application);
+        assert_eq!(entries.len(), 3);
+        assert_eq!(entries[0].process.as_deref(), Some("SetStoreUpdateService"));
+        assert_eq!(entries[0].pid, Some(56962));
+        assert_eq!(entries[0].level.as_deref(), Some("error"));
+        assert!(entries[0].timestamp.is_some());
+        assert_eq!(entries[1].process.as_deref(), Some("mds"));
+        assert_eq!(entries[1].level.as_deref(), Some("activity"));
+        assert_eq!(entries[2].process.as_deref(), Some("sshd"));
+        assert_eq!(entries[2].pid, Some(42));
+        assert_eq!(entries[2].level.as_deref(), Some("default"));
+        assert_eq!(
+            entries[2].timestamp.unwrap().to_rfc3339(),
+            "2026-03-24T08:15:30.123456+00:00"
+        );
     }
 }

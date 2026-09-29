@@ -820,9 +820,9 @@ impl AuthenticatedClient {
                 client
             }
             Err(e) => {
-                warn!(
-                    "mTLS not available ({}), using header-based auth (X-Agent-Certificate). \
-                     This is normal when certificates are not in PEM format.",
+                debug!(
+                    "mTLS not available ({}), using header-based auth + HMAC signing. \
+                     This is normal: enrollment certificates are opaque tokens, not X.509.",
                     e
                 );
                 HttpClient::with_header_auth(&config, &credentials.client_certificate)?
