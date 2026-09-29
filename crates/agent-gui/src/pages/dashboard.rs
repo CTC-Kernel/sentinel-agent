@@ -613,17 +613,10 @@ impl DashboardPage {
                 // Inline Chat Input
                 ui.horizontal(|ui: &mut egui::Ui| {
                     // PREMIUM Voice Toggle
-                    if widgets::voice_toggle_button(ui, state.ai.is_listening).clicked() {
-                        state.ai.is_listening = !state.ai.is_listening;
-                        state.ai.voice_reply_pending = false;
-                        // Turn off speaking if we start listening
-                        if state.ai.is_listening {
-                            state.ai.is_speaking = false;
-                        }
-                        nav_action =
-                            Some(DashboardAction::Command(GuiCommand::SetVoiceListening {
-                                enabled: state.ai.is_listening,
-                            }));
+                    if widgets::voice_toggle_button(ui, state.ai.is_listening).clicked()
+                        && let Some(command) = LLMPanel::toggle_dictation(state)
+                    {
+                        nav_action = Some(DashboardAction::Command(command));
                     }
 
                     ui.add_space(theme::SPACE_XS);

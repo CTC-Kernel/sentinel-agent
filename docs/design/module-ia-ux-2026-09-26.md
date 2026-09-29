@@ -84,3 +84,21 @@ Le banc `preview` accepte `PREVIEW_AI_STATE=empty|busy|listening|error`, `PREVIE
 Suite au retour sur les blocs empilés, l’assistant utilise désormais un espace de travail borné par la fenêtre. Le panneau inférieur mesure la hauteur effective du compositeur ; le transcript occupe le reste, avec défilement indépendant. Le champ multiligne passe à 72 px dans cette page. Le rôle métier, le contexte et les commandes de conversation sont regroupés dans une barre compacte. Les suggestions sont centrées au démarrage et disponibles dans un menu pendant les échanges ; les réglages vocaux ne déploient plus de contenu dans la page.
 
 Validation : 88 tests GUI passent, dont un contrôle géométrique du champ et des commandes à 960 × 640 et 1360 × 820, avec historique long, dictée simulée et erreur vocale. Compilation des exemples réussie. Dix captures natives supplémentaires : [galerie de la composition révisée](ai-layout-2026-09-26/index.html). Les très petites fenêtres gardent le défilement de page pour préserver une hauteur minimale de travail. Cette révision porte sur l’assistant IA, pas sur une refonte de toutes les pages.
+
+
+## Voix : révision du 29 septembre 2026
+
+Retours terrain : réponses longues coupées à l’oral, message « Voix indisponible », dictée impossible sans modèle Whisper, conversation continue inutilisable.
+
+| Cause | Correction |
+|---|---|
+| Texte tronqué à 850 caractères et fin de lecture estimée à 35 s au plus. Le mode conversation rouvrait alors le micro, ce qui arrêtait la voix en pleine phrase. | Lecture par groupes de phrases (≤ 260 caractères) et attente de la fin réelle de chaque groupe. Délai de sécurité proportionnel au texte. Réponse complète par défaut (plafond de 9 000 caractères), résumé en option. |
+| Synthèse système en échec (veille, changement de périphérique) : un seul essai, puis erreur générique. | Moteur recréé et réglages réappliqués avant de signaler une erreur. Message précis : la réponse reste affichée. |
+| « Terminer la dictée » annulait la capture. | Deux commandes distinctes : terminer (on transcrit) et arrêter (on jette l’audio). |
+| Fin de parole détectée après 0,7 s de silence, capture limitée à 20 s. | Silence réglable de 0,5 à 3 s (1,2 s par défaut), capture jusqu’à 120 s. |
+| Aucun moyen d’installer Whisper. | Catalogue figé (Tiny, Base, Small q5_1) avec URL Hugging Face et SHA-256 publiés. Téléchargement dans un `.part`, vérification de la taille et de l’empreinte, puis renommage atomique. Chargement à chaud. |
+| Conversation arrêtée au premier silence ; réouverture du micro sujette à des courses d’événements. | Nouvelle écoute automatique (deux tours sans parole au plus), puis pause signalée. Le service est libéré avant la publication du résultat. Le micro attend 350 ms après la voix de Sentinel (anti-écho). |
+
+La fenêtre **Réglages vocaux** est accessible depuis l’assistant et la fenêtre flottante. Elle regroupe : modèle de dictée, langue, silence de fin de phrase, voix système, vitesse, volume, réponse complète ou résumé, test de la voix, alertes vocales et leur seuil. Préférences persistées. La conversation mains libres n’est jamais relancée au démarrage.
+
+Vérification : 117 tests GUI et 10 tests du service vocal (découpage, Markdown non lu, mode résumé, correspondance des vitesses, modèle absent sans ouverture du micro). Essai réel hors CI : téléchargement de `ggml-tiny.bin` et `ggml-base.bin`, empreinte SHA-256 validée, chargement puis transcription d’une question française synthétisée par espeak-ng. La qualité acoustique avec un vrai micro et les voix macOS et Windows restent à valider sur poste. Le banc `preview` accepte aussi `PREVIEW_AI_STATE=conversation|no-model|installing|settings`.

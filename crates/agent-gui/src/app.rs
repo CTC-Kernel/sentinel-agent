@@ -620,10 +620,11 @@ impl SentinelApp {
 
                 if self.state.ai.voice_alerts_enabled
                     && let crate::events::AgentEvent::Notification { notification } = &event
-                    && matches!(
-                        notification.severity.to_ascii_lowercase().as_str(),
-                        "warning" | "high" | "error" | "critical"
-                    )
+                    && self
+                        .state
+                        .ai
+                        .voice_alert_threshold
+                        .accepts(&notification.severity)
                 {
                     let spoken = format!(
                         "Alerte Sentinel. {}. {}",
@@ -656,10 +657,19 @@ impl SentinelApp {
         if let Some(cmd) = self.state.threats.take_allowlist_sync() {
             self.send_command(cmd);
         }
-        if resume_conversation
-            && self.state.ai.voice_conversation_enabled
-            && !self.state.ai.is_processing
-            && !self.state.ai.is_listening
+        if let Some(cmd) = self.state.ai.take_voice_config_sync() {
+            self.send_command(cmd);
+            if self.state.ai.voice_engine.is_none() {
+                self.send_command(GuiCommand::VoiceRefreshStatus);
+            }
+        }
+        // Hands-free: reopen the microphone after a spoken answer, or after a
+        // silent round (bounded by VOICE_MAX_EMPTY_ROUNDS).
+        if self.state.ai.take_voice_relisten()
+            || (resume_conversation
+                && self.state.ai.voice_conversation_enabled
+                && !self.state.ai.is_processing
+                && !self.state.ai.is_listening)
         {
             self.state.ai.is_listening = true;
             self.send_command(GuiCommand::SetVoiceListening { enabled: true });
@@ -1078,6 +1088,10 @@ impl eframe::App for SentinelApp {
 
         // Process incoming events.
         self.process_events();
+
+        for command in crate::llm_panel::LLMPanel::voice_settings_window(ctx, &mut self.state) {
+            self.send_command(command);
+        }
 
         // Jarvis Widget Viewport (standalone window)
         if self.state.jarvis_visible {
@@ -1817,12 +1831,58 @@ impl SentinelApp {
                             // Shared accessible microphone control.
                             if widgets::voice_toggle_button(ui, self.state.ai.is_listening)
                                 .clicked()
+                                && let Some(command) =
+                                    crate::llm_panel::LLMPanel::toggle_dictation(&mut self.state)
                             {
-                                self.state.ai.is_listening = !self.state.ai.is_listening;
-                                self.state.ai.voice_reply_pending = false;
-                                self.send_command(GuiCommand::SetVoiceListening {
-                                    enabled: self.state.ai.is_listening,
-                                });
+                                self.send_command(command);
+                            }
+                            let hands_free = self.state.ai.voice_conversation_enabled
+                                && (self.state.ai.is_listening
+                                    || self.state.ai.is_speaking
+                                    || self.state.ai.is_processing
+                                    || self.state.ai.voice_reply_pending
+                                    || self.state.ai.is_transcribing);
+                            if ui
+                                .selectable_label(hands_free, icons::HEADPHONES)
+                                .on_hover_text(if hands_free {
+                                    "Quitter la conversation vocale"
+                                } else {
+                                    "Conversation vocale mains libres"
+                                })
+                                .clicked()
+                            {
+                                if hands_free {
+                                    crate::llm_panel::LLMPanel::reset_voice_session(
+                                        &mut self.state,
+                                    );
+                                    self.send_command(GuiCommand::StopVoice);
+                                } else if let Some(command) =
+                                    crate::llm_panel::LLMPanel::start_conversation(&mut self.state)
+                                {
+                                    self.send_command(command);
+                                }
+                            }
+                            if ui
+                                .button(icons::GEAR)
+                                .on_hover_text("Réglages vocaux")
+                                .clicked()
+                            {
+                                self.state.ai.voice_settings_open = true;
+                            }
+                            // Settings (and the “install dictation” prompt) live in
+                            // the main window: bring it forward, even from the tray.
+                            if self.state.ai.voice_settings_open && !self.visible {
+                                #[cfg(target_os = "macos")]
+                                crate::os::macos::dock::show_icon();
+                                self.visible = true;
+                                ctx.send_viewport_cmd_to(
+                                    egui::ViewportId::ROOT,
+                                    egui::ViewportCommand::Visible(true),
+                                );
+                                ctx.send_viewport_cmd_to(
+                                    egui::ViewportId::ROOT,
+                                    egui::ViewportCommand::Focus,
+                                );
                             }
                         });
                     });

@@ -159,8 +159,13 @@ pub struct GuiPreferences {
     pub sidebar_collapsed: bool,
     #[serde(default)]
     pub voice_alerts_enabled: bool,
+    /// Kept for backward compatibility of stored preferences; not restored.
     #[serde(default)]
     pub voice_conversation_enabled: bool,
+    #[serde(default)]
+    pub voice_settings: crate::dto::VoiceSettings,
+    #[serde(default)]
+    pub voice_alert_threshold: crate::dto::VoiceAlertThreshold,
 }
 
 impl Default for GuiPreferences {
@@ -189,6 +194,8 @@ impl Default for GuiPreferences {
             sidebar_collapsed: false,
             voice_alerts_enabled: false,
             voice_conversation_enabled: false,
+            voice_settings: crate::dto::VoiceSettings::default(),
+            voice_alert_threshold: crate::dto::VoiceAlertThreshold::default(),
         }
     }
 }
@@ -215,6 +222,8 @@ impl GuiPreferences {
             sidebar_collapsed: state.settings.sidebar_collapsed,
             voice_alerts_enabled: state.ai.voice_alerts_enabled,
             voice_conversation_enabled: state.ai.voice_conversation_enabled,
+            voice_settings: state.ai.voice_settings.clone(),
+            voice_alert_threshold: state.ai.voice_alert_threshold,
         }
     }
 
@@ -255,7 +264,12 @@ impl GuiPreferences {
         state.settings.log_collector_poll_secs = self.log_collector_poll_secs;
         state.settings.sidebar_collapsed = self.sidebar_collapsed;
         state.ai.voice_alerts_enabled = self.voice_alerts_enabled;
-        state.ai.voice_conversation_enabled = self.voice_conversation_enabled;
+        // Hands-free conversation is a session, never resumed silently at
+        // start-up: the microphone only opens after an explicit action.
+        state.ai.voice_conversation_enabled = false;
+        state.ai.voice_settings = self.voice_settings.clone().sanitized();
+        state.ai.voice_alert_threshold = self.voice_alert_threshold;
+        state.ai.voice_config_sync_pending = true;
         state.discovery.enabled = self.discovery_enabled;
         state
             .settings
@@ -764,6 +778,63 @@ pub struct AiState {
     /// Important alerts waiting for a safe moment to be spoken. Alerts never
     /// interrupt microphone capture or an active assistant answer.
     pub pending_voice_alerts: VecDeque<String>,
+    /// Operator voice preferences (voice, rate, dictation, reading mode).
+    pub voice_settings: crate::dto::VoiceSettings,
+    /// Minimum severity of alerts read aloud.
+    pub voice_alert_threshold: crate::dto::VoiceAlertThreshold,
+    /// Capabilities published by the runtime (`None` until first report).
+    pub voice_engine: Option<crate::dto::VoiceEngineInfo>,
+    /// Whisper model installation in progress or last result.
+    pub voice_install: Option<crate::dto::VoiceInstallProgress>,
+    /// Capture ended; Whisper is transcribing.
+    pub is_transcribing: bool,
+    /// Consecutive hands-free rounds without speech.
+    pub voice_empty_rounds: u8,
+    /// Reopen the microphone after a silent hands-free round.
+    pub voice_relisten_pending: bool,
+    /// Informational voice message (not an error).
+    pub voice_notice: Option<String>,
+    /// Voice settings window visibility.
+    pub voice_settings_open: bool,
+    /// Voice settings must be pushed to the runtime.
+    pub voice_config_sync_pending: bool,
+}
+
+/// Silent hands-free rounds tolerated before the conversation pauses.
+pub const VOICE_MAX_EMPTY_ROUNDS: u8 = 2;
+
+impl AiState {
+    /// Dictation can start: unknown capabilities are optimistic (the runtime
+    /// reports a precise error), a known missing model is not.
+    pub fn dictation_available(&self) -> bool {
+        self.voice_engine
+            .as_ref()
+            .is_none_or(|engine| engine.stt_ready)
+    }
+
+    pub fn voice_install_active(&self) -> bool {
+        self.voice_install
+            .as_ref()
+            .is_some_and(|install| install.phase.is_active())
+    }
+
+    /// Commands that push voice preferences to the runtime, once per change.
+    pub fn take_voice_config_sync(&mut self) -> Option<crate::events::GuiCommand> {
+        std::mem::take(&mut self.voice_config_sync_pending).then(|| {
+            crate::events::GuiCommand::ConfigureVoice {
+                settings: self.voice_settings.clone().sanitized(),
+            }
+        })
+    }
+
+    /// Reopen the microphone after a silent hands-free round.
+    pub fn take_voice_relisten(&mut self) -> bool {
+        std::mem::take(&mut self.voice_relisten_pending)
+            && self.voice_conversation_enabled
+            && !self.is_processing
+            && !self.is_listening
+            && !self.is_speaking
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1097,7 +1168,10 @@ impl Default for AppState {
             security: SecurityState::default(),
             compliance: ComplianceFilter::default(),
             vulnerability: VulnerabilityFilter::default(),
-            ai: AiState::default(),
+            ai: AiState {
+                voice_config_sync_pending: true,
+                ..AiState::default()
+            },
             reports: ReportsState::default(),
             risks: RisksState::default(),
             assets: AssetsState::default(),
@@ -1616,6 +1690,9 @@ impl AppState {
             }
             AgentEvent::VoiceError { message } => {
                 self.ai.voice_error = Some(message);
+                self.ai.voice_notice = None;
+                self.ai.is_transcribing = false;
+                self.ai.voice_relisten_pending = false;
                 self.ai.is_listening = false;
                 self.ai.is_speaking = false;
                 self.ai.pending_voice_send = false;
@@ -1636,7 +1713,52 @@ impl AppState {
                     self.ai.pending_voice_send =
                         self.ai.voice_conversation_enabled && !had_draft && !self.ai.is_processing;
                     self.ai.voice_error = None;
+                    self.ai.voice_notice = None;
                 }
+                self.ai.is_transcribing = false;
+                self.ai.voice_empty_rounds = 0;
+            }
+            AgentEvent::VoiceTranscribing => {
+                self.ai.is_transcribing = true;
+            }
+            AgentEvent::VoiceNoSpeech => {
+                self.ai.is_transcribing = false;
+                if self.ai.voice_conversation_enabled && !self.ai.is_processing {
+                    self.ai.voice_empty_rounds = self.ai.voice_empty_rounds.saturating_add(1);
+                    if self.ai.voice_empty_rounds <= VOICE_MAX_EMPTY_ROUNDS {
+                        self.ai.voice_relisten_pending = true;
+                    } else {
+                        self.ai.voice_empty_rounds = 0;
+                        self.ai.voice_notice = Some(
+                            "Conversation en pause : aucune parole détectée. Appuyez sur « Parler » pour reprendre.".to_string(),
+                        );
+                    }
+                } else {
+                    self.ai.voice_notice = Some(
+                        "Aucune parole détectée. Rapprochez-vous du micro et réessayez."
+                            .to_string(),
+                    );
+                }
+            }
+            AgentEvent::VoiceEngineStatus { info } => {
+                self.ai.voice_engine = Some(*info);
+            }
+            AgentEvent::VoiceModelInstall { progress } => {
+                if progress.phase == crate::dto::VoiceInstallPhase::Ready {
+                    self.ai.voice_settings.whisper_model = progress.model_key.clone();
+                    self.ai.voice_error = None;
+                    self.ai.voice_notice = Some(
+                        "Dictée installée : appuyez sur « Parler » ou « Dicter ».".to_string(),
+                    );
+                    if let Some(engine) = self.ai.voice_engine.as_mut() {
+                        engine.stt_ready = true;
+                        engine.stt_model = Some(progress.model_key.clone());
+                        if !engine.installed_models.contains(&progress.model_key) {
+                            engine.installed_models.push(progress.model_key.clone());
+                        }
+                    }
+                }
+                self.ai.voice_install = Some(progress);
             }
 
             AgentEvent::VoiceStatus { speaking } => {
@@ -1813,9 +1935,11 @@ impl AppState {
                 self.ai.is_listening = active;
                 if active {
                     self.ai.is_speaking = false;
+                    self.ai.voice_notice = None;
                 }
                 if !active {
                     self.ai.mic_level = 0.0;
+                    self.ai.is_transcribing = false;
                 }
             }
             AgentEvent::AudioLevel { rms } => {
@@ -2219,6 +2343,107 @@ mod voice_workflow_tests {
                 && !state.ai.voice_conversation_enabled
         );
         assert!(state.ai.voice_error.is_some());
+    }
+
+    #[test]
+    fn silent_hands_free_rounds_relisten_then_pause() {
+        let mut state = AppState::default();
+        state.ai.voice_conversation_enabled = true;
+        for _ in 0..super::VOICE_MAX_EMPTY_ROUNDS {
+            state.apply_event(AgentEvent::LlmVoiceState { active: false });
+            state.apply_event(AgentEvent::VoiceNoSpeech);
+            assert!(state.ai.take_voice_relisten());
+            assert!(!state.ai.take_voice_relisten(), "one reopening per round");
+        }
+        state.apply_event(AgentEvent::VoiceNoSpeech);
+        assert!(!state.ai.take_voice_relisten());
+        assert!(
+            state
+                .ai
+                .voice_notice
+                .as_deref()
+                .is_some_and(|n| n.contains("pause"))
+        );
+    }
+
+    #[test]
+    fn speech_resets_the_silent_round_counter() {
+        let mut state = AppState::default();
+        state.ai.voice_conversation_enabled = true;
+        state.apply_event(AgentEvent::VoiceNoSpeech);
+        state.apply_event(AgentEvent::VoiceTranscribing);
+        assert!(state.ai.is_transcribing);
+        state.apply_event(AgentEvent::VoiceTranscription {
+            text: "Quelles alertes ?".into(),
+        });
+        assert_eq!(state.ai.voice_empty_rounds, 0);
+        assert!(!state.ai.is_transcribing);
+        assert!(state.ai.pending_voice_send);
+    }
+
+    #[test]
+    fn missing_dictation_model_opens_settings_instead_of_the_microphone() {
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::VoiceEngineStatus {
+            info: Box::new(crate::dto::VoiceEngineInfo::default()),
+        });
+        assert!(crate::llm_panel::LLMPanel::toggle_dictation(&mut state).is_none());
+        assert!(crate::llm_panel::LLMPanel::start_conversation(&mut state).is_none());
+        assert!(!state.ai.is_listening && !state.ai.voice_conversation_enabled);
+        assert!(state.ai.voice_settings_open && state.ai.voice_error.is_some());
+
+        state.apply_event(AgentEvent::VoiceModelInstall {
+            progress: crate::dto::VoiceInstallProgress {
+                model_key: "small-q5_1".into(),
+                phase: crate::dto::VoiceInstallPhase::Ready,
+                downloaded_bytes: 1,
+                total_bytes: 1,
+                error: None,
+            },
+        });
+        assert!(state.ai.dictation_available());
+        assert!(state.ai.voice_error.is_none());
+        assert_eq!(state.ai.voice_settings.whisper_model, "small-q5_1");
+        assert!(matches!(
+            crate::llm_panel::LLMPanel::start_conversation(&mut state),
+            Some(crate::events::GuiCommand::SetVoiceListening { enabled: true })
+        ));
+        assert!(state.ai.voice_conversation_enabled && state.ai.is_listening);
+        // Ending a dictation asks the runtime to transcribe, not to discard.
+        assert!(matches!(
+            crate::llm_panel::LLMPanel::toggle_dictation(&mut state),
+            Some(crate::events::GuiCommand::SetVoiceListening { enabled: false })
+        ));
+    }
+
+    #[test]
+    fn voice_preferences_persist_without_reopening_the_microphone() {
+        let mut state = AppState::default();
+        state.ai.voice_conversation_enabled = true;
+        state.ai.voice_settings.rate = 1.4;
+        state.ai.voice_settings.reply_mode = crate::dto::SpokenReplyMode::Summary;
+        state.ai.voice_alert_threshold = crate::dto::VoiceAlertThreshold::Critical;
+        let json = serde_json::to_string(&super::GuiPreferences::from_state(&state)).unwrap();
+        let prefs: super::GuiPreferences = serde_json::from_str(&json).unwrap();
+        let mut restarted = AppState::default();
+        restarted.ai.voice_config_sync_pending = false;
+        prefs.apply_to(&mut restarted);
+        assert!(!restarted.ai.voice_conversation_enabled);
+        assert_eq!(restarted.ai.voice_settings.rate, 1.4);
+        assert_eq!(
+            restarted.ai.voice_alert_threshold,
+            crate::dto::VoiceAlertThreshold::Critical
+        );
+        assert!(matches!(
+            restarted.ai.take_voice_config_sync(),
+            Some(crate::events::GuiCommand::ConfigureVoice { settings })
+                if settings.reply_mode == crate::dto::SpokenReplyMode::Summary
+        ));
+        assert!(restarted.ai.take_voice_config_sync().is_none());
+        // Older preference files without the new fields still load.
+        let legacy: super::GuiPreferences =
+            serde_json::from_str(r#"{"voice_alerts_enabled":true}"#).unwrap();
+        assert_eq!(legacy.voice_settings, crate::dto::VoiceSettings::default());
     }
     #[test]
     fn incoming_fim_event_cannot_retarget_open_security_drawer() {

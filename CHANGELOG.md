@@ -10,6 +10,36 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🎙️ Assistant IA : conversation vocale fiable et réglages complets
+
+- **Réponses lues en entier** : la réponse est découpée en phrases et lue
+  groupe par groupe ; le micro ne se rouvre qu'à la fin réelle de la lecture.
+  Corrige les réponses longues coupées (limite de 850 caractères et délai de
+  35 s qui rouvrait le micro en pleine phrase) et le faux message « Voix
+  indisponible ». Mode « Résumé » au choix. Moteur système recréé
+  automatiquement s'il échoue.
+- **Mode conversation mains libres** (bouton « Parler ») : écoute, envoi
+  automatique, réponse vocale puis nouvelle écoute ; « J'ai fini » pour
+  envoyer tout de suite, « Interrompre et parler » pour couper la réponse,
+  pause automatique après deux tours sans parole. Le micro ne s'ouvre jamais
+  tout seul au démarrage.
+- **Dictée qui ne perd plus rien** : « Terminer la dictée » transcrit ce qui a
+  été dit (au lieu de l'effacer). Dictée jusqu'à 2 minutes, silence de fin de
+  phrase réglable (1,2 s par défaut contre 0,7 s), vocabulaire cyber pour
+  Whisper, calcul multi-cœur.
+- **Installation de la dictée depuis l'interface** : modèles Whisper Tiny /
+  Base / Small téléchargés depuis une URL figée et vérifiés par SHA-256 avant
+  installation. Chargés sans redémarrage. Au lieu de « modèle Whisper non
+  chargé », l'interface propose « Installer la dictée ».
+- **Réglages vocaux** : voix système (la meilleure voix française est choisie
+  automatiquement), vitesse, volume, réponse complète ou résumé, langue parlée,
+  modèle de dictée, bouton « Tester la voix », seuil des alertes vocales
+  (avertissement / élevée / critique). Réglages conservés entre les sessions.
+- **Réponses pensées pour l'oral** : en conversation vocale, l'IA répond en
+  3 à 6 phrases courtes sans Markdown (réponse plus rapide) ; le raisonnement
+  `<think>` des modèles DeepSeek-R1 n'est jamais lu. Bouton « conversation »
+  dans l'assistant flottant ; ses réglages ramènent la fenêtre principale.
+
 ### 🏠 Mode autonome (standalone), choisi à l'installation
 
 - **Un agent sans plateforme** : `"standalone": true` (ou `SENTINEL_STANDALONE`,
