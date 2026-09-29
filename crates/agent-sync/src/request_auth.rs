@@ -21,27 +21,61 @@ impl std::fmt::Debug for SigningSecret {
     }
 }
 
+/// ECMAScript `Number::toString` (what `JSON.stringify` emits for numbers).
+///
+/// Rust and JS both pick the shortest round-tripping digit count, but when the
+/// exact value lies halfway between two such candidates Rust rounds the last
+/// digit up while ECMAScript picks the even one (`0.15649795532226563` vs
+/// `0.15649795532226562`). Rust's fixed-precision formatting is exact with
+/// round-half-even, so re-rendering at the shortest precision matches JS.
+fn js_number(x: f64) -> String {
+    if x == 0.0 || !x.is_finite() {
+        return "0".into();
+    }
+    let shortest = format!("{:e}", x.abs());
+    let (mantissa, _) = shortest.split_once('e').unwrap_or((&shortest, "0"));
+    let precision = mantissa
+        .len()
+        .saturating_sub(if mantissa.contains('.') { 2 } else { 1 });
+    let even = format!("{:.*e}", precision, x.abs());
+    let chosen = if even.parse::<f64>() == Ok(x.abs()) {
+        even
+    } else {
+        shortest
+    };
+    let (mantissa, exponent) = chosen.split_once('e').unwrap_or((&chosen, "0"));
+    let digits = mantissa.replace('.', "");
+    let digits = match digits.trim_end_matches('0') {
+        "" => "0",
+        d => d,
+    };
+    let k = digits.len() as i32;
+    let n = exponent.parse::<i32>().unwrap_or(0) + 1;
+    let body = if k <= n && n <= 21 {
+        format!("{digits}{}", "0".repeat((n - k) as usize))
+    } else if 0 < n && n <= 21 {
+        format!("{}.{}", &digits[..n as usize], &digits[n as usize..])
+    } else if -6 < n && n <= 0 {
+        format!("0.{}{digits}", "0".repeat((-n) as usize))
+    } else {
+        let e = n - 1;
+        let sign = if e >= 0 { "+" } else { "-" };
+        let fraction = if k == 1 {
+            String::new()
+        } else {
+            format!(".{}", &digits[1..])
+        };
+        format!("{}{fraction}e{sign}{}", &digits[..1], e.abs())
+    };
+    if x < 0.0 { format!("-{body}") } else { body }
+}
+
 /// Encode JSON using ECMAScript's number formatting and integer-property ordering.
 /// Sending these same bytes avoids signing Rust's `1.0` while the server verifies `1`.
 fn server_json(value: &serde_json::Value) -> String {
     use serde_json::Value;
     match value {
-        Value::Number(n) => {
-            let x = n.as_f64().unwrap_or(0.0);
-            if x == 0.0 {
-                return "0".into();
-            }
-            if (1e-6..1e21).contains(&x.abs()) {
-                return x.to_string();
-            }
-            let scientific = format!("{x:e}");
-            let (mantissa, exponent) = scientific.split_once('e').unwrap();
-            let exponent: i32 = exponent.parse().unwrap();
-            format!(
-                "{mantissa}e{}{exponent}",
-                if exponent >= 0 { "+" } else { "" }
-            )
-        }
+        Value::Number(n) => js_number(n.as_f64().unwrap_or(0.0)),
         Value::Array(values) => format!(
             "[{}]",
             values.iter().map(server_json).collect::<Vec<_>>().join(",")
@@ -191,5 +225,26 @@ mod tests {
             server_json(&value),
             "{\"2\":0,\"10\":1e+21,\"a\":0.000001,\"b\":1e-7}"
         );
+    }
+    #[test]
+    fn halfway_digits_round_to_even_like_ecmascript() {
+        // Values observed in production heartbeats (memory_percent) that made
+        // the server reject the signature.
+        for (x, js) in [
+            (0.156_497_955_322_265_63, "0.15649795532226562"),
+            (215_492_859_907_334.63, "215492859907334.62"),
+            (231_883_033_904_786.63, "231883033904786.62"),
+            (-0.156_497_955_322_265_63, "-0.15649795532226562"),
+            (9.33e25, "9.33e+25"),
+            (3.97e-11, "3.97e-11"),
+            (1.5, "1.5"),
+            (123.0, "123"),
+            (1e20, "100000000000000000000"),
+            (u64::MAX as f64, "18446744073709552000"),
+            (f64::MIN_POSITIVE, "2.2250738585072014e-308"),
+            (5e-324, "5e-324"),
+        ] {
+            assert_eq!(js_number(x), js, "{x:e}");
+        }
     }
 }
