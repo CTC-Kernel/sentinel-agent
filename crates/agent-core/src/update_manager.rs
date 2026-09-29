@@ -401,6 +401,12 @@ impl UpdateManager {
             } else {
                 info!("Not running as root, requesting elevation for detached installer");
                 agent_common::macos::run_installer_elevated(path_str)?;
+                // The elevated installer ran synchronously, so its postinstall
+                // `open` only re-activated this still-running instance. Reopen
+                // the updated bundle once this process has exited.
+                if let Err(e) = schedule_macos_relaunch() {
+                    warn!("Failed to schedule relaunch after update: {}", e);
+                }
             }
             info!("macOS installer spawned successfully");
         }
@@ -473,6 +479,41 @@ impl UpdateManager {
         // Terminate the process with success code so the installer can seamlessly replace the binary
         std::process::exit(0);
     }
+}
+
+/// Spawn a detached helper that waits for this process to exit, then reopens
+/// the application bundle so the freshly installed version starts.
+#[cfg(target_os = "macos")]
+fn schedule_macos_relaunch() -> std::io::Result<()> {
+    use std::os::unix::process::CommandExt;
+
+    let bundle = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.ancestors().nth(3).map(std::path::Path::to_path_buf))
+        .filter(|path| path.extension().is_some_and(|ext| ext == "app"))
+        .unwrap_or_else(|| std::path::PathBuf::from("/Applications/SentinelAgent.app"));
+
+    // Values are passed as positional arguments, never interpolated into the
+    // script. The wait is bounded (~60s) so the helper cannot linger forever.
+    let script = r#"i=0
+while kill -0 "$1" 2>/dev/null && [ "$i" -lt 120 ]; do sleep 0.5; i=$((i+1)); done
+sleep 1
+exec /usr/bin/open "$2""#;
+
+    std::process::Command::new("/bin/sh")
+        .arg("-c")
+        .arg(script)
+        .arg("sentinel-relaunch")
+        .arg(std::process::id().to_string())
+        .arg(&bundle)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        // Own process group: launchd reaps the agent's group when it exits.
+        .process_group(0)
+        .spawn()?;
+    info!("Scheduled relaunch of {} after update", bundle.display());
+    Ok(())
 }
 
 #[cfg(test)]
