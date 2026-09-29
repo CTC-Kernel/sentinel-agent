@@ -804,9 +804,34 @@ fn push_sentence(out: &mut String, sentence: &str) {
     }
 }
 
+/// Reasoning models (DeepSeek-R1 distills) prefix answers with a
+/// `<think>…</think>` block. It is never read aloud; an unterminated block
+/// (answer cut by the token budget) leaves nothing to read.
+#[cfg(feature = "gui")]
+fn without_reasoning(text: &str) -> std::borrow::Cow<'_, str> {
+    if !text.contains("<think>") {
+        return std::borrow::Cow::Borrowed(text);
+    }
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(start) = rest.find("<think>") {
+        out.push_str(&rest[..start]);
+        match rest[start..].find("</think>") {
+            Some(end) => rest = &rest[start + end + "</think>".len()..],
+            None => {
+                rest = "";
+                break;
+            }
+        }
+    }
+    out.push_str(rest);
+    std::borrow::Cow::Owned(out)
+}
+
 /// Strip Markdown, code blocks and links which sound unnatural when read.
 #[cfg(feature = "gui")]
 fn spoken_text(text: &str) -> String {
+    let text = without_reasoning(text);
     let mut out = String::with_capacity(text.len().min(FULL_CHARS + 64));
     let mut in_code_block = false;
     for raw in text.lines() {
@@ -1676,6 +1701,18 @@ mod workflow_tests {
         assert!(spoken.contains("Un bloc de code est affiché à l’écran."));
         assert!(spoken.contains("Risque élevé sur sshd."));
         assert!(spoken.contains("srv1"));
+    }
+
+    #[test]
+    fn reasoning_blocks_are_never_read_aloud() {
+        let answer =
+            "<think>\nJe dois d'abord analyser les processus.\n</think>\nLe poste est sain.";
+        assert_eq!(
+            spoken_chunks(answer, SpokenReplyMode::Full),
+            vec!["Le poste est sain."]
+        );
+        let truncated = "<think>Raisonnement interminable";
+        assert!(spoken_chunks(truncated, SpokenReplyMode::Full).is_empty());
     }
 
     #[test]

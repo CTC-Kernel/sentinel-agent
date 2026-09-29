@@ -35,6 +35,10 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   automatiquement), vitesse, volume, réponse complète ou résumé, langue parlée,
   modèle de dictée, bouton « Tester la voix », seuil des alertes vocales
   (avertissement / élevée / critique). Réglages conservés entre les sessions.
+- **Réponses pensées pour l'oral** : en conversation vocale, l'IA répond en
+  3 à 6 phrases courtes sans Markdown (réponse plus rapide) ; le raisonnement
+  `<think>` des modèles DeepSeek-R1 n'est jamais lu. Bouton « conversation »
+  dans l'assistant flottant ; ses réglages ramènent la fenêtre principale.
 
 ### 🏠 Mode autonome (standalone), choisi à l'installation
 

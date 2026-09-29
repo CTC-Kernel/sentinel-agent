@@ -1836,12 +1836,53 @@ impl SentinelApp {
                             {
                                 self.send_command(command);
                             }
+                            let hands_free = self.state.ai.voice_conversation_enabled
+                                && (self.state.ai.is_listening
+                                    || self.state.ai.is_speaking
+                                    || self.state.ai.is_processing
+                                    || self.state.ai.voice_reply_pending
+                                    || self.state.ai.is_transcribing);
+                            if ui
+                                .selectable_label(hands_free, icons::HEADPHONES)
+                                .on_hover_text(if hands_free {
+                                    "Quitter la conversation vocale"
+                                } else {
+                                    "Conversation vocale mains libres"
+                                })
+                                .clicked()
+                            {
+                                if hands_free {
+                                    crate::llm_panel::LLMPanel::reset_voice_session(
+                                        &mut self.state,
+                                    );
+                                    self.send_command(GuiCommand::StopVoice);
+                                } else if let Some(command) =
+                                    crate::llm_panel::LLMPanel::start_conversation(&mut self.state)
+                                {
+                                    self.send_command(command);
+                                }
+                            }
                             if ui
                                 .button(icons::GEAR)
                                 .on_hover_text("Réglages vocaux")
                                 .clicked()
                             {
                                 self.state.ai.voice_settings_open = true;
+                            }
+                            // Settings (and the “install dictation” prompt) live in
+                            // the main window: bring it forward, even from the tray.
+                            if self.state.ai.voice_settings_open && !self.visible {
+                                #[cfg(target_os = "macos")]
+                                crate::os::macos::dock::show_icon();
+                                self.visible = true;
+                                ctx.send_viewport_cmd_to(
+                                    egui::ViewportId::ROOT,
+                                    egui::ViewportCommand::Visible(true),
+                                );
+                                ctx.send_viewport_cmd_to(
+                                    egui::ViewportId::ROOT,
+                                    egui::ViewportCommand::Focus,
+                                );
                             }
                         });
                     });
