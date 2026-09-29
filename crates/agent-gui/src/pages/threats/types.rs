@@ -36,6 +36,14 @@ pub(super) struct ThreatEvent {
     pub allowlisted: bool,
 }
 
+impl ThreatEvent {
+    /// Still awaiting operator triage. Vulnerabilities are handled in their own
+    /// module (patching lifecycle) and never block this queue.
+    pub fn needs_triage(&self) -> bool {
+        !self.acknowledged && !self.allowlisted && self.kind != "vulnerability"
+    }
+}
+
 /// Compute a risk score (0-100) that prioritizes critical threats across all 6 sources.
 pub(super) fn compute_risk_score(
     state: &AppState,
@@ -50,7 +58,7 @@ pub(super) fn compute_risk_score(
         .threats
         .suspicious_processes
         .iter()
-        .filter(|p| p.confidence > 80)
+        .filter(|p| !p.acknowledged && !p.allowlisted && p.confidence > 80)
         .count();
 
     let regular_processes = processes.saturating_sub(critical_processes);
@@ -59,7 +67,7 @@ pub(super) fn compute_risk_score(
         .network
         .alerts
         .iter()
-        .filter(|a| matches!(a.severity, Severity::Critical))
+        .filter(|a| !a.acknowledged && !a.allowlisted && matches!(a.severity, Severity::Critical))
         .count();
     let regular_net = network_alerts.saturating_sub(critical_net);
 
@@ -67,7 +75,7 @@ pub(super) fn compute_risk_score(
         .threats
         .system_incidents
         .iter()
-        .filter(|i| matches!(i.severity, Severity::Critical))
+        .filter(|i| !i.acknowledged && !i.allowlisted && matches!(i.severity, Severity::Critical))
         .count();
     let regular_sys = system_incidents.saturating_sub(critical_sys);
 
@@ -223,11 +231,8 @@ pub(super) fn build_threat_list(state: &AppState) -> Vec<ThreatEvent> {
                 desc_parts.push(format!("DST: {}", dst));
             }
         }
-        let target_ip = alert
-            .destination_ip
-            .as_deref()
-            .or(alert.source_ip.as_deref())
-            .unwrap_or("");
+        // Only the remote peer can be authorized (see `refresh_authorizations`).
+        let target_ip = alert.destination_ip.as_deref().unwrap_or("");
         let allowlisted = alert.allowlisted
             || state
                 .threats

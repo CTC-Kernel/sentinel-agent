@@ -15,11 +15,12 @@ struct Editor {
     editing: Option<uuid::Uuid>,
     remove: Option<uuid::Uuid>,
 }
-const KINDS: [AllowlistRuleType; 4] = [
+const KINDS: [AllowlistRuleType; 5] = [
     AllowlistRuleType::IpAddress,
     AllowlistRuleType::ProcessPattern,
     AllowlistRuleType::FilePath,
     AllowlistRuleType::UsbDevice,
+    AllowlistRuleType::SystemIncident,
 ];
 
 fn valid_pattern(kind: AllowlistRuleType, pattern: &str) -> bool {
@@ -56,7 +57,7 @@ pub(super) fn show(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand
                     for (index, kind) in KINDS.iter().enumerate() { ui.selectable_value(&mut editor.kind, index, kind.label()); }
                 });
                 ui.label("Cible autorisée");
-                ui.add(egui::TextEdit::singleline(&mut editor.pattern).hint_text(match editor.kind { 0 => "192.168.1.20 ou 10.0.0.0/24", 1 => "backup-agent ou backup-*", 2 => "/var/log/application/*.log", _ => "0x0781:0x5567" }).desired_width(f32::INFINITY));
+                ui.add(egui::TextEdit::singleline(&mut editor.pattern).hint_text(match editor.kind { 0 => "192.168.1.20 ou 10.0.0.0/24", 1 => "backup-agent ou backup-*", 2 => "/var/log/application/*.log", 3 => "0x0781:0x5567", _ => "firewall_disabled ou Pare-feu*" }).desired_width(f32::INFINITY));
                 ui.label("Justification obligatoire");
                 ui.add(egui::TextEdit::multiline(&mut editor.reason).desired_rows(3).desired_width(f32::INFINITY));
                 let valid = valid_pattern(KINDS[editor.kind], editor.pattern.trim());
@@ -73,9 +74,11 @@ pub(super) fn show(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand
             } else {
                 ui.strong("Portée de l’exception");
                 ui.label("IP : adresse exacte ou sous-réseau CIDR IPv4 / IPv6.");
-                ui.label("Processus, fichiers et USB : correspondance exacte ; * remplace une suite de caractères.");
+                ui.label("IP : seule l’adresse distante est comparée, jamais celle de ce poste.");
+                ui.label("Processus, fichiers, USB et incidents système (type ou titre) : correspondance exacte ; * remplace une suite de caractères.");
                 ui.add_space(theme::SPACE_SM);
-                ui.label("Acquitter signifie avoir pris connaissance d’un événement. Autoriser classe les événements correspondants comme exceptions tant que la règle existe.");
+                ui.label("Acquitter signifie avoir pris connaissance d’un événement. Autoriser classe les événements correspondants comme exceptions tant que la règle existe : l’agent ne notifie plus et ne déclenche ni règle de détection ni playbook pour eux.");
+                ui.label("Les événements autorisés restent collectés et transmis à la plateforme et au SIEM pour la traçabilité.");
                 ui.label("Révoquer rétablit la visibilité des événements concernés ; les acquittements manuels sont conservés.");
             }
         });

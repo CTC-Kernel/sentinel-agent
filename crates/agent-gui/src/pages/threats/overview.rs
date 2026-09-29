@@ -38,11 +38,18 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         ui.add_space(theme::SPACE_LG);
 
         // ── Summary counts (AAA Grade) ──────────────────────────────────
-        let process_count = state.threats.suspicious_processes.len();
-        let usb_count = state.threats.usb_events.len();
-        let fim_unack_count = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
-        let network_alert_count = state.network.alerts.len();
-        let system_count = state.threats.system_incidents.len();
+        // Counters reflect what still needs triage, like the feed below.
+        let open = |kind: &str| {
+            all_threats
+                .iter()
+                .filter(|t| t.kind == kind && t.needs_triage())
+                .count()
+        };
+        let process_count = open("process");
+        let usb_count = open("usb");
+        let fim_unack_count = open("fim");
+        let network_alert_count = open("network");
+        let system_count = open("system");
         let vuln_count = state.vulnerability_findings.len();
         let risk_score = compute_risk_score(
             state,
@@ -346,6 +353,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         }
         state.threats.filter.hash(&mut fp_hasher);
         state.threats.search.hash(&mut fp_hasher);
+        // Acknowledging or authorizing changes neither lengths nor front items:
+        // without these the cached feed kept showing triaged events.
+        state.threats.overview_show_triaged.hash(&mut fp_hasher);
+        for t in &all_threats {
+            (t.acknowledged, t.allowlisted).hash(&mut fp_hasher);
+        }
         let fingerprint: u64 = fp_hasher.finish();
         let prev_fingerprint: Option<u64> = ui.memory(|mem| mem.data.get_temp(cache_id));
         let cached_threats_id = ui.make_persistent_id("threats_cached_list");
@@ -357,6 +370,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         } else {
             // Reuse the already-built all_threats instead of calling build_threat_list again.
             let mut list = all_threats.clone();
+            if !state.threats.overview_show_triaged {
+                // The "Vulnéra." chip still lists findings explicitly.
+                let vulnerabilities = state.threats.filter.as_deref() == Some("vulnerability");
+                list.retain(|t| t.needs_triage() || (vulnerabilities && t.kind == "vulnerability"));
+            }
 
             if let Some(ref filter) = state.threats.filter {
                 list.retain(|t| t.kind == filter.as_str());
@@ -417,6 +435,18 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 state.threats.filter = target.map(|s| s.to_string());
             }
             // Clear selection when filter changes — indices are no longer valid
+            state.threats.selected_threat = None;
+            state.threats.detail_open = false;
+            state.threats.overview_page = 0;
+        }
+
+        if ui
+            .checkbox(
+                &mut state.threats.overview_show_triaged,
+                "Afficher aussi les événements acquittés et autorisés",
+            )
+            .changed()
+        {
             state.threats.selected_threat = None;
             state.threats.detail_open = false;
             state.threats.overview_page = 0;
@@ -494,12 +524,20 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             ui.add_space(theme::SPACE_MD);
 
             if threats.is_empty() {
-                widgets::protected_state(
-                    ui,
-                    icons::SHIELD_CHECK,
-                    "Aucune menace identifiée",
-                    "Le système ne présente aucun événement de sécurité suspect à ce jour.",
-                );
+                let (title, detail) = if !state.threats.overview_show_triaged
+                    && !all_threats.is_empty()
+                {
+                    (
+                        "Aucun événement à traiter",
+                        "Tous les événements ont été acquittés ou couverts par une autorisation.",
+                    )
+                } else {
+                    (
+                        "Aucune menace identifiée",
+                        "Le système ne présente aucun événement de sécurité suspect à ce jour.",
+                    )
+                };
+                widgets::protected_state(ui, icons::SHIELD_CHECK, title, detail);
             } else {
                 for (local_idx, threat) in page_threats.iter().enumerate() {
                     let global_idx = feed_start.saturating_add(local_idx);
@@ -828,7 +866,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             ));
                         }
                         actions.push(widgets::DetailAction::secondary("Acquitter", icons::CHECK));
-                        actions.push(widgets::DetailAction::primary("Signaler", icons::FLAG));
+                        actions.push(widgets::DetailAction::primary(
+                            "Autoriser ce type d'incident",
+                            icons::SHIELD_CHECK,
+                        ));
+                        actions.push(widgets::DetailAction::secondary("Signaler", icons::FLAG));
                         let drawer_action =
                             widgets::DetailDrawer::new("threat_detail", &inc.title, icons::SHIELD)
                                 .accent(sev_color)
@@ -923,7 +965,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 None
                             };
                             let ack_idx = next;
-                            let report_idx = next + 1;
+                            let allow_idx = next + 1;
+                            let report_idx = next + 2;
                             if ai_idx == Some(action_idx) {
                                 let desc = format!(
                                     "Incident système: {} — Type: {} — Description: {}",
@@ -947,6 +990,22 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     crate::widgets::toast::Toast::success(
                                         "Incident système acquitt\u{00e9}",
                                     )
+                                    .with_time(time),
+                                );
+                            } else if action_idx == allow_idx {
+                                state.add_allowlist_rule_global(
+                                    crate::dto::AllowlistRuleType::SystemIncident,
+                                    inc.incident_type.clone(),
+                                    format!("Incident système autoris\u{00e9} : {}", inc.title),
+                                    "Op\u{00e9}rateur".to_string(),
+                                );
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(format!(
+                                        "R\u{00e8}gle cr\u{00e9}\u{00e9}e : incidents '{}' autoris\u{00e9}s",
+                                        inc.incident_type
+                                    ))
                                     .with_time(time),
                                 );
                             } else if action_idx == report_idx {
@@ -1137,7 +1196,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         if let Some(action_idx) = drawer_action {
                             let time = ctx.input(|i| i.time);
                             if action_idx == 0 {
-                                state.acknowledge_threat_item("fim", threat.source_index);
+                                if state.acknowledge_threat_item("fim", threat.source_index) {
+                                    command = Some(GuiCommand::AcknowledgeFimAlert {
+                                        alert_id: f.id.clone(),
+                                        path: f.path.clone(),
+                                        timestamp: f.timestamp,
+                                    });
+                                }
                                 state.threats.detail_open = false;
                                 state.threats.selected_threat = None;
                                 state.toasts.push(
@@ -1184,11 +1249,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             _ => theme::INFO,
                         };
                         let has_ai = a.ai_analysis.is_some();
-                        let target_ip = a
-                            .destination_ip
-                            .as_deref()
-                            .or(a.source_ip.as_deref())
-                            .map(|s| s.to_string());
+                        // `source_ip` is this host: authorizing it would hide every alert.
+                        let target_ip = a.destination_ip.clone();
                         let has_target_ip = target_ip.is_some();
 
                         let mut actions = Vec::new();

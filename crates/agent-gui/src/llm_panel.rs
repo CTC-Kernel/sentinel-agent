@@ -665,15 +665,11 @@ impl LLMPanel {
             })
             .collect();
 
-        let unacknowledged_fim = state
-            .fim
-            .alerts
-            .iter()
-            .filter(|alert| !alert.acknowledged)
-            .count();
+        let (open_processes, open_incidents, open_network, unacknowledged_fim) =
+            state.open_threat_counts();
 
         format!(
-            "QUESTION OPÉRATEUR:\n{question}\n\nCONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):\n- Mode: {}\n- Score de conformité: {}\n- Contrôles: {} total, {} en échec/erreur\n- Vulnérabilités: {}\n- Menaces: {} processus suspects, {} incidents système, {} alertes réseau, {} alertes FIM\n- Ressources: CPU {:.0}%, mémoire {:.0}%, disque {:.0}%\n- Contrôles prioritaires: {}\n- Vulnérabilités prioritaires: {}\n- Signaux de menace: {}\n\nCONVERSATION RÉCENTE:\n{}\n\nRéponds en français, précisément et de façon actionnable. Distingue faits observés, inférences et données manquantes. Cite les identifiants présents dans ce contexte et n'affirme jamais avoir observé une donnée absente.",
+            "QUESTION OPÉRATEUR:\n{question}\n\nCONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):\n- Mode: {}\n- Score de conformité: {}\n- Contrôles: {} total, {} en échec/erreur\n- Vulnérabilités: {}\n- Menaces à traiter (hors acquittées/autorisées): {} processus suspects, {} incidents système, {} alertes réseau, {} alertes FIM\n- Ressources: CPU {:.0}%, mémoire {:.0}%, disque {:.0}%\n- Contrôles prioritaires: {}\n- Vulnérabilités prioritaires: {}\n- Signaux de menace: {}\n\nCONVERSATION RÉCENTE:\n{}\n\nRéponds en français, précisément et de façon actionnable. Distingue faits observés, inférences et données manquantes. Cite les identifiants présents dans ce contexte et n'affirme jamais avoir observé une donnée absente.",
             if state.summary.standalone {
                 "autonome"
             } else {
@@ -687,9 +683,9 @@ impl LLMPanel {
             state.checks.len(),
             failed_count,
             state.vulnerability_findings.len(),
-            state.threats.suspicious_processes.len(),
-            state.threats.system_incidents.len(),
-            state.network.alerts.len(),
+            open_processes,
+            open_incidents,
+            open_network,
             unacknowledged_fim,
             state.resources.cpu_percent,
             state.resources.memory_percent,
@@ -1723,14 +1719,13 @@ impl LLMPanel {
     pub fn compute_ai_score(state: &AppState) -> f32 {
         let compliance = state.summary.compliance_score.unwrap_or(50.0);
 
-        let threat_count =
-            state.threats.suspicious_processes.len() + state.threats.system_incidents.len();
+        let (processes, incidents, alert_count, _) = state.open_threat_counts();
+        let threat_count = processes + incidents;
         let threat_component = 100.0 - (threat_count as f32 * 10.0).min(100.0);
 
         let vuln_count = state.vulnerability_findings.len();
         let vuln_component = 100.0 - (vuln_count as f32 * 5.0).min(100.0);
 
-        let alert_count = state.network.alerts.len();
         let network_component = 100.0 - (alert_count as f32 * 15.0).min(100.0);
 
         (compliance * 0.40
@@ -1910,10 +1905,9 @@ impl LLMPanel {
                     ui.add_space(theme::SPACE_SM);
 
                     let compliance_pct = state.summary.compliance_score.unwrap_or(50.0);
-                    let threat_count = state.threats.suspicious_processes.len()
-                        + state.threats.system_incidents.len();
+                    let (processes, incidents, alert_count, _) = state.open_threat_counts();
+                    let threat_count = processes + incidents;
                     let vuln_count = state.vulnerability_findings.len();
-                    let alert_count = state.network.alerts.len();
 
                     let components: &[(&str, f32, &str)] = &[
                         ("Conformit\u{00e9}", compliance_pct, "40%"),
@@ -1963,9 +1957,8 @@ impl LLMPanel {
     fn render_insights_grid(ui: &mut egui::Ui, state: &AppState) {
         let failing = state.policy.failing;
         let vuln_count = state.vulnerability_findings.len();
-        let threat_count = state.threats.suspicious_processes.len()
-            + state.network.alerts.len()
-            + state.threats.system_incidents.len();
+        let (processes, incidents, network, _) = state.open_threat_counts();
+        let threat_count = processes + network + incidents;
         let compliance_pct = state
             .summary
             .compliance_score
@@ -2195,9 +2188,8 @@ impl LLMStatusWidget {
             .iter()
             .filter(|v| matches!(v.severity, Severity::Critical | Severity::High))
             .count();
-        let threat_count = state.threats.suspicious_processes.len()
-            + state.network.alerts.len()
-            + state.threats.system_incidents.len();
+        let (processes, incidents, network, _) = state.open_threat_counts();
+        let threat_count = processes + network + incidents;
         let total = failing + vuln_critical + threat_count;
 
         ui.horizontal(|ui: &mut egui::Ui| {

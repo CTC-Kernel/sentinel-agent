@@ -46,6 +46,8 @@ pub struct RuntimeState {
     /// Last vulnerability scan results (cached for AI analysis context).
     pub last_vuln_findings:
         Arc<tokio::sync::RwLock<Option<agent_scanner::VulnerabilityScanResult>>>,
+    /// Local triage authorizations pushed by the GUI (see `triage_allowlist`).
+    pub allowlist_rules: Arc<std::sync::RwLock<Vec<agent_gui::dto::AllowlistRule>>>,
 }
 
 /// A request to remediate or preview a check.
@@ -95,6 +97,7 @@ impl RuntimeState {
                 llm_loaded: Arc::new(AtomicBool::new(false)),
                 network_monitoring: Arc::new(AtomicBool::new(true)),
                 last_vuln_findings: Arc::new(tokio::sync::RwLock::new(None)),
+                allowlist_rules: Arc::new(std::sync::RwLock::new(Vec::new())),
             },
             rx,
         )
@@ -114,6 +117,21 @@ impl RuntimeState {
 
     pub fn get_check_interval(&self) -> u64 {
         self.check_interval_secs.load(Ordering::Acquire)
+    }
+
+    pub fn set_allowlist_rules(&self, rules: Vec<agent_gui::dto::AllowlistRule>) {
+        match self.allowlist_rules.write() {
+            Ok(mut guard) => *guard = rules,
+            Err(poisoned) => *poisoned.into_inner() = rules,
+        }
+    }
+
+    /// Snapshot of the current authorizations (never held across an await).
+    pub fn allowlist_snapshot(&self) -> Vec<agent_gui::dto::AllowlistRule> {
+        match self.allowlist_rules.read() {
+            Ok(guard) => guard.clone(),
+            Err(poisoned) => poisoned.into_inner().clone(),
+        }
     }
 
     pub fn set_log_level(&self, level: u8) {

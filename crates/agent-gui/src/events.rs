@@ -428,6 +428,11 @@ pub enum GuiCommand {
         /// (the platform identifies the alert by agent, path and timestamp).
         timestamp: DateTime<Utc>,
     },
+    /// Replace the local triage authorizations applied by the agent core
+    /// (notifications, detection rules and playbooks skip covered events).
+    UpdateAllowlist {
+        rules: Vec<crate::dto::AllowlistRule>,
+    },
     /// Trigger a check for updates.
     CheckUpdate,
     /// Mark all notifications as read.

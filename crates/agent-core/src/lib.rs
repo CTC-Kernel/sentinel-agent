@@ -69,6 +69,7 @@ mod scanning;
 mod self_update;
 mod sync_init;
 pub mod threat_pipeline;
+pub mod triage_allowlist;
 mod vuln_upload;
 
 #[cfg(feature = "tray")]
@@ -430,6 +431,16 @@ impl RuntimeHandle {
                 device_type,
             });
         }
+    }
+
+    /// Replace the local triage authorizations applied to notifications,
+    /// detection rules and playbooks.
+    pub fn set_allowlist_rules(&self, rules: Vec<agent_gui::dto::AllowlistRule>) {
+        info!(
+            "Triage authorizations updated via handle: {} rule(s)",
+            rules.len()
+        );
+        self.state.set_allowlist_rules(rules);
     }
 
     /// Set the dynamic compliance check interval.
@@ -965,6 +976,12 @@ impl AgentRuntime {
             warn!("Initial security scan failed: {}", e);
         }
         let mut last_security_scan = std::time::Instant::now();
+        // Fingerprints of the incidents reported by the previous scan. A
+        // persistent condition is re-detected on every scan; only notify when
+        // it is new (or reappears after having cleared).
+        #[cfg(feature = "gui")]
+        let mut previous_incidents: std::collections::HashSet<String> =
+            std::collections::HashSet::new();
 
         // Initialize network collection with staggered start
         let (network_static_interval, network_connection_interval, network_security_interval) = {
@@ -1752,21 +1769,48 @@ impl AgentRuntime {
                             warn!("Security scan detected {} incident(s)!", count);
                             #[cfg(feature = "gui")]
                             {
-                                self.emit_notification(
-                                    "Incidents de sécurité détectés",
-                                    &format!("{} incident(s) détecté(s)", count),
-                                    "error",
-                                );
+                                let authorizations = self.state.allowlist_snapshot();
+                                let current: std::collections::HashSet<String> = result
+                                    .incidents
+                                    .iter()
+                                    // Authorized incidents are still reported to the GUI
+                                    // (shown as "Autorisé") but never notified.
+                                    .filter(|i| {
+                                        !triage_allowlist::incident_is_authorized(
+                                            &authorizations,
+                                            i,
+                                        )
+                                    })
+                                    .map(|i| {
+                                        format!(
+                                            "{}|{}|{}|{}",
+                                            i.incident_type, i.title, i.description, i.evidence
+                                        )
+                                    })
+                                    .collect();
+                                let new_count = current.difference(&previous_incidents).count();
+                                previous_incidents = current;
+                                if new_count > 0 {
+                                    self.emit_notification(
+                                        "Incidents de sécurité détectés",
+                                        &format!("{} nouvel(s) incident(s) détecté(s)", new_count),
+                                        "error",
+                                    );
+                                }
                                 for incident in &result.incidents {
-                                    // Emit SystemIncident for every detected incident
-                                    self.emit_system_incident(incident);
-
-                                    // Also emit SuspiciousProcess for process-related incidents
-                                    if incident.incident_type
+                                    let is_process = incident.incident_type
                                         == agent_scanner::IncidentType::SuspiciousProcess
                                         || incident.incident_type
-                                            == agent_scanner::IncidentType::CryptoMiner
-                                    {
+                                            == agent_scanner::IncidentType::CryptoMiner;
+                                    // Process detections are reported once, as a
+                                    // SuspiciousProcess: a duplicate SystemIncident
+                                    // could not be covered by a process authorization
+                                    // and was counted twice.
+                                    if !is_process {
+                                        self.emit_system_incident(incident);
+                                    }
+
+                                    if is_process {
                                         let process_name = incident
                                             .evidence
                                             .get("process_name")
@@ -1813,12 +1857,11 @@ impl AgentRuntime {
                         pipeline_incidents.extend(result.incidents.iter().cloned());
 
                         if count == 0 {
+                            // A clean periodic scan is not news: logging it avoids a
+                            // notification every few minutes.
+                            debug!("Security scan: no incident detected");
                             #[cfg(feature = "gui")]
-                            self.emit_notification(
-                                "Scan sécurité",
-                                "Aucun incident détecté",
-                                "info",
-                            );
+                            previous_incidents.clear();
                         }
                     }
                     Err(e) => {
@@ -2227,10 +2270,19 @@ impl AgentRuntime {
                 || !pipeline_network_alerts.is_empty()
                 || !pipeline_fim_alerts.is_empty()
             {
+                // Authorized events still reach the SIEM below (audit trail) but
+                // never match detection rules nor trigger playbooks.
+                let (triaged_incidents, triaged_network, triaged_fim) =
+                    triage_allowlist::unauthorized_pipeline_inputs(
+                        &self.state.allowlist_snapshot(),
+                        &pipeline_incidents,
+                        &pipeline_network_alerts,
+                        &pipeline_fim_alerts,
+                    );
                 let threat_context = threat_pipeline::build_threat_context(
-                    &pipeline_incidents,
-                    &pipeline_network_alerts,
-                    &pipeline_fim_alerts,
+                    &triaged_incidents,
+                    &triaged_network,
+                    &triaged_fim,
                 );
 
                 // Load detection rules and playbooks from the database
