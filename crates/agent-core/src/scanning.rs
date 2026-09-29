@@ -243,6 +243,10 @@ impl VulnScanJob {
     }
 }
 
+/// Upper bound of automatic AI analyses after one vulnerability scan.
+#[cfg(feature = "llm")]
+const MAX_BACKGROUND_ANALYSES_PER_SCAN: usize = 5;
+
 /// Automatically analyze high/critical vulnerabilities using the local LLM.
 #[cfg(feature = "llm")]
 async fn auto_analyze_vulnerabilities(
@@ -258,10 +262,26 @@ async fn auto_analyze_vulnerabilities(
 
     info!("Starting automated AI analysis of high/critical findings...");
 
-    for finding in &mut scan_result.vulnerabilities {
-        // Only auto-analyze Critical or High findings that haven't been analyzed yet
-        if (finding.severity == Severity::Critical || finding.severity == Severity::High)
-            && finding.ai_analysis.is_none()
+    // Background analysis is bounded: on a CPU-only endpoint each analysis
+    // takes seconds, and the operator's questions always come first (the
+    // engine pauses these requests while a question is being answered).
+    // Critical findings are analysed first.
+    let mut candidates: Vec<usize> = scan_result
+        .vulnerabilities
+        .iter()
+        .enumerate()
+        .filter(|(_, finding)| {
+            (finding.severity == Severity::Critical || finding.severity == Severity::High)
+                && finding.ai_analysis.is_none()
+        })
+        .map(|(index, _)| index)
+        .collect();
+    candidates
+        .sort_by_key(|&index| scan_result.vulnerabilities[index].severity != Severity::Critical);
+    candidates.truncate(MAX_BACKGROUND_ANALYSES_PER_SCAN);
+
+    for index in candidates {
+        let finding = &mut scan_result.vulnerabilities[index];
         {
             debug!(
                 "Analyzing finding: {} ({})",
@@ -269,7 +289,7 @@ async fn auto_analyze_vulnerabilities(
                 finding.cve_id.as_deref().unwrap_or("no-cve")
             );
 
-            match llm.analyze_vulnerability(finding).await {
+            match llm.analyze_vulnerability_in_background(finding).await {
                 Ok(analysis) => {
                     finding.ai_analysis = Some(analysis);
                     finding.ai_confidence = Some(85); // High confidence for auto-vetted

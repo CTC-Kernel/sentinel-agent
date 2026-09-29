@@ -197,7 +197,12 @@ pub enum AgentEvent {
     KpiSnapshot {
         snapshot: Box<crate::dto::KpiSnapshot>,
     },
-    /// LLM chat response received.
+    /// Fragment of an assistant answer being generated (streaming).
+    LlmChatDelta {
+        /// Text to append to the answer in progress.
+        text: String,
+    },
+    /// LLM chat response received (complete answer; replaces the streamed text).
     LlmChatResponse {
         /// The assistant's response message.
         message: String,
@@ -231,6 +236,11 @@ pub enum AgentEvent {
         inference_count: u64,
         /// Memory allocated in MB.
         memory_mb: u64,
+    },
+    /// Compute backend of the loaded model (e.g. "CPU AVX2/FMA · 8 threads").
+    LlmAcceleration {
+        /// Human-readable backend.
+        label: String,
     },
     /// LLM model download progress.
     LlmDownloadProgress {
@@ -564,6 +574,14 @@ pub enum GuiCommand {
     },
     /// Request current LLM model status.
     LlmGetStatus,
+    /// Stop the answer being generated; the partial answer is kept.
+    LlmCancel,
+    /// Load the model in the background before the first question and, when
+    /// given, pre-process the grounded context so the first answer starts fast.
+    LlmWarmUp {
+        /// Grounded context prefix (without the question).
+        context: Option<String>,
+    },
     /// Reload the LLM model.
     LlmReloadModel,
     /// Start downloading the LLM model.

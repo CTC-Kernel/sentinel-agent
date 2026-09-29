@@ -9,6 +9,7 @@
 pub mod analyzer;
 pub mod config;
 pub mod engine;
+pub mod hardware;
 pub mod models;
 pub mod plugins;
 pub mod prompts;

@@ -756,6 +756,8 @@ pub struct AiState {
     pub is_processing: bool,
     /// Current model status.
     pub model_status: crate::dto::LlmModelStatus,
+    /// Compute backend of the loaded model, chosen for this machine.
+    pub acceleration: Option<String>,
     /// LLM model download progress.
     pub download: crate::dto::LlmDownloadState,
     /// Cached count of recommendations (updated when recommendations tab is shown).
@@ -798,12 +800,31 @@ pub struct AiState {
     pub voice_settings_open: bool,
     /// Voice settings must be pushed to the runtime.
     pub voice_config_sync_pending: bool,
+    /// Index of the assistant message currently being streamed.
+    pub streaming_index: Option<usize>,
+    /// The operator asked to stop the answer being generated.
+    pub cancel_requested: bool,
+    /// The model was asked to load ahead of the first question.
+    pub warm_up_requested: bool,
 }
 
 /// Silent hands-free rounds tolerated before the conversation pauses.
 pub const VOICE_MAX_EMPTY_ROUNDS: u8 = 2;
 
 impl AiState {
+    /// Assistant message receiving the streamed answer, if any.
+    pub fn streaming_message(&mut self) -> Option<&mut crate::dto::LlmChatMessage> {
+        let index = self.streaming_index?;
+        self.chat_history
+            .get_mut(index)
+            .filter(|message| message.role == crate::dto::ChatRole::Assistant)
+    }
+
+    /// Load the model once per session, when the assistant is first shown.
+    pub fn take_warm_up(&mut self) -> bool {
+        !std::mem::replace(&mut self.warm_up_requested, true)
+    }
+
     /// Dictation can start: unknown capabilities are optimistic (the runtime
     /// reports a precise error), a known missing model is not.
     pub fn dictation_available(&self) -> bool {
@@ -1767,17 +1788,43 @@ impl AppState {
                     self.ai.is_listening = false;
                 }
             }
+            AgentEvent::LlmChatDelta { text } => {
+                // Late fragments after completion or cancellation are ignored.
+                if self.ai.is_processing && !text.is_empty() {
+                    match self.ai.streaming_message() {
+                        Some(message) => message.content.push_str(&text),
+                        None => {
+                            self.ai.chat_history.push(crate::dto::LlmChatMessage {
+                                role: crate::dto::ChatRole::Assistant,
+                                content: text,
+                                timestamp: chrono::Utc::now(),
+                                processing_time_ms: None,
+                            });
+                            self.ai.streaming_index = Some(self.ai.chat_history.len() - 1);
+                        }
+                    }
+                }
+            }
             AgentEvent::LlmChatResponse {
                 message,
                 processing_time_ms,
             } => {
-                self.ai.chat_history.push(crate::dto::LlmChatMessage {
-                    role: crate::dto::ChatRole::Assistant,
-                    content: message.clone(),
-                    timestamp: chrono::Utc::now(),
-                    processing_time_ms: Some(processing_time_ms),
-                });
+                // The complete answer replaces the text streamed so far.
+                match self.ai.streaming_message() {
+                    Some(streamed) => {
+                        streamed.content.clone_from(&message);
+                        streamed.processing_time_ms = Some(processing_time_ms);
+                    }
+                    None => self.ai.chat_history.push(crate::dto::LlmChatMessage {
+                        role: crate::dto::ChatRole::Assistant,
+                        content: message.clone(),
+                        timestamp: chrono::Utc::now(),
+                        processing_time_ms: Some(processing_time_ms),
+                    }),
+                }
+                self.ai.streaming_index = None;
                 self.ai.is_processing = false;
+                self.ai.cancel_requested = false;
 
                 // If compliance was waiting for AI analysis, update its state too
                 if self.compliance.ai_analyzing {
@@ -1888,6 +1935,9 @@ impl AppState {
                     memory_mb,
                     is_ready,
                 };
+            }
+            AgentEvent::LlmAcceleration { label } => {
+                self.ai.acceleration = Some(label);
             }
             AgentEvent::LlmDownloadProgress {
                 model_name,
@@ -2343,6 +2393,49 @@ mod voice_workflow_tests {
                 && !state.ai.voice_conversation_enabled
         );
         assert!(state.ai.voice_error.is_some());
+    }
+
+    #[test]
+    fn streamed_answer_is_shown_progressively_then_finalized() {
+        let mut state = AppState::default();
+        state.ai.is_processing = true;
+        state.ai.chat_history.push(crate::dto::LlmChatMessage {
+            role: crate::dto::ChatRole::User,
+            content: "Risques ?".into(),
+            timestamp: chrono::Utc::now(),
+            processing_time_ms: None,
+        });
+        state.apply_event(AgentEvent::LlmChatDelta {
+            text: "Trois ".into(),
+        });
+        state.apply_event(AgentEvent::LlmChatDelta {
+            text: "risques".into(),
+        });
+        assert_eq!(state.ai.chat_history.len(), 2);
+        assert_eq!(state.ai.chat_history[1].content, "Trois risques");
+        assert!(state.ai.is_processing);
+        state.apply_event(AgentEvent::LlmChatResponse {
+            message: "Trois risques majeurs.".into(),
+            processing_time_ms: 1200,
+        });
+        assert_eq!(state.ai.chat_history.len(), 2, "no duplicate answer");
+        assert_eq!(state.ai.chat_history[1].content, "Trois risques majeurs.");
+        assert_eq!(state.ai.chat_history[1].processing_time_ms, Some(1200));
+        assert!(!state.ai.is_processing && state.ai.streaming_index.is_none());
+        // A late fragment after completion never creates a ghost message.
+        state.apply_event(AgentEvent::LlmChatDelta { text: "x".into() });
+        assert_eq!(state.ai.chat_history.len(), 2);
+    }
+
+    #[test]
+    fn warm_up_is_requested_once() {
+        let mut state = AppState::default();
+        assert!(state.ai.take_warm_up());
+        assert!(!state.ai.take_warm_up());
+        let prefix = crate::llm_panel::LLMPanel::warm_up_context(&state);
+        let prompt = crate::llm_panel::LLMPanel::grounded_prompt(&state, "Risques ?");
+        assert!(!prefix.is_empty() && prompt.starts_with(&prefix));
+        assert!(!prefix.contains("QUESTION"));
     }
 
     #[test]

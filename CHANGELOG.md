@@ -10,6 +10,52 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🧠 Assistant IA : contexte complet et adaptation automatique au poste
+
+- **L'IA voit enfin le détail des contrôles** : pour chaque domaine (antivirus,
+  pare-feu, politique de mots de passe, politique de comptes, chiffrement,
+  mises à jour, verrouillage de session, accès distant, journalisation), elle
+  reçoit le résultat du contrôle, le constat mesuré et, en cas d'échec ou
+  d'erreur, les valeurs relevées sur le poste qui en expliquent la cause. Un
+  domaine sans contrôle est signalé « non évalué » au lieu d'être présenté
+  comme une information manquante.
+- **Autres contrôles en échec ou en erreur** listés avec leur cause ;
+  **menaces ouvertes uniquement** (hors acquittées ou autorisées), avec la
+  ligne de commande des processus suspects, la description des incidents et
+  les adresses des alertes réseau.
+- **Adaptation automatique au processeur** : un seul binaire pour tous les
+  postes. Les instructions AVX2/FMA sont utilisées quand le processeur les
+  possède, et le code générique sinon (processeurs anciens, Celeron, Atom),
+  sans plantage. Un thread de calcul par cœur physique, pour garder le poste
+  réactif. Le mode de calcul utilisé (GPU Metal, CPU AVX2 ou CPU de base) est
+  affiché dans « Modèle & diagnostic ».
+
+### ⚡ Assistant IA : réponses en direct, plus rapides et plus stables
+
+- **Réponse affichée mot à mot** (streaming) au lieu d'attendre la fin de la
+  génération ; en conversation vocale, la lecture commence dès la première
+  phrase terminée.
+- **Bouton « Arrêter la réponse »** : la génération s'interrompt aussitôt et
+  le texte déjà produit est conservé.
+- **Premier mot jusqu'à 50 fois plus rapide sur les questions suivantes** :
+  le prompt système est désormais fixe et le contexte Sentinel est placé
+  avant la question, ce qui permet au cache de préfixe du moteur de réutiliser
+  les calculs d'une question à l'autre (mesuré : 102 s → 2 s avant le premier
+  mot sur CPU).
+- **Les questions passent avant les analyses automatiques** : l'analyse IA des
+  vulnérabilités après un scan est suspendue dès qu'une question est posée,
+  puis reprise ; elle est limitée à 5 vulnérabilités (critiques d'abord) et à
+  200 tokens par analyse.
+- **Modèle préchargé** à l'ouverture de l'assistant (et une seule fois, même
+  si plusieurs demandes arrivent en même temps).
+- **Mac Apple Silicon : calcul sur le GPU (Metal)**, avec repli automatique sur
+  le CPU si le GPU n'est pas utilisable.
+- **Stabilité** : plus de rechargement complet du modèle ni de nouvel essai en
+  cas de lenteur ; le délai d'attente porte sur l'arrivée du premier mot puis
+  sur l'absence de progression (60 s), pas sur la durée totale d'une longue
+  réponse. Réponses plus concises par défaut (200 mots au plus, sauf demande
+  de rapport détaillé).
+
 ### 🎙️ Assistant IA : conversation vocale fiable et réglages complets
 
 - **Réponses lues en entier** : la réponse est découpée en phrases et lue

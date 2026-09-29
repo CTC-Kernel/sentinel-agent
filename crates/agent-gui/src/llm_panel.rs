@@ -314,7 +314,8 @@ impl LLMPanel {
                         ui.push_id(index, |ui| Self::render_chat_message(ui, message));
                         ui.add_space(theme::SPACE_MD);
                     }
-                    if state.ai.is_processing {
+                    // Once the answer streams in, the growing message is the indicator.
+                    if state.ai.is_processing && state.ai.streaming_index.is_none() {
                         Self::render_processing_indicator(ui);
                     }
                 }
@@ -460,6 +461,20 @@ impl LLMPanel {
         let hands_free = state.ai.voice_conversation_enabled
             && (session_active || state.ai.is_processing || state.ai.pending_voice_send);
         ui.horizontal_wrapped(|ui| {
+            if state.ai.is_processing
+                && ui
+                    .add_enabled(
+                        !state.ai.cancel_requested,
+                        egui::Button::new(format!("{} Arrêter la réponse", icons::STOP)),
+                    )
+                    .on_hover_text("Interrompt la génération ; le texte déjà produit est conservé")
+                    .clicked()
+            {
+                state.ai.cancel_requested = true;
+                // The runtime also silences the voice: do not reopen the mic.
+                state.ai.voice_reply_pending = false;
+                command = Some(GuiCommand::LlmCancel);
+            }
             if hands_free {
                 if ui
                     .button(format!("{} Quitter la conversation", icons::STOP))
@@ -1063,39 +1078,201 @@ impl LLMPanel {
         }
     }
 
+    /// Grounded context shared by every question of the current state: the
+    /// prompt prefix before the question. Pre-processing it lets the model
+    /// start answering the first question almost immediately.
+    pub(crate) fn warm_up_context(state: &AppState) -> String {
+        let prompt = Self::grounded_prompt(state, "");
+        match prompt.find(Self::QUESTION_MARKER) {
+            Some(end) => prompt[..end].to_string(),
+            None => prompt,
+        }
+    }
+
+    const QUESTION_MARKER: &'static str = "\n\nQUESTION OPÉRATEUR:";
+
+    /// Security domains the operator asks about: every one is always listed,
+    /// with the result of its checks or an explicit "not evaluated", so the
+    /// model never reports as missing a configuration the agent measured.
+    const SECURITY_DOMAINS: &'static [(&'static str, &'static [&'static str])] = &[
+        ("Antivirus", &["antivirus_active"]),
+        ("Pare-feu", &["firewall_active"]),
+        (
+            "Politique de mots de passe",
+            &["password_policy", "gpo_password_policy"],
+        ),
+        (
+            "Politique de comptes",
+            &[
+                "gpo_account_lockout",
+                "admin_accounts",
+                "privileged_groups",
+                "guest_account_disabled",
+                "auto_login_disabled",
+                "mfa_enabled",
+            ],
+        ),
+        (
+            "Chiffrement et démarrage",
+            &["disk_encryption", "secure_boot"],
+        ),
+        ("Mises à jour", &["update_status", "patches_current"]),
+        ("Verrouillage de session", &["screen_lock"]),
+        ("Accès distant", &["remote_access_secure", "ssh_hardening"]),
+        ("Journalisation", &["audit_logging", "gpo_audit_policy"]),
+    ];
+
+    fn check_status_label(status: GuiCheckStatus) -> &'static str {
+        match status {
+            GuiCheckStatus::Pass => "conforme",
+            GuiCheckStatus::Fail => "NON CONFORME",
+            GuiCheckStatus::Error => "ERREUR DE CONTRÔLE",
+            GuiCheckStatus::Skipped => "non applicable",
+            GuiCheckStatus::Pending | GuiCheckStatus::Running => "en cours",
+        }
+    }
+
+    /// One check as the model sees it: status, what the agent measured and,
+    /// for failures and errors, the collected values that explain the cause.
+    fn describe_check(check: &crate::dto::GuiCheckResult) -> String {
+        let mut line = format!(
+            "{} [{}]: {}",
+            Self::text_excerpt(&check.name, 80),
+            Self::text_excerpt(&check.check_id, 48),
+            Self::check_status_label(check.status)
+        );
+        if let Some(message) = check.message.as_deref().filter(|m| !m.trim().is_empty()) {
+            line.push_str(" — ");
+            line.push_str(&Self::text_excerpt(message.trim(), 200));
+        }
+        if matches!(check.status, GuiCheckStatus::Fail | GuiCheckStatus::Error)
+            && let Some(details) = check.details.as_ref()
+        {
+            let facts = Self::details_summary(details, 220);
+            if !facts.is_empty() {
+                line.push_str(" | relevé: ");
+                line.push_str(&facts);
+            }
+        }
+        line
+    }
+
+    /// Flatten collected check data into short `key=value` facts (scalars
+    /// only, two levels deep), bounded to `max_chars`.
+    fn details_summary(details: &serde_json::Value, max_chars: usize) -> String {
+        fn scalar(value: &serde_json::Value) -> Option<String> {
+            match value {
+                serde_json::Value::Bool(b) => Some(if *b { "oui" } else { "non" }.to_string()),
+                serde_json::Value::Number(n) => Some(n.to_string()),
+                serde_json::Value::String(s) if !s.trim().is_empty() => {
+                    Some(LLMPanel::text_excerpt(s.trim(), 60))
+                }
+                _ => None,
+            }
+        }
+        fn collect(prefix: &str, value: &serde_json::Value, depth: u8, out: &mut Vec<String>) {
+            match value {
+                serde_json::Value::Object(map) => {
+                    for (key, child) in map {
+                        let key = if prefix.is_empty() {
+                            key.clone()
+                        } else {
+                            format!("{prefix}.{key}")
+                        };
+                        if depth < 2 {
+                            collect(&key, child, depth + 1, out);
+                        }
+                    }
+                }
+                serde_json::Value::Array(items) => {
+                    let values: Vec<String> = items.iter().filter_map(scalar).take(4).collect();
+                    if !values.is_empty() && !prefix.is_empty() {
+                        out.push(format!("{prefix}={}", values.join("/")));
+                    }
+                }
+                other => {
+                    if let Some(value) = scalar(other)
+                        && !prefix.is_empty()
+                    {
+                        out.push(format!("{prefix}={value}"));
+                    }
+                }
+            }
+        }
+        let mut facts = Vec::new();
+        collect("", details, 0, &mut facts);
+        let mut summary = String::new();
+        for fact in facts {
+            let needed = fact.chars().count() + usize::from(!summary.is_empty()) * 2;
+            if summary.chars().count() + needed > max_chars {
+                break;
+            }
+            if !summary.is_empty() {
+                summary.push_str(", ");
+            }
+            summary.push_str(&fact);
+        }
+        summary
+    }
+
     /// Ground free-form chat in the live endpoint telemetry visible to the GUI.
-    /// The snapshot is deliberately bounded so local models keep enough context
-    /// budget for reasoning and never need direct database or network access.
-    fn grounded_prompt(state: &AppState, question: &str) -> String {
-        let failed_count = state
+    /// The snapshot is bounded so local models keep enough context budget for
+    /// reasoning and never need direct database or network access. Stable
+    /// data comes first so consecutive questions share a cached prefix.
+    pub(crate) fn grounded_prompt(state: &AppState, question: &str) -> String {
+        let count =
+            |status: GuiCheckStatus| state.checks.iter().filter(|c| c.status == status).count();
+        let last_scan = state
             .checks
             .iter()
-            .filter(|check| matches!(check.status, GuiCheckStatus::Fail | GuiCheckStatus::Error))
-            .count();
-        let mut prioritized_checks: Vec<_> = state
-            .checks
+            .filter_map(|check| check.executed_at)
+            .max()
+            .map(|at| {
+                at.with_timezone(&chrono::Local)
+                    .format("%d/%m/%Y %H:%M")
+                    .to_string()
+            });
+
+        let domain_ids: std::collections::HashSet<&str> = Self::SECURITY_DOMAINS
             .iter()
-            .filter(|check| matches!(check.status, GuiCheckStatus::Fail | GuiCheckStatus::Error))
+            .flat_map(|(_, ids)| ids.iter().copied())
             .collect();
-        prioritized_checks.sort_by_key(|check| {
-            std::cmp::Reverse((
-                Self::severity_weight(check.severity),
-                matches!(check.status, GuiCheckStatus::Error),
-            ))
-        });
-        let failed: Vec<String> = prioritized_checks
-            .into_iter()
-            .take(8)
-            .map(|check| {
-                format!(
-                    "{} [{}] ({:?}, {:?})",
-                    Self::text_excerpt(&check.name, 120),
-                    Self::text_excerpt(&check.check_id, 64),
-                    check.severity,
-                    check.status
-                )
+        let domains: Vec<String> = Self::SECURITY_DOMAINS
+            .iter()
+            .map(|(label, ids)| {
+                let checks: Vec<String> = ids
+                    .iter()
+                    .filter_map(|id| state.checks.iter().find(|check| check.check_id == *id))
+                    .map(Self::describe_check)
+                    .collect();
+                if checks.is_empty() {
+                    format!(
+                        "- {label}: non évalué sur ce poste (contrôle non exécuté ou non applicable à ce système)"
+                    )
+                } else {
+                    format!("- {label}: {}", checks.join(" ; "))
+                }
             })
             .collect();
+
+        let mut other_failures: Vec<_> = state
+            .checks
+            .iter()
+            .filter(|check| matches!(check.status, GuiCheckStatus::Fail | GuiCheckStatus::Error))
+            .filter(|check| !domain_ids.contains(check.check_id.as_str()))
+            .collect();
+        other_failures.sort_by_key(|check| {
+            std::cmp::Reverse((
+                Self::severity_weight(check.severity),
+                matches!(check.status, GuiCheckStatus::Fail),
+            ))
+        });
+        let other_failures: Vec<String> = other_failures
+            .into_iter()
+            .take(8)
+            .map(|check| format!("- {} ({:?})", Self::describe_check(check), check.severity))
+            .collect();
+
         let mut prioritized_vulnerabilities: Vec<_> = state.vulnerability_findings.iter().collect();
         prioritized_vulnerabilities.sort_by(|left, right| {
             let right_score = right
@@ -1108,10 +1285,10 @@ impl LLMPanel {
         });
         let vulnerabilities: Vec<String> = prioritized_vulnerabilities
             .into_iter()
-            .take(8)
+            .take(6)
             .map(|finding| {
                 format!(
-                    "{} sur {} {} ({:?}, CVSS {})",
+                    "- {} sur {} {} ({:?}, CVSS {})",
                     Self::text_excerpt(&finding.cve_id, 48),
                     Self::text_excerpt(&finding.affected_software, 100),
                     Self::text_excerpt(&finding.affected_version, 48),
@@ -1123,18 +1300,28 @@ impl LLMPanel {
                 )
             })
             .collect();
+
+        let open = |acknowledged: bool, allowlisted: bool| !acknowledged && !allowlisted;
+        let when = |at: chrono::DateTime<chrono::Utc>| {
+            at.with_timezone(&chrono::Local)
+                .format("%d/%m %H:%M")
+                .to_string()
+        };
         let threats: Vec<String> = state
             .threats
             .suspicious_processes
             .iter()
-            .take(6)
+            .filter(|process| open(process.acknowledged, process.allowlisted))
+            .take(4)
             .map(|process| {
                 format!(
-                    "Processus {} PID {} (confiance {}%): {}",
-                    process.process_name,
+                    "- Processus suspect {} PID {} (confiance {}%, {}): {} | commande: {}",
+                    Self::text_excerpt(&process.process_name, 60),
                     process.pid,
                     process.confidence,
-                    Self::text_excerpt(&process.reason, 180)
+                    when(process.detected_at),
+                    Self::text_excerpt(&process.reason, 160),
+                    Self::text_excerpt(&process.command_line, 160)
                 )
             })
             .chain(
@@ -1142,36 +1329,55 @@ impl LLMPanel {
                     .threats
                     .system_incidents
                     .iter()
-                    .take(6)
+                    .filter(|incident| open(incident.acknowledged, incident.allowlisted))
+                    .take(4)
                     .map(|incident| {
                         format!(
-                            "{} ({:?}, confiance {}%)",
-                            Self::text_excerpt(&incident.title, 160),
+                            "- Incident système {} ({:?}, confiance {}%, {}): {}",
+                            Self::text_excerpt(&incident.title, 120),
                             incident.severity,
-                            incident.confidence
+                            incident.confidence,
+                            when(incident.detected_at),
+                            Self::text_excerpt(&incident.description, 160)
                         )
                     }),
             )
-            .chain(state.network.alerts.iter().take(6).map(|alert| {
-                format!(
-                    "Alerte réseau {} ({:?}, confiance {}%)",
-                    Self::text_excerpt(&alert.alert_type, 120),
-                    alert.severity,
-                    alert.confidence
-                )
-            }))
+            .chain(
+                state
+                    .network
+                    .alerts
+                    .iter()
+                    .filter(|alert| open(alert.acknowledged, alert.allowlisted))
+                    .take(4)
+                    .map(|alert| {
+                        format!(
+                            "- Alerte réseau {} ({:?}, confiance {}%, {}): {} | {} → {}{}",
+                            Self::text_excerpt(&alert.alert_type, 80),
+                            alert.severity,
+                            alert.confidence,
+                            when(alert.detected_at),
+                            Self::text_excerpt(&alert.description, 140),
+                            alert.source_ip.as_deref().unwrap_or("?"),
+                            alert.destination_ip.as_deref().unwrap_or("?"),
+                            alert
+                                .destination_port
+                                .map(|port| format!(":{port}"))
+                                .unwrap_or_default()
+                        )
+                    }),
+            )
             .chain(
                 state
                     .fim
                     .alerts
                     .iter()
                     .filter(|alert| !alert.acknowledged)
-                    .take(4)
+                    .take(3)
                     .map(|alert| {
                         format!(
-                            "FIM {:?}: {}",
+                            "- Intégrité fichier {:?}: {}",
                             alert.change_type,
-                            Self::text_excerpt(&alert.path, 180)
+                            Self::text_excerpt(&alert.path, 160)
                         )
                     }),
             )
@@ -1188,56 +1394,78 @@ impl LLMPanel {
                 format!(
                     "{:?}: {}",
                     message.role,
-                    Self::text_excerpt(&message.content, 600)
+                    Self::text_excerpt(&message.content, 400)
                 )
             })
             .collect();
 
         let (open_processes, open_incidents, open_network, unacknowledged_fim) =
             state.open_threat_counts();
+        let list = |items: &[String], empty: &str| {
+            if items.is_empty() {
+                format!("- {empty}")
+            } else {
+                items.join("\n")
+            }
+        };
+        let scan_line = match (&last_scan, state.checks.is_empty()) {
+            (_, true) => "aucun scan de conformité exécuté : les contrôles ne sont pas encore disponibles, proposer de lancer l'analyse".to_string(),
+            (Some(at), false) => format!("dernier scan le {at}"),
+            (None, false) => "date du dernier scan inconnue".to_string(),
+        };
 
         format!(
-            "QUESTION OPÉRATEUR:\n{question}\n\nCONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):\n- Mode: {}\n- Score de conformité: {}\n- Contrôles: {} total, {} en échec/erreur\n- Vulnérabilités: {}\n- Menaces à traiter (hors acquittées/autorisées): {} processus suspects, {} incidents système, {} alertes réseau, {} alertes FIM\n- Ressources: CPU {:.0}%, mémoire {:.0}%, disque {:.0}%\n- Contrôles prioritaires: {}\n- Vulnérabilités prioritaires: {}\n- Signaux de menace: {}\n\nCONVERSATION RÉCENTE:\n{}\n\nRéponds en français, précisément et de façon actionnable. Distingue faits observés, inférences et données manquantes. Cite les identifiants présents dans ce contexte et n'affirme jamais avoir observé une donnée absente.",
-            if state.summary.standalone {
+            "CONTEXTE SENTINEL NEXUS ACTUEL (données locales mesurées par l'agent, ne rien inventer):\n\
+             - Mode: {mode}\n\
+             - Conformité: score {score}, {scan_line}\n\
+             - Contrôles: {total} au total, {pass} conformes, {fail} non conformes, {error} en erreur, {skipped} non applicables\n\
+             - Vulnérabilités: {vuln_count}\n\
+             - Menaces ouvertes (hors acquittées/autorisées): {open_processes} processus suspects, {open_incidents} incidents système, {open_network} alertes réseau, {unacknowledged_fim} alertes d'intégrité\n\
+             \n\
+             ÉTAT DES DOMAINES DE SÉCURITÉ (résultat de chaque contrôle; « relevé » = valeurs collectées sur le poste):\n{domains}\n\
+             \n\
+             AUTRES CONTRÔLES NON CONFORMES OU EN ERREUR (avec cause):\n{other_failures}\n\
+             \n\
+             VULNÉRABILITÉS PRIORITAIRES:\n{vulnerabilities}\n\
+             \n\
+             MENACES OUVERTES:\n{threats}\n\
+             \n\
+             RESSOURCES: CPU {cpu:.0}%, mémoire {memory:.0}%, disque {disk:.0}%\n\
+             \n\
+             CONVERSATION RÉCENTE:\n{conversation}{marker}\n{question}\n\
+             \n\
+             Réponds en français, précisément et de façon actionnable. Appuie-toi sur les résultats de contrôles et relevés ci-dessus et cite leurs identifiants. Une information présente ci-dessus n'est jamais « manquante » ; un domaine « non évalué » ou « non applicable » se signale comme tel. N'affirme jamais avoir observé une donnée absente.",
+            mode = if state.summary.standalone {
                 "autonome"
             } else {
                 "connecté"
             },
-            state
+            score = state
                 .summary
                 .compliance_score
                 .map(|s| format!("{s:.1}%"))
                 .unwrap_or_else(|| "non mesuré".into()),
-            state.checks.len(),
-            failed_count,
-            state.vulnerability_findings.len(),
-            open_processes,
-            open_incidents,
-            open_network,
-            unacknowledged_fim,
-            state.resources.cpu_percent,
-            state.resources.memory_percent,
-            state.resources.disk_percent,
-            if failed.is_empty() {
-                "aucun".to_string()
-            } else {
-                failed.join("; ")
-            },
-            if vulnerabilities.is_empty() {
-                "aucune".to_string()
-            } else {
-                vulnerabilities.join("; ")
-            },
-            if threats.is_empty() {
-                "aucun".to_string()
-            } else {
-                threats.join("; ")
-            },
-            if recent_conversation.is_empty() {
+            total = state.checks.len(),
+            pass = count(GuiCheckStatus::Pass),
+            fail = count(GuiCheckStatus::Fail),
+            error = count(GuiCheckStatus::Error),
+            skipped = count(GuiCheckStatus::Skipped),
+            vuln_count = state.vulnerability_findings.len(),
+            domains = domains.join("\n"),
+            other_failures = list(&other_failures, "aucun"),
+            vulnerabilities = list(&vulnerabilities, "aucune"),
+            threats = list(&threats, "aucune"),
+            // Volatile figures last: the stable context above stays a shared
+            // prefix between consecutive questions (reused by the prefix cache).
+            cpu = state.resources.cpu_percent,
+            memory = state.resources.memory_percent,
+            disk = state.resources.disk_percent,
+            conversation = if recent_conversation.is_empty() {
                 "aucune".to_string()
             } else {
                 recent_conversation.join("\n")
             },
+            marker = Self::QUESTION_MARKER,
         )
     }
 
@@ -1781,6 +2009,22 @@ impl LLMPanel {
                         .font(theme::font_small())
                         .color(theme::text_secondary()),
                     );
+                    if let Some(acceleration) = state.ai.acceleration.as_deref() {
+                        ui.add_space(theme::SPACE_MD);
+                        ui.label(
+                            egui::RichText::new(icons::MICROCHIP)
+                                .size(theme::ICON_XS)
+                                .color(icon_color),
+                        );
+                        ui.label(
+                            egui::RichText::new(acceleration)
+                                .font(theme::font_small())
+                                .color(theme::text_secondary()),
+                        )
+                        .on_hover_text(
+                            "Accélération choisie automatiquement selon ce poste : GPU si disponible, sinon instructions AVX2 du processeur si présentes, un thread par cœur physique.",
+                        );
+                    }
 
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
@@ -2986,6 +3230,133 @@ mod tests {
         }
     }
 
+    fn check(
+        id: &str,
+        status: GuiCheckStatus,
+        message: &str,
+        details: serde_json::Value,
+    ) -> crate::dto::GuiCheckResult {
+        crate::dto::GuiCheckResult {
+            check_id: id.to_string(),
+            name: id.replace('_', " "),
+            category: "test".to_string(),
+            status,
+            severity: Severity::High,
+            score: None,
+            message: Some(message.to_string()),
+            details: Some(details),
+            executed_at: Some(chrono::Utc::now()),
+            frameworks: vec![],
+        }
+    }
+
+    #[test]
+    fn grounded_context_lists_every_security_domain_with_measured_values() {
+        let mut state = AppState::default();
+        let checks = vec![
+            check(
+                "antivirus_active",
+                GuiCheckStatus::Pass,
+                "Windows Defender is active with real-time protection. Definitions: 1.419.52",
+                serde_json::json!({"enabled": true}),
+            ),
+            check(
+                "firewall_active",
+                GuiCheckStatus::Fail,
+                "Windows Firewall is not enabled",
+                serde_json::json!({"enabled": false, "profiles": {"public": false, "domain": true}}),
+            ),
+            check(
+                "password_policy",
+                GuiCheckStatus::Fail,
+                "Password policy is non-compliant",
+                serde_json::json!({"min_length": 6, "complexity": false, "note": null}),
+            ),
+            check(
+                "backup_configured",
+                GuiCheckStatus::Error,
+                "Access denied reading backup configuration",
+                serde_json::json!({"error": "E_ACCESSDENIED"}),
+            ),
+            check(
+                "bluetooth_disabled",
+                GuiCheckStatus::Pass,
+                "ok",
+                serde_json::json!({}),
+            ),
+        ];
+        state.checks = checks;
+        let mut acknowledged = crate::dto::GuiSuspiciousProcess {
+            process_name: "vieux.exe".into(),
+            pid: 1,
+            command_line: "vieux.exe".into(),
+            reason: "ancien".into(),
+            confidence: 50,
+            detected_at: chrono::Utc::now(),
+            ai_confidence: None,
+            is_false_positive: None,
+            ai_analysis: None,
+            acknowledged: true,
+            allowlisted: false,
+        };
+        state
+            .threats
+            .suspicious_processes
+            .push_back(acknowledged.clone());
+        acknowledged.process_name = "powershell.exe".into();
+        acknowledged.command_line = "powershell -enc SQBFAFgA".into();
+        acknowledged.reason = "PowerShell encodé".into();
+        acknowledged.acknowledged = false;
+        state.threats.suspicious_processes.push_back(acknowledged);
+
+        let prompt = LLMPanel::grounded_prompt(&state, "Quel est l'état du pare-feu ?");
+
+        // Passing controls give the measured configuration.
+        assert!(prompt.contains(
+            "antivirus active [antivirus_active]: conforme — Windows Defender is active"
+        ));
+        // Failures carry their cause and the collected values.
+        assert!(
+            prompt.contains("[firewall_active]: NON CONFORME — Windows Firewall is not enabled | relevé: enabled=non, profiles.")
+        );
+        assert!(prompt.contains("profiles.domain=oui") && prompt.contains("profiles.public=non"));
+        assert!(prompt.contains("min_length=6, complexity=non"));
+        assert!(!prompt.contains("note="));
+        // Every domain is listed, measured or explicitly not evaluated.
+        for (label, _) in LLMPanel::SECURITY_DOMAINS {
+            assert!(prompt.contains(&format!("- {label}: ")), "{label} missing");
+        }
+        assert!(prompt.contains("- Mises à jour: non évalué sur ce poste"));
+        // Other failures and errors come with their cause; passing ones do not.
+        assert!(prompt.contains("backup configured [backup_configured]: ERREUR DE CONTRÔLE — Access denied reading backup configuration | relevé: error=E_ACCESSDENIED"));
+        assert!(!prompt.contains("bluetooth"));
+        assert!(prompt.contains("5 au total, 2 conformes, 2 non conformes, 1 en erreur"));
+        // Only open threats, with their command line.
+        assert!(
+            prompt.contains("powershell.exe PID 1")
+                && prompt.contains("commande: powershell -enc SQBFAFgA")
+        );
+        assert!(!prompt.contains("vieux.exe"));
+        assert!(prompt.ends_with("N'affirme jamais avoir observé une donnée absente."));
+        assert!(prompt.contains("QUESTION OPÉRATEUR:\nQuel est l'état du pare-feu ?"));
+        // Bounded for the local model (8k-token context).
+        assert!(prompt.chars().count() < 9_000, "{}", prompt.chars().count());
+    }
+
+    #[test]
+    fn details_summary_is_bounded_and_skips_empty_values() {
+        let details = serde_json::json!({
+            "a": "x".repeat(100),
+            "list": [1, 2, 3, 4, 5, 6],
+            "empty": "",
+            "deep": {"level": {"too_deep": 1}},
+        });
+        let summary = LLMPanel::details_summary(&details, 90);
+        assert!(summary.chars().count() <= 90);
+        assert!(summary.contains("list=1/2/3/4"));
+        assert!(!summary.contains("empty") && !summary.contains("too_deep"));
+    }
+
     #[test]
     fn submissions_share_grounding_respect_context_and_never_duplicate_while_busy() {
         let mut state = AppState::default();
@@ -3001,7 +3372,7 @@ mod tests {
             panic!("wrong command");
         };
         assert_eq!(context, Some(crate::dto::LlmPromptContext::Compliance));
-        assert!(prompt.contains("Score de conformité: non mesuré"));
+        assert!(prompt.contains("Conformité: score non mesuré, aucun scan de conformité exécuté"));
         assert!(!speak_response);
         assert!(LLMPanel::submit_prompt(&mut state, "Encore", false).is_none());
         assert_eq!(state.ai.chat_history.len(), 1);

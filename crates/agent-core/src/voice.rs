@@ -332,8 +332,20 @@ impl VoiceService {
     /// sentences even on backends that cannot stop instantly.
     #[cfg(feature = "gui")]
     pub fn speak_if_current(&self, text: &str, generation: u64) {
+        // A complete answer is one segment: sentences are packed into natural
+        // groups before being queued.
+        if let Some(stream) = self.speak_stream(generation) {
+            let _ = stream.tx.send(text.to_string());
+        }
+    }
+
+    /// Start speaking an answer while it is still being generated: push the
+    /// streamed fragments, then `finish`. Speech starts with the first
+    /// complete sentence instead of waiting for the whole answer.
+    #[cfg(feature = "gui")]
+    pub fn speak_stream(&self, generation: u64) -> Option<SpeechStream> {
         if self.speech_generation() != generation {
-            return;
+            return None;
         }
         info!("VoiceService: Native voice synthesis triggered.");
 
@@ -342,37 +354,70 @@ impl VoiceService {
             .read()
             .map(|settings| settings.clone())
             .unwrap_or_default();
-        let chunks = spoken_chunks(text, settings.reply_mode);
+        let (segments_tx, segments) = mpsc::channel::<String>();
         let tx = self.event_tx.clone();
-        if chunks.is_empty() {
-            let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
-            return;
-        }
         let engine_lock = self.tts_engine.clone();
         let epoch = self.speech_epoch.clone();
         let speech_ended_at = self.speech_ended_at.clone();
         std::thread::spawn(move || {
             let is_current = || epoch.load(std::sync::atomic::Ordering::SeqCst) == generation;
+            let limit = match settings.reply_mode {
+                SpokenReplyMode::Full => FULL_CHARS,
+                SpokenReplyMode::Summary => SUMMARY_CHARS,
+            };
+            let mut spoken_chars = 0usize;
+            let mut truncated = false;
             let mut announced = false;
+            let mut first = true;
             let mut failure = None;
 
-            for (index, chunk) in chunks.iter().enumerate() {
+            'segments: while let Ok(mut segment) = segments.recv() {
                 if !is_current() {
                     return;
                 }
-                if let Err(e) = speak_chunk(&engine_lock, &settings, chunk, index == 0) {
-                    failure = Some(e);
-                    break;
+                // Lines generated while the previous ones were being read are
+                // spoken together: fewer, more natural pauses.
+                for more in segments.try_iter() {
+                    segment.push('\n');
+                    segment.push_str(&more);
                 }
-                if !announced {
-                    announced = true;
-                    let _ = tx.send(AgentEvent::VoiceStatus { speaking: true });
+                if truncated {
+                    continue;
                 }
-                wait_for_speech_end(&engine_lock, chunk, settings.rate, &epoch, generation);
+                for chunk in spoken_chunks(&segment, SpokenReplyMode::Full) {
+                    let len = chunk.chars().count();
+                    if spoken_chars > 0 && spoken_chars + len > limit {
+                        truncated = true;
+                        continue 'segments;
+                    }
+                    spoken_chars += len;
+                    if !is_current() {
+                        return;
+                    }
+                    if let Err(e) = speak_chunk(&engine_lock, &settings, &chunk, first) {
+                        failure = Some(e);
+                        break 'segments;
+                    }
+                    first = false;
+                    if !announced {
+                        announced = true;
+                        let _ = tx.send(AgentEvent::VoiceStatus { speaking: true });
+                    }
+                    wait_for_speech_end(&engine_lock, &chunk, settings.rate, &epoch, generation);
+                }
             }
 
             if !is_current() {
                 return;
+            }
+            if truncated && failure.is_none() {
+                let notice = "La suite de la réponse est affichée à l’écran.";
+                if speak_chunk(&engine_lock, &settings, notice, false).is_ok() {
+                    wait_for_speech_end(&engine_lock, notice, settings.rate, &epoch, generation);
+                }
+                if !is_current() {
+                    return;
+                }
             }
             if let Ok(mut ended) = speech_ended_at.lock() {
                 *ended = Some(std::time::Instant::now());
@@ -392,6 +437,10 @@ impl VoiceService {
             }
             let _ = tx.send(AgentEvent::VoiceStatus { speaking: false });
         });
+        Some(SpeechStream {
+            tx: segments_tx,
+            splitter: SpeechSplitter::default(),
+        })
     }
 
     /// Download, verify and load a Whisper model from the pinned catalogue.
@@ -487,6 +536,134 @@ impl VoiceService {
     #[cfg(feature = "gui")]
     pub fn cancel_install(&self) {
         self.install_cancel.store(true, Ordering::SeqCst);
+    }
+}
+
+/// Feeds a streamed answer to the voice, one speakable segment at a time.
+#[cfg(feature = "gui")]
+pub struct SpeechStream {
+    tx: mpsc::Sender<String>,
+    splitter: SpeechSplitter,
+}
+
+#[cfg(feature = "gui")]
+impl SpeechStream {
+    /// Add freshly generated text.
+    pub fn push(&mut self, delta: &str) {
+        for segment in self.splitter.push(delta) {
+            let _ = self.tx.send(segment);
+        }
+    }
+
+    /// The answer is complete: speak what remains, then release the voice.
+    pub fn finish(mut self) {
+        for segment in self.splitter.finish() {
+            let _ = self.tx.send(segment);
+        }
+    }
+}
+
+/// Cuts a token stream into speakable segments: complete lines, or the
+/// completed sentences of a long line. Code blocks become a single short
+/// announcement and `<think>` reasoning is dropped.
+#[cfg(feature = "gui")]
+#[derive(Debug, Default)]
+struct SpeechSplitter {
+    line: String,
+    in_code: bool,
+    in_think: bool,
+}
+
+#[cfg(feature = "gui")]
+impl SpeechSplitter {
+    /// Shortest prefix of an unfinished line worth speaking on its own.
+    const MIN_EARLY_SEGMENT: usize = 40;
+
+    fn push(&mut self, delta: &str) -> Vec<String> {
+        let mut out = Vec::new();
+        for c in delta.chars() {
+            if c == '\n' {
+                let line = std::mem::take(&mut self.line);
+                self.complete_line(&line, &mut out);
+            } else {
+                self.line.push(c);
+            }
+        }
+        self.early_sentences(&mut out);
+        out
+    }
+
+    fn finish(&mut self) -> Vec<String> {
+        let mut out = Vec::new();
+        let line = std::mem::take(&mut self.line);
+        self.complete_line(&line, &mut out);
+        out
+    }
+
+    fn complete_line(&mut self, line: &str, out: &mut Vec<String>) {
+        let mut line = line;
+        if self.in_think {
+            match line.find("</think>") {
+                Some(end) => {
+                    self.in_think = false;
+                    line = &line[end + "</think>".len()..];
+                }
+                None => return,
+            }
+        }
+        if let Some(start) = line.find("<think>") {
+            let before = &line[..start];
+            let after = &line[start + "<think>".len()..];
+            if !before.trim().is_empty() {
+                out.push(before.to_string());
+            }
+            match after.find("</think>") {
+                Some(end) => line = &after[end + "</think>".len()..],
+                None => {
+                    self.in_think = true;
+                    return;
+                }
+            }
+        }
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            if !self.in_code {
+                // An empty fenced block is spoken as the short announcement.
+                out.push("```\n```".to_string());
+            }
+            self.in_code = !self.in_code;
+            return;
+        }
+        if !self.in_code && !line.trim().is_empty() {
+            out.push(line.to_string());
+        }
+    }
+
+    /// Speak the finished sentences of a long line without waiting for its end.
+    fn early_sentences(&mut self, out: &mut Vec<String>) {
+        if self.in_code || self.in_think {
+            return;
+        }
+        let trimmed = self.line.trim_start();
+        if trimmed.starts_with('`') || trimmed.starts_with('~') || trimmed.starts_with('<') {
+            return;
+        }
+        let boundary = self
+            .line
+            .char_indices()
+            .zip(self.line.chars().skip(1))
+            .filter(|((_, c), next)| {
+                matches!(c, '.' | '!' | '?' | '…' | ';') && next.is_whitespace()
+            })
+            .map(|((i, c), _)| i + c.len_utf8())
+            .last();
+        if let Some(end) = boundary
+            && self.line[..end].chars().count() >= Self::MIN_EARLY_SEGMENT
+        {
+            let rest = self.line[end..].trim_start().to_string();
+            let head = std::mem::replace(&mut self.line, rest);
+            out.push(head[..end].to_string());
+        }
     }
 }
 
@@ -1733,9 +1910,74 @@ mod workflow_tests {
         let service = silent_service(tx);
         service.speak("");
         assert!(matches!(
-            rx.try_recv(),
+            rx.recv_timeout(std::time::Duration::from_secs(2)),
             Ok(AgentEvent::VoiceStatus { speaking: false })
         ));
+    }
+
+    fn split_stream(fragments: &[&str]) -> Vec<String> {
+        let mut splitter = SpeechSplitter::default();
+        let mut out: Vec<String> = fragments.iter().flat_map(|f| splitter.push(f)).collect();
+        out.extend(splitter.finish());
+        out
+    }
+
+    #[test]
+    fn streamed_answer_is_spoken_sentence_by_sentence() {
+        // Tokens arrive a few characters at a time.
+        let answer = "Le poste présente trois risques majeurs à traiter. Le premier concerne OpenSSL qui doit être mis à jour. Le second";
+        let fragments: Vec<String> = answer
+            .chars()
+            .collect::<Vec<_>>()
+            .chunks(3)
+            .map(|c| c.iter().collect())
+            .collect();
+        let mut splitter = SpeechSplitter::default();
+        let mut early = Vec::new();
+        for fragment in &fragments {
+            early.extend(splitter.push(fragment));
+        }
+        assert!(
+            !early.is_empty(),
+            "speech must start before the answer ends"
+        );
+        assert!(early[0].starts_with("Le poste présente trois risques"));
+        let mut all = early;
+        all.extend(splitter.finish());
+        assert_eq!(
+            all.join(" ").split_whitespace().collect::<Vec<_>>(),
+            answer.split_whitespace().collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn streamed_code_and_reasoning_are_not_spoken() {
+        let segments = split_stream(&[
+            "<think>\nJe réfléchis",
+            " longuement.\n</think>\nVoici la commande :\n```bash\nrm -rf /tmp/x\n",
+            "```\nFin.",
+        ]);
+        let spoken = segments
+            .iter()
+            .flat_map(|s| spoken_chunks(s, SpokenReplyMode::Full))
+            .collect::<Vec<_>>()
+            .join(" ");
+        assert!(!spoken.contains("réfléchis") && !spoken.contains("rm -rf"));
+        assert!(spoken.contains("Voici la commande."));
+        assert_eq!(spoken.matches("Un bloc de code").count(), 1);
+        assert!(spoken.ends_with("Fin."));
+    }
+
+    #[test]
+    fn short_numbered_prefixes_are_not_spoken_alone() {
+        let segments = split_stream(&[
+            "1. Mettre à jour",
+            " OpenSSL vers la version 3.0.14 corrigée",
+        ]);
+        assert_eq!(
+            segments,
+            vec!["1. Mettre à jour OpenSSL vers la version 3.0.14 corrigée"]
+        );
     }
 
     #[test]
