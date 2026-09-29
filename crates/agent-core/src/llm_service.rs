@@ -483,6 +483,22 @@ impl LLMService {
         &self,
         finding: &agent_scanner::VulnerabilityFinding,
     ) -> Result<String> {
+        self.analyze_vulnerability_with(finding, false).await
+    }
+
+    /// Automatic analysis run after a scan: it yields to operator questions.
+    pub async fn analyze_vulnerability_in_background(
+        &self,
+        finding: &agent_scanner::VulnerabilityFinding,
+    ) -> Result<String> {
+        self.analyze_vulnerability_with(finding, true).await
+    }
+
+    async fn analyze_vulnerability_with(
+        &self,
+        finding: &agent_scanner::VulnerabilityFinding,
+        background: bool,
+    ) -> Result<String> {
         let manager = self
             .get_manager()
             .await
@@ -507,9 +523,13 @@ impl LLMService {
             finding.description
         );
 
-        let req = agent_llm::engine::InferenceRequest::new(&prompt)
-            .with_max_tokens(512)
+        // The prompt asks for fewer than 100 words: 200 tokens is ample.
+        let mut req = agent_llm::engine::InferenceRequest::new(&prompt)
+            .with_max_tokens(200)
             .with_temperature(0.2);
+        if background {
+            req = req.background();
+        }
 
         let resp = manager.engine().infer(req).await?;
         Ok(resp.text.trim().to_string())

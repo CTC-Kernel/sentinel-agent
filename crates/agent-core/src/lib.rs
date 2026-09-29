@@ -23,6 +23,8 @@ pub mod cleanup;
 pub mod events;
 #[cfg(feature = "llm")]
 pub mod llm_service;
+#[cfg(feature = "gui")]
+pub mod llm_stream;
 pub mod logging;
 pub mod resources;
 pub mod self_protection;

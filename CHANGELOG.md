@@ -10,6 +10,32 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### ⚡ Assistant IA : réponses en direct, plus rapides et plus stables
+
+- **Réponse affichée mot à mot** (streaming) au lieu d'attendre la fin de la
+  génération ; en conversation vocale, la lecture commence dès la première
+  phrase terminée.
+- **Bouton « Arrêter la réponse »** : la génération s'interrompt aussitôt et
+  le texte déjà produit est conservé.
+- **Premier mot jusqu'à 50 fois plus rapide sur les questions suivantes** :
+  le prompt système est désormais fixe et le contexte Sentinel est placé
+  avant la question, ce qui permet au cache de préfixe du moteur de réutiliser
+  les calculs d'une question à l'autre (mesuré : 102 s → 2 s avant le premier
+  mot sur CPU).
+- **Les questions passent avant les analyses automatiques** : l'analyse IA des
+  vulnérabilités après un scan est suspendue dès qu'une question est posée,
+  puis reprise ; elle est limitée à 5 vulnérabilités (critiques d'abord) et à
+  200 tokens par analyse.
+- **Modèle préchargé** à l'ouverture de l'assistant (et une seule fois, même
+  si plusieurs demandes arrivent en même temps).
+- **Mac Apple Silicon : calcul sur le GPU (Metal)**, avec repli automatique sur
+  le CPU si le GPU n'est pas utilisable.
+- **Stabilité** : plus de rechargement complet du modèle ni de nouvel essai en
+  cas de lenteur ; le délai d'attente porte sur l'arrivée du premier mot puis
+  sur l'absence de progression (60 s), pas sur la durée totale d'une longue
+  réponse. Réponses plus concises par défaut (200 mots au plus, sauf demande
+  de rapport détaillé).
+
 ### 🎙️ Assistant IA : conversation vocale fiable et réglages complets
 
 - **Réponses lues en entier** : la réponse est découpée en phrases et lue

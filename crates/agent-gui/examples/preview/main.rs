@@ -67,6 +67,16 @@ impl Default for Preview {
                 }
                 Ok("listening") => { state.ai.is_listening = true; state.ai.mic_level = 0.62; }
                 Ok("error") => { state.ai.voice_error = Some("Microphone indisponible : vérifiez l’autorisation et le périphérique sélectionné.".into()); }
+                Ok("streaming") => {
+                    state.ai.is_processing = true;
+                    state.ai.chat_history.push(agent_gui::dto::LlmChatMessage {
+                        role: agent_gui::dto::ChatRole::Assistant,
+                        content: "1) Constat : xz-utils 5.6.0 porte CVE-2024-3094, exploitée activement. 2) Risque : critique, porte dérobée SSH. 3) Actions : mettre à jour vers".into(),
+                        timestamp: chrono::Utc::now(),
+                        processing_time_ms: None,
+                    });
+                    state.ai.streaming_index = Some(state.ai.chat_history.len() - 1);
+                }
                 Ok("conversation") => {
                     state.ai.voice_conversation_enabled = true;
                     state.ai.is_listening = true;

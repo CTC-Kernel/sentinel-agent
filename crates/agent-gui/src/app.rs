@@ -1095,6 +1095,11 @@ impl eframe::App for SentinelApp {
 
         // Jarvis Widget Viewport (standalone window)
         if self.state.jarvis_visible {
+            if self.state.ai.take_warm_up() {
+                self.send_command(GuiCommand::LlmWarmUp {
+                    context: Some(crate::llm_panel::LLMPanel::warm_up_context(&self.state)),
+                });
+            }
             let viewport_id = egui::ViewportId::from_hash_of("jarvis_widget");
             let builder = egui::ViewportBuilder::default()
                 .with_title("Jarvis AI Assistant")
@@ -1525,6 +1530,15 @@ impl eframe::App for SentinelApp {
                             pages::OrchestrationPage::show(ui);
                         }
                         Page::AI => {
+                            // Load the model and pre-process the grounded context
+                            // while the operator types the first question.
+                            if self.state.ai.take_warm_up() {
+                                self.send_command(GuiCommand::LlmWarmUp {
+                                    context: Some(crate::llm_panel::LLMPanel::warm_up_context(
+                                        &self.state,
+                                    )),
+                                });
+                            }
                             if let Some(cmd) = self.llm_panel.show(ui, &mut self.state) {
                                 self.send_command(cmd);
                             }

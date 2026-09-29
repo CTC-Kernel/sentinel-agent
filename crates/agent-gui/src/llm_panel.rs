@@ -314,7 +314,8 @@ impl LLMPanel {
                         ui.push_id(index, |ui| Self::render_chat_message(ui, message));
                         ui.add_space(theme::SPACE_MD);
                     }
-                    if state.ai.is_processing {
+                    // Once the answer streams in, the growing message is the indicator.
+                    if state.ai.is_processing && state.ai.streaming_index.is_none() {
                         Self::render_processing_indicator(ui);
                     }
                 }
@@ -460,6 +461,20 @@ impl LLMPanel {
         let hands_free = state.ai.voice_conversation_enabled
             && (session_active || state.ai.is_processing || state.ai.pending_voice_send);
         ui.horizontal_wrapped(|ui| {
+            if state.ai.is_processing
+                && ui
+                    .add_enabled(
+                        !state.ai.cancel_requested,
+                        egui::Button::new(format!("{} Arrêter la réponse", icons::STOP)),
+                    )
+                    .on_hover_text("Interrompt la génération ; le texte déjà produit est conservé")
+                    .clicked()
+            {
+                state.ai.cancel_requested = true;
+                // The runtime also silences the voice: do not reopen the mic.
+                state.ai.voice_reply_pending = false;
+                command = Some(GuiCommand::LlmCancel);
+            }
             if hands_free {
                 if ui
                     .button(format!("{} Quitter la conversation", icons::STOP))
@@ -1066,7 +1081,20 @@ impl LLMPanel {
     /// Ground free-form chat in the live endpoint telemetry visible to the GUI.
     /// The snapshot is deliberately bounded so local models keep enough context
     /// budget for reasoning and never need direct database or network access.
-    fn grounded_prompt(state: &AppState, question: &str) -> String {
+    /// Grounded context shared by every question of the current state: the
+    /// prompt prefix before the question. Pre-processing it lets the model
+    /// start answering the first question almost immediately.
+    pub(crate) fn warm_up_context(state: &AppState) -> String {
+        let prompt = Self::grounded_prompt(state, "");
+        match prompt.find(Self::QUESTION_MARKER) {
+            Some(end) => prompt[..end].to_string(),
+            None => prompt,
+        }
+    }
+
+    const QUESTION_MARKER: &'static str = "\n\nQUESTION OPÉRATEUR:";
+
+    pub(crate) fn grounded_prompt(state: &AppState, question: &str) -> String {
         let failed_count = state
             .checks
             .iter()
@@ -1085,7 +1113,7 @@ impl LLMPanel {
         });
         let failed: Vec<String> = prioritized_checks
             .into_iter()
-            .take(8)
+            .take(6)
             .map(|check| {
                 format!(
                     "{} [{}] ({:?}, {:?})",
@@ -1108,7 +1136,7 @@ impl LLMPanel {
         });
         let vulnerabilities: Vec<String> = prioritized_vulnerabilities
             .into_iter()
-            .take(8)
+            .take(6)
             .map(|finding| {
                 format!(
                     "{} sur {} {} ({:?}, CVSS {})",
@@ -1127,7 +1155,7 @@ impl LLMPanel {
             .threats
             .suspicious_processes
             .iter()
-            .take(6)
+            .take(4)
             .map(|process| {
                 format!(
                     "Processus {} PID {} (confiance {}%): {}",
@@ -1142,7 +1170,7 @@ impl LLMPanel {
                     .threats
                     .system_incidents
                     .iter()
-                    .take(6)
+                    .take(4)
                     .map(|incident| {
                         format!(
                             "{} ({:?}, confiance {}%)",
@@ -1152,7 +1180,7 @@ impl LLMPanel {
                         )
                     }),
             )
-            .chain(state.network.alerts.iter().take(6).map(|alert| {
+            .chain(state.network.alerts.iter().take(4).map(|alert| {
                 format!(
                     "Alerte réseau {} ({:?}, confiance {}%)",
                     Self::text_excerpt(&alert.alert_type, 120),
@@ -1166,7 +1194,7 @@ impl LLMPanel {
                     .alerts
                     .iter()
                     .filter(|alert| !alert.acknowledged)
-                    .take(4)
+                    .take(3)
                     .map(|alert| {
                         format!(
                             "FIM {:?}: {}",
@@ -1188,7 +1216,7 @@ impl LLMPanel {
                 format!(
                     "{:?}: {}",
                     message.role,
-                    Self::text_excerpt(&message.content, 600)
+                    Self::text_excerpt(&message.content, 400)
                 )
             })
             .collect();
@@ -1197,7 +1225,7 @@ impl LLMPanel {
             state.open_threat_counts();
 
         format!(
-            "QUESTION OPÉRATEUR:\n{question}\n\nCONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):\n- Mode: {}\n- Score de conformité: {}\n- Contrôles: {} total, {} en échec/erreur\n- Vulnérabilités: {}\n- Menaces à traiter (hors acquittées/autorisées): {} processus suspects, {} incidents système, {} alertes réseau, {} alertes FIM\n- Ressources: CPU {:.0}%, mémoire {:.0}%, disque {:.0}%\n- Contrôles prioritaires: {}\n- Vulnérabilités prioritaires: {}\n- Signaux de menace: {}\n\nCONVERSATION RÉCENTE:\n{}\n\nRéponds en français, précisément et de façon actionnable. Distingue faits observés, inférences et données manquantes. Cite les identifiants présents dans ce contexte et n'affirme jamais avoir observé une donnée absente.",
+            "CONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):\n- Mode: {}\n- Score de conformité: {}\n- Contrôles: {} total, {} en échec/erreur\n- Vulnérabilités: {}\n- Menaces à traiter (hors acquittées/autorisées): {} processus suspects, {} incidents système, {} alertes réseau, {} alertes FIM\n- Contrôles prioritaires: {}\n- Vulnérabilités prioritaires: {}\n- Signaux de menace: {}\n- Ressources: CPU {:.0}%, mémoire {:.0}%, disque {:.0}%\n\nCONVERSATION RÉCENTE:\n{}\n\nQUESTION OPÉRATEUR:\n{question}\n\nRéponds en français, précisément et de façon actionnable. Distingue faits observés, inférences et données manquantes. Cite les identifiants présents dans ce contexte et n'affirme jamais avoir observé une donnée absente.",
             if state.summary.standalone {
                 "autonome"
             } else {
@@ -1215,9 +1243,6 @@ impl LLMPanel {
             open_incidents,
             open_network,
             unacknowledged_fim,
-            state.resources.cpu_percent,
-            state.resources.memory_percent,
-            state.resources.disk_percent,
             if failed.is_empty() {
                 "aucun".to_string()
             } else {
@@ -1233,6 +1258,11 @@ impl LLMPanel {
             } else {
                 threats.join("; ")
             },
+            // Volatile figures last: the stable context above stays a shared
+            // prefix between consecutive questions (reused by the prefix cache).
+            state.resources.cpu_percent,
+            state.resources.memory_percent,
+            state.resources.disk_percent,
             if recent_conversation.is_empty() {
                 "aucune".to_string()
             } else {

@@ -33,6 +33,34 @@ pub trait ModelEngine: Send + Sync {
 
     /// Unload the model to free memory.
     async fn unload(&self) -> Result<()>;
+
+    /// Load the model ahead of the first question so the operator does not
+    /// pay the loading time on their first message.
+    async fn warm_up(&self) -> Result<()> {
+        Ok(())
+    }
+
+    /// Streaming inference: `on_delta` receives each text fragment as soon as
+    /// it is generated. The returned response carries the complete text.
+    async fn infer_stream(
+        &self,
+        request: InferenceRequest,
+        on_delta: &mut (dyn for<'d> FnMut(&'d str) + Send),
+    ) -> Result<InferenceResponse> {
+        let response = self.infer(request).await?;
+        on_delta(&response.text);
+        Ok(response)
+    }
+}
+
+/// Scheduling class of a request. Background work (automatic vulnerability
+/// analysis, enrichment) never competes with a question the operator waits for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum InferencePriority {
+    #[default]
+    Interactive,
+    Background,
 }
 
 /// Model status.
@@ -77,6 +105,12 @@ pub struct InferenceRequest {
     pub stop_sequences: Vec<String>,
     /// Request metadata
     pub metadata: std::collections::HashMap<String, String>,
+    /// Interactive requests pre-empt background ones.
+    #[serde(default)]
+    pub priority: InferencePriority,
+    /// Set to `true` to abandon the generation (operator pressed “Stop”).
+    #[serde(skip)]
+    pub cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
 }
 
 impl InferenceRequest {
@@ -89,7 +123,28 @@ impl InferenceRequest {
             top_p: None,
             stop_sequences: Vec::new(),
             metadata: std::collections::HashMap::new(),
+            priority: InferencePriority::Interactive,
+            cancel: None,
         }
+    }
+
+    /// Mark the request as background work: it waits while the operator has a
+    /// question in flight and is paused (then restarted) if one arrives.
+    pub fn background(mut self) -> Self {
+        self.priority = InferencePriority::Background;
+        self
+    }
+
+    /// Abandon the generation as soon as `cancel` becomes `true`.
+    pub fn with_cancel(mut self, cancel: Arc<std::sync::atomic::AtomicBool>) -> Self {
+        self.cancel = Some(cancel);
+        self
+    }
+
+    fn is_cancelled(&self) -> bool {
+        self.cancel
+            .as_ref()
+            .is_some_and(|flag| flag.load(std::sync::atomic::Ordering::SeqCst))
     }
 
     pub fn with_max_tokens(mut self, max_tokens: u32) -> Self {
@@ -335,7 +390,61 @@ pub struct MistralEngine {
     cache: ResponseCache,
     status: Arc<tokio::sync::RwLock<ModelStatus>>,
     inference_count: Arc<std::sync::atomic::AtomicU64>,
+    /// Serializes model loading: concurrent first requests must not load the
+    /// model twice (double memory, double wait).
+    load_lock: tokio::sync::Mutex<()>,
+    /// Interactive requests currently in flight.
+    interactive_in_flight: Arc<std::sync::atomic::AtomicUsize>,
 }
+
+/// Why a streamed generation stopped early.
+#[derive(Debug)]
+enum StreamStop {
+    Cancelled,
+    Preempted,
+    TimedOut(&'static str, u64),
+    Failed(anyhow::Error),
+}
+
+impl From<StreamStop> for anyhow::Error {
+    fn from(stop: StreamStop) -> Self {
+        match stop {
+            StreamStop::Cancelled => anyhow::anyhow!("Génération interrompue par l'utilisateur"),
+            StreamStop::Preempted => {
+                anyhow::anyhow!("Analyse d'arrière-plan suspendue au profit d'une question")
+            }
+            StreamStop::TimedOut(phase, secs) => {
+                anyhow::anyhow!("Inference timed out: no {phase} after {secs}s")
+            }
+            StreamStop::Failed(e) => e,
+        }
+    }
+}
+
+/// Counts an interactive request for as long as it is alive.
+struct InteractiveGuard(Arc<std::sync::atomic::AtomicUsize>);
+
+impl InteractiveGuard {
+    fn new(counter: &Arc<std::sync::atomic::AtomicUsize>) -> Self {
+        counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        Self(counter.clone())
+    }
+}
+
+impl Drop for InteractiveGuard {
+    fn drop(&mut self) {
+        self.0.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+    }
+}
+
+/// Minimum wait for the first fragment (prompt processing on slow CPUs).
+const FIRST_TOKEN_MIN_SECS: u64 = 240;
+/// Silence tolerated between two generated fragments once the answer started.
+const STREAM_IDLE_SECS: u64 = 60;
+/// Polling step used to honour cancellation and pre-emption promptly.
+const STREAM_POLL: std::time::Duration = std::time::Duration::from_millis(150);
+/// How many times a pre-empted background request is restarted.
+const BACKGROUND_RESTARTS: usize = 3;
 
 impl MistralEngine {
     pub fn new(
@@ -373,84 +482,30 @@ impl MistralEngine {
             cache: ResponseCache::new(scoped_cache),
             status: Arc::new(tokio::sync::RwLock::new(ModelStatus::Unloaded)),
             inference_count: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            load_lock: tokio::sync::Mutex::new(()),
+            interactive_in_flight: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
         }
     }
 
-    async fn load_model(&self) -> Result<()> {
-        // Set status to Loading, then release the lock before expensive I/O
-        {
-            let mut status = self.status.write().await;
-            *status = ModelStatus::Loading;
-        }
-
-        // Create the model loader
-        let model_path = self.config.path.to_string_lossy().to_string();
-
-        info!("Loading GGUF model from: {}", model_path);
-
-        // We assume the path allows deducing the structure or we configure it as a local file
-        // Since we don't know the exact API for local files, we'll try to find a way.
-        // Usually builders have a method to specify it's a local file.
-        // For now, let's try passing the path as the repo and file.
-        // If the path is "/path/to/model.gguf", repo might be the dir, file the filename.
-
-        let path = std::path::Path::new(&model_path);
-        let parent = path.parent().unwrap_or(std::path::Path::new("."));
-        let filename = path
-            .file_name()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .to_string();
-
-        // Mistralrs 0.7.0 GgufModelBuilder usage
-        let load_result = (async {
-            let builder =
-                mistralrs::GgufModelBuilder::new(parent.to_string_lossy(), vec![filename]);
-
-            builder.build().await.map_err(|e| anyhow::anyhow!(e))
-        })
-        .await;
-
-        match load_result {
-            Ok(model) => {
-                let mut model_guard = self.model.lock().await;
-                *model_guard = Some(Arc::new(model));
-
-                let mut status = self.status.write().await;
-                *status = ModelStatus::Ready;
-                info!("Model loaded successfully");
-                Ok(())
-            }
-            Err(e) => {
-                let mut status = self.status.write().await;
-                *status = ModelStatus::Error(e.to_string());
-                Err(e)
-            }
-        }
-    }
-}
-
-#[async_trait]
-impl ModelEngine for MistralEngine {
-    async fn status(&self) -> ModelStatus {
-        self.status.read().await.clone()
+    fn interactive_busy(&self) -> bool {
+        self.interactive_in_flight
+            .load(std::sync::atomic::Ordering::SeqCst)
+            > 0
     }
 
-    async fn infer(&self, request: InferenceRequest) -> Result<InferenceResponse> {
+    /// Validate sampling parameters and the security policy; returns the
+    /// effective (temperature, top_p, max_tokens).
+    fn validate(&self, request: &InferenceRequest) -> Result<(f64, f64, usize)> {
         let temperature = request
             .temperature
             .unwrap_or(self.inference_config.temperature);
         let top_p = request.top_p.unwrap_or(self.inference_config.top_p);
-        if !(0.0..=2.0).contains(&temperature)
-            || !(0.0..=1.0).contains(&top_p)
-            || request
-                .max_tokens
-                .unwrap_or(self.inference_config.max_tokens)
-                == 0
-        {
+        let max_tokens = request
+            .max_tokens
+            .unwrap_or(self.inference_config.max_tokens);
+        if !(0.0..=2.0).contains(&temperature) || !(0.0..=1.0).contains(&top_p) || max_tokens == 0 {
             return Err(anyhow::anyhow!("Invalid inference sampling parameters"));
         }
-        // --- Security validation ---
         if self.security_config.sanitize_input {
             let total_len =
                 request.prompt.len() + request.system_prompt.as_ref().map_or(0, |s| s.len());
@@ -487,47 +542,274 @@ impl ModelEngine for MistralEngine {
                 prompt_len = request.prompt.len(),
                 system_prompt_len = request.system_prompt.as_ref().map_or(0, |s| s.len()),
                 max_tokens = ?request.max_tokens,
+                priority = ?request.priority,
                 "LLM inference request"
             );
         }
+        Ok((temperature as f64, top_p as f64, max_tokens as usize))
+    }
+
+    async fn current_model(&self) -> Result<Arc<mistralrs::Model>> {
+        self.warm_up().await?;
+        let guard = self.model.lock().await;
+        guard
+            .as_ref()
+            .map(Arc::clone)
+            .ok_or_else(|| anyhow::anyhow!("Model not loaded"))
+    }
+
+    /// Background work waits until no operator question is in flight.
+    async fn wait_until_idle(&self, request: &InferenceRequest) -> Result<(), StreamStop> {
+        while self.interactive_busy() {
+            if request.is_cancelled() {
+                return Err(StreamStop::Cancelled);
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+        }
+        Ok(())
+    }
+
+    fn build_request(
+        &self,
+        request: &InferenceRequest,
+        temperature: f64,
+        top_p: f64,
+        max_tokens: usize,
+    ) -> mistralrs::RequestBuilder {
+        let top_k = self.inference_config.top_k as usize;
+        let mut builder = mistralrs::RequestBuilder::new();
+        if let Some(ref system_prompt) = request.system_prompt {
+            builder =
+                builder.add_message(mistralrs::TextMessageRole::System, system_prompt.clone());
+        }
+        let stop_toks = (!request.stop_sequences.is_empty())
+            .then(|| mistralrs::StopTokens::Seqs(request.stop_sequences.clone()));
+        builder
+            .add_message(mistralrs::TextMessageRole::User, request.prompt.clone())
+            .set_sampling(mistralrs::SamplingParams {
+                temperature: Some(temperature),
+                top_k: Some(top_k),
+                top_p: Some(top_p),
+                top_n_logprobs: 0,
+                frequency_penalty: None,
+                presence_penalty: None,
+                stop_toks,
+                max_len: Some(max_tokens),
+                logits_bias: None,
+                n_choices: 1,
+                repetition_penalty: Some(self.inference_config.repetition_penalty),
+                dry_params: None,
+                min_p: None,
+            })
+    }
+
+    /// Stream one generation. Dropping the mistral.rs stream cancels the
+    /// sequence cleanly, so cancellation, pre-emption and time-outs never
+    /// require reloading the model.
+    async fn run_stream(
+        &self,
+        model: &mistralrs::Model,
+        request: &InferenceRequest,
+        builder: mistralrs::RequestBuilder,
+        on_delta: &mut (dyn for<'d> FnMut(&'d str) + Send),
+    ) -> Result<(String, usize), StreamStop> {
+        use std::time::{Duration, Instant};
+
+        let mut stream = model
+            .stream_chat_request(builder)
+            .await
+            .map_err(StreamStop::Failed)?;
+        // Prompt processing on CPU can be long: the first fragment gets a
+        // generous budget (the operator sees the wait and can stop it), later
+        // fragments only need to keep flowing.
+        let first_budget = self.inference_config.timeout_secs.max(FIRST_TOKEN_MIN_SECS);
+        let mut deadline = Instant::now() + Duration::from_secs(first_budget);
+        let mut started = false;
+        let mut text = String::new();
+        let mut fragments = 0usize;
+        let mut usage_tokens = None;
+        let background = request.priority == InferencePriority::Background;
+
+        loop {
+            if request.is_cancelled() {
+                return Err(StreamStop::Cancelled);
+            }
+            if background && self.interactive_busy() {
+                return Err(StreamStop::Preempted);
+            }
+            if Instant::now() >= deadline {
+                return Err(if started {
+                    StreamStop::TimedOut("new token", STREAM_IDLE_SECS)
+                } else {
+                    StreamStop::TimedOut("first token", first_budget)
+                });
+            }
+            let next = match tokio::time::timeout(STREAM_POLL, stream.next()).await {
+                Err(_) => continue,
+                Ok(next) => next,
+            };
+            match next {
+                None => break,
+                Some(mistralrs::Response::Chunk(chunk)) => {
+                    if let Some(usage) = &chunk.usage {
+                        usage_tokens = Some(usage.completion_tokens);
+                    }
+                    let mut finished = false;
+                    if let Some(choice) = chunk.choices.first() {
+                        if let Some(content) = choice.delta.content.as_deref()
+                            && !content.is_empty()
+                        {
+                            text.push_str(content);
+                            on_delta(content);
+                        }
+                        fragments += 1;
+                        finished = choice.finish_reason.is_some();
+                    }
+                    started = true;
+                    deadline = Instant::now() + Duration::from_secs(STREAM_IDLE_SECS);
+                    if finished {
+                        break;
+                    }
+                }
+                Some(mistralrs::Response::Done(done)) => {
+                    usage_tokens = Some(done.usage.completion_tokens);
+                    if text.is_empty()
+                        && let Some(content) = done
+                            .choices
+                            .first()
+                            .and_then(|choice| choice.message.content.clone())
+                    {
+                        on_delta(&content);
+                        text = content;
+                    }
+                    break;
+                }
+                Some(mistralrs::Response::ModelError(message, _)) => {
+                    return Err(StreamStop::Failed(anyhow::anyhow!(
+                        "Inference error: {message}"
+                    )));
+                }
+                Some(mistralrs::Response::InternalError(e))
+                | Some(mistralrs::Response::ValidationError(e)) => {
+                    return Err(StreamStop::Failed(anyhow::anyhow!("Inference error: {e}")));
+                }
+                Some(_) => {}
+            }
+        }
+        Ok((text, usage_tokens.unwrap_or(fragments)))
+    }
+
+    async fn load_model(&self) -> Result<()> {
+        // Set status to Loading, then release the lock before expensive I/O
+        {
+            let mut status = self.status.write().await;
+            *status = ModelStatus::Loading;
+        }
+
+        // Create the model loader
+        let model_path = self.config.path.to_string_lossy().to_string();
+
+        info!("Loading GGUF model from: {}", model_path);
+
+        // We assume the path allows deducing the structure or we configure it as a local file
+        // Since we don't know the exact API for local files, we'll try to find a way.
+        // Usually builders have a method to specify it's a local file.
+        // For now, let's try passing the path as the repo and file.
+        // If the path is "/path/to/model.gguf", repo might be the dir, file the filename.
+
+        let path = std::path::Path::new(&model_path);
+        let parent = path.parent().unwrap_or(std::path::Path::new("."));
+        let filename = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+
+        let started = std::time::Instant::now();
+        let build = |force_cpu: bool| {
+            let mut builder =
+                mistralrs::GgufModelBuilder::new(parent.to_string_lossy(), vec![filename.clone()])
+                    // One operator, a few background jobs: a small batch keeps
+                    // CPU caches warm. Prefix caching reuses the grounded context.
+                    .with_max_num_seqs(4)
+                    .with_prefix_cache_n(Some(8));
+            if force_cpu {
+                builder = builder.with_force_cpu();
+            }
+            async move { builder.build().await.map_err(|e| anyhow::anyhow!(e)) }
+        };
+        let load_result = match build(false).await {
+            // Apple Silicon builds use the GPU (Metal); keep the assistant
+            // available on the CPU if the GPU cannot be used.
+            Err(e) if cfg!(all(target_os = "macos", target_arch = "aarch64")) => {
+                warn!("GPU model loading failed ({e}); falling back to the CPU");
+                build(true).await
+            }
+            other => other,
+        };
+        if load_result.is_ok() {
+            info!("Model loaded in {:.1}s", started.elapsed().as_secs_f64());
+        }
+
+        match load_result {
+            Ok(model) => {
+                let mut model_guard = self.model.lock().await;
+                *model_guard = Some(Arc::new(model));
+
+                let mut status = self.status.write().await;
+                *status = ModelStatus::Ready;
+                info!("Model loaded successfully");
+                Ok(())
+            }
+            Err(e) => {
+                let mut status = self.status.write().await;
+                *status = ModelStatus::Error(e.to_string());
+                Err(e)
+            }
+        }
+    }
+}
+
+#[async_trait]
+impl ModelEngine for MistralEngine {
+    async fn status(&self) -> ModelStatus {
+        self.status.read().await.clone()
+    }
+
+    async fn infer(&self, request: InferenceRequest) -> Result<InferenceResponse> {
+        self.infer_stream(request, &mut |_| {}).await
+    }
+
+    async fn warm_up(&self) -> Result<()> {
+        if self.status().await.is_ready() {
+            return Ok(());
+        }
+        let _loading = self.load_lock.lock().await;
+        // Another request may have finished loading while we waited.
+        if self.status().await.is_ready() {
+            return Ok(());
+        }
+        self.load_model().await
+    }
+
+    async fn infer_stream(
+        &self,
+        request: InferenceRequest,
+        on_delta: &mut (dyn for<'d> FnMut(&'d str) + Send),
+    ) -> Result<InferenceResponse> {
+        let (temperature, top_p, max_tokens) = self.validate(&request)?;
 
         // --- Cache lookup ---
         if let Some(cached) = self.cache.get(&request) {
             info!("Cache hit for inference request");
+            on_delta(&cached.text);
             return Ok(cached);
         }
 
-        // Ensure model is loaded
-        if !self.status().await.is_ready() {
-            self.load_model().await?;
-        }
-
-        // Clone the Arc<Model> out and release the Mutex so other engine methods
-        // (status, memory_usage) are not blocked during inference.
-        let model = {
-            let guard = self.model.lock().await;
-            Arc::clone(
-                guard
-                    .as_ref()
-                    .ok_or_else(|| anyhow::anyhow!("Model not loaded"))?,
-            )
-        };
-
-        let start_time = std::time::Instant::now();
-
-        let temperature = request
-            .temperature
-            .unwrap_or(self.inference_config.temperature) as f64;
-        let top_p = request.top_p.unwrap_or(self.inference_config.top_p) as f64;
-        let top_k = self.inference_config.top_k as usize;
-        let repetition_penalty = self.inference_config.repetition_penalty;
-        let max_tokens = request
-            .max_tokens
-            .unwrap_or(self.inference_config.max_tokens) as usize;
-        // Older installations commonly persisted a 30-second timeout, which is
-        // too aggressive for CPU inference with a grounded SOC prompt. Preserve
-        // larger operator values while migrating the effective floor to 90s.
-        let timeout_secs = self.inference_config.timeout_secs.max(90);
+        // Interactive questions are counted for their whole lifetime so that
+        // background work steps aside immediately.
+        let _interactive = (request.priority == InferencePriority::Interactive)
+            .then(|| InteractiveGuard::new(&self.interactive_in_flight));
 
         debug!(
             "Starting inference: prompt_len={}, max_tokens={}, temp={:.1}",
@@ -536,121 +818,33 @@ impl ModelEngine for MistralEngine {
             temperature
         );
 
-        // Build a chat request with the given token limit.
-        let build_chat_request = |max_tok: usize| {
-            let mut builder = mistralrs::RequestBuilder::new();
-            if let Some(ref system_prompt) = request.system_prompt {
-                builder =
-                    builder.add_message(mistralrs::TextMessageRole::System, system_prompt.clone());
+        let mut restarts = 0usize;
+        let (text, tokens, duration) = loop {
+            if request.priority == InferencePriority::Background {
+                self.wait_until_idle(&request).await?;
             }
-            builder
-                .add_message(mistralrs::TextMessageRole::User, request.prompt.clone())
-                .set_sampler_temperature(temperature)
-                .set_sampler_topp(top_p)
-                .set_sampler_topk(top_k)
-                .set_sampler_max_len(max_tok)
-                .set_sampling(mistralrs::SamplingParams {
-                    temperature: Some(temperature),
-                    top_k: Some(top_k),
-                    top_p: Some(top_p),
-                    top_n_logprobs: 0,
-                    frequency_penalty: None,
-                    presence_penalty: None,
-                    stop_toks: None,
-                    max_len: Some(max_tok),
-                    logits_bias: None,
-                    n_choices: 1,
-                    repetition_penalty: Some(repetition_penalty),
-                    dry_params: None,
-                    min_p: None,
-                })
-        };
-
-        // Enforce timeout to prevent infinite hangs on slow inference
-        let timeout_duration = std::time::Duration::from_secs(timeout_secs);
-
-        // First attempt with full max_tokens
-        let response = match tokio::time::timeout(
-            timeout_duration,
-            model.send_chat_request(build_chat_request(max_tokens)),
-        )
-        .await
-        {
-            Ok(Ok(resp)) => resp,
-            Ok(Err(e)) => {
-                return Err(anyhow::anyhow!("Inference error: {}", e));
-            }
-            Err(_) => {
-                // After timeout, mistralrs internal state is corrupted (channel dropped).
-                // Unload, reload, and retry once with reduced tokens to break the death spiral.
-                let reduced_tokens = max_tokens.min(192);
-                warn!(
-                    "LLM inference timed out after {}s — reloading and retrying with max_tokens={}",
-                    timeout_secs, reduced_tokens
-                );
-
-                self.unload().await?;
-                self.load_model().await?;
-
-                // Clone the freshly loaded model
-                let model = {
-                    let guard = self.model.lock().await;
-                    Arc::clone(
-                        guard
-                            .as_ref()
-                            .ok_or_else(|| anyhow::anyhow!("Model not loaded after reload"))?,
-                    )
-                };
-
-                match tokio::time::timeout(
-                    timeout_duration,
-                    model.send_chat_request(build_chat_request(reduced_tokens)),
-                )
-                .await
-                {
-                    Ok(Ok(resp)) => {
-                        info!("Retry with reduced tokens succeeded");
-                        resp
+            let model = self.current_model().await?;
+            let start_time = std::time::Instant::now();
+            let builder = self.build_request(&request, temperature, top_p, max_tokens);
+            match self.run_stream(&model, &request, builder, on_delta).await {
+                Ok((text, tokens)) => break (text, tokens, start_time.elapsed()),
+                Err(StreamStop::Preempted) if restarts < BACKGROUND_RESTARTS => {
+                    restarts += 1;
+                    debug!("Background inference paused for an interactive question");
+                }
+                Err(stop) => {
+                    if let StreamStop::TimedOut(..) = stop {
+                        warn!("LLM inference stalled: {:?}", stop);
                     }
-                    Ok(Err(e)) => {
-                        return Err(anyhow::anyhow!("Inference error on retry: {}", e));
-                    }
-                    Err(_) => {
-                        warn!(
-                            "LLM inference timed out again after {}s — giving up",
-                            timeout_secs
-                        );
-                        {
-                            let mut status = self.status.write().await;
-                            *status = ModelStatus::Error(format!(
-                                "Inference timed out after {}s (retry also failed)",
-                                timeout_secs
-                            ));
-                        }
-                        let mut model_lock = self.model.lock().await;
-                        *model_lock = None;
-                        return Err(anyhow::anyhow!(
-                            "Inference timed out after {}s (retry with reduced tokens also failed)",
-                            timeout_secs,
-                        ));
-                    }
+                    return Err(stop.into());
                 }
             }
         };
-
-        let duration = start_time.elapsed();
 
         // Update inference count
         self.inference_count
             .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
-        let text = response
-            .choices
-            .first()
-            .map(|c| c.message.content.clone().unwrap_or_default())
-            .ok_or_else(|| anyhow::anyhow!("LLM returned empty choices"))?;
-
-        let tokens = response.usage.completion_tokens;
         info!(
             "Inference complete: {} tokens in {:.1}s ({:.0} tok/s)",
             tokens,
@@ -687,6 +881,7 @@ impl ModelEngine for MistralEngine {
 
     async fn reload(&self) -> Result<()> {
         info!("Reloading model...");
+        let _loading = self.load_lock.lock().await;
         self.unload().await?;
         self.load_model().await?;
         Ok(())

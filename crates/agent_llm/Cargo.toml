@@ -24,7 +24,12 @@ mistralrs = { version = "0.7.0" }
 tokio = { workspace = true, features = ["sync", "rt", "macros"] }
 reqwest.workspace = true
 
-[target.'cfg(target_os = "macos")'.dependencies]
+# Apple Silicon: run the model on the GPU (Metal) — several times faster than
+# the CPU. The engine falls back to the CPU when no Metal device is usable.
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+mistralrs = { version = "0.7.0", features = ["accelerate", "metal"] }
+
+[target.'cfg(all(target_os = "macos", not(target_arch = "aarch64")))'.dependencies]
 mistralrs = { version = "0.7.0", features = ["accelerate"] }
 
 [features]
