@@ -4,6 +4,7 @@ members = [
      "crates/*",
      "xtask",
 ]
+exclude = ["third_party/candle-core"]
 
 [workspace.package]
 version = "4.0.29"
@@ -103,3 +104,9 @@ strip = true
 panic = "unwind"
 overflow-checks = true
 debug = false
+
+# candle-core with run-time AVX2 selection for the quantized kernels: one
+# baseline x86_64 binary uses AVX2/FMA when the CPU has them and the portable
+# kernels otherwise. See third_party/candle-core/SENTINEL_PATCH.md.
+[patch.crates-io]
+candle-core = { path = "third_party/candle-core" }

@@ -98,6 +98,12 @@ enum Commands {
 }
 
 fn main() -> ExitCode {
+    // Local AI: one compute thread per physical core, before any thread starts.
+    #[cfg(feature = "llm")]
+    // SAFETY: first statement of main, the process is still single-threaded.
+    unsafe {
+        agent_llm::hardware::configure_threads()
+    };
     // Windows: write a startup breadcrumb before anything else so silent crashes
     // leave a trace in C:\ProgramData\Sentinel\logs\startup.log.
     #[cfg(windows)]
@@ -2821,6 +2827,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             #[cfg(feature = "llm")]
                             {
                                 let svc = llm_service.clone();
+                                let tx = bg_event_tx.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc
                                         && let Some(manager) = svc.get_manager().await
@@ -2831,6 +2838,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             return;
                                         }
                                         info!("LLM model ready in {:.1}s", started.elapsed().as_secs_f64());
+                                        if let Some(label) = manager.engine().acceleration().await {
+                                            let _ = tx.send(AgentEvent::LlmAcceleration { label });
+                                        }
                                         // Pre-process the grounded context (background
                                         // priority: a question pre-empts it). The prefix
                                         // cache then serves the first question.

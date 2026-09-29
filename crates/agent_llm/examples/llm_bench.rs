@@ -57,6 +57,10 @@ async fn main() -> anyhow::Result<()> {
     let started = Instant::now();
     engine.warm_up().await?;
     println!("load: {:.1}s", started.elapsed().as_secs_f64());
+    println!(
+        "calcul: {}",
+        engine.acceleration().await.unwrap_or_default()
+    );
 
     let system = "Tu es Sentinel Intelligence, analyste SOC senior. Réponds en français.";
     let context = grounded_context();
@@ -94,6 +98,11 @@ async fn main() -> anyhow::Result<()> {
             response.tokens_generated,
             response.tokens_generated as f64 / total.as_secs_f64(),
         );
+    }
+
+    // LLM_BENCH_QUICK=1: latency and throughput only.
+    if std::env::var_os("LLM_BENCH_QUICK").is_some() {
+        return Ok(());
     }
 
     // Background analysis running when the operator asks a question: the

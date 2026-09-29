@@ -32,14 +32,30 @@ Banc `crates/agent_llm/examples/llm_bench.rs`, modèle Qwen2.5-0.5B-Instruct Q4_
 - Réponses écrites concises par défaut (200 mots au plus, sauf rapport demandé).
 - Mac Apple Silicon : calcul sur GPU (Metal) avec repli CPU automatique. Non mesurable dans cet environnement Linux ; la compilation est vérifiée par la CI macOS.
 
-## Décision ouverte : AVX2 sur Windows/Linux x86_64
+## Adaptation automatique au processeur (x86_64)
 
-Les noyaux quantifiés de candle ne sont vectorisés AVX2 que si le binaire est compilé avec cette extension. Mesuré ici : +35 % en génération, −31 % sur le temps de premier mot. Activer `-C target-cpu=x86-64-v3` rendrait l'agent inutilisable (arrêt immédiat, instruction illégale) sur les processeurs sans AVX2 (Celeron/Pentium/Atom anciens, CPU antérieurs à 2013). Non activé : à décider selon le parc cible, ou via un binaire séparé.
+Les noyaux quantifiés de candle n'utilisaient AVX2 que si tout le binaire était compilé avec `-C target-cpu=x86-64-v3`, ce qui l'aurait fait planter (instruction illégale) sur les processeurs sans AVX2 (Celeron/Pentium/Atom anciens, CPU antérieurs à 2013).
+
+Retenu : un seul binaire compilé pour le x86_64 de base, avec une copie corrigée de candle-core (`third_party/candle-core`, voir `SENTINEL_PATCH.md`) qui détecte AVX2 + FMA + F16C au démarrage et choisit les noyaux AVX2 ou génériques. Un thread de calcul par cœur physique (`agent_llm::hardware`). Le mode retenu est journalisé au chargement et affiché dans « Modèle & diagnostic ».
+
+Mesures, même binaire de base, Qwen2.5-1.5B-Instruct Q4_K_M, 4 cœurs :
+
+| Scénario | Sans AVX2 (`SENTINEL_LLM_SIMD=off`) | AVX2 détecté |
+|---|---:|---:|
+| 1er mot, contexte de ~2 000 caractères, cache froid | 226 s | **48 s** |
+| 1er mot, question courte | 9,0 s | **1,5 s** |
+| Génération | 2,6 tok/s | **6,0 tok/s** |
+
+Sur le modèle 0,5B (dont les petites opérations hors produits matriciels pèsent davantage), le gain est moindre : 5,0 → 6,0 tok/s, 100 → 88 s.
+
+`SENTINEL_LLM_SIMD=off` force les noyaux génériques (diagnostic). `RAYON_NUM_THREADS` fixe le nombre de threads.
 
 ## Reproduire
 
 ```sh
 LLM_BENCH_MODEL=/chemin/modele.gguf cargo run --release -p agent_llm --example llm_bench
+LLM_BENCH_QUICK=1 SENTINEL_LLM_SIMD=off LLM_BENCH_MODEL=/chemin/modele.gguf cargo run --release -p agent_llm --example llm_bench
+cargo test -p candle-core --lib runtime_dispatch
 cargo test -p agent_llm --lib
 cargo test -p agent-core --lib --features gui
 cargo test -p agent-gui --lib --all-features

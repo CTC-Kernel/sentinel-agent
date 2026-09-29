@@ -237,6 +237,11 @@ pub enum AgentEvent {
         /// Memory allocated in MB.
         memory_mb: u64,
     },
+    /// Compute backend of the loaded model (e.g. "CPU AVX2/FMA · 8 threads").
+    LlmAcceleration {
+        /// Human-readable backend.
+        label: String,
+    },
     /// LLM model download progress.
     LlmDownloadProgress {
         /// Name of the model being downloaded.

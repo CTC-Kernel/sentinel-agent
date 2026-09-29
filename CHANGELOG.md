@@ -10,6 +10,26 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🧠 Assistant IA : contexte complet et adaptation automatique au poste
+
+- **L'IA voit enfin le détail des contrôles** : pour chaque domaine (antivirus,
+  pare-feu, politique de mots de passe, politique de comptes, chiffrement,
+  mises à jour, verrouillage de session, accès distant, journalisation), elle
+  reçoit le résultat du contrôle, le constat mesuré et, en cas d'échec ou
+  d'erreur, les valeurs relevées sur le poste qui en expliquent la cause. Un
+  domaine sans contrôle est signalé « non évalué » au lieu d'être présenté
+  comme une information manquante.
+- **Autres contrôles en échec ou en erreur** listés avec leur cause ;
+  **menaces ouvertes uniquement** (hors acquittées ou autorisées), avec la
+  ligne de commande des processus suspects, la description des incidents et
+  les adresses des alertes réseau.
+- **Adaptation automatique au processeur** : un seul binaire pour tous les
+  postes. Les instructions AVX2/FMA sont utilisées quand le processeur les
+  possède, et le code générique sinon (processeurs anciens, Celeron, Atom),
+  sans plantage. Un thread de calcul par cœur physique, pour garder le poste
+  réactif. Le mode de calcul utilisé (GPU Metal, CPU AVX2 ou CPU de base) est
+  affiché dans « Modèle & diagnostic ».
+
 ### ⚡ Assistant IA : réponses en direct, plus rapides et plus stables
 
 - **Réponse affichée mot à mot** (streaming) au lieu d'attendre la fin de la

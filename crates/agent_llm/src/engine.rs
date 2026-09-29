@@ -40,6 +40,12 @@ pub trait ModelEngine: Send + Sync {
         Ok(())
     }
 
+    /// Compute backend the loaded model runs on (e.g. "GPU Metal",
+    /// "CPU AVX2/FMA · 8 threads"), once known.
+    async fn acceleration(&self) -> Option<String> {
+        None
+    }
+
     /// Streaming inference: `on_delta` receives each text fragment as soon as
     /// it is generated. The returned response carries the complete text.
     async fn infer_stream(
@@ -395,6 +401,8 @@ pub struct MistralEngine {
     load_lock: tokio::sync::Mutex<()>,
     /// Interactive requests currently in flight.
     interactive_in_flight: Arc<std::sync::atomic::AtomicUsize>,
+    /// Compute backend of the loaded model.
+    acceleration: std::sync::RwLock<Option<String>>,
 }
 
 /// Why a streamed generation stopped early.
@@ -484,6 +492,7 @@ impl MistralEngine {
             inference_count: Arc::new(std::sync::atomic::AtomicU64::new(0)),
             load_lock: tokio::sync::Mutex::new(()),
             interactive_in_flight: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            acceleration: std::sync::RwLock::new(None),
         }
     }
 
@@ -738,17 +747,31 @@ impl MistralEngine {
             }
             async move { builder.build().await.map_err(|e| anyhow::anyhow!(e)) }
         };
+        let gpu_build = cfg!(all(target_os = "macos", target_arch = "aarch64"));
+        let mut on_gpu = gpu_build;
         let load_result = match build(false).await {
             // Apple Silicon builds use the GPU (Metal); keep the assistant
             // available on the CPU if the GPU cannot be used.
-            Err(e) if cfg!(all(target_os = "macos", target_arch = "aarch64")) => {
+            Err(e) if gpu_build => {
                 warn!("GPU model loading failed ({e}); falling back to the CPU");
+                on_gpu = false;
                 build(true).await
             }
             other => other,
         };
         if load_result.is_ok() {
-            info!("Model loaded in {:.1}s", started.elapsed().as_secs_f64());
+            let acceleration = if on_gpu {
+                "GPU Metal".to_string()
+            } else {
+                crate::hardware::cpu_label()
+            };
+            info!(
+                "Model loaded in {:.1}s on {acceleration}",
+                started.elapsed().as_secs_f64()
+            );
+            if let Ok(mut slot) = self.acceleration.write() {
+                *slot = Some(acceleration);
+            }
         }
 
         match load_result {
@@ -778,6 +801,10 @@ impl ModelEngine for MistralEngine {
 
     async fn infer(&self, request: InferenceRequest) -> Result<InferenceResponse> {
         self.infer_stream(request, &mut |_| {}).await
+    }
+
+    async fn acceleration(&self) -> Option<String> {
+        self.acceleration.read().ok().and_then(|slot| slot.clone())
     }
 
     async fn warm_up(&self) -> Result<()> {

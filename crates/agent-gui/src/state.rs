@@ -756,6 +756,8 @@ pub struct AiState {
     pub is_processing: bool,
     /// Current model status.
     pub model_status: crate::dto::LlmModelStatus,
+    /// Compute backend of the loaded model, chosen for this machine.
+    pub acceleration: Option<String>,
     /// LLM model download progress.
     pub download: crate::dto::LlmDownloadState,
     /// Cached count of recommendations (updated when recommendations tab is shown).
@@ -1933,6 +1935,9 @@ impl AppState {
                     memory_mb,
                     is_ready,
                 };
+            }
+            AgentEvent::LlmAcceleration { label } => {
+                self.ai.acceleration = Some(label);
             }
             AgentEvent::LlmDownloadProgress {
                 model_name,
