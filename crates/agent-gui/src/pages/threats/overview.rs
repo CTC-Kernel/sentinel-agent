@@ -42,7 +42,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let open = |kind: &str| {
             all_threats
                 .iter()
-                .filter(|t| t.kind == kind && !t.acknowledged && !t.allowlisted)
+                .filter(|t| t.kind == kind && t.needs_triage())
                 .count()
         };
         let process_count = open("process");
@@ -371,7 +371,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             // Reuse the already-built all_threats instead of calling build_threat_list again.
             let mut list = all_threats.clone();
             if !state.threats.overview_show_triaged {
-                list.retain(|t| !t.acknowledged && !t.allowlisted);
+                // The "Vulnéra." chip still lists findings explicitly.
+                let vulnerabilities = state.threats.filter.as_deref() == Some("vulnerability");
+                list.retain(|t| t.needs_triage() || (vulnerabilities && t.kind == "vulnerability"));
             }
 
             if let Some(ref filter) = state.threats.filter {
@@ -864,7 +866,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             ));
                         }
                         actions.push(widgets::DetailAction::secondary("Acquitter", icons::CHECK));
-                        actions.push(widgets::DetailAction::primary("Signaler", icons::FLAG));
+                        actions.push(widgets::DetailAction::primary(
+                            "Autoriser ce type d'incident",
+                            icons::SHIELD_CHECK,
+                        ));
+                        actions.push(widgets::DetailAction::secondary("Signaler", icons::FLAG));
                         let drawer_action =
                             widgets::DetailDrawer::new("threat_detail", &inc.title, icons::SHIELD)
                                 .accent(sev_color)
@@ -959,7 +965,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 None
                             };
                             let ack_idx = next;
-                            let report_idx = next + 1;
+                            let allow_idx = next + 1;
+                            let report_idx = next + 2;
                             if ai_idx == Some(action_idx) {
                                 let desc = format!(
                                     "Incident système: {} — Type: {} — Description: {}",
@@ -983,6 +990,22 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                     crate::widgets::toast::Toast::success(
                                         "Incident système acquitt\u{00e9}",
                                     )
+                                    .with_time(time),
+                                );
+                            } else if action_idx == allow_idx {
+                                state.add_allowlist_rule_global(
+                                    crate::dto::AllowlistRuleType::SystemIncident,
+                                    inc.incident_type.clone(),
+                                    format!("Incident système autoris\u{00e9} : {}", inc.title),
+                                    "Op\u{00e9}rateur".to_string(),
+                                );
+                                state.threats.detail_open = false;
+                                state.threats.selected_threat = None;
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success(format!(
+                                        "R\u{00e8}gle cr\u{00e9}\u{00e9}e : incidents '{}' autoris\u{00e9}s",
+                                        inc.incident_type
+                                    ))
                                     .with_time(time),
                                 );
                             } else if action_idx == report_idx {

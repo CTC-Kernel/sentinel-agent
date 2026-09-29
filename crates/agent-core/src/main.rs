@@ -1606,6 +1606,18 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI user updated check interval to {} seconds", interval_secs);
                             handle_for_commands.set_check_interval(interval_secs);
                         }
+                        Ok(GuiCommand::UpdateAllowlist { rules }) => {
+                            info!(
+                                "[AUDIT] GUI updated triage authorizations: {} rule(s) [{}]",
+                                rules.len(),
+                                rules
+                                    .iter()
+                                    .map(|r| format!("{:?}={} by {}", r.rule_type, r.pattern, r.created_by))
+                                    .collect::<Vec<_>>()
+                                    .join(", ")
+                            );
+                            handle_for_commands.set_allowlist_rules(rules);
+                        }
                         Ok(GuiCommand::SetLogLevel { level }) => {
                             handle_for_commands.set_log_level(level);
                         }

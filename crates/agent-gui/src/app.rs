@@ -653,6 +653,9 @@ impl SentinelApp {
         // Commands are sent after releasing the event receiver lock: voice
         // callbacks can emit new GUI events immediately and must never contend
         // with the drain loop above.
+        if let Some(cmd) = self.state.threats.take_allowlist_sync() {
+            self.send_command(cmd);
+        }
         if resume_conversation
             && self.state.ai.voice_conversation_enabled
             && !self.state.ai.is_processing

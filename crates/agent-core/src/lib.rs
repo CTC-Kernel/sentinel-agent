@@ -69,6 +69,7 @@ mod scanning;
 mod self_update;
 mod sync_init;
 pub mod threat_pipeline;
+pub mod triage_allowlist;
 mod vuln_upload;
 
 #[cfg(feature = "tray")]
@@ -430,6 +431,16 @@ impl RuntimeHandle {
                 device_type,
             });
         }
+    }
+
+    /// Replace the local triage authorizations applied to notifications,
+    /// detection rules and playbooks.
+    pub fn set_allowlist_rules(&self, rules: Vec<agent_gui::dto::AllowlistRule>) {
+        info!(
+            "Triage authorizations updated via handle: {} rule(s)",
+            rules.len()
+        );
+        self.state.set_allowlist_rules(rules);
     }
 
     /// Set the dynamic compliance check interval.
@@ -1758,9 +1769,18 @@ impl AgentRuntime {
                             warn!("Security scan detected {} incident(s)!", count);
                             #[cfg(feature = "gui")]
                             {
+                                let authorizations = self.state.allowlist_snapshot();
                                 let current: std::collections::HashSet<String> = result
                                     .incidents
                                     .iter()
+                                    // Authorized incidents are still reported to the GUI
+                                    // (shown as "Autorisé") but never notified.
+                                    .filter(|i| {
+                                        !triage_allowlist::incident_is_authorized(
+                                            &authorizations,
+                                            i,
+                                        )
+                                    })
                                     .map(|i| {
                                         format!(
                                             "{}|{}|{}|{}",
@@ -1837,14 +1857,11 @@ impl AgentRuntime {
                         pipeline_incidents.extend(result.incidents.iter().cloned());
 
                         if count == 0 {
+                            // A clean periodic scan is not news: logging it avoids a
+                            // notification every few minutes.
+                            debug!("Security scan: no incident detected");
                             #[cfg(feature = "gui")]
                             previous_incidents.clear();
-                            #[cfg(feature = "gui")]
-                            self.emit_notification(
-                                "Scan sécurité",
-                                "Aucun incident détecté",
-                                "info",
-                            );
                         }
                     }
                     Err(e) => {
@@ -2253,10 +2270,19 @@ impl AgentRuntime {
                 || !pipeline_network_alerts.is_empty()
                 || !pipeline_fim_alerts.is_empty()
             {
+                // Authorized events still reach the SIEM below (audit trail) but
+                // never match detection rules nor trigger playbooks.
+                let (triaged_incidents, triaged_network, triaged_fim) =
+                    triage_allowlist::unauthorized_pipeline_inputs(
+                        &self.state.allowlist_snapshot(),
+                        &pipeline_incidents,
+                        &pipeline_network_alerts,
+                        &pipeline_fim_alerts,
+                    );
                 let threat_context = threat_pipeline::build_threat_context(
-                    &pipeline_incidents,
-                    &pipeline_network_alerts,
-                    &pipeline_fim_alerts,
+                    &triaged_incidents,
+                    &triaged_network,
+                    &triaged_fim,
                 );
 
                 // Load detection rules and playbooks from the database

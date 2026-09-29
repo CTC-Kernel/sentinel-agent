@@ -36,6 +36,14 @@ pub(super) struct ThreatEvent {
     pub allowlisted: bool,
 }
 
+impl ThreatEvent {
+    /// Still awaiting operator triage. Vulnerabilities are handled in their own
+    /// module (patching lifecycle) and never block this queue.
+    pub fn needs_triage(&self) -> bool {
+        !self.acknowledged && !self.allowlisted && self.kind != "vulnerability"
+    }
+}
+
 /// Compute a risk score (0-100) that prioritizes critical threats across all 6 sources.
 pub(super) fn compute_risk_score(
     state: &AppState,

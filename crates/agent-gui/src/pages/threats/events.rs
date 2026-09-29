@@ -79,7 +79,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     }
     let mut threats = build_threat_list(state);
     threats.retain(|t| match state.threats.events_status_filter {
-        1 => !t.acknowledged && !t.allowlisted,
+        1 => t.needs_triage(),
         2 => t.acknowledged && !t.allowlisted,
         3 => t.allowlisted,
         _ => true,

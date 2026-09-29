@@ -747,6 +747,8 @@ pub enum AllowlistRuleType {
     FilePath,
     /// USB device identifier (e.g. "0x0781:0x5567").
     UsbDevice,
+    /// System incident type or title (e.g. "firewall_disabled", "Pare-feu*").
+    SystemIncident,
 }
 
 impl AllowlistRuleType {
@@ -757,6 +759,7 @@ impl AllowlistRuleType {
             Self::Domain => "Domaine réseau",
             Self::FilePath => "Chemin de fichier",
             Self::UsbDevice => "Périphérique USB",
+            Self::SystemIncident => "Incident système",
         }
     }
 }
@@ -777,6 +780,20 @@ pub struct AllowlistRule {
     pub created_at: DateTime<Utc>,
     /// Operator or system that approved this rule.
     pub created_by: String,
+}
+
+/// Whether any rule of `kind` covers `value`. Shared by the GUI triage view and
+/// the agent core (notifications, detection rules, playbooks) so both always
+/// agree on what an authorization covers.
+pub fn allowlist_covers(rules: &[AllowlistRule], kind: AllowlistRuleType, value: &str) -> bool {
+    rules
+        .iter()
+        .any(|r| r.rule_type == kind && r.matches(value))
+}
+
+/// USB identifier format used by authorization rules.
+pub fn usb_rule_value(vendor_id: u16, product_id: u16) -> String {
+    format!("0x{vendor_id:04x}:0x{product_id:04x}")
 }
 
 impl AllowlistRule {

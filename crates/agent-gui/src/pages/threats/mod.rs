@@ -45,7 +45,7 @@ impl ThreatsPage {
         // Badge = events still awaiting triage (the tab's default view).
         let total_events = types::build_threat_list(state)
             .iter()
-            .filter(|t| !t.acknowledged && !t.allowlisted)
+            .filter(|t| t.needs_triage())
             .count();
 
         let pending_response = state
