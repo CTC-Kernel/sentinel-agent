@@ -68,24 +68,32 @@ impl VoiceService {
         #[cfg(feature = "voice")]
         let whisper_ctx = {
             let model_path = resolve_whisper_model_path();
-            match whisper_rs::WhisperContext::new_with_params(
-                &model_path.to_string_lossy(),
-                whisper_rs::WhisperContextParameters::default(),
-            ) {
-                Ok(ctx) => {
-                    info!(
-                        "VoiceService: Whisper model loaded from {}",
-                        model_path.display()
-                    );
-                    Some(ctx)
-                }
-                Err(e) => {
-                    warn!(
-                        "VoiceService: Failed to load Whisper model at {}. Speech recognition is unavailable. {}",
-                        model_path.display(),
-                        e
-                    );
-                    None
+            if !model_path.is_file() {
+                info!(
+                    "VoiceService: Whisper model not installed (expected at {}); dictation disabled",
+                    model_path.display()
+                );
+                None
+            } else {
+                match whisper_rs::WhisperContext::new_with_params(
+                    &model_path.to_string_lossy(),
+                    whisper_rs::WhisperContextParameters::default(),
+                ) {
+                    Ok(ctx) => {
+                        info!(
+                            "VoiceService: Whisper model loaded from {}",
+                            model_path.display()
+                        );
+                        Some(ctx)
+                    }
+                    Err(e) => {
+                        warn!(
+                            "VoiceService: Failed to load Whisper model at {}. Speech recognition is unavailable. {}",
+                            model_path.display(),
+                            e
+                        );
+                        None
+                    }
                 }
             }
         };
@@ -281,7 +289,7 @@ impl VoiceService {
                     let _ = tx.send(AgentEvent::VoiceStatus { speaking: true });
                     let char_count = rt_text.chars().count() as u64;
                     synth_duration =
-                        std::time::Duration::from_millis((55 * char_count).clamp(1_200, 30_000));
+                        std::time::Duration::from_millis((80 * char_count).clamp(1_200, 75_000));
                 }
             }
 
@@ -314,7 +322,7 @@ fn wait_for_speech_end(
     use std::time::{Duration, Instant};
 
     let started = Instant::now();
-    let deadline = started + estimated_duration + Duration::from_secs(5);
+    let deadline = started + estimated_duration + Duration::from_secs(10);
     let mut observed_speech = false;
 
     loop {
@@ -377,18 +385,33 @@ fn prepare_spoken_text(text: &str) -> String {
     spoken
 }
 
-/// Resolve the Whisper model path, preferring the platform data dir and falling
-/// back to the historic `models/whisper/ggml-base.bin` relative path.
+/// Resolve the Whisper model path: platform data dir first, then next to the
+/// executable (and the macOS bundle `Resources`). The historic cwd-relative
+/// `models/whisper/ggml-base.bin` never resolves for a launched `.app` (cwd is
+/// `/`), so the platform path is returned when nothing is installed.
 #[cfg(all(feature = "voice", feature = "gui"))]
 fn resolve_whisper_model_path() -> std::path::PathBuf {
-    let platform = agent_common::config::AgentConfig::platform_data_dir()
-        .join("models")
+    let relative = std::path::Path::new("models")
         .join("whisper")
         .join("ggml-base.bin");
-    if platform.exists() {
-        return platform;
+    let platform = agent_common::config::AgentConfig::platform_data_dir().join(&relative);
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(std::path::Path::to_path_buf));
+    let candidates = std::iter::once(platform.clone())
+        .chain(exe_dir.iter().flat_map(|dir| {
+            [
+                dir.join(&relative),
+                dir.join("../Resources").join(&relative),
+            ]
+        }))
+        .chain(std::iter::once(relative.clone()));
+    for candidate in candidates {
+        if candidate.is_file() {
+            return candidate;
+        }
     }
-    std::path::PathBuf::from("models/whisper/ggml-base.bin")
+    platform
 }
 
 /// Capture mic audio until a natural end-of-speech is detected, then run Whisper.
@@ -609,7 +632,7 @@ fn record_and_transcribe(
     let ctx_guard = whisper_ctx.blocking_lock();
     let ctx = ctx_guard
         .as_ref()
-        .ok_or_else(|| "modèle Whisper non chargé (models/whisper/ggml-base.bin)".to_string())?;
+        .ok_or_else(|| "modèle Whisper non chargé".to_string())?;
 
     let mut state = ctx
         .create_state()

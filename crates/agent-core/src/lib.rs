@@ -804,8 +804,8 @@ impl AgentRuntime {
                 } else {
                     warn!("Skipping sync service init — enrollment invalid");
                     warn!(
-                        "To fix this, add a valid enrollment_token to agent.json and restart the agent. \
-                         On Windows: C:\\ProgramData\\Sentinel\\agent.json"
+                        "To fix this, add a valid enrollment_token to {} and restart the agent.",
+                        agent_common::config::AgentConfig::platform_config_path().display()
                     );
                 }
             }
