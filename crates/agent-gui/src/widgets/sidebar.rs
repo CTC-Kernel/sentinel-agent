@@ -112,23 +112,26 @@ fn nav_sections() -> [NavSection; 5] {
     ]
 }
 
-/// Keyboard shortcut for a page, matching the bindings in `app.rs`.
-///
-/// Surfaced in the row's tooltip: a shortcut nobody can discover is a
-/// shortcut nobody uses.
+/// Cmd/Ctrl + digit page shortcuts. The one table both the key handler in
+/// `app.rs` and the sidebar tooltips read, so the two cannot drift apart.
+pub const PAGE_SHORTCUTS: [(egui::Key, &str, Page); 8] = [
+    (egui::Key::Num1, "1", Page::Dashboard),
+    (egui::Key::Num2, "2", Page::Compliance),
+    (egui::Key::Num3, "3", Page::Vulnerabilities),
+    (egui::Key::Num4, "4", Page::Software),
+    (egui::Key::Num5, "5", Page::Network),
+    (egui::Key::Num6, "6", Page::FileIntegrity),
+    (egui::Key::Num7, "7", Page::Threats),
+    (egui::Key::Num8, "8", Page::Settings),
+];
+
+/// Keyboard shortcut for a page, surfaced in the row's tooltip: a shortcut
+/// nobody can discover is a shortcut nobody uses.
 fn shortcut_for(page: &Page) -> Option<String> {
-    let key = match page {
-        Page::Dashboard => "1",
-        Page::Compliance => "2",
-        Page::Vulnerabilities => "3",
-        Page::Software => "4",
-        Page::Network => "5",
-        Page::FileIntegrity => "6",
-        Page::Threats => "7",
-        Page::Settings => "8",
-        _ => return None,
-    };
-    Some(super::topbar::shortcut_label(false, key))
+    PAGE_SHORTCUTS
+        .iter()
+        .find(|(_, _, target)| target == page)
+        .map(|(_, digit, _)| super::topbar::shortcut_label(false, digit))
 }
 
 /// Rows pinned to the bottom, above the workspace footer.

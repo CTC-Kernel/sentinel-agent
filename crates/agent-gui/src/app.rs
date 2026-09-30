@@ -1298,29 +1298,15 @@ impl eframe::App for SentinelApp {
 
         // Keyboard shortcuts for page navigation
         if let Some(new_page) = ctx.input(|i| {
-            if i.modifiers.command {
-                if i.key_pressed(egui::Key::Num1) {
-                    Some(Page::Dashboard)
-                } else if i.key_pressed(egui::Key::Num2) {
-                    Some(Page::Compliance)
-                } else if i.key_pressed(egui::Key::Num3) {
-                    Some(Page::Vulnerabilities)
-                } else if i.key_pressed(egui::Key::Num4) {
-                    Some(Page::Software)
-                } else if i.key_pressed(egui::Key::Num5) {
-                    Some(Page::Network)
-                } else if i.key_pressed(egui::Key::Num6) {
-                    Some(Page::FileIntegrity)
-                } else if i.key_pressed(egui::Key::Num7) {
-                    Some(Page::Threats)
-                } else if i.key_pressed(egui::Key::Num8) {
-                    Some(Page::Settings)
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
+            i.modifiers
+                .command
+                .then(|| {
+                    crate::widgets::sidebar::PAGE_SHORTCUTS
+                        .iter()
+                        .find(|(key, _, _)| i.key_pressed(*key))
+                        .map(|(_, _, page)| page.clone())
+                })
+                .flatten()
         }) {
             self.navigate_to(new_page);
         }
