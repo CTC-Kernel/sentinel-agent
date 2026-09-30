@@ -71,107 +71,9 @@ impl FimPage {
 
         ui.add_space(theme::SPACE_LG);
 
-        // ── Change type distribution + Acknowledgment rate ──────────────
+        // ── Change mix + triage ─────────────────────────────────────────
         if !state.fim.alerts.is_empty() {
-            widgets::card(ui, |ui: &mut egui::Ui| {
-                // ── A. Change type distribution ──
-                ui.label(
-                    egui::RichText::new("DISTRIBUTION PAR TYPE DE MODIFICATION")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_SM);
-
-                let mut created: usize = 0;
-                let mut modified: usize = 0;
-                let mut deleted: usize = 0;
-                let mut permissions: usize = 0;
-                let mut renamed: usize = 0;
-
-                for alert in &state.fim.alerts {
-                    match alert.change_type {
-                        FimChangeType::Created => created += 1,
-                        FimChangeType::Modified => modified += 1,
-                        FimChangeType::Deleted => deleted += 1,
-                        FimChangeType::PermissionChanged => permissions += 1,
-                        FimChangeType::Renamed => renamed += 1,
-                    }
-                }
-
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    let types: &[(&str, usize, egui::Color32)] = &[
-                        ("CR\u{00c9}\u{00c9}", created, theme::SUCCESS),
-                        ("MODIFI\u{00c9}", modified, theme::WARNING),
-                        ("SUPPRIM\u{00c9}", deleted, theme::ERROR),
-                        ("PERMISSIONS", permissions, theme::INFO),
-                        ("RENOMM\u{00c9}", renamed, theme::WARNING),
-                    ];
-                    for (label, count, color) in types {
-                        if *count > 0 {
-                            widgets::status_badge(ui, &format!("{}: {}", label, count), *color);
-                            ui.add_space(theme::SPACE_SM);
-                        }
-                    }
-                });
-
-                ui.add_space(theme::SPACE_MD);
-
-                // ── B. Acknowledgment rate ──
-                let total_alerts = state.fim.alerts.len();
-                let acked_count = state.fim.alerts.iter().filter(|a| a.acknowledged).count();
-                let ack_pct = if total_alerts > 0 {
-                    (acked_count as f32 / total_alerts as f32) * 100.0
-                } else {
-                    0.0
-                };
-
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("TAUX D'ACQUITTEMENT")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    let pct_color = if ack_pct >= 80.0 {
-                        theme::SUCCESS
-                    } else if ack_pct >= 50.0 {
-                        theme::WARNING
-                    } else {
-                        theme::ERROR
-                    };
-                    ui.label(
-                        egui::RichText::new(crate::format::pct(ack_pct, 0))
-                            .font(theme::font_body())
-                            .color(theme::readable_color(pct_color))
-                            .strong(),
-                    );
-                    ui.label(
-                        egui::RichText::new(format!("({}/{})", acked_count, total_alerts,))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary()),
-                    );
-                });
-
-                ui.add_space(theme::SPACE_XS);
-
-                let ack_progress = if total_alerts > 0 {
-                    acked_count as f32 / total_alerts as f32
-                } else {
-                    0.0
-                };
-                let ack_style = if ack_pct >= 80.0 {
-                    widgets::progress::ProgressStyle::Success
-                } else if ack_pct >= 50.0 {
-                    widgets::progress::ProgressStyle::Warning
-                } else {
-                    widgets::progress::ProgressStyle::Error
-                };
-                widgets::progress_bar_styled(ui, ack_progress, ack_style, None);
-            });
+            Self::activity_card(ui, &state.fim.alerts);
         }
 
         ui.add_space(theme::SPACE_MD);
@@ -464,6 +366,48 @@ impl FimPage {
 
     // ── Helpers ──────────────────────────────────────────────────────────
 
+    /// What changed and how far triage has got: the change-type mix as a
+    /// proportion bar with a legend, beside the acknowledgement ring and
+    /// the last seven days of changes.
+    fn activity_card(ui: &mut Ui, alerts: &std::collections::VecDeque<crate::dto::GuiFimAlert>) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("ACTIVITÉ ET TRAITEMENT")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+            let columns = ui.available_width() >= 720.0;
+            let gap = theme::SPACE_XL;
+            let column_w = if columns {
+                (ui.available_width() - gap) / 2.0
+            } else {
+                ui.available_width()
+            };
+            let layout = if columns {
+                egui::Layout::left_to_right(egui::Align::Min)
+            } else {
+                egui::Layout::top_down(egui::Align::Min)
+            };
+            ui.with_layout(layout, |ui| {
+                let inner = ui.spacing().item_spacing;
+                ui.spacing_mut().item_spacing = egui::vec2(gap, theme::SPACE_LG);
+                ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing = inner;
+                    ui.set_width(column_w);
+                    change_mix(ui, alerts);
+                });
+                ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing = inner;
+                    ui.set_width(column_w);
+                    triage(ui, alerts);
+                });
+            });
+        });
+    }
+
     fn summary_card(
         ui: &mut Ui,
         width: f32,
@@ -514,7 +458,9 @@ impl FimPage {
             FimChangeType::Modified => ("MODIFIÉ", theme::WARNING),
             FimChangeType::Deleted => ("SUPPRIMÉ", theme::ERROR),
             FimChangeType::PermissionChanged => ("PERMISSIONS", theme::INFO),
-            FimChangeType::Renamed => ("RENOMMÉ", theme::WARNING),
+            // Its own hue: sharing amber with "modified" made the two
+            // indistinguishable in the change-mix bar.
+            FimChangeType::Renamed => ("RENOMMÉ", theme::AI),
         }
     }
 
@@ -546,5 +492,213 @@ impl FimPage {
                 false
             }
         }
+    }
+}
+
+fn fim_column_title(ui: &mut Ui, icon: &str, title: &str) {
+    ui.horizontal(|ui| {
+        ui.label(
+            egui::RichText::new(icon)
+                .size(theme::ICON_XS)
+                .color(theme::accent_text()),
+        );
+        ui.label(
+            egui::RichText::new(title)
+                .font(theme::font_body_strong())
+                .color(theme::text_primary()),
+        );
+    });
+    ui.add_space(theme::SPACE_SM);
+}
+
+/// Change types as one proportion bar and a legend with counts and shares.
+fn change_mix(ui: &mut Ui, alerts: &std::collections::VecDeque<crate::dto::GuiFimAlert>) {
+    fim_column_title(ui, icons::PENCIL, "Types de modification");
+    let kinds = [
+        FimChangeType::Modified,
+        FimChangeType::Created,
+        FimChangeType::Deleted,
+        FimChangeType::PermissionChanged,
+        FimChangeType::Renamed,
+    ];
+    let counts: Vec<(&'static str, usize, egui::Color32)> = kinds
+        .iter()
+        .map(|kind| {
+            let (label, color) = FimPage::change_type_display(kind);
+            let count = alerts.iter().filter(|a| a.change_type == *kind).count();
+            (label, count, color)
+        })
+        .collect();
+    let total = alerts.len().max(1);
+
+    let height = 8.0;
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), height),
+        egui::Sense::hover(),
+    );
+    if ui.is_rect_visible(rect) {
+        let radius = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+        ui.painter().rect_filled(rect, radius, theme::bg_tertiary());
+        let live: Vec<_> = counts.iter().filter(|(_, n, _)| *n > 0).collect();
+        let gap = 2.0;
+        let usable = rect.width() - gap * live.len().saturating_sub(1) as f32;
+        let mut x = rect.left();
+        for (_, n, color) in live {
+            let w = usable * *n as f32 / total as f32;
+            ui.painter().rect_filled(
+                egui::Rect::from_min_size(egui::pos2(x, rect.top()), egui::vec2(w, height)),
+                radius,
+                theme::readable_color(*color),
+            );
+            x += w + gap;
+        }
+    }
+    ui.add_space(theme::SPACE_SM);
+    for (label, count, color) in counts.iter().filter(|(_, n, _)| *n > 0) {
+        ui.horizontal(|ui| {
+            let (dot, _) = ui.allocate_exact_size(egui::vec2(10.0, 10.0), egui::Sense::hover());
+            ui.painter()
+                .circle_filled(dot.center(), 4.0, theme::readable_color(*color));
+            ui.label(
+                egui::RichText::new(*label)
+                    .font(theme::font_body())
+                    .color(theme::text_primary()),
+            );
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(
+                    egui::RichText::new(crate::format::pct(
+                        *count as f32 / total as f32 * 100.0,
+                        0,
+                    ))
+                    .font(theme::font_caption())
+                    .color(theme::text_tertiary()),
+                );
+                ui.label(
+                    egui::RichText::new(count.to_string())
+                        .font(theme::font_body_strong())
+                        .color(theme::readable_color(*color)),
+                );
+            });
+        });
+    }
+}
+
+/// Acknowledgement ring beside the last seven days of changes.
+fn triage(ui: &mut Ui, alerts: &std::collections::VecDeque<crate::dto::GuiFimAlert>) {
+    fim_column_title(ui, icons::CHECK, "Traitement");
+    let total = alerts.len();
+    let acked = alerts.iter().filter(|a| a.acknowledged).count();
+    let ratio = acked as f32 / total.max(1) as f32;
+    let color = if ratio >= 0.8 {
+        theme::SUCCESS
+    } else if ratio >= 0.5 {
+        theme::SEVERITY_MEDIUM
+    } else {
+        theme::ERROR
+    };
+
+    ui.horizontal_top(|ui| {
+        // Ring.
+        let size = 96.0;
+        let (rect, _) = ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::hover());
+        if ui.is_rect_visible(rect) {
+            let painter = ui.painter();
+            let center = rect.center();
+            let r = size / 2.0 - 6.0;
+            painter.circle_stroke(center, r, egui::Stroke::new(8.0_f32, theme::bg_tertiary()));
+            if ratio > 0.0 {
+                let steps = (64.0 * ratio).ceil().max(2.0) as usize;
+                let start = -std::f32::consts::FRAC_PI_2;
+                let points: Vec<egui::Pos2> = (0..=steps)
+                    .map(|i| {
+                        let a = start + std::f32::consts::TAU * ratio * i as f32 / steps as f32;
+                        center + egui::vec2(a.cos(), a.sin()) * r
+                    })
+                    .collect();
+                painter.add(egui::Shape::line(
+                    points,
+                    egui::Stroke::new(8.0_f32, theme::readable_color(color)),
+                ));
+            }
+            painter.text(
+                center,
+                egui::Align2::CENTER_CENTER,
+                crate::format::pct(ratio * 100.0, 0),
+                theme::font_body_strong(),
+                theme::readable_color(color),
+            );
+        }
+        ui.add_space(theme::SPACE_MD);
+        ui.vertical(|ui| {
+            ui.label(
+                egui::RichText::new(format!("{acked} / {total}"))
+                    .font(theme::font_h2())
+                    .color(theme::text_primary()),
+            );
+            ui.label(
+                egui::RichText::new("alertes acquittées")
+                    .font(theme::font_caption())
+                    .color(theme::text_secondary()),
+            );
+            ui.add_space(theme::SPACE_SM);
+            week_bars(ui, alerts);
+        });
+    });
+}
+
+/// Changes per day over the last seven days, today last.
+fn week_bars(ui: &mut Ui, alerts: &std::collections::VecDeque<crate::dto::GuiFimAlert>) {
+    use chrono::Datelike;
+    let today = chrono::Local::now().date_naive();
+    let mut days = [0_usize; 7];
+    for alert in alerts {
+        let day = alert.timestamp.with_timezone(&chrono::Local).date_naive();
+        let back = (today - day).num_days();
+        if (0..7).contains(&back) {
+            days[6 - back as usize] += 1;
+        }
+    }
+    let tallest = days.iter().copied().max().unwrap_or(0).max(1);
+    let (rect, _) = ui.allocate_exact_size(egui::vec2(7.0 * 22.0, 44.0), egui::Sense::hover());
+    if !ui.is_rect_visible(rect) {
+        return;
+    }
+    let painter = ui.painter();
+    let plot_h = 30.0;
+    for (i, count) in days.iter().enumerate() {
+        let x = rect.left() + i as f32 * 22.0;
+        let h = if *count == 0 {
+            2.0
+        } else {
+            (plot_h * *count as f32 / tallest as f32).max(4.0)
+        };
+        painter.rect_filled(
+            egui::Rect::from_min_max(
+                egui::pos2(x + 3.0, rect.top() + plot_h - h),
+                egui::pos2(x + 19.0, rect.top() + plot_h),
+            ),
+            egui::CornerRadius {
+                nw: 2,
+                ne: 2,
+                sw: 0,
+                se: 0,
+            },
+            if *count == 0 {
+                theme::bg_tertiary()
+            } else if i == 6 {
+                theme::accent_text()
+            } else {
+                theme::accent_text().linear_multiply(0.55)
+            },
+        );
+        let weekday = (today - chrono::Duration::days(6 - i as i64)).weekday();
+        let letter = ["L", "M", "M", "J", "V", "S", "D"][weekday.num_days_from_monday() as usize];
+        painter.text(
+            egui::pos2(x + 11.0, rect.top() + plot_h + 3.0),
+            egui::Align2::CENTER_TOP,
+            letter,
+            theme::font_micro(),
+            theme::text_tertiary(),
+        );
     }
 }
