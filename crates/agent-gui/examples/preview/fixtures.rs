@@ -1456,6 +1456,28 @@ pub fn seed(state: &mut AppState) {
         });
     }
 
+    // Earlier executive summaries, newest first after the current one, so
+    // the report preview has a score trend and a history to show.
+    for (i, (month, score, days)) in [
+        ("août", 83.1_f32, 31_i64),
+        ("juillet", 80.6, 61),
+        ("juin", 78.2, 92),
+    ]
+    .iter()
+    .enumerate()
+    {
+        state.reports.reports.push_back(GeneratedReport {
+            id: id(520 + i as u128),
+            report_type: ReportType::Executive,
+            title: format!("Synthèse exécutive — {month} 2026"),
+            generated_at: days_ago(*days),
+            html_content: String::new(),
+            summary: format!("Score de conformité {score} %."),
+            compliance_score: Some(*score),
+            framework: None,
+        });
+    }
+
     // ── SIEM ──────────────────────────────────────────────────────────
     let siem: &[(
         SiemLogSeverity,
