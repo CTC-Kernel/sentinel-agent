@@ -335,10 +335,31 @@ const SCROLLBAR_GUTTER: f32 = 10.0;
 /// 3000px-wide table row is unreadable however premium it looks. The preview
 /// harness calls this too, so a capture measures what the shell shows.
 /// Keep each module's reading position separate when navigating the sidebar.
-pub fn page_scroll_area(page: &Page) -> egui::ScrollArea {
-    egui::ScrollArea::vertical()
+///
+/// eframe persists egui memory across launches, scroll offsets included, so
+/// the dashboard used to reopen wherever it was left, often below the
+/// compliance score. The first time a page shows in a session it starts at
+/// the top; after that it keeps the operator's reading position. The marker
+/// lives in temp memory, which is never persisted.
+pub fn page_scroll_area(ctx: &egui::Context, page: &Page) -> egui::ScrollArea {
+    let area = egui::ScrollArea::vertical()
         .id_salt(("page_body", page))
-        .auto_shrink(egui::Vec2b::new(false, false))
+        .auto_shrink(egui::Vec2b::new(false, false));
+    let seen = page_session_marker(page);
+    let first_view = ctx.data_mut(|data| {
+        let first = data.get_temp::<()>(seen).is_none();
+        data.insert_temp(seen, ());
+        first
+    });
+    if first_view {
+        area.vertical_scroll_offset(0.0)
+    } else {
+        area
+    }
+}
+
+fn page_session_marker(page: &Page) -> egui::Id {
+    egui::Id::new(("page_seen_this_session", page))
 }
 
 pub fn page_column(ui: &mut egui::Ui, body: impl FnOnce(&mut egui::Ui)) {
@@ -1409,7 +1430,7 @@ impl eframe::App for SentinelApp {
                     ui.set_opacity(combined_alpha);
                 }
 
-                page_scroll_area(&self.page).show(ui, |ui: &mut egui::Ui| {
+                page_scroll_area(ctx, &self.page).show(ui, |ui: &mut egui::Ui| {
                     page_column(ui, |ui: &mut egui::Ui| match self.page {
                         Page::Dashboard => {
                             if let Some(action) = pages::DashboardPage::show(ui, &mut self.state) {
@@ -2119,7 +2140,7 @@ mod module_navigation_tests {
                 },
                 |ctx| {
                     egui::CentralPanel::default().show(ctx, |ui| {
-                        offset = page_scroll_area(page)
+                        offset = page_scroll_area(ctx, page)
                             .show(ui, |ui| {
                                 ui.allocate_space(egui::vec2(600.0, 2000.0));
                             })
@@ -2150,7 +2171,13 @@ mod module_navigation_tests {
             network_offset = render(&Page::Network, vec![]);
         }
         assert!(network_offset > 100.0);
+
         assert_eq!(render(&Page::Settings, vec![]), 0.0);
         assert!(render(&Page::Network, vec![]) >= network_offset);
+
+        // A new session carries the restored offset but not the marker: the
+        // page opens at the top once, then scrolls freely again.
+        ctx.data_mut(|data| data.remove_temp::<()>(page_session_marker(&Page::Network)));
+        assert_eq!(render(&Page::Network, vec![]), 0.0);
     }
 }

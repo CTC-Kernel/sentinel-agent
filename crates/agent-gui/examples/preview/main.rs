@@ -318,7 +318,7 @@ impl eframe::App for Preview {
             )
             .show(ctx, |ui| {
                 theme::paint_workspace_backdrop(ui.painter(), ui.max_rect());
-                let mut scroll = agent_gui::app::page_scroll_area(&self.page);
+                let mut scroll = agent_gui::app::page_scroll_area(ctx, &self.page);
                 if self.shot_after.is_some() {
                     scroll = scroll.vertical_scroll_offset(
                         std::env::var("PREVIEW_SCROLL")
