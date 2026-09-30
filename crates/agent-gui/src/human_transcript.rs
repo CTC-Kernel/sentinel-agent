@@ -451,7 +451,7 @@ pub fn render_human_explanation_card(ui: &mut egui::Ui, exp: &HumanEventExplanat
             ui.label(
                 egui::RichText::new("Action conseillée :")
                     .font(crate::theme::font_small())
-                    .color(crate::theme::ACCENT)
+                    .color(crate::theme::accent_text())
                     .strong(),
             );
             ui.add_space(crate::theme::SPACE_XS);

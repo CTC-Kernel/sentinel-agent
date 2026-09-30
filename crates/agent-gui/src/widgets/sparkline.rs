@@ -116,6 +116,9 @@ pub fn sparkline(
         )
     };
     let points: Vec<Pos2> = valid_data.iter().map(to_pos).collect();
+    // Marks use the theme's readable variant: the raw brand violet sits at
+    // about 2.5:1 on dark cards, under the 3:1 a meaningful graphic needs.
+    let color = theme::chart_color(config.color);
     let baseline = plot.bottom() - ((0.0 - y_min) / y_span) as f32 * plot.height();
 
     // Two quiet reference lines make slope and volatility easier to judge at
@@ -134,14 +137,8 @@ pub fn sparkline(
         let mut mesh = egui::Mesh::default();
         for p in &points {
             let height = ((baseline - p.y) / plot.height().max(1.0)).clamp(0.0, 1.0);
-            mesh.colored_vertex(
-                *p,
-                theme::with_alpha(config.color, (FILL_ALPHA * height) as u8),
-            );
-            mesh.colored_vertex(
-                egui::pos2(p.x, baseline),
-                theme::with_alpha(config.color, 0),
-            );
+            mesh.colored_vertex(*p, theme::with_alpha(color, (FILL_ALPHA * height) as u8));
+            mesh.colored_vertex(egui::pos2(p.x, baseline), theme::with_alpha(color, 0));
         }
         for i in 0..points.len() - 1 {
             let a = (2 * i) as u32;
@@ -154,17 +151,17 @@ pub fn sparkline(
     if theme::is_dark_mode() {
         painter.add(egui::Shape::line(
             points.clone(),
-            Stroke::new(4.0_f32, theme::with_alpha(config.color, 24)),
+            Stroke::new(4.0_f32, theme::with_alpha(color, 24)),
         ));
     }
     painter.add(egui::Shape::line(
         points.clone(),
-        Stroke::new(1.75_f32, config.color),
+        Stroke::new(1.75_f32, color),
     ));
 
     if let Some(last) = points.last() {
-        painter.circle_filled(*last, 4.5_f32, theme::with_alpha(config.color, 70));
-        painter.circle_filled(*last, 2.5_f32, config.color);
+        painter.circle_filled(*last, 4.5_f32, theme::with_alpha(color, 70));
+        painter.circle_filled(*last, 2.5_f32, color);
     }
 
     // Reveal the closest sample without making a miniature chart draggable.
@@ -182,7 +179,7 @@ pub fn sparkline(
             Stroke::new(theme::BORDER_HAIRLINE, theme::text_tertiary()),
         );
         painter.circle_filled(*point, 4.0, theme::bg_secondary());
-        painter.circle_stroke(*point, 4.0, Stroke::new(1.5_f32, config.color));
+        painter.circle_stroke(*point, 4.0, Stroke::new(1.5_f32, color));
         let hovered_val = valid_data[index][1];
         response.on_hover_ui(move |ui| {
             ui.label(format!(
