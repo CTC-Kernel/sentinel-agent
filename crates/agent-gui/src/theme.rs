@@ -1563,7 +1563,9 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.image_loading_spinners = true;
 
     style.visuals = visuals;
-    style.animation_time = ANIM_FAST;
+    // egui's own transitions (hover, collapsing, scroll) honour reduced
+    // motion too; callers set the preference before applying the theme.
+    style.animation_time = if is_reduced_motion() { 0.0 } else { ANIM_FAST };
     style.interaction.selectable_labels = true;
     style.interaction.tooltip_delay = 0.4;
     style.interaction.tooltip_grace_time = 0.2;
@@ -2436,5 +2438,22 @@ mod contrast_tests {
             );
         }
         set_dark_mode(true);
+    }
+}
+
+#[cfg(test)]
+mod motion_tests {
+    use super::*;
+
+    #[test]
+    fn reduced_motion_disables_egui_transitions() {
+        let ctx = egui::Context::default();
+        set_reduced_motion(true);
+        apply_theme(&ctx, true);
+        assert_eq!(ctx.style().animation_time, 0.0);
+
+        set_reduced_motion(false);
+        apply_theme(&ctx, true);
+        assert_eq!(ctx.style().animation_time, ANIM_FAST);
     }
 }

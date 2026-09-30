@@ -1000,6 +1000,9 @@ impl eframe::App for SentinelApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Apply theme once on first frame, and re-apply when dark_mode toggles.
         if !self.theme_applied {
+            // Reduced motion first: the theme reads it for egui's animation time.
+            self.state.reduced_motion = theme::detect_reduced_motion();
+            theme::set_reduced_motion(self.state.reduced_motion);
             theme::configure_fonts(ctx);
             theme::apply_theme(ctx, self.state.settings.dark_mode);
             egui_extras::install_image_loaders(ctx);
@@ -1031,9 +1034,6 @@ impl eframe::App for SentinelApp {
                     });
                 }
             }
-            // Detect OS-level reduced motion preference
-            self.state.reduced_motion = theme::detect_reduced_motion();
-            theme::set_reduced_motion(self.state.reduced_motion);
             self.theme_applied = true;
             self.last_dark_mode = self.state.settings.dark_mode;
 

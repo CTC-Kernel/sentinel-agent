@@ -147,13 +147,7 @@ impl DashboardPage {
             let hero_items = vec![0, 1];
 
             hero_grid.show(ui, &hero_items, |ui, width, &idx| {
-                // Staggered entry (hero first)
-                let alpha =
-                    ui.ctx()
-                        .animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL);
-
                 ui.vertical(|ui: &mut egui::Ui| {
-                    ui.set_opacity(alpha);
                     ui.set_width(width);
                     match idx {
                         0 => {
@@ -213,16 +207,7 @@ impl DashboardPage {
             let items = vec![0, 1, 2, 3, 4, 5, 6, 7];
 
             grid.show(ui, &items, |ui, width, &idx| {
-                // Staggered entry (delay based on index)
-                let delay = 0.1 + (idx as f32 * 0.05);
-                let alpha =
-                    (ui.ctx()
-                        .animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL)
-                        * (1.0 / delay))
-                        .min(1.0);
-
                 ui.vertical(|ui: &mut egui::Ui| {
-                    ui.set_opacity(alpha);
                     ui.set_width(width);
                     let clicked = match idx {
                         0 => Self::cpu_sparkline_card(ui, state),
@@ -267,16 +252,7 @@ impl DashboardPage {
             let bottom_items = vec![0, 1];
 
             bottom_grid.show(ui, &bottom_items, |ui, width, &idx| {
-                // Staggered entry (delay based on index)
-                let delay = 0.3 + (idx as f32 * 0.1);
-                let alpha =
-                    (ui.ctx()
-                        .animate_value_with_time(ui.id().with(idx), 1.0, theme::ANIM_NORMAL)
-                        * (1.0 / delay))
-                        .min(1.0);
-
                 ui.vertical(|ui: &mut egui::Ui| {
-                    ui.set_opacity(alpha);
                     ui.set_width(width);
                     match idx {
                         0 => {
