@@ -146,116 +146,46 @@ impl NotificationsPage {
                 NOTIF_PER_PAGE,
                 &mut state.notifications_page,
             );
-            for (offset, notif) in state
-                .notifications
-                .iter()
-                .skip(nf_start)
-                .take(nf_len)
-                .enumerate()
-            {
-                let idx = nf_start + offset;
-                let severity = theme::severity_color(&notif.severity);
-                // Unread rows sit on an opaque tint of their severity with a
-                // bar on the leading edge; read rows fall back to the plain
-                // surface, so the unread ones are the only thing that pops.
-                let (fill, stroke) = if notif.read {
-                    (
-                        theme::bg_secondary(),
-                        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
-                    )
-                } else {
-                    (
-                        if theme::is_dark_mode() {
-                            theme::tinted_surface(severity)
-                        } else {
-                            theme::color_blend_pub(theme::bg_secondary(), severity, 0.035)
-                        },
-                        egui::Stroke::new(
-                            theme::BORDER_THIN,
-                            theme::color_blend_pub(theme::bg_secondary(), severity, 0.22),
-                        ),
-                    )
-                };
-
-                let resp = egui::Frame::new()
-                    .fill(fill)
-                    .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
-                    .inner_margin(egui::Margin::same(theme::SPACE as i8))
-                    .stroke(stroke)
-                    .show(ui, |ui: &mut egui::Ui| {
-                        ui.set_width(ui.available_width());
-                        ui.horizontal_wrapped(|ui| {
-                            widgets::status_badge(
-                                ui,
-                                notification_severity_label(&notif.severity),
-                                severity,
-                            );
-                            ui.label(
-                                egui::RichText::new(
-                                    notif.timestamp.format("%d/%m/%Y %H:%M").to_string(),
-                                )
-                                .font(theme::font_small())
-                                .color(theme::text_tertiary()),
-                            );
-                            if !notif.read {
-                                ui.label(
-                                    egui::RichText::new("Non lue")
-                                        .font(theme::font_small())
-                                        .color(theme::text_secondary()),
-                                );
-                            }
-                        });
-                        ui.add_space(theme::SPACE_XS);
-                        let title = egui::RichText::new(&notif.title)
-                            .font(theme::font_body())
-                            .color(theme::text_primary());
-                        ui.add(
-                            egui::Label::new(if notif.read { title } else { title.strong() })
-                                .wrap(),
-                        );
-                        if !notif.body.is_empty() {
-                            ui.add(
-                                egui::Label::new(
-                                    egui::RichText::new(&notif.body)
-                                        .font(theme::font_small())
-                                        .color(theme::text_secondary()),
-                                )
-                                .wrap(),
-                            );
+            // One card holding a dense list grouped by day: tall standalone
+            // cards showed four notifications a screen and repeated "Non
+            // lue" on every one. Unread is a violet dot and a bold title.
+            let today = chrono::Local::now().date_naive();
+            let mut current_day = None;
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                for (offset, notif) in state
+                    .notifications
+                    .iter()
+                    .skip(nf_start)
+                    .take(nf_len)
+                    .enumerate()
+                {
+                    let idx = nf_start + offset;
+                    let day = notif.timestamp.with_timezone(&chrono::Local).date_naive();
+                    if current_day != Some(day) {
+                        current_day = Some(day);
+                        if offset > 0 {
+                            ui.add_space(theme::SPACE_SM);
                         }
-                    });
-
-                let row_rect = resp.response.rect;
-                let rounding = egui::CornerRadius::same(theme::CARD_ROUNDING);
-                if !notif.read {
-                    // Paint the whole rounded row, clipped to a strip on the
-                    // leading edge: the bar inherits the corner radius exactly.
-                    let strip = egui::Rect::from_min_size(
-                        row_rect.left_top(),
-                        egui::vec2(theme::ACCENT_BAR_WIDTH, row_rect.height()),
-                    );
-                    ui.painter()
-                        .with_clip_rect(strip)
-                        .rect_filled(row_rect, rounding, severity);
+                        let heading = match (today - day).num_days() {
+                            0 => "AUJOURD'HUI".to_owned(),
+                            1 => "HIER".to_owned(),
+                            _ => day.format("%d/%m/%Y").to_string(),
+                        };
+                        ui.label(
+                            egui::RichText::new(heading)
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                                .strong(),
+                        );
+                        ui.add_space(theme::SPACE_XS);
+                    }
+                    if notification_row(ui, notif, state.selected_notification == Some(idx)) {
+                        state.selected_notification = Some(idx);
+                        state.notification_detail_open = true;
+                    }
                 }
-
-                let click_resp = resp.response.interact(egui::Sense::click());
-                if click_resp.hovered() {
-                    ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                    ui.painter().rect_stroke(
-                        row_rect,
-                        rounding,
-                        egui::Stroke::new(theme::BORDER_THIN, theme::border()),
-                        egui::StrokeKind::Inside,
-                    );
-                }
-                if click_resp.clicked() {
-                    state.selected_notification = Some(idx);
-                    state.notification_detail_open = true;
-                }
-
-                ui.add_space(theme::SPACE_SM);
-            }
+            });
 
             // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
             let mut position = state.selected_notification;
@@ -1026,6 +956,123 @@ fn parse_escalation(value: &str) -> Result<Option<u32>, ()> {
         .filter(|minutes| *minutes > 0)
         .map(Some)
         .ok_or(())
+}
+
+/// One notification as a list row: unread dot, severity stripe and pill,
+/// title and body on one line each, time on the right. Returns true when
+/// clicked.
+fn notification_row(ui: &mut Ui, notif: &crate::dto::GuiNotification, selected: bool) -> bool {
+    let severity = theme::severity_color(&notif.severity);
+    let height = 56.0;
+    let (rect, response) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), height),
+        egui::Sense::click(),
+    );
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(
+            egui::WidgetType::Button,
+            true,
+            format!(
+                "{}{} — {}",
+                if notif.read { "" } else { "Non lue · " },
+                notif.title,
+                notif.body
+            ),
+        )
+    });
+    if !ui.is_rect_visible(rect) {
+        return response.clicked();
+    }
+    let hover = crate::animation::animate_hover(ui.ctx(), response.id, response.hovered());
+    let painter = ui.painter();
+    let radius = egui::CornerRadius::same(theme::ROUNDING_MD);
+    let base = if selected {
+        theme::selected_bg()
+    } else if notif.read {
+        theme::bg_secondary()
+    } else {
+        theme::color_blend_pub(theme::bg_secondary(), severity, 0.05)
+    };
+    painter.rect_filled(
+        rect.shrink2(egui::vec2(0.0, 2.0)),
+        radius,
+        crate::animation::lerp_color(base, theme::hover_bg_neutral(), hover * 0.6),
+    );
+    painter.rect_filled(
+        egui::Rect::from_min_size(
+            rect.left_top() + egui::vec2(0.0, 10.0),
+            egui::vec2(3.0, height - 20.0),
+        ),
+        2.0,
+        theme::readable_color(severity),
+    );
+    let mut x = rect.left() + theme::SPACE_MD;
+    if !notif.read {
+        painter.circle_filled(
+            egui::pos2(x + 3.0, rect.center().y),
+            4.0,
+            theme::accent_text(),
+        );
+    }
+    x += theme::SPACE_MD;
+
+    // Severity pill.
+    let label = notification_severity_label(&notif.severity);
+    let ink = theme::badge_text(severity);
+    let galley = painter.layout_no_wrap(label.to_owned(), theme::font_label(), ink);
+    let pill = egui::Rect::from_min_size(
+        egui::pos2(x, rect.center().y - 11.0),
+        egui::vec2(galley.size().x + theme::SPACE_SM * 2.0, 22.0),
+    );
+    painter.rect_filled(
+        pill,
+        egui::CornerRadius::same(11),
+        theme::badge_bg(severity),
+    );
+    painter.galley(pill.center() - galley.size() / 2.0, galley, ink);
+    x = pill.right().max(x + 84.0) + theme::SPACE_MD;
+
+    // Time on the right, title and body between.
+    let time = notif
+        .timestamp
+        .with_timezone(&chrono::Local)
+        .format("%H:%M")
+        .to_string();
+    let time_galley = painter.layout_no_wrap(time, theme::font_caption(), theme::text_tertiary());
+    let time_x = rect.right() - theme::SPACE_MD - time_galley.size().x;
+    painter.galley(
+        egui::pos2(time_x, rect.center().y - time_galley.size().y / 2.0),
+        time_galley,
+        theme::text_tertiary(),
+    );
+    let text_rect = egui::Rect::from_min_max(
+        egui::pos2(x, rect.top()),
+        egui::pos2(time_x - theme::SPACE_MD, rect.bottom()),
+    );
+    let clip = painter.with_clip_rect(text_rect);
+    let title_font = if notif.read {
+        theme::font_body()
+    } else {
+        theme::font_body_strong()
+    };
+    clip.text(
+        egui::pos2(x, rect.top() + 9.0),
+        egui::Align2::LEFT_TOP,
+        &notif.title,
+        title_font,
+        theme::text_primary(),
+    );
+    clip.text(
+        egui::pos2(x, rect.bottom() - 9.0),
+        egui::Align2::LEFT_BOTTOM,
+        &notif.body,
+        theme::font_caption(),
+        theme::text_secondary(),
+    );
+    if response.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    response.clicked()
 }
 
 #[cfg(test)]
