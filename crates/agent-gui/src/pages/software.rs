@@ -564,7 +564,6 @@ impl SoftwarePage {
 
     // -- Tab: Applications (native apps — macOS & Windows) --
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
     /// Update coverage beside the packages to update, so the card says
     /// both how far behind the fleet is and where to start.
     fn updates_card(ui: &mut Ui, packages: &[crate::dto::GuiSoftwarePackage]) {
@@ -608,6 +607,7 @@ impl SoftwarePage {
         });
     }
 
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     fn show_native_apps(
         ui: &mut Ui,
         state: &mut AppState,
