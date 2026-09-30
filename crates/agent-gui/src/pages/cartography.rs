@@ -17,9 +17,9 @@ const GRID_DIVISIONS: usize = 8;
 const ZOOM_SCROLL_FACTOR: f32 = 0.002;
 const ZOOM_MIN: f32 = 0.3;
 const ZOOM_MAX: f32 = 3.0;
-const NODE_RADIUS_GATEWAY: f32 = 10.0;
-const NODE_RADIUS_DEFAULT: f32 = 7.0;
-const NODE_LABEL_OFFSET_Y: f32 = 12.0;
+const NODE_RADIUS_GATEWAY: f32 = 18.0;
+const NODE_RADIUS_DEFAULT: f32 = 14.0;
+const NODE_LABEL_OFFSET_Y: f32 = 6.0;
 const LAYOUT_INITIAL_RADIUS: f32 = 150.0;
 const FORCE_REPULSION: f32 = 5000.0;
 const FORCE_ATTRACTION: f32 = 0.005;
@@ -258,8 +258,12 @@ impl CartographyPage {
             state.cartography.zoom = zoom.clamp(ZOOM_MIN, ZOOM_MAX);
         }
 
-        let center = rect.center().to_vec2() + state.cartography.pan;
-        let zoom = state.cartography.zoom;
+        // Fit the graph to the canvas, then apply the operator's zoom: the
+        // simulation settles in a few hundred units while the canvas is
+        // wider than a thousand, which left nine nodes huddled mid-map.
+        let (fit, graph_center) = fit_to_canvas(layout, rect);
+        let zoom = fit * state.cartography.zoom;
+        let center = rect.center().to_vec2() + state.cartography.pan - graph_center * zoom;
 
         // Relationships carry information: preserve contrast against the chart surface.
         for edge in &layout.edges {
@@ -290,11 +294,13 @@ impl CartographyPage {
             }
 
             let color = device_type_color(&node.device.device_type);
+            // Sized in screen space, so fitting a small graph does not
+            // inflate the discs along with the distances.
             let base_radius = if node.device.is_gateway {
                 NODE_RADIUS_GATEWAY
             } else {
                 NODE_RADIUS_DEFAULT
-            } * zoom;
+            } * state.cartography.zoom.clamp(0.7, 1.4);
             let breathing = if theme::is_reduced_motion() {
                 0.5
             } else {
@@ -319,33 +325,54 @@ impl CartographyPage {
                 );
             }
 
-            // 3. Node Body (Glassy / Solid)
-            painter.circle_filled(screen_pos, base_radius, color);
+            // 3. Node body: a tinted disc with the device type's icon, so
+            // the map reads without the legend.
+            painter.circle_filled(screen_pos, base_radius, theme::tinted_surface(color));
             painter.circle_stroke(
                 screen_pos,
                 base_radius,
                 egui::Stroke::new(
-                    theme::BORDER_THIN,
-                    theme::overlay_color().linear_multiply(theme::OPACITY_MODERATE),
+                    if is_selected {
+                        theme::BORDER_THICK
+                    } else {
+                        theme::BORDER_MEDIUM
+                    },
+                    theme::readable_color(color),
                 ),
             );
+            painter.text(
+                screen_pos,
+                egui::Align2::CENTER_CENTER,
+                device_type_icon(&node.device),
+                theme::font_icon(base_radius * 0.9),
+                theme::readable_color(color),
+            );
 
-            // 4. Label (Institutional AAA)
+            // 4. Label on a plate, readable over edges and grid.
             let label = node
                 .device
                 .hostname
                 .as_deref()
                 .unwrap_or(&node.device.ip)
-                .to_uppercase();
-            painter.text(
+                .to_owned();
+            let galley =
+                painter.layout_no_wrap(label, theme::font_caption(), theme::text_primary());
+            let plate = egui::Rect::from_center_size(
                 Pos2::new(
                     screen_pos.x,
-                    screen_pos.y + base_radius + NODE_LABEL_OFFSET_Y,
+                    screen_pos.y + base_radius + NODE_LABEL_OFFSET_Y + galley.size().y / 2.0,
                 ),
-                egui::Align2::CENTER_TOP,
-                label,
-                theme::font_label(),
-                theme::text_tertiary(),
+                galley.size() + egui::vec2(theme::SPACE_SM * 2.0, theme::SPACE_XS),
+            );
+            painter.rect_filled(
+                plate,
+                theme::ROUNDING_SM,
+                theme::bg_secondary().linear_multiply(0.92),
+            );
+            painter.galley(
+                plate.center() - galley.size() / 2.0,
+                galley,
+                theme::text_primary(),
             );
 
             // Click interaction
@@ -559,6 +586,40 @@ fn device_type_color(device_type: &str) -> Color32 {
         "phone" => theme::accent_text(),
         _ => theme::text_secondary(),
     }
+}
+
+fn device_type_icon(device: &GuiDiscoveredDevice) -> &'static str {
+    if device.is_gateway {
+        return icons::NETWORK;
+    }
+    match device.device_type.as_str() {
+        "router" => icons::NETWORK,
+        "server" => icons::SERVER,
+        "workstation" => icons::DESKTOP,
+        "printer" => icons::PRINT,
+        "iot" => icons::MICROCHIP,
+        "phone" => icons::MOBILE,
+        _ => icons::QUESTION,
+    }
+}
+
+/// Scale and graph-space centre that fit every node, with room for the
+/// discs and labels, inside the canvas. Never enlarges past 2.5×.
+fn fit_to_canvas(layout: &GraphLayout, rect: egui::Rect) -> (f32, Vec2) {
+    if layout.nodes.is_empty() {
+        return (1.0, Vec2::ZERO);
+    }
+    let (mut min, mut max) = (Pos2::new(f32::MAX, f32::MAX), Pos2::new(f32::MIN, f32::MIN));
+    for node in &layout.nodes {
+        min = min.min(node.pos);
+        max = max.max(node.pos);
+    }
+    let span = (max - min).max(Vec2::splat(1.0));
+    // Horizontal room for labels, vertical room for the label under a node.
+    let usable = rect.size() - Vec2::new(200.0, 110.0);
+    let fit = (usable.x / span.x).min(usable.y / span.y).clamp(0.3, 2.5);
+    let centre = (min.to_vec2() + max.to_vec2()) / 2.0 + Vec2::new(0.0, 10.0 / fit);
+    (fit, centre)
 }
 
 fn build_initial_layout(devices: &[GuiDiscoveredDevice]) -> GraphLayout {
