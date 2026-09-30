@@ -37,6 +37,16 @@ impl SecurityState {
         }
     }
 
+    /// Short state name for the pill above the verdict.
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::Pending => "En attente",
+            Self::Secure => "Prot\u{00e9}g\u{00e9}",
+            Self::Attention => "Vigilance",
+            Self::Critical => "Critique",
+        }
+    }
+
     pub fn title(&self) -> &'static str {
         match self {
             Self::Pending => "Évaluation en attente",
@@ -47,131 +57,246 @@ impl SecurityState {
     }
 }
 
-/// Renders the premium security hero component - clean Apple-style.
+/// Below this card width the gauge stacks above the verdict.
+const HERO_STACK_WIDTH: f32 = 460.0;
+/// Radius of the compliance dial.
+const HERO_GAUGE_RADIUS: f32 = 64.0;
+
+/// The dashboard's posture card: the compliance dial beside the verdict,
+/// its reason, and what to deal with first.
+///
+/// A large state icon used to fill the card for one sentence of content;
+/// the dial carries the score and the priority rows carry the numbers.
 pub fn security_hero(ui: &mut Ui, state: &AppState) {
     let security_state = determine_security_state(state);
-    let base_color = security_state.color();
 
     widgets::card(ui, |ui: &mut egui::Ui| {
         ui.set_min_width(ui.available_width());
         ui.set_min_height(220.0);
-        ui.vertical_centered(|ui: &mut egui::Ui| {
+        let stacked = ui.available_width() < HERO_STACK_WIDTH;
+        let score = state
+            .summary
+            .compliance_score
+            .filter(|score| score.is_finite());
+
+        let body = |ui: &mut Ui| verdict_column(ui, state, security_state);
+        if stacked {
+            ui.vertical_centered(|ui| {
+                widgets::compliance_gauge(ui, score, HERO_GAUGE_RADIUS);
+            });
             ui.add_space(theme::SPACE_MD);
-
-            let icon_size = 44.0;
-            let container_size = icon_size * 2.0;
-            let (rect, _resp) =
-                ui.allocate_exact_size(Vec2::splat(container_size), egui::Sense::hover());
-            let center = rect.center();
-            let painter = ui.painter_at(rect);
-
-            // Outer glow ring (theme-aware soft halo)
-            painter.circle_filled(
-                center,
-                icon_size * 1.05,
-                base_color.linear_multiply(theme::OPACITY_TINT * 0.5),
-            );
-
-            // Main background circle with glass-like fill
-            painter.circle_filled(
-                center,
-                icon_size * 0.9,
-                base_color.linear_multiply(theme::OPACITY_SUBTLE),
-            );
-
-            // Top highlight arc for glass depth
-            painter.circle_stroke(
-                center,
-                icon_size * 0.9,
-                egui::Stroke::new(
-                    theme::BORDER_MEDIUM,
-                    base_color.linear_multiply(theme::OPACITY_MODERATE),
-                ),
-            );
-
-            // Icon with subtle shadow (theme-aware)
-            painter.text(
-                center + Vec2::new(1.0, 1.5),
-                egui::Align2::CENTER_CENTER,
-                security_state.icon(),
-                theme::font_icon(icon_size),
-                theme::overlay_color().linear_multiply(theme::OPACITY_TINT),
-            );
-            painter.text(
-                center,
-                egui::Align2::CENTER_CENTER,
-                security_state.icon(),
-                theme::font_icon(icon_size),
-                theme::readable_color(base_color),
-            );
-
-            ui.add_space(theme::SPACE_MD);
-
-            // Title
-            ui.label(
-                RichText::new(security_state.title())
-                    .font(theme::font_heading())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .color(theme::text_primary())
-                    .strong(),
-            );
-
-            // Score display
-            if let Some(score) = state
-                .summary
-                .compliance_score
-                .filter(|score| score.is_finite())
-            {
-                ui.add_space(theme::SPACE_XS);
-
-                let score_color = theme::readable_color(theme::score_color(score));
-                // One layout job, so score and delta centre together under
-                // the title instead of hugging the left edge.
-                let mut job = egui::text::LayoutJob::default();
-                job.append(
-                    &format!("Conformité · {}", crate::format::pct(score, 0)),
-                    0.0,
-                    egui::TextFormat {
-                        font_id: theme::font_heading(),
-                        color: score_color,
-                        ..Default::default()
-                    },
-                );
-                if let Some(prev) = state.previous_compliance_score {
-                    let diff: f32 = score - prev;
-                    if diff.abs() > 0.5 {
-                        let (arrow, arrow_color) = if diff > 0.0 {
-                            ("\u{25b2}", theme::readable_color(theme::SUCCESS))
-                        } else {
-                            ("\u{25bc}", theme::readable_color(theme::ERROR))
-                        };
-                        job.append(
-                            &format!("{arrow} {}", crate::format::decimal(diff.abs(), 1)),
-                            theme::SPACE_SM,
-                            egui::TextFormat {
-                                font_id: theme::font_label(),
-                                color: arrow_color,
-                                valign: egui::Align::Center,
-                                ..Default::default()
-                            },
-                        );
-                    }
-                }
-                ui.label(job);
-            }
-
-            ui.add_space(theme::SPACE_XS);
-
-            // Summary text
-            ui.label(
-                RichText::new(get_security_summary(state, security_state))
-                    .font(theme::font_body())
-                    .color(theme::text_tertiary()),
-            );
-
-            ui.add_space(theme::SPACE_SM);
-        });
+            body(ui);
+        } else {
+            // Both columns get explicit widths: a centred or wrapping label
+            // otherwise claims the whole row and squeezes its neighbour.
+            let gauge_w = HERO_GAUGE_RADIUS * 2.0 + theme::SPACE_LG;
+            let body_w = (ui.available_width() - gauge_w - theme::SPACE_LG).max(1.0);
+            ui.horizontal_top(|ui| {
+                ui.vertical(|ui| {
+                    ui.set_width(gauge_w);
+                    ui.add_space(theme::SPACE_SM);
+                    widgets::compliance_gauge(ui, score, HERO_GAUGE_RADIUS);
+                    score_delta(ui, state);
+                });
+                ui.add_space(theme::SPACE_LG);
+                ui.vertical(|ui| {
+                    ui.set_width(body_w);
+                    body(ui);
+                });
+            });
+        }
     });
+}
+
+/// Movement of the compliance score since the previous scan.
+fn score_delta(ui: &mut Ui, state: &AppState) {
+    let (Some(score), Some(prev)) = (
+        state.summary.compliance_score,
+        state.previous_compliance_score,
+    ) else {
+        return;
+    };
+    let diff: f32 = score - prev;
+    if !diff.is_finite() || diff.abs() <= 0.5 {
+        return;
+    }
+    let (arrow, color) = if diff > 0.0 {
+        ("\u{25b2}", theme::SUCCESS)
+    } else {
+        ("\u{25bc}", theme::ERROR)
+    };
+    ui.vertical_centered(|ui| {
+        ui.add(
+            egui::Label::new(
+                RichText::new(format!(
+                    "{arrow} {} pt depuis la derni\u{00e8}re analyse",
+                    crate::format::decimal(diff.abs(), 1)
+                ))
+                .font(theme::font_caption())
+                .color(theme::readable_color(color)),
+            )
+            .wrap_mode(egui::TextWrapMode::Wrap),
+        );
+    });
+}
+
+/// State pill, verdict, reason, then the priority rows.
+fn verdict_column(ui: &mut Ui, state: &AppState, security_state: SecurityState) {
+    let color = security_state.color();
+    ui.add_space(theme::SPACE_XS);
+    ui.horizontal(|ui| {
+        ui.label(
+            RichText::new(security_state.icon())
+                .size(theme::ICON_SM)
+                .color(theme::readable_color(color)),
+        );
+        widgets::status_badge(ui, security_state.label(), color);
+    });
+    ui.add_space(theme::SPACE_SM);
+    ui.label(
+        RichText::new(security_state.title())
+            .font(theme::font_h2())
+            .color(theme::text_primary()),
+    );
+    ui.add_space(theme::SPACE_XS);
+    ui.add(
+        egui::Label::new(
+            RichText::new(get_security_summary(state, security_state))
+                .font(theme::font_body())
+                .color(theme::text_secondary()),
+        )
+        .wrap_mode(egui::TextWrapMode::Wrap),
+    );
+
+    ui.add_space(theme::SPACE_MD);
+    ui.label(
+        RichText::new("\u{00c0} TRAITER EN PRIORIT\u{00c9}")
+            .font(theme::font_label())
+            .color(theme::text_tertiary())
+            .extra_letter_spacing(theme::TRACKING_NORMAL)
+            .strong(),
+    );
+    ui.add_space(theme::SPACE_XS);
+
+    let rows = priority_rows(state);
+    if rows.is_empty() {
+        priority_row(
+            ui,
+            icons::SHIELD_CHECK,
+            "Rien d'urgent dans les r\u{00e9}sultats disponibles",
+            None,
+            theme::SUCCESS,
+        );
+    } else {
+        for (icon, label, count, color) in rows {
+            priority_row(ui, icon, &label, Some(count), color);
+        }
+    }
+}
+
+/// What needs attention, most severe first, zero counts left out.
+fn priority_rows(state: &AppState) -> Vec<(&'static str, String, usize, Color32)> {
+    let (pending, critical) = state.security_attention_counts();
+    let mut rows = Vec::new();
+    if critical > 0 {
+        rows.push((
+            icons::SKULL,
+            "\u{00c9}v\u{00e9}nements critiques \u{00e0} traiter".to_owned(),
+            critical,
+            theme::ERROR,
+        ));
+    }
+    if let Some(vuln) = &state.vulnerability_summary {
+        if vuln.critical > 0 {
+            rows.push((
+                icons::SHIELD_VIRUS,
+                "Vuln\u{00e9}rabilit\u{00e9}s critiques".to_owned(),
+                vuln.critical as usize,
+                theme::ERROR,
+            ));
+        }
+        if vuln.high > 0 {
+            rows.push((
+                icons::SHIELD_VIRUS,
+                "Vuln\u{00e9}rabilit\u{00e9}s \u{00e9}lev\u{00e9}es".to_owned(),
+                vuln.high as usize,
+                theme::SEVERITY_HIGH,
+            ));
+        }
+    }
+    let failing = state.policy.failing as usize + state.policy.errors as usize;
+    if failing > 0 {
+        rows.push((
+            icons::CLIPBOARD_CHECK,
+            "Contr\u{00f4}les non conformes".to_owned(),
+            failing,
+            theme::SEVERITY_MEDIUM,
+        ));
+    }
+    let other = pending.saturating_sub(critical);
+    if other > 0 {
+        rows.push((
+            icons::BELL,
+            "Autres \u{00e9}v\u{00e9}nements \u{00e0} trier".to_owned(),
+            other,
+            theme::INFO,
+        ));
+    }
+    rows.truncate(3);
+    rows
+}
+
+fn priority_row(ui: &mut Ui, icon: &str, label: &str, count: Option<usize>, color: Color32) {
+    let ink = theme::readable_color(color);
+    let height = theme::MIN_TOUCH_TARGET;
+    let (rect, _) = ui.allocate_exact_size(
+        Vec2::new(ui.available_width(), height),
+        egui::Sense::hover(),
+    );
+    if !ui.is_rect_visible(rect) {
+        return;
+    }
+    let painter = ui.painter();
+    painter.rect_filled(
+        rect.shrink2(Vec2::new(0.0, 2.0)),
+        theme::ROUNDING_SM,
+        theme::color_blend_pub(theme::bg_secondary(), color, 0.07),
+    );
+    painter.rect_filled(
+        egui::Rect::from_min_size(
+            rect.left_top() + Vec2::new(0.0, 6.0),
+            Vec2::new(3.0, height - 12.0),
+        ),
+        2.0,
+        ink,
+    );
+    painter.text(
+        rect.left_center() + Vec2::new(theme::SPACE_MD + 4.0, 0.0),
+        egui::Align2::LEFT_CENTER,
+        icon,
+        theme::font_icon(theme::ICON_XS),
+        ink,
+    );
+    painter.text(
+        rect.left_center()
+            + Vec2::new(
+                theme::SPACE_MD + 4.0 + theme::ICON_XS + theme::SPACE_SM,
+                0.0,
+            ),
+        egui::Align2::LEFT_CENTER,
+        label,
+        theme::font_body(),
+        theme::text_primary(),
+    );
+    if let Some(count) = count {
+        painter.text(
+            rect.right_center() - Vec2::new(theme::SPACE_MD, 0.0),
+            egui::Align2::RIGHT_CENTER,
+            crate::format::int(count as u64),
+            theme::font_body_strong(),
+            ink,
+        );
+    }
 }
 
 pub(crate) fn determine_security_state(state: &AppState) -> SecurityState {

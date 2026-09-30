@@ -340,66 +340,6 @@ impl DashboardPage {
                     );
                 }
             }
-
-            // Right: Compact system status
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    // Uptime
-                    ui.label(
-                        egui::RichText::new(crate::format::duration_short(
-                            state.summary.uptime_secs,
-                        ))
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary()),
-                    );
-                    ui.label(
-                        egui::RichText::new(icons::BOLT)
-                            .size(theme::ICON_XS)
-                            .color(theme::accent_text()),
-                    );
-
-                    ui.add_space(theme::SPACE_MD);
-
-                    // Last scan
-                    if let Some(last_check) = state.summary.last_check_at {
-                        let elapsed = chrono::Utc::now().signed_duration_since(last_check);
-                        let elapsed_text = if elapsed.num_minutes() < 1 {
-                            "\u{00e0} l'instant".to_string()
-                        } else if elapsed.num_minutes() < 60 {
-                            format!("{}{}min", elapsed.num_minutes(), crate::format::THIN_SPACE)
-                        } else {
-                            format!("{}{}h", elapsed.num_hours(), crate::format::THIN_SPACE)
-                        };
-                        ui.label(
-                            egui::RichText::new(elapsed_text)
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary()),
-                        );
-                        ui.label(
-                            egui::RichText::new(icons::CLOCK)
-                                .size(theme::ICON_XS)
-                                .color(theme::text_tertiary()),
-                        );
-
-                        ui.add_space(theme::SPACE_MD);
-                    }
-
-                    // Agent status badge
-                    let (status_text, status_color) = match state.summary.status {
-                        GuiAgentStatus::Connected => ("Op\u{00e9}rationnel", theme::SUCCESS),
-                        GuiAgentStatus::Scanning => ("Analyse", theme::INFO),
-                        GuiAgentStatus::Syncing => ("Sync", theme::INFO),
-                        GuiAgentStatus::Disconnected => {
-                            ("D\u{00e9}connect\u{00e9}", theme::WARNING)
-                        }
-                        GuiAgentStatus::Error => ("Erreur", theme::ERROR),
-                        GuiAgentStatus::Standalone => ("Autonome", theme::SUCCESS),
-                        _ => ("Attente", theme::text_tertiary()),
-                    };
-                    widgets::status_badge(ui, status_text, status_color);
-                },
-            );
         });
 
         ui.add_space(theme::SPACE_XS);
@@ -408,104 +348,88 @@ impl DashboardPage {
         command
     }
 
-    /// Compact command-centre rail linking live posture signals to their
-    /// operational destinations. The grid folds naturally on narrow windows.
+    /// Posture strip: agent, controls and exposure, each a tile that says
+    /// how it stands, why, and opens its page. It also carries the agent's
+    /// status, last scan and uptime, which used to sit as a loose line
+    /// beside the action buttons.
     fn operational_pulse(ui: &mut Ui, state: &AppState) -> Option<Page> {
-        let protected = matches!(
-            state.summary.status,
-            GuiAgentStatus::Connected | GuiAgentStatus::Standalone | GuiAgentStatus::Scanning
-        );
-        let controls = if state.policy.total_policies == 0 {
-            "En attente".to_owned()
-        } else {
-            format!(
-                "{} / {}",
-                crate::format::int(state.policy.passing),
-                crate::format::int(state.policy.total_policies)
-            )
-        };
-        let exposures = state
-            .vulnerability_summary
-            .as_ref()
-            .map_or(0, |summary| summary.critical + summary.high);
-        let exposure_value = if state.vulnerability_summary.is_none() {
-            "En attente d’analyse".to_owned()
-        } else if exposures == 0 {
-            "Aucune CVE prioritaire".to_owned()
-        } else {
-            crate::format::count(exposures, "priorité")
-        };
-        let items = [
-            (
-                Page::Monitoring,
-                icons::SHIELD_CHECK,
-                "AGENT",
-                if protected { "Active" } else { "À vérifier" }.to_owned(),
-                if protected {
-                    theme::SUCCESS
-                } else {
-                    theme::WARNING
-                },
-            ),
-            (
-                Page::Compliance,
-                icons::CLIPBOARD_CHECK,
-                "CONTRÔLES",
-                controls,
-                check_status(state).1,
-            ),
-            (
-                Page::Vulnerabilities,
-                icons::CROSSHAIRS,
-                "EXPOSITION",
-                exposure_value,
-                if state.vulnerability_summary.is_none() {
-                    theme::text_tertiary()
-                } else if exposures == 0 {
-                    theme::SUCCESS
-                } else {
-                    theme::ERROR
-                },
-            ),
+        let tiles = [
+            pulse_agent(state),
+            pulse_controls(state),
+            pulse_exposure(state),
         ];
         let mut selected = None;
 
         ui.push_id("operational_pulse", |ui| {
-            widgets::ResponsiveGrid::new(158.0, theme::SPACE_SM).show(
+            widgets::ResponsiveGrid::new(220.0, theme::SPACE_SM).show(
                 ui,
-                &items,
-                |ui, width, (page, icon, label, value, color)| {
+                &tiles,
+                |ui, width, tile| {
                     ui.set_width(width);
                     let response =
-                        widgets::clickable_card(ui, ("pulse", label), |ui: &mut egui::Ui| {
-                            ui.set_min_height(44.0);
+                        widgets::clickable_card(ui, ("pulse", tile.label), |ui: &mut egui::Ui| {
+                            ui.set_min_height(PULSE_TILE_HEIGHT);
                             ui.horizontal(|ui| {
-                                widgets::icon_tile(ui, icon, *color, 34.0);
+                                widgets::icon_tile(ui, tile.icon, tile.color, 28.0);
                                 ui.add_space(theme::SPACE_XS);
-                                ui.vertical(|ui| {
-                                    ui.label(
-                                        egui::RichText::new(*label)
-                                            .font(theme::font_micro())
-                                            .color(theme::text_tertiary())
-                                            .extra_letter_spacing(theme::TRACKING_WIDE),
-                                    );
-                                    ui.label(
-                                        egui::RichText::new(value.as_str())
-                                            .font(theme::font_body_strong())
-                                            .color(theme::text_primary()),
-                                    );
-                                });
+                                ui.label(
+                                    egui::RichText::new(tile.label)
+                                        .font(theme::font_label())
+                                        .color(theme::text_tertiary())
+                                        .extra_letter_spacing(theme::TRACKING_WIDE),
+                                );
+                                ui.with_layout(
+                                    egui::Layout::right_to_left(egui::Align::Center),
+                                    |ui| {
+                                        ui.label(
+                                            egui::RichText::new(icons::ARROW_RIGHT)
+                                                .size(theme::ICON_XS)
+                                                .color(theme::text_tertiary()),
+                                        );
+                                    },
+                                );
                             });
+                            ui.add_space(theme::SPACE_SM);
+                            ui.label(
+                                egui::RichText::new(&tile.value)
+                                    .font(theme::font_h2())
+                                    .color(theme::readable_color(tile.color)),
+                            );
+                            ui.add_space(theme::SPACE_XS);
+                            // A tile without a bar keeps its slot, so the three
+                            // tiles line up however their content differs.
+                            if tile.segments.is_empty() {
+                                // Allocated like the bar, so it gets the same item spacing.
+                                ui.allocate_exact_size(
+                                    egui::vec2(ui.available_width(), PULSE_BAR_HEIGHT),
+                                    egui::Sense::hover(),
+                                );
+                            } else {
+                                segmented_bar(ui, &tile.segments);
+                            }
+                            ui.add_space(theme::SPACE_XS);
+                            for line in &tile.details {
+                                ui.label(
+                                    egui::RichText::new(line)
+                                        .font(theme::font_caption())
+                                        .color(theme::text_secondary()),
+                                );
+                            }
                         });
                     response.widget_info(|| {
                         egui::WidgetInfo::labeled(
                             egui::WidgetType::Button,
                             ui.is_enabled(),
-                            format!("{label} : {value}"),
+                            format!(
+                                "{} : {} — {}",
+                                tile.label,
+                                tile.value,
+                                tile.details.join(", ")
+                            ),
                         )
                     });
                     if response.clicked() {
-                        selected = Some(page.clone());
+                        selected = Some(tile.page.clone());
                     }
                 },
             );
@@ -1634,6 +1558,185 @@ impl DashboardPage {
                 false
             }
         }
+    }
+}
+
+/// Inner height of a posture tile: header, value, bar and two detail lines.
+const PULSE_TILE_HEIGHT: f32 = 128.0;
+/// Height of the proportion bar under a posture tile's value.
+const PULSE_BAR_HEIGHT: f32 = 6.0;
+
+/// One tile of the posture strip.
+struct PulseTile {
+    page: Page,
+    icon: &'static str,
+    label: &'static str,
+    value: String,
+    color: egui::Color32,
+    /// Proportions for the bar under the value; empty for no bar.
+    segments: Vec<(u64, egui::Color32)>,
+    details: Vec<String>,
+}
+
+fn pulse_agent(state: &AppState) -> PulseTile {
+    let (value, color) = match state.summary.status {
+        GuiAgentStatus::Connected => ("Op\u{00e9}rationnel", theme::SUCCESS),
+        GuiAgentStatus::Standalone => ("Autonome", theme::SUCCESS),
+        GuiAgentStatus::Scanning => ("Analyse en cours", theme::INFO),
+        GuiAgentStatus::Syncing => ("Synchronisation", theme::INFO),
+        GuiAgentStatus::Disconnected => ("Hors connexion", theme::WARNING),
+        GuiAgentStatus::Paused => ("En pause", theme::WARNING),
+        GuiAgentStatus::Error => ("En erreur", theme::ERROR),
+        GuiAgentStatus::Starting => ("D\u{00e9}marrage", theme::INFO),
+    };
+    let last_scan = match state.summary.last_check_at {
+        Some(at) => format!(
+            "Derni\u{00e8}re analyse {}",
+            crate::format::ago(chrono::Utc::now(), at)
+        ),
+        None => "Aucune analyse encore".to_owned(),
+    };
+    PulseTile {
+        page: Page::Monitoring,
+        icon: icons::SHIELD_CHECK,
+        label: "AGENT",
+        value: value.to_owned(),
+        color,
+        segments: Vec::new(),
+        details: vec![
+            last_scan,
+            format!(
+                "Actif depuis {}",
+                crate::format::duration_short(state.summary.uptime_secs)
+            ),
+        ],
+    }
+}
+
+fn pulse_controls(state: &AppState) -> PulseTile {
+    let policy = &state.policy;
+    let (status, color) = check_status(state);
+    if policy.total_policies == 0 {
+        return PulseTile {
+            page: Page::Compliance,
+            icon: icons::CLIPBOARD_CHECK,
+            label: "CONTR\u{00d4}LES",
+            value: "En attente".to_owned(),
+            color: theme::text_tertiary(),
+            segments: Vec::new(),
+            details: vec!["Aucun contr\u{00f4}le \u{00e9}valu\u{00e9}".to_owned()],
+        };
+    }
+    PulseTile {
+        page: Page::Compliance,
+        icon: icons::CLIPBOARD_CHECK,
+        label: "CONTR\u{00d4}LES",
+        value: format!(
+            "{} / {}",
+            crate::format::int(policy.passing),
+            crate::format::int(policy.total_policies)
+        ),
+        color,
+        segments: vec![
+            (policy.passing as u64, theme::SUCCESS),
+            (policy.failing as u64, theme::SEVERITY_MEDIUM),
+            (policy.errors as u64, theme::ERROR),
+            (policy.pending as u64, theme::INFO),
+        ],
+        details: vec![
+            status,
+            "conformes sur le total \u{00e9}valu\u{00e9}".to_owned(),
+        ],
+    }
+}
+
+fn pulse_exposure(state: &AppState) -> PulseTile {
+    let Some(vuln) = state.vulnerability_summary.as_ref() else {
+        return PulseTile {
+            page: Page::Vulnerabilities,
+            icon: icons::CROSSHAIRS,
+            label: "EXPOSITION",
+            value: "En attente".to_owned(),
+            color: theme::text_tertiary(),
+            segments: Vec::new(),
+            details: vec!["En attente d\u{2019}analyse des CVE".to_owned()],
+        };
+    };
+    let priorities = vuln.critical + vuln.high;
+    let (value, color) = if priorities == 0 {
+        ("Aucune priorit\u{00e9}".to_owned(), theme::SUCCESS)
+    } else {
+        (
+            crate::format::count(priorities, "priorit\u{00e9}"),
+            if vuln.critical > 0 {
+                theme::ERROR
+            } else {
+                theme::SEVERITY_HIGH
+            },
+        )
+    };
+    let breakdown = [
+        (vuln.critical, "critique"),
+        (vuln.high, "\u{00e9}lev\u{00e9}e"),
+        (vuln.medium, "moyenne"),
+        (vuln.low, "faible"),
+    ]
+    .iter()
+    .filter(|(n, _)| *n > 0)
+    .map(|(n, word)| crate::format::count(*n, word))
+    .collect::<Vec<_>>();
+    PulseTile {
+        page: Page::Vulnerabilities,
+        icon: icons::CROSSHAIRS,
+        label: "EXPOSITION",
+        value,
+        color,
+        segments: vec![
+            (vuln.critical as u64, theme::ERROR),
+            (vuln.high as u64, theme::SEVERITY_HIGH),
+            (vuln.medium as u64, theme::SEVERITY_MEDIUM),
+            (vuln.low as u64, theme::INFO),
+        ],
+        details: vec![
+            if breakdown.is_empty() {
+                "Aucune CVE connue".to_owned()
+            } else {
+                breakdown.join(" \u{00b7} ")
+            },
+            "CVE critiques et \u{00e9}lev\u{00e9}es".to_owned(),
+        ],
+    }
+}
+
+/// A thin bar split in proportion to each count, gaps between segments.
+fn segmented_bar(ui: &mut Ui, segments: &[(u64, egui::Color32)]) {
+    let height = PULSE_BAR_HEIGHT;
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), height),
+        egui::Sense::hover(),
+    );
+    if !ui.is_rect_visible(rect) {
+        return;
+    }
+    let radius = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+    let painter = ui.painter();
+    painter.rect_filled(rect, radius, theme::bg_tertiary());
+    let total: u64 = segments.iter().map(|(n, _)| *n).sum();
+    if total == 0 {
+        return;
+    }
+    let live: Vec<_> = segments.iter().filter(|(n, _)| *n > 0).collect();
+    let gap = 2.0;
+    let usable = rect.width() - gap * (live.len().saturating_sub(1)) as f32;
+    let mut x = rect.left();
+    for (n, color) in live {
+        let w = usable * (*n as f32 / total as f32);
+        painter.rect_filled(
+            egui::Rect::from_min_size(egui::pos2(x, rect.top()), egui::vec2(w, height)),
+            radius,
+            theme::readable_color(*color),
+        );
+        x += w + gap;
     }
 }
 
