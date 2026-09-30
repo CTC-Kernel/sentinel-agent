@@ -11,6 +11,7 @@ struct Review {
     orchestration: bool,
     light: bool,
     details: bool,
+    detail_modal: bool,
     detail_state: agent_gui::app::AppState,
     app: SentinelApp,
     output: String,
@@ -74,6 +75,9 @@ impl eframe::App for Review {
             });
         } else {
             self.app.update(ctx, frame);
+        }
+        if self.detail_modal {
+            detail_modal_review(ctx);
         }
         // The application expands its splash window after startup; apply the
         // review dimensions after that transition, before requesting the image.
@@ -203,6 +207,7 @@ fn main() -> Result<(), eframe::Error> {
                 orchestration: args.iter().any(|arg| arg == "--orchestration"),
                 light,
                 details: args.iter().any(|arg| arg == "--details"),
+                detail_modal: args.iter().any(|arg| arg == "--detail-modal"),
                 detail_state: {
                     let mut state = agent_gui::app::AppState::default();
                     if !empty {
@@ -355,4 +360,37 @@ fn component_review(ctx: &egui::Context) {
                     .show(ui, &mut widgets::PaginationState::new(5, 10));
             });
         });
+}
+
+/// A detail modal filled with the long values that used to overflow the
+/// side drawer: an unbroken hash, a deep path, a paragraph of CVE prose.
+fn detail_modal_review(ctx: &egui::Context) {
+    use agent_gui::widgets::{
+        DetailAction, DetailDrawer, detail_field, detail_field_badge, detail_field_colored,
+        detail_mono, detail_progress, detail_section, detail_text,
+    };
+    let mut open = true;
+    DetailDrawer::new("review_detail_modal", "CVE-2026-31337 · OpenSSL — dépassement de tampon dans le décodeur X.509", agent_gui::icons::WARNING)
+        .accent(agent_gui::theme::ERROR)
+        .subtitle("Détectée sur POSTE-DEMO-01 · paquet openssl 3.0.13-0ubuntu3.4")
+        .show(
+            ctx,
+            &mut open,
+            |ui| {
+                detail_section(ui, "RÉSUMÉ");
+                detail_field_badge(ui, "Sévérité", "CRITIQUE", agent_gui::theme::ERROR);
+                detail_field_colored(ui, "Score CVSS", "9,8 / 10", agent_gui::theme::ERROR);
+                detail_field(ui, "Paquet", "openssl 3.0.13-0ubuntu3.4 (libssl3, libssl-dev, openssl-provider-legacy)");
+                detail_field(ui, "Chemin", "/usr/lib/x86_64-linux-gnu/ossl-modules/legacy.so.3.0.13.ubuntu.backport.extended");
+                detail_progress(ui, "Couverture du correctif", 0.62, agent_gui::theme::WARNING);
+                detail_section(ui, "PREUVES");
+                detail_mono(ui, "SHA-256", "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a089f86d081884c7d659a2feaa0c55ad015");
+                detail_text(ui, "Description", "Un dépassement de tampon dans le décodage des extensions X.509 permet à un attaquant distant de provoquer un déni de service ou potentiellement l'exécution de code arbitraire via un certificat spécialement conçu présenté lors d'une négociation TLS. Toutes les versions 3.0.x antérieures à 3.0.15 sont affectées.");
+            },
+            &[
+                DetailAction::secondary("Ignorer", agent_gui::icons::XMARK),
+                DetailAction::secondary("Exporter", agent_gui::icons::DOWNLOAD),
+                DetailAction::primary("Appliquer le correctif", agent_gui::icons::WRENCH),
+            ],
+        );
 }

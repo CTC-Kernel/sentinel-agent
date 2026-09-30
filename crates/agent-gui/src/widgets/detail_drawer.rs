@@ -1,21 +1,36 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Slide-in detail drawer — premium AAA right-side panel.
+//! Detail modal — the premium centred dialog every page opens on a row click.
 //!
-//! Renders a glass-morphism slide-in drawer from the right edge of the screen.
-//! Used across all pages to display detail views when clicking on table rows,
-//! alerts, list items, etc.
+//! The builder keeps its historical `DetailDrawer` name so the pages that call
+//! it did not have to change, but it no longer slides in from the edge: a
+//! 420px column squeezed hashes, paths and CVE prose until they spilled out.
+//! The modal is centred, sized from the window, and lays every field out on a
+//! label/value grid whose values wrap instead of overflowing.
 
 use crate::icons;
 use crate::theme;
 use crate::widgets::button;
 use egui::{Color32, CornerRadius, Ui};
 
-/// Detail drawer width.
-pub const DRAWER_WIDTH: f32 = 420.0;
+/// Width of a standard detail modal.
+pub const DETAIL_MODAL_WIDTH: f32 = 720.0;
+/// Width of a wide detail modal (tables, timelines, long evidence).
+pub const DETAIL_MODAL_WIDTH_WIDE: f32 = 960.0;
+/// Share of the window height the modal may cover before its body scrolls.
+const MAX_HEIGHT_RATIO: f32 = 0.86;
+/// Share of the window width the modal may cover.
+const MAX_WIDTH_RATIO: f32 = 0.92;
+/// Below this content width, fields stack their label above their value.
+const STACKED_FIELD_BREAKPOINT: f32 = 440.0;
+/// How far the modal rises while it fades in.
+const ENTRY_RISE: f32 = 12.0;
 
-/// Action button style for the detail drawer.
+/// Historical name, kept for callers that sized content from it.
+pub const DRAWER_WIDTH: f32 = DETAIL_MODAL_WIDTH;
+
+/// Action button style for the detail modal.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ActionStyle {
     Primary,
@@ -23,7 +38,7 @@ pub enum ActionStyle {
     Danger,
 }
 
-/// An action button in the detail drawer.
+/// An action button in the detail modal footer.
 pub struct DetailAction {
     pub label: String,
     pub icon: &'static str,
@@ -74,13 +89,14 @@ impl DetailAction {
     }
 }
 
-/// A slide-in detail drawer builder.
+/// A centred detail modal builder.
 pub struct DetailDrawer<'a> {
     id: egui::Id,
     title: &'a str,
     icon: &'a str,
     accent_color: Color32,
     subtitle: Option<&'a str>,
+    width: f32,
 }
 
 impl<'a> DetailDrawer<'a> {
@@ -91,6 +107,7 @@ impl<'a> DetailDrawer<'a> {
             icon,
             accent_color: theme::ACCENT,
             subtitle: None,
+            width: DETAIL_MODAL_WIDTH,
         }
     }
 
@@ -104,9 +121,16 @@ impl<'a> DetailDrawer<'a> {
         self
     }
 
-    /// Show the drawer. Returns the index of the clicked action button, if any.
-    /// The `content` closure renders the body, and `actions` renders the action buttons.
-    /// `open` is set to false when the drawer is dismissed.
+    /// Use the wide format, for details that carry tables or long evidence.
+    pub fn wide(mut self) -> Self {
+        self.width = DETAIL_MODAL_WIDTH_WIDE;
+        self
+    }
+
+    /// Show the modal. Returns the index of the clicked action button, if any.
+    /// The `content` closure renders the body, and `actions` the footer buttons.
+    /// `open` is set to false when the modal is dismissed (close button,
+    /// Escape, or a click on the backdrop).
     pub fn show(
         self,
         ctx: &egui::Context,
@@ -122,19 +146,25 @@ impl<'a> DetailDrawer<'a> {
         let mut should_close = false;
 
         let screen = ctx.screen_rect();
+        let modal_width = self
+            .width
+            .min(screen.width() * MAX_WIDTH_RATIO)
+            .min(screen.width() - theme::SPACE_MD * 2.0)
+            .max(1.0);
+        let max_height = (screen.height() * MAX_HEIGHT_RATIO)
+            .min(screen.height() - theme::SPACE_MD * 2.0)
+            .max(1.0);
 
-        // Responsive width: cap at DRAWER_WIDTH but never exceed 35% of screen
-        let drawer_width = DRAWER_WIDTH.min(screen.width() * 0.35).max(280.0);
-
-        // Slide-in animation (respects reduced motion)
+        // Fade and rise in (instant under reduced motion).
         let anim_id = self.id.with("drawer_anim");
         let anim_t = if theme::is_reduced_motion() {
             1.0
         } else {
             ctx.animate_value_with_time(anim_id, 1.0, theme::ANIM_NORMAL)
         };
+        let eased = 1.0 - (1.0 - anim_t).powi(3);
 
-        let backdrop_alpha = (theme::BACKDROP_ALPHA as f32 / 2.0 * anim_t) as u8;
+        let backdrop_alpha = (theme::BACKDROP_ALPHA as f32 * anim_t) as u8;
         let prev_open_id = self.id.with("prev_open");
         let return_focus_id = self.id.with("return_focus");
         let was_open_prev =
@@ -144,54 +174,136 @@ impl<'a> DetailDrawer<'a> {
             ctx.memory_mut(|mem| mem.data.insert_temp(return_focus_id, focused));
         }
         ctx.memory_mut(|mem| mem.data.insert_temp(prev_open_id, true));
-        let drawer_x = screen.max.x - drawer_width * anim_t;
 
-        // Drawer panel — slide in from right with animation
+        let rounding = CornerRadius::same(theme::ROUNDING_XL);
+        let top_rounding = CornerRadius {
+            nw: theme::ROUNDING_XL,
+            ne: theme::ROUNDING_XL,
+            sw: 0,
+            se: 0,
+        };
+        let bottom_rounding = CornerRadius {
+            nw: 0,
+            ne: 0,
+            sw: theme::ROUNDING_XL,
+            se: theme::ROUNDING_XL,
+        };
+        let accent = self.accent_color;
+        let accent_fg = theme::readable_color(accent);
+
         let modal = egui::Modal::new(self.id.with("modal"))
             .area(
-                egui::Area::new(egui::Id::new("drawer_panel").with(self.id))
+                egui::Area::new(self.id.with("detail_modal_area"))
                     .kind(egui::UiKind::Modal)
                     .sense(egui::Sense::hover())
                     .interactable(true)
-                    .fixed_pos(egui::pos2(drawer_x, screen.min.y))
+                    .anchor(
+                        egui::Align2::CENTER_CENTER,
+                        egui::vec2(0.0, ENTRY_RISE * (1.0 - eased)),
+                    )
                     .order(egui::Order::Foreground),
             )
-            .frame(egui::Frame::NONE)
+            .frame(
+                egui::Frame::new()
+                    .fill(theme::bg_secondary())
+                    .corner_radius(rounding)
+                    .shadow(theme::Elevation::Level5.ambient())
+                    .stroke(egui::Stroke::new(
+                        theme::BORDER_THIN,
+                        theme::border_subtle(),
+                    ))
+                    .inner_margin(egui::Margin::same(0)),
+            )
             .backdrop_color(theme::backdrop_color(backdrop_alpha))
             .show(ctx, |ui| {
-                let drawer_rect = egui::Rect::from_min_size(
-                    egui::pos2(drawer_x, screen.min.y),
-                    egui::vec2(drawer_width, screen.height()),
-                );
+                ui.multiply_opacity(anim_t);
+                ui.set_width(modal_width);
+                ui.spacing_mut().item_spacing.y = 0.0;
+                let content_width = modal_width - theme::SPACE_LG * 2.0;
+                let top = ui.cursor().top();
 
-                // Shadow first, then the surface on top of it: appended after
-                // the fill, egui's blurred rect covers the whole drawer and
-                // darkens the content it is supposed to sit behind.
-                let mut shadow = theme::Elevation::Level5.ambient();
-                shadow.offset = [-16, 0]; // Project leftwards, onto the page.
-                ui.painter()
-                    .add(shadow.as_shape(drawer_rect, CornerRadius::ZERO));
+                // ── Header, over a whisper of the item's semantic colour ──
+                let header_bg = ui.painter().add(egui::Shape::Noop);
+                ui.add_space(theme::SPACE_LG);
+                ui.horizontal_top(|ui| {
+                    ui.spacing_mut().item_spacing.x = 0.0;
+                    ui.add_space(theme::SPACE_LG);
 
-                ui.painter()
-                    .rect_filled(drawer_rect, CornerRadius::ZERO, theme::bg_secondary());
+                    let icon_size = theme::ICON_2XL;
+                    let (icon_rect, _) = ui.allocate_exact_size(
+                        egui::vec2(icon_size, icon_size),
+                        egui::Sense::hover(),
+                    );
+                    ui.painter().rect(
+                        icon_rect,
+                        CornerRadius::same(theme::ROUNDING_LG),
+                        theme::tinted_surface(accent),
+                        egui::Stroke::new(
+                            theme::BORDER_HAIRLINE,
+                            theme::color_blend_pub(theme::bg_secondary(), accent, 0.45),
+                        ),
+                        egui::StrokeKind::Inside,
+                    );
+                    ui.painter().text(
+                        icon_rect.center(),
+                        egui::Align2::CENTER_CENTER,
+                        self.icon,
+                        theme::font_icon(theme::ICON_LG),
+                        accent_fg,
+                    );
 
-                // Leading edge, tinted with the drawer's semantic colour.
-                ui.painter().line_segment(
-                    [drawer_rect.left_top(), drawer_rect.left_bottom()],
-                    egui::Stroke::new(
-                        theme::BORDER_MEDIUM,
-                        theme::readable_color(self.accent_color),
+                    ui.add_space(theme::SPACE_MD);
+
+                    let close_w = theme::MIN_TOUCH_TARGET;
+                    let title_w =
+                        (content_width - icon_size - theme::SPACE_MD * 2.0 - close_w).max(40.0);
+                    ui.vertical(|ui| {
+                        ui.set_width(title_w);
+                        ui.spacing_mut().item_spacing.y = theme::SPACE_XS;
+                        ui.add(
+                            egui::Label::new(
+                                egui::RichText::new(self.title)
+                                    .font(theme::font_h3())
+                                    .color(theme::text_primary()),
+                            )
+                            .wrap_mode(egui::TextWrapMode::Wrap),
+                        );
+                        if let Some(sub) = self.subtitle {
+                            ui.add(
+                                egui::Label::new(
+                                    egui::RichText::new(sub)
+                                        .font(theme::font_small())
+                                        .color(theme::text_tertiary()),
+                                )
+                                .wrap_mode(egui::TextWrapMode::Wrap),
+                            );
+                        }
+                    });
+
+                    ui.add_space(theme::SPACE_MD);
+                    if button::icon_button(ui, icons::XMARK, Some("Fermer (Échap)")).clicked() {
+                        should_close = true;
+                    }
+                });
+                ui.add_space(theme::SPACE_LG);
+
+                let header_rect =
+                    egui::Rect::from_x_y_ranges(ui.min_rect().x_range(), top..=ui.cursor().top());
+                ui.painter().set(
+                    header_bg,
+                    egui::Shape::rect_filled(
+                        header_rect,
+                        top_rounding,
+                        theme::color_blend_pub(theme::bg_secondary(), accent, 0.07),
                     ),
                 );
+                ui.painter().hline(
+                    header_rect.x_range(),
+                    header_rect.bottom(),
+                    egui::Stroke::new(theme::BORDER_THIN, theme::border_subtle()),
+                );
 
-                // Constrain the area UI to drawer bounds
-                ui.set_clip_rect(drawer_rect);
-                ui.set_min_size(egui::vec2(drawer_width, screen.height()));
-                ui.set_max_size(egui::vec2(drawer_width, screen.height()));
-
-                // Footer height, from the buttons it will hold: they wrap onto
-                // as many rows as the drawer's width requires.
-                let content_width = drawer_width - theme::SPACE_LG * 2.0;
+                // ── Footer height, from the buttons it will hold ──
                 let footer_rows = if actions.is_empty() {
                     0
                 } else {
@@ -218,175 +330,117 @@ impl<'a> DetailDrawer<'a> {
                     rows
                 };
                 let footer_h = if footer_rows == 0 {
-                    0.0
+                    theme::SPACE_MD
                 } else {
                     theme::SPACE_MD * 2.0
                         + footer_rows as f32 * theme::BUTTON_HEIGHT
                         + (footer_rows - 1) as f32 * theme::SPACE_SM
                 };
 
-                ui.vertical(|ui| {
-                    ui.set_width(drawer_width);
-                    ui.add_space(theme::SPACE_LG);
-
-                    // Header
-                    ui.horizontal(|ui| {
-                        ui.add_space(theme::SPACE_LG);
-
-                        // Icon circle
-                        let icon_size = theme::ICON_XL + theme::SPACE_SM;
-                        let (icon_rect, _) = ui.allocate_exact_size(
-                            egui::vec2(icon_size, icon_size),
-                            egui::Sense::hover(),
-                        );
-                        ui.painter().circle_filled(
-                            icon_rect.center(),
-                            icon_size / 2.0,
-                            theme::tinted_surface(self.accent_color),
-                        );
-                        ui.painter().text(
-                            icon_rect.center(),
-                            egui::Align2::CENTER_CENTER,
-                            self.icon,
-                            theme::font_icon(theme::ICON_MD),
-                            theme::readable_color(self.accent_color),
-                        );
-
-                        ui.add_space(theme::SPACE_MD);
-
-                        ui.vertical(|ui| {
-                            ui.label(
-                                egui::RichText::new(self.title)
-                                    .font(theme::font_h3())
-                                    .color(theme::text_primary()),
-                            );
-                            if let Some(sub) = self.subtitle {
-                                ui.label(
-                                    egui::RichText::new(sub)
-                                        .font(theme::font_small())
-                                        .color(theme::text_tertiary()),
-                                );
-                            }
-                        });
-
-                        // Close button
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                // ── Body: grows with its content, scrolls past the cap ──
+                let body_max = (max_height - (ui.cursor().top() - top) - footer_h).max(80.0);
+                let body = egui::ScrollArea::vertical()
+                    .id_salt(self.id.with("scroll"))
+                    .auto_shrink([false, true])
+                    .max_height(body_max)
+                    .show(ui, |ui| {
+                        ui.add_space(theme::SPACE_XS);
+                        ui.horizontal(|ui| {
                             ui.add_space(theme::SPACE_LG);
-                            if button::icon_button(ui, icons::XMARK, Some("Fermer")).clicked() {
-                                should_close = true;
-                            }
-                        });
-                    });
-
-                    ui.add_space(theme::SPACE_SM);
-
-                    // Hairline under the header, not an accent slab.
-                    let divider_rect = ui
-                        .allocate_space(egui::vec2(drawer_width, theme::BORDER_THIN))
-                        .1;
-                    if ui.is_rect_visible(divider_rect) {
-                        ui.painter().rect_filled(
-                            egui::Rect::from_min_size(
-                                divider_rect.min + egui::vec2(theme::SPACE_LG, 0.0),
-                                egui::vec2(content_width, theme::BORDER_THIN),
-                            ),
-                            CornerRadius::ZERO,
-                            theme::border_subtle(),
-                        );
-                    }
-
-                    // Body scrolls between the header and the pinned footer,
-                    // so the actions stay in reach however long the detail.
-                    let body_height =
-                        (drawer_rect.bottom() - ui.cursor().top() - footer_h).max(0.0);
-                    egui::ScrollArea::vertical()
-                        .id_salt(self.id.with("scroll"))
-                        .auto_shrink([false, false])
-                        .max_height(body_height)
-                        .show(ui, |ui| {
-                            ui.set_width(drawer_width);
-                            ui.add_space(theme::SPACE_MD);
-                            ui.horizontal(|ui| {
-                                ui.add_space(theme::SPACE_LG);
-                                ui.vertical(|ui| {
-                                    ui.set_width(content_width);
-                                    content(ui);
-                                });
+                            ui.vertical(|ui| {
+                                ui.set_width(content_width);
+                                ui.spacing_mut().item_spacing.y = theme::SPACE_XS;
+                                content(ui);
                             });
-                            ui.add_space(theme::SPACE_XL);
                         });
+                        ui.add_space(theme::SPACE_LG);
+                    });
+                // More below: fade the last lines into the surface, so a cut
+                // paragraph reads as "scroll" rather than as a clipping bug.
+                let hidden_below =
+                    body.content_size.y - (body.state.offset.y + body.inner_rect.height());
+                if hidden_below > 1.0 {
+                    let fade_h = theme::SPACE_XL.min(hidden_below);
+                    let fade = egui::Rect::from_min_max(
+                        egui::pos2(body.inner_rect.left(), body.inner_rect.bottom() - fade_h),
+                        body.inner_rect.right_bottom(),
+                    );
+                    let surface = theme::bg_secondary();
+                    let mut mesh = egui::Mesh::default();
+                    let clear = Color32::from_rgba_premultiplied(0, 0, 0, 0);
+                    mesh.colored_vertex(fade.left_top(), clear);
+                    mesh.colored_vertex(fade.right_top(), clear);
+                    mesh.colored_vertex(fade.left_bottom(), surface);
+                    mesh.colored_vertex(fade.right_bottom(), surface);
+                    mesh.add_triangle(0, 1, 2);
+                    mesh.add_triangle(1, 3, 2);
+                    ui.painter().add(egui::Shape::mesh(mesh));
+                }
 
-                    if footer_h > 0.0 {
-                        let footer_rect = egui::Rect::from_min_size(
-                            egui::pos2(drawer_rect.left(), drawer_rect.bottom() - footer_h),
-                            egui::vec2(drawer_width, footer_h),
-                        );
-                        // The footer sits over the scrolling body: its own
-                        // surface, a hairline, and a whisper of shadow above.
-                        let mut shadow = theme::Elevation::Level2.ambient();
-                        shadow.offset = [0, -4];
-                        ui.painter()
-                            .add(shadow.as_shape(footer_rect, CornerRadius::ZERO));
-                        ui.painter().rect_filled(
-                            footer_rect,
-                            CornerRadius::ZERO,
-                            theme::bg_secondary(),
-                        );
-                        ui.painter().hline(
-                            footer_rect.x_range(),
-                            footer_rect.top() + 0.5,
-                            egui::Stroke::new(theme::BORDER_THIN, theme::border_subtle()),
-                        );
+                // ── Footer, pinned under the body, actions to the right ──
+                if footer_rows > 0 {
+                    let footer_rect = egui::Rect::from_min_size(
+                        egui::pos2(ui.min_rect().left(), ui.cursor().top()),
+                        egui::vec2(modal_width, footer_h),
+                    );
+                    ui.painter().rect_filled(
+                        footer_rect,
+                        bottom_rounding,
+                        theme::color_blend_pub(theme::bg_secondary(), theme::bg_primary(), 0.5),
+                    );
+                    ui.painter().hline(
+                        footer_rect.x_range(),
+                        footer_rect.top(),
+                        egui::Stroke::new(theme::BORDER_THIN, theme::border_subtle()),
+                    );
 
-                        let inner =
-                            footer_rect.shrink2(egui::vec2(theme::SPACE_LG, theme::SPACE_MD));
-                        // One row high to start with, like `horizontal_wrapped`:
-                        // a wrapping row centres its items in the rect it is
-                        // given, so a two-row rect would push the second row
-                        // out of the footer.
-                        let first_row = egui::Rect::from_min_size(
-                            inner.min,
-                            egui::vec2(inner.width(), theme::BUTTON_HEIGHT),
-                        );
-                        let mut footer = ui.new_child(
-                            egui::UiBuilder::new().max_rect(first_row).layout(
-                                egui::Layout::left_to_right(egui::Align::Center)
-                                    .with_main_wrap(true),
-                            ),
-                        );
-                        footer.spacing_mut().item_spacing =
-                            egui::vec2(theme::SPACE_SM, theme::SPACE_SM);
-                        for (idx, action) in actions.iter().enumerate() {
-                            let label = format!("{}  {}", action.icon, action.label);
-                            let clicked = match action.style {
-                                ActionStyle::Primary => button::primary_button_loading(
-                                    &mut footer,
-                                    &label,
-                                    action.enabled,
-                                    action.loading,
-                                )
-                                .clicked(),
-                                ActionStyle::Secondary => button::secondary_button_loading(
-                                    &mut footer,
-                                    &label,
-                                    action.enabled,
-                                    action.loading,
-                                )
-                                .clicked(),
-                                ActionStyle::Danger => button::destructive_button_loading(
-                                    &mut footer,
-                                    &label,
-                                    action.enabled,
-                                    action.loading,
-                                )
-                                .clicked(),
-                            };
-                            if clicked {
-                                clicked_action = Some(idx);
-                            }
+                    let inner = footer_rect.shrink2(egui::vec2(theme::SPACE_LG, theme::SPACE_MD));
+                    // One row high to start with: a wrapping row centres its
+                    // items in the rect it is given, so a taller rect would
+                    // push the second row out of the footer.
+                    let first_row = egui::Rect::from_min_size(
+                        inner.min,
+                        egui::vec2(inner.width(), theme::BUTTON_HEIGHT),
+                    );
+                    let mut footer =
+                        ui.new_child(egui::UiBuilder::new().max_rect(first_row).layout(
+                            egui::Layout::right_to_left(egui::Align::Center).with_main_wrap(true),
+                        ));
+                    footer.spacing_mut().item_spacing =
+                        egui::vec2(theme::SPACE_SM, theme::SPACE_SM);
+                    // Laid out from the right edge: walk the actions backwards
+                    // so they still read in the order the page declared them.
+                    for (idx, action) in actions.iter().enumerate().rev() {
+                        let label = format!("{}  {}", action.icon, action.label);
+                        let clicked = match action.style {
+                            ActionStyle::Primary => button::primary_button_loading(
+                                &mut footer,
+                                &label,
+                                action.enabled,
+                                action.loading,
+                            )
+                            .clicked(),
+                            ActionStyle::Secondary => button::secondary_button_loading(
+                                &mut footer,
+                                &label,
+                                action.enabled,
+                                action.loading,
+                            )
+                            .clicked(),
+                            ActionStyle::Danger => button::destructive_button_loading(
+                                &mut footer,
+                                &label,
+                                action.enabled,
+                                action.loading,
+                            )
+                            .clicked(),
+                        };
+                        if clicked {
+                            clicked_action = Some(idx);
                         }
                     }
-                });
+                }
+                ui.allocate_space(egui::vec2(modal_width, footer_h));
             });
 
         should_close |= modal.should_close();
@@ -401,7 +455,7 @@ impl<'a> DetailDrawer<'a> {
             }
             // Reset prev_open flag so next open skips dismiss for one frame
             ctx.memory_mut(|mem| mem.data.insert_temp::<bool>(prev_open_id, false));
-            // Reset animation value so drawer animates in on next open
+            // Reset animation value so the modal animates in on next open
             if !theme::is_reduced_motion() {
                 ctx.animate_value_with_time(anim_id, 0.0, 0.0);
             }
@@ -411,74 +465,114 @@ impl<'a> DetailDrawer<'a> {
     }
 }
 
-/// Render a labeled section header inside a detail drawer.
+/// Render a labeled section header inside a detail modal.
 pub fn detail_section(ui: &mut Ui, title: &str) {
     ui.add_space(theme::SPACE_MD);
-    ui.label(
-        egui::RichText::new(title)
-            .font(theme::font_label())
-            .color(theme::text_secondary())
-            .extra_letter_spacing(theme::TRACKING_NORMAL)
-            .strong(),
-    );
+    ui.horizontal(|ui| {
+        ui.label(
+            egui::RichText::new(title)
+                .font(theme::font_label())
+                .color(theme::text_secondary())
+                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                .strong(),
+        );
+        // A hairline runs from the title to the edge, so sections read as
+        // groups without boxing every one of them.
+        let rest = ui.available_rect_before_wrap();
+        let y = rest.center().y;
+        ui.painter().hline(
+            (rest.left() + theme::SPACE_SM)..=rest.right(),
+            y,
+            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border_subtle()),
+        );
+    });
     ui.add_space(theme::SPACE_SM);
 }
 
-/// Render a key-value field inside a detail drawer.
+/// One label/value row. The label keeps a fixed column; the value takes the
+/// rest and wraps, so a long hash or path never spills past the modal. On a
+/// narrow modal the label stacks above the value instead.
+fn field_row(ui: &mut Ui, label: &str, value: impl FnOnce(&mut Ui)) {
+    let total = ui.available_width();
+    let label_text = egui::RichText::new(label)
+        .font(theme::font_small())
+        .color(theme::text_tertiary());
+    if total < STACKED_FIELD_BREAKPOINT {
+        ui.add(egui::Label::new(label_text).wrap_mode(egui::TextWrapMode::Wrap));
+        ui.scope(|ui| {
+            ui.set_max_width(total);
+            value(ui);
+        });
+    } else {
+        let gap = theme::SPACE_MD;
+        let label_w = (total * 0.34).clamp(120.0, 220.0);
+        let value_w = (total - label_w - gap).max(1.0);
+        ui.horizontal_top(|ui| {
+            ui.spacing_mut().item_spacing.x = 0.0;
+            ui.allocate_ui_with_layout(
+                egui::vec2(label_w, 0.0),
+                egui::Layout::top_down(egui::Align::Min),
+                |ui| {
+                    ui.set_width(label_w);
+                    // Line the label's baseline up with a body-size value.
+                    ui.add_space(2.0);
+                    ui.add(egui::Label::new(label_text).wrap_mode(egui::TextWrapMode::Wrap));
+                },
+            );
+            ui.add_space(gap);
+            ui.allocate_ui_with_layout(
+                egui::vec2(value_w, 0.0),
+                egui::Layout::top_down(egui::Align::Min),
+                |ui| {
+                    ui.set_width(value_w);
+                    value(ui);
+                },
+            );
+        });
+    }
+    ui.add_space(theme::SPACE_SM);
+}
+
+/// Render a key-value field inside a detail modal.
 pub fn detail_field(ui: &mut Ui, label: &str, value: &str) {
-    ui.horizontal(|ui| {
-        ui.label(
-            egui::RichText::new(label)
-                .font(theme::font_small())
-                .color(theme::text_tertiary()),
-        );
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            ui.label(
+    field_row(ui, label, |ui| {
+        ui.add(
+            egui::Label::new(
                 egui::RichText::new(value)
                     .font(theme::font_body())
                     .color(theme::text_primary()),
-            );
-        });
+            )
+            .wrap_mode(egui::TextWrapMode::Wrap),
+        );
     });
-    ui.add_space(theme::SPACE_XS);
 }
 
 /// Render a key-value field with colored value (AAA-readable via `readable_color`).
 pub fn detail_field_colored(ui: &mut Ui, label: &str, value: &str, color: Color32) {
-    ui.horizontal(|ui| {
-        ui.label(
-            egui::RichText::new(label)
-                .font(theme::font_small())
-                .color(theme::text_tertiary()),
-        );
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            ui.label(
+    field_row(ui, label, |ui| {
+        ui.add(
+            egui::Label::new(
                 egui::RichText::new(value)
                     .font(theme::font_body())
                     .color(theme::readable_color(color))
                     .strong(),
-            );
-        });
+            )
+            .wrap_mode(egui::TextWrapMode::Wrap),
+        );
     });
-    ui.add_space(theme::SPACE_XS);
 }
 
 /// Render a key-value field with a badge value.
 pub fn detail_field_badge(ui: &mut Ui, label: &str, value: &str, color: Color32) {
-    ui.horizontal(|ui| {
-        ui.label(
-            egui::RichText::new(label)
-                .font(theme::font_small())
-                .color(theme::text_tertiary()),
-        );
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+    field_row(ui, label, |ui| {
+        // A pill wants a row layout; a top-down column stretches its frame.
+        ui.horizontal(|ui| {
             crate::widgets::status_badge(ui, value, color);
         });
     });
-    ui.add_space(theme::SPACE_XS);
 }
 
-/// Render a long text field (wrapping) inside a detail drawer.
+/// Render a long text field (wrapping) inside a detail modal.
 pub fn detail_text(ui: &mut Ui, label: &str, text: &str) {
     ui.label(
         egui::RichText::new(label)
@@ -500,6 +594,9 @@ pub fn detail_text(ui: &mut Ui, label: &str, text: &str) {
             theme::border_subtle(),
         ))
         .show(ui, |ui| {
+            // Prose spans the modal: a frame hugging its wrapped text stopped
+            // short of the edge and read as a misaligned box.
+            ui.set_width(ui.available_width());
             ui.add(
                 egui::Label::new(
                     egui::RichText::new(text)
@@ -553,45 +650,49 @@ pub fn detail_mono(ui: &mut Ui, label: &str, value: &str) {
     ui.add_space(theme::SPACE_SM);
 }
 
-/// Render a progress/coverage indicator inside a detail drawer.
+/// Render a progress/coverage indicator inside a detail modal.
 pub fn detail_progress(ui: &mut Ui, label: &str, fraction: f32, color: Color32) {
-    ui.horizontal(|ui| {
-        ui.label(
-            egui::RichText::new(label)
-                .font(theme::font_small())
-                .color(theme::text_tertiary()),
-        );
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+    field_row(ui, label, |ui| {
+        ui.horizontal(|ui| {
+            let value = format!("{:.0}\u{202f}%", fraction * 100.0);
+            let value_w = ui
+                .painter()
+                .layout_no_wrap(value.clone(), theme::font_body(), color)
+                .size()
+                .x;
+            let bar_height = 6.0;
+            let bar_w = (ui.available_width() - value_w - theme::SPACE_MD).max(24.0);
+            let (row, _) = ui.allocate_exact_size(
+                egui::vec2(bar_w, theme::font_body().size * 1.3),
+                egui::Sense::hover(),
+            );
+            let rect = egui::Rect::from_center_size(row.center(), egui::vec2(bar_w, bar_height));
+            if ui.is_rect_visible(rect) {
+                ui.painter().rect_filled(
+                    rect,
+                    CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
+                    theme::bg_tertiary(),
+                );
+                let fill_w = rect.width() * fraction.clamp(0.0, 1.0);
+                if fill_w > 0.0 {
+                    let fill_rect =
+                        egui::Rect::from_min_size(rect.min, egui::vec2(fill_w, bar_height));
+                    ui.painter().rect_filled(
+                        fill_rect,
+                        CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
+                        color,
+                    );
+                }
+            }
+            ui.add_space(theme::SPACE_MD);
             ui.label(
-                egui::RichText::new(format!("{:.0}\u{202f}%", fraction * 100.0))
+                egui::RichText::new(value)
                     .font(theme::font_body())
-                    .color(color)
+                    .color(theme::readable_color(color))
                     .strong(),
             );
         });
     });
-    ui.add_space(theme::SPACE_XS);
-
-    let bar_height = 6.0;
-    let width = ui.available_width();
-    let (rect, _) = ui.allocate_exact_size(egui::vec2(width, bar_height), egui::Sense::hover());
-    if ui.is_rect_visible(rect) {
-        ui.painter().rect_filled(
-            rect,
-            CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
-            theme::bg_tertiary(),
-        );
-        let fill_w = rect.width() * fraction.clamp(0.0, 1.0);
-        if fill_w > 0.0 {
-            let fill_rect = egui::Rect::from_min_size(rect.min, egui::vec2(fill_w, bar_height));
-            ui.painter().rect_filled(
-                fill_rect,
-                CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
-                color,
-            );
-        }
-    }
-    ui.add_space(theme::SPACE_SM);
 }
 
 /// Render a premium AI-generated remediation proposal section.
@@ -718,5 +819,43 @@ mod regression_tests {
             );
         }
         assert!(!open, "backdrop should dismiss the drawer");
+    }
+
+    #[test]
+    fn long_values_stay_inside_the_window() {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        let screen = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(960.0, 600.0));
+        let long = "x".repeat(400);
+        let mut open = true;
+        for frame in 0..4 {
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(screen),
+                    time: Some(frame as f64),
+                    ..Default::default()
+                },
+                |ctx| {
+                    DetailDrawer::new("overflow_modal", &long, "").show(
+                        ctx,
+                        &mut open,
+                        |ui| {
+                            for _ in 0..30 {
+                                detail_field(ui, &long, &long);
+                                detail_mono(ui, "Hash", &long);
+                            }
+                        },
+                        &[DetailAction::primary(long.clone(), "")],
+                    );
+                },
+            );
+        }
+        let rect = ctx
+            .memory(|mem| mem.area_rect(egui::Id::new("overflow_modal").with("detail_modal_area")))
+            .expect("modal area");
+        assert!(
+            screen.contains_rect(rect),
+            "modal {rect:?} overflows the window {screen:?}"
+        );
     }
 }
