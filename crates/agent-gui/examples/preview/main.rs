@@ -184,6 +184,11 @@ impl Default for Preview {
 impl eframe::App for Preview {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if !self.started {
+            // PREVIEW_REDUCED freezes ambient motion, so two captures of the
+            // same code are pixel-identical and a refactor can be diffed.
+            if std::env::var("PREVIEW_REDUCED").is_ok() {
+                theme::set_reduced_motion(true);
+            }
             theme::apply_theme(ctx, self.dark);
             if let Some(state) = self.state.as_mut() {
                 state.settings.dark_mode = self.dark;

@@ -2012,6 +2012,15 @@ pub fn select_tab(state: &mut AppState, page: &str, tab: usize) {
 
 /// Open the drawer named by `PREVIEW_DRAWER` on the first matching record.
 pub fn open_drawer(state: &mut AppState, which: &str) {
+    // `threat:<source>` narrows the overview feed to one source first, so each
+    // source's detail modal can be captured on its own.
+    if let Some(source) = which.strip_prefix("threat:") {
+        state.threats.filter = Some(source.to_owned());
+        state.threats.overview_show_triaged = true;
+        state.threats.selected_threat = Some(0);
+        state.threats.detail_open = true;
+        return;
+    }
     match which {
         "vuln" => {
             state.vulnerability.selected_vuln = Some(0);
