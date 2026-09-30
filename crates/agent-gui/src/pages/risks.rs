@@ -109,11 +109,9 @@ impl RisksPage {
 
         ui.add_space(theme::SPACE_MD);
 
-        egui::CollapsingHeader::new("Matrice probabilité × impact")
-            .id_salt("risk_matrix")
-            .show(ui, |ui| {
-                Self::draw_risk_matrix(ui, state);
-            });
+        // The heat map is this page's summary: shown in its card, not folded
+        // behind a bare collapsing header.
+        Self::draw_risk_matrix(ui, state);
         ui.add_space(theme::SPACE_MD);
 
         // Action bar
@@ -459,8 +457,10 @@ impl RisksPage {
 
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_max_width(LEGEND_WIDTH);
+            // The matrix places every risk; these counts leave out accepted
+            // and closed ones, and say so, or the two disagree on sight.
             ui.label(
-                egui::RichText::new("NIVEAUX")
+                egui::RichText::new("NIVEAUX \u{00b7} RISQUES OUVERTS")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(theme::TRACKING_NORMAL)

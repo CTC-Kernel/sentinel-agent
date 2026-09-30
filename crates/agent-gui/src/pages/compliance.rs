@@ -97,39 +97,6 @@ impl CompliancePage {
         }
         ui.add_space(theme::SPACE_MD);
 
-        // Active Frameworks indicator (AAA)
-        if let Some(frameworks) = &state.summary.active_frameworks
-            && !frameworks.is_empty()
-        {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("RÉFÉRENTIELS ACTIFS :")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_XS);
-                let fw_count = frameworks.len();
-                for fw in frameworks.iter().take(3) {
-                    widgets::status_badge(
-                        ui,
-                        agent_common::frameworks::framework_display_name(fw),
-                        theme::INFO,
-                    );
-                    ui.add_space(theme::SPACE_XS);
-                }
-                if fw_count > 3 {
-                    widgets::status_badge(
-                        ui,
-                        &format!("+{}", fw_count - 3),
-                        theme::text_tertiary(),
-                    );
-                }
-            });
-            ui.add_space(theme::SPACE_MD);
-        }
-
         // Summary Area (AAA Grade)
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
@@ -191,14 +158,16 @@ impl CompliancePage {
                         && !frameworks.is_empty()
                     {
                         ui.add_space(theme::SPACE_MD);
-                        ui.horizontal(|ui| {
+                        // The one place the active frameworks are listed,
+                        // all of them, wrapping rather than truncating.
+                        ui.horizontal_wrapped(|ui| {
                             ui.label(
-                                egui::RichText::new("RÉFÉRENTIELS ACTIFS:")
+                                egui::RichText::new("RÉFÉRENTIELS ACTIFS :")
                                     .font(theme::font_min())
                                     .color(theme::text_tertiary())
                                     .strong(),
                             );
-                            for fw in frameworks.iter().take(4) {
+                            for fw in frameworks {
                                 widgets::status_badge(
                                     ui,
                                     agent_common::frameworks::framework_display_name(fw),
@@ -822,7 +791,7 @@ impl CompliancePage {
             &[
                 table::Col::fluid(180.0, 3.0), // Désignation
                 table::Col::fluid(100.0, 0.5), // Domaine
-                table::Col::fluid(96.0, 0.0),  // Statut
+                table::Col::fluid(112.0, 0.0), // Statut: fits "NON-CONFORME" at 12px
                 table::Col::fluid(90.0, 0.0),  // Impact
                 table::Col::fixed(56.0),       // Taux
                 table::Col::fluid(150.0, 1.5), // Référentiels

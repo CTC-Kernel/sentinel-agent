@@ -337,7 +337,7 @@ impl DiscoveryPage {
                         table::Col::fluid(84.0, 0.0),  // Statut
                         table::Col::fluid(120.0, 3.0), // Nom d'hôte
                         table::Col::fluid(90.0, 1.5),  // Constructeur
-                        table::Col::fluid(80.0, 0.0),  // Type d'actif
+                        table::Col::fluid(104.0, 0.0), // Type d'actif: header and "IMPRIMANTE" whole
                         table::Col::fluid(70.0, 0.5),  // Services
                         table::Col::fluid(84.0, 0.5),  // Dernière vue
                         table::Col::fixed(110.0),      // Opérations
@@ -444,11 +444,11 @@ impl DiscoveryPage {
                             );
                         });
                         row.col(|ui| {
-                            if widgets::chip_button(
+                            // An action, not a filter: a quiet button, not a chip.
+                            if widgets::button::icon_button(
                                 ui,
-                                &format!("{}  Copier IP", icons::COPY),
-                                false,
-                                theme::ACCENT,
+                                icons::COPY,
+                                Some("Copier l'adresse IP"),
                             )
                             .clicked()
                             {
