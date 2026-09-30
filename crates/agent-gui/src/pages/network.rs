@@ -424,7 +424,7 @@ impl NetworkPage {
                 let sev_color = match alert.severity {
                     crate::dto::Severity::Critical => theme::ERROR,
                     crate::dto::Severity::High => theme::SEVERITY_HIGH,
-                    crate::dto::Severity::Medium => theme::WARNING,
+                    crate::dto::Severity::Medium => theme::SEVERITY_MEDIUM,
                     crate::dto::Severity::Low => theme::INFO,
                     crate::dto::Severity::Info => theme::text_tertiary(),
                 };

@@ -302,7 +302,7 @@ pub(super) fn severity_display(severity: &str) -> (&'static str, Color32) {
     match severity {
         "critical" => (icons::SEVERITY_CRITICAL, theme::ERROR),
         "high" => (icons::SEVERITY_HIGH, theme::SEVERITY_HIGH),
-        "medium" => (icons::SEVERITY_MEDIUM, theme::WARNING),
+        "medium" => (icons::SEVERITY_MEDIUM, theme::SEVERITY_MEDIUM),
         "low" => (icons::SEVERITY_LOW, theme::INFO),
         _ => (icons::SEVERITY_LOW, theme::WARNING),
     }

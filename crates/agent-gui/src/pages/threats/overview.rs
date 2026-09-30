@@ -854,7 +854,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         let sev_color = match inc.severity {
                             Severity::Critical => theme::ERROR,
                             Severity::High => theme::SEVERITY_HIGH,
-                            Severity::Medium => theme::WARNING,
+                            Severity::Medium => theme::SEVERITY_MEDIUM,
                             _ => theme::INFO,
                         };
                         let has_ai = inc.ai_analysis.is_some();
@@ -1030,7 +1030,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         let sev_color = match v.severity {
                             Severity::Critical => theme::ERROR,
                             Severity::High => theme::SEVERITY_HIGH,
-                            Severity::Medium => theme::WARNING,
+                            Severity::Medium => theme::SEVERITY_MEDIUM,
                             _ => theme::INFO,
                         };
                         let actions = [
@@ -1118,7 +1118,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         let f = state.fim.alerts[threat.source_index].clone();
                         let sev_color = match threat.severity {
                             "critical" | "high" => theme::ERROR,
-                            "medium" => theme::WARNING,
+                            "medium" => theme::SEVERITY_MEDIUM,
                             _ => theme::INFO,
                         };
                         let actions = [
@@ -1245,7 +1245,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         let sev_color = match a.severity {
                             Severity::Critical => theme::ERROR,
                             Severity::High => theme::SEVERITY_HIGH,
-                            Severity::Medium => theme::WARNING,
+                            Severity::Medium => theme::SEVERITY_MEDIUM,
                             _ => theme::INFO,
                         };
                         let has_ai = a.ai_analysis.is_some();
@@ -1903,7 +1903,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
                 theme::readable_color(match severity {
                     "critical" => theme::ERROR,
                     "high" => theme::SEVERITY_HIGH,
-                    "medium" => theme::WARNING,
+                    "medium" => theme::SEVERITY_MEDIUM,
                     _ => theme::AI,
                 })
             } else {

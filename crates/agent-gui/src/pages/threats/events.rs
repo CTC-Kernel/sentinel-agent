@@ -202,7 +202,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             let (sev_label, sev_color) = match threat.severity {
                 "critical" => ("Critique", theme::ERROR),
                 "high" => ("\u{00c9}lev\u{00e9}", theme::SEVERITY_HIGH),
-                "medium" => ("Moyen", theme::WARNING),
+                "medium" => ("Moyen", theme::SEVERITY_MEDIUM),
                 _ => ("Faible", theme::INFO),
             };
             let (kind_label, _) = kind_badge(threat.kind);
@@ -252,7 +252,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             let sev_color = match threat.severity {
                 "critical" => theme::ERROR,
                 "high" => theme::SEVERITY_HIGH,
-                "medium" => theme::WARNING,
+                "medium" => theme::SEVERITY_MEDIUM,
                 _ => theme::INFO,
             };
             let (kind_label, _) = kind_badge(threat.kind);

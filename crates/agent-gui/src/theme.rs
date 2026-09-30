@@ -255,10 +255,13 @@ pub const DANGER_HOVER: Color32 = Color32::from_rgb(145, 24, 37);
 pub const DANGER_PRESSED: Color32 = Color32::from_rgb(125, 20, 32);
 /// Info — azure.
 pub const INFO: Color32 = Color32::from_rgb(56, 166, 245); // #38A6F5
-/// Severity-high — saturated amber, one step hotter than `WARNING`.
-pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 176, 32); // #FFB020
-/// Severity-medium — burnt orange, visually distinct from `WARNING`.
-pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 140, 58); // #FF8C3A
+/// Severity ramp, hottest first: critical `ERROR` red, high burnt orange,
+/// medium amber, low `INFO` blue. Each step cools, so a colour alone ranks
+/// an event; medium used to be the hotter orange, which read backwards.
+/// Severity-high — burnt orange, between `ERROR` and medium.
+pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 140, 58); // #FF8C3A
+/// Severity-medium — saturated amber, the `WARNING` family.
+pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 176, 32); // #FFB020
 /// Assistant / AI — lavender, the pale end of the brand violet. It reads as
 /// the same family as the action accent, as on the site's AI orb, but its
 /// lightness keeps it apart from the deep violet fills.
@@ -270,8 +273,8 @@ const SUCCESS_ON_LIGHT: Color32 = Color32::from_rgb(8, 108, 74); // #086C4A
 const WARNING_ON_LIGHT: Color32 = Color32::from_rgb(138, 87, 0); // #8A5700
 const ERROR_ON_LIGHT: Color32 = Color32::from_rgb(196, 38, 43); // #C4262B
 const INFO_ON_LIGHT: Color32 = Color32::from_rgb(11, 107, 181); // #0B6BB5
-const SEVERITY_HIGH_ON_LIGHT: Color32 = Color32::from_rgb(125, 81, 0); // #7D5100
-const SEVERITY_MEDIUM_ON_LIGHT: Color32 = Color32::from_rgb(155, 63, 8); // #9B3F08
+const SEVERITY_HIGH_ON_LIGHT: Color32 = Color32::from_rgb(155, 63, 8); // #9B3F08
+const SEVERITY_MEDIUM_ON_LIGHT: Color32 = Color32::from_rgb(125, 81, 0); // #7D5100
 const AI_ON_LIGHT: Color32 = Color32::from_rgb(109, 75, 216); // #6D4BD8
 
 // ============================================================================
@@ -810,8 +813,8 @@ fn theme_variant(color: Color32) -> Color32 {
         (245, 165, 36) => WARNING_ON_LIGHT,
         (255, 97, 99) => ERROR_ON_LIGHT,
         (56, 166, 245) => INFO_ON_LIGHT,
-        (255, 176, 32) => SEVERITY_HIGH_ON_LIGHT,
-        (255, 140, 58) => SEVERITY_MEDIUM_ON_LIGHT,
+        (255, 140, 58) => SEVERITY_HIGH_ON_LIGHT,
+        (255, 176, 32) => SEVERITY_MEDIUM_ON_LIGHT,
         (167, 139, 255) => AI_ON_LIGHT,
         _ => darken_for_light_bg(color),
     }
@@ -1839,12 +1842,12 @@ pub fn status_color(status: &str) -> Color32 {
 }
 
 /// Color for a severity string - follows visual hierarchy:
-/// critical (red) > high (amber) > medium (orange) > low (blue) > info (blue)
+/// critical (red) > high (orange) > medium (amber) > low (blue) > info (blue)
 pub fn severity_color(severity: &str) -> Color32 {
     match severity {
         "critical" => ERROR,         // #FF3B30 Red
-        "high" => SEVERITY_HIGH,     // #FFCC00 Amber
-        "medium" => SEVERITY_MEDIUM, // #FF9F0A Orange
+        "high" => SEVERITY_HIGH,     // #FF8C3A Orange
+        "medium" => SEVERITY_MEDIUM, // #FFB020 Amber
         "low" => INFO,               // #007AFF Blue
         "info" => INFO,
         _ => WARNING,

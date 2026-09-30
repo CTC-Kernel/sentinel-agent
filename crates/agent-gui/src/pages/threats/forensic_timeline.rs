@@ -548,7 +548,7 @@ fn severity_color(severity: &Severity) -> egui::Color32 {
     match severity {
         Severity::Critical => theme::ERROR,
         Severity::High => theme::SEVERITY_HIGH,
-        Severity::Medium => theme::WARNING,
+        Severity::Medium => theme::SEVERITY_MEDIUM,
         Severity::Low | Severity::Info => theme::INFO,
     }
 }

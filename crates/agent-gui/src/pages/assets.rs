@@ -692,7 +692,7 @@ impl AssetsPage {
         match crit {
             AssetCriticality::Critical => ("CRITIQUE", theme::ERROR),
             AssetCriticality::High => ("\u{00c9}LEV\u{00c9}E", theme::SEVERITY_HIGH),
-            AssetCriticality::Medium => ("MOYENNE", theme::WARNING),
+            AssetCriticality::Medium => ("MOYENNE", theme::SEVERITY_MEDIUM),
             AssetCriticality::Low => ("FAIBLE", theme::INFO),
         }
     }

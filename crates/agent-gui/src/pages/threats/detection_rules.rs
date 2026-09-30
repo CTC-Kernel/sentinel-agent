@@ -119,7 +119,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let sev_color = match rule.severity {
                     Severity::Critical => theme::ERROR,
                     Severity::High => theme::SEVERITY_HIGH,
-                    Severity::Medium => theme::WARNING,
+                    Severity::Medium => theme::SEVERITY_MEDIUM,
                     _ => theme::INFO,
                 };
                 let conds = rule
