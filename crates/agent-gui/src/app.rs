@@ -2044,8 +2044,12 @@ impl SentinelApp {
                 });
             });
 
-        // Request repaint to ensure smooth animations
-        ctx.request_repaint();
+        // The AI core paces its own animation. While the microphone or the
+        // model is live, keep the level meter and the reply moving; otherwise
+        // the widget repaints on input and agent events only.
+        if self.state.ai.is_listening || self.state.ai.is_speaking || self.state.ai.is_processing {
+            ctx.request_repaint_after(crate::animation::AMBIENT_FRAME);
+        }
     }
 }
 

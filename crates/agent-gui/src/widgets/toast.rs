@@ -320,9 +320,26 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
             toast_clone.created_at += f64::from(ui.input(|input| input.stable_dt).min(0.1));
         }
 
+        // Full rate only while something moves (entrance, exit) or while the
+        // reading pause shifts the clock each frame; otherwise wake once, when
+        // the exit fade is due.
+        let animating =
+            !theme::is_reduced_motion() && (age < entrance_duration || age > exit_start);
+        if animating || reading {
+            ui.ctx().request_repaint();
+        } else {
+            let wake = if theme::is_reduced_motion() {
+                duration
+            } else {
+                exit_start
+            };
+            // `try_`: a caller may pass an unbounded duration to `with_duration`.
+            let delay = std::time::Duration::try_from_secs_f64((wake - age).max(0.0))
+                .unwrap_or(std::time::Duration::MAX);
+            ui.ctx().request_repaint_after(delay);
+        }
         remaining.push(toast_clone);
         y_offset += toast_height + 10.0;
-        ui.ctx().request_repaint();
     }
 
     // Reverse to maintain order

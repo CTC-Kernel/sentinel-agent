@@ -601,9 +601,7 @@ impl MonitoringPage {
                                     .linear_multiply(0.5 + pulse * 0.5)
                             };
                             ui.label(RichText::new("●").size(theme::ICON_MICRO).color(dot_color));
-                            if !theme::is_reduced_motion() {
-                                ui.ctx().request_repaint();
-                            }
+                            crate::animation::request_ambient_repaint(ui.ctx());
                         }
                     },
                 );
@@ -1222,8 +1220,6 @@ impl MonitoringPage {
                             color.linear_multiply(theme::OPACITY_TINT),
                         ),
                     );
-
-                    ui.ctx().request_repaint();
                 }
             });
         });

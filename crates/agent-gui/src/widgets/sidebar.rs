@@ -582,7 +582,7 @@ impl Sidebar {
                 theme::STATUS_DOT_SIZE / 2.0 + pulse * 3.0,
                 trailing.color.linear_multiply(0.25 * (1.0 - pulse)),
             );
-            ui.ctx().request_repaint();
+            crate::animation::request_ambient_repaint(ui.ctx());
         }
         painter.circle_filled(
             egui::pos2(dot_x, center_y),

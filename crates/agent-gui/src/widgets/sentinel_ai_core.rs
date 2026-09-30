@@ -100,10 +100,8 @@ impl SentinelAICore {
                 painter.circle_stroke(rect.center(), radius * 1.08, crate::theme::focus_ring());
             }
 
-            // Request next frame if animating
-            if !reduced {
-                ui.ctx().request_repaint();
-            }
+            // Ambient motion: paced, not redrawn at the display rate.
+            crate::animation::request_ambient_repaint(ui.ctx());
         }
 
         response.widget_info(|| {
@@ -365,5 +363,41 @@ impl SentinelAICore {
             })
             .collect();
         painter.add(egui::Shape::line(points, stroke));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn idle_core_paces_its_animation_instead_of_redrawing_every_frame() {
+        let ctx = egui::Context::default();
+        crate::theme::set_reduced_motion(false);
+        // egui asks for extra frames while it settles a fresh layout; measure
+        // once it has.
+        let mut output = Default::default();
+        for frame in 0..4 {
+            output = ctx.run(
+                egui::RawInput {
+                    time: Some(frame as f64),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        SentinelAICore::new(80.0).show(ui, 60.0);
+                    });
+                },
+            );
+        }
+        let output: egui::FullOutput = output;
+        let delay = output.viewport_output[&egui::ViewportId::ROOT].repaint_delay;
+        // egui reports the wait minus one predicted frame (1/60 s), so a
+        // 33 ms pace shows up as about 16 ms; a full-rate redraw shows 0.
+        let predicted_frame = std::time::Duration::from_secs_f32(1.0 / 60.0);
+        assert!(
+            delay + predicted_frame >= crate::animation::AMBIENT_FRAME,
+            "the AI core asked for a frame after {delay:?}, faster than the ambient pace"
+        );
     }
 }
