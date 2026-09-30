@@ -604,7 +604,11 @@ pub fn paint_gradient_hairline(
     let xm = (x0 + x1) * 0.5;
     let (top, bottom) = (y - 0.5, y + 0.5);
     let mut mesh = egui::epaint::Mesh::default();
-    for (x, c) in [(x0, Color32::TRANSPARENT), (xm, color), (x1, Color32::TRANSPARENT)] {
+    for (x, c) in [
+        (x0, Color32::TRANSPARENT),
+        (xm, color),
+        (x1, Color32::TRANSPARENT),
+    ] {
         mesh.colored_vertex(egui::pos2(x, top), c);
         mesh.colored_vertex(egui::pos2(x, bottom), c);
     }
@@ -647,7 +651,11 @@ pub fn paint_gradient_rect(
     right: Color32,
 ) {
     let r = radius.min(rect.width() * 0.5).min(rect.height() * 0.5);
-    painter.rect_filled(rect, CornerRadius::same(r as u8), color_blend(left, right, 0.5));
+    painter.rect_filled(
+        rect,
+        CornerRadius::same(r as u8),
+        color_blend(left, right, 0.5),
+    );
 
     let inner = rect.shrink(0.5);
     let r = (r - 0.5).max(0.0);
