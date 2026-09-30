@@ -3320,7 +3320,9 @@ mod tests {
             prompt.contains("[firewall_active]: NON CONFORME — Windows Firewall is not enabled | relevé: enabled=non, profiles.")
         );
         assert!(prompt.contains("profiles.domain=oui") && prompt.contains("profiles.public=non"));
-        assert!(prompt.contains("min_length=6, complexity=non"));
+        // Key order depends on whether feature unification turns on
+        // serde_json's `preserve_order`, so assert each fact on its own.
+        assert!(prompt.contains("min_length=6") && prompt.contains("complexity=non"));
         assert!(!prompt.contains("note="));
         // Every domain is listed, measured or explicitly not evaluated.
         for (label, _) in LLMPanel::SECURITY_DOMAINS {

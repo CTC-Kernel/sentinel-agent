@@ -258,7 +258,7 @@ pub fn sparkline_card_body(
                     ui.label(
                         RichText::new(value)
                             .font(theme::font_body())
-                            .color(config.color)
+                            .color(theme::readable_color(config.color))
                             .strong(),
                     );
                 },
