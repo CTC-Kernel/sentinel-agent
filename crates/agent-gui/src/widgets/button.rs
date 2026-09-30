@@ -167,24 +167,40 @@ fn draw_premium_button(
 
         // ─── Shadows ───
         // Painted before the fill below, so the button sits on its shadow.
+        // Primary actions cast the brand's violet glow, not a grey drop.
         if is_primary && enabled && !loading && !is_clicked {
-            theme::paint_elevation(
-                ui.painter(),
-                rect,
-                CornerRadius::same(theme::BUTTON_ROUNDING),
-                theme::Elevation::Level1,
-                1.0,
-            );
+            let glow = theme::accent_glow_shadow(0.75 + 0.25 * hover_t);
+            ui.painter()
+                .add(glow.as_shape(rect, CornerRadius::same(theme::BUTTON_ROUNDING)));
         }
 
         // ─── Background Paint ───
-        ui.painter().rect(
-            rect,
-            CornerRadius::same(theme::BUTTON_ROUNDING),
-            bg_fill,
-            bg_stroke,
-            StrokeKind::Inside,
-        );
+        if is_primary && (enabled || loading) {
+            // The site's `from-violet-700 to-fuchsia-800` action gradient.
+            // `bg_fill` carries the hover/pressed state; the far stop follows
+            // it by the same amount so the whole gradient deepens together.
+            let depth = if is_clicked { 1.0 } else { hover_t * 0.6 };
+            let end = animation::lerp_color(
+                theme::ACCENT_GRADIENT_END,
+                theme::ACCENT_PRESSED,
+                depth * 0.5,
+            );
+            theme::paint_gradient_rect(
+                ui.painter(),
+                rect,
+                f32::from(theme::BUTTON_ROUNDING),
+                bg_fill,
+                end,
+            );
+        } else {
+            ui.painter().rect(
+                rect,
+                CornerRadius::same(theme::BUTTON_ROUNDING),
+                bg_fill,
+                bg_stroke,
+                StrokeKind::Inside,
+            );
+        }
 
         // A restrained top-edge reflection separates controls from flat
         // labels, while the hover halo makes the hit target easier to track

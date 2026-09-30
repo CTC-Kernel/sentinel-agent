@@ -187,11 +187,15 @@ fn brand_segment(ui: &mut Ui, rect: Rect, cx: &TopBarContext<'_>) -> Option<TopB
         .paint_at(ui, logo);
 
     let text_x = logo.right() + theme::SPACE_SM;
-    ui.painter().text(
-        pos2(text_x, center_y - 7.0),
-        Align2::LEFT_CENTER,
+    // The wordmark wears the site's violet → cyan → emerald display gradient.
+    let wordmark = ui.painter().layout_job(theme::gradient_text(
         "SENTINEL",
         theme::font_body_strong(),
+        &theme::BRAND_GRADIENT,
+    ));
+    ui.painter().galley(
+        pos2(text_x, center_y - 7.0 - wordmark.size().y / 2.0),
+        wordmark,
         theme::text_primary(),
     );
     ui.painter().text(

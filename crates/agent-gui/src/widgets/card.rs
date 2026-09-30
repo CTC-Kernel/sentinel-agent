@@ -134,24 +134,25 @@ impl Card {
 
         let rect = inner.response.rect;
 
+        let lift = if self.interactive && self.variant != CardVariant::Flat {
+            ui.ctx().animate_bool_with_time(
+                ui.id()
+                    .with(("card_lift", rect.min.x as i32, rect.min.y as i32)),
+                ui.rect_contains_pointer(rect),
+                if theme::is_reduced_motion() {
+                    0.0
+                } else {
+                    theme::ANIM_FAST
+                },
+            )
+        } else {
+            0.0
+        };
+
         if let Some(slots) = shadow_slots {
             let resting = theme::elevation_shapes(rect, radius, theme::Elevation::Level2, 1.0);
             // Hover adds a second, deeper shadow over the resting one, so the
             // card rises rather than merely darkening.
-            let lift = if self.interactive {
-                ui.ctx().animate_bool_with_time(
-                    ui.id()
-                        .with(("card_lift", rect.min.x as i32, rect.min.y as i32)),
-                    ui.rect_contains_pointer(rect),
-                    if theme::is_reduced_motion() {
-                        0.0
-                    } else {
-                        theme::ANIM_FAST
-                    },
-                )
-            } else {
-                0.0
-            };
             let hover =
                 theme::elevation_shapes(rect, radius, theme::Elevation::Level3, lift * HOVER_LIFT);
             for (slot, shape) in slots.into_iter().zip(resting.into_iter().chain(hover)) {
@@ -161,6 +162,13 @@ impl Card {
 
         if self.variant != CardVariant::Danger {
             theme::paint_surface_rim(ui.painter(), rect, radius);
+        }
+        if self.variant == CardVariant::Elevated && lift > 0.0 {
+            // A card under the pointer is crowned with the brand hairline,
+            // the accent the site reserves for the panel in focus.
+            let mut faded = ui.painter().clone();
+            faded.multiply_opacity(lift);
+            theme::paint_brand_hairline(&faded, rect, radius);
         }
 
         if let Some(color) = self.accent {

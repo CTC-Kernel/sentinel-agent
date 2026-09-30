@@ -210,23 +210,38 @@ pub fn detect_reduced_motion() -> bool {
 //   • text_tertiary and semantic text ≥ 4.5:1 (WCAG AA) on every surface
 //   • border()                        ≥ 3:1 (WCAG 1.4.11) on every surface
 
-/// Primary accent — Sentinel sovereign blue. Reserved for actions and
-/// selection; neutral surfaces never inherit this hue in light mode.
-pub const ACCENT: Color32 = Color32::from_rgb(36, 78, 190); // #244EBE
-/// Decorative brand ramp observed on the CTC landing page. Semantic alert
-/// colors and readable control colors remain independent of these accents.
-pub const BRAND_CYAN: Color32 = Color32::from_rgb(6, 182, 212);
-pub const BRAND_BLUE: Color32 = Color32::from_rgb(37, 99, 235);
-pub const BRAND_VIOLET: Color32 = Color32::from_rgb(99, 102, 241);
+/// Primary accent — Sentinel GRC violet (violet-700), the hue that carries
+/// every call to action on cyber-threat-consulting.com. Reserved for actions
+/// and selection; neutral surfaces never inherit it in light mode.
+pub const ACCENT: Color32 = Color32::from_rgb(109, 40, 217); // #6D28D9
+/// Far end of the primary-action gradient (fuchsia-800), as on the site's
+/// download buttons: `ACCENT → ACCENT_GRADIENT_END`, left to right.
+pub const ACCENT_GRADIENT_END: Color32 = Color32::from_rgb(134, 25, 143); // #86198F
 
-/// Accent tuned for text and icons on dark surfaces.
-pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(107, 165, 255); // #6BA5FF
+/// Decorative brand ramp from the CTC site. Semantic alert colors and
+/// readable control colors remain independent of these accents.
+pub const BRAND_CYAN: Color32 = Color32::from_rgb(34, 211, 238); // #22D3EE
+pub const BRAND_BLUE: Color32 = Color32::from_rgb(37, 99, 235); // #2563EB
+pub const BRAND_VIOLET: Color32 = Color32::from_rgb(139, 92, 246); // #8B5CF6
+pub const BRAND_EMERALD: Color32 = Color32::from_rgb(52, 211, 153); // #34D399
+/// Mint used by the site's quiet primary call to action ("Commencer").
+pub const BRAND_MINT: Color32 = Color32::from_rgb(163, 237, 230); // #A3EDE6
+/// Signature tri-tone of the site's display type ("Chez vous."):
+/// violet-300 → cyan-300 → emerald-300. See `gradient_text`.
+pub const BRAND_GRADIENT: [Color32; 3] = [
+    Color32::from_rgb(196, 181, 253), // #C4B5FD
+    Color32::from_rgb(103, 232, 249), // #67E8F9
+    Color32::from_rgb(110, 231, 183), // #6EE7B7
+];
+
+/// Accent tuned for text and icons on dark surfaces (violet-300).
+pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(196, 181, 253); // #C4B5FD
 /// Accent hover state (one step deeper than `ACCENT`).
-pub const ACCENT_HOVER: Color32 = Color32::from_rgb(30, 67, 168); // #1E43A8
+pub const ACCENT_HOVER: Color32 = Color32::from_rgb(91, 33, 182); // #5B21B6
 /// Accent pressed state.
-pub const ACCENT_PRESSED: Color32 = Color32::from_rgb(25, 56, 144); // #193890
+pub const ACCENT_PRESSED: Color32 = Color32::from_rgb(76, 29, 149); // #4C1D95
 /// Accent tuned for text and icons on light surfaces.
-pub const ACCENT_DEEP: Color32 = Color32::from_rgb(29, 79, 216); // #1D4FD8
+pub const ACCENT_DEEP: Color32 = Color32::from_rgb(109, 40, 217); // #6D28D9
 
 /// Success — emerald.
 pub const SUCCESS: Color32 = Color32::from_rgb(43, 201, 138); // #2BC98A
@@ -244,11 +259,13 @@ pub const INFO: Color32 = Color32::from_rgb(56, 166, 245); // #38A6F5
 pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 176, 32); // #FFB020
 /// Severity-medium — burnt orange, visually distinct from `WARNING`.
 pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 140, 58); // #FF8C3A
-/// Assistant / AI — violet, the one hue reserved for machine reasoning.
+/// Assistant / AI — lavender, the pale end of the brand violet. It reads as
+/// the same family as the action accent, as on the site's AI orb, but its
+/// lightness keeps it apart from the deep violet fills.
 pub const AI: Color32 = Color32::from_rgb(167, 139, 255); // #A78BFF
 
 // Light-mode counterparts (deepened for ≥4.5:1 on white and near-white).
-const ACCENT_ON_LIGHT: Color32 = Color32::from_rgb(29, 79, 216); // #1D4FD8
+const ACCENT_ON_LIGHT: Color32 = Color32::from_rgb(109, 40, 217); // #6D28D9
 const SUCCESS_ON_LIGHT: Color32 = Color32::from_rgb(8, 108, 74); // #086C4A
 const WARNING_ON_LIGHT: Color32 = Color32::from_rgb(138, 87, 0); // #8A5700
 const ERROR_ON_LIGHT: Color32 = Color32::from_rgb(196, 38, 43); // #C4262B
@@ -270,7 +287,7 @@ const AI_ON_LIGHT: Color32 = Color32::from_rgb(109, 75, 216); // #6D4BD8
 #[inline]
 pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(12, 15, 21) // #0C0F15
+        Color32::from_rgb(7, 10, 18) // #070A12 — site ink
     } else {
         Color32::from_rgb(238, 242, 246) // #EEF2F6 — pearl canvas
     }
@@ -280,7 +297,7 @@ pub fn bg_primary() -> Color32 {
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(19, 22, 30) // #13161E
+        Color32::from_rgb(12, 16, 27) // #0C101B — site card
     } else {
         Color32::from_rgb(253, 254, 255) // #FDFEFF — porcelain surface
     }
@@ -290,7 +307,7 @@ pub fn bg_secondary() -> Color32 {
 #[inline]
 pub fn bg_elevated() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(35, 40, 51) // #232833
+        Color32::from_rgb(28, 34, 52) // #1C2234
     } else {
         Color32::from_rgb(230, 235, 238) // #E6EBEE
     }
@@ -300,7 +317,7 @@ pub fn bg_elevated() -> Color32 {
 #[inline]
 pub fn bg_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(26, 30, 40) // #1A1E28
+        Color32::from_rgb(19, 24, 38) // #131826
     } else {
         Color32::from_rgb(240, 244, 248) // #F0F4F8
     }
@@ -311,7 +328,7 @@ pub fn bg_tertiary() -> Color32 {
 #[inline]
 pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(9, 11, 17) // #090B11
+        Color32::from_rgb(5, 7, 13) // #05070D — site chrome
     } else {
         Color32::from_rgb(246, 248, 252) // #F6F8FC
     }
@@ -321,7 +338,7 @@ pub fn bg_sidebar() -> Color32 {
 #[inline]
 pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(5, 7, 11) // #05070B
+        Color32::from_rgb(3, 4, 9) // #030409
     } else {
         Color32::from_rgb(232, 236, 240) // #E8ECF0
     }
@@ -335,7 +352,7 @@ pub fn bg_deep() -> Color32 {
 #[inline]
 pub fn text_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(237, 240, 245) // #EDF0F5
+        Color32::from_rgb(241, 245, 249) // #F1F5F9
     } else {
         Color32::from_rgb(23, 34, 54) // #172236
     }
@@ -345,7 +362,7 @@ pub fn text_primary() -> Color32 {
 #[inline]
 pub fn text_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(180, 188, 201) // #B4BCC9
+        Color32::from_rgb(207, 216, 227) // #CFD8E3
     } else {
         Color32::from_rgb(56, 68, 88) // #384458
     }
@@ -359,7 +376,7 @@ pub fn text_secondary() -> Color32 {
 #[inline]
 pub fn text_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(147, 155, 169) // #939BA9
+        Color32::from_rgb(148, 163, 184) // #94A3B8
     } else {
         Color32::from_rgb(81, 96, 118) // #516076
     }
@@ -451,7 +468,7 @@ pub fn border() -> Color32 {
 #[inline]
 pub fn border_subtle() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(43, 49, 62) // #2B313E
+        Color32::from_rgb(33, 39, 56) // #212738 — white 8% on ink
     } else {
         Color32::from_rgb(208, 219, 233) // #D0DBE9
     }
@@ -510,23 +527,24 @@ pub const TOPBAR_HEIGHT: f32 = 56.0;
 /// centre instead — an unbounded line length is unreadable on wide displays.
 pub const CONTENT_MAX_WIDTH: f32 = 1560.0;
 
-/// Paint the quiet spatial grid and brand glow behind a workspace.
+/// Paint the quiet spatial grid and brand glows behind a workspace.
 ///
-/// The treatment is intentionally restricted to the application canvas: it
-/// gives dense security views a stable coordinate system without competing
-/// with tables, cards, or text. Light mode uses a restrained blue reflection over the pearl canvas.
+/// Mirrors the hero of cyber-threat-consulting.com: a faint slate grid over
+/// the ink canvas, a violet bloom in the upper right and a cyan one in the
+/// lower left. The treatment is restricted to the application canvas so it
+/// never competes with tables, cards, or text.
 pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
     if !painter.clip_rect().intersects(rect) {
         return;
     }
 
-    let grid = if is_dark_mode() {
-        Color32::from_rgba_unmultiplied(107, 165, 255, 10)
+    let dark = is_dark_mode();
+    let grid = if dark {
+        Color32::from_rgba_unmultiplied(148, 163, 184, 6)
     } else {
-        // Cool grid aligned with the pearl surface palette.
-        Color32::from_rgba_unmultiplied(66, 96, 148, 8)
+        Color32::from_rgba_unmultiplied(76, 29, 149, 7)
     };
-    let step = 32.0;
+    let step = 40.0;
     let mut x = rect.left() - rect.left().rem_euclid(step);
     while x <= rect.right() {
         painter.vline(x, rect.y_range(), Stroke::new(BORDER_HAIRLINE, grid));
@@ -538,39 +556,166 @@ pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
         y += step;
     }
 
-    {
-        // A single vertex-coloured mesh gives us a genuinely continuous
-        // radial falloff. Stacked translucent discs left visible contour
-        // rings on calibrated/high-contrast displays, especially in the
-        // upper-right corner of the workspace.
-        let center = egui::pos2(rect.right() - 120.0, rect.top() + 40.0);
-        let radius = 430.0;
-        let segments = 64_u32;
-        let mut mesh = egui::epaint::Mesh::default();
-        mesh.vertices.push(egui::epaint::Vertex {
-            pos: center,
-            uv: egui::epaint::WHITE_UV,
-            color: Color32::from_rgba_unmultiplied(
-                55,
-                101,
-                225,
-                if is_dark_mode() { 18 } else { 9 },
-            ),
-        });
-        for index in 0..segments {
-            let angle = std::f32::consts::TAU * index as f32 / segments as f32;
-            mesh.vertices.push(egui::epaint::Vertex {
-                pos: center + egui::vec2(angle.cos(), angle.sin()) * radius,
-                uv: egui::epaint::WHITE_UV,
-                color: Color32::TRANSPARENT,
-            });
-        }
-        for index in 0..segments {
-            mesh.indices
-                .extend_from_slice(&[0, index + 1, (index + 1) % segments + 1]);
-        }
-        painter.add(egui::Shape::mesh(mesh));
+    paint_radial_glow(
+        painter,
+        egui::pos2(rect.right() - 140.0, rect.top() + 40.0),
+        460.0,
+        with_alpha(BRAND_VIOLET, if dark { 22 } else { 12 }),
+    );
+    paint_radial_glow(
+        painter,
+        egui::pos2(rect.left() + 80.0, rect.bottom() - 20.0),
+        380.0,
+        with_alpha(BRAND_CYAN, if dark { 14 } else { 8 }),
+    );
+}
+
+/// A continuous radial falloff from `color` at `center` to transparent.
+///
+/// One vertex-coloured mesh, not stacked translucent discs: discs left
+/// visible contour rings on calibrated and high-contrast displays.
+pub fn paint_radial_glow(painter: &egui::Painter, center: egui::Pos2, radius: f32, color: Color32) {
+    let segments = 64_u32;
+    let mut mesh = egui::epaint::Mesh::default();
+    mesh.colored_vertex(center, color);
+    for index in 0..segments {
+        let angle = std::f32::consts::TAU * index as f32 / segments as f32;
+        mesh.colored_vertex(
+            center + egui::vec2(angle.cos(), angle.sin()) * radius,
+            Color32::TRANSPARENT,
+        );
     }
+    for index in 0..segments {
+        mesh.add_triangle(0, index + 1, (index + 1) % segments + 1);
+    }
+    painter.add(egui::Shape::mesh(mesh));
+}
+
+/// A 1px line that fades in from nothing, peaks at `color`, and fades out —
+/// the site's `linear-gradient(90deg, transparent, accent, transparent)`
+/// hairline that crowns featured panels.
+pub fn paint_gradient_hairline(
+    painter: &egui::Painter,
+    y: f32,
+    x_range: egui::Rangef,
+    color: Color32,
+) {
+    let (x0, x1) = (x_range.min, x_range.max);
+    let xm = (x0 + x1) * 0.5;
+    let (top, bottom) = (y - 0.5, y + 0.5);
+    let mut mesh = egui::epaint::Mesh::default();
+    for (x, c) in [(x0, Color32::TRANSPARENT), (xm, color), (x1, Color32::TRANSPARENT)] {
+        mesh.colored_vertex(egui::pos2(x, top), c);
+        mesh.colored_vertex(egui::pos2(x, bottom), c);
+    }
+    mesh.add_triangle(0, 1, 2);
+    mesh.add_triangle(1, 3, 2);
+    mesh.add_triangle(2, 3, 4);
+    mesh.add_triangle(3, 5, 4);
+    painter.add(egui::Shape::mesh(mesh));
+}
+
+/// Brand hairline across the top edge of a featured surface.
+pub fn paint_brand_hairline(painter: &egui::Painter, rect: egui::Rect, radius: CornerRadius) {
+    let color = if is_dark_mode() {
+        with_alpha(BRAND_VIOLET, 204)
+    } else {
+        with_alpha(ACCENT, 150)
+    };
+    paint_gradient_hairline(
+        painter,
+        rect.top() + 0.5,
+        egui::Rangef::new(
+            rect.left() + f32::from(radius.nw),
+            rect.right() - f32::from(radius.ne),
+        ),
+        color,
+    );
+}
+
+/// Fill a rounded rectangle with a horizontal `left → right` gradient.
+///
+/// egui has no gradient brush, so the shape is fanned from its centre with
+/// per-vertex colours. The mesh itself is not anti-aliased: an anti-aliased
+/// solid rect is painted first and the mesh sits half a pixel inside it, so
+/// the edge stays crisp.
+pub fn paint_gradient_rect(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    radius: f32,
+    left: Color32,
+    right: Color32,
+) {
+    let r = radius.min(rect.width() * 0.5).min(rect.height() * 0.5);
+    painter.rect_filled(rect, CornerRadius::same(r as u8), color_blend(left, right, 0.5));
+
+    let inner = rect.shrink(0.5);
+    let r = (r - 0.5).max(0.0);
+    let color_at = |x: f32| {
+        let t = ((x - inner.left()) / inner.width().max(1.0)).clamp(0.0, 1.0);
+        color_blend(left, right, t)
+    };
+    let corners = [
+        (egui::pos2(inner.right() - r, inner.bottom() - r), 0.0_f32),
+        (egui::pos2(inner.left() + r, inner.bottom() - r), 0.25),
+        (egui::pos2(inner.left() + r, inner.top() + r), 0.5),
+        (egui::pos2(inner.right() - r, inner.top() + r), 0.75),
+    ];
+    let mut mesh = egui::epaint::Mesh::default();
+    let center = inner.center();
+    mesh.colored_vertex(center, color_at(center.x));
+    const ARC_STEPS: u32 = 8;
+    for (c, start) in corners {
+        for step in 0..=ARC_STEPS {
+            let angle = std::f32::consts::TAU * (start + 0.25 * step as f32 / ARC_STEPS as f32);
+            let p = c + egui::vec2(angle.cos(), angle.sin()) * r;
+            mesh.colored_vertex(p, color_at(p.x));
+        }
+    }
+    let ring = mesh.vertices.len() as u32 - 1;
+    for i in 0..ring {
+        mesh.add_triangle(0, i + 1, (i + 1) % ring + 1);
+    }
+    painter.add(egui::Shape::mesh(mesh));
+}
+
+/// Coloured glow under a primary action — the site's
+/// `shadow-lg shadow-violet-500/30` rather than a neutral drop shadow.
+pub fn accent_glow_shadow(intensity: f32) -> Shadow {
+    let alpha = if is_dark_mode() { 80.0 } else { 56.0 } * intensity.clamp(0.0, 1.0);
+    Shadow {
+        offset: [0, 6],
+        blur: 18,
+        spread: 0,
+        color: with_alpha(BRAND_VIOLET, alpha as u8),
+    }
+}
+
+/// Lay out `text` with each glyph tinted along `stops`, the way the site
+/// sets its display type in the violet → cyan → emerald brand gradient.
+///
+/// On light surfaces the pastel stops are swapped for readable variants so
+/// the wordmark keeps AA contrast.
+pub fn gradient_text(text: &str, font: FontId, stops: &[Color32]) -> egui::text::LayoutJob {
+    let mut job = egui::text::LayoutJob::default();
+    let chars: Vec<char> = text.chars().collect();
+    let span = chars.len().saturating_sub(1).max(1) as f32;
+    let segments = stops.len().saturating_sub(1).max(1) as f32;
+    for (i, ch) in chars.iter().enumerate() {
+        let t = i as f32 / span * segments;
+        let index = (t.floor() as usize).min(stops.len().saturating_sub(2));
+        let color = match stops {
+            [] => text_primary(),
+            [only] => *only,
+            _ => color_blend(stops[index], stops[index + 1], t - index as f32),
+        };
+        job.append(
+            &ch.to_string(),
+            0.0,
+            egui::TextFormat::simple(font.clone(), readable_color(color)),
+        );
+    }
+    job
 }
 
 /// Radius scale — one step per component scale, so nothing looks borrowed.
@@ -584,9 +729,9 @@ pub const ROUNDING_SM: u8 = 6;
 /// Medium element rounding (tooltips, pagination buttons, focus rings).
 pub const ROUNDING_MD: u8 = 8;
 /// Large element rounding (buttons, menus, drawers).
-pub const ROUNDING_LG: u8 = 10;
+pub const ROUNDING_LG: u8 = 12;
 /// Extra-large element rounding (cards, modals).
-pub const ROUNDING_XL: u8 = 14;
+pub const ROUNDING_XL: u8 = 16;
 /// Card rounding radius.
 pub const CARD_ROUNDING: u8 = ROUNDING_XL;
 /// Button rounding radius.
@@ -652,7 +797,7 @@ fn theme_variant(color: Color32) -> Color32 {
         return if color == ACCENT { ACCENT_LIGHT } else { color };
     }
     match (color.r(), color.g(), color.b()) {
-        (36, 78, 190) | (107, 165, 255) => ACCENT_ON_LIGHT, // ACCENT / ACCENT_LIGHT
+        (109, 40, 217) | (196, 181, 253) => ACCENT_ON_LIGHT, // ACCENT / ACCENT_LIGHT
         (43, 201, 138) => SUCCESS_ON_LIGHT,
         (245, 165, 36) => WARNING_ON_LIGHT,
         (255, 97, 99) => ERROR_ON_LIGHT,
@@ -873,7 +1018,7 @@ pub fn table_row_hover() -> Color32 {
 /// Frosted surface for floating chrome (command palette, tray popup).
 pub fn glass_card_bg() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgba_premultiplied(19, 22, 30, 232)
+        Color32::from_rgba_unmultiplied(12, 16, 27, 236)
     } else {
         Color32::from_rgba_premultiplied(255, 255, 255, 240)
     }
@@ -1559,14 +1704,16 @@ pub fn paint_surface_rim(painter: &egui::Painter, rect: egui::Rect, radius: Corn
         egui::epaint::StrokeKind::Inside,
     );
     if is_dark_mode() {
-        // A single lit edge along the top reads as a surface catching light,
-        // without the full bevel that dates an interface.
-        painter.line_segment(
-            [
-                egui::pos2(rect.left() + f32::from(radius.nw), rect.top() + 0.5),
-                egui::pos2(rect.right() - f32::from(radius.ne), rect.top() + 0.5),
-            ],
-            Stroke::new(BORDER_HAIRLINE, Color32::from_white_alpha(14)),
+        // A lit edge that fades out toward the corners reads as glass
+        // catching light, as on the site's panels, without a dated bevel.
+        paint_gradient_hairline(
+            painter,
+            rect.top() + 0.5,
+            egui::Rangef::new(
+                rect.left() + f32::from(radius.nw),
+                rect.right() - f32::from(radius.ne),
+            ),
+            Color32::from_white_alpha(34),
         );
     } else {
         // The light surface catches a white top edge; its lower edge carries
@@ -2046,8 +2193,8 @@ pub const SPLASH_FADE_OUT_DURATION: f32 = 0.4;
 pub fn enrollment_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
-            Color32::from_rgb(16, 20, 32), // Deep navy center with brand depth
-            Color32::from_rgb(8, 9, 15),   // Near-black elegant outer
+            Color32::from_rgb(22, 16, 44), // Violet-ink center, the site's hero glow
+            Color32::from_rgb(5, 7, 13),   // Site ink outer
         )
     } else {
         (
@@ -2073,8 +2220,8 @@ pub const ENROLLMENT_GLOW_RADIUS: f32 = 60.0;
 pub fn sidebar_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
-            Color32::from_rgb(18, 20, 30), // Navy-tinted spotlight top
-            Color32::from_rgb(10, 11, 18), // Deep navy bottom
+            Color32::from_rgb(10, 12, 22), // Ink with a violet lift at the top
+            Color32::from_rgb(5, 7, 13),   // Site chrome ink
         )
     } else {
         (
