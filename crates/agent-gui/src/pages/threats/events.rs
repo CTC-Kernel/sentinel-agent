@@ -12,12 +12,12 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 use crate::widgets::data_table::{
-    ColumnAlign, ColumnWidth, DataTable, SortDirection, TableColumn, TableSort,
+    Cell, ColumnAlign, ColumnWidth, DataTable, SortDirection, TableColumn, TableSort,
 };
 use crate::widgets::pagination::PaginationState;
 
 use super::mitre;
-use super::types::{ThreatEvent, build_threat_list, kind_badge, severity_display};
+use super::types::{ThreatEvent, build_threat_list, kind_badge};
 
 const ITEMS_PER_PAGE: usize = 25;
 
@@ -195,31 +195,39 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         );
     } else {
         for (row_idx, threat) in page_threats.iter().enumerate() {
-            let (sev_icon, _) = severity_display(threat.severity);
-            let sev_label = match threat.severity {
-                "critical" => "Critique",
-                "high" => "\u{00c9}lev\u{00e9}",
-                "medium" => "Moyen",
-                _ => "Faible",
+            // Status and severity are what an analyst scans for: pills in
+            // their semantic colour, the same ones the detail modal shows.
+            // Warm hues belong to severity alone; "to triage" is the brand
+            // violet, so the two columns never read as the same signal.
+            let (sev_label, sev_color) = match threat.severity {
+                "critical" => ("Critique", theme::ERROR),
+                "high" => ("\u{00c9}lev\u{00e9}", theme::SEVERITY_HIGH),
+                "medium" => ("Moyen", theme::WARNING),
+                _ => ("Faible", theme::INFO),
             };
             let (kind_label, _) = kind_badge(threat.kind);
 
             let date = threat.timestamp.format("%d/%m/%Y %H:%M").to_string();
 
-            let sev_cell = format!("{} {}", sev_icon, sev_label);
-            let status = if threat.allowlisted {
-                "Autorisé"
+            let (status, status_color) = if threat.allowlisted {
+                ("Autorisé", theme::INFO)
             } else if threat.acknowledged {
-                "Acquitté"
+                ("Acquitté", theme::SUCCESS)
             } else {
-                "À traiter"
+                ("À traiter", theme::ACCENT)
             };
-            let cells: Vec<&str> = vec![status, &sev_cell, kind_label, &threat.title, &date];
+            let cells = [
+                Cell::Badge(status, status_color),
+                Cell::Badge(sev_label, sev_color),
+                Cell::Text(kind_label),
+                Cell::Text(&threat.title),
+                Cell::Text(&date),
+            ];
 
             let global_idx = start.saturating_add(row_idx);
             let selected = state.threats.selected_threat == Some(global_idx);
 
-            if table.show_row(ui, row_idx, selected, &cells) {
+            if table.show_row_cells(ui, row_idx, selected, &cells) {
                 state.threats.selected_threat = Some(global_idx);
                 state.threats.detail_open = true;
             }

@@ -97,6 +97,23 @@ impl<'a> TableColumn<'a> {
     }
 }
 
+/// One cell of a data row.
+#[derive(Debug, Clone, Copy)]
+pub enum Cell<'a> {
+    /// Plain text, truncated with an ellipsis when it does not fit.
+    Text(&'a str),
+    /// A status pill in the given semantic colour, like `status_badge`.
+    Badge(&'a str, Color32),
+}
+
+impl Cell<'_> {
+    fn text(&self) -> &str {
+        match self {
+            Cell::Text(text) | Cell::Badge(text, _) => text,
+        }
+    }
+}
+
 /// Table sort state.
 #[derive(Debug, Clone, Default)]
 pub struct TableSort {
@@ -450,6 +467,18 @@ impl<'a> DataTable<'a> {
 
     /// Show a table row. Returns true if clicked.
     pub fn show_row(&self, ui: &mut Ui, row_index: usize, selected: bool, cells: &[&str]) -> bool {
+        let cells: Vec<Cell<'_>> = cells.iter().map(|text| Cell::Text(text)).collect();
+        self.show_row_cells(ui, row_index, selected, &cells)
+    }
+
+    /// Show a data row whose cells may be badges. Returns true if clicked.
+    pub fn show_row_cells(
+        &self,
+        ui: &mut Ui,
+        row_index: usize,
+        selected: bool,
+        cells: &[Cell<'_>],
+    ) -> bool {
         let available_width = ui.available_width();
         // Column widths are recalculated per row (acceptable in immediate-mode GUI)
         let widths = self.calculate_widths(available_width);
@@ -471,7 +500,7 @@ impl<'a> DataTable<'a> {
                     egui::WidgetType::SelectableLabel,
                     ui.is_enabled(),
                     selected,
-                    cells.join(" · "),
+                    cells.iter().map(Cell::text).collect::<Vec<_>>().join(" · "),
                 )
             });
         }
@@ -534,18 +563,20 @@ impl<'a> DataTable<'a> {
                 );
 
                 // Cell content
-                let text = cells.get(i).copied().unwrap_or("");
-                let text_color = theme::text_primary();
-
-                paint_cell_text(
-                    ui,
-                    cell_rect,
-                    col.align,
-                    text,
-                    theme::font_body(),
-                    text_color,
-                    0.0,
-                );
+                match cells.get(i).copied().unwrap_or(Cell::Text("")) {
+                    Cell::Text(text) => paint_cell_text(
+                        ui,
+                        cell_rect,
+                        col.align,
+                        text,
+                        theme::font_body(),
+                        theme::text_primary(),
+                        0.0,
+                    ),
+                    Cell::Badge(text, color) => {
+                        paint_cell_badge(ui, cell_rect, col.align, text, color)
+                    }
+                }
 
                 // Border
                 if self.bordered && i < self.columns.len() - 1 {
@@ -695,6 +726,44 @@ fn paint_cell_text(
         galley,
         color,
     );
+}
+
+/// A status pill inside a cell, drawn with `status_badge`'s tokens. A pill
+/// wider than its column falls back to truncated text in the badge colour,
+/// so a narrow window never clips a half pill.
+fn paint_cell_badge(ui: &Ui, cell: egui::Rect, align: ColumnAlign, text: &str, color: Color32) {
+    let inner = cell.shrink2(egui::vec2(theme::SPACE_MD, 0.0));
+    if inner.width() <= 1.0 || text.is_empty() {
+        return;
+    }
+    let text_color = theme::badge_text(color);
+    let galley = ui
+        .painter()
+        .layout_no_wrap(text.to_owned(), theme::font_label(), text_color);
+    let size = egui::vec2(
+        galley.size().x + theme::SPACE_SM * 2.0,
+        (galley.size().y + theme::ACCENT_BAR_WIDTH * 2.0).max(theme::BADGE_MIN_HEIGHT),
+    );
+    if size.x > inner.width() {
+        paint_cell_text(ui, cell, align, text, theme::font_label(), text_color, 0.0);
+        return;
+    }
+    let x = match align {
+        ColumnAlign::Left => inner.min.x,
+        ColumnAlign::Center => inner.center().x - size.x / 2.0,
+        ColumnAlign::Right => inner.max.x - size.x,
+    };
+    let pill = egui::Rect::from_min_size(egui::pos2(x, cell.center().y - size.y / 2.0), size);
+    let radius = egui::CornerRadius::same((size.y / 2.0).round().min(255.0) as u8);
+    let painter = ui.painter();
+    painter.rect_filled(pill, radius, theme::badge_bg(color));
+    painter.rect_stroke(
+        pill,
+        radius,
+        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(color)),
+        egui::StrokeKind::Inside,
+    );
+    painter.galley(pill.center() - galley.size() / 2.0, galley, text_color);
 }
 
 /// Helper struct for building table rows with typed data.
