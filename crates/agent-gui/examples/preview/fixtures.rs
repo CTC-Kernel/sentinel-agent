@@ -39,12 +39,26 @@ fn id(n: u128) -> Uuid {
     Uuid::from_u128(0x5e17_1e1a_0000_0000_0000_0000_0000_0000 + n)
 }
 
+/// The instant fixtures are dated from. Under PREVIEW_REDUCED it is the
+/// current hour, so records keep the same timestamps from one capture to the
+/// next: the radar seeds each blip's position from its timestamp, and a
+/// refactor can only be diffed pixel for pixel if those stay put.
+fn anchor() -> DateTime<Utc> {
+    let now = Utc::now();
+    if std::env::var("PREVIEW_REDUCED").is_ok() {
+        use chrono::{DurationRound, TimeDelta};
+        now.duration_trunc(TimeDelta::hours(1)).unwrap_or(now)
+    } else {
+        now
+    }
+}
+
 fn ago(minutes: i64) -> DateTime<Utc> {
-    Utc::now() - Duration::minutes(minutes)
+    anchor() - Duration::minutes(minutes)
 }
 
 fn days_ago(days: i64) -> DateTime<Utc> {
-    Utc::now() - Duration::days(days)
+    anchor() - Duration::days(days)
 }
 
 /// Populate every domain of the state.
