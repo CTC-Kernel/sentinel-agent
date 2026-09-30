@@ -10,7 +10,7 @@ use std::hash::{Hash, Hasher};
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{GuiAgentStatus, Severity, UsbEventType};
+use crate::dto::{Severity, UsbEventType};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -48,16 +48,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     ui.add_space(theme::SPACE_LG);
 
     let threats = filtered_feed(ui, state, &all_threats);
-    let mut command = feed_controls(ui, state, &threats);
+    feed_controls(ui, state, &threats);
     ui.add_space(theme::SPACE_LG);
 
     threat_feed(ui, state, &threats, &all_threats);
     ui.add_space(theme::SPACE_XL);
 
-    if let Some(detail_command) = threat_detail(ui.ctx(), state, &threats) {
-        command = Some(detail_command);
-    }
-    command
+    threat_detail(ui.ctx(), state, &threats)
 }
 
 /// Open-event counters per source, plus the aggregate risk score.
@@ -417,8 +414,7 @@ fn filtered_feed(
 }
 
 /// Search, source chips, triage toggle, scan and CSV export above the feed.
-fn feed_controls(ui: &mut Ui, state: &mut AppState, threats: &[ThreatEvent]) -> Option<GuiCommand> {
-    let mut command = None;
+fn feed_controls(ui: &mut Ui, state: &mut AppState, threats: &[ThreatEvent]) {
     let proc_active = state.threats.filter.as_deref() == Some("process");
     let net_active = state.threats.filter.as_deref() == Some("network");
     let usb_active = state.threats.filter.as_deref() == Some("usb");
@@ -478,28 +474,6 @@ fn feed_controls(ui: &mut Ui, state: &mut AppState, threats: &[ThreatEvent]) -> 
 
     // Action bar: Scan & Export (AAA Grade)
     ui.horizontal(|ui: &mut egui::Ui| {
-        let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-        if widgets::button::primary_button_loading(
-            ui,
-            format!(
-                "{}  {}",
-                if is_scanning {
-                    "Analyse en cours"
-                } else {
-                    "Lancer l'analyse"
-                },
-                icons::PLAY
-            ),
-            !is_scanning,
-            is_scanning,
-        )
-        .clicked()
-        {
-            command = Some(GuiCommand::RunCheck);
-        }
-
-        ui.add_space(theme::SPACE_SM);
-
         ui.with_layout(
             egui::Layout::right_to_left(egui::Align::Center),
             |ui: &mut egui::Ui| {
@@ -521,7 +495,6 @@ fn feed_controls(ui: &mut Ui, state: &mut AppState, threats: &[ThreatEvent]) -> 
             },
         );
     });
-    command
 }
 
 /// The consolidated feed card and its pagination.

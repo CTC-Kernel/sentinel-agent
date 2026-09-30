@@ -269,6 +269,7 @@ impl eframe::App for Preview {
                 unread,
                 syncing: false,
                 scanning,
+                last_check: self.state.as_ref().and_then(|s| s.summary.last_check_at),
                 dark_mode: self.dark,
                 sidebar_collapsed: collapsed,
                 sidebar_width: widgets::Sidebar::width(collapsed),

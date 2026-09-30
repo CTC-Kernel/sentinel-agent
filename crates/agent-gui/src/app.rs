@@ -1612,6 +1612,7 @@ impl SentinelApp {
                 unread: self.state.unread_notification_count,
                 syncing: self.state.sync.in_progress,
                 scanning: self.state.summary.status == crate::dto::GuiAgentStatus::Scanning,
+                last_check: self.state.summary.last_check_at,
                 dark_mode: self.state.settings.dark_mode,
                 sidebar_collapsed: collapsed,
                 sidebar_width: widgets::Sidebar::width(collapsed),

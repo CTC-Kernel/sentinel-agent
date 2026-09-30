@@ -35,6 +35,8 @@ pub struct TopBarContext<'a> {
     pub syncing: bool,
     /// A compliance scan is running.
     pub scanning: bool,
+    /// When the last scan finished, for the run button's hover card.
+    pub last_check: Option<chrono::DateTime<chrono::Utc>>,
     /// Dark theme is active.
     pub dark_mode: bool,
     /// Sidebar is collapsed to a rail.
@@ -435,7 +437,20 @@ fn trailing_cluster(
         pos2(x - run_w, center_y - CONTROL_H / 2.0),
         vec2(run_w, CONTROL_H),
     );
-    if primary_action(ui, run_rect, run_label, cx.scanning) {
+    // The only run button in the app: pages no longer repeat it, so it
+    // says when the last scan ran and how to reach it from the keyboard.
+    let run_hint = format!(
+        "{}  \u{00b7}  {}",
+        match cx.last_check {
+            Some(at) => format!(
+                "Derni\u{00e8}re analyse {}",
+                crate::format::ago(chrono::Utc::now(), at)
+            ),
+            None => "Aucune analyse encore".to_owned(),
+        },
+        shortcut_label(false, "R"),
+    );
+    if primary_action(ui, run_rect, run_label, cx.scanning, &run_hint) {
         action = Some(TopBarAction::RunCheck);
     }
     x = run_rect.left() - theme::SPACE_MD;
@@ -644,8 +659,17 @@ fn icon_button(
 }
 
 /// Accent-filled primary action.
-fn primary_action(ui: &mut Ui, rect: Rect, label: &str, busy: bool) -> bool {
-    let response = ui.interact(rect, ui.id().with("topbar_primary"), Sense::click());
+fn primary_action(ui: &mut Ui, rect: Rect, label: &str, busy: bool, hint: &str) -> bool {
+    let response = ui
+        .interact(rect, ui.id().with("topbar_primary"), Sense::click())
+        .on_hover_text(hint);
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(
+            egui::WidgetType::Button,
+            !busy,
+            format!("{label} \u{2014} {hint}"),
+        )
+    });
     let hovered = response.hovered();
     let radius = CornerRadius::same(theme::BUTTON_ROUNDING);
 

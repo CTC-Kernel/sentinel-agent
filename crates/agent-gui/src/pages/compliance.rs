@@ -6,7 +6,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{ComplianceGroupBy, ComplianceViewMode, GuiAgentStatus, GuiCheckStatus};
+use crate::dto::{ComplianceGroupBy, ComplianceViewMode, GuiCheckStatus};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -46,41 +46,6 @@ impl CompliancePage {
             )),
         );
         ui.add_space(theme::SPACE_LG);
-
-        // Action bar (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-
-            // Audit button - Admin only
-            if state.security.admin_unlocked {
-                if widgets::button::primary_button_loading(
-                    ui,
-                    format!(
-                        "{}  {}",
-                        icons::PLAY,
-                        if is_scanning {
-                            "Analyse en cours"
-                        } else {
-                            "Lancer l'analyse"
-                        }
-                    ),
-                    !is_scanning,
-                    is_scanning,
-                )
-                .clicked()
-                {
-                    command = Some(GuiCommand::RunCheck);
-                }
-            } else {
-                // Disabled button for non-admin users
-                widgets::button::primary_button_loading(
-                    ui,
-                    format!("{}  {}", "Lancer l'analyse", icons::LOCK),
-                    false,
-                    false,
-                );
-            }
-        });
 
         // Last audit timestamp
         if let Some(last_check) = state.summary.last_check_at {

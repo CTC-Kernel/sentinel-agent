@@ -78,30 +78,6 @@ impl NetworkPage {
             return command;
         }
 
-        // Action bar (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-            if widgets::button::primary_button_loading(
-                ui,
-                format!(
-                    "{}  {}",
-                    icons::PLAY,
-                    if is_scanning {
-                        "Analyse en cours"
-                    } else {
-                        "Lancer l'analyse"
-                    }
-                ),
-                !is_scanning,
-                is_scanning,
-            )
-            .clicked()
-            {
-                command = Some(GuiCommand::RunCheck);
-            }
-        });
-        ui.add_space(theme::SPACE_MD);
-
         // Summary row (AAA Grade)
         let iface_count = if state.network.interfaces.is_empty() {
             state.network.interface_count

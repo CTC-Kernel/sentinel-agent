@@ -4,7 +4,7 @@
 //! Network Cartography — 2D force-directed graph of discovered devices.
 
 use crate::app::AppState;
-use crate::dto::{GuiAgentStatus, GuiDiscoveredDevice};
+use crate::dto::GuiDiscoveredDevice;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -48,8 +48,6 @@ pub struct CartographyPage;
 
 impl CartographyPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
-        let mut command = None;
-
         if state.discovery.devices.is_empty() {
             ui.add_space(theme::SPACE_LG);
             widgets::empty_state(
@@ -169,31 +167,6 @@ impl CartographyPage {
                             );
                         }
                     }
-
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-                            if widgets::button::primary_button_loading(
-                                ui,
-                                format!(
-                                    "{}  {}",
-                                    icons::PLAY,
-                                    if is_scanning {
-                                        "Analyse en cours"
-                                    } else {
-                                        "Lancer l'analyse"
-                                    }
-                                ),
-                                !is_scanning,
-                                is_scanning,
-                            )
-                            .clicked()
-                            {
-                                command = Some(GuiCommand::RunCheck);
-                            }
-                        },
-                    );
                 });
             });
         });
@@ -217,9 +190,7 @@ impl CartographyPage {
             let layout = build_initial_layout(&state.discovery.devices);
             state.cartography.layout = Some(layout);
         }
-        let Some(layout) = state.cartography.layout.as_mut() else {
-            return command;
-        };
+        let layout = state.cartography.layout.as_mut()?;
 
         // Run force simulation only if not yet converged
         if !layout.converged {
@@ -539,7 +510,7 @@ impl CartographyPage {
         if !layout.converged {
             ui.ctx().request_repaint();
         }
-        command
+        None
     }
 
     fn export_csv(state: &AppState) -> bool {

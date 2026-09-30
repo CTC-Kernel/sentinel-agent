@@ -6,7 +6,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{GuiAgentStatus, Severity};
+use crate::dto::Severity;
 
 use crate::events::GuiCommand;
 use crate::icons;
@@ -33,28 +33,6 @@ impl VulnerabilitiesPage {
 
         // Action bar (AAA Grade)
         ui.horizontal(|ui: &mut egui::Ui| {
-            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-            if widgets::button::primary_button_loading(
-                ui,
-                format!(
-                    "{}  {}",
-                    icons::PLAY,
-                    if is_scanning {
-                        "Analyse en cours"
-                    } else {
-                        "Lancer l'analyse"
-                    }
-                ),
-                !is_scanning,
-                is_scanning,
-            )
-            .clicked()
-            {
-                command = Some(GuiCommand::RunCheck);
-            }
-
-            ui.add_space(theme::SPACE_SM);
-
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
