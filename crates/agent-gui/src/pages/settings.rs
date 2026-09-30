@@ -103,448 +103,23 @@ impl SettingsPage {
         ui.add_space(theme::SPACE_MD);
         match state.settings.active_section {
             0 => {
-                // Agent controls (AAA Grade)
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("CONTRÔLES DES SERVICES")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        let is_paused = state.settings.is_paused;
-                        let (label, cmd) = if is_paused {
-                            (
-                                format!("{}  Reprendre l'agent", icons::PLAY),
-                                GuiCommand::Resume,
-                            )
-                        } else {
-                            (
-                                format!("{}  Mettre en pause", icons::STOP),
-                                GuiCommand::Pause,
-                            )
-                        };
-
-                        // One primary per row: running a check is the action an
-                        // operator came here for; pausing the agent is a control.
-                        // Resuming a paused agent is the exception — then it is the
-                        // one thing that matters on this screen.
-                        let pause_clicked = if is_paused {
-                            widgets::button::primary_button(ui, label, true).clicked()
-                        } else {
-                            widgets::button::secondary_button(ui, label, true).clicked()
-                        };
-                        if pause_clicked {
-                            state.settings.is_paused = !is_paused;
-                            command = Some(cmd);
-                        }
-
-                        ui.add_space(theme::SPACE_SM);
-
-                        let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-                        let check_label = if is_scanning {
-                            format!("{}  Vérification…", icons::CHECK)
-                        } else {
-                            format!("{}  Vérifier maintenant", icons::CHECK)
-                        };
-                        let can_check = !state.settings.is_paused && !is_scanning;
-                        let check_clicked = if is_paused {
-                            widgets::button::secondary_button_loading(
-                                ui,
-                                check_label,
-                                can_check,
-                                is_scanning,
-                            )
-                            .clicked()
-                        } else {
-                            widgets::button::primary_button_loading(
-                                ui,
-                                check_label,
-                                can_check,
-                                is_scanning,
-                            )
-                            .clicked()
-                        };
-                        if check_clicked {
-                            command = Some(GuiCommand::RunCheck);
-                        }
-                    });
-                });
-
+                Self::services_card(ui, state, &mut command);
                 ui.add_space(theme::SPACE);
-
-                // Scan interval slider (AAA Grade)
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("INTERVALLE D'ANALYSE")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    ui.label(
-                        egui::RichText::new("Fréquence d'exécution des contrôles de conformité")
-                            .font(theme::font_min())
-                            .color(theme::text_secondary()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-
-                    let mut interval_min = (state.settings.check_interval_secs / 60) as f32;
-                    if interval_min < 5.0 {
-                        interval_min = 5.0;
-                    }
-
-                    // Bounds sit under the track ends, like the ticks they
-                    // name. Beside the slider, a horizontal row centred each
-                    // label on the row height at the time it was placed, so
-                    // "5 min" and "120 min" landed at different heights.
-                    let slider_width = ui.available_width().min(420.0);
-                    let changed = widgets::Slider::new(5.0, 120.0)
-                        .step(5.0)
-                        .style(widgets::SliderStyle::Stepped)
-                        .show_ticks()
-                        .hide_value()
-                        .width(slider_width)
-                        .show(ui, &mut interval_min);
-                    if changed {
-                        state.settings.check_interval_secs = (interval_min as u64) * 60;
-                        command = Some(GuiCommand::UpdateCheckInterval {
-                            interval_secs: state.settings.check_interval_secs,
-                        });
-                    }
-                    ui.allocate_ui_with_layout(
-                        egui::vec2(slider_width, 0.0),
-                        egui::Layout::left_to_right(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            ui.set_width(slider_width);
-                            ui.label(
-                                egui::RichText::new("5 min")
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary()),
-                            );
-                            ui.with_layout(
-                                egui::Layout::right_to_left(egui::Align::Center),
-                                |ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new("120 min")
-                                            .font(theme::font_label())
-                                            .color(theme::text_tertiary()),
-                                    );
-                                },
-                            );
-                        },
-                    );
-
-                    ui.add_space(theme::SPACE_XS);
-                    ui.label(
-                        egui::RichText::new(format!(
-                            "Configuration actuelle : {} minutes",
-                            state.settings.check_interval_secs / 60,
-                        ))
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .strong(),
-                    );
-                });
-
+                Self::scan_interval_card(ui, state, &mut command);
                 ui.add_space(theme::SPACE);
-
-                // Log level selector (AAA Grade)
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("JOURNALISATION (LOGS)")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    ui.label(
-                        egui::RichText::new("Niveau de verbosité des journaux système de l'agent")
-                            .font(theme::font_min())
-                            .color(theme::text_secondary()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        use crate::dto::LogLevel;
-                        let levels: &[(LogLevel, egui::Color32)] = &[
-                            (LogLevel::Error, theme::ERROR),
-                            (LogLevel::Warn, theme::WARNING),
-                            (LogLevel::Info, theme::INFO),
-                            (LogLevel::Debug, theme::text_secondary()),
-                            (LogLevel::Trace, theme::text_tertiary()),
-                        ];
-
-                        for &(ref level, color) in levels {
-                            let active = state.settings.log_level == *level;
-                            if widgets::chip_button(ui, level.as_str(), active, color).clicked()
-                                && !active
-                            {
-                                state.settings.log_level = *level;
-                                command = Some(GuiCommand::SetLogLevel {
-                                    level: level.index() as u8,
-                                });
-                            }
-                        }
-                    });
-                });
-
+                Self::log_level_card(ui, state, &mut command);
                 ui.add_space(theme::SPACE);
-
-                // Update section (AAA Grade)
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("MAINTENANCE ET MISES À JOUR")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new(format!(
-                            "{}  SENTINEL CORE v{}",
-                            icons::SETTINGS,
-                            state.summary.version
-                        ))
-                        .font(theme::font_min())
-                        .color(theme::text_primary())
-                        .strong(),
-                    );
-                    ui.add_space(theme::SPACE_XS);
-                    ui.label(
-                        egui::RichText::new(if state.summary.standalone {
-                            "Mode autonome : seul le catalogue public des versions est contacté et chaque paquet est vérifié avant installation."
-                        } else {
-                            "Maintenez votre agent à jour pour bénéficier des dernières protections GRC."
-                        })
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary()),
-                    );
-                });
-
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                    use crate::dto::UpdateStatus;
-
-                    let (btn_text, is_busy) = match &state.settings.update_status {
-                        UpdateStatus::Idle => (format!("{}  Vérifier", icons::DOWNLOAD), false),
-                        UpdateStatus::Checking => ("Recherche en cours…".to_string(), true),
-                        UpdateStatus::Available(v) => (format!("{}  Installer la v{}", icons::DOWNLOAD, v), false),
-                        UpdateStatus::UpToDate => (format!("{}  À jour", icons::CHECK), false),
-                        UpdateStatus::Downloading(p) => (format!("{}  {}\u{202f}%", icons::DOWNLOAD, (p * 100.0) as u32), true),
-                        UpdateStatus::Verifying => (format!("{}  Vérification…", icons::DOWNLOAD), true),
-                        UpdateStatus::Installing => (format!("{}  Installation…", icons::DOWNLOAD), true),
-                        UpdateStatus::Completed => (format!("{}  Terminé", icons::CHECK), false),
-                        UpdateStatus::Failed(_) => (format!("{}  Réessayer", icons::REFRESH), false),
-                    };
-
-                    let can_click = !state.settings.is_paused && !is_busy;
-                    if widgets::button::primary_button_loading(ui, btn_text, can_click, is_busy)
-                        .clicked()
-                    {
-                        // Reflect the request in the same frame instead of
-                        // leaving the previous checkmark visible until the
-                        // runtime loop receives and processes the command.
-                        state.settings.update_status = UpdateStatus::Checking;
-                        command = Some(GuiCommand::CheckUpdate);
-                    }
-                });
-            });
-                });
-
+                Self::update_card(ui, state, &mut command);
                 ui.add_space(theme::SPACE);
-
-                // Discovery toggle (AAA Grade)
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("DÉCOUVERTE RÉSEAU AUTOMATIQUE")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("Activer la cartographie dynamique des actifs")
-                                .font(theme::font_min())
-                                .color(theme::text_primary())
-                                .strong(),
-                        );
-                        ui.add_space(theme::SPACE_MD);
-                        let prev_discovery = state.discovery.enabled;
-                        widgets::toggle_switch_labeled(
-                            ui,
-                            &mut state.discovery.enabled,
-                            "Cartographie dynamique des actifs",
-                        );
-                        if state.discovery.enabled != prev_discovery {
-                            if state.discovery.enabled {
-                                command = Some(GuiCommand::StartDiscovery);
-                            } else {
-                                command = Some(GuiCommand::StopDiscovery);
-                            }
-                        }
-                    });
-                    ui.add_space(theme::SPACE_XS);
-                    ui.label(
-                egui::RichText::new("L'agent scanne périodiquement le réseau local pour découvrir et authentifier de nouveaux actifs.")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary()),
-            );
-                });
-
+                Self::discovery_card(ui, state, &mut command);
                 ui.add_space(theme::SPACE);
             }
             1 => {
-                // Dark / Light mode toggle (AAA Grade) — Enhanced theme switcher
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("APPARENCE DE L'INTERFACE")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        // Theme mode visual indicator
-                        let is_dark = state.settings.dark_mode;
-                        let (mode_label, mode_icon, mode_desc) = if is_dark {
-                            (
-                                "Mode sombre",
-                                icons::MOON,
-                                "Interface optimisée pour faible luminosité avec sous-tons navy.",
-                            )
-                        } else {
-                            (
-                                "Mode clair",
-                                icons::SUN,
-                                "Interface lumineuse avec teintes froides et élévation prononcée.",
-                            )
-                        };
-
-                        // Icon with accent background circle
-                        let icon_size = theme::ICON_XL + theme::SPACE_SM;
-                        let (icon_rect, _) = ui.allocate_exact_size(
-                            egui::vec2(icon_size, icon_size),
-                            egui::Sense::hover(),
-                        );
-                        ui.painter().circle_filled(
-                            icon_rect.center(),
-                            icon_size / 2.0,
-                            theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
-                        );
-                        ui.painter().text(
-                            icon_rect.center(),
-                            egui::Align2::CENTER_CENTER,
-                            mode_icon,
-                            theme::font_icon(theme::ICON_LG),
-                            theme::accent_text(),
-                        );
-
-                        ui.add_space(theme::SPACE_SM);
-
-                        ui.vertical(|ui: &mut egui::Ui| {
-                            ui.horizontal(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(mode_label)
-                                        .font(theme::font_body())
-                                        .color(theme::text_primary())
-                                        .strong(),
-                                );
-                            });
-                            ui.add_space(theme::SPACE_SM);
-                            // Explicit "display mode" selector: Clair / Sombre as visible,
-                            // labelled choices (previously a single binary toggle switch,
-                            // which read as "no modes available" to users).
-                            let modes = [
-                                format!("{}  Clair", icons::SUN),
-                                format!("{}  Sombre", icons::MOON),
-                            ];
-                            let mode_refs = [modes[0].as_str(), modes[1].as_str()];
-                            let current = if state.settings.dark_mode { 1 } else { 0 };
-                            if let Some(sel) = widgets::button_group(ui, &mode_refs, current) {
-                                state.settings.dark_mode = sel == 1;
-                            }
-                            ui.add_space(theme::SPACE_XS);
-                            ui.label(
-                                egui::RichText::new(mode_desc)
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary()),
-                            );
-                        });
-                    });
-                });
-
+                Self::theme_card(ui, state);
                 ui.add_space(theme::SPACE);
             }
             2 => {
-                // Architecture URL Config (AAA Grade)
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("CONFIGURATION ARCHITECTURE")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    ui.label(
-                        egui::RichText::new("URL de la vue d'architecture 3D / Voxel")
-                            .font(theme::font_min())
-                            .color(theme::text_secondary()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        let input_width = ui.available_width() - theme::SPACE_XL;
-                        egui::Frame::new()
-                            .fill(theme::bg_tertiary())
-                            .corner_radius(egui::CornerRadius::same(theme::INPUT_ROUNDING))
-                            .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
-                            .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
-                            .show(ui, |ui: &mut egui::Ui| {
-                                ui.add(
-                                    egui::TextEdit::singleline(
-                                        &mut state.settings.architecture_url,
-                                    )
-                                    .hint_text("https://…")
-                                    .desired_width(input_width - theme::SPACE_LG)
-                                    .char_limit(2048)
-                                    .frame(false)
-                                    .font(theme::font_mono()),
-                                );
-                            });
-                        if !state.settings.architecture_url.is_empty() {
-                            ui.label(
-                                egui::RichText::new(icons::CHECK)
-                                    .color(theme::readable_color(theme::SUCCESS)),
-                            );
-                        }
-                    });
-                    ui.add_space(theme::SPACE_XS);
-                    ui.label(
-                        egui::RichText::new(
-                            "Lien vers la visualisation externe ou le jumeau numérique.",
-                        )
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary()),
-                    );
-                });
+                Self::platform_url_card(ui, state);
 
                 ui.add_space(theme::SPACE);
 
@@ -571,6 +146,444 @@ impl SettingsPage {
             _ => state.settings.active_section = 0,
         }
         command
+    }
+
+    /// Pause/resume and run-now controls for the agent services.
+    fn services_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        // Agent controls (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("CONTRÔLES DES SERVICES")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                let is_paused = state.settings.is_paused;
+                let (label, cmd) = if is_paused {
+                    (
+                        format!("{}  Reprendre l'agent", icons::PLAY),
+                        GuiCommand::Resume,
+                    )
+                } else {
+                    (
+                        format!("{}  Mettre en pause", icons::STOP),
+                        GuiCommand::Pause,
+                    )
+                };
+
+                // One primary per row: running a check is the action an
+                // operator came here for; pausing the agent is a control.
+                // Resuming a paused agent is the exception — then it is the
+                // one thing that matters on this screen.
+                let pause_clicked = if is_paused {
+                    widgets::button::primary_button(ui, label, true).clicked()
+                } else {
+                    widgets::button::secondary_button(ui, label, true).clicked()
+                };
+                if pause_clicked {
+                    state.settings.is_paused = !is_paused;
+                    *command = Some(cmd);
+                }
+
+                ui.add_space(theme::SPACE_SM);
+
+                let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
+                let check_label = if is_scanning {
+                    format!("{}  Vérification…", icons::CHECK)
+                } else {
+                    format!("{}  Vérifier maintenant", icons::CHECK)
+                };
+                let can_check = !state.settings.is_paused && !is_scanning;
+                let check_clicked = if is_paused {
+                    widgets::button::secondary_button_loading(
+                        ui,
+                        check_label,
+                        can_check,
+                        is_scanning,
+                    )
+                    .clicked()
+                } else {
+                    widgets::button::primary_button_loading(ui, check_label, can_check, is_scanning)
+                        .clicked()
+                };
+                if check_clicked {
+                    *command = Some(GuiCommand::RunCheck);
+                }
+            });
+        });
+    }
+
+    /// Compliance check interval, 5 to 120 minutes.
+    fn scan_interval_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        // Scan interval slider (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("INTERVALLE D'ANALYSE")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            ui.label(
+                egui::RichText::new("Fréquence d'exécution des contrôles de conformité")
+                    .font(theme::font_min())
+                    .color(theme::text_secondary()),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            let mut interval_min = (state.settings.check_interval_secs / 60) as f32;
+            if interval_min < 5.0 {
+                interval_min = 5.0;
+            }
+
+            // Bounds sit under the track ends, like the ticks they
+            // name. Beside the slider, a horizontal row centred each
+            // label on the row height at the time it was placed, so
+            // "5 min" and "120 min" landed at different heights.
+            let slider_width = ui.available_width().min(420.0);
+            let changed = widgets::Slider::new(5.0, 120.0)
+                .step(5.0)
+                .style(widgets::SliderStyle::Stepped)
+                .show_ticks()
+                .hide_value()
+                .width(slider_width)
+                .show(ui, &mut interval_min);
+            if changed {
+                state.settings.check_interval_secs = (interval_min as u64) * 60;
+                *command = Some(GuiCommand::UpdateCheckInterval {
+                    interval_secs: state.settings.check_interval_secs,
+                });
+            }
+            ui.allocate_ui_with_layout(
+                egui::vec2(slider_width, 0.0),
+                egui::Layout::left_to_right(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    ui.set_width(slider_width);
+                    ui.label(
+                        egui::RichText::new("5 min")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new("120 min")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary()),
+                            );
+                        },
+                    );
+                },
+            );
+
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new(format!(
+                    "Configuration actuelle : {} minutes",
+                    state.settings.check_interval_secs / 60,
+                ))
+                .font(theme::font_label())
+                .color(theme::text_tertiary())
+                .strong(),
+            );
+        });
+    }
+
+    /// Agent log verbosity.
+    fn log_level_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        // Log level selector (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("JOURNALISATION (LOGS)")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            ui.label(
+                egui::RichText::new("Niveau de verbosité des journaux système de l'agent")
+                    .font(theme::font_min())
+                    .color(theme::text_secondary()),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                use crate::dto::LogLevel;
+                let levels: &[(LogLevel, egui::Color32)] = &[
+                    (LogLevel::Error, theme::ERROR),
+                    (LogLevel::Warn, theme::WARNING),
+                    (LogLevel::Info, theme::INFO),
+                    (LogLevel::Debug, theme::text_secondary()),
+                    (LogLevel::Trace, theme::text_tertiary()),
+                ];
+
+                for &(ref level, color) in levels {
+                    let active = state.settings.log_level == *level;
+                    if widgets::chip_button(ui, level.as_str(), active, color).clicked() && !active
+                    {
+                        state.settings.log_level = *level;
+                        *command = Some(GuiCommand::SetLogLevel {
+                            level: level.index() as u8,
+                        });
+                    }
+                }
+            });
+        });
+    }
+
+    /// Current version and the update check.
+    fn update_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        // Update section (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("MAINTENANCE ET MISES À JOUR")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+    ui.vertical(|ui: &mut egui::Ui| {
+        ui.label(
+            egui::RichText::new(format!(
+                "{}  SENTINEL CORE v{}",
+                icons::SETTINGS,
+                state.summary.version
+            ))
+            .font(theme::font_min())
+            .color(theme::text_primary())
+            .strong(),
+        );
+        ui.add_space(theme::SPACE_XS);
+        ui.label(
+            egui::RichText::new(if state.summary.standalone {
+                "Mode autonome : seul le catalogue public des versions est contacté et chaque paquet est vérifié avant installation."
+            } else {
+                "Maintenez votre agent à jour pour bénéficier des dernières protections GRC."
+            })
+            .font(theme::font_label())
+            .color(theme::text_tertiary()),
+        );
+    });
+
+    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
+        use crate::dto::UpdateStatus;
+
+        let (btn_text, is_busy) = match &state.settings.update_status {
+            UpdateStatus::Idle => (format!("{}  Vérifier", icons::DOWNLOAD), false),
+            UpdateStatus::Checking => ("Recherche en cours…".to_string(), true),
+            UpdateStatus::Available(v) => (format!("{}  Installer la v{}", icons::DOWNLOAD, v), false),
+            UpdateStatus::UpToDate => (format!("{}  À jour", icons::CHECK), false),
+            UpdateStatus::Downloading(p) => (format!("{}  {}\u{202f}%", icons::DOWNLOAD, (p * 100.0) as u32), true),
+            UpdateStatus::Verifying => (format!("{}  Vérification…", icons::DOWNLOAD), true),
+            UpdateStatus::Installing => (format!("{}  Installation…", icons::DOWNLOAD), true),
+            UpdateStatus::Completed => (format!("{}  Terminé", icons::CHECK), false),
+            UpdateStatus::Failed(_) => (format!("{}  Réessayer", icons::REFRESH), false),
+        };
+
+        let can_click = !state.settings.is_paused && !is_busy;
+        if widgets::button::primary_button_loading(ui, btn_text, can_click, is_busy)
+            .clicked()
+        {
+            // Reflect the request in the same frame instead of
+            // leaving the previous checkmark visible until the
+            // runtime loop receives and processes the command.
+            state.settings.update_status = UpdateStatus::Checking;
+            *command = Some(GuiCommand::CheckUpdate);
+        }
+    });
+});
+        });
+    }
+
+    /// Local network discovery toggle.
+    fn discovery_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        // Discovery toggle (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("DÉCOUVERTE RÉSEAU AUTOMATIQUE")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new("Activer la cartographie dynamique des actifs")
+                        .font(theme::font_min())
+                        .color(theme::text_primary())
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_MD);
+                let prev_discovery = state.discovery.enabled;
+                widgets::toggle_switch_labeled(
+                    ui,
+                    &mut state.discovery.enabled,
+                    "Cartographie dynamique des actifs",
+                );
+                if state.discovery.enabled != prev_discovery {
+                    if state.discovery.enabled {
+                        *command = Some(GuiCommand::StartDiscovery);
+                    } else {
+                        *command = Some(GuiCommand::StopDiscovery);
+                    }
+                }
+            });
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+    egui::RichText::new("L'agent scanne périodiquement le réseau local pour découvrir et authentifier de nouveaux actifs.")
+        .font(theme::font_label())
+        .color(theme::text_tertiary()),
+);
+        });
+    }
+
+    /// Dark, light or system appearance.
+    fn theme_card(ui: &mut Ui, state: &mut AppState) {
+        // Dark / Light mode toggle (AAA Grade) — Enhanced theme switcher
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("APPARENCE DE L'INTERFACE")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                // Theme mode visual indicator
+                let is_dark = state.settings.dark_mode;
+                let (mode_label, mode_icon, mode_desc) = if is_dark {
+                    (
+                        "Mode sombre",
+                        icons::MOON,
+                        "Interface optimisée pour faible luminosité avec sous-tons navy.",
+                    )
+                } else {
+                    (
+                        "Mode clair",
+                        icons::SUN,
+                        "Interface lumineuse avec teintes froides et élévation prononcée.",
+                    )
+                };
+
+                // Icon with accent background circle
+                let icon_size = theme::ICON_XL + theme::SPACE_SM;
+                let (icon_rect, _) =
+                    ui.allocate_exact_size(egui::vec2(icon_size, icon_size), egui::Sense::hover());
+                ui.painter().circle_filled(
+                    icon_rect.center(),
+                    icon_size / 2.0,
+                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+                );
+                ui.painter().text(
+                    icon_rect.center(),
+                    egui::Align2::CENTER_CENTER,
+                    mode_icon,
+                    theme::font_icon(theme::ICON_LG),
+                    theme::accent_text(),
+                );
+
+                ui.add_space(theme::SPACE_SM);
+
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(mode_label)
+                                .font(theme::font_body())
+                                .color(theme::text_primary())
+                                .strong(),
+                        );
+                    });
+                    ui.add_space(theme::SPACE_SM);
+                    // Explicit "display mode" selector: Clair / Sombre as visible,
+                    // labelled choices (previously a single binary toggle switch,
+                    // which read as "no modes available" to users).
+                    let modes = [
+                        format!("{}  Clair", icons::SUN),
+                        format!("{}  Sombre", icons::MOON),
+                    ];
+                    let mode_refs = [modes[0].as_str(), modes[1].as_str()];
+                    let current = if state.settings.dark_mode { 1 } else { 0 };
+                    if let Some(sel) = widgets::button_group(ui, &mode_refs, current) {
+                        state.settings.dark_mode = sel == 1;
+                    }
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new(mode_desc)
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary()),
+                    );
+                });
+            });
+        });
+    }
+
+    /// Platform and architecture URLs.
+    fn platform_url_card(ui: &mut Ui, state: &mut AppState) {
+        // Architecture URL Config (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("CONFIGURATION ARCHITECTURE")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            ui.label(
+                egui::RichText::new("URL de la vue d'architecture 3D / Voxel")
+                    .font(theme::font_min())
+                    .color(theme::text_secondary()),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                let input_width = ui.available_width() - theme::SPACE_XL;
+                egui::Frame::new()
+                    .fill(theme::bg_tertiary())
+                    .corner_radius(egui::CornerRadius::same(theme::INPUT_ROUNDING))
+                    .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
+                    .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+                    .show(ui, |ui: &mut egui::Ui| {
+                        ui.add(
+                            egui::TextEdit::singleline(&mut state.settings.architecture_url)
+                                .hint_text("https://…")
+                                .desired_width(input_width - theme::SPACE_LG)
+                                .char_limit(2048)
+                                .frame(false)
+                                .font(theme::font_mono()),
+                        );
+                    });
+                if !state.settings.architecture_url.is_empty() {
+                    ui.label(
+                        egui::RichText::new(icons::CHECK)
+                            .color(theme::readable_color(theme::SUCCESS)),
+                    );
+                }
+            });
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new("Lien vers la visualisation externe ou le jumeau numérique.")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary()),
+            );
+        });
     }
 
     fn show_bottom_cards(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
