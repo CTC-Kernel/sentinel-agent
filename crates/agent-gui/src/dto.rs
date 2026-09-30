@@ -956,6 +956,24 @@ impl MitreTactic {
         }
     }
 
+    /// Official ATT&CK tactic identifier (enterprise matrix).
+    pub fn id(&self) -> &'static str {
+        match self {
+            MitreTactic::InitialAccess => "TA0001",
+            MitreTactic::Execution => "TA0002",
+            MitreTactic::Persistence => "TA0003",
+            MitreTactic::PrivilegeEscalation => "TA0004",
+            MitreTactic::DefenseEvasion => "TA0005",
+            MitreTactic::CredentialAccess => "TA0006",
+            MitreTactic::Discovery => "TA0007",
+            MitreTactic::LateralMovement => "TA0008",
+            MitreTactic::Collection => "TA0009",
+            MitreTactic::Exfiltration => "TA0010",
+            MitreTactic::CommandAndControl => "TA0011",
+            MitreTactic::Impact => "TA0040",
+        }
+    }
+
     /// All tactics in display order.
     pub fn all() -> &'static [MitreTactic] {
         &[
