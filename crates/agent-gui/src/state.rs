@@ -460,6 +460,14 @@ impl Default for FimState {
 // Threats
 // ---------------------------------------------------------------------------
 
+/// The events table opens newest first, and says so in its header.
+pub fn default_events_sort() -> crate::widgets::data_table::TableSort {
+    crate::widgets::data_table::TableSort::by(
+        "date",
+        crate::widgets::data_table::SortDirection::Descending,
+    )
+}
+
 /// EDR detection & response state.
 pub struct ThreatsState {
     pub suspicious_processes: VecDeque<crate::dto::GuiSuspiciousProcess>,
@@ -476,6 +484,8 @@ pub struct ThreatsState {
 
     // Events tab
     pub events_page: usize,
+    /// Events table order; newest first until the operator picks a column.
+    pub events_sort: crate::widgets::data_table::TableSort,
     /// 0 = all, 1 = to triage (default), 2 = acknowledged, 3 = authorized.
     pub events_status_filter: usize,
     /// Overview feed also lists acknowledged / authorized events.
@@ -610,6 +620,7 @@ impl Default for ThreatsState {
 
             active_tab: crate::dto::EdrTab::default(),
             events_page: 0,
+            events_sort: default_events_sort(),
             events_status_filter: 1,
             overview_show_triaged: false,
             events_severity_filter: None,
