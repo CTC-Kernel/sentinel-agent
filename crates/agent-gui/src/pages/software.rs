@@ -68,7 +68,7 @@ impl SoftwarePage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 if Self::tab_button(
                     ui,
-                    &format!("{} Dépendances et paquets", icons::SOFTWARE),
+                    &format!("{}  Dépendances et paquets", icons::SOFTWARE),
                     active == SoftwareTab::Packages,
                 ) {
                     state.software.active_tab = SoftwareTab::Packages;
@@ -78,7 +78,7 @@ impl SoftwarePage {
                 ui.add_space(theme::SPACE_SM);
                 if Self::tab_button(
                     ui,
-                    &format!("{} APPLICATIONS UTILISATEUR", icons::CUBE),
+                    &format!("{}  Applications utilisateur", icons::CUBE),
                     active == SoftwareTab::Applications,
                 ) {
                     state.software.active_tab = SoftwareTab::Applications;
@@ -368,53 +368,7 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_MD);
 
-        // Update coverage indicator (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            let coverage_pct = if total > 0 {
-                (up_to_date as f32 / total as f32) * 100.0
-            } else {
-                0.0
-            };
-            let coverage_ratio = if total > 0 {
-                up_to_date as f32 / total as f32
-            } else {
-                0.0
-            };
-
-            let (coverage_color, coverage_style) = if coverage_pct >= 90.0 {
-                (theme::SUCCESS, widgets::ProgressStyle::Success)
-            } else if coverage_pct >= 70.0 {
-                (theme::WARNING, widgets::ProgressStyle::Warning)
-            } else {
-                (theme::ERROR, widgets::ProgressStyle::Error)
-            };
-
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(icons::SHIELD_CHECK)
-                        .color(coverage_color.linear_multiply(theme::OPACITY_STRONG))
-                        .size(theme::ICON_INLINE),
-                );
-                ui.add_space(theme::SPACE_XS);
-                ui.label(
-                    egui::RichText::new(format!(
-                        "Couverture des mises \u{00e0} jour : {:.0}\u{202f}%",
-                        coverage_pct
-                    ))
-                    .font(theme::font_body())
-                    .color(theme::text_primary())
-                    .strong(),
-                );
-                ui.add_space(theme::SPACE_SM);
-                ui.label(
-                    egui::RichText::new(format!("({}/{} conformes)", up_to_date, total))
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary()),
-                );
-            });
-            ui.add_space(theme::SPACE_XS);
-            widgets::progress_bar_styled(ui, coverage_ratio, coverage_style, None);
-        });
+        Self::updates_card(ui, &state.software.packages);
 
         ui.add_space(theme::SPACE_MD);
 
@@ -611,6 +565,49 @@ impl SoftwarePage {
     // -- Tab: Applications (native apps — macOS & Windows) --
 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
+    /// Update coverage beside the packages to update, so the card says
+    /// both how far behind the fleet is and where to start.
+    fn updates_card(ui: &mut Ui, packages: &[crate::dto::GuiSoftwarePackage]) {
+        let total = packages.len();
+        let current = packages.iter().filter(|p| p.up_to_date).count();
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("MISES À JOUR")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+            let columns = ui.available_width() >= 720.0;
+            let gap = theme::SPACE_XL;
+            let column_w = if columns {
+                (ui.available_width() - gap) / 2.0
+            } else {
+                ui.available_width()
+            };
+            let layout = if columns {
+                egui::Layout::left_to_right(egui::Align::Min)
+            } else {
+                egui::Layout::top_down(egui::Align::Min)
+            };
+            ui.with_layout(layout, |ui| {
+                let inner = ui.spacing().item_spacing;
+                ui.spacing_mut().item_spacing = egui::vec2(gap, theme::SPACE_LG);
+                ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing = inner;
+                    ui.set_width(column_w);
+                    update_coverage(ui, current, total);
+                });
+                ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing = inner;
+                    ui.set_width(column_w);
+                    outdated_list(ui, packages);
+                });
+            });
+        });
+    }
+
     fn show_native_apps(
         ui: &mut Ui,
         state: &mut AppState,
@@ -939,6 +936,144 @@ impl SoftwarePage {
 }
 
 /// Generate a platform-appropriate package upgrade command.
+fn software_column_title(ui: &mut Ui, icon: &str, title: &str) {
+    ui.horizontal(|ui| {
+        ui.label(
+            egui::RichText::new(icon)
+                .size(theme::ICON_XS)
+                .color(theme::accent_text()),
+        );
+        ui.label(
+            egui::RichText::new(title)
+                .font(theme::font_body_strong())
+                .color(theme::text_primary()),
+        );
+    });
+    ui.add_space(theme::SPACE_SM);
+}
+
+fn update_coverage(ui: &mut Ui, current: usize, total: usize) {
+    software_column_title(ui, icons::SHIELD_CHECK, "Couverture des mises à jour");
+    let ratio = current as f32 / total.max(1) as f32;
+    let color = if ratio >= 0.9 {
+        theme::SUCCESS
+    } else if ratio >= 0.7 {
+        theme::SEVERITY_MEDIUM
+    } else {
+        theme::ERROR
+    };
+    ui.horizontal(|ui| {
+        ui.label(
+            egui::RichText::new(crate::format::pct(ratio * 100.0, 0))
+                .font(theme::font_h2())
+                .color(theme::readable_color(color)),
+        );
+        ui.label(
+            egui::RichText::new(format!("{current} / {total} paquets à jour"))
+                .font(theme::font_caption())
+                .color(theme::text_secondary()),
+        );
+    });
+    ui.add_space(theme::SPACE_XS);
+    let height = 8.0;
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), height),
+        egui::Sense::hover(),
+    );
+    if ui.is_rect_visible(rect) {
+        let radius = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+        ui.painter().rect_filled(rect, radius, theme::bg_tertiary());
+        if total > 0 {
+            let split = rect.width() * ratio;
+            ui.painter().rect_filled(
+                egui::Rect::from_min_size(rect.min, egui::vec2(split, height)),
+                radius,
+                theme::readable_color(theme::SUCCESS),
+            );
+            if current < total {
+                ui.painter().rect_filled(
+                    egui::Rect::from_min_max(
+                        egui::pos2(rect.left() + split + 2.0, rect.top()),
+                        rect.right_bottom(),
+                    ),
+                    radius,
+                    theme::readable_color(theme::SEVERITY_MEDIUM),
+                );
+            }
+        }
+    }
+    ui.add_space(theme::SPACE_XS);
+    ui.horizontal(|ui| {
+        for (label, count, color) in [
+            ("À jour", current, theme::SUCCESS),
+            ("En retard", total - current, theme::SEVERITY_MEDIUM),
+        ] {
+            let (dot, _) = ui.allocate_exact_size(egui::vec2(10.0, 10.0), egui::Sense::hover());
+            ui.painter()
+                .circle_filled(dot.center(), 4.0, theme::readable_color(color));
+            ui.label(
+                egui::RichText::new(format!("{label} {count}"))
+                    .font(theme::font_caption())
+                    .color(theme::text_secondary()),
+            );
+            ui.add_space(theme::SPACE_SM);
+        }
+    });
+}
+
+/// The first packages behind their latest version, current → latest.
+fn outdated_list(ui: &mut Ui, packages: &[crate::dto::GuiSoftwarePackage]) {
+    software_column_title(ui, icons::ARROW_UP, "À mettre à jour");
+    let outdated: Vec<_> = packages.iter().filter(|p| !p.up_to_date).collect();
+    if outdated.is_empty() {
+        ui.label(
+            egui::RichText::new("Tous les paquets sont à jour.")
+                .font(theme::font_caption())
+                .color(theme::text_tertiary()),
+        );
+        return;
+    }
+    const SHOWN: usize = 4;
+    for package in outdated.iter().take(SHOWN) {
+        ui.horizontal(|ui| {
+            ui.label(
+                egui::RichText::new(&package.name)
+                    .font(theme::font_body())
+                    .color(theme::text_primary()),
+            );
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if let Some(latest) = &package.latest_version {
+                    ui.label(
+                        egui::RichText::new(latest)
+                            .font(theme::font_mono_sm())
+                            .color(theme::readable_color(theme::SUCCESS)),
+                    );
+                    ui.label(
+                        egui::RichText::new("→")
+                            .font(theme::font_caption())
+                            .color(theme::text_tertiary()),
+                    );
+                }
+                ui.label(
+                    egui::RichText::new(&package.version)
+                        .font(theme::font_mono_sm())
+                        .color(theme::text_secondary()),
+                );
+            });
+        });
+    }
+    if outdated.len() > SHOWN {
+        ui.label(
+            egui::RichText::new(format!(
+                "+ {} autres dans la liste ci-dessous",
+                outdated.len() - SHOWN
+            ))
+            .font(theme::font_caption())
+            .color(theme::text_tertiary()),
+        );
+    }
+}
+
 fn platform_upgrade_command(safe_name: &str) -> String {
     #[cfg(target_os = "macos")]
     {
