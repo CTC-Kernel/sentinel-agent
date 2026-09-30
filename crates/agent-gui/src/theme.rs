@@ -1144,10 +1144,16 @@ pub fn family_mono_medium() -> egui::FontFamily {
 
 // ── Type scale ──────────────────────────────────────────────────────────
 
-/// Size step: micro annotations (10px) — use sparingly, never for prose.
-pub const TEXT_MICRO: f32 = 10.0;
-/// Size step: caption / label (11px) — the accessibility floor.
-pub const TEXT_CAPTION: f32 = 11.0;
+// Labels, captions and helper text are most of what an operator reads here
+// (some 400 call sites against about 140 for body text), so the floor sets
+// the feel of the whole app: at 10-11px it read as squinting. 11px is now
+// the absolute floor, reserved for counters and axis ticks, and every label
+// or caption is 12px.
+
+/// Size step: micro annotations (11px) — counters, axis ticks; never prose.
+pub const TEXT_MICRO: f32 = 11.0;
+/// Size step: caption / label (12px) — the reading floor.
+pub const TEXT_CAPTION: f32 = 12.0;
 /// Size step: dense body (12px) — table cells, chips.
 pub const TEXT_BODY_SM: f32 = 12.0;
 /// Size step: body (13px) — the default reading size.
@@ -1225,27 +1231,27 @@ pub fn font_body_sm_medium() -> FontId {
     FontId::new(TEXT_BODY_SM, family_medium())
 }
 
-/// Small text (11px regular).
+/// Small text (12px regular).
 pub fn font_small() -> FontId {
     FontId::new(TEXT_CAPTION, family_regular())
 }
 
-/// Caption (11px regular) — timestamps, helper text.
+/// Caption (12px regular) — timestamps, helper text.
 pub fn font_caption() -> FontId {
     font_small()
 }
 
-/// Minimum readable font (11px) — accessibility floor.
+/// Minimum reading size (12px) — the floor for anything read as text.
 pub fn font_min() -> FontId {
     font_small()
 }
 
-/// Label (11px medium) — form labels, eyebrow text, uppercase section titles.
+/// Label (12px medium) — form labels, eyebrow text, uppercase section titles.
 pub fn font_label() -> FontId {
     FontId::new(TEXT_CAPTION, family_medium())
 }
 
-/// Micro annotation (10px medium) — axis ticks, badge counters.
+/// Micro annotation (11px medium) — axis ticks, badge counters.
 pub fn font_micro() -> FontId {
     FontId::new(TEXT_MICRO, family_medium())
 }
@@ -1260,11 +1266,6 @@ pub fn font_card_value() -> FontId {
     FontId::new(TEXT_H1, family_bold())
 }
 
-/// COMEX-ready header (30px bold).
-pub fn font_comex() -> FontId {
-    FontId::new(30.0, family_bold())
-}
-
 /// Splash screen title (34px bold).
 pub fn font_splash() -> FontId {
     font_display()
@@ -1275,9 +1276,10 @@ pub fn font_mono() -> FontId {
     FontId::new(TEXT_BODY_SM, egui::FontFamily::Monospace)
 }
 
-/// Small monospace (11px).
+/// Small monospace (11px). Monospace glyphs run wide, so it stays a step
+/// under the proportional caption size.
 pub fn font_mono_sm() -> FontId {
-    FontId::new(TEXT_CAPTION, egui::FontFamily::Monospace)
+    FontId::new(TEXT_MICRO, egui::FontFamily::Monospace)
 }
 
 /// Monospace with medium weight (12px) — emphasised technical values.

@@ -199,30 +199,46 @@ impl SettingsPage {
                         interval_min = 5.0;
                     }
 
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("5 min")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary()),
-                        );
-                        let changed = widgets::Slider::new(5.0, 120.0)
-                            .step(5.0)
-                            .style(widgets::SliderStyle::Stepped)
-                            .show_ticks()
-                            .hide_value()
-                            .show(ui, &mut interval_min);
-                        if changed {
-                            state.settings.check_interval_secs = (interval_min as u64) * 60;
-                            command = Some(GuiCommand::UpdateCheckInterval {
-                                interval_secs: state.settings.check_interval_secs,
-                            });
-                        }
-                        ui.label(
-                            egui::RichText::new("120 min")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary()),
-                        );
-                    });
+                    // Bounds sit under the track ends, like the ticks they
+                    // name. Beside the slider, a horizontal row centred each
+                    // label on the row height at the time it was placed, so
+                    // "5 min" and "120 min" landed at different heights.
+                    let slider_width = ui.available_width().min(420.0);
+                    let changed = widgets::Slider::new(5.0, 120.0)
+                        .step(5.0)
+                        .style(widgets::SliderStyle::Stepped)
+                        .show_ticks()
+                        .hide_value()
+                        .width(slider_width)
+                        .show(ui, &mut interval_min);
+                    if changed {
+                        state.settings.check_interval_secs = (interval_min as u64) * 60;
+                        command = Some(GuiCommand::UpdateCheckInterval {
+                            interval_secs: state.settings.check_interval_secs,
+                        });
+                    }
+                    ui.allocate_ui_with_layout(
+                        egui::vec2(slider_width, 0.0),
+                        egui::Layout::left_to_right(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.set_width(slider_width);
+                            ui.label(
+                                egui::RichText::new("5 min")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary()),
+                            );
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new("120 min")
+                                            .font(theme::font_label())
+                                            .color(theme::text_tertiary()),
+                                    );
+                                },
+                            );
+                        },
+                    );
 
                     ui.add_space(theme::SPACE_XS);
                     ui.label(
