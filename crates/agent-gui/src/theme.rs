@@ -1160,12 +1160,16 @@ pub const TEXT_BODY_SM: f32 = 12.0;
 pub const TEXT_BODY: f32 = 13.0;
 /// Size step: lead body (15px) — subtitles, drawer intros.
 pub const TEXT_BODY_LG: f32 = 15.0;
-/// Size step: section heading (16px).
-pub const TEXT_H3: f32 = 16.0;
-/// Size step: page / card title (20px).
-pub const TEXT_H2: f32 = 20.0;
-/// Size step: page display title (26px).
-pub const TEXT_H1: f32 = 26.0;
+// Headings climb in clear steps above the 15px lead: at 16px a section
+// heading sat one pixel over the intro paragraph under the page title and
+// read as the same level. 13 → 15 → 17 → 22 → 28 → 34.
+
+/// Size step: section heading (17px) — two steps over the lead, plus weight.
+pub const TEXT_H3: f32 = 17.0;
+/// Size step: page / card title (22px).
+pub const TEXT_H2: f32 = 22.0;
+/// Size step: page display title, card metric values (28px).
+pub const TEXT_H1: f32 = 28.0;
 /// Size step: hero / splash display (34px).
 pub const TEXT_DISPLAY: f32 = 34.0;
 
@@ -1176,27 +1180,27 @@ pub fn font_display() -> FontId {
     FontId::new(TEXT_DISPLAY, family_bold())
 }
 
-/// Page display title (26px bold).
+/// Page display title (28px bold).
 pub fn font_h1() -> FontId {
     FontId::new(TEXT_H1, family_bold())
 }
 
-/// Page / card title (20px semibold).
+/// Page / card title (22px semibold).
 pub fn font_h2() -> FontId {
     FontId::new(TEXT_H2, family_semibold())
 }
 
-/// Section heading (16px semibold).
+/// Section heading (17px semibold).
 pub fn font_h3() -> FontId {
     FontId::new(TEXT_H3, family_semibold())
 }
 
-/// Page title (20px semibold) — alias kept for call-site stability.
+/// Page title (22px semibold) — alias kept for call-site stability.
 pub fn font_title() -> FontId {
     font_h2()
 }
 
-/// Section heading (16px semibold).
+/// Section heading (17px semibold).
 pub fn font_heading() -> FontId {
     font_h3()
 }
@@ -1256,12 +1260,12 @@ pub fn font_micro() -> FontId {
     FontId::new(TEXT_MICRO, family_medium())
 }
 
-/// Dashboard stat (20px semibold, tabular figures).
+/// Dashboard stat (22px semibold, tabular figures).
 pub fn font_stat() -> FontId {
     FontId::new(TEXT_H2, family_semibold())
 }
 
-/// Card metric value (26px bold, tabular figures).
+/// Card metric value (28px bold, tabular figures).
 pub fn font_card_value() -> FontId {
     FontId::new(TEXT_H1, family_bold())
 }

@@ -342,6 +342,9 @@ impl EnrollmentWizard {
                 |ui: &mut egui::Ui| {
                     ui.set_width(width);
                     widgets::clickable_card(ui, id, |ui: &mut egui::Ui| {
+                        // Measured from the cursor: `set_min_height` grows the
+                        // min rect at once, so it cannot tell content height.
+                        let content_top = ui.cursor().top();
                         ui.set_min_height(shared_height);
                         let (badge, _) = ui.allocate_exact_size(
                             egui::Vec2::splat(theme::MIN_TOUCH_TARGET + theme::SPACE_XS),
@@ -371,15 +374,22 @@ impl EnrollmentWizard {
                                 .font(theme::font_small())
                                 .color(theme::text_secondary()),
                         );
-                        ui.add_space(theme::SPACE_MD);
+                        // The action sits on the card's floor, so both
+                        // buttons share a baseline even when one title or
+                        // blurb wraps onto more lines than the other.
+                        let text_height = ui.cursor().top() - content_top;
+                        let natural = text_height + theme::SPACE_MD + theme::BUTTON_HEIGHT;
+                        ui.add_space(
+                            (shared_height - text_height - theme::BUTTON_HEIGHT)
+                                .max(theme::SPACE_MD),
+                        );
                         if widgets::button::primary_button(ui, action, true).clicked() {
                             chosen = true;
                         }
-                        // Content height, before the card's own padding: the
-                        // same measure `set_min_height` is compared against.
-                        let used = ui.min_rect().height();
-                        if used > shared_height + 0.5 {
-                            ui.data_mut(|data| data.insert_temp(height_id, used));
+                        // Natural content height, before the card's own
+                        // padding: the measure `set_min_height` is held to.
+                        if natural > shared_height + 0.5 {
+                            ui.data_mut(|data| data.insert_temp(height_id, natural));
                             ui.ctx().request_repaint();
                         }
                     })
