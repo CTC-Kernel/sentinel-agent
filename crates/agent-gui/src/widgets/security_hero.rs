@@ -90,7 +90,13 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
             // Both columns get explicit widths: a centred or wrapping label
             // otherwise claims the whole row and squeezes its neighbour.
             let gauge_w = HERO_GAUGE_RADIUS * 2.0 + theme::SPACE_LG;
-            let body_w = (ui.available_width() - gauge_w - theme::SPACE_LG).max(1.0);
+            // The row's two item gaps count too: without them the card was
+            // a dozen pixels wider than its grid cell.
+            let body_w = (ui.available_width()
+                - gauge_w
+                - theme::SPACE_LG
+                - ui.spacing().item_spacing.x * 2.0)
+                .max(1.0);
             ui.horizontal_top(|ui| {
                 ui.vertical(|ui| {
                     ui.set_width(gauge_w);

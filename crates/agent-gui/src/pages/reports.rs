@@ -282,7 +282,11 @@ impl ReportsPage {
                 ui.add_space(theme::SPACE_MD);
                 body(ui);
             } else {
-                let body_w = (ui.available_width() - dial_w - theme::SPACE_LG).max(1.0);
+                let body_w = (ui.available_width()
+                    - dial_w
+                    - theme::SPACE_LG
+                    - ui.spacing().item_spacing.x * 2.0)
+                    .max(1.0);
                 ui.horizontal_top(|ui| {
                     ui.vertical(|ui| {
                         ui.set_width(dial_w);

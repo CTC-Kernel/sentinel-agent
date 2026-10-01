@@ -138,14 +138,28 @@ impl AboutPage {
             );
             ui.add_space(theme::SPACE_MD);
 
+            // Names an operator recognises, not the compiler's target
+            // strings ("macos aarch64"); the version is in the card above.
+            let system = match std::env::consts::OS {
+                "macos" => "macOS",
+                "windows" => "Windows",
+                "linux" => "Linux",
+                other => other,
+            };
+            let architecture = match std::env::consts::ARCH {
+                "aarch64" if cfg!(target_os = "macos") => "Apple Silicon (ARM 64 bits)",
+                "aarch64" => "ARM 64 bits",
+                "x86_64" => "Intel / AMD 64 bits",
+                other => other,
+            };
+            Self::info_row(ui, "Syst\u{00e8}me", system, icons::DESKTOP);
+            Self::info_row(ui, "Architecture", architecture, icons::MICROCHIP);
             Self::info_row(
                 ui,
-                "Syst\u{00e8}me",
-                &format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
-                icons::DESKTOP,
+                "\u{00c9}diteur",
+                "Cyber Threat Consulting",
+                icons::BUILDING,
             );
-            Self::info_row(ui, "Moteur", "Rust v1.85+", icons::MICROCHIP);
-            Self::info_row(ui, "Version", env!("CARGO_PKG_VERSION"), icons::TAG);
         });
     }
 
@@ -190,7 +204,7 @@ impl AboutPage {
                 |ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(value)
-                            .font(theme::font_mono())
+                            .font(theme::font_body_medium())
                             .color(theme::text_primary())
                             .strong(),
                     );
