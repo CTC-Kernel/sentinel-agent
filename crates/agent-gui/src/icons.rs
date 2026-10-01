@@ -140,6 +140,7 @@ pub const TAGS: &str = "\u{f02c}"; // fa-tags
 pub const BOOKMARK: &str = "\u{f02e}"; // fa-bookmark
 pub const FLAG: &str = "\u{f024}"; // fa-flag
 pub const PRINT: &str = "\u{f02f}"; // fa-print
+pub const BRIEFCASE: &str = "\u{f0b1}"; // fa-briefcase
 pub const DESKTOP: &str = "\u{f390}"; // fa-desktop
 pub const MOBILE: &str = "\u{f3cd}"; // fa-mobile-screen-button
 pub const QUESTION: &str = "\u{3f}"; // fa-question

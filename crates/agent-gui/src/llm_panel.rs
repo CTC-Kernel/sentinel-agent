@@ -120,121 +120,137 @@ impl LLMPanel {
         let mut command = None;
         let mut focus_draft = false;
         let mut draft_response = None;
-        ui.horizontal_wrapped(|ui| {
-            ui.label(
-                egui::RichText::new("Métier")
-                    .font(theme::font_small())
-                    .color(theme::text_secondary()),
-            );
-            egui::ComboBox::from_id_salt("assistant_work_mode")
-                .selected_text(
-                    [
+        // Toolbar in a card: two labelled dropdowns (role and scope), then
+        // the suggestion and conversation menus as quiet trigger buttons.
+        // It was stock egui combo boxes and menu buttons in a bare row.
+        widgets::Card::new()
+            .padding(theme::SPACE_MD)
+            .show(ui, |ui| {
+                ui.horizontal_wrapped(|ui| {
+                    ui.spacing_mut().item_spacing = egui::vec2(theme::SPACE_SM, theme::SPACE_SM);
+                    const MODES: [&str; 3] = [
                         "SOC · Investigation",
                         "RSSI / GRC · Décision",
                         "MSP / IT · Exploitation",
-                    ][state.ai.work_mode.min(2)],
-                )
-                .show_ui(ui, |ui| {
-                    for (index, label) in [
-                        "SOC · Investigation",
-                        "RSSI / GRC · Décision",
-                        "MSP / IT · Exploitation",
-                    ]
-                    .iter()
-                    .enumerate()
-                    {
-                        ui.selectable_value(&mut state.ai.work_mode, index, *label);
-                    }
-                });
-            ui.label(
-                egui::RichText::new("Périmètre")
-                    .font(theme::font_small())
-                    .color(theme::text_secondary()),
-            );
-            egui::ComboBox::from_id_salt("assistant_context")
-                .selected_text(
-                    state
-                        .ai
-                        .prompt_context
-                        .map(|c| c.label_fr())
-                        .unwrap_or("Contexte automatique"),
-                )
-                .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut state.ai.prompt_context, None, "Contexte automatique");
-                    for context in [
-                        crate::dto::LlmPromptContext::General,
-                        crate::dto::LlmPromptContext::Vulnerabilities,
-                        crate::dto::LlmPromptContext::Compliance,
-                        crate::dto::LlmPromptContext::Threats,
-                        crate::dto::LlmPromptContext::Network,
-                    ] {
-                        ui.selectable_value(
-                            &mut state.ai.prompt_context,
-                            Some(context),
-                            context.label_fr(),
-                        );
-                    }
-                });
-            ui.menu_button("Suggestions", |ui| {
-                for (label, prompt) in Self::prompt_presets(state.ai.work_mode) {
-                    if ui.button(*label).on_hover_text(*prompt).clicked() {
-                        state.ai.input_text = prompt.to_string();
-                        state.ai.pending_voice_send = false;
-                        focus_draft = true;
-                        ui.close_menu();
-                    }
-                }
-            });
-            ui.menu_button("Conversation", |ui| {
-                let has_messages = !state.ai.chat_history.is_empty();
-                if ui
-                    .add_enabled(has_messages, egui::Button::new("Copier la conversation"))
-                    .clicked()
-                {
-                    let text = state
-                        .ai
-                        .chat_history
-                        .iter()
-                        .map(|m| {
-                            format!(
-                                "{} · {}\n{}",
-                                m.role.label_fr(),
-                                m.timestamp.format("%H:%M"),
-                                m.content
-                            )
-                        })
-                        .collect::<Vec<_>>()
-                        .join("\n\n");
-                    ui.ctx().copy_text(text);
-                    ui.close_menu();
-                }
-                if ui
-                    .add_enabled(
-                        has_messages && !state.ai.is_processing,
-                        egui::Button::new("Effacer l’historique…"),
+                    ];
+                    toolbar_label(ui, icons::BRIEFCASE, "MÉTIER");
+                    if let Some(index) = widgets::Dropdown::new(
+                        "assistant_work_mode",
+                        &MODES,
+                        state.ai.work_mode.min(2),
                     )
-                    .clicked()
-                {
-                    state.ai.confirm_clear_chat = true;
-                    ui.close_menu();
-                }
+                    .width(210.0)
+                    .show(ui)
+                    {
+                        state.ai.work_mode = index;
+                    }
+                    ui.add_space(theme::SPACE_SM);
+                    toolbar_label(ui, icons::LAYER_GROUP, "PÉRIMÈTRE");
+                    let contexts: [Option<crate::dto::LlmPromptContext>; 6] = [
+                        None,
+                        Some(crate::dto::LlmPromptContext::General),
+                        Some(crate::dto::LlmPromptContext::Vulnerabilities),
+                        Some(crate::dto::LlmPromptContext::Compliance),
+                        Some(crate::dto::LlmPromptContext::Threats),
+                        Some(crate::dto::LlmPromptContext::Network),
+                    ];
+                    let context_labels: Vec<&str> = contexts
+                        .iter()
+                        .map(|c| c.map(|c| c.label_fr()).unwrap_or("Contexte automatique"))
+                        .collect();
+                    let current = contexts
+                        .iter()
+                        .position(|c| *c == state.ai.prompt_context)
+                        .unwrap_or(0);
+                    if let Some(index) =
+                        widgets::Dropdown::new("assistant_context", &context_labels, current)
+                            .width(210.0)
+                            .show(ui)
+                    {
+                        state.ai.prompt_context = contexts[index];
+                    }
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        egui::menu::menu_custom_button(
+                            ui,
+                            toolbar_menu_button(icons::ELLIPSIS, "Conversation"),
+                            |ui| {
+                                ui.set_min_width(220.0);
+                                let has_messages = !state.ai.chat_history.is_empty();
+                                if ui
+                                    .add_enabled(
+                                        has_messages,
+                                        egui::Button::new(format!(
+                                            "{}  Copier la conversation",
+                                            icons::COPY
+                                        )),
+                                    )
+                                    .clicked()
+                                {
+                                    let text = state
+                                        .ai
+                                        .chat_history
+                                        .iter()
+                                        .map(|m| {
+                                            format!(
+                                                "{} · {}\n{}",
+                                                m.role.label_fr(),
+                                                m.timestamp.format("%H:%M"),
+                                                m.content
+                                            )
+                                        })
+                                        .collect::<Vec<_>>()
+                                        .join("\n\n");
+                                    ui.ctx().copy_text(text);
+                                    ui.close_menu();
+                                }
+                                if ui
+                                    .add_enabled(
+                                        has_messages && !state.ai.is_processing,
+                                        egui::Button::new(format!(
+                                            "{}  Effacer l’historique…",
+                                            icons::TRASH
+                                        )),
+                                    )
+                                    .clicked()
+                                {
+                                    state.ai.confirm_clear_chat = true;
+                                    ui.close_menu();
+                                }
+                            },
+                        );
+                        egui::menu::menu_custom_button(
+                            ui,
+                            toolbar_menu_button(icons::COMMENTS, "Suggestions"),
+                            |ui| {
+                                ui.set_min_width(280.0);
+                                for (label, prompt) in Self::prompt_presets(state.ai.work_mode) {
+                                    if ui.button(*label).on_hover_text(*prompt).clicked() {
+                                        state.ai.input_text = prompt.to_string();
+                                        state.ai.pending_voice_send = false;
+                                        focus_draft = true;
+                                        ui.close_menu();
+                                    }
+                                }
+                            },
+                        );
+                    });
+                });
             });
-        });
         if state.ai.confirm_clear_chat {
             widgets::card(ui, |ui| {
                 ui.label(
                     "Effacer les messages de cette conversation ? Votre brouillon sera conservé.",
                 );
                 ui.horizontal(|ui| {
-                    if ui.button("Annuler").clicked() {
+                    if widgets::button::secondary_button(ui, "Annuler", true).clicked() {
                         state.ai.confirm_clear_chat = false;
                     }
-                    if ui
-                        .add_enabled(
-                            !state.ai.is_processing,
-                            egui::Button::new("Effacer les messages"),
-                        )
-                        .clicked()
+                    if widgets::button::destructive_button(
+                        ui,
+                        format!("{}  Effacer les messages", icons::TRASH),
+                        !state.ai.is_processing,
+                    )
+                    .clicked()
                     {
                         state.ai.chat_history.clear();
                         state.ai.confirm_clear_chat = false;
@@ -494,8 +510,11 @@ impl LLMPanel {
                     command = Some(GuiCommand::SetVoiceListening { enabled: false });
                 }
                 if state.ai.is_speaking
-                    && ui
-                        .button(format!("{} Interrompre et parler", icons::MICROPHONE))
+                    && widgets::button::secondary_button(
+                        ui,
+                        format!("{}  Interrompre et parler", icons::MICROPHONE),
+                        true,
+                    )
                         .on_hover_text("Coupe la réponse et rouvre le micro")
                         .clicked()
                 {
@@ -505,26 +524,26 @@ impl LLMPanel {
                     command = Some(GuiCommand::SetVoiceListening { enabled: true });
                 }
             } else {
-                if ui
-                    .add_enabled(
-                        !state.ai.is_processing && !state.ai.is_listening,
-                        egui::Button::new(format!("{} Parler", icons::HEADPHONES)),
-                    )
+                if widgets::button::secondary_button(
+                    ui,
+                    format!("{}  Parler", icons::HEADPHONES),
+                    !state.ai.is_processing && !state.ai.is_listening,
+                )
                     .on_hover_text("Conversation vocale mains libres : vous parlez, Sentinel répond à voix haute puis vous écoute de nouveau")
                     .clicked()
                 {
                     command = Self::start_conversation(state);
                 }
                 let label = if state.ai.is_listening {
-                    format!("{} Terminer la dictée", icons::STOP)
+                    format!("{}  Terminer la dictée", icons::STOP)
                 } else {
-                    format!("{} Dicter", icons::MICROPHONE)
+                    format!("{}  Dicter", icons::MICROPHONE)
                 };
-                if ui
-                    .add_enabled(
-                        !state.ai.is_processing || state.ai.is_listening,
-                        egui::Button::new(label),
-                    )
+                if widgets::button::secondary_button(
+                    ui,
+                    label,
+                    !state.ai.is_processing || state.ai.is_listening,
+                )
                     .on_hover_text("Dicter un brouillon à relire avant envoi. Terminer conserve ce qui a été dit.")
                     .clicked()
                 {
@@ -546,9 +565,12 @@ impl LLMPanel {
             }
             if !hands_free {
                 if state.ai.is_speaking || state.ai.voice_reply_pending {
-                    if ui
-                        .button(format!("{} Arrêter la lecture", icons::STOP))
-                        .clicked()
+                    if widgets::button::secondary_button(
+                        ui,
+                        format!("{}  Arrêter la lecture", icons::STOP),
+                        true,
+                    )
+                    .clicked()
                     {
                         Self::reset_voice_session(state);
                         command = Some(GuiCommand::StopVoice);
@@ -560,11 +582,11 @@ impl LLMPanel {
                         .iter()
                         .rev()
                         .find(|m| m.role == ChatRole::Assistant)
-                    && ui
-                        .add_enabled(
-                            !state.ai.is_processing,
-                            egui::Button::new(format!("{} Lire la réponse", icons::VOLUME_HIGH)),
-                        )
+                    && widgets::button::secondary_button(
+                        ui,
+                        format!("{}  Lire la réponse", icons::VOLUME_HIGH),
+                        !state.ai.is_processing,
+                    )
                         .on_hover_text("Lire la dernière réponse à voix haute")
                         .clicked()
                 {
@@ -575,8 +597,7 @@ impl LLMPanel {
                     state.ai.voice_reply_pending = false;
                 }
             }
-            if ui
-                .button(format!("{} Réglages vocaux", icons::GEAR))
+            if widgets::ghost_button(ui, format!("{}  Réglages vocaux", icons::GEAR))
                 .on_hover_text("Voix, vitesse, dictée, alertes vocales")
                 .clicked()
             {
@@ -1585,12 +1606,12 @@ impl LLMPanel {
                                 .selectable(true),
                             );
                             ui.horizontal_wrapped(|ui| {
-                                if ui
-                                    .add(
-                                        egui::Button::new("Copier")
-                                            .min_size(egui::vec2(60.0, 24.0)),
-                                    )
-                                    .clicked()
+                                if widgets::button::icon_button(
+                                    ui,
+                                    icons::COPY,
+                                    Some("Copier le message"),
+                                )
+                                .clicked()
                                 {
                                     ui.ctx().copy_text(msg.content.clone());
                                 }
@@ -3176,6 +3197,45 @@ fn format_category(category: &str) -> String {
     }
 }
 
+/// Uppercase caption with an icon, before a toolbar control.
+fn toolbar_label(ui: &mut egui::Ui, icon: &str, text: &str) {
+    // Centred on the control height: in a wrapping row the caption sat on
+    // the top edge, above the dropdown's text.
+    ui.allocate_ui_with_layout(
+        egui::vec2(0.0, theme::INPUT_HEIGHT),
+        egui::Layout::left_to_right(egui::Align::Center),
+        |ui| toolbar_label_inner(ui, icon, text),
+    );
+}
+
+fn toolbar_label_inner(ui: &mut egui::Ui, icon: &str, text: &str) {
+    ui.label(
+        egui::RichText::new(icon)
+            .size(theme::ICON_XS)
+            .color(theme::accent_text()),
+    );
+    ui.label(
+        egui::RichText::new(text)
+            .font(theme::font_label())
+            .color(theme::text_tertiary())
+            .extra_letter_spacing(theme::TRACKING_NORMAL)
+            .strong(),
+    );
+}
+
+/// A menu trigger styled like the app's secondary buttons.
+fn toolbar_menu_button(icon: &str, label: &str) -> egui::Button<'static> {
+    egui::Button::new(
+        egui::RichText::new(format!("{icon}  {label}"))
+            .font(theme::font_body_medium())
+            .color(theme::text_primary()),
+    )
+    .fill(theme::bg_tertiary())
+    .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
+    .corner_radius(theme::BUTTON_ROUNDING)
+    .min_size(egui::vec2(0.0, theme::INPUT_HEIGHT))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3225,12 +3285,12 @@ mod tests {
                     }
                     for label in [
                         if scenario == 2 {
-                            format!("{} Terminer la dictée", icons::STOP)
+                            format!("{}  Terminer la dictée", icons::STOP)
                         } else {
-                            format!("{} Dicter", icons::MICROPHONE)
+                            format!("{}  Dicter", icons::MICROPHONE)
                         },
-                        format!("{} Réglages vocaux", icons::GEAR),
-                        format!("{} Parler", icons::HEADPHONES),
+                        format!("{}  Réglages vocaux", icons::GEAR),
+                        format!("{}  Parler", icons::HEADPHONES),
                         "Décrivez votre question, les faits et le résultat attendu…".to_owned(),
                     ] {
                         let painted = output
