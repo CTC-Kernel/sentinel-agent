@@ -269,7 +269,7 @@ impl AuditTrailPage {
             ui,
             &[
                 table::Col::fluid(150.0, 0.0), // Horodatage
-                table::Col::fluid(80.0, 0.0),  // Niveau
+                table::Col::fluid(136.0, 0.0), // Niveau: "AVERTISSEMENT" whole
                 table::Col::fluid(200.0, 1.0), // Détails de l'événement
             ],
         )

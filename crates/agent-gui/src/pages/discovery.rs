@@ -337,12 +337,12 @@ impl DiscoveryPage {
                     &[
                         table::Col::fluid(120.0, 1.0), // Adresse IP / MAC
                         table::Col::fluid(84.0, 0.0),  // Statut
-                        table::Col::fluid(120.0, 3.0), // Nom d'hôte
-                        table::Col::fluid(90.0, 1.5),  // Constructeur
+                        table::Col::fluid(120.0, 2.5), // Nom d'hôte
+                        table::Col::fluid(116.0, 1.5), // Constructeur: header whole
                         table::Col::fluid(104.0, 0.0), // Type d'actif: header and "IMPRIMANTE" whole
-                        table::Col::fluid(70.0, 0.5),  // Services
-                        table::Col::fluid(84.0, 0.5),  // Dernière vue
-                        table::Col::fixed(110.0),      // Opérations
+                        table::Col::fluid(96.0, 0.8),  // Services
+                        table::Col::fluid(104.0, 0.5), // Dernière vue
+                        table::Col::fixed(56.0),       // Copier: one icon button
                     ],
                 )
                 .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
@@ -353,7 +353,7 @@ impl DiscoveryPage {
                         table::header_cell(ui, "STATUT");
                     });
                     header.col(|ui| {
-                        table::header_cell(ui, "NOM D'HÔTE (DNS/NETBIOS)");
+                        table::header_cell(ui, "NOM D'HÔTE");
                     });
                     header.col(|ui| {
                         table::header_cell(ui, "CONSTRUCTEUR");
@@ -367,9 +367,8 @@ impl DiscoveryPage {
                     header.col(|ui| {
                         table::header_cell(ui, "DERNIÈRE VUE");
                     });
-                    header.col(|ui| {
-                        table::header_cell(ui, "OPÉRATIONS");
-                    });
+                    // One copy button: no header, or it would be truncated.
+                    header.col(|_| {});
                 })
                 .body(|body| {
                     let now = chrono::Utc::now();

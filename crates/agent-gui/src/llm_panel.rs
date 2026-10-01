@@ -1552,7 +1552,13 @@ impl LLMPanel {
                     )
                 } else {
                     (
-                        theme::bg_elevated(),
+                        // The card surface in light mode: bg_elevated is a
+                        // mid-grey there and made every answer look disabled.
+                        if theme::is_dark_mode() {
+                            theme::bg_elevated()
+                        } else {
+                            theme::bg_secondary()
+                        },
                         theme::text_primary(),
                         icons::ROBOT,
                         theme::AI,

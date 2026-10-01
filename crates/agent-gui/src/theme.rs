@@ -343,7 +343,9 @@ pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(3, 4, 9) // #030409
     } else {
-        Color32::from_rgb(232, 236, 240) // #E8ECF0
+        // A hair under the card surface: at #E8ECF0 an inset panel was
+        // darker than the page behind its own card and read as disabled.
+        Color32::from_rgb(244, 246, 249) // #F4F6F9
     }
 }
 

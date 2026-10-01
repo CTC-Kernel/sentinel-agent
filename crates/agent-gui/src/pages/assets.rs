@@ -331,7 +331,7 @@ impl AssetsPage {
                 &[
                     table::Col::fluid(140.0, 2.0), // Nom
                     table::Col::fluid(110.0, 1.0), // IP
-                    table::Col::fluid(80.0, 0.5),  // Type
+                    table::Col::fluid(116.0, 0.5), // Type: "Poste de travail" whole
                     table::Col::fluid(96.0, 0.0),  // Criticité
                     table::Col::fluid(140.0, 0.0), // Cycle de vie: "DÉCOMMISSIONNÉ" whole
                     table::Col::fixed(96.0),       // Score: bar and value

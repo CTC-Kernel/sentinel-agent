@@ -704,7 +704,7 @@ impl NetworkPage {
                         table::Col::fluid(64.0, 0.0),  // Proto
                         table::Col::fluid(150.0, 1.5), // Local
                         table::Col::fluid(150.0, 1.5), // Distant
-                        table::Col::fluid(104.0, 0.0), // État
+                        table::Col::fluid(136.0, 0.0), // État: "EN FERMETURE" whole
                         table::Col::fluid(120.0, 2.0), // Processus
                     ],
                 )

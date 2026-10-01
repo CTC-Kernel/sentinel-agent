@@ -228,10 +228,25 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
             color,
         );
 
-        // Title
-        let title_pos = egui::pos2(rect.left() + theme::SPACE_XL, rect.center().y - 6.0);
-        painter.text(
-            title_pos,
+        // Timestamp first: the title is clipped to what is left of the row.
+        let time_text = crate::format::ago(chrono::Utc::now(), event.timestamp);
+        let time = painter.text(
+            egui::pos2(rect.right() - theme::SPACE_SM, rect.center().y),
+            egui::Align2::RIGHT_CENTER,
+            &time_text,
+            theme::font_label(),
+            theme::text_tertiary(),
+        );
+        let text_clip = egui::Rect::from_min_max(
+            egui::pos2(rect.left() + theme::SPACE_XL, rect.top()),
+            egui::pos2(time.left() - theme::SPACE_SM, rect.bottom()),
+        );
+        let text = painter.with_clip_rect(text_clip);
+
+        // Title: clipped by the room in the row. A fixed 40-character cut
+        // dropped the end of most messages with a third of the row free.
+        text.text(
+            egui::pos2(text_clip.left(), rect.center().y - 6.0),
             egui::Align2::LEFT_CENTER,
             &event.title,
             theme::font_min(),
@@ -240,37 +255,14 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
 
         // Detail (if any)
         if let Some(ref detail) = event.detail {
-            let detail_pos = egui::pos2(
-                rect.left() + theme::SPACE_XL,
-                rect.center().y + theme::SPACE_SM,
-            );
-            painter.text(
-                detail_pos,
+            text.text(
+                egui::pos2(text_clip.left(), rect.center().y + theme::SPACE_SM),
                 egui::Align2::LEFT_CENTER,
-                detail,
+                source_label(detail),
                 theme::font_label(),
                 theme::text_tertiary(),
             );
         }
-
-        // Timestamp
-        let elapsed = chrono::Utc::now().signed_duration_since(event.timestamp);
-        let time_text = if elapsed.num_seconds() < 60 {
-            "à l'instant".to_string()
-        } else if elapsed.num_minutes() < 60 {
-            format!("{}m", elapsed.num_minutes())
-        } else {
-            format!("{}h", elapsed.num_hours())
-        };
-
-        let time_pos = egui::pos2(rect.right() - theme::SPACE_SM, rect.center().y);
-        painter.text(
-            time_pos,
-            egui::Align2::RIGHT_CENTER,
-            &time_text,
-            theme::font_label(),
-            theme::text_tertiary(),
-        );
     }
 }
 
@@ -287,7 +279,7 @@ fn build_events_from_state(state: &AppState) -> Vec<ActivityEvent> {
 
         events.push(ActivityEvent {
             event_type,
-            title: truncate_string(&log.message, 40),
+            title: log.message.clone(),
             detail: log.source.clone(),
             timestamp: log.timestamp,
         });
@@ -317,12 +309,21 @@ fn build_events_from_state(state: &AppState) -> Vec<ActivityEvent> {
     events
 }
 
-fn truncate_string(s: &str, max_len: usize) -> String {
-    if s.chars().count() <= max_len {
-        s.to_string()
-    } else {
-        let truncated: String = s.chars().take(max_len.saturating_sub(3)).collect();
-        format!("{}…", truncated)
+/// French name of the agent module a log line comes from; anything else
+/// (a sync message, a free-text source) is shown as is.
+fn source_label(source: &str) -> &str {
+    match source {
+        "scanner" => "Analyse",
+        "firewall" => "Pare-feu",
+        "backup" => "Sauvegarde",
+        "sync" => "Synchronisation",
+        "edr" => "EDR",
+        "fim" => "Intégrité des fichiers",
+        "vuln" => "Vulnérabilités",
+        "network" => "Réseau",
+        "auth" => "Authentification",
+        "system" => "Système",
+        _ => source,
     }
 }
 
