@@ -667,26 +667,26 @@ impl SettingsPage {
             if state.summary.standalone {
                 Self::setting_row(
                     ui,
-                    "MODE",
+                    "Mode",
                     "Autonome \u{00b7} protection locale",
                     icons::SHIELD_CHECK,
                     false,
                 );
-                Self::setting_row(ui, "PLATEFORME", "Aucune", icons::LINK, false);
+                Self::setting_row(ui, "Plateforme", "Aucune", icons::LINK, false);
                 return;
             }
             Self::setting_row(
                 ui,
-                "ENDPOINT",
+                "Adresse du serveur",
                 &state.settings.server_url,
                 icons::LINK,
                 true,
             );
             if let Some(ref id) = state.summary.agent_id {
-                Self::setting_row(ui, "ID AGENT", id, icons::FINGERPRINT, true);
+                Self::setting_row(ui, "Identifiant de l'agent", id, icons::FINGERPRINT, true);
             }
             if let Some(ref org) = state.summary.organization {
-                Self::setting_row(ui, "ORGANISATION", org, icons::BUILDING, false);
+                Self::setting_row(ui, "Organisation", org, icons::BUILDING, false);
             }
         });
     }
@@ -704,7 +704,7 @@ impl SettingsPage {
 
             Self::setting_row(
                 ui,
-                "INTERVALLE SCAN",
+                "Fréquence d'analyse",
                 &crate::format::interval(state.settings.check_interval_secs),
                 icons::CLOCK,
                 false,
@@ -712,7 +712,7 @@ impl SettingsPage {
             if !state.summary.standalone {
                 Self::setting_row(
                     ui,
-                    "HEARTBEAT",
+                    "Signal de vie",
                     &crate::format::interval(state.settings.heartbeat_interval_secs),
                     icons::BOLT,
                     false,
@@ -976,7 +976,7 @@ impl SettingsPage {
                 // Locked State
                 ui.horizontal(|ui| {
                     ui.label(
-                        egui::RichText::new(format!("{}  MODE VERROUILLÉ", icons::LOCK))
+                        egui::RichText::new(format!("{}  Mode verrouillé", icons::LOCK))
                             .font(theme::font_body())
                             .color(theme::text_secondary()),
                     );
@@ -1055,30 +1055,60 @@ impl SettingsPage {
     /// A labelled read-only value. Only identifiers worth pasting elsewhere
     /// (endpoint, agent id) get a copy button; intervals do not.
     fn setting_row(ui: &mut Ui, label: &str, value: &str, icon: &str, copyable: bool) {
-        ui.vertical(|ui| {
-            ui.horizontal(|ui| {
-                ui.label(egui::RichText::new(icon).color(theme::accent_text()));
-                ui.label(
-                    egui::RichText::new(label)
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
-                );
-                if copyable {
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        widgets::copy_button(ui, value, Some("Copier la valeur"));
-                    });
-                }
-            });
-            ui.add(
-                egui::Label::new(
-                    egui::RichText::new(value)
-                        .font(theme::font_mono_sm())
-                        .color(theme::text_primary()),
-                )
-                .wrap()
-                .selectable(true),
+        // One row: icon and label in a fixed column, value beside it, copy
+        // button at the edge. Stacked, each pair took 60px of mostly air.
+        ui.horizontal(|ui| {
+            ui.set_min_height(theme::MIN_TOUCH_TARGET);
+            ui.allocate_ui_with_layout(
+                egui::vec2(190.0, theme::MIN_TOUCH_TARGET),
+                egui::Layout::left_to_right(egui::Align::Center),
+                |ui| {
+                    ui.set_width(190.0);
+                    ui.label(
+                        egui::RichText::new(icon)
+                            .size(theme::ICON_XS)
+                            .color(theme::accent_text()),
+                    );
+                    ui.label(
+                        egui::RichText::new(label)
+                            .font(theme::font_body())
+                            .color(theme::text_secondary()),
+                    );
+                },
             );
-            ui.add_space(theme::SPACE_SM);
+            let copy_w = if copyable {
+                theme::MIN_TOUCH_TARGET + theme::SPACE_SM
+            } else {
+                0.0
+            };
+            // Gaps included: a row a few pixels too wide stretched the card
+            // past the page edge.
+            let value_w =
+                (ui.available_width() - copy_w - ui.spacing().item_spacing.x * 2.0).max(60.0);
+            ui.allocate_ui_with_layout(
+                egui::vec2(value_w, theme::MIN_TOUCH_TARGET),
+                egui::Layout::left_to_right(egui::Align::Center),
+                |ui| {
+                    ui.set_width(value_w);
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new(value)
+                                .font(if copyable {
+                                    theme::font_mono()
+                                } else {
+                                    theme::font_body_medium()
+                                })
+                                .color(theme::text_primary()),
+                        )
+                        .truncate()
+                        .selectable(true),
+                    )
+                    .on_hover_text(value);
+                },
+            );
+            if copyable {
+                widgets::copy_button(ui, value, Some("Copier la valeur"));
+            }
         });
     }
 
@@ -1098,25 +1128,14 @@ impl SettingsPage {
             // Toggle SIEM on/off
             ui.horizontal(|ui: &mut egui::Ui| {
                 let (status_label, status_color) = if state.settings.siem_enabled {
-                    (
-                        format!("{}  TRANSFERT ACTIF", icons::CIRCLE_CHECK),
-                        theme::readable_color(theme::SUCCESS),
-                    )
+                    ("Transfert actif", theme::SUCCESS)
                 } else {
-                    (
-                        format!("{}  TRANSFERT INACTIF", icons::WARNING),
-                        theme::readable_color(theme::WARNING),
-                    )
+                    ("Transfert inactif", theme::text_tertiary())
                 };
-                ui.label(
-                    egui::RichText::new(status_label)
-                        .font(theme::font_body())
-                        .color(status_color)
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_MD);
                 let prev = state.settings.siem_enabled;
                 widgets::toggle_switch_labeled(ui, &mut state.settings.siem_enabled, "Export SIEM");
+                ui.add_space(theme::SPACE_SM);
+                widgets::status_badge(ui, status_label, status_color);
                 if state.settings.siem_enabled != prev {
                     command = Some(GuiCommand::UpdateSiemConfig {
                         enabled: state.settings.siem_enabled,
@@ -1244,29 +1263,18 @@ impl SettingsPage {
             // Toggle collector on/off
             ui.horizontal(|ui: &mut egui::Ui| {
                 let (status_label, status_color) = if state.settings.log_collector_enabled {
-                    (
-                        format!("{}  COLLECTE ACTIVE", icons::CIRCLE_CHECK),
-                        theme::readable_color(theme::SUCCESS),
-                    )
+                    ("Collecte active", theme::SUCCESS)
                 } else {
-                    (
-                        format!("{}  COLLECTE INACTIVE", icons::WARNING),
-                        theme::readable_color(theme::WARNING),
-                    )
+                    ("Collecte inactive", theme::text_tertiary())
                 };
-                ui.label(
-                    egui::RichText::new(status_label)
-                        .font(theme::font_body())
-                        .color(status_color)
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_MD);
                 let prev = state.settings.log_collector_enabled;
                 widgets::toggle_switch_labeled(
                     ui,
                     &mut state.settings.log_collector_enabled,
                     "Collecte des journaux",
                 );
+                ui.add_space(theme::SPACE_SM);
+                widgets::status_badge(ui, status_label, status_color);
                 if state.settings.log_collector_enabled != prev {
                     command = Some(GuiCommand::UpdateLogCollectorConfig {
                         enabled: state.settings.log_collector_enabled,
@@ -1333,51 +1341,66 @@ impl SettingsPage {
                 ui.add_space(theme::SPACE_MD);
 
                 // Polling interval
-                ui.label(
-                    egui::RichText::new("INTERVALLE DE COLLECTE")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_TIGHT)
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_XS);
-
+                // Caption with the current value beside it; bounds under
+                // the track ends. It read "10s … 300s" at two heights, then
+                // "INTERVALLE ACTUEL : 60 SECONDES".
                 let mut poll_secs = state.settings.log_collector_poll_secs as f32;
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new("10s")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary()),
-                    );
-                    let changed = widgets::Slider::new(10.0, 300.0)
-                        .step(10.0)
-                        .style(widgets::SliderStyle::Stepped)
-                        .show_ticks()
-                        .hide_value()
-                        .show(ui, &mut poll_secs);
-                    if changed {
-                        state.settings.log_collector_poll_secs = poll_secs as u64;
-                        command = Some(GuiCommand::UpdateLogCollectorConfig {
-                            enabled: state.settings.log_collector_enabled,
-                            sources: state.settings.log_collector_sources.clone(),
-                            poll_interval_secs: state.settings.log_collector_poll_secs,
+                let slider_width = ui.available_width().min(420.0);
+                ui.allocate_ui_with_layout(
+                    egui::vec2(slider_width, 0.0),
+                    egui::Layout::left_to_right(egui::Align::Center),
+                    |ui| {
+                        ui.set_width(slider_width);
+                        ui.label(
+                            egui::RichText::new("INTERVALLE DE COLLECTE")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .extra_letter_spacing(theme::TRACKING_TIGHT)
+                                .strong(),
+                        );
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.label(
+                                egui::RichText::new(crate::format::interval(
+                                    state.settings.log_collector_poll_secs,
+                                ))
+                                .font(theme::font_body_strong())
+                                .color(theme::accent_text()),
+                            );
                         });
-                    }
-                    ui.label(
-                        egui::RichText::new("300s")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary()),
-                    );
-                });
-                ui.add_space(theme::SPACE_XS);
-                ui.label(
-                    egui::RichText::new(format!(
-                        "INTERVALLE ACTUEL : {} SECONDES",
-                        state.settings.log_collector_poll_secs,
-                    ))
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .strong(),
+                    },
+                );
+                let changed = widgets::Slider::new(10.0, 300.0)
+                    .step(10.0)
+                    .style(widgets::SliderStyle::Stepped)
+                    .hide_value()
+                    .width(slider_width)
+                    .show(ui, &mut poll_secs);
+                if changed {
+                    state.settings.log_collector_poll_secs = poll_secs as u64;
+                    command = Some(GuiCommand::UpdateLogCollectorConfig {
+                        enabled: state.settings.log_collector_enabled,
+                        sources: state.settings.log_collector_sources.clone(),
+                        poll_interval_secs: state.settings.log_collector_poll_secs,
+                    });
+                }
+                ui.allocate_ui_with_layout(
+                    egui::vec2(slider_width, 0.0),
+                    egui::Layout::left_to_right(egui::Align::Center),
+                    |ui| {
+                        ui.set_width(slider_width);
+                        ui.label(
+                            egui::RichText::new("10 s")
+                                .font(theme::font_caption())
+                                .color(theme::text_tertiary()),
+                        );
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.label(
+                                egui::RichText::new("5 min")
+                                    .font(theme::font_caption())
+                                    .color(theme::text_tertiary()),
+                            );
+                        });
+                    },
                 );
             } else {
                 ui.label(
