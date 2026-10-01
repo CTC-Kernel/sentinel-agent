@@ -115,8 +115,11 @@ fn draw_premium_button(
             // Smooth hover animation for primary button
 
             // Primary: Filled Accent
+            // Disabled: a neutral surface, not the accent at half strength.
+            // Faded violet under faded white text was about 2:1 on a light
+            // page, and still looked like something to click.
             let fill = if !enabled && !loading {
-                theme::ACCENT.linear_multiply(theme::OPACITY_DISABLED)
+                theme::bg_tertiary()
             } else if is_clicked {
                 theme::ACCENT_PRESSED
             } else {
@@ -124,11 +127,15 @@ fn draw_premium_button(
             };
             (
                 fill,
-                Stroke::NONE,
+                if enabled || loading {
+                    Stroke::NONE
+                } else {
+                    Stroke::new(theme::BORDER_THIN, theme::border())
+                },
                 if enabled || loading {
                     theme::text_on_accent()
                 } else {
-                    theme::text_on_accent().linear_multiply(theme::OPACITY_MEDIUM)
+                    theme::text_tertiary()
                 },
             )
         } else {

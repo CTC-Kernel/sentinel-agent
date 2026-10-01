@@ -765,7 +765,7 @@ impl DashboardPage {
                                     && state.policy.errors == 0
                                     && state.policy.pending == 0
                                 {
-                                    theme::SUCCESS
+                                    theme::readable_color(theme::SUCCESS)
                                 } else {
                                     theme::text_primary()
                                 },
@@ -825,7 +825,7 @@ impl DashboardPage {
                     ui.label(
                         egui::RichText::new(format!("{}", vuln.critical))
                             .font(theme::font_card_value())
-                            .color(critical_color)
+                            .color(theme::readable_color(critical_color))
                             .strong(),
                     );
                     ui.label(
@@ -904,7 +904,7 @@ impl DashboardPage {
                 ui.label(
                     egui::RichText::new(format!("{}", total))
                         .font(theme::font_card_value())
-                        .color(color)
+                        .color(theme::readable_color(color))
                         .strong(),
                 );
                 ui.label(
@@ -918,7 +918,7 @@ impl DashboardPage {
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_label())
-                    .color(color),
+                    .color(theme::readable_color(color)),
             );
         })
         .clicked()
@@ -970,7 +970,7 @@ impl DashboardPage {
                     crate::format::count(changes, "modification")
                 ))
                 .font(theme::font_label())
-                .color(color),
+                .color(theme::readable_color(color)),
             );
         })
         .clicked()
@@ -1005,7 +1005,7 @@ impl DashboardPage {
                 ui.label(
                     egui::RichText::new(format!("{}", alerts))
                         .font(theme::font_card_value())
-                        .color(color)
+                        .color(theme::readable_color(color))
                         .strong(),
                 );
                 ui.label(
@@ -1089,7 +1089,7 @@ impl DashboardPage {
                     ui.label(
                         egui::RichText::new(crate::format::pct(coverage, 0))
                             .font(theme::font_card_value())
-                            .color(color)
+                            .color(theme::readable_color(color))
                             .strong(),
                     );
                     ui.label(
@@ -1330,13 +1330,13 @@ impl DashboardPage {
                                                         current_sla
                                                     ))
                                                     .font(theme::font_card_value())
-                                                    .color(sla_color)
+                                                    .color(theme::readable_color(sla_color))
                                                     .strong(),
                                                 );
                                                 ui.label(
                                                     egui::RichText::new(arrow)
                                                         .font(theme::font_body())
-                                                        .color(color),
+                                                        .color(theme::readable_color(color)),
                                                 );
                                             });
                                             ui.add_space(theme::SPACE_XS);
@@ -1484,7 +1484,7 @@ impl DashboardPage {
             ui.label(
                 egui::RichText::new(value)
                     .font(theme::font_body())
-                    .color(color)
+                    .color(theme::readable_color(color))
                     .strong(),
             );
             ui.label(
