@@ -6,7 +6,6 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -31,30 +30,6 @@ impl SoftwarePage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
-
-        // Action bar (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-            if widgets::button::primary_button_loading(
-                ui,
-                format!(
-                    "{}  {}",
-                    icons::PLAY,
-                    if is_scanning {
-                        "Analyse en cours"
-                    } else {
-                        "Actualiser l'inventaire"
-                    }
-                ),
-                !is_scanning,
-                is_scanning,
-            )
-            .clicked()
-            {
-                command = Some(GuiCommand::RunCheck);
-            }
-        });
-        ui.add_space(theme::SPACE_MD);
 
         // Tab bar — the Applications tab exists on macOS and Windows only,
         // and a bar with one tab is a label pretending to be a control.
@@ -492,7 +467,7 @@ impl SoftwarePage {
                         });
                         row.col(|ui: &mut egui::Ui| match pkg.publisher.as_deref() {
                             Some(publisher) if !publisher.is_empty() => {
-                                table::cell_muted(ui, &publisher.to_uppercase());
+                                table::cell_muted(ui, publisher);
                             }
                             _ => {
                                 table::cell_empty(ui);
@@ -643,30 +618,32 @@ impl SoftwarePage {
             ("Windows", "Program Files")
         };
 
-        let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
-        let items = vec![
-            (
-                "APPLICATIONS UTILISATEUR",
-                total.to_string(),
-                theme::ACCENT,
-                icons::CUBE,
-            ),
-            (
-                "SYSTÈME EXPLOITATION",
-                os_label.to_string(),
-                theme::text_secondary(),
-                icons::SETTINGS,
-            ),
-            (
-                "PÉRIMÈTRE D'AUDIT",
-                audit_scope.to_string(),
-                theme::text_secondary(),
-                icons::DATABASE,
-            ),
-        ];
-
-        card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
-            Self::summary_card(ui, width, label, value, *color, icon);
+        // One context strip: the system and the audited folder are facts
+        // about the inventory, not metrics, and read oddly as giant figures.
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.label(
+                    egui::RichText::new(crate::format::int(total))
+                        .font(theme::font_h2())
+                        .color(theme::accent_text()),
+                );
+                ui.label(
+                    egui::RichText::new(if total > 1 {
+                        "applications installées"
+                    } else {
+                        "application installée"
+                    })
+                    .font(theme::font_body())
+                    .color(theme::text_secondary()),
+                );
+                ui.add_space(theme::SPACE_MD);
+                widgets::status_badge(ui, &format!("{}  {os_label}", icons::DESKTOP), theme::INFO);
+                widgets::status_badge(
+                    ui,
+                    &format!("{}  {audit_scope}", icons::DATABASE),
+                    theme::ACCENT,
+                );
+            });
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -746,7 +723,7 @@ impl SoftwarePage {
                 )
                 .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
                     header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "POINT D'ENTR\u{00c9}E");
+                        table::header_cell(ui, "APPLICATION");
                     });
                     header.col(|ui: &mut egui::Ui| {
                         table::header_cell(ui, "VERSION");
@@ -762,7 +739,7 @@ impl SoftwarePage {
                         );
                     });
                     header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "CERTIFICAT D'\u{00c9}DITEUR");
+                        table::header_cell(ui, "\u{00c9}DITEUR");
                     });
                     header.col(|_ui: &mut egui::Ui| {}); // Actions
                 })
@@ -798,7 +775,7 @@ impl SoftwarePage {
                             if app.publisher.is_empty() {
                                 table::cell_empty(ui);
                             } else {
-                                table::cell_muted(ui, &app.publisher.to_uppercase());
+                                table::cell_muted(ui, &app.publisher);
                             }
                         });
                         row.col(|ui: &mut egui::Ui| {

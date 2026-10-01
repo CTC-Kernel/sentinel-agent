@@ -291,6 +291,26 @@ pub fn cell_link(ui: &mut Ui, text: &str) -> Response {
     response
 }
 
+/// A clickable name in the reading font. [`cell_link`] is monospace, which
+/// suits identifiers (CVE ids, hostnames) but made sentences such as a
+/// control or report title look like code.
+pub fn cell_link_text(ui: &mut Ui, text: &str) -> Response {
+    let font = theme::font_body_medium();
+    let response = truncated(
+        ui,
+        RichText::new(text)
+            .font(font.clone())
+            .color(theme::accent_text()),
+        text,
+        &font,
+    )
+    .interact(egui::Sense::click());
+    if response.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    response
+}
+
 /// A clickable identifier over a muted secondary line: a CVE id over its
 /// discovery date, a hostname over its address. Needs a data row.
 pub fn cell_link_stack(ui: &mut Ui, primary: &str, secondary: &str) -> Response {

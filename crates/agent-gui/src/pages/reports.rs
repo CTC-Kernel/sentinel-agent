@@ -458,7 +458,7 @@ impl ReportsPage {
                         });
 
                         row.col(|ui| {
-                            if table::cell_link(ui, &report.title).clicked() {
+                            if table::cell_link_text(ui, &report.title).clicked() {
                                 clicked_idx = Some(*real_idx);
                             }
                         });

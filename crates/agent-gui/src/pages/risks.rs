@@ -666,7 +666,7 @@ impl RisksPage {
                     let (status_label, status_color) = Self::status_display(&risk.status);
 
                     row.col(|ui| {
-                        if table::cell_link(ui, &risk.title).clicked() {
+                        if table::cell_link_text(ui, &risk.title).clicked() {
                             clicked_idx = Some(real_idx);
                         }
                     });
