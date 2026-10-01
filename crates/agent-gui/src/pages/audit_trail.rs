@@ -91,17 +91,17 @@ impl AuditTrailPage {
             "Rechercher un événement…",
         )
         .chip(
-            "INFO",
+            "Info",
             state.audit_trail_filter.as_deref() == Some("info"),
             theme::INFO,
         )
         .chip(
-            "WARN",
+            "Avertissement",
             state.audit_trail_filter.as_deref() == Some("warn"),
             theme::WARNING,
         )
         .chip(
-            "ERROR",
+            "Erreur",
             state.audit_trail_filter.as_deref() == Some("error"),
             theme::ERROR,
         )
@@ -323,8 +323,8 @@ impl AuditTrailPage {
 
                 row.col(|ui| {
                     let (level_upper, color) = match log.level.to_lowercase().as_str() {
-                        "error" | "critical" => ("ERROR", theme::ERROR),
-                        "warn" | "warning" => ("WARN", theme::WARNING),
+                        "error" | "critical" => ("ERREUR", theme::ERROR),
+                        "warn" | "warning" => ("AVERTISSEMENT", theme::WARNING),
                         _ => ("INFO", theme::INFO),
                     };
                     widgets::status_badge(ui, level_upper, color);

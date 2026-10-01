@@ -327,7 +327,7 @@ impl TerminalPage {
                         let Some(&(original_idx, entry)) = filtered.get(row.index()) else {
                             return;
                         };
-                        let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
+                        let ts = entry.timestamp.format("%H:%M:%S").to_string();
                         let color = level_color(&entry.level);
                         let target_short = shorten_target(&entry.target);
                         let is_selected = selected == Some(original_idx);

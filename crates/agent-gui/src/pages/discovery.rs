@@ -50,7 +50,9 @@ impl DiscoveryPage {
                     // Disabled button for non-admin users
                     widgets::primary_button(
                         ui,
-                        format!("{}  Lancer la découverte", icons::LOCK),
+                        // Disabled until the admin unlock: say so in words, keep the
+                        // run icon (a lock read as the action itself).
+                        format!("{}  Lancer la découverte · admin", icons::PLAY),
                         false,
                     )
                 };

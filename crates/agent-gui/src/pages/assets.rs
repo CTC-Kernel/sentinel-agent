@@ -333,8 +333,8 @@ impl AssetsPage {
                     table::Col::fluid(110.0, 1.0), // IP
                     table::Col::fluid(80.0, 0.5),  // Type
                     table::Col::fluid(96.0, 0.0),  // Criticité
-                    table::Col::fluid(110.0, 0.0), // Cycle de vie
-                    table::Col::fixed(76.0),       // Score
+                    table::Col::fluid(140.0, 0.0), // Cycle de vie: "DÉCOMMISSIONNÉ" whole
+                    table::Col::fixed(96.0),       // Score: bar and value
                     table::Col::fluid(110.0, 1.0), // Dernière vue
                 ],
             )
@@ -410,13 +410,12 @@ impl AssetsPage {
                         // (score_color treats ≥85 as green/good).
                         // A risk_score of 10 (max) → score_pct=100 → we want red.
                         // score_color(100 - 100) = score_color(0) = ERROR ✓
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            table::cell_colored(
-                                ui,
-                                &crate::format::decimal(asset.risk_score, 1),
-                                theme::readable_color(theme::score_color(100.0 - score_pct)),
-                            );
-                        });
+                        table::cell_score_bar(
+                            ui,
+                            &crate::format::decimal(asset.risk_score, 1),
+                            score_pct / 100.0,
+                            theme::readable_color(theme::score_color(100.0 - score_pct)),
+                        );
                     });
 
                     row.col(|ui| {

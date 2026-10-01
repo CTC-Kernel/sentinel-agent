@@ -142,10 +142,10 @@ impl AboutPage {
                 ui,
                 "Syst\u{00e8}me",
                 &format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
-                icons::ARROW_RIGHT,
+                icons::DESKTOP,
             );
-            Self::info_row(ui, "Moteur", "Rust v1.85+", icons::ARROW_RIGHT);
-            Self::info_row(ui, "Version", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
+            Self::info_row(ui, "Moteur", "Rust v1.85+", icons::MICROCHIP);
+            Self::info_row(ui, "Version", env!("CARGO_PKG_VERSION"), icons::TAG);
         });
     }
 
@@ -160,13 +160,13 @@ impl AboutPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
-            Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
+            Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::GLOBE);
+            Self::link_row(ui, "Documentation", branding::GUIDE, icons::BOOK);
             Self::link_row(
                 ui,
                 "Assistance",
                 &format!("mailto:{}", branding::EMAIL),
-                icons::ARROW_RIGHT,
+                icons::ENVELOPE,
             );
         });
     }
@@ -176,7 +176,7 @@ impl AboutPage {
             ui.set_min_height(INFO_ROW_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new(icon)
-                    .color(theme::text_tertiary())
+                    .color(theme::accent_text())
                     .strong(),
             );
             ui.add_space(theme::SPACE_XS);
@@ -204,7 +204,7 @@ impl AboutPage {
             ui.set_min_height(INFO_ROW_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new(icon)
-                    .color(theme::text_tertiary())
+                    .color(theme::accent_text())
                     .strong(),
             );
             ui.add_space(theme::SPACE_XS);

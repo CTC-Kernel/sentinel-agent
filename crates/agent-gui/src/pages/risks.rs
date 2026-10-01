@@ -119,7 +119,7 @@ impl RisksPage {
             if state.security.admin_unlocked {
                 if widgets::primary_button(
                     ui,
-                    format!("{}  Auto-populer", icons::WAND_SPARKLES),
+                    format!("{}  Générer automatiquement", icons::WAND_SPARKLES),
                     true,
                 )
                 .clicked()
@@ -143,7 +143,11 @@ impl RisksPage {
                     );
                 }
             } else {
-                widgets::primary_button(ui, format!("{}  Auto-populer", icons::LOCK), false);
+                widgets::primary_button(
+                    ui,
+                    format!("{}  Générer automatiquement · admin", icons::WAND_SPARKLES),
+                    false,
+                );
             }
 
             ui.add_space(theme::SPACE_SM);
@@ -268,7 +272,7 @@ impl RisksPage {
                             icons::SCALE_BALANCED,
                             "Aucun risque enregistr\u{00e9}",
                             Some(
-                                "Utilisez \u{00ab} Auto-populer \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement.",
+                                "Utilisez \u{00ab} G\u{00e9}n\u{00e9}rer automatiquement \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement.",
                             ),
                         );
                     }
@@ -617,7 +621,7 @@ impl RisksPage {
                     table::Col::fixed(56.0),       // Prob.
                     table::Col::fixed(60.0),       // Impact
                     table::Col::fixed(56.0),       // Score
-                    table::Col::fluid(96.0, 0.0),  // Statut
+                    table::Col::fluid(124.0, 0.0), // Statut: "ATTÉNUATION" whole
                     table::Col::fluid(120.0, 1.0), // Propriétaire
                     table::Col::fluid(90.0, 0.5),  // Date
                 ],

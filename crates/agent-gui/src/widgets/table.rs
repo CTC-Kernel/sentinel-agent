@@ -220,6 +220,26 @@ pub fn cell_number(ui: &mut Ui, text: &str) -> Response {
 }
 
 /// The placeholder for a value the row does not have.
+/// A score as a short bar and its value, so a column of scores reads as a
+/// ranking at a glance. `fraction` is 0..=1.
+pub fn cell_score_bar(ui: &mut Ui, value: &str, fraction: f32, color: Color32) -> Response {
+    ui.horizontal(|ui| {
+        let (rect, _) = ui.allocate_exact_size(egui::vec2(36.0, 6.0), egui::Sense::hover());
+        let radius = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+        ui.painter().rect_filled(rect, radius, theme::bg_tertiary());
+        ui.painter().rect_filled(
+            egui::Rect::from_min_size(
+                rect.min,
+                egui::vec2(rect.width() * fraction.clamp(0.0, 1.0), rect.height()),
+            ),
+            radius,
+            color,
+        );
+        cell_colored(ui, value, color)
+    })
+    .inner
+}
+
 pub fn cell_empty(ui: &mut Ui) -> Response {
     cell_styled(ui, "—", theme::font_body(), theme::text_tertiary())
 }

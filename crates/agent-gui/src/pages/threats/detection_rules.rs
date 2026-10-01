@@ -125,7 +125,20 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 let conds = rule
                     .conditions
                     .iter()
-                    .map(|c| format!("{}: {}", c.condition_type.label_fr(), c.value))
+                    .map(|c| {
+                        // Severity values are stored as enum keys ("critical").
+                        let value = match (
+                            c.condition_type == crate::dto::DetectionConditionType::SeverityLevel,
+                            c.value.as_str(),
+                        ) {
+                            (true, "critical") => "critique",
+                            (true, "high") => "élevée",
+                            (true, "medium") => "moyenne",
+                            (true, "low") => "faible",
+                            _ => c.value.as_str(),
+                        };
+                        format!("{} : {}", c.condition_type.label_fr(), value)
+                    })
                     .collect::<Vec<_>>()
                     .join(", ");
                 let matches_str = format!(

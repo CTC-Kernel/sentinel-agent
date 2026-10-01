@@ -29,8 +29,6 @@ impl NetworkPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
-        crate::pages::security_navigation(ui, state);
-        ui.add_space(theme::SPACE_MD);
 
         if state.network.interfaces.is_empty() && state.network.connections.is_empty() {
             ui.add_space(theme::SPACE_LG);
@@ -181,9 +179,9 @@ impl NetworkPage {
 
                     ui.horizontal(|ui: &mut egui::Ui| {
                         let states: &[(&str, usize, egui::Color32)] = &[
-                            ("ESTABLISHED", established, theme::SUCCESS),
-                            ("LISTEN", listen, theme::INFO),
-                            ("TIME_WAIT", time_wait, theme::WARNING),
+                            ("Établie", established, theme::SUCCESS),
+                            ("En écoute", listen, theme::INFO),
+                            ("En fermeture", time_wait, theme::WARNING),
                             ("AUTRES", other_state, theme::text_tertiary()),
                         ];
                         for (label, count, color) in states {
@@ -298,9 +296,9 @@ impl NetworkPage {
                 if sel < state.network.connections.len() {
                     let conn = state.network.connections[sel].clone();
                     let (state_label, state_color) = match conn.state.as_str() {
-                        "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
-                        "LISTEN" => ("LISTEN", theme::INFO),
-                        "CLOSE_WAIT" | "TIME_WAIT" => (conn.state.as_str(), theme::WARNING),
+                        "ESTABLISHED" => ("ÉTABLIE", theme::SUCCESS),
+                        "LISTEN" => ("EN ÉCOUTE", theme::INFO),
+                        "CLOSE_WAIT" | "TIME_WAIT" => ("EN FERMETURE", theme::WARNING),
                         _ => (conn.state.as_str(), theme::WARNING),
                     };
                     let title = format!("{}:{}", conn.local_address, conn.local_port);
@@ -892,9 +890,9 @@ impl NetworkPage {
                                 return;
                             }
                             let (label, color) = match conn.state.as_str() {
-                                "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
-                                "LISTEN" => ("LISTEN", theme::INFO),
-                                "CLOSE_WAIT" | "TIME_WAIT" => ("CLOSED", theme::WARNING),
+                                "ESTABLISHED" => ("ÉTABLIE", theme::SUCCESS),
+                                "LISTEN" => ("EN ÉCOUTE", theme::INFO),
+                                "CLOSE_WAIT" | "TIME_WAIT" => ("EN FERMETURE", theme::WARNING),
                                 _ => (conn.state.as_str(), theme::WARNING),
                             };
                             widgets::status_badge(ui, label, color);

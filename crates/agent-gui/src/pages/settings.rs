@@ -92,8 +92,6 @@ impl SettingsPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
-        crate::pages::security_navigation(ui, state);
-        ui.add_space(theme::SPACE_MD);
 
         widgets::tabs(
             ui,
@@ -471,7 +469,7 @@ impl SettingsPage {
                     (
                         "Mode sombre",
                         icons::MOON,
-                        "Interface optimisée pour faible luminosité avec sous-tons navy.",
+                        "Interface optimisée pour faible luminosité avec sous-tons bleu nuit.",
                     )
                 } else {
                     (
@@ -650,21 +648,23 @@ impl SettingsPage {
                     "MODE",
                     "Autonome \u{00b7} protection locale",
                     icons::SHIELD_CHECK,
+                    false,
                 );
-                Self::setting_row(ui, "PLATEFORME", "Aucune", icons::ARROW_RIGHT);
+                Self::setting_row(ui, "PLATEFORME", "Aucune", icons::LINK, false);
                 return;
             }
             Self::setting_row(
                 ui,
                 "ENDPOINT",
                 &state.settings.server_url,
-                icons::ARROW_RIGHT,
+                icons::LINK,
+                true,
             );
             if let Some(ref id) = state.summary.agent_id {
-                Self::setting_row(ui, "ID AGENT", id, icons::ARROW_RIGHT);
+                Self::setting_row(ui, "ID AGENT", id, icons::FINGERPRINT, true);
             }
             if let Some(ref org) = state.summary.organization {
-                Self::setting_row(ui, "ORGANISATION", org, icons::ARROW_RIGHT);
+                Self::setting_row(ui, "ORGANISATION", org, icons::BUILDING, false);
             }
         });
     }
@@ -683,15 +683,17 @@ impl SettingsPage {
             Self::setting_row(
                 ui,
                 "INTERVALLE SCAN",
-                &format!("{} secondes", state.settings.check_interval_secs),
-                icons::ARROW_RIGHT,
+                &crate::format::duration_short(state.settings.check_interval_secs),
+                icons::CLOCK,
+                false,
             );
             if !state.summary.standalone {
                 Self::setting_row(
                     ui,
                     "HEARTBEAT",
-                    &format!("{} secondes", state.settings.heartbeat_interval_secs),
-                    icons::ARROW_RIGHT,
+                    &crate::format::duration_short(state.settings.heartbeat_interval_secs),
+                    icons::BOLT,
+                    false,
                 );
             }
         });
@@ -1028,18 +1030,22 @@ impl SettingsPage {
         });
     }
 
-    fn setting_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
+    /// A labelled read-only value. Only identifiers worth pasting elsewhere
+    /// (endpoint, agent id) get a copy button; intervals do not.
+    fn setting_row(ui: &mut Ui, label: &str, value: &str, icon: &str, copyable: bool) {
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
-                ui.label(egui::RichText::new(icon).color(theme::text_tertiary()));
+                ui.label(egui::RichText::new(icon).color(theme::accent_text()));
                 ui.label(
                     egui::RichText::new(label)
                         .font(theme::font_small())
                         .color(theme::text_secondary()),
                 );
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    widgets::copy_button(ui, value, Some("Copier la valeur"));
-                });
+                if copyable {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        widgets::copy_button(ui, value, Some("Copier la valeur"));
+                    });
+                }
             });
             ui.add(
                 egui::Label::new(

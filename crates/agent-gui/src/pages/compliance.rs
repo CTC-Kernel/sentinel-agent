@@ -1151,6 +1151,13 @@ impl CompliancePage {
             "certificate_management" => "CERTIFICATS".to_string(),
             "data_protection" => "PROTECTION DONNÉES".to_string(),
             "cloud_security" => "SÉCURITÉ CLOUD".to_string(),
+            // Short category names some collectors emit; they used to reach
+            // the table as English capitals ("PASSWORD", "ACCESS").
+            "password" | "passwords" => "MOTS DE PASSE".to_string(),
+            "access" => "ACCÈS".to_string(),
+            "logging" | "logs" => "JOURNALISATION".to_string(),
+            "network" => "RÉSEAU".to_string(),
+            "system" => "SYSTÈME".to_string(),
             _ => category.to_uppercase().replace('_', " "),
         }
     }
