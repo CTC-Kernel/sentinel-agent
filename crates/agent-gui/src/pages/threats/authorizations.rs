@@ -3,7 +3,7 @@ use crate::{
     app::AppState,
     dto::{AllowlistRule, AllowlistRuleType},
     events::GuiCommand,
-    theme, widgets,
+    icons, theme, widgets,
 };
 
 #[derive(Clone, Default)]
@@ -14,6 +14,8 @@ struct Editor {
     search: String,
     editing: Option<uuid::Uuid>,
     remove: Option<uuid::Uuid>,
+    /// The empty state's call to action: focus the target field next frame.
+    focus_target: bool,
 }
 const KINDS: [AllowlistRuleType; 5] = [
     AllowlistRuleType::IpAddress,
@@ -40,60 +42,76 @@ fn valid_pattern(kind: AllowlistRuleType, pattern: &str) -> bool {
             .is_ok_and(|n| n <= if ip.is_ipv4() { 32 } else { 128 })
 }
 
+fn kind_icon(kind: AllowlistRuleType) -> &'static str {
+    match kind {
+        AllowlistRuleType::IpAddress | AllowlistRuleType::Domain => icons::NETWORK,
+        AllowlistRuleType::ProcessPattern => icons::BUG,
+        AllowlistRuleType::FilePath => icons::FILE_SHIELD,
+        AllowlistRuleType::UsbDevice => icons::PLUG,
+        AllowlistRuleType::SystemIncident => icons::SHIELD,
+    }
+}
+
+fn section_label(ui: &mut egui::Ui, text: &str) {
+    ui.label(
+        egui::RichText::new(text)
+            .font(theme::font_label())
+            .color(theme::text_tertiary())
+            .extra_letter_spacing(theme::TRACKING_NORMAL)
+            .strong(),
+    );
+}
+
 pub(super) fn show(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
     let id = ui.id().with("authorization_editor");
     let mut editor = ui
         .ctx()
         .data_mut(|d| d.get_temp::<Editor>(id).unwrap_or_default());
-    ui.label(egui::RichText::new("Autorisations & exceptions").font(theme::font_heading()));
-    ui.label("Exceptions de triage enregistrées sur ce poste. Elles ne créent aucune règle de pare-feu et ne désactivent pas la collecte des événements.");
+    ui.label(
+        egui::RichText::new("Autorisations & exceptions")
+            .font(theme::font_h3())
+            .color(theme::text_primary()),
+    );
+    ui.label(
+        egui::RichText::new(
+            "Exceptions de triage enregistrées sur ce poste. Elles ne créent aucune règle de \
+             pare-feu et ne désactivent pas la collecte des événements.",
+        )
+        .font(theme::font_body())
+        .color(theme::text_secondary()),
+    );
     ui.add_space(theme::SPACE_MD);
-    widgets::ResponsiveGrid::new(300.0, theme::SPACE_MD).show(ui, &[0, 1], |ui, _, item| {
+    widgets::ResponsiveGrid::new(340.0, theme::SPACE_MD).show(ui, &[0, 1], |ui, _, item| {
         widgets::card(ui, |ui| {
             if *item == 0 {
-                ui.strong(if editor.editing.is_some() { "Modifier une autorisation" } else { "Nouvelle autorisation" });
-                ui.add_space(theme::SPACE_SM);
-                egui::ComboBox::from_id_salt("authorization_kind").selected_text(KINDS[editor.kind].label()).show_ui(ui, |ui| {
-                    for (index, kind) in KINDS.iter().enumerate() { ui.selectable_value(&mut editor.kind, index, kind.label()); }
-                });
-                ui.label("Cible autorisée");
-                ui.add(egui::TextEdit::singleline(&mut editor.pattern).hint_text(match editor.kind { 0 => "192.168.1.20 ou 10.0.0.0/24", 1 => "backup-agent ou backup-*", 2 => "/var/log/application/*.log", 3 => "0x0781:0x5567", _ => "firewall_disabled ou Pare-feu*" }).desired_width(f32::INFINITY));
-                ui.label("Justification obligatoire");
-                ui.add(egui::TextEdit::multiline(&mut editor.reason).desired_rows(3).desired_width(f32::INFINITY));
-                let valid = valid_pattern(KINDS[editor.kind], editor.pattern.trim());
-                let duplicate = state.threats.allowlist_rules.iter().any(|r| Some(r.id) != editor.editing && r.rule_type == KINDS[editor.kind] && r.pattern == editor.pattern.trim());
-                if !editor.pattern.is_empty() && !valid { ui.colored_label(theme::readable_color(theme::WARNING), "Saisissez une cible valide et précise."); }
-                if duplicate { ui.label("Cette autorisation existe déjà."); }
-                if widgets::button::primary_button(ui, "Enregistrer l’autorisation", valid && !duplicate && !editor.reason.trim().is_empty()).clicked() {
-                    if let Some(existing) = editor.editing { state.threats.remove_allowlist_rule(existing); }
-                    state.add_allowlist_rule_global(KINDS[editor.kind], editor.pattern.trim().into(), editor.reason.trim().into(), "Opérateur local".into());
-                    editor.pattern.clear(); editor.reason.clear(); editor.editing = None;
-                    state.push_toast(widgets::toast::Toast::success("Autorisation enregistrée"), ui.ctx());
-                }
-                if editor.editing.is_some() && widgets::button::ghost_button(ui, "Annuler la modification").clicked() { editor.editing = None; editor.pattern.clear(); editor.reason.clear(); }
+                editor_form(ui, state, &mut editor);
             } else {
-                ui.strong("Portée de l’exception");
-                ui.label("IP : adresse exacte ou sous-réseau CIDR IPv4 / IPv6.");
-                ui.label("IP : seule l’adresse distante est comparée, jamais celle de ce poste.");
-                ui.label("Processus, fichiers, USB et incidents système (type ou titre) : correspondance exacte ; * remplace une suite de caractères.");
-                ui.add_space(theme::SPACE_SM);
-                ui.label("Acquitter signifie avoir pris connaissance d’un événement. Autoriser classe les événements correspondants comme exceptions tant que la règle existe : l’agent ne notifie plus et ne déclenche ni règle de détection ni playbook pour eux.");
-                ui.label("Les événements autorisés restent collectés et transmis à la plateforme et au SIEM pour la traçabilité.");
-                ui.label("Révoquer rétablit la visibilité des événements concernés ; les acquittements manuels sont conservés.");
+                scope_card(ui);
             }
         });
     });
+
     ui.add_space(theme::SPACE_LG);
-    ui.strong(format!(
-        "{} autorisation(s)",
-        state.threats.allowlist_rules.len()
-    ));
-    ui.add(
-        egui::TextEdit::singleline(&mut editor.search)
-            .hint_text("Rechercher une cible ou une justification…")
-            .desired_width(f32::INFINITY),
-    );
-    ui.add_space(theme::SPACE_SM);
+    let total = state.threats.allowlist_rules.len();
+    ui.horizontal(|ui| {
+        section_label(
+            ui,
+            &match total {
+                0 => "AUCUNE AUTORISATION".to_owned(),
+                1 => "1 AUTORISATION".to_owned(),
+                n => format!("{} AUTORISATIONS", crate::format::int(n)),
+            },
+        );
+    });
+    ui.add_space(theme::SPACE_XS);
+    if total > 0 {
+        widgets::search_input(
+            ui,
+            &mut editor.search,
+            "Rechercher une cible ou une justification…",
+        );
+        ui.add_space(theme::SPACE_SM);
+    }
     let query = editor.search.to_lowercase();
     let rules: Vec<AllowlistRule> = state
         .threats
@@ -107,58 +125,304 @@ pub(super) fn show(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand
         .cloned()
         .collect();
     if rules.is_empty() {
-        ui.label("Aucune autorisation ne correspond. Ajoutez une exception avec le formulaire ci-dessus.");
+        widgets::card(ui, |ui| {
+            let (title, detail) = if total == 0 {
+                (
+                    "Aucune exception enregistrée",
+                    "Tous les événements sont traités normalement. Une autorisation classe une \
+                     activité légitime (sauvegarde, outil d'administration…) comme exception.",
+                )
+            } else {
+                (
+                    "Aucune autorisation ne correspond",
+                    "Modifiez la recherche ci-dessus.",
+                )
+            };
+            if widgets::empty_state_with_action(
+                ui,
+                icons::SHIELD_CHECK,
+                title,
+                Some(detail),
+                (total == 0).then_some(("Créer une autorisation", || {})),
+            ) {
+                editor.focus_target = true;
+            }
+        });
     }
-    widgets::ResponsiveGrid::new(300.0, theme::SPACE_MD).show(ui, &rules, |ui, _, rule| {
+    widgets::ResponsiveGrid::new(320.0, theme::SPACE_MD).show(ui, &rules, |ui, _, rule| {
         ui.push_id(rule.id, |ui| {
-            widgets::card(ui, |ui| {
-                ui.strong(&rule.pattern);
-                ui.label(rule.rule_type.label());
-                ui.label(&rule.description);
-                ui.small(format!(
-                    "{} · {}",
-                    rule.created_by,
-                    rule.created_at.format("%d/%m/%Y %H:%M")
-                ));
-                ui.horizontal_wrapped(|ui| {
-                    if let Some(kind) = KINDS.iter().position(|k| *k == rule.rule_type)
-                        && widgets::button::secondary_button(ui, "Modifier", true).clicked()
-                    {
-                        editor.kind = kind;
-                        editor.pattern = rule.pattern.clone();
-                        editor.reason = rule.description.clone();
-                        editor.editing = Some(rule.id);
-                    }
-                    if widgets::button::ghost_button(ui, "Révoquer").clicked() {
-                        editor.remove = Some(rule.id);
-                    }
-                    if editor.remove == Some(rule.id) {
-                        if widgets::button::destructive_button(ui, "Confirmer la révocation", true)
-                            .clicked()
-                        {
-                            state.threats.remove_allowlist_rule(rule.id);
-                            state.refresh_authorizations();
-                            editor.remove = None;
-                            if editor.editing == Some(rule.id) {
-                                editor.editing = None;
-                                editor.pattern.clear();
-                                editor.reason.clear();
-                            }
-                            state.push_toast(
-                                widgets::toast::Toast::success("Autorisation révoquée"),
-                                ui.ctx(),
-                            );
-                        }
-                        if widgets::button::ghost_button(ui, "Annuler").clicked() {
-                            editor.remove = None;
-                        }
-                    }
-                });
-            })
+            widgets::card(ui, |ui| rule_card(ui, state, &mut editor, rule))
         });
     });
     ui.ctx().data_mut(|d| d.insert_temp(id, editor));
     None
+}
+
+fn editor_form(ui: &mut egui::Ui, state: &mut AppState, editor: &mut Editor) {
+    ui.horizontal(|ui| {
+        widgets::icon_tile(ui, icons::SHIELD_CHECK, theme::ACCENT, 32.0);
+        ui.label(
+            egui::RichText::new(if editor.editing.is_some() {
+                "Modifier une autorisation"
+            } else {
+                "Nouvelle autorisation"
+            })
+            .font(theme::font_body_strong())
+            .color(theme::text_primary()),
+        );
+    });
+    ui.add_space(theme::SPACE_MD);
+
+    section_label(ui, "TYPE D'EXCEPTION");
+    ui.add_space(theme::SPACE_XS);
+    // One width for every field: text_input caps itself at the modal width.
+    let field_w = ui.available_width().min(theme::MODAL_WIDTH);
+    let labels: Vec<&str> = KINDS.iter().map(|k| k.label()).collect();
+    if let Some(kind) = widgets::Dropdown::new("authorization_kind", &labels, editor.kind)
+        .width(field_w)
+        .show(ui)
+    {
+        editor.kind = kind;
+    }
+    ui.add_space(theme::SPACE_SM);
+
+    section_label(ui, "CIBLE AUTORISÉE");
+    ui.add_space(theme::SPACE_XS);
+    let hint = match editor.kind {
+        0 => "192.168.1.20 ou 10.0.0.0/24",
+        1 => "backup-agent ou backup-*",
+        2 => "/var/log/application/*.log",
+        3 => "0x0781:0x5567",
+        _ => "firewall_disabled ou Pare-feu*",
+    };
+    let target = widgets::text_input(ui, &mut editor.pattern, hint);
+    if std::mem::take(&mut editor.focus_target) {
+        target.request_focus();
+    }
+    let valid = valid_pattern(KINDS[editor.kind], editor.pattern.trim());
+    let duplicate = state.threats.allowlist_rules.iter().any(|r| {
+        Some(r.id) != editor.editing
+            && r.rule_type == KINDS[editor.kind]
+            && r.pattern == editor.pattern.trim()
+    });
+    if !editor.pattern.is_empty() && !valid {
+        ui.label(
+            egui::RichText::new("Saisissez une cible valide et précise.")
+                .font(theme::font_caption())
+                .color(theme::readable_color(theme::WARNING)),
+        );
+    }
+    if duplicate {
+        ui.label(
+            egui::RichText::new("Cette autorisation existe déjà.")
+                .font(theme::font_caption())
+                .color(theme::readable_color(theme::WARNING)),
+        );
+    }
+    ui.add_space(theme::SPACE_SM);
+
+    section_label(ui, "JUSTIFICATION OBLIGATOIRE");
+    ui.add_space(theme::SPACE_XS);
+    egui::Frame::new()
+        .fill(theme::bg_tertiary())
+        .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
+        .corner_radius(theme::ROUNDING_MD)
+        .inner_margin(theme::SPACE_SM)
+        .show(ui, |ui| {
+            ui.set_width(field_w - theme::SPACE_SM * 2.0);
+            ui.add(
+                egui::TextEdit::multiline(&mut editor.reason)
+                    .hint_text("Pourquoi cette activité est-elle légitime ?")
+                    .frame(false)
+                    .desired_rows(3)
+                    .desired_width(f32::INFINITY),
+            );
+        });
+    ui.add_space(theme::SPACE_MD);
+
+    ui.horizontal(|ui| {
+        if widgets::button::primary_button(
+            ui,
+            format!("{}  Enregistrer l’autorisation", icons::CHECK),
+            valid && !duplicate && !editor.reason.trim().is_empty(),
+        )
+        .clicked()
+        {
+            if let Some(existing) = editor.editing {
+                state.threats.remove_allowlist_rule(existing);
+            }
+            state.add_allowlist_rule_global(
+                KINDS[editor.kind],
+                editor.pattern.trim().into(),
+                editor.reason.trim().into(),
+                "Opérateur local".into(),
+            );
+            editor.pattern.clear();
+            editor.reason.clear();
+            editor.editing = None;
+            state.push_toast(
+                widgets::toast::Toast::success("Autorisation enregistrée"),
+                ui.ctx(),
+            );
+        }
+        if editor.editing.is_some() && widgets::button::ghost_button(ui, "Annuler").clicked() {
+            editor.editing = None;
+            editor.pattern.clear();
+            editor.reason.clear();
+        }
+    });
+}
+
+/// What each kind of exception compares, then what authorising implies.
+fn scope_card(ui: &mut egui::Ui) {
+    ui.label(
+        egui::RichText::new("Portée de l’exception")
+            .font(theme::font_body_strong())
+            .color(theme::text_primary()),
+    );
+    ui.add_space(theme::SPACE_SM);
+    for (icon, title, detail) in [
+        (
+            icons::NETWORK,
+            "Adresse IP",
+            "Adresse exacte ou sous-réseau CIDR IPv4 / IPv6 ; seule l’adresse distante est comparée.",
+        ),
+        (
+            icons::BUG,
+            "Processus",
+            "Nom exact ; * remplace une suite de caractères (backup-*).",
+        ),
+        (
+            icons::FILE_SHIELD,
+            "Fichier",
+            "Chemin exact ou motif (/var/log/app/*.log).",
+        ),
+        (
+            icons::PLUG,
+            "USB",
+            "Identifiants fabricant:produit (0x0781:0x5567).",
+        ),
+        (
+            icons::SHIELD,
+            "Incident système",
+            "Type ou titre de l’incident.",
+        ),
+    ] {
+        ui.horizontal_top(|ui| {
+            ui.label(
+                egui::RichText::new(icon)
+                    .size(theme::ICON_XS)
+                    .color(theme::accent_text()),
+            );
+            ui.vertical(|ui| {
+                ui.label(
+                    egui::RichText::new(title)
+                        .font(theme::font_body_strong())
+                        .color(theme::text_primary()),
+                );
+                ui.add(
+                    egui::Label::new(
+                        egui::RichText::new(detail)
+                            .font(theme::font_caption())
+                            .color(theme::text_secondary()),
+                    )
+                    .wrap(),
+                );
+            });
+        });
+        ui.add_space(theme::SPACE_XS);
+    }
+    ui.add_space(theme::SPACE_SM);
+    egui::Frame::new()
+        .fill(theme::tinted_surface(theme::INFO))
+        .corner_radius(theme::ROUNDING_MD)
+        .inner_margin(theme::SPACE_MD)
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            for line in [
+                "Acquitter : vous avez pris connaissance de l’événement.",
+                "Autoriser : les événements correspondants deviennent des exceptions ; plus de notification, ni règle de détection ni playbook.",
+                "Ils restent collectés et transmis à la plateforme et au SIEM.",
+                "Révoquer rétablit leur visibilité ; les acquittements manuels sont conservés.",
+            ] {
+                ui.add(
+                    egui::Label::new(
+                        egui::RichText::new(line)
+                            .font(theme::font_caption())
+                            .color(theme::text_primary()),
+                    )
+                    .wrap(),
+                );
+            }
+        });
+}
+
+fn rule_card(ui: &mut egui::Ui, state: &mut AppState, editor: &mut Editor, rule: &AllowlistRule) {
+    ui.horizontal(|ui| {
+        widgets::icon_tile(ui, kind_icon(rule.rule_type), theme::SUCCESS, 30.0);
+        ui.vertical(|ui| {
+            ui.label(
+                egui::RichText::new(&rule.pattern)
+                    .font(theme::font_mono())
+                    .color(theme::text_primary()),
+            );
+            widgets::status_badge(ui, rule.rule_type.label(), theme::INFO);
+        });
+    });
+    ui.add_space(theme::SPACE_SM);
+    ui.add(
+        egui::Label::new(
+            egui::RichText::new(&rule.description)
+                .font(theme::font_body())
+                .color(theme::text_secondary()),
+        )
+        .wrap(),
+    );
+    ui.label(
+        egui::RichText::new(format!(
+            "{} · {}",
+            rule.created_by,
+            rule.created_at.format("%d/%m/%Y %H:%M")
+        ))
+        .font(theme::font_caption())
+        .color(theme::text_tertiary()),
+    );
+    ui.add_space(theme::SPACE_SM);
+    ui.horizontal_wrapped(|ui| {
+        if let Some(kind) = KINDS.iter().position(|k| *k == rule.rule_type)
+            && widgets::button::secondary_button(ui, format!("{}  Modifier", icons::PENCIL), true)
+                .clicked()
+        {
+            editor.kind = kind;
+            editor.pattern = rule.pattern.clone();
+            editor.reason = rule.description.clone();
+            editor.editing = Some(rule.id);
+        }
+        if editor.remove != Some(rule.id)
+            && widgets::button::ghost_button(ui, format!("{}  Révoquer", icons::TRASH)).clicked()
+        {
+            editor.remove = Some(rule.id);
+        }
+        if editor.remove == Some(rule.id) {
+            if widgets::button::destructive_button(ui, "Confirmer la révocation", true).clicked() {
+                state.threats.remove_allowlist_rule(rule.id);
+                state.refresh_authorizations();
+                editor.remove = None;
+                if editor.editing == Some(rule.id) {
+                    editor.editing = None;
+                    editor.pattern.clear();
+                    editor.reason.clear();
+                }
+                state.push_toast(
+                    widgets::toast::Toast::success("Autorisation révoquée"),
+                    ui.ctx(),
+                );
+            }
+            if widgets::button::ghost_button(ui, "Annuler").clicked() {
+                editor.remove = None;
+            }
+        }
+    });
 }
 
 #[cfg(test)]

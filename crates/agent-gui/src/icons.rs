@@ -78,6 +78,8 @@ pub const CHART_LINE: &str = "\u{f201}"; // fa-chart-line (monitoring)
 pub const FILE_SHIELD: &str = "\u{e4f0}"; // fa-file-shield (FIM)
 pub const SKULL: &str = "\u{f54c}"; // fa-skull-crossbones (threats)
 pub const SHIELD_VIRUS: &str = "\u{e06c}"; // fa-shield-virus
+/// fa-usb is a Brands glyph, absent from the bundled solid font: it drew
+/// as an empty box. Kept for callers outside the GUI pages; prefer PLUG.
 pub const USB: &str = "\u{f287}"; // fa-usb
 pub const MICROCHIP: &str = "\u{f2db}"; // fa-microchip
 pub const MEMORY: &str = "\u{f538}"; // fa-memory

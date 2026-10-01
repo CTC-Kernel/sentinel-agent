@@ -770,42 +770,43 @@ fn usb_detail(
             widgets::DetailAction::primary("Autoriser ce périphérique", icons::SHIELD_CHECK),
             widgets::DetailAction::danger("Bloquer", icons::LOCK),
         ];
-        let drawer_action = widgets::DetailDrawer::new("threat_detail", &u.device_name, icons::USB)
-            .accent(ev_color)
-            .subtitle("\u{00c9}v\u{00e9}nement USB")
-            .show(
-                ctx,
-                &mut state.threats.detail_open,
-                |ui| {
-                    let human_exp = crate::human_transcript::explain_usb_event(
-                        &u.device_name,
-                        u.vendor_id,
-                        u.product_id,
-                        u.event_type == UsbEventType::Blocked,
-                    );
-                    crate::human_transcript::render_human_explanation_card(ui, &human_exp);
+        let drawer_action =
+            widgets::DetailDrawer::new("threat_detail", &u.device_name, icons::PLUG)
+                .accent(ev_color)
+                .subtitle("\u{00c9}v\u{00e9}nement USB")
+                .show(
+                    ctx,
+                    &mut state.threats.detail_open,
+                    |ui| {
+                        let human_exp = crate::human_transcript::explain_usb_event(
+                            &u.device_name,
+                            u.vendor_id,
+                            u.product_id,
+                            u.event_type == UsbEventType::Blocked,
+                        );
+                        crate::human_transcript::render_human_explanation_card(ui, &human_exp);
 
-                    widgets::detail_section(
-                        ui,
-                        "INFORMATIONS TECHNIQUES DU P\u{00c9}RIPH\u{00c9}RIQUE",
-                    );
-                    widgets::detail_field(ui, "P\u{00e9}riph\u{00e9}rique", &u.device_name);
-                    widgets::detail_field(ui, "Vendor ID", &format!("0x{:04X}", u.vendor_id));
-                    widgets::detail_field(ui, "Product ID", &format!("0x{:04X}", u.product_id));
-                    widgets::detail_field_badge(
-                        ui,
-                        "Type d'\u{00e9}v\u{00e9}nement",
-                        u.event_type.label(),
-                        ev_color,
-                    );
-                    widgets::detail_field(
-                        ui,
-                        "Date",
-                        &u.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
-                    );
-                },
-                &actions,
-            );
+                        widgets::detail_section(
+                            ui,
+                            "INFORMATIONS TECHNIQUES DU P\u{00c9}RIPH\u{00c9}RIQUE",
+                        );
+                        widgets::detail_field(ui, "P\u{00e9}riph\u{00e9}rique", &u.device_name);
+                        widgets::detail_field(ui, "Vendor ID", &format!("0x{:04X}", u.vendor_id));
+                        widgets::detail_field(ui, "Product ID", &format!("0x{:04X}", u.product_id));
+                        widgets::detail_field_badge(
+                            ui,
+                            "Type d'\u{00e9}v\u{00e9}nement",
+                            u.event_type.label(),
+                            ev_color,
+                        );
+                        widgets::detail_field(
+                            ui,
+                            "Date",
+                            &u.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                        );
+                    },
+                    &actions,
+                );
         if let Some(action_idx) = drawer_action {
             let time = ctx.input(|i| i.time);
             if action_idx == 0 {
