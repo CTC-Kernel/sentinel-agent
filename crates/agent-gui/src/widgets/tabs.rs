@@ -217,10 +217,20 @@ impl<'a> TabBar<'a> {
                     ui.spacing_mut().item_spacing.x = 0.0;
                 }
 
+                // Full width shares the spare room equally on top of each
+                // tab's own width. Equal slots (width / N) were narrower
+                // than a long label, which then spilled out of its pill.
+                let spare = if self.full_width && fits && tab_count > 0 {
+                    ((available_width - self.natural_width(ui, false)) / tab_count as f32).max(0.0)
+                } else {
+                    0.0
+                };
                 for (i, tab) in self.tabs.iter().enumerate() {
                     let is_selected = i == self.selected;
                     let tab_width = if self.full_width && fits && tab_count > 0 {
-                        available_width / tab_count as f32
+                        self.underline_tab_width(ui, tab, is_selected, false)
+                            + ui.spacing().item_spacing.x
+                            + spare
                     } else {
                         0.0 // Auto-size
                     };

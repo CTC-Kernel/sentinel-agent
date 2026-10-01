@@ -2349,9 +2349,18 @@ fn paint_radar_sector_labels(painter: &egui::Painter, canvas: &RadarCanvas) {
         ("RÉSEAU", "network"),
     ] {
         let angle = radar_sector_angle(kind);
+        // Anchored away from the ring: centred, a long label on a diagonal
+        // bearing ("VULNÉRABILITÉS") ran back into the bezel.
+        let anchor = if angle.cos() > 0.3 {
+            egui::Align2::LEFT_CENTER
+        } else if angle.cos() < -0.3 {
+            egui::Align2::RIGHT_CENTER
+        } else {
+            egui::Align2::CENTER_CENTER
+        };
         painter.text(
-            canvas.center + egui::vec2(angle.cos(), angle.sin()) * (canvas.radius + 34.0),
-            egui::Align2::CENTER_CENTER,
+            canvas.center + egui::vec2(angle.cos(), angle.sin()) * (canvas.radius + 30.0),
+            anchor,
             label,
             theme::font_min(),
             theme::text_tertiary(),
@@ -2586,8 +2595,9 @@ fn paint_radar_hub_and_telemetry(
     );
 
     if visible.is_empty() {
+        // Below the hub, which otherwise sits on the sentence.
         painter.text(
-            canvas.center,
+            canvas.center + egui::vec2(0.0, 26.0),
             egui::Align2::CENTER_CENTER,
             "Aucun signal sur cette fenêtre",
             theme::font_body(),
