@@ -194,14 +194,6 @@ impl eframe::App for Preview {
                 state.settings.dark_mode = self.dark;
             }
             egui_extras::install_image_loaders(ctx);
-            if self.requested == "orchestration" {
-                let tab = std::env::var("PREVIEW_TAB")
-                    .ok()
-                    .and_then(|v| v.parse::<u8>().ok())
-                    .unwrap_or(0)
-                    .min(4);
-                ctx.data_mut(|d| d.insert_temp(egui::Id::new("orchestration_workspace_view"), tab));
-            }
             self.started = true;
         }
 
@@ -530,7 +522,6 @@ fn page_from(name: &str) -> Page {
         "fim" => Page::FileIntegrity,
         "software" => Page::Software,
         "sync" => Page::Sync,
-        "orchestration" => Page::Orchestration,
         _ => Page::Dashboard,
     }
 }
@@ -566,7 +557,6 @@ fn location(page: &str) -> (&'static str, &'static str, &'static str) {
         ),
         "software" => (icons::SOFTWARE, "Logiciels & MDM", "Actifs & inventaire"),
         "sync" => (icons::SYNC, "Synchronisation", "Système"),
-        "orchestration" => (icons::ORCHESTRATION, "Orchestration", "Automatisation"),
         _ => (icons::DASHBOARD, "Tableau de bord", "Vue d'ensemble"),
     }
 }
@@ -631,9 +621,6 @@ fn real_page(ui: &mut egui::Ui, page: &str, state: &mut AppState) {
         }
         "sync" => {
             pages::SyncPage::show(ui, state);
-        }
-        "orchestration" => {
-            pages::OrchestrationPage::show(ui);
         }
         "overlays" => feedback_gallery(ui),
         _ => {

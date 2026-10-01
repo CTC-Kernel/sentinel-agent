@@ -54,11 +54,6 @@ const PAGES: &[(&str, usize)] = &[
     ("settings", 1),
     ("settings", 2),
     ("settings", 3),
-    ("orchestration", 0),
-    ("orchestration", 1),
-    ("orchestration", 2),
-    ("orchestration", 3),
-    ("orchestration", 4),
     ("about", 0),
     ("ai", 0),
     ("ai", 1),
@@ -67,9 +62,6 @@ const PAGES: &[(&str, usize)] = &[
 
 fn real_page(ui: &mut egui::Ui, page: &str, state: &mut AppState) {
     match page {
-        "orchestration" => {
-            pages::OrchestrationPage::show(ui);
-        }
         "compliance" => {
             pages::CompliancePage::show(ui, state);
         }
@@ -224,9 +216,6 @@ fn benchmark_pages(width: f32, height: f32) {
             if std::env::var("PROBE_EMPTY").is_err() {
                 fixtures::seed(&mut state);
             }
-            ctx.data_mut(|d| {
-                d.insert_temp(egui::Id::new("orchestration_workspace_view"), tab as u8)
-            });
             fixtures::select_tab(&mut state, page, tab);
             let mut samples = Vec::new();
             for frame in 0..110 {
@@ -333,9 +322,6 @@ fn main() {
             if std::env::var("PROBE_EMPTY").is_err() {
                 fixtures::seed(&mut state);
             }
-            ctx.data_mut(|d| {
-                d.insert_temp(egui::Id::new("orchestration_workspace_view"), tab as u8)
-            });
             fixtures::select_tab(&mut state, page, tab);
             let mut scroll_id = None;
             let mut content_height = 0.0_f32;

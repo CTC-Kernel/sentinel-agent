@@ -57,7 +57,6 @@ pub enum Page {
     Reports,
     Risks,
     Assets,
-    Orchestration,
     About,
 }
 
@@ -1532,9 +1531,6 @@ impl eframe::App for SentinelApp {
                             if let Some(cmd) = pages::AssetsPage::show(ui, &mut self.state) {
                                 self.send_command(cmd);
                             }
-                        }
-                        Page::Orchestration => {
-                            pages::OrchestrationPage::show(ui);
                         }
                         Page::AI => {
                             // Load the model and pre-process the grounded context
