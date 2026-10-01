@@ -32,38 +32,6 @@ impl AuditTrailPage {
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Action bar with Export
-        let mut export_clicked = false;
-        // A bare right-to-left layout would claim the page's whole height and
-        // centre the button in it; the horizontal row bounds it to one line.
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if widgets::ghost_button(ui, format!("{}  CSV", crate::icons::DOWNLOAD)).clicked() {
-                    export_clicked = true;
-                    let success = Self::export_audit_trail_csv(state);
-                    let time = ui.input(|i| i.time);
-                    if success {
-                        state.toasts.push(
-                            crate::widgets::toast::Toast::success(
-                                "Journal d'audit export\u{00e9} avec succ\u{00e8}s",
-                            )
-                            .with_time(time),
-                        );
-                    } else {
-                        state.toasts.push(
-                            crate::widgets::toast::Toast::error(
-                                "\u{00c9}chec de l'export du journal d'audit",
-                            )
-                            .with_time(time),
-                        );
-                    }
-                }
-            });
-        });
-        // Local CSV export is handled inline above — no GUI command needed.
-        let _ = export_clicked;
-        ui.add_space(theme::SPACE_MD);
-
         // Filters (AAA Grade)
         // Count filtered results (matching the same logic as render_table)
         let n_items = state
@@ -86,7 +54,7 @@ impl AuditTrailPage {
                 true
             })
             .count();
-        let toggled = widgets::SearchFilterBar::new(
+        let (toggled, export_clicked) = widgets::SearchFilterBar::new(
             &mut state.audit_trail_search,
             "Rechercher un événement…",
         )
@@ -106,7 +74,19 @@ impl AuditTrailPage {
             theme::ERROR,
         )
         .result_count(n_items)
-        .show(ui);
+        .action(format!("{}  CSV", crate::icons::DOWNLOAD))
+        .show_with_action(ui);
+        // The export lives in the search bar's action slot, beside what it
+        // exports; on a row of its own it left a band of empty space.
+        if export_clicked {
+            let success = Self::export_audit_trail_csv(state);
+            let toast = if success {
+                crate::widgets::toast::Toast::success("Journal d'audit exporté avec succès")
+            } else {
+                crate::widgets::toast::Toast::error("Échec de l'export du journal d'audit")
+            };
+            state.toasts.push(toast.with_time(ui.input(|i| i.time)));
+        }
 
         if let Some(idx) = toggled {
             let target = match idx {
