@@ -310,6 +310,9 @@ impl ResponseCache {
             if let Ok(meta) = std::fs::metadata(&path)
                 && std::fs::remove_file(&path).is_ok()
             {
+                // `try_update` replaces `fetch_update` only on toolchains
+                // newer than the workspace `rust-version` (1.85).
+                #[allow(deprecated)]
                 let _ = self.cached_size.fetch_update(
                     std::sync::atomic::Ordering::Relaxed,
                     std::sync::atomic::Ordering::Relaxed,
