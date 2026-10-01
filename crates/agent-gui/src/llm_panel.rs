@@ -268,11 +268,16 @@ impl LLMPanel {
             egui::Sense::hover(),
         );
         let mut workspace = ui.new_child(egui::UiBuilder::new().max_rect(workspace_rect));
-        workspace.set_clip_rect(workspace_rect.intersect(ui.clip_rect()));
+        // Panels shown inside a Ui clip to their own rect, not to their
+        // parent's: once the page scrolls, the conversation painted over the
+        // top bar. Each panel below re-applies the page's clip.
+        let page_clip = workspace_rect.intersect(ui.clip_rect());
+        workspace.set_clip_rect(page_clip);
         egui::TopBottomPanel::bottom("assistant_composer")
             .frame(egui::Frame::NONE)
             .resizable(false)
             .show_inside(&mut workspace, |ui| {
+                ui.set_clip_rect(ui.clip_rect().intersect(page_clip));
                 widgets::Card::new()
                     .padding(theme::SPACE_MD)
                     .show(ui, |ui| {
@@ -301,6 +306,7 @@ impl LLMPanel {
                     });
             });
         egui::CentralPanel::default().frame(egui::Frame::NONE).show_inside(&mut workspace, |ui| {
+            ui.set_clip_rect(ui.clip_rect().intersect(page_clip));
             let chat_height = (ui.available_height() - theme::SPACE_MD).max(80.0);
         egui::ScrollArea::vertical()
             .id_salt("llm_chat_scroll")

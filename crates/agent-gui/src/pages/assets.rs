@@ -405,16 +405,11 @@ impl AssetsPage {
                     });
 
                     row.col(|ui| {
-                        let score_pct = (asset.risk_score * 10.0).min(100.0);
-                        // Risk score: higher = worse, so invert for score_color
-                        // (score_color treats ≥85 as green/good).
-                        // A risk_score of 10 (max) → score_pct=100 → we want red.
-                        // score_color(100 - 100) = score_color(0) = ERROR ✓
                         table::cell_score_bar(
                             ui,
-                            &crate::format::decimal(asset.risk_score, 1),
-                            score_pct / 100.0,
-                            theme::readable_color(theme::score_color(100.0 - score_pct)),
+                            &crate::format::decimal(asset.risk_score, 0),
+                            asset.risk_score.clamp(0.0, 100.0) / 100.0,
+                            theme::readable_color(risk_score_color(asset.risk_score)),
                         );
                     });
 
@@ -511,18 +506,11 @@ impl AssetsPage {
 
                 ui.add_space(theme::SPACE_SM);
                 widgets::detail_section(ui, "S\u{00c9}CURIT\u{00c9}");
-                let risk_color = if asset.risk_score >= 8.0 {
-                    theme::ERROR
-                } else if asset.risk_score >= 5.0 {
-                    theme::WARNING
-                } else {
-                    theme::SUCCESS
-                };
                 widgets::detail_field_colored(
                     ui,
                     "Score de risque",
-                    &crate::format::decimal(asset.risk_score, 1),
-                    theme::readable_color(risk_color),
+                    &format!("{} / 100", crate::format::decimal(asset.risk_score, 0)),
+                    theme::readable_color(risk_score_color(asset.risk_score)),
                 );
                 widgets::detail_field(
                     ui,
@@ -937,6 +925,21 @@ impl AssetsPage {
     }
 }
 
+/// Colour of an asset risk score. The platform sends it on a 0-100 scale
+/// (higher is worse); the page used to read it as 0-10, so every asset
+/// above 10 showed as maximum risk.
+fn risk_score_color(score: f32) -> egui::Color32 {
+    if score >= 75.0 {
+        theme::ERROR
+    } else if score >= 50.0 {
+        theme::SEVERITY_HIGH
+    } else if score >= 25.0 {
+        theme::SEVERITY_MEDIUM
+    } else {
+        theme::SUCCESS
+    }
+}
+
 /// French name of an asset type as discovery reports it; a free-text type
 /// entered by hand is shown as typed.
 fn asset_type_label(kind: &str) -> &str {
@@ -950,6 +953,7 @@ fn asset_type_label(kind: &str) -> &str {
         "iot" => "IoT / embarqué",
         "nas" | "storage" => "Stockage",
         "firewall" => "Pare-feu",
+        "camera" => "Caméra",
         "unknown" | "" => "Non identifié",
         _ => kind,
     }
