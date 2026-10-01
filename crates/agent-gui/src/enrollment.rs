@@ -184,7 +184,7 @@ impl EnrollmentWizard {
                                     .extra_letter_spacing(theme::TRACKING_WIDE * 3.0),
                             );
                             ui.label(
-                                egui::RichText::new("GRC AGENT")
+                                egui::RichText::new("GRC NEXUS \u{00b7} ENDPOINT")
                                     .font(theme::font_micro())
                                     .color(theme::accent_text())
                                     .extra_letter_spacing(theme::TRACKING_WIDE * 2.0),
@@ -257,7 +257,7 @@ impl EnrollmentWizard {
             ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE);
                 ui.label(
-                    egui::RichText::new("Bienvenue dans Sentinel Nexus")
+                    egui::RichText::new("Bienvenue dans Sentinel GRC Nexus")
                         .font(theme::font_h2())
                         .color(theme::text_primary()),
                 );

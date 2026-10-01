@@ -473,7 +473,6 @@ impl SettingsPage {
 
     /// Dark, light or system appearance.
     fn theme_card(ui: &mut Ui, state: &mut AppState) {
-        // Dark / Light mode toggle (AAA Grade) — Enhanced theme switcher
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("APPARENCE DE L'INTERFACE")
@@ -482,74 +481,65 @@ impl SettingsPage {
                     .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new(
+                    "Choisissez un thème, ou laissez l'interface suivre celui du système.",
+                )
+                .font(theme::font_body())
+                .color(theme::text_secondary()),
+            );
             ui.add_space(theme::SPACE_MD);
 
-            ui.horizontal(|ui: &mut egui::Ui| {
-                // Theme mode visual indicator
-                let is_dark = state.settings.dark_mode;
-                let (mode_label, mode_icon, mode_desc) = if is_dark {
-                    (
-                        "Mode sombre",
-                        icons::MOON,
-                        "Interface optimisée pour faible luminosité avec sous-tons bleu nuit.",
-                    )
-                } else {
-                    (
-                        "Mode clair",
-                        icons::SUN,
-                        "Interface lumineuse avec teintes froides et élévation prononcée.",
-                    )
-                };
-
-                // Icon with accent background circle
-                let icon_size = theme::ICON_XL + theme::SPACE_SM;
-                let (icon_rect, _) =
-                    ui.allocate_exact_size(egui::vec2(icon_size, icon_size), egui::Sense::hover());
-                ui.painter().circle_filled(
-                    icon_rect.center(),
-                    icon_size / 2.0,
-                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
-                );
-                ui.painter().text(
-                    icon_rect.center(),
-                    egui::Align2::CENTER_CENTER,
-                    mode_icon,
-                    theme::font_icon(theme::ICON_LG),
-                    theme::accent_text(),
-                );
-
-                ui.add_space(theme::SPACE_SM);
-
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(mode_label)
-                                .font(theme::font_body())
-                                .color(theme::text_primary())
-                                .strong(),
-                        );
-                    });
-                    ui.add_space(theme::SPACE_SM);
-                    // Explicit "display mode" selector: Clair / Sombre as visible,
-                    // labelled choices (previously a single binary toggle switch,
-                    // which read as "no modes available" to users).
-                    let modes = [
-                        format!("{}  Clair", icons::SUN),
-                        format!("{}  Sombre", icons::MOON),
-                    ];
-                    let mode_refs = [modes[0].as_str(), modes[1].as_str()];
-                    let current = if state.settings.dark_mode { 1 } else { 0 };
-                    if let Some(sel) = widgets::button_group(ui, &mode_refs, current) {
-                        state.settings.dark_mode = sel == 1;
+            // Three preview tiles: each shows the theme it selects.
+            let current = if state.settings.follow_system_theme {
+                ThemeChoice::System
+            } else if state.settings.dark_mode {
+                ThemeChoice::Dark
+            } else {
+                ThemeChoice::Light
+            };
+            let mut picked = None;
+            ui.horizontal_wrapped(|ui| {
+                ui.spacing_mut().item_spacing = egui::vec2(theme::SPACE_MD, theme::SPACE_MD);
+                for choice in [ThemeChoice::Light, ThemeChoice::Dark, ThemeChoice::System] {
+                    if theme_tile(ui, choice, choice == current) {
+                        picked = Some(choice);
                     }
-                    ui.add_space(theme::SPACE_XS);
-                    ui.label(
-                        egui::RichText::new(mode_desc)
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary()),
-                    );
-                });
+                }
             });
+            match picked {
+                Some(ThemeChoice::Light) => {
+                    state.settings.follow_system_theme = false;
+                    state.settings.dark_mode = false;
+                }
+                Some(ThemeChoice::Dark) => {
+                    state.settings.follow_system_theme = false;
+                    state.settings.dark_mode = true;
+                }
+                Some(ThemeChoice::System) => {
+                    state.settings.follow_system_theme = true;
+                    state.settings.dark_mode = theme::detect_os_dark_mode();
+                }
+                None => {}
+            }
+
+            ui.add_space(theme::SPACE_MD);
+            ui.label(
+                egui::RichText::new(match current {
+                    ThemeChoice::Light => {
+                        "Clair : interface lumineuse, teintes froides et élévation prononcée."
+                    }
+                    ThemeChoice::Dark => {
+                        "Sombre : optimisé pour faible luminosité, sous-tons bleu nuit."
+                    }
+                    ThemeChoice::System => {
+                        "Système : suit le réglage clair ou sombre de votre ordinateur."
+                    }
+                })
+                .font(theme::font_caption())
+                .color(theme::text_tertiary()),
+            );
         });
     }
 
@@ -1415,4 +1405,205 @@ impl SettingsPage {
 
         command
     }
+}
+
+/// A choice in the appearance tab.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ThemeChoice {
+    Light,
+    Dark,
+    System,
+}
+
+/// One appearance tile: a miniature of the interface in that theme, with
+/// its name. Returns true when clicked.
+fn theme_tile(ui: &mut Ui, choice: ThemeChoice, selected: bool) -> bool {
+    const SIZE: egui::Vec2 = egui::vec2(184.0, 148.0);
+    let (label, icon) = match choice {
+        ThemeChoice::Light => ("Clair", icons::SUN),
+        ThemeChoice::Dark => ("Sombre", icons::MOON),
+        ThemeChoice::System => ("Système", icons::DESKTOP),
+    };
+    let (rect, response) = ui.allocate_exact_size(SIZE, egui::Sense::click());
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(egui::WidgetType::RadioButton, true, selected, label)
+    });
+    if ui.is_rect_visible(rect) {
+        let hover = crate::animation::animate_hover(ui.ctx(), response.id, response.hovered());
+        let painter = ui.painter();
+        let radius = egui::CornerRadius::same(theme::ROUNDING_LG);
+        painter.rect(
+            rect,
+            radius,
+            theme::bg_tertiary(),
+            if selected {
+                egui::Stroke::new(theme::BORDER_THICK, theme::accent_text())
+            } else {
+                egui::Stroke::new(
+                    theme::BORDER_THIN,
+                    crate::animation::lerp_color(theme::border(), theme::text_tertiary(), hover),
+                )
+            },
+            egui::StrokeKind::Inside,
+        );
+        // Miniature window.
+        let preview = egui::Rect::from_min_max(
+            rect.min + egui::vec2(12.0, 12.0),
+            egui::pos2(rect.right() - 12.0, rect.bottom() - 44.0),
+        );
+        match choice {
+            ThemeChoice::Light => paint_theme_preview(painter, preview, false),
+            ThemeChoice::Dark => paint_theme_preview(painter, preview, true),
+            ThemeChoice::System => {
+                // Half and half, split on the diagonal's vertical.
+                let left = egui::Rect::from_min_max(
+                    preview.min,
+                    egui::pos2(preview.center().x, preview.bottom()),
+                );
+                let right = egui::Rect::from_min_max(
+                    egui::pos2(preview.center().x, preview.top()),
+                    preview.max,
+                );
+                paint_theme_preview(&painter.with_clip_rect(left), preview, false);
+                paint_theme_preview(&painter.with_clip_rect(right), preview, true);
+            }
+        }
+        // Name row.
+        let text_color = if selected {
+            theme::accent_text()
+        } else {
+            theme::text_primary()
+        };
+        let row_y = rect.bottom() - 22.0;
+        painter.text(
+            egui::pos2(rect.left() + 14.0, row_y),
+            egui::Align2::LEFT_CENTER,
+            icon,
+            theme::font_icon(theme::ICON_XS),
+            text_color,
+        );
+        painter.text(
+            egui::pos2(rect.left() + 14.0 + theme::ICON_XS + theme::SPACE_SM, row_y),
+            egui::Align2::LEFT_CENTER,
+            label,
+            theme::font_body_strong(),
+            text_color,
+        );
+        if selected {
+            painter.text(
+                egui::pos2(rect.right() - 14.0, row_y),
+                egui::Align2::RIGHT_CENTER,
+                icons::CIRCLE_CHECK,
+                theme::font_icon(theme::ICON_SM),
+                theme::accent_text(),
+            );
+        }
+    }
+    if response.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    response.clicked()
+}
+
+/// A tiny schematic of the app (sidebar, top bar, two cards, an accent
+/// button) in the given theme's own colours, whatever theme is active.
+fn paint_theme_preview(painter: &egui::Painter, rect: egui::Rect, dark: bool) {
+    use egui::Color32;
+    let (page, sidebar, card, line, text) = if dark {
+        (
+            Color32::from_rgb(6, 9, 18),
+            Color32::from_rgb(10, 13, 24),
+            Color32::from_rgb(17, 22, 36),
+            Color32::from_rgb(38, 46, 66),
+            Color32::from_rgb(148, 163, 184),
+        )
+    } else {
+        (
+            Color32::from_rgb(241, 244, 248),
+            Color32::from_rgb(250, 251, 253),
+            Color32::WHITE,
+            Color32::from_rgb(214, 220, 228),
+            Color32::from_rgb(81, 96, 118),
+        )
+    };
+    let radius = egui::CornerRadius::same(theme::ROUNDING_SM);
+    painter.rect_filled(rect, radius, page);
+    let side_w = rect.width() * 0.24;
+    let sidebar_rect = egui::Rect::from_min_size(rect.min, egui::vec2(side_w, rect.height()));
+    painter.rect_filled(
+        sidebar_rect,
+        egui::CornerRadius {
+            nw: theme::ROUNDING_SM,
+            sw: theme::ROUNDING_SM,
+            ne: 0,
+            se: 0,
+        },
+        sidebar,
+    );
+    for i in 0..4 {
+        let y = rect.top() + 12.0 + i as f32 * 11.0;
+        painter.rect_filled(
+            egui::Rect::from_min_size(
+                egui::pos2(rect.left() + 6.0, y),
+                egui::vec2(side_w - 12.0, 4.0),
+            ),
+            2.0,
+            if i == 0 { theme::ACCENT } else { line },
+        );
+    }
+    let content_left = rect.left() + side_w + 8.0;
+    // Top bar line and the accent action.
+    painter.rect_filled(
+        egui::Rect::from_min_size(
+            egui::pos2(content_left, rect.top() + 8.0),
+            egui::vec2(46.0, 5.0),
+        ),
+        2.0,
+        text,
+    );
+    painter.rect_filled(
+        egui::Rect::from_min_size(
+            egui::pos2(rect.right() - 30.0, rect.top() + 6.0),
+            egui::vec2(22.0, 9.0),
+        ),
+        3.0,
+        theme::ACCENT,
+    );
+    // Two cards.
+    let card_w = (rect.right() - content_left - 8.0 - 6.0) / 2.0;
+    for i in 0..2 {
+        let card_rect = egui::Rect::from_min_size(
+            egui::pos2(content_left + i as f32 * (card_w + 6.0), rect.top() + 24.0),
+            egui::vec2(card_w, rect.height() - 34.0),
+        );
+        painter.rect(
+            card_rect,
+            3.0,
+            card,
+            egui::Stroke::new(theme::BORDER_HAIRLINE, line),
+            egui::StrokeKind::Inside,
+        );
+        painter.rect_filled(
+            egui::Rect::from_min_size(
+                card_rect.min + egui::vec2(5.0, 6.0),
+                egui::vec2(card_w * 0.5, 4.0),
+            ),
+            2.0,
+            text,
+        );
+        painter.rect_filled(
+            egui::Rect::from_min_size(
+                card_rect.min + egui::vec2(5.0, 16.0),
+                egui::vec2(card_w - 10.0, 3.0),
+            ),
+            1.5,
+            line,
+        );
+    }
+    painter.rect_stroke(
+        rect,
+        radius,
+        egui::Stroke::new(theme::BORDER_HAIRLINE, line),
+        egui::StrokeKind::Inside,
+    );
 }

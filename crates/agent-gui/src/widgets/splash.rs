@@ -60,9 +60,9 @@ pub fn splash_screen(ctx: &egui::Context, elapsed: f32) {
 
                         ui.add_space(theme::SPACE_XS);
 
-                        // GRC AGENT
+                        // Product line: Sentinel GRC Nexus, endpoint agent.
                         ui.label(
-                            egui::RichText::new("GRC AGENT")
+                            egui::RichText::new("GRC NEXUS \u{00b7} ENDPOINT")
                                 .font(theme::font_label())
                                 .color(theme::accent_text().linear_multiply(alpha))
                                 .extra_letter_spacing(theme::TRACKING_WIDE * 3.0),

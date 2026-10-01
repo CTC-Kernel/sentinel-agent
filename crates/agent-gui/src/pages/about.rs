@@ -16,7 +16,7 @@ const INFO_ROW_MIN_HEIGHT: f32 = 28.0;
 /// Company and product branding.
 pub mod branding {
     pub const COMPANY: &str = "Cyber Threat Consulting";
-    pub const PRODUCT: &str = "Sentinel Nexus";
+    pub const PRODUCT: &str = "Sentinel GRC Nexus";
     pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
     pub const EMAIL: &str = "***REMOVED***";
     pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs/sentinel-agent";
@@ -61,7 +61,7 @@ impl AboutPage {
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
                     egui::RichText::new(format!(
-                        "VERSION {}",
+                        "ENDPOINT \u{00b7} VERSION {}",
                         agent_common::constants::AGENT_VERSION
                     ))
                     .font(theme::font_small())

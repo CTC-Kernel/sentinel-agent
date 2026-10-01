@@ -380,6 +380,9 @@ pub fn page_column(ui: &mut egui::Ui, body: impl FnOnce(&mut egui::Ui)) {
 // ============================================================================
 
 /// Main eframe application.
+/// How often the OS light/dark setting is re-read while following it.
+const SYSTEM_THEME_POLL_SECS: f64 = 5.0;
+
 pub struct SentinelApp {
     page: Page,
     state: AppState,
@@ -390,6 +393,8 @@ pub struct SentinelApp {
 
     /// Track previous dark_mode to detect toggles.
     last_dark_mode: bool,
+    /// When the OS light/dark setting was last read (egui time, seconds).
+    last_system_theme_check: f64,
 
     // Channels to/from agent runtime.
     event_rx: Arc<Mutex<mpsc::Receiver<AgentEvent>>>,
@@ -494,6 +499,7 @@ impl SentinelApp {
             enrollment_wizard: EnrollmentWizard::default(),
             theme_applied: false,
             last_dark_mode: true,
+            last_system_theme_check: f64::NEG_INFINITY,
             event_rx: Arc::new(Mutex::new(event_rx)),
             command_tx,
             enrollment_tx,
@@ -1090,7 +1096,19 @@ impl eframe::App for SentinelApp {
                     }
                 });
             }
-        } else if self.state.settings.dark_mode != self.last_dark_mode {
+        }
+        // "Système": re-read the OS setting every few seconds. The query
+        // spawns a small process, so it is neither done every frame nor at
+        // all unless the operator chose to follow the system.
+        if self.theme_applied && self.state.settings.follow_system_theme {
+            let now = ctx.input(|i| i.time);
+            if now - self.last_system_theme_check >= SYSTEM_THEME_POLL_SECS {
+                self.last_system_theme_check = now;
+                self.state.settings.dark_mode = theme::detect_os_dark_mode();
+            }
+            ctx.request_repaint_after(std::time::Duration::from_secs_f64(SYSTEM_THEME_POLL_SECS));
+        }
+        if self.theme_applied && self.state.settings.dark_mode != self.last_dark_mode {
             theme::apply_theme(ctx, self.state.settings.dark_mode);
             self.last_dark_mode = self.state.settings.dark_mode;
             // Start theme transition animation (brief fade-out/fade-in)
@@ -1627,6 +1645,8 @@ impl SentinelApp {
             Some(widgets::TopBarAction::RunCheck) => self.send_command(GuiCommand::RunCheck),
             Some(widgets::TopBarAction::ForceSync) => self.send_command(GuiCommand::ForceSync),
             Some(widgets::TopBarAction::ToggleTheme) => {
+                // An explicit choice ends following the system.
+                self.state.settings.follow_system_theme = false;
                 self.state.settings.dark_mode = !self.state.settings.dark_mode;
             }
             Some(widgets::TopBarAction::OpenNotifications) => self.navigate_to(Page::Notifications),
@@ -1761,6 +1781,7 @@ impl SentinelApp {
             // Flipping the flag makes the next frame re-apply the theme
             // (see the `dark_mode != last_dark_mode` branch in `update`).
             "action:toggle_theme" => {
+                self.state.settings.follow_system_theme = false;
                 self.state.settings.dark_mode = !self.state.settings.dark_mode;
             }
             _ => {}
