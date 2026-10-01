@@ -1884,7 +1884,7 @@ impl LLMPanel {
         let mut command: Option<GuiCommand> = None;
 
         ui.horizontal_wrapped(|ui| {
-            if ui.button(format!("{} Actualiser l’état", icons::REFRESH)).clicked() {
+            if widgets::ghost_button(ui, format!("{}  Actualiser l’état", icons::REFRESH)).clicked() {
                 command = Some(GuiCommand::LlmGetStatus);
             }
             if state.ai.is_processing {
@@ -2171,7 +2171,18 @@ impl LLMPanel {
             }
         });
         #[cfg(not(feature = "llm"))]
-        ui.label("Le catalogue nécessite une version compilée avec le module IA.");
+        widgets::card(ui, |ui| {
+            widgets::empty_state(
+                ui,
+                icons::BRAIN,
+                "Catalogue de modèles indisponible dans cette édition",
+                Some(
+                    "Cette version de l’agent est construite sans le module d’IA locale : \
+                     le modèle actif reste utilisable, mais aucun autre ne peut être \
+                     téléchargé depuis ce poste.",
+                ),
+            );
+        });
 
         command
     }
@@ -2720,7 +2731,29 @@ impl LLMPanel {
                                 },
                             );
                         });
+                        // A bar per component: 30 % beside 87 % read as two
+                        // unrelated numbers until each had its own gauge.
+                        let (bar, _) = ui.allocate_exact_size(
+                            egui::vec2(ui.available_width(), 5.0),
+                            egui::Sense::hover(),
+                        );
+                        let radius = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+                        ui.painter().rect_filled(bar, radius, theme::bg_tertiary());
+                        ui.painter().rect_filled(
+                            egui::Rect::from_min_size(
+                                bar.min,
+                                egui::vec2(bar.width() * (score / 100.0).clamp(0.0, 1.0), bar.height()),
+                            ),
+                            radius,
+                            color,
+                        );
+                        ui.add_space(theme::SPACE_XS);
                     }
+                    ui.label(
+                        egui::RichText::new("100 % = aucun signal défavorable sur l’axe ; pondération entre parenthèses.")
+                            .font(theme::font_caption())
+                            .color(theme::text_tertiary()),
+                    );
                 });
             });
         });
