@@ -67,7 +67,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 |ui: &mut egui::Ui| {
                     if widgets::primary_button(
                         ui,
-                        format!("{}  Nouvelle R\u{00e8}gle", icons::PLUS),
+                        format!("{}  Nouvelle r\u{00e8}gle", icons::PLUS),
                         !state.threats.detection_rule_editing,
                     )
                     .clicked()

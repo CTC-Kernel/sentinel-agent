@@ -12,7 +12,9 @@ use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
-use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort};
+use crate::widgets::data_table::{
+    Cell, ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort,
+};
 use crate::widgets::pagination::PaginationState;
 
 const ITEMS_PER_PAGE: usize = 25;
@@ -244,20 +246,24 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             );
         } else {
             for (row_idx, evt) in page_events.iter().enumerate() {
-                let sev_icon = severity_icon(&evt.severity);
+                // Severity as a pill in its colour, like the events table.
                 let sev_label = evt.severity.label();
-                let sev_cell = format!("{} {}", sev_icon, sev_label);
                 let source_label = source_label_fr(evt.source);
                 let date = evt.timestamp.format("%d/%m/%Y %H:%M").to_string();
 
-                let cells: Vec<&str> =
-                    vec![&sev_cell, source_label, &evt.title, &evt.detail, &date];
+                let cells = [
+                    Cell::Badge(sev_label, severity_color(&evt.severity)),
+                    Cell::Text(source_label),
+                    Cell::Text(&evt.title),
+                    Cell::Text(&evt.detail),
+                    Cell::Text(&date),
+                ];
 
                 let global_idx = start.saturating_add(row_idx);
                 let selected = state.threats.forensic_selected_event == Some(global_idx);
 
                 ui.push_id(row_idx, |ui: &mut egui::Ui| {
-                    if table.show_row(ui, row_idx, selected, &cells) {
+                    if table.show_row_cells(ui, row_idx, selected, &cells) {
                         state.threats.forensic_selected_event = Some(global_idx);
                         state.threats.forensic_detail_open = true;
                     }
