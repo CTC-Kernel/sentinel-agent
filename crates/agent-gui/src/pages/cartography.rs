@@ -428,108 +428,96 @@ impl CartographyPage {
             });
         });
 
-        // Selected Object Detail Panel (AAA Grade)
-        if let Some(selected_ip) = state.cartography.selected_device.as_deref()
-            && let Some(device) = state.discovery.devices.iter().find(|d| d.ip == selected_ip)
+        // The selected device opens in the detail modal, like every other
+        // detail in the app; it used to unfold as a card under the map,
+        // below the fold on most windows.
+        if let Some(selected_ip) = state.cartography.selected_device.clone()
+            && let Some(device) = state
+                .discovery
+                .devices
+                .iter()
+                .find(|d| d.ip == selected_ip)
+                .cloned()
         {
-            ui.add_space(theme::SPACE_MD);
-            widgets::card(ui, |ui: &mut egui::Ui| {
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new(&device.ip)
-                            .font(theme::font_body())
-                            .strong()
-                            .color(theme::text_primary()),
+            let mut open = true;
+            let title = device.hostname.as_deref().unwrap_or(&device.ip);
+            let color = device_type_color(&device.device_type);
+            let actions = [widgets::DetailAction::secondary(
+                "Copier l'adresse IP",
+                icons::COPY,
+            )];
+            let action = widgets::DetailDrawer::new(
+                "cartography_device_detail",
+                title,
+                device_type_icon(&device),
+            )
+            .accent(color)
+            .subtitle(&device.ip)
+            .show(
+                ui.ctx(),
+                &mut open,
+                |ui| {
+                    widgets::detail_section(ui, "APPAREIL");
+                    widgets::detail_mono(ui, "Adresse IP", &device.ip);
+                    if let Some(mac) = &device.mac {
+                        widgets::detail_mono(ui, "Adresse MAC", mac);
+                    }
+                    widgets::detail_field(
+                        ui,
+                        "Constructeur",
+                        device.vendor.as_deref().unwrap_or("Non identifié"),
                     );
-                    ui.add_space(theme::SPACE_LG);
+                    widgets::detail_field_badge(
+                        ui,
+                        "Type",
+                        device_type_name(&device.device_type),
+                        color,
+                    );
+                    if device.is_gateway {
+                        widgets::detail_field_badge(ui, "Rôle", "Passerelle", theme::ACCENT);
+                    }
+                    widgets::detail_field(ui, "Sous-réseau", &device.subnet);
 
-                    if let Some(ref h) = device.hostname {
-                        ui.label(
-                            egui::RichText::new(h.to_uppercase())
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong(),
+                    widgets::detail_section(ui, "EXPOSITION");
+                    if device.open_ports.is_empty() {
+                        widgets::detail_field(ui, "Ports ouverts", "Aucun port ouvert détecté");
+                    } else {
+                        widgets::detail_mono(
+                            ui,
+                            "Ports ouverts",
+                            &device
+                                .open_ports
+                                .iter()
+                                .map(|p| p.to_string())
+                                .collect::<Vec<_>>()
+                                .join(", "),
                         );
                     }
 
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            if widgets::icon_button(ui, icons::XMARK, Some("Fermer")).clicked() {
-                                state.cartography.selected_device = None;
-                            }
-                        },
+                    widgets::detail_section(ui, "ACTIVITÉ");
+                    widgets::detail_field(
+                        ui,
+                        "Première détection",
+                        &device.first_seen.format("%d/%m/%Y %H:%M").to_string(),
                     );
-                });
-
-                ui.add_space(theme::SPACE_MD);
-                ui.separator();
-                ui.add_space(theme::SPACE_MD);
-
-                egui::Grid::new("device_detail_grid")
-                    .spacing(egui::vec2(theme::SPACE_LG, theme::SPACE_SM))
-                    .show(ui, |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("ADRESSE MAC")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                        ui.label(
-                            egui::RichText::new(device.mac.as_deref().unwrap_or("--"))
-                                .font(theme::font_mono_sm()),
-                        );
-                        ui.end_row();
-
-                        ui.label(
-                            egui::RichText::new("CONSTRUCTEUR")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                        ui.label(
-                            egui::RichText::new(device.vendor.as_deref().unwrap_or("--")).strong(),
-                        );
-                        ui.end_row();
-
-                        ui.label(
-                            egui::RichText::new("CLASSIFICATION")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                        ui.label(egui::RichText::new(device.device_type.to_uppercase()).strong());
-                        ui.end_row();
-                    });
-
-                if device.is_gateway {
-                    ui.add_space(theme::SPACE_MD);
-                    widgets::status_badge(ui, "PASSERELLE CENTRALE", theme::ACCENT);
-                }
-
-                if !device.open_ports.is_empty() {
-                    ui.add_space(theme::SPACE_MD);
-                    ui.label(
-                        egui::RichText::new("VECTEURS D'EXPOSITION (PORTS OUVERTS)")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
+                    widgets::detail_field(
+                        ui,
+                        "Dernière détection",
+                        &device.last_seen.format("%d/%m/%Y %H:%M").to_string(),
                     );
-                    ui.add_space(theme::SPACE_MICRO);
-                    ui.label(
-                        device
-                            .open_ports
-                            .iter()
-                            .map(|p| p.to_string())
-                            .collect::<Vec<_>>()
-                            .join(", "),
-                    );
-                }
-            });
+                },
+                &actions,
+            );
+            if action == Some(0) {
+                ui.ctx().copy_text(device.ip.clone());
+                let time = ui.input(|i| i.time);
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success("Adresse IP copiée").with_time(time),
+                );
+            }
+            if !open {
+                state.cartography.selected_device = None;
+            }
         }
 
         ui.add_space(theme::SPACE_XL);
@@ -585,6 +573,20 @@ fn device_type_color(device_type: &str) -> Color32 {
         "iot" => theme::WARNING,
         "phone" => theme::accent_text(),
         _ => theme::text_secondary(),
+    }
+}
+
+/// French name of a device type as discovery reports it.
+fn device_type_name(device_type: &str) -> &str {
+    match device_type {
+        "router" => "Routeur",
+        "server" => "Serveur",
+        "workstation" => "Poste de travail",
+        "printer" => "Imprimante",
+        "iot" => "IoT / embarqué",
+        "phone" => "Mobile",
+        "switch" => "Commutateur",
+        _ => "Non identifié",
     }
 }
 

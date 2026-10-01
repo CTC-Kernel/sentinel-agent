@@ -2062,6 +2062,10 @@ pub fn open_drawer(state: &mut AppState, which: &str) {
             state.vulnerability.selected_vuln = Some(0);
             state.vulnerability.detail_open = true;
         }
+        "device" => {
+            state.cartography.selected_device =
+                state.discovery.devices.first().map(|d| d.ip.clone());
+        }
         "threat" => {
             state.threats.selected_threat = Some(0);
             state.threats.detail_open = true;

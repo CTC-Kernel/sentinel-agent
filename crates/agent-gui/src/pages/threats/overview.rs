@@ -2527,7 +2527,7 @@ fn radar_signals(
                 .color(theme::text_tertiary()),
             );
             ui.label(
-                egui::RichText::new("Cliquer pour épingler le signal")
+                egui::RichText::new("Cliquer pour ouvrir le détail")
                     .font(theme::font_min())
                     .color(palette.instrument),
             );
@@ -2606,48 +2606,72 @@ fn paint_radar_hub_and_telemetry(
     }
 }
 
-/// The pinned signal, as a persistent card under the radar.
+/// The signal clicked on the radar, in the detail modal. Its blip stays
+/// ringed while the modal is open; closing the modal releases it.
 fn radar_pinned_signal(
     ui: &mut Ui,
     palette: &RadarPalette,
     threats: &[ThreatEvent],
     selected: &mut Option<usize>,
 ) {
-    // Selection becomes a persistent analyst context rather than a
-    // transient tooltip, so an operator can compare the signal with the
-    // rest of the radar before opening the investigation workflow.
-    if let Some(index) = *selected
-        && let Some(threat) = threats.get(index)
-    {
-        ui.add_space(theme::SPACE_SM);
-        egui::Frame::new()
-            .fill(theme::bg_elevated())
-            .stroke(egui::Stroke::new(
-                theme::BORDER_THIN,
-                palette.signal_color(threat.severity),
-            ))
-            .corner_radius(theme::ROUNDING_SM)
-            .inner_margin(theme::SPACE_MD)
-            .show(ui, |ui| {
-                ui.set_width(ui.available_width());
-                ui.label(
-                    egui::RichText::new(format!(
-                        "{}  {}",
-                        threat.severity.to_uppercase(),
-                        threat.title
-                    ))
-                    .font(theme::font_label())
-                    .color(theme::text_primary()),
+    let Some(threat) = selected.and_then(|index| threats.get(index)) else {
+        return;
+    };
+    let color = palette.signal_color(threat.severity);
+    let (kind_label, _) = kind_badge(threat.kind);
+    let (severity_icon, _) = severity_display(threat.severity);
+    let severity_label = match threat.severity {
+        "critical" => "Critique",
+        "high" => "Élevée",
+        "medium" => "Moyenne",
+        _ => "Faible",
+    };
+    let status = if threat.allowlisted {
+        ("Autorisé", theme::INFO)
+    } else if threat.acknowledged {
+        ("Acquitté", theme::SUCCESS)
+    } else {
+        ("À traiter", theme::ACCENT)
+    };
+    let mut open = true;
+    let actions = [widgets::DetailAction::secondary(
+        "Copier les détails",
+        icons::COPY,
+    )];
+    let action = widgets::DetailDrawer::new("radar_signal_detail", &threat.title, severity_icon)
+        .accent(color)
+        .subtitle(kind_label)
+        .show(
+            ui.ctx(),
+            &mut open,
+            |ui| {
+                widgets::detail_section(ui, "SIGNAL");
+                widgets::detail_field_badge(ui, "Sévérité", severity_label, color);
+                widgets::detail_field_badge(ui, "Statut", status.0, status.1);
+                widgets::detail_field(ui, "Source", kind_label);
+                widgets::detail_field(
+                    ui,
+                    "Détecté le",
+                    &threat.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
                 );
-                ui.label(
-                    egui::RichText::new(&threat.description)
-                        .font(theme::font_caption())
-                        .color(theme::text_secondary()),
-                );
-                if widgets::ghost_button(ui, "Libérer le signal épinglé").clicked() {
-                    *selected = None;
+                if let Some(confidence) = threat.confidence {
+                    widgets::detail_field(ui, "Confiance", &format!("{confidence}\u{202f}%"));
                 }
-            });
+                if let Some(command_line) = &threat.command_line {
+                    widgets::detail_mono(ui, "Ligne de commande", command_line);
+                }
+                widgets::detail_text(ui, "Description", &threat.description);
+            },
+            &actions,
+        );
+    if action == Some(0) {
+        ui.ctx().copy_text(format!(
+            "{} — {} — {} — {}",
+            threat.title, kind_label, severity_label, threat.description
+        ));
+    }
+    if !open {
+        *selected = None;
     }
 }
 
