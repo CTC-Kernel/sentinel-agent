@@ -1026,12 +1026,16 @@ pub fn table_row_hover() -> Color32 {
 // Glass morphism helpers
 // ============================================================================
 
-/// Frosted surface for floating chrome (command palette, tray popup).
+/// Surface for floating chrome (command palette, toasts, tray popup).
+///
+/// Opaque: egui cannot blur what is behind a surface, so a translucent
+/// fill is not frosted glass, it just lets the page's text show through
+/// the palette's results.
 pub fn glass_card_bg() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgba_unmultiplied(12, 16, 27, 236)
+        Color32::from_rgb(12, 16, 27)
     } else {
-        Color32::from_rgba_premultiplied(255, 255, 255, 240)
+        Color32::WHITE
     }
 }
 
