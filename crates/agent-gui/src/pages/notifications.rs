@@ -611,7 +611,12 @@ impl NotificationsPage {
                                 });
                                 row.col(|ui: &mut egui::Ui| {
                                     // The cell truncates with the full URL on hover.
-                                    table::cell_small(ui, &wh.url);
+                                    // A webhook URL's path is its secret (Slack, Teams): show
+                                    // the host only, the full URL stays in the edit form.
+                                    table::cell_small(ui, &mask_webhook_url(&wh.url))
+                                        .on_hover_text(
+                                            "Chemin masqué : il contient le secret du webhook",
+                                        );
                                 });
                                 row.col(|ui: &mut egui::Ui| {
                                     widgets::status_badge(
@@ -1075,8 +1080,38 @@ fn notification_row(ui: &mut Ui, notif: &crate::dto::GuiNotification, selected: 
     response.clicked()
 }
 
+/// Scheme and host of a webhook URL, its path replaced by dots.
+fn mask_webhook_url(url: &str) -> String {
+    let (scheme, rest) = url.split_once("://").unwrap_or(("", url));
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or(rest);
+    // Credentials before the host are a secret too.
+    let host = authority.rsplit('@').next().unwrap_or(authority);
+    let masked = if rest.len() > authority.len() {
+        "/••••••"
+    } else {
+        ""
+    };
+    if scheme.is_empty() {
+        format!("{host}{masked}")
+    } else {
+        format!("{scheme}://{host}{masked}")
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn webhook_urls_show_their_host_only() {
+        assert_eq!(
+            super::mask_webhook_url("https://hooks.slack.com/services/T0/B0/secret"),
+            "https://hooks.slack.com/••••••"
+        );
+        assert_eq!(
+            super::mask_webhook_url("https://user:pw@siem.example.org"),
+            "https://siem.example.org"
+        );
+    }
+
     use super::parse_escalation;
 
     #[test]

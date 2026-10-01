@@ -538,7 +538,11 @@ impl NetworkPage {
                                 table::cell_strong(ui, &iface.name);
                             });
                             row.col(|ui| {
-                                table::cell_small(ui, &iface.interface_type);
+                                widgets::status_badge(
+                                    ui,
+                                    interface_type_label(&iface.interface_type),
+                                    theme::INFO,
+                                );
                             });
                             row.col(|ui| {
                                 let (label, color) = if iface.status == "up" {
@@ -889,16 +893,13 @@ impl NetworkPage {
                     );
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
-                        egui::RichText::new(format!(
-                            "{} ALERTE(S) DÉTECTÉE(S)",
-                            state.network.alert_count
-                        ))
-                        .font(theme::font_body())
-                        .color(theme::readable_color(theme::ERROR))
-                        .strong(),
+                        egui::RichText::new(alerts_detected(state.network.alert_count as usize))
+                            .font(theme::font_body())
+                            .color(theme::readable_color(theme::ERROR))
+                            .strong(),
                     );
                     ui.label(
-                        egui::RichText::new("ACTIONS DE MITIGATION REQUISES IMMÉDIATEMENT")
+                        egui::RichText::new("Actions de mitigation requises immédiatement")
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .extra_letter_spacing(theme::TRACKING_NORMAL),
@@ -912,13 +913,10 @@ impl NetworkPage {
                             .color(theme::readable_color(theme::ERROR)),
                     );
                     ui.label(
-                        egui::RichText::new(format!(
-                            "{} ALERTE(S) DÉTECTÉE(S)",
-                            state.network.alerts.len()
-                        ))
-                        .font(theme::font_body())
-                        .color(theme::readable_color(theme::ERROR))
-                        .strong(),
+                        egui::RichText::new(alerts_detected(state.network.alerts.len()))
+                            .font(theme::font_body())
+                            .color(theme::readable_color(theme::ERROR))
+                            .strong(),
                     );
                 });
                 ui.add_space(theme::SPACE_SM);
@@ -1050,6 +1048,9 @@ impl NetworkPage {
                 theme::color_blend_pub(theme::bg_secondary(), type_color, 0.45),
             ))
             .show(ui, |ui: &mut egui::Ui| {
+                // Every alert spans the card: rows sized to their text made
+                // a ragged right edge.
+                ui.set_width(ui.available_width());
                 ui.horizontal(|ui: &mut egui::Ui| {
                     widgets::status_badge(ui, &type_label, type_color);
                     if alert.allowlisted {
@@ -1070,16 +1071,16 @@ impl NetworkPage {
                         ui.horizontal(|ui: &mut egui::Ui| {
                             if let Some(src) = &alert.source_ip {
                                 ui.label(
-                                    egui::RichText::new(format!("SRC: {}", src))
+                                    egui::RichText::new(format!("Source {}", src))
                                         .font(theme::font_mono())
                                         .color(theme::text_secondary()),
                                 );
                             }
                             if let Some(dst) = &alert.destination_ip {
                                 let dst_str = if let Some(port) = alert.destination_port {
-                                    format!("DST: {}:{}", dst, port)
+                                    format!("→ {}:{}", dst, port)
                                 } else {
-                                    format!("DST: {}", dst)
+                                    format!("→ {}", dst)
                                 };
                                 ui.label(
                                     egui::RichText::new(dst_str)
@@ -1242,5 +1243,25 @@ fn distribution_column(
                 );
             });
         });
+    }
+}
+
+/// "1 alerte détectée", "3 alertes détectées".
+fn alerts_detected(count: usize) -> String {
+    let s = if count > 1 { "s" } else { "" };
+    format!("{} alerte{s} détectée{s}", crate::format::int(count))
+}
+
+/// French name of an interface type as collectors report it.
+fn interface_type_label(kind: &str) -> &str {
+    match kind.to_ascii_lowercase().as_str() {
+        "ethernet" => "Ethernet",
+        "wifi" | "wi-fi" | "wireless" => "Wi-Fi",
+        "bridge" => "Pont",
+        "loopback" => "Boucle locale",
+        "vpn" | "tunnel" => "Tunnel VPN",
+        "virtual" => "Virtuelle",
+        "cellular" => "Cellulaire",
+        _ => kind,
     }
 }
