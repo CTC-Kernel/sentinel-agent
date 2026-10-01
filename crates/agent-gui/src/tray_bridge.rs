@@ -174,12 +174,12 @@ impl TrayBridge {
         let console_item = MenuItem::with_id(ids::OPEN_CONSOLE, "🌐  Console", true, None);
         let about_item = MenuItem::with_id(ids::ABOUT, "ℹ️  À propos", true, None);
 
-        help_submenu.append(&guide_item).map_err(&m)?;
-        help_submenu.append(&console_item).map_err(&m)?;
+        help_submenu.append(&guide_item).map_err(m)?;
+        help_submenu.append(&console_item).map_err(m)?;
         help_submenu
             .append(&PredefinedMenuItem::separator())
-            .map_err(&m)?;
-        help_submenu.append(&about_item).map_err(&m)?;
+            .map_err(m)?;
+        help_submenu.append(&about_item).map_err(m)?;
 
         let jarvis_item = CheckMenuItem::with_id(
             ids::JARVIS_TOGGLE,
@@ -195,38 +195,38 @@ impl TrayBridge {
         let menu = Menu::new();
 
         // Header section
-        menu.append(&header_item).map_err(&m)?;
-        menu.append(&status_item).map_err(&m)?;
-        menu.append(&version_item).map_err(&m)?;
-        menu.append(&resources_item).map_err(&m)?;
-        menu.append(&PredefinedMenuItem::separator()).map_err(&m)?;
+        menu.append(&header_item).map_err(m)?;
+        menu.append(&status_item).map_err(m)?;
+        menu.append(&version_item).map_err(m)?;
+        menu.append(&resources_item).map_err(m)?;
+        menu.append(&PredefinedMenuItem::separator()).map_err(m)?;
 
         // Window controls
-        menu.append(&show_item).map_err(&m)?;
-        menu.append(&quick_item).map_err(&m)?;
-        menu.append(&PredefinedMenuItem::separator()).map_err(&m)?;
+        menu.append(&show_item).map_err(m)?;
+        menu.append(&quick_item).map_err(m)?;
+        menu.append(&PredefinedMenuItem::separator()).map_err(m)?;
 
         // Agent controls
-        menu.append(&pause_item).map_err(&m)?;
-        menu.append(&resume_item).map_err(&m)?;
-        menu.append(&check_item).map_err(&m)?;
-        menu.append(&sync_item).map_err(&m)?;
-        menu.append(&PredefinedMenuItem::separator()).map_err(&m)?;
+        menu.append(&pause_item).map_err(m)?;
+        menu.append(&resume_item).map_err(m)?;
+        menu.append(&check_item).map_err(m)?;
+        menu.append(&sync_item).map_err(m)?;
+        menu.append(&PredefinedMenuItem::separator()).map_err(m)?;
 
         // Resources
-        menu.append(&logs_item).map_err(&m)?;
-        menu.append(&PredefinedMenuItem::separator()).map_err(&m)?;
+        menu.append(&logs_item).map_err(m)?;
+        menu.append(&PredefinedMenuItem::separator()).map_err(m)?;
 
         // Help
-        menu.append(&help_submenu).map_err(&m)?;
-        menu.append(&PredefinedMenuItem::separator()).map_err(&m)?;
+        menu.append(&help_submenu).map_err(m)?;
+        menu.append(&PredefinedMenuItem::separator()).map_err(m)?;
 
         // Jarvis Assistant
-        menu.append(&jarvis_item).map_err(&m)?;
-        menu.append(&PredefinedMenuItem::separator()).map_err(&m)?;
+        menu.append(&jarvis_item).map_err(m)?;
+        menu.append(&PredefinedMenuItem::separator()).map_err(m)?;
 
         // Quit
-        menu.append(&quit_item).map_err(&m)?;
+        menu.append(&quit_item).map_err(m)?;
 
         let icon = Self::load_icon()?;
 

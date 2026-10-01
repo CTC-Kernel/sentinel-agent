@@ -138,7 +138,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "agent-common"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "base64 0.22.1",
  "blake3",
@@ -164,7 +164,7 @@ dependencies = [
 
 [[package]]
 name = "agent-core"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "agent-common",
  "agent-fim",
@@ -236,7 +236,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fim"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "agent-common",
  "blake3",
@@ -255,7 +255,7 @@ dependencies = [
 
 [[package]]
 name = "agent-gui"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -289,7 +289,7 @@ dependencies = [
 
 [[package]]
 name = "agent-network"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "agent-common",
  "anyhow",
@@ -309,7 +309,7 @@ dependencies = [
 
 [[package]]
 name = "agent-persistence"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -332,7 +332,7 @@ dependencies = [
 
 [[package]]
 name = "agent-scanner"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "agent-common",
  "agent_llm",
@@ -362,7 +362,7 @@ dependencies = [
 
 [[package]]
 name = "agent-siem"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "agent-common",
  "async-trait",
@@ -385,7 +385,7 @@ dependencies = [
 
 [[package]]
 name = "agent-storage"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "agent-common",
  "chrono",
@@ -408,7 +408,7 @@ dependencies = [
 
 [[package]]
 name = "agent-sync"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -437,7 +437,7 @@ dependencies = [
 
 [[package]]
 name = "agent_llm"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -894,13 +894,13 @@ checksum = "8b75356056920673b02621b35afd0f7dda9306d03c79a30f5c56c44cf256e3de"
 
 [[package]]
 name = "async-trait"
-version = "0.1.89"
+version = "0.1.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9035ad2d096bed7955a320ee7e2230574d28fd3c3a0f186cbea1ff3c7eed5dbb"
+checksum = "82f6aeea286b8eb4dd3431a1be1b59d290ace00f5bfd8e2a159bc2a05e2c1667"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.117",
+ "syn 3.0.6",
 ]
 
 [[package]]
@@ -8911,6 +8911,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "syn"
+version = "3.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8593e8e72159ed2257d083c7a454a85cbf854f37a0966d8d483aff8c8a3ebcee"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
 name = "sync_wrapper"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11486,7 +11497,7 @@ checksum = "3ae8337f8a065cfc972643663ea4279e04e7256de865aa66fe25cec5fb912d3f"
 
 [[package]]
 name = "xtask"
-version = "4.0.31"
+version = "4.0.36"
 dependencies = [
  "anyhow",
  "clap",
