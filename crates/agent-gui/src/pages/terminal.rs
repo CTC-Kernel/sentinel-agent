@@ -102,18 +102,25 @@ impl TerminalPage {
 
                 ui.add_space(theme::SPACE_LG);
 
-                // Events per minute
-                let epm = if uptime_secs > 0 {
-                    (state.terminal.event_count as f64 / (uptime_secs as f64 / 60.0)) as u64
+                // Throughput per minute, or per hour when that would round
+                // to zero: 1 300 events over three days read as "0".
+                let per_min = if uptime_secs > 0 {
+                    state.terminal.event_count as f64 / (uptime_secs as f64 / 60.0)
                 } else {
-                    0
+                    0.0
                 };
-                Self::stat_item(
-                    ui,
-                    "DÉBIT (ÉV./MIN)",
-                    &epm.to_string(),
-                    theme::text_tertiary(),
-                );
+                let (label, value) = if per_min >= 1.0 || uptime_secs == 0 {
+                    (
+                        "DÉBIT (ÉV./MIN)",
+                        crate::format::int(per_min.round() as u64),
+                    )
+                } else {
+                    (
+                        "DÉBIT (ÉV./H)",
+                        crate::format::int((per_min * 60.0).round() as u64),
+                    )
+                };
+                Self::stat_item(ui, label, &value, theme::text_primary());
 
                 ui.add_space(theme::SPACE_LG);
 
@@ -338,7 +345,7 @@ impl TerminalPage {
                             table::cell_mono_muted(ui, &ts);
                         });
                         row.col(|ui: &mut egui::Ui| {
-                            table::cell_colored(ui, &entry.level, color);
+                            widgets::status_badge(ui, &entry.level, color);
                         });
                         row.col(|ui: &mut egui::Ui| {
                             table::cell_mono(ui, target_short);
