@@ -159,9 +159,15 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .inner_margin(egui::Margin::same(theme::SPACE as i8))
                     .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
                     .show(ui, |ui: &mut egui::Ui| {
-                        // Same height whether the description wraps to two
-                        // lines or three, so the row of templates reads as one.
-                        ui.set_min_height(TEMPLATE_CARD_MIN_HEIGHT);
+                        // Every template card shares the tallest one's height
+                        // and pins its action to the floor, so the buttons
+                        // line up however the descriptions wrap.
+                        let height_id = egui::Id::new("playbook_template_card_height");
+                        let shared: f32 = ui
+                            .data(|d| d.get_temp(height_id))
+                            .unwrap_or(TEMPLATE_CARD_MIN_HEIGHT);
+                        let content_top = ui.cursor().top();
+                        ui.set_min_height(shared);
                         ui.horizontal(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(tpl.icon)
@@ -182,7 +188,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 .font(theme::font_min())
                                 .color(theme::text_secondary()),
                         );
-                        ui.add_space(theme::SPACE_SM);
+                        let text_h = ui.cursor().top() - content_top;
+                        let natural = text_h + theme::SPACE_SM + theme::BUTTON_HEIGHT;
+                        if natural > shared + 0.5 {
+                            ui.data_mut(|d| d.insert_temp(height_id, natural));
+                            ui.ctx().request_repaint();
+                        }
+                        ui.add_space((shared - text_h - theme::BUTTON_HEIGHT).max(theme::SPACE_SM));
 
                         let already_installed =
                             is_template_installed(&state.threats.playbooks, tpl.name);
@@ -253,7 +265,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 |ui: &mut egui::Ui| {
                     if widgets::primary_button(
                         ui,
-                        format!("{}  Nouveau Playbook", icons::PLUS),
+                        format!("{}  Nouveau playbook", icons::PLUS),
                         !state.threats.playbook_editing,
                     )
                     .clicked()
