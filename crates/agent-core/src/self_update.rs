@@ -37,12 +37,34 @@ impl AgentRuntime {
         }
     }
 
-    /// Run the self-update process.
+    /// Run the self-update process requested by a person or the server.
     pub async fn run_self_update(&self) -> Result<(), CommonError> {
-        info!("Checking for self-update...");
+        self.self_update(true).await
+    }
+
+    /// Periodic background check against the public release catalog.
+    ///
+    /// Without it an installation only learns about a new release when the
+    /// user clicks "check for updates" or the platform pushes an update
+    /// command, so standalone agents never update on their own. The check is
+    /// silent unless a newer version is found; it bypasses the manual
+    /// cooldown so it never blocks a button click right after.
+    pub async fn run_scheduled_update_check(&self) -> Result<(), CommonError> {
+        self.self_update(false).await
+    }
+
+    async fn self_update(&self, interactive: bool) -> Result<(), CommonError> {
+        info!(
+            "Checking for self-update ({})...",
+            if interactive {
+                "requested"
+            } else {
+                "scheduled"
+            }
+        );
 
         // Rate limiting: prevent checking more than once every 5 minutes manually
-        {
+        if interactive {
             let mut last_check = self.last_update_check.write().await;
             if !reserve_update_check(&mut last_check, std::time::Instant::now()) {
                 info!("Skipping update check (rate limited)");
@@ -61,9 +83,11 @@ impl AgentRuntime {
         }
 
         #[cfg(feature = "gui")]
-        self.emit_gui_event(agent_gui::events::AgentEvent::UpdateStatusChanged {
-            status: UpdateStatus::Checking,
-        });
+        if interactive {
+            self.emit_gui_event(agent_gui::events::AgentEvent::UpdateStatusChanged {
+                status: UpdateStatus::Checking,
+            });
+        }
 
         // Standalone mode intentionally has no authenticated platform client.
         // The release catalog and signed artifacts are public, so build an
@@ -107,7 +131,8 @@ impl AgentRuntime {
                 }
 
                 info!(
-                    "[AUDIT] Manual update check triggered version {} download",
+                    "[AUDIT] {} update check triggered version {} download",
+                    if interactive { "Manual" } else { "Scheduled" },
                     info.version
                 );
 
@@ -163,7 +188,7 @@ impl AgentRuntime {
             Ok(None) => {
                 info!("Agent is already up to date.");
                 #[cfg(feature = "gui")]
-                {
+                if interactive {
                     self.emit_notification(
                         "Agent à jour",
                         &format!("La version v{} est la plus récente.", AGENT_VERSION),
@@ -174,6 +199,12 @@ impl AgentRuntime {
                     });
                 }
                 Ok(())
+            }
+            Err(e) if !interactive => {
+                // A background check failing (offline laptop, proxy) is not
+                // worth a notification; the next tick retries.
+                warn!("Scheduled update check failed: {}", e);
+                Err(e)
             }
             Err(e) => {
                 error!("Failed to check for updates: {}", e);

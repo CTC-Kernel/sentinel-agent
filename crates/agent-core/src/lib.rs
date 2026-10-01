@@ -252,6 +252,13 @@ const DEFAULT_VULN_SCAN_INTERVAL_SECS: u64 = 6 * 60 * 60;
 /// Default security scan interval (5 minutes).
 const DEFAULT_SECURITY_SCAN_INTERVAL_SECS: u64 = 5 * 60;
 
+/// Interval between background checks of the release catalog (6 hours).
+const UPDATE_CHECK_INTERVAL_SECS: u64 = 6 * 60 * 60;
+
+/// Delay before the first background update check after start-up, so a
+/// freshly installed or relaunched agent settles before looking again.
+const FIRST_UPDATE_CHECK_DELAY_SECS: u64 = 2 * 60;
+
 /// Shutdown signal for graceful termination.
 pub type ShutdownSignal = Arc<AtomicBool>;
 
@@ -962,6 +969,12 @@ impl AgentRuntime {
         // Certificate renewal timer (daily)
         let mut last_cert_check = std::time::Instant::now();
         let cert_check_interval_secs: u64 = 24 * 3600;
+        // Background update check timer: first tick shortly after start-up.
+        let mut last_update_check = std::time::Instant::now()
+            .checked_sub(std::time::Duration::from_secs(
+                UPDATE_CHECK_INTERVAL_SECS - FIRST_UPDATE_CHECK_DELAY_SECS,
+            ))
+            .unwrap_or_else(std::time::Instant::now);
         #[cfg(feature = "gui")]
         let mut last_check_at: Option<chrono::DateTime<chrono::Utc>> = None;
         #[cfg(feature = "gui")]
@@ -2807,6 +2820,14 @@ impl AgentRuntime {
                 // signed self-update path as connected agents.
                 if let Err(e) = self.run_self_update().await {
                     warn!("Self-update failed: {}", e);
+                }
+            }
+
+            // Periodic background update check against the public catalog.
+            if last_update_check.elapsed().as_secs() >= UPDATE_CHECK_INTERVAL_SECS {
+                last_update_check = std::time::Instant::now();
+                if let Err(e) = self.run_scheduled_update_check().await {
+                    debug!("Scheduled update check did not complete: {}", e);
                 }
             }
 
