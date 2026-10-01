@@ -611,43 +611,39 @@ pub fn detail_text(ui: &mut Ui, label: &str, text: &str) {
 
 /// Render a monospace code/path field.
 pub fn detail_mono(ui: &mut Ui, label: &str, value: &str) {
-    ui.label(
-        egui::RichText::new(label)
-            .font(theme::font_label())
-            .color(theme::text_tertiary())
-            .extra_letter_spacing(theme::TRACKING_TIGHT)
-            .strong(),
-    );
-    ui.add_space(theme::SPACE_XS);
-
-    // A hash or an address is there to be pasted somewhere else: the copy
-    // button sits beside the well rather than making the operator select it.
-    ui.horizontal(|ui| {
-        let copy_w = theme::MIN_TOUCH_TARGET + theme::SPACE_XS;
-        let well_max = (ui.available_width() - copy_w).max(80.0);
-        egui::Frame::new()
-            .fill(theme::bg_deep())
-            .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
-            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
-            .stroke(egui::Stroke::new(
-                theme::BORDER_HAIRLINE,
-                theme::border_subtle(),
-            ))
-            .show(ui, |ui| {
-                ui.set_max_width(well_max - theme::SPACE_MD * 2.0);
-                ui.add(
-                    egui::Label::new(
-                        egui::RichText::new(value)
-                            .font(theme::font_mono())
-                            .color(theme::text_primary()),
-                    )
-                    .wrap_mode(egui::TextWrapMode::Wrap),
-                );
-            });
-        ui.add_space(theme::SPACE_XS);
-        crate::widgets::copy_button(ui, value, Some("Copier"));
+    // On the same label/value grid as every other field: stacked under its
+    // label, an identifier broke the rhythm of the rows around it. A hash or
+    // an address is there to be pasted elsewhere, so the copy button sits
+    // beside the well rather than making the operator select the text.
+    field_row(ui, label, |ui| {
+        ui.horizontal_top(|ui| {
+            let copy_w = theme::MIN_TOUCH_TARGET + theme::SPACE_XS;
+            let well_max = (ui.available_width() - copy_w).max(80.0);
+            egui::Frame::new()
+                .fill(theme::bg_deep())
+                .corner_radius(CornerRadius::same(theme::ROUNDING_MD))
+                .inner_margin(egui::Margin::symmetric(
+                    theme::SPACE_SM as i8,
+                    theme::SPACE_XS as i8,
+                ))
+                .stroke(egui::Stroke::new(
+                    theme::BORDER_HAIRLINE,
+                    theme::border_subtle(),
+                ))
+                .show(ui, |ui| {
+                    ui.set_max_width(well_max - theme::SPACE_SM * 2.0);
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new(value)
+                                .font(theme::font_mono())
+                                .color(theme::text_primary()),
+                        )
+                        .wrap_mode(egui::TextWrapMode::Wrap),
+                    );
+                });
+            crate::widgets::copy_button(ui, value, Some("Copier"));
+        });
     });
-    ui.add_space(theme::SPACE_SM);
 }
 
 /// Render a progress/coverage indicator inside a detail modal.

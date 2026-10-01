@@ -388,7 +388,7 @@ impl AssetsPage {
                     row.col(|ui| {
                         table::cell_styled(
                             ui,
-                            &asset.device_type.to_uppercase(),
+                            asset_type_label(&asset.device_type),
                             theme::font_label(),
                             theme::text_secondary(),
                         );
@@ -505,7 +505,7 @@ impl AssetsPage {
                 if let Some(ref vendor) = asset.vendor {
                     widgets::detail_field(ui, "Constructeur", vendor);
                 }
-                widgets::detail_field(ui, "Type", &asset.device_type.to_uppercase());
+                widgets::detail_field(ui, "Type", asset_type_label(&asset.device_type));
                 widgets::detail_field_badge(ui, "Criticit\u{00e9}", crit_label, crit_color);
                 widgets::detail_field_badge(ui, "Cycle de vie", lc_label, lc_color);
 
@@ -934,5 +934,23 @@ impl AssetsPage {
         } else {
             tracing::error!("Dysfonctionnement interne: Canal async non disponible");
         }
+    }
+}
+
+/// French name of an asset type as discovery reports it; a free-text type
+/// entered by hand is shown as typed.
+fn asset_type_label(kind: &str) -> &str {
+    match kind.to_ascii_lowercase().as_str() {
+        "workstation" | "desktop" | "laptop" => "Poste de travail",
+        "server" => "Serveur",
+        "router" | "gateway" => "Routeur",
+        "switch" => "Commutateur",
+        "printer" => "Imprimante",
+        "phone" | "mobile" => "Mobile",
+        "iot" => "IoT / embarqué",
+        "nas" | "storage" => "Stockage",
+        "firewall" => "Pare-feu",
+        "unknown" | "" => "Non identifié",
+        _ => kind,
     }
 }

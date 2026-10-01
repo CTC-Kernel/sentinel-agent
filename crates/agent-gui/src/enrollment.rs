@@ -731,11 +731,16 @@ impl EnrollmentWizard {
         const PLATFORM_LABELS: [&str; 5] = [
             "Bienvenue",
             "Jeton",
-            "Admin",
+            "Administrateur",
             "Enr\u{00f4}lement",
             "Termin\u{00e9}",
         ];
-        const STANDALONE_LABELS: [&str; 4] = ["Bienvenue", "Admin", "Activation", "Termin\u{00e9}"];
+        const STANDALONE_LABELS: [&str; 4] = [
+            "Bienvenue",
+            "Administrateur",
+            "Activation",
+            "Termin\u{00e9}",
+        ];
         const STEP_W: f32 = 96.0;
         const RADIUS: f32 = 11.0;
 
@@ -751,9 +756,15 @@ impl EnrollmentWizard {
             (EnrollmentStep::AdminSetup, true) => 1,
             (EnrollmentStep::InProgress, false) => 3,
             (EnrollmentStep::InProgress, true) => 2,
+            // A failure stops on the step that failed (enrolment or
+            // activation), not on "Terminé": the stepper used to show a
+            // failed run as five green ticks.
+            (EnrollmentStep::Complete { success: false, .. }, false) => 3,
+            (EnrollmentStep::Complete { success: false, .. }, true) => 2,
             (EnrollmentStep::Complete { .. }, false) => 4,
             (EnrollmentStep::Complete { .. }, true) => 3,
         };
+        let failed = matches!(current, EnrollmentStep::Complete { success: false, .. });
 
         let height = RADIUS * 2.0 + theme::SPACE_XS + theme::ICON_SM;
         let (rect, _) = ui.allocate_exact_size(
@@ -790,6 +801,12 @@ impl EnrollmentWizard {
                     theme::accent_text(),
                     theme::text_secondary(),
                 ),
+                Ordering::Equal if failed => (
+                    theme::DANGER_FILL,
+                    theme::ERROR,
+                    theme::text_on_accent(),
+                    theme::readable_color(theme::ERROR),
+                ),
                 Ordering::Equal => (
                     theme::ACCENT,
                     theme::ACCENT,
@@ -810,6 +827,14 @@ impl EnrollmentWizard {
                     center,
                     egui::Align2::CENTER_CENTER,
                     icons::CHECK,
+                    theme::font_icon(theme::ICON_XS),
+                    glyph,
+                );
+            } else if failed && i == current_idx {
+                painter.text(
+                    center,
+                    egui::Align2::CENTER_CENTER,
+                    icons::XMARK,
                     theme::font_icon(theme::ICON_XS),
                     glyph,
                 );

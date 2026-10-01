@@ -206,9 +206,21 @@ impl VulnerabilitiesPage {
             // "Appliquer le correctif IA" button — only if AI script is available
             let has_ai_fix = finding.ai_remediation_script.is_some();
             if has_ai_fix {
+                // One primary per footer: the known fix when there is one,
+                // the AI-proposed script only when it is the sole remedy.
                 actions.insert(
                     0,
-                    widgets::DetailAction::primary("Appliquer correctif IA", icons::WAND_SPARKLES),
+                    if finding.fix_available {
+                        widgets::DetailAction::secondary(
+                            "Appliquer le correctif IA",
+                            icons::WAND_SPARKLES,
+                        )
+                    } else {
+                        widgets::DetailAction::primary(
+                            "Appliquer le correctif IA",
+                            icons::WAND_SPARKLES,
+                        )
+                    },
                 );
             }
 
@@ -227,7 +239,7 @@ impl VulnerabilitiesPage {
                         &mut state.vulnerability.detail_open,
                         |ui| {
                             widgets::detail_section(ui, "VULN\u{00c9}RABILIT\u{00c9}");
-                            widgets::detail_mono(ui, "CVE ID", cve_display);
+                            widgets::detail_mono(ui, "Identifiant CVE", cve_display);
                             widgets::detail_field(
                                 ui,
                                 "Logiciel affect\u{00e9}",
@@ -268,14 +280,14 @@ impl VulnerabilitiesPage {
                             if finding.fix_available {
                                 widgets::detail_field_badge(
                                     ui,
-                                    "Fix disponible",
+                                    "Correctif disponible",
                                     "OUI",
                                     theme::SUCCESS,
                                 );
                             } else {
                                 widgets::detail_field_badge(
                                     ui,
-                                    "Fix disponible",
+                                    "Correctif disponible",
                                     "NON",
                                     theme::ERROR,
                                 );
