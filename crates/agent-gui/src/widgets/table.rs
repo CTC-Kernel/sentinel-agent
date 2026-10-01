@@ -220,6 +220,26 @@ pub fn cell_number(ui: &mut Ui, text: &str) -> Response {
 }
 
 /// The placeholder for a value the row does not have.
+/// A score as a short bar and its value, so a column of scores reads as a
+/// ranking at a glance. `fraction` is 0..=1.
+pub fn cell_score_bar(ui: &mut Ui, value: &str, fraction: f32, color: Color32) -> Response {
+    ui.horizontal(|ui| {
+        let (rect, _) = ui.allocate_exact_size(egui::vec2(36.0, 6.0), egui::Sense::hover());
+        let radius = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+        ui.painter().rect_filled(rect, radius, theme::bg_tertiary());
+        ui.painter().rect_filled(
+            egui::Rect::from_min_size(
+                rect.min,
+                egui::vec2(rect.width() * fraction.clamp(0.0, 1.0), rect.height()),
+            ),
+            radius,
+            color,
+        );
+        cell_colored(ui, value, color)
+    })
+    .inner
+}
+
 pub fn cell_empty(ui: &mut Ui) -> Response {
     cell_styled(ui, "—", theme::font_body(), theme::text_tertiary())
 }
@@ -256,6 +276,26 @@ pub fn cell_icon(ui: &mut Ui, icon: &str, color: Color32, text: &str) -> Respons
 /// pointer cursor every other link in the product shows.
 pub fn cell_link(ui: &mut Ui, text: &str) -> Response {
     let font = theme::font_mono_strong();
+    let response = truncated(
+        ui,
+        RichText::new(text)
+            .font(font.clone())
+            .color(theme::accent_text()),
+        text,
+        &font,
+    )
+    .interact(egui::Sense::click());
+    if response.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    response
+}
+
+/// A clickable name in the reading font. [`cell_link`] is monospace, which
+/// suits identifiers (CVE ids, hostnames) but made sentences such as a
+/// control or report title look like code.
+pub fn cell_link_text(ui: &mut Ui, text: &str) -> Response {
+    let font = theme::font_body_medium();
     let response = truncated(
         ui,
         RichText::new(text)

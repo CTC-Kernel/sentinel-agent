@@ -11,6 +11,26 @@ use egui::Color32;
 use crate::theme;
 
 // ============================================================================
+// Repaint pacing
+// ============================================================================
+
+/// Frame interval for ambient motion: breathing dots, the AI core's orbit.
+///
+/// Motion this slow looks the same at 30 fps as at the display's 60-120 Hz,
+/// and an agent that sits open all day should not redraw at full rate for
+/// decoration.
+pub const AMBIENT_FRAME: std::time::Duration = std::time::Duration::from_millis(33);
+
+/// Schedule the next frame of an ambient animation. Does nothing under
+/// reduced motion, where ambient animations are static.
+#[inline]
+pub fn request_ambient_repaint(ctx: &egui::Context) {
+    if !theme::is_reduced_motion() {
+        ctx.request_repaint_after(AMBIENT_FRAME);
+    }
+}
+
+// ============================================================================
 // Easing functions  (input `t` in 0.0..=1.0, output 0.0..=1.0)
 // ============================================================================
 

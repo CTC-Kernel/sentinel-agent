@@ -1,7 +1,7 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Sentinel Nexus application shell.
+//! Sentinel GRC Nexus application shell.
 //!
 //! Manages the eframe window, routing, state, and event channels between
 //! the GUI and the agent runtime.
@@ -57,7 +57,6 @@ pub enum Page {
     Reports,
     Risks,
     Assets,
-    Orchestration,
     About,
 }
 
@@ -335,10 +334,31 @@ const SCROLLBAR_GUTTER: f32 = 10.0;
 /// 3000px-wide table row is unreadable however premium it looks. The preview
 /// harness calls this too, so a capture measures what the shell shows.
 /// Keep each module's reading position separate when navigating the sidebar.
-pub fn page_scroll_area(page: &Page) -> egui::ScrollArea {
-    egui::ScrollArea::vertical()
+///
+/// eframe persists egui memory across launches, scroll offsets included, so
+/// the dashboard used to reopen wherever it was left, often below the
+/// compliance score. The first time a page shows in a session it starts at
+/// the top; after that it keeps the operator's reading position. The marker
+/// lives in temp memory, which is never persisted.
+pub fn page_scroll_area(ctx: &egui::Context, page: &Page) -> egui::ScrollArea {
+    let area = egui::ScrollArea::vertical()
         .id_salt(("page_body", page))
-        .auto_shrink(egui::Vec2b::new(false, false))
+        .auto_shrink(egui::Vec2b::new(false, false));
+    let seen = page_session_marker(page);
+    let first_view = ctx.data_mut(|data| {
+        let first = data.get_temp::<()>(seen).is_none();
+        data.insert_temp(seen, ());
+        first
+    });
+    if first_view {
+        area.vertical_scroll_offset(0.0)
+    } else {
+        area
+    }
+}
+
+fn page_session_marker(page: &Page) -> egui::Id {
+    egui::Id::new(("page_seen_this_session", page))
 }
 
 pub fn page_column(ui: &mut egui::Ui, body: impl FnOnce(&mut egui::Ui)) {
@@ -360,6 +380,9 @@ pub fn page_column(ui: &mut egui::Ui, body: impl FnOnce(&mut egui::Ui)) {
 // ============================================================================
 
 /// Main eframe application.
+/// How often the OS light/dark setting is re-read while following it.
+const SYSTEM_THEME_POLL_SECS: f64 = 5.0;
+
 pub struct SentinelApp {
     page: Page,
     state: AppState,
@@ -370,6 +393,8 @@ pub struct SentinelApp {
 
     /// Track previous dark_mode to detect toggles.
     last_dark_mode: bool,
+    /// When the OS light/dark setting was last read (egui time, seconds).
+    last_system_theme_check: f64,
 
     // Channels to/from agent runtime.
     event_rx: Arc<Mutex<mpsc::Receiver<AgentEvent>>>,
@@ -474,6 +499,7 @@ impl SentinelApp {
             enrollment_wizard: EnrollmentWizard::default(),
             theme_applied: false,
             last_dark_mode: true,
+            last_system_theme_check: f64::NEG_INFINITY,
             event_rx: Arc::new(Mutex::new(event_rx)),
             command_tx,
             enrollment_tx,
@@ -538,7 +564,7 @@ impl SentinelApp {
             renderer: eframe::Renderer::Wgpu,
             persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
-                .with_title("Sentinel Nexus")
+                .with_title("Sentinel GRC Nexus")
                 .with_inner_size([theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT])
                 .with_min_inner_size([theme::WINDOW_MIN_WIDTH, theme::WINDOW_MIN_HEIGHT])
                 .with_icon(Self::load_app_icon()),
@@ -552,7 +578,7 @@ impl SentinelApp {
             renderer: eframe::Renderer::Wgpu,
             persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
-                .with_title("Sentinel Nexus - Vue rapide")
+                .with_title("Sentinel GRC Nexus - Vue rapide")
                 .with_inner_size([theme::SPLASH_CONTENT_WIDTH, theme::TRAY_POPUP_MAX_HEIGHT])
                 .with_min_inner_size([theme::TRAY_POPUP_MIN_WIDTH, theme::SPLASH_CONTENT_HEIGHT])
                 .with_max_inner_size([theme::TRAY_POPUP_MAX_WIDTH, 800.0])
@@ -690,7 +716,7 @@ impl SentinelApp {
             let mut text = alerts.join(". ");
             if total > 3 {
                 text.push_str(&format!(
-                    ". {} autres alertes restent disponibles dans Sentinel Nexus.",
+                    ". {} autres alertes restent disponibles dans Sentinel GRC Nexus.",
                     total - 3
                 ));
             }
@@ -1000,6 +1026,9 @@ impl eframe::App for SentinelApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Apply theme once on first frame, and re-apply when dark_mode toggles.
         if !self.theme_applied {
+            // Reduced motion first: the theme reads it for egui's animation time.
+            self.state.reduced_motion = theme::detect_reduced_motion();
+            theme::set_reduced_motion(self.state.reduced_motion);
             theme::configure_fonts(ctx);
             theme::apply_theme(ctx, self.state.settings.dark_mode);
             egui_extras::install_image_loaders(ctx);
@@ -1031,9 +1060,6 @@ impl eframe::App for SentinelApp {
                     });
                 }
             }
-            // Detect OS-level reduced motion preference
-            self.state.reduced_motion = theme::detect_reduced_motion();
-            theme::set_reduced_motion(self.state.reduced_motion);
             self.theme_applied = true;
             self.last_dark_mode = self.state.settings.dark_mode;
 
@@ -1070,7 +1096,19 @@ impl eframe::App for SentinelApp {
                     }
                 });
             }
-        } else if self.state.settings.dark_mode != self.last_dark_mode {
+        }
+        // "Système": re-read the OS setting every few seconds. The query
+        // spawns a small process, so it is neither done every frame nor at
+        // all unless the operator chose to follow the system.
+        if self.theme_applied && self.state.settings.follow_system_theme {
+            let now = ctx.input(|i| i.time);
+            if now - self.last_system_theme_check >= SYSTEM_THEME_POLL_SECS {
+                self.last_system_theme_check = now;
+                self.state.settings.dark_mode = theme::detect_os_dark_mode();
+            }
+            ctx.request_repaint_after(std::time::Duration::from_secs_f64(SYSTEM_THEME_POLL_SECS));
+        }
+        if self.theme_applied && self.state.settings.dark_mode != self.last_dark_mode {
             theme::apply_theme(ctx, self.state.settings.dark_mode);
             self.last_dark_mode = self.state.settings.dark_mode;
             // Start theme transition animation (brief fade-out/fade-in)
@@ -1277,29 +1315,15 @@ impl eframe::App for SentinelApp {
 
         // Keyboard shortcuts for page navigation
         if let Some(new_page) = ctx.input(|i| {
-            if i.modifiers.command {
-                if i.key_pressed(egui::Key::Num1) {
-                    Some(Page::Dashboard)
-                } else if i.key_pressed(egui::Key::Num2) {
-                    Some(Page::Compliance)
-                } else if i.key_pressed(egui::Key::Num3) {
-                    Some(Page::Vulnerabilities)
-                } else if i.key_pressed(egui::Key::Num4) {
-                    Some(Page::Software)
-                } else if i.key_pressed(egui::Key::Num5) {
-                    Some(Page::Network)
-                } else if i.key_pressed(egui::Key::Num6) {
-                    Some(Page::FileIntegrity)
-                } else if i.key_pressed(egui::Key::Num7) {
-                    Some(Page::Threats)
-                } else if i.key_pressed(egui::Key::Num8) {
-                    Some(Page::Settings)
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
+            i.modifiers
+                .command
+                .then(|| {
+                    crate::widgets::sidebar::PAGE_SHORTCUTS
+                        .iter()
+                        .find(|(key, _, _)| i.key_pressed(*key))
+                        .map(|(_, _, page)| page.clone())
+                })
+                .flatten()
         }) {
             self.navigate_to(new_page);
         }
@@ -1409,7 +1433,7 @@ impl eframe::App for SentinelApp {
                     ui.set_opacity(combined_alpha);
                 }
 
-                page_scroll_area(&self.page).show(ui, |ui: &mut egui::Ui| {
+                page_scroll_area(ctx, &self.page).show(ui, |ui: &mut egui::Ui| {
                     page_column(ui, |ui: &mut egui::Ui| match self.page {
                         Page::Dashboard => {
                             if let Some(action) = pages::DashboardPage::show(ui, &mut self.state) {
@@ -1526,9 +1550,6 @@ impl eframe::App for SentinelApp {
                                 self.send_command(cmd);
                             }
                         }
-                        Page::Orchestration => {
-                            pages::OrchestrationPage::show(ui);
-                        }
                         Page::AI => {
                             // Load the model and pre-process the grounded context
                             // while the operator types the first question.
@@ -1605,6 +1626,7 @@ impl SentinelApp {
                 unread: self.state.unread_notification_count,
                 syncing: self.state.sync.in_progress,
                 scanning: self.state.summary.status == crate::dto::GuiAgentStatus::Scanning,
+                last_check: self.state.summary.last_check_at,
                 dark_mode: self.state.settings.dark_mode,
                 sidebar_collapsed: collapsed,
                 sidebar_width: widgets::Sidebar::width(collapsed),
@@ -1623,6 +1645,8 @@ impl SentinelApp {
             Some(widgets::TopBarAction::RunCheck) => self.send_command(GuiCommand::RunCheck),
             Some(widgets::TopBarAction::ForceSync) => self.send_command(GuiCommand::ForceSync),
             Some(widgets::TopBarAction::ToggleTheme) => {
+                // An explicit choice ends following the system.
+                self.state.settings.follow_system_theme = false;
                 self.state.settings.dark_mode = !self.state.settings.dark_mode;
             }
             Some(widgets::TopBarAction::OpenNotifications) => self.navigate_to(Page::Notifications),
@@ -1757,6 +1781,7 @@ impl SentinelApp {
             // Flipping the flag makes the next frame re-apply the theme
             // (see the `dark_mode != last_dark_mode` branch in `update`).
             "action:toggle_theme" => {
+                self.state.settings.follow_system_theme = false;
                 self.state.settings.dark_mode = !self.state.settings.dark_mode;
             }
             _ => {}
@@ -2044,8 +2069,12 @@ impl SentinelApp {
                 });
             });
 
-        // Request repaint to ensure smooth animations
-        ctx.request_repaint();
+        // The AI core paces its own animation. While the microphone or the
+        // model is live, keep the level meter and the reply moving; otherwise
+        // the widget repaints on input and agent events only.
+        if self.state.ai.is_listening || self.state.ai.is_speaking || self.state.ai.is_processing {
+            ctx.request_repaint_after(crate::animation::AMBIENT_FRAME);
+        }
     }
 }
 
@@ -2115,7 +2144,7 @@ mod module_navigation_tests {
                 },
                 |ctx| {
                     egui::CentralPanel::default().show(ctx, |ui| {
-                        offset = page_scroll_area(page)
+                        offset = page_scroll_area(ctx, page)
                             .show(ui, |ui| {
                                 ui.allocate_space(egui::vec2(600.0, 2000.0));
                             })
@@ -2146,7 +2175,13 @@ mod module_navigation_tests {
             network_offset = render(&Page::Network, vec![]);
         }
         assert!(network_offset > 100.0);
+
         assert_eq!(render(&Page::Settings, vec![]), 0.0);
         assert!(render(&Page::Network, vec![]) >= network_offset);
+
+        // A new session carries the restored offset but not the marker: the
+        // page opens at the top once, then scrolls freely again.
+        ctx.data_mut(|data| data.remove_temp::<()>(page_session_marker(&Page::Network)));
+        assert_eq!(render(&Page::Network, vec![]), 0.0);
     }
 }

@@ -195,7 +195,7 @@ pub fn explain_system_incident(
             "Pare-feu système désactivé ou affaibli".to_string(),
             "Le pare-feu de protection du système d'exploitation a été coupé ou ses règles de filtrage ont été contournées.".to_string(),
             "Sans pare-feu actif, tous les ports de votre machine sont directement exposés aux tentatives de connexion des autres machines du réseau.".to_string(),
-            "Réactivez immédiatement le pare-feu dans vos paramètres système ou autorisez Sentinel Agent à appliquer la remédiation automatique.".to_string(),
+            "Réactivez immédiatement le pare-feu dans vos paramètres système ou autorisez Sentinel GRC Nexus à appliquer la remédiation automatique.".to_string(),
         ),
         "antivirus_disabled" => (
             "Protection antivirus / EDR en temps réel arrêtée".to_string(),
@@ -451,7 +451,7 @@ pub fn render_human_explanation_card(ui: &mut egui::Ui, exp: &HumanEventExplanat
             ui.label(
                 egui::RichText::new("Action conseillée :")
                     .font(crate::theme::font_small())
-                    .color(crate::theme::ACCENT)
+                    .color(crate::theme::accent_text())
                     .strong(),
             );
             ui.add_space(crate::theme::SPACE_XS);

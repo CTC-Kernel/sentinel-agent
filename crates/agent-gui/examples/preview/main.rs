@@ -184,19 +184,16 @@ impl Default for Preview {
 impl eframe::App for Preview {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if !self.started {
+            // PREVIEW_REDUCED freezes ambient motion, so two captures of the
+            // same code are pixel-identical and a refactor can be diffed.
+            if std::env::var("PREVIEW_REDUCED").is_ok() {
+                theme::set_reduced_motion(true);
+            }
             theme::apply_theme(ctx, self.dark);
             if let Some(state) = self.state.as_mut() {
                 state.settings.dark_mode = self.dark;
             }
             egui_extras::install_image_loaders(ctx);
-            if self.requested == "orchestration" {
-                let tab = std::env::var("PREVIEW_TAB")
-                    .ok()
-                    .and_then(|v| v.parse::<u8>().ok())
-                    .unwrap_or(0)
-                    .min(4);
-                ctx.data_mut(|d| d.insert_temp(egui::Id::new("orchestration_workspace_view"), tab));
-            }
             self.started = true;
         }
 
@@ -264,6 +261,7 @@ impl eframe::App for Preview {
                 unread,
                 syncing: false,
                 scanning,
+                last_check: self.state.as_ref().and_then(|s| s.summary.last_check_at),
                 dark_mode: self.dark,
                 sidebar_collapsed: collapsed,
                 sidebar_width: widgets::Sidebar::width(collapsed),
@@ -318,7 +316,7 @@ impl eframe::App for Preview {
             )
             .show(ctx, |ui| {
                 theme::paint_workspace_backdrop(ui.painter(), ui.max_rect());
-                let mut scroll = agent_gui::app::page_scroll_area(&self.page);
+                let mut scroll = agent_gui::app::page_scroll_area(ctx, &self.page);
                 if self.shot_after.is_some() {
                     scroll = scroll.vertical_scroll_offset(
                         std::env::var("PREVIEW_SCROLL")
@@ -524,7 +522,6 @@ fn page_from(name: &str) -> Page {
         "fim" => Page::FileIntegrity,
         "software" => Page::Software,
         "sync" => Page::Sync,
-        "orchestration" => Page::Orchestration,
         _ => Page::Dashboard,
     }
 }
@@ -560,7 +557,6 @@ fn location(page: &str) -> (&'static str, &'static str, &'static str) {
         ),
         "software" => (icons::SOFTWARE, "Logiciels & MDM", "Actifs & inventaire"),
         "sync" => (icons::SYNC, "Synchronisation", "Système"),
-        "orchestration" => (icons::ORCHESTRATION, "Orchestration", "Automatisation"),
         _ => (icons::DASHBOARD, "Tableau de bord", "Vue d'ensemble"),
     }
 }
@@ -625,9 +621,6 @@ fn real_page(ui: &mut egui::Ui, page: &str, state: &mut AppState) {
         }
         "sync" => {
             pages::SyncPage::show(ui, state);
-        }
-        "orchestration" => {
-            pages::OrchestrationPage::show(ui);
         }
         "overlays" => feedback_gallery(ui),
         _ => {

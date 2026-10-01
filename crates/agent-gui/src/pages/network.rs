@@ -29,8 +29,6 @@ impl NetworkPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
-        crate::pages::security_navigation(ui, state);
-        ui.add_space(theme::SPACE_MD);
 
         if state.network.interfaces.is_empty() && state.network.connections.is_empty() {
             ui.add_space(theme::SPACE_LG);
@@ -77,30 +75,6 @@ impl NetworkPage {
 
             return command;
         }
-
-        // Action bar (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-            if widgets::button::primary_button_loading(
-                ui,
-                format!(
-                    "{}  {}",
-                    icons::PLAY,
-                    if is_scanning {
-                        "Analyse en cours"
-                    } else {
-                        "Lancer l'analyse"
-                    }
-                ),
-                !is_scanning,
-                is_scanning,
-            )
-            .clicked()
-            {
-                command = Some(GuiCommand::RunCheck);
-            }
-        });
-        ui.add_space(theme::SPACE_MD);
 
         // Summary row (AAA Grade)
         let iface_count = if state.network.interfaces.is_empty() {
@@ -175,144 +149,10 @@ impl NetworkPage {
         }
         ui.add_space(theme::SPACE_MD);
         // ── Connection state + Protocol + Alert type distribution ───────
-        egui::CollapsingHeader::new("Répartition des flux et des alertes")
-            .id_salt("network_distribution")
-            .show(ui, |ui| {
-                widgets::card(ui, |ui: &mut egui::Ui| {
-                    // ── A. Connection state distribution ──
-                    ui.label(
-                        egui::RichText::new("DISTRIBUTION DES CONNEXIONS PAR ÉTAT")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-
-                    let mut established: usize = 0;
-                    let mut listen: usize = 0;
-                    let mut time_wait: usize = 0;
-                    let mut other_state: usize = 0;
-
-                    for conn in &state.network.connections {
-                        match conn.state.as_str() {
-                            "ESTABLISHED" => established += 1,
-                            "LISTEN" => listen += 1,
-                            "TIME_WAIT" | "CLOSE_WAIT" => time_wait += 1,
-                            _ => other_state += 1,
-                        }
-                    }
-
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        let states: &[(&str, usize, egui::Color32)] = &[
-                            ("ESTABLISHED", established, theme::SUCCESS),
-                            ("LISTEN", listen, theme::INFO),
-                            ("TIME_WAIT", time_wait, theme::WARNING),
-                            ("AUTRES", other_state, theme::text_tertiary()),
-                        ];
-                        for (label, count, color) in states {
-                            widgets::status_badge(ui, &format!("{}: {}", label, count), *color);
-                            ui.add_space(theme::SPACE_SM);
-                        }
-                    });
-
-                    ui.add_space(theme::SPACE_MD);
-
-                    // ── B. Protocol distribution ──
-                    ui.label(
-                        egui::RichText::new("DISTRIBUTION PAR PROTOCOLE")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-
-                    let mut tcp_count: usize = 0;
-                    let mut udp_count: usize = 0;
-                    for conn in &state.network.connections {
-                        match conn.protocol.as_str() {
-                            "tcp" | "tcp4" | "tcp6" | "TCP" | "TCP4" | "TCP6" => tcp_count += 1,
-                            "udp" | "udp4" | "udp6" | "UDP" | "UDP4" | "UDP6" => udp_count += 1,
-                            _ => {}
-                        }
-                    }
-                    let proto_total = tcp_count.saturating_add(udp_count).max(1);
-
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        widgets::status_badge(ui, &format!("TCP: {}", tcp_count), theme::ACCENT);
-                        ui.add_space(theme::SPACE_SM);
-                        widgets::status_badge(
-                            ui,
-                            &format!("UDP: {}", udp_count),
-                            theme::accent_text(),
-                        );
-                    });
-                    ui.add_space(theme::SPACE_XS);
-
-                    let tcp_ratio = tcp_count as f32 / proto_total as f32;
-                    // Mini stacked bar for TCP/UDP ratio
-                    let bar_height = theme::PROGRESS_BAR_HEIGHT;
-                    let bar_width = ui.available_width();
-                    let (rect, _) = ui.allocate_exact_size(
-                        egui::vec2(bar_width, bar_height),
-                        egui::Sense::hover(),
-                    );
-                    if ui.is_rect_visible(rect) {
-                        let painter = ui.painter_at(rect);
-                        let rounding = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
-                        painter.rect_filled(rect, rounding, theme::bg_tertiary());
-
-                        if tcp_count > 0 {
-                            let tcp_w = tcp_ratio * bar_width;
-                            let tcp_rect =
-                                egui::Rect::from_min_size(rect.min, egui::vec2(tcp_w, bar_height));
-                            painter.rect_filled(tcp_rect, rounding, theme::ACCENT);
-                        }
-                        if udp_count > 0 {
-                            let udp_w = (1.0 - tcp_ratio) * bar_width;
-                            let udp_rect = egui::Rect::from_min_size(
-                                egui::pos2(rect.min.x + tcp_ratio * bar_width, rect.min.y),
-                                egui::vec2(udp_w, bar_height),
-                            );
-                            painter.rect_filled(udp_rect, rounding, theme::accent_text());
-                        }
-                    }
-
-                    // ── C. Alert type distribution ──
-                    if !state.network.alerts.is_empty() {
-                        ui.add_space(theme::SPACE_MD);
-                        ui.label(
-                            egui::RichText::new("DISTRIBUTION DES ALERTES PAR TYPE")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                .strong(),
-                        );
-                        ui.add_space(theme::SPACE_SM);
-
-                        // Count alert types
-                        let mut alert_type_counts: Vec<(String, usize, egui::Color32)> = Vec::new();
-                        for alert in state.network.alerts.iter() {
-                            let (label, color) = Self::alert_type_label_color(&alert.alert_type);
-                            if let Some(existing) =
-                                alert_type_counts.iter_mut().find(|(l, _, _)| *l == label)
-                            {
-                                existing.1 += 1;
-                            } else {
-                                alert_type_counts.push((label, 1, color));
-                            }
-                        }
-
-                        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
-                            for (label, count, color) in &alert_type_counts {
-                                widgets::status_badge(ui, &format!("{}: {}", label, count), *color);
-                                ui.add_space(theme::SPACE_SM);
-                            }
-                        });
-                    }
-                });
-            });
+        // Flows and alerts, always shown: each breakdown is a proportion bar
+        // with a legend, rather than counts in pills behind a bare egui
+        // collapsing header.
+        Self::flows_card(ui, state);
 
         ui.add_space(theme::SPACE_XL);
 
@@ -322,9 +162,9 @@ impl NetworkPage {
                 if sel < state.network.connections.len() {
                     let conn = state.network.connections[sel].clone();
                     let (state_label, state_color) = match conn.state.as_str() {
-                        "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
-                        "LISTEN" => ("LISTEN", theme::INFO),
-                        "CLOSE_WAIT" | "TIME_WAIT" => (conn.state.as_str(), theme::WARNING),
+                        "ESTABLISHED" => ("ÉTABLIE", theme::SUCCESS),
+                        "LISTEN" => ("EN ÉCOUTE", theme::INFO),
+                        "CLOSE_WAIT" | "TIME_WAIT" => ("EN FERMETURE", theme::WARNING),
                         _ => (conn.state.as_str(), theme::WARNING),
                     };
                     let title = format!("{}:{}", conn.local_address, conn.local_port);
@@ -424,7 +264,7 @@ impl NetworkPage {
                 let sev_color = match alert.severity {
                     crate::dto::Severity::Critical => theme::ERROR,
                     crate::dto::Severity::High => theme::SEVERITY_HIGH,
-                    crate::dto::Severity::Medium => theme::WARNING,
+                    crate::dto::Severity::Medium => theme::SEVERITY_MEDIUM,
                     crate::dto::Severity::Low => theme::INFO,
                     crate::dto::Severity::Info => theme::text_tertiary(),
                 };
@@ -698,7 +538,11 @@ impl NetworkPage {
                                 table::cell_strong(ui, &iface.name);
                             });
                             row.col(|ui| {
-                                table::cell_small(ui, &iface.interface_type);
+                                widgets::status_badge(
+                                    ui,
+                                    interface_type_label(&iface.interface_type),
+                                    theme::INFO,
+                                );
                             });
                             row.col(|ui| {
                                 let (label, color) = if iface.status == "up" {
@@ -860,7 +704,7 @@ impl NetworkPage {
                         table::Col::fluid(64.0, 0.0),  // Proto
                         table::Col::fluid(150.0, 1.5), // Local
                         table::Col::fluid(150.0, 1.5), // Distant
-                        table::Col::fluid(104.0, 0.0), // État
+                        table::Col::fluid(136.0, 0.0), // État: "EN FERMETURE" whole
                         table::Col::fluid(120.0, 2.0), // Processus
                     ],
                 )
@@ -916,9 +760,9 @@ impl NetworkPage {
                                 return;
                             }
                             let (label, color) = match conn.state.as_str() {
-                                "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
-                                "LISTEN" => ("LISTEN", theme::INFO),
-                                "CLOSE_WAIT" | "TIME_WAIT" => ("CLOSED", theme::WARNING),
+                                "ESTABLISHED" => ("ÉTABLIE", theme::SUCCESS),
+                                "LISTEN" => ("EN ÉCOUTE", theme::INFO),
+                                "CLOSE_WAIT" | "TIME_WAIT" => ("EN FERMETURE", theme::WARNING),
                                 _ => (conn.state.as_str(), theme::WARNING),
                             };
                             widgets::status_badge(ui, label, color);
@@ -1049,16 +893,13 @@ impl NetworkPage {
                     );
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
-                        egui::RichText::new(format!(
-                            "{} ALERTE(S) DÉTECTÉE(S)",
-                            state.network.alert_count
-                        ))
-                        .font(theme::font_body())
-                        .color(theme::readable_color(theme::ERROR))
-                        .strong(),
+                        egui::RichText::new(alerts_detected(state.network.alert_count as usize))
+                            .font(theme::font_body())
+                            .color(theme::readable_color(theme::ERROR))
+                            .strong(),
                     );
                     ui.label(
-                        egui::RichText::new("ACTIONS DE MITIGATION REQUISES IMMÉDIATEMENT")
+                        egui::RichText::new("Actions de mitigation requises immédiatement")
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .extra_letter_spacing(theme::TRACKING_NORMAL),
@@ -1072,13 +913,10 @@ impl NetworkPage {
                             .color(theme::readable_color(theme::ERROR)),
                     );
                     ui.label(
-                        egui::RichText::new(format!(
-                            "{} ALERTE(S) DÉTECTÉE(S)",
-                            state.network.alerts.len()
-                        ))
-                        .font(theme::font_body())
-                        .color(theme::readable_color(theme::ERROR))
-                        .strong(),
+                        egui::RichText::new(alerts_detected(state.network.alerts.len()))
+                            .font(theme::font_body())
+                            .color(theme::readable_color(theme::ERROR))
+                            .strong(),
                     );
                 });
                 ui.add_space(theme::SPACE_SM);
@@ -1092,6 +930,89 @@ impl NetworkPage {
                     ui.add_space(theme::SPACE_XS);
                 }
             }
+        });
+    }
+
+    fn flows_card(ui: &mut Ui, state: &AppState) {
+        let mut by_state = [0_usize; 4];
+        let (mut tcp, mut udp) = (0_usize, 0_usize);
+        for conn in &state.network.connections {
+            by_state[match conn.state.as_str() {
+                "ESTABLISHED" => 0,
+                "LISTEN" => 1,
+                "TIME_WAIT" | "CLOSE_WAIT" => 2,
+                _ => 3,
+            }] += 1;
+            if conn.protocol.to_ascii_lowercase().starts_with("tcp") {
+                tcp += 1;
+            } else if conn.protocol.to_ascii_lowercase().starts_with("udp") {
+                udp += 1;
+            }
+        }
+        let mut alerts: Breakdown = Vec::new();
+        for alert in &state.network.alerts {
+            let (label, color) = Self::alert_type_label_color(&alert.alert_type);
+            match alerts.iter_mut().find(|(l, _, _)| *l == label) {
+                Some(entry) => entry.1 += 1,
+                None => alerts.push((label, 1, color)),
+            }
+        }
+        alerts.sort_by_key(|a| std::cmp::Reverse(a.1));
+
+        let states = vec![
+            ("Établies".to_owned(), by_state[0], theme::SUCCESS),
+            ("En écoute".to_owned(), by_state[1], theme::INFO),
+            (
+                "En fermeture".to_owned(),
+                by_state[2],
+                theme::SEVERITY_MEDIUM,
+            ),
+            ("Sans état".to_owned(), by_state[3], theme::text_tertiary()),
+        ];
+        let protocols = vec![
+            ("TCP".to_owned(), tcp, theme::ACCENT),
+            ("UDP".to_owned(), udp, theme::INFO),
+        ];
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("RÉPARTITION DES FLUX ET DES ALERTES")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+            let mut columns: Vec<(&str, &str, Breakdown)> = vec![
+                (icons::NETWORK, "États des connexions", states),
+                (icons::LINK, "Protocoles", protocols),
+            ];
+            if !alerts.is_empty() {
+                columns.push((icons::WARNING, "Alertes par type", alerts));
+            }
+            let gap = theme::SPACE_XL;
+            let wide = ui.available_width() >= 300.0 * columns.len() as f32;
+            let width = if wide {
+                (ui.available_width() - gap * (columns.len() - 1) as f32) / columns.len() as f32
+            } else {
+                ui.available_width()
+            };
+            let layout = if wide {
+                egui::Layout::left_to_right(egui::Align::Min)
+            } else {
+                egui::Layout::top_down(egui::Align::Min)
+            };
+            ui.with_layout(layout, |ui| {
+                let inner = ui.spacing().item_spacing;
+                ui.spacing_mut().item_spacing = egui::vec2(gap, theme::SPACE_LG);
+                for (icon, title, rows) in &columns {
+                    ui.vertical(|ui| {
+                        ui.spacing_mut().item_spacing = inner;
+                        ui.set_width(width);
+                        distribution_column(ui, icon, title, rows);
+                    });
+                }
+            });
         });
     }
 
@@ -1127,6 +1048,9 @@ impl NetworkPage {
                 theme::color_blend_pub(theme::bg_secondary(), type_color, 0.45),
             ))
             .show(ui, |ui: &mut egui::Ui| {
+                // Every alert spans the card: rows sized to their text made
+                // a ragged right edge.
+                ui.set_width(ui.available_width());
                 ui.horizontal(|ui: &mut egui::Ui| {
                     widgets::status_badge(ui, &type_label, type_color);
                     if alert.allowlisted {
@@ -1147,16 +1071,16 @@ impl NetworkPage {
                         ui.horizontal(|ui: &mut egui::Ui| {
                             if let Some(src) = &alert.source_ip {
                                 ui.label(
-                                    egui::RichText::new(format!("SRC: {}", src))
+                                    egui::RichText::new(format!("Source {}", src))
                                         .font(theme::font_mono())
                                         .color(theme::text_secondary()),
                                 );
                             }
                             if let Some(dst) = &alert.destination_ip {
                                 let dst_str = if let Some(port) = alert.destination_port {
-                                    format!("DST: {}:{}", dst, port)
+                                    format!("→ {}:{}", dst, port)
                                 } else {
-                                    format!("DST: {}", dst)
+                                    format!("→ {}", dst)
                                 };
                                 ui.label(
                                     egui::RichText::new(dst_str)
@@ -1239,5 +1163,105 @@ impl NetworkPage {
         let path = crate::export::default_export_path("network_connections.csv");
         crate::export::export_csv(headers, &rows, &path)?;
         Ok(path)
+    }
+}
+
+/// Labelled counts with their colour, one row each.
+type Breakdown = Vec<(String, usize, egui::Color32)>;
+
+/// A breakdown as a titled proportion bar and a legend of counts and shares.
+fn distribution_column(
+    ui: &mut Ui,
+    icon: &str,
+    title: &str,
+    rows: &[(String, usize, egui::Color32)],
+) {
+    ui.horizontal(|ui| {
+        ui.label(
+            egui::RichText::new(icon)
+                .size(theme::ICON_XS)
+                .color(theme::accent_text()),
+        );
+        ui.label(
+            egui::RichText::new(title)
+                .font(theme::font_body_strong())
+                .color(theme::text_primary()),
+        );
+    });
+    ui.add_space(theme::SPACE_SM);
+    let total: usize = rows.iter().map(|(_, n, _)| n).sum();
+    let height = 8.0;
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), height),
+        egui::Sense::hover(),
+    );
+    if ui.is_rect_visible(rect) {
+        let radius = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+        ui.painter().rect_filled(rect, radius, theme::bg_tertiary());
+        let live: Vec<_> = rows.iter().filter(|(_, n, _)| *n > 0).collect();
+        let gap = 2.0;
+        let usable = rect.width() - gap * live.len().saturating_sub(1) as f32;
+        let mut x = rect.left();
+        for (_, n, color) in live {
+            let w = usable * *n as f32 / total.max(1) as f32;
+            ui.painter().rect_filled(
+                egui::Rect::from_min_size(egui::pos2(x, rect.top()), egui::vec2(w, height)),
+                radius,
+                theme::readable_color(*color),
+            );
+            x += w + gap;
+        }
+    }
+    ui.add_space(theme::SPACE_SM);
+    for (label, count, color) in rows {
+        ui.horizontal(|ui| {
+            let (dot, _) = ui.allocate_exact_size(egui::vec2(10.0, 10.0), egui::Sense::hover());
+            ui.painter()
+                .circle_filled(dot.center(), 4.0, theme::readable_color(*color));
+            ui.label(
+                egui::RichText::new(label)
+                    .font(theme::font_body())
+                    .color(if *count == 0 {
+                        theme::text_tertiary()
+                    } else {
+                        theme::text_primary()
+                    }),
+            );
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(
+                    egui::RichText::new(crate::format::pct(
+                        *count as f32 / total.max(1) as f32 * 100.0,
+                        0,
+                    ))
+                    .font(theme::font_caption())
+                    .color(theme::text_tertiary()),
+                );
+                ui.label(
+                    egui::RichText::new(count.to_string())
+                        .font(theme::font_body_strong())
+                        .color(theme::readable_color(*color)),
+                );
+            });
+        });
+    }
+}
+
+/// "1 alerte détectée", "3 alertes détectées".
+fn alerts_detected(count: usize) -> String {
+    let s = if count > 1 { "s" } else { "" };
+    format!("{} alerte{s} détectée{s}", crate::format::int(count))
+}
+
+/// French name of an interface type as collectors report it.
+fn interface_type_label(kind: &str) -> &str {
+    match kind.to_ascii_lowercase().as_str() {
+        "ethernet" => "Ethernet",
+        "wifi" | "wi-fi" | "wireless" => "Wi-Fi",
+        "bridge" => "Pont",
+        "loopback" => "Boucle locale",
+        "vpn" | "tunnel" => "Tunnel VPN",
+        "virtual" => "Virtuelle",
+        "cellular" => "Cellulaire",
+        _ => kind,
     }
 }

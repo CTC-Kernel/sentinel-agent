@@ -255,10 +255,13 @@ pub const DANGER_HOVER: Color32 = Color32::from_rgb(145, 24, 37);
 pub const DANGER_PRESSED: Color32 = Color32::from_rgb(125, 20, 32);
 /// Info — azure.
 pub const INFO: Color32 = Color32::from_rgb(56, 166, 245); // #38A6F5
-/// Severity-high — saturated amber, one step hotter than `WARNING`.
-pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 176, 32); // #FFB020
-/// Severity-medium — burnt orange, visually distinct from `WARNING`.
-pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 140, 58); // #FF8C3A
+/// Severity ramp, hottest first: critical `ERROR` red, high burnt orange,
+/// medium amber, low `INFO` blue. Each step cools, so a colour alone ranks
+/// an event; medium used to be the hotter orange, which read backwards.
+/// Severity-high — burnt orange, between `ERROR` and medium.
+pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 140, 58); // #FF8C3A
+/// Severity-medium — saturated amber, the `WARNING` family.
+pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 176, 32); // #FFB020
 /// Assistant / AI — lavender, the pale end of the brand violet. It reads as
 /// the same family as the action accent, as on the site's AI orb, but its
 /// lightness keeps it apart from the deep violet fills.
@@ -270,8 +273,8 @@ const SUCCESS_ON_LIGHT: Color32 = Color32::from_rgb(8, 108, 74); // #086C4A
 const WARNING_ON_LIGHT: Color32 = Color32::from_rgb(138, 87, 0); // #8A5700
 const ERROR_ON_LIGHT: Color32 = Color32::from_rgb(196, 38, 43); // #C4262B
 const INFO_ON_LIGHT: Color32 = Color32::from_rgb(11, 107, 181); // #0B6BB5
-const SEVERITY_HIGH_ON_LIGHT: Color32 = Color32::from_rgb(125, 81, 0); // #7D5100
-const SEVERITY_MEDIUM_ON_LIGHT: Color32 = Color32::from_rgb(155, 63, 8); // #9B3F08
+const SEVERITY_HIGH_ON_LIGHT: Color32 = Color32::from_rgb(155, 63, 8); // #9B3F08
+const SEVERITY_MEDIUM_ON_LIGHT: Color32 = Color32::from_rgb(125, 81, 0); // #7D5100
 const AI_ON_LIGHT: Color32 = Color32::from_rgb(109, 75, 216); // #6D4BD8
 
 // ============================================================================
@@ -340,7 +343,9 @@ pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(3, 4, 9) // #030409
     } else {
-        Color32::from_rgb(232, 236, 240) // #E8ECF0
+        // A hair under the card surface: at #E8ECF0 an inset panel was
+        // darker than the page behind its own card and read as disabled.
+        Color32::from_rgb(244, 246, 249) // #F4F6F9
     }
 }
 
@@ -810,8 +815,8 @@ fn theme_variant(color: Color32) -> Color32 {
         (245, 165, 36) => WARNING_ON_LIGHT,
         (255, 97, 99) => ERROR_ON_LIGHT,
         (56, 166, 245) => INFO_ON_LIGHT,
-        (255, 176, 32) => SEVERITY_HIGH_ON_LIGHT,
-        (255, 140, 58) => SEVERITY_MEDIUM_ON_LIGHT,
+        (255, 140, 58) => SEVERITY_HIGH_ON_LIGHT,
+        (255, 176, 32) => SEVERITY_MEDIUM_ON_LIGHT,
         (167, 139, 255) => AI_ON_LIGHT,
         _ => darken_for_light_bg(color),
     }
@@ -1023,12 +1028,16 @@ pub fn table_row_hover() -> Color32 {
 // Glass morphism helpers
 // ============================================================================
 
-/// Frosted surface for floating chrome (command palette, tray popup).
+/// Surface for floating chrome (command palette, toasts, tray popup).
+///
+/// Opaque: egui cannot blur what is behind a surface, so a translucent
+/// fill is not frosted glass, it just lets the page's text show through
+/// the palette's results.
 pub fn glass_card_bg() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgba_unmultiplied(12, 16, 27, 236)
+        Color32::from_rgb(12, 16, 27)
     } else {
-        Color32::from_rgba_premultiplied(255, 255, 255, 240)
+        Color32::WHITE
     }
 }
 
@@ -1141,22 +1150,32 @@ pub fn family_mono_medium() -> egui::FontFamily {
 
 // ── Type scale ──────────────────────────────────────────────────────────
 
-/// Size step: micro annotations (10px) — use sparingly, never for prose.
-pub const TEXT_MICRO: f32 = 10.0;
-/// Size step: caption / label (11px) — the accessibility floor.
-pub const TEXT_CAPTION: f32 = 11.0;
+// Labels, captions and helper text are most of what an operator reads here
+// (some 400 call sites against about 140 for body text), so the floor sets
+// the feel of the whole app: at 10-11px it read as squinting. 11px is now
+// the absolute floor, reserved for counters and axis ticks, and every label
+// or caption is 12px.
+
+/// Size step: micro annotations (11px) — counters, axis ticks; never prose.
+pub const TEXT_MICRO: f32 = 11.0;
+/// Size step: caption / label (12px) — the reading floor.
+pub const TEXT_CAPTION: f32 = 12.0;
 /// Size step: dense body (12px) — table cells, chips.
 pub const TEXT_BODY_SM: f32 = 12.0;
 /// Size step: body (13px) — the default reading size.
 pub const TEXT_BODY: f32 = 13.0;
 /// Size step: lead body (15px) — subtitles, drawer intros.
 pub const TEXT_BODY_LG: f32 = 15.0;
-/// Size step: section heading (16px).
-pub const TEXT_H3: f32 = 16.0;
-/// Size step: page / card title (20px).
-pub const TEXT_H2: f32 = 20.0;
-/// Size step: page display title (26px).
-pub const TEXT_H1: f32 = 26.0;
+// Headings climb in clear steps above the 15px lead: at 16px a section
+// heading sat one pixel over the intro paragraph under the page title and
+// read as the same level. 13 → 15 → 17 → 22 → 28 → 34.
+
+/// Size step: section heading (17px) — two steps over the lead, plus weight.
+pub const TEXT_H3: f32 = 17.0;
+/// Size step: page / card title (22px).
+pub const TEXT_H2: f32 = 22.0;
+/// Size step: page display title, card metric values (28px).
+pub const TEXT_H1: f32 = 28.0;
 /// Size step: hero / splash display (34px).
 pub const TEXT_DISPLAY: f32 = 34.0;
 
@@ -1167,27 +1186,27 @@ pub fn font_display() -> FontId {
     FontId::new(TEXT_DISPLAY, family_bold())
 }
 
-/// Page display title (26px bold).
+/// Page display title (28px bold).
 pub fn font_h1() -> FontId {
     FontId::new(TEXT_H1, family_bold())
 }
 
-/// Page / card title (20px semibold).
+/// Page / card title (22px semibold).
 pub fn font_h2() -> FontId {
     FontId::new(TEXT_H2, family_semibold())
 }
 
-/// Section heading (16px semibold).
+/// Section heading (17px semibold).
 pub fn font_h3() -> FontId {
     FontId::new(TEXT_H3, family_semibold())
 }
 
-/// Page title (20px semibold) — alias kept for call-site stability.
+/// Page title (22px semibold) — alias kept for call-site stability.
 pub fn font_title() -> FontId {
     font_h2()
 }
 
-/// Section heading (16px semibold).
+/// Section heading (17px semibold).
 pub fn font_heading() -> FontId {
     font_h3()
 }
@@ -1222,44 +1241,39 @@ pub fn font_body_sm_medium() -> FontId {
     FontId::new(TEXT_BODY_SM, family_medium())
 }
 
-/// Small text (11px regular).
+/// Small text (12px regular).
 pub fn font_small() -> FontId {
     FontId::new(TEXT_CAPTION, family_regular())
 }
 
-/// Caption (11px regular) — timestamps, helper text.
+/// Caption (12px regular) — timestamps, helper text.
 pub fn font_caption() -> FontId {
     font_small()
 }
 
-/// Minimum readable font (11px) — accessibility floor.
+/// Minimum reading size (12px) — the floor for anything read as text.
 pub fn font_min() -> FontId {
     font_small()
 }
 
-/// Label (11px medium) — form labels, eyebrow text, uppercase section titles.
+/// Label (12px medium) — form labels, eyebrow text, uppercase section titles.
 pub fn font_label() -> FontId {
     FontId::new(TEXT_CAPTION, family_medium())
 }
 
-/// Micro annotation (10px medium) — axis ticks, badge counters.
+/// Micro annotation (11px medium) — axis ticks, badge counters.
 pub fn font_micro() -> FontId {
     FontId::new(TEXT_MICRO, family_medium())
 }
 
-/// Dashboard stat (20px semibold, tabular figures).
+/// Dashboard stat (22px semibold, tabular figures).
 pub fn font_stat() -> FontId {
     FontId::new(TEXT_H2, family_semibold())
 }
 
-/// Card metric value (26px bold, tabular figures).
+/// Card metric value (28px bold, tabular figures).
 pub fn font_card_value() -> FontId {
     FontId::new(TEXT_H1, family_bold())
-}
-
-/// COMEX-ready header (30px bold).
-pub fn font_comex() -> FontId {
-    FontId::new(30.0, family_bold())
 }
 
 /// Splash screen title (34px bold).
@@ -1272,9 +1286,10 @@ pub fn font_mono() -> FontId {
     FontId::new(TEXT_BODY_SM, egui::FontFamily::Monospace)
 }
 
-/// Small monospace (11px).
+/// Small monospace (11px). Monospace glyphs run wide, so it stays a step
+/// under the proportional caption size.
 pub fn font_mono_sm() -> FontId {
-    FontId::new(TEXT_CAPTION, egui::FontFamily::Monospace)
+    FontId::new(TEXT_MICRO, egui::FontFamily::Monospace)
 }
 
 /// Monospace with medium weight (12px) — emphasised technical values.
@@ -1563,7 +1578,9 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.image_loading_spinners = true;
 
     style.visuals = visuals;
-    style.animation_time = ANIM_FAST;
+    // egui's own transitions (hover, collapsing, scroll) honour reduced
+    // motion too; callers set the preference before applying the theme.
+    style.animation_time = if is_reduced_motion() { 0.0 } else { ANIM_FAST };
     style.interaction.selectable_labels = true;
     style.interaction.tooltip_delay = 0.4;
     style.interaction.tooltip_grace_time = 0.2;
@@ -1837,12 +1854,12 @@ pub fn status_color(status: &str) -> Color32 {
 }
 
 /// Color for a severity string - follows visual hierarchy:
-/// critical (red) > high (amber) > medium (orange) > low (blue) > info (blue)
+/// critical (red) > high (orange) > medium (amber) > low (blue) > info (blue)
 pub fn severity_color(severity: &str) -> Color32 {
     match severity {
         "critical" => ERROR,         // #FF3B30 Red
-        "high" => SEVERITY_HIGH,     // #FFCC00 Amber
-        "medium" => SEVERITY_MEDIUM, // #FF9F0A Orange
+        "high" => SEVERITY_HIGH,     // #FF8C3A Orange
+        "medium" => SEVERITY_MEDIUM, // #FFB020 Amber
         "low" => INFO,               // #007AFF Blue
         "info" => INFO,
         _ => WARNING,
@@ -2436,5 +2453,22 @@ mod contrast_tests {
             );
         }
         set_dark_mode(true);
+    }
+}
+
+#[cfg(test)]
+mod motion_tests {
+    use super::*;
+
+    #[test]
+    fn reduced_motion_disables_egui_transitions() {
+        let ctx = egui::Context::default();
+        set_reduced_motion(true);
+        apply_theme(&ctx, true);
+        assert_eq!(ctx.style().animation_time, 0.0);
+
+        set_reduced_motion(false);
+        apply_theme(&ctx, true);
+        assert_eq!(ctx.style().animation_time, ANIM_FAST);
     }
 }

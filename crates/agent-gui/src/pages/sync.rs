@@ -66,75 +66,38 @@ impl SyncPage {
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Status card
+        // Status card: the state, three health figures, the recent run of
+        // transfers, then the action. It used to be one date and a button.
         widgets::card(ui, |ui: &mut egui::Ui| {
+            let (state_label, state_color) = if state.sync.in_progress {
+                ("Synchronisation en cours", theme::INFO)
+            } else if state.sync.error.is_some() {
+                ("Dernier transfert en échec", theme::ERROR)
+            } else if state.summary.pending_sync_count > 0 {
+                ("Éléments en attente d'envoi", theme::SEVERITY_MEDIUM)
+            } else {
+                ("À jour avec la plateforme", theme::SUCCESS)
+            };
             ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("\u{00c9}TAT DE LA CONNEXION")
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary())
-                        .strong(),
-                );
-                ui.with_layout(
-                    egui::Layout::right_to_left(egui::Align::Center),
-                    |ui: &mut egui::Ui| {
-                        if state.sync.in_progress {
-                            widgets::status_badge(
-                                ui,
-                                &format!("{} SYNCHRONISATION…", icons::SYNC),
-                                theme::INFO,
-                            );
-                        } else if state.summary.pending_sync_count > 0 {
-                            widgets::status_badge(
-                                ui,
-                                &format!(
-                                    "{} {} EN ATTENTE",
-                                    icons::ARROW_UP,
-                                    state.summary.pending_sync_count
-                                ),
-                                theme::WARNING,
-                            );
-                        } else {
-                            widgets::status_badge(
-                                ui,
-                                &format!("{} \u{00c0} JOUR", icons::CHECK),
-                                theme::SUCCESS,
-                            );
-                        }
-                    },
-                );
-            });
-
-            ui.add_space(theme::SPACE_MD);
-
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.vertical(|ui: &mut egui::Ui| {
-                    if let Some(ref ts) = state.summary.last_sync_at {
-                        ui.label(
-                            egui::RichText::new("Derni\u{00e8}re synchronisation r\u{00e9}ussie :")
-                                .font(theme::font_small())
-                                .color(theme::text_secondary()),
-                        );
-                        ui.label(
-                            egui::RichText::new(
-                                ts.format("%d/%m/%Y \u{00e0} %H:%M:%S").to_string(),
-                            )
-                            .font(theme::font_body())
-                            .color(theme::text_primary())
+                widgets::icon_tile(ui, icons::CLOUD_ARROW_UP, state_color, 40.0);
+                ui.add_space(theme::SPACE_SM);
+                ui.vertical(|ui| {
+                    ui.label(
+                        egui::RichText::new("ÉTAT DE LA CONNEXION")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(theme::TRACKING_NORMAL)
                             .strong(),
-                        );
-                    } else {
-                        ui.label(
-                            egui::RichText::new("Aucune synchronisation effectu\u{00e9}e")
-                                .color(theme::text_tertiary()),
-                        );
-                    }
+                    );
+                    ui.label(
+                        egui::RichText::new(state_label)
+                            .font(theme::font_h3())
+                            .color(theme::readable_color(state_color)),
+                    );
                 });
-
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        // Force sync button
                         if widgets::primary_button_loading(
                             ui,
                             format!("{}  Synchroniser maintenant", icons::SYNC),
@@ -149,6 +112,70 @@ impl SyncPage {
                 );
             });
 
+            ui.add_space(theme::SPACE_MD);
+            let history = &state.sync.history;
+            let successes = history.iter().filter(|h| h.success).count();
+            let last_sync = state
+                .summary
+                .last_sync_at
+                .map(|at| crate::format::ago(chrono::Utc::now(), at))
+                .unwrap_or_else(|| "jamais".to_owned());
+            let pending = state.summary.pending_sync_count;
+            let rate = if history.is_empty() {
+                "—".to_owned()
+            } else {
+                crate::format::pct(successes as f32 / history.len() as f32 * 100.0, 0)
+            };
+            let figures = [
+                ("DERNIÈRE SYNCHRONISATION", last_sync, theme::text_primary()),
+                (
+                    "EN ATTENTE D'ENVOI",
+                    crate::format::int(pending),
+                    if pending > 0 {
+                        theme::readable_color(theme::SEVERITY_MEDIUM)
+                    } else {
+                        theme::text_primary()
+                    },
+                ),
+                (
+                    "TRANSFERTS RÉUSSIS",
+                    rate,
+                    if successes == history.len() {
+                        theme::readable_color(theme::SUCCESS)
+                    } else {
+                        theme::readable_color(theme::SEVERITY_MEDIUM)
+                    },
+                ),
+            ];
+            widgets::ResponsiveGrid::new(180.0, theme::SPACE_SM).show(
+                ui,
+                &figures,
+                |ui, width, (label, value, color)| {
+                    egui::Frame::new()
+                        .fill(theme::bg_tertiary())
+                        .corner_radius(theme::ROUNDING_MD)
+                        .inner_margin(theme::SPACE_MD)
+                        .show(ui, |ui| {
+                            ui.set_width(width - theme::SPACE_MD * 2.0);
+                            ui.label(
+                                egui::RichText::new(*label)
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary()),
+                            );
+                            ui.label(
+                                egui::RichText::new(value.as_str())
+                                    .font(theme::font_h3())
+                                    .color(*color),
+                            );
+                        });
+                },
+            );
+
+            if !history.is_empty() {
+                ui.add_space(theme::SPACE_MD);
+                transfer_strip(ui, history);
+            }
+
             if let Some(ref err) = state.sync.error {
                 ui.add_space(theme::SPACE_MD);
                 egui::Frame::new()
@@ -160,7 +187,7 @@ impl SyncPage {
                     ))
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new(format!("{} ERREUR : {}", icons::WARNING, err))
+                            egui::RichText::new(format!("{} Erreur : {}", icons::WARNING, err))
                                 .font(theme::font_small())
                                 .color(theme::readable_color(theme::ERROR)),
                         );
@@ -249,4 +276,43 @@ impl SyncPage {
 
         command
     }
+}
+
+/// The recent transfers, oldest to newest, as a strip of green and red
+/// ticks with their time on hover.
+fn transfer_strip(
+    ui: &mut Ui,
+    history: &std::collections::VecDeque<crate::state::SyncHistoryEntry>,
+) {
+    ui.label(
+        egui::RichText::new("TRANSFERTS RÉCENTS")
+            .font(theme::font_label())
+            .color(theme::text_tertiary())
+            .extra_letter_spacing(theme::TRACKING_NORMAL)
+            .strong(),
+    );
+    ui.add_space(theme::SPACE_XS);
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 4.0;
+        // History is newest first; the strip reads left to right in time.
+        for entry in history.iter().take(40).rev() {
+            let color = if entry.success {
+                theme::SUCCESS
+            } else {
+                theme::ERROR
+            };
+            let (rect, response) =
+                ui.allocate_exact_size(egui::vec2(10.0, 24.0), egui::Sense::hover());
+            ui.painter()
+                .rect_filled(rect, 3.0, theme::readable_color(color));
+            response.on_hover_text(format!(
+                "{} · {}",
+                entry
+                    .timestamp
+                    .with_timezone(&chrono::Local)
+                    .format("%d/%m %H:%M"),
+                entry.message
+            ));
+        }
+    });
 }

@@ -39,12 +39,26 @@ fn id(n: u128) -> Uuid {
     Uuid::from_u128(0x5e17_1e1a_0000_0000_0000_0000_0000_0000 + n)
 }
 
+/// The instant fixtures are dated from. Under PREVIEW_REDUCED it is the
+/// current hour, so records keep the same timestamps from one capture to the
+/// next: the radar seeds each blip's position from its timestamp, and a
+/// refactor can only be diffed pixel for pixel if those stay put.
+fn anchor() -> DateTime<Utc> {
+    let now = Utc::now();
+    if std::env::var("PREVIEW_REDUCED").is_ok() {
+        use chrono::{DurationRound, TimeDelta};
+        now.duration_trunc(TimeDelta::hours(1)).unwrap_or(now)
+    } else {
+        now
+    }
+}
+
 fn ago(minutes: i64) -> DateTime<Utc> {
-    Utc::now() - Duration::minutes(minutes)
+    anchor() - Duration::minutes(minutes)
 }
 
 fn days_ago(days: i64) -> DateTime<Utc> {
-    Utc::now() - Duration::days(days)
+    anchor() - Duration::days(days)
 }
 
 /// Populate every domain of the state.
@@ -1442,6 +1456,28 @@ pub fn seed(state: &mut AppState) {
         });
     }
 
+    // Earlier executive summaries, newest first after the current one, so
+    // the report preview has a score trend and a history to show.
+    for (i, (month, score, days)) in [
+        ("août", 83.1_f32, 31_i64),
+        ("juillet", 80.6, 61),
+        ("juin", 78.2, 92),
+    ]
+    .iter()
+    .enumerate()
+    {
+        state.reports.reports.push_back(GeneratedReport {
+            id: id(520 + i as u128),
+            report_type: ReportType::Executive,
+            title: format!("Synthèse exécutive — {month} 2026"),
+            generated_at: days_ago(*days),
+            html_content: String::new(),
+            summary: format!("Score de conformité {score} %."),
+            compliance_score: Some(*score),
+            framework: None,
+        });
+    }
+
     // ── SIEM ──────────────────────────────────────────────────────────
     let siem: &[(
         SiemLogSeverity,
@@ -2012,10 +2048,23 @@ pub fn select_tab(state: &mut AppState, page: &str, tab: usize) {
 
 /// Open the drawer named by `PREVIEW_DRAWER` on the first matching record.
 pub fn open_drawer(state: &mut AppState, which: &str) {
+    // `threat:<source>` narrows the overview feed to one source first, so each
+    // source's detail modal can be captured on its own.
+    if let Some(source) = which.strip_prefix("threat:") {
+        state.threats.filter = Some(source.to_owned());
+        state.threats.overview_show_triaged = true;
+        state.threats.selected_threat = Some(0);
+        state.threats.detail_open = true;
+        return;
+    }
     match which {
         "vuln" => {
             state.vulnerability.selected_vuln = Some(0);
             state.vulnerability.detail_open = true;
+        }
+        "device" => {
+            state.cartography.selected_device =
+                state.discovery.devices.first().map(|d| d.ip.clone());
         }
         "threat" => {
             state.threats.selected_threat = Some(0);

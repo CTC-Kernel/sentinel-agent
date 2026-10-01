@@ -4,7 +4,7 @@
 //! Network Cartography — 2D force-directed graph of discovered devices.
 
 use crate::app::AppState;
-use crate::dto::{GuiAgentStatus, GuiDiscoveredDevice};
+use crate::dto::GuiDiscoveredDevice;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -17,9 +17,9 @@ const GRID_DIVISIONS: usize = 8;
 const ZOOM_SCROLL_FACTOR: f32 = 0.002;
 const ZOOM_MIN: f32 = 0.3;
 const ZOOM_MAX: f32 = 3.0;
-const NODE_RADIUS_GATEWAY: f32 = 10.0;
-const NODE_RADIUS_DEFAULT: f32 = 7.0;
-const NODE_LABEL_OFFSET_Y: f32 = 12.0;
+const NODE_RADIUS_GATEWAY: f32 = 18.0;
+const NODE_RADIUS_DEFAULT: f32 = 14.0;
+const NODE_LABEL_OFFSET_Y: f32 = 6.0;
 const LAYOUT_INITIAL_RADIUS: f32 = 150.0;
 const FORCE_REPULSION: f32 = 5000.0;
 const FORCE_ATTRACTION: f32 = 0.005;
@@ -48,8 +48,6 @@ pub struct CartographyPage;
 
 impl CartographyPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
-        let mut command = None;
-
         if state.discovery.devices.is_empty() {
             ui.add_space(theme::SPACE_LG);
             widgets::empty_state(
@@ -169,31 +167,6 @@ impl CartographyPage {
                             );
                         }
                     }
-
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-                            if widgets::button::primary_button_loading(
-                                ui,
-                                format!(
-                                    "{}  {}",
-                                    icons::PLAY,
-                                    if is_scanning {
-                                        "Analyse en cours"
-                                    } else {
-                                        "Lancer l'analyse"
-                                    }
-                                ),
-                                !is_scanning,
-                                is_scanning,
-                            )
-                            .clicked()
-                            {
-                                command = Some(GuiCommand::RunCheck);
-                            }
-                        },
-                    );
                 });
             });
         });
@@ -217,9 +190,7 @@ impl CartographyPage {
             let layout = build_initial_layout(&state.discovery.devices);
             state.cartography.layout = Some(layout);
         }
-        let Some(layout) = state.cartography.layout.as_mut() else {
-            return command;
-        };
+        let layout = state.cartography.layout.as_mut()?;
 
         // Run force simulation only if not yet converged
         if !layout.converged {
@@ -287,8 +258,12 @@ impl CartographyPage {
             state.cartography.zoom = zoom.clamp(ZOOM_MIN, ZOOM_MAX);
         }
 
-        let center = rect.center().to_vec2() + state.cartography.pan;
-        let zoom = state.cartography.zoom;
+        // Fit the graph to the canvas, then apply the operator's zoom: the
+        // simulation settles in a few hundred units while the canvas is
+        // wider than a thousand, which left nine nodes huddled mid-map.
+        let (fit, graph_center) = fit_to_canvas(layout, rect);
+        let zoom = fit * state.cartography.zoom;
+        let center = rect.center().to_vec2() + state.cartography.pan - graph_center * zoom;
 
         // Relationships carry information: preserve contrast against the chart surface.
         for edge in &layout.edges {
@@ -319,11 +294,13 @@ impl CartographyPage {
             }
 
             let color = device_type_color(&node.device.device_type);
+            // Sized in screen space, so fitting a small graph does not
+            // inflate the discs along with the distances.
             let base_radius = if node.device.is_gateway {
                 NODE_RADIUS_GATEWAY
             } else {
                 NODE_RADIUS_DEFAULT
-            } * zoom;
+            } * state.cartography.zoom.clamp(0.7, 1.4);
             let breathing = if theme::is_reduced_motion() {
                 0.5
             } else {
@@ -348,33 +325,54 @@ impl CartographyPage {
                 );
             }
 
-            // 3. Node Body (Glassy / Solid)
-            painter.circle_filled(screen_pos, base_radius, color);
+            // 3. Node body: a tinted disc with the device type's icon, so
+            // the map reads without the legend.
+            painter.circle_filled(screen_pos, base_radius, theme::tinted_surface(color));
             painter.circle_stroke(
                 screen_pos,
                 base_radius,
                 egui::Stroke::new(
-                    theme::BORDER_THIN,
-                    theme::overlay_color().linear_multiply(theme::OPACITY_MODERATE),
+                    if is_selected {
+                        theme::BORDER_THICK
+                    } else {
+                        theme::BORDER_MEDIUM
+                    },
+                    theme::readable_color(color),
                 ),
             );
+            painter.text(
+                screen_pos,
+                egui::Align2::CENTER_CENTER,
+                device_type_icon(&node.device),
+                theme::font_icon(base_radius * 0.9),
+                theme::readable_color(color),
+            );
 
-            // 4. Label (Institutional AAA)
+            // 4. Label on a plate, readable over edges and grid.
             let label = node
                 .device
                 .hostname
                 .as_deref()
                 .unwrap_or(&node.device.ip)
-                .to_uppercase();
-            painter.text(
+                .to_owned();
+            let galley =
+                painter.layout_no_wrap(label, theme::font_caption(), theme::text_primary());
+            let plate = egui::Rect::from_center_size(
                 Pos2::new(
                     screen_pos.x,
-                    screen_pos.y + base_radius + NODE_LABEL_OFFSET_Y,
+                    screen_pos.y + base_radius + NODE_LABEL_OFFSET_Y + galley.size().y / 2.0,
                 ),
-                egui::Align2::CENTER_TOP,
-                label,
-                theme::font_label(),
-                theme::text_tertiary(),
+                galley.size() + egui::vec2(theme::SPACE_SM * 2.0, theme::SPACE_XS),
+            );
+            painter.rect_filled(
+                plate,
+                theme::ROUNDING_SM,
+                theme::bg_secondary().linear_multiply(0.92),
+            );
+            painter.galley(
+                plate.center() - galley.size() / 2.0,
+                galley,
+                theme::text_primary(),
             );
 
             // Click interaction
@@ -430,108 +428,96 @@ impl CartographyPage {
             });
         });
 
-        // Selected Object Detail Panel (AAA Grade)
-        if let Some(selected_ip) = state.cartography.selected_device.as_deref()
-            && let Some(device) = state.discovery.devices.iter().find(|d| d.ip == selected_ip)
+        // The selected device opens in the detail modal, like every other
+        // detail in the app; it used to unfold as a card under the map,
+        // below the fold on most windows.
+        if let Some(selected_ip) = state.cartography.selected_device.clone()
+            && let Some(device) = state
+                .discovery
+                .devices
+                .iter()
+                .find(|d| d.ip == selected_ip)
+                .cloned()
         {
-            ui.add_space(theme::SPACE_MD);
-            widgets::card(ui, |ui: &mut egui::Ui| {
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new(&device.ip)
-                            .font(theme::font_body())
-                            .strong()
-                            .color(theme::text_primary()),
+            let mut open = true;
+            let title = device.hostname.as_deref().unwrap_or(&device.ip);
+            let color = device_type_color(&device.device_type);
+            let actions = [widgets::DetailAction::secondary(
+                "Copier l'adresse IP",
+                icons::COPY,
+            )];
+            let action = widgets::DetailDrawer::new(
+                "cartography_device_detail",
+                title,
+                device_type_icon(&device),
+            )
+            .accent(color)
+            .subtitle(&device.ip)
+            .show(
+                ui.ctx(),
+                &mut open,
+                |ui| {
+                    widgets::detail_section(ui, "APPAREIL");
+                    widgets::detail_mono(ui, "Adresse IP", &device.ip);
+                    if let Some(mac) = &device.mac {
+                        widgets::detail_mono(ui, "Adresse MAC", mac);
+                    }
+                    widgets::detail_field(
+                        ui,
+                        "Constructeur",
+                        device.vendor.as_deref().unwrap_or("Non identifié"),
                     );
-                    ui.add_space(theme::SPACE_LG);
+                    widgets::detail_field_badge(
+                        ui,
+                        "Type",
+                        device_type_name(&device.device_type),
+                        color,
+                    );
+                    if device.is_gateway {
+                        widgets::detail_field_badge(ui, "Rôle", "Passerelle", theme::ACCENT);
+                    }
+                    widgets::detail_field(ui, "Sous-réseau", &device.subnet);
 
-                    if let Some(ref h) = device.hostname {
-                        ui.label(
-                            egui::RichText::new(h.to_uppercase())
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong(),
+                    widgets::detail_section(ui, "EXPOSITION");
+                    if device.open_ports.is_empty() {
+                        widgets::detail_field(ui, "Ports ouverts", "Aucun port ouvert détecté");
+                    } else {
+                        widgets::detail_mono(
+                            ui,
+                            "Ports ouverts",
+                            &device
+                                .open_ports
+                                .iter()
+                                .map(|p| p.to_string())
+                                .collect::<Vec<_>>()
+                                .join(", "),
                         );
                     }
 
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            if widgets::icon_button(ui, icons::XMARK, Some("Fermer")).clicked() {
-                                state.cartography.selected_device = None;
-                            }
-                        },
+                    widgets::detail_section(ui, "ACTIVITÉ");
+                    widgets::detail_field(
+                        ui,
+                        "Première détection",
+                        &device.first_seen.format("%d/%m/%Y %H:%M").to_string(),
                     );
-                });
-
-                ui.add_space(theme::SPACE_MD);
-                ui.separator();
-                ui.add_space(theme::SPACE_MD);
-
-                egui::Grid::new("device_detail_grid")
-                    .spacing(egui::vec2(theme::SPACE_LG, theme::SPACE_SM))
-                    .show(ui, |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("ADRESSE MAC")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                        ui.label(
-                            egui::RichText::new(device.mac.as_deref().unwrap_or("--"))
-                                .font(theme::font_mono_sm()),
-                        );
-                        ui.end_row();
-
-                        ui.label(
-                            egui::RichText::new("CONSTRUCTEUR")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                        ui.label(
-                            egui::RichText::new(device.vendor.as_deref().unwrap_or("--")).strong(),
-                        );
-                        ui.end_row();
-
-                        ui.label(
-                            egui::RichText::new("CLASSIFICATION")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong()
-                                .extra_letter_spacing(theme::TRACKING_NORMAL),
-                        );
-                        ui.label(egui::RichText::new(device.device_type.to_uppercase()).strong());
-                        ui.end_row();
-                    });
-
-                if device.is_gateway {
-                    ui.add_space(theme::SPACE_MD);
-                    widgets::status_badge(ui, "PASSERELLE CENTRALE", theme::ACCENT);
-                }
-
-                if !device.open_ports.is_empty() {
-                    ui.add_space(theme::SPACE_MD);
-                    ui.label(
-                        egui::RichText::new("VECTEURS D'EXPOSITION (PORTS OUVERTS)")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong()
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
+                    widgets::detail_field(
+                        ui,
+                        "Dernière détection",
+                        &device.last_seen.format("%d/%m/%Y %H:%M").to_string(),
                     );
-                    ui.add_space(theme::SPACE_MICRO);
-                    ui.label(
-                        device
-                            .open_ports
-                            .iter()
-                            .map(|p| p.to_string())
-                            .collect::<Vec<_>>()
-                            .join(", "),
-                    );
-                }
-            });
+                },
+                &actions,
+            );
+            if action == Some(0) {
+                ui.ctx().copy_text(device.ip.clone());
+                let time = ui.input(|i| i.time);
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success("Adresse IP copiée").with_time(time),
+                );
+            }
+            if !open {
+                state.cartography.selected_device = None;
+            }
         }
 
         ui.add_space(theme::SPACE_XL);
@@ -539,7 +525,7 @@ impl CartographyPage {
         if !layout.converged {
             ui.ctx().request_repaint();
         }
-        command
+        None
     }
 
     fn export_csv(state: &AppState) -> bool {
@@ -588,6 +574,54 @@ fn device_type_color(device_type: &str) -> Color32 {
         "phone" => theme::accent_text(),
         _ => theme::text_secondary(),
     }
+}
+
+/// French name of a device type as discovery reports it.
+fn device_type_name(device_type: &str) -> &str {
+    match device_type {
+        "router" => "Routeur",
+        "server" => "Serveur",
+        "workstation" => "Poste de travail",
+        "printer" => "Imprimante",
+        "iot" => "IoT / embarqué",
+        "phone" => "Mobile",
+        "switch" => "Commutateur",
+        _ => "Non identifié",
+    }
+}
+
+fn device_type_icon(device: &GuiDiscoveredDevice) -> &'static str {
+    if device.is_gateway {
+        return icons::NETWORK;
+    }
+    match device.device_type.as_str() {
+        "router" => icons::NETWORK,
+        "server" => icons::SERVER,
+        "workstation" => icons::DESKTOP,
+        "printer" => icons::PRINT,
+        "iot" => icons::MICROCHIP,
+        "phone" => icons::MOBILE,
+        _ => icons::QUESTION,
+    }
+}
+
+/// Scale and graph-space centre that fit every node, with room for the
+/// discs and labels, inside the canvas. Never enlarges past 2.5×.
+fn fit_to_canvas(layout: &GraphLayout, rect: egui::Rect) -> (f32, Vec2) {
+    if layout.nodes.is_empty() {
+        return (1.0, Vec2::ZERO);
+    }
+    let (mut min, mut max) = (Pos2::new(f32::MAX, f32::MAX), Pos2::new(f32::MIN, f32::MIN));
+    for node in &layout.nodes {
+        min = min.min(node.pos);
+        max = max.max(node.pos);
+    }
+    let span = (max - min).max(Vec2::splat(1.0));
+    // Horizontal room for labels, vertical room for the label under a node.
+    let usable = rect.size() - Vec2::new(200.0, 110.0);
+    let fit = (usable.x / span.x).min(usable.y / span.y).clamp(0.3, 2.5);
+    let centre = (min.to_vec2() + max.to_vec2()) / 2.0 + Vec2::new(0.0, 10.0 / fit);
+    (fit, centre)
 }
 
 fn build_initial_layout(devices: &[GuiDiscoveredDevice]) -> GraphLayout {

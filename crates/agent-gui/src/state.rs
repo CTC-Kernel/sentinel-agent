@@ -166,6 +166,9 @@ pub struct GuiPreferences {
     pub voice_settings: crate::dto::VoiceSettings,
     #[serde(default)]
     pub voice_alert_threshold: crate::dto::VoiceAlertThreshold,
+    /// Follow the operating system's light/dark setting.
+    #[serde(default)]
+    pub follow_system_theme: bool,
 }
 
 impl Default for GuiPreferences {
@@ -174,6 +177,7 @@ impl Default for GuiPreferences {
             acknowledged_event_keys: VecDeque::new(),
             allowlist_rules: Vec::new(),
             dark_mode: true,
+            follow_system_theme: false,
             check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
             log_level: 2, // Info
             siem_enabled: false,
@@ -207,6 +211,7 @@ impl GuiPreferences {
             acknowledged_event_keys: state.acknowledgment_snapshot(),
             allowlist_rules: state.threats.allowlist_rules.clone(),
             dark_mode: state.settings.dark_mode,
+            follow_system_theme: state.settings.follow_system_theme,
             check_interval_secs: state.settings.check_interval_secs,
             log_level: state.settings.log_level.index() as u8,
             siem_enabled: state.settings.siem_enabled,
@@ -247,6 +252,7 @@ impl GuiPreferences {
         state.threats.allowlist_sync_pending = true;
         state.refresh_authorizations();
         state.settings.dark_mode = self.dark_mode;
+        state.settings.follow_system_theme = self.follow_system_theme;
         state.settings.check_interval_secs = self.check_interval_secs;
         state.settings.log_level = crate::dto::LogLevel::from_index(self.log_level as usize);
         state.settings.siem_enabled = self.siem_enabled;
@@ -460,6 +466,14 @@ impl Default for FimState {
 // Threats
 // ---------------------------------------------------------------------------
 
+/// The events table opens newest first, and says so in its header.
+pub fn default_events_sort() -> crate::widgets::data_table::TableSort {
+    crate::widgets::data_table::TableSort::by(
+        "date",
+        crate::widgets::data_table::SortDirection::Descending,
+    )
+}
+
 /// EDR detection & response state.
 pub struct ThreatsState {
     pub suspicious_processes: VecDeque<crate::dto::GuiSuspiciousProcess>,
@@ -476,6 +490,8 @@ pub struct ThreatsState {
 
     // Events tab
     pub events_page: usize,
+    /// Events table order; newest first until the operator picks a column.
+    pub events_sort: crate::widgets::data_table::TableSort,
     /// 0 = all, 1 = to triage (default), 2 = acknowledged, 3 = authorized.
     pub events_status_filter: usize,
     /// Overview feed also lists acknowledged / authorized events.
@@ -610,6 +626,7 @@ impl Default for ThreatsState {
 
             active_tab: crate::dto::EdrTab::default(),
             events_page: 0,
+            events_sort: default_events_sort(),
             events_status_filter: 1,
             overview_show_triaged: false,
             events_severity_filter: None,
@@ -1020,6 +1037,8 @@ pub struct SettingsState {
     pub heartbeat_interval_secs: u64,
     pub log_level: crate::dto::LogLevel,
     pub dark_mode: bool,
+    /// Follow the operating system's light/dark setting.
+    pub follow_system_theme: bool,
     pub update_status: crate::dto::UpdateStatus,
     /// SHA-256 hash of the admin password for danger zone access.
     pub admin_password_sha256: String,
@@ -1052,6 +1071,7 @@ impl Default for SettingsState {
             heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
             log_level: crate::dto::LogLevel::Info,
             dark_mode: true,
+            follow_system_theme: false,
             update_status: crate::dto::UpdateStatus::Idle,
             // SHA-256 of "admin" — should be changed on first deployment
             // SECURITY: No default password. Must be set via enrollment or secure storage.

@@ -16,7 +16,7 @@ const INFO_ROW_MIN_HEIGHT: f32 = 28.0;
 /// Company and product branding.
 pub mod branding {
     pub const COMPANY: &str = "Cyber Threat Consulting";
-    pub const PRODUCT: &str = "Sentinel Nexus";
+    pub const PRODUCT: &str = "Sentinel GRC Nexus";
     pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
     pub const EMAIL: &str = "***REMOVED***";
     pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs/sentinel-agent";
@@ -37,7 +37,7 @@ impl AboutPage {
             "\u{00c0} propos",
             Some("Informations produit et support technique."),
             Some(
-                "Informations de version et cr\u{00e9}dits de Sentinel Nexus. Lors d\u{2019}un contact avec le support, veuillez mentionner le num\u{00e9}ro de build et l\u{2019}identifiant unique d\u{2019}installation.",
+                "Informations de version et cr\u{00e9}dits de Sentinel GRC Nexus. Lors d\u{2019}un contact avec le support, veuillez mentionner le num\u{00e9}ro de build et l\u{2019}identifiant unique d\u{2019}installation.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -61,7 +61,7 @@ impl AboutPage {
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
                     egui::RichText::new(format!(
-                        "VERSION {}",
+                        "ENDPOINT \u{00b7} VERSION {}",
                         agent_common::constants::AGENT_VERSION
                     ))
                     .font(theme::font_small())
@@ -138,14 +138,28 @@ impl AboutPage {
             );
             ui.add_space(theme::SPACE_MD);
 
+            // Names an operator recognises, not the compiler's target
+            // strings ("macos aarch64"); the version is in the card above.
+            let system = match std::env::consts::OS {
+                "macos" => "macOS",
+                "windows" => "Windows",
+                "linux" => "Linux",
+                other => other,
+            };
+            let architecture = match std::env::consts::ARCH {
+                "aarch64" if cfg!(target_os = "macos") => "Apple Silicon (ARM 64 bits)",
+                "aarch64" => "ARM 64 bits",
+                "x86_64" => "Intel / AMD 64 bits",
+                other => other,
+            };
+            Self::info_row(ui, "Syst\u{00e8}me", system, icons::DESKTOP);
+            Self::info_row(ui, "Architecture", architecture, icons::MICROCHIP);
             Self::info_row(
                 ui,
-                "Syst\u{00e8}me",
-                &format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
-                icons::ARROW_RIGHT,
+                "\u{00c9}diteur",
+                "Cyber Threat Consulting",
+                icons::BUILDING,
             );
-            Self::info_row(ui, "Moteur", "Rust v1.85+", icons::ARROW_RIGHT);
-            Self::info_row(ui, "Version", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
         });
     }
 
@@ -160,13 +174,13 @@ impl AboutPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
-            Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
+            Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::GLOBE);
+            Self::link_row(ui, "Documentation", branding::GUIDE, icons::BOOK);
             Self::link_row(
                 ui,
                 "Assistance",
                 &format!("mailto:{}", branding::EMAIL),
-                icons::ARROW_RIGHT,
+                icons::ENVELOPE,
             );
         });
     }
@@ -176,7 +190,7 @@ impl AboutPage {
             ui.set_min_height(INFO_ROW_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new(icon)
-                    .color(theme::text_tertiary())
+                    .color(theme::accent_text())
                     .strong(),
             );
             ui.add_space(theme::SPACE_XS);
@@ -190,7 +204,7 @@ impl AboutPage {
                 |ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(value)
-                            .font(theme::font_mono())
+                            .font(theme::font_body_medium())
                             .color(theme::text_primary())
                             .strong(),
                     );
@@ -204,7 +218,7 @@ impl AboutPage {
             ui.set_min_height(INFO_ROW_MIN_HEIGHT);
             ui.label(
                 egui::RichText::new(icon)
-                    .color(theme::text_tertiary())
+                    .color(theme::accent_text())
                     .strong(),
             );
             ui.add_space(theme::SPACE_XS);

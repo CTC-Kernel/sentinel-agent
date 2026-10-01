@@ -245,15 +245,14 @@ impl TrayRadar {
                 label_pos,
                 egui::Align2::CENTER_CENTER,
                 &p.label,
-                {
-                    use crate::theme::FontIdExt;
-                    theme::font_small().size(9.0)
-                },
+                theme::font_micro(),
                 theme::text_tertiary(),
             );
 
             painter.text(
-                label_pos + Vec2::new(0.0, 10.0),
+                // One line below the label, from the type size rather than a
+                // fixed offset that let the two lines touch.
+                label_pos + Vec2::new(0.0, theme::TEXT_MICRO + theme::SPACE_MICRO),
                 egui::Align2::CENTER_CENTER,
                 format!("{:.0}%", p.value * 100.0),
                 theme::font_micro(),

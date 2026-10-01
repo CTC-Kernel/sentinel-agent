@@ -109,11 +109,9 @@ impl RisksPage {
 
         ui.add_space(theme::SPACE_MD);
 
-        egui::CollapsingHeader::new("Matrice probabilité × impact")
-            .id_salt("risk_matrix")
-            .show(ui, |ui| {
-                Self::draw_risk_matrix(ui, state);
-            });
+        // The heat map is this page's summary: shown in its card, not folded
+        // behind a bare collapsing header.
+        Self::draw_risk_matrix(ui, state);
         ui.add_space(theme::SPACE_MD);
 
         // Action bar
@@ -121,7 +119,7 @@ impl RisksPage {
             if state.security.admin_unlocked {
                 if widgets::primary_button(
                     ui,
-                    format!("{}  Auto-populer", icons::WAND_SPARKLES),
+                    format!("{}  Générer automatiquement", icons::WAND_SPARKLES),
                     true,
                 )
                 .clicked()
@@ -145,7 +143,11 @@ impl RisksPage {
                     );
                 }
             } else {
-                widgets::primary_button(ui, format!("{}  Auto-populer", icons::LOCK), false);
+                widgets::primary_button(
+                    ui,
+                    format!("{}  Générer automatiquement · admin", icons::WAND_SPARKLES),
+                    false,
+                );
             }
 
             ui.add_space(theme::SPACE_SM);
@@ -270,7 +272,7 @@ impl RisksPage {
                             icons::SCALE_BALANCED,
                             "Aucun risque enregistr\u{00e9}",
                             Some(
-                                "Utilisez \u{00ab} Auto-populer \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement.",
+                                "Utilisez \u{00ab} G\u{00e9}n\u{00e9}rer automatiquement \u{00bb} pour g\u{00e9}n\u{00e9}rer des risques depuis vos contr\u{00f4}les ou ajoutez-en manuellement.",
                             ),
                         );
                     }
@@ -459,8 +461,10 @@ impl RisksPage {
 
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_max_width(LEGEND_WIDTH);
+            // The matrix places every risk; these counts leave out accepted
+            // and closed ones, and say so, or the two disagree on sight.
             ui.label(
-                egui::RichText::new("NIVEAUX")
+                egui::RichText::new("NIVEAUX \u{00b7} RISQUES OUVERTS")
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(theme::TRACKING_NORMAL)
@@ -614,10 +618,10 @@ impl RisksPage {
                 ui,
                 &[
                     table::Col::fluid(180.0, 3.0), // Titre
-                    table::Col::fixed(56.0),       // Prob.
-                    table::Col::fixed(60.0),       // Impact
-                    table::Col::fixed(56.0),       // Score
-                    table::Col::fluid(96.0, 0.0),  // Statut
+                    table::Col::fixed(64.0),       // Prob.
+                    table::Col::fixed(64.0),       // Impact
+                    table::Col::fixed(68.0),       // Score
+                    table::Col::fluid(124.0, 0.0), // Statut: "ATTÉNUATION" whole
                     table::Col::fluid(120.0, 1.0), // Propriétaire
                     table::Col::fluid(90.0, 0.5),  // Date
                 ],
@@ -662,17 +666,19 @@ impl RisksPage {
                     let (status_label, status_color) = Self::status_display(&risk.status);
 
                     row.col(|ui| {
-                        if table::cell_link(ui, &risk.title).clicked() {
+                        if table::cell_link_text(ui, &risk.title).clicked() {
                             clicked_idx = Some(real_idx);
                         }
                     });
 
+                    // Probability and impact as five dots: a 1-5 scale reads
+                    // faster as a level than as a bare digit.
                     row.col(|ui| {
-                        table::cell_number(ui, &risk.probability.to_string());
+                        level_dots(ui, risk.probability);
                     });
 
                     row.col(|ui| {
-                        table::cell_number(ui, &risk.impact.to_string());
+                        level_dots(ui, risk.impact);
                     });
 
                     row.col(|ui| {
@@ -1296,4 +1302,29 @@ impl RisksPage {
             tracing::error!("Dysfonctionnement interne: Canal async non disponible");
         }
     }
+}
+
+/// A 1-5 level as five dots, filled up to the level and coloured by it.
+fn level_dots(ui: &mut Ui, level: u8) {
+    let level = level.clamp(0, 5);
+    let color = theme::readable_color(match level {
+        5 => theme::ERROR,
+        4 => theme::SEVERITY_HIGH,
+        3 => theme::SEVERITY_MEDIUM,
+        _ => theme::INFO,
+    });
+    let (rect, response) =
+        ui.allocate_exact_size(egui::vec2(5.0 * 9.0, 16.0), egui::Sense::hover());
+    if ui.is_rect_visible(rect) {
+        for i in 0..5_u8 {
+            let center = egui::pos2(rect.left() + 4.0 + f32::from(i) * 9.0, rect.center().y);
+            if i < level {
+                ui.painter().circle_filled(center, 3.0, color);
+            } else {
+                ui.painter()
+                    .circle_filled(center, 3.0, theme::bg_tertiary());
+            }
+        }
+    }
+    response.on_hover_text(format!("{level} / 5"));
 }

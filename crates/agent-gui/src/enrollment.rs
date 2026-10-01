@@ -184,7 +184,7 @@ impl EnrollmentWizard {
                                     .extra_letter_spacing(theme::TRACKING_WIDE * 3.0),
                             );
                             ui.label(
-                                egui::RichText::new("GRC AGENT")
+                                egui::RichText::new("GRC NEXUS \u{00b7} ENDPOINT")
                                     .font(theme::font_micro())
                                     .color(theme::accent_text())
                                     .extra_letter_spacing(theme::TRACKING_WIDE * 2.0),
@@ -257,7 +257,7 @@ impl EnrollmentWizard {
             ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE);
                 ui.label(
-                    egui::RichText::new("Bienvenue dans Sentinel Nexus")
+                    egui::RichText::new("Bienvenue dans Sentinel GRC Nexus")
                         .font(theme::font_h2())
                         .color(theme::text_primary()),
                 );
@@ -342,6 +342,9 @@ impl EnrollmentWizard {
                 |ui: &mut egui::Ui| {
                     ui.set_width(width);
                     widgets::clickable_card(ui, id, |ui: &mut egui::Ui| {
+                        // Measured from the cursor: `set_min_height` grows the
+                        // min rect at once, so it cannot tell content height.
+                        let content_top = ui.cursor().top();
                         ui.set_min_height(shared_height);
                         let (badge, _) = ui.allocate_exact_size(
                             egui::Vec2::splat(theme::MIN_TOUCH_TARGET + theme::SPACE_XS),
@@ -371,15 +374,22 @@ impl EnrollmentWizard {
                                 .font(theme::font_small())
                                 .color(theme::text_secondary()),
                         );
-                        ui.add_space(theme::SPACE_MD);
+                        // The action sits on the card's floor, so both
+                        // buttons share a baseline even when one title or
+                        // blurb wraps onto more lines than the other.
+                        let text_height = ui.cursor().top() - content_top;
+                        let natural = text_height + theme::SPACE_MD + theme::BUTTON_HEIGHT;
+                        ui.add_space(
+                            (shared_height - text_height - theme::BUTTON_HEIGHT)
+                                .max(theme::SPACE_MD),
+                        );
                         if widgets::button::primary_button(ui, action, true).clicked() {
                             chosen = true;
                         }
-                        // Content height, before the card's own padding: the
-                        // same measure `set_min_height` is compared against.
-                        let used = ui.min_rect().height();
-                        if used > shared_height + 0.5 {
-                            ui.data_mut(|data| data.insert_temp(height_id, used));
+                        // Natural content height, before the card's own
+                        // padding: the measure `set_min_height` is held to.
+                        if natural > shared_height + 0.5 {
+                            ui.data_mut(|data| data.insert_temp(height_id, natural));
                             ui.ctx().request_repaint();
                         }
                     })
@@ -721,11 +731,16 @@ impl EnrollmentWizard {
         const PLATFORM_LABELS: [&str; 5] = [
             "Bienvenue",
             "Jeton",
-            "Admin",
+            "Administrateur",
             "Enr\u{00f4}lement",
             "Termin\u{00e9}",
         ];
-        const STANDALONE_LABELS: [&str; 4] = ["Bienvenue", "Admin", "Activation", "Termin\u{00e9}"];
+        const STANDALONE_LABELS: [&str; 4] = [
+            "Bienvenue",
+            "Administrateur",
+            "Activation",
+            "Termin\u{00e9}",
+        ];
         const STEP_W: f32 = 96.0;
         const RADIUS: f32 = 11.0;
 
@@ -741,9 +756,15 @@ impl EnrollmentWizard {
             (EnrollmentStep::AdminSetup, true) => 1,
             (EnrollmentStep::InProgress, false) => 3,
             (EnrollmentStep::InProgress, true) => 2,
+            // A failure stops on the step that failed (enrolment or
+            // activation), not on "Terminé": the stepper used to show a
+            // failed run as five green ticks.
+            (EnrollmentStep::Complete { success: false, .. }, false) => 3,
+            (EnrollmentStep::Complete { success: false, .. }, true) => 2,
             (EnrollmentStep::Complete { .. }, false) => 4,
             (EnrollmentStep::Complete { .. }, true) => 3,
         };
+        let failed = matches!(current, EnrollmentStep::Complete { success: false, .. });
 
         let height = RADIUS * 2.0 + theme::SPACE_XS + theme::ICON_SM;
         let (rect, _) = ui.allocate_exact_size(
@@ -780,6 +801,12 @@ impl EnrollmentWizard {
                     theme::accent_text(),
                     theme::text_secondary(),
                 ),
+                Ordering::Equal if failed => (
+                    theme::DANGER_FILL,
+                    theme::ERROR,
+                    theme::text_on_accent(),
+                    theme::readable_color(theme::ERROR),
+                ),
                 Ordering::Equal => (
                     theme::ACCENT,
                     theme::ACCENT,
@@ -800,6 +827,14 @@ impl EnrollmentWizard {
                     center,
                     egui::Align2::CENTER_CENTER,
                     icons::CHECK,
+                    theme::font_icon(theme::ICON_XS),
+                    glyph,
+                );
+            } else if failed && i == current_idx {
+                painter.text(
+                    center,
+                    egui::Align2::CENTER_CENTER,
+                    icons::XMARK,
                     theme::font_icon(theme::ICON_XS),
                     glyph,
                 );

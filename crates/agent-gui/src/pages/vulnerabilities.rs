@@ -6,7 +6,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{GuiAgentStatus, Severity};
+use crate::dto::Severity;
 
 use crate::events::GuiCommand;
 use crate::icons;
@@ -30,75 +30,6 @@ impl VulnerabilitiesPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
-
-        // Action bar (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-            if widgets::button::primary_button_loading(
-                ui,
-                format!(
-                    "{}  {}",
-                    icons::PLAY,
-                    if is_scanning {
-                        "Analyse en cours"
-                    } else {
-                        "Lancer l'analyse"
-                    }
-                ),
-                !is_scanning,
-                is_scanning,
-            )
-            .clicked()
-            {
-                command = Some(GuiCommand::RunCheck);
-            }
-
-            ui.add_space(theme::SPACE_SM);
-
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let search_lower = state.vulnerability.search.to_lowercase();
-                        let filtered_indices: Vec<usize> = state
-                            .vulnerability_findings
-                            .iter()
-                            .enumerate()
-                            .filter(|(_, f)| {
-                                if !search_lower.is_empty()
-                                    && !f.cve_id.to_lowercase().contains(&search_lower)
-                                    && !f.affected_software.to_lowercase().contains(&search_lower)
-                                    && !f.description.to_lowercase().contains(&search_lower)
-                                {
-                                    return false;
-                                }
-                                if let Some(ref sev) = state.vulnerability.severity_filter {
-                                    f.severity == *sev
-                                } else {
-                                    true
-                                }
-                            })
-                            .map(|(i, _)| i)
-                            .collect();
-                        let success = Self::export_csv(state, &filtered_indices);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV réussi")
-                                    .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
-                                    .with_time(time),
-                            );
-                        }
-                    }
-                },
-            );
-        });
-
-        ui.add_space(theme::SPACE_MD);
 
         // Summary cards row (AAA Grade)
         let summary = state.vulnerability_summary.as_ref();
@@ -158,130 +89,7 @@ impl VulnerabilitiesPage {
 
         ui.add_space(theme::SPACE_MD);
 
-        // Coverage and distribution indicators (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new("INDICATEURS DE COUVERTURE")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
-            );
-            ui.add_space(theme::SPACE_MD);
-
-            let total_findings = state.vulnerability_findings.len();
-            if total_findings == 0 {
-                ui.label(
-                    egui::RichText::new(
-                        "Aucun détail de vulnérabilité disponible pour calculer la couverture.",
-                    )
-                    .font(theme::font_body())
-                    .color(theme::text_secondary()),
-                );
-                return;
-            }
-            let fix_available_count = state
-                .vulnerability_findings
-                .iter()
-                .filter(|v| v.fix_available)
-                .count();
-
-            // A. Fix availability ratio
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(icons::WRENCH)
-                        .color(theme::accent_text().linear_multiply(theme::OPACITY_STRONG))
-                        .size(theme::ICON_INLINE),
-                );
-                ui.add_space(theme::SPACE_XS);
-                let fix_pct = if total_findings > 0 {
-                    (fix_available_count as f32 / total_findings as f32) * 100.0
-                } else {
-                    0.0
-                };
-                ui.label(
-                    egui::RichText::new(format!(
-                        "Correctifs disponibles : {}/{} ({:.0}\u{202f}%)",
-                        fix_available_count, total_findings, fix_pct
-                    ))
-                    .font(theme::font_body())
-                    .color(theme::text_primary())
-                    .strong(),
-                );
-            });
-            ui.add_space(theme::SPACE_XS);
-            let fix_ratio = if total_findings > 0 {
-                fix_available_count as f32 / total_findings as f32
-            } else {
-                0.0
-            };
-            let fix_style = if fix_ratio >= 0.8 {
-                widgets::ProgressStyle::Success
-            } else if fix_ratio >= 0.5 {
-                widgets::ProgressStyle::Warning
-            } else {
-                widgets::ProgressStyle::Error
-            };
-            widgets::progress_bar_styled(ui, fix_ratio, fix_style, None);
-
-            ui.add_space(theme::SPACE_MD);
-
-            ui.label(
-                egui::RichText::new(
-                    "Un correctif disponible doit encore être appliqué puis vérifié.",
-                )
-                .font(theme::font_small())
-                .color(theme::text_tertiary()),
-            );
-            ui.add_space(theme::SPACE_MD);
-
-            // C. Average CVSS score
-            let (cvss_sum, cvss_count) =
-                state
-                    .vulnerability_findings
-                    .iter()
-                    .fold((0.0_f32, 0_u32), |(sum, count), v| {
-                        if let Some(score) = v.cvss_score {
-                            (sum + score, count + 1)
-                        } else {
-                            (sum, count)
-                        }
-                    });
-            let avg_cvss = if cvss_count > 0 {
-                cvss_sum / cvss_count as f32
-            } else {
-                0.0
-            };
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(icons::GAUGE_HIGH)
-                        .color(theme::readable_color(theme::score_color(
-                            100.0 - avg_cvss * 10.0,
-                        )))
-                        .size(theme::ICON_INLINE),
-                );
-                ui.add_space(theme::SPACE_XS);
-                ui.label(
-                    egui::RichText::new(format!(
-                        "Score CVSS moyen : {}",
-                        if cvss_count == 0 {
-                            "Non disponible".to_owned()
-                        } else {
-                            crate::format::decimal(avg_cvss, 1)
-                        }
-                    ))
-                    .font(theme::font_body())
-                    .color(theme::text_primary())
-                    .strong(),
-                );
-                ui.add_space(theme::SPACE_SM);
-                ui.label(
-                    egui::RichText::new(format!("({} CVE avec score)", cvss_count))
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary()),
-                );
-            });
-        });
+        Self::remediation_card(ui, state);
 
         ui.add_space(theme::SPACE_LG);
 
@@ -310,7 +118,7 @@ impl VulnerabilitiesPage {
                 lower
             });
 
-        let toggled = widgets::SearchFilterBar::new(
+        let (toggled, export_clicked) = widgets::SearchFilterBar::new(
             &mut state.vulnerability.search,
             "Rechercher une CVE, un logiciel ou une description…",
         )
@@ -318,7 +126,11 @@ impl VulnerabilitiesPage {
         .chip("Élevée", high_active, theme::SEVERITY_HIGH)
         .chip("Moyenne", med_active, theme::SEVERITY_MEDIUM)
         .chip("Faible", low_active, theme::INFO)
-        .show(ui);
+        .action(format!("{}  CSV", icons::DOWNLOAD))
+        .show_with_action(ui);
+        if export_clicked {
+            Self::export_filtered(ui, state);
+        }
 
         if let Some(idx) = toggled {
             let target = match idx {
@@ -394,9 +206,21 @@ impl VulnerabilitiesPage {
             // "Appliquer le correctif IA" button — only if AI script is available
             let has_ai_fix = finding.ai_remediation_script.is_some();
             if has_ai_fix {
+                // One primary per footer: the known fix when there is one,
+                // the AI-proposed script only when it is the sole remedy.
                 actions.insert(
                     0,
-                    widgets::DetailAction::primary("Appliquer correctif IA", icons::WAND_SPARKLES),
+                    if finding.fix_available {
+                        widgets::DetailAction::secondary(
+                            "Appliquer le correctif IA",
+                            icons::WAND_SPARKLES,
+                        )
+                    } else {
+                        widgets::DetailAction::primary(
+                            "Appliquer le correctif IA",
+                            icons::WAND_SPARKLES,
+                        )
+                    },
                 );
             }
 
@@ -415,7 +239,7 @@ impl VulnerabilitiesPage {
                         &mut state.vulnerability.detail_open,
                         |ui| {
                             widgets::detail_section(ui, "VULN\u{00c9}RABILIT\u{00c9}");
-                            widgets::detail_mono(ui, "CVE ID", cve_display);
+                            widgets::detail_mono(ui, "Identifiant CVE", cve_display);
                             widgets::detail_field(
                                 ui,
                                 "Logiciel affect\u{00e9}",
@@ -456,14 +280,14 @@ impl VulnerabilitiesPage {
                             if finding.fix_available {
                                 widgets::detail_field_badge(
                                     ui,
-                                    "Fix disponible",
+                                    "Correctif disponible",
                                     "OUI",
                                     theme::SUCCESS,
                                 );
                             } else {
                                 widgets::detail_field_badge(
                                     ui,
-                                    "Fix disponible",
+                                    "Correctif disponible",
                                     "NON",
                                     theme::ERROR,
                                 );
@@ -631,6 +455,96 @@ impl VulnerabilitiesPage {
         }
 
         command
+    }
+
+    /// Export what the search and severity chip currently show.
+    fn export_filtered(ui: &Ui, state: &mut AppState) {
+        let search_lower = state.vulnerability.search.to_lowercase();
+        let filtered_indices: Vec<usize> = state
+            .vulnerability_findings
+            .iter()
+            .enumerate()
+            .filter(|(_, f)| {
+                if !search_lower.is_empty()
+                    && !f.cve_id.to_lowercase().contains(&search_lower)
+                    && !f.affected_software.to_lowercase().contains(&search_lower)
+                    && !f.description.to_lowercase().contains(&search_lower)
+                {
+                    return false;
+                }
+                state
+                    .vulnerability
+                    .severity_filter
+                    .as_ref()
+                    .is_none_or(|sev| f.severity == *sev)
+            })
+            .map(|(i, _)| i)
+            .collect();
+        let success = Self::export_csv(state, &filtered_indices);
+        let time = ui.input(|i| i.time);
+        state.toasts.push(
+            if success {
+                crate::widgets::toast::Toast::success("Export CSV réussi")
+            } else {
+                crate::widgets::toast::Toast::error("Échec de l'export CSV")
+            }
+            .with_time(time),
+        );
+    }
+
+    /// Remediation progress beside the CVSS distribution.
+    ///
+    /// Replaces a lone progress bar and an average: the operator sees how
+    /// much can be fixed now, where the scores sit, and why a finding's
+    /// severity can sit below its CVSS band.
+    fn remediation_card(ui: &mut Ui, state: &AppState) {
+        let findings = &state.vulnerability_findings;
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("REMÉDIATION ET GRAVITÉ")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+            if findings.is_empty() {
+                ui.label(
+                    egui::RichText::new("Aucune vulnérabilité détaillée pour l'instant.")
+                        .font(theme::font_body())
+                        .color(theme::text_secondary()),
+                );
+                return;
+            }
+            let columns = ui.available_width() >= 720.0;
+            let gap = theme::SPACE_XL;
+            let column_w = if columns {
+                (ui.available_width() - gap) / 2.0
+            } else {
+                ui.available_width()
+            };
+            let layout = if columns {
+                egui::Layout::left_to_right(egui::Align::Min)
+            } else {
+                egui::Layout::top_down(egui::Align::Min)
+            };
+            ui.with_layout(layout, |ui| {
+                // Only the gap between the two columns; each column keeps
+                // the default spacing for its own rows.
+                let inner = ui.spacing().item_spacing;
+                ui.spacing_mut().item_spacing = egui::vec2(gap, theme::SPACE_LG);
+                ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing = inner;
+                    ui.set_width(column_w);
+                    remediation_column(ui, findings);
+                });
+                ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing = inner;
+                    ui.set_width(column_w);
+                    cvss_column(ui, findings);
+                });
+            });
+        });
     }
 
     fn show_findings(
@@ -978,6 +892,244 @@ impl VulnerabilitiesPage {
 }
 
 /// Generate a platform-appropriate package upgrade command.
+/// CVSS band a score falls in, as a severity rank: 3 critical .. 0 low.
+fn cvss_rank(score: f32) -> u8 {
+    if score >= 9.0 {
+        3
+    } else if score >= 7.0 {
+        2
+    } else if score >= 4.0 {
+        1
+    } else {
+        0
+    }
+}
+
+fn severity_rank(severity: &Severity) -> u8 {
+    match severity {
+        Severity::Critical => 3,
+        Severity::High => 2,
+        Severity::Medium => 1,
+        Severity::Low | Severity::Info => 0,
+    }
+}
+
+fn band_color(rank: u8) -> egui::Color32 {
+    match rank {
+        3 => theme::ERROR,
+        2 => theme::SEVERITY_HIGH,
+        1 => theme::SEVERITY_MEDIUM,
+        _ => theme::INFO,
+    }
+}
+
+fn column_title(ui: &mut Ui, icon: &str, title: &str) {
+    ui.horizontal(|ui| {
+        ui.label(
+            egui::RichText::new(icon)
+                .size(theme::ICON_XS)
+                .color(theme::accent_text()),
+        );
+        ui.label(
+            egui::RichText::new(title)
+                .font(theme::font_body_strong())
+                .color(theme::text_primary()),
+        );
+    });
+    ui.add_space(theme::SPACE_SM);
+}
+
+fn remediation_column(ui: &mut Ui, findings: &[crate::dto::GuiVulnerabilityFinding]) {
+    column_title(ui, icons::WRENCH, "Remédiation");
+    let total = findings.len();
+    let fixable = findings.iter().filter(|f| f.fix_available).count();
+    let ratio = fixable as f32 / total.max(1) as f32;
+    let color = if ratio >= 0.8 {
+        theme::SUCCESS
+    } else if ratio >= 0.5 {
+        theme::SEVERITY_MEDIUM
+    } else {
+        theme::ERROR
+    };
+    ui.horizontal(|ui| {
+        ui.label(
+            egui::RichText::new(format!("{fixable} / {total}"))
+                .font(theme::font_h2())
+                .color(theme::readable_color(color)),
+        );
+        ui.label(
+            egui::RichText::new(format!(
+                "correctifs disponibles · {}",
+                crate::format::pct(ratio * 100.0, 0)
+            ))
+            .font(theme::font_caption())
+            .color(theme::text_secondary()),
+        );
+    });
+    ui.add_space(theme::SPACE_XS);
+    split_bar(
+        ui,
+        &[
+            (fixable as f32, theme::readable_color(color)),
+            ((total - fixable) as f32, theme::bg_elevated()),
+        ],
+    );
+    ui.add_space(theme::SPACE_XS);
+    ui.label(
+        egui::RichText::new("Un correctif disponible doit encore être appliqué puis vérifié.")
+            .font(theme::font_caption())
+            .color(theme::text_tertiary()),
+    );
+
+    // Findings whose severity sits below their CVSS band: the scanner
+    // weighed exposure (e.g. a service not reachable here) and lowered it.
+    let contextual = findings
+        .iter()
+        .filter(|f| {
+            f.cvss_score
+                .is_some_and(|score| severity_rank(&f.severity) < cvss_rank(score))
+        })
+        .count();
+    if contextual > 0 {
+        ui.add_space(theme::SPACE_SM);
+        ui.horizontal_wrapped(|ui| {
+            widgets::status_badge(ui, "Contextualisée", theme::INFO);
+            ui.label(
+                egui::RichText::new(format!(
+                    "{} CVE à sévérité abaissée sous leur score CVSS, selon l\'exposition du poste",
+                    crate::format::int(contextual)
+                ))
+                .font(theme::font_caption())
+                .color(theme::text_secondary()),
+            );
+        });
+    }
+}
+
+fn cvss_column(ui: &mut Ui, findings: &[crate::dto::GuiVulnerabilityFinding]) {
+    column_title(ui, icons::GAUGE_HIGH, "Distribution des scores CVSS");
+    let scores: Vec<f32> = findings
+        .iter()
+        .filter_map(|f| f.cvss_score)
+        .filter(|s| s.is_finite())
+        .collect();
+    if scores.is_empty() {
+        ui.label(
+            egui::RichText::new("Aucun score CVSS fourni par les sources.")
+                .font(theme::font_caption())
+                .color(theme::text_tertiary()),
+        );
+        return;
+    }
+    // Ten one-point buckets, the last one closed at 10.
+    let mut buckets = [0_usize; 10];
+    for score in &scores {
+        buckets[(score.clamp(0.0, 9.99) as usize).min(9)] += 1;
+    }
+    let tallest = *buckets.iter().max().unwrap_or(&1);
+    let height = 64.0;
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), height + 16.0),
+        egui::Sense::hover(),
+    );
+    if ui.is_rect_visible(rect) {
+        let painter = ui.painter();
+        let plot = egui::Rect::from_min_size(rect.min, egui::vec2(rect.width(), height));
+        let slot = plot.width() / 10.0;
+        for (index, count) in buckets.iter().enumerate() {
+            let x = plot.left() + slot * index as f32;
+            let bar_h = if *count == 0 {
+                2.0
+            } else {
+                (height * *count as f32 / tallest as f32).max(4.0)
+            };
+            let bar = egui::Rect::from_min_max(
+                egui::pos2(x + 2.0, plot.bottom() - bar_h),
+                egui::pos2(x + slot - 2.0, plot.bottom()),
+            );
+            let color = band_color(cvss_rank(index as f32 + 0.5));
+            painter.rect_filled(
+                bar,
+                egui::CornerRadius {
+                    nw: 3,
+                    ne: 3,
+                    sw: 0,
+                    se: 0,
+                },
+                if *count == 0 {
+                    theme::bg_tertiary()
+                } else {
+                    theme::readable_color(color)
+                },
+            );
+            if *count > 0 {
+                painter.text(
+                    egui::pos2(bar.center().x, bar.top() - 2.0),
+                    egui::Align2::CENTER_BOTTOM,
+                    count.to_string(),
+                    theme::font_micro(),
+                    theme::text_secondary(),
+                );
+            }
+        }
+        for tick in [0, 4, 7, 9, 10] {
+            painter.text(
+                egui::pos2(plot.left() + slot * tick as f32, plot.bottom() + 3.0),
+                if tick == 10 {
+                    egui::Align2::RIGHT_TOP
+                } else {
+                    egui::Align2::LEFT_TOP
+                },
+                tick.to_string(),
+                theme::font_micro(),
+                theme::text_tertiary(),
+            );
+        }
+    }
+    let average = scores.iter().sum::<f32>() / scores.len() as f32;
+    ui.add_space(theme::SPACE_XS);
+    ui.horizontal_wrapped(|ui| {
+        ui.label(
+            egui::RichText::new(format!("Moyenne {}", crate::format::decimal(average, 1)))
+                .font(theme::font_body_strong())
+                .color(theme::readable_color(band_color(cvss_rank(average)))),
+        );
+        ui.label(
+            egui::RichText::new(format!("· {} CVE notées", crate::format::int(scores.len())))
+                .font(theme::font_caption())
+                .color(theme::text_tertiary()),
+        );
+    });
+}
+
+/// A thin bar split in proportion to each value.
+fn split_bar(ui: &mut Ui, parts: &[(f32, egui::Color32)]) {
+    let height = 6.0;
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), height),
+        egui::Sense::hover(),
+    );
+    if !ui.is_rect_visible(rect) {
+        return;
+    }
+    let radius = egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+    let total: f32 = parts.iter().map(|(v, _)| *v).sum();
+    ui.painter().rect_filled(rect, radius, theme::bg_tertiary());
+    if total <= 0.0 {
+        return;
+    }
+    let mut x = rect.left();
+    for (value, color) in parts.iter().filter(|(v, _)| *v > 0.0) {
+        let w = rect.width() * value / total;
+        ui.painter().rect_filled(
+            egui::Rect::from_min_size(egui::pos2(x, rect.top()), egui::vec2(w, height)),
+            radius,
+            *color,
+        );
+        x += w;
+    }
+}
+
 fn platform_upgrade_command(safe_name: &str) -> String {
     if cfg!(target_os = "macos") {
         format!(

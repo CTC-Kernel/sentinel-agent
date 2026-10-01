@@ -57,6 +57,8 @@ pub struct TabBar<'a> {
     selected: usize,
     style: TabStyle,
     full_width: bool,
+    /// Narrower side padding, set when that is what keeps one row.
+    tight: bool,
     centered: bool,
 }
 
@@ -68,6 +70,7 @@ impl<'a> TabBar<'a> {
             selected,
             style: TabStyle::Underline,
             full_width: false,
+            tight: false,
             centered: false,
         }
     }
@@ -130,7 +133,7 @@ impl<'a> TabBar<'a> {
         } else {
             theme::font_body()
         };
-        let mut width = theme::SPACE * 2.0;
+        let mut width = self.side_padding() * 2.0;
         if tab.icon.is_some() {
             width += theme::TAB_ICON_WIDTH;
         }
@@ -147,11 +150,26 @@ impl<'a> TabBar<'a> {
         width
     }
 
-    /// Keep labels visible: one row when it fits, natural wrapping otherwise.
-    fn show_underline(self, ui: &mut Ui) -> Option<usize> {
+    fn side_padding(&self) -> f32 {
+        if self.tight {
+            theme::SPACE_SM
+        } else {
+            theme::SPACE
+        }
+    }
+
+    /// Keep labels visible: one row when it fits, then one row with tighter
+    /// padding (eight tabs on a 1440px window spilled a single tab onto a
+    /// second line), and natural wrapping only after that.
+    fn show_underline(mut self, ui: &mut Ui) -> Option<usize> {
         if self.natural_width(ui, false) <= ui.available_width() {
             return self.show_underline_strip(ui);
         }
+        self.tight = true;
+        if self.natural_width(ui, false) <= ui.available_width() {
+            return self.show_underline_strip(ui);
+        }
+        self.tight = false;
         let mut selected = None;
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing.y = theme::SPACE_XS;
@@ -199,10 +217,20 @@ impl<'a> TabBar<'a> {
                     ui.spacing_mut().item_spacing.x = 0.0;
                 }
 
+                // Full width shares the spare room equally on top of each
+                // tab's own width. Equal slots (width / N) were narrower
+                // than a long label, which then spilled out of its pill.
+                let spare = if self.full_width && fits && tab_count > 0 {
+                    ((available_width - self.natural_width(ui, false)) / tab_count as f32).max(0.0)
+                } else {
+                    0.0
+                };
                 for (i, tab) in self.tabs.iter().enumerate() {
                     let is_selected = i == self.selected;
                     let tab_width = if self.full_width && fits && tab_count > 0 {
-                        available_width / tab_count as f32
+                        self.underline_tab_width(ui, tab, is_selected, false)
+                            + ui.spacing().item_spacing.x
+                            + spare
                     } else {
                         0.0 // Auto-size
                     };
@@ -307,7 +335,7 @@ impl<'a> TabBar<'a> {
             content_width += theme::TAB_BADGE_WIDTH;
         }
 
-        let padding = egui::vec2(theme::SPACE, theme::SPACE_MD);
+        let padding = egui::vec2(self.side_padding(), theme::SPACE_MD);
         let tab_width = if fixed_width > 0.0 {
             fixed_width
         } else {

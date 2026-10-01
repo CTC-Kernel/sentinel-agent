@@ -115,8 +115,11 @@ fn draw_premium_button(
             // Smooth hover animation for primary button
 
             // Primary: Filled Accent
+            // Disabled: a neutral surface, not the accent at half strength.
+            // Faded violet under faded white text was about 2:1 on a light
+            // page, and still looked like something to click.
             let fill = if !enabled && !loading {
-                theme::ACCENT.linear_multiply(theme::OPACITY_DISABLED)
+                theme::bg_tertiary()
             } else if is_clicked {
                 theme::ACCENT_PRESSED
             } else {
@@ -124,11 +127,15 @@ fn draw_premium_button(
             };
             (
                 fill,
-                Stroke::NONE,
+                if enabled || loading {
+                    Stroke::NONE
+                } else {
+                    Stroke::new(theme::BORDER_THIN, theme::border())
+                },
                 if enabled || loading {
                     theme::text_on_accent()
                 } else {
-                    theme::text_on_accent().linear_multiply(theme::OPACITY_MEDIUM)
+                    theme::text_tertiary()
                 },
             )
         } else {
@@ -650,24 +657,27 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
         let rounding = CornerRadius::same(theme::BADGE_ROUNDING);
         ui.painter()
             .rect(rect, rounding, bg, stroke, StrokeKind::Inside);
-        let marker = egui::pos2(
-            rect.left() + padding.x + theme::ICON_SM / 2.0,
-            rect.center().y,
-        );
+        // The check mark is the non-colour cue for the selected state. An
+        // idle chip carries no marker (a hollow ring read as a radio button)
+        // and centres its label in the width both states share.
         if active {
+            let marker = egui::pos2(
+                rect.left() + padding.x + theme::ICON_SM / 2.0,
+                rect.center().y,
+            );
             ui.painter()
                 .text(marker, egui::Align2::CENTER_CENTER, "✓", font.clone(), fg);
+            ui.painter().text(
+                egui::pos2(rect.left() + padding.x + marker_width, rect.center().y),
+                egui::Align2::LEFT_CENTER,
+                text,
+                font,
+                fg,
+            );
         } else {
             ui.painter()
-                .circle_stroke(marker, 3.0, Stroke::new(theme::BORDER_THIN, fg));
+                .text(rect.center(), egui::Align2::CENTER_CENTER, text, font, fg);
         }
-        ui.painter().text(
-            egui::pos2(rect.left() + padding.x + marker_width, rect.center().y),
-            egui::Align2::LEFT_CENTER,
-            text,
-            font,
-            fg,
-        );
         if response.has_focus() {
             ui.painter()
                 .rect_stroke(rect, rounding, theme::focus_ring(), StrokeKind::Outside);

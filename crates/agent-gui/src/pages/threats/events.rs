@@ -11,11 +11,13 @@ use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
-use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort};
+use crate::widgets::data_table::{
+    Cell, ColumnAlign, ColumnWidth, DataTable, SortDirection, TableColumn, TableSort,
+};
 use crate::widgets::pagination::PaginationState;
 
 use super::mitre;
-use super::types::{build_threat_list, kind_badge, severity_display};
+use super::types::{ThreatEvent, build_threat_list, kind_badge};
 
 const ITEMS_PER_PAGE: usize = 25;
 
@@ -101,8 +103,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         });
     }
 
-    // Sort by timestamp descending (newest first)
-    threats.sort_by_key(|b| std::cmp::Reverse(b.timestamp));
+    sort_threats(&mut threats, &state.threats.events_sort);
 
     let total = threats.len();
 
@@ -134,42 +135,58 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             key: "status",
             label: "STATUT",
             width: ColumnWidth::Fixed(105.0),
-            sortable: false,
+            sortable: true,
             align: ColumnAlign::Left,
         },
         TableColumn {
             key: "severity",
             label: "S\u{00c9}V\u{00c9}RIT\u{00c9}",
             width: ColumnWidth::Fixed(110.0),
-            sortable: false,
+            sortable: true,
             align: ColumnAlign::Center,
         },
         TableColumn {
             key: "type",
             label: "TYPE",
             width: ColumnWidth::Fixed(120.0),
-            sortable: false,
+            sortable: true,
             align: ColumnAlign::Left,
         },
         TableColumn {
             key: "title",
             label: "TITRE",
             width: ColumnWidth::Fill,
-            sortable: false,
+            sortable: true,
             align: ColumnAlign::Left,
         },
         TableColumn {
             key: "date",
             label: "DATE",
             width: ColumnWidth::Fixed(150.0),
-            sortable: false,
+            sortable: true,
             align: ColumnAlign::Right,
         },
     ];
 
     let table = DataTable::new("edr_events_table", columns).selectable();
-    let mut _sort = TableSort::default();
-    table.show_header(ui, &mut _sort);
+    let previous_sort = state.threats.events_sort.clone();
+    if table.show_header(ui, &mut state.threats.events_sort) {
+        // Clearing a column returns to newest first. The date column already
+        // is that default, so from there a click flips it to oldest first
+        // instead of clearing to the very order it was showing.
+        if state.threats.events_sort.column.is_none() {
+            state.threats.events_sort = if previous_sort.column.as_deref() == Some("date") {
+                TableSort::by("date", SortDirection::Ascending)
+            } else {
+                crate::state::default_events_sort()
+            };
+        }
+        // Rows are addressed by position: a new order must not leave the
+        // detail modal pointing at whichever event moved into that slot.
+        state.threats.selected_threat = None;
+        state.threats.detail_open = false;
+        state.threats.events_page = 0;
+    }
 
     if page_threats.is_empty() {
         table.show_empty(
@@ -178,31 +195,39 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         );
     } else {
         for (row_idx, threat) in page_threats.iter().enumerate() {
-            let (sev_icon, _) = severity_display(threat.severity);
-            let sev_label = match threat.severity {
-                "critical" => "Critique",
-                "high" => "\u{00c9}lev\u{00e9}",
-                "medium" => "Moyen",
-                _ => "Faible",
+            // Status and severity are what an analyst scans for: pills in
+            // their semantic colour, the same ones the detail modal shows.
+            // Warm hues belong to severity alone; "to triage" is the brand
+            // violet, so the two columns never read as the same signal.
+            let (sev_label, sev_color) = match threat.severity {
+                "critical" => ("Critique", theme::ERROR),
+                "high" => ("\u{00c9}lev\u{00e9}", theme::SEVERITY_HIGH),
+                "medium" => ("Moyen", theme::SEVERITY_MEDIUM),
+                _ => ("Faible", theme::INFO),
             };
             let (kind_label, _) = kind_badge(threat.kind);
 
             let date = threat.timestamp.format("%d/%m/%Y %H:%M").to_string();
 
-            let sev_cell = format!("{} {}", sev_icon, sev_label);
-            let status = if threat.allowlisted {
-                "Autorisé"
+            let (status, status_color) = if threat.allowlisted {
+                ("Autorisé", theme::INFO)
             } else if threat.acknowledged {
-                "Acquitté"
+                ("Acquitté", theme::SUCCESS)
             } else {
-                "À traiter"
+                ("À traiter", theme::ACCENT)
             };
-            let cells: Vec<&str> = vec![status, &sev_cell, kind_label, &threat.title, &date];
+            let cells = [
+                Cell::Badge(status, status_color),
+                Cell::Badge(sev_label, sev_color),
+                Cell::Text(kind_label),
+                Cell::Text(&threat.title),
+                Cell::Text(&date),
+            ];
 
             let global_idx = start.saturating_add(row_idx);
             let selected = state.threats.selected_threat == Some(global_idx);
 
-            if table.show_row(ui, row_idx, selected, &cells) {
+            if table.show_row_cells(ui, row_idx, selected, &cells) {
                 state.threats.selected_threat = Some(global_idx);
                 state.threats.detail_open = true;
             }
@@ -227,7 +252,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             let sev_color = match threat.severity {
                 "critical" => theme::ERROR,
                 "high" => theme::SEVERITY_HIGH,
-                "medium" => theme::WARNING,
+                "medium" => theme::SEVERITY_MEDIUM,
                 _ => theme::INFO,
             };
             let (kind_label, _) = kind_badge(threat.kind);
@@ -354,4 +379,119 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     }
 
     command
+}
+
+/// Workflow rank of an event: to triage first, then acknowledged, then authorized.
+fn status_rank(t: &ThreatEvent) -> u8 {
+    if t.allowlisted {
+        2
+    } else if t.acknowledged {
+        1
+    } else {
+        0
+    }
+}
+
+fn severity_rank(severity: &str) -> u8 {
+    match severity {
+        "critical" => 3,
+        "high" => 2,
+        "medium" => 1,
+        _ => 0,
+    }
+}
+
+/// Order the events for the table. Ties, and a cleared sort, fall back to
+/// newest first so the order never flickers between frames.
+fn sort_threats(threats: &mut [ThreatEvent], sort: &TableSort) {
+    use std::cmp::Ordering;
+    let newest_first = |a: &ThreatEvent, b: &ThreatEvent| b.timestamp.cmp(&a.timestamp);
+    let key: Option<fn(&ThreatEvent, &ThreatEvent) -> Ordering> = match sort.column.as_deref() {
+        Some("status") => Some(|a, b| status_rank(a).cmp(&status_rank(b))),
+        Some("severity") => Some(|a, b| severity_rank(a.severity).cmp(&severity_rank(b.severity))),
+        Some("type") => Some(|a, b| kind_badge(a.kind).0.cmp(kind_badge(b.kind).0)),
+        Some("title") => Some(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase())),
+        Some("date") => Some(|a, b| a.timestamp.cmp(&b.timestamp)),
+        _ => None,
+    };
+    match (key, sort.direction) {
+        (Some(key), SortDirection::Ascending) => {
+            threats.sort_by(|a, b| key(a, b).then_with(|| newest_first(a, b)))
+        }
+        (Some(key), SortDirection::Descending) => {
+            threats.sort_by(|a, b| key(b, a).then_with(|| newest_first(a, b)))
+        }
+        _ => threats.sort_by(newest_first),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{Duration, Utc};
+
+    fn event(title: &str, severity: &'static str, age_min: i64) -> ThreatEvent {
+        ThreatEvent {
+            kind: "process",
+            severity,
+            title: title.into(),
+            timestamp: Utc::now() - Duration::minutes(age_min),
+            ..Default::default()
+        }
+    }
+
+    fn titles(threats: &[ThreatEvent]) -> Vec<&str> {
+        threats.iter().map(|t| t.title.as_str()).collect()
+    }
+
+    #[test]
+    fn default_order_is_newest_first() {
+        let mut threats = vec![event("old", "low", 30), event("new", "low", 1)];
+        sort_threats(&mut threats, &crate::state::default_events_sort());
+        assert_eq!(titles(&threats), ["new", "old"]);
+    }
+
+    #[test]
+    fn severity_sorts_by_rank_not_alphabetically() {
+        let mut threats = vec![
+            event("medium", "medium", 1),
+            event("critical", "critical", 2),
+            event("low", "low", 3),
+            event("high", "high", 4),
+        ];
+        sort_threats(
+            &mut threats,
+            &TableSort::by("severity", SortDirection::Descending),
+        );
+        assert_eq!(titles(&threats), ["critical", "high", "medium", "low"]);
+        sort_threats(
+            &mut threats,
+            &TableSort::by("severity", SortDirection::Ascending),
+        );
+        assert_eq!(titles(&threats), ["low", "medium", "high", "critical"]);
+    }
+
+    #[test]
+    fn ties_fall_back_to_newest_first() {
+        let mut threats = vec![event("older", "high", 10), event("newer", "high", 2)];
+        sort_threats(
+            &mut threats,
+            &TableSort::by("severity", SortDirection::Ascending),
+        );
+        assert_eq!(titles(&threats), ["newer", "older"]);
+    }
+
+    #[test]
+    fn status_puts_events_to_triage_first() {
+        let mut acknowledged = event("acknowledged", "low", 1);
+        acknowledged.acknowledged = true;
+        let mut authorized = event("authorized", "low", 2);
+        authorized.allowlisted = true;
+        let mut threats = vec![authorized, acknowledged, event("triage", "low", 3)];
+        sort_threats(
+            &mut threats,
+            &TableSort::by("status", SortDirection::Ascending),
+        );
+        assert_eq!(titles(&threats), ["triage", "acknowledged", "authorized"]);
+    }
 }

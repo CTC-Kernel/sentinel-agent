@@ -51,7 +51,9 @@ pub fn toggle_switch_labeled(ui: &mut Ui, on: &mut bool, label: &str) -> Respons
         } else {
             theme::SWITCH_OFF_LIGHT
         };
-        let bg_on = theme::SUCCESS;
+        // The readable variant: the dark theme's mint is too pale to carry
+        // a white knob on a light page.
+        let bg_on = theme::readable_color(theme::SUCCESS);
         let bg_color = animation::lerp_color(bg_off, bg_on, anim_progress);
 
         // Track (centered vertically within the touch target)
@@ -101,7 +103,9 @@ pub fn toggle_switch_labeled(ui: &mut Ui, on: &mut bool, label: &str) -> Respons
         );
 
         // Knob main
-        let knob_color = theme::text_on_color(bg_color);
+        // Always white, like every platform's switch: derived from the
+        // track's luminance it turned black on the light theme's mint.
+        let knob_color = Color32::WHITE;
         ui.painter()
             .circle_filled(knob_center, knob_radius, knob_color);
 

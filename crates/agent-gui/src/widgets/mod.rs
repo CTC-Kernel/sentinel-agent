@@ -13,10 +13,8 @@ mod icon_tile;
 pub mod layout;
 pub mod list_keys;
 pub mod modal;
-mod premium_badge;
 pub mod progress;
 mod protected_state;
-mod resource_bar;
 mod search_filter_bar;
 mod security_hero;
 pub(crate) use security_hero::determine_security_state;
@@ -38,17 +36,14 @@ pub mod toast;
 pub mod dropdown;
 pub mod form;
 pub mod tabs;
-pub mod tooltip;
 
 // Visual components
-pub mod avatar;
 pub mod badge;
 pub mod divider;
 pub mod skeleton;
 
 // Data display & navigation
 pub mod alert;
-pub mod breadcrumb;
 pub mod data_table;
 pub mod pagination;
 pub mod table;
@@ -75,9 +70,7 @@ pub use help_info::help_button;
 pub use icon_tile::icon_tile;
 pub use layout::ResponsiveGrid;
 pub use list_keys::navigate_list;
-pub use premium_badge::{BadgeSize, ComplianceBadge, PremiumBadge, StatusBadge, StatusLevel};
 pub use protected_state::{hero_state, protected_state};
-pub use resource_bar::resource_bar;
 pub use search_filter_bar::SearchFilterBar;
 pub use security_hero::security_hero;
 pub use sentinel_ai_core::SentinelAICore;
@@ -130,16 +123,8 @@ pub use voice::voice_toggle_button;
 // Navigation & selection exports
 pub use dropdown::{Dropdown, dropdown, dropdown_width};
 pub use tabs::{Tab, TabBar, TabStyle, tabs, tabs_boxed, tabs_pills};
-pub use tooltip::{
-    ResponseTooltipExt, Tooltip, TooltipPosition, help_tooltip, info_tooltip, show_tooltip_at,
-    tooltip,
-};
 
 // Visual components exports
-pub use avatar::{
-    Avatar, AvatarShape, AvatarSize, AvatarStatus, avatar, avatar_group, avatar_icon, avatar_large,
-    avatar_small, avatar_with_status,
-};
 pub use badge::{
     Badge, BadgeVariant, badge, badge_count, badge_error, badge_info, badge_outline, badge_pill,
     badge_success, badge_variant, badge_warning, status_dot, status_dot_animated,
@@ -158,10 +143,6 @@ pub use alert::{
     Alert, AlertLevel, AlertResult, alert_compact, alert_error, alert_error_dismissible,
     alert_info, alert_info_dismissible, alert_success, alert_warning, alert_warning_dismissible,
     alert_with_action, banner,
-};
-pub use breadcrumb::{
-    Breadcrumb, BreadcrumbItem, BreadcrumbSeparator, breadcrumb, breadcrumb_with_home,
-    breadcrumb_with_separator,
 };
 pub use data_table::{
     ColumnAlign, ColumnWidth, DataTable, SortDirection, TableColumn, TableRow, TableSort,

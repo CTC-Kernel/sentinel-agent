@@ -6,7 +6,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{ComplianceGroupBy, ComplianceViewMode, GuiAgentStatus, GuiCheckStatus};
+use crate::dto::{ComplianceGroupBy, ComplianceViewMode, GuiCheckStatus};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -47,41 +47,6 @@ impl CompliancePage {
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Action bar (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-
-            // Audit button - Admin only
-            if state.security.admin_unlocked {
-                if widgets::button::primary_button_loading(
-                    ui,
-                    format!(
-                        "{}  {}",
-                        icons::PLAY,
-                        if is_scanning {
-                            "Analyse en cours"
-                        } else {
-                            "Lancer l'analyse"
-                        }
-                    ),
-                    !is_scanning,
-                    is_scanning,
-                )
-                .clicked()
-                {
-                    command = Some(GuiCommand::RunCheck);
-                }
-            } else {
-                // Disabled button for non-admin users
-                widgets::button::primary_button_loading(
-                    ui,
-                    format!("{}  {}", "Lancer l'analyse", icons::LOCK),
-                    false,
-                    false,
-                );
-            }
-        });
-
         // Last audit timestamp
         if let Some(last_check) = state.summary.last_check_at {
             ui.horizontal(|ui| {
@@ -96,39 +61,6 @@ impl CompliancePage {
             });
         }
         ui.add_space(theme::SPACE_MD);
-
-        // Active Frameworks indicator (AAA)
-        if let Some(frameworks) = &state.summary.active_frameworks
-            && !frameworks.is_empty()
-        {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("RÉFÉRENTIELS ACTIFS :")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_XS);
-                let fw_count = frameworks.len();
-                for fw in frameworks.iter().take(3) {
-                    widgets::status_badge(
-                        ui,
-                        agent_common::frameworks::framework_display_name(fw),
-                        theme::INFO,
-                    );
-                    ui.add_space(theme::SPACE_XS);
-                }
-                if fw_count > 3 {
-                    widgets::status_badge(
-                        ui,
-                        &format!("+{}", fw_count - 3),
-                        theme::text_tertiary(),
-                    );
-                }
-            });
-            ui.add_space(theme::SPACE_MD);
-        }
 
         // Summary Area (AAA Grade)
         widgets::card(ui, |ui: &mut egui::Ui| {
@@ -191,14 +123,16 @@ impl CompliancePage {
                         && !frameworks.is_empty()
                     {
                         ui.add_space(theme::SPACE_MD);
-                        ui.horizontal(|ui| {
+                        // The one place the active frameworks are listed,
+                        // all of them, wrapping rather than truncating.
+                        ui.horizontal_wrapped(|ui| {
                             ui.label(
-                                egui::RichText::new("RÉFÉRENTIELS ACTIFS:")
+                                egui::RichText::new("RÉFÉRENTIELS ACTIFS :")
                                     .font(theme::font_min())
                                     .color(theme::text_tertiary())
                                     .strong(),
                             );
-                            for fw in frameworks.iter().take(4) {
+                            for fw in frameworks {
                                 widgets::status_badge(
                                     ui,
                                     agent_common::frameworks::framework_display_name(fw),
@@ -407,28 +341,40 @@ impl CompliancePage {
 
         ui.add_space(theme::SPACE_SM);
 
-        // Group-by buttons (AAA Styling)
-        ui.horizontal(|ui: &mut egui::Ui| {
+        // One toolbar row: grouping, then list or matrix, export at the edge.
+        // It was two rows, each led by a shouting caption.
+        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+            ui.spacing_mut().item_spacing.y = theme::SPACE_XS;
             ui.label(
-                egui::RichText::new("STRUCTURE D'AFFICHAGE :")
+                egui::RichText::new("Regrouper")
                     .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
+                    .color(theme::text_tertiary()),
             );
-            ui.add_space(theme::SPACE_XS);
             for (val, label) in [
-                (ComplianceGroupBy::None, "Liste plate"),
+                (ComplianceGroupBy::None, "Aucun"),
                 (ComplianceGroupBy::Category, "Par catégorie"),
                 (ComplianceGroupBy::Framework, "Par référentiel"),
             ] {
                 let active = state.compliance.group_by == val;
-
                 if widgets::chip_button(ui, label, active, theme::ACCENT).clicked() {
                     state.compliance.group_by = val;
                 }
             }
-
+            ui.add_space(theme::SPACE_MD);
+            ui.label(
+                egui::RichText::new("Affichage")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary()),
+            );
+            for (mode, label) in [
+                (ComplianceViewMode::List, "Liste"),
+                (ComplianceViewMode::Matrix, "Matrice"),
+            ] {
+                let active = state.compliance.view_mode == mode;
+                if widgets::chip_button(ui, label, active, theme::ACCENT).clicked() {
+                    state.compliance.view_mode = mode;
+                }
+            }
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
@@ -443,53 +389,20 @@ impl CompliancePage {
             );
         });
 
-        ui.add_space(theme::SPACE_SM);
-
-        // View mode toggle (AAA Grade)
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new("MODE D'AFFICHAGE :")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
-            );
-            ui.add_space(theme::SPACE_XS);
-            for (mode, label) in [
-                (ComplianceViewMode::List, "Liste"),
-                (ComplianceViewMode::Matrix, "Matrice"),
-            ] {
-                let active = state.compliance.view_mode == mode;
-                if widgets::chip_button(ui, label, active, theme::ACCENT).clicked() {
-                    state.compliance.view_mode = mode;
-                }
-            }
-        });
-
         ui.add_space(theme::SPACE_MD);
 
         // Check results table (AAA Grade)
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new("MATRICE DES CONTRÔLES D'AUDIT")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
-                ui.with_layout(
-                    egui::Layout::right_to_left(egui::Align::Center),
-                    |ui: &mut egui::Ui| {
-                        if !state.checks.is_empty() {
-                            ui.label(
-                                egui::RichText::new(format!("{} ÉLÉMENTS AFFICHÉS", result_count))
-                                    .font(theme::font_label())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
-                        }
-                    },
+                    egui::RichText::new(match state.compliance.view_mode {
+                        ComplianceViewMode::List => "CONTRÔLES D'AUDIT",
+                        ComplianceViewMode::Matrix => "MATRICE CONTRÔLES × RÉFÉRENTIELS",
+                    })
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
                 );
             });
             ui.add_space(theme::SPACE_MD);
@@ -822,7 +735,7 @@ impl CompliancePage {
             &[
                 table::Col::fluid(180.0, 3.0), // Désignation
                 table::Col::fluid(100.0, 0.5), // Domaine
-                table::Col::fluid(96.0, 0.0),  // Statut
+                table::Col::fluid(128.0, 0.0), // Statut: fits "NON-CONFORME" at 12px
                 table::Col::fluid(90.0, 0.0),  // Impact
                 table::Col::fixed(56.0),       // Taux
                 table::Col::fluid(150.0, 1.5), // Référentiels
@@ -863,7 +776,7 @@ impl CompliancePage {
                     row.set_selected(is_selected);
 
                     row.col(|ui| {
-                        if table::cell_link(ui, &check.name).clicked() {
+                        if table::cell_link_text(ui, &check.name).clicked() {
                             clicked_idx = Some(idx);
                         }
                     });
@@ -883,8 +796,11 @@ impl CompliancePage {
                     });
 
                     row.col(|ui| {
-                        let color = theme::severity_color_typed(&check.severity);
-                        table::cell_icon(ui, icons::CIRCLE, color, check.severity.label());
+                        widgets::status_badge(
+                            ui,
+                            check.severity.label(),
+                            theme::severity_color_typed(&check.severity),
+                        );
                     });
 
                     row.col(|ui| {
@@ -1217,6 +1133,13 @@ impl CompliancePage {
             "certificate_management" => "CERTIFICATS".to_string(),
             "data_protection" => "PROTECTION DONNÉES".to_string(),
             "cloud_security" => "SÉCURITÉ CLOUD".to_string(),
+            // Short category names some collectors emit; they used to reach
+            // the table as English capitals ("PASSWORD", "ACCESS").
+            "password" | "passwords" => "MOTS DE PASSE".to_string(),
+            "access" => "ACCÈS".to_string(),
+            "logging" | "logs" => "JOURNALISATION".to_string(),
+            "network" => "RÉSEAU".to_string(),
+            "system" => "SYSTÈME".to_string(),
             _ => category.to_uppercase().replace('_', " "),
         }
     }

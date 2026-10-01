@@ -71,13 +71,14 @@ pub const PAUSE: &str = "\u{f04c}"; // fa-pause
 pub const PLUS: &str = "\u{f067}"; // fa-plus
 pub const LAYER_GROUP: &str = "\u{f5fd}"; // fa-layer-group
 pub const PLUG: &str = "\u{f1e6}"; // fa-plug
-pub const ORCHESTRATION: &str = "\u{f542}"; // fa-project-diagram
 
 // ── New pages / features ────────────────────────────────────────────
 pub const CHART_LINE: &str = "\u{f201}"; // fa-chart-line (monitoring)
 pub const FILE_SHIELD: &str = "\u{e4f0}"; // fa-file-shield (FIM)
 pub const SKULL: &str = "\u{f54c}"; // fa-skull-crossbones (threats)
 pub const SHIELD_VIRUS: &str = "\u{e06c}"; // fa-shield-virus
+/// fa-usb is a Brands glyph, absent from the bundled solid font: it drew
+/// as an empty box. Kept for callers outside the GUI pages; prefer PLUG.
 pub const USB: &str = "\u{f287}"; // fa-usb
 pub const MICROCHIP: &str = "\u{f2db}"; // fa-microchip
 pub const MEMORY: &str = "\u{f538}"; // fa-memory
@@ -138,6 +139,10 @@ pub const TAGS: &str = "\u{f02c}"; // fa-tags
 pub const BOOKMARK: &str = "\u{f02e}"; // fa-bookmark
 pub const FLAG: &str = "\u{f024}"; // fa-flag
 pub const PRINT: &str = "\u{f02f}"; // fa-print
+pub const BRIEFCASE: &str = "\u{f0b1}"; // fa-briefcase
+pub const DESKTOP: &str = "\u{f390}"; // fa-desktop
+pub const MOBILE: &str = "\u{f3cd}"; // fa-mobile-screen-button
+pub const QUESTION: &str = "\u{3f}"; // fa-question
 pub const SHARE: &str = "\u{f064}"; // fa-share
 pub const SHARE_NODES: &str = "\u{f1e0}"; // fa-share-nodes
 pub const QR_CODE: &str = "\u{f029}"; // fa-qrcode

@@ -13,7 +13,7 @@ use std::time::Instant;
 
 fn grounded_context() -> String {
     let mut lines = vec![
-        "CONTEXTE SENTINEL NEXUS ACTUEL (données locales, ne rien inventer):".to_string(),
+        "CONTEXTE SENTINEL GRC NEXUS ACTUEL (données locales, ne rien inventer):".to_string(),
         "- Mode: autonome".into(),
         "- Score de conformité: 72.4%".into(),
         "- Contrôles: 148 total, 12 en échec/erreur".into(),

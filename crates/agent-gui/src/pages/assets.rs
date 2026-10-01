@@ -331,10 +331,10 @@ impl AssetsPage {
                 &[
                     table::Col::fluid(140.0, 2.0), // Nom
                     table::Col::fluid(110.0, 1.0), // IP
-                    table::Col::fluid(80.0, 0.5),  // Type
+                    table::Col::fluid(116.0, 0.5), // Type: "Poste de travail" whole
                     table::Col::fluid(96.0, 0.0),  // Criticité
-                    table::Col::fluid(110.0, 0.0), // Cycle de vie
-                    table::Col::fixed(76.0),       // Score
+                    table::Col::fluid(140.0, 0.0), // Cycle de vie: "DÉCOMMISSIONNÉ" whole
+                    table::Col::fixed(96.0),       // Score: bar and value
                     table::Col::fluid(110.0, 1.0), // Dernière vue
                 ],
             )
@@ -388,7 +388,7 @@ impl AssetsPage {
                     row.col(|ui| {
                         table::cell_styled(
                             ui,
-                            &asset.device_type.to_uppercase(),
+                            asset_type_label(&asset.device_type),
                             theme::font_label(),
                             theme::text_secondary(),
                         );
@@ -405,18 +405,12 @@ impl AssetsPage {
                     });
 
                     row.col(|ui| {
-                        let score_pct = (asset.risk_score * 10.0).min(100.0);
-                        // Risk score: higher = worse, so invert for score_color
-                        // (score_color treats ≥85 as green/good).
-                        // A risk_score of 10 (max) → score_pct=100 → we want red.
-                        // score_color(100 - 100) = score_color(0) = ERROR ✓
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            table::cell_colored(
-                                ui,
-                                &crate::format::decimal(asset.risk_score, 1),
-                                theme::readable_color(theme::score_color(100.0 - score_pct)),
-                            );
-                        });
+                        table::cell_score_bar(
+                            ui,
+                            &crate::format::decimal(asset.risk_score, 0),
+                            asset.risk_score.clamp(0.0, 100.0) / 100.0,
+                            theme::readable_color(risk_score_color(asset.risk_score)),
+                        );
                     });
 
                     row.col(|ui| {
@@ -506,24 +500,17 @@ impl AssetsPage {
                 if let Some(ref vendor) = asset.vendor {
                     widgets::detail_field(ui, "Constructeur", vendor);
                 }
-                widgets::detail_field(ui, "Type", &asset.device_type.to_uppercase());
+                widgets::detail_field(ui, "Type", asset_type_label(&asset.device_type));
                 widgets::detail_field_badge(ui, "Criticit\u{00e9}", crit_label, crit_color);
                 widgets::detail_field_badge(ui, "Cycle de vie", lc_label, lc_color);
 
                 ui.add_space(theme::SPACE_SM);
                 widgets::detail_section(ui, "S\u{00c9}CURIT\u{00c9}");
-                let risk_color = if asset.risk_score >= 8.0 {
-                    theme::ERROR
-                } else if asset.risk_score >= 5.0 {
-                    theme::WARNING
-                } else {
-                    theme::SUCCESS
-                };
                 widgets::detail_field_colored(
                     ui,
                     "Score de risque",
-                    &crate::format::decimal(asset.risk_score, 1),
-                    theme::readable_color(risk_color),
+                    &format!("{} / 100", crate::format::decimal(asset.risk_score, 0)),
+                    theme::readable_color(risk_score_color(asset.risk_score)),
                 );
                 widgets::detail_field(
                     ui,
@@ -692,7 +679,7 @@ impl AssetsPage {
         match crit {
             AssetCriticality::Critical => ("CRITIQUE", theme::ERROR),
             AssetCriticality::High => ("\u{00c9}LEV\u{00c9}E", theme::SEVERITY_HIGH),
-            AssetCriticality::Medium => ("MOYENNE", theme::WARNING),
+            AssetCriticality::Medium => ("MOYENNE", theme::SEVERITY_MEDIUM),
             AssetCriticality::Low => ("FAIBLE", theme::INFO),
         }
     }
@@ -935,5 +922,39 @@ impl AssetsPage {
         } else {
             tracing::error!("Dysfonctionnement interne: Canal async non disponible");
         }
+    }
+}
+
+/// Colour of an asset risk score. The platform sends it on a 0-100 scale
+/// (higher is worse); the page used to read it as 0-10, so every asset
+/// above 10 showed as maximum risk.
+fn risk_score_color(score: f32) -> egui::Color32 {
+    if score >= 75.0 {
+        theme::ERROR
+    } else if score >= 50.0 {
+        theme::SEVERITY_HIGH
+    } else if score >= 25.0 {
+        theme::SEVERITY_MEDIUM
+    } else {
+        theme::SUCCESS
+    }
+}
+
+/// French name of an asset type as discovery reports it; a free-text type
+/// entered by hand is shown as typed.
+fn asset_type_label(kind: &str) -> &str {
+    match kind.to_ascii_lowercase().as_str() {
+        "workstation" | "desktop" | "laptop" => "Poste de travail",
+        "server" => "Serveur",
+        "router" | "gateway" => "Routeur",
+        "switch" => "Commutateur",
+        "printer" => "Imprimante",
+        "phone" | "mobile" => "Mobile",
+        "iot" => "IoT / embarqué",
+        "nas" | "storage" => "Stockage",
+        "firewall" => "Pare-feu",
+        "camera" => "Caméra",
+        "unknown" | "" => "Non identifié",
+        _ => kind,
     }
 }

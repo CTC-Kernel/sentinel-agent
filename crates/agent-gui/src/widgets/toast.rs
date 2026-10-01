@@ -107,6 +107,9 @@ impl Toast {
     }
 }
 
+/// Narrowest a toast gets, so a short message still reads as a card.
+const TOAST_MIN_WIDTH: f32 = 320.0;
+
 /// Render active toast notifications. Call this at the end of the main UI frame.
 /// Returns the toasts that should remain (not yet expired or dismissed).
 pub fn render_toasts(ui: &mut Ui, toasts: &[Toast]) -> Vec<Toast> {
@@ -124,6 +127,30 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
 
     let mut y_offset = 0.0;
     let mut escape_consumed = false;
+
+    // One width for the whole stack, from its longest message: toasts sized
+    // each to their own text made a ragged pile.
+    let stack_width = toasts
+        .iter()
+        .filter(|t| !t.dismissed && current_time - t.created_at <= t.duration())
+        .map(|t| {
+            ui.painter()
+                .layout_no_wrap(
+                    format!("{}  {}", icons::INFO, t.message),
+                    theme::font_body(),
+                    theme::text_primary(),
+                )
+                .size()
+                .x
+                + theme::SPACE_XL
+                + if t.dismissible {
+                    theme::MIN_TOUCH_TARGET
+                } else {
+                    0.0
+                }
+        })
+        .fold(TOAST_MIN_WIDTH, f32::max)
+        .min((screen.width() - theme::SPACE_LG * 2.0).max(TOAST_MIN_WIDTH));
 
     for toast in toasts.iter().rev() {
         // Skip dismissed toasts
@@ -183,13 +210,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
             theme::text_primary().linear_multiply(alpha),
         );
 
-        // Add space for close button if dismissible
-        let close_width = if toast.dismissible {
-            theme::MIN_TOUCH_TARGET
-        } else {
-            0.0
-        };
-        let toast_width = galley.size().x + theme::SPACE_XL + close_width;
+        let toast_width = stack_width;
         let toast_height = theme::TOAST_HEIGHT;
 
         // Calculate position based on ToastPosition (with slide-up entrance offset)
@@ -320,9 +341,26 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
             toast_clone.created_at += f64::from(ui.input(|input| input.stable_dt).min(0.1));
         }
 
+        // Full rate only while something moves (entrance, exit) or while the
+        // reading pause shifts the clock each frame; otherwise wake once, when
+        // the exit fade is due.
+        let animating =
+            !theme::is_reduced_motion() && (age < entrance_duration || age > exit_start);
+        if animating || reading {
+            ui.ctx().request_repaint();
+        } else {
+            let wake = if theme::is_reduced_motion() {
+                duration
+            } else {
+                exit_start
+            };
+            // `try_`: a caller may pass an unbounded duration to `with_duration`.
+            let delay = std::time::Duration::try_from_secs_f64((wake - age).max(0.0))
+                .unwrap_or(std::time::Duration::MAX);
+            ui.ctx().request_repaint_after(delay);
+        }
         remaining.push(toast_clone);
         y_offset += toast_height + 10.0;
-        ui.ctx().request_repaint();
     }
 
     // Reverse to maintain order

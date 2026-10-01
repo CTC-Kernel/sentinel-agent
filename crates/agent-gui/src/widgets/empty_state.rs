@@ -164,7 +164,11 @@ pub fn pending_state(ui: &mut Ui, message: &str) {
                 let alpha =
                     theme::OPACITY_TINT + (i as f32 / num_dots as f32) * theme::OPACITY_STRONG;
                 let pos = center + egui::vec2(radius * angle.cos(), radius * angle.sin());
-                painter.circle_filled(pos, theme::SPACE_XS, theme::ACCENT.linear_multiply(alpha));
+                painter.circle_filled(
+                    pos,
+                    theme::SPACE_XS,
+                    theme::chart_color(theme::ACCENT).linear_multiply(alpha),
+                );
             }
             ui.ctx()
                 .request_repaint_after(std::time::Duration::from_millis(50));

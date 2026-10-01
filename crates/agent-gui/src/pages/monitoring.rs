@@ -601,9 +601,7 @@ impl MonitoringPage {
                                     .linear_multiply(0.5 + pulse * 0.5)
                             };
                             ui.label(RichText::new("●").size(theme::ICON_MICRO).color(dot_color));
-                            if !theme::is_reduced_motion() {
-                                ui.ctx().request_repaint();
-                            }
+                            crate::animation::request_ambient_repaint(ui.ctx());
                         }
                     },
                 );
@@ -852,7 +850,11 @@ impl MonitoringPage {
                     if sources.is_empty() {
                         "aucune".to_string()
                     } else {
-                        sources.join(", ")
+                        sources
+                            .iter()
+                            .map(|s| siem_category_label(s))
+                            .collect::<Vec<_>>()
+                            .join(", ")
                     }
                 )
             } else {
@@ -869,7 +871,7 @@ impl MonitoringPage {
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
                     RichText::new(format!(
-                        "Uptime SIEM : {}",
+                        "Disponibilité du SIEM : {}",
                         Self::format_uptime(stats.uptime_secs)
                     ))
                     .font(theme::font_label())
@@ -916,19 +918,31 @@ impl MonitoringPage {
                     let bar_color = theme::chart_color(colors[i % colors.len()]);
 
                     ui.horizontal(|ui: &mut egui::Ui| {
-                        // Category label
-                        ui.add_sized(
-                            [100.0, 20.0],
-                            egui::Label::new(
-                                RichText::new(category)
-                                    .font(theme::font_label())
-                                    .color(theme::text_secondary())
-                                    .strong(),
-                            ),
+                        // Category label: French name, left-aligned in a
+                        // fixed column (it was the raw key, centred).
+                        ui.allocate_ui_with_layout(
+                            egui::vec2(130.0, 20.0),
+                            egui::Layout::left_to_right(egui::Align::Center),
+                            |ui| {
+                                ui.set_width(130.0);
+                                ui.label(
+                                    RichText::new(siem_category_label(category))
+                                        .font(theme::font_label())
+                                        .color(theme::text_secondary())
+                                        .strong(),
+                                );
+                            },
                         );
 
-                        // Progress bar
-                        let bar_width = (ui.available_width() - 60.0).max(50.0);
+                        // Progress bar; the count keeps a fixed column so
+                        // every track ends at the same x.
+                        const COUNT_COLUMN: f32 = 64.0;
+                        // Leave both gaps: one short and the row outgrew the
+                        // card, which then widened under every next row.
+                        let bar_width = (ui.available_width()
+                            - COUNT_COLUMN
+                            - ui.spacing().item_spacing.x * 2.0)
+                            .max(50.0);
                         let (bar_rect, _) = ui
                             .allocate_exact_size(egui::vec2(bar_width, 14.0), egui::Sense::hover());
 
@@ -948,12 +962,19 @@ impl MonitoringPage {
                             painter.rect_filled(fill_rect, egui::CornerRadius::same(3), bar_color);
                         }
 
-                        // Count
-                        ui.label(
-                            RichText::new(format!("{}", count))
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong(),
+                        // Count, right-aligned with thousands separators.
+                        ui.allocate_ui_with_layout(
+                            egui::vec2(COUNT_COLUMN, 20.0),
+                            egui::Layout::right_to_left(egui::Align::Center),
+                            |ui| {
+                                ui.set_width(COUNT_COLUMN);
+                                ui.label(
+                                    RichText::new(crate::format::int(*count))
+                                        .font(theme::font_label())
+                                        .color(theme::text_primary())
+                                        .strong(),
+                                );
+                            },
                         );
                     });
 
@@ -1222,8 +1243,6 @@ impl MonitoringPage {
                             color.linear_multiply(theme::OPACITY_TINT),
                         ),
                     );
-
-                    ui.ctx().request_repaint();
                 }
             });
         });
@@ -1314,5 +1333,22 @@ impl MonitoringPage {
             path.display()
         );
         Ok(path)
+    }
+}
+
+/// French name of a SIEM event category or log source key.
+fn siem_category_label(key: &str) -> &str {
+    match key.to_ascii_lowercase().as_str() {
+        "auth" | "authentication" => "Authentification",
+        "firewall" => "Pare-feu",
+        "system" => "Système",
+        "application" | "app" => "Application",
+        "edr" => "EDR",
+        "fim" => "Intégrité des fichiers",
+        "network" => "Réseau",
+        "security" => "Sécurité",
+        "audit" => "Audit",
+        "kernel" => "Noyau",
+        _ => key,
     }
 }

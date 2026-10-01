@@ -126,107 +126,29 @@ impl ReportsPage {
         report_type: ReportType,
         command: &mut Option<GuiCommand>,
     ) {
-        let is_generating = state.reports.generating;
-
-        // Generate button
-        ui.horizontal(|ui: &mut egui::Ui| {
-            let btn_label = if is_generating {
-                format!(
-                    "{}  G\u{00c9}N\u{00c9}RATION EN COURS…",
-                    icons::CIRCLE_NOTCH
-                )
-            } else {
-                format!("{}  G\u{00e9}n\u{00e9}rer le rapport", icons::PLAY)
-            };
-
-            if widgets::button::primary_button_loading(ui, btn_label, !is_generating, is_generating)
-                .clicked()
-            {
-                Self::generate_now(ui, state, report_type, command);
-            }
-        });
-
-        ui.add_space(theme::SPACE_MD);
-
-        // Show latest report of this type if one exists
-        let latest = state
+        // Latest report of this type first; the ones before it make the
+        // score trend and the history list.
+        let of_type: Vec<GeneratedReport> = state
             .reports
             .reports
             .iter()
-            .find(|r| r.report_type == report_type);
+            .filter(|r| r.report_type == report_type)
+            .cloned()
+            .collect();
 
-        if let Some(report) = latest {
-            widgets::card(ui, |ui: &mut egui::Ui| {
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new(format!("{}  {}", icons::FILE_EXPORT, report.title))
-                            .font(theme::font_body())
-                            .color(theme::text_primary())
-                            .strong(),
-                    );
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(
-                                    report.generated_at.format("%d/%m/%Y %H:%M").to_string(),
-                                )
-                                .font(theme::font_small())
-                                .color(theme::text_tertiary()),
-                            );
-                        },
-                    );
-                });
-                ui.add_space(theme::SPACE_SM);
-
-                if let Some(score) = report.compliance_score {
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("SCORE :")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                .strong(),
-                        );
-                        ui.label(
-                            egui::RichText::new(crate::format::pct(score, 0))
-                                .font(theme::font_card_value())
-                                .color(theme::readable_color(theme::score_color(score)))
-                                .strong(),
-                        );
-                    });
-                    ui.add_space(theme::SPACE_SM);
-                }
-
-                if let Some(ref fw) = report.framework {
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("R\u{00c9}F\u{00c9}RENTIEL :")
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                .strong(),
-                        );
-                        widgets::status_badge(ui, &fw.to_uppercase(), theme::INFO);
-                    });
-                    ui.add_space(theme::SPACE_SM);
-                }
-
-                ui.label(
-                    egui::RichText::new(&report.summary)
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
-                );
-                ui.add_space(theme::SPACE_SM);
-
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  Exporter HTML", icons::DOWNLOAD))
-                        .clicked()
-                    {
-                        Self::export_html(state, report);
+        if let Some(report) = of_type.first() {
+            if let Some(action) = Self::report_preview(ui, state, report, &of_type[1..]) {
+                match action {
+                    PreviewAction::Regenerate => {
+                        Self::generate_now(ui, state, report_type, command);
                     }
-                });
-            });
+                    PreviewAction::Export(index) => {
+                        if let Some(report) = of_type.get(index) {
+                            Self::export_html(state, report);
+                        }
+                    }
+                }
+            }
         } else {
             widgets::card(ui, |ui: &mut egui::Ui| {
                 // The empty state carries the action it describes, instead of
@@ -247,6 +169,186 @@ impl ReportsPage {
                 }
             });
         }
+    }
+
+    /// The latest report as a preview: header with type, date and actions;
+    /// the score dial beside the summary, the score trend across reports
+    /// and what the report contains; then the earlier reports of this type.
+    fn report_preview(
+        ui: &mut Ui,
+        state: &AppState,
+        report: &GeneratedReport,
+        earlier: &[GeneratedReport],
+    ) -> Option<PreviewAction> {
+        let mut action = None;
+        let (type_label, type_color) = Self::report_type_display(&report.report_type);
+        let generating = state.reports.generating;
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            // Header.
+            ui.horizontal(|ui| {
+                widgets::icon_tile(ui, icons::FILE_EXPORT, type_color, 36.0);
+                ui.add_space(theme::SPACE_SM);
+                ui.vertical(|ui| {
+                    ui.horizontal(|ui| {
+                        ui.label(
+                            egui::RichText::new(&report.title)
+                                .font(theme::font_h3())
+                                .color(theme::text_primary()),
+                        );
+                        widgets::status_badge(ui, type_label, type_color);
+                    });
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "Généré le {} · {}",
+                            report.generated_at.format("%d/%m/%Y à %H:%M"),
+                            crate::format::ago(chrono::Utc::now(), report.generated_at)
+                        ))
+                        .font(theme::font_caption())
+                        .color(theme::text_tertiary()),
+                    );
+                });
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let label = if generating {
+                        format!("{}  Génération…", icons::CIRCLE_NOTCH)
+                    } else {
+                        format!("{}  Régénérer", icons::SYNC)
+                    };
+                    if widgets::button::primary_button_loading(ui, label, !generating, generating)
+                        .clicked()
+                    {
+                        action = Some(PreviewAction::Regenerate);
+                    }
+                    ui.add_space(theme::SPACE_SM);
+                    if widgets::button::secondary_button(
+                        ui,
+                        format!("{}  Exporter HTML", icons::DOWNLOAD),
+                        true,
+                    )
+                    .clicked()
+                    {
+                        action = Some(PreviewAction::Export(0));
+                    }
+                });
+            });
+            ui.add_space(theme::SPACE_MD);
+            ui.separator();
+            ui.add_space(theme::SPACE_MD);
+
+            // Body: dial, then summary, trend and contents.
+            let stacked = ui.available_width() < 640.0;
+            let dial_w = 150.0;
+            let body = |ui: &mut Ui| {
+                ui.label(
+                    egui::RichText::new("SYNTHÈSE")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_XS);
+                ui.add(
+                    egui::Label::new(
+                        egui::RichText::new(&report.summary)
+                            .font(theme::font_body())
+                            .color(theme::text_primary()),
+                    )
+                    .wrap_mode(egui::TextWrapMode::Wrap),
+                );
+                ui.add_space(theme::SPACE_MD);
+                score_trend(ui, report, earlier);
+                ui.add_space(theme::SPACE_MD);
+                ui.label(
+                    egui::RichText::new("CONTENU DU RAPPORT")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_XS);
+                ui.horizontal_wrapped(|ui| {
+                    for section in report_sections(&report.report_type) {
+                        widgets::status_badge(ui, section, theme::ACCENT);
+                    }
+                    if let Some(fw) = &report.framework {
+                        widgets::status_badge(ui, &fw.to_uppercase(), theme::INFO);
+                    }
+                });
+            };
+            if stacked {
+                ui.vertical_centered(|ui| {
+                    widgets::compliance_gauge(ui, report.compliance_score, 56.0);
+                });
+                ui.add_space(theme::SPACE_MD);
+                body(ui);
+            } else {
+                let body_w = (ui.available_width()
+                    - dial_w
+                    - theme::SPACE_LG
+                    - ui.spacing().item_spacing.x * 2.0)
+                    .max(1.0);
+                ui.horizontal_top(|ui| {
+                    ui.vertical(|ui| {
+                        ui.set_width(dial_w);
+                        widgets::compliance_gauge(ui, report.compliance_score, 60.0);
+                    });
+                    ui.add_space(theme::SPACE_LG);
+                    ui.vertical(|ui| {
+                        ui.set_width(body_w);
+                        body(ui);
+                    });
+                });
+            }
+        });
+
+        if !earlier.is_empty() {
+            ui.add_space(theme::SPACE_MD);
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new("RAPPORTS PRÉCÉDENTS")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_SM);
+                for (offset, previous) in earlier.iter().take(5).enumerate() {
+                    ui.horizontal(|ui| {
+                        ui.label(
+                            egui::RichText::new(icons::FILE_EXPORT)
+                                .size(theme::ICON_XS)
+                                .color(theme::text_tertiary()),
+                        );
+                        ui.label(
+                            egui::RichText::new(
+                                previous.generated_at.format("%d/%m/%Y %H:%M").to_string(),
+                            )
+                            .font(theme::font_body())
+                            .color(theme::text_primary()),
+                        );
+                        if let Some(score) = previous.compliance_score {
+                            widgets::status_badge(
+                                ui,
+                                &crate::format::pct(score, 0),
+                                theme::score_color(score),
+                            );
+                        }
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            if widgets::button::icon_button(
+                                ui,
+                                icons::DOWNLOAD,
+                                Some("Exporter en HTML"),
+                            )
+                            .clicked()
+                            {
+                                action = Some(PreviewAction::Export(offset + 1));
+                            }
+                        });
+                    });
+                }
+            });
+        }
+        action
     }
 
     /// Generate a report of `report_type` now, store it, and tell the runtime.
@@ -360,7 +462,7 @@ impl ReportsPage {
                         });
 
                         row.col(|ui| {
-                            if table::cell_link(ui, &report.title).clicked() {
+                            if table::cell_link_text(ui, &report.title).clicked() {
                                 clicked_idx = Some(*real_idx);
                             }
                         });
@@ -508,7 +610,7 @@ impl ReportsPage {
 {top_failing_html}
 <h2>Vuln&eacute;rabilit&eacute;s</h2>
 <p>{crit_vulns} critiques, {high_vulns} &eacute;lev&eacute;es sur {vuln_count} au total.</p>
-<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel Nexus &mdash; {date_str}</div>
+<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel GRC Nexus &mdash; {date_str}</div>
 </body></html>"#
         );
 
@@ -596,7 +698,7 @@ impl ReportsPage {
 <tr><th>R&eacute;f&eacute;rentiel</th><th>Total</th><th>Conforme</th><th>D&eacute;faillant</th><th>Taux</th></tr>
 {fw_rows}
 </table>
-<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel Nexus &mdash; {date_str}</div>
+<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel GRC Nexus &mdash; {date_str}</div>
 </body></html>"#
         );
 
@@ -666,7 +768,7 @@ impl ReportsPage {
 <tr><th>Titre</th><th>S&eacute;v&eacute;rit&eacute;</th><th>Confiance</th><th>D&eacute;tect&eacute;</th></tr>
 {incident_rows}
 </table>
-<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel Nexus &mdash; {date_str}</div>
+<div class="footer">Rapport g&eacute;n&eacute;r&eacute; par Sentinel GRC Nexus &mdash; {date_str}</div>
 </body></html>"#
         );
 
@@ -728,6 +830,99 @@ impl ReportsPage {
             ReportType::Incident => ("INCIDENTS", theme::ERROR),
         }
     }
+}
+
+/// What the report preview asked for.
+enum PreviewAction {
+    Regenerate,
+    /// Export the report at this index among the reports of the type.
+    Export(usize),
+}
+
+/// Sections each report type's HTML carries, as shown in the preview.
+fn report_sections(report_type: &ReportType) -> &'static [&'static str] {
+    match report_type {
+        ReportType::Executive => &[
+            "Score global",
+            "Indicateurs clés",
+            "Top 5 contrôles défaillants",
+            "Vulnérabilités",
+        ],
+        ReportType::ComplianceAudit => &[
+            "Score par référentiel",
+            "Contrôles et statuts",
+            "Écarts à corriger",
+        ],
+        ReportType::Incident => &["Incidents EDR", "Chronologie", "Actions de réponse"],
+    }
+}
+
+/// Score of this report against the earlier ones of its type: a sparkline
+/// oldest to newest and the change since the previous report.
+fn score_trend(ui: &mut Ui, report: &GeneratedReport, earlier: &[GeneratedReport]) {
+    let Some(score) = report.compliance_score else {
+        return;
+    };
+    ui.label(
+        egui::RichText::new("ÉVOLUTION DU SCORE")
+            .font(theme::font_label())
+            .color(theme::text_tertiary())
+            .extra_letter_spacing(theme::TRACKING_NORMAL)
+            .strong(),
+    );
+    ui.add_space(theme::SPACE_XS);
+    let points: Vec<[f64; 2]> = earlier
+        .iter()
+        .rev()
+        .filter_map(|r| r.compliance_score)
+        .chain(std::iter::once(score))
+        .enumerate()
+        .map(|(i, s)| [i as f64, s as f64])
+        .collect();
+    if points.len() < 2 {
+        ui.label(
+            egui::RichText::new("Premier rapport de ce type : l'évolution apparaîtra au suivant.")
+                .font(theme::font_caption())
+                .color(theme::text_tertiary()),
+        );
+        return;
+    }
+    ui.horizontal(|ui| {
+        let config = widgets::SparklineConfig {
+            color: theme::score_color(score),
+            ..Default::default()
+        };
+        // The latest twelve, still oldest to newest. The sparkline's axis
+        // starts at zero, which flattened 78 → 87 % into a line; the shape
+        // is what matters here, so the series sits just above its minimum.
+        let recent = &points[points.len().saturating_sub(12)..];
+        let floor = recent.iter().map(|p| p[1]).fold(f64::MAX, f64::min) - 2.0;
+        let recent: Vec<[f64; 2]> = recent.iter().map(|p| [p[0], p[1] - floor]).collect();
+        widgets::sparkline(
+            ui,
+            "report_trend",
+            &recent,
+            egui::vec2(180.0, 36.0),
+            &config,
+        );
+        ui.add_space(theme::SPACE_SM);
+        if let Some(previous) = earlier.iter().find_map(|r| r.compliance_score) {
+            let diff = score - previous;
+            let (arrow, color) = if diff >= 0.0 {
+                ("▲", theme::SUCCESS)
+            } else {
+                ("▼", theme::ERROR)
+            };
+            ui.label(
+                egui::RichText::new(format!(
+                    "{arrow} {} pt depuis le rapport précédent",
+                    crate::format::decimal(diff.abs(), 1)
+                ))
+                .font(theme::font_caption())
+                .color(theme::readable_color(color)),
+            );
+        }
+    });
 }
 
 /// Generate shared CSS for HTML report exports with light/dark mode support.

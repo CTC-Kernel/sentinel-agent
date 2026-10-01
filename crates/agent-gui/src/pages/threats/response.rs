@@ -340,38 +340,52 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         }
                     });
 
-                    // Timestamp + status + operator + unblock button
+                    // Trailing columns in fixed slots, the action slot kept
+                    // even when empty: a row with "Débloquer" used to push
+                    // its operator, status and date out of line.
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
-                            // Unblock button for completed BlockIp actions
-                            if is_block_ip_success {
-                                if widgets::ghost_button(
-                                    ui,
-                                    format!("{}  D\u{00e9}bloquer", icons::UNLOCK),
-                                )
-                                .clicked()
+                            let slot = |ui: &mut egui::Ui, width: f32, add: &mut dyn FnMut(&mut egui::Ui)| {
+                                ui.allocate_ui_with_layout(
+                                    egui::vec2(width, theme::BUTTON_HEIGHT),
+                                    egui::Layout::right_to_left(egui::Align::Center),
+                                    |ui| {
+                                        ui.set_width(width);
+                                        add(ui);
+                                    },
+                                );
+                            };
+                            slot(ui, 130.0, &mut |ui| {
+                                if is_block_ip_success
+                                    && widgets::ghost_button(
+                                        ui,
+                                        format!("{}  D\u{00e9}bloquer", icons::UNLOCK),
+                                    )
+                                    .clicked()
                                 {
                                     unblock_ip = Some(entry_target.clone());
                                 }
-                                ui.add_space(theme::SPACE_SM);
-                            }
-
-                            ui.label(
-                                egui::RichText::new(
-                                    entry.timestamp.format("%d/%m/%Y %H:%M").to_string(),
-                                )
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary()),
-                            );
-                            ui.add_space(theme::SPACE_SM);
-                            widgets::status_badge(ui, entry.status.label_fr(), color);
-                            ui.add_space(theme::SPACE_SM);
-                            ui.label(
-                                egui::RichText::new(&entry.operator)
+                            });
+                            slot(ui, 128.0, &mut |ui| {
+                                ui.label(
+                                    egui::RichText::new(
+                                        entry.timestamp.format("%d/%m/%Y %H:%M").to_string(),
+                                    )
                                     .font(theme::font_label())
-                                    .color(theme::text_secondary()),
-                            );
+                                    .color(theme::text_tertiary()),
+                                );
+                            });
+                            slot(ui, 110.0, &mut |ui| {
+                                widgets::status_badge(ui, entry.status.label_fr(), color);
+                            });
+                            slot(ui, 120.0, &mut |ui| {
+                                ui.label(
+                                    egui::RichText::new(&entry.operator)
+                                        .font(theme::font_label())
+                                        .color(theme::text_secondary()),
+                                );
+                            });
                         },
                     );
                 });

@@ -23,6 +23,12 @@ impl Default for ResponsiveGrid {
     }
 }
 
+/// Width a grid row leaves unused. The page column already reserves the
+/// scrollbar gutter, so the 12px kept here on top made every grid row stop
+/// short of the full-width cards above and below it; one pixel absorbs
+/// rounding.
+const GRID_SLACK: f32 = 1.0;
+
 impl ResponsiveGrid {
     /// Create a new grid with custom parameters.
     pub fn new(min_item_width: f32, gap: f32) -> Self {
@@ -34,8 +40,7 @@ impl ResponsiveGrid {
 
     /// Calculate the optimal number of columns and the actual item width.
     pub fn calculate(&self, ui: &Ui) -> (usize, f32) {
-        // Subtract a small buffer for scrollbars to prevent horizontal overflow
-        let total_width = (ui.available_width() - 12.0).max(0.0);
+        let total_width = (ui.available_width() - GRID_SLACK).max(0.0);
 
         // Calculate max columns that can fit
         let mut cols =
@@ -52,7 +57,7 @@ impl ResponsiveGrid {
     pub fn columns_for(&self, ui: &Ui, count: usize) -> (usize, f32) {
         let (max_cols, _) = self.calculate(ui);
         let cols = max_cols.min(count.max(1));
-        let total = (ui.available_width() - 12.0).max(0.0);
+        let total = (ui.available_width() - GRID_SLACK).max(0.0);
         (cols, (total - self.gap * (cols - 1) as f32) / cols as f32)
     }
 
