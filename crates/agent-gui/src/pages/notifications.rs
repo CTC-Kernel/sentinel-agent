@@ -296,11 +296,18 @@ impl NotificationsPage {
                                     table::cell_strong(ui, &rule.name);
                                 });
                                 row.col(|ui: &mut egui::Ui| {
-                                    table::cell_secondary(ui, rule.rule_type.label_fr());
+                                    widgets::status_badge(
+                                        ui,
+                                        rule.rule_type.label_fr(),
+                                        theme::INFO,
+                                    );
                                 });
                                 row.col(|ui: &mut egui::Ui| match rule.escalation_minutes {
                                     Some(m) => {
-                                        table::cell_secondary(ui, &format!("{}min", m));
+                                        table::cell_secondary(
+                                            ui,
+                                            &crate::format::interval(u64::from(m) * 60),
+                                        );
                                     }
                                     None => {
                                         table::cell_empty(ui);

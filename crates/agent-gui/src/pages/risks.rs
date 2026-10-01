@@ -618,9 +618,9 @@ impl RisksPage {
                 ui,
                 &[
                     table::Col::fluid(180.0, 3.0), // Titre
-                    table::Col::fixed(56.0),       // Prob.
-                    table::Col::fixed(60.0),       // Impact
-                    table::Col::fixed(56.0),       // Score
+                    table::Col::fixed(64.0),       // Prob.
+                    table::Col::fixed(64.0),       // Impact
+                    table::Col::fixed(68.0),       // Score
                     table::Col::fluid(124.0, 0.0), // Statut: "ATTÉNUATION" whole
                     table::Col::fluid(120.0, 1.0), // Propriétaire
                     table::Col::fluid(90.0, 0.5),  // Date
@@ -671,12 +671,14 @@ impl RisksPage {
                         }
                     });
 
+                    // Probability and impact as five dots: a 1-5 scale reads
+                    // faster as a level than as a bare digit.
                     row.col(|ui| {
-                        table::cell_number(ui, &risk.probability.to_string());
+                        level_dots(ui, risk.probability);
                     });
 
                     row.col(|ui| {
-                        table::cell_number(ui, &risk.impact.to_string());
+                        level_dots(ui, risk.impact);
                     });
 
                     row.col(|ui| {
@@ -1300,4 +1302,29 @@ impl RisksPage {
             tracing::error!("Dysfonctionnement interne: Canal async non disponible");
         }
     }
+}
+
+/// A 1-5 level as five dots, filled up to the level and coloured by it.
+fn level_dots(ui: &mut Ui, level: u8) {
+    let level = level.clamp(0, 5);
+    let color = theme::readable_color(match level {
+        5 => theme::ERROR,
+        4 => theme::SEVERITY_HIGH,
+        3 => theme::SEVERITY_MEDIUM,
+        _ => theme::INFO,
+    });
+    let (rect, response) =
+        ui.allocate_exact_size(egui::vec2(5.0 * 9.0, 16.0), egui::Sense::hover());
+    if ui.is_rect_visible(rect) {
+        for i in 0..5_u8 {
+            let center = egui::pos2(rect.left() + 4.0 + f32::from(i) * 9.0, rect.center().y);
+            if i < level {
+                ui.painter().circle_filled(center, 3.0, color);
+            } else {
+                ui.painter()
+                    .circle_filled(center, 3.0, theme::bg_tertiary());
+            }
+        }
+    }
+    response.on_hover_text(format!("{level} / 5"));
 }
