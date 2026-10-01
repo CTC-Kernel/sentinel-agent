@@ -106,6 +106,25 @@ pub fn ago(now: chrono::DateTime<chrono::Utc>, then: chrono::DateTime<chrono::Ut
     }
 }
 
+/// A configured interval: `30 s`, `45 min`, `1 h`, `1 h 30`. Unlike
+/// [`duration_short`] it drops zero parts, so 3 600 s reads `1 h`, not
+/// `1 h 00 min`.
+pub fn interval(secs: u64) -> String {
+    if secs < 60 {
+        return format!("{secs} s");
+    }
+    let minutes = secs / 60;
+    if minutes < 60 {
+        return format!("{minutes} min");
+    }
+    let (hours, rest) = (minutes / 60, minutes % 60);
+    if rest == 0 {
+        format!("{hours} h")
+    } else {
+        format!("{hours} h {rest:02}")
+    }
+}
+
 /// Compact duration: `3 j 05 h`, `2 h 17 min`, `48 min`, `35 s`.
 pub fn duration_short(secs: u64) -> String {
     let (d, h, m, s) = (
@@ -127,6 +146,14 @@ pub fn duration_short(secs: u64) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn intervals_drop_zero_parts() {
+        assert_eq!(super::interval(30), "30 s");
+        assert_eq!(super::interval(2_700), "45 min");
+        assert_eq!(super::interval(3_600), "1 h");
+        assert_eq!(super::interval(5_400), "1 h 30");
+    }
+
     use super::*;
 
     #[test]

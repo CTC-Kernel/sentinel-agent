@@ -228,11 +228,22 @@ impl SettingsPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            ui.label(
-                egui::RichText::new("Fréquence d'exécution des contrôles de conformité")
-                    .font(theme::font_min())
-                    .color(theme::text_secondary()),
-            );
+            // The value leads, the slider follows: the old trailing line
+            // "Configuration actuelle : 60 minutes" repeated the slider.
+            ui.horizontal(|ui| {
+                ui.label(
+                    egui::RichText::new(crate::format::interval(
+                        state.settings.check_interval_secs,
+                    ))
+                    .font(theme::font_h2())
+                    .color(theme::accent_text()),
+                );
+                ui.label(
+                    egui::RichText::new("entre deux exécutions des contrôles de conformité")
+                        .font(theme::font_body())
+                        .color(theme::text_secondary()),
+                );
+            });
             ui.add_space(theme::SPACE_SM);
 
             let mut interval_min = (state.settings.check_interval_secs / 60) as f32;
@@ -280,17 +291,6 @@ impl SettingsPage {
                     );
                 },
             );
-
-            ui.add_space(theme::SPACE_XS);
-            ui.label(
-                egui::RichText::new(format!(
-                    "Configuration actuelle : {} minutes",
-                    state.settings.check_interval_secs / 60,
-                ))
-                .font(theme::font_label())
-                .color(theme::text_tertiary())
-                .strong(),
-            );
         });
     }
 
@@ -335,6 +335,26 @@ impl SettingsPage {
                     }
                 }
             });
+            ui.add_space(theme::SPACE_SM);
+            // The level names are the logging library's; say what each keeps.
+            let meaning = match state.settings.log_level {
+                crate::dto::LogLevel::Error => "Erreurs seulement : journaux minimaux.",
+                crate::dto::LogLevel::Warn => "Erreurs et avertissements.",
+                crate::dto::LogLevel::Info => {
+                    "Activité normale de l'agent : recommandé en production."
+                }
+                crate::dto::LogLevel::Debug => {
+                    "Détails de diagnostic : à activer le temps d'une investigation."
+                }
+                crate::dto::LogLevel::Trace => {
+                    "Tout est journalisé : volumineux, réservé au support."
+                }
+            };
+            ui.label(
+                egui::RichText::new(format!("{}  {meaning}", icons::INFO_CIRCLE))
+                    .font(theme::font_caption())
+                    .color(theme::text_secondary()),
+            );
         });
     }
 
@@ -352,17 +372,19 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_MD);
 
             ui.horizontal(|ui: &mut egui::Ui| {
+    // Text column sized explicitly, so a wrapping sentence cannot push
+    // the button against the card's bottom edge.
+    let text_w = (ui.available_width() - 240.0).max(160.0);
     ui.vertical(|ui: &mut egui::Ui| {
-        ui.label(
-            egui::RichText::new(format!(
-                "{}  SENTINEL CORE v{}",
-                icons::SETTINGS,
-                state.summary.version
-            ))
-            .font(theme::font_min())
-            .color(theme::text_primary())
-            .strong(),
-        );
+        ui.set_width(text_w);
+        ui.horizontal(|ui| {
+            ui.label(
+                egui::RichText::new("Sentinel Core")
+                    .font(theme::font_body_strong())
+                    .color(theme::text_primary()),
+            );
+            widgets::status_badge(ui, &format!("v{}", state.summary.version), theme::ACCENT);
+        });
         ui.add_space(theme::SPACE_XS);
         ui.label(
             egui::RichText::new(if state.summary.standalone {
@@ -683,7 +705,7 @@ impl SettingsPage {
             Self::setting_row(
                 ui,
                 "INTERVALLE SCAN",
-                &crate::format::duration_short(state.settings.check_interval_secs),
+                &crate::format::interval(state.settings.check_interval_secs),
                 icons::CLOCK,
                 false,
             );
@@ -691,7 +713,7 @@ impl SettingsPage {
                 Self::setting_row(
                     ui,
                     "HEARTBEAT",
-                    &crate::format::duration_short(state.settings.heartbeat_interval_secs),
+                    &crate::format::interval(state.settings.heartbeat_interval_secs),
                     icons::BOLT,
                     false,
                 );
