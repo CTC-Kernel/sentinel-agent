@@ -1,7 +1,7 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Sentinel Nexus application shell.
+//! Sentinel GRC Nexus application shell.
 //!
 //! Manages the eframe window, routing, state, and event channels between
 //! the GUI and the agent runtime.
@@ -564,7 +564,7 @@ impl SentinelApp {
             renderer: eframe::Renderer::Wgpu,
             persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
-                .with_title("Sentinel Nexus")
+                .with_title("Sentinel GRC Nexus")
                 .with_inner_size([theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT])
                 .with_min_inner_size([theme::WINDOW_MIN_WIDTH, theme::WINDOW_MIN_HEIGHT])
                 .with_icon(Self::load_app_icon()),
@@ -578,7 +578,7 @@ impl SentinelApp {
             renderer: eframe::Renderer::Wgpu,
             persistence_path: Some(Self::preferences_dir()),
             viewport: egui::ViewportBuilder::default()
-                .with_title("Sentinel Nexus - Vue rapide")
+                .with_title("Sentinel GRC Nexus - Vue rapide")
                 .with_inner_size([theme::SPLASH_CONTENT_WIDTH, theme::TRAY_POPUP_MAX_HEIGHT])
                 .with_min_inner_size([theme::TRAY_POPUP_MIN_WIDTH, theme::SPLASH_CONTENT_HEIGHT])
                 .with_max_inner_size([theme::TRAY_POPUP_MAX_WIDTH, 800.0])
@@ -716,7 +716,7 @@ impl SentinelApp {
             let mut text = alerts.join(". ");
             if total > 3 {
                 text.push_str(&format!(
-                    ". {} autres alertes restent disponibles dans Sentinel Nexus.",
+                    ". {} autres alertes restent disponibles dans Sentinel GRC Nexus.",
                     total - 3
                 ));
             }

@@ -1,7 +1,7 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Agent GUI - Desktop interface for Sentinel Nexus.
+//! Agent GUI - Desktop interface for Sentinel GRC Nexus.
 //!
 //! This crate provides both the data contracts (DTOs, events) and the full
 //! egui/eframe desktop GUI for the Sentinel Agent.

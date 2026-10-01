@@ -37,7 +37,7 @@ impl AboutPage {
             "\u{00c0} propos",
             Some("Informations produit et support technique."),
             Some(
-                "Informations de version et cr\u{00e9}dits de Sentinel Nexus. Lors d\u{2019}un contact avec le support, veuillez mentionner le num\u{00e9}ro de build et l\u{2019}identifiant unique d\u{2019}installation.",
+                "Informations de version et cr\u{00e9}dits de Sentinel GRC Nexus. Lors d\u{2019}un contact avec le support, veuillez mentionner le num\u{00e9}ro de build et l\u{2019}identifiant unique d\u{2019}installation.",
             ),
         );
         ui.add_space(theme::SPACE_LG);

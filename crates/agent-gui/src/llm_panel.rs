@@ -1438,7 +1438,7 @@ impl LLMPanel {
         };
 
         format!(
-            "CONTEXTE SENTINEL NEXUS ACTUEL (données locales mesurées par l'agent, ne rien inventer):\n\
+            "CONTEXTE SENTINEL GRC NEXUS ACTUEL (données locales mesurées par l'agent, ne rien inventer):\n\
              - Mode: {mode}\n\
              - Conformité: score {score}, {scan_line}\n\
              - Contrôles: {total} au total, {pass} conformes, {fail} non conformes, {error} en erreur, {skipped} non applicables\n\
