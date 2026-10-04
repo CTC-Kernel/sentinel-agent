@@ -138,18 +138,17 @@ impl RisksPage {
                 state.risks.page = 0;
             }
         }
-        if let Some((probability, impact)) = state.risks.matrix_filter {
-            if widgets::chip_button(
+        if let Some((probability, impact)) = state.risks.matrix_filter
+            && widgets::chip_button(
                 ui,
                 &format!("Probabilité {probability} · Impact {impact} · Effacer"),
                 true,
                 theme::ACCENT,
             )
             .clicked()
-            {
-                state.risks.matrix_filter = None;
-                state.risks.page = 0;
-            }
+        {
+            state.risks.matrix_filter = None;
+            state.risks.page = 0;
         }
         // Action bar
         ui.horizontal(|ui: &mut egui::Ui| {
