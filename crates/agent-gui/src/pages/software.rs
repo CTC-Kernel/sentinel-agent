@@ -1066,7 +1066,6 @@ impl SoftwarePage {
 
     // -- Shared helpers (AAA Grade) --
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
     fn tab_button(ui: &mut Ui, label: &str, active: bool) -> bool {
         widgets::chip_button(ui, label, active, theme::ACCENT).clicked()
     }
