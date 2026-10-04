@@ -87,6 +87,7 @@ impl LinuxHardeningCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .platforms(vec!["linux".to_string()])
             .build();
 

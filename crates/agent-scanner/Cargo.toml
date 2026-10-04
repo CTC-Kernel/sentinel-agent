@@ -29,11 +29,25 @@ memmap2.workspace = true
 anyhow = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
 futures-util = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
+toml.workspace = true
+yaml-rust2.workspace = true
+base64.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
 
 [features]
 default = []
 llm = ["dep:agent_llm", "dep:anyhow"]
-osv = ["dep:reqwest", "dep:futures-util"]
+osv = ["dep:reqwest", "dep:futures-util", "dep:flate2"]
+# Linux: real-time process starts from the kernel process connector. Off
+# until it has been built and exercised on Linux (see security::process_events).
+proc-connector = []
 
 [dev-dependencies]
 tempfile.workspace = true
+
+[[example]]
+name = "live_exploit_intel"
+required-features = ["osv"]

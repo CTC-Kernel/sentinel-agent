@@ -107,10 +107,17 @@ pub enum AgentEvent {
         /// List of installed software packages.
         packages: Vec<GuiSoftwarePackage>,
     },
+    /// Browser extension inventory updated.
+    BrowserExtensions {
+        /// Extensions of every user, widest reach first.
+        extensions: Vec<crate::dto::GuiBrowserExtension>,
+    },
     /// Vulnerability findings updated.
     VulnerabilityFindings {
         /// List of vulnerability findings.
         findings: Vec<GuiVulnerabilityFinding>,
+        /// Exploitation feeds used to prioritise them (`None`: not consulted).
+        exploit_intel: Option<crate::dto::GuiExploitIntelStatus>,
     },
     /// A tracing log event captured for the terminal view.
     TerminalLog {
@@ -426,6 +433,21 @@ pub enum GuiCommand {
         interval_secs: u64,
     },
     /// Set the log level.
+    /// Write the software bill of materials (CycloneDX) of the last
+    /// vulnerability scan to the export folder.
+    ExportSbom,
+    /// Cut the endpoint off the network (the platform stays reachable).
+    IsolateHost {
+        /// Lift automatically after this many seconds; `0`: until released.
+        duration_secs: u64,
+    },
+    /// Lift the network isolation of the endpoint.
+    ReleaseHost,
+    /// Turn the ransomware canary files (decoys in user directories) on or off.
+    SetRansomwareCanaries {
+        /// `true`: deploy and watch the decoys; `false`: remove them.
+        enabled: bool,
+    },
     SetLogLevel {
         /// Log level (0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR).
         level: u8,

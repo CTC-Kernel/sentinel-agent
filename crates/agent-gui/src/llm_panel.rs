@@ -119,6 +119,7 @@ impl LLMPanel {
     fn show_assistant_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
         let mut focus_draft = false;
+        let mut proposed_action = None;
         let mut draft_response = None;
         // Toolbar in a card: two labelled dropdowns (role and scope), then
         // the suggestion and conversation menus as quiet trigger buttons.
@@ -258,6 +259,40 @@ impl LLMPanel {
                 });
             });
         }
+        // An action proposed by the assistant runs only once confirmed here.
+        if let Some(action) = state.ai.pending_action.clone() {
+            let label = action.label(&state.checks);
+            widgets::card(ui, |ui| {
+                ui.label(
+                    egui::RichText::new(format!("{label} ?"))
+                        .font(theme::font_body_strong())
+                        .color(theme::text_primary()),
+                );
+                ui.label(egui::RichText::new(action.confirmation()).color(theme::text_secondary()));
+                ui.horizontal(|ui| {
+                    if widgets::button::secondary_button(ui, "Annuler", true).clicked() {
+                        state.ai.pending_action = None;
+                    }
+                    let confirm_text = format!("{}  Confirmer", icons::BOLT);
+                    let confirmed = if action.is_disruptive() {
+                        widgets::button::destructive_button(ui, confirm_text, true)
+                    } else {
+                        widgets::button::primary_button(ui, confirm_text, true)
+                    }
+                    .clicked();
+                    if confirmed {
+                        command = Some(action.command());
+                        state.ai.chat_history.push(crate::dto::LlmChatMessage {
+                            role: ChatRole::System,
+                            content: format!("Action lancée par l'opérateur : {label}."),
+                            timestamp: chrono::Utc::now(),
+                            processing_time_ms: None,
+                        });
+                        state.ai.pending_action = None;
+                    }
+                });
+            });
+        }
         ui.add_space(theme::SPACE_SM);
         // Lay out from the bottom so the composer keeps its measured height,
         // including wrapped controls. Only the transcript consumes the remainder.
@@ -332,8 +367,32 @@ impl LLMPanel {
                         }
                     });
                 } else {
+                    let last = state.ai.chat_history.len().saturating_sub(1);
                     for (index, message) in state.ai.chat_history.iter().enumerate() {
                         ui.push_id(index, |ui| Self::render_chat_message(ui, message));
+                        // Only the latest answer can propose an action, once
+                        // it is complete: an older proposal is out of date.
+                        if index == last
+                            && message.role == ChatRole::Assistant
+                            && !state.ai.is_processing
+                            && state.ai.pending_action.is_none()
+                            && let Some(action) =
+                                crate::assistant_action::split_action(&message.content)
+                                    .1
+                                    .map(|action| {
+                                        action.resolved(&state.checks, Self::SECURITY_DOMAINS)
+                                    })
+                            && action.applies(&state.checks, state.summary.host_isolated)
+                            && widgets::button::secondary_button(
+                                ui,
+                                format!("{}  {}", icons::BOLT, action.label(&state.checks)),
+                                true,
+                            )
+                            .on_hover_text("Action proposée par l'assistant : rien n'est lancé avant votre confirmation.")
+                            .clicked()
+                        {
+                            proposed_action = Some(action);
+                        }
                         ui.add_space(theme::SPACE_MD);
                     }
                     // Once the answer streams in, the growing message is the indicator.
@@ -343,6 +402,9 @@ impl LLMPanel {
                 }
             });
         });
+        if let Some(action) = proposed_action {
+            state.ai.pending_action = Some(action);
+        }
         if focus_draft && let Some(response) = draft_response {
             response.request_focus();
         }
@@ -1296,6 +1358,8 @@ impl LLMPanel {
             .map(|check| format!("- {} ({:?})", Self::describe_check(check), check.severity))
             .collect();
 
+        // Patch priority first (known exploited, then likely exploited), then
+        // the highest score.
         let mut prioritized_vulnerabilities: Vec<_> = state.vulnerability_findings.iter().collect();
         prioritized_vulnerabilities.sort_by(|left, right| {
             let right_score = right
@@ -1304,14 +1368,16 @@ impl LLMPanel {
             let left_score = left
                 .cvss_score
                 .unwrap_or_else(|| Self::severity_weight(left.severity) as f32);
-            right_score.total_cmp(&left_score)
+            left.priority
+                .cmp(&right.priority)
+                .then(right_score.total_cmp(&left_score))
         });
         let vulnerabilities: Vec<String> = prioritized_vulnerabilities
             .into_iter()
             .take(6)
             .map(|finding| {
                 format!(
-                    "- {} sur {} {} ({:?}, CVSS {})",
+                    "- {} sur {} {} ({:?}, CVSS {}{})",
                     Self::text_excerpt(&finding.cve_id, 48),
                     Self::text_excerpt(&finding.affected_software, 100),
                     Self::text_excerpt(&finding.affected_version, 48),
@@ -1319,7 +1385,8 @@ impl LLMPanel {
                     finding
                         .cvss_score
                         .map(|score| format!("{score:.1}"))
-                        .unwrap_or_else(|| "inconnu".to_string())
+                        .unwrap_or_else(|| "inconnu".to_string()),
+                    Self::exploitation_facts(finding)
                 )
             })
             .collect();
@@ -1455,9 +1522,17 @@ impl LLMPanel {
              \n\
              RESSOURCES: CPU {cpu:.0}%, mémoire {memory:.0}%, disque {disk:.0}%\n\
              \n\
-             CONVERSATION RÉCENTE:\n{conversation}{marker}\n{question}\n\
+             {history}CONVERSATION RÉCENTE:\n{conversation}{marker}\n{question}\n\
              \n\
              Réponds en français, précisément et de façon actionnable. Appuie-toi sur les résultats de contrôles et relevés ci-dessus et cite leurs identifiants. Une information présente ci-dessus n'est jamais « manquante » ; un domaine « non évalué » ou « non applicable » se signale comme tel. N'affirme jamais avoir observé une donnée absente.",
+            // Events of the period the question is about, when it names one.
+            history = crate::history_search::history_section(
+                state,
+                question,
+                chrono::Local::now().fixed_offset(),
+            )
+            .map(|section| format!("{section}\n\n"))
+            .unwrap_or_default(),
             mode = if state.summary.standalone {
                 "autonome"
             } else {
@@ -1507,6 +1582,25 @@ impl LLMPanel {
             .collect::<String>();
         excerpt.push('…');
         excerpt
+    }
+
+    /// Exploitation evidence of a finding, as a suffix for its context line
+    /// (empty when nothing is known).
+    fn exploitation_facts(finding: &crate::dto::GuiVulnerabilityFinding) -> String {
+        let mut facts = String::new();
+        if finding.known_exploited {
+            facts.push_str(", exploit\u{00e9}e activement (CISA KEV)");
+            if finding.ransomware_use {
+                facts.push_str(", utilis\u{00e9}e par des ran\u{00e7}ongiciels");
+            }
+        }
+        if let Some(probability) = finding.epss_probability {
+            facts.push_str(&format!(
+                ", probabilit\u{00e9} d'exploitation EPSS {:.0} %",
+                probability * 100.0
+            ));
+        }
+        facts
     }
 
     fn severity_weight(severity: crate::dto::Severity) -> u8 {
@@ -1604,9 +1698,11 @@ impl LLMPanel {
 
                             ui.add_space(theme::SPACE_XS);
 
+                            // The action line is for the application, not the reader.
+                            let visible = crate::assistant_action::visible_text(&msg.content);
                             ui.add(
                                 egui::Label::new(
-                                    egui::RichText::new(&msg.content)
+                                    egui::RichText::new(visible)
                                         .font(theme::font_body())
                                         .color(text_color),
                                 )
@@ -1621,7 +1717,7 @@ impl LLMPanel {
                                 )
                                 .clicked()
                                 {
-                                    ui.ctx().copy_text(msg.content.clone());
+                                    ui.ctx().copy_text(visible.to_string());
                                 }
                                 if let Some(ms) = msg.processing_time_ms {
                                     ui.label(
@@ -2585,17 +2681,37 @@ impl LLMPanel {
             }
         }
 
-        // 2. Critical/High vulnerabilities
+        // 2. Vulnerabilities known or likely to be exploited, and critical/high ones
         for vuln in &state.vulnerability_findings {
-            if matches!(vuln.severity, Severity::Critical | Severity::High) {
-                let fix_label = if vuln.fix_available {
-                    "Correctif disponible \u{2014} appliquer en priorit\u{00e9}"
-                } else {
-                    "Aucun correctif disponible \u{2014} appliquer des mesures compensatoires"
+            if vuln.priority.is_pressing()
+                || matches!(vuln.severity, Severity::Critical | Severity::High)
+            {
+                let fix_label = match (vuln.known_exploited, vuln.fix_available) {
+                    (true, true) => {
+                        "Faille exploit\u{00e9}e activement \u{2014} appliquer le correctif sans attendre"
+                    }
+                    (true, false) => {
+                        "Faille exploit\u{00e9}e activement, sans correctif \u{2014} appliquer des mesures compensatoires sans attendre"
+                    }
+                    (false, true) => "Correctif disponible \u{2014} appliquer en priorit\u{00e9}",
+                    (false, false) => {
+                        "Aucun correctif disponible \u{2014} appliquer des mesures compensatoires"
+                    }
+                };
+                // An exploited flaw outranks its CVSS band: it is listed
+                // with the critical ones, a likely exploited one with the high.
+                let severity = match vuln.priority {
+                    crate::dto::PatchPriority::Immediate => Severity::Critical,
+                    crate::dto::PatchPriority::Urgent
+                        if !matches!(vuln.severity, Severity::Critical) =>
+                    {
+                        Severity::High
+                    }
+                    _ => vuln.severity,
                 };
                 recs.push(Recommendation {
                     kind: "vulnerability",
-                    severity: vuln.severity,
+                    severity,
                     title: format!("Corriger : {} sur {}", vuln.cve_id, vuln.affected_software),
                     subtitle: fix_label.to_string(),
                     detail: vuln.description.clone(),
@@ -3402,6 +3518,22 @@ mod tests {
             executed_at: Some(chrono::Utc::now()),
             frameworks: vec![],
         }
+    }
+
+    #[test]
+    fn a_question_about_a_past_period_brings_its_history_into_the_context() {
+        let state = AppState::default();
+        let plain = LLMPanel::grounded_prompt(&state, "Quel est l'état du pare-feu ?");
+        assert!(!plain.contains("HISTORIQUE DEMANDÉ"));
+
+        let dated = LLMPanel::grounded_prompt(&state, "Que s'est-il passé hier ?");
+        let history = dated
+            .find("HISTORIQUE DEMANDÉ (le ")
+            .expect("history section");
+        // After the measured state, before the conversation and the question.
+        assert!(dated.find("RESSOURCES:").unwrap() < history);
+        assert!(history < dated.find("CONVERSATION RÉCENTE:").unwrap());
+        assert!(dated.contains("aucun événement enregistré par l'agent sur cette période"));
     }
 
     #[test]

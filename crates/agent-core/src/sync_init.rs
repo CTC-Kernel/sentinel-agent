@@ -214,8 +214,8 @@ impl AgentRuntime {
             .get_config::<agent_network::ThreatIntelligence>(agent_sync::config_keys::THREAT_INTEL)
             .await
         {
-            let mut network_manager = self.network_manager.write().await;
-            network_manager.update_threat_intel(threat_intel);
+            *self.platform_threat_intel.write().await = Some(threat_intel);
+            self.apply_threat_intel().await;
             info!("Network threat intelligence updated from platform.");
         }
 

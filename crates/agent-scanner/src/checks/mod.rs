@@ -15,6 +15,7 @@ pub mod bluetooth;
 pub mod browser_security;
 pub mod certificate_validation;
 pub mod container_security;
+pub mod custom;
 pub mod directory_policy;
 pub mod disk_encryption;
 pub mod dns_security;

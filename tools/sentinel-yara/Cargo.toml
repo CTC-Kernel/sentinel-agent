@@ -1,0 +1,43 @@
+# YARA scanning helper of the Sentinel GRC agent.
+#
+# A separate program with its own dependencies: YARA-X needs a newer `regex`
+# than the agent's LLM stack accepts, and files to scan are untrusted, so the
+# engine runs in its own process. The agent starts it when it finds it next
+# to its own binary (see crates/agent-scanner/src/security/yara.rs).
+#
+#   cd tools/sentinel-yara && cargo build --release
+[package]
+name = "sentinel-yara"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+license = "MIT"
+publish = false
+description = "YARA scanning helper for the Sentinel GRC agent"
+
+[dependencies]
+serde_json = "1"
+yara-x = { version = "1.21", default-features = false, features = [
+    "constant-folding",
+    "exact-atoms",
+    "fast-regexp",
+    "console-module",
+    "dotnet-module",
+    "elf-module",
+    "hash-module",
+    "lnk-module",
+    "macho-module",
+    "math-module",
+    "pe-module",
+    "string-module",
+    "time-module",
+] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+strip = true
+panic = "abort"
+
+# Standalone: not a member of the agent's workspace.
+[workspace]

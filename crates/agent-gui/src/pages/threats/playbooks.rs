@@ -98,6 +98,50 @@ fn templates() -> Vec<PlaybookTemplate> {
             ],
         },
         PlaybookTemplate {
+            icon: icons::NETWORK,
+            name: "Ransomware (fichiers leurres)",
+            description: "Isole le poste du r\u{00e9}seau pendant une heure d\u{00e8}s qu'un fichier leurre est chiffr\u{00e9}. Demande l'option \u{00ab} Fichiers leurres \u{00bb} des param\u{00e8}tres.",
+            conditions: vec![PlaybookCondition {
+                condition_type: PlaybookConditionType::FimChange,
+                operator: "\u{00e9}gal".to_string(),
+                value: "ransomware_canary".to_string(),
+            }],
+            actions: vec![
+                PlaybookAction {
+                    action_type: PlaybookActionType::IsolateHost,
+                    parameters: "3600".to_string(),
+                },
+                PlaybookAction {
+                    action_type: PlaybookActionType::CreateNotification,
+                    parameters:
+                        "Fichiers leurres chiffr\u{00e9}s : poste isol\u{00e9} du r\u{00e9}seau."
+                            .to_string(),
+                },
+            ],
+        },
+        PlaybookTemplate {
+            icon: icons::FILE_SHIELD,
+            name: "Fichier malveillant (YARA)",
+            description: "Met en quarantaine tout fichier cr\u{00e9}\u{00e9} ou modifi\u{00e9} qui correspond \u{00e0} une r\u{00e8}gle YARA. Demande des r\u{00e8}gles dans le dossier yara.d et le programme sentinel-yara.",
+            conditions: vec![PlaybookCondition {
+                condition_type: PlaybookConditionType::FimChange,
+                operator: "\u{00e9}gal".to_string(),
+                value: "yara_match".to_string(),
+            }],
+            actions: vec![
+                PlaybookAction {
+                    action_type: PlaybookActionType::QuarantineFile,
+                    parameters: String::new(),
+                },
+                PlaybookAction {
+                    action_type: PlaybookActionType::CreateNotification,
+                    parameters:
+                        "Fichier correspondant \u{00e0} une r\u{00e8}gle YARA mis en quarantaine."
+                            .to_string(),
+                },
+            ],
+        },
+        PlaybookTemplate {
             icon: icons::LOCK,
             name: "Brute-force",
             description: "D\u{00e9}tecte les attaques par force brute et bloque l'adresse source.",

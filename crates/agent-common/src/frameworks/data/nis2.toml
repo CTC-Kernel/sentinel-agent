@@ -1,0 +1,349 @@
+# Directive (UE) 2022/2555 (NIS 2), article 21, paragraphe 2 : mesures de
+# gestion des risques en matière de cybersécurité.
+#
+# Seules les mesures vérifiables sur un poste sont reliées à des contrôles.
+# Les points (a) politiques d'analyse des risques, (d) sécurité de la chaîne
+# d'approvisionnement et (f) évaluation de l'efficacité des mesures relèvent
+# de l'organisation et ne sont pas mesurables par l'agent.
+
+[framework]
+id = "NIS2"
+name = "Directive NIS 2 (UE) 2022/2555"
+version = "2022/2555"
+description = "Mesures de gestion des risques de l'article 21, paragraphe 2, vérifiables sur un poste"
+applicability = ["Entités essentielles", "Entités importantes", "Union européenne"]
+reference_url = "https://eur-lex.europa.eu/eli/dir/2022/2555/oj"
+
+# ========================================================================
+# 21.2.b — Gestion des incidents
+# ========================================================================
+
+[[controls]]
+check_id = "audit_logging"
+control_id = "21.2.b"
+control_name = "Gestion des incidents"
+category = "Détection et gestion des incidents"
+description = "Journaliser et horodater les événements de sécurité pour détecter et traiter les incidents"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "gpo_audit_policy"
+control_id = "21.2.b"
+control_name = "Gestion des incidents"
+category = "Détection et gestion des incidents"
+description = "Journaliser et horodater les événements de sécurité pour détecter et traiter les incidents"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "log_rotation"
+control_id = "21.2.b"
+control_name = "Gestion des incidents"
+category = "Détection et gestion des incidents"
+description = "Journaliser et horodater les événements de sécurité pour détecter et traiter les incidents"
+weight = 0.6
+is_critical = false
+
+[[controls]]
+check_id = "time_sync"
+control_id = "21.2.b"
+control_name = "Gestion des incidents"
+category = "Détection et gestion des incidents"
+description = "Journaliser et horodater les événements de sécurité pour détecter et traiter les incidents"
+weight = 0.6
+is_critical = false
+
+# ========================================================================
+# 21.2.c — Continuité des activités et sauvegardes
+# ========================================================================
+
+[[controls]]
+check_id = "backup_configured"
+control_id = "21.2.c"
+control_name = "Continuité des activités et sauvegardes"
+category = "Continuité d'activité"
+description = "Gérer les sauvegardes et la reprise des activités"
+weight = 1.0
+is_critical = true
+
+# ========================================================================
+# 21.2.e — Sécurité de la maintenance et traitement des vulnérabilités
+# ========================================================================
+
+[[controls]]
+check_id = "patches_current"
+control_id = "21.2.e"
+control_name = "Sécurité de la maintenance et traitement des vulnérabilités"
+category = "Maintenance et vulnérabilités"
+description = "Sécuriser l'acquisition, le développement et la maintenance des systèmes, y compris le traitement des vulnérabilités"
+weight = 1.0
+is_critical = true
+
+[[controls]]
+check_id = "update_status"
+control_id = "21.2.e"
+control_name = "Sécurité de la maintenance et traitement des vulnérabilités"
+category = "Maintenance et vulnérabilités"
+description = "Sécuriser l'acquisition, le développement et la maintenance des systèmes, y compris le traitement des vulnérabilités"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "obsolete_protocols"
+control_id = "21.2.e"
+control_name = "Sécurité de la maintenance et traitement des vulnérabilités"
+category = "Maintenance et vulnérabilités"
+description = "Sécuriser l'acquisition, le développement et la maintenance des systèmes, y compris le traitement des vulnérabilités"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "kernel_hardening"
+control_id = "21.2.e"
+control_name = "Sécurité de la maintenance et traitement des vulnérabilités"
+category = "Maintenance et vulnérabilités"
+description = "Sécuriser l'acquisition, le développement et la maintenance des systèmes, y compris le traitement des vulnérabilités"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "linux_hardening"
+control_id = "21.2.e"
+control_name = "Sécurité de la maintenance et traitement des vulnérabilités"
+category = "Maintenance et vulnérabilités"
+description = "Sécuriser l'acquisition, le développement et la maintenance des systèmes, y compris le traitement des vulnérabilités"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "windows_hardening"
+control_id = "21.2.e"
+control_name = "Sécurité de la maintenance et traitement des vulnérabilités"
+category = "Maintenance et vulnérabilités"
+description = "Sécuriser l'acquisition, le développement et la maintenance des systèmes, y compris le traitement des vulnérabilités"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "secure_boot"
+control_id = "21.2.e"
+control_name = "Sécurité de la maintenance et traitement des vulnérabilités"
+category = "Maintenance et vulnérabilités"
+description = "Sécuriser l'acquisition, le développement et la maintenance des systèmes, y compris le traitement des vulnérabilités"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "container_security"
+control_id = "21.2.e"
+control_name = "Sécurité de la maintenance et traitement des vulnérabilités"
+category = "Maintenance et vulnérabilités"
+description = "Sécuriser l'acquisition, le développement et la maintenance des systèmes, y compris le traitement des vulnérabilités"
+weight = 0.6
+is_critical = false
+
+# ========================================================================
+# 21.2.g — Pratiques de base en matière de cyberhygiène
+# ========================================================================
+
+[[controls]]
+check_id = "antivirus_active"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "firewall_active"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "screen_lock"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "auto_login_disabled"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "guest_account_disabled"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.6
+is_critical = false
+
+[[controls]]
+check_id = "usb_storage_disabled"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.6
+is_critical = false
+
+[[controls]]
+check_id = "browser_security"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.6
+is_critical = false
+
+[[controls]]
+check_id = "dns_security"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.6
+is_critical = false
+
+[[controls]]
+check_id = "bluetooth_disabled"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.4
+is_critical = false
+
+[[controls]]
+check_id = "ipv6_hardening"
+control_id = "21.2.g"
+control_name = "Pratiques de base en matière de cyberhygiène"
+category = "Cyberhygiène"
+description = "Appliquer les pratiques de base de cyberhygiène sur les postes"
+weight = 0.4
+is_critical = false
+
+# ========================================================================
+# 21.2.h — Cryptographie et chiffrement
+# ========================================================================
+
+[[controls]]
+check_id = "disk_encryption"
+control_id = "21.2.h"
+control_name = "Cryptographie et chiffrement"
+category = "Cryptographie"
+description = "Appliquer des politiques et procédures relatives à la cryptographie et, le cas échéant, au chiffrement"
+weight = 1.0
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "21.2.h"
+control_name = "Cryptographie et chiffrement"
+category = "Cryptographie"
+description = "Appliquer des politiques et procédures relatives à la cryptographie et, le cas échéant, au chiffrement"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "certificate_validation"
+control_id = "21.2.h"
+control_name = "Cryptographie et chiffrement"
+category = "Cryptographie"
+description = "Appliquer des politiques et procédures relatives à la cryptographie et, le cas échéant, au chiffrement"
+weight = 0.7
+is_critical = false
+
+# ========================================================================
+# 21.2.i — Contrôle d'accès et gestion des actifs
+# ========================================================================
+
+[[controls]]
+check_id = "admin_accounts"
+control_id = "21.2.i"
+control_name = "Contrôle d'accès et gestion des actifs"
+category = "Contrôle d'accès"
+description = "Appliquer des politiques de contrôle d'accès, de sécurité des ressources humaines et de gestion des actifs"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "password_policy"
+control_id = "21.2.i"
+control_name = "Contrôle d'accès et gestion des actifs"
+category = "Contrôle d'accès"
+description = "Appliquer des politiques de contrôle d'accès, de sécurité des ressources humaines et de gestion des actifs"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "privileged_groups"
+control_id = "21.2.i"
+control_name = "Contrôle d'accès et gestion des actifs"
+category = "Contrôle d'accès"
+description = "Appliquer des politiques de contrôle d'accès, de sécurité des ressources humaines et de gestion des actifs"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "gpo_password_policy"
+control_id = "21.2.i"
+control_name = "Contrôle d'accès et gestion des actifs"
+category = "Contrôle d'accès"
+description = "Appliquer des politiques de contrôle d'accès, de sécurité des ressources humaines et de gestion des actifs"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "remote_access_secure"
+control_id = "21.2.i"
+control_name = "Contrôle d'accès et gestion des actifs"
+category = "Contrôle d'accès"
+description = "Appliquer des politiques de contrôle d'accès, de sécurité des ressources humaines et de gestion des actifs"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "gpo_account_lockout"
+control_id = "21.2.i"
+control_name = "Contrôle d'accès et gestion des actifs"
+category = "Contrôle d'accès"
+description = "Appliquer des politiques de contrôle d'accès, de sécurité des ressources humaines et de gestion des actifs"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "ldap_security"
+control_id = "21.2.i"
+control_name = "Contrôle d'accès et gestion des actifs"
+category = "Contrôle d'accès"
+description = "Appliquer des politiques de contrôle d'accès, de sécurité des ressources humaines et de gestion des actifs"
+weight = 0.7
+is_critical = false
+
+# ========================================================================
+# 21.2.j — Authentification à plusieurs facteurs
+# ========================================================================
+
+[[controls]]
+check_id = "mfa_enabled"
+control_id = "21.2.j"
+control_name = "Authentification à plusieurs facteurs"
+category = "Authentification"
+description = "Utiliser l'authentification à plusieurs facteurs ou l'authentification continue"
+weight = 1.0
+is_critical = true

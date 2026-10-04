@@ -83,6 +83,7 @@ impl FirewallCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .framework("ANSSI_HYGIENE")
             .platforms(vec![
                 "windows".to_string(),

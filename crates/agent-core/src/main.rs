@@ -1630,6 +1630,21 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Ok(GuiCommand::SetLogLevel { level }) => {
                             handle_for_commands.set_log_level(level);
                         }
+                        Ok(GuiCommand::SetRansomwareCanaries { enabled }) => {
+                            info!("[AUDIT] GUI user set ransomware canary files to {}", enabled);
+                            // Applied now; persisted so it survives a restart.
+                            if let Err(e) = AgentConfig::persist_value_to(
+                                &AgentConfig::platform_config_path(),
+                                "ransomware_canaries",
+                                serde_json::Value::Bool(enabled),
+                            ) {
+                                warn!(
+                                    "Ransomware canary setting applied but not saved to the config file: {}",
+                                    e
+                                );
+                            }
+                            handle_for_commands.state.set_ransomware_canaries(enabled);
+                        }
                         Ok(GuiCommand::Remediate { check_id }) => {
                             info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
                             handle_for_commands.remediate(check_id);
@@ -1873,6 +1888,103 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 }
                             });
                         }
+                        Ok(GuiCommand::ExportSbom) => {
+                            info!("[AUDIT] GUI requested the SBOM export");
+                            let tx = bg_event_tx.clone();
+                            let cache = handle_for_commands.state.last_vuln_findings.clone();
+                            tokio::spawn(async move {
+                                let scan = cache.read().await.clone();
+                                let notification = match scan {
+                                    None => agent_gui::dto::GuiNotification::error(
+                                        "Export SBOM impossible",
+                                        "Aucun inventaire disponible : lancez d'abord une analyse des vulnérabilités.",
+                                    ),
+                                    Some(scan) => match agent_core::export_sbom(&scan).await {
+                                        Ok(path) => agent_gui::dto::GuiNotification::info(
+                                            "SBOM exporté",
+                                            format!(
+                                                "{} composants, {} vulnérabilités : {}",
+                                                scan.packages.len(),
+                                                scan.vulnerabilities.len(),
+                                                path.display()
+                                            ),
+                                        ),
+                                        Err(e) => {
+                                            warn!("SBOM export failed: {}", e);
+                                            agent_gui::dto::GuiNotification::error(
+                                                "Export SBOM impossible",
+                                                e.to_string(),
+                                            )
+                                        }
+                                    },
+                                };
+                                let _ = tx.send(AgentEvent::Notification { notification });
+                            });
+                        }
+                        Ok(GuiCommand::IsolateHost { duration_secs }) => {
+                            info!("[AUDIT] GUI requested host isolation for {}s (0: until released)", duration_secs);
+                            let tx = bg_event_tx.clone();
+                            tokio::spawn(async move {
+                                let action_id = uuid::Uuid::new_v4();
+                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                    action: agent_gui::dto::ResponseAction {
+                                        id: action_id,
+                                        action_type: agent_gui::dto::ResponseActionType::IsolateHost,
+                                        target: "Ce poste".to_string(),
+                                        target_detail: if duration_secs == 0 {
+                                            "jusqu'à levée manuelle".to_string()
+                                        } else {
+                                            format!("{} min", duration_secs / 60)
+                                        },
+                                        status: agent_gui::dto::ResponseStatus::Pending,
+                                        created_at: chrono::Utc::now(),
+                                        completed_at: None,
+                                        error: None,
+                                    },
+                                });
+                                let result = agent_core::host_isolation::isolate_host(
+                                    "Action manuelle depuis l'interface",
+                                    duration_secs,
+                                )
+                                .await;
+                                if let Err(e) = &result {
+                                    warn!("Host isolation failed: {}", e);
+                                }
+                                let _ = tx.send(AgentEvent::ResponseActionResult {
+                                    action_id,
+                                    success: result.is_ok(),
+                                    error: result.err().map(|e| e.to_string()),
+                                });
+                            });
+                        }
+                        Ok(GuiCommand::ReleaseHost) => {
+                            info!("[AUDIT] GUI requested the host isolation to be lifted");
+                            let tx = bg_event_tx.clone();
+                            tokio::spawn(async move {
+                                let action_id = uuid::Uuid::new_v4();
+                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
+                                    action: agent_gui::dto::ResponseAction {
+                                        id: action_id,
+                                        action_type: agent_gui::dto::ResponseActionType::ReleaseHost,
+                                        target: "Ce poste".to_string(),
+                                        target_detail: "levée de l'isolation".to_string(),
+                                        status: agent_gui::dto::ResponseStatus::Pending,
+                                        created_at: chrono::Utc::now(),
+                                        completed_at: None,
+                                        error: None,
+                                    },
+                                });
+                                let result = agent_core::host_isolation::release_host().await;
+                                if let Err(e) = &result {
+                                    warn!("Lifting the host isolation failed: {}", e);
+                                }
+                                let _ = tx.send(AgentEvent::ResponseActionResult {
+                                    action_id,
+                                    success: result.is_ok(),
+                                    error: result.err().map(|e| e.to_string()),
+                                });
+                            });
+                        }
                         Ok(GuiCommand::UnblockIp { ip }) => {
                             info!("[AUDIT] GUI requested IP unblock: {}", ip);
                             let tx = bg_event_tx.clone();
@@ -2075,6 +2187,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                                     agent_core::playbook_engine::ResolvedAction::BlockIp {
                                                         ip,
                                                         duration_secs: duration,
+                                                    },
+                                                );
+                                            }
+                                            agent_gui::dto::PlaybookActionType::IsolateHost => {
+                                                resolved_actions.push(
+                                                    agent_core::playbook_engine::ResolvedAction::IsolateHost {
+                                                        duration_secs: agent_core::playbook_engine::isolation_duration(&action.parameters),
                                                     },
                                                 );
                                             }
@@ -2846,7 +2965,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         // cache then serves the first question.
                                         if let Some(context) = context.filter(|c| !c.trim().is_empty()) {
                                             let request = agent_llm::engine::InferenceRequest::new(context)
-                                                .with_system_prompt(agent_core::llm_stream::ASSISTANT_SYSTEM_PROMPT)
+                                                .with_system_prompt(agent_core::llm_stream::assistant_system_prompt())
                                                 .with_max_tokens(1)
                                                 .with_temperature(0.0)
                                                 .background();

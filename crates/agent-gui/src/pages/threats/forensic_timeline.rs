@@ -7,7 +7,7 @@ use chrono::{DateTime, Duration, Utc};
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{FimChangeType, Severity, TimelineRange, UsbEventType};
+use crate::dto::{Severity, TimelineRange};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -419,131 +419,35 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 }
 
 /// Build unified timeline from all state sources, filtered by cutoff time.
+///
+/// The events are the ones the assistant searches when asked about a past
+/// period (`history_search`); the timeline leaves out the response actions,
+/// which have their own tab, and dates an undated vulnerability to now.
 fn build_timeline(state: &AppState, cutoff: DateTime<Utc>) -> Vec<TimelineEvent> {
-    let mut events = Vec::new();
+    let mut events: Vec<TimelineEvent> = crate::history_search::events(state)
+        .into_iter()
+        .filter(|event| event.source != "response" && event.timestamp >= cutoff)
+        .map(|event| TimelineEvent {
+            timestamp: event.timestamp,
+            source: event.source,
+            severity: event.severity,
+            title: event.title,
+            detail: event.detail,
+            _source_index: event.source_index,
+        })
+        .collect();
 
-    // Suspicious processes
-    for (i, p) in state.threats.suspicious_processes.iter().enumerate() {
-        if p.detected_at < cutoff {
-            continue;
-        }
-        let severity = if p.confidence >= 90 {
-            Severity::Critical
-        } else if p.confidence >= 70 {
-            Severity::High
-        } else if p.confidence >= 40 {
-            Severity::Medium
-        } else {
-            Severity::Low
-        };
-        events.push(TimelineEvent {
-            timestamp: p.detected_at,
-            source: "process",
-            severity,
-            title: p.process_name.clone(),
-            detail: format!("{} \u{2014} Confiance: {}\u{202f}%", p.reason, p.confidence),
-            _source_index: i,
-        });
-    }
-
-    // USB events
-    for (i, u) in state.threats.usb_events.iter().enumerate() {
-        if u.timestamp < cutoff {
-            continue;
-        }
-        let severity = match u.event_type {
-            UsbEventType::Connected => Severity::Medium,
-            UsbEventType::Disconnected => Severity::Low,
-            UsbEventType::Blocked => Severity::High,
-        };
-        events.push(TimelineEvent {
-            timestamp: u.timestamp,
-            source: "usb",
-            severity,
-            title: u.device_name.clone(),
-            detail: format!(
-                "{} \u{2014} VID:{:04X} PID:{:04X}",
-                u.event_type, u.vendor_id, u.product_id,
-            ),
-            _source_index: i,
-        });
-    }
-
-    // FIM alerts
-    for (i, f) in state.fim.alerts.iter().enumerate() {
-        if f.timestamp < cutoff {
-            continue;
-        }
-        let severity = match f.change_type {
-            FimChangeType::Deleted | FimChangeType::PermissionChanged => Severity::High,
-            FimChangeType::Created | FimChangeType::Modified => Severity::Medium,
-            FimChangeType::Renamed => Severity::Low,
-        };
-        events.push(TimelineEvent {
-            timestamp: f.timestamp,
-            source: "fim",
-            severity,
-            title: f.path.clone(),
-            detail: format!("Changement : {}", f.change_type.label()),
-            _source_index: i,
-        });
-    }
-
-    // Network alerts
-    for (i, a) in state.network.alerts.iter().enumerate() {
-        if a.detected_at < cutoff {
-            continue;
-        }
-        let mut desc = a.description.clone();
-        if let Some(ref src) = a.source_ip {
-            desc = format!("{} \u{2014} SRC: {}", desc, src);
-        }
-        if let Some(ref dst) = a.destination_ip {
-            if let Some(port) = a.destination_port {
-                desc = format!("{} \u{2014} DST: {}:{}", desc, dst, port);
-            } else {
-                desc = format!("{} \u{2014} DST: {}", desc, dst);
-            }
-        }
-        events.push(TimelineEvent {
-            timestamp: a.detected_at,
-            source: "network",
-            severity: a.severity,
-            title: a.alert_type.clone(),
-            detail: desc,
-            _source_index: i,
-        });
-    }
-
-    // System incidents
-    for (i, inc) in state.threats.system_incidents.iter().enumerate() {
-        if inc.detected_at < cutoff {
-            continue;
-        }
-        events.push(TimelineEvent {
-            timestamp: inc.detected_at,
-            source: "system",
-            severity: inc.severity,
-            title: inc.title.clone(),
-            detail: inc.description.clone(),
-            _source_index: i,
-        });
-    }
-
-    // Vulnerability findings
     for (i, v) in state.vulnerability_findings.iter().enumerate() {
-        let ts = v.discovered_at.unwrap_or_else(Utc::now);
-        if ts < cutoff {
-            continue;
+        if v.discovered_at.is_none() {
+            events.push(TimelineEvent {
+                timestamp: Utc::now(),
+                source: "vulnerability",
+                severity: v.severity,
+                title: format!("{} \u{2014} {}", v.cve_id, v.affected_software),
+                detail: v.description.clone(),
+                _source_index: i,
+            });
         }
-        events.push(TimelineEvent {
-            timestamp: ts,
-            source: "vulnerability",
-            severity: v.severity,
-            title: format!("{} \u{2014} {}", v.cve_id, v.affected_software),
-            detail: v.description.clone(),
-            _source_index: i,
-        });
     }
 
     events

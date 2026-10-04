@@ -4,7 +4,7 @@ members = [
      "crates/*",
      "xtask",
 ]
-exclude = ["third_party/candle-core"]
+exclude = ["third_party/candle-core", "tools/sentinel-yara"]
 
 [workspace.package]
 version = "4.0.37"
@@ -33,6 +33,8 @@ directories = "6"
 url = "2"
 tempfile = "3"
 toml = "0.8"
+# Already in the dependency tree through `config`; used to read Sigma rules.
+yaml-rust2 = "0.10"
 sha2 = "0.10"
 hex = "0.4"
 libc = "0.2"

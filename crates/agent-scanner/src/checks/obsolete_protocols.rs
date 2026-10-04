@@ -85,6 +85,7 @@ impl ObsoleteProtocolsCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .platforms(vec![
                 "windows".to_string(),
                 "linux".to_string(),

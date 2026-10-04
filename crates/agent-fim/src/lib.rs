@@ -21,6 +21,7 @@
 
 pub mod alerts;
 pub mod baseline;
+pub mod canary;
 pub mod policy;
 pub mod watcher;
 

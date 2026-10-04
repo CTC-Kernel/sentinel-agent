@@ -44,6 +44,23 @@ pub enum ResolvedAction {
     Notify {
         message: String,
     },
+    /// Cut the endpoint off the network (the platform stays reachable).
+    /// `duration_secs` 0: until released.
+    IsolateHost {
+        duration_secs: u64,
+    },
+}
+
+/// Isolation lasts this long when the playbook action gives no duration.
+pub const DEFAULT_ISOLATION_SECS: u64 = 3600;
+
+/// Duration of an "isolate host" action, from its parameter (seconds; `0`:
+/// until released; blank or unreadable: [`DEFAULT_ISOLATION_SECS`]).
+pub fn isolation_duration(parameters: &str) -> u64 {
+    parameters
+        .trim()
+        .parse::<u64>()
+        .unwrap_or(DEFAULT_ISOLATION_SECS)
 }
 
 /// Result of a single playbook action execution.
@@ -253,6 +270,11 @@ pub async fn evaluate_playbook(
                         message: configured.parameters.clone(),
                     })
                 }
+                agent_gui::dto::PlaybookActionType::IsolateHost => {
+                    actions.push(ResolvedAction::IsolateHost {
+                        duration_secs: isolation_duration(&configured.parameters),
+                    })
+                }
                 agent_gui::dto::PlaybookActionType::SendSiemAlert => {
                     actions.push(ResolvedAction::Alert {
                         title: format!("Playbook '{}' triggered", playbook.name),
@@ -364,6 +386,7 @@ fn is_destructive(action: &ResolvedAction) -> bool {
         ResolvedAction::KillProcess { .. }
             | ResolvedAction::QuarantineFile { .. }
             | ResolvedAction::BlockIp { .. }
+            | ResolvedAction::IsolateHost { .. }
     )
 }
 
@@ -499,6 +522,26 @@ pub async fn execute_playbook_actions_with_delivery(
                     },
                     Err(e) => ActionResult {
                         action: format!("Block IP {}", ip),
+                        success: false,
+                        error: Some(e.to_string()),
+                    },
+                }
+            }
+            ResolvedAction::IsolateHost { duration_secs } => {
+                let label = if *duration_secs == 0 {
+                    "Isolate host until released".to_string()
+                } else {
+                    format!("Isolate host for {}s", duration_secs)
+                };
+                let reason = format!("Playbook '{}'", playbook_name);
+                match crate::host_isolation::isolate_host(&reason, *duration_secs).await {
+                    Ok(_) => ActionResult {
+                        action: label,
+                        success: true,
+                        error: None,
+                    },
+                    Err(e) => ActionResult {
+                        action: label,
                         success: false,
                         error: Some(e.to_string()),
                     },
@@ -932,6 +975,59 @@ mod tests {
             result.triggered,
             "an AND playbook with all conditions matched must still trigger"
         );
+    }
+
+    #[test]
+    fn isolation_duration_reads_seconds_and_defaults_to_one_hour() {
+        assert_eq!(isolation_duration("900"), 900);
+        assert_eq!(isolation_duration(" 0 "), 0, "0: until released");
+        assert_eq!(isolation_duration(""), DEFAULT_ISOLATION_SECS);
+        assert_eq!(isolation_duration("one hour"), DEFAULT_ISOLATION_SECS);
+        assert_eq!(isolation_duration("-5"), DEFAULT_ISOLATION_SECS);
+    }
+
+    #[tokio::test]
+    async fn encrypted_canary_resolves_to_isolation_and_nothing_else() {
+        let mut pb = make_playbook(vec![PlaybookCondition {
+            condition_type: PlaybookConditionType::FimChange,
+            operator: "any".into(),
+            value: crate::ransomware_canary::PLAYBOOK_CHANGE_TYPE.into(),
+        }]);
+        pb.actions.push(agent_gui::dto::PlaybookAction {
+            action_type: agent_gui::dto::PlaybookActionType::IsolateHost,
+            parameters: "1800".into(),
+        });
+        let canary = ThreatContext {
+            fim_alerts: vec![FimAlertInfo {
+                path: "/Users/alice/Documents/.0-archives-1a2b3c".to_string(),
+                change_type: crate::ransomware_canary::PLAYBOOK_CHANGE_TYPE.to_string(),
+            }],
+            ..Default::default()
+        };
+
+        let result = eval(&pb, &canary).await;
+        assert!(result.triggered);
+        // The decoy folder is a candidate for quarantine, but the playbook
+        // only authorizes the isolation.
+        assert_eq!(result.actions.len(), 1);
+        assert!(matches!(
+            result.actions[0],
+            ResolvedAction::IsolateHost {
+                duration_secs: 1800
+            }
+        ));
+        assert!(is_destructive(&result.actions[0]));
+
+        // An ordinary file change does not isolate the endpoint.
+        let ordinary = ThreatContext {
+            fim_alerts: vec![FimAlertInfo {
+                path: "/etc/hosts".to_string(),
+                change_type: "modified".to_string(),
+            }],
+            ..Default::default()
+        };
+        let result = eval(&pb, &ordinary).await;
+        assert!(!result.triggered && result.actions.is_empty());
     }
 
     #[tokio::test]

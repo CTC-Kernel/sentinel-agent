@@ -107,6 +107,8 @@ impl SettingsPage {
                 ui.add_space(theme::SPACE);
                 Self::log_level_card(ui, state, &mut command);
                 ui.add_space(theme::SPACE);
+                Self::ransomware_card(ui, state, &mut command);
+                ui.add_space(theme::SPACE);
                 Self::update_card(ui, state, &mut command);
                 ui.add_space(theme::SPACE);
                 Self::discovery_card(ui, state, &mut command);
@@ -290,6 +292,62 @@ impl SettingsPage {
                         },
                     );
                 },
+            );
+        });
+    }
+
+    /// Ransomware canary files: decoys placed in the users' directories.
+    fn ransomware_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("PROTECTION ANTI-RANSOMWARE")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            let mut enabled = state.summary.ransomware_canaries;
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new("Déposer des fichiers leurres")
+                        .font(theme::font_body())
+                        .color(theme::text_primary()),
+                );
+                ui.add_space(theme::SPACE_SM);
+                if widgets::toggle_switch_labeled(
+                    ui,
+                    &mut enabled,
+                    "Fichiers leurres anti-ransomware",
+                )
+                .changed()
+                {
+                    state.summary.ransomware_canaries = enabled;
+                    *command = Some(GuiCommand::SetRansomwareCanaries { enabled });
+                }
+            });
+            ui.add_space(theme::SPACE_SM);
+            ui.label(
+                egui::RichText::new(
+                    "Dépose un dossier masqué de faux documents dans le dossier personnel et \
+                     le dossier Documents de chaque utilisateur. Personne n'ouvre ces fichiers : \
+                     s'ils sont réécrits ou renommés, un programme chiffre le poste et l'agent \
+                     lève aussitôt un incident critique.",
+                )
+                .font(theme::font_min())
+                .color(theme::text_secondary()),
+            );
+            ui.add_space(theme::SPACE_SM);
+            let note = if enabled {
+                "Leurres en place. Les désactiver les supprime."
+            } else {
+                "Désactivé : aucun fichier n'est déposé dans les dossiers des utilisateurs."
+            };
+            ui.label(
+                egui::RichText::new(format!("{}  {note}", icons::INFO_CIRCLE))
+                    .font(theme::font_caption())
+                    .color(theme::text_secondary()),
             );
         });
     }

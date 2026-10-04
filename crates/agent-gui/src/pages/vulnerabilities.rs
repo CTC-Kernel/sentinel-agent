@@ -6,7 +6,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::Severity;
+use crate::dto::{GuiExploitIntelStatus, GuiVulnerabilityFinding, PatchPriority, Severity};
 
 use crate::events::GuiCommand;
 use crate::icons;
@@ -26,7 +26,7 @@ impl VulnerabilitiesPage {
             "Vulnérabilités",
             Some("Failles détectées et exposition aux CVE connues."),
             Some(
-                "Identifiez les failles de sécurité connues (CVE) affectant vos logiciels. Le score critique (V3) priorise les vulnérabilités les plus dangereuses nécessitant une mise à jour immédiate.",
+                "Identifiez les failles de sécurité connues (CVE) affectant vos logiciels. La priorité de correction place d'abord les failles déjà exploitées (catalogue CISA KEV), puis celles dont l'exploitation est probable (score EPSS), puis la gravité (CVSS).",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -89,6 +89,11 @@ impl VulnerabilitiesPage {
 
         ui.add_space(theme::SPACE_MD);
 
+        if let Some(message) = pressing_summary(&state.vulnerability_findings) {
+            widgets::banner(ui, widgets::AlertLevel::Error, &message, false);
+            ui.add_space(theme::SPACE_MD);
+        }
+
         Self::remediation_card(ui, state);
 
         ui.add_space(theme::SPACE_LG);
@@ -98,6 +103,7 @@ impl VulnerabilitiesPage {
         let high_active = state.vulnerability.severity_filter == Some(Severity::High);
         let med_active = state.vulnerability.severity_filter == Some(Severity::Medium);
         let low_active = state.vulnerability.severity_filter == Some(Severity::Low);
+        let pressing_active = state.vulnerability.pressing_only;
 
         let search_id = ui.id().with("vuln_search_cache");
         let search_lower: String = ui
@@ -126,13 +132,16 @@ impl VulnerabilitiesPage {
         .chip("Élevée", high_active, theme::SEVERITY_HIGH)
         .chip("Moyenne", med_active, theme::SEVERITY_MEDIUM)
         .chip("Faible", low_active, theme::INFO)
+        .chip("À corriger d'abord", pressing_active, theme::ERROR)
         .action(format!("{}  CSV", icons::DOWNLOAD))
         .show_with_action(ui);
         if export_clicked {
             Self::export_filtered(ui, state);
         }
 
-        if let Some(idx) = toggled {
+        if toggled == Some(4) {
+            state.vulnerability.pressing_only = !state.vulnerability.pressing_only;
+        } else if let Some(idx) = toggled {
             let target = match idx {
                 0 => Some(Severity::Critical),
                 1 => Some(Severity::High),
@@ -158,6 +167,19 @@ impl VulnerabilitiesPage {
                     .extra_letter_spacing(theme::TRACKING_NORMAL)
                     .strong(),
             );
+            if !state.vulnerability_findings.is_empty() {
+                let (note, degraded) = intel_note(state.vulnerability_intel.as_ref());
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new(note)
+                        .font(theme::font_small())
+                        .color(if degraded {
+                            theme::readable_color(theme::WARNING)
+                        } else {
+                            theme::text_tertiary()
+                        }),
+                );
+            }
             ui.add_space(theme::SPACE_MD);
 
             Self::show_findings(ui, state, &search_lower, &mut command);
@@ -169,6 +191,7 @@ impl VulnerabilitiesPage {
             && sel_idx < state.vulnerability_findings.len()
         {
             let finding = state.vulnerability_findings[sel_idx].clone();
+            let intel = state.vulnerability_intel.clone();
             let (sev_label, sev_color) = Self::severity_display(&finding.severity);
             let cvss_color = if let Some(s) = finding.cvss_score {
                 if s > 7.0 {
@@ -268,6 +291,8 @@ impl VulnerabilitiesPage {
                                 widgets::detail_field(ui, "Source", &source_display);
                             }
                             widgets::detail_text(ui, "Description", &finding.description);
+
+                            exploitation_section(ui, &finding, intel.as_ref());
 
                             // False positive indicator
                             if finding.is_false_positive == Some(true) {
@@ -460,26 +485,12 @@ impl VulnerabilitiesPage {
     /// Export what the search and severity chip currently show.
     fn export_filtered(ui: &Ui, state: &mut AppState) {
         let search_lower = state.vulnerability.search.to_lowercase();
-        let filtered_indices: Vec<usize> = state
-            .vulnerability_findings
-            .iter()
-            .enumerate()
-            .filter(|(_, f)| {
-                if !search_lower.is_empty()
-                    && !f.cve_id.to_lowercase().contains(&search_lower)
-                    && !f.affected_software.to_lowercase().contains(&search_lower)
-                    && !f.description.to_lowercase().contains(&search_lower)
-                {
-                    return false;
-                }
-                state
-                    .vulnerability
-                    .severity_filter
-                    .as_ref()
-                    .is_none_or(|sev| f.severity == *sev)
-            })
-            .map(|(i, _)| i)
-            .collect();
+        let filtered_indices = displayed_indices(
+            &state.vulnerability_findings,
+            &search_lower,
+            state.vulnerability.severity_filter,
+            state.vulnerability.pressing_only,
+        );
         let success = Self::export_csv(state, &filtered_indices);
         let time = ui.input(|i| i.time);
         state.toasts.push(
@@ -553,26 +564,12 @@ impl VulnerabilitiesPage {
         search_lower: &str,
         _command: &mut Option<GuiCommand>,
     ) {
-        let filtered: Vec<usize> = state
-            .vulnerability_findings
-            .iter()
-            .enumerate()
-            .filter(|(_, f)| {
-                if !search_lower.is_empty()
-                    && !f.cve_id.to_lowercase().contains(search_lower)
-                    && !f.affected_software.to_lowercase().contains(search_lower)
-                    && !f.description.to_lowercase().contains(search_lower)
-                {
-                    return false;
-                }
-                if let Some(ref sev) = state.vulnerability.severity_filter {
-                    f.severity == *sev
-                } else {
-                    true
-                }
-            })
-            .map(|(i, _)| i)
-            .collect();
+        let filtered = displayed_indices(
+            &state.vulnerability_findings,
+            search_lower,
+            state.vulnerability.severity_filter,
+            state.vulnerability.pressing_only,
+        );
 
         // Pagination window over the filtered results.
         const VULNS_PER_PAGE: usize = 25;
@@ -589,14 +586,15 @@ impl VulnerabilitiesPage {
 
             if is_loading {
                 ui.push_id("vulns_skeletons", |ui: &mut egui::Ui| {
-                    let cols = 7;
+                    let cols = 8;
                     let column_widths = [
                         100.0,
                         120.0,
+                        90.0,
                         80.0,
                         60.0,
                         90.0,
-                        ui.available_width() - 550.0,
+                        ui.available_width() - 640.0,
                         100.0,
                     ];
                     for _ in 0..5 {
@@ -632,6 +630,7 @@ impl VulnerabilitiesPage {
                 &[
                     table::Col::fluid(124.0, 1.0), // Identifiant
                     table::Col::fluid(120.0, 1.5), // Logiciel
+                    table::Col::fluid(100.0, 0.0), // Priorité
                     table::Col::fluid(96.0, 0.0),  // Sévérité
                     table::Col::fixed(56.0),       // CVSS
                     table::Col::fluid(64.0, 0.5),  // Source
@@ -646,6 +645,9 @@ impl VulnerabilitiesPage {
                 });
                 header.col(|ui| {
                     table::header_cell(ui, "LOGICIEL");
+                });
+                header.col(|ui| {
+                    table::header_cell(ui, "PRIORIT\u{00c9}");
                 });
                 header.col(|ui| {
                     table::header_cell(ui, "S\u{00c9}V\u{00c9}RIT\u{00c9}");
@@ -691,6 +693,11 @@ impl VulnerabilitiesPage {
                             &finding.affected_software,
                             &finding.affected_version,
                         );
+                    });
+
+                    row.col(|ui| {
+                        let (label, color) = priority_display(finding.priority);
+                        widgets::status_badge(ui, label, color);
                     });
 
                     row.col(|ui| {
@@ -851,6 +858,10 @@ impl VulnerabilitiesPage {
             "cve_id",
             "logiciel",
             "version",
+            "priorite",
+            "exploitee_kev",
+            "rancongiciel",
+            "epss",
             "severite",
             "cvss",
             "source",
@@ -868,6 +879,11 @@ impl VulnerabilitiesPage {
                     f.cve_id.clone(),
                     f.affected_software.clone(),
                     f.affected_version.clone(),
+                    priority_display(f.priority).0.to_lowercase(),
+                    if f.known_exploited { "Oui" } else { "Non" }.to_string(),
+                    if f.ransomware_use { "Oui" } else { "Non" }.to_string(),
+                    f.epss_probability
+                        .map_or("--".into(), |p| format!("{:.4}", p)),
                     f.severity.to_string(),
                     f.cvss_score.map_or("--".into(), |s| format!("{:.1}", s)),
                     f.source.clone(),
@@ -891,7 +907,209 @@ impl VulnerabilitiesPage {
     }
 }
 
-/// Generate a platform-appropriate package upgrade command.
+/// Findings shown by the table and the export: those matching the search,
+/// the severity chip and the "fix first" chip, most pressing first. Findings
+/// of equal priority keep the scan order.
+fn displayed_indices(
+    findings: &[GuiVulnerabilityFinding],
+    search_lower: &str,
+    severity: Option<Severity>,
+    pressing_only: bool,
+) -> Vec<usize> {
+    let mut indices: Vec<usize> = findings
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| {
+            if !search_lower.is_empty()
+                && !f.cve_id.to_lowercase().contains(search_lower)
+                && !f.affected_software.to_lowercase().contains(search_lower)
+                && !f.description.to_lowercase().contains(search_lower)
+            {
+                return false;
+            }
+            if pressing_only && !f.priority.is_pressing() {
+                return false;
+            }
+            severity.is_none_or(|sev| f.severity == sev)
+        })
+        .map(|(i, _)| i)
+        .collect();
+    indices.sort_by_key(|&i| findings[i].priority);
+    indices
+}
+
+/// One sentence naming what to fix before anything else, or `None` when no
+/// finding is known or likely to be exploited.
+fn pressing_summary(findings: &[GuiVulnerabilityFinding]) -> Option<String> {
+    let count =
+        |priority: PatchPriority| findings.iter().filter(|f| f.priority == priority).count();
+    let exploited = count(PatchPriority::Immediate);
+    let likely = count(PatchPriority::Urgent);
+
+    let exploited_part = match exploited {
+        0 => None,
+        1 => Some("1 faille d\u{00e9}j\u{00e0} exploit\u{00e9}e (CISA KEV)".to_string()),
+        n => Some(format!(
+            "{n} failles d\u{00e9}j\u{00e0} exploit\u{00e9}es (CISA KEV)"
+        )),
+    };
+    let likely_part = match likely {
+        0 => None,
+        1 => Some("1 faille dont l'exploitation est probable (EPSS)".to_string()),
+        n => Some(format!(
+            "{n} failles dont l'exploitation est probable (EPSS)"
+        )),
+    };
+    let parts: Vec<String> = [exploited_part, likely_part]
+        .into_iter()
+        .flatten()
+        .collect();
+    if parts.is_empty() {
+        return None;
+    }
+    Some(format!("\u{00c0} corriger d'abord : {}.", parts.join(", ")))
+}
+
+fn priority_display(priority: PatchPriority) -> (&'static str, egui::Color32) {
+    match priority {
+        PatchPriority::Immediate => ("IMM\u{00c9}DIATE", theme::ERROR),
+        PatchPriority::Urgent => ("URGENTE", theme::SEVERITY_HIGH),
+        PatchPriority::Planned => ("PLANIFI\u{00c9}E", theme::SEVERITY_MEDIUM),
+        PatchPriority::Routine => ("COURANTE", theme::text_tertiary()),
+    }
+}
+
+/// Day of an EPSS score date as published (`2026-10-03T12:00:21Z`), for display.
+fn epss_day(score_date: &str) -> String {
+    chrono::DateTime::parse_from_rfc3339(score_date)
+        .map(|date| date.format("%d/%m/%Y").to_string())
+        .unwrap_or_else(|_| score_date.to_string())
+}
+
+/// What the priority of the last scan rests on, and whether a source is
+/// missing or outdated.
+fn intel_note(intel: Option<&GuiExploitIntelStatus>) -> (String, bool) {
+    let Some(intel) = intel else {
+        return (
+            "Priorit\u{00e9} \u{00e9}tablie sur la gravit\u{00e9} seule : les donn\u{00e9}es d'exploitation (CISA KEV, EPSS) n'ont pas \u{00e9}t\u{00e9} consult\u{00e9}es.".to_string(),
+            true,
+        );
+    };
+    let kev = intel
+        .kev_available
+        .then(|| match &intel.kev_catalog_version {
+            Some(version) => format!("catalogue CISA KEV {version}"),
+            None => "catalogue CISA KEV".to_string(),
+        });
+    let epss = intel.epss_available.then(|| match &intel.epss_score_date {
+        Some(date) => format!("scores EPSS du {}", epss_day(date)),
+        None => "scores EPSS".to_string(),
+    });
+    match (kev, epss) {
+        (Some(kev), Some(epss)) if intel.stale => (
+            format!(
+                "Priorit\u{00e9} \u{00e9}tablie avec le {kev} et les {epss} (derni\u{00e8}re copie locale : l'actualisation a \u{00e9}chou\u{00e9})."
+            ),
+            true,
+        ),
+        (Some(kev), Some(epss)) => (
+            format!("Priorit\u{00e9} \u{00e9}tablie avec le {kev} et les {epss}."),
+            false,
+        ),
+        (Some(kev), None) => (
+            format!(
+                "Priorit\u{00e9} \u{00e9}tablie avec le {kev} ; scores EPSS indisponibles."
+            ),
+            true,
+        ),
+        (None, Some(epss)) => (
+            format!(
+                "Priorit\u{00e9} \u{00e9}tablie avec les {epss} ; catalogue CISA KEV indisponible, les failles d\u{00e9}j\u{00e0} exploit\u{00e9}es ne sont pas signal\u{00e9}es."
+            ),
+            true,
+        ),
+        (None, None) => (
+            "Priorit\u{00e9} \u{00e9}tablie sur la gravit\u{00e9} seule : catalogue CISA KEV et scores EPSS indisponibles.".to_string(),
+            true,
+        ),
+    }
+}
+
+/// Drawer section: why the finding has its priority.
+fn exploitation_section(
+    ui: &mut Ui,
+    finding: &GuiVulnerabilityFinding,
+    intel: Option<&GuiExploitIntelStatus>,
+) {
+    let date = |d: chrono::NaiveDate| d.format("%d/%m/%Y").to_string();
+    let (priority_label, priority_color) = priority_display(finding.priority);
+
+    widgets::detail_section(ui, "EXPLOITATION");
+    widgets::detail_field_badge(
+        ui,
+        "Priorit\u{00e9} de correction",
+        priority_label,
+        priority_color,
+    );
+
+    if finding.known_exploited {
+        widgets::detail_field_badge(
+            ui,
+            "Exploitation connue",
+            "OUI \u{2014} CISA KEV",
+            theme::ERROR,
+        );
+        if let Some(added) = finding.kev_date_added {
+            widgets::detail_field(ui, "Ajout\u{00e9}e au catalogue le", &date(added));
+        }
+        if let Some(due) = finding.kev_due_date {
+            widgets::detail_field(
+                ui,
+                "\u{00c9}ch\u{00e9}ance fix\u{00e9}e par la CISA",
+                &date(due),
+            );
+        }
+        if finding.ransomware_use {
+            widgets::detail_field_badge(
+                ui,
+                "Ran\u{00e7}ongiciels",
+                "UTILIS\u{00c9}E",
+                theme::ERROR,
+            );
+        }
+    } else if intel.is_some_and(|intel| intel.kev_available) {
+        widgets::detail_field(
+            ui,
+            "Exploitation connue",
+            "Non r\u{00e9}pertori\u{00e9}e (CISA KEV)",
+        );
+    } else {
+        widgets::detail_field(ui, "Exploitation connue", "Non v\u{00e9}rifi\u{00e9}e");
+    }
+
+    match (finding.epss_probability, finding.epss_percentile) {
+        (Some(probability), Some(percentile)) => widgets::detail_field(
+            ui,
+            "Probabilit\u{00e9} d'exploitation (30 j)",
+            &format!(
+                "{} \u{2014} plus que {} des CVE",
+                crate::format::pct(probability * 100.0, 1),
+                crate::format::pct(percentile * 100.0, 1)
+            ),
+        ),
+        (Some(probability), None) => widgets::detail_field(
+            ui,
+            "Probabilit\u{00e9} d'exploitation (30 j)",
+            &crate::format::pct(probability * 100.0, 1),
+        ),
+        _ => widgets::detail_field(
+            ui,
+            "Probabilit\u{00e9} d'exploitation (30 j)",
+            "Non disponible (EPSS)",
+        ),
+    }
+}
+
 /// CVSS band a score falls in, as a severity rank: 3 critical .. 0 low.
 fn cvss_rank(score: f32) -> u8 {
     if score >= 9.0 {
@@ -1145,5 +1363,118 @@ fn platform_upgrade_command(safe_name: &str) -> String {
         format!("# Vérifier l'ID Winget :\nwinget upgrade '{}'", safe_name)
     } else {
         format!("# Mettez a jour '{}' manuellement", safe_name)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn finding(cve: &str, severity: &str, priority: PatchPriority) -> GuiVulnerabilityFinding {
+        let mut finding: GuiVulnerabilityFinding = serde_json::from_value(serde_json::json!({
+            "cve_id": cve, "affected_software": "pkg", "affected_version": "1",
+            "severity": severity, "cvss_score": null, "description": "desc",
+            "fix_available": false, "discovered_at": null, "source": "test"
+        }))
+        .unwrap();
+        finding.priority = priority;
+        finding
+    }
+
+    #[test]
+    fn findings_are_listed_most_pressing_first_in_scan_order() {
+        let findings = vec![
+            finding("CVE-1", "critical", PatchPriority::Planned),
+            finding("CVE-2", "low", PatchPriority::Routine),
+            finding("CVE-3", "medium", PatchPriority::Immediate),
+            finding("CVE-4", "high", PatchPriority::Planned),
+            finding("CVE-5", "low", PatchPriority::Urgent),
+        ];
+        assert_eq!(
+            displayed_indices(&findings, "", None, false),
+            [2, 4, 0, 3, 1]
+        );
+    }
+
+    #[test]
+    fn fix_first_chip_combines_with_search_and_severity() {
+        let findings = vec![
+            finding("CVE-1", "critical", PatchPriority::Planned),
+            finding("CVE-2", "medium", PatchPriority::Immediate),
+            finding("CVE-3", "low", PatchPriority::Urgent),
+        ];
+        assert_eq!(displayed_indices(&findings, "", None, true), [1, 2]);
+        assert_eq!(
+            displayed_indices(&findings, "", Some(Severity::Low), true),
+            [2]
+        );
+        assert_eq!(displayed_indices(&findings, "cve-2", None, true), [1]);
+        assert!(displayed_indices(&findings, "", Some(Severity::Critical), true).is_empty());
+    }
+
+    #[test]
+    fn pressing_summary_names_exploited_then_likely_findings() {
+        assert_eq!(pressing_summary(&[]), None);
+        assert_eq!(
+            pressing_summary(&[finding("CVE-1", "critical", PatchPriority::Planned)]),
+            None
+        );
+        assert_eq!(
+            pressing_summary(&[finding("CVE-1", "low", PatchPriority::Urgent)]).as_deref(),
+            Some("À corriger d'abord : 1 faille dont l'exploitation est probable (EPSS).")
+        );
+        let findings = vec![
+            finding("CVE-1", "medium", PatchPriority::Immediate),
+            finding("CVE-2", "medium", PatchPriority::Immediate),
+            finding("CVE-3", "low", PatchPriority::Urgent),
+            finding("CVE-4", "high", PatchPriority::Routine),
+        ];
+        assert_eq!(
+            pressing_summary(&findings).as_deref(),
+            Some(
+                "À corriger d'abord : 2 failles déjà exploitées (CISA KEV), \
+                 1 faille dont l'exploitation est probable (EPSS)."
+            )
+        );
+    }
+
+    #[test]
+    fn older_snapshots_without_priority_default_to_routine() {
+        let finding = finding("CVE-1", "high", PatchPriority::default());
+        assert_eq!(finding.priority, PatchPriority::Routine);
+        assert!(!finding.known_exploited && finding.epss_probability.is_none());
+    }
+
+    #[test]
+    fn intel_note_says_what_the_priority_rests_on() {
+        let (note, degraded) = intel_note(None);
+        assert!(degraded && note.contains("gravité seule"));
+
+        let full = GuiExploitIntelStatus {
+            kev_available: true,
+            kev_catalog_version: Some("2026.10.02".into()),
+            epss_available: true,
+            epss_score_date: Some("2026-10-03T12:00:21Z".into()),
+            stale: false,
+        };
+        let (note, degraded) = intel_note(Some(&full));
+        assert!(!degraded);
+        assert!(note.contains("CISA KEV 2026.10.02") && note.contains("03/10/2026"));
+
+        let (note, degraded) = intel_note(Some(&GuiExploitIntelStatus {
+            stale: true,
+            ..full.clone()
+        }));
+        assert!(degraded && note.contains("copie locale"));
+
+        let (note, degraded) = intel_note(Some(&GuiExploitIntelStatus {
+            kev_available: false,
+            kev_catalog_version: None,
+            ..full.clone()
+        }));
+        assert!(degraded && note.contains("CISA KEV indisponible"));
+
+        let (note, degraded) = intel_note(Some(&GuiExploitIntelStatus::default()));
+        assert!(degraded && note.contains("gravité seule"));
     }
 }

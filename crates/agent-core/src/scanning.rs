@@ -243,17 +243,82 @@ impl VulnScanJob {
     }
 }
 
+/// File name of an SBOM export: host name reduced to safe characters, and
+/// the date.
+#[cfg(any(feature = "gui", test))]
+pub(crate) fn sbom_file_name(hostname: &str, date: chrono::NaiveDate) -> String {
+    let host: String = hostname
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' {
+                c
+            } else {
+                '-'
+            }
+        })
+        .take(63)
+        .collect();
+    let host = host.trim_matches('-');
+    let host = if host.is_empty() { "poste" } else { host };
+    format!("sbom-{host}-{}.cdx.json", date.format("%Y-%m-%d"))
+}
+
+/// Write the CycloneDX SBOM of a vulnerability scan to the export folder
+/// (the user's Desktop) and return its path.
+#[cfg(feature = "gui")]
+pub async fn export_sbom(
+    scan: &VulnerabilityScanResult,
+) -> Result<std::path::PathBuf, CommonError> {
+    use agent_scanner::vulnerability::sbom;
+
+    let hostname = hostname::get()
+        .map(|h| h.to_string_lossy().to_string())
+        .unwrap_or_default();
+    let now = chrono::Utc::now();
+    let document = sbom::cyclonedx(
+        scan,
+        &sbom::SbomSubject {
+            hostname: hostname.clone(),
+            os: sysinfo::System::long_os_version(),
+            agent_version: agent_common::constants::AGENT_VERSION.to_string(),
+        },
+        uuid::Uuid::new_v4(),
+        now,
+    );
+    let path = agent_gui::export::default_export_path(&sbom_file_name(&hostname, now.date_naive()));
+    let bytes = serde_json::to_vec_pretty(&document)
+        .map_err(|e| CommonError::internal(format!("SBOM serialization failed: {e}")))?;
+    tokio::fs::write(&path, bytes)
+        .await
+        .map_err(|e| CommonError::internal(format!("Cannot write {}: {e}", path.display())))?;
+    info!("SBOM exported to {}", path.display());
+    Ok(path)
+}
+
 /// Upper bound of automatic AI analyses after one vulnerability scan.
 #[cfg(feature = "llm")]
 const MAX_BACKGROUND_ANALYSES_PER_SCAN: usize = 5;
 
-/// Automatically analyze high/critical vulnerabilities using the local LLM.
+/// Order in which findings get an automatic AI analysis: patch priority,
+/// then critical before the other severities.
+#[cfg(any(feature = "llm", test))]
+fn analysis_order(
+    finding: &agent_scanner::VulnerabilityFinding,
+) -> (agent_scanner::PatchPriority, bool) {
+    (
+        finding.priority,
+        finding.severity != agent_scanner::Severity::Critical,
+    )
+}
+
+/// Automatically analyze the findings to fix first (exploited, likely
+/// exploited, high/critical) using the local LLM.
 #[cfg(feature = "llm")]
 async fn auto_analyze_vulnerabilities(
     llm: &crate::llm_service::LLMService,
     scan_result: &mut VulnerabilityScanResult,
 ) {
-    use agent_scanner::Severity;
+    use agent_scanner::PatchPriority;
 
     if !llm.is_available().await {
         debug!("LLM service not available for automated analysis");
@@ -265,19 +330,18 @@ async fn auto_analyze_vulnerabilities(
     // Background analysis is bounded: on a CPU-only endpoint each analysis
     // takes seconds, and the operator's questions always come first (the
     // engine pauses these requests while a question is being answered).
-    // Critical findings are analysed first.
+    // Findings to fix first are analysed first: known exploited, then likely
+    // exploited, then critical before high.
     let mut candidates: Vec<usize> = scan_result
         .vulnerabilities
         .iter()
         .enumerate()
         .filter(|(_, finding)| {
-            (finding.severity == Severity::Critical || finding.severity == Severity::High)
-                && finding.ai_analysis.is_none()
+            finding.priority <= PatchPriority::Planned && finding.ai_analysis.is_none()
         })
         .map(|(index, _)| index)
         .collect();
-    candidates
-        .sort_by_key(|&index| scan_result.vulnerabilities[index].severity != Severity::Critical);
+    candidates.sort_by_key(|&index| analysis_order(&scan_result.vulnerabilities[index]));
     candidates.truncate(MAX_BACKGROUND_ANALYSES_PER_SCAN);
 
     for index in candidates {
@@ -378,5 +442,74 @@ impl AgentRuntime {
         );
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::analysis_order;
+    use agent_scanner::{KevEntry, PatchPriority, Severity, VulnerabilityFinding};
+
+    fn finding(name: &str, severity: Severity, priority: PatchPriority) -> VulnerabilityFinding {
+        let mut f = VulnerabilityFinding::outdated_package(name, "1", "2", "apt");
+        f.severity = severity;
+        f.priority = priority;
+        if priority == PatchPriority::Immediate {
+            f.kev = Some(KevEntry {
+                date_added: None,
+                due_date: None,
+                ransomware_use: false,
+                required_action: None,
+            });
+        }
+        f
+    }
+
+    #[test]
+    fn sbom_file_name_is_safe_for_any_host_name() {
+        let date = chrono::NaiveDate::from_ymd_opt(2026, 10, 4).unwrap();
+        assert_eq!(
+            super::sbom_file_name("poste-compta-01", date),
+            "sbom-poste-compta-01-2026-10-04.cdx.json"
+        );
+        assert_eq!(
+            super::sbom_file_name("MacBook Pro de Zoé.local", date),
+            "sbom-MacBook-Pro-de-Zo--local-2026-10-04.cdx.json"
+        );
+        assert_eq!(
+            super::sbom_file_name("../../etc", date),
+            "sbom-etc-2026-10-04.cdx.json"
+        );
+        assert_eq!(
+            super::sbom_file_name("", date),
+            "sbom-poste-2026-10-04.cdx.json"
+        );
+    }
+
+    #[test]
+    fn exploited_findings_are_analysed_before_critical_ones() {
+        let mut findings = [
+            finding("high", Severity::High, PatchPriority::Planned),
+            finding("critical", Severity::Critical, PatchPriority::Planned),
+            finding("likely", Severity::Medium, PatchPriority::Urgent),
+            finding("exploited", Severity::Medium, PatchPriority::Immediate),
+            finding(
+                "exploited-critical",
+                Severity::Critical,
+                PatchPriority::Immediate,
+            ),
+        ];
+        findings.sort_by_key(analysis_order);
+        let order: Vec<&str> = findings.iter().map(|f| f.package_name.as_str()).collect();
+        assert_eq!(
+            order,
+            [
+                "exploited-critical",
+                "exploited",
+                "likely",
+                "critical",
+                "high"
+            ]
+        );
     }
 }

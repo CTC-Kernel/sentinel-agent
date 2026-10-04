@@ -7,7 +7,7 @@
 //! They are intentionally decoupled from internal domain types so the GUI can
 //! evolve independently of the core runtime.
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -145,6 +145,8 @@ pub enum SoftwareTab {
     #[default]
     Packages,
     Applications,
+    /// Browser extensions of every user.
+    Extensions,
 }
 
 impl SoftwareTab {
@@ -152,12 +154,14 @@ impl SoftwareTab {
         match self {
             SoftwareTab::Packages => 0,
             SoftwareTab::Applications => 1,
+            SoftwareTab::Extensions => 2,
         }
     }
 
     pub fn from_index(idx: u8) -> Self {
         match idx {
             1 => SoftwareTab::Applications,
+            2 => SoftwareTab::Extensions,
             _ => SoftwareTab::Packages,
         }
     }
@@ -298,6 +302,13 @@ pub struct AgentSummary {
     /// The agent runs without a platform: no enrollment, sync or console.
     #[serde(default)]
     pub standalone: bool,
+    /// Ransomware canary files (decoys in user directories) are deployed.
+    #[serde(default)]
+    pub ransomware_canaries: bool,
+    /// The endpoint is isolated from the network (only the platform, DNS and
+    /// DHCP stay reachable).
+    #[serde(default)]
+    pub host_isolated: bool,
 }
 
 /// A single compliance check result for GUI display.
@@ -464,6 +475,31 @@ pub struct GuiSoftwarePackage {
     pub latest_version: Option<String>,
 }
 
+/// A browser extension for the software inventory.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiBrowserExtension {
+    /// Browser name (Chrome, Edge, Brave, Chromium, Firefox).
+    pub browser: String,
+    /// Account the browser profile belongs to.
+    pub user: String,
+    /// Browser profile.
+    pub profile: String,
+    /// Identifier in the browser's store.
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    /// What the extension could do with its permissions: `High` (extended
+    /// reach), `Medium` or `Low`. A capability, not a verdict.
+    pub reach: Severity,
+    /// Why it has that reach, in plain words.
+    pub reasons: Vec<String>,
+    /// `Some(false)`: the browser reports it disabled; `None`: unknown.
+    pub enabled: Option<bool>,
+    /// Installed from the browser's store.
+    pub from_store: bool,
+}
+
 /// A native application entry for GUI display (macOS .app bundles / Windows registry).
 #[derive(Debug, Clone, PartialEq)]
 pub struct GuiNativeApp {
@@ -521,6 +557,70 @@ pub struct GuiVulnerabilityFinding {
     pub ai_remediation_script: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ai_remediation_explanation: Option<String>,
+    /// How soon to fix: exploitation evidence first, then severity.
+    #[serde(default)]
+    pub priority: PatchPriority,
+    /// Known to be exploited in the wild (listed in the CISA KEV catalog).
+    #[serde(default)]
+    pub known_exploited: bool,
+    /// Known to be used in ransomware campaigns (CISA KEV).
+    #[serde(default)]
+    pub ransomware_use: bool,
+    /// Date the CVE entered the CISA KEV catalog.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kev_date_added: Option<NaiveDate>,
+    /// Remediation deadline set by CISA for the CVE.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kev_due_date: Option<NaiveDate>,
+    /// EPSS probability (0.0 - 1.0) of exploitation in the next 30 days.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub epss_probability: Option<f32>,
+    /// Share (0.0 - 1.0) of scored CVEs with a lower or equal EPSS probability.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub epss_percentile: Option<f32>,
+}
+
+/// How soon a vulnerability should be fixed. Ordered most pressing first.
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Default,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum PatchPriority {
+    /// Known to be exploited in the wild (CISA KEV).
+    Immediate,
+    /// Exploitation is likely (EPSS).
+    Urgent,
+    /// Critical or high severity, no exploitation signal.
+    Planned,
+    /// Fix with the regular update cycle.
+    #[default]
+    Routine,
+}
+
+impl PatchPriority {
+    /// Known or likely exploitation: what to fix before anything else.
+    pub fn is_pressing(self) -> bool {
+        matches!(self, Self::Immediate | Self::Urgent)
+    }
+}
+
+/// Exploitation feeds the last vulnerability scan could use to prioritise.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiExploitIntelStatus {
+    /// The CISA KEV catalog was consulted.
+    pub kev_available: bool,
+    /// Version of the catalog consulted (e.g. "2026.10.02").
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kev_catalog_version: Option<String>,
+    /// The EPSS scores were consulted.
+    pub epss_available: bool,
+    /// Date the EPSS scores were computed, as published.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub epss_score_date: Option<String>,
+    /// At least one feed comes from an outdated local copy (refresh failed).
+    #[serde(default)]
+    pub stale: bool,
 }
 
 /// Discovered network device for display in the Discovery and Cartography pages.
@@ -1013,6 +1113,8 @@ pub enum ResponseActionType {
     BlockIp,
     UnblockIp,
     RestoreFile,
+    IsolateHost,
+    ReleaseHost,
 }
 
 impl ResponseActionType {
@@ -1023,6 +1125,8 @@ impl ResponseActionType {
             ResponseActionType::BlockIp => "Bloquer IP",
             ResponseActionType::UnblockIp => "Débloquer IP",
             ResponseActionType::RestoreFile => "Restaurer fichier",
+            ResponseActionType::IsolateHost => "Isoler le poste",
+            ResponseActionType::ReleaseHost => "Lever l'isolation",
         }
     }
 }
@@ -1192,6 +1296,10 @@ pub enum PlaybookActionType {
     QuarantineFile,
     #[serde(alias = "BlockIp")]
     BlockIp,
+    /// Cut the endpoint off the network; parameter: duration in seconds
+    /// (`0`: until released, blank: one hour).
+    #[serde(alias = "IsolateHost")]
+    IsolateHost,
     #[serde(alias = "SendSiemAlert")]
     SendSiemAlert,
     #[serde(alias = "CreateNotification")]
@@ -1204,6 +1312,7 @@ impl PlaybookActionType {
             Self::KillProcess => "KillProcess",
             Self::QuarantineFile => "QuarantineFile",
             Self::BlockIp => "BlockIp",
+            Self::IsolateHost => "IsolateHost",
             Self::SendSiemAlert => "SendSiemAlert",
             Self::CreateNotification => "CreateNotification",
         }
@@ -1214,6 +1323,7 @@ impl PlaybookActionType {
             Self::KillProcess => "Terminer le processus",
             Self::QuarantineFile => "Quarantaine fichier",
             Self::BlockIp => "Bloquer IP",
+            Self::IsolateHost => "Isoler le poste du r\u{00e9}seau",
             Self::SendSiemAlert => "Alerte SIEM",
             Self::CreateNotification => "Notification",
         }
@@ -1224,6 +1334,7 @@ impl PlaybookActionType {
             Self::KillProcess,
             Self::QuarantineFile,
             Self::BlockIp,
+            Self::IsolateHost,
             Self::SendSiemAlert,
             Self::CreateNotification,
         ]
@@ -2035,6 +2146,8 @@ mod tests {
             active_frameworks: None,
             policy_summary: None,
             standalone: false,
+            ransomware_canaries: false,
+            host_isolated: false,
         };
 
         let json = serde_json::to_string(&summary).unwrap();

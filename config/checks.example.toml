@@ -1,0 +1,89 @@
+# Contrôles de conformité personnalisés — exemple.
+#
+# Copiez ce fichier dans le dossier « checks.d » du dossier de données de
+# l'agent, puis redémarrez l'agent :
+#   Linux    /var/lib/sentinel-grc/checks.d/
+#   macOS    ~/Library/Application Support/SentinelGRC/checks.d/
+#   Windows  C:\ProgramData\Sentinel\checks.d\
+#
+# Chaque bloc [[check]] déclare un contrôle, exécuté, noté et remonté comme
+# les contrôles intégrés. Règles :
+#   - « id » commence par « custom_ » (minuscules, chiffres, « _ ») ;
+#   - une seule sonde par contrôle : file_exists, file_content, file_mode
+#     (Unix) ou command ;
+#   - les chemins sont absolus ; un programme est lancé sans interpréteur de
+#     commandes, avec les droits de l'agent ;
+#   - sous Unix, le fichier et son dossier doivent appartenir à root (ou à
+#     l'utilisateur de l'agent) et n'être modifiables par personne d'autre,
+#     sinon ils sont ignorés.
+# Une déclaration invalide est refusée avec sa raison dans les journaux ; les
+# autres sont chargées.
+
+# Le fichier doit contenir une ligne (expression régulière, ligne par ligne).
+[[check]]
+id = "custom_ssh_root_login"
+name = "Connexion root par SSH désactivée"
+description = "sshd ne doit pas accepter de connexion directe en root."
+severity = "high"                 # critical, high, medium, low, info
+category = "remote_access"        # facultatif (« general » par défaut)
+frameworks = ["ISO27001", "CIS"]  # facultatif
+platforms = ["linux", "macos"]    # facultatif (toutes par défaut)
+pass_message = "La connexion root par SSH est désactivée."
+fail_message = "sshd accepte la connexion directe en root."
+
+[check.file_content]
+path = "/etc/ssh/sshd_config"
+matches = '^\s*PermitRootLogin\s+no\b'
+# not_matches = '...'             # aucune ligne ne doit correspondre
+# if_missing = "pass"             # fichier absent : conforme (« fail » par défaut)
+
+# Le fichier ne doit pas exister.
+[[check]]
+id = "custom_no_rhosts"
+name = "Aucun fichier .rhosts pour root"
+severity = "medium"
+platforms = ["linux"]
+
+[check.file_exists]
+path = "/root/.rhosts"
+exists = false
+
+# Permissions : aucun droit au-delà de max_mode, et propriétaire attendu.
+[[check]]
+id = "custom_shadow_permissions"
+name = "Permissions de /etc/shadow"
+severity = "high"
+platforms = ["linux"]
+
+[check.file_mode]
+path = "/etc/shadow"
+max_mode = "0640"
+owner_uid = 0
+
+# Commande : code de retour (0 par défaut) et sortie attendus.
+[[check]]
+id = "custom_guest_account_disabled"
+name = "Compte invité désactivé"
+severity = "medium"
+category = "accounts"
+platforms = ["macos"]
+
+[check.command]
+program = "/usr/bin/defaults"
+args = ["read", "/Library/Preferences/com.apple.loginwindow", "GuestEnabled"]
+stdout_matches = '^0$'
+# stdout_not_matches = '...'
+# exit_code = 0
+# timeout_secs = 10               # 10 par défaut, 120 au plus
+
+# Windows : une valeur de registre se lit avec reg.exe.
+[[check]]
+id = "custom_uac_enabled"
+name = "Contrôle de compte d'utilisateur (UAC) actif"
+severity = "high"
+platforms = ["windows"]
+
+[check.command]
+program = 'C:\Windows\System32\reg.exe'
+args = ["query", 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System', "/v", "EnableLUA"]
+stdout_matches = 'EnableLUA\s+REG_DWORD\s+0x1'

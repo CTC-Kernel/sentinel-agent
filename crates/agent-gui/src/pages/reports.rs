@@ -31,7 +31,7 @@ impl ReportsPage {
                 "G\u{00e9}n\u{00e9}ration et export des rapports de conformit\u{00e9}, d\u{2019}audit et d\u{2019}incident.",
             ),
             Some(
-                "G\u{00e9}n\u{00e9}rez des rapports d\u{00e9}taill\u{00e9}s pour vos audits de conformit\u{00e9}, synth\u{00e8}ses ex\u{00e9}cutives et rapports d\u{2019}incidents. Chaque rapport peut \u{00ea}tre export\u{00e9} au format HTML.",
+                "G\u{00e9}n\u{00e9}rez des rapports d\u{00e9}taill\u{00e9}s pour vos audits de conformit\u{00e9}, synth\u{00e8}ses ex\u{00e9}cutives et rapports d\u{2019}incidents. Chaque rapport peut \u{00ea}tre export\u{00e9} au format PDF ou HTML.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -67,10 +67,10 @@ impl ReportsPage {
                     ReportType::Incident => theme::ERROR,
                 };
 
-                let actions = vec![widgets::DetailAction::primary(
-                    "Exporter HTML",
-                    icons::DOWNLOAD,
-                )];
+                let actions = vec![
+                    widgets::DetailAction::primary("Exporter PDF", icons::DOWNLOAD),
+                    widgets::DetailAction::secondary("Exporter HTML", icons::DOWNLOAD),
+                ];
 
                 let drawer_action =
                     widgets::DetailDrawer::new("report_detail", &report.title, icons::FILE_EXPORT)
@@ -111,8 +111,10 @@ impl ReportsPage {
                             &actions,
                         );
 
-                if let Some(0) = drawer_action {
-                    Self::export_html(state, &report);
+                match drawer_action {
+                    Some(0) => Self::export_pdf(state, &report),
+                    Some(1) => Self::export_html(state, &report),
+                    _ => {}
                 }
             }
         }
@@ -145,6 +147,11 @@ impl ReportsPage {
                     PreviewAction::Export(index) => {
                         if let Some(report) = of_type.get(index) {
                             Self::export_html(state, report);
+                        }
+                    }
+                    PreviewAction::ExportPdf(index) => {
+                        if let Some(report) = of_type.get(index) {
+                            Self::export_pdf(state, report);
                         }
                     }
                 }
@@ -218,6 +225,19 @@ impl ReportsPage {
                         .clicked()
                     {
                         action = Some(PreviewAction::Regenerate);
+                    }
+                    ui.add_space(theme::SPACE_SM);
+                    if widgets::button::secondary_button(
+                        ui,
+                        format!("{}  Exporter PDF", icons::DOWNLOAD),
+                        true,
+                    )
+                    .on_hover_text(
+                        "PDF portant l'empreinte SHA-256 du contenu sur chaque page, avec un fichier .sha256 pour vérifier le fichier.",
+                    )
+                    .clicked()
+                    {
+                        action = Some(PreviewAction::ExportPdf(0));
                     }
                     ui.add_space(theme::SPACE_SM);
                     if widgets::button::secondary_button(
@@ -780,17 +800,60 @@ impl ReportsPage {
         )
     }
 
-    fn export_html(state: &AppState, report: &GeneratedReport) {
-        let html = report.html_content.clone();
-        let filename = format!(
-            "rapport_{}_{}.html",
+    /// File name of an exported report, without its extension.
+    fn export_stem(report: &GeneratedReport) -> String {
+        format!(
+            "rapport_{}_{}",
             match report.report_type {
                 ReportType::Executive => "executif",
                 ReportType::ComplianceAudit => "conformite",
                 ReportType::Incident => "incidents",
             },
             report.generated_at.format("%Y%m%d_%H%M%S"),
-        );
+        )
+    }
+
+    /// Export the report as a PDF, with a `.sha256` file beside it holding
+    /// the fingerprint of the PDF file (in `sha256sum` format).
+    fn export_pdf(state: &AppState, report: &GeneratedReport) {
+        let pdf = crate::pdf::report_pdf(&report.title, &report.html_content, report.generated_at);
+        let filename = format!("{}.pdf", Self::export_stem(report));
+        let path = crate::export::default_export_path(&filename);
+        let write = move || -> (bool, String) {
+            let checksum = format!("{}  {filename}\n", crate::pdf::file_fingerprint(&pdf));
+            let mut checksum_path = path.as_os_str().to_owned();
+            checksum_path.push(".sha256");
+            match std::fs::write(&path, &pdf)
+                .and_then(|()| std::fs::write(&checksum_path, checksum))
+            {
+                Ok(()) => (
+                    true,
+                    format!("Rapport PDF export\u{00e9} : {}", path.display()),
+                ),
+                Err(e) => (false, format!("\u{00c9}chec export PDF : {e}")),
+            }
+        };
+
+        if let Some(tx) = state.async_task_tx.clone() {
+            std::thread::spawn(move || {
+                let (success, message) = write();
+                if let Err(e) = tx.send(crate::app::AsyncTaskResult::HtmlExport(success, message)) {
+                    tracing::warn!("Failed to send PDF export result: {}", e);
+                }
+            });
+        } else {
+            let (success, message) = write();
+            if success {
+                tracing::info!("{}", message);
+            } else {
+                tracing::error!("{}", message);
+            }
+        }
+    }
+
+    fn export_html(state: &AppState, report: &GeneratedReport) {
+        let html = report.html_content.clone();
+        let filename = format!("{}.html", Self::export_stem(report));
         let path = crate::export::default_export_path(&filename);
 
         if let Some(tx) = state.async_task_tx.clone() {
@@ -837,6 +900,8 @@ enum PreviewAction {
     Regenerate,
     /// Export the report at this index among the reports of the type.
     Export(usize),
+    /// Same, as a PDF.
+    ExportPdf(usize),
 }
 
 /// Sections each report type's HTML carries, as shown in the preview.

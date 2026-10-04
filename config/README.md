@@ -69,6 +69,81 @@ La configuration est chargee dans cet ordre (les sources ulterieures ecrasent le
 2. **Fichier JSON** - Chemin specifique a la plateforme ou chemin personnalise
 3. **Variables d'environnement** - Prefixe `SENTINEL_*`
 
+## Flux d'indicateurs de compromission
+
+`threat_intel_feeds` liste des sources d'adresses et de domaines malveillants,
+ajoutés à ce que le détecteur réseau connaît déjà (y compris ce que la
+plateforme pousse). Aucune source n'est contactée par défaut.
+
+```json
+"threat_intel_feeds": [
+  { "name": "feodo-tracker",
+    "url": "https://feodotracker.abuse.ch/downloads/ipblocklist.txt" },
+  { "name": "taxii-interne",
+    "url": "https://cti.example.com/taxii2/api/collections/ID/objects/",
+    "format": "taxii", "authorization": "Bearer JETON", "refresh_hours": 6 }
+]
+```
+
+| Champ | Role | Defaut |
+|-------|------|--------|
+| `name` | Nom du flux (journaux, copie locale) ; unique | requis |
+| `url` | Adresse HTTPS du flux | requis |
+| `format` | `text` (une adresse, un domaine ou une URL par ligne ; CSV et fichiers hosts acceptes), `stix` (bundle STIX 2.1), `taxii` (objets d'une collection TAXII 2.1) | `text` |
+| `authorization` | Valeur de l'en-tete `Authorization` (`Bearer …`, `Basic …`, cle MISP) | aucun |
+| `refresh_hours` | Heures entre deux telechargements (1 au minimum) | `12` |
+
+- Les flux sont telecharges en entier : rien du poste n'est envoye.
+- Les adresses non routables (privees, locales) sont refusees : un flux ne
+  peut pas faire signaler le reseau interne.
+- Un flux en echec garde ses derniers indicateurs, aussi conserves sur disque
+  pour le prochain demarrage.
+- MISP : utilisez son export texte ou STIX avec la cle dans `authorization`.
+
+## Fichiers leurres anti-ransomware
+
+`"ransomware_canaries": true` (ou `SENTINEL_RANSOMWARE_CANARIES=true`, ou le
+reglage dans Parametres) depose un dossier masque de faux documents dans le
+dossier personnel et le dossier Documents de chaque utilisateur. Un leurre
+reecrit ou renomme leve un incident critique. Desactive par defaut ; la
+desactivation supprime les leurres intacts.
+
+## Detection des processus en temps reel
+
+`"process_event_telemetry": true` (ou `SENTINEL_PROCESS_EVENT_TELEMETRY=true`)
+fait evaluer chaque processus a son lancement par les regles de detection
+(motifs integres et regles Sigma), au lieu d'attendre l'analyse periodique.
+Desactive par defaut.
+
+| Systeme | Source | Prerequis |
+|---------|--------|-----------|
+| macOS | evenements Endpoint Security, via l'outil systeme `eslogger` | root, acces complet au disque |
+| Windows | trace `Win32_ProcessStartTrace`, via PowerShell | administrateur |
+| Linux | connecteur de processus du noyau (option de compilation `proc-connector`, non activee par defaut) | root |
+
+Si la source ne demarre pas, l'analyse periodique reste seule a detecter.
+
+## Regles YARA
+
+Les regles `*.yar` / `*.yara` du dossier `yara.d` du dossier de donnees sont
+appliquees aux fichiers que la surveillance d'integrite signale comme crees
+ou modifies. Le moteur (YARA-X) tourne dans un programme separe,
+`sentinel-yara`, a construire depuis `tools/sentinel-yara` et a installer a
+cote du binaire de l'agent (ou a designer par `SENTINEL_YARA_HELPER`). Sans ce
+programme ou sans regles, l'analyse YARA est inactive.
+
+## Regles Sigma
+
+Les regles Sigma (`*.yml`, `*.yaml`, sous-dossiers compris) du dossier
+`sigma.d` du dossier de donnees sont evaluees sur les processus du poste a
+chaque analyse de securite. Les regles de la communaute SigmaHQ pour
+`process_creation` s'utilisent telles quelles. Voir `sigma.example.yml`.
+
+## Controles de conformite personnalises
+
+Les fichiers `*.toml` du dossier `checks.d` du dossier de donnees declarent
+des controles supplementaires. Voir `checks.example.toml`.
+
 ## Mode autonome (standalone)
 
 L'agent peut proteger un poste **sans aucune plateforme** : detection (EDR),
