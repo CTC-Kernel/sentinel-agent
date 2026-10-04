@@ -10,6 +10,10 @@ use agent_common::error::CommonError;
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
 
+// Compiled for tests on every platform: only `pfctl` itself needs macOS.
+#[cfg(any(target_os = "macos", test))]
+mod pf_blocklist;
+
 /// Directories whose contents must never be quarantined or restored into.
 ///
 /// The filesystem root is deliberately absent: `Path::starts_with("/")` matches
@@ -441,24 +445,13 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
     #[cfg(target_os = "macos")]
     {
         // Use pf (packet filter) on macOS
-        let rule = format!("block drop from {} to any\n", ip);
-        let anchor_file = format!("/tmp/sentinel_block_{}.conf", ip.replace(['.', ':'], "_"));
-        tokio::fs::write(&anchor_file, &rule)
-            .await
-            .map_err(|e| CommonError::internal(format!("Failed to write pf rule: {}", e)))?;
-
-        let output = agent_common::process::silent_async_command("pfctl")
-            .args(["-a", "sentinel", "-f", &anchor_file])
-            .output()
-            .await
-            .map_err(|e| CommonError::internal(format!("Failed to apply pf rule: {}", e)))?;
-
-        if !output.status.success() {
-            warn!(
-                "pfctl returned non-zero; IP block may require root: {}",
-                String::from_utf8_lossy(&output.stderr)
-            );
-        }
+        pf_blocklist::block(
+            &pf_blocklist::SystemPfctl,
+            &pf_blocklist::Store::system(),
+            parsed_ip,
+        )
+        .await
+        .map_err(|e| CommonError::internal(format!("Failed to apply pf rule: {}", e)))?;
     }
 
     #[cfg(target_os = "linux")]
@@ -507,8 +500,8 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
     // The timer below lives in memory and dies with the process. Persist the
     // deadline too: an agent that restarts between the block and its expiry
     // would otherwise leave the firewall rule in place forever, with nothing on
-    // disk explaining why -- iptables and netsh rules outlive the agent, and a
-    // netsh rule survives reboot.
+    // disk explaining why -- pf, iptables and netsh rules outlive the agent, a
+    // netsh rule survives reboot and the pf blocklist is loaded again at start.
     if duration_secs > 0 {
         let unblock_at = chrono::Utc::now().timestamp() + duration_secs as i64;
         record_pending_block(ip, unblock_at).await;
@@ -579,8 +572,22 @@ async fn clear_pending_block(ip: &str) {
 /// do not. Any deadline that expired while the agent was down is unblocked
 /// immediately; the rest are rescheduled for their remaining time.
 ///
+/// On macOS the recorded blocklist is first loaded into pf again: its rules do
+/// not survive a reboot.
+///
 /// Call once during agent startup.
 pub async fn reconcile_pending_blocks() {
+    #[cfg(target_os = "macos")]
+    if crate::service::is_admin() {
+        match pf_blocklist::restore(&pf_blocklist::SystemPfctl, &pf_blocklist::Store::system())
+            .await
+        {
+            Ok(0) => {}
+            Ok(count) => info!("Loaded {} blocked IP(s) into pf again", count),
+            Err(e) => warn!("Failed to load the IP blocklist into pf again: {}", e),
+        }
+    }
+
     let entries = load_pending_blocks().await;
     if entries.is_empty() {
         return;
@@ -617,12 +624,16 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
 
     #[cfg(target_os = "macos")]
     {
-        let anchor_file = format!("/tmp/sentinel_block_{}.conf", ip.replace(['.', ':'], "_"));
-        let _ = tokio::fs::remove_file(&anchor_file).await;
-        let _ = agent_common::process::silent_async_command("pfctl")
-            .args(["-a", "sentinel", "-F", "all"])
-            .output()
-            .await;
+        let parsed_ip: std::net::IpAddr = ip
+            .parse()
+            .map_err(|_| CommonError::internal(format!("Invalid IP address: {}", ip)))?;
+        pf_blocklist::unblock(
+            &pf_blocklist::SystemPfctl,
+            &pf_blocklist::Store::system(),
+            parsed_ip,
+        )
+        .await
+        .map_err(|e| CommonError::internal(format!("Failed to remove pf rule: {}", e)))?;
     }
 
     #[cfg(target_os = "linux")]
