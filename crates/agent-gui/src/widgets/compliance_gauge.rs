@@ -19,7 +19,10 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
 /// compliance score — the AI posture gauge said "CONFORMITÉ" under 57 %.
 pub fn compliance_gauge_captioned(ui: &mut Ui, score: Option<f32>, radius: f32, caption: &str) {
     let desired_size = Vec2::splat(radius * 2.0 + theme::SPACE);
-    let (rect, _response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
+    let (rect, response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
+    if !ui.is_rect_visible(rect) {
+        return;
+    }
     let center = rect.center();
     let painter = ui.painter_at(rect);
 
@@ -38,13 +41,19 @@ pub fn compliance_gauge_captioned(ui: &mut Ui, score: Option<f32>, radius: f32, 
     // Background track
     painter.circle_stroke(center, radius, egui::Stroke::new(stroke_width, track_color));
 
-    match score {
+    match score.filter(|value| value.is_finite()) {
         Some(value) => {
             let clamped = value.clamp(0.0, 100.0);
-            let color = theme::score_color(clamped);
+            let color = theme::chart_color(theme::score_color(clamped));
 
             let start_angle = -PI / 2.0;
-            let sweep = (clamped / 100.0) * 2.0 * PI;
+            let arc_value = crate::animation::damped_value(
+                ui.ctx(),
+                response.id.with("score_arc"),
+                clamped,
+                theme::ANIM_SLOW,
+            );
+            let sweep = (arc_value / 100.0) * 2.0 * PI;
             let segments = 48;
 
             let points: Vec<Pos2> = (0..=segments)

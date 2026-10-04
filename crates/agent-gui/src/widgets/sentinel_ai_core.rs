@@ -48,36 +48,24 @@ impl SentinelAICore {
     }
 
     pub fn show(&self, ui: &mut Ui, radius: f32) -> egui::Response {
-        let size = Vec2::splat(radius * 2.2); // Extra space for aura
+        let size = Vec2::splat(radius * 3.2); // Reserve the full ripple envelope.
         let (rect, response) = ui.allocate_exact_size(size, egui::Sense::click());
 
         if ui.is_rect_visible(rect) {
             let painter = ui.painter();
-            let mut center = rect.center();
+            let center = rect.center();
             let reduced = crate::theme::is_reduced_motion();
-
-            // Parallax effect on hover
-            let mut parallax_offset = Vec2::ZERO;
-            if !reduced && let Some(mouse_pos) = ui.input(|i| i.pointer.hover_pos()) {
-                let dist = center.distance(mouse_pos);
-                // If mouse is near the core, shift slightly towards mouse
-                if dist < radius * 3.0 {
-                    let pull = (1.0 - (dist / (radius * 3.0))).max(0.0).powi(2);
-                    parallax_offset = (mouse_pos - center) * 0.1 * pull;
-                }
+            let active = self.is_processing || !matches!(self.voice_state, VoiceState::Idle);
+            // Accumulate only while working. Idle cores remain still, and resuming
+            // continues their phase instead of jumping to wall-clock time.
+            let phase_id = response.id.with("activity_phase");
+            let mut phase = ui.data(|data| data.get_temp::<f32>(phase_id).unwrap_or(0.0));
+            if active && !reduced {
+                phase += ui.input(|i| i.stable_dt).min(0.05)
+                    * if self.is_processing { 2.0 } else { 1.0 };
+                ui.data_mut(|data| data.insert_temp(phase_id, phase));
             }
-
-            // Apply parallax
-            center += parallax_offset;
-
-            // Time-based animation variables
-            let time = if reduced {
-                0.0
-            } else {
-                ui.input(|i| i.time) as f32
-            };
-            let speed_mult = if self.is_processing { 2.5 } else { 1.0 };
-            let t = time * speed_mult;
+            let t = if reduced { 0.0 } else { phase };
 
             // 1. Aura / Glow Background
             self.draw_aura(painter, center, radius, t);
@@ -88,10 +76,8 @@ impl SentinelAICore {
             // 3. Central Core
             self.draw_core(painter, center, radius, t);
 
-            // 4. Data Orbitals (add parallax as an extra pull)
-            if !reduced {
-                self.draw_orbitals(painter, center, radius, t, parallax_offset);
-            }
+            // Static at rest and under reduced motion, animated only when active.
+            self.draw_orbitals(painter, center, radius, t, Vec2::ZERO);
 
             // 5. Crosshair / HUD elements
             self.draw_hud(painter, center, radius);
@@ -101,7 +87,9 @@ impl SentinelAICore {
             }
 
             // Ambient motion: paced, not redrawn at the display rate.
-            crate::animation::request_ambient_repaint(ui.ctx());
+            if active {
+                crate::animation::request_ambient_repaint(ui.ctx());
+            }
         }
 
         response.widget_info(|| {
@@ -118,15 +106,13 @@ impl SentinelAICore {
 
     fn draw_aura(&self, painter: &Painter, center: Pos2, radius: f32, t: f32) {
         use crate::theme;
-        // The AI core owns the violet channel. Keeping this palette separate
-        // from the blue navigation accent makes state changes immediately
-        // legible and removes the cyan wash previously visible on the dashboard.
+        // Violet carries the assistant identity; blue denotes live input.
         let mut base_color = theme::chart_color(theme::AI);
 
         match self.voice_state {
             VoiceState::Listening(level) => {
-                // Emerald communicates an open, healthy microphone channel.
-                base_color = theme::SUCCESS.linear_multiply(1.0 + level * 0.35);
+                // Blue denotes input activity without implying a healthy endpoint.
+                base_color = theme::INFO.linear_multiply(1.0 + level.clamp(0.0, 1.0) * 0.35);
             }
             VoiceState::Speaking(vol) => {
                 base_color = theme::chart_color(theme::AI).linear_multiply(1.0 + vol * 0.35);
@@ -160,17 +146,21 @@ impl SentinelAICore {
             VoiceState::Speaking(vol) => 0.2 + vol * 0.4,
             _ => (t * 0.8).sin() * 0.1 + 0.15,
         };
-        painter.circle_filled(
+        // Continuous falloff gives the core a soft light instead of a solid
+        // translucent disc. It remains inside the widget's reserved envelope.
+        theme::paint_radial_glow(
+            painter,
             center,
             radius * 1.3,
-            base_color.linear_multiply(pulse * 0.5),
+            theme::with_alpha(base_color, (pulse * 80.0).clamp(0.0, 255.0) as u8),
         );
 
         // Circular wave ripples
         let passes = match self.voice_state {
             VoiceState::Speaking(vol) => 3 + (vol * 3.0) as usize,
             VoiceState::Listening(level) => 2 + (level * 4.0) as usize,
-            _ => 2,
+            _ if self.is_processing => 2,
+            _ => 0,
         };
         let speed_factor = match self.voice_state {
             VoiceState::Listening(level) => 1.2 + level * 1.5,
@@ -201,7 +191,7 @@ impl SentinelAICore {
     fn draw_rings(&self, painter: &Painter, center: Pos2, radius: f32, t: f32) {
         use crate::theme;
         let color_primary = theme::chart_color(theme::AI);
-        let color_secondary = theme::readable_color(theme::SUCCESS);
+        let color_secondary = theme::accent_text();
 
         // --- Outer Ring (Many small segments, slow CW) ---
         let outer_r = radius * 1.05;
@@ -262,7 +252,11 @@ impl SentinelAICore {
 
     fn draw_core(&self, painter: &Painter, center: Pos2, radius: f32, t: f32) {
         use crate::theme;
-        let score_color = theme::score_color(self.score);
+        // The assistant is an interaction state, not a second security verdict.
+        let score_color = match self.voice_state {
+            VoiceState::Listening(_) => theme::readable_color(theme::INFO),
+            _ => theme::chart_color(theme::AI),
+        };
         let core_r = radius * 0.4;
 
         // Breathing core
@@ -370,14 +364,11 @@ impl SentinelAICore {
 mod tests {
     use super::*;
 
-    #[test]
-    fn idle_core_paces_its_animation_instead_of_redrawing_every_frame() {
+    fn repaint_delay(processing: bool, voice: VoiceState, reduced: bool) -> std::time::Duration {
         let ctx = egui::Context::default();
-        crate::theme::set_reduced_motion(false);
-        // egui asks for extra frames while it settles a fresh layout; measure
-        // once it has.
+        crate::theme::set_reduced_motion(reduced);
         let mut output = Default::default();
-        for frame in 0..4 {
+        for frame in 0..6 {
             output = ctx.run(
                 egui::RawInput {
                     time: Some(frame as f64),
@@ -385,19 +376,44 @@ mod tests {
                 },
                 |ctx| {
                     egui::CentralPanel::default().show(ctx, |ui| {
-                        SentinelAICore::new(80.0).show(ui, 60.0);
+                        SentinelAICore::new(80.0)
+                            .processing(processing)
+                            .voice(voice)
+                            .show(ui, 60.0);
                     });
                 },
             );
         }
+        crate::theme::set_reduced_motion(false);
         let output: egui::FullOutput = output;
-        let delay = output.viewport_output[&egui::ViewportId::ROOT].repaint_delay;
-        // egui reports the wait minus one predicted frame (1/60 s), so a
-        // 33 ms pace shows up as about 16 ms; a full-rate redraw shows 0.
-        let predicted_frame = std::time::Duration::from_secs_f32(1.0 / 60.0);
-        assert!(
-            delay + predicted_frame >= crate::animation::AMBIENT_FRAME,
-            "the AI core asked for a frame after {delay:?}, faster than the ambient pace"
-        );
+        output.viewport_output[&egui::ViewportId::ROOT].repaint_delay
+    }
+
+    #[test]
+    fn idle_and_reduced_motion_do_not_schedule_decorative_frames() {
+        for (processing, voice, reduced) in [
+            (false, VoiceState::Idle, false),
+            (true, VoiceState::Idle, true),
+            (false, VoiceState::Listening(0.5), true),
+            (false, VoiceState::Speaking(0.5), true),
+        ] {
+            assert!(repaint_delay(processing, voice, reduced) >= std::time::Duration::from_secs(1));
+        }
+    }
+
+    #[test]
+    fn active_core_is_animated_at_the_ambient_pace() {
+        for (processing, voice) in [
+            (true, VoiceState::Idle),
+            (false, VoiceState::Listening(0.5)),
+            (false, VoiceState::Speaking(0.5)),
+        ] {
+            let delay = repaint_delay(processing, voice, false);
+            assert!(delay < std::time::Duration::from_secs(1));
+            assert!(
+                delay.saturating_add(std::time::Duration::from_secs_f32(1.0 / 60.0))
+                    >= crate::animation::AMBIENT_FRAME
+            );
+        }
     }
 }

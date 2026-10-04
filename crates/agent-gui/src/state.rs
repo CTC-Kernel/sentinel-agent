@@ -913,6 +913,9 @@ impl Default for ReportsState {
 /// Risk management page state.
 #[derive(Default)]
 pub struct RisksState {
+    pub matrix_filter: Option<(u8, u8)>,
+    pub critical_only: bool,
+    pub overdue_only: bool,
     /// Current page (0-indexed) of the paginated risk table.
     pub page: usize,
     pub entries: Vec<crate::dto::RiskEntry>,

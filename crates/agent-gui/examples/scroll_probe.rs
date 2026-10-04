@@ -263,6 +263,69 @@ fn benchmark_pages(width: f32, height: f32) {
     );
 }
 
+/// Exercise expanded data panels using the same pages and fixtures as the shell.
+fn probe_details(width: f32, height: f32) {
+    let cases = [
+        ("dashboard", 0, "Diagnostic de sécurité"),
+        ("dashboard", 0, "Tendances et indicateurs clés"),
+        ("monitoring", 0, "Journal SIEM"),
+        ("monitoring", 1, "Répartition par catégorie"),
+        ("compliance", 0, "Résultats des contrôles"),
+        ("software", 0, "Paquets et dépendances"),
+        ("software", 2, "Extensions de navigateur"),
+        ("fim", 0, "Alertes d’intégrité des fichiers"),
+        ("threats", 0, "Fil de sécurité consolidé"),
+        ("audit", 0, "Journal d’audit"),
+        ("network", 0, "Connexions actives"),
+        ("discovery", 0, "Équipements découverts"),
+        ("assets", 0, "Inventaire des actifs"),
+        ("risks", 0, "Registre des risques"),
+        ("risks", 0, "Matrice des risques"),
+        ("notifications", 0, "Notifications"),
+        ("sync", 0, "État de la synchronisation"),
+        ("terminal", 0, "Journal d’activité"),
+        ("settings", 0, "Contrôles des services"),
+        ("about", 0, "Système"),
+        ("ai", 1, "Analyse des recommandations"),
+        ("ai", 2, "État du modèle local"),
+    ];
+    for (page, tab, title) in cases {
+        let ctx = egui::Context::default();
+        theme::configure_fonts(&ctx);
+        theme::apply_theme(&ctx, std::env::var("PROBE_LIGHT").is_err());
+        let mut state = AppState::default();
+        fixtures::seed(&mut state);
+        fixtures::select_tab(&mut state, page, tab);
+        for frame in 0..14 {
+            if frame == 3 {
+                agent_gui::widgets::open_data_panel(&ctx, title);
+            }
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(width, height),
+                    )),
+                    time: Some(frame as f64 * 0.1),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        egui::ScrollArea::vertical().show(ui, |ui| {
+                            agent_gui::app::page_column(ui, |ui| real_page(ui, page, &mut state));
+                        });
+                    });
+                },
+            );
+        }
+        assert!(
+            agent_gui::widgets::modal::any_modal_open(&ctx),
+            "detail did not remain open: {page}/{tab}: {title}"
+        );
+        println!("ok detail {page}/{tab}: {title}");
+    }
+}
+
 fn main() {
     let width: f32 = std::env::var("PROBE_W")
         .ok()
@@ -272,6 +335,10 @@ fn main() {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(820.0);
+    if std::env::var("PROBE_DETAILS").is_ok() {
+        probe_details(width, height);
+        return;
+    }
     if std::env::var("PROBE_PERF").is_ok() {
         benchmark_pages(width, height);
         return;

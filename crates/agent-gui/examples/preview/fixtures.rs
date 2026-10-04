@@ -2214,6 +2214,11 @@ pub fn open_drawer(state: &mut AppState, which: &str) {
             state.assets.selected_asset = Some(0);
             state.assets.detail_open = true;
         }
+        "extension" => {
+            state.software.active_tab = SoftwareTab::Extensions;
+            state.software.selected_package = Some(0);
+            state.software.detail_open = true;
+        }
         "package" => {
             state.software.selected_package = Some(0);
             state.software.detail_open = true;

@@ -29,72 +29,80 @@ struct IocSearchResult {
 /// Render the investigation tab.
 pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     // ── IOC search bar ──────────────────────────────────────────────
-    widgets::card(ui, |ui: &mut egui::Ui| {
-        ui.label(
-            egui::RichText::new("RECHERCHE D'INDICATEURS DE COMPROMISSION (IOC)")
-                .font(theme::font_label())
-                .color(theme::text_tertiary())
-                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                .strong(),
-        );
-        ui.add_space(theme::SPACE_SM);
+    widgets::data_card(
+        ui,
+        "Recherche d’indicateurs de compromission",
+        |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("RECHERCHE D'INDICATEURS DE COMPROMISSION (IOC)")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
 
-        ui.horizontal(|ui: &mut egui::Ui| {
-            // IOC type dropdown
-            let ioc_labels = [
-                "Adresse IP",
-                "Domaine",
-                "Hash (SHA-256)",
-                "Processus",
-                "CVE",
-            ];
-            let mut ioc_idx = match state.threats.ioc_type {
-                IocSearchType::Ip => 0,
-                IocSearchType::Domain => 1,
-                IocSearchType::Hash => 2,
-                IocSearchType::Process => 3,
-                IocSearchType::Cve => 4,
-            };
-            if widgets::dropdown(ui, "ioc_type_select", &ioc_labels, &mut ioc_idx) {
-                state.threats.ioc_type = match ioc_idx {
-                    0 => IocSearchType::Ip,
-                    1 => IocSearchType::Domain,
-                    2 => IocSearchType::Hash,
-                    3 => IocSearchType::Process,
-                    4 => IocSearchType::Cve,
-                    _ => IocSearchType::Ip,
+            ui.horizontal(|ui: &mut egui::Ui| {
+                // IOC type dropdown
+                let ioc_labels = [
+                    "Adresse IP",
+                    "Domaine",
+                    "Hash (SHA-256)",
+                    "Processus",
+                    "CVE",
+                ];
+                let mut ioc_idx = match state.threats.ioc_type {
+                    IocSearchType::Ip => 0,
+                    IocSearchType::Domain => 1,
+                    IocSearchType::Hash => 2,
+                    IocSearchType::Process => 3,
+                    IocSearchType::Cve => 4,
                 };
-            }
+                if widgets::dropdown(ui, "ioc_type_select", &ioc_labels, &mut ioc_idx) {
+                    state.threats.ioc_type = match ioc_idx {
+                        0 => IocSearchType::Ip,
+                        1 => IocSearchType::Domain,
+                        2 => IocSearchType::Hash,
+                        3 => IocSearchType::Process,
+                        4 => IocSearchType::Cve,
+                        _ => IocSearchType::Ip,
+                    };
+                }
 
-            ui.add_space(theme::SPACE_SM);
+                ui.add_space(theme::SPACE_SM);
 
-            // Search input
-            let hint = match state.threats.ioc_type {
-                IocSearchType::Ip => "192.168.1.100, 10.0.0.1…",
-                IocSearchType::Domain => "example.com, malware.xyz…",
-                IocSearchType::Hash => "SHA-256 hash…",
-                IocSearchType::Process => "powershell, curl, nc…",
-                IocSearchType::Cve => "CVE-2024-12345…",
-            };
-            let input_width = (ui.available_width() - 140.0).max(200.0);
-            widgets::SearchInput::new(&mut state.threats.ioc_search, hint)
-                .width(input_width)
-                .height(theme::BUTTON_HEIGHT)
-                .font(theme::font_body())
-                .id_salt("ioc_search")
-                .show(ui);
+                // Search input
+                let hint = match state.threats.ioc_type {
+                    IocSearchType::Ip => "192.168.1.100, 10.0.0.1…",
+                    IocSearchType::Domain => "example.com, malware.xyz…",
+                    IocSearchType::Hash => "SHA-256 hash…",
+                    IocSearchType::Process => "powershell, curl, nc…",
+                    IocSearchType::Cve => "CVE-2024-12345…",
+                };
+                let input_width = (ui.available_width() - 140.0).max(200.0);
+                widgets::SearchInput::new(&mut state.threats.ioc_search, hint)
+                    .width(input_width)
+                    .height(theme::BUTTON_HEIGHT)
+                    .font(theme::font_body())
+                    .id_salt("ioc_search")
+                    .show(ui);
 
-            ui.add_space(theme::SPACE_SM);
+                ui.add_space(theme::SPACE_SM);
 
-            if widgets::button::primary_button(ui, format!("{}  Rechercher", icons::SEARCH), true)
+                if widgets::button::primary_button(
+                    ui,
+                    format!("{}  Rechercher", icons::SEARCH),
+                    true,
+                )
                 .clicked()
-                || (ui.input(|i| i.key_pressed(egui::Key::Enter))
-                    && !state.threats.ioc_search.is_empty())
-            {
-                // Search is live — results computed below from current query
-            }
-        });
-    });
+                    || (ui.input(|i| i.key_pressed(egui::Key::Enter))
+                        && !state.threats.ioc_search.is_empty())
+                {
+                    // Search is live — results computed below from current query
+                }
+            });
+        },
+    );
 
     ui.add_space(theme::SPACE_MD);
 
@@ -117,7 +125,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     state.threats.ioc_results_count = results.len();
 
     // ── Results panel ───────────────────────────────────────────────
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Résultats d’investigation", |ui: &mut egui::Ui| {
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(format!(

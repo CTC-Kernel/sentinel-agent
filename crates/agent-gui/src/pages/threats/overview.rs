@@ -156,7 +156,9 @@ fn summary_cards(ui: &mut Ui, state: &AppState, all_threats: &[ThreatEvent]) {
         ui,
         &summary_items,
         |ui, width, (label, value, color, icon)| {
-            summary_card(ui, width, label, value, *color, icon);
+            if summary_card(ui, width, label, value, *color, icon) {
+                widgets::open_data_panel(ui.ctx(), "Fil de sécurité consolidé");
+            }
         },
     );
 }
@@ -177,7 +179,7 @@ fn severity_and_coverage(ui: &mut Ui, state: &AppState, all_threats: &[ThreatEve
     }
     let total = all_threats.len();
 
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Sévérité et couverture", |ui: &mut egui::Ui| {
         // ── A. Severity distribution horizontal bar ──
         ui.label(
             egui::RichText::new("DISTRIBUTION PAR SÉVÉRITÉ")
@@ -514,7 +516,7 @@ fn threat_feed(
     let feed_end = feed_total.min(feed_start.saturating_add(feed_page_size));
     let page_threats = &threats[feed_start..feed_end];
 
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Fil de sécurité consolidé", |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new("FIL DE SÉCURITÉ CONSOLIDÉ")
                 .font(theme::font_label())
@@ -1573,10 +1575,11 @@ fn summary_card(
     value: &str,
     color: egui::Color32,
     icon: &str,
-) {
+) -> bool {
+    let mut clicked = false;
     ui.vertical(|ui: &mut egui::Ui| {
         ui.set_width(width);
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
             ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
             let response = ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
 
@@ -1643,8 +1646,11 @@ fn summary_card(
 
                 ui.ctx().request_repaint();
             }
-        });
+        })
+        .on_hover_text("Consulter les données associées")
+        .clicked();
     });
+    clicked
 }
 
 /// The operator's radar settings, kept in egui memory between frames.
@@ -1859,7 +1865,7 @@ fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
         controls.selected = None;
     }
 
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Radar des menaces", |ui: &mut egui::Ui| {
         let palette = RadarPalette::current();
         radar_header(ui, &mut controls, palette.control());
 

@@ -109,6 +109,14 @@ fn draw_premium_button(
         let is_hovered = enabled && !loading && response.hovered();
         let is_clicked = enabled && !loading && response.is_pointer_button_down_on();
         let hover_t = animation::animate_hover(ui.ctx(), response.id.with("hover"), is_hovered);
+        let press_t = animation::animate_hover(ui.ctx(), response.id.with("press"), is_clicked);
+        // Optical press only: the hit area and surrounding layout stay fixed.
+        let rect = if theme::is_reduced_motion() {
+            rect
+        } else {
+            rect.shrink(0.65 * press_t)
+                .translate(egui::vec2(0.0, 0.5 * press_t))
+        };
 
         // ─── Colors ───
         let (bg_fill, bg_stroke, text_color) = if is_primary {
@@ -176,14 +184,14 @@ fn draw_premium_button(
         // Painted before the fill below, so the button sits on its shadow.
         // Primary actions cast the brand's violet glow, not a grey drop.
         if is_primary && enabled && !loading && !is_clicked {
-            let glow = theme::accent_glow_shadow(0.75 + 0.25 * hover_t);
+            let glow = theme::accent_glow_shadow(0.20 + 0.35 * hover_t);
             ui.painter()
                 .add(glow.as_shape(rect, CornerRadius::same(theme::BUTTON_ROUNDING)));
         }
 
         // ─── Background Paint ───
         if is_primary && (enabled || loading) {
-            // The site's `from-violet-700 to-fuchsia-800` action gradient.
+            // Closely related iris and amethyst keep the action surface coherent.
             // `bg_fill` carries the hover/pressed state; the far stop follows
             // it by the same amount so the whole gradient deepens together.
             let depth = if is_clicked { 1.0 } else { hover_t * 0.6 };

@@ -393,7 +393,7 @@ pub fn row_interaction(row: &egui_extras::TableRow<'_, '_>, selected: bool) -> b
     if response.hovered() {
         response.ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
     }
-    if selected {
+    if selected || response.has_focus() {
         response.ctx.layer_painter(response.layer_id).rect_filled(
             egui::Rect::from_min_size(
                 response.rect.left_top(),
@@ -401,6 +401,14 @@ pub fn row_interaction(row: &egui_extras::TableRow<'_, '_>, selected: bool) -> b
             ),
             0,
             theme::accent_text(),
+        );
+    }
+    if response.has_focus() {
+        response.ctx.layer_painter(response.layer_id).rect_stroke(
+            response.rect.shrink(1.0),
+            theme::ROUNDING_XS,
+            theme::focus_ring(),
+            egui::StrokeKind::Inside,
         );
     }
     response.clicked()

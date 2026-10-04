@@ -119,8 +119,33 @@ pub fn animate_hover(ctx: &egui::Context, id: egui::Id, is_active: bool) -> f32 
     if theme::is_reduced_motion() {
         if is_active { 1.0 } else { 0.0 }
     } else {
-        ctx.animate_bool(id, is_active)
+        smooth_step(ctx.animate_bool_with_time(id, is_active, theme::ANIM_FAST))
     }
+}
+
+/// Frame-rate-independent, monotonic damping for moving navigation markers.
+/// A new target resumes from the current value; no restart, bounce or overshoot.
+/// Initial layout and reduced motion always resolve immediately.
+pub fn damped_value(ctx: &egui::Context, id: egui::Id, target: f32, duration: f32) -> f32 {
+    let previous = ctx.data(|data| data.get_temp::<f32>(id)).unwrap_or(target);
+    let value = if theme::is_reduced_motion() || duration <= 0.0 {
+        target
+    } else {
+        let dt = ctx.input(|i| i.stable_dt).clamp(0.0, 0.05);
+        let next = damped_step(previous, target, dt, duration);
+        if (target - next).abs() < 0.01 {
+            target
+        } else {
+            ctx.request_repaint();
+            next
+        }
+    };
+    ctx.data_mut(|data| data.insert_temp(id, value));
+    value
+}
+
+fn damped_step(previous: f32, target: f32, dt: f32, duration: f32) -> f32 {
+    previous + (target - previous) * (1.0 - (-dt * 6.0 / duration).exp())
 }
 
 /// Compute a timed animation progress (0.0 → 1.0) over `duration` seconds.
@@ -154,6 +179,43 @@ pub fn pulse(time: f64, speed: f32, min_val: f32, max_val: f32) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn damping_is_monotonic_and_resumes_toward_an_interrupted_target() {
+        let mut value = 0.0;
+        for _ in 0..8 {
+            let next = damped_step(value, 100.0, 1.0 / 60.0, 0.22);
+            assert!(next >= value && next <= 100.0);
+            value = next;
+        }
+        for _ in 0..60 {
+            let next = damped_step(value, -40.0, 1.0 / 60.0, 0.22);
+            assert!(next <= value && next >= -40.0);
+            value = next;
+        }
+        assert!((value + 40.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn damping_has_the_same_travel_at_60_and_120_hz() {
+        let run = |fps| {
+            (0..fps / 5).fold(0.0, |value, _| {
+                damped_step(value, 100.0, 1.0 / fps as f32, 0.22)
+            })
+        };
+        assert!((run(60) - run(120)).abs() < 0.001);
+    }
+
+    #[test]
+    fn damped_value_is_immediate_on_first_layout_and_reduced_motion() {
+        let ctx = egui::Context::default();
+        let id = egui::Id::new("reduced_marker");
+        assert_eq!(damped_value(&ctx, id, 40.0, 0.22), 40.0);
+        theme::set_reduced_motion(true);
+        let value = damped_value(&ctx, id, 90.0, 0.22);
+        theme::set_reduced_motion(false);
+        assert_eq!(value, 90.0);
+    }
 
     #[test]
     fn easing_boundaries() {

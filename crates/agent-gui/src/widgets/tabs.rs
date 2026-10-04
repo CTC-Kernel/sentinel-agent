@@ -282,10 +282,18 @@ impl<'a> TabBar<'a> {
             } else {
                 let id = ui.id().with("tab_underline");
                 (
-                    ui.ctx()
-                        .animate_value_with_time(id.with("x"), target_x, theme::ANIM_NORMAL),
-                    ui.ctx()
-                        .animate_value_with_time(id.with("w"), target_w, theme::ANIM_NORMAL),
+                    crate::animation::damped_value(
+                        ui.ctx(),
+                        id.with("x"),
+                        target_x,
+                        theme::ANIM_NORMAL,
+                    ),
+                    crate::animation::damped_value(
+                        ui.ctx(),
+                        id.with("w"),
+                        target_w,
+                        theme::ANIM_NORMAL,
+                    ),
                 )
             };
             ui.painter().rect_filled(

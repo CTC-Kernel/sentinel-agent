@@ -268,8 +268,36 @@ impl SoftwarePage {
                 }
                 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
                 SoftwareTab::Applications => { /* unreachable on unsupported platforms */ }
-                // Extensions have no detail drawer: the table shows everything.
-                SoftwareTab::Extensions => {}
+                SoftwareTab::Extensions => {
+                    if let Some(extension) = state.software.browser_extensions.get(sel_idx) {
+                        let (label, color) = reach_display(extension.reach);
+                        let action = widgets::DetailDrawer::new("extension_detail", &extension.name, icons::PLUG)
+                            .accent(color)
+                            .subtitle("Permissions, provenance et profil d’installation")
+                            .show(ui.ctx(), &mut state.software.detail_open, |ui| {
+                                widgets::detail_field_badge(ui, "Portée", label, color);
+                                widgets::detail_mono(ui, "Identifiant", &extension.id);
+                                widgets::detail_field(ui, "Version", &extension.version);
+                                widgets::detail_field(ui, "Navigateur", &extension.browser);
+                                widgets::detail_field(ui, "Utilisateur", &extension.user);
+                                widgets::detail_field(ui, "Profil", &extension.profile);
+                                widgets::detail_field(ui, "État", match extension.enabled {
+                                    Some(true) => "Activée", Some(false) => "Désactivée", None => "Non communiqué",
+                                });
+                                widgets::detail_field(ui, "Provenance", if extension.from_store { "Magasin du navigateur" } else { "Hors magasin / origine à vérifier" });
+                                widgets::detail_section(ui, "Permissions à examiner");
+                                if extension.reasons.is_empty() {
+                                    widgets::detail_text(ui, "", "Aucune permission sensible signalée par l’inventaire.");
+                                }
+                                for reason in &extension.reasons { widgets::detail_text(ui, "", reason); }
+                                widgets::detail_section(ui, "Vérification conseillée");
+                                widgets::detail_text(ui, "", "La portée décrit des capacités, pas un verdict de malveillance. Vérifiez l’éditeur, la nécessité des permissions et le profil concerné dans le gestionnaire d’extensions du navigateur.");
+                            }, &[widgets::DetailAction::secondary("Copier l’identifiant", icons::COPY)]);
+                        if action == Some(0) {
+                            ui.ctx().copy_text(extension.id.clone());
+                        }
+                    }
+                }
             }
         }
 
@@ -288,7 +316,7 @@ impl SoftwarePage {
             .filter(|e| e.reach == crate::dto::Severity::High)
             .count();
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Portée des extensions", |ui: &mut egui::Ui| {
             ui.horizontal_wrapped(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(crate::format::int(total as u64))
@@ -338,7 +366,7 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_SM);
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Extensions de navigateur", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("EXTENSIONS DE NAVIGATEUR")
                     .font(theme::font_label())
@@ -377,7 +405,7 @@ impl SoftwarePage {
                 &mut state.software.extensions_page,
             );
 
-            table::fluid(
+            table::fluid_clickable(
                 ui,
                 &[
                     table::Col::fluid(170.0, 2.0), // Extension
@@ -404,10 +432,10 @@ impl SoftwarePage {
             })
             .body(|body| {
                 body.rows(theme::TABLE_DATA_ROW_HEIGHT, page_len, |mut row| {
-                    let Some(extension) = filtered
-                        .get(page_start + row.index())
-                        .and_then(|&index| state.software.browser_extensions.get(index))
-                    else {
+                    let Some(&real_idx) = filtered.get(page_start + row.index()) else {
+                        return;
+                    };
+                    let Some(extension) = state.software.browser_extensions.get(real_idx) else {
                         return;
                     };
                     row.col(|ui| {
@@ -439,8 +467,30 @@ impl SoftwarePage {
                                 .on_hover_text(extension.reasons.join("\n"));
                         }
                     });
+                    if table::row_interaction(
+                        &row,
+                        state.software.selected_package == Some(real_idx),
+                    ) {
+                        state.software.selected_package = Some(real_idx);
+                        state.software.detail_open = true;
+                    }
                 });
             });
+            let mut position = state
+                .software
+                .selected_package
+                .and_then(|idx| filtered.iter().position(|&i| i == idx));
+            if widgets::navigate_list(
+                ui.ctx(),
+                &mut position,
+                filtered.len(),
+                &mut state.software.detail_open,
+            ) {
+                state.software.selected_package = position.and_then(|p| filtered.get(p).copied());
+                if let Some(pos) = position {
+                    state.software.extensions_page = pos / EXTENSIONS_PER_PAGE;
+                }
+            }
 
             widgets::paginate_controls(
                 ui,
@@ -525,7 +575,9 @@ impl SoftwarePage {
         ];
 
         card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
-            Self::summary_card(ui, width, label, value, *color, icon);
+            if Self::summary_card(ui, width, label, value, *color, icon) {
+                widgets::open_data_panel(ui.ctx(), "Paquets et dépendances");
+            }
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -575,7 +627,7 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_SM);
 
         // Packages table (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Paquets et dépendances", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("REGISTRE DES PAQUETS ET DÉPENDANCES")
                     .font(theme::font_label())
@@ -748,7 +800,7 @@ impl SoftwarePage {
     fn updates_card(ui: &mut Ui, packages: &[crate::dto::GuiSoftwarePackage]) {
         let total = packages.len();
         let current = packages.iter().filter(|p| p.up_to_date).count();
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Mises à jour", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("MISES À JOUR")
                     .font(theme::font_label())
@@ -824,7 +876,7 @@ impl SoftwarePage {
 
         // One context strip: the system and the audited folder are facts
         // about the inventory, not metrics, and read oddly as giant figures.
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Applications installées", |ui: &mut egui::Ui| {
             ui.horizontal_wrapped(|ui| {
                 ui.label(
                     egui::RichText::new(crate::format::int(total))
@@ -875,7 +927,7 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_SM);
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Applications natives", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("REGISTRE DES APPLICATIONS NATIVES")
                     .font(theme::font_label())
@@ -1077,11 +1129,12 @@ impl SoftwarePage {
         value: &str,
         color: egui::Color32,
         icon: &str,
-    ) {
+    ) -> bool {
+        let mut clicked = false;
         let safe_color = theme::readable_color(color);
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
                 ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
@@ -1110,8 +1163,11 @@ impl SoftwarePage {
                         },
                     );
                 });
-            });
+            })
+            .on_hover_text("Consulter les données associées")
+            .clicked();
         });
+        clicked
     }
 }
 

@@ -227,7 +227,9 @@ impl DiscoveryPage {
 
             card_grid.show(ui, &items, |ui, width, item| {
                 let (label, value, color, icon) = item;
-                Self::kpi_card(ui, width, label, value, *color, icon);
+                if Self::kpi_card(ui, width, label, value, *color, icon) {
+                    widgets::open_data_panel(ui.ctx(), "Équipements découverts");
+                }
             });
         }
 
@@ -313,7 +315,7 @@ impl DiscoveryPage {
 
         // Device table (AAA Grade)
         if filtered.is_empty() && !state.discovery.in_progress {
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            widgets::data_card(ui, "Équipements découverts", |ui: &mut egui::Ui| {
                 ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.add_space(theme::SPACE_XL);
                     widgets::empty_state(
@@ -326,7 +328,7 @@ impl DiscoveryPage {
                 });
             });
         } else if !filtered.is_empty() {
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            widgets::data_card(ui, "Équipements découverts", |ui: &mut egui::Ui| {
                 use widgets::table;
 
                 let mut clicked_idx: Option<usize> = None;
@@ -634,11 +636,12 @@ impl DiscoveryPage {
         value: &str,
         color: egui::Color32,
         icon: &str,
-    ) {
+    ) -> bool {
+        let mut clicked = false;
         let safe_color = theme::readable_color(color);
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
                 ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
@@ -667,8 +670,11 @@ impl DiscoveryPage {
                         },
                     );
                 });
-            });
+            })
+            .on_hover_text("Consulter les données associées")
+            .clicked();
         });
+        clicked
     }
 
     fn export_csv(state: &AppState, indices: &[usize]) -> bool {

@@ -93,7 +93,21 @@ impl AssetsPage {
 
         card_grid.show(ui, &items, |ui, width, item| {
             let (label, value, color, icon) = item;
-            Self::summary_card(ui, width, label, value, *color, icon);
+            if Self::summary_card(ui, width, label, value, *color, icon) {
+                widgets::open_data_panel(ui.ctx(), "Inventaire des actifs");
+                state.assets.search.clear();
+                state.assets.page = 0;
+                state.assets.criticality_filter = if *label == "CRITIQUES" {
+                    Some(AssetCriticality::Critical)
+                } else {
+                    None
+                };
+                state.assets.lifecycle_filter = match *label {
+                    "SURVEILLÉS" => Some(AssetLifecycle::Monitored),
+                    "DÉCOMMISSIONNÉS" => Some(AssetLifecycle::Decommissioned),
+                    _ => None,
+                };
+            }
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -233,7 +247,7 @@ impl AssetsPage {
         // Asset table
         let filtered = Self::filtered_indices(state);
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Inventaire des actifs", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("INVENTAIRE DES ACTIFS")
                     .font(theme::font_label())
@@ -703,11 +717,12 @@ impl AssetsPage {
         value: &str,
         color: egui::Color32,
         icon: &str,
-    ) {
+    ) -> bool {
+        let mut clicked = false;
         let safe_color = theme::readable_color(color);
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
                 ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
@@ -736,8 +751,11 @@ impl AssetsPage {
                         },
                     );
                 });
-            });
+            })
+            .on_hover_text("Afficher les éléments correspondants")
+            .clicked();
         });
+        clicked
     }
 
     /// Inline form to create a new managed asset.

@@ -63,7 +63,7 @@ impl CompliancePage {
         ui.add_space(theme::SPACE_MD);
 
         // Summary Area (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Synthèse des contrôles", |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 // Left: Large Gauge
                 ui.vertical(|ui| {
@@ -86,37 +86,57 @@ impl CompliancePage {
                     ui.add_space(theme::SPACE_MD);
 
                     ui.horizontal(|ui| {
-                        Self::mini_stat(
+                        if Self::mini_stat(
                             ui,
                             "TOTAL",
                             &state.policy.total_policies.to_string(),
                             theme::text_primary(),
                             icons::LIST,
-                        );
+                        ) {
+                            state.compliance.status_filter = None;
+                            state.compliance.search.clear();
+                            state.compliance.current_page = 0;
+                            widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
+                        }
                         ui.add_space(theme::SPACE_MD);
-                        Self::mini_stat(
+                        if Self::mini_stat(
                             ui,
                             "CONFORME",
                             &state.policy.passing.to_string(),
                             theme::SUCCESS,
                             icons::CIRCLE_CHECK,
-                        );
+                        ) {
+                            state.compliance.status_filter = Some(GuiCheckStatus::Pass);
+                            state.compliance.search.clear();
+                            state.compliance.current_page = 0;
+                            widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
+                        }
                         ui.add_space(theme::SPACE_MD);
-                        Self::mini_stat(
+                        if Self::mini_stat(
                             ui,
                             "DÉFAILLANT",
                             &state.policy.failing.to_string(),
                             theme::ERROR,
                             icons::CIRCLE_XMARK,
-                        );
+                        ) {
+                            state.compliance.status_filter = Some(GuiCheckStatus::Fail);
+                            state.compliance.search.clear();
+                            state.compliance.current_page = 0;
+                            widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
+                        }
                         ui.add_space(theme::SPACE_MD);
-                        Self::mini_stat(
+                        if Self::mini_stat(
                             ui,
                             "ERREUR",
                             &state.policy.errors.to_string(),
                             theme::WARNING,
                             icons::WARNING,
-                        );
+                        ) {
+                            state.compliance.status_filter = Some(GuiCheckStatus::Error);
+                            state.compliance.search.clear();
+                            state.compliance.current_page = 0;
+                            widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
+                        }
                     });
 
                     if let Some(ref frameworks) = state.summary.active_frameworks
@@ -152,7 +172,7 @@ impl CompliancePage {
             && !frameworks.is_empty()
             && !state.checks.is_empty()
         {
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            widgets::data_card(ui, "Scores par référentiel", |ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("SCORE PAR R\u{00c9}F\u{00c9}RENTIEL")
                         .font(theme::font_label())
@@ -392,7 +412,7 @@ impl CompliancePage {
         ui.add_space(theme::SPACE_MD);
 
         // Check results table (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Résultats des contrôles", |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(match state.compliance.view_mode {
@@ -1076,8 +1096,8 @@ impl CompliancePage {
         }
     }
 
-    fn mini_stat(ui: &mut Ui, label: &str, value: &str, color: egui::Color32, icon: &str) {
-        ui.horizontal(|ui| {
+    fn mini_stat(ui: &mut Ui, label: &str, value: &str, color: egui::Color32, icon: &str) -> bool {
+        let row = ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = theme::SPACE_MICRO;
             ui.label(
                 egui::RichText::new(icon)
@@ -1091,6 +1111,14 @@ impl CompliancePage {
                     .color(theme::text_tertiary()),
             );
         });
+        ui.interact(
+            row.response.rect,
+            row.response.id.with("filter_status"),
+            egui::Sense::click(),
+        )
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text("Afficher les contrôles correspondants")
+        .clicked()
     }
 
     fn status_display(status: &GuiCheckStatus) -> (&'static str, egui::Color32) {

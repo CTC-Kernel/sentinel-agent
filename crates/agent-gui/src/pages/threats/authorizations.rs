@@ -82,7 +82,7 @@ pub(super) fn show(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand
     );
     ui.add_space(theme::SPACE_MD);
     widgets::ResponsiveGrid::new(340.0, theme::SPACE_MD).show(ui, &[0, 1], |ui, _, item| {
-        widgets::card(ui, |ui| {
+        widgets::data_card(ui, "Autorisations", |ui| {
             if *item == 0 {
                 editor_form(ui, state, &mut editor);
             } else {
@@ -125,7 +125,7 @@ pub(super) fn show(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand
         .cloned()
         .collect();
     if rules.is_empty() {
-        widgets::card(ui, |ui| {
+        widgets::data_card(ui, "Règles d’autorisation", |ui| {
             let (title, detail) = if total == 0 {
                 (
                     "Aucune exception enregistrée",

@@ -210,65 +210,62 @@ pub fn detect_reduced_motion() -> bool {
 //   • text_tertiary and semantic text ≥ 4.5:1 (WCAG AA) on every surface
 //   • border()                        ≥ 3:1 (WCAG 1.4.11) on every surface
 
-/// Primary accent — Sentinel GRC violet (violet-700), the hue that carries
-/// every call to action on cyber-threat-consulting.com. Reserved for actions
-/// and selection; neutral surfaces never inherit it in light mode.
-pub const ACCENT: Color32 = Color32::from_rgb(109, 40, 217); // #6D28D9
-/// Far end of the primary-action gradient (fuchsia-800), as on the site's
-/// download buttons: `ACCENT → ACCENT_GRADIENT_END`, left to right.
-pub const ACCENT_GRADIENT_END: Color32 = Color32::from_rgb(134, 25, 143); // #86198F
+/// Primary action: deep iris. Text and selections use its pale counterpart
+/// in dark mode; semantic states keep their own hue families.
+pub const ACCENT: Color32 = Color32::from_rgb(89, 68, 176); // #5944B0
+/// Adjacent amethyst stop: a quiet hue shift with AAA white-label contrast.
+pub const ACCENT_GRADIENT_END: Color32 = Color32::from_rgb(97, 68, 162); // #6144A2
 
 /// Decorative brand ramp from the CTC site. Semantic alert colors and
 /// readable control colors remain independent of these accents.
-pub const BRAND_CYAN: Color32 = Color32::from_rgb(34, 211, 238); // #22D3EE
+pub const BRAND_CYAN: Color32 = Color32::from_rgb(150, 184, 219); // #96B8DB
 pub const BRAND_BLUE: Color32 = Color32::from_rgb(37, 99, 235); // #2563EB
-pub const BRAND_VIOLET: Color32 = Color32::from_rgb(139, 92, 246); // #8B5CF6
-pub const BRAND_EMERALD: Color32 = Color32::from_rgb(52, 211, 153); // #34D399
+pub const BRAND_VIOLET: Color32 = Color32::from_rgb(166, 148, 221); // #A694DD
+pub const BRAND_EMERALD: Color32 = Color32::from_rgb(140, 205, 187); // #8CCDBB
 /// Mint used by the site's quiet primary call to action ("Commencer").
 pub const BRAND_MINT: Color32 = Color32::from_rgb(163, 237, 230); // #A3EDE6
-/// Signature tri-tone of the site's display type ("Chez vous."):
-/// violet-300 → cyan-300 → emerald-300. See `gradient_text`.
+/// Signature pearl/lavender/steel ramp. See `gradient_text`.
 pub const BRAND_GRADIENT: [Color32; 3] = [
-    Color32::from_rgb(196, 181, 253), // #C4B5FD
-    Color32::from_rgb(103, 232, 249), // #67E8F9
-    Color32::from_rgb(110, 231, 183), // #6EE7B7
+    Color32::from_rgb(217, 211, 251), // #D9D3FB
+    Color32::from_rgb(186, 184, 236), // #BAB8EC
+    Color32::from_rgb(161, 189, 222), // #A1BDDE
 ];
 
 /// Accent tuned for text and icons on dark surfaces (violet-300).
-pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(196, 181, 253); // #C4B5FD
+pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(203, 196, 245); // #CBC4F5
 /// Accent hover state (one step deeper than `ACCENT`).
-pub const ACCENT_HOVER: Color32 = Color32::from_rgb(91, 33, 182); // #5B21B6
+pub const ACCENT_HOVER: Color32 = Color32::from_rgb(80, 59, 159); // #503B9F
 /// Accent pressed state.
-pub const ACCENT_PRESSED: Color32 = Color32::from_rgb(76, 29, 149); // #4C1D95
+pub const ACCENT_PRESSED: Color32 = Color32::from_rgb(68, 50, 135); // #443287
 /// Accent tuned for text and icons on light surfaces.
-pub const ACCENT_DEEP: Color32 = Color32::from_rgb(109, 40, 217); // #6D28D9
+pub const ACCENT_DEEP: Color32 = Color32::from_rgb(89, 68, 176); // #5944B0
 
 /// Success — emerald.
-pub const SUCCESS: Color32 = Color32::from_rgb(43, 201, 138); // #2BC98A
+pub const SUCCESS: Color32 = Color32::from_rgb(105, 213, 177); // #69D5B1
 /// Warning — amber.
-pub const WARNING: Color32 = Color32::from_rgb(245, 165, 36); // #F5A524
+pub const WARNING: Color32 = Color32::from_rgb(231, 188, 113); // #E7BC71
 /// Error — signal red.
-pub const ERROR: Color32 = Color32::from_rgb(255, 97, 99); // #FF6163
+pub const ERROR: Color32 = Color32::from_rgb(245, 140, 152); // #F58C98
 /// Opaque action fills, distinct from the bright semantic error text color.
 pub const DANGER_FILL: Color32 = Color32::from_rgb(164, 29, 42);
 pub const DANGER_HOVER: Color32 = Color32::from_rgb(145, 24, 37);
 pub const DANGER_PRESSED: Color32 = Color32::from_rgb(125, 20, 32);
 /// Info — azure.
-pub const INFO: Color32 = Color32::from_rgb(56, 166, 245); // #38A6F5
+pub const INFO: Color32 = Color32::from_rgb(134, 185, 235); // #86B9EB
 /// Severity ramp, hottest first: critical `ERROR` red, high burnt orange,
 /// medium amber, low `INFO` blue. Each step cools, so a colour alone ranks
 /// an event; medium used to be the hotter orange, which read backwards.
 /// Severity-high — burnt orange, between `ERROR` and medium.
-pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 140, 58); // #FF8C3A
+pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(243, 163, 123); // #F3A37B
 /// Severity-medium — saturated amber, the `WARNING` family.
-pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 176, 32); // #FFB020
+pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(231, 188, 113); // #E7BC71
 /// Assistant / AI — lavender, the pale end of the brand violet. It reads as
 /// the same family as the action accent, as on the site's AI orb, but its
 /// lightness keeps it apart from the deep violet fills.
-pub const AI: Color32 = Color32::from_rgb(167, 139, 255); // #A78BFF
+pub const AI: Color32 = Color32::from_rgb(185, 170, 240); // #B9AAF0
 
 // Light-mode counterparts (deepened for ≥4.5:1 on white and near-white).
-const ACCENT_ON_LIGHT: Color32 = Color32::from_rgb(109, 40, 217); // #6D28D9
+const ACCENT_ON_LIGHT: Color32 = Color32::from_rgb(89, 68, 176); // #5944B0
 const SUCCESS_ON_LIGHT: Color32 = Color32::from_rgb(8, 108, 74); // #086C4A
 const WARNING_ON_LIGHT: Color32 = Color32::from_rgb(138, 87, 0); // #8A5700
 const ERROR_ON_LIGHT: Color32 = Color32::from_rgb(196, 38, 43); // #C4262B
@@ -290,9 +287,9 @@ const AI_ON_LIGHT: Color32 = Color32::from_rgb(109, 75, 216); // #6D4BD8
 #[inline]
 pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(7, 10, 18) // #070A12 — site ink
+        Color32::from_rgb(16, 18, 28) // #10121C — graphite canvas
     } else {
-        Color32::from_rgb(238, 242, 246) // #EEF2F6 — pearl canvas
+        Color32::from_rgb(242, 243, 246) // #F2F3F6 — neutral pearl canvas
     }
 }
 
@@ -300,9 +297,9 @@ pub fn bg_primary() -> Color32 {
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(12, 16, 27) // #0C101B — site card
+        Color32::from_rgb(23, 26, 39) // #171A27 — ink surface
     } else {
-        Color32::from_rgb(253, 254, 255) // #FDFEFF — porcelain surface
+        Color32::from_rgb(254, 254, 255) // #FEFEFF — porcelain surface
     }
 }
 
@@ -310,7 +307,7 @@ pub fn bg_secondary() -> Color32 {
 #[inline]
 pub fn bg_elevated() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(28, 34, 52) // #1C2234
+        Color32::from_rgb(41, 46, 64) // #292E40
     } else {
         Color32::from_rgb(230, 235, 238) // #E6EBEE
     }
@@ -320,7 +317,7 @@ pub fn bg_elevated() -> Color32 {
 #[inline]
 pub fn bg_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(19, 24, 38) // #131826
+        Color32::from_rgb(32, 37, 55) // #202537
     } else {
         Color32::from_rgb(240, 244, 248) // #F0F4F8
     }
@@ -331,7 +328,7 @@ pub fn bg_tertiary() -> Color32 {
 #[inline]
 pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(5, 7, 13) // #05070D — site chrome
+        Color32::from_rgb(12, 14, 22) // #0C0E16 — recessed chrome
     } else {
         Color32::from_rgb(246, 248, 252) // #F6F8FC
     }
@@ -341,7 +338,7 @@ pub fn bg_sidebar() -> Color32 {
 #[inline]
 pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(3, 4, 9) // #030409
+        Color32::from_rgb(8, 10, 17) // #080A11
     } else {
         // A hair under the card surface: at #E8ECF0 an inset panel was
         // darker than the page behind its own card and read as disabled.
@@ -532,46 +529,17 @@ pub const TOPBAR_HEIGHT: f32 = 56.0;
 /// centre instead — an unbounded line length is unreadable on wide displays.
 pub const CONTENT_MAX_WIDTH: f32 = 1560.0;
 
-/// Paint the quiet spatial grid and brand glows behind a workspace.
-///
-/// Mirrors the hero of cyber-threat-consulting.com: a faint slate grid over
-/// the ink canvas, a violet bloom in the upper right and a cyan one in the
-/// lower left. The treatment is restricted to the application canvas so it
-/// never competes with tables, cards, or text.
+/// A quiet brand light at the top of the canvas. Data pages keep a neutral
+/// field: no grid or lower glow competing with small text and chart axes.
 pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
     if !painter.clip_rect().intersects(rect) {
         return;
     }
-
-    let dark = is_dark_mode();
-    let grid = if dark {
-        Color32::from_rgba_unmultiplied(148, 163, 184, 6)
-    } else {
-        Color32::from_rgba_unmultiplied(76, 29, 149, 7)
-    };
-    let step = 40.0;
-    let mut x = rect.left() - rect.left().rem_euclid(step);
-    while x <= rect.right() {
-        painter.vline(x, rect.y_range(), Stroke::new(BORDER_HAIRLINE, grid));
-        x += step;
-    }
-    let mut y = rect.top() - rect.top().rem_euclid(step);
-    while y <= rect.bottom() {
-        painter.hline(rect.x_range(), y, Stroke::new(BORDER_HAIRLINE, grid));
-        y += step;
-    }
-
     paint_radial_glow(
         painter,
-        egui::pos2(rect.right() - 140.0, rect.top() + 40.0),
-        460.0,
-        with_alpha(BRAND_VIOLET, if dark { 22 } else { 12 }),
-    );
-    paint_radial_glow(
-        painter,
-        egui::pos2(rect.left() + 80.0, rect.bottom() - 20.0),
-        380.0,
-        with_alpha(BRAND_CYAN, if dark { 14 } else { 8 }),
+        egui::pos2(rect.right() - 80.0, rect.top() - 120.0),
+        400.0,
+        with_alpha(BRAND_VIOLET, if is_dark_mode() { 8 } else { 3 }),
     );
 }
 
@@ -639,6 +607,31 @@ pub fn paint_brand_hairline(painter: &egui::Painter, rect: egui::Rect, radius: C
             rect.right() - f32::from(radius.ne),
         ),
         color,
+    );
+}
+
+/// Localized specular highlight. Only the rim is painted: content stays crisp.
+pub fn paint_interactive_rim(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    radius: CornerRadius,
+    position: f32,
+    intensity: f32,
+) {
+    let left = rect.left() + f32::from(radius.nw);
+    let right = rect.right() - f32::from(radius.ne);
+    let width = (right - left).max(0.0);
+    if width <= 0.0 {
+        return;
+    }
+    let center = left + width * position.clamp(0.0, 1.0);
+    let reach = (width * 0.28).min(100.0);
+    let color = if is_dark_mode() { ACCENT_LIGHT } else { ACCENT };
+    paint_gradient_hairline(
+        painter,
+        rect.top() + 0.5,
+        egui::Rangef::new((center - reach).max(left), (center + reach).min(right)),
+        with_alpha(color, (180.0 * intensity.clamp(0.0, 1.0)) as u8),
     );
 }
 
@@ -809,17 +802,24 @@ fn theme_variant(color: Color32) -> Color32 {
         // every other hue is already tuned for it.
         return if color == ACCENT { ACCENT_LIGHT } else { color };
     }
-    match (color.r(), color.g(), color.b()) {
-        (109, 40, 217) | (196, 181, 253) => ACCENT_ON_LIGHT, // ACCENT / ACCENT_LIGHT
-        (43, 201, 138) => SUCCESS_ON_LIGHT,
-        (245, 165, 36) => WARNING_ON_LIGHT,
-        (255, 97, 99) => ERROR_ON_LIGHT,
-        (56, 166, 245) => INFO_ON_LIGHT,
-        (255, 140, 58) => SEVERITY_HIGH_ON_LIGHT,
-        (255, 176, 32) => SEVERITY_MEDIUM_ON_LIGHT,
-        (167, 139, 255) => AI_ON_LIGHT,
-        _ => darken_for_light_bg(color),
+    // Compare tokens directly so future palette refinements cannot silently
+    // detach a semantic colour from its calibrated light-mode counterpart.
+    for (source, counterpart) in [
+        (ACCENT, ACCENT_ON_LIGHT),
+        (ACCENT_LIGHT, ACCENT_ON_LIGHT),
+        (SUCCESS, SUCCESS_ON_LIGHT),
+        (WARNING, WARNING_ON_LIGHT),
+        (ERROR, ERROR_ON_LIGHT),
+        (INFO, INFO_ON_LIGHT),
+        (SEVERITY_HIGH, SEVERITY_HIGH_ON_LIGHT),
+        (SEVERITY_MEDIUM, SEVERITY_MEDIUM_ON_LIGHT),
+        (AI, AI_ON_LIGHT),
+    ] {
+        if color == source {
+            return counterpart;
+        }
     }
+    darken_for_light_bg(color)
 }
 
 /// Darken an arbitrary color until it clears WCAG AA on a white surface.
@@ -994,7 +994,7 @@ pub fn backdrop_color(alpha: u8) -> Color32 {
 /// Minimum table row height for readability and touch targets.
 pub const TABLE_ROW_HEIGHT: f32 = 36.0;
 /// Compact row height for dense / terminal-like tables.
-pub const TABLE_COMPACT_ROW_HEIGHT: f32 = 22.0;
+pub const TABLE_COMPACT_ROW_HEIGHT: f32 = 28.0;
 /// Data table row height (generous padding for premium feel).
 pub const TABLE_DATA_ROW_HEIGHT: f32 = 44.0;
 /// Data table header height (used by DataTable widget).
@@ -1006,7 +1006,7 @@ pub const TABLE_EMPTY_HEIGHT: f32 = 120.0;
 /// Alternating row tint alpha (visible stripe differentiation).
 pub const TABLE_ALT_ROW_ALPHA: u8 = 10;
 /// Blend of the overlay colour into the surface for alternate table rows.
-pub const TABLE_ALT_ROW_BLEND: f32 = 0.04;
+pub const TABLE_ALT_ROW_BLEND: f32 = 0.025;
 
 /// Get alternating row background color.
 pub fn table_row_bg(row_index: usize) -> Color32 {
@@ -1035,7 +1035,7 @@ pub fn table_row_hover() -> Color32 {
 /// the palette's results.
 pub fn glass_card_bg() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(12, 16, 27)
+        Color32::from_rgb(23, 26, 39)
     } else {
         Color32::WHITE
     }
@@ -1064,12 +1064,12 @@ pub fn glass_border_bottom() -> Color32 {
 // ============================================================================
 
 /// Duration for page fade transitions.
-pub const PAGE_TRANSITION_DURATION: f32 = 0.18;
+pub const PAGE_TRANSITION_DURATION: f32 = 0.16;
 
 /// Fast animation (buttons, micro-interactions) - 150ms.
 pub const ANIM_FAST: f32 = 0.15;
-/// Normal animation (modals, panels, transitions) - 250ms.
-pub const ANIM_NORMAL: f32 = 0.25;
+/// Normal animation (modals, panels, transitions) - 220ms.
+pub const ANIM_NORMAL: f32 = 0.22;
 /// Slow animation (page transitions, skeletons, emphasis) - 400ms.
 pub const ANIM_SLOW: f32 = 0.40;
 
@@ -1162,8 +1162,8 @@ pub const TEXT_MICRO: f32 = 11.0;
 pub const TEXT_CAPTION: f32 = 12.0;
 /// Size step: dense body (12px) — table cells, chips.
 pub const TEXT_BODY_SM: f32 = 12.0;
-/// Size step: body (13px) — the default reading size.
-pub const TEXT_BODY: f32 = 13.0;
+/// Size step: body (14px) — the default reading size.
+pub const TEXT_BODY: f32 = 14.0;
 /// Size step: lead body (15px) — subtitles, drawer intros.
 pub const TEXT_BODY_LG: f32 = 15.0;
 // Headings climb in clear steps above the 15px lead: at 16px a section
@@ -1216,12 +1216,12 @@ pub fn font_body() -> FontId {
     FontId::new(TEXT_BODY, family_regular())
 }
 
-/// Body text with medium weight (13px) — emphasis inside dense layouts.
+/// Body text with medium weight (14px) — emphasis inside dense layouts.
 pub fn font_body_medium() -> FontId {
     FontId::new(TEXT_BODY, family_medium())
 }
 
-/// Body text with semibold weight (13px) — buttons, active items.
+/// Body text with semibold weight (14px) — buttons, active items.
 pub fn font_body_strong() -> FontId {
     FontId::new(TEXT_BODY, family_semibold())
 }
@@ -2386,7 +2386,7 @@ mod contrast_tests {
 
     #[test]
     fn text_on_accent_is_readable() {
-        for accent in [ACCENT, ACCENT_HOVER, ACCENT_PRESSED] {
+        for accent in [ACCENT, ACCENT_GRADIENT_END, ACCENT_HOVER, ACCENT_PRESSED] {
             let ratio = contrast_ratio(text_on_accent(), accent);
             assert!(ratio >= 7.0, "text on accent fill: {ratio:.2}:1");
         }

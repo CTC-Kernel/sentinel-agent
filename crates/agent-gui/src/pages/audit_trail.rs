@@ -108,7 +108,7 @@ impl AuditTrailPage {
         ui.add_space(theme::SPACE_MD);
 
         // Log Table
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Journal d’audit", |ui: &mut egui::Ui| {
             Self::render_table(ui, state);
         });
 

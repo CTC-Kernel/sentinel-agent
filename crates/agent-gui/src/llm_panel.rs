@@ -1875,7 +1875,7 @@ impl LLMPanel {
         ui.add_space(theme::SPACE_MD);
 
         // ── Section D: Recommendations List ──────────────────────────────
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Analyse des recommandations", |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("RECOMMANDATIONS PRIORIS\u{00c9}ES")
@@ -2045,7 +2045,7 @@ impl LLMPanel {
         let model_name_str = state.ai.model_status.model_name.clone();
         let is_ready = state.ai.model_status.is_ready;
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "État du modèle local", |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 // Status indicator dot
                 let (dot_color, status_text) = if is_ready {
@@ -2205,7 +2205,7 @@ impl LLMPanel {
 
         // Read the same registry used by the engine; no independently branded catalogue.
         #[cfg(feature = "llm")]
-        widgets::card(ui, |ui| {
+        widgets::data_card(ui, "Catalogue des modèles", |ui| {
             ui.label(
                 egui::RichText::new("Choisir un modèle local")
                     .font(theme::font_heading())
@@ -2332,7 +2332,7 @@ impl LLMPanel {
         let is_paused = phase == crate::dto::DownloadPhase::Paused;
         let is_failed = phase == crate::dto::DownloadPhase::Failed;
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Téléchargement du modèle", |ui: &mut egui::Ui| {
             // ── Header ──────────────────────────────────────────────────
             ui.horizontal(|ui: &mut egui::Ui| {
                 let header_icon = if is_failed {
@@ -2783,7 +2783,7 @@ impl LLMPanel {
     }
 
     fn render_posture_hero(ui: &mut egui::Ui, state: &AppState, ai_score: f32) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Posture assistée", |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 // Left: Gauge
                 ui.vertical(|ui| {
@@ -2970,7 +2970,7 @@ impl LLMPanel {
     ) {
         ui.vertical(|ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            let response = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(icon)
@@ -2995,6 +2995,12 @@ impl LLMPanel {
                     });
                 });
             });
+            if response
+                .on_hover_text("Examiner les recommandations associées")
+                .clicked()
+            {
+                widgets::open_data_panel(ui.ctx(), "Analyse des recommandations");
+            }
         });
     }
 

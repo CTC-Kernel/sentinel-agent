@@ -68,7 +68,7 @@ impl SyncPage {
 
         // Status card: the state, three health figures, the recent run of
         // transfers, then the action. It used to be one date and a button.
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "État de la synchronisation", |ui: &mut egui::Ui| {
             let (state_label, state_color) = if state.sync.in_progress {
                 ("Synchronisation en cours", theme::INFO)
             } else if state.sync.error.is_some() {
@@ -198,7 +198,7 @@ impl SyncPage {
         ui.add_space(theme::SPACE_LG);
 
         // Sync history
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Historique des transferts", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("HISTORIQUE DES TRANSFERTS")
                     .font(theme::font_small())

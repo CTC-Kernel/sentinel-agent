@@ -110,7 +110,7 @@ impl MonitoringPage {
         }
 
         // ── Status bar ─────────────────────────────────────────────────────
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "État de la collecte SIEM", |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 // Connection status
                 let (status_icon, status_label, status_color) = if state.siem.stats.connected {
@@ -304,7 +304,7 @@ impl MonitoringPage {
         let mut clicked_idx: Option<usize> = None;
         let selected = state.siem.selected_log;
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Journal SIEM", |ui: &mut egui::Ui| {
             ui.label(
                 RichText::new(format!(
                     "JOURNAL DES ÉVÉNEMENTS  —  {} résultat{}",
@@ -465,7 +465,9 @@ impl MonitoringPage {
             ui,
             &stats_items,
             |ui, width, (label, value, color, icon)| {
-                Self::summary_card(ui, width, label, value, *color, icon);
+                if Self::summary_card(ui, width, label, value, *color, icon) {
+                    widgets::open_data_panel(ui.ctx(), "Répartition par catégorie");
+                }
             },
         );
 
@@ -522,7 +524,7 @@ impl MonitoringPage {
         ui.add_space(theme::SPACE_LG);
 
         // ── Forwarding config summary ──────────────────────────────────────
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Configuration du transfert", |ui: &mut egui::Ui| {
             ui.label(
                 RichText::new("CONFIGURATION DU TRANSFERT")
                     .font(theme::font_label())
@@ -577,7 +579,7 @@ impl MonitoringPage {
         auto_y: bool,
     ) {
         let line_color = theme::chart_color(line_color);
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, title, |ui: &mut egui::Ui| {
             // ── Header with live indicator ──────────────────────────────────
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
@@ -798,7 +800,7 @@ impl MonitoringPage {
     // ════════════════════════════════════════════════════════════════════════
 
     fn connection_status_card(ui: &mut Ui, state: &AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "État de la connexion SIEM", |ui: &mut egui::Ui| {
             ui.label(
                 RichText::new("ÉTAT DE LA CONNEXION")
                     .font(theme::font_label())
@@ -882,7 +884,7 @@ impl MonitoringPage {
     }
 
     fn category_distribution_card(ui: &mut Ui, stats: &crate::dto::GuiSiemStats) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Répartition par catégorie", |ui: &mut egui::Ui| {
             ui.label(
                 RichText::new("RÉPARTITION PAR CATÉGORIE")
                     .font(theme::font_label())
@@ -1170,10 +1172,11 @@ impl MonitoringPage {
         value: &str,
         color: egui::Color32,
         icon: &str,
-    ) {
+    ) -> bool {
+        let mut clicked = false;
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
                 ui.set_min_height(SUMMARY_CARD_MIN_HEIGHT);
 
                 let response =
@@ -1244,8 +1247,11 @@ impl MonitoringPage {
                         ),
                     );
                 }
-            });
+            })
+            .on_hover_text("Consulter les données associées")
+            .clicked();
         });
+        clicked
     }
 
     #[allow(dead_code)]

@@ -70,7 +70,7 @@ fn nav_sections() -> [NavSection; 5] {
         NavSection {
             label: "D\u{00c9}TECTION & R\u{00c9}PONSE",
             items: &[
-                (Page::Threats, icons::SKULL, "Menaces"),
+                (Page::Threats, icons::SHIELD_VIRUS, "Menaces"),
                 (
                     Page::Vulnerabilities,
                     icons::VULNERABILITIES,
@@ -411,7 +411,8 @@ impl Sidebar {
                 let y = if theme::is_reduced_motion() {
                     target_y
                 } else {
-                    ui.ctx().animate_value_with_time(
+                    crate::animation::damped_value(
+                        ui.ctx(),
                         egui::Id::new("sidebar_active_marker_y"),
                         target_y,
                         theme::ANIM_NORMAL,

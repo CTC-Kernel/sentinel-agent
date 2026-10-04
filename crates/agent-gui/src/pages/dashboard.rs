@@ -22,7 +22,7 @@ const SOFTWARE_COVERAGE_GOOD: f32 = 90.0;
 /// Software coverage percentage above which is considered acceptable.
 const SOFTWARE_COVERAGE_WARN: f32 = 70.0;
 /// AI posture gauge radius in the hero card.
-const AI_GAUGE_RADIUS: f32 = 48.0;
+const AI_GAUGE_RADIUS: f32 = 30.0;
 /// Maximum recommendations shown on dashboard.
 const DASHBOARD_MAX_RECOMMENDATIONS: usize = 3;
 /// Minimum card width for bottom grid (recommendations + feed).
@@ -47,7 +47,7 @@ const INDICATOR_CHART_HEIGHT: f32 = INDICATOR_CARD_MIN_HEIGHT - 56.0;
 /// Minimum inner height for bottom-row cards (recommendations + feed).
 const BOTTOM_CARD_MIN_HEIGHT: f32 = 200.0;
 /// Minimum inner height for the AI posture score hero card.
-const AI_SCORE_CARD_MIN_HEIGHT: f32 = 220.0;
+const AI_SCORE_CARD_MIN_HEIGHT: f32 = 252.0;
 
 /// Actions returned by the dashboard page.
 pub enum DashboardAction {
@@ -109,102 +109,60 @@ impl DashboardPage {
 
         ui.add_space(theme::SPACE_MD);
 
-        // ══════════════════════════════════════════════════════════════════
-        // ORGANIZATION BANNER (Premium)
-        // ══════════════════════════════════════════════════════════════════
-        if let Some(cmd) = widgets::org_banner(ui, state) {
-            action = Some(DashboardAction::Command(cmd));
-        }
-
-        ui.add_space(theme::SPACE_SM);
-
-        // ══════════════════════════════════════════════════════════════════
-        // ACTION BAR (inline — Scan, Sync, Export + system status)
-        // ══════════════════════════════════════════════════════════════════
-        if let Some(cmd) = Self::action_bar(ui, state) {
-            action = Some(DashboardAction::Command(cmd));
-        }
-
-        ui.add_space(theme::SPACE_SM);
-
-        crate::pages::security_navigation(ui, state);
-        ui.add_space(theme::SPACE_MD);
-
-        // Persistent operational pulse: three concise, actionable signals
-        // answer “what is protected, what needs attention, and can I act?”
-        // before the operator reaches the analytical cards below.
-        if let Some(target) = Self::operational_pulse(ui, state) {
-            action = Some(DashboardAction::NavigateTo(target));
-        }
-
-        ui.add_space(theme::SPACE_LG);
-
-        // ══════════════════════════════════════════════════════════════════
-        // SECURITY HERO + AI POSTURE SCORE (Side by side on large screens)
-        // ══════════════════════════════════════════════════════════════════
-        ui.push_id("hero_grid", |ui| {
-            let hero_grid = widgets::ResponsiveGrid::new(400.0, theme::SPACE);
-            let hero_items = vec![0, 1];
-
-            hero_grid.show(ui, &hero_items, |ui, width, &idx| {
-                ui.vertical(|ui: &mut egui::Ui| {
-                    ui.set_width(width);
-                    match idx {
-                        0 => {
-                            // security_hero uses card() internally — overlay click sense
-                            let r = ui.scope(|ui| {
-                                widgets::security_hero(ui, state);
-                            });
-                            let click = ui.interact(
-                                r.response.rect,
-                                ui.id().with("hero_security_click"),
-                                egui::Sense::click(),
-                            );
-                            click.widget_info(|| {
-                                egui::WidgetInfo::labeled(
-                                    egui::WidgetType::Button,
-                                    ui.is_enabled(),
-                                    "Consulter les détails de sécurité",
-                                )
-                            });
-                            if click.hovered() {
-                                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                            }
-                            if click.clicked() {
-                                let target = if !state.threats.suspicious_processes.is_empty()
-                                    || !state.threats.usb_events.is_empty()
-                                {
-                                    Page::Threats
-                                } else if state
-                                    .vulnerability_summary
-                                    .as_ref()
-                                    .is_some_and(|v| v.critical > 0 || v.high > 0)
-                                {
-                                    Page::Vulnerabilities
-                                } else {
-                                    Page::Compliance
-                                };
-                                action = Some(DashboardAction::NavigateTo(target));
-                            }
-                        }
-                        _ => {
-                            if let Some(act) = Self::ai_posture_score_card(ui, state) {
-                                action = Some(act);
-                            }
-                        }
+        // The verdict is the first content, before tenant context and tools.
+        let available = ui.available_width();
+        if available >= 940.0 {
+            let gap = theme::SPACE;
+            let assistant_width = ((available - gap) * 0.36).max(330.0);
+            let verdict_width = available - gap - assistant_width;
+            ui.horizontal_top(|ui| {
+                ui.spacing_mut().item_spacing.x = gap;
+                ui.vertical(|ui| {
+                    ui.set_width(verdict_width);
+                    if let Some(target) = Self::posture_panel(ui, state) {
+                        action = Some(DashboardAction::NavigateTo(target));
+                    }
+                });
+                ui.vertical(|ui| {
+                    ui.set_width(assistant_width);
+                    if let Some(next) = Self::ai_posture_score_card(ui, state) {
+                        action = Some(next);
                     }
                 });
             });
-        });
+        } else {
+            if let Some(target) = Self::posture_panel(ui, state) {
+                action = Some(DashboardAction::NavigateTo(target));
+            }
+        }
 
-        ui.add_space(theme::SPACE_MD);
+        ui.add_space(theme::SPACE);
+        if let Some(target) = Self::operational_pulse(ui, state) {
+            action = Some(DashboardAction::NavigateTo(target));
+        }
+        ui.add_space(theme::SPACE_SM);
+        if available < 940.0 {
+            egui::CollapsingHeader::new("Assistant Sentinel · Poser une question")
+                .id_salt("dashboard_assistant_compact")
+                .show(ui, |ui| {
+                    if let Some(next) = Self::ai_posture_score_card(ui, state) {
+                        action = Some(next);
+                    }
+                });
+        }
+        crate::pages::security_navigation(ui, state);
+        widgets::section_header(
+            ui,
+            "Télémétrie du poste",
+            Some("Ressources et couverture des contrôles"),
+        );
 
         // ══════════════════════════════════════════════════════════════════
         // UNIFIED INDICATORS (8 cards: metrics + security in single grid)
         // ══════════════════════════════════════════════════════════════════
         ui.push_id("indicators_grid", |ui| {
             let grid = widgets::ResponsiveGrid::new(200.0, theme::SPACE);
-            let items = vec![0, 1, 2, 3, 4, 5, 6, 7];
+            let items = vec![3, 4, 2, 5, 0, 1, 6, 7];
 
             grid.show(ui, &items, |ui, width, &idx| {
                 ui.vertical(|ui: &mut egui::Ui| {
@@ -219,7 +177,9 @@ impl DashboardPage {
                         6 => Self::network_health_card(ui, state),
                         _ => Self::software_coverage_card(ui, state),
                     };
-                    if clicked {
+                    if clicked && idx <= 1 {
+                        super::resource_detail::open(ui.ctx(), idx == 1);
+                    } else if clicked {
                         let page = match idx {
                             0 | 1 => Page::Monitoring,
                             2 => Page::Compliance,
@@ -280,8 +240,27 @@ impl DashboardPage {
             });
         });
 
+        widgets::section_header(ui, "Connexion et exports", None);
+        if let Some(command) = widgets::org_banner(ui, state) {
+            action = Some(DashboardAction::Command(command));
+        }
+        ui.add_space(theme::SPACE_SM);
+        if let Some(command) = Self::action_bar(ui, state) {
+            action = Some(DashboardAction::Command(command));
+        }
         ui.add_space(theme::SPACE);
+        super::resource_detail::show(ui.ctx(), state);
         action
+    }
+
+    fn posture_panel(ui: &mut Ui, state: &AppState) -> Option<Page> {
+        widgets::security_hero(ui, state);
+        ui.ctx().data_mut(|d| {
+            let key = egui::Id::new("posture_navigation");
+            let page = d.get_temp::<Page>(key);
+            d.remove::<Page>(key);
+            page
+        })
     }
 
     // ──────────────────────────────────────────────────────────────────────
@@ -290,7 +269,7 @@ impl DashboardPage {
     fn action_bar(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
 
-        ui.horizontal(|ui: &mut egui::Ui| {
+        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
             // Left: Action buttons
 
             let is_syncing = state.summary.status == GuiAgentStatus::Syncing;
@@ -443,50 +422,64 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     fn ai_posture_score_card(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
         let ai_score = LLMPanel::compute_ai_score(state);
-        let security_state = widgets::determine_security_state(state);
-        let risk_label = security_state.title();
-        let risk_color = security_state.color();
 
         let mut nav_action = None;
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Analyse assistée", |ui: &mut egui::Ui| {
             ui.set_min_width(ui.available_width());
             ui.set_min_height(AI_SCORE_CARD_MIN_HEIGHT);
-            ui.vertical_centered(|ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new("ASSISTANT S\u{00c9}CURIT\u{00c9} IA")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .extra_letter_spacing(theme::TRACKING_NORMAL)
-                        .strong(),
-                );
+            ui.vertical(|ui: &mut egui::Ui| {
+                widgets::eyebrow(ui, "ASSISTANT SENTINEL");
                 ui.add_space(theme::SPACE_SM);
-
-                let mut voice_state = crate::widgets::sentinel_ai_core::VoiceState::Idle;
-                if state.ai.is_listening {
-                    voice_state =
-                        crate::widgets::sentinel_ai_core::VoiceState::Listening(state.ai.mic_level);
+                let voice_state = if state.ai.is_listening {
+                    crate::widgets::sentinel_ai_core::VoiceState::Listening(state.ai.mic_level)
                 } else if state.ai.is_speaking {
-                    voice_state = crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.8); // simulated volume
-                }
-
-                // Sentinel AI Core (Jarvis-style) - Make it clickable
-                let core_response = widgets::SentinelAICore::new(ai_score)
-                    .processing(state.ai.is_processing)
-                    .voice(voice_state)
-                    .show(ui, AI_GAUGE_RADIUS);
-
-                if core_response.clicked() {
-                    nav_action = Some(DashboardAction::NavigateTo(Page::AI));
-                }
-
-                ui.add_space(theme::SPACE_SM);
-
-                // Risk badge, centred like the title and the core above it
-                ui.vertical_centered(|ui: &mut egui::Ui| {
-                    widgets::status_badge(ui, risk_label, risk_color);
+                    // Speech activity is known, but no output amplitude is measured.
+                    crate::widgets::sentinel_ai_core::VoiceState::Speaking(0.0)
+                } else {
+                    crate::widgets::sentinel_ai_core::VoiceState::Idle
+                };
+                ui.horizontal(|ui| {
+                    let core = widgets::SentinelAICore::new(ai_score)
+                        .processing(state.ai.is_processing)
+                        .voice(voice_state)
+                        .show(ui, AI_GAUGE_RADIUS);
+                    if core.clicked() {
+                        nav_action = Some(DashboardAction::NavigateTo(Page::AI));
+                    }
+                    ui.vertical(|ui| {
+                        ui.set_width(ui.available_width().max(1.0));
+                        ui.label(
+                            egui::RichText::new("Analyse assistée")
+                                .font(theme::font_h3())
+                                .color(theme::text_primary()),
+                        );
+                        let status = if state.ai.is_listening {
+                            "Écoute en cours"
+                        } else if state.ai.is_speaking {
+                            "Réponse vocale"
+                        } else if state.ai.is_processing {
+                            "Analyse en cours"
+                        } else if state.ai.model_status.is_ready {
+                            "Modèle local prêt"
+                        } else {
+                            "Modèle non chargé"
+                        };
+                        ui.label(
+                            egui::RichText::new(status)
+                                .font(theme::font_caption())
+                                .color(theme::text_secondary()),
+                        );
+                    });
                 });
-
+                ui.add_space(theme::SPACE_SM);
+                ui.label(
+                    egui::RichText::new(
+                        "Interrogez les résultats et préparez votre prochaine intervention.",
+                    )
+                    .font(theme::font_body())
+                    .color(theme::text_secondary()),
+                );
                 ui.add_space(theme::SPACE_MD);
 
                 // Inline Chat Input
@@ -499,13 +492,11 @@ impl DashboardPage {
                     }
 
                     ui.add_space(theme::SPACE_XS);
-                    let chat = widgets::ChatInput::new(
-                        &mut state.ai.input_text,
-                        "Demander \u{00e0} Jarvis…",
-                    )
-                    .processing(state.ai.is_processing)
-                    .id_salt("dashboard_jarvis_prompt")
-                    .show(ui);
+                    let chat =
+                        widgets::ChatInput::new(&mut state.ai.input_text, "Poser une question…")
+                            .processing(state.ai.is_processing)
+                            .id_salt("dashboard_jarvis_prompt")
+                            .show(ui);
                     let can_send = chat.send;
 
                     if can_send {
@@ -536,6 +527,16 @@ impl DashboardPage {
                         state.ai.voice_reply_pending = state.ai.voice_conversation_enabled;
                     }
                 });
+                ui.add_space(theme::SPACE_SM);
+                if widgets::ghost_button(
+                    ui,
+                    format!("Voir les recommandations  {}", icons::ARROW_RIGHT),
+                )
+                .clicked()
+                {
+                    state.ai.active_tab = crate::dto::LlmTab::Recommendations;
+                    nav_action = Some(DashboardAction::NavigateTo(Page::AI));
+                }
             });
         });
 
@@ -545,11 +546,11 @@ impl DashboardPage {
     // ──────────────────────────────────────────────────────────────────────
     // COMPACT RECOMMENDATIONS CARD (bottom-left panel)
     // ──────────────────────────────────────────────────────────────────────
-    fn compact_recommendations_card(ui: &mut Ui, state: &AppState) -> Option<DashboardAction> {
+    fn compact_recommendations_card(ui: &mut Ui, state: &mut AppState) -> Option<DashboardAction> {
         let recommendations = LLMPanel::build_recommendations(state);
         let total = recommendations.len();
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Recommandations IA", |ui: &mut egui::Ui| {
             ui.set_min_width(ui.available_width());
             ui.set_min_height(BOTTOM_CARD_MIN_HEIGHT);
             // Section header
@@ -584,8 +585,19 @@ impl DashboardPage {
                 );
             } else {
                 // Compact recommendation rows
-                for rec in recommendations.iter().take(DASHBOARD_MAX_RECOMMENDATIONS) {
-                    Self::compact_recommendation_row(ui, rec);
+                for (idx, rec) in recommendations
+                    .iter()
+                    .take(DASHBOARD_MAX_RECOMMENDATIONS)
+                    .enumerate()
+                {
+                    if Self::compact_recommendation_row(ui, rec) {
+                        state.ai.selected_recommendation = Some(idx);
+                        state.ai.detail_open = true;
+                        state.ai.active_tab = crate::dto::LlmTab::Recommendations;
+                        ui.memory_mut(|m| {
+                            m.data.insert_temp(egui::Id::new("dashboard_nav_ai"), true)
+                        });
+                    }
                     ui.add_space(theme::SPACE_XS);
                 }
 
@@ -627,10 +639,10 @@ impl DashboardPage {
     }
 
     /// Render a single compact recommendation row with accent bar.
-    fn compact_recommendation_row(ui: &mut Ui, rec: &llm_panel::Recommendation) {
+    fn compact_recommendation_row(ui: &mut Ui, rec: &llm_panel::Recommendation) -> bool {
         let sev_color = theme::severity_color_typed(&rec.severity);
 
-        ui.horizontal(|ui: &mut egui::Ui| {
+        let row = ui.horizontal(|ui: &mut egui::Ui| {
             // Left accent bar
             let (bar_rect, _) = ui.allocate_exact_size(
                 egui::vec2(theme::ACCENT_BAR_WIDTH, COMPACT_REC_ROW_HEIGHT),
@@ -648,8 +660,9 @@ impl DashboardPage {
 
             // Content
             ui.vertical(|ui: &mut egui::Ui| {
+                ui.set_width(ui.available_width().max(1.0));
                 // Top line: severity badge + title
-                ui.horizontal(|ui: &mut egui::Ui| {
+                ui.horizontal_wrapped(|ui: &mut egui::Ui| {
                     widgets::status_badge(ui, rec.severity.label(), sev_color);
                     ui.add_space(theme::SPACE_XS);
                     ui.label(
@@ -667,6 +680,14 @@ impl DashboardPage {
                 );
             });
         });
+        ui.interact(
+            row.response.rect,
+            row.response.id.with("open_recommendation"),
+            egui::Sense::click(),
+        )
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text("Examiner cette recommandation")
+        .clicked()
     }
 
     // ──────────────────────────────────────────────────────────────────────
@@ -677,7 +698,7 @@ impl DashboardPage {
             ui.set_min_width(ui.available_width());
             ui.set_min_height(INDICATOR_CARD_MIN_HEIGHT);
             let config = widgets::SparklineConfig {
-                color: theme::SUCCESS,
+                color: theme::INFO,
                 fill: true,
                 show_trend: true,
                 show_stats: false,
@@ -1130,7 +1151,7 @@ impl DashboardPage {
     // KPI TRENDS CARD
     // ──────────────────────────────────────────────────────────────────────
     fn kpi_trends_card(ui: &mut egui::Ui, state: &AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Tendances et indicateurs clés", |ui: &mut egui::Ui| {
             ui.set_min_width(ui.available_width());
 
             // Header + period selector
@@ -1562,7 +1583,7 @@ impl DashboardPage {
 }
 
 /// Inner height of a posture tile: header, value, bar and two detail lines.
-const PULSE_TILE_HEIGHT: f32 = 128.0;
+const PULSE_TILE_HEIGHT: f32 = 116.0;
 /// Height of the proportion bar under a posture tile's value.
 const PULSE_BAR_HEIGHT: f32 = 6.0;
 

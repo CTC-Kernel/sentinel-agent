@@ -254,7 +254,7 @@ pub(super) fn mitre_minimap(ui: &mut egui::Ui, threats: &[ThreatEvent]) {
     let observed = hits.iter().filter(|h| h.detections > 0).count();
     let busiest = hits.iter().map(|h| h.detections).max().unwrap_or(0).max(1);
 
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Couverture MITRE ATT&CK", |ui: &mut egui::Ui| {
         chain_header(ui, observed, tactics.len());
         ui.add_space(theme::SPACE_MD);
 

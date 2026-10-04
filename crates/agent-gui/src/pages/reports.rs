@@ -191,7 +191,7 @@ impl ReportsPage {
         let (type_label, type_color) = Self::report_type_display(&report.report_type);
         let generating = state.reports.generating;
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Aperçu du rapport", |ui: &mut egui::Ui| {
             // Header.
             ui.horizontal(|ui| {
                 widgets::icon_tile(ui, icons::FILE_EXPORT, type_color, 36.0);
@@ -323,7 +323,7 @@ impl ReportsPage {
 
         if !earlier.is_empty() {
             ui.add_space(theme::SPACE_MD);
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            widgets::data_card(ui, "Rapports précédents", |ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("RAPPORTS PRÉCÉDENTS")
                         .font(theme::font_label())
@@ -420,7 +420,7 @@ impl ReportsPage {
             return;
         }
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Historique des rapports", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("HISTORIQUE DES RAPPORTS")
                     .font(theme::font_label())

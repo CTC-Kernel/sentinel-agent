@@ -104,7 +104,19 @@ impl RisksPage {
 
         card_grid.show(ui, &items, |ui, width, item| {
             let (label, value, color, icon) = item;
-            Self::summary_card(ui, width, label, value, *color, icon);
+            if Self::summary_card(ui, width, label, value, *color, icon) {
+                widgets::open_data_panel(ui.ctx(), "Registre des risques");
+                state.risks.matrix_filter = None;
+                state.risks.search.clear();
+                state.risks.page = 0;
+                state.risks.status_filter = if *label == "OUVERTS" {
+                    Some(RiskStatus::Open)
+                } else {
+                    None
+                };
+                state.risks.critical_only = *label == "CRITIQUES";
+                state.risks.overdue_only = *label == "SLA DÉPASSÉ";
+            }
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -114,6 +126,30 @@ impl RisksPage {
         Self::draw_risk_matrix(ui, state);
         ui.add_space(theme::SPACE_MD);
 
+        if state.risks.critical_only || state.risks.overdue_only {
+            let text = if state.risks.critical_only {
+                "Risques critiques · Effacer le filtre"
+            } else {
+                "SLA dépassé · Effacer le filtre"
+            };
+            if widgets::chip_button(ui, text, true, theme::ACCENT).clicked() {
+                state.risks.critical_only = false;
+                state.risks.overdue_only = false;
+                state.risks.page = 0;
+            }
+        }
+        if let Some((probability, impact)) = state.risks.matrix_filter
+            && widgets::chip_button(
+                ui,
+                &format!("Probabilité {probability} · Impact {impact} · Effacer"),
+                true,
+                theme::ACCENT,
+            )
+            .clicked()
+        {
+            state.risks.matrix_filter = None;
+            state.risks.page = 0;
+        }
         // Action bar
         ui.horizontal(|ui: &mut egui::Ui| {
             if state.security.admin_unlocked {
@@ -235,7 +271,7 @@ impl RisksPage {
         ui.add_space(theme::SPACE_MD);
 
         // Risk table
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Registre des risques", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("REGISTRE DES RISQUES")
                     .font(theme::font_label())
@@ -298,8 +334,8 @@ impl RisksPage {
     }
 
     /// Draw the 5x5 risk matrix heatmap using the painter.
-    fn draw_risk_matrix(ui: &mut Ui, state: &AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+    fn draw_risk_matrix(ui: &mut Ui, state: &mut AppState) {
+        widgets::data_card(ui, "Matrice des risques", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("MATRICE DE RISQUES (PROBABILIT\u{00c9} \u{00d7} IMPACT)")
                     .font(theme::font_label())
@@ -384,6 +420,22 @@ impl RisksPage {
                                 egui::vec2(cell_size - 2.0, cell_size - 2.0),
                             );
 
+                            let response = ui.interact(cell_rect, ui.id().with(("risk_cell", prob_idx, impact_idx)), egui::Sense::click())
+                                .on_hover_cursor(egui::CursorIcon::PointingHand)
+                                .on_hover_text(format!("Probabilité {} · Impact {} · {} risque(s) — ouvrir le registre", prob_idx + 1, impact_idx + 1, count));
+                            response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, format!("Probabilité {}, impact {}, {} risques", prob_idx + 1, impact_idx + 1, count)));
+                            if response.clicked() {
+                                state.risks.search.clear();
+                                state.risks.status_filter = None;
+                                state.risks.critical_only = false;
+                                state.risks.overdue_only = false;
+                                state.risks.matrix_filter = Some(((prob_idx + 1) as u8, (impact_idx + 1) as u8));
+                                state.risks.page = 0;
+                                widgets::open_data_panel(ui.ctx(), "Registre des risques");
+                            }
+                            if response.has_focus() {
+                                painter.rect_stroke(cell_rect.expand(2.0), theme::ROUNDING_SM as f32, theme::focus_ring(), egui::StrokeKind::Outside);
+                            }
                             painter.rect_filled(
                                 cell_rect,
                                 egui::CornerRadius::same(theme::ROUNDING_SM),
@@ -580,6 +632,26 @@ impl RisksPage {
             .iter()
             .enumerate()
             .filter(|(_, r)| {
+                if state.risks.matrix_filter.is_some_and(|(p, i)| {
+                    r.probability.clamp(1, 5) != p || r.impact.clamp(1, 5) != i
+                }) {
+                    return false;
+                }
+                if state.risks.critical_only && r.score() < 16 {
+                    return false;
+                }
+                if state.risks.overdue_only
+                    && !(r.status == RiskStatus::Open
+                        && r.sla_target_days.is_some_and(|days| {
+                            chrono::Utc::now()
+                                .signed_duration_since(r.created_at)
+                                .num_days()
+                                .max(0)
+                                > i64::from(days)
+                        }))
+                {
+                    return false;
+                }
                 if !search_lower.is_empty()
                     && !r.title.to_lowercase().contains(&search_lower)
                     && !r.owner.to_lowercase().contains(&search_lower)
@@ -1211,11 +1283,12 @@ impl RisksPage {
         value: &str,
         color: egui::Color32,
         icon: &str,
-    ) {
+    ) -> bool {
+        let mut clicked = false;
         let safe_color = theme::readable_color(color);
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
                 ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
@@ -1244,8 +1317,11 @@ impl RisksPage {
                         },
                     );
                 });
-            });
+            })
+            .on_hover_text("Afficher les éléments correspondants")
+            .clicked();
         });
+        clicked
     }
 
     fn export_csv(state: &AppState, indices: &[usize]) {
@@ -1327,4 +1403,49 @@ fn level_dots(ui: &mut Ui, level: u8) {
         }
     }
     response.on_hover_text(format!("{level} / 5"));
+}
+
+#[cfg(test)]
+mod interaction_tests {
+    use super::*;
+
+    fn risk(probability: u8, impact: u8, status: RiskStatus, age: i64) -> RiskEntry {
+        let date = chrono::Utc::now() - chrono::Duration::days(age);
+        RiskEntry {
+            id: format!("{probability}-{impact}-{age}"),
+            title: "Risque de test".into(),
+            description: String::new(),
+            probability,
+            impact,
+            owner: String::new(),
+            status,
+            mitigation: String::new(),
+            source: "manual".into(),
+            created_at: date,
+            updated_at: date,
+            sla_target_days: Some(30),
+        }
+    }
+
+    #[test]
+    fn metric_and_matrix_filters_select_the_underlying_risks() {
+        let mut state = AppState::default();
+        state.risks.entries = vec![
+            risk(5, 5, RiskStatus::Open, 35),
+            risk(2, 3, RiskStatus::Open, 30),
+            risk(5, 4, RiskStatus::Closed, 40),
+        ];
+        state.risks.critical_only = true;
+        assert_eq!(RisksPage::filtered_indices(&state), vec![0, 2]);
+        state.risks.critical_only = false;
+        state.risks.overdue_only = true;
+        assert_eq!(RisksPage::filtered_indices(&state), vec![0]);
+        state.risks.overdue_only = false;
+        state.risks.matrix_filter = Some((2, 3));
+        assert_eq!(RisksPage::filtered_indices(&state), vec![1]);
+        state.risks.matrix_filter = Some((1, 1));
+        assert!(RisksPage::filtered_indices(&state).is_empty());
+        state.risks.matrix_filter = None;
+        assert_eq!(RisksPage::filtered_indices(&state), vec![0, 1, 2]);
+    }
 }
