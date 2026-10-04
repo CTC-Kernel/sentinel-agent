@@ -25,10 +25,13 @@
 //!               └── Queries local AV status
 //! ```
 
+pub mod process_events;
 pub mod process_monitor;
 pub mod process_tree;
+pub mod sigma;
 pub mod system_monitor;
 pub mod usb_monitor;
+pub mod yara;
 
 use crate::error::ScannerResult;
 use chrono::{DateTime, Utc};
@@ -294,6 +297,22 @@ impl SecurityMonitor {
             process_monitor: ProcessMonitor::new(),
             system_monitor: SystemMonitor::new(),
         }
+    }
+
+    /// Load the Sigma rules found under `dir` and evaluate them against the
+    /// processes at every scan. Returns what was loaded and what was refused.
+    pub fn load_sigma_rules(&mut self, dir: &std::path::Path) -> sigma::SigmaLoadReport {
+        let (engine, report) = sigma::SigmaEngine::load_dir(dir);
+        self.process_monitor.set_sigma_engine(engine);
+        report
+    }
+
+    /// Evaluate a process that has just started (see [`process_events`]).
+    pub fn analyze_process_start(
+        &self,
+        start: &process_events::ProcessStart,
+    ) -> Vec<SecurityIncident> {
+        self.process_monitor.analyze_start(start)
     }
 
     /// Run a full security scan.

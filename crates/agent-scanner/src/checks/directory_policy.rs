@@ -105,6 +105,7 @@ impl GpoPasswordPolicyCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .platforms(vec![
                 "windows".to_string(),
                 "linux".to_string(),
@@ -259,6 +260,7 @@ impl GpoLockoutPolicyCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .platforms(vec![
                 "windows".to_string(),
                 "linux".to_string(),
@@ -401,6 +403,7 @@ impl GpoAuditPolicyCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .platforms(vec![
                 "windows".to_string(),
                 "linux".to_string(),
@@ -554,6 +557,7 @@ impl PrivilegedGroupsCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .platforms(vec!["windows".to_string()])
             .build();
 
@@ -710,6 +714,7 @@ impl LdapSecurityCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .platforms(vec!["linux".to_string()])
             .build();
 

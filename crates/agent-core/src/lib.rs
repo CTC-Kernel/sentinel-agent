@@ -62,9 +62,15 @@ pub mod edr_actions;
 mod enrollment;
 mod gui_bridge;
 mod heartbeat;
+pub mod host_isolation;
 pub mod mdm;
 mod network_ops;
 pub mod playbook_engine;
+mod process_telemetry;
+mod ransomware_canary;
+pub mod threat_intel_feeds;
+#[cfg(feature = "gui")]
+pub use scanning::export_sbom;
 mod remediation_ops;
 mod risk_generation;
 mod scanning;
@@ -73,6 +79,7 @@ mod sync_init;
 pub mod threat_pipeline;
 pub mod triage_allowlist;
 mod vuln_upload;
+mod yara_scan;
 
 #[cfg(feature = "tray")]
 pub mod tray;
@@ -336,6 +343,20 @@ pub struct AgentRuntime {
     correlation_engine: RwLock<Option<agent_siem::CorrelationEngine>>,
     /// FIM alert receiver.
     fim_rx: tokio::sync::Mutex<Option<mpsc::Receiver<agent_common::types::FimAlert>>>,
+    /// Threat intelligence pushed by the platform through configuration sync.
+    platform_threat_intel: RwLock<Option<agent_network::ThreatIntelligence>>,
+    /// Threat intelligence of the configured indicator feeds.
+    feed_threat_intel: RwLock<Option<agent_network::ThreatIntelligence>>,
+    /// Fresh feed intelligence waiting for the main loop to apply it.
+    pending_feed_intel: threat_intel_feeds::PendingIntel,
+    /// YARA helper (`None`: not installed, or no rules).
+    yara: std::sync::Mutex<Option<agent_scanner::security::yara::YaraScanner>>,
+    /// Source of process start events (`None`: option off or unavailable).
+    process_telemetry: std::sync::Mutex<Option<process_telemetry::ProcessTelemetry>>,
+    /// Tampered ransomware canary folders (`None`: protection off).
+    canary_rx: tokio::sync::Mutex<Option<mpsc::Receiver<agent_fim::canary::CanaryIncident>>>,
+    /// Stops the current ransomware canary watcher (one flag per start).
+    canary_shutdown: std::sync::Mutex<Arc<std::sync::atomic::AtomicBool>>,
     /// LLM service for AI-powered analysis (feature-gated).
     #[cfg(feature = "llm")]
     llm_service: Option<Arc<llm_service::LLMService>>,
@@ -571,13 +592,33 @@ impl AgentRuntime {
     pub fn new(config: AgentConfig) -> Self {
         let config = SecureConfig::from(config);
         let resource_monitor = ResourceMonitor::new();
-        let vulnerability_scanner = VulnerabilityScanner::new();
-        let security_monitor = SecurityMonitor::new();
+        let vulnerability_scanner = VulnerabilityScanner::new().with_exploit_intel_cache(
+            AgentConfig::platform_data_dir()
+                .join("cache")
+                .join("exploit-intel"),
+        );
+        let mut security_monitor = SecurityMonitor::new();
+        let sigma =
+            security_monitor.load_sigma_rules(&AgentConfig::platform_data_dir().join("sigma.d"));
+        if sigma.loaded > 0 || !sigma.errors.is_empty() {
+            info!(
+                "Sigma rules: {} loaded, {} for another log source or system, {} refused",
+                sigma.loaded,
+                sigma.not_applicable,
+                sigma.errors.len()
+            );
+        }
+        for error in &sigma.errors {
+            warn!("Sigma rule not loaded: {}", error);
+        }
         let usb_monitor = UsbMonitor::new();
         let network_manager = NetworkManager::new();
 
         let (state, rx) = state::RuntimeState::new();
         state.set_check_interval(config.check_interval_secs);
+        state
+            .ransomware_canaries
+            .store(config.ransomware_canaries, Ordering::Release);
         let state = Arc::new(state);
         let (events_mgr, _rx) = events::EventManager::new(None);
         let events = Arc::new(events_mgr);
@@ -585,6 +626,11 @@ impl AgentRuntime {
         // Register all compliance checks (21 base + 5 directory + 4 hardening + 4 advanced = 34 total)
         let mut registry = CheckRegistry::new();
         register_builtin_checks(&mut registry);
+        // The organisation's own checks, declared in TOML files.
+        agent_scanner::checks::custom::register_custom_checks(
+            &mut registry,
+            &AgentConfig::platform_data_dir().join("checks.d"),
+        );
 
         let check_registry = Arc::new(registry);
 
@@ -637,6 +683,15 @@ impl AgentRuntime {
             log_collector: RwLock::new(None),
             correlation_engine: RwLock::new(None),
             fim_rx: tokio::sync::Mutex::new(None),
+            platform_threat_intel: RwLock::new(None),
+            feed_threat_intel: RwLock::new(None),
+            pending_feed_intel: Arc::new(std::sync::Mutex::new(None)),
+            yara: std::sync::Mutex::new(None),
+            process_telemetry: std::sync::Mutex::new(None),
+            canary_rx: tokio::sync::Mutex::new(None),
+            canary_shutdown: std::sync::Mutex::new(Arc::new(std::sync::atomic::AtomicBool::new(
+                false,
+            ))),
             organization_name: RwLock::new(None),
             #[cfg(feature = "llm")]
             llm_service: None,
@@ -857,6 +912,8 @@ impl AgentRuntime {
         // Honor timed IP unblocks whose in-memory timers died with the previous
         // process: expired blocks are lifted now, the rest are rescheduled.
         crate::edr_actions::reconcile_pending_blocks().await;
+        // Same for a host isolation: lifted if it expired, applied again if not.
+        crate::host_isolation::reconcile_host_isolation().await;
 
         if self.config.standalone {
             // ── Standalone: no platform, local protection only ──
@@ -1085,6 +1142,26 @@ impl AgentRuntime {
             *fim_guard = Some(engine);
         }
 
+        // Ransomware canary files (or their removal when the option is off)
+        self.start_ransomware_canaries().await;
+
+        // Process starts reported by the operating system, when the option is on
+        self.start_process_telemetry();
+
+        // YARA rules, when the helper is installed and rules are present
+        self.start_yara();
+
+        // Indicator feeds (block lists, STIX, TAXII), when any is configured
+        let feeds = threat_intel_feeds::usable_feeds(&self.config.threat_intel_feeds);
+        if !feeds.is_empty() {
+            info!("Following {} threat intelligence feed(s)", feeds.len());
+            tokio::spawn(threat_intel_feeds::run(
+                feeds,
+                Arc::clone(&self.pending_feed_intel),
+                Arc::clone(&self.state.shutdown),
+            ));
+        }
+
         // Initialize SIEM forwarder (disabled by default).
         // Events always reach the platform via record_event() + heartbeat sync.
         // The external transport (syslog/HTTP) is only for third-party SIEM (Splunk, QRadar, etc.)
@@ -1192,9 +1269,71 @@ impl AgentRuntime {
             let mut pipeline_network_alerts: Vec<agent_network::NetworkSecurityAlert> = Vec::new();
             let mut pipeline_fim_alerts: Vec<(String, String)> = Vec::new();
 
+            // Indicator feeds refreshed in the background
+            let fresh_feed_intel = self
+                .pending_feed_intel
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .take();
+            if let Some(intel) = fresh_feed_intel {
+                *self.feed_threat_intel.write().await = Some(intel);
+                self.apply_threat_intel().await;
+            }
+
+            // Processes started since the last pass, evaluated as they start
+            for incident in self.take_process_start_incidents() {
+                warn!("{}", incident.title);
+                if let Err(e) = self.upload_incident(&incident).await {
+                    error!("Failed to upload process incident: {}", e);
+                }
+                #[cfg(feature = "gui")]
+                {
+                    self.emit_process_incident(&incident);
+                    self.emit_notification(
+                        "Processus suspect détecté à son lancement",
+                        &incident.title,
+                        "error",
+                    );
+                    kpi_incident_count = kpi_incident_count.saturating_add(1);
+                }
+                pipeline_incidents.push(incident);
+            }
+
+            // 0. Ransomware canaries (always — security-critical even when paused)
+            if self
+                .state
+                .ransomware_canaries_changed
+                .swap(false, Ordering::AcqRel)
+            {
+                self.stop_ransomware_canaries();
+                self.start_ransomware_canaries().await;
+            }
+            for canary in self.take_canary_incidents().await {
+                let incident = ransomware_canary::incident_from(&canary);
+                warn!("{}: {}", incident.title, canary.folder.display());
+                if let Err(e) = self.upload_incident(&incident).await {
+                    error!("Failed to upload ransomware canary incident: {}", e);
+                }
+                #[cfg(feature = "gui")]
+                {
+                    self.emit_system_incident(&incident);
+                    self.emit_notification(&incident.title, &incident.description, "error");
+                    kpi_incident_count = kpi_incident_count.saturating_add(1);
+                }
+                if ransomware_canary::triggers_response(&canary) {
+                    pipeline_fim_alerts.push((
+                        canary.folder.to_string_lossy().to_string(),
+                        ransomware_canary::PLAYBOOK_CHANGE_TYPE.to_string(),
+                    ));
+                }
+                pipeline_incidents.push(incident);
+            }
+
             // 1. Process FIM alerts (always — security-critical even when paused)
             //    Collect all pending alerts first, then batch-upload to avoid 429 rate limits.
             let mut fim_batch_payloads: Vec<agent_sync::types::FimAlertPayload> = Vec::new();
+            // Files created or changed, to scan with the YARA rules.
+            let mut yara_candidates: Vec<String> = Vec::new();
             let mut fim_siem_reports: Vec<api_client::SecurityIncidentReport> = Vec::new();
             {
                 let mut rx_guard = self.fim_rx.lock().await;
@@ -1266,6 +1405,14 @@ impl AgentRuntime {
                             alert.path.to_string_lossy().to_string(),
                             format!("{}", alert.change),
                         ));
+                        if matches!(
+                            alert.change,
+                            agent_common::types::FimChangeType::Created
+                                | agent_common::types::FimChangeType::Modified
+                                | agent_common::types::FimChangeType::Renamed
+                        ) {
+                            yara_candidates.push(alert.path.to_string_lossy().to_string());
+                        }
 
                         // Collect for batched uploads (avoid per-alert HTTP requests → 429)
                         fim_batch_payloads
@@ -1320,6 +1467,30 @@ impl AgentRuntime {
                             }
                         }
                     }
+                }
+            }
+
+            // YARA: scan the files just created or changed
+            if !yara_candidates.is_empty() && self.yara_enabled() {
+                let matched =
+                    tokio::task::block_in_place(|| self.yara_scan_files(&yara_candidates));
+                for (path, incident) in matched {
+                    warn!("{}: {}", incident.title, path);
+                    if let Err(e) = self.upload_incident(&incident).await {
+                        error!("Failed to upload YARA incident: {}", e);
+                    }
+                    #[cfg(feature = "gui")]
+                    {
+                        self.emit_system_incident(&incident);
+                        self.emit_notification(
+                            "Fichier malveillant détecté (YARA)",
+                            &incident.description,
+                            "error",
+                        );
+                        kpi_incident_count = kpi_incident_count.saturating_add(1);
+                    }
+                    pipeline_fim_alerts.push((path, yara_scan::PLAYBOOK_CHANGE_TYPE.to_string()));
+                    pipeline_incidents.push(incident);
                 }
             }
 
@@ -1669,13 +1840,32 @@ impl AgentRuntime {
                         }
                         #[cfg(feature = "gui")]
                         {
-                            let severity = if count > 0 { "warning" } else { "info" };
+                            let exploited = result
+                                .vulnerabilities
+                                .iter()
+                                .filter(|v| v.is_known_exploited())
+                                .count();
+                            let severity = if exploited > 0 {
+                                "error"
+                            } else if count > 0 {
+                                "warning"
+                            } else {
+                                "info"
+                            };
+                            let mut message = format!(
+                                "{} vulnérabilités détectées sur {} paquets",
+                                count, result.packages_scanned
+                            );
+                            if exploited > 0 {
+                                message.push_str(&format!(
+                                    ", dont {} exploitée{} activement (CISA KEV)",
+                                    exploited,
+                                    if exploited > 1 { "s" } else { "" }
+                                ));
+                            }
                             self.emit_notification(
                                 "Scan vulnérabilités terminé",
-                                &format!(
-                                    "{} vulnérabilités détectées sur {} paquets",
-                                    count, result.packages_scanned
-                                ),
+                                &message,
                                 severity,
                             );
                             let mut critical = 0u32;
@@ -1712,6 +1902,14 @@ impl AgentRuntime {
                             });
                             self.emit_gui_event(AgentEvent::VulnerabilityFindings {
                                 findings: self.build_vulnerability_findings(&result),
+                                exploit_intel: self.build_exploit_intel_status(&result),
+                            });
+                            // Browser extensions are part of the software
+                            // inventory and refreshed with it.
+                            let extensions =
+                                agent_scanner::browser_extensions::installed_extensions().await;
+                            self.emit_gui_event(AgentEvent::BrowserExtensions {
+                                extensions: self.build_browser_extensions(&extensions),
                             });
                             kpi_open_vulns = count as u32;
                             last_check_at = Some(chrono::Utc::now());
@@ -3144,6 +3342,8 @@ impl AgentRuntime {
                 engine.stop();
             }
         }
+        self.stop_ransomware_canaries();
+        self.stop_process_telemetry();
 
         // 4. Close database handle (implicit by Drop, but we can log it)
         info!("Closing database and terminating runtime.");

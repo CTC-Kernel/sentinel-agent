@@ -72,6 +72,9 @@ pub fn normalize_framework_id(raw: &str) -> Option<&'static str> {
         "DORA" | "DIGITAL_OPERATIONAL_RESILIENCE_ACT" => Some("DORA"),
         "SOC2" | "SOC_2" | "SOC_2_TYPE_II" | "SOC_2_TYPE_2" => Some("SOC2"),
         "RGPD" | "GDPR" => Some("RGPD"),
+        "HDS" | "HDS_V2" | "HEBERGEUR_DE_DONNEES_DE_SANTE" | "HEBERGEMENT_DE_DONNEES_DE_SANTE" => {
+            Some("HDS")
+        }
         _ => None,
     }
 }
@@ -91,6 +94,7 @@ pub fn framework_display_name(id: &str) -> &str {
         Some("DORA") => "DORA",
         Some("SOC2") => "SOC 2",
         Some("RGPD") => "RGPD / GDPR",
+        Some("HDS") => "HDS — Hébergeur de données de santé",
         _ => id,
     }
 }
@@ -98,7 +102,10 @@ pub fn framework_display_name(id: &str) -> &str {
 // Embedded framework TOML data (compiled into the binary).
 const ANSSI_TOML: &str = include_str!("data/anssi.toml");
 const CIS_V8_TOML: &str = include_str!("data/cis_v8.toml");
+const DORA_TOML: &str = include_str!("data/dora.toml");
+const HDS_TOML: &str = include_str!("data/hds.toml");
 const ISO27001_TOML: &str = include_str!("data/iso27001.toml");
+const NIS2_TOML: &str = include_str!("data/nis2.toml");
 const NIST_CSF_TOML: &str = include_str!("data/nist_csf.toml");
 const PCI_DSS_TOML: &str = include_str!("data/pci_dss.toml");
 const SOC2_TOML: &str = include_str!("data/soc2.toml");
@@ -226,6 +233,9 @@ impl FrameworkRegistry {
         load_framework(self, ISO27001_TOML);
         load_framework(self, ANSSI_TOML);
         load_framework(self, SOC2_TOML);
+        load_framework(self, NIS2_TOML);
+        load_framework(self, DORA_TOML);
+        load_framework(self, HDS_TOML);
     }
 
     /// Register a new framework.
@@ -450,6 +460,9 @@ mod tests {
         assert!(registry.get_framework("ISO_27001").is_some());
         assert!(registry.get_framework("ANSSI_HYGIENE").is_some());
         assert!(registry.get_framework("SOC2").is_some());
+        assert!(registry.get_framework("NIS2").is_some());
+        assert!(registry.get_framework("DORA").is_some());
+        assert!(registry.get_framework("HDS").is_some());
     }
 
     #[test]

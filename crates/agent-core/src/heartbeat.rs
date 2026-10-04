@@ -312,6 +312,8 @@ impl AgentRuntime {
                         .clone(),
                     policy_summary: None,
                     standalone: false,
+                    ransomware_canaries: self.state.ransomware_canaries.load(Ordering::Acquire),
+                    host_isolated: crate::host_isolation::is_isolated(),
                 },
             });
 
@@ -468,6 +470,47 @@ impl AgentRuntime {
                             info!("Server command: MDM uninstall ({})", cmd.id);
                             self.run_mdm_command(&cmd.id, "uninstall", &cmd.payload, service)
                                 .await
+                        }
+                        "isolate_host" => {
+                            // Payload: { "duration_secs": u64 (0 or absent: until
+                            // released), "reason": string }.
+                            let duration_secs = cmd
+                                .payload
+                                .get("duration_secs")
+                                .and_then(|v| v.as_u64())
+                                .unwrap_or(0);
+                            let reason = cmd
+                                .payload
+                                .get("reason")
+                                .and_then(|v| v.as_str())
+                                .filter(|reason| !reason.trim().is_empty())
+                                .unwrap_or("Commande de la plateforme");
+                            warn!("Server command: isolate host ({})", cmd.id);
+                            match crate::host_isolation::isolate_host(reason, duration_secs).await {
+                                Ok(_) => {
+                                    service
+                                        .report_success(
+                                            &cmd.id,
+                                            Some("Endpoint isolated from the network".to_string()),
+                                        )
+                                        .await
+                                }
+                                Err(e) => service.report_failure(&cmd.id, e.to_string()).await,
+                            }
+                        }
+                        "release_host" => {
+                            info!("Server command: lift host isolation ({})", cmd.id);
+                            match crate::host_isolation::release_host().await {
+                                Ok(()) => {
+                                    service
+                                        .report_success(
+                                            &cmd.id,
+                                            Some("Endpoint isolation lifted".to_string()),
+                                        )
+                                        .await
+                                }
+                                Err(e) => service.report_failure(&cmd.id, e.to_string()).await,
+                            }
                         }
                         "configure" => {
                             info!("Server command: configure ({})", cmd.id);

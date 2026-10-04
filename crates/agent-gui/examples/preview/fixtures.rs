@@ -93,6 +93,8 @@ pub fn seed(state: &mut AppState) {
         ),
         policy_summary: Some(policy),
         standalone: false,
+        ransomware_canaries: false,
+        host_isolated: false,
     };
     state.policy = policy;
     state.previous_compliance_score = Some(83.1);
@@ -514,8 +516,38 @@ pub fn seed(state: &mut AppState) {
             ai_analysis: (i < 2).then(|| "Exploitation active observée ; le composant est exposé sur le poste. Priorité immédiate.".to_string()),
             ai_remediation_script: (i == 0).then(|| vec!["sudo apt-get update".into(), "sudo apt-get install --only-upgrade xz-utils".into(), "systemctl restart ssh".into()]),
             ai_remediation_explanation: (i == 0).then(|| "Met à jour liblzma vers une version non compromise puis redémarre sshd pour recharger la bibliothèque.".into()),
+            priority: match (i, sev) {
+                (0..=1, _) => PatchPriority::Immediate,
+                (2..=3, _) => PatchPriority::Urgent,
+                (_, Severity::Critical | Severity::High) => PatchPriority::Planned,
+                _ => PatchPriority::Routine,
+            },
+            known_exploited: i < 2,
+            ransomware_use: i == 1,
+            kev_date_added: (i < 2).then(|| ago(60 * 24 * 20).date_naive()),
+            kev_due_date: (i < 2).then(|| ago(-60 * 24 * (3 + i as i64 * 9)).date_naive()),
+            epss_probability: Some(match i {
+                0 => 0.86,
+                1 => 0.94,
+                2 => 0.31,
+                3 => 0.12,
+                _ => 0.004 + (i as f32) * 0.003,
+            }),
+            epss_percentile: Some(match i {
+                0..=1 => 0.997,
+                2 => 0.968,
+                3 => 0.941,
+                _ => (0.35 + (i as f32) * 0.03).min(0.9),
+            }),
         })
         .collect();
+    state.vulnerability_intel = Some(GuiExploitIntelStatus {
+        kev_available: true,
+        kev_catalog_version: Some("2026.10.02".to_string()),
+        epss_available: true,
+        epss_score_date: Some("2026-10-03T12:00:21Z".to_string()),
+        stale: false,
+    });
 
     // ── Logs / terminal ───────────────────────────────────────────────
     let log_lines: &[(&str, &str, &str)] = &[
@@ -1177,6 +1209,117 @@ pub fn seed(state: &mut AppState) {
             latest_version: latest.map(|s| s.to_string()),
         })
         .collect();
+    state.software.browser_extensions = [
+        (
+            "Coupon Helper",
+            "Chrome",
+            "thibault",
+            "Default",
+            "zzzzyyyyxxxxwwwwvvvvuuuuttttssss",
+            "0.9",
+            Severity::High,
+            vec![
+                "Lit et modifie le contenu de tous les sites",
+                "Lit les cookies (jetons de session)",
+                "Installée hors du magasin du navigateur",
+            ],
+            None,
+            false,
+        ),
+        (
+            "uBlock Origin",
+            "Firefox",
+            "thibault",
+            "abcd.default-release",
+            "uBlock0@raymondhill.net",
+            "1.58.0",
+            Severity::High,
+            vec![
+                "Lit et modifie le contenu de tous les sites",
+                "Observe ou modifie les requêtes réseau",
+            ],
+            Some(true),
+            true,
+        ),
+        (
+            "Bitwarden",
+            "Edge",
+            "marie",
+            "Default",
+            "jbkfoedolllekgbhcbcoahefnbanhhlh",
+            "2026.9.1",
+            Severity::Medium,
+            vec!["Lit et modifie le contenu de tous les sites"],
+            None,
+            true,
+        ),
+        (
+            "Grammar Check",
+            "Chrome",
+            "marie",
+            "Profile 1",
+            "kbfnbcaeplbcioakkpcpgfkobkghlhen",
+            "14.1125.0",
+            Severity::Medium,
+            vec!["Lit le presse-papiers"],
+            None,
+            true,
+        ),
+        (
+            "Dark Reader",
+            "Brave",
+            "thibault",
+            "Default",
+            "eimadpbcbfnmbkopoojfekhnkhdbieeh",
+            "4.9.96",
+            Severity::Low,
+            vec![],
+            None,
+            true,
+        ),
+        (
+            "Google Docs hors connexion",
+            "Chrome",
+            "thibault",
+            "Default",
+            "ghbmnnjooekpmoecnnnilnnbdlolhkhi",
+            "1.84.1",
+            Severity::Low,
+            vec![],
+            None,
+            true,
+        ),
+        (
+            "Ancien outil interne",
+            "Firefox",
+            "marie",
+            "wxyz.default",
+            "outil@intranet.example",
+            "0.3",
+            Severity::Medium,
+            vec!["Installée hors du magasin du navigateur"],
+            Some(false),
+            false,
+        ),
+    ]
+    .into_iter()
+    .map(
+        |(name, browser, user, profile, id, version, reach, reasons, enabled, from_store)| {
+            GuiBrowserExtension {
+                browser: browser.to_string(),
+                user: user.to_string(),
+                profile: profile.to_string(),
+                id: id.to_string(),
+                name: name.to_string(),
+                version: version.to_string(),
+                reach,
+                reasons: reasons.into_iter().map(str::to_string).collect(),
+                enabled,
+                from_store,
+            }
+        },
+    )
+    .collect();
     state.software.native_apps = vec![
         GuiNativeApp {
             name: "Microsoft Teams".into(),
@@ -1922,7 +2065,8 @@ pub fn seed(state: &mut AppState) {
                       2) Un PowerShell encod\u{00e9} (PID 4812) a \u{00e9}t\u{00e9} tu\u{00e9} il y a \
                       27 min ; v\u{00e9}rifier la persistance (t\u{00e2}che planifi\u{00e9}e, cl\u{00e9} \
                       Run). 3) curl.exe joint un n\u{0153}ud de sortie Tor : le blocage est en cours, \
-                      confirmer qu'aucune donn\u{00e9}e n'est sortie."
+                      confirmer qu'aucune donn\u{00e9}e n'est sortie. Relancer l'analyse \
+                      confirmera l'\u{00e9}tat apr\u{00e8}s correction.\nACTION: lancer_analyse"
                 .into(),
             timestamp: ago(5),
             processing_time_ms: Some(1_840),
@@ -2017,11 +2161,7 @@ pub fn select_tab(state: &mut AppState, page: &str, tab: usize) {
             }
         }
         "software" => {
-            state.software.active_tab = if tab == 1 {
-                SoftwareTab::Applications
-            } else {
-                SoftwareTab::Packages
-            }
+            state.software.active_tab = SoftwareTab::from_index(u8::try_from(tab).unwrap_or(0));
         }
         "notifications" => state.notifications_active_tab = tab,
         "monitoring" => state.monitoring.active_tab = tab,

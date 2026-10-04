@@ -514,12 +514,14 @@ impl LLMService {
             - **Installed Version**: {}\n\
             - **CVE**: {}\n\
             - **Severity**: {}\n\
+            - **Exploitation**: {}\n\
             - **Description**: {}\n\n\
             ### ANALYSIS:",
             finding.package_name,
             finding.installed_version,
             finding.cve_id.as_deref().unwrap_or("N/A"),
             severity,
+            exploitation_facts(finding),
             finding.description
         );
 
@@ -664,9 +666,63 @@ impl std::fmt::Display for LLMServiceStatus {
     }
 }
 
+/// Exploitation evidence of a finding, as one line for the analysis prompt.
+fn exploitation_facts(finding: &agent_scanner::VulnerabilityFinding) -> String {
+    let mut facts = Vec::new();
+    if let Some(kev) = &finding.kev {
+        let mut fact = "actively exploited in the wild (CISA KEV)".to_string();
+        if kev.ransomware_use {
+            fact.push_str(", used in ransomware campaigns");
+        }
+        facts.push(fact);
+    }
+    if let Some(epss) = finding.epss {
+        facts.push(format!(
+            "EPSS {:.1}% probability of exploitation within 30 days",
+            epss.probability * 100.0
+        ));
+    }
+    if facts.is_empty() {
+        "no exploitation data".to_string()
+    } else {
+        facts.join("; ")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn exploitation_facts_state_only_what_is_known() {
+        let mut finding = agent_scanner::VulnerabilityFinding::with_cve(
+            "log4j",
+            "2.14.0",
+            "CVE-2021-44228",
+            10.0,
+            "RCE",
+            "osv/maven",
+        );
+        assert_eq!(exploitation_facts(&finding), "no exploitation data");
+
+        finding.epss = agent_scanner::EpssScore::new(0.9432, 0.999);
+        assert_eq!(
+            exploitation_facts(&finding),
+            "EPSS 94.3% probability of exploitation within 30 days"
+        );
+
+        finding.kev = Some(agent_scanner::KevEntry {
+            date_added: None,
+            due_date: None,
+            ransomware_use: true,
+            required_action: None,
+        });
+        assert_eq!(
+            exploitation_facts(&finding),
+            "actively exploited in the wild (CISA KEV), used in ransomware campaigns; \
+             EPSS 94.3% probability of exploitation within 30 days"
+        );
+    }
 
     #[tokio::test]
     async fn test_llm_service_creation() {

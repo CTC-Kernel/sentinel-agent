@@ -50,6 +50,7 @@
 //! # }
 //! ```
 
+pub mod browser_extensions;
 pub mod check;
 pub mod checks;
 pub mod directory;
@@ -60,6 +61,7 @@ pub mod runner;
 pub mod scheduler;
 pub mod score;
 pub mod security;
+mod user_dirs;
 pub mod vulnerability;
 
 #[cfg(feature = "llm")]
@@ -84,7 +86,8 @@ pub use mdm_software::{
     SoftwareMetadata, SoftwareUpdate, UpdateType,
 };
 pub use vulnerability::{
-    ScanType, Severity, VulnerabilityFinding, VulnerabilityScanResult, VulnerabilityScanner,
+    EpssScore, ExploitIntelStatus, KevEntry, PatchPriority, ScanType, Severity,
+    VulnerabilityFinding, VulnerabilityScanResult, VulnerabilityScanner,
     package_scanner::InstalledPackage,
 };
 

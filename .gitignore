@@ -197,3 +197,6 @@ diag_output*.txt
 # Stale script copies
 scripts/diag_results.rs
 models/
+
+# YARA helper build output
+/tools/sentinel-yara/target/

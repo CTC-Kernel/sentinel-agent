@@ -767,6 +767,8 @@ pub struct AiState {
     pub work_mode: usize,
     pub prompt_context: Option<crate::dto::LlmPromptContext>,
     pub confirm_clear_chat: bool,
+    /// Action proposed by the assistant that the operator is asked to confirm.
+    pub pending_action: Option<crate::assistant_action::AssistantAction>,
     pub model_search: String,
     pub voice_error: Option<String>,
     /// Whether the LLM is currently processing a prompt.
@@ -997,6 +999,8 @@ pub struct AlertingState {
 pub struct VulnerabilityFilter {
     pub search: String,
     pub severity_filter: Option<crate::dto::Severity>,
+    /// Only show findings known or likely to be exploited.
+    pub pressing_only: bool,
     pub selected_vuln: Option<usize>,
     pub detail_open: bool,
     /// Current page (0-indexed) of the paginated findings table.
@@ -1012,6 +1016,10 @@ pub struct VulnerabilityFilter {
 pub struct SoftwareState {
     pub packages: Vec<crate::dto::GuiSoftwarePackage>,
     pub native_apps: Vec<crate::dto::GuiNativeApp>,
+    /// Browser extensions of every user, widest reach first.
+    pub browser_extensions: Vec<crate::dto::GuiBrowserExtension>,
+    /// Current page (0-indexed) of the extensions table.
+    pub extensions_page: usize,
     pub active_tab: crate::dto::SoftwareTab,
     pub search: String,
     pub selected_package: Option<usize>,
@@ -1129,6 +1137,8 @@ pub struct AppState {
     pub resources: crate::dto::GuiResourceUsage,
     pub vulnerability_summary: Option<crate::dto::GuiVulnerabilitySummary>,
     pub vulnerability_findings: Vec<crate::dto::GuiVulnerabilityFinding>,
+    /// Exploitation feeds (CISA KEV, EPSS) the last scan could use.
+    pub vulnerability_intel: Option<crate::dto::GuiExploitIntelStatus>,
     pub logs: VecDeque<crate::dto::GuiLogEntry>,
     pub toasts: Vec<crate::widgets::toast::Toast>,
     pub unread_notification_count: u32,
@@ -1190,6 +1200,7 @@ impl Default for AppState {
             resources: crate::dto::GuiResourceUsage::default(),
             vulnerability_summary: None,
             vulnerability_findings: Vec::new(),
+            vulnerability_intel: None,
             logs: VecDeque::with_capacity(1000),
             toasts: Vec::new(),
             unread_notification_count: 0,
@@ -1556,8 +1567,15 @@ impl AppState {
                 self.software.selected_package = None;
                 self.software.detail_open = false;
             }
-            AgentEvent::VulnerabilityFindings { findings } => {
+            AgentEvent::BrowserExtensions { extensions } => {
+                self.software.browser_extensions = extensions;
+            }
+            AgentEvent::VulnerabilityFindings {
+                findings,
+                exploit_intel,
+            } => {
                 self.vulnerability_findings = findings;
+                self.vulnerability_intel = exploit_intel;
                 self.vulnerability.selected_vuln = None;
                 self.vulnerability.detail_open = false;
             }

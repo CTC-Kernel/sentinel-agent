@@ -79,6 +79,7 @@ impl WindowsHardeningCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .platforms(vec!["windows".to_string()])
             .build();
 
@@ -677,6 +678,7 @@ impl SecureBootCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
+            .framework("HDS")
             .framework("ANSSI_HYGIENE")
             .platforms(vec!["windows".to_string()])
             .build();

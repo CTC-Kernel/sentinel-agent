@@ -13,9 +13,10 @@ use agent_common::constants::AGENT_VERSION;
 use agent_common::types::CheckSeverity;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
-    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiNetworkAlert,
-    GuiNetworkConnection, GuiNetworkInterface, GuiNotification, GuiPolicySummary, GuiResourceUsage,
-    GuiSoftwarePackage, GuiVulnerabilityFinding, Severity as GuiSeverity,
+    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiExploitIntelStatus,
+    GuiNetworkAlert, GuiNetworkConnection, GuiNetworkInterface, GuiNotification, GuiPolicySummary,
+    GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding,
+    PatchPriority as GuiPatchPriority, Severity as GuiSeverity,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
@@ -86,6 +87,8 @@ impl AgentRuntime {
                 .clone(),
             policy_summary,
             standalone: self.config.standalone,
+            ransomware_canaries: self.state.ransomware_canaries.load(Ordering::Acquire),
+            host_isolated: crate::host_isolation::is_isolated(),
         };
 
         self.emit_gui_event(AgentEvent::StatusChanged { summary });
@@ -193,8 +196,97 @@ impl AgentRuntime {
                 ai_analysis: v.ai_analysis.clone(),
                 ai_remediation_script: v.ai_remediation_script.clone(),
                 ai_remediation_explanation: v.ai_remediation_explanation.clone(),
+                priority: match v.priority {
+                    agent_scanner::PatchPriority::Immediate => GuiPatchPriority::Immediate,
+                    agent_scanner::PatchPriority::Urgent => GuiPatchPriority::Urgent,
+                    agent_scanner::PatchPriority::Planned => GuiPatchPriority::Planned,
+                    agent_scanner::PatchPriority::Routine => GuiPatchPriority::Routine,
+                },
+                known_exploited: v.kev.is_some(),
+                ransomware_use: v.kev.as_ref().is_some_and(|kev| kev.ransomware_use),
+                kev_date_added: v.kev.as_ref().and_then(|kev| kev.date_added),
+                kev_due_date: v.kev.as_ref().and_then(|kev| kev.due_date),
+                epss_probability: v.epss.map(|epss| epss.probability),
+                epss_percentile: v.epss.map(|epss| epss.percentile),
             })
             .collect()
+    }
+
+    /// Convert the browser extension inventory for the GUI.
+    pub(crate) fn build_browser_extensions(
+        &self,
+        extensions: &[agent_scanner::browser_extensions::BrowserExtension],
+    ) -> Vec<agent_gui::dto::GuiBrowserExtension> {
+        use agent_scanner::browser_extensions::{ExtensionRisk, RiskReason};
+
+        extensions
+            .iter()
+            .map(|extension| agent_gui::dto::GuiBrowserExtension {
+                browser: extension.browser.to_string(),
+                user: extension.user.clone(),
+                profile: extension.profile.clone(),
+                id: extension.id.clone(),
+                name: extension.name.clone(),
+                version: extension.version.clone(),
+                reach: match extension.risk {
+                    ExtensionRisk::High => GuiSeverity::High,
+                    ExtensionRisk::Medium => GuiSeverity::Medium,
+                    ExtensionRisk::Low => GuiSeverity::Low,
+                },
+                reasons: extension
+                    .reasons
+                    .iter()
+                    .map(|reason| {
+                        match reason {
+                            RiskReason::AllSitesAccess => {
+                                "Lit et modifie le contenu de tous les sites"
+                            }
+                            RiskReason::InterceptsRequests => {
+                                "Observe ou modifie les requêtes réseau"
+                            }
+                            RiskReason::ReadsCookies => "Lit les cookies (jetons de session)",
+                            RiskReason::InjectsScripts => "Injecte des scripts dans les pages",
+                            RiskReason::ReadsClipboard => "Lit le presse-papiers",
+                            RiskReason::ReadsHistory => "Lit l'historique de navigation",
+                            RiskReason::ManagesExtensions => "Gère les autres extensions",
+                            RiskReason::NativeMessaging => {
+                                "Communique avec un programme installé sur le poste"
+                            }
+                            RiskReason::Debugger => "Attache le débogueur du navigateur aux pages",
+                            RiskReason::ControlsProxy => {
+                                "Fait passer le trafic du navigateur par un proxy"
+                            }
+                            RiskReason::Sideloaded => "Installée hors du magasin du navigateur",
+                        }
+                        .to_string()
+                    })
+                    .collect(),
+                enabled: extension.enabled,
+                from_store: extension.from_store,
+            })
+            .collect()
+    }
+
+    /// Convert the exploitation feed status of a scan for the GUI.
+    pub(crate) fn build_exploit_intel_status(
+        &self,
+        scan_result: &VulnerabilityScanResult,
+    ) -> Option<GuiExploitIntelStatus> {
+        let status = scan_result.exploit_intel.as_ref()?;
+        Some(GuiExploitIntelStatus {
+            kev_available: status.kev.is_some(),
+            kev_catalog_version: status
+                .kev
+                .as_ref()
+                .and_then(|kev| kev.catalog_version.clone()),
+            epss_available: status.epss.is_some(),
+            epss_score_date: status
+                .epss
+                .as_ref()
+                .and_then(|epss| epss.score_date.clone()),
+            stale: status.kev.as_ref().is_some_and(|kev| kev.stale)
+                || status.epss.as_ref().is_some_and(|epss| epss.stale),
+        })
     }
 
     /// Convert a `CheckExecutionResult` into a `GuiCheckResult` for display in the GUI.
@@ -433,6 +525,42 @@ impl AgentRuntime {
                 severity,
                 title: incident.title.clone(),
                 description: incident.description.clone(),
+                confidence: incident.confidence,
+                detected_at: incident.detected_at,
+                ai_confidence: None,
+                is_false_positive: None,
+                ai_analysis: None,
+                acknowledged: false,
+                allowlisted: false,
+            },
+        });
+    }
+
+    /// Show a process detection in the threats view, as the periodic scan does.
+    pub(crate) fn emit_process_incident(&self, incident: &agent_scanner::SecurityIncident) {
+        let text = |key: &str| {
+            incident
+                .evidence
+                .get(key)
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string()
+        };
+        let process_name = match text("process_name") {
+            name if name.is_empty() => "unknown".to_string(),
+            name => name,
+        };
+        self.emit_gui_event(AgentEvent::SuspiciousProcess {
+            process: agent_gui::dto::GuiSuspiciousProcess {
+                process_name,
+                pid: incident
+                    .evidence
+                    .get("pid")
+                    .and_then(|v| v.as_u64())
+                    .and_then(|v| v.try_into().ok())
+                    .unwrap_or(0),
+                command_line: text("path"),
+                reason: incident.description.clone(),
                 confidence: incident.confidence,
                 detected_at: incident.detected_at,
                 ai_confidence: None,

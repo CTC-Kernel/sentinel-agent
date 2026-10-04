@@ -1,0 +1,354 @@
+# Règlement (UE) 2022/2554 (DORA), chapitre II : gestion du risque lié aux
+# technologies de l'information et de la communication (TIC).
+#
+# Seules les exigences vérifiables sur un poste sont reliées à des contrôles.
+# La gouvernance (article 5), le cadre de gestion du risque (article 6),
+# l'identification (article 8), la réponse et le rétablissement (article 11)
+# et les chapitres III à V (incidents, tests, prestataires tiers) relèvent de
+# l'organisation et ne sont pas mesurables par l'agent.
+
+[framework]
+id = "DORA"
+name = "Règlement DORA (UE) 2022/2554"
+version = "2022/2554"
+description = "Gestion du risque lié aux TIC (articles 7, 9, 10 et 12) : exigences vérifiables sur un poste"
+applicability = ["Entités financières", "Union européenne"]
+reference_url = "https://eur-lex.europa.eu/eli/reg/2022/2554/oj"
+
+# ========================================================================
+# Art. 7 — Systèmes, protocoles et outils de TIC
+# ========================================================================
+
+[[controls]]
+check_id = "update_status"
+control_id = "Art. 7"
+control_name = "Systèmes, protocoles et outils de TIC"
+category = "Systèmes de TIC"
+description = "Utiliser et maintenir à jour des systèmes, protocoles et outils de TIC fiables"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "obsolete_protocols"
+control_id = "Art. 7"
+control_name = "Systèmes, protocoles et outils de TIC"
+category = "Systèmes de TIC"
+description = "Utiliser et maintenir à jour des systèmes, protocoles et outils de TIC fiables"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "time_sync"
+control_id = "Art. 7"
+control_name = "Systèmes, protocoles et outils de TIC"
+category = "Systèmes de TIC"
+description = "Utiliser et maintenir à jour des systèmes, protocoles et outils de TIC fiables"
+weight = 0.5
+is_critical = false
+
+# ========================================================================
+# Art. 9.2 — Protection et prévention : résilience des systèmes
+# ========================================================================
+
+[[controls]]
+check_id = "antivirus_active"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "firewall_active"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "kernel_hardening"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "linux_hardening"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "windows_hardening"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "secure_boot"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "container_security"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.6
+is_critical = false
+
+[[controls]]
+check_id = "dns_security"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.6
+is_critical = false
+
+[[controls]]
+check_id = "browser_security"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "bluetooth_disabled"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.4
+is_critical = false
+
+[[controls]]
+check_id = "ipv6_hardening"
+control_id = "Art. 9.2"
+control_name = "Protection et prévention : résilience des systèmes"
+category = "Protection et prévention"
+description = "Garantir la résilience, la continuité et la disponibilité des systèmes de TIC et un niveau élevé de sécurité des données"
+weight = 0.4
+is_critical = false
+
+# ========================================================================
+# Art. 9.3 — Protection et prévention : sécurité des données
+# ========================================================================
+
+[[controls]]
+check_id = "disk_encryption"
+control_id = "Art. 9.3"
+control_name = "Protection et prévention : sécurité des données"
+category = "Protection et prévention"
+description = "Protéger les données au repos, en cours d'utilisation et en transit contre l'accès non autorisé, la perte et l'altération"
+weight = 1.0
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "Art. 9.3"
+control_name = "Protection et prévention : sécurité des données"
+category = "Protection et prévention"
+description = "Protéger les données au repos, en cours d'utilisation et en transit contre l'accès non autorisé, la perte et l'altération"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "certificate_validation"
+control_id = "Art. 9.3"
+control_name = "Protection et prévention : sécurité des données"
+category = "Protection et prévention"
+description = "Protéger les données au repos, en cours d'utilisation et en transit contre l'accès non autorisé, la perte et l'altération"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "usb_storage_disabled"
+control_id = "Art. 9.3"
+control_name = "Protection et prévention : sécurité des données"
+category = "Protection et prévention"
+description = "Protéger les données au repos, en cours d'utilisation et en transit contre l'accès non autorisé, la perte et l'altération"
+weight = 0.7
+is_critical = false
+
+# ========================================================================
+# Art. 9.4.c — Limitation des accès
+# ========================================================================
+
+[[controls]]
+check_id = "admin_accounts"
+control_id = "Art. 9.4.c"
+control_name = "Limitation des accès"
+category = "Protection et prévention"
+description = "Limiter l'accès physique ou logique aux actifs à ce qui est nécessaire aux fonctions légitimes et approuvées"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "privileged_groups"
+control_id = "Art. 9.4.c"
+control_name = "Limitation des accès"
+category = "Protection et prévention"
+description = "Limiter l'accès physique ou logique aux actifs à ce qui est nécessaire aux fonctions légitimes et approuvées"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "remote_access_secure"
+control_id = "Art. 9.4.c"
+control_name = "Limitation des accès"
+category = "Protection et prévention"
+description = "Limiter l'accès physique ou logique aux actifs à ce qui est nécessaire aux fonctions légitimes et approuvées"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "screen_lock"
+control_id = "Art. 9.4.c"
+control_name = "Limitation des accès"
+category = "Protection et prévention"
+description = "Limiter l'accès physique ou logique aux actifs à ce qui est nécessaire aux fonctions légitimes et approuvées"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "auto_login_disabled"
+control_id = "Art. 9.4.c"
+control_name = "Limitation des accès"
+category = "Protection et prévention"
+description = "Limiter l'accès physique ou logique aux actifs à ce qui est nécessaire aux fonctions légitimes et approuvées"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "ldap_security"
+control_id = "Art. 9.4.c"
+control_name = "Limitation des accès"
+category = "Protection et prévention"
+description = "Limiter l'accès physique ou logique aux actifs à ce qui est nécessaire aux fonctions légitimes et approuvées"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "guest_account_disabled"
+control_id = "Art. 9.4.c"
+control_name = "Limitation des accès"
+category = "Protection et prévention"
+description = "Limiter l'accès physique ou logique aux actifs à ce qui est nécessaire aux fonctions légitimes et approuvées"
+weight = 0.6
+is_critical = false
+
+# ========================================================================
+# Art. 9.4.d — Authentification forte
+# ========================================================================
+
+[[controls]]
+check_id = "mfa_enabled"
+control_id = "Art. 9.4.d"
+control_name = "Authentification forte"
+category = "Protection et prévention"
+description = "Mettre en œuvre des mécanismes d'authentification forte"
+weight = 1.0
+is_critical = true
+
+[[controls]]
+check_id = "password_policy"
+control_id = "Art. 9.4.d"
+control_name = "Authentification forte"
+category = "Protection et prévention"
+description = "Mettre en œuvre des mécanismes d'authentification forte"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "gpo_password_policy"
+control_id = "Art. 9.4.d"
+control_name = "Authentification forte"
+category = "Protection et prévention"
+description = "Mettre en œuvre des mécanismes d'authentification forte"
+weight = 0.8
+is_critical = false
+
+[[controls]]
+check_id = "gpo_account_lockout"
+control_id = "Art. 9.4.d"
+control_name = "Authentification forte"
+category = "Protection et prévention"
+description = "Mettre en œuvre des mécanismes d'authentification forte"
+weight = 0.7
+is_critical = false
+
+# ========================================================================
+# Art. 9.4.f — Correctifs et mises à jour
+# ========================================================================
+
+[[controls]]
+check_id = "patches_current"
+control_id = "Art. 9.4.f"
+control_name = "Correctifs et mises à jour"
+category = "Protection et prévention"
+description = "Disposer de politiques documentées de correctifs et de mises à jour, et les appliquer"
+weight = 1.0
+is_critical = true
+
+# ========================================================================
+# Art. 10 — Détection
+# ========================================================================
+
+[[controls]]
+check_id = "audit_logging"
+control_id = "Art. 10"
+control_name = "Détection"
+category = "Détection"
+description = "Détecter rapidement les activités anormales grâce à la journalisation et à la surveillance"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "gpo_audit_policy"
+control_id = "Art. 10"
+control_name = "Détection"
+category = "Détection"
+description = "Détecter rapidement les activités anormales grâce à la journalisation et à la surveillance"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "log_rotation"
+control_id = "Art. 10"
+control_name = "Détection"
+category = "Détection"
+description = "Détecter rapidement les activités anormales grâce à la journalisation et à la surveillance"
+weight = 0.6
+is_critical = false
+
+# ========================================================================
+# Art. 12 — Politiques de sauvegarde et de restauration
+# ========================================================================
+
+[[controls]]
+check_id = "backup_configured"
+control_id = "Art. 12"
+control_name = "Politiques de sauvegarde et de restauration"
+category = "Sauvegarde et rétablissement"
+description = "Sauvegarder les données et pouvoir les restaurer"
+weight = 1.0
+is_critical = true

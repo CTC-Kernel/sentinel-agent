@@ -361,6 +361,15 @@ fn page_session_marker(page: &Page) -> egui::Id {
     egui::Id::new(("page_seen_this_session", page))
 }
 
+/// Message shown on every page while the endpoint is isolated.
+fn host_isolation_notice(standalone: bool) -> &'static str {
+    if standalone {
+        "Poste isol\u{00e9} du r\u{00e9}seau : tout le trafic est coup\u{00e9}, sauf le DNS et le DHCP."
+    } else {
+        "Poste isol\u{00e9} du r\u{00e9}seau : tout le trafic est coup\u{00e9}, sauf la plateforme Sentinel GRC, le DNS et le DHCP."
+    }
+}
+
 pub fn page_column(ui: &mut egui::Ui, body: impl FnOnce(&mut egui::Ui)) {
     let gutter = theme::SPACE_LG;
     let full = ui.available_width();
@@ -1431,6 +1440,24 @@ impl eframe::App for SentinelApp {
                 let combined_alpha = page_alpha * theme_alpha;
                 if combined_alpha < 1.0 {
                     ui.set_opacity(combined_alpha);
+                }
+
+                // An isolated endpoint says so on every page, with the way out.
+                if self.state.summary.host_isolated {
+                    let mut release = false;
+                    page_column(ui, |ui: &mut egui::Ui| {
+                        ui.add_space(theme::SPACE_SM);
+                        release = widgets::alert_with_action(
+                            ui,
+                            widgets::AlertLevel::Error,
+                            host_isolation_notice(self.state.summary.standalone),
+                            "Lever l'isolation",
+                        )
+                        .action_clicked;
+                    });
+                    if release {
+                        self.send_command(GuiCommand::ReleaseHost);
+                    }
                 }
 
                 page_scroll_area(ctx, &self.page).show(ui, |ui: &mut egui::Ui| {

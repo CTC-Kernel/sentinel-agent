@@ -96,6 +96,38 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     });
                 }
             }
+
+            ui.add_space(theme::SPACE_SM);
+
+            // Isolate / release the endpoint
+            if state.summary.host_isolated {
+                if widgets::button::secondary_button(
+                    ui,
+                    format!("{}  Lever l'isolation", icons::UNLOCK),
+                    true,
+                )
+                .clicked()
+                {
+                    state.threats.confirm_action = Some(PendingConfirmation {
+                        action_type: ResponseActionType::ReleaseHost,
+                        target: "Ce poste".to_string(),
+                        detail: "Le poste retrouve un acc\u{00e8}s complet au r\u{00e9}seau."
+                            .to_string(),
+                    });
+                }
+            } else if widgets::button::destructive_button(
+                ui,
+                format!("{}  Isoler le poste", icons::NETWORK),
+                true,
+            )
+            .clicked()
+            {
+                state.threats.confirm_action = Some(PendingConfirmation {
+                    action_type: ResponseActionType::IsolateHost,
+                    target: "Ce poste".to_string(),
+                    detail: isolation_detail(state.summary.standalone).to_string(),
+                });
+            }
         });
     });
 
@@ -109,6 +141,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             ResponseActionType::BlockIp => "Bloquer l'adresse IP ?",
             ResponseActionType::UnblockIp => "D\u{00e9}bloquer l'adresse IP ?",
             ResponseActionType::RestoreFile => "Restaurer le fichier ?",
+            ResponseActionType::IsolateHost => "Isoler le poste du r\u{00e9}seau ?",
+            ResponseActionType::ReleaseHost => "Lever l'isolation du poste ?",
         };
         let message = format!(
             "Cible : {}\n\nD\u{00e9}tail : {}\n\nCette action sera enregistr\u{00e9}e dans le journal d'audit.",
@@ -120,6 +154,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             ResponseActionType::BlockIp => "Bloquer",
             ResponseActionType::UnblockIp => "D\u{00e9}bloquer",
             ResponseActionType::RestoreFile => "Restaurer",
+            ResponseActionType::IsolateHost => "Isoler",
+            ResponseActionType::ReleaseHost => "Lever l'isolation",
         };
 
         let result = danger_dialog(
@@ -162,6 +198,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     ResponseActionType::RestoreFile => Some(GuiCommand::RestoreQuarantinedFile {
                         quarantine_id: pending.target.clone(),
                     }),
+                    // Until released by hand: an operator deciding to isolate
+                    // also decides when the endpoint comes back.
+                    ResponseActionType::IsolateHost => {
+                        Some(GuiCommand::IsolateHost { duration_secs: 0 })
+                    }
+                    ResponseActionType::ReleaseHost => Some(GuiCommand::ReleaseHost),
                 };
 
                 // Response log entry is created by state.rs when
@@ -413,4 +455,16 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     }
 
     command
+}
+
+/// What isolating the endpoint does, for the confirmation dialog.
+fn isolation_detail(standalone: bool) -> &'static str {
+    if standalone {
+        "Tout le trafic r\u{00e9}seau sera coup\u{00e9}, sauf le DNS et le DHCP. \
+         Le poste reste isol\u{00e9} jusqu'\u{00e0} la lev\u{00e9}e depuis cet \u{00e9}cran."
+    } else {
+        "Tout le trafic r\u{00e9}seau sera coup\u{00e9}, sauf la plateforme Sentinel GRC, \
+         le DNS et le DHCP. Le poste reste isol\u{00e9} jusqu'\u{00e0} la lev\u{00e9}e, \
+         depuis cet \u{00e9}cran ou depuis la plateforme."
+    }
 }

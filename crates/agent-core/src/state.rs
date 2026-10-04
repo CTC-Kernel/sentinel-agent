@@ -17,6 +17,11 @@ pub struct RuntimeState {
     pub force_discovery: Arc<AtomicBool>,
     pub force_update: Arc<AtomicBool>,
     pub discovery_cancel: Arc<AtomicBool>,
+    /// Ransomware canary files are wanted (configuration, then GUI).
+    pub ransomware_canaries: Arc<AtomicBool>,
+    /// The GUI changed [`Self::ransomware_canaries`]: the main loop has to
+    /// deploy or remove the decoys.
+    pub ransomware_canaries_changed: Arc<AtomicBool>,
     /// Dynamic check interval in seconds (GUI-adjustable).
     pub check_interval_secs: Arc<AtomicU64>,
     /// Dynamic log level (0=trace, 1=debug, 2=info, 3=warn, 4=error).
@@ -77,6 +82,8 @@ impl RuntimeState {
                 force_discovery: Arc::new(AtomicBool::new(false)),
                 force_update: Arc::new(AtomicBool::new(false)),
                 discovery_cancel: Arc::new(AtomicBool::new(false)),
+                ransomware_canaries: Arc::new(AtomicBool::new(false)),
+                ransomware_canaries_changed: Arc::new(AtomicBool::new(false)),
                 check_interval_secs: Arc::new(AtomicU64::new(
                     agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
                 )),
@@ -109,6 +116,13 @@ impl RuntimeState {
 
     pub fn request_shutdown(&self) {
         self.shutdown.store(true, Ordering::SeqCst);
+    }
+
+    /// Ask the main loop to deploy or remove the ransomware canary files.
+    pub fn set_ransomware_canaries(&self, enabled: bool) {
+        self.ransomware_canaries.store(enabled, Ordering::Release);
+        self.ransomware_canaries_changed
+            .store(true, Ordering::Release);
     }
 
     pub fn set_check_interval(&self, secs: u64) {

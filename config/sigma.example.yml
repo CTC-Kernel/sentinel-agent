@@ -1,0 +1,42 @@
+# Règle Sigma d'exemple.
+#
+# Déposez vos règles (*.yml ou *.yaml, sous-dossiers compris) dans le dossier
+# « sigma.d » du dossier de données de l'agent, puis redémarrez l'agent :
+#   Linux    /var/lib/sentinel-grc/sigma.d/
+#   macOS    ~/Library/Application Support/SentinelGRC/sigma.d/
+#   Windows  C:\ProgramData\Sentinel\sigma.d\
+#
+# Les règles de la communauté (https://github.com/SigmaHQ/sigma, dossiers
+# rules/*/process_creation) s'utilisent telles quelles. Seules les règles
+# « category: process_creation » écrites pour le système du poste sont
+# évaluées ; les autres sont comptées à part dans les journaux. Une règle
+# utilisant une construction non prise en charge est refusée avec sa raison.
+title: Shell lancé par netcat
+id: 0f6a1c52-7d3e-4b8a-9c41-5e2d7a903b10
+status: experimental
+description: Netcat démarré avec l'option qui relie un interpréteur de commandes à la connexion, signe d'un shell distant.
+author: Sentinel GRC
+tags:
+    - attack.execution
+    - attack.t1059.004
+logsource:
+    category: process_creation
+detection:
+    selection_tool:
+        Image|endswith:
+            - '/nc'
+            - '/ncat'
+            - '/netcat'
+            - '\nc.exe'
+            - '\ncat.exe'
+    selection_shell:
+        CommandLine|contains|windash:
+            - ' -e '
+            - ' --exec '
+            - ' -c '
+    filter_listen_only:
+        CommandLine|re: '\s-l\w*\s+\d+\s*$'
+    condition: all of selection_* and not 1 of filter_*
+falsepositives:
+    - Scripts d'administration utilisant netcat pour exécuter une commande
+level: high

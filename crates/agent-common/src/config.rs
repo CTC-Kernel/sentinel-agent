@@ -21,6 +21,8 @@
 //! - `SENTINEL_CA_CERT_PATH` → `ca_cert_path`
 //! - `SENTINEL_CHECK_INTERVAL_SECS` → `check_interval_secs`
 //! - `SENTINEL_STANDALONE` → `standalone` (`true`: no platform, local protection only)
+//! - `SENTINEL_RANSOMWARE_CANARIES` → `ransomware_canaries` (`true`: decoy files in user directories)
+//! - `SENTINEL_PROCESS_EVENT_TELEMETRY` → `process_event_telemetry` (`true`: evaluate every process as it starts)
 //!
 //! Nested fields are mapped explicitly (see [`NESTED_ENV_KEYS`]):
 //!
@@ -171,6 +173,79 @@ pub struct AgentConfig {
     /// plateforme" action leaves it later.
     #[serde(default)]
     pub standalone: bool,
+
+    /// Ransomware canary files: hidden decoy documents are placed in each
+    /// user's home and `Documents` directory, and a decoy that gets rewritten
+    /// or renamed raises a critical incident.
+    ///
+    /// Off by default because it writes into user directories. Turning it
+    /// off again removes the decoys at the next start.
+    #[serde(default)]
+    pub ransomware_canaries: bool,
+
+    /// Evaluate every process as it starts, from the operating system's own
+    /// process events, instead of only at the periodic scan. Off by default:
+    /// it keeps a system helper running (`eslogger` on macOS, a PowerShell
+    /// trace on Windows) and needs root or administrator rights.
+    #[serde(default)]
+    pub process_event_telemetry: bool,
+
+    /// Indicator-of-compromise feeds (block lists, STIX bundles, TAXII
+    /// collections) whose malicious addresses and domains are added to the
+    /// network detector. None by default: no feed is contacted unless listed.
+    #[serde(default)]
+    pub threat_intel_feeds: Vec<ThreatIntelFeed>,
+}
+
+/// Layout of an indicator feed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ThreatIntelFeedFormat {
+    /// One address, domain or URL per line (CSV and hosts files accepted).
+    #[default]
+    Text,
+    /// A STIX 2.1 bundle.
+    Stix,
+    /// The objects endpoint of a TAXII 2.1 collection.
+    Taxii,
+}
+
+/// One indicator feed to download.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ThreatIntelFeed {
+    /// Name shown in the logs; also identifies the feed's local copy.
+    pub name: String,
+    /// HTTPS address of the feed.
+    pub url: String,
+    #[serde(default)]
+    pub format: ThreatIntelFeedFormat,
+    /// Value of the `Authorization` header, when the feed needs one
+    /// (`Bearer …`, `Basic …`, or a MISP key).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authorization: Option<String>,
+    /// Hours between two downloads (at least 1).
+    #[serde(default = "default_feed_refresh_hours")]
+    pub refresh_hours: u64,
+}
+
+fn default_feed_refresh_hours() -> u64 {
+    12
+}
+
+// The authorization value is a secret: never print it.
+impl std::fmt::Debug for ThreatIntelFeed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ThreatIntelFeed")
+            .field("name", &self.name)
+            .field("url", &self.url)
+            .field("format", &self.format)
+            .field(
+                "authorization",
+                &self.authorization.as_ref().map(|_| "<redacted>"),
+            )
+            .field("refresh_hours", &self.refresh_hours)
+            .finish()
+    }
 }
 
 /// LLM configuration settings for the agent.
@@ -347,6 +422,9 @@ impl Default for AgentConfig {
             admin_password: None,
             llm: LLMSettings::default(),
             standalone: false,
+            ransomware_canaries: false,
+            process_event_telemetry: false,
+            threat_intel_feeds: Vec::new(),
         }
     }
 }
@@ -880,6 +958,9 @@ mod tests {
             heartbeat_interval_secs: 60,
             llm: LLMSettings::default(),
             standalone: false,
+            ransomware_canaries: false,
+            process_event_telemetry: false,
+            threat_intel_feeds: Vec::new(),
         };
 
         let json = serde_json::to_string(&config).unwrap();
@@ -1227,6 +1308,46 @@ mod tests {
             let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
             assert_eq!(mode, 0o600);
         }
+    }
+
+    /// The documented full example must stay loadable as it is.
+    #[test]
+    fn shipped_full_example_configuration_loads() {
+        let example = include_str!("../../../config/agent.full.example.json");
+        let config = load_with_env(example, &env_map(&[]));
+        assert_eq!(config.threat_intel_feeds.len(), 2);
+        assert_eq!(
+            config.threat_intel_feeds[1].format,
+            ThreatIntelFeedFormat::Taxii
+        );
+        assert!(!config.ransomware_canaries);
+    }
+
+    #[test]
+    fn threat_intel_feeds_are_read_from_the_file_and_never_print_their_secret() {
+        let env = env_map(&[]);
+        assert!(load_with_env("{}", &env).threat_intel_feeds.is_empty());
+
+        let config = load_with_env(
+            r#"{ "threat_intel_feeds": [
+                { "name": "feodo", "url": "https://feodotracker.abuse.ch/downloads/ipblocklist.txt" },
+                { "name": "misp", "url": "https://misp.example/taxii2/collections/1/objects/",
+                  "format": "taxii", "authorization": "Bearer s3cret-key", "refresh_hours": 2 }
+            ] }"#,
+            &env,
+        );
+        assert_eq!(config.threat_intel_feeds.len(), 2);
+        let feodo = &config.threat_intel_feeds[0];
+        assert_eq!(feodo.format, ThreatIntelFeedFormat::Text);
+        assert_eq!(feodo.refresh_hours, 12);
+        assert_eq!(feodo.authorization, None);
+        let misp = &config.threat_intel_feeds[1];
+        assert_eq!(misp.format, ThreatIntelFeedFormat::Taxii);
+        assert_eq!(misp.refresh_hours, 2);
+
+        let printed = format!("{:?}", config.threat_intel_feeds);
+        assert!(!printed.contains("s3cret-key"));
+        assert!(printed.contains("<redacted>"));
     }
 
     #[test]

@@ -10,6 +10,252 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🧬 Détection : règles YARA sur les fichiers créés ou modifiés
+
+- **Analyse YARA** : les fichiers que la surveillance d'intégrité signale
+  comme créés ou modifiés sont confrontés aux règles `*.yar` / `*.yara` du
+  dossier `yara.d`. Un fichier correspondant lève un incident « YARA : nom de
+  la règle », à la gravité demandée par la règle (`severity` ou `score` de sa
+  section `meta`).
+- **Moteur YARA-X complet, dans un programme séparé** (`sentinel-yara`,
+  sources dans `tools/sentinel-yara`) : compatibilité avec les règles de la
+  communauté, modules `pe`, `elf`, `macho`, `math`, `hash` compris. L'agent le
+  lance s'il le trouve à côté de son binaire ; l'analyse de fichiers suspects
+  se fait ainsi hors du processus de l'agent. Il n'a pas pu être intégré au
+  binaire principal : il exige une version de `regex` que la pile LLM refuse.
+- **Réponse automatique possible** : modèle de playbook « Fichier malveillant
+  (YARA) », qui met le fichier en quarantaine.
+- **À faire avant diffusion** : construire `sentinel-yara` pour chaque système
+  et l'ajouter aux installeurs (les installeurs ne sont pas modifiés).
+
+### ⚡ Détection : processus évalués dès leur lancement
+
+- **Option `process_event_telemetry`** (désactivée par défaut) : le système
+  signale chaque démarrage de processus, aussitôt évalué par les motifs
+  intégrés et les règles Sigma. Un processus qui ne vit que quelques secondes
+  n'échappe plus à l'analyse périodique.
+- **Sources** : événements Endpoint Security via l'outil système `eslogger`
+  sous macOS (root et accès complet au disque) ; trace
+  `Win32_ProcessStartTrace` sous Windows (administrateur) ; connecteur de
+  processus du noyau sous Linux, derrière l'option de compilation
+  `proc-connector`.
+- **Limites** : `eslogger` n'est pas une interface garantie par Apple, son
+  format peut changer (l'agent le signale si les lignes ne sont plus
+  comprises) ; un client Endpoint Security natif demande une autorisation à
+  obtenir auprès d'Apple. Le code Linux n'a pas été compilé sur Linux et reste
+  donc désactivé par défaut. Aucune des trois sources n'a été exercée avec les
+  droits administrateur.
+
+### 🎯 Détection : règles Sigma exécutées par l'agent
+
+- **Moteur Sigma natif** : les règles Sigma déposées dans le dossier
+  `sigma.d` du dossier de données (sous-dossiers compris) sont évaluées sur
+  les processus du poste à chaque analyse de sécurité. Les règles
+  `process_creation` de la communauté SigmaHQ s'utilisent telles quelles.
+  Un processus qui correspond lève un incident « Sigma : titre de la règle »,
+  avec sa gravité, ses techniques MITRE ATT&CK, sa ligne de commande et son
+  processus parent.
+- **Pris en charge** : cartes de champs, listes de cartes, mots-clés, jokers
+  `*` et `?`, modificateurs `contains`, `startswith`, `endswith`, `all`, `re`,
+  `cased`, `exists`, `windash`, `base64`, `base64offset`, `wide`, comparaisons
+  numériques, `fieldref` ; conditions `and`, `or`, `not`, parenthèses,
+  `1 of`, `all of`, `them`.
+- **Refus explicite** : une règle utilisant une construction non prise en
+  charge (agrégations, corrélation, `cidr`…) est refusée avec sa raison dans
+  les journaux, jamais chargée avec un sens différent. Les règles d'une autre
+  source de journaux ou d'un autre système sont comptées à part.
+- **Windows** : le processus parent est désormais relevé, ce qui permet aux
+  règles portant sur le parent de s'appliquer.
+- Exemple commenté : `config/sigma.example.yml`. Aucune règle n'est livrée
+  avec l'agent.
+
+### 📄 Rapports : export PDF avec empreinte d'intégrité
+
+- **Bouton « Exporter PDF »** sur chaque rapport (synthèse exécutive, audit
+  de conformité, incidents), à côté de l'export HTML : pages A4, titres,
+  listes, tableaux répartis sur plusieurs pages avec leur en-tête répété,
+  numérotation « Page n / total ».
+- **Empreinte SHA-256 du contenu imprimée sur chaque page**, et fichier
+  `.sha256` écrit à côté du PDF (format `sha256sum`) pour vérifier que le
+  fichier n'a pas été modifié. C'est une marque d'intégrité, pas une
+  signature : elle ne prouve pas qui a produit le rapport. Une signature par
+  certificat reste à ajouter quand un certificat de signature sera choisi.
+- Le PDF est écrit directement par l'agent, sans moteur de rendu ni
+  dépendance nouvelle ; le même rapport donne toujours le même fichier.
+
+### 🤖 Assistant IA : actions proposées et recherche dans l'historique
+
+- **Actions proposées, jamais exécutées seules** : quand une action de
+  l'agent répond à la demande, l'assistant la propose et un bouton apparaît
+  sous sa réponse — relancer l'analyse, lancer la découverte du réseau,
+  exporter le SBOM, corriger un contrôle en échec, isoler le poste, lever
+  l'isolation. Rien n'est lancé avant confirmation de l'opérateur, et
+  l'action confirmée est notée dans la conversation.
+- **Contrôle côté application** : la liste des actions est fermée ; une
+  action inventée, un contrôle inexistant ou déjà conforme, une isolation sur
+  un poste déjà isolé ne donnent aucun bouton. Si le modèle cite un domaine
+  (« pare-feu ») au lieu de l'identifiant du contrôle, l'application retrouve
+  le contrôle quand un seul est en échec dans ce domaine. Aucune action n'est
+  proposée en conversation vocale.
+- **Recherche dans l'historique** : une question portant sur une période
+  (« que s'est-il passé mardi ? », « hier », « la semaine dernière », « il y a
+  3 jours », « le 2 octobre », « depuis 6 heures »…) ajoute au contexte les
+  événements enregistrés sur cette période : processus suspects, alertes
+  réseau, intégrité des fichiers, USB, incidents système, vulnérabilités,
+  actions de réponse. Une période sans événement est signalée comme telle,
+  avec les dates que l'historique couvre.
+- La chronologie forensique et l'assistant s'appuient désormais sur la même
+  liste d'événements.
+
+### 🛰️ Flux d'indicateurs de compromission (texte, STIX 2.1, TAXII 2.1)
+
+- **Sources de renseignement configurables** (`threat_intel_feeds`) : listes
+  de blocage publiques, bundles STIX 2.1, collections TAXII 2.1 (pagination
+  comprise), avec en-tête d'authentification pour un serveur interne (MISP,
+  OpenCTI). Leurs adresses et domaines malveillants s'ajoutent à ceux que la
+  plateforme pousse ; un agent autonome dispose ainsi de renseignement.
+- **Aucune source par défaut** : rien n'est contacté tant qu'un flux n'est
+  pas déclaré. HTTPS obligatoire.
+- **Garde-fous** : les adresses privées ou locales sont refusées ; les
+  indicateurs STIX révoqués ou expirés sont ignorés ; un flux en échec garde
+  ses derniers indicateurs, conservés sur disque pour le prochain démarrage.
+- Vérifié sur deux listes publiques réelles (Feodo Tracker, URLhaus).
+
+### 📚 Référentiels : notation par contrôle pour NIS 2 et DORA, ajout de HDS
+
+- **NIS 2 et DORA** étaient reconnus comme référentiels actifs, mais sans
+  catalogue de contrôles : aucun score par exigence. Ils en ont désormais un.
+  NIS 2 : article 21, paragraphe 2, points b, c, e, g, h, i et j. DORA :
+  articles 7, 9 (paragraphes 2, 3 et 4, points c, d et f), 10 et 12.
+- **HDS (hébergeur de données de santé)** : nouveau référentiel, fondé sur le
+  socle ISO/IEC 27001:2022 qu'exige la certification (contrôles de l'annexe A
+  vérifiables sur un poste).
+- Chaque catalogue indique en tête ce qui n'est pas mesurable par l'agent
+  (gouvernance, chaîne d'approvisionnement, exigences contractuelles…). Les
+  correspondances sont à faire valider par un auditeur avant d'être opposées
+  à un tiers.
+
+### 🧱 Contrôles de conformité personnalisés
+
+- **Contrôles déclarés dans des fichiers TOML**, sans recompiler l'agent :
+  chaque fichier du dossier `checks.d` du dossier de données déclare un ou
+  plusieurs contrôles, exécutés, notés et remontés comme les contrôles
+  intégrés (nom, gravité, catégorie, référentiels, plateformes).
+- **Quatre sondes** : présence d'un fichier, contenu d'un fichier (expression
+  régulière ligne par ligne), permissions et propriétaire (Unix), commande
+  (code de retour et sortie). Les programmes sont lancés par chemin absolu,
+  sans interpréteur de commandes, avec un délai maximal.
+- **Garde-fous** : l'identifiant commence par `custom_` et ne peut pas
+  remplacer un contrôle intégré ; une déclaration invalide est refusée avec
+  sa raison, les autres sont chargées ; sous Unix, un fichier ou un dossier
+  modifiable par un autre utilisateur est ignoré.
+- Exemple commenté : `config/checks.example.toml`.
+
+### 🧩 Inventaire des extensions de navigateur
+
+- **Nouvel onglet « Extensions de navigateur »** dans Logiciels & MDM : les
+  extensions de Chrome, Edge, Brave, Chromium et Firefox sont relevées dans
+  les profils de chaque utilisateur, à chaque analyse des vulnérabilités, par
+  lecture des fichiers sur disque (aucun navigateur n'est lancé).
+- **Portée de chaque extension** — étendue, modérée ou limitée — calculée à
+  partir des permissions obtenues, avec les raisons en clair : accès à tous
+  les sites, lecture des cookies, interception des requêtes, injection de
+  scripts, messagerie native, débogueur, proxy… Une extension installée hors
+  du magasin du navigateur monte d'un niveau. La portée décrit une capacité,
+  pas une malveillance.
+- L'inventaire reste local : il n'est pas encore envoyé à la plateforme.
+
+### 📦 Vulnérabilités : distributions RPM, outils de développement et SBOM
+
+- **Distributions RPM** : l'inventaire lit la base RPM et les CVE sont
+  recherchées pour AlmaLinux, Rocky Linux, RHEL (dépôts BaseOS et AppStream)
+  et openSUSE (Leap, Tumbleweed), avec le nommage propre à chacune (paquet
+  binaire ou paquet source, époque incluse). Seul le noyau installé le plus
+  récent est évalué. Les autres distributions RPM (Fedora, CentOS Stream,
+  Oracle Linux, Amazon Linux, SLES) sont inventoriées sans recherche de CVE,
+  faute de base d'avis exploitable.
+- **Outils installés hors du gestionnaire de paquets** : paquets Python
+  (`pip`, dossiers `site-packages` système et utilisateur), paquets Node.js
+  globaux (`npm -g`, nvm) et binaires `cargo install` sont inventoriés et
+  confrontés aux CVE (écosystèmes PyPI, npm, crates.io). Lecture directe sur
+  disque, sans exécuter d'interpréteur. Les dépendances des projets (fichiers
+  de verrouillage, environnements virtuels) ne sont pas couvertes.
+- **SBOM CycloneDX 1.5** : bouton « SBOM CycloneDX » dans Logiciels & MDM.
+  Chaque paquet y figure avec son identifiant purl ; chaque vulnérabilité
+  pointe vers les composants touchés, avec son score, sa priorité et son
+  statut d'exploitation (CISA KEV, EPSS). Fichier écrit sur le Bureau.
+- Entre deux sources donnant la même faille, celle qui indique la version
+  corrigée est conservée.
+
+### 🚧 Isolation réseau du poste
+
+- **Nouvelle action de réponse** : l'agent coupe tout le trafic du poste, sauf
+  la plateforme Sentinel GRC (adresses résolues au moment d'isoler), le DNS et
+  le DHCP. En mode autonome, seuls le DNS et le DHCP restent ouverts.
+- **Trois façons de la déclencher** : action de playbook « Isoler le poste du
+  réseau » (paramètre : durée en secondes, `0` jusqu'à levée manuelle, une
+  heure par défaut) ; bouton « Isoler le poste » dans Menaces → Réponse ;
+  commandes plateforme `isolate_host` et `release_host`.
+- **Toujours réversible** : un bandeau « Poste isolé » s'affiche sur toutes
+  les pages avec le bouton « Lever l'isolation » ; l'isolation est refusée si
+  l'adresse de la plateforme ne peut pas être résolue ; elle est consignée sur
+  disque, réappliquée après un redémarrage et levée si sa durée a expiré
+  entre-temps.
+- **Pare-feu utilisé** : ancre pf `com.apple/sentinel-isolation` sous macOS
+  (sans toucher à `/etc/pf.conf`), chaînes `SENTINEL_ISO_IN`/`SENTINEL_ISO_OUT`
+  sous Linux (iptables et ip6tables), règles `SentinelIsolation_*` du pare-feu
+  Windows (refus explicite si un profil du pare-feu est désactivé).
+- **Modèle de playbook « Ransomware (fichiers leurres) »** : isole le poste
+  une heure dès qu'un fichier leurre est chiffré.
+
+### 🪤 Fichiers leurres anti-ransomware
+
+- **Détection par leurres** : un dossier masqué de faux documents (tableur,
+  PDF, texte, photo) est déposé dans le dossier personnel et le dossier
+  Documents de chaque utilisateur. Personne n'ouvre ces fichiers : un leurre
+  réécrit, ou renommé sur place (`.locked`…), lève aussitôt un incident
+  critique « Ransomware suspecté », avec notification, envoi à la plateforme
+  et au SIEM. Une simple suppression (nettoyage manuel) ne lève qu'un
+  incident moyen.
+- **Réponse automatique possible** : un leurre chiffré est présenté aux
+  playbooks comme un changement de fichier de type `ransomware_canary`.
+- **Désactivé par défaut**, car l'agent écrit alors dans les dossiers des
+  utilisateurs. Activation dans Paramètres → Agent → Protection
+  anti-ransomware, par `"ransomware_canaries": true` dans `agent.json`, ou
+  par `SENTINEL_RANSOMWARE_CANARIES=true`. La désactivation supprime les
+  leurres intacts ; un fichier modifié n'est jamais supprimé.
+- **Dépôt sûr quand l'agent tourne en root** : dossiers et fichiers sont
+  créés par descripteurs de dossier, sans jamais suivre un lien symbolique,
+  puis remis à l'utilisateur ; un dossier qui n'appartient pas à
+  l'utilisateur attendu est refusé.
+- Un chiffrement survenu pendant que l'agent était arrêté est signalé au
+  démarrage ; le dossier touché est conservé comme preuve et un nouveau
+  dossier est déposé.
+
+### 🎯 Vulnérabilités : priorité fondée sur l'exploitation réelle (CISA KEV + EPSS)
+
+- **Chaque faille reçoit une priorité de correction** : *immédiate* si elle
+  est déjà exploitée (catalogue CISA KEV), *urgente* si son exploitation est
+  probable (score EPSS d'au moins 10 %), *planifiée* si elle est critique ou
+  élevée sans signal d'exploitation, *courante* sinon. Le CVSS seul ne dit pas
+  ce qui est attaqué aujourd'hui.
+- **Page Vulnérabilités** : failles triées par priorité, colonne « Priorité »,
+  filtre « À corriger d'abord », bandeau résumant ce qui est exploité, section
+  « Exploitation » dans le détail (date d'ajout au catalogue, échéance CISA,
+  usage par des rançongiciels, probabilité EPSS), colonnes ajoutées à
+  l'export CSV. La page indique la version du catalogue et la date des scores
+  utilisés, ou qu'une source manquait.
+- **Aucune donnée du poste n'est envoyée** : les deux sources sont
+  téléchargées en entier, puis filtrées localement. Elles sont conservées sur
+  le poste (12 h pour KEV, 24 h pour EPSS) ; hors ligne, la dernière copie
+  sert encore et la page le signale. Une source indisponible ne rend pas
+  l'analyse partielle : seule la priorité retombe sur la gravité.
+- **Assistant IA** : les failles exploitées sont analysées en premier après un
+  scan, et l'assistant reçoit le statut d'exploitation de chaque faille.
+- **Notification de fin de scan** : mentionne le nombre de failles exploitées
+  activement.
+- Les champs envoyés à la plateforme sont inchangés.
+
 ### 🧠 Assistant IA : contexte complet et adaptation automatique au poste
 
 - **L'IA voit enfin le détail des contrôles** : pour chaque domaine (antivirus,

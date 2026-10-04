@@ -43,5 +43,23 @@
 
   "usb_block_mass_storage": false,
 
-  "active_frameworks": ["ISO27001", "NIST-CSF"]
+  "active_frameworks": ["ISO27001", "NIST-CSF"],
+
+  "ransomware_canaries": false,
+
+  "threat_intel_feeds": [
+    {
+      "name": "feodo-tracker",
+      "url": "https://feodotracker.abuse.ch/downloads/ipblocklist.txt",
+      "format": "text",
+      "refresh_hours": 12
+    },
+    {
+      "name": "taxii-interne",
+      "url": "https://cti.example.com/taxii2/api/collections/COLLECTION-ID/objects/",
+      "format": "taxii",
+      "authorization": "Bearer REMPLACER_PAR_LE_JETON",
+      "refresh_hours": 6
+    }
+  ]
 }

@@ -31,25 +31,24 @@ impl SoftwarePage {
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Tab bar — the Applications tab exists on macOS and Windows only,
-        // and a bar with one tab is a label pretending to be a control.
+        // Tab bar — the Applications tab exists on macOS and Windows only.
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         if state.software.active_tab == SoftwareTab::Applications {
             state.software.active_tab = SoftwareTab::Packages;
         }
         let active = state.software.active_tab;
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
-        {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                if Self::tab_button(
-                    ui,
-                    &format!("{}  Dépendances et paquets", icons::SOFTWARE),
-                    active == SoftwareTab::Packages,
-                ) {
-                    state.software.active_tab = SoftwareTab::Packages;
-                    state.software.selected_package = None;
-                    state.software.detail_open = false;
-                }
+        ui.horizontal(|ui: &mut egui::Ui| {
+            if Self::tab_button(
+                ui,
+                &format!("{}  Dépendances et paquets", icons::SOFTWARE),
+                active == SoftwareTab::Packages,
+            ) {
+                state.software.active_tab = SoftwareTab::Packages;
+                state.software.selected_package = None;
+                state.software.detail_open = false;
+            }
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            {
                 ui.add_space(theme::SPACE_SM);
                 if Self::tab_button(
                     ui,
@@ -60,10 +59,20 @@ impl SoftwarePage {
                     state.software.selected_package = None;
                     state.software.detail_open = false;
                 }
-            });
+            }
+            ui.add_space(theme::SPACE_SM);
+            if Self::tab_button(
+                ui,
+                &format!("{}  Extensions de navigateur", icons::PLUG),
+                active == SoftwareTab::Extensions,
+            ) {
+                state.software.active_tab = SoftwareTab::Extensions;
+                state.software.selected_package = None;
+                state.software.detail_open = false;
+            }
+        });
 
-            ui.add_space(theme::SPACE_LG);
-        }
+        ui.add_space(theme::SPACE_LG);
 
         let search_id = ui.id().with("software_search_cache");
         let search_upper: String = ui
@@ -90,6 +99,7 @@ impl SoftwarePage {
             }
             #[cfg(not(any(target_os = "macos", target_os = "windows")))]
             SoftwareTab::Applications => { /* unreachable on unsupported platforms */ }
+            SoftwareTab::Extensions => Self::show_extensions(ui, state, &search_upper),
         }
 
         ui.add_space(theme::SPACE_XL);
@@ -258,10 +268,187 @@ impl SoftwarePage {
                 }
                 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
                 SoftwareTab::Applications => { /* unreachable on unsupported platforms */ }
+                // Extensions have no detail drawer: the table shows everything.
+                SoftwareTab::Extensions => {}
             }
         }
 
         command
+    }
+
+    // -- Tab: Extensions de navigateur --
+
+    fn show_extensions(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
+        let filtered = filtered_extensions(&state.software.browser_extensions, search_upper);
+        let total = state.software.browser_extensions.len();
+        let extended = state
+            .software
+            .browser_extensions
+            .iter()
+            .filter(|e| e.reach == crate::dto::Severity::High)
+            .count();
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(crate::format::int(total as u64))
+                        .font(theme::font_card_value())
+                        .color(theme::text_primary())
+                        .strong(),
+                );
+                ui.label(
+                    egui::RichText::new(if total > 1 {
+                        "extensions installées"
+                    } else {
+                        "extension installée"
+                    })
+                    .font(theme::font_body())
+                    .color(theme::text_secondary()),
+                );
+                ui.add_space(theme::SPACE_MD);
+                if extended > 0 {
+                    widgets::status_badge(
+                        ui,
+                        &format!("{extended} à portée étendue"),
+                        theme::SEVERITY_HIGH,
+                    );
+                }
+            });
+            ui.add_space(theme::SPACE_SM);
+            ui.label(
+                egui::RichText::new(
+                    "La portée indique ce qu'une extension peut faire avec les permissions \
+                     qu'elle a obtenues (lire tous les sites, les cookies, le trafic…). Ce n'est \
+                     pas un verdict : un bloqueur de publicité a une portée étendue. Vérifiez \
+                     d'abord celles que personne ne reconnaît ou installées hors magasin.",
+                )
+                .font(theme::font_min())
+                .color(theme::text_secondary()),
+            );
+        });
+
+        ui.add_space(theme::SPACE_MD);
+
+        let _ = widgets::SearchFilterBar::new(
+            &mut state.software.search,
+            "Rechercher une extension, un navigateur ou un utilisateur…",
+        )
+        .result_count(filtered.len())
+        .show(ui);
+
+        ui.add_space(theme::SPACE_SM);
+
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("EXTENSIONS DE NAVIGATEUR")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            if total == 0 {
+                widgets::empty_state(
+                    ui,
+                    icons::PLUG,
+                    "Aucune extension inventoriée",
+                    Some(
+                        "L'inventaire est relevé à chaque analyse des vulnérabilités, dans les profils Chrome, Edge, Brave, Chromium et Firefox de chaque utilisateur.",
+                    ),
+                );
+                return;
+            }
+            if filtered.is_empty() {
+                widgets::empty_state(
+                    ui,
+                    icons::PLUG,
+                    "Aucun résultat",
+                    Some("Ajustez votre recherche pour voir les extensions."),
+                );
+                return;
+            }
+
+            use widgets::table;
+            const EXTENSIONS_PER_PAGE: usize = 25;
+            let (page_start, page_len, _) = widgets::page_window(
+                filtered.len(),
+                EXTENSIONS_PER_PAGE,
+                &mut state.software.extensions_page,
+            );
+
+            table::fluid(
+                ui,
+                &[
+                    table::Col::fluid(170.0, 2.0), // Extension
+                    table::Col::fluid(110.0, 1.0), // Navigateur
+                    table::Col::fluid(90.0, 0.5),  // Utilisateur
+                    table::Col::fluid(80.0, 0.5),  // Version
+                    table::Col::fluid(96.0, 0.0),  // Portée
+                    table::Col::fluid(180.0, 4.0), // Pourquoi
+                ],
+            )
+            .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+                for title in [
+                    "EXTENSION",
+                    "NAVIGATEUR",
+                    "UTILISATEUR",
+                    "VERSION",
+                    "PORTÉE",
+                    "POURQUOI",
+                ] {
+                    header.col(|ui| {
+                        table::header_cell(ui, title);
+                    });
+                }
+            })
+            .body(|body| {
+                body.rows(theme::TABLE_DATA_ROW_HEIGHT, page_len, |mut row| {
+                    let Some(extension) = filtered
+                        .get(page_start + row.index())
+                        .and_then(|&index| state.software.browser_extensions.get(index))
+                    else {
+                        return;
+                    };
+                    row.col(|ui| {
+                        table::cell_stack(ui, &extension.name, &extension.id);
+                    });
+                    row.col(|ui| {
+                        table::cell_stack(ui, &extension.browser, &extension.profile);
+                    });
+                    row.col(|ui| {
+                        table::cell(ui, &extension.user);
+                    });
+                    row.col(|ui| {
+                        table::cell_mono_muted(ui, &extension.version);
+                    });
+                    row.col(|ui| {
+                        let (label, color) = reach_display(extension.reach);
+                        widgets::status_badge(ui, label, color);
+                        if extension.enabled == Some(false) {
+                            ui.add_space(theme::SPACE_XS);
+                            widgets::status_badge(ui, "INACTIVE", theme::text_tertiary());
+                        }
+                    });
+                    row.col(|ui| {
+                        if extension.reasons.is_empty() {
+                            table::cell_muted(ui, "Aucune permission sensible");
+                        } else {
+                            // The row shows one line: the full list on hover.
+                            table::cell_small(ui, &extension.reasons.join(" · "))
+                                .on_hover_text(extension.reasons.join("\n"));
+                        }
+                    });
+                });
+            });
+
+            widgets::paginate_controls(
+                ui,
+                filtered.len(),
+                EXTENSIONS_PER_PAGE,
+                &mut state.software.extensions_page,
+            );
+        });
     }
 
     // -- Tab: Paquets (Homebrew) --
@@ -270,7 +457,7 @@ impl SoftwarePage {
         ui: &mut Ui,
         state: &mut AppState,
         search_upper: &str,
-        _command: &mut Option<GuiCommand>,
+        command: &mut Option<GuiCommand>,
     ) {
         let filtered: Vec<usize> = state
             .software
@@ -346,6 +533,23 @@ impl SoftwarePage {
         Self::updates_card(ui, &state.software.packages);
 
         ui.add_space(theme::SPACE_MD);
+
+        ui.horizontal(|ui: &mut egui::Ui| {
+            if widgets::button::secondary_button(
+                ui,
+                format!("{}  SBOM CycloneDX", icons::DOWNLOAD),
+                !state.software.packages.is_empty(),
+            )
+            .on_hover_text(
+                "Exporte l'inventaire logiciel et ses vulnérabilités au format CycloneDX 1.5 (JSON), sur le Bureau.",
+            )
+            .clicked()
+            {
+                *command = Some(GuiCommand::ExportSbom);
+            }
+        });
+
+        ui.add_space(theme::SPACE_SM);
 
         let (_, export) = widgets::SearchFilterBar::new(
             &mut state.software.search,
@@ -1070,5 +1274,78 @@ fn platform_upgrade_command(safe_name: &str) -> String {
     #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
     {
         format!("# Mettez a jour '{}' manuellement", safe_name)
+    }
+}
+
+/// Indices of the extensions matching the search (name, identifier, browser,
+/// user or profile), in inventory order: widest reach first.
+fn filtered_extensions(
+    extensions: &[crate::dto::GuiBrowserExtension],
+    search_upper: &str,
+) -> Vec<usize> {
+    extensions
+        .iter()
+        .enumerate()
+        .filter(|(_, e)| {
+            search_upper.is_empty()
+                || [&e.name, &e.id, &e.browser, &e.user, &e.profile]
+                    .iter()
+                    .any(|field| field.to_uppercase().contains(search_upper))
+        })
+        .map(|(index, _)| index)
+        .collect()
+}
+
+fn reach_display(reach: crate::dto::Severity) -> (&'static str, egui::Color32) {
+    match reach {
+        crate::dto::Severity::Critical | crate::dto::Severity::High => {
+            ("\u{00c9}TENDUE", theme::SEVERITY_HIGH)
+        }
+        crate::dto::Severity::Medium => ("MOD\u{00c9}R\u{00c9}E", theme::SEVERITY_MEDIUM),
+        crate::dto::Severity::Low | crate::dto::Severity::Info => {
+            ("LIMIT\u{00c9}E", theme::text_tertiary())
+        }
+    }
+}
+
+#[cfg(test)]
+mod extension_tests {
+    use super::*;
+    use crate::dto::{GuiBrowserExtension, Severity};
+
+    fn extension(name: &str, browser: &str, user: &str) -> GuiBrowserExtension {
+        GuiBrowserExtension {
+            browser: browser.to_string(),
+            user: user.to_string(),
+            profile: "Default".to_string(),
+            id: format!("id-{name}"),
+            name: name.to_string(),
+            version: "1.0".to_string(),
+            reach: Severity::Low,
+            reasons: Vec::new(),
+            enabled: None,
+            from_store: true,
+        }
+    }
+
+    #[test]
+    fn search_matches_name_browser_user_and_identifier() {
+        let extensions = vec![
+            extension("uBlock Origin", "Firefox", "alice"),
+            extension("Coupon Helper", "Chrome", "bob"),
+        ];
+        assert_eq!(filtered_extensions(&extensions, ""), [0, 1]);
+        assert_eq!(filtered_extensions(&extensions, "UBLOCK"), [0]);
+        assert_eq!(filtered_extensions(&extensions, "CHROME"), [1]);
+        assert_eq!(filtered_extensions(&extensions, "BOB"), [1]);
+        assert_eq!(filtered_extensions(&extensions, "ID-COUPON"), [1]);
+        assert!(filtered_extensions(&extensions, "SAFARI").is_empty());
+    }
+
+    #[test]
+    fn reach_is_named_as_a_capability() {
+        assert_eq!(reach_display(Severity::High).0, "ÉTENDUE");
+        assert_eq!(reach_display(Severity::Medium).0, "MODÉRÉE");
+        assert_eq!(reach_display(Severity::Low).0, "LIMITÉE");
     }
 }

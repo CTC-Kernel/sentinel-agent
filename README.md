@@ -30,6 +30,7 @@ Sentinel GRC Agent est un agent d'endpoint souverain et ultra-performant, conçu
 ### 1. Gouvernance & Conformité (Compliance)
 - **Frameworks Critiques** : 21 contrôles natifs alignés sur **CIS, NIS2, ISO 27001, DORA et SOC2**.
 - **Scan de Vulnérabilités** : Analyse temps réel de plus de 151 paquets système contre les bases CVE.
+- **Priorisation par exploitation réelle** : chaque CVE est croisée avec le catalogue **CISA KEV** (failles déjà exploitées) et le score **EPSS** (probabilité d'exploitation), sans envoyer de donnée du poste.
 - **Auto-Remédiation** : Correction intelligente des écarts de conformité sans intervention humaine.
 
 ### 2. Sécurité Offensive & Détection (Detection)

@@ -12,12 +12,16 @@
 //!   widgets, pages, and application shell.
 //! - Without `render` - Only the DTO and event types are available.
 
+pub mod assistant_action;
 pub mod dto;
 pub mod events;
 pub mod format;
+#[cfg(feature = "render")]
+pub mod history_search;
 pub mod human_transcript;
 pub mod os;
 pub mod os_settings;
+pub mod pdf;
 #[cfg(feature = "render")]
 pub mod state;
 

