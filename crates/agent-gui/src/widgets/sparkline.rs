@@ -38,7 +38,7 @@ impl Default for SparklineConfig {
 }
 
 /// Peak alpha of the area fill, right under the line.
-const FILL_ALPHA: f32 = 88.0;
+const FILL_ALPHA: f32 = 40.0;
 /// Room kept inside the rect so the end dot and line width are not clipped.
 const INSET: f32 = 3.0;
 

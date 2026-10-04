@@ -389,8 +389,8 @@ impl CartographyPage {
 
         // Legend (AAA Institutional)
         ui.add_space(theme::SPACE_MD);
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.horizontal(|ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Légende de la cartographie", |ui: &mut egui::Ui| {
+            ui.vertical(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("LÉGENDE INFRASTRUCTURE")
                         .font(theme::font_label())
@@ -407,24 +407,27 @@ impl CartographyPage {
                     ("IOT / EMBARQUÉ", theme::WARNING),
                     ("NON IDENTIFIÉ", theme::text_secondary()),
                 ];
-                for (label, color) in legend_items {
-                    let (dot_rect, _) = ui.allocate_exact_size(
-                        egui::Vec2::splat(theme::STATUS_DOT_SIZE),
-                        egui::Sense::hover(),
-                    );
-                    ui.painter().circle_filled(
-                        dot_rect.center(),
-                        theme::STATUS_DOT_SIZE / 2.0,
-                        color,
-                    );
-                    ui.label(
-                        egui::RichText::new(label)
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                }
+                ui.horizontal_wrapped(|ui| {
+                    for (label, color) in legend_items {
+                        ui.horizontal(|ui| {
+                            let (dot_rect, _) = ui.allocate_exact_size(
+                                egui::Vec2::splat(theme::STATUS_DOT_SIZE),
+                                egui::Sense::hover(),
+                            );
+                            ui.painter().circle_filled(
+                                dot_rect.center(),
+                                theme::STATUS_DOT_SIZE / 2.0,
+                                color,
+                            );
+                            ui.label(
+                                egui::RichText::new(label)
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
+                        });
+                    }
+                });
             });
         });
 

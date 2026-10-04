@@ -26,7 +26,16 @@ pub fn empty_state_with_action<F: FnOnce()>(
     ui.vertical_centered(|ui: &mut egui::Ui| {
         ui.add_space(theme::SPACE_XL);
 
-        ui.label(RichText::new(icon).size(36.0).color(theme::accent_text()));
+        let (rect, _) = ui.allocate_exact_size(egui::vec2(56.0, 56.0), egui::Sense::hover());
+        ui.painter()
+            .rect_filled(rect, theme::ROUNDING_LG, theme::bg_tertiary());
+        ui.painter().text(
+            rect.center(),
+            egui::Align2::CENTER_CENTER,
+            icon,
+            theme::font_icon(theme::ICON_LG),
+            theme::accent_text(),
+        );
 
         ui.add_space(theme::SPACE_MD);
 

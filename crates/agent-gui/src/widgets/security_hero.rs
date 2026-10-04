@@ -4,6 +4,7 @@
 //! Security hero widget - premium clean design.
 
 use crate::app::AppState;
+use crate::app::Page;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
@@ -33,7 +34,7 @@ impl SecurityState {
             Self::Pending => icons::SHIELD,
             Self::Secure => icons::SHIELD_CHECK,
             Self::Attention => icons::WARNING,
-            Self::Critical => icons::SKULL,
+            Self::Critical => icons::SHIELD_VIRUS,
         }
     }
 
@@ -70,9 +71,9 @@ const HERO_GAUGE_RADIUS: f32 = 64.0;
 pub fn security_hero(ui: &mut Ui, state: &AppState) {
     let security_state = determine_security_state(state);
 
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Diagnostic de sécurité", |ui: &mut egui::Ui| {
         ui.set_min_width(ui.available_width());
-        ui.set_min_height(220.0);
+        ui.set_min_height(252.0);
         let stacked = ui.available_width() < HERO_STACK_WIDTH;
         let score = state
             .summary
@@ -110,6 +111,16 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                     body(ui);
                 });
             });
+        }
+        ui.add_space(theme::SPACE_SM);
+        if widgets::ghost_button(
+            ui,
+            format!("Examiner les contrôles  {}", icons::ARROW_RIGHT),
+        )
+        .clicked()
+        {
+            ui.ctx()
+                .data_mut(|d| d.insert_temp(egui::Id::new("posture_navigation"), Page::Compliance));
         }
     });
 }
@@ -185,31 +196,42 @@ fn verdict_column(ui: &mut Ui, state: &AppState, security_state: SecurityState) 
     ui.add_space(theme::SPACE_XS);
 
     let rows = priority_rows(state);
-    if rows.is_empty() {
+    if rows.is_empty() && security_state == SecurityState::Pending {
+        priority_row(
+            ui,
+            icons::CLOCK,
+            "Lancer une analyse pour établir le diagnostic",
+            None,
+            theme::INFO,
+            Page::Compliance,
+        );
+    } else if rows.is_empty() {
         priority_row(
             ui,
             icons::SHIELD_CHECK,
             "Rien d'urgent dans les r\u{00e9}sultats disponibles",
             None,
             theme::SUCCESS,
+            Page::Compliance,
         );
     } else {
-        for (icon, label, count, color) in rows {
-            priority_row(ui, icon, &label, Some(count), color);
+        for (icon, label, count, color, page) in rows {
+            priority_row(ui, icon, &label, Some(count), color, page);
         }
     }
 }
 
 /// What needs attention, most severe first, zero counts left out.
-fn priority_rows(state: &AppState) -> Vec<(&'static str, String, usize, Color32)> {
+fn priority_rows(state: &AppState) -> Vec<(&'static str, String, usize, Color32, Page)> {
     let (pending, critical) = state.security_attention_counts();
     let mut rows = Vec::new();
     if critical > 0 {
         rows.push((
-            icons::SKULL,
+            icons::SHIELD_VIRUS,
             "\u{00c9}v\u{00e9}nements critiques \u{00e0} traiter".to_owned(),
             critical,
             theme::ERROR,
+            Page::Threats,
         ));
     }
     if let Some(vuln) = &state.vulnerability_summary {
@@ -219,6 +241,7 @@ fn priority_rows(state: &AppState) -> Vec<(&'static str, String, usize, Color32)
                 "Vuln\u{00e9}rabilit\u{00e9}s critiques".to_owned(),
                 vuln.critical as usize,
                 theme::ERROR,
+                Page::Vulnerabilities,
             ));
         }
         if vuln.high > 0 {
@@ -227,6 +250,7 @@ fn priority_rows(state: &AppState) -> Vec<(&'static str, String, usize, Color32)
                 "Vuln\u{00e9}rabilit\u{00e9}s \u{00e9}lev\u{00e9}es".to_owned(),
                 vuln.high as usize,
                 theme::SEVERITY_HIGH,
+                Page::Vulnerabilities,
             ));
         }
     }
@@ -237,6 +261,7 @@ fn priority_rows(state: &AppState) -> Vec<(&'static str, String, usize, Color32)
             "Contr\u{00f4}les non conformes".to_owned(),
             failing,
             theme::SEVERITY_MEDIUM,
+            Page::Compliance,
         ));
     }
     let other = pending.saturating_sub(critical);
@@ -246,18 +271,26 @@ fn priority_rows(state: &AppState) -> Vec<(&'static str, String, usize, Color32)
             "Autres \u{00e9}v\u{00e9}nements \u{00e0} trier".to_owned(),
             other,
             theme::INFO,
+            Page::Threats,
         ));
     }
     rows.truncate(3);
     rows
 }
 
-fn priority_row(ui: &mut Ui, icon: &str, label: &str, count: Option<usize>, color: Color32) {
+fn priority_row(
+    ui: &mut Ui,
+    icon: &str,
+    label: &str,
+    count: Option<usize>,
+    color: Color32,
+    page: Page,
+) {
     let ink = theme::readable_color(color);
     let height = theme::MIN_TOUCH_TARGET;
-    let (rect, _) = ui.allocate_exact_size(
+    let (rect, response) = ui.allocate_exact_size(
         Vec2::new(ui.available_width(), height),
-        egui::Sense::hover(),
+        egui::Sense::click(),
     );
     if !ui.is_rect_visible(rect) {
         return;
@@ -283,17 +316,50 @@ fn priority_row(ui: &mut Ui, icon: &str, label: &str, count: Option<usize>, colo
         theme::font_icon(theme::ICON_XS),
         ink,
     );
-    painter.text(
-        rect.left_center()
-            + Vec2::new(
-                theme::SPACE_MD + 4.0 + theme::ICON_XS + theme::SPACE_SM,
-                0.0,
-            ),
-        egui::Align2::LEFT_CENTER,
-        label,
-        theme::font_body(),
+    let text_left = rect.left() + theme::SPACE_MD + 4.0 + theme::ICON_XS + theme::SPACE_SM;
+    let count_width = count
+        .map(|value| {
+            painter
+                .layout_no_wrap(
+                    crate::format::int(value as u64),
+                    theme::font_body_strong(),
+                    ink,
+                )
+                .size()
+                .x
+                + theme::SPACE_MD
+        })
+        .unwrap_or(0.0);
+    let available = (rect.right() - theme::SPACE_MD - text_left - count_width).max(1.0);
+    let text = egui::WidgetText::from(RichText::new(label).color(theme::text_primary()))
+        .into_galley(
+            ui,
+            Some(egui::TextWrapMode::Truncate),
+            available,
+            theme::font_body(),
+        );
+    painter.galley(
+        egui::pos2(text_left, rect.center().y - text.size().y * 0.5),
+        text,
         theme::text_primary(),
     );
+    response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, label));
+    if response.has_focus() {
+        painter.rect_stroke(
+            rect,
+            theme::ROUNDING_SM as f32,
+            theme::focus_ring(),
+            egui::StrokeKind::Inside,
+        );
+    }
+    if response
+        .on_hover_text(format!("{label} — consulter les résultats"))
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .clicked()
+    {
+        ui.ctx()
+            .data_mut(|d| d.insert_temp(egui::Id::new("posture_navigation"), page));
+    }
     if let Some(count) = count {
         painter.text(
             rect.right_center() - Vec2::new(theme::SPACE_MD, 0.0),

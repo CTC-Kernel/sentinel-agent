@@ -18,7 +18,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let mut command = None;
 
     // ── Quick Actions Card ──────────────────────────────────────────
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Actions de réponse", |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new("ACTIONS RAPIDES")
                 .font(theme::font_label())
@@ -227,7 +227,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     }
 
     // ── Quarantine Queue ────────────────────────────────────────────
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Historique des réponses", |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new(format!(
                 "FILE DE QUARANTAINE ({})",
@@ -307,7 +307,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     // ── Response Action Log ─────────────────────────────────────────
     let mut unblock_ip: Option<String> = None;
 
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Journal des actions", |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new(format!(
                 "JOURNAL DES ACTIONS ({})",

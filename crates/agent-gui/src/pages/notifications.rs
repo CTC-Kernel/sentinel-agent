@@ -151,7 +151,7 @@ impl NotificationsPage {
             // lue" on every one. Unread is a violet dot and a bold title.
             let today = chrono::Local::now().date_naive();
             let mut current_day = None;
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            widgets::data_card(ui, "Notifications", |ui: &mut egui::Ui| {
                 for (offset, notif) in state
                     .notifications
                     .iter()
@@ -253,7 +253,7 @@ impl NotificationsPage {
                 );
             });
         } else {
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            widgets::data_card(ui, "Règles d’alerte", |ui: &mut egui::Ui| {
                 ui.push_id("alert_rules_table", |ui: &mut egui::Ui| {
                     use widgets::table;
 
@@ -571,7 +571,7 @@ impl NotificationsPage {
                 );
             });
         } else {
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            widgets::data_card(ui, "Webhooks", |ui: &mut egui::Ui| {
                 ui.push_id("webhooks_table", |ui: &mut egui::Ui| {
                     use widgets::table;
 

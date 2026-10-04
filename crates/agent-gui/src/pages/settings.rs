@@ -151,7 +151,7 @@ impl SettingsPage {
     /// Pause/resume and run-now controls for the agent services.
     fn services_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
         // Agent controls (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Contrôles des services", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("CONTRÔLES DES SERVICES")
                     .font(theme::font_label())
@@ -220,7 +220,7 @@ impl SettingsPage {
     /// Compliance check interval, 5 to 120 minutes.
     fn scan_interval_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
         // Scan interval slider (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Intervalle d’analyse", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("INTERVALLE D'ANALYSE")
                     .font(theme::font_label())
@@ -298,7 +298,7 @@ impl SettingsPage {
 
     /// Ransomware canary files: decoys placed in the users' directories.
     fn ransomware_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Protection anti-ransomware", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("PROTECTION ANTI-RANSOMWARE")
                     .font(theme::font_label())
@@ -355,7 +355,7 @@ impl SettingsPage {
     /// Agent log verbosity.
     fn log_level_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
         // Log level selector (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Journalisation", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("JOURNALISATION (LOGS)")
                     .font(theme::font_label())
@@ -419,7 +419,7 @@ impl SettingsPage {
     /// Current version and the update check.
     fn update_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
         // Update section (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Maintenance et mises à jour", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("MAINTENANCE ET MISES À JOUR")
                     .font(theme::font_label())
@@ -488,50 +488,54 @@ impl SettingsPage {
     /// Local network discovery toggle.
     fn discovery_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
         // Discovery toggle (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new("DÉCOUVERTE RÉSEAU AUTOMATIQUE")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
-            );
-            ui.add_space(theme::SPACE_MD);
-
-            ui.horizontal(|ui: &mut egui::Ui| {
+        widgets::data_card(
+            ui,
+            "Découverte réseau automatique",
+            |ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new("Activer la cartographie dynamique des actifs")
-                        .font(theme::font_min())
-                        .color(theme::text_primary())
+                    egui::RichText::new("DÉCOUVERTE RÉSEAU AUTOMATIQUE")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
-                let prev_discovery = state.discovery.enabled;
-                widgets::toggle_switch_labeled(
-                    ui,
-                    &mut state.discovery.enabled,
-                    "Cartographie dynamique des actifs",
-                );
-                if state.discovery.enabled != prev_discovery {
-                    if state.discovery.enabled {
-                        *command = Some(GuiCommand::StartDiscovery);
-                    } else {
-                        *command = Some(GuiCommand::StopDiscovery);
+
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("Activer la cartographie dynamique des actifs")
+                            .font(theme::font_min())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_MD);
+                    let prev_discovery = state.discovery.enabled;
+                    widgets::toggle_switch_labeled(
+                        ui,
+                        &mut state.discovery.enabled,
+                        "Cartographie dynamique des actifs",
+                    );
+                    if state.discovery.enabled != prev_discovery {
+                        if state.discovery.enabled {
+                            *command = Some(GuiCommand::StartDiscovery);
+                        } else {
+                            *command = Some(GuiCommand::StopDiscovery);
+                        }
                     }
-                }
-            });
-            ui.add_space(theme::SPACE_XS);
-            ui.label(
+                });
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
     egui::RichText::new("L'agent scanne périodiquement le réseau local pour découvrir et authentifier de nouveaux actifs.")
         .font(theme::font_label())
         .color(theme::text_tertiary()),
 );
-        });
+            },
+        );
     }
 
     /// Dark, light or system appearance.
     fn theme_card(ui: &mut Ui, state: &mut AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Apparence de l’interface", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("APPARENCE DE L'INTERFACE")
                     .font(theme::font_label())
@@ -604,7 +608,7 @@ impl SettingsPage {
     /// Platform and architecture URLs.
     fn platform_url_card(ui: &mut Ui, state: &mut AppState) {
         // Architecture URL Config (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Architecture", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("CONFIGURATION ARCHITECTURE")
                     .font(theme::font_label())
@@ -702,7 +706,7 @@ impl SettingsPage {
     }
 
     fn connection_card(ui: &mut Ui, state: &AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Protocole de connexion", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("PROTOCOLE DE CONNEXION")
                     .font(theme::font_label())
@@ -740,7 +744,7 @@ impl SettingsPage {
     }
 
     fn intervals_card(ui: &mut Ui, state: &AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Transfert et synchronisation", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("TRANSFERT ET SYNCHRONISATION")
                     .font(theme::font_label())
@@ -770,7 +774,7 @@ impl SettingsPage {
     }
 
     fn cloud_access_card(ui: &mut Ui, state: &AppState, command: &mut Option<GuiCommand>) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Accès à la console", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(if state.summary.standalone {
                     "PLATEFORME"
@@ -1163,7 +1167,7 @@ impl SettingsPage {
     fn siem_card(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Intégration SIEM", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(format!("{}  INTÉGRATION SIEM", icons::SHARE_NODES))
                     .font(theme::font_label())
@@ -1298,7 +1302,7 @@ impl SettingsPage {
     fn log_collector_card(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Collecteur de journaux", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(format!("{}  COLLECTEUR DE LOGS SIEM", icons::DATABASE))
                     .font(theme::font_label())

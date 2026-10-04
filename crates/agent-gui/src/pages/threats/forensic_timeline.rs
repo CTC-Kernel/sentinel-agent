@@ -196,7 +196,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let page_events = &events[start..end];
 
     // ── DataTable ───────────────────────────────────────────────────
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Chronologie forensique", |ui: &mut egui::Ui| {
         let columns = vec![
             TableColumn {
                 key: "severity",

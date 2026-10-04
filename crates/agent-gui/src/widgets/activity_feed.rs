@@ -98,8 +98,8 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
         };
         let liveness = feed_liveness(&state.summary.status, !events.is_empty());
 
-        // Header
-        ui.horizontal(|ui: &mut egui::Ui| {
+        // Header wraps as a unit on narrow dashboard cards.
+        ui.horizontal_wrapped(|ui: &mut egui::Ui| {
             ui.label(
                 RichText::new(icons::STREAM)
                     .size(theme::ICON_XS)
@@ -115,37 +115,34 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
             );
 
             // Stream indicator: it only pulses while events actually flow.
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    let (label, dot, text) = match liveness {
-                        FeedLiveness::Live => {
-                            let pulse = if theme::is_reduced_motion() {
-                                1.0
-                            } else {
-                                let time = ui.input(|i| i.time);
-                                ((time * 2.0).sin() * 0.5 + 0.5) as f32
-                            };
-                            crate::animation::request_ambient_repaint(ui.ctx());
-                            (
-                                "EN DIRECT",
-                                theme::SUCCESS.linear_multiply(
-                                    theme::OPACITY_MEDIUM + theme::OPACITY_MEDIUM * pulse,
-                                ),
-                                theme::readable_color(theme::SUCCESS),
-                            )
-                        }
-                        FeedLiveness::Listening => {
-                            ("EN ÉCOUTE", theme::SUCCESS, theme::text_secondary())
-                        }
-                        FeedLiveness::Idle(label) => {
-                            (label, theme::text_tertiary(), theme::text_tertiary())
-                        }
-                    };
-                    ui.label(RichText::new("●").size(theme::STATUS_DOT_SIZE).color(dot));
-                    ui.label(RichText::new(label).font(theme::font_label()).color(text));
-                },
-            );
+            ui.horizontal(|ui: &mut egui::Ui| {
+                let (label, dot, text) = match liveness {
+                    FeedLiveness::Live => {
+                        let pulse = if theme::is_reduced_motion() {
+                            1.0
+                        } else {
+                            let time = ui.input(|i| i.time);
+                            ((time * 2.0).sin() * 0.5 + 0.5) as f32
+                        };
+                        crate::animation::request_ambient_repaint(ui.ctx());
+                        (
+                            "EN DIRECT",
+                            theme::SUCCESS.linear_multiply(
+                                theme::OPACITY_MEDIUM + theme::OPACITY_MEDIUM * pulse,
+                            ),
+                            theme::readable_color(theme::SUCCESS),
+                        )
+                    }
+                    FeedLiveness::Listening => {
+                        ("EN ÉCOUTE", theme::SUCCESS, theme::text_secondary())
+                    }
+                    FeedLiveness::Idle(label) => {
+                        (label, theme::text_tertiary(), theme::text_tertiary())
+                    }
+                };
+                ui.label(RichText::new("●").size(theme::STATUS_DOT_SIZE).color(dot));
+                ui.label(RichText::new(label).font(theme::font_label()).color(text));
+            });
         });
 
         ui.add_space(theme::SPACE_SM);

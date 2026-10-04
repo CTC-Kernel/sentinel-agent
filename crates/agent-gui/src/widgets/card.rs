@@ -150,11 +150,11 @@ impl Card {
         };
 
         if let Some(slots) = shadow_slots {
-            let resting = theme::elevation_shapes(rect, radius, theme::Elevation::Level2, 1.0);
+            let resting = theme::elevation_shapes(rect, radius, theme::Elevation::Level1, 1.0);
             // Hover adds a second, deeper shadow over the resting one, so the
             // card rises rather than merely darkening.
             let hover =
-                theme::elevation_shapes(rect, radius, theme::Elevation::Level3, lift * HOVER_LIFT);
+                theme::elevation_shapes(rect, radius, theme::Elevation::Level2, lift * HOVER_LIFT);
             for (slot, shape) in slots.into_iter().zip(resting.into_iter().chain(hover)) {
                 ui.painter().set(slot, shape);
             }
@@ -166,9 +166,17 @@ impl Card {
         if self.variant == CardVariant::Elevated && lift > 0.0 {
             // A card under the pointer is crowned with the brand hairline,
             // the accent the site reserves for the panel in focus.
-            let mut faded = ui.painter().clone();
-            faded.multiply_opacity(lift);
-            theme::paint_brand_hairline(&faded, rect, radius);
+            let pointer = ui
+                .input(|i| i.pointer.hover_pos())
+                .map(|p| ((p.x - rect.left()) / rect.width().max(1.0)).clamp(0.0, 1.0))
+                .unwrap_or(0.5);
+            let position = crate::animation::damped_value(
+                ui.ctx(),
+                inner.response.id.with("rim_position"),
+                pointer,
+                theme::ANIM_NORMAL,
+            );
+            theme::paint_interactive_rim(ui.painter(), rect, radius, position, lift);
         }
 
         if let Some(color) = self.accent {
@@ -221,14 +229,19 @@ pub fn clickable_card(
 
     if response.hovered() {
         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-        // A one-pixel accent rim is enough to say "this one is actionable"
-        // once the shadow has already lifted.
+    }
+    let hover = crate::animation::animate_hover(
+        ui.ctx(),
+        response.id.with("card_border"),
+        response.hovered(),
+    );
+    if hover > 0.0 {
         ui.painter().rect_stroke(
             rect,
             CornerRadius::same(theme::CARD_ROUNDING),
             egui::Stroke::new(
                 theme::BORDER_THIN,
-                theme::ACCENT.linear_multiply(theme::OPACITY_MODERATE),
+                theme::color_blend_pub(theme::border_subtle(), theme::accent_text(), hover * 0.40),
             ),
             egui::epaint::StrokeKind::Inside,
         );

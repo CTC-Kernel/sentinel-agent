@@ -19,7 +19,7 @@ pub(super) fn event_timeline(ui: &mut Ui, threats: &[ThreatEvent]) {
     let now = Utc::now();
     let secs_24h: i64 = agent_common::constants::SECS_PER_DAY as i64;
 
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Chronologie des événements", |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new("CHRONOLOGIE DES \u{00c9}V\u{00c9}NEMENTS (24H)")
                 .font(theme::font_label())

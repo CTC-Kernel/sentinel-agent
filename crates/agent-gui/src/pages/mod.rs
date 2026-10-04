@@ -98,3 +98,5 @@ pub(crate) fn security_navigation(ui: &mut egui::Ui, state: &mut crate::state::A
         });
     });
 }
+
+mod resource_detail;

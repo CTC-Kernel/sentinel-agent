@@ -50,7 +50,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         .map(|r| u64::from(r.match_count))
         .sum();
 
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Moteur de détection", |ui: &mut egui::Ui| {
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(format!(
@@ -88,7 +88,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     }
 
     // ── Rules table ─────────────────────────────────────────────────
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Règles de détection", |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new(format!(
                 "R\u{00c8}GLES DE D\u{00c9}TECTION ({})",

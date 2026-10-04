@@ -178,7 +178,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
     // ── Templates card ──────────────────────────────────────────────
     let mut installed_template: Option<Playbook> = None;
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Modèles de réponse", |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new("TEMPLATES PR\u{00c9}-CONFIGUR\u{00c9}S")
                 .font(theme::font_label())
@@ -291,7 +291,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     ui.add_space(theme::SPACE_MD);
 
     // ── Active playbooks card ───────────────────────────────────────
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Playbooks", |ui: &mut egui::Ui| {
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(format!(
@@ -468,7 +468,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     }
 
     // ── Execution log card ──────────────────────────────────────────
-    widgets::card(ui, |ui: &mut egui::Ui| {
+    widgets::data_card(ui, "Exécutions des playbooks", |ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new(format!(
                 "JOURNAL D'EX\u{00c9}CUTION ({})",

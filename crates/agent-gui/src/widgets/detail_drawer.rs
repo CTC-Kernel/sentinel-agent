@@ -142,6 +142,8 @@ impl<'a> DetailDrawer<'a> {
             return None;
         }
 
+        let pass = ctx.cumulative_pass_nr();
+        ctx.data_mut(|d| d.insert_temp(egui::Id::new("modal_open_frame"), pass));
         let mut clicked_action: Option<usize> = None;
         let mut should_close = false;
 
@@ -155,25 +157,28 @@ impl<'a> DetailDrawer<'a> {
             .min(screen.height() - theme::SPACE_MD * 2.0)
             .max(1.0);
 
-        // Fade and rise in (instant under reduced motion).
+        // Seed every entrance, including the first one. animate_value otherwise
+        // initializes directly at its target and skips the first transition.
+        let prev_open_id = self.id.with("prev_open");
+        let return_focus_id = self.id.with("return_focus");
+        let was_open_prev =
+            ctx.memory(|mem| mem.data.get_temp::<bool>(prev_open_id).unwrap_or(false));
         let anim_id = self.id.with("drawer_anim");
+        if !was_open_prev {
+            let focused = ctx.memory(|mem| mem.focused());
+            ctx.memory_mut(|mem| mem.data.insert_temp(return_focus_id, focused));
+            if !theme::is_reduced_motion() {
+                ctx.animate_value_with_time(anim_id, 0.0, 0.0);
+            }
+        }
+        ctx.memory_mut(|mem| mem.data.insert_temp(prev_open_id, true));
         let anim_t = if theme::is_reduced_motion() {
             1.0
         } else {
             ctx.animate_value_with_time(anim_id, 1.0, theme::ANIM_NORMAL)
         };
-        let eased = 1.0 - (1.0 - anim_t).powi(3);
-
-        let backdrop_alpha = (theme::BACKDROP_ALPHA as f32 * anim_t) as u8;
-        let prev_open_id = self.id.with("prev_open");
-        let return_focus_id = self.id.with("return_focus");
-        let was_open_prev =
-            ctx.memory(|mem| mem.data.get_temp::<bool>(prev_open_id).unwrap_or(false));
-        if !was_open_prev {
-            let focused = ctx.memory(|mem| mem.focused());
-            ctx.memory_mut(|mem| mem.data.insert_temp(return_focus_id, focused));
-        }
-        ctx.memory_mut(|mem| mem.data.insert_temp(prev_open_id, true));
+        let eased = crate::animation::ease_out(anim_t);
+        let backdrop_alpha = (theme::BACKDROP_ALPHA as f32 * eased) as u8;
 
         let rounding = CornerRadius::same(theme::ROUNDING_XL);
         let top_rounding = CornerRadius {

@@ -6,6 +6,7 @@ mod card;
 pub mod chat_input;
 mod compliance_gauge;
 pub mod copy_button;
+mod data_card;
 mod empty_state;
 mod header;
 mod help_info;
@@ -17,7 +18,6 @@ pub mod progress;
 mod protected_state;
 mod search_filter_bar;
 mod security_hero;
-pub(crate) use security_hero::determine_security_state;
 pub mod sentinel_ai_core;
 pub mod sidebar;
 pub mod splash;
@@ -62,6 +62,7 @@ mod sparkline;
 pub use card::{Card, CardVariant, card, clickable_card, danger_card, flat_card};
 pub use chat_input::{ChatInput, ChatInputResponse};
 pub use compliance_gauge::{compliance_gauge, compliance_gauge_captioned};
+pub use data_card::{data_card, open_data_panel};
 pub use empty_state::{
     empty_state, empty_state_compact, empty_state_with_action, no_results_state, pending_state,
 };

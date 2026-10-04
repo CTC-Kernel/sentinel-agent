@@ -120,7 +120,13 @@ impl NetworkPage {
 
         card_grid.show(ui, &items, |ui, width, item| {
             let (label, value, color, icon) = item;
-            Self::summary_card(ui, width, label, value, *color, icon);
+            if Self::summary_card(ui, width, label, value, *color, icon) {
+                state.network.active_section = match *label {
+                    "INTERFACES RÉSEAU" => 2,
+                    "ALERTES FLUX" => 1,
+                    _ => 0,
+                };
+            }
         });
 
         ui.add_space(theme::SPACE_LG);
@@ -442,7 +448,7 @@ impl NetworkPage {
     }
 
     fn interfaces_table(ui: &mut Ui, state: &mut AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Interfaces réseau", |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("INTERFACES R\u{00c9}SEAU D\u{00c9}TECT\u{00c9}ES")
@@ -572,7 +578,7 @@ impl NetworkPage {
     }
 
     fn connections_table(ui: &mut Ui, state: &mut AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Connexions actives", |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("CONNEXIONS ACTIVES")
@@ -825,11 +831,12 @@ impl NetworkPage {
         value: &str,
         color: egui::Color32,
         icon: &str,
-    ) {
+    ) -> bool {
+        let mut clicked = false;
         let safe_color = theme::readable_color(color);
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
                 ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
@@ -858,12 +865,15 @@ impl NetworkPage {
                         },
                     );
                 });
-            });
+            })
+            .on_hover_text("Consulter les données associées")
+            .clicked();
         });
+        clicked
     }
 
     fn security_alerts_section(ui: &mut Ui, state: &mut AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Analyse de sécurité réseau", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("ANALYSE DE SÉCURITÉ RÉSEAU")
                     .font(theme::font_label())
@@ -974,46 +984,50 @@ impl NetworkPage {
             ("UDP".to_owned(), udp, theme::INFO),
         ];
 
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new("RÉPARTITION DES FLUX ET DES ALERTES")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
-            );
-            ui.add_space(theme::SPACE_MD);
-            let mut columns: Vec<(&str, &str, Breakdown)> = vec![
-                (icons::NETWORK, "États des connexions", states),
-                (icons::LINK, "Protocoles", protocols),
-            ];
-            if !alerts.is_empty() {
-                columns.push((icons::WARNING, "Alertes par type", alerts));
-            }
-            let gap = theme::SPACE_XL;
-            let wide = ui.available_width() >= 300.0 * columns.len() as f32;
-            let width = if wide {
-                (ui.available_width() - gap * (columns.len() - 1) as f32) / columns.len() as f32
-            } else {
-                ui.available_width()
-            };
-            let layout = if wide {
-                egui::Layout::left_to_right(egui::Align::Min)
-            } else {
-                egui::Layout::top_down(egui::Align::Min)
-            };
-            ui.with_layout(layout, |ui| {
-                let inner = ui.spacing().item_spacing;
-                ui.spacing_mut().item_spacing = egui::vec2(gap, theme::SPACE_LG);
-                for (icon, title, rows) in &columns {
-                    ui.vertical(|ui| {
-                        ui.spacing_mut().item_spacing = inner;
-                        ui.set_width(width);
-                        distribution_column(ui, icon, title, rows);
-                    });
+        widgets::data_card(
+            ui,
+            "Répartition des flux et alertes",
+            |ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new("RÉPARTITION DES FLUX ET DES ALERTES")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_MD);
+                let mut columns: Vec<(&str, &str, Breakdown)> = vec![
+                    (icons::NETWORK, "États des connexions", states),
+                    (icons::LINK, "Protocoles", protocols),
+                ];
+                if !alerts.is_empty() {
+                    columns.push((icons::WARNING, "Alertes par type", alerts));
                 }
-            });
-        });
+                let gap = theme::SPACE_XL;
+                let wide = ui.available_width() >= 300.0 * columns.len() as f32;
+                let width = if wide {
+                    (ui.available_width() - gap * (columns.len() - 1) as f32) / columns.len() as f32
+                } else {
+                    ui.available_width()
+                };
+                let layout = if wide {
+                    egui::Layout::left_to_right(egui::Align::Min)
+                } else {
+                    egui::Layout::top_down(egui::Align::Min)
+                };
+                ui.with_layout(layout, |ui| {
+                    let inner = ui.spacing().item_spacing;
+                    ui.spacing_mut().item_spacing = egui::vec2(gap, theme::SPACE_LG);
+                    for (icon, title, rows) in &columns {
+                        ui.vertical(|ui| {
+                            ui.spacing_mut().item_spacing = inner;
+                            ui.set_width(width);
+                            distribution_column(ui, icon, title, rows);
+                        });
+                    }
+                });
+            },
+        );
     }
 
     fn alert_type_label_color(alert_type: &str) -> (String, egui::Color32) {

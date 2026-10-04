@@ -308,6 +308,19 @@ impl eframe::App for Preview {
             fixtures::open_drawer(state, drawer);
         }
 
+        if self.frame_count == 3 {
+            if let Ok(title) = std::env::var("PREVIEW_PANEL") {
+                agent_gui::widgets::open_data_panel(ctx, &title);
+            }
+            if let Ok(resource) = std::env::var("PREVIEW_RESOURCE") {
+                ctx.data_mut(|d| {
+                    d.insert_temp(
+                        egui::Id::new("resource_inspector"),
+                        Some(resource == "memory"),
+                    )
+                });
+            }
+        }
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()

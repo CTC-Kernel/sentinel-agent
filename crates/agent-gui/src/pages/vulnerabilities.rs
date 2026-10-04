@@ -84,7 +84,18 @@ impl VulnerabilitiesPage {
 
         card_grid.show(ui, &items, |ui, width, item| {
             let (label, value, color, icon) = item;
-            Self::summary_card(ui, width, label, value, *color, icon);
+            if Self::summary_card(ui, width, label, value, *color, icon) {
+                widgets::open_data_panel(ui.ctx(), "Failles de sécurité");
+                state.vulnerability.search.clear();
+                state.vulnerability.page = 0;
+                state.vulnerability.pressing_only = false;
+                state.vulnerability.severity_filter = Some(match *label {
+                    "CRITIQUES" => Severity::Critical,
+                    "ÉLEVÉES" => Severity::High,
+                    "MOYENNES" => Severity::Medium,
+                    _ => Severity::Low,
+                });
+            }
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -159,7 +170,7 @@ impl VulnerabilitiesPage {
         ui.add_space(theme::SPACE_SM);
 
         // Vulnerability findings table (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Failles de sécurité", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("FAILLES DE SÉCURITÉ IDENTIFIÉES")
                     .font(theme::font_label())
@@ -510,7 +521,7 @@ impl VulnerabilitiesPage {
     /// severity can sit below its CVSS band.
     fn remediation_card(ui: &mut Ui, state: &AppState) {
         let findings = &state.vulnerability_findings;
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Remédiation et gravité", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("REMÉDIATION ET GRAVITÉ")
                     .font(theme::font_label())
@@ -806,11 +817,12 @@ impl VulnerabilitiesPage {
         value: &str,
         color: egui::Color32,
         icon: &str,
-    ) {
+    ) -> bool {
+        let mut clicked = false;
         let safe_color = theme::readable_color(color);
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
+            clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
                 ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
@@ -839,8 +851,11 @@ impl VulnerabilitiesPage {
                         },
                     );
                 });
-            });
+            })
+            .on_hover_text("Afficher les éléments correspondants")
+            .clicked();
         });
+        clicked
     }
 
     fn severity_display(severity: &Severity) -> (&'static str, egui::Color32) {

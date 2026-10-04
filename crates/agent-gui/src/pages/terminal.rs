@@ -65,7 +65,9 @@ impl TerminalPage {
         ui.add_space(theme::SPACE_MD);
 
         // Terminal viewport
-        Self::terminal_viewport(ui, state);
+        widgets::data_card(ui, "Journal d’activité", |ui| {
+            Self::terminal_viewport(ui, state)
+        });
 
         ui.add_space(theme::SPACE_XL);
 
@@ -78,8 +80,8 @@ impl TerminalPage {
     // Stats bar
     // ------------------------------------------------------------------
 
-    fn stats_bar(ui: &mut Ui, state: &AppState) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+    fn stats_bar(ui: &mut Ui, state: &mut AppState) {
+        widgets::data_card(ui, "Indicateurs d’activité", |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 // Uptime
                 let uptime_secs = state.resources.uptime_secs;
@@ -125,7 +127,7 @@ impl TerminalPage {
                 ui.add_space(theme::SPACE_LG);
 
                 // Errors
-                Self::stat_item(
+                if Self::stat_item(
                     ui,
                     "ERREURS DÉTECTÉES",
                     &state.terminal.error_count.to_string(),
@@ -134,13 +136,17 @@ impl TerminalPage {
                     } else {
                         theme::SUCCESS
                     },
-                );
+                ) {
+                    state.terminal.filter_level = LogLevel::Error;
+                    state.terminal.search.clear();
+                    widgets::open_data_panel(ui.ctx(), "Journal d’activité");
+                }
             });
         });
     }
 
-    fn stat_item(ui: &mut Ui, label: &str, value: &str, color: Color32) {
-        ui.vertical(|ui: &mut egui::Ui| {
+    fn stat_item(ui: &mut Ui, label: &str, value: &str, color: Color32) -> bool {
+        let item = ui.vertical(|ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_label())
@@ -151,10 +157,22 @@ impl TerminalPage {
             ui.label(
                 egui::RichText::new(value)
                     .font(theme::font_card_value())
-                    .color(color)
+                    .color(theme::readable_color(color))
                     .strong(),
             );
         });
+        let response = ui
+            .interact(
+                item.response.rect,
+                item.response.id.with("stat_detail"),
+                egui::Sense::click(),
+            )
+            .on_hover_cursor(egui::CursorIcon::PointingHand)
+            .on_hover_text("Consulter le journal d’activité");
+        if response.clicked() {
+            widgets::open_data_panel(ui.ctx(), "Journal d’activité");
+        }
+        response.clicked()
     }
 
     // ------------------------------------------------------------------
@@ -163,9 +181,9 @@ impl TerminalPage {
 
     fn filter_bar(ui: &mut Ui, state: &mut AppState) {
         widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.horizontal(|ui: &mut egui::Ui| {
+            ui.horizontal_wrapped(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new("NIVEAU D'EXPOSITION :")
+                    egui::RichText::new("Niveau")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong()
@@ -183,12 +201,12 @@ impl TerminalPage {
                     }
                     ui.add_space(theme::SPACE_XS);
                 }
-
-                ui.add_space(theme::SPACE_LG);
-
+            });
+            ui.add_space(theme::SPACE_SM);
+            ui.horizontal(|ui| {
                 // Search field
                 ui.label(
-                    egui::RichText::new("FILTRAGE ANALYTIQUE :")
+                    egui::RichText::new("Rechercher")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong()

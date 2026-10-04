@@ -1403,7 +1403,9 @@ impl eframe::App for SentinelApp {
         }
 
         // Advance page transition animation
-        if self.page_transition < 1.0 {
+        if self.state.reduced_motion {
+            self.page_transition = 1.0;
+        } else if self.page_transition < 1.0 {
             let dt = ctx.input(|i| i.stable_dt).min(FRAME_DT_MAX);
             self.page_transition =
                 (self.page_transition + dt / theme::PAGE_TRANSITION_DURATION).min(1.0);
@@ -1425,16 +1427,14 @@ impl eframe::App for SentinelApp {
                     }),
             )
             .show(ctx, |ui: &mut egui::Ui| {
-                // A restrained spatial grid and brand glow make the central
-                // canvas read as the Nexus command surface, rather than a
-                // stack of disconnected utility panels.
+                // A single quiet brand light leaves the data field neutral.
                 theme::paint_workspace_backdrop(ui.painter(), ui.max_rect());
 
                 // Apply page transition and theme transition fade-in
                 let page_alpha = if self.state.reduced_motion {
                     1.0
                 } else {
-                    self.page_transition
+                    0.72 + 0.28 * crate::animation::ease_out(self.page_transition)
                 };
                 let theme_alpha = self.theme_transition;
                 let combined_alpha = page_alpha * theme_alpha;

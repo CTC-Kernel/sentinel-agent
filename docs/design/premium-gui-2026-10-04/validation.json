@@ -1,0 +1,49 @@
+{
+  "unit_tests": 165,
+  "pages_and_tabs": 42,
+  "configurations": 8,
+  "page_checks": 336,
+  "palette_checks": 8,
+  "scenarios": [
+    {
+      "scenario": "dark-1360-data",
+      "checks": 43,
+      "failures": []
+    },
+    {
+      "scenario": "dark-1360-empty",
+      "checks": 43,
+      "failures": []
+    },
+    {
+      "scenario": "dark-800-data",
+      "checks": 43,
+      "failures": []
+    },
+    {
+      "scenario": "dark-800-empty",
+      "checks": 43,
+      "failures": []
+    },
+    {
+      "scenario": "light-1360-data",
+      "checks": 43,
+      "failures": []
+    },
+    {
+      "scenario": "light-1360-empty",
+      "checks": 43,
+      "failures": []
+    },
+    {
+      "scenario": "light-800-data",
+      "checks": 43,
+      "failures": []
+    },
+    {
+      "scenario": "light-800-empty",
+      "checks": 43,
+      "failures": []
+    }
+  ]
+}

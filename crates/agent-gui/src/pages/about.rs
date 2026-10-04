@@ -43,7 +43,7 @@ impl AboutPage {
         ui.add_space(theme::SPACE_LG);
 
         // Brand card
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "À propos de Sentinel", |ui: &mut egui::Ui| {
             ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE_LG);
                 ui.label(
@@ -96,7 +96,7 @@ impl AboutPage {
         ui.add_space(theme::SPACE);
 
         // Legal
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Mentions légales", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("MENTIONS L\u{00c9}GALES")
                     .font(theme::font_small())
@@ -128,7 +128,7 @@ impl AboutPage {
     }
 
     fn system_card(ui: &mut Ui) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Système", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("SYST\u{00c8}ME")
                     .font(theme::font_small())
@@ -164,7 +164,7 @@ impl AboutPage {
     }
 
     fn resources_card(ui: &mut Ui) {
-        widgets::card(ui, |ui: &mut egui::Ui| {
+        widgets::data_card(ui, "Ressources", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("RESSOURCES")
                     .font(theme::font_small())
