@@ -526,7 +526,7 @@ impl<'a> DataTable<'a> {
             let bg_color = if selected {
                 theme::selected_bg()
             } else {
-                crate::animation::lerp_color(resting, theme::hover_bg_neutral(), hover)
+                crate::animation::lerp_color(resting, theme::table_row_hover(), hover)
             };
 
             if bg_color != Color32::TRANSPARENT {

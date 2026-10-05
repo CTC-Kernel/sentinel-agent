@@ -182,6 +182,20 @@ impl Default for Preview {
 }
 
 impl eframe::App for Preview {
+    /// PREVIEW_HOVER="x,y" (points) holds the pointer at that position, so a
+    /// capture can show a hover state: a table row, a card, a button.
+    fn raw_input_hook(&mut self, _ctx: &egui::Context, raw_input: &mut egui::RawInput) {
+        let Ok(spec) = std::env::var("PREVIEW_HOVER") else {
+            return;
+        };
+        let mut parts = spec.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
+        if let (Some(x), Some(y)) = (parts.next(), parts.next()) {
+            raw_input
+                .events
+                .push(egui::Event::PointerMoved(egui::pos2(x, y)));
+        }
+    }
+
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if !self.started {
             // PREVIEW_REDUCED freezes ambient motion, so two captures of the

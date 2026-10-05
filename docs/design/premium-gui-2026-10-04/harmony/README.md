@@ -1,5 +1,7 @@
 # Harmonie des couleurs et du mouvement
 
+> **Mise à jour du 5 octobre 2026.** La palette désaturée décrite ci-dessous (iris `#5944B0`, menthe, ambre et corail adoucis, graphite `#10121C`) a été jugée terne à l'usage. Le thème est revenu à la palette saturée du site (violet `#6D28D9`, états vifs, encre `#070A12`) ; les effets et animations de cette passe sont conservés. Les captures de ce dossier montrent l'ancienne palette.
+
 Seconde passe sur la GUI desktop, après la recomposition du dashboard.
 
 ## Palette
