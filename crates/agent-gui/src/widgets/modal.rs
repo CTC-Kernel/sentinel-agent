@@ -168,7 +168,9 @@ impl Modal {
         let (icon, color) = match self.style {
             ModalStyle::Info => (icons::INFO, theme::INFO),
             ModalStyle::Warning => (icons::WARNING, theme::WARNING),
-            ModalStyle::Danger => (icons::CIRCLE_XMARK, theme::ERROR),
+            // A red cross in a circle read as "close" or "failed" above a
+            // question; the warning sign in red says "irreversible".
+            ModalStyle::Danger => (icons::WARNING, theme::ERROR),
             ModalStyle::Success => (icons::CIRCLE_CHECK, theme::SUCCESS),
         };
 

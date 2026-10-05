@@ -5,8 +5,9 @@
 //!
 //! Supports both dark and light themes. Surface / text colors are
 //! provided as functions that return the correct value for the active
-//! theme.  Semantic colors (accent, success, warning, error, info)
-//! remain constants shared by both themes.
+//! theme. Semantic colors (accent, success, warning, error, info) are
+//! declared once as constants; `readable_color`, `badge_text` and the other
+//! helpers swap in their calibrated light-mode counterparts when drawing.
 
 use std::cell::Cell;
 
@@ -482,7 +483,7 @@ pub fn overlay_color() -> Color32 {
 // Spacing constants
 // ============================================================================
 
-/// Base spacing unit (4px).
+/// Hairline spacing (2px), below the 4px base unit.
 pub const SPACE_MICRO: f32 = 2.0;
 /// Extra-small spacing unit (4px).
 pub const SPACE_XS: f32 = 4.0;
