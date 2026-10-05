@@ -450,6 +450,11 @@ pub struct SentinelApp {
     /// Cleared whenever the breakpoint is crossed, so the saved preference
     /// comes back the moment the window is wide again.
     narrow_expanded: bool,
+
+    /// Commands that need the administrator mode, caught by `send_command`
+    /// while it was locked. Moved into the administrator dialog each frame;
+    /// interior mutability because commands are sent from `&self`.
+    admin_held: std::cell::RefCell<Vec<(&'static str, GuiCommand)>>,
 }
 
 impl SentinelApp {
@@ -518,6 +523,7 @@ impl SentinelApp {
             tray,
             visible: true,
             quit_requested: false,
+            admin_held: Default::default(),
             splash_start: std::time::Instant::now(),
             splash_done: false,
             show_tray_satellite: is_tray_popup,
@@ -778,12 +784,23 @@ impl SentinelApp {
                     }
                 }
                 TrayAction::Pause => {
-                    self.send_command(GuiCommand::Pause);
-                    if let Some(ref tray) = self.tray {
-                        tray.set_paused(true);
+                    if self.state.security.admin_unlocked {
+                        let cmd = self.state.begin_pause(AppState::DEFAULT_PAUSE_MINUTES);
+                        self.dispatch(cmd);
+                        if let Some(ref tray) = self.tray {
+                            tray.set_paused(true);
+                        }
+                    } else {
+                        // Held by `send_command` until the administrator unlocks.
+                        self.send_command(GuiCommand::Pause);
+                        // The administrator dialog lives in the main window.
+                        self.visible = true;
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
                     }
                 }
                 TrayAction::Resume => {
+                    self.state.end_pause();
                     self.send_command(GuiCommand::Resume);
                     if let Some(ref tray) = self.tray {
                         tray.set_paused(false);
@@ -831,9 +848,79 @@ impl SentinelApp {
         }
     }
 
+    /// Send a command to the agent runtime, unless it needs the
+    /// administrator mode and that mode is locked: then it is held, the
+    /// administrator dialog opens, and it leaves once the session is open.
+    ///
+    /// This is the one place every command crosses — pages, tray menu,
+    /// palette and assistant suggestions alike — so the rule in
+    /// [`GuiCommand::admin_reason`] cannot be bypassed by another entry
+    /// point.
     fn send_command(&self, cmd: GuiCommand) {
+        if let Some(reason) = cmd.admin_reason()
+            && !self.state.security.admin_unlocked
+        {
+            tracing::info!("[AUDIT] Held until administrator unlock: {reason}");
+            self.admin_held.borrow_mut().push((reason, cmd));
+            return;
+        }
+        self.dispatch(cmd);
+    }
+
+    /// Hand a command to the runtime without the administrator check.
+    fn dispatch(&self, cmd: GuiCommand) {
         if let Err(e) = self.command_tx.send(cmd) {
             tracing::warn!("Failed to send GUI command: {}", e);
+        }
+    }
+
+    /// Show the administrator dialog when something asked for it, and
+    /// release or drop the commands it was holding.
+    fn admin_gate(&mut self, ctx: &egui::Context) {
+        for (reason, cmd) in self.admin_held.borrow_mut().drain(..) {
+            self.state.security.request_unlock(reason);
+            self.state.security.held_commands.push(cmd);
+        }
+        match crate::admin_dialog::show(ctx, &mut self.state) {
+            crate::admin_dialog::DialogOutcome::Unlocked => {
+                let held = std::mem::take(&mut self.state.security.held_commands);
+                for cmd in held {
+                    if matches!(cmd, GuiCommand::Pause) {
+                        // A pause from the tray: bounded like any other.
+                        self.state.begin_pause(AppState::DEFAULT_PAUSE_MINUTES);
+                        if let Some(ref tray) = self.tray {
+                            tray.set_paused(true);
+                        }
+                    }
+                    self.dispatch(cmd);
+                }
+                self.state.push_toast(
+                    widgets::toast::Toast::success(format!(
+                        "Mode administrateur actif pendant {}",
+                        crate::format::duration_short(
+                            crate::state::SecurityState::SESSION.num_seconds() as u64
+                        )
+                    )),
+                    ctx,
+                );
+            }
+            crate::admin_dialog::DialogOutcome::PasswordChanged => {
+                self.state.push_toast(
+                    widgets::toast::Toast::success("Mot de passe administrateur modifié"),
+                    ctx,
+                );
+            }
+            crate::admin_dialog::DialogOutcome::Cancelled => {
+                if !std::mem::take(&mut self.state.security.held_commands).is_empty() {
+                    self.state.push_toast(
+                        widgets::toast::Toast::info(
+                            "Action annulée : elle nécessite le mode administrateur",
+                        ),
+                        ctx,
+                    );
+                }
+            }
+            crate::admin_dialog::DialogOutcome::Pending => {}
         }
     }
 
@@ -1176,13 +1263,33 @@ impl eframe::App for SentinelApp {
             self.page = target_page;
         }
 
-        // Auto-lock admin mode after 5 minutes of inactivity.
+        // Close the administrator session once it has lasted its term.
         if self.state.security.admin_unlocked
             && let Some(last_unlock) = self.state.security.last_unlock
-            && chrono::Utc::now() - last_unlock > chrono::Duration::minutes(5)
+            && chrono::Utc::now() - last_unlock > crate::state::SecurityState::SESSION
         {
-            self.state.security.admin_unlocked = false;
-            tracing::info!("Admin mode auto-locked after 5 minutes");
+            self.state.security.lock();
+            tracing::info!("[AUDIT] Administrator session locked after its term");
+        }
+
+        // A pause is always bounded: resume protection when it runs out.
+        if self.state.settings.is_paused
+            && let Some(until) = self.state.settings.pause_until
+        {
+            if chrono::Utc::now() >= until {
+                self.state.end_pause();
+                self.dispatch(GuiCommand::Resume);
+                if let Some(ref tray) = self.tray {
+                    tray.set_paused(false);
+                }
+                tracing::info!("[AUDIT] Protection resumed automatically at the end of the pause");
+                self.state.push_toast(
+                    widgets::toast::Toast::success("Protection reprise automatiquement"),
+                    ctx,
+                );
+            } else {
+                ctx.request_repaint_after(std::time::Duration::from_secs(1));
+            }
         }
 
         // Process async task results from background threads
@@ -1353,6 +1460,7 @@ impl eframe::App for SentinelApp {
         // Global top bar (full width, above the sidebar): persistent location,
         // search, primary action, sync, notifications, assistant, theme.
         self.show_top_bar(ctx);
+        self.show_pause_banner(ctx);
 
         let mut navigate: Option<Page> = None;
 
@@ -1595,6 +1703,9 @@ impl eframe::App for SentinelApp {
                 });
             });
 
+        // Administrator dialog: asked for by a page, or holding a command.
+        self.admin_gate(ctx);
+
         // Render toast notifications (overlay on top of content)
         if !self.state.toasts.is_empty() {
             egui::Area::new(egui::Id::new("toast_overlay"))
@@ -1634,6 +1745,20 @@ impl SentinelApp {
     /// sidebar toggle, current location, global search, agent health,
     /// workspace context and the primary action. Page bodies keep their own
     /// sub-headers for page-specific controls.
+    /// While protection is paused, a strip under the top bar says so on
+    /// every page, with the time it resumes and a way to resume now.
+    fn show_pause_banner(&mut self, ctx: &egui::Context) {
+        if self.state.settings.is_paused
+            && widgets::pause_banner(ctx, self.state.settings.pause_until)
+        {
+            self.state.end_pause();
+            self.dispatch(GuiCommand::Resume);
+            if let Some(ref tray) = self.tray {
+                tray.set_paused(false);
+            }
+        }
+    }
+
     fn show_top_bar(&mut self, ctx: &egui::Context) {
         let (icon, label, section) = page_catalog()
             .into_iter()

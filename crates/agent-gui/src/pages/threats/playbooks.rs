@@ -19,6 +19,7 @@ use crate::theme;
 const TEMPLATE_CARD_MIN_HEIGHT: f32 = 118.0;
 use crate::widgets;
 use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort};
+use crate::widgets::modal;
 use crate::widgets::pagination::PaginationState;
 
 /// Pre-configured playbook template descriptor.
@@ -173,6 +174,19 @@ struct InlinePlaybookForm {
 }
 
 /// Render the playbooks tab.
+/// Confirmation dialogs of the playbook list.
+const DELETE_CONFIRM: &str = "playbook_delete_confirm";
+const EXECUTE_CONFIRM: &str = "playbook_execute_confirm";
+
+fn playbook_name(state: &AppState, id: &str) -> String {
+    state
+        .threats
+        .playbooks
+        .iter()
+        .find(|p| p.id == id)
+        .map_or_else(|| id.to_string(), |pb| pb.name.clone())
+}
+
 pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let mut command: Option<GuiCommand> = None;
 
@@ -398,8 +412,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui: &mut egui::Ui| {
-                                        if widgets::ghost_button(ui, icons::TRASH.to_string())
-                                            .clicked()
+                                        if widgets::icon_button(
+                                            ui,
+                                            icons::TRASH,
+                                            Some("Supprimer le playbook"),
+                                        )
+                                        .clicked()
                                         {
                                             delete_id = Some(pb.id.to_string());
                                         }
@@ -431,8 +449,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 });
             }
 
-            // Apply toggle commands
+            // Apply toggle commands. Turning a playbook off lowers
+            // protection: it needs the administrator mode, asked for before
+            // anything changes so the switch never shows a state the agent
+            // does not have.
             for (id, enabled) in toggle_commands {
+                if !enabled && !state.require_admin("Désactiver un playbook") {
+                    continue;
+                }
                 if let Some(pb) = state.threats.playbooks.iter_mut().find(|p| p.id == id) {
                     pb.enabled = enabled;
                 }
@@ -442,22 +466,68 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 });
             }
 
-            // Apply delete
-            if let Some(ref id) = delete_id {
-                state.threats.playbooks.retain(|p| p.id != *id);
-                command = Some(GuiCommand::DeletePlaybook {
-                    playbook_id: id.clone(),
-                });
+            // Deleting and running ask first; the dialogs below act.
+            if let Some(id) = delete_id
+                && state.require_admin("Supprimer un playbook")
+            {
+                modal::ask_confirmation(ui.ctx(), DELETE_CONFIRM, id);
             }
-
-            // Apply execute
-            if let Some(ref id) = execute_id {
-                command = Some(GuiCommand::ExecutePlaybook {
-                    playbook_id: id.clone(),
-                });
+            if let Some(id) = execute_id {
+                modal::ask_confirmation(ui.ctx(), EXECUTE_CONFIRM, id);
             }
         }
     });
+
+    if let Some(id) = modal::pending_confirmation::<String>(ui.ctx(), DELETE_CONFIRM) {
+        let name = playbook_name(state, &id);
+        if modal::resolve_confirmation::<String>(
+            ui.ctx(),
+            DELETE_CONFIRM,
+            "Supprimer le playbook ?",
+            &format!(
+                "« {name} » ne se déclenchera plus et sa configuration sera supprimée de ce \
+                 poste et de la plateforme. Cette action est irréversible."
+            ),
+            "Supprimer",
+        ) {
+            state.threats.playbooks.retain(|p| p.id != id);
+            command = Some(GuiCommand::DeletePlaybook { playbook_id: id });
+        }
+    }
+    if let Some(id) = modal::pending_confirmation::<String>(ui.ctx(), EXECUTE_CONFIRM) {
+        let (name, actions) = state
+            .threats
+            .playbooks
+            .iter()
+            .find(|p| p.id == id)
+            .map(|pb| {
+                let actions = pb
+                    .actions
+                    .iter()
+                    .map(|a| a.action_type.label_fr())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                (pb.name.clone(), actions)
+            })
+            .unwrap_or_else(|| (id.clone(), String::new()));
+        if modal::resolve_confirmation::<String>(
+            ui.ctx(),
+            EXECUTE_CONFIRM,
+            "Exécuter le playbook maintenant ?",
+            &format!(
+                "« {name} » va exécuter ses actions sur ce poste : {}.\n\nL'exécution est \
+                 enregistrée dans le journal d'audit.",
+                if actions.is_empty() {
+                    "aucune action définie"
+                } else {
+                    &actions
+                }
+            ),
+            "Exécuter",
+        ) {
+            command = Some(GuiCommand::ExecutePlaybook { playbook_id: id });
+        }
+    }
 
     ui.add_space(theme::SPACE_MD);
 
@@ -668,7 +738,9 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                         ui.add_space(theme::SPACE_XS);
                         widgets::text_input(ui, &mut cond.value, "Valeur…");
                         ui.add_space(theme::SPACE_XS);
-                        if widgets::ghost_button(ui, icons::TRASH.to_string()).clicked() {
+                        if widgets::icon_button(ui, icons::TRASH, Some("Retirer cette condition"))
+                            .clicked()
+                        {
                             remove_cond_idx = Some(i);
                         }
                     });
@@ -718,7 +790,9 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                             action.action_type = *at;
                         }
                         ui.add_space(theme::SPACE_XS);
-                        if widgets::ghost_button(ui, icons::TRASH.to_string()).clicked() {
+                        if widgets::icon_button(ui, icons::TRASH, Some("Retirer cette action"))
+                            .clicked()
+                        {
                             remove_action_idx = Some(i);
                         }
                     });

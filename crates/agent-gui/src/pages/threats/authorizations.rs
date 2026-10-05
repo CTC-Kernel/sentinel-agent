@@ -247,6 +247,7 @@ fn editor_form(ui: &mut egui::Ui, state: &mut AppState, editor: &mut Editor) {
             valid && !duplicate && !editor.reason.trim().is_empty(),
         )
         .clicked()
+            && state.require_admin("Enregistrer une autorisation (exception de détection)")
         {
             if let Some(existing) = editor.editing {
                 state.threats.remove_allowlist_rule(existing);

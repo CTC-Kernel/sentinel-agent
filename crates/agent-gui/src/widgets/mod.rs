@@ -57,6 +57,7 @@ pub mod slider;
 mod activity_feed;
 pub mod detail_drawer;
 mod org_banner;
+mod pause_banner;
 mod sparkline;
 
 pub use card::{Card, CardVariant, card, clickable_card, danger_card, flat_card};
@@ -89,6 +90,7 @@ pub use detail_drawer::{
     detail_field_colored, detail_mono, detail_progress, detail_section, detail_text,
 };
 pub use org_banner::org_banner;
+pub use pause_banner::{PAUSE_BANNER_HEIGHT, pause_banner};
 pub use sparkline::{
     SparklineConfig, mini_gauge, sparkline, sparkline_card_body, sparkline_with_value,
 };

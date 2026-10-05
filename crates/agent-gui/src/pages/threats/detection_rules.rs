@@ -15,6 +15,7 @@ use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
+use crate::widgets::modal;
 
 /// Inline editing state for the new-rule form.
 struct InlineRuleForm {
@@ -191,9 +192,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui: &mut egui::Ui| {
-                                        let del_resp =
-                                            widgets::ghost_button(ui, icons::TRASH.to_string())
-                                                .on_hover_text("Supprimer");
+                                        let del_resp = widgets::icon_button(
+                                            ui,
+                                            icons::TRASH,
+                                            Some("Supprimer la règle"),
+                                        );
                                         if del_resp.clicked() {
                                             delete_id = Some(rule.id.to_string());
                                         }
@@ -215,8 +218,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 });
             }
 
-            // Apply toggle commands
+            // Apply toggle commands. Turning a rule off removes a detection:
+            // administrator mode first, before the switch changes.
             for (id, enabled) in toggle_commands {
+                if !enabled && !state.require_admin("Désactiver une règle de détection") {
+                    continue;
+                }
                 if let Some(rule) = state
                     .threats
                     .detection_rules
@@ -231,18 +238,42 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 });
             }
 
-            // Apply delete
-            if let Some(ref id) = delete_id {
-                state.threats.detection_rules.retain(|r| r.id != *id);
-                command = Some(GuiCommand::DeleteDetectionRule {
-                    rule_id: id.clone(),
-                });
+            // Deleting asks first; the dialog below acts.
+            if let Some(id) = delete_id
+                && state.require_admin("Supprimer une règle de détection")
+            {
+                modal::ask_confirmation(ui.ctx(), DELETE_CONFIRM, id);
             }
         }
     });
 
+    if let Some(id) = modal::pending_confirmation::<String>(ui.ctx(), DELETE_CONFIRM) {
+        let name = state
+            .threats
+            .detection_rules
+            .iter()
+            .find(|r| r.id == id)
+            .map_or_else(|| id.clone(), |r| r.name.clone());
+        if modal::resolve_confirmation::<String>(
+            ui.ctx(),
+            DELETE_CONFIRM,
+            "Supprimer la règle de détection ?",
+            &format!(
+                "« {name} » ne détectera plus rien sur ce poste et sera supprimée de la \
+                 plateforme. Cette action est irréversible."
+            ),
+            "Supprimer",
+        ) {
+            state.threats.detection_rules.retain(|r| r.id != id);
+            command = Some(GuiCommand::DeleteDetectionRule { rule_id: id });
+        }
+    }
+
     command
 }
+
+/// Confirmation dialog of the rule list.
+const DELETE_CONFIRM: &str = "detection_rule_delete_confirm";
 
 /// Inline form to create a new detection rule.
 fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
@@ -314,8 +345,8 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                         ui.add_space(theme::SPACE_XS);
                         widgets::text_input(ui, &mut cond.value, "Valeur…");
                         ui.add_space(theme::SPACE_XS);
-                        let del_resp = widgets::ghost_button(ui, icons::TRASH.to_string())
-                            .on_hover_text("Supprimer");
+                        let del_resp =
+                            widgets::icon_button(ui, icons::TRASH, Some("Retirer cette condition"));
                         if del_resp.clicked() {
                             remove_cond_idx = Some(i);
                         }

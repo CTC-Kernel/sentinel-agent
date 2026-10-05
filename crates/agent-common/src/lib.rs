@@ -34,6 +34,7 @@ pub mod macos;
 pub mod process;
 pub mod sensitive_filter;
 pub mod types;
+pub mod webhook;
 
 // Re-export commonly used items at crate root
 pub use config::AgentConfig;

@@ -12,6 +12,7 @@
 
 use egui::Ui;
 use std::cmp::Ordering;
+use zeroize::Zeroize;
 
 use crate::icons;
 use crate::theme;
@@ -49,6 +50,9 @@ pub struct EnrollmentWizard {
     pub progress_message: String,
     pub show_token: bool,
     pub admin_password: String,
+    /// Second entry of the administrator password: a typo here would lock
+    /// the operator out of every critical setting.
+    pub admin_password_confirm: String,
     pub show_password: bool,
     pub is_enrolling: bool,
 }
@@ -66,6 +70,7 @@ impl Default for EnrollmentWizard {
             progress_message: "Connexion au serveur…".to_string(),
             show_token: false,
             admin_password: String::new(),
+            admin_password_confirm: String::new(),
             show_password: false,
             is_enrolling: false,
         }
@@ -532,19 +537,47 @@ impl EnrollmentWizard {
 
                 widgets::PasswordInput::new(
                     &mut self.admin_password,
-                    "Saisir un mot de passe sécurisé (min. 8 caractères)",
+                    "Phrase de passe ou mot de passe (12 caractères minimum)",
                     &mut self.show_password,
                 )
                 .id_salt("enrolment_admin_password")
                 .proportional()
                 .show(ui);
+                if !self.admin_password.is_empty() {
+                    crate::admin_dialog::strength_meter(ui, &self.admin_password);
+                }
 
-                // Password strength feedback
-                let pw_len = self.admin_password.trim().len();
-                if pw_len > 0 && pw_len < 8 {
+                ui.add_space(theme::SPACE_MD);
+                ui.label(
+                    egui::RichText::new("Confirmer le mot de passe")
+                        .font(theme::font_label())
+                        .color(theme::text_secondary()),
+                );
+                ui.add_space(theme::SPACE_XS);
+                widgets::PasswordInput::new(
+                    &mut self.admin_password_confirm,
+                    "Saisir à nouveau le mot de passe",
+                    &mut self.show_password,
+                )
+                .id_salt("enrolment_admin_password_confirm")
+                .proportional()
+                .show(ui);
+
+                // Policy feedback once both fields hold something: the
+                // password is used exactly as typed (no trimming) and its
+                // length is counted in characters.
+                let check = crate::admin_auth::check_new_password(
+                    &self.admin_password,
+                    &self.admin_password_confirm,
+                );
+                if let Err(issue) = check
+                    && !self.admin_password.is_empty()
+                    && (!self.admin_password_confirm.is_empty()
+                        || issue != crate::admin_auth::PasswordIssue::Mismatch)
+                {
                     ui.add_space(theme::SPACE_XS);
                     ui.label(
-                        egui::RichText::new("Le mot de passe doit contenir au moins 8 caractères.")
+                        egui::RichText::new(issue.message())
                             .font(theme::font_small())
                             .color(theme::readable_color(theme::ERROR)),
                     );
@@ -554,9 +587,9 @@ impl EnrollmentWizard {
 
                 // Actions
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    let is_valid = self.admin_password.trim().len() >= 8;
+                    let is_valid = check.is_ok();
 
-                    if widgets::primary_button_loading(
+                    let submit = widgets::primary_button_loading(
                         ui,
                         if self.standalone {
                             "Activer la protection"
@@ -565,10 +598,18 @@ impl EnrollmentWizard {
                         },
                         is_valid && !self.is_enrolling,
                         self.is_enrolling,
-                    )
-                    .clicked()
-                    {
-                        let password = Some(self.admin_password.trim().to_string());
+                    );
+                    let submit = if is_valid {
+                        submit
+                    } else {
+                        submit.on_hover_text(
+                            "Saisissez deux fois un mot de passe d'au moins 12 caractères.",
+                        )
+                    };
+                    if submit.clicked() && is_valid {
+                        let password = Some(self.admin_password.clone());
+                        self.admin_password.zeroize();
+                        self.admin_password_confirm.zeroize();
                         self.step = EnrollmentStep::InProgress;
                         self.is_enrolling = true;
                         if self.standalone {

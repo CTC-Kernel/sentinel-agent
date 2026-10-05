@@ -121,30 +121,36 @@ impl AssetsPage {
                 .filter(|d| !state.assets.assets.iter().any(|a| a.ip == d.ip))
                 .count();
 
-            if state.security.admin_unlocked {
-                let label = if discoverable > 0 {
-                    format!(
-                        "{}  AUTORISER DEPUIS LA D\u{00c9}TECTION ({})",
-                        icons::DOWNLOAD,
-                        discoverable
-                    )
-                } else {
-                    format!("{}  AUTORISER DEPUIS LA D\u{00c9}TECTION", icons::DOWNLOAD)
-                };
-                if widgets::primary_button(ui, label, discoverable > 0).clicked() {
-                    Self::import_from_discovery(state);
-                    state.push_toast(
-                        crate::widgets::toast::Toast::success(
-                            "Actifs import\u{00e9}s depuis la d\u{00e9}couverte r\u{00e9}seau",
-                        ),
-                        ui.ctx(),
-                    );
-                }
+            // Authorising devices is an administrator action. Locked, the
+            // button stays clickable and asks for the password.
+            let unlocked = state.security.admin_unlocked;
+            let label = match (discoverable, unlocked) {
+                (0, true) => format!("{}  AUTORISER DEPUIS LA D\u{00c9}TECTION", icons::DOWNLOAD),
+                (n, true) => format!(
+                    "{}  AUTORISER DEPUIS LA D\u{00c9}TECTION ({n})",
+                    icons::DOWNLOAD
+                ),
+                (_, false) => format!("{}  Autoriser depuis la d\u{00e9}tection", icons::LOCK),
+            };
+            let response = widgets::primary_button(ui, label, discoverable > 0 || !unlocked);
+            let response = if !unlocked {
+                response.on_hover_text("Nécessite le mode administrateur")
+            } else if discoverable == 0 {
+                response
+                    .on_hover_text("Tous les appareils découverts figurent déjà dans l'inventaire.")
             } else {
-                widgets::primary_button(
-                    ui,
-                    format!("{}  Autoriser depuis la d\u{00e9}tection", icons::LOCK),
-                    false,
+                response
+            };
+            if response.clicked()
+                && state.require_admin("Autoriser des appareils découverts dans l'inventaire")
+                && discoverable > 0
+            {
+                Self::import_from_discovery(state);
+                state.push_toast(
+                    crate::widgets::toast::Toast::success(
+                        "Actifs import\u{00e9}s depuis la d\u{00e9}couverte r\u{00e9}seau",
+                    ),
+                    ui.ctx(),
                 );
             }
 

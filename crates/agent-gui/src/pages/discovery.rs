@@ -34,30 +34,37 @@ impl DiscoveryPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 let is_scanning = state.discovery.in_progress;
 
+                // Discovery probes the network, so it is an administrator
+                // action. Locked, the button stays clickable: it asks for the
+                // password instead of sitting greyed out with "· admin".
+                let unlocked = state.security.admin_unlocked;
+                let lock = if unlocked {
+                    String::new()
+                } else {
+                    format!("  {}", icons::LOCK)
+                };
                 let btn_response = if is_scanning {
                     widgets::primary_button(
                         ui,
-                        format!("{}  Interrompre l'analyse", icons::TRASH),
-                        state.security.admin_unlocked,
-                    )
-                } else if state.security.admin_unlocked {
-                    widgets::primary_button(
-                        ui,
-                        format!("{}  Lancer la découverte", icons::PLAY),
+                        format!("{}  Interrompre l'analyse{lock}", icons::TRASH),
                         true,
                     )
                 } else {
-                    // Disabled button for non-admin users
                     widgets::primary_button(
                         ui,
-                        // Disabled until the admin unlock: say so in words, keep the
-                        // run icon (a lock read as the action itself).
-                        format!("{}  Lancer la découverte · admin", icons::PLAY),
-                        false,
+                        format!("{}  Lancer la découverte{lock}", icons::PLAY),
+                        true,
                     )
                 };
+                let btn_response = if unlocked {
+                    btn_response
+                } else {
+                    btn_response.on_hover_text("Nécessite le mode administrateur")
+                };
 
-                if btn_response.clicked() {
+                if btn_response.clicked()
+                    && state.require_admin("Lancer ou interrompre la découverte réseau")
+                {
                     if is_scanning {
                         cmd = Some(crate::events::GuiCommand::StopDiscovery);
                     } else {

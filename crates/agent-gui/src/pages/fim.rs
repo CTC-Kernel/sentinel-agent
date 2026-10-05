@@ -129,6 +129,7 @@ impl FimPage {
                         state.fim.alerts.iter().map(|a| a.acknowledged).collect();
                     let admin_unlocked = state.security.admin_unlocked;
                     let mut ack_command = None;
+                    let mut unlock_requested = false;
 
                     const FIM_PER_PAGE: usize = 50;
                     let (fim_start, fim_len, _) = widgets::page_window(
@@ -215,13 +216,16 @@ impl FimPage {
                                     {
                                         ack_command = Some(idx);
                                     }
-                                } else {
-                                    widgets::chip_button(
-                                        ui,
-                                        &format!("{}  Acquitter", icons::LOCK),
-                                        false,
-                                        theme::text_tertiary(),
-                                    );
+                                } else if widgets::chip_button(
+                                    ui,
+                                    &format!("{}  Acquitter", icons::LOCK),
+                                    false,
+                                    theme::text_tertiary(),
+                                )
+                                .on_hover_text("Nécessite le mode administrateur")
+                                .clicked()
+                                {
+                                    unlock_requested = true;
                                 }
                             });
 
@@ -247,6 +251,12 @@ impl FimPage {
                     {
                         state.fim.selected_alert = Some(pos);
                         state.fim.page = pos / FIM_PER_PAGE;
+                    }
+
+                    if unlock_requested {
+                        state
+                            .security
+                            .request_unlock("Acquitter une alerte d'intégrité");
                     }
 
                     // Apply acknowledgment after the table

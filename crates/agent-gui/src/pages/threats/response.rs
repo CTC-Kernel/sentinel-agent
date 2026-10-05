@@ -210,13 +210,25 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 // ResponseActionResult arrives, so we do not push here
                 // to avoid duplicates.
 
-                state.toasts.push(
-                    crate::widgets::toast::Toast::info(format!(
+                // Undoing a containment waits for the administrator mode;
+                // say so instead of announcing it as sent.
+                let held = command.as_ref().is_some_and(|cmd| {
+                    cmd.admin_reason().is_some() && !state.security.admin_unlocked
+                });
+                let message = if held {
+                    format!(
+                        "{} sur {} : en attente du mode administrateur",
+                        confirm_text, pending.target
+                    )
+                } else {
+                    format!(
                         "Action envoy\u{00e9}e : {} sur {}",
                         confirm_text, pending.target
-                    ))
-                    .with_time(time),
-                );
+                    )
+                };
+                state
+                    .toasts
+                    .push(crate::widgets::toast::Toast::info(message).with_time(time));
                 state.threats.confirm_action = None;
             }
             ModalResult::Cancel | ModalResult::Dismiss => {

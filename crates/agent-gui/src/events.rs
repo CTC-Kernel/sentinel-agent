@@ -682,8 +682,87 @@ pub enum GuiCommand {
     },
 }
 
+impl GuiCommand {
+    /// Why this command needs the administrator mode, or `None` when any
+    /// operator may send it.
+    ///
+    /// The rule: anything that silently lowers protection, removes detection
+    /// or alerting content, undoes a containment, or sends security data to
+    /// a new destination. Protective actions (block, isolate, quarantine,
+    /// scan) stay available to every operator. Quitting the application is
+    /// not listed: the operator owns the process and can end it anyway, and
+    /// a password on the window's close button would only trap them. The
+    /// application enforces this where commands leave the interface,
+    /// whatever button, tray menu or assistant suggestion produced them.
+    pub fn admin_reason(&self) -> Option<&'static str> {
+        Some(match self {
+            Self::Pause => "Mettre la protection de l'agent en pause",
+            Self::ReleaseHost => "Lever l'isolement réseau du poste",
+            Self::UnblockIp { .. } => "Débloquer une adresse IP",
+            Self::RestoreQuarantinedFile { .. } => "Restaurer un fichier mis en quarantaine",
+            Self::SetRansomwareCanaries { enabled: false } => "Retirer les fichiers leurres",
+            Self::TogglePlaybook { enabled: false, .. } => "Désactiver un playbook",
+            Self::DeletePlaybook { .. } => "Supprimer un playbook",
+            Self::ToggleDetectionRule { enabled: false, .. } => "Désactiver une règle de détection",
+            Self::DeleteDetectionRule { .. } => "Supprimer une règle de détection",
+            Self::DeleteAlertRule { .. } => "Supprimer une règle d'alerte",
+            Self::SaveWebhook { .. } => "Modifier la destination des alertes (webhook)",
+            Self::DeleteWebhook { .. } => "Supprimer un webhook",
+            Self::DeleteRisk { .. } => "Supprimer un risque",
+            Self::ApplyAiRemediation { .. } => "Exécuter un script de correction proposé par l'IA",
+            _ => return None,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn commands_that_weaken_protection_need_the_administrator() {
+        for cmd in [
+            GuiCommand::Pause,
+            GuiCommand::ReleaseHost,
+            GuiCommand::SetRansomwareCanaries { enabled: false },
+            GuiCommand::TogglePlaybook {
+                playbook_id: "p".into(),
+                enabled: false,
+            },
+            GuiCommand::DeleteDetectionRule {
+                rule_id: "r".into(),
+            },
+            GuiCommand::DeleteWebhook {
+                webhook_id: "w".into(),
+            },
+        ] {
+            assert!(cmd.admin_reason().is_some(), "{cmd:?}");
+        }
+    }
+
+    #[test]
+    fn protective_and_routine_commands_stay_open() {
+        for cmd in [
+            GuiCommand::Resume,
+            GuiCommand::Shutdown,
+            GuiCommand::RunCheck,
+            GuiCommand::IsolateHost { duration_secs: 0 },
+            GuiCommand::BlockIp {
+                ip: "203.0.113.7".into(),
+                duration_secs: 0,
+            },
+            GuiCommand::SetRansomwareCanaries { enabled: true },
+            GuiCommand::TogglePlaybook {
+                playbook_id: "p".into(),
+                enabled: true,
+            },
+            GuiCommand::ToggleDetectionRule {
+                rule_id: "r".into(),
+                enabled: true,
+            },
+        ] {
+            assert_eq!(cmd.admin_reason(), None, "{cmd:?}");
+        }
+    }
     use super::*;
 
     #[test]

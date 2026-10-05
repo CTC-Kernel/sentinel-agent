@@ -49,6 +49,26 @@ impl Default for Preview {
             if std::env::var("PREVIEW_STANDALONE").is_ok() {
                 fixtures::standalone(&mut state);
             }
+            // PREVIEW_ADMIN=unlock|set|change opens the administrator dialog:
+            // unlock with a stored password, first password, or change.
+            if let Ok(mode) = std::env::var("PREVIEW_ADMIN") {
+                if mode != "set" {
+                    state.settings.admin_password_hash =
+                        agent_gui::admin_auth::hash_password("preview passphrase")
+                            .unwrap_or_default();
+                }
+                if mode == "change" {
+                    state.security.admin_unlocked = true;
+                    state.security.changing_password = true;
+                }
+                state.security.request_unlock("Mettre la protection de l'agent en pause");
+            }
+            // PREVIEW_PAUSED shows the strip of a pause that ends in 42 min.
+            if std::env::var("PREVIEW_PAUSED").is_ok() {
+                state.settings.is_paused = true;
+                state.settings.pause_until =
+                    Some(chrono::Utc::now() + chrono::Duration::minutes(42));
+            }
             if let Some(tab) = std::env::var("PREVIEW_TAB")
                 .ok()
                 .and_then(|v| v.parse().ok())
@@ -277,6 +297,12 @@ impl eframe::App for Preview {
             }
         }
 
+        if let Some(state) = self.state.as_deref()
+            && state.settings.is_paused
+        {
+            let _ = widgets::pause_banner(ctx, state.settings.pause_until);
+        }
+
         egui::SidePanel::left("sidebar")
             .exact_width(widgets::Sidebar::width(collapsed))
             .frame(egui::Frame::new().inner_margin(egui::Margin::ZERO))
@@ -351,6 +377,7 @@ impl eframe::App for Preview {
         if let Some(state) = self.state.as_mut() {
             // Commands are not sent by the preview bench.
             let _ = agent_gui::llm_panel::LLMPanel::voice_settings_window(ctx, state);
+            let _ = agent_gui::admin_dialog::show(ctx, state);
         }
 
         self.end_frame(ctx);
