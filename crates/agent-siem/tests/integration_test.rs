@@ -235,7 +235,7 @@ fn event_category_serde_roundtrip() {
 #[tokio::test]
 async fn required_event_reaches_local_syslog_receiver() {
     use tokio::net::UdpSocket;
-    use tokio::time::{timeout, Duration};
+    use tokio::time::{Duration, timeout};
 
     let receiver = UdpSocket::bind("127.0.0.1:0").await.unwrap();
     let config = SiemConfig {
